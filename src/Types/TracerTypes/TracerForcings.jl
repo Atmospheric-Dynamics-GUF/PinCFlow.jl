@@ -1,3 +1,12 @@
+"""
+```julia
+TracerForcings{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
+}
+```
+"""
 struct TracerForcings{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractArray{<:AbstractFloat, 3},
@@ -14,6 +23,11 @@ struct TracerForcings{
     chiturbw::C
 end
 
+"""
+```julia
+TracerForcing(namelists::Namelists, domain::Domain)
+```
+"""
 function TracerForcing(namelists::Namelists, domain::Domain)
     (; tracersetup) = namelists.tracer
 

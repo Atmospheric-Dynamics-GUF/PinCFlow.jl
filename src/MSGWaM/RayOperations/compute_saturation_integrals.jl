@@ -35,8 +35,8 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``\\overline{\\r
 
 # Returns
 
-  - `::Float64`: Discretized saturation integral ``S_1``.
-  - `::Float64`: Discretized saturation integral ``S_2``.
+  - `::AbstractFloat`: Discretized saturation integral ``S_1``.
+  - `::AbstractFloat`: Discretized saturation integral ``S_2``.
 
 # See also
 

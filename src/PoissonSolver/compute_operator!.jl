@@ -3,30 +3,31 @@
 compute_operator!(state::State, dt::AbstractFloat, facray::AbstractFloat)
 ```
 
-Compute coefficients for the discrete Poisson operator matrix.
+Compute the tensor elements of the linear operator on the left-hand side of the Poisson equation.
 
-This function builds the matrix coefficients for the discretized Poisson equation,
-accounting for terrain-following coordinates, variable density, implicit time stepping,
-and sponge layer damping. The resulting operator is used in the BiCGStab linear solver.
+The operator is obtained by rewriting the scaled Poisson equation
+
+```math
+\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right) = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS}
+```
+
+as
+
+```math
+\\sum_{\\lambda, \\mu, \\nu} A_{i + \\lambda, j + \\mu, k + \\nu} s_{i + \\lambda, j + \\mu, k + \\nu} = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS},
+```
+
+where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt{\\overline{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing all physical fields
-  - `dt::AbstractFloat`: Time step size for implicit contributions
-  - `facray::AbstractFloat`: Rayleigh damping factor for sponge layers
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-# Physical considerations
+# See also
 
-  - Terrain-following coordinate transformations via metric tensor
-  - Variable density effects for compressible/pseudo-incompressible models
-  - Buoyancy frequency coupling for stratified atmosphere
-  - Rayleigh sponge damping near boundaries
-
-# Output
-
-  - Matrix coefficients stored in `state.poisson.tensor` for 19-point stencil
-  - Horizontal/vertical operator components for preconditioner
-  - Boundary condition modifications for solid walls
+  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
 """
 function compute_operator!(
     state::State,

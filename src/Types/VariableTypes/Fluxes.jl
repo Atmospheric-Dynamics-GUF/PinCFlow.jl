@@ -6,19 +6,18 @@ Fluxes{
 }
 ```
 
-Storage for numerical fluxes in three spatial directions (x, y, z) on a 3D grid.
+Arrays for fluxes needed in the computation of the left-hand sides.
+
+The first three dimensions represent physical space and the fourth dimension represents the flux direction.
 
 # Fields
 
-  - `phirho::A`: Density flux arrays (nxx × nyy × nzz × 3)
-  - `phirhop::A`: Density perturbation flux arrays (nxx × nyy × nzz × 3)
-  - `phiu::A`: x-velocity flux arrays (nxx × nyy × nzz × 3)
-  - `phiv::A`: y-velocity flux arrays (nxx × nyy × nzz × 3)
-  - `phiw::A`: z-velocity flux arrays (nxx × nyy × nzz × 3)
-  - `phip::B`: Pressure flux arrays (model-dependent dimensions)
-
-The fourth dimension represents the three spatial directions for flux computation (x=1, y=2, z=3).
-For incompressible models, `phip` is empty (0×0×0×0).
+  - `phirho::A`: Density fluxes.
+  - `phirhop::A`: Density-fluctuation fluxes.
+  - `phiu::A`: Zonal-momentum fluxes.
+  - `phiv::A`: Meridional-momentum fluxes.
+  - `phiw::A`: Transformed-vertical-momentum fluxes.
+  - `phip::B`: Mass-weighted potential-temperature fluxes.
 """
 struct Fluxes{
     A <: AbstractArray{<:AbstractFloat, 4},
@@ -37,7 +36,18 @@ end
 Fluxes(namelists::Namelists, domain::Domain)
 ```
 
-Construct `Fluxes` from configuration namelists and domain specification.
+Construct a `Fluxes` instance with dimensions depending on whether or not the model is compressible.
+
+Dispatches to specific methods depending on the dynamic equations.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+# Returns
+
+  - `::Fluxes`: `Fluxes` instance with zero-initialized arrays of the appropriate dimensions.
 """
 function Fluxes(namelists::Namelists, domain::Domain)
     (; model) = namelists.setting
@@ -49,7 +59,16 @@ end
 Fluxes(domain::Domain, model::AbstractModel)
 ```
 
-Construct `Fluxes` for incompressible models with empty pressure flux array.
+Construct a `Fluxes` instance in non-compressible modes, with a zero-size array for mass-weighted potential-temperature fluxes.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `model`: Dynamic equations.
+
+# Returns
+
+  - `::Fluxes`: `Fluxes` instance with zero-initialized arrays (`phip` has size `(0, 0, 0, 0)`).
 """
 function Fluxes(domain::Domain, model::AbstractModel)
     (; nxx, nyy, nzz) = domain
@@ -67,7 +86,16 @@ end
 Fluxes(domain::Domain, model::Compressible)
 ```
 
-Construct `Fluxes` for compressible models including pressure flux arrays.
+Construct a `Fluxes` instance in compressible mode.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `model`: Dynamic equations.
+
+# Returns
+
+  - `::Fluxes`: `Fluxes` instance with zero-initialized arrays.
 """
 function Fluxes(domain::Domain, model::Compressible)
     (; nxx, nyy, nzz) = domain

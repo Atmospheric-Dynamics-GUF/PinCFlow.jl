@@ -1,3 +1,8 @@
+"""
+```julia
+TurbulenceTypes
+```
+"""
 module TurbulenceTypes
 
 using ..NamelistTypes

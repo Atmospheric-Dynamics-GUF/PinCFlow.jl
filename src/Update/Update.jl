@@ -6,6 +6,11 @@ Update
 Module for integrating the prognostic equations.
 
 Provides functions for updating the prognostic variables at the various stages of the semi-implicit time scheme.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.Boundaries`](@ref)
 """
 module Update
 

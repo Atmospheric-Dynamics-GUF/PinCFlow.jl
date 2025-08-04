@@ -6,51 +6,17 @@ Tendencies{
 }
 ```
 
-Time tendency storage for the prognostic variables.
-
-Holds the time derivatives (tendencies) computed during each Runge-Kutta stage
-for all prognostic fields. These tendencies are accumulated from various
-processes including advection, and pressure forces.
-
-# Type Parameters
-
-  - `A<:AbstractArray{<:AbstractFloat, 3}`: 3D array type for most tendency fields
-  - `B<:AbstractArray{<:AbstractFloat, 3}`: 3D array type for pressure tendency (model-dependent)
+Container for the Runge-Kutta updates of the prognostic variables, as well as the Exner-pressure update of the Poisson solver.
 
 # Fields
 
-  - `drho::A`: Total density tendency [∂ρ/∂t]
-  - `drhop::A`: Density perturbation tendency [∂ρ'/∂t]
-  - `du::A`: Zonal velocity tendency [∂u/∂t]
-  - `dv::A`: Meridional velocity tendency [∂v/∂t]
-  - `dw::A`: Vertical velocity tendency [∂w/∂t]
-  - `dpip::A`: Pressure correction tendency [∂π'/∂t]
-  - `dp::B`: Pressure tendency (compressible model only) [∂p/∂t]
-
-# Constructors
-
-    Tendencies(namelists::Namelists, domain::Domain)
-    Tendencies(domain::Domain, model::AbstractModel)
-    Tendencies(domain::Domain, model::Compressible)
-
-# Model Dependencies
-
-## AbstractModel (Boussinesq, PseudoIncompressible)
-
-  - Uses 6 tendency fields (dp unused, set to empty array)
-  - Pressure handled through dpip correction field
-  - Density split into background + perturbation components
-
-## Compressible
-
-  - Uses all 7 tendency fields including dp
-  - Explicit pressure evolution equation
-
-# Memory Layout
-
-  - All arrays sized according to domain decomposition (nxx, nyy, nzz)
-  - Includes halo regions for boundary exchanges
-  - Zero-initialized for accumulation of tendency contributions
+  - `drho::A`: Density update.
+  - `drhop::A`: Density-fluctuation update.
+  - `du::A`: Zonal-momentum update.
+  - `dv::A`: Meridional-momentum update.
+  - `dw::A`: Transformed-vertical-momentum update.
+  - `dpip::A`: Exner-pressure update.
+  - `dp::B`: Mass-weighted potential-temperature update.
 """
 struct Tendencies{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -70,19 +36,18 @@ end
 Tendencies(namelists::Namelists, domain::Domain)
 ```
 
-Create tendencies storage from configuration.
+Create a `Tendencies` instance with dimensions depending on whether or not the model is compressible.
 
-Dispatches to model-specific constructor based on equation set specified
-in namelists.setting.model.
+Dispatches to specific methods depending on the dynamic equations.
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration including model type
-  - `domain::Domain`: Domain decomposition for array sizing
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Returns
 
-  - `Tendencies`: Initialized tendency storage for the specified model
+  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays of the appropriate dimensions.
 """
 function Tendencies(namelists::Namelists, domain::Domain)
     (; model) = namelists.setting
@@ -94,16 +59,16 @@ end
 Tendencies(domain::Domain, model::AbstractModel)
 ```
 
-Create tendencies for non-compressible models (Boussinesq, PseudoIncompressible).
+Create a `Tendencies` instance in non-compressible modes, with a zero-size array for the mass-weighted potential-temperature update.
 
 # Arguments
 
-  - `domain::Domain`: Domain information for array dimensions
-  - `model::AbstractModel`: Model type (excludes Compressible)
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `model`: Dynamic equations.
 
 # Returns
 
-  - `Tendencies`: Storage with 6 active fields, dp field unused (empty array)
+  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays (`dp` has size `(0, 0, 0)`).
 """
 function Tendencies(domain::Domain, model::AbstractModel)
     (; nxx, nyy, nzz) = domain
@@ -121,16 +86,16 @@ end
 Tendencies(domain::Domain, model::Compressible)
 ```
 
-Create tendencies for fully compressible model.
+Create a `Tendencies` instance in compressible mode.
 
 # Arguments
 
-  - `domain::Domain`: Domain information for array dimensions
-  - `model::Compressible`: Compressible model type
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `model`: Dynamic equations.
 
 # Returns
 
-  - `Tendencies`: Storage with all 7 fields active including explicit pressure tendency
+  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays.
 """
 function Tendencies(domain::Domain, model::Compressible)
     (; nxx, nyy, nzz) = domain

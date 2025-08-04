@@ -31,7 +31,6 @@ output = OutputNamelist(;
     maxiter = 1,
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
-    fancy_namelists = true,
     input_file = "./pincflow_input.h5",
     output_file = output_file,
 )

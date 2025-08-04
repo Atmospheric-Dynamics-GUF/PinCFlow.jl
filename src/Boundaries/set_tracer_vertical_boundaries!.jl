@@ -1,3 +1,12 @@
+"""
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    tracersetup::NoTracer,
+)
+```
+"""
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -6,6 +15,15 @@ function set_tracer_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    tracersetup::AbstractTracer,
+)
+```
+"""
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -28,6 +46,15 @@ function set_tracer_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    tracersetup::NoTracer,
+)
+```
+"""
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
@@ -36,6 +63,15 @@ function set_tracer_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    tracersetup::AbstractTracer,
+)
+```
+"""
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
@@ -57,6 +93,15 @@ function set_tracer_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    tracersetup::NoTracer,
+)
+```
+"""
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
@@ -65,6 +110,15 @@ function set_tracer_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    tracersetup::AbstractTracer,
+)
+```
+"""
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,

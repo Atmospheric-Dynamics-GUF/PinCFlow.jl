@@ -39,7 +39,7 @@ The individual stability criteria are as follows.
 
 # Returns
 
-  - `::Float64`: Time step.
+  - `::AbstractFloat`: Time step.
 
 # See also
 
