@@ -37,27 +37,57 @@ The documentation will be generated in the `docs/build` directory. To view the d
 
 ### Code
 
-1. Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module.
+* Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module.
 
-1. Do not use Unicode.
+* Do not use Unicode.
+
+* Use `CamelCase` for the names of modules and types. Use single captial letters for type parameters. For all other objects, use `snake_case` (in case the name only contains (preferrably whole) words, e.g. `vertical_wind`) and `squashedcase` (in case the name is mathematical, e.g. `what` for $\widehat{w}$).
+
+* Use parametric composite types.
+
+* Declare the types of method arguments.
+
+* Use `@views` for expressions that create slices.
 
 ### Documentation
 
-1. Write a docstring for every module, type and method.
+* Write a docstring for every module, function and type.
 
-1. Always show the exact full signature of the object at the top of the documentation, within a Julia code block.
+* Module docstrings:
 
-1. Include a single sentence describing what the method does or what the object represents after the signature block. Use the imperative form when documenting methods. If needed, provide more details in a second paragraph, after a blank line.
+    1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a second paragraph with more details.
 
-1. For method, list all arguments with descriptions (but without types and default values) under an `# Arguments` header, with one `-` bullet for each argument. For composite types, list all fields with their type restrictions and descriptions under a `# Fields` header, with one `-` bullet for each field.
+    1. List links to imported modules in a `# See also` section, with one `-` bullet for each.
 
-1. If a method returns something other than `nothing`, list all returned objects with descriptions under a `# Returns` header, with one `-` bullet for each returned object. Include the types (in Julia syntax).
+* Function docstrings:
 
-1. Provide links to imported modules and called functions under a `# See also` header, with one `-` bullet for each module/function.
+    1. For every method, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) a second paragraph with more details.
 
-1. Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences rather than Unicode characters.
+    1. List all positional and optional arguments with descriptions (but without types and default values) in an `# Arguments` section, with one `-` bullet for each.
 
-1. Place the starting and ending `"""` characters on lines by themselves.
+    1. List all keyword arguments with descriptions (but without types and default values) in a `# Keywords` section, with one `-` bullet for each.
+
+    1. If the methods of a function return something other than `nothing`, list all returned objects with descriptions in a `# Returns` section, with one `-` bullet for each.
+
+    1. List links to constructors/functions that are called in any of the explicitly defined constructor methods in a # See also section, with one `-` bullet for each.
+
+* Type docstrings:
+
+    1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a second paragraph with more details.
+
+    1. If the type is composite, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) a second paragraph with more details, for each explicitly defined constructor method.
+
+    1. If the type is composite, list all fields with their type restrictions and descriptions in a `# Fields` section, with one `-` bullet for each.
+
+    1. If the type is composite, list all positional and optional arguments of the explicitly defined constructor methods with descriptions (but without types and default values) in an `# Arguments` section, with one `-` bullet for each.
+
+    1. If the type is composite, list all keyword arguments of the explicitly defined constructor methods with descriptions (but without types and default values) in a `# Keywords section`, with one `-` bullet for each.
+
+    1. If the type is composite, list links to constructors/functions that are called in any of the explicitly defined constructor methods in a # See also section, with one `-` bullet for each.
+
+* Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences rather than Unicode characters.
+
+* Place the starting and ending `"""` characters on lines by themselves.
 
 ## List of publications
 
