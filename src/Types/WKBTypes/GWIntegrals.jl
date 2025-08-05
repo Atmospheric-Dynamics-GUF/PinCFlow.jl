@@ -5,6 +5,12 @@ GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Integrals of ray-volume properties.
 
+```julia
+GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
+```
+
+Construct a `GWIntegrals` instance, with arrays sized according to the given dimensions.
+
 # Fields
 
   - `uu::A`: Zonal zonal-momentum flux.
@@ -17,6 +23,12 @@ Integrals of ray-volume properties.
   - `utheta::A`: Zonal mass-weighted potential-temperature flux.
   - `vtheta::A`: Meridional mass-weighted potential-temperature flux.
   - `e::A`: Wave-energy density.
+
+# Arguments
+
+  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
+  - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 """
 struct GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     uu::A
@@ -31,23 +43,6 @@ struct GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     e::A
 end
 
-"""
-```julia
-GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
-```
-
-Construct a `GWIntegrals` instance, with arrays sized according to the given dimensions.
-
-# Arguments
-
-  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
-  - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
-  - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
-
-# Returns
-
-  - `::GWIntegrals`: `GWIntegrals` instance with zero-initialized arrays.
-"""
 function GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
     return GWIntegrals([zeros(nxx, nyy, nzz) for i in 1:10]...)
 end

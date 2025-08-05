@@ -16,6 +16,38 @@ WKB{
 
 Main container for WKB ray-tracing data and parameters.
 
+```julia
+WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
+```
+
+Construct a `WKB` instance by dispatching to a test-case-specific method.
+
+```julia
+WKB(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    testcase::AbstractTestCase,
+)
+```
+
+Construct a `WKB` instance with zero-size arrays for non-WKB test cases.
+
+```julia
+WKB(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Construct a `WKB` instance.
+
+This method primarily determines the size of the spectral dimension of ray-volume arrays and initializes them and related arrays (with zeros) accordingly. The proper initialization with nonzero wave action is performed by [`PinCFlow.MSGWaM.RayUpdate.initialize_rays!`](@ref).
+
 # Fields
 
   - `nxray::A`: Number of ray volumes allowed in ``\\widehat{x}``, per grid cell and wave mode (`nray_fac * nrxl * nrk_init`, taken from `namelists.wkb`).
@@ -38,6 +70,22 @@ Main container for WKB ray-tracing data and parameters.
   - `cgz_max::I`: Maximum vertical group velocities.
   - `zb::J`: Upper edge of the blocked layer.
   - `diffusion::I`: Diffusion induced by wave breaking.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
+  - `testcase`: Test case on which the current simulation is based.
+
+# See also
+
+  - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
+  - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
+  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
 """
 struct WKB{
     A <: Integer,
@@ -73,17 +121,6 @@ struct WKB{
     diffusion::I
 end
 
-"""
-```julia
-WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
-```
-
-Construct a `WKB` instance by dispatching to a test-case-specific method.
-
-# Returns
-
-  - `::WKB`: `WKB` instance with zero-initialized arrays of the appropriate dimensions.
-"""
 function WKB(
     namelists::Namelists,
     constants::Constants,
@@ -94,31 +131,6 @@ function WKB(
     return WKB(namelists, constants, domain, grid, testcase)
 end
 
-"""
-```julia
-WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    testcase::AbstractTestCase,
-)
-```
-
-Construct a `WKB` instance with zero-size arrays for non-WKB test cases.
-
-# Returns
-
-  - `::WKB`: `WKB` instance with zero-initialized arrays (all dimensions have size `0`).
-
-# See also
-
-  - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
-  - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
-  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
-  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
-  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
-"""
 function WKB(
     namelists::Namelists,
     constants::Constants,
@@ -141,33 +153,6 @@ function WKB(
     )
 end
 
-"""
-```julia
-WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    testcase::AbstractWKBTestCase,
-)
-```
-
-Construct a `WKB` instance.
-
-This method primarily determines the size of the spectral dimension of ray-volume arrays and initializes them and related arrays (with zeros) accordingly. The proper initialization with nonzero wave action is performed by [`PinCFlow.MSGWaM.RayUpdate.initialize_rays!`](@ref).
-
-# Returns
-
-  - `::WKB`: `WKB` instance with zero-initialized arrays.
-
-# See also
-
-  - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
-  - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
-  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
-  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
-  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
-"""
 function WKB(
     namelists::Namelists,
     constants::Constants,
