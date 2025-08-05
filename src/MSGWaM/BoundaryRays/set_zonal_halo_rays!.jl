@@ -11,6 +11,8 @@ Performs bidirectional MPI communication between left and right neighbor process
 
   - `state`: Model state.
 """
+function set_zonal_halo_rays! end
+
 function set_zonal_halo_rays!(state::State)
     (; comm, ny, nz, i0, i1, j0, j1, k0, k1, left, right) = state.domain
     (; nray, rays) = state.wkb
