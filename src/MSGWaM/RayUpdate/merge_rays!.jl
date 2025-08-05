@@ -5,67 +5,24 @@ merge_rays!(state::State)
 
 Merge ray volumes by dispatching to a test-case-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-"""
-function merge_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    merge_rays!(state, testcase)
-    return
-end
-
-"""
 ```julia
 merge_rays!(state::State, testcase::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
-# Arguments
-
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function merge_rays!(state::State, testcase::AbstractTestCase)
-    return
-end
-
-"""
 ```julia
 merge_rays!(state::State, testcase::AbstractWKBTestCase)
 ```
 
 Merge ray volumes by dispatching to a WKB-mode-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function merge_rays!(state::State, testcase::AbstractWKBTestCase)
-    (; wkb_mode) = state.namelists.wkb
-    merge_rays!(state, wkb_mode)
-    return
-end
-
-"""
 ```julia
 merge_rays!(state::State, wkb_mode::SteadyState)
 ```
 
 Return for steady-state WKB mode.
 
-# Arguments
-
-  - `state`: Model state.
-  - `wkb_mode`: Approximations used by MSGWaM.
-"""
-function merge_rays!(state::State, wkb_mode::SteadyState)
-    return
-end
-
-"""
 ```julia
 merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 ```
@@ -77,6 +34,7 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 # Arguments
 
   - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
   - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
@@ -93,6 +51,28 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
   - [`PinCFlow.MSGWaM.RayOperations.update_merged_rays!`](@ref)
   - [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
 """
+function merge_rays! end
+
+function merge_rays!(state::State)
+    (; testcase) = state.namelists.setting
+    merge_rays!(state, testcase)
+    return
+end
+
+function merge_rays!(state::State, testcase::AbstractTestCase)
+    return
+end
+
+function merge_rays!(state::State, testcase::AbstractWKBTestCase)
+    (; wkb_mode) = state.namelists.wkb
+    merge_rays!(state, wkb_mode)
+    return
+end
+
+function merge_rays!(state::State, wkb_mode::SteadyState)
+    return
+end
+
 function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
     (; sizex, sizey) = state.namelists.domain
     (; merge_mode) = state.namelists.wkb

@@ -5,18 +5,6 @@ apply_saturation_scheme!(state::State, dt::AbstractFloat)
 
 Apply the saturation scheme by dispatching to a test-case-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-"""
-function apply_saturation_scheme!(state::State, dt::AbstractFloat)
-    (; testcase) = state.namelists.setting
-    apply_saturation_scheme!(state, dt, testcase)
-    return
-end
-
-"""
 ```julia
 apply_saturation_scheme!(
     state::State,
@@ -27,21 +15,6 @@ apply_saturation_scheme!(
 
 Return for non-WKB test cases.
 
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function apply_saturation_scheme!(
-    state::State,
-    dt::AbstractFloat,
-    testcase::AbstractTestCase,
-)
-    return
-end
-
-"""
 ```julia
 apply_saturation_scheme!(
     state::State,
@@ -52,23 +25,6 @@ apply_saturation_scheme!(
 
 Apply the saturation scheme by dispatching to a WKB-mode-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function apply_saturation_scheme!(
-    state::State,
-    dt::AbstractFloat,
-    testcase::AbstractWKBTestCase,
-)
-    (; wkb_mode) = state.namelists.wkb
-    apply_saturation_scheme!(state, dt, wkb_mode)
-    return
-end
-
-"""
 ```julia
 apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::SteadyState)
 ```
@@ -77,21 +33,6 @@ Return for steady-state configurations.
 
 In steady-state mode, saturation is handled by [`PinCFlow.MSGWaM.RayUpdate.propagate_rays!`](@ref).
 
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `wkb_mode`: Approximations used by MSGWaM.
-"""
-function apply_saturation_scheme!(
-    state::State,
-    dt::AbstractFloat,
-    wkb_mode::SteadyState,
-)
-    return
-end
-
-"""
 ```julia
 apply_saturation_scheme!(
     state::State,
@@ -126,6 +67,7 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - `state`: Model state.
   - `dt`: Time step.
+  - `testcase`: Test case on which the current simulation is based.
   - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
@@ -135,6 +77,40 @@ is such that wave action is reduced exactly to the saturation threshold. The two
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
   - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
 """
+function apply_saturation_scheme! end
+
+function apply_saturation_scheme!(state::State, dt::AbstractFloat)
+    (; testcase) = state.namelists.setting
+    apply_saturation_scheme!(state, dt, testcase)
+    return
+end
+
+function apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    testcase::AbstractTestCase,
+)
+    return
+end
+
+function apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    testcase::AbstractWKBTestCase,
+)
+    (; wkb_mode) = state.namelists.wkb
+    apply_saturation_scheme!(state, dt, wkb_mode)
+    return
+end
+
+function apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    wkb_mode::SteadyState,
+)
+    return
+end
+
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,

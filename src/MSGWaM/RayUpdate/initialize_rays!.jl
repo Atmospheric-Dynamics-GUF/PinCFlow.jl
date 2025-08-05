@@ -5,33 +5,12 @@ initialize_rays!(state::State)
 
 Complete the initialization of MSGWaM by dispatching to a test-case-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-"""
-function initialize_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    initialize_rays!(state, testcase)
-    return
-end
-
-"""
 ```julia
 initialize_rays!(state::State, testcase::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
-# Arguments
-
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function initialize_rays!(state::State, testcase::AbstractTestCase)
-    return
-end
-
-"""
 ```julia
 initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 ```
@@ -51,6 +30,18 @@ In each grid cell, `nwm` wave modes are computed, using e.g. `activate_orographi
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """
+function initialize_rays! end
+
+function initialize_rays!(state::State)
+    (; testcase) = state.namelists.setting
+    initialize_rays!(state, testcase)
+    return
+end
+
+function initialize_rays!(state::State, testcase::AbstractTestCase)
+    return
+end
+
 function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     (; sizex, sizey, sizez) = state.namelists.domain
     (; testcase) = state.namelists.setting

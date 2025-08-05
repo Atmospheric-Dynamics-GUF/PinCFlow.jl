@@ -5,86 +5,102 @@ shift_rays!(state::State)
 
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a test-case-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-"""
-function shift_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    shift_rays!(state, testcase)
-    return
-end
-
-"""
 ```julia
 shift_rays!(state::State, testcase::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
-# Arguments
-
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function shift_rays!(state::State, testcase::AbstractTestCase)
-    return
-end
-
-"""
 ```julia
 shift_rays!(state::State, testcase::AbstractWKBTestCase)
 ```
 
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a WKB-mode-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function shift_rays!(state::State, testcase::AbstractWKBTestCase)
-    (; wkb_mode) = state.namelists.wkb
-    shift_rays!(state, wkb_mode)
-    return
-end
-
-"""
 ```julia
 shift_rays!(state::State, wkb_mode::SteadyState)
 ```
 
 Return for steady-state mode.
 
-# Arguments
-
-  - `state`: Model state.
-  - `wkb_mode`: Approximations used by MSGWaM.
-"""
-function shift_rays!(state::State, wkb_mode::SteadyState)
-    return
-end
-
-"""
 ```julia
 shift_rays!(state::State, wkb_mode::SingleColumn)
 ```
 
 Shift the vertical array positions of ray volumes such that they are attributed to the correct grid cells.
 
-This method enforces the vertical boundary conditions (via `set_vertical_boundary_rays!`), checks if ray volumes need to be shifted and, if they do, copies them to the correct grid cells and marks them for removal. A second call of `set_vertical_boundary_rays!` ensures that ray volumes that have moved across MPI processes are included in the appropriate halo cells. Finally, the gaps that were created by marking ray volumes for removal are filled (via `remove_rays!`).
+This method enforces the vertical boundary conditions (via `set_vertical_boundary_rays!`), checks if ray volumes need to be shifted and, if they do, copies them to the correct grid cells and marks them for removal (by dispatching to the appropriate method). A second call of `set_vertical_boundary_rays!` ensures that ray volumes that have moved across MPI processes are included in the appropriate halo cells. Finally, the gaps that were created by marking ray volumes for removal are filled (via `remove_rays!`).
+
+```julia
+shift_rays!(state::State, wkb_mode::MultiColumn)
+```
+
+Shift the array positions of ray volumes such that they are attributed to the correct grid cells.
+
+For each dimension in physical space (with more than one grid point), this method performs the corresponding equivalent of the algorithm that is implemented in the method for single-column mode.
+
+```julia
+shift_rays!(state::State, direction::X)
+```
+
+For each ray volume, check if it is attributed to the correct position in ``\\widehat{x}`` and, if it is not, create a copy that is and mark the original for removal.
+
+Ray volumes that should be attributed to a halo cell are marked for removal but not copied, since the copies are created from the corresponding halo cell in the adjacent MPI process.
+
+```julia
+shift_rays!(state::State, direction::Y)
+```
+
+For each ray volume, check if it is attributed to the correct position in ``\\widehat{y}`` and, if it is not, create a copy that is and mark the original for removal.
+
+Ray volumes in halo cells are treated in the same way as in the method for shifting in ``\\widehat{x}``.
+
+```julia
+shift_rays!(state::State, direction::Z)
+```
+
+For each ray volume, check if it is attributed to the correct position in ``\\widehat{z}`` and, if it is not, create a copy that is and mark the original for removal.
+
+Ray volumes in halo cells are treated in the same way as in the methods for shifting in ``\\widehat{x}`` and ``\\widehat{z}``.
 
 # Arguments
 
   - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
   - `wkb_mode`: Approximations used by MSGWaM.
+  - `direction`: Shift direction.
 
 # See also
 
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
   - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
   - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
   - [`PinCFlow.MSGWaM.RayOperations.check_rays`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
+function shift_rays! end
+
+function shift_rays!(state::State)
+    (; testcase) = state.namelists.setting
+    shift_rays!(state, testcase)
+    return
+end
+
+function shift_rays!(state::State, testcase::AbstractTestCase)
+    return
+end
+
+function shift_rays!(state::State, testcase::AbstractWKBTestCase)
+    (; wkb_mode) = state.namelists.wkb
+    shift_rays!(state, wkb_mode)
+    return
+end
+
+function shift_rays!(state::State, wkb_mode::SteadyState)
+    return
+end
+
 function shift_rays!(state::State, wkb_mode::SingleColumn)
     (; zboundaries) = state.namelists.setting
 
@@ -98,28 +114,6 @@ function shift_rays!(state::State, wkb_mode::SingleColumn)
     return
 end
 
-"""
-```julia
-shift_rays!(state::State, wkb_mode::MultiColumn)
-```
-
-Shift the array positions of ray volumes such that they are attributed to the correct grid cells.
-
-For each dimension in physical space, this method enforces the appropriate boundary conditions (via `set_zonal_boundary_rays!`, `set_meridional_boundary_rays!` and `set_vertical_boundary_rays!`), checks if ray volumes need to be shifted and, if they do, copies them to the correct grid cells and marks them for removal. A second call of each boundary method ensures that ray volumes that have moved across MPI processes are included in the appropriate halo cells. Gaps that were created by marking ray volumes for removal are filled (via `remove_rays!`).
-
-# Arguments
-
-  - `state`: Model state.
-  - `wkb_mode`: Approximations used by MSGWaM.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.RayOperations.check_rays`](@ref)
-"""
 function shift_rays!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain
     (; zboundaries) = state.namelists.setting
@@ -148,24 +142,6 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
     return
 end
 
-"""
-```julia
-shift_rays!(state::State, direction::X)
-```
-
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{x}`` and, if it is not, create a copy that is and mark the original for removal.
-
-Ray volumes that should be attributed to a halo cell are marked for removal but not copied, since the copies are created from the corresponding halo cell in the adjacent MPI process.
-
-# Arguments
-
-  - `state`: Model state.
-  - `direction`: Shift direction.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
-"""
 function shift_rays!(state::State, direction::X)
     (; sizezz, nzz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
@@ -203,24 +179,6 @@ function shift_rays!(state::State, direction::X)
     return
 end
 
-"""
-```julia
-shift_rays!(state::State, direction::Y)
-```
-
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{y}`` and, if it is not, create a copy that is and mark the original for removal.
-
-Ray volumes that should be attributed to a halo cell are marked for removal but not copied, since the copies are created from the corresponding halo cell in the adjacent MPI process.
-
-# Arguments
-
-  - `state`: Model state.
-  - `direction`: Shift direction.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
-"""
 function shift_rays!(state::State, direction::Y)
     (; sizezz, nzz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
@@ -258,24 +216,6 @@ function shift_rays!(state::State, direction::Y)
     return
 end
 
-"""
-```julia
-shift_rays!(state::State, direction::Z)
-```
-
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{z}`` and, if it is not, create a copy that is and mark the original for removal.
-
-Ray volumes that should be attributed to a halo cell are marked for removal but not copied, since the copies are created from the corresponding halo cell in the adjacent MPI process.
-
-# Arguments
-
-  - `state`: Model state.
-  - `direction`: Shift direction.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
-"""
 function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = domain

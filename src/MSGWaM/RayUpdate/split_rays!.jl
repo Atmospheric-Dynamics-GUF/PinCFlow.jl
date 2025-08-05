@@ -5,78 +5,98 @@ split_rays!(state::State)
 
 Split ray volumes that have become larger than the local grid cell by dispatching to a test-case-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-"""
-function split_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    split_rays!(state, testcase)
-    return
-end
-
-"""
 ```julia
 split_rays!(state::State, testcase::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
-# Arguments
-
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function split_rays!(state::State, testcase::AbstractTestCase)
-    return
-end
-
-"""
 ```julia
 split_rays!(state::State, testcase::AbstractWKBTestCase)
 ```
 
 Split ray volumes that have become larger than the local grid cell by dispatching to a WKB-mode-specific method.
 
-# Arguments
-
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
-"""
-function split_rays!(state::State, testcase::AbstractWKBTestCase)
-    (; wkb_mode) = state.namelists.wkb
-    split_rays!(state, wkb_mode)
-    return
-end
-
-"""
 ```julia
 split_rays!(state::State, wkb_mode::SteadyState)
 ```
 
 Return for steady-state mode.
 
-# Arguments
-
-  - `state`: Model state.
-  - `wkb_mode`: Approximations used by MSGWaM.
-"""
-function split_rays!(state::State, wkb_mode::SteadyState)
-    return
-end
-
-"""
 ```julia
 split_rays!(state::State, wkb_mode::SingleColumn)
 ```
 
 Split ray volumes which have a vertical extent larger than the local vertical grid spacing.
 
+```julia
+split_rays!(state::State, wkb_mode::MultiColumn)
+```
+
+In each dimension of physical space, split ray volumes which have an extent larger than the local grid spacing.
+
+The splitting is performed sequentially, such that a ray volume with extents that exceed the grid spacings in all directions is split into exactly eight smaller ray volumes of the same size.
+
+```julia
+split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::X)
+```
+
+In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta x_\\alpha > \\Delta \\widehat{x}``.
+
+The splitting is carried out by first copying the ray volume and then adjusting the positions and extents of the original and the copy.
+
+```julia
+split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::Y)
+```
+
+In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta y_\\alpha > \\Delta \\widehat{y}``.
+
+The splitting is analogous to that in ``\\widehat{x}``.
+
+```julia
+split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::Z)
+```
+
+In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta z_\\alpha > J_{\\min} \\Delta \\widehat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
+
+The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``. This method technically allows for ray volumes that have become arbitrarily large in the vertical and splits them as many times as needed. In practice, this is prevented by the WKB-CFL condition, since vertical shifting would be problematic in such situations.
+
 # Arguments
 
   - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
   - `wkb_mode`: Approximations used by MSGWaM.
+  - `ix`: Grid-cell index in ``\\widehat{x}``-direction
+  - `jy`: Grid-cell index in ``\\widehat{y}``-direction
+  - `kz`: Grid-cell index in ``\\widehat{z}``-direction
+  - `axis`: Axis perpendicular to the split.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
+function split_rays! end
+
+function split_rays!(state::State)
+    (; testcase) = state.namelists.setting
+    split_rays!(state, testcase)
+    return
+end
+
+function split_rays!(state::State, testcase::AbstractTestCase)
+    return
+end
+
+function split_rays!(state::State, testcase::AbstractWKBTestCase)
+    (; wkb_mode) = state.namelists.wkb
+    split_rays!(state, wkb_mode)
+    return
+end
+
+function split_rays!(state::State, wkb_mode::SteadyState)
+    return
+end
+
 function split_rays!(state::State, wkb_mode::SingleColumn)
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
@@ -100,20 +120,6 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
     return
 end
 
-"""
-```julia
-split_rays!(state::State, wkb_mode::MultiColumn)
-```
-
-In each dimension of physical space, split ray volumes which have an extent larger than the local grid spacing.
-
-The splitting is performed sequentially, such that a ray volume with extents that exceed the grid spacings in all directions is split into exactly eight smaller ray volumes of the same size.
-
-# Arguments
-
-  - `state`: Model state.
-  - `wkb_mode`: Approximations used by MSGWaM.
-"""
 function split_rays!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
@@ -146,27 +152,6 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
     return
 end
 
-"""
-```julia
-split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::X)
-```
-
-In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta x_\\alpha > \\Delta \\widehat{x}``.
-
-The splitting is carried out by first copying the ray volume and then adjusting the positions and extents of the original and the copy.
-
-# Arguments
-
-  - `ix`: Grid-cell index in ``\\widehat{x}``-direction
-  - `jy`: Grid-cell index in ``\\widehat{y}``-direction
-  - `kz`: Grid-cell index in ``\\widehat{z}``-direction
-  - `state`: Model state.
-  - `axis`: Axis perpendicular to the split.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
-"""
 function split_rays!(
     ix::Integer,
     jy::Integer,
@@ -210,27 +195,6 @@ function split_rays!(
     return
 end
 
-"""
-```julia
-split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::Y)
-```
-
-In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta y_\\alpha > \\Delta \\widehat{y}``.
-
-The splitting is carried out by first copying the ray volume and then adjusting the positions and extents of the original and the copy.
-
-# Arguments
-
-  - `ix`: Grid-cell index in ``\\widehat{x}``-direction
-  - `jy`: Grid-cell index in ``\\widehat{y}``-direction
-  - `kz`: Grid-cell index in ``\\widehat{z}``-direction
-  - `state`: Model state.
-  - `axis`: Axis perpendicular to the split.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
-"""
 function split_rays!(
     ix::Integer,
     jy::Integer,
@@ -274,27 +238,6 @@ function split_rays!(
     return
 end
 
-"""
-```julia
-split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::Z)
-```
-
-In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta z_\\alpha > J_{\\min} \\Delta \\widehat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
-
-The splitting is carried out by first copying the ray volume and then adjusting the positions and extents of the original and the copy. This method technically allows for ray volumes that have become arbitrarily large in the vertical and splits them as many times as needed. In practice, this is prevented by the WKB-CFL condition, since vertical shifting would be problematic in such situations.
-
-# Arguments
-
-  - `ix`: Grid-cell index in ``\\widehat{x}``-direction
-  - `jy`: Grid-cell index in ``\\widehat{y}``-direction
-  - `kz`: Grid-cell index in ``\\widehat{z}``-direction
-  - `state`: Model state.
-  - `axis`: Axis perpendicular to the split.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
-"""
 function split_rays!(
     ix::Integer,
     jy::Integer,
