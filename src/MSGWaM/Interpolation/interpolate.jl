@@ -77,6 +77,9 @@ Due to their large number, the positions and values are given as keyword argumen
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
+# Keywords
+
   - `philbd`: Value at the point to the left, behind and below.
   - `philbu`: Value at the point to the left, behind and above.
   - `philfd`: Value at the point to the left, in front and below.
@@ -105,6 +108,8 @@ Due to their large number, the positions and values are given as keyword argumen
 
   - `::AbstractFloat`: Interpolated value at the location of interest.
 """
+function interpolate end
+
 function interpolate(
     namelists::Namelists;
     philbd::AbstractFloat = NaN,
