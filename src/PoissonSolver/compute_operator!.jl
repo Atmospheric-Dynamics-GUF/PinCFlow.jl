@@ -29,6 +29,8 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 
   - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
 """
+function compute_operator! end
+
 function compute_operator!(
     state::State,
     dt::AbstractFloat,

@@ -39,6 +39,8 @@ where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\ri
 
   - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
 """
+function apply_preconditioner! end
+
 function apply_preconditioner!(
     sin::AbstractArray{<:AbstractFloat, 3},
     sout::AbstractArray{<:AbstractFloat, 3},

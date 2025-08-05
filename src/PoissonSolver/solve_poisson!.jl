@@ -39,6 +39,8 @@ is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \
   - [`PinCFlow.PoissonSolver.compute_operator!`](@ref)
   - [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref)
 """
+function solve_poisson! end
+
 function solve_poisson!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
