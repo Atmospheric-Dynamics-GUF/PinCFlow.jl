@@ -26,6 +26,8 @@ where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
+function compute_intrinsic_frequency end
+
 function compute_intrinsic_frequency(
     state::State,
     indices::NTuple{4, <:Integer},
