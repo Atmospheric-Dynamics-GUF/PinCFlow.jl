@@ -7,16 +7,44 @@ set_meridional_halos_of_field!(
 )
 ```
 
-Exchange meridional halo values of a matrix.
+Exchange meridional halo values of a matrix by performing bidirectional MPI communication between backward and forward neighbor processes.
 
-Performs bidirectional MPI communication between backward and forward neighbor processes.
+```julia
+set_meridional_halos_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
+
+Exchange meridional halo values of a 3D array by performing bidirectional MPI communication between backward and forward neighbor processes.
+
+```julia
+set_meridional_halos_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
+
+Exchange meridional halo values of a 5D array by performing bidirectional MPI communication between backward and forward neighbor processes.
+
+The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
 # Arguments
 
-  - `field`: Input matrix.
+  - `field`: Input array.
   - `namelists`: Namelists with all model parameters.
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+# Keywords
+
+  - `layers`: The number of halo layers in each dimension. Use `-1` for the default values from `namelists`.
 """
+function set_meridional_halos_of_field! end
+
 function set_meridional_halos_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
@@ -44,27 +72,6 @@ function set_meridional_halos_of_field!(
     return
 end
 
-"""
-```julia
-set_meridional_halos_of_field!(
-    field::AbstractArray{<:Real, 3},
-    namelists::Namelists,
-    domain::Domain;
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
-```
-
-Exchange meridional halo values of a 3D array.
-
-Performs bidirectional MPI communication between backward and forward neighbor processes.
-
-# Arguments
-
-  - `field`: Input array.
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `layers`: The number of halo layers in each dimension. Use `-1` for the default values from `namelists`.
-"""
 function set_meridional_halos_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
@@ -99,27 +106,6 @@ function set_meridional_halos_of_field!(
     return
 end
 
-"""
-```julia
-set_meridional_halos_of_field!(
-    field::AbstractArray{<:AbstractFloat, 5},
-    namelists::Namelists,
-    domain::Domain;
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
-```
-
-Exchange meridional halo values of a 5D array.
-
-Performs bidirectional MPI communication between backward and forward neighbor processes. The first three dimensions of the array are assumed to represent the dimensions of physical space.
-
-# Arguments
-
-  - `field`: Input array.
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `layers`: The number of halo layers in each dimension. Use `-1` for the default values from `namelists`.
-"""
 function set_meridional_halos_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
