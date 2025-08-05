@@ -5,16 +5,77 @@ set_meridional_boundaries!(state::State, variables::BoundaryPredictands)
 
 Enforce meridional boundary conditions for all predictand fields.
 
+```julia
+set_meridional_boundaries!(state::State, variables::BoundaryReconstructions)
+```
+
+Enforce meridional boundary conditions for all reconstruction fields.
+
+```julia
+set_meridional_boundaries!(state::State, variables::BoundaryGWIntegrals)
+```
+
+Enforce meridional boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
+
+```julia
+set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    wkb_mode::AbstractWKBMode,
+)
+```
+
+Enforce meridional boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations.
+
+```julia
+set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    wkb_mode::MultiColumn,
+)
+```
+
+Enforce meridional boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
+
+```julia
+set_meridional_boundaries!(state::State, variables::BoundaryGWTendencies)
+```
+
+Enforce meridional boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
+
+```julia
+set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    wkb_mode::AbstractWKBMode,
+)
+```
+
+Enforce meridional boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations.
+
+```julia
+set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    wkb_mode::MultiColumn,
+)
+```
+
+Enforce meridional boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations.
+
 # Arguments
 
   - `state`: Model state.
   - `variables`: Boundary-variable category.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
   - [`PinCFlow.Boundaries.set_compressible_meridional_boundaries!`](@ref)
 """
+function set_meridional_boundaries! end
+
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -42,22 +103,6 @@ function set_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_meridional_boundaries!(state::State, variables::BoundaryReconstructions)
-```
-
-Enforce meridional boundary conditions for all reconstruction fields.
-
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
@@ -83,18 +128,6 @@ function set_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_meridional_boundaries!(state::State, variables::BoundaryGWIntegrals)
-```
-
-Enforce meridional boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
-
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-"""
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
@@ -104,27 +137,6 @@ function set_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryGWIntegrals,
-    wkb_mode::AbstractWKBMode,
-)
-```
-
-Enforce meridional boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations.
-
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-  - `wkb_mode`: Approximations used by MSGWaM.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
@@ -145,27 +157,6 @@ function set_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryGWIntegrals,
-    wkb_mode::MultiColumn,
-)
-```
-
-Enforce meridional boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
-
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-  - `wkb_mode`: Approximations used by MSGWaM.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
@@ -186,18 +177,6 @@ function set_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_meridional_boundaries!(state::State, variables::BoundaryGWTendencies)
-```
-
-Enforce meridional boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
-
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-"""
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,
@@ -207,27 +186,6 @@ function set_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryGWTendencies,
-    wkb_mode::AbstractWKBMode,
-)
-```
-
-Enforce meridional boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations.
-
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-  - `wkb_mode`: Approximations used by MSGWaM.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,
@@ -247,27 +205,6 @@ function set_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryGWTendencies,
-    wkb_mode::MultiColumn,
-)
-```
-
-Enforce meridional boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations.
-
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-  - `wkb_mode`: Approximations used by MSGWaM.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,

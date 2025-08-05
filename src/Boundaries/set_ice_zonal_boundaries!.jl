@@ -6,7 +6,33 @@ set_ice_zonal_boundaries!(
     icesetup::NoIce,
 )
 ```
+
+```julia
+set_ice_zonal_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    icesetup::AbstractIce,
+)
+```
+
+```julia
+set_ice_zonal_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    icesetup::NoIce,
+)
+```
+
+```julia
+set_ice_zonal_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    icesetup::AbstractIce,
+)
+```
 """
+function set_ice_zonal_boundaries! end
+
 function set_ice_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -15,15 +41,6 @@ function set_ice_zonal_boundaries!(
     return
 end
 
-"""
-```julia
-set_ice_zonal_boundaries!(
-    state::State,
-    variables::BoundaryPredictands,
-    icesetup::AbstractIce,
-)
-```
-"""
 function set_ice_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -43,15 +60,6 @@ function set_ice_zonal_boundaries!(
     return
 end
 
-"""
-```julia
-set_ice_zonal_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
-    icesetup::NoIce,
-)
-```
-"""
 function set_ice_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
@@ -60,15 +68,6 @@ function set_ice_zonal_boundaries!(
     return
 end
 
-"""
-```julia
-set_ice_zonal_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
-    icesetup::AbstractIce,
-)
-```
-"""
 function set_ice_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
