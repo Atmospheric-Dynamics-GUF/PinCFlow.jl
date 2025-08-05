@@ -2,17 +2,16 @@
 ```julia
 TurbulenceAuxiliaries{A <: AbstractFloat}
 ```
+
+```julia
+TurbulenceAuxiliaries(constants::Constants)
+```
 """
 struct TurbulenceAuxiliaries{A <: AbstractFloat}
     tkebg::A
     ttebg::A
 end
 
-"""
-```julia
-TurbulenceAuxiliaries(constants::Constants)
-```
-"""
 function TurbulenceAuxiliaries(constants::Constants)
     (; lref, tref) = constants
 
