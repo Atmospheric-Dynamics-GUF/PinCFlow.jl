@@ -5,18 +5,6 @@ modify_compressible_wind!(state::State, operation::Function)
 
 Modify the wind with ``J P`` if the atmosphere is compressible by dispatching to the appropriate method.
 
-# Arguments
-
-  - `state`: Model state.
-  - `operation`: Binary operation used for modification.
-"""
-function modify_compressible_wind!(state::State, operation::Function)
-    (; model) = state.namelists.setting
-    modify_compressible_wind!(state, operation, model)
-    return
-end
-
-"""
 ```julia
 modify_compressible_wind!(
     state::State,
@@ -27,21 +15,6 @@ modify_compressible_wind!(
 
 Return in non-compressible modes.
 
-# Arguments
-
-  - `state`: Model state.
-  - `operation`: Binary operation used for modification.
-  - `model`: Dynamic equations.
-"""
-function modify_compressible_wind!(
-    state::State,
-    operation::Function,
-    model::AbstractModel,
-)
-    return
-end
-
-"""
 ```julia
 modify_compressible_wind!(
     state::State,
@@ -58,6 +31,22 @@ Interpolate ``J P`` to the wind grids and replace the wind components with the r
   - `operation`: Binary operation used for modification.
   - `model`: Dynamic equations.
 """
+function modify_compressible_wind! end
+
+function modify_compressible_wind!(state::State, operation::Function)
+    (; model) = state.namelists.setting
+    modify_compressible_wind!(state, operation, model)
+    return
+end
+
+function modify_compressible_wind!(
+    state::State,
+    operation::Function,
+    model::AbstractModel,
+)
+    return
+end
+
 function modify_compressible_wind!(
     state::State,
     operation::Function,

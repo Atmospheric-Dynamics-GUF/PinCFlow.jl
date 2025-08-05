@@ -38,21 +38,14 @@ Therein, the left-hand sides of the equations include advective fluxes, diffusio
   - [`PinCFlow.Integration.synchronize_compressible_atmosphere!`](@ref)
   - [`PinCFlow.Integration.compute_time_step`](@ref)
   - [`PinCFlow.Update.compute_sponge!`](@ref)
-  - [`PinCFlow.MSGWaM.RayUpdate.apply_saturation_scheme!`](@ref)
-  - [`PinCFlow.MSGWaM.RayUpdate.propagate_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.RayUpdate.split_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.RayUpdate.shift_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.BoundaryRays.set_boundary_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_mean_flow_effect!`](@ref)
+  - [`PinCFlow.Integration.wkb_integration!`](@ref)
   - [`PinCFlow.Integration.synchronize_density_fluctuations!`](@ref)
-  - [`PinCFlow.FluxCalculator.reconstruct!`](@ref)
-  - [`PinCFlow.FluxCalculator.compute_fluxes!`](@ref)
-  - [`PinCFlow.Update.update!`](@ref)
-  - [`PinCFlow.Update.apply_unified_sponge!`](@ref)
-  - [`PinCFlow.Integration.save_backups!`](@ref)
+  - [`PinCFlow.Integration.explicit_integration!`](@ref)
+  - [`PinCFlow.Integration.implicit_integration!`](@ref)
   - [`PinCFlow.Integration.reset_predictands!`](@ref)
 """
+function integrate end
+
 function integrate(namelists::Namelists)
 
     #-------------------------------------------------
