@@ -48,6 +48,8 @@ All output variables are re-dimensionalized with the scale parameters stored in 
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
+function write_output end
+
 function write_output(
     state::State,
     time::AbstractFloat,
