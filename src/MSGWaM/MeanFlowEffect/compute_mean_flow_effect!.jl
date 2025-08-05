@@ -3,9 +3,7 @@
 compute_mean_flow_effect!(state::State)
 ```
 
-Calculate the mean-flow impact of unresolved gravity waves, based on the test case.
-
-Dispatches to the appropriate method, depending on test case.
+Calculate the mean-flow impact of unresolved gravity waves by dispatching to a test-case-specific method.
 
 # Arguments
 

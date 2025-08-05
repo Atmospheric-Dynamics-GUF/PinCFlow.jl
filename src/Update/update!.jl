@@ -3,7 +3,7 @@
 update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
 ```
 
-Update the density, depending on whether or not the model is Boussinesq.
+Update the density if the atmosphere is not Boussinesq by dispatching to the appropriate method.
 
 ```julia
 update!(
@@ -157,7 +157,7 @@ Update the transformed vertical wind with an implicit Euler step on the right-ha
 update!(state::State, dt::AbstractFloat, variable::PiP)
 ```
 
-Update the Exner-pressure, depending on whether or not the model is compressible.
+Update the Exner-pressure if the atmosphere is compressible by dispatching to the appropriate method.
 
 ```julia
 update!(state::State, dt::AbstractFloat, variable::PiP, model::AbstractModel)
@@ -175,7 +175,7 @@ Update the Exner-pressure such that it is synchronized with the updated mass-wei
 update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
 ```
 
-Update the mass-weighted potential temperature, depending on whether or not the model is compressible.
+Update the mass-weighted potential temperature if the atmosphere is compressible by dispatching to the appropriate method.
 
 ```julia
 update!(

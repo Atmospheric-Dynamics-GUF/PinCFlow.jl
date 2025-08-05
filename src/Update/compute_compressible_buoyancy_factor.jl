@@ -7,7 +7,7 @@ compute_compressible_buoyancy_factor(
 )
 ```
 
-Compute the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, depending on `variable`.
+Compute the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)`` by dispatching to a method specific for the dynamic equations and `variable`.
 
 In pseudo-incompressible mode, the squared buoyancy frequency used by PinCFlow is
 

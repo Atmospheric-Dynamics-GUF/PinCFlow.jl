@@ -3,9 +3,7 @@
 split_rays!(state::State)
 ```
 
-Split ray volumes that have become larger than the local grid cell, based on the test case.
-
-Dispatches to the appropriate method depending on the test case.
+Split ray volumes that have become larger than the local grid cell by dispatching to a test-case-specific method.
 
 # Arguments
 
@@ -38,9 +36,7 @@ end
 split_rays!(state::State, testcase::AbstractWKBTestCase)
 ```
 
-Split ray volumes that have become larger than the local grid cell, based on the WKB mode.
-
-Dispatches to the appropriate method depending on the WKB mode.
+Split ray volumes that have become larger than the local grid cell by dispatching to a WKB-mode-specific method.
 
 # Arguments
 

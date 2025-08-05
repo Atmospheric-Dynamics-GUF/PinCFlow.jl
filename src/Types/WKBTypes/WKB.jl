@@ -78,9 +78,7 @@ end
 WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
 ```
 
-Construct a `WKB` instance, depending on the test case.
-
-Dispatches to a specific method, based on the test case.
+Construct a `WKB` instance by dispatching to a test-case-specific method.
 
 # Returns
 

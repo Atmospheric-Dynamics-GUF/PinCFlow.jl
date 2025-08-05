@@ -36,9 +36,7 @@ end
 Fluxes(namelists::Namelists, domain::Domain)
 ```
 
-Construct a `Fluxes` instance with dimensions depending on whether or not the model is compressible.
-
-Dispatches to specific methods depending on the dynamic equations.
+Construct a `Fluxes` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
 
 # Arguments
 

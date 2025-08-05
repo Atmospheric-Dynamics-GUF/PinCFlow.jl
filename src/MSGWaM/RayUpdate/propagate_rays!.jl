@@ -3,9 +3,7 @@
 propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
 ```
 
-Integrate the wave-action-density and ray equations based on the test case.
-
-Dispatches to the appropriate method depending on the test case.
+Integrate the wave-action-density and ray equations by dispatching to a test-case-specific method.
 
 # Arguments
 
@@ -57,9 +55,7 @@ propagate_rays!(
 )
 ```
 
-Integrate the wave-action-density and ray equations based on the WKB mode.
-
-Dispatches to the appropriate method depending on the WKB mode.
+Integrate the wave-action-density and ray equations by dispatching to a WKB-mode-specific method.
 
 # Arguments
 

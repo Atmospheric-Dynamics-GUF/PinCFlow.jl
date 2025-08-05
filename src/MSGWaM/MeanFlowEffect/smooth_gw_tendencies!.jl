@@ -3,9 +3,7 @@
 smooth_gw_tendencies!(state::State)
 ```
 
-Apply spatial smoothing to gravity-wave tendency fields, based on the chosen filter (`state.namelists.wkb.sm_filter`).
-
-Dispatches to the appropriate method, depending on the chosen filter and the dimensionality of the domain.
+Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.sm_filter`) and dimensionality of the domain.
 
 # Arguments
 

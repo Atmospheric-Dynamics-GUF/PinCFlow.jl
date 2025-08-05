@@ -41,9 +41,7 @@ Predictands(
 )
 ```
 
-Construct a `Predictands` instance with dimensions and initial values depending on whether or not the model is compressible and which test case is initialized.
-
-Dispatches to specific methods depending on the dynamic equations and the test case.
+Construct a `Predictands` instance with dimensions and initial values depending on whether or not the model is compressible and which test case is initialized, by dispatching to the appropriate method.
 
 # Arguments
 

@@ -3,9 +3,7 @@
 shift_rays!(state::State)
 ```
 
-Shift the array positions of ray volumes such that they are attributed to the correct grid cells, based on the test case.
-
-Dispatches to the appropriate method, depending on the test case.
+Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a test-case-specific method.
 
 # Arguments
 
@@ -38,9 +36,7 @@ end
 shift_rays!(state::State, testcase::AbstractWKBTestCase)
 ```
 
-Shift the array positions of ray volumes such that they are attributed to the correct grid cells, based on the WKB mode.
-
-Dispatches to the appropriate method, depending on the WKB mode.
+Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a WKB-mode-specific method.
 
 # Arguments
 

@@ -3,9 +3,7 @@
 modify_compressible_wind!(state::State, operation::Function)
 ```
 
-Modify the wind with ``J P`` in compressible mode.
-
-This method dispatches to the appropriate model-specific methods.
+Modify the wind with ``J P`` if the atmosphere is compressible by dispatching to the appropriate method.
 
 # Arguments
 

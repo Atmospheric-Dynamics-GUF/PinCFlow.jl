@@ -3,9 +3,7 @@
 apply_saturation_scheme!(state::State, dt::AbstractFloat)
 ```
 
-Apply the saturation scheme based on the test case.
-
-Dispatches to the appropriate methd depending on the test case.
+Apply the saturation scheme by dispatching to a test-case-specific method.
 
 # Arguments
 
@@ -52,9 +50,7 @@ apply_saturation_scheme!(
 )
 ```
 
-Apply the saturation scheme based on the WKB mode.
-
-Dispatches to the appropriate methd depending on the WKB mode.
+Apply the saturation scheme by dispatching to a WKB-mode-specific method.
 
 # Arguments
 

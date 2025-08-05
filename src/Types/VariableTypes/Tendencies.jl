@@ -36,9 +36,7 @@ end
 Tendencies(namelists::Namelists, domain::Domain)
 ```
 
-Create a `Tendencies` instance with dimensions depending on whether or not the model is compressible.
-
-Dispatches to specific methods depending on the dynamic equations.
+Create a `Tendencies` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
 
 # Arguments
 

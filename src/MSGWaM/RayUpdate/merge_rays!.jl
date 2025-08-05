@@ -3,9 +3,7 @@
 merge_rays!(state::State)
 ```
 
-Merge ray volumes based on the test case.
-
-Dispatches to the appropriate method depending on the test case.
+Merge ray volumes by dispatching to a test-case-specific method.
 
 # Arguments
 
@@ -38,9 +36,7 @@ end
 merge_rays!(state::State, testcase::AbstractWKBTestCase)
 ```
 
-Merge ray volumes based on the WKB mode.
-
-Dispatches to the appropriate method depending on the WKB mode.
+Merge ray volumes by dispatching to a WKB-mode-specific method.
 
 # Arguments
 

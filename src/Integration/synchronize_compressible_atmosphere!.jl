@@ -3,9 +3,7 @@
 synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
 ```
 
-Synchronize `state.atmosphere.pstrattfc` with `predictands.p` and recompute `state.atmosphere.bvsstrattfc` if the atmosphere is compressible.
-
-This function dispatches to the appropriate model-specific methods.
+Synchronize `state.atmosphere.pstrattfc` with `predictands.p` and recompute `state.atmosphere.bvsstrattfc` if the atmosphere is compressible by dispatching to the appropriate method.
 
 # Arguments
 

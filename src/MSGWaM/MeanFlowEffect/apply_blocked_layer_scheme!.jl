@@ -3,9 +3,7 @@
 apply_blocked_layer_scheme!(state::State)
 ```
 
-Compute the blocked-flow drag and adjust the mean-flow impact accordingly, based on the test case.
-
-Dispatches to the appropriate method depending on the test case.
+Compute the blocked-flow drag and adjust the mean-flow impact accordingly by dispatching to a test-case-specific method.
 
 # Arguments
 

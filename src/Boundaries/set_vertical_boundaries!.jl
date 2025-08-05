@@ -179,7 +179,7 @@ set_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for gravity-wave-integral fields, dispatching based on WKB mode.
+Enforce vertical boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
 
 # Arguments
 
@@ -298,7 +298,7 @@ set_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for gravity-wave-tendency fields, dispatching based on WKB mode.
+Enforce vertical boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
 
 # Arguments
 

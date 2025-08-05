@@ -3,9 +3,7 @@
 synchronize_density_fluctuations!(state::State)
 ```
 
-Synchronize the density fluctuations in `state.variables.predictands.rhop` with the density in `state.variables.predictands.rho`.
-
-This function dispatches to the appropriate model-specific methods.
+Synchronize the density fluctuations in `state.variables.predictands.rhop` with the density in `state.variables.predictands.rho` by dispatching to a model-specific method.
 
 # Arguments
 

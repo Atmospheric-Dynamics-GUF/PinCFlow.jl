@@ -3,9 +3,7 @@
 initialize_rays!(state::State)
 ```
 
-Complete the initialization of MSGWaM, based on the test case.
-
-Dispatches to the appropriate method depending on the test case.
+Complete the initialization of MSGWaM by dispatching to a test-case-specific method.
 
 # Arguments
 

@@ -83,7 +83,7 @@ end
 set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
 ```
 
-Enforce zonal boundary conditions for gravity-wave-integral fields, dispatching based on WKB mode.
+Enforce zonal boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
 
 # Arguments
 
@@ -183,7 +183,7 @@ end
 set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
 ```
 
-Enforce zonal boundary conditions for gravity-wave-tendency fields, dispatching based on WKB mode.
+Enforce zonal boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
 
 # Arguments
 

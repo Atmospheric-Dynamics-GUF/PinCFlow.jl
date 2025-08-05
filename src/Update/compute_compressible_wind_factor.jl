@@ -7,7 +7,7 @@ compute_compressible_wind_factor(
 )
 ```
 
-Compute the factor by which the wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``, ``\\left(i, j + 1 / 2, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, depending on the component specified by `variable`.
+Compute the factor by which the wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``, ``\\left(i, j + 1 / 2, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)`` by dispatching to a method specific for the dynamic equations and the component indicated by `variable`.
 
 ```julia
 compute_compressible_wind_factor(

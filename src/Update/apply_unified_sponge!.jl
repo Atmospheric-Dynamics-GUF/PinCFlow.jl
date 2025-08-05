@@ -8,9 +8,7 @@ apply_unified_sponge!(
 )
 ```
 
-Perform an implicit substep to integrate the Rayleigh-damping term that represents the unified sponge layer in the prognostic equation for `variable`.
-
-This method dispatches to the specific method for `variable` and `state.namelists.setting.model`.
+Perform an implicit substep to integrate the Rayleigh-damping term that represents the unified sponge layer in the prognostic equation for `variable` by dispatching to the appropriate model-specific method.
 
 ```julia
 apply_unified_sponge!(
