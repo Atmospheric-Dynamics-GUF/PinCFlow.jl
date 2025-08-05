@@ -22,6 +22,8 @@ where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` 
 
   - `state::State`: Model state.
 """
+function compute_gw_tendencies! end
+
 function compute_gw_tendencies!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere

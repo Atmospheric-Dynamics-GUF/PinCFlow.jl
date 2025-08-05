@@ -5,10 +5,167 @@ smooth_gw_tendencies!(state::State)
 
 Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.sm_filter`) and dimensionality of the domain.
 
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::XYZ,
+)
+```
+
+Apply a 3D box filter to smooth in all spatial directions.
+
+Applies the moving average
+
+```math
+\\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 3} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{\\lambda, \\mu, \\nu},
+```
+
+where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::XZ,
+)
+```
+
+Apply a 2D box filter to smooth in ``\\widehat{x}`` and ``\\widehat{z}``.
+
+Applies the moving average
+
+```math
+\\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 2} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{\\lambda, j, \\nu},
+```
+
+where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::YZ,
+)
+```
+
+Apply a 2D box filter to smooth in ``\\widehat{y}`` and ``\\widehat{z}``.
+
+Applies the moving average
+
+```math
+\\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 2} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{i, \\mu, \\nu},
+```
+
+where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::Z,
+)
+```
+
+Apply a 1D box filter to smooth in ``\\widehat{z}``.
+
+Applies the moving average
+
+```math
+\\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 1} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{i, j, \\nu},
+```
+
+where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::XYZ,
+)
+```
+
+Apply a 3D Shapiro filter to smooth in all spatial directions.
+
+A 1D Shapiro filter is applied sequentially in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``.
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::XZ,
+)
+```
+
+Apply a 2D Shapiro filter to smooth in ``\\widehat{x}`` and ``\\widehat{z}``.
+
+A 1D Shapiro filter is applied sequentially in ``\\widehat{x}`` and ``\\widehat{z}``.
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::YZ,
+)
+```
+
+Apply a 2D Shapiro filter to smooth in ``\\widehat{y}`` and ``\\widehat{z}``.
+
+A 1D Shapiro filter is applied sequentially in ``\\widehat{y}`` and ``\\widehat{z}``.
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::Z,
+)
+```
+
+Apply a 1D Shapiro filter to smooth in ``\\widehat{z}``.
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::Y,
+)
+```
+
+Apply a 1D Shapiro filter to smooth in ``\\widehat{y}``.
+
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::X,
+)
+```
+
+Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
+
 # Arguments
 
   - `state`: Model state.
+  - `output`: Field to smooth.
+  - `sm_filter`: Filter type.
+  - `direction`: Directions to smooth in.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!`](@ref)
 """
+function smooth_gw_tendencies! end
+
 function smooth_gw_tendencies!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; lsmth_wkb, sm_filter) = state.namelists.wkb
@@ -39,33 +196,6 @@ function smooth_gw_tendencies!(state::State)
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Box,
-    direction::XYZ,
-)
-```
-
-Apply a 3D box filter to smooth in all spatial directions.
-
-Applies the moving average
-
-```math
-\\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 3} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{\\lambda, \\mu, \\nu},
-```
-
-where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -101,33 +231,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Box,
-    direction::XZ,
-)
-```
-
-Apply a 2D box filter to smooth in ``\\widehat{x}`` and ``\\widehat{z}``.
-
-Applies the moving average
-
-```math
-\\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 2} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{\\lambda, j, \\nu},
-```
-
-where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -160,33 +263,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Box,
-    direction::YZ,
-)
-```
-
-Apply a 2D box filter to smooth in ``\\widehat{y}`` and ``\\widehat{z}``.
-
-Applies the moving average
-
-```math
-\\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 2} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{i, \\mu, \\nu},
-```
-
-where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -219,33 +295,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Box,
-    direction::Z,
-)
-```
-
-Apply a 1D box filter to smooth in ``\\widehat{z}``.
-
-Applies the moving average
-
-```math
-\\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 1} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{i, j, \\nu},
-```
-
-where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -270,27 +319,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Shapiro,
-    direction::XYZ,
-)
-```
-
-Apply a 3D Shapiro filter to smooth in all spatial directions.
-
-A 1D Shapiro filter is applied sequentially in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``.
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -303,27 +331,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Shapiro,
-    direction::XZ,
-)
-```
-
-Apply a 2D Shapiro filter to smooth in ``\\widehat{x}`` and ``\\widehat{z}``.
-
-A 1D Shapiro filter is applied sequentially in ``\\widehat{x}`` and ``\\widehat{z}``.
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -335,27 +342,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Shapiro,
-    direction::YZ,
-)
-```
-
-Apply a 2D Shapiro filter to smooth in ``\\widehat{y}`` and ``\\widehat{z}``.
-
-A 1D Shapiro filter is applied sequentially in ``\\widehat{y}`` and ``\\widehat{z}``.
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -367,29 +353,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Shapiro,
-    direction::Z,
-)
-```
-
-Apply a 1D Shapiro filter to smooth in ``\\widehat{z}``.
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!`](@ref)
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -417,29 +380,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Shapiro,
-    direction::Y,
-)
-```
-
-Apply a 1D Shapiro filter to smooth in ``\\widehat{y}``.
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!`](@ref)
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
@@ -467,29 +407,6 @@ function smooth_gw_tendencies!(
     return
 end
 
-"""
-```julia
-smooth_gw_tendencies!(
-    output::AbstractArray{<:AbstractFloat, 3},
-    state::State,
-    sm_filter::Shapiro,
-    direction::X,
-)
-```
-
-Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
-
-# Arguments
-
-  - `output`: Field to smooth.
-  - `state`: Model state.
-  - `sm_filter`: Filter type.
-  - `direction`: Directions to smooth in.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!`](@ref)
-"""
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
