@@ -8,6 +8,24 @@ Tendencies{
 
 Container for the Runge-Kutta updates of the prognostic variables, as well as the Exner-pressure update of the Poisson solver.
 
+```julia
+Tendencies(namelists::Namelists, domain::Domain)
+```
+
+Create a `Tendencies` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
+
+```julia
+Tendencies(domain::Domain, model::AbstractModel)
+```
+
+Create a `Tendencies` instance in non-compressible modes, with a zero-size array for the mass-weighted potential-temperature update.
+
+```julia
+Tendencies(domain::Domain, model::Compressible)
+```
+
+Create a `Tendencies` instance in compressible mode.
+
 # Fields
 
   - `drho::A`: Density update.
@@ -17,6 +35,12 @@ Container for the Runge-Kutta updates of the prognostic variables, as well as th
   - `dw::A`: Transformed-vertical-momentum update.
   - `dpip::A`: Exner-pressure update.
   - `dp::B`: Mass-weighted potential-temperature update.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `model`: Dynamic equations.
 """
 struct Tendencies{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -31,43 +55,11 @@ struct Tendencies{
     dp::B
 end
 
-"""
-```julia
-Tendencies(namelists::Namelists, domain::Domain)
-```
-
-Create a `Tendencies` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-# Returns
-
-  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays of the appropriate dimensions.
-"""
 function Tendencies(namelists::Namelists, domain::Domain)
     (; model) = namelists.setting
     return Tendencies(domain, model)
 end
 
-"""
-```julia
-Tendencies(domain::Domain, model::AbstractModel)
-```
-
-Create a `Tendencies` instance in non-compressible modes, with a zero-size array for the mass-weighted potential-temperature update.
-
-# Arguments
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `model`: Dynamic equations.
-
-# Returns
-
-  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays (`dp` has size `(0, 0, 0)`).
-"""
 function Tendencies(domain::Domain, model::AbstractModel)
     (; nxx, nyy, nzz) = domain
 
@@ -79,22 +71,6 @@ function Tendencies(domain::Domain, model::AbstractModel)
     return Tendencies(drho, drhop, du, dv, dw, dpip, dp)
 end
 
-"""
-```julia
-Tendencies(domain::Domain, model::Compressible)
-```
-
-Create a `Tendencies` instance in compressible mode.
-
-# Arguments
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `model`: Dynamic equations.
-
-# Returns
-
-  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays.
-"""
 function Tendencies(domain::Domain, model::Compressible)
     (; nxx, nyy, nzz) = domain
 
