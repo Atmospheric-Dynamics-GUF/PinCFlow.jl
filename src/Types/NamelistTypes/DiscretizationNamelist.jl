@@ -5,7 +5,20 @@ DiscretizationNamelist{A <: AbstractFloat, B <: Bool, C <: AbstractLimiter}
 
 Namelist for parameters describing the discretization.
 
-# Fields
+```julia
+DiscretizationNamelist(;
+    cfl::AbstractFloat = 5.0E-1,
+    cfl_wave::AbstractFloat = 5.0E-1,
+    dtmin_dim::AbstractFloat = 1.0E-6,
+    dtmax_dim::AbstractFloat = 1.0E+3,
+    adaptive_time_step::Bool = true,
+    limitertype::AbstractLimiter = MCVariant(),
+)
+```
+
+Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
 
   - `cfl::A`: Number used for the CFL condition in the time step computation.
   - `cfl_wave::A`: Number used for the WKB-CFL condition in the time step computation.
@@ -27,33 +40,6 @@ struct DiscretizationNamelist{
     limitertype::C
 end
 
-"""
-```julia
-DiscretizationNamelist(;
-    cfl::AbstractFloat = 5.0E-1,
-    cfl_wave::AbstractFloat = 5.0E-1,
-    dtmin_dim::AbstractFloat = 1.0E-6,
-    dtmax_dim::AbstractFloat = 1.0E+3,
-    adaptive_time_step::Bool = true,
-    limitertype::AbstractLimiter = MCVariant(),
-)
-```
-
-Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
-
-# Arguments
-
-  - `cfl`: Number used for the CFL condition in the time step computation.
-  - `cfl_wave`: Number used for the WKB-CFL condition in the time step computation.
-  - `dtmin_dim`: Minimum time step allowed for the integration.
-  - `dtmax_dim`: Maximum time step allowed for the integration.
-  - `adaptive_time_step`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax_dim` is used as a fixed time step.
-  - `limitertype`: Flux limiter used by the MUSCL scheme.
-
-# Returns
-
-  - `::DiscretizationNamelist`: `DiscretizationNamelist` instance.
-"""
 function DiscretizationNamelist(;
     cfl::AbstractFloat = 5.0E-1,
     cfl_wave::AbstractFloat = 5.0E-1,

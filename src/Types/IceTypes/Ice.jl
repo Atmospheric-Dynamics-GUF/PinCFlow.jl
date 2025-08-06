@@ -8,6 +8,17 @@ Ice{
     E <: IceFluxes,
 }
 ```
+
+```julia
+Ice(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    variables::Variables,
+)
+```
 """
 struct Ice{
     A <: IcePredictands,
@@ -23,18 +34,6 @@ struct Ice{
     icefluxes::E
 end
 
-"""
-```julia
-Ice(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    variables::Variables,
-)
-```
-"""
 function Ice(
     namelists::Namelists,
     constants::Constants,

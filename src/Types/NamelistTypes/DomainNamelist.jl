@@ -5,7 +5,27 @@ DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}, C <: MPI.Comm}
 
 Namelist for parameters describing the model domain.
 
-# Fields
+```julia
+DomainNamelist(;
+    sizex::Integer = 4,
+    sizey::Integer = 4,
+    sizez::Integer = 4,
+    nbx::Integer = 3,
+    nby::Integer = 3,
+    nbz::Integer = 3,
+    lx_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    ly_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    lz_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)
+```
+
+Construct a `DomainNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
 
   - `sizex::A`: Number of grid cells in ``\\widehat{x}``-direction.
   - `sizey::A`: Number of grid cells in ``\\widehat{y}``-direction.
@@ -41,47 +61,6 @@ struct DomainNamelist{
     base_comm::C
 end
 
-"""
-```julia
-DomainNamelist(;
-    sizex::Integer = 4,
-    sizey::Integer = 4,
-    sizez::Integer = 4,
-    nbx::Integer = 3,
-    nby::Integer = 3,
-    nbz::Integer = 3,
-    lx_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
-    ly_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
-    lz_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
-    npx::Integer = 1,
-    npy::Integer = 1,
-    npz::Integer = 1,
-    base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
-```
-
-Construct a `DomainNamelist` instance with the given keyword arguments as properties.
-
-# Arguments
-
-  - `sizex`: Number of grid cells in ``\\widehat{x}``-direction.
-  - `sizey`: Number of grid cells in ``\\widehat{y}``-direction.
-  - `sizez`: Number of grid cells in ``\\widehat{z}``-direction.
-  - `nbx`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
-  - `nby`: Number of boundary/halo cells in ``\\widehat{y}``-direction.
-  - `nbz`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
-  - `lx_dim`: Domain boundaries in ``\\widehat{x}``-direction.
-  - `ly_dim`: Domain boundaries in ``\\widehat{y}``-direction.
-  - `lz_dim`: Domain boundaries in ``\\widehat{z}``-direction.
-  - `npx`: Number of MPI processes in ``\\widehat{x}``-direction.
-  - `npy`: Number of MPI processes in ``\\widehat{y}``-direction.
-  - `npz`: Number of MPI processes in ``\\widehat{z}``-direction.
-  - `base_comm`: MPI base communicator.
-
-# Returns
-
-  - `::DomainNamelist`: `DomainNamelist` instance.
-"""
 function DomainNamelist(;
     sizex::Integer = 4,
     sizey::Integer = 4,

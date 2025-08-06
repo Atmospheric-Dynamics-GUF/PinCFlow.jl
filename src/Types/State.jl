@@ -11,12 +11,23 @@ State{
     H <: Poisson,
     I <: Variables,
     J <: WKB,
+    K <: Tracer,
+    L <: Ice,
+    M <: Turbulence,
 }
 ```
 
 Model state container.
 
 An instance of this composite type holds complete information about the model configuration and simulation state, so that it is sufficient as primary input to most methods. The construction of such an instance is the first operation performed in [`PinCFlow.Integration.integrate`](@ref), since it almost fully initializes the model.
+
+```julia
+State(namelists::Namelists)
+```
+
+Construct a `State` instance and thus initialize the model.
+
+This method first uses the parameters specified in `namelists` to construct instances of the composite types defined in `FoundationalTypes` (i.e. `Constants`, `Time`, `Domain`, `Grid`, `Atmosphere` and `Sponge`). It then uses these instances to prepare the arrays needed for the Poisson solver, the time integration and the parameterization of unresolved gravity waves with MSGWaM. Afterwards, only three operations of the initialization process remain (these are performed by [`PinCFlow.Integration.integrate`](@ref)), namely the initial cleaning, the setting of the initial ray-volume properties and the reading of input data in restart simulations.
 
 # Fields
 
@@ -30,13 +41,28 @@ An instance of this composite type holds complete information about the model co
   - `poisson::H`: Workspace and solution arrays for the Poisson solver.
   - `variables::I`: Arrays needed for the predictions of the prognostic variables.
   - `wkb::J`: Container for WKB ray-tracing data and parameters.
+  - `tracer::K`: ...
+  - `ice::L`: ...
+  - `turbulence::M`: ...
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
 
 # See also
 
-  - [`PinCFlow.Types.NamelistTypes.Namelists`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.Constants`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.Time`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.Domain`](@ref)
   - [`PinCFlow.Types.FoundationalTypes.Grid`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.Atmosphere`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
   - [`PinCFlow.Types.PoissonTypes.Poisson`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
+  - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
+  - [`PinCFlow.Types.TracerTypes.Tracer`](@ref)
+  - [`PinCFlow.Types.IceTypes.Ice`](@ref)
+  - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
 """
 struct State{
     A <: Namelists,
@@ -68,38 +94,6 @@ struct State{
     turbulence::M
 end
 
-"""
-```julia
-State(namelists::Namelists)
-```
-
-Construct a `State` instance and thus initialize the model.
-
-This method first uses the parameters specified in `namelists` to construct instances of the composite types defined in `FoundationalTypes` (i.e. `Constants`, `Time`, `Domain`, `Grid`, `Atmosphere` and `Sponge`). It then uses these instances to prepare the arrays needed for the Poisson solver, the time integration and the parameterization of unresolved gravity waves with MSGWaM. Afterwards, only three operations of the initialization process remain (these are performed by [`PinCFlow.Integration.integrate`](@ref)), namely the initial cleaning, the setting of the initial ray-volume properties and the reading of input data in restart simulations.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-
-# Returns
-
-  - `::State`: `State` instance with the fields initialized according to the configuration specified by `namelists`.
-
-# See also
-
-  - [`PinCFlow.Types.FoundationalTypes.Constants`](@ref)
-  - [`PinCFlow.Types.FoundationalTypes.Time`](@ref)
-  - [`PinCFlow.Types.FoundationalTypes.Domain`](@ref)
-  - [`PinCFlow.Types.FoundationalTypes.Grid`](@ref)
-  - [`PinCFlow.Types.FoundationalTypes.Atmosphere`](@ref)
-  - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
-  - [`PinCFlow.Types.PoissonTypes.Poisson`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
-  - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
-  - [`PinCFlow.Types.TracerTypes.Tracer`](@ref)
-  - [`PinCFlow.Types.IceTypes.Ice`](@ref)
-  - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
-"""
 function State(namelists::Namelists)
 
     # Initialize everything.

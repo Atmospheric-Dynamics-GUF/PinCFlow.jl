@@ -9,21 +9,6 @@ set_compressible_vertical_boundaries!(
 
 Return in non-compressible modes.
 
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-  - `model`: Dynamic equations.
-"""
-function set_compressible_vertical_boundaries!(
-    state::State,
-    variables::AbstractBoundaryVariables,
-    model::AbstractModel,
-)
-    return
-end
-
-"""
 ```julia
 set_compressible_vertical_boundaries!(
     state::State,
@@ -34,31 +19,6 @@ set_compressible_vertical_boundaries!(
 
 Enforce vertical boundary conditions for mass-weighted potential temperature in compressible mode (line reflection).
 
-# Arguments
-
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-  - `model`: Dynamic equations.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
-"""
-function set_compressible_vertical_boundaries!(
-    state::State,
-    variables::BoundaryPredictands,
-    model::Compressible,
-)
-    (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
-    (; p) = state.variables.predictands
-
-    set_vertical_boundaries_of_field!(p, namelists, domain, zboundaries, +)
-
-    return
-end
-
-"""
 ```julia
 set_compressible_vertical_boundaries!(
     state::State,
@@ -74,7 +34,35 @@ Enforce vertical boundary conditions for vertical mass-weighted potential-temper
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `model`: Dynamic equations.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
+function set_compressible_vertical_boundaries! end
+
+function set_compressible_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+    model::AbstractModel,
+)
+    return
+end
+
+function set_compressible_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Compressible,
+)
+    (; namelists, domain) = state
+    (; zboundaries) = namelists.setting
+    (; p) = state.variables.predictands
+
+    set_vertical_boundaries_of_field!(p, namelists, domain, zboundaries, +)
+
+    return
+end
+
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,

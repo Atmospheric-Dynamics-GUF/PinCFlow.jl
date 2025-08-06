@@ -7,30 +7,10 @@ compute_compressible_wind_factor(
 )
 ```
 
-Compute the factor by which the wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``, ``\\left(i, j + 1 / 2, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, depending on the component specified by `variable`.
+Compute the factor by which the wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``, ``\\left(i, j + 1 / 2, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)`` by dispatching to a method specific for the dynamic equations and the component indicated by `variable`.
 
 In compressible mode, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` instead of ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\widehat{w}_{k + 1 / 2}``.
 
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable for which the factor is needed.
-
-# Returns
-
-  - `::AbstractFloat`: Wind factor.
-"""
-function compute_compressible_wind_factor(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::AbstractVariable,
-)
-    (; model) = state.namelists.setting
-    return compute_compressible_wind_factor(state, indices, variable, model)
-end
-
-"""
 ```julia
 compute_compressible_wind_factor(
     state::State,
@@ -40,31 +20,8 @@ compute_compressible_wind_factor(
 )
 ```
 
-Return `1.0` as the factor by which the wind should be multiplied in non-compressible mode.
+Return ``1`` as the factor by which the wind should be multiplied in non-compressible mode.
 
-In non-compressible modes, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\widehat{w}_{k + 1 / 2}``.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable for which the factor is needed.
-  - `model`: Dynamic equations.
-
-# Returns
-
-  - `::AbstractFloat`: Wind factor (`1.0`).
-"""
-function compute_compressible_wind_factor(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::AbstractVariable,
-    model::AbstractModel,
-)
-    return 1.0
-end
-
-"""
 ```julia
 compute_compressible_wind_factor(
     state::State,
@@ -74,9 +31,35 @@ compute_compressible_wind_factor(
 )
 ```
 
-Compute the factor by which the zonal wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``.
+Return ``\\left(J P\\right)_{i + 1 / 2}`` as the factor by which the zonal wind should be multiplied in compressible mode.
 
-In compressible mode, the Euler steps that are used to integrate the right-hand side of the zonal-momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``.
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::V,
+    model::Compressible,
+)
+```
+
+Return ``\\left(J P\\right)_{j + 1 / 2}`` as the factor by which the meridional wind should be multiplied in compressible mode.
+
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::W,
+    model::Compressible,
+)
+```
+
+Return ``\\left(J P\\right)_{k + 1 / 2}`` as the factor by which the transformed vertical wind should be multiplied in compressible mode.
+
+The interpolation is given by
+
+```math
+\\left(J P\\right)_{k + 1 / 2} = \\frac{J J_{k + 1} \\left(P + P_{k + 1}\\right)}{J + J_{k + 1}}.
+```
 
 # Arguments
 
@@ -87,8 +70,28 @@ In compressible mode, the Euler steps that are used to integrate the right-hand 
 
 # Returns
 
-  - `::AbstractFloat`: Zonal wind factor (``\\left(J P\\right)_{i + 1 / 2}``).
+  - `::AbstractFloat`: Wind factor.
 """
+function compute_compressible_wind_factor end
+
+function compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+)
+    (; model) = state.namelists.setting
+    return compute_compressible_wind_factor(state, indices, variable, model)
+end
+
+function compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+    model::AbstractModel,
+)
+    return 1.0
+end
+
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -104,31 +107,6 @@ function compute_compressible_wind_factor(
     ) / 2
 end
 
-"""
-```julia
-compute_compressible_wind_factor(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::V,
-    model::Compressible,
-)
-```
-
-Compute the factor by which the meridional wind should be multiplied at ``\\left(i, j + 1 / 2, k\\right)``.
-
-In compressible mode, the Euler steps that are used to integrate the right-hand side of the zonal-momentum equation update ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}``.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable for which the factor is needed.
-  - `model`: Dynamic equations.
-
-# Returns
-
-  - `::AbstractFloat`: Meridional wind factor (``\\left(J P\\right)_{j + 1 / 2}``).
-"""
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -144,35 +122,6 @@ function compute_compressible_wind_factor(
     ) / 2
 end
 
-"""
-```julia
-compute_compressible_wind_factor(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::W,
-    model::Compressible,
-)
-```
-
-Compute the factor by which the transformed vertical wind should be multiplied at ``\\left(i, j, k + 1 / 2\\right)``.
-
-In compressible mode, the Euler steps that are used to integrate the right-hand side of the transformed-vertical-momentum equation update ``\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}``. The interpolation is given by
-
-```math
-\\left(J P\\right)_{k + 1 / 2} = \\frac{J J_{k + 1} \\left(P + P_{k + 1}\\right)}{J + J_{k + 1}}.
-```
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable for which the factor is needed.
-  - `model`: Dynamic equations.
-
-# Returns
-
-  - `::AbstractFloat`: Vertical wind factor (``\\left(J P\\right)_{k + 1 / 2}``).
-"""
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},

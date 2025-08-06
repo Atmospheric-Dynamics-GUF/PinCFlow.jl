@@ -8,6 +8,12 @@ Preconditioner{
 
 Workspace arrays for applying the preconditioner.
 
+```julia
+Preconditioner(domain::Domain)
+```
+
+Create a `Preconditioner` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
+
 # Fields
 
   - `s_pc::A`: Solution computed by the preconditioner.
@@ -15,6 +21,10 @@ Workspace arrays for applying the preconditioner.
   - `p_pc::B`: Auxiliary array used for the upward sweep and downward pass.
   - `s_pc_bc::B`: MPI communication buffer for `s_pc`.
   - `q_pc_bc::B`: MPI communication buffer for `q_pc`.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Preconditioner{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -27,21 +37,6 @@ struct Preconditioner{
     q_pc_bc::B
 end
 
-"""
-```julia
-Preconditioner(domain::Domain)
-```
-
-Initialize preconditioner workspace arrays sized according to the dimensions of the MPI subdomain.
-
-# Arguments
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-# Returns
-
-  - `::Preconditioner`: `Preconditioner` instance with zero-initialized arrays.
-"""
 function Preconditioner(domain::Domain)
 
     # Get all necessary fields.

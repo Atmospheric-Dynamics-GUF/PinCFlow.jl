@@ -12,6 +12,12 @@ Poisson{
 
 Main container for Poisson-solver workspace and solution arrays.
 
+```julia
+Poisson(domain::Domain)
+```
+
+Create a `Poisson` instance with an initialized Poisson-solver workspace, sized according to the dimensions of the MPI subdomain.
+
 # Fields
 
   - `rhs::A`: Right-hand side.
@@ -21,6 +27,18 @@ Main container for Poisson-solver workspace and solution arrays.
   - `preconditioner::D`: Workspace arrays for applying the preconditioner.
   - `bicgstab::E`: Workspace arrays used by the BicGStab algorithm.
   - `correction::F`: Correction terms used to update the horizontal wind in the corrector step.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+# See also
+
+  - [`PinCFlow.Types.PoissonTypes.Tensor`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.Operator`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.Preconditioner`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.BicGStab`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.Correction`](@ref)
 """
 struct Poisson{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -39,29 +57,6 @@ struct Poisson{
     correction::F
 end
 
-"""
-```julia
-Poisson(domain::Domain)
-```
-
-Initialize the complete Poisson-solver workspace, sized according to the dimensions of the MPI subdomain.
-
-# Arguments
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-# Returns
-
-  - `::Poisson`: `Poisson` instance with zero-initialized arrays.
-
-# See also
-
-  - [`PinCFlow.Types.PoissonTypes.Tensor`](@ref)
-  - [`PinCFlow.Types.PoissonTypes.Operator`](@ref)
-  - [`PinCFlow.Types.PoissonTypes.Preconditioner`](@ref)
-  - [`PinCFlow.Types.PoissonTypes.BicGStab`](@ref)
-  - [`PinCFlow.Types.PoissonTypes.Correction`](@ref)
-"""
 function Poisson(domain::Domain)
 
     # Get all necessary fields.

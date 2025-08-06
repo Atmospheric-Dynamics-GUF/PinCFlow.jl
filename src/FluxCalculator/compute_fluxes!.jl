@@ -3,15 +3,122 @@
 compute_fluxes!(state::State, predictands::Predictands)
 ```
 
-Compute fluxes of all prognostic variables.
+Compute fluxes by dispatching to specialized methods for each prognostic variable (`Rho`, `RhoP`, `U`, `V`, `W`, and `P`).
 
-This method calls specialized methods for each variable (`Rho`, `RhoP`, `U`, `V`, `W`, and `P`).
+```julia
+compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+```
+
+Compute the density fluxes in all three directions.
+
+The fluxes are computed from the MUSCL reconstruction of ``\\rho / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. They are written into `state.variables.fluxes.phirho`.
+
+```julia
+compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
+```
+
+Compute the density-fluctuation fluxes in all three directions.
+
+The computation is analogous to that of the density fluxes. The fluxes are written into `state.variables.fluxes.phirhop`.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    model::AbstractModel,
+    variable::P,
+)
+```
+
+Return in non-compressible modes.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    model::Compressible,
+    variable::P,
+)
+```
+
+Compute the mass-weighted potential-temperature fluxes in all three directions.
+
+The fluxes are computed by interpolating ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. They are written into `state.variables.fluxes.phip`.
+
+```julia
+compute_fluxes!(state::State, old_predictands::Predictands, variable::U)
+```
+
+Compute the sums of advective and viscous zonal-momentum fluxes in all three directions.
+
+The advective fluxes are computed from the MUSCL reconstruction of ``\\rho u / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. The viscous fluxes are computed from linear interpolations of the corresponding elements of the viscous stress tensor. The total fluxes are written into `state.variables.fluxes.phiu`.
+
+```julia
+compute_fluxes!(state::State, old_predictands::Predictands, variable::V)
+```
+
+Compute the sums of advective and viscous meridional-momentum fluxes in all three directions.
+
+The computation is analogous to that of the zonal-momentum fluxes. The total fluxes are written into `state.variables.fluxes.phiv`.
+
+```julia
+compute_fluxes!(state::State, old_predictands::Predictands, variable::W)
+```
+
+Compute the sums of advective and viscous vertical-momentum fluxes in all three directions.
+
+The computation is analogous to those of the zonal-momentum and meridional-momentum fluxes. The total fluxes are written into `state.variables.fluxes.phiw`.
+
+```julia
+compute_fluxes!(state::State, predictands::Predictands, tracersetup::NoTracer)
+```
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracersetup::AbstractTracer,
+)
+```
+
+```julia
+compute_fluxes!(state::State, predictands::Predictands, icesetup::NoIce)
+```
+
+```julia
+compute_fluxes!(state::State, predictands::Predictands, icesetup::AbstractIce)
+```
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    turbulencesetup::NoTurbulence,
+)
+```
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    turbulencesetup::AbstractTurbulence,
+)
+```
 
 # Arguments
 
   - `state`: Model state.
-  - `predictands`: The predictands that are used to compute the transporting velocities.
+  - `predictands`/`old_predictands`: The predictands that are used to compute the transporting velocities.
+  - `model`: Dynamic equations.
+  - `variable`: Flux variable.
+
+# See also
+
+  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
+  - [`PinCFlow.Update.compute_stress_tensor`](@ref)
 """
+function compute_fluxes! end
+
 function compute_fluxes!(state::State, predictands::Predictands)
     (; model) = state.namelists.setting
 
@@ -32,25 +139,6 @@ function compute_fluxes!(state::State, predictands::Predictands)
     return
 end
 
-"""
-```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
-```
-
-Compute the density fluxes in all three directions.
-
-The fluxes are computed from the MUSCL reconstruction of ``\\rho / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. They are written into `state.variables.fluxes.phirho`.
-
-# Arguments
-
-  - `state`: Model state.
-  - `predictands`: The predictands that are used to compute the transporting velocities.
-  - `variable`: The flux variable.
-
-# See also
-
-  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
-"""
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 
     # Get all necessary fields.
@@ -141,25 +229,6 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     return
 end
 
-"""
-```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
-```
-
-Compute the density-fluctuation fluxes in all three directions.
-
-The fluxes are computed from the MUSCL reconstruction of ``\\rho' / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. They are written into `state.variables.fluxes.phirhop`.
-
-# Arguments
-
-  - `state`: Model state.
-  - `predictands`: The predictands that are used to compute the transporting velocities.
-  - `variable`: The flux variable.
-
-# See also
-
-  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
-"""
 function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 
     # Get all necessary fields.
@@ -236,25 +305,6 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     return
 end
 
-"""
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    model::AbstractModel,
-    variable::P,
-)
-```
-
-Return in non-compressible modes.
-
-# Arguments
-
-  - `state`: Model state.
-  - `predictands`: The predictands that are used to compute the transporting velocities.
-  - `model`: Dynamic equations.
-  - `variable`: The flux variable.
-"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -264,27 +314,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    model::Compressible,
-    variable::P,
-)
-```
-
-Compute the mass-weighted potential-temperature fluxes in all three directions.
-
-The fluxes are computed by interpolating ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. They are written into `state.variables.fluxes.phip`.
-
-# Arguments
-
-  - `state`: Model state.
-  - `predictands`: The predictands that are used to compute the transporting velocities.
-  - `model`: Dynamic equations.
-  - `variable`: The flux variable.
-"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -341,26 +370,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::U)
-```
-
-Compute the sums of advective and viscous zonal-momentum fluxes in all three directions.
-
-The advective fluxes are computed from the MUSCL reconstruction of ``\\rho u / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. The viscous fluxes are computed from linear interpolations of the corresponding elements of the viscous stress tensor. The total fluxes are written into `state.variables.fluxes.phiu`.
-
-# Arguments
-
-  - `state`: Model state.
-  - `old_predictands`: The predictands that are used to compute the transporting velocities.
-  - `variable`: The flux variable.
-
-# See also
-
-  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
-  - [`PinCFlow.Update.compute_stress_tensor`](@ref)
-"""
 function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
@@ -582,26 +591,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::V)
-```
-
-Compute the sums of advective and viscous meridional-momentum fluxes in all three directions.
-
-The advective fluxes are computed from the MUSCL reconstruction of ``\\rho v / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. The viscous fluxes are computed from linear interpolations of the corresponding elements of the viscous stress tensor. The total fluxes are written into `state.variables.fluxes.phiv`.
-
-# Arguments
-
-  - `state`: Model state.
-  - `old_predictands`: The predictands that are used to compute the transporting velocities.
-  - `variable`: The flux variable.
-
-# See also
-
-  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
-  - [`PinCFlow.Update.compute_stress_tensor`](@ref)
-"""
 function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
@@ -823,26 +812,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::W)
-```
-
-Compute the sums of advective and viscous meridional-momentum fluxes in all three directions.
-
-The advective fluxes are computed from the MUSCL reconstruction of ``\\rho w / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. The viscous fluxes are computed from linear interpolations of the corresponding elements of the viscous stress tensor. The total fluxes are written into `state.variables.fluxes.phiw`.
-
-# Arguments
-
-  - `state`: Model state.
-  - `old_predictands`: The predictands that are used to compute the transporting velocities.
-  - `variable`: The flux variable.
-
-# See also
-
-  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
-  - [`PinCFlow.Update.compute_stress_tensor`](@ref)
-"""
 function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
@@ -1092,11 +1061,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(state::State, predictands::Predictands, tracersetup::NoTracer)
-```
-"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1105,15 +1069,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    tracersetup::AbstractTracer,
-)
-```
-"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1182,11 +1137,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(state::State, predictands::Predictands, icesetup::NoIce)
-```
-"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1195,11 +1145,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(state::State, predictands::Predictands, icesetup::AbstractIce)
-```
-"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1268,15 +1213,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulencesetup::NoTurbulence,
-)
-```
-"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1285,15 +1221,6 @@ function compute_fluxes!(
     return
 end
 
-"""
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulencesetup::AbstractTurbulence,
-)
-```
-"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,

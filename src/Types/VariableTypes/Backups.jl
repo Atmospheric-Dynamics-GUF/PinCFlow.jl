@@ -5,6 +5,12 @@ Backups{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Container for backup copies needed in the semi-implicit time scheme.
 
+```julia
+Backups(domain::Domain)
+```
+
+Initialize backup arrays sized according to the dimensions of the MPI subdomain.
+
 # Fields
 
   - `rhoold::A`: Density backup.
@@ -12,6 +18,10 @@ Container for backup copies needed in the semi-implicit time scheme.
   - `uold::A`: Zonal-wind backup.
   - `vold::A`: Meridional-wind backup.
   - `wold::A`: Transformed-vertical-wind backup.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     rhoold::A
@@ -21,21 +31,6 @@ struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     wold::A
 end
 
-"""
-```julia
-Backups(domain::Domain)
-```
-
-Initialize backup arrays sized according to the dimensions of the MPI subdomain.
-
-# Arguments
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-# Returns
-
-  - `::Backups`: `Backups` instance with zero-initialized arrays.
-"""
 function Backups(domain::Domain)
     (; nxx, nyy, nzz) = domain
 

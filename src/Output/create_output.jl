@@ -11,6 +11,8 @@ The dimensions of the datasets are set to those of the domain, whereas the chunk
 
   - `state`: Model state.
 """
+function create_output end
+
 function create_output(state::State)
     (; sizex, sizey, sizez, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =

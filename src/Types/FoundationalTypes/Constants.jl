@@ -5,6 +5,14 @@ Constants{A <: AbstractFloat}
 
 Composite type for natural constants, reference quantities and non-dimensional parameters.
 
+```julia
+Constants(namelists::Namelists)
+```
+
+Create a `Constants` instance.
+
+The Reynolds number is the only constant that depends on the model parameters in `namelists`. If `namelists.atmosphere.specifyreynolds` is `false`, the Reynolds number is ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu``, with ``\\mu`` being the kinematic viscosity at the surface, given by `namelists.atmosphere.mu_viscous_dim`. Otherwise, it is set to the inverse of `namelists.atmosphere.reinv`.
+
 # Fields
 
 Natural constants:
@@ -38,6 +46,10 @@ Non-dimensional parameters
   - `frinv2::A`: Inverse Froude number squared ``\\mathrm{Fr}^{- 2}``.
   - `fr2::A`: Froude number squared ``\\mathrm{Fr}^{2}``.
   - `sig::A`: Ratio between squared Mach number and squared Froude number ``\\sigma = \\mathrm{Ma}^2 / \\mathrm{Fr}^2``.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
 """
 struct Constants{A <: AbstractFloat}
 
@@ -73,23 +85,6 @@ struct Constants{A <: AbstractFloat}
     sig::A
 end
 
-"""
-```julia
-Constants(namelists::Namelists)
-```
-
-Creates a `Constants` instance.
-
-The Reynolds number is the only constant that depends on the model parameters in `namelists`. If `namelists.atmosphere.specifyreynolds` is `false`, the Reynolds number is ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu``, with ``\\mu`` being the kinematic viscosity at the surface, given by `namelists.atmosphere.mu_viscous_dim`. Otherwise, it is set to the inverse of `namelists.atmosphere.reinv`.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-
-# Returns
-
-  - `::Constants`: `Constants` instance.
-"""
 function Constants(namelists::Namelists)
 
     # Get parameters.
