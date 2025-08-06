@@ -11,6 +11,9 @@ State{
     H <: Poisson,
     I <: Variables,
     J <: WKB,
+    K <: Tracer,
+    L <: Ice,
+    M <: Turbulence,
 }
 ```
 
@@ -38,6 +41,9 @@ This method first uses the parameters specified in `namelists` to construct inst
   - `poisson::H`: Workspace and solution arrays for the Poisson solver.
   - `variables::I`: Arrays needed for the predictions of the prognostic variables.
   - `wkb::J`: Container for WKB ray-tracing data and parameters.
+  - `tracer::K`: ...
+  - `ice::L`: ...
+  - `turbulence::M`: ...
 
 # Arguments
 
