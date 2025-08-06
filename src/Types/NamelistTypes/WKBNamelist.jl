@@ -12,7 +12,43 @@ WKBNamelist{
 
 Namelist for parameters used by MSGWaM.
 
-# Fields
+```julia
+WKBNamelist(;
+    xrmin_dim::AbstractFloat = 0.0E+0,
+    xrmax_dim::AbstractFloat = 1.0E+3,
+    yrmin_dim::AbstractFloat = 0.0E+0,
+    yrmax_dim::AbstractFloat = 1.0E+3,
+    zrmin_dim::AbstractFloat = 0.0E+0,
+    zrmax_dim::AbstractFloat = 1.0E+3,
+    nrxl::Integer = 1,
+    nryl::Integer = 1,
+    nrzl::Integer = 1,
+    nrk_init::Integer = 1,
+    nrl_init::Integer = 1,
+    nrm_init::Integer = 1,
+    nray_fac::Integer = 4,
+    fac_dk_init::AbstractFloat = 1.0E-1,
+    fac_dl_init::AbstractFloat = 1.0E-1,
+    fac_dm_init::AbstractFloat = 1.0E-1,
+    branchr::Integer = -1,
+    merge_mode::AbstractMergeMode = ConstantWaveAction(),
+    nsmth_wkb::Integer = 2,
+    lsmth_wkb::Bool = true,
+    sm_filter::AbstractWKBFilter = Shapiro(),
+    zmin_wkb_dim::AbstractFloat = 0.0E+0,
+    lsaturation::Bool = true,
+    alpha_sat::AbstractFloat = 1.0E+0,
+    wkb_mode::AbstractWKBMode = MultiColumn(),
+    blocking::Bool = false,
+    long_threshold::AbstractFloat = 2.5E-1,
+    drag_coefficient::AbstractFloat = 1.0E+0,
+    nwm::Integer = 1,
+)
+```
+
+Construct a `WKBNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
 
   - `xrmin_dim::A`: Lower bound in ``x`` of the region where ray volumes are initialized.
   - `xrmax_dim::A`: Upper bound in ``x`` of the region where ray volumes are initialized.
@@ -83,79 +119,6 @@ struct WKBNamelist{
     nwm::B
 end
 
-"""
-```julia
-WKBNamelist(;
-    xrmin_dim::AbstractFloat = 0.0E+0,
-    xrmax_dim::AbstractFloat = 1.0E+3,
-    yrmin_dim::AbstractFloat = 0.0E+0,
-    yrmax_dim::AbstractFloat = 1.0E+3,
-    zrmin_dim::AbstractFloat = 0.0E+0,
-    zrmax_dim::AbstractFloat = 1.0E+3,
-    nrxl::Integer = 1,
-    nryl::Integer = 1,
-    nrzl::Integer = 1,
-    nrk_init::Integer = 1,
-    nrl_init::Integer = 1,
-    nrm_init::Integer = 1,
-    nray_fac::Integer = 4,
-    fac_dk_init::AbstractFloat = 1.0E-1,
-    fac_dl_init::AbstractFloat = 1.0E-1,
-    fac_dm_init::AbstractFloat = 1.0E-1,
-    branchr::Integer = -1,
-    merge_mode::AbstractMergeMode = ConstantWaveAction(),
-    nsmth_wkb::Integer = 2,
-    lsmth_wkb::Bool = true,
-    sm_filter::AbstractWKBFilter = Shapiro(),
-    zmin_wkb_dim::AbstractFloat = 0.0E+0,
-    lsaturation::Bool = true,
-    alpha_sat::AbstractFloat = 1.0E+0,
-    wkb_mode::AbstractWKBMode = MultiColumn(),
-    blocking::Bool = false,
-    long_threshold::AbstractFloat = 2.5E-1,
-    drag_coefficient::AbstractFloat = 1.0E+0,
-    nwm::Integer = 1,
-)
-```
-
-Construct a `WKBNamelist` instance with the given keyword arguments as properties.
-
-# Arguments:
-
-  - `xrmin_dim`: Lower bound in ``x`` of the region where ray volumes are initialized.
-  - `xrmax_dim`: Upper bound in ``x`` of the region where ray volumes are initialized.
-  - `yrmin_dim`: Lower bound in ``y`` of the region where ray volumes are initialized.
-  - `yrmax_dim`: Upper bound in ``y`` of the region where ray volumes are initialized.
-  - `zrmin_dim`: Lower bound in ``z`` of the region where ray volumes are initialized.
-  - `zrmax_dim`: Upper bound in ``z`` of the region where ray volumes are initialized.
-  - `nrxl`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{x}``-direction.
-  - `nryl`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{y}``-direction.
-  - `nrzl`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{z}``-direction.
-  - `nrk_init`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
-  - `nrl_init`: Number of ray-volumes launched per grid cell and wave mode in ``l``-direction.
-  - `nrm_init`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
-  - `nray_fac`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
-  - `fac_dk_init`: Relative inital ray-volume extent in ``k``.
-  - `fac_dl_init`: Relative inital ray-volume extent in ``l``.
-  - `fac_dm_init`: Relative inital ray-volume extent in ``m``.
-  - `branchr`: Frequency branch.
-  - `merge_mode`: Ray-volume merging strategy (conserved quantity).
-  - `nsmth_wkb`: Order of the smoothing applied to the mean-flow tendencies.
-  - `lsmth_wkb`: Switch for smoothing the mean-flow tendencies.
-  - `sm_filter`: Filter to use for the smoothing of the mean-flow tendencies.
-  - `zmin_wkb_dim`: Minimum altitude for ray-tracing and mean-flow impact.
-  - `lsaturation`: Switch for the saturation scheme.
-  - `alpha_sat`: Relative saturation threshold.
-  - `wkb_mode`: Approximations used by MSGWaM.
-  - `blocking`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
-  - `long_threshold`: Long-number threshold used by the blocked-layer scheme.
-  - `drag_coefficient`: Dimensionless (relative) drag coefficient used by the blocked layer scheme.
-  - `nwm`: Number of wave modes per grid cell.
-
-# Returns
-
-  - `::WKBNamelist`: `WKBNamelist` instance.
-"""
 function WKBNamelist(;
     xrmin_dim::AbstractFloat = 0.0E+0,
     xrmax_dim::AbstractFloat = 1.0E+3,

@@ -2,6 +2,18 @@
 ```julia
 IceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
+
+```julia
+IceTendencies(namelists::Namelists, domain::Domain)
+```
+
+```julia
+IceTendencies(domain::Domain, icesetup::NoIce)
+```
+
+```julia
+IceTendencies(domain::Domain, icesetup::AbstractIce)
+```
 """
 struct IceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dn::A
@@ -9,21 +21,11 @@ struct IceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dqv::A
 end
 
-"""
-```julia
-IceTendencies(namelists::Namelists, domain::Domain)
-```
-"""
 function IceTendencies(namelists::Namelists, domain::Domain)
     (; icesetup) = namelists.ice
     return IceTendencies(domain, icesetup)
 end
 
-"""
-```julia
-IceTendencies(domain::Domain, icesetup::NoIce)
-```
-"""
 function IceTendencies(domain::Domain, icesetup::NoIce)
     dn = zeros(0, 0, 0)
     dq = zeros(0, 0, 0)
@@ -32,11 +34,6 @@ function IceTendencies(domain::Domain, icesetup::NoIce)
     return IceTendencies(dn, dq, dqv)
 end
 
-"""
-```julia
-IceTendencies(domain::Domain, icesetup::AbstractIce)
-```
-"""
 function IceTendencies(domain::Domain, icesetup::AbstractIce)
     (; nxx, nyy, nzz) = domain
 

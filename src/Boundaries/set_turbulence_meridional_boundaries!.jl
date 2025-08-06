@@ -6,7 +6,33 @@ set_turbulence_meridional_boundaries!(
     turbulencesetup::NoTurbulence,
 )
 ```
+
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    turbulencesetup::AbstractTurbulence,
+)
+```
+
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    turbulencesetup::NoTurbulence,
+)
+```
+
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    turbulencesetup::AbstractTurbulence,
+)
+```
 """
+function set_turbulence_meridional_boundaries! end
+
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -15,15 +41,6 @@ function set_turbulence_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::BoundaryPredictands,
-    turbulencesetup::AbstractTurbulence,
-)
-```
-"""
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -43,15 +60,6 @@ function set_turbulence_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
-    turbulencesetup::NoTurbulence,
-)
-```
-"""
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
@@ -60,15 +68,6 @@ function set_turbulence_meridional_boundaries!(
     return
 end
 
-"""
-```julia
-set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
-    turbulencesetup::AbstractTurbulence,
-)
-```
-"""
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,

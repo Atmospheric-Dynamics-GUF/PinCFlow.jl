@@ -5,19 +5,6 @@ set_compressible_meridional_boundaries!(state::State, model::AbstractModel)
 
 Return in non-compressible modes.
 
-# Arguments
-
-  - `state`: Model state.
-  - `model`: Dynamic equations.
-"""
-function set_compressible_meridional_boundaries!(
-    state::State,
-    model::AbstractModel,
-)
-    return
-end
-
-"""
 ```julia
 set_compressible_meridional_boundaries!(state::State, model::Compressible)
 ```
@@ -33,6 +20,15 @@ Enforce meridional boundary conditions for mass-weighted potential temperature i
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
+function set_compressible_meridional_boundaries! end
+
+function set_compressible_meridional_boundaries!(
+    state::State,
+    model::AbstractModel,
+)
+    return
+end
+
 function set_compressible_meridional_boundaries!(
     state::State,
     model::Compressible,

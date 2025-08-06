@@ -9,6 +9,8 @@ Check if all ray volumes are assigned to the correct grid cells.
 
   - `state`: Model state.
 """
+function check_rays end
+
 function check_rays(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain

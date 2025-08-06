@@ -47,6 +47,29 @@ where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)
 \\end{align*}
 ```
 
+```julia
+compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+```
+
+Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
+
+This method computes the sums ``M_{u w}``, ``M_{v w}``, ``T_u``, ``T_v``, ``E_u``, ``E_v`` and ``E`` (see above for details).
+
+```julia
+compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+```
+
+Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
+
+This method computes the sums ``M_{u w}`` and ``M_{v w}`` (see above for details). In contrast to the multi-column and single-column modes, the steady-state mode uses the pseudo-momentum approximation
+
+```math
+\\begin{align*}
+    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = k_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha} \\mathcal{A}_\\alpha,\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = l_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha} \\mathcal{A}_\\alpha.
+\\end{align*}
+```
+
 # Arguments
 
   - `state::State`: Model state.
@@ -58,6 +81,8 @@ where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
+function compute_gw_integrals! end
+
 function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
@@ -228,58 +253,6 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     end
 end
 
-"""
-```julia
-compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
-```
-
-Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
-
-This method computes the sums
-
-```math
-\\begin{align*}
-    M_{u w} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} w_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    M_{v w} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} w_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    T_u & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    T_v & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    E_u & = \\frac{f}{\\overline{\\theta}} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    E_v & = \\frac{f}{\\overline{\\theta}} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    E & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F \\mathcal{E}\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}.
-\\end{align*}
-```
-
-Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes that are at least partially within the grid cell at ``\\left(i, j, k\\right)``, ``F_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}`` are the corresponding ray volume fractions and ``\\left(u_\\mathrm{w}, v_\\mathrm{w}, w_\\mathrm{w}, \\theta_\\mathrm{w}, \\mathcal{E}\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}`` are the wave amplitudes of the wind, those of the potential temperature and the wave-energy densities. The background density, Coriolis parameter and background potential temperature are denoted by ``\\overline{\\rho}``, ``f`` and ``\\overline{\\theta}``, respectively. The computation is based on the relations
-
-```math
-\\begin{align*}
-    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = \\frac{k_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha}}{1 - \\left(f / \\widehat{\\omega}_\\alpha\\right)^2} \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = \\frac{l_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha}}{1 - \\left(f / \\widehat{\\omega}_\\alpha\\right)^2} \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} \\theta_{\\mathrm{w}, \\alpha}^* & = \\frac{f}{g \\overline{\\theta}} \\frac{l_\\alpha m_\\alpha N_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
-    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} \\theta_{\\mathrm{w}, \\alpha}^* & = - \\frac{f}{g \\overline{\\theta}} \\frac{k_\\alpha m_\\alpha N_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
-    \\mathcal{E}_\\alpha & = \\widehat{\\omega}_\\alpha \\mathcal{A}_\\alpha,
-\\end{align*}
-```
-
-where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}``, ``\\widehat{c}_{\\mathrm{g} z, \\alpha}``, ``\\widehat{\\omega}_\\alpha``, ``\\mathcal{A}_\\alpha``, ``g`` and ``N_\\alpha^2`` are the wavevector, vertical group velocity, intrinsic frequency, wave-action density, gravitational acceleration and squared buoyancy frequency interpolated to the ray-volume position, respectively. The vertical group velocity is given by
-
-```math
-\\begin{align*}
-    \\widehat{c}_{\\mathrm{g} z, \\alpha} & = - \\frac{m_\\alpha \\left(\\widehat{\\omega}_\\alpha^2 - f^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2}.
-\\end{align*}
-```
-
-# Arguments
-
-  - `state::State`: Model state.
-  - `wkb_mode`: Approximations used by MSGWaM.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
-"""
 function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
@@ -418,50 +391,6 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     end
 end
 
-"""
-```julia
-compute_gw_integrals!(state::State, wkb_mode::SteadyState)
-```
-
-Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
-
-This method computes the sums
-
-```math
-\\begin{align*}
-    M_{u w} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} w_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    M_{v w} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} w_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-\\end{align*}
-```
-
-Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes that are at least partially within the grid cell at ``\\left(i, j, k\\right)``, ``F_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}`` are the corresponding ray volume fractions and ``\\left(u_\\mathrm{w}, v_\\mathrm{w}, w_\\mathrm{w}, \\theta_\\mathrm{w}, \\mathcal{E}\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}`` are the wave amplitudes of the wind, those of the potential temperature and the wave-energy densities. The background density is denoted by ``\\overline{\\rho}``. The computation is based on the relations
-
-```math
-\\begin{align*}
-    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = k_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha} \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = l_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha} \\mathcal{A}_\\alpha,
-\\end{align*}
-```
-
-where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}``, ``\\widehat{c}_{\\mathrm{g} z, \\alpha}``, ``\\widehat{\\omega}_\\alpha``, ``\\mathcal{A}_\\alpha`` and ``N_\\alpha^2`` are the wavevector, vertical group velocity, intrinsic frequency, wave-action density and squared buoyancy frequency interpolated to the ray-volume position, respectively. The vertical group velocity is given by
-
-```math
-\\begin{align*}
-    \\widehat{c}_{\\mathrm{g} z, \\alpha} & = - \\frac{m_\\alpha \\left(\\widehat{\\omega}_\\alpha^2 - f^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2}.
-\\end{align*}
-```
-
-# Arguments
-
-  - `state::State`: Model state.
-  - `wkb_mode`: Approximations used by MSGWaM.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
-"""
 function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere

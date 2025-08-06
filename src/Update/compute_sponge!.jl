@@ -19,11 +19,160 @@ If `state.namelists.sponge.unifiedsponge` is `false`, this method directly compu
 
 where ``a_\\mathrm{R}`` and ``z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_fac` and `state.sponge.zsponge`, respectively. These coefficients are only used in the prognostic equations for the density fluctuations (``\\alpha_\\mathrm{R}^{\\rho'}``) and transformed vertical wind (``\\alpha_\\mathrm{R}^{\\widehat{w}}``). The corresponding damping terms are integrated on the right-hand sides. If `state.namelists.sponge.unifiedsponge` is `true`, this method dispatches to a specific method that computes the Rayleigh damping coefficient of the sponge defined for `state.namelists.sponge.spongetype`.
 
+```julia
+compute_sponge!(state::State, dt::AbstractFloat, spongetype::ExponentialSponge)
+```
+
+Compute the Rayleigh-damping coefficient of an exponential sponge.
+
+If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
+
+```math
+\\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, \\max}}{3} \\left[\\exp \\left(\\frac{\\left|x\\right| - L_x / 2}{\\Delta x_\\mathrm{R}}\\right) + \\exp \\left(\\frac{\\left|y\\right| - L_y / 2}{\\Delta y_\\mathrm{R}}\\right) + \\exp \\left(\\frac{z - L_z}{\\Delta z_\\mathrm{R}}\\right)\\right]
+```
+
+and otherwise, it is
+
+```math
+\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, \\max} \\left[\\exp \\left(\\frac{z - L_z}{\\Delta z_\\mathrm{R}}\\right)\\right],
+```
+
+where ``\\alpha_{\\mathrm{R}, \\max}``, ``\\Delta x_\\mathrm{R}``, ``\\Delta y_\\mathrm{R}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_dim`, `state.sponge.dxsponge`, `state.sponge.dysponge` and `state.sponge.dzsponge`, respectively. In the notation used here, the horizontal boundaries of the domain are ``\\left(- L_x / 2, L_x / 2\\right)`` and ``\\left(- L_y / 2, L_y / 2\\right)``. In the general case where this is not necessarily true, the coefficient is defined such that its minimum is at the horizontal center of the domain.
+
+```julia
+compute_sponge!(state::State, dt::AbstractFloat, spongetype::COSMOSponge)
+```
+
+Compute the Rayleigh-damping coefficient of a sponge similar to that used by the COSMO model.
+
+If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
+
+```math
+\\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)
+```
+
+with
+
+```math
+\\begin{align*}
+    \\alpha_{\\mathrm{R}, x} \\left(x\\right) & = \\begin{cases}
+        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(x_{\\mathrm{R}, 0} - x\\right)}{\\Delta x_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad x \\leq x_{\\mathrm{R}, 0},\\\\
+        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(x - x_{\\mathrm{R}, 1}\\right)}{\\Delta x_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad x \\geq x_{\\mathrm{R}, 1},\\\\
+        0 & \\mathrm{else},
+    \\end{cases}\\\\
+    \\alpha_{\\mathrm{R}, y} \\left(y\\right) & = \\begin{cases}
+        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(y_{\\mathrm{R}, 0} - y\\right)}{\\Delta y_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad y \\leq y_{\\mathrm{R}, 0},\\\\
+        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(y - y_{\\mathrm{R}, 1}\\right)}{\\Delta y_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad y \\geq y_{\\mathrm{R}, 1},\\\\
+        0 & \\mathrm{else},
+    \\end{cases}\\\\
+    \\alpha_{\\mathrm{R}, z} \\left(z\\right) & = \\begin{cases}
+        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(z - z_\\mathrm{R}\\right)}{\\Delta z_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
+        0 & \\mathrm{else}
+    \\end{cases}
+\\end{align*}
+```
+
+and otherwise, it is
+
+```math
+\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right),
+```
+
+where ``N_\\mathrm{R}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``z_{\\mathrm{R}, 0}`` and ``z_{\\mathrm{R}, 1}`` are given by `state.namelists.sponge.cosmosteps` and the properties `xsponge0`, `xsponge1`, `ysponge0`, `ysponge1`, `zsponge0` and `zsponge1` of `state.sponge`, respectively.
+
+```julia
+compute_sponge!(state::State, dt::AbstractFloat, spongetype::PolynomialSponge)
+```
+
+Compute the Rayleigh-damping coefficient of a polynomial sponge.
+
+If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
+
+```math
+\\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)}{3}
+```
+
+with
+
+```math
+\\begin{align*}
+    \\alpha_{\\mathrm{R}, x} \\left(x\\right) & = \\begin{cases}
+        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{x_{\\mathrm{R}, 0} - x}{\\Delta x_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad x \\leq x_{\\mathrm{R}, 0},\\\\
+        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{x - x_{\\mathrm{R}, 1}}{\\Delta x_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad x \\geq x_{\\mathrm{R}, 1},\\\\
+        0 & \\mathrm{else},
+    \\end{cases}\\\\
+    \\alpha_{\\mathrm{R}, y} \\left(y\\right) & = \\begin{cases}
+        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{y_{\\mathrm{R}, 0} - y}{\\Delta y_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad y \\leq y_{\\mathrm{R}, 0},\\\\
+        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{y - y_{\\mathrm{R}, 1}}{\\Delta y_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad y \\geq y_{\\mathrm{R}, 1},\\\\
+        0 & \\mathrm{else},
+    \\end{cases}\\\\
+    \\alpha_{\\mathrm{R}, z} \\left(z\\right) & = \\begin{cases}
+        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{z - z_\\mathrm{R}}{\\Delta z_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
+        0 & \\mathrm{else}
+    \\end{cases}
+\\end{align*}
+```
+
+and otherwise, it is
+
+```math
+\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right),
+```
+
+where ``n_\\mathrm{R}`` is given by `state.namelists.sponge.spongeorder`.
+
+```julia
+compute_sponge!(state::State, dt::AbstractFloat, spongetype::SinusoidalSponge)
+```
+
+Compute the Rayleigh-damping coefficient of a sinusoidal sponge.
+
+If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
+
+```math
+\\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)}{3}
+```
+
+with
+
+```math
+\\begin{align*}
+    \\alpha_{\\mathrm{R}, x} \\left(x\\right) & = \\begin{cases}
+        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(x_{\\mathrm{R}, 0} - x\\right)}{2 \\Delta x_\\mathrm{R}}\\right] & \\mathrm{if} \\quad x \\leq x_{\\mathrm{R}, 0},\\\\
+        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(x - x_{\\mathrm{R}, 1}\\right)}{2 \\Delta x_\\mathrm{R}}\\right] & \\mathrm{if} \\quad x \\geq x_{\\mathrm{R}, 1},\\\\
+        0 & \\mathrm{else},
+    \\end{cases}\\\\
+    \\alpha_{\\mathrm{R}, y} \\left(y\\right) & = \\begin{cases}
+        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(y_{\\mathrm{R}, 0} - y\\right)}{2 \\Delta y_\\mathrm{R}}\\right] & \\mathrm{if} \\quad y \\leq y_{\\mathrm{R}, 0},\\\\
+        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(y - y_{\\mathrm{R}, 1}\\right)}{2 \\Delta y_\\mathrm{R}}\\right] & \\mathrm{if} \\quad y \\geq y_{\\mathrm{R}, 1},\\\\
+        0 & \\mathrm{else},
+    \\end{cases}\\\\
+    \\alpha_{\\mathrm{R}, z} \\left(z\\right) & = \\begin{cases}
+        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(z - z_\\mathrm{R}\\right)}{2 \\Delta z_\\mathrm{R}}\\right] & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
+        0 & \\mathrm{else}
+    \\end{cases}
+\\end{align*}
+```
+
+and otherwise, it is
+
+```math
+\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right).
+```
+
 # Arguments
 
   - `state`: Model state.
   - `dt`: Time step.
+  - `spongetype`: Specification of the spatial dependence of the  Rayleigh-damping coefficient.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
+function compute_sponge! end
+
 function compute_sponge!(state::State, dt::AbstractFloat)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ztfc, lz, jac) = state.grid
@@ -64,38 +213,6 @@ function compute_sponge!(state::State, dt::AbstractFloat)
     return
 end
 
-"""
-```julia
-compute_sponge!(state::State, dt::AbstractFloat, spongetype::ExponentialSponge)
-```
-
-Compute the Rayleigh-damping coefficient of an exponential sponge.
-
-If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
-
-```math
-\\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, \\max}}{3} \\left[\\exp \\left(\\frac{\\left|x\\right| - L_x / 2}{\\Delta x_\\mathrm{R}}\\right) + \\exp \\left(\\frac{\\left|y\\right| - L_y / 2}{\\Delta y_\\mathrm{R}}\\right) + \\exp \\left(\\frac{z - L_z}{\\Delta z_\\mathrm{R}}\\right)\\right]
-```
-
-and otherwise, it is
-
-```math
-\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, \\max} \\left[\\exp \\left(\\frac{z - L_z}{\\Delta z_\\mathrm{R}}\\right)\\right],
-```
-
-where ``\\alpha_{\\mathrm{R}, \\max}``, ``\\Delta x_\\mathrm{R}``, ``\\Delta y_\\mathrm{R}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_dim`, `state.sponge.dxsponge`, `state.sponge.dysponge` and `state.sponge.dzsponge`, respectively. In the notation used here, the horizontal boundaries of the domain are ``\\left(- L_x / 2, L_x / 2\\right)`` and ``\\left(- L_y / 2, L_y / 2\\right)``. In the general case where this is not necessarily true, the coefficient is defined such that its minimum is at the horizontal center of the domain.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `spongetype`: Specification of the spatial dependence of the Rayleigh-damping coefficient.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function compute_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -193,59 +310,6 @@ function compute_sponge!(
     return
 end
 
-"""
-```julia
-compute_sponge!(state::State, dt::AbstractFloat, spongetype::COSMOSponge)
-```
-
-Compute the Rayleigh-damping coefficient of a sponge similar to that used by the COSMO model.
-
-If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
-
-```math
-\\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)
-```
-
-with
-
-```math
-\\begin{align*}
-    \\alpha_{\\mathrm{R}, x} \\left(x\\right) & = \\begin{cases}
-        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(x_{\\mathrm{R}, 0} - x\\right)}{\\Delta x_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad x \\leq x_{\\mathrm{R}, 0},\\\\
-        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(x - x_{\\mathrm{R}, 1}\\right)}{\\Delta x_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad x \\geq x_{\\mathrm{R}, 1},\\\\
-        0 & \\mathrm{else},
-    \\end{cases}\\\\
-    \\alpha_{\\mathrm{R}, y} \\left(y\\right) & = \\begin{cases}
-        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(y_{\\mathrm{R}, 0} - y\\right)}{\\Delta y_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad y \\leq y_{\\mathrm{R}, 0},\\\\
-        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(y - y_{\\mathrm{R}, 1}\\right)}{\\Delta y_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad y \\geq y_{\\mathrm{R}, 1},\\\\
-        0 & \\mathrm{else},
-    \\end{cases}\\\\
-    \\alpha_{\\mathrm{R}, z} \\left(z\\right) & = \\begin{cases}
-        \\left(2 N_\\mathrm{R} \\Delta t\\right)^{- 1} \\left\\{1 - \\cos \\left[\\frac{\\pi \\left(z - z_\\mathrm{R}\\right)}{\\Delta z_\\mathrm{R}}\\right]\\right\\} & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
-        0 & \\mathrm{else}
-    \\end{cases}
-\\end{align*}
-```
-
-and otherwise, it is
-
-```math
-\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right)
-```
-
-where ``N_\\mathrm{R}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``\\Delta x_\\mathrm{R}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``\\Delta y_\\mathrm{R}``, ``z_{\\mathrm{R}, 0}``, ``z_{\\mathrm{R}, 1}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.cosmosteps`, and the properties `xsponge0`, `xsponge1`, `dxsponge`, `ysponge0`, `ysponge1`, `dysponge`, `zsponge0`, `zsponge1` and `dzsponge` of `state.sponge`, respectively.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `spongetype`: Specification of the spatial dependence of the Rayleigh-damping coefficient.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function compute_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -343,59 +407,6 @@ function compute_sponge!(
     return
 end
 
-"""
-```julia
-compute_sponge!(state::State, dt::AbstractFloat, spongetype::PolynomialSponge)
-```
-
-Compute the Rayleigh-damping coefficient of a polynomial sponge.
-
-If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
-
-```math
-\\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)}{3}
-```
-
-with
-
-```math
-\\begin{align*}
-    \\alpha_{\\mathrm{R}, x} \\left(x\\right) & = \\begin{cases}
-        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{x_{\\mathrm{R}, 0} - x}{\\Delta x_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad x \\leq x_{\\mathrm{R}, 0},\\\\
-        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{x - x_{\\mathrm{R}, 1}}{\\Delta x_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad x \\geq x_{\\mathrm{R}, 1},\\\\
-        0 & \\mathrm{else},
-    \\end{cases}\\\\
-    \\alpha_{\\mathrm{R}, y} \\left(y\\right) & = \\begin{cases}
-        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{y_{\\mathrm{R}, 0} - y}{\\Delta y_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad y \\leq y_{\\mathrm{R}, 0},\\\\
-        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{y - y_{\\mathrm{R}, 1}}{\\Delta y_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad y \\geq y_{\\mathrm{R}, 1},\\\\
-        0 & \\mathrm{else},
-    \\end{cases}\\\\
-    \\alpha_{\\mathrm{R}, z} \\left(z\\right) & = \\begin{cases}
-        \\alpha_{\\mathrm{R}, \\max} \\left(\\frac{z - z_\\mathrm{R}}{\\Delta z_\\mathrm{R}}\\right)^{n_\\mathrm{R}} & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
-        0 & \\mathrm{else}
-    \\end{cases}
-\\end{align*}
-```
-
-and otherwise, it is
-
-```math
-\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right)
-```
-
-where ``\\alpha_{\\mathrm{R}, \\max}``, ``n_\\mathrm{R}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``\\Delta x_\\mathrm{R}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``\\Delta y_\\mathrm{R}``, ``z_{\\mathrm{R}, 0}``, ``z_{\\mathrm{R}, 1}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_dim`, `state.namelists.sponge.spongeorder`, and the properties `xsponge0`, `xsponge1`, `dxsponge`, `ysponge0`, `ysponge1`, `dysponge`, `zsponge0`, `zsponge1` and `dzsponge` of `state.sponge`, respectively.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `spongetype`: Specification of the spatial dependence of the Rayleigh-damping coefficient.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function compute_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -509,59 +520,6 @@ function compute_sponge!(
     return
 end
 
-"""
-```julia
-compute_sponge!(state::State, dt::AbstractFloat, spongetype::SinusoidalSponge)
-```
-
-Compute the Rayleigh-damping coefficient of a sinusoidal sponge.
-
-If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
-
-```math
-\\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)}{3}
-```
-
-with
-
-```math
-\\begin{align*}
-    \\alpha_{\\mathrm{R}, x} \\left(x\\right) & = \\begin{cases}
-        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(x_{\\mathrm{R}, 0} - x\\right)}{2 \\Delta x_\\mathrm{R}}\\right] & \\mathrm{if} \\quad x \\leq x_{\\mathrm{R}, 0},\\\\
-        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(x - x_{\\mathrm{R}, 1}\\right)}{2 \\Delta x_\\mathrm{R}}\\right] & \\mathrm{if} \\quad x \\geq x_{\\mathrm{R}, 1},\\\\
-        0 & \\mathrm{else},
-    \\end{cases}\\\\
-    \\alpha_{\\mathrm{R}, y} \\left(y\\right) & = \\begin{cases}
-        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(y_{\\mathrm{R}, 0} - y\\right)}{2 \\Delta y_\\mathrm{R}}\\right] & \\mathrm{if} \\quad y \\leq y_{\\mathrm{R}, 0},\\\\
-        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(y - y_{\\mathrm{R}, 1}\\right)}{2 \\Delta y_\\mathrm{R}}\\right] & \\mathrm{if} \\quad y \\geq y_{\\mathrm{R}, 1},\\\\
-        0 & \\mathrm{else},
-    \\end{cases}\\\\
-    \\alpha_{\\mathrm{R}, z} \\left(z\\right) & = \\begin{cases}
-        \\alpha_{\\mathrm{R}, \\max} \\sin^2 \\left[\\frac{\\pi \\left(z - z_\\mathrm{R}\\right)}{2 \\Delta z_\\mathrm{R}}\\right] & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
-        0 & \\mathrm{else}
-    \\end{cases}
-\\end{align*}
-```
-
-and otherwise, it is
-
-```math
-\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right)
-```
-
-where ``\\alpha_{\\mathrm{R}, \\max}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``\\Delta x_\\mathrm{R}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``\\Delta y_\\mathrm{R}``, ``z_{\\mathrm{R}, 0}``, ``z_{\\mathrm{R}, 1}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_dim` and the properties `xsponge0`, `xsponge1`, `dxsponge`, `ysponge0`, `ysponge1`, `dysponge`, `zsponge0`, `zsponge1` and `dzsponge` of `state.sponge`, respectively.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `spongetype`: Specification of the spatial dependence of the Rayleigh-damping coefficient.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function compute_sponge!(
     state::State,
     dt::AbstractFloat,

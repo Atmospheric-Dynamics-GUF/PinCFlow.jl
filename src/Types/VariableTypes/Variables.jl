@@ -12,6 +12,17 @@ Variables{
 
 Container for arrays needed for the prediction of the prognostic variables.
 
+```julia
+Variables(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+)
+```
+
+Construct a `Variables` instance, with array dimensions and initial values set according to the model configuration.
+
 # Fields
 
   - `predictands::A`: Prognostic variables.
@@ -20,6 +31,22 @@ Container for arrays needed for the prediction of the prognostic variables.
   - `auxiliaries::D`: Auxiliary array needed in the reconstruction.
   - `reconstructions::E`: Reconstructions of the prognostic variables.
   - `fluxes::F`: Fluxes of the prognostic variables.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+
+# See also
+
+  - [`PinCFlow.Types.VariableTypes.Predictands`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Tendencies`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Backups`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Auxiliaries`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Reconstructions`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Fluxes`](@ref)
 """
 struct Variables{
     A <: Predictands,
@@ -37,38 +64,6 @@ struct Variables{
     fluxes::F
 end
 
-"""
-```julia
-Variables(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-)
-```
-
-Construct a `Variables` instance, with array dimensions and initial values set according to the model configuration.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `atmosphere`: Atmospheric-background fields.
-
-# Returns
-
-  - `::Variables`: `Variables` instance with fields initialized for the given model configuration.
-
-# See also
-
-  - [`PinCFlow.Types.VariableTypes.Predictands`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Tendencies`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Backups`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Auxiliaries`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Reconstructions`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Fluxes`](@ref)
-"""
 function Variables(
     namelists::Namelists,
     constants::Constants,

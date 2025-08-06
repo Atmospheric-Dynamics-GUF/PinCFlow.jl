@@ -17,6 +17,8 @@ This method first enforces meridional boundary conditions for `state.wkb.nray` (
   - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_halo_rays!`](@ref)
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
+function set_meridional_boundary_rays! end
+
 function set_meridional_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; npy) = namelists.domain

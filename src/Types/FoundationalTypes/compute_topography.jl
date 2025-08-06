@@ -79,13 +79,115 @@ The supported topography shapes are as follows, listed according to the value of
 
 Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain.
 
+```julia
+compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    testcase::AbstractTestCase,
+)
+```
+
+Compute and return the topography for non-WKB-mountain-wave test cases.
+
+The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
+
+ 1. 2D cosine mountains:
+
+    ```math
+    h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    ```
+
+ 2. 3D cosine mountains:
+
+    ```math
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    ```
+ 3. 2D isolated mountain:
+
+    ```math
+    h \\left(x\\right) = \\frac{h_0}{1 + \\left(x - x_0\\right)^2 / l_0^2}
+    ```
+ 4. 3D isolated mountain:
+
+    ```math
+    h \\left(x, y\\right) = \\frac{h_0}{1 + \\left[\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2\\right] / l_0^2}
+    ```
+ 5. 2D cosine envelope and even background:
+
+    ```math
+    h \\left(x\\right) = \\begin{cases}
+        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+        \\frac{h_0}{2} & \\mathrm{else}
+    \\end{cases}
+    ```
+ 6. 3D cosine envelope and even background:
+
+    ```math
+    h \\left(x, y\\right) = \\begin{cases}
+        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+        \\frac{h_0}{2} & \\mathrm{else}
+    \\end{cases}
+    ```
+ 7. 2D Gaussian envelope and even background:
+
+    ```math
+    h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    ```
+ 8. 3D Gaussian envelope and even background:
+
+    ```math
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    ```
+ 9. 2D cosine envelope and cosine background:
+
+    ```math
+    h \\left(x\\right) = \\begin{cases}
+        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+        0 & \\mathrm{else}
+    \\end{cases}
+    ```
+10. 3D cosine envelope and cosine background:
+
+    ```math
+    h \\left(x, y\\right) = \\begin{cases}
+        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+        0 & \\mathrm{else}
+    \\end{cases}
+    ```
+11. 2D Gaussian envelope and Gaussian background:
+
+    ```math
+    h \\left(x\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    ```
+12. 3D Gaussian envelope and Gaussian background:
+
+    ```math
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    ```
+13. 3D WKB topography:
+
+    ```math
+    \\begin{align*}
+        h \\left(x, y\\right) & = \\begin{cases}
+            \\frac{h_0}{2 \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{r_h + n_h^{- 1} \\sum\\limits_{\\alpha = 0}^{n_h - 1} \\cos \\left[k_\\alpha \\left(x - x_0\\right) + l_\\alpha \\left(y - y_0\\right)\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+            0 & \\mathrm{else},
+        \\end{cases}\\\\
+        k_\\alpha & = \\frac{\\pi}{l_0} \\cos \\left(\\frac{\\pi \\alpha}{n_h}\\right), \\quad l_\\alpha = \\frac{\\pi}{l_0} \\sin \\left(\\frac{\\pi \\alpha}{n_h}\\right)
+    \\end{align*}
+    ```
+
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain. The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
   - `constants`: Physical constants and reference values.
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `x`: `x`-coordinate grid points.
-  - `y`: `y`-coordinate grid points.
+  - `x`: ``\\widehat{x}``-coordinate grid points.
+  - `y`: ``\\widehat{y}``-coordinate grid points.
   - `testcase`: Test case on which the current simulation is based.
 
 # Returns
@@ -97,9 +199,11 @@ Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the propert
 
 # See also
 
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
+function compute_topography end
+
 function compute_topography(
     namelists::Namelists,
     constants::Constants,
@@ -258,130 +362,6 @@ function compute_topography(
     return (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
 end
 
-"""
-```julia
-compute_topography(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    x::AbstractVector{<:AbstractFloat},
-    y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractTestCase,
-)
-```
-
-Compute and return the topography for non-WKB-mountain-wave test cases.
-
-The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
-
- 1. 2D cosine mountains:
-
-    ```math
-    h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
-    ```
-
- 2. 3D cosine mountains:
-
-    ```math
-    h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
-    ```
- 3. 2D isolated mountain:
-
-    ```math
-    h \\left(x\\right) = \\frac{h_0}{1 + \\left(x - x_0\\right)^2 / l_0^2}
-    ```
- 4. 3D isolated mountain:
-
-    ```math
-    h \\left(x, y\\right) = \\frac{h_0}{1 + \\left[\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2\\right] / l_0^2}
-    ```
- 5. 2D cosine envelope and even background:
-
-    ```math
-    h \\left(x\\right) = \\begin{cases}
-        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
-        \\frac{h_0}{2} & \\mathrm{else}
-    \\end{cases}
-    ```
- 6. 3D cosine envelope and even background:
-
-    ```math
-    h \\left(x, y\\right) = \\begin{cases}
-        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
-        \\frac{h_0}{2} & \\mathrm{else}
-    \\end{cases}
-    ```
- 7. 2D Gaussian envelope and even background:
-
-    ```math
-    h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
-    ```
- 8. 3D Gaussian envelope and even background:
-
-    ```math
-    h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
-    ```
- 9. 2D cosine envelope and cosine background:
-
-    ```math
-    h \\left(x\\right) = \\begin{cases}
-        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
-        0 & \\mathrm{else}
-    \\end{cases}
-    ```
-10. 3D cosine envelope and cosine background:
-
-    ```math
-    h \\left(x, y\\right) = \\begin{cases}
-        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
-        0 & \\mathrm{else}
-    \\end{cases}
-    ```
-11. 2D Gaussian envelope and Gaussian background:
-
-    ```math
-    h \\left(x\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
-    ```
-12. 3D Gaussian envelope and Gaussian background:
-
-    ```math
-    h \\left(x, y\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
-    ```
-13. 3D WKB topography:
-
-    ```math
-    \\begin{align*}
-        h \\left(x, y\\right) & = \\begin{cases}
-            \\frac{h_0}{2 \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{r_h + n_h^{- 1} \\sum\\limits_{\\alpha = 0}^{n_h - 1} \\cos \\left[k_\\alpha \\left(x - x_0\\right) + l_\\alpha \\left(y - y_0\\right)\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
-            0 & \\mathrm{else},
-        \\end{cases}\\\\
-        k_\\alpha & = \\frac{\\pi}{l_0} \\cos \\left(\\frac{\\pi \\alpha}{n_h}\\right), \\quad l_\\alpha = \\frac{\\pi}{l_0} \\sin \\left(\\frac{\\pi \\alpha}{n_h}\\right)
-    \\end{align*}
-    ```
-
-Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `x`: `x`-coordinate grid points.
-  - `y`: `y`-coordinate grid points.
-  - `testcase`: Test case on which the current simulation is based.
-
-# Returns
-
-  - `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
-  - `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography (size `(0, 0, 0)`).
-  - `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum (size `(0, 0, 0)`).
-  - `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum (size `(0, 0, 0)`).
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function compute_topography(
     namelists::Namelists,
     constants::Constants,

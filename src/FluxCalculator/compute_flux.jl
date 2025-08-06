@@ -15,6 +15,8 @@ Compute the upstream flux from reconstructed values, based on the sign of the tr
 
   - `::AbstractFloat`: Product of `usurf` and the upstream reconstruction.
 """
+function compute_flux end
+
 function compute_flux(
     usurf::AbstractFloat,
     phiup::AbstractFloat,

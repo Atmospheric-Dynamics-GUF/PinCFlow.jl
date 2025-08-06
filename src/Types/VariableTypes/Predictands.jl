@@ -8,6 +8,59 @@ Predictands{
 
 Arrays for prognostic variables.
 
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+)
+```
+
+Construct a `Predictands` instance with dimensions and initial values depending on whether or not the model is compressible and which test case is initialized, by dispatching to the appropriate method.
+
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    model::AbstractModel,
+    testcase::AbstractTestCase,
+)
+```
+
+Construct a `Predictands` instance in non-compressible modes and non-wave-packet test cases.
+
+The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The array for the mass-weighted potential temperature is constructed with size `(0, 0, 0)`.
+
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    model::Compressible,
+    testcase::AbstractTestCase,
+)
+```
+
+Construct a `Predictands` instance in compressible mode and non-wave-packet test cases.
+
+The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The mass-weighted potential temperature is initialized with the corresponding array in `atmosphere`.
+
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    model::PseudoIncompressible,
+    testcase::WavePacket,
+)
+```
+
 # Fields
 
   - `rho::A`: Density.
@@ -17,6 +70,15 @@ Arrays for prognostic variables.
   - `w::A`: Transformed vertical wind.
   - `pip::A`: Exner-pressure fluctuations.
   - `p::B`: Mass-weighted potential temperature.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+  - `model`: Dynamic equations.
+  - `testcase`: Test case on which the current simulation is based.
 """
 struct Predictands{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -31,31 +93,6 @@ struct Predictands{
     p::B
 end
 
-"""
-```julia
-Predictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-)
-```
-
-Construct a `Predictands` instance with dimensions and initial values depending on whether or not the model is compressible and which test case is initialized.
-
-Dispatches to specific methods depending on the dynamic equations and the test case.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `atmosphere`: Atmospheric-background fields.
-
-# Returns
-
-  - `::Predictands`: `Predictands` instance with arrays initialized according to `model` and `testcase`.
-"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,
@@ -75,35 +112,6 @@ function Predictands(
     )
 end
 
-"""
-```julia
-Predictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    model::AbstractModel,
-    testcase::AbstractTestCase,
-)
-```
-
-Construct a `Predictands` in non-compressible modes and non-wave-packet test cases.
-
-The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The array for the mass-weighted potential temperature is constructed with size `(0, 0, 0)`.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `atmosphere`: Atmospheric-background fields.
-  - `model`: Dynamic equations.
-  - `testcase`: Test case on which the current simulation is based.
-
-# Returns
-
-  - `::Predictands`: `Predictands` instance with arrays initialized for a non-compressible model (`p` has size `(0, 0, 0)`).
-"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,
@@ -130,35 +138,6 @@ function Predictands(
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
 
-"""
-```julia
-Predictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    model::Compressible,
-    testcase::AbstractTestCase,
-)
-```
-
-Construct a `Predictands` instance in compressible mode and non-wave-packet test cases.
-
-The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The mass-weighted potential temperature is initialized with the corresponding array in `atmosphere`.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `atmosphere`: Atmospheric-background fields.
-  - `model`: Dynamic equations.
-  - `testcase`: Test case on which the current simulation is based.
-
-# Returns
-
-  - `::Predictands`: `Predictands` instance with arrays initialized for a compressible model.
-"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,
@@ -188,19 +167,6 @@ function Predictands(
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
 
-"""
-```julia
-Predictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    model::PseudoIncompressible,
-    testcase::WavePacket,
-)
-```
-"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,

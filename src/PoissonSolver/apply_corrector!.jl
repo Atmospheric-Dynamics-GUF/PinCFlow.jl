@@ -31,6 +31,8 @@ Perform the corrector step by computing the right-hand side and linear operator 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
   - [`PinCFlow.PoissonSolver.correct!`](@ref)
 """
+function apply_corrector! end
+
 function apply_corrector!(
     state::State,
     dt::AbstractFloat,

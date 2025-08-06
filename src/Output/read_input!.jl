@@ -9,6 +9,8 @@ Read initial values for all prognostic variables from an HDF5 input file.
 
   - `state`: Model state.
 """
+function read_input! end
+
 function read_input!(state::State)
 
     # Get all necessary fields.

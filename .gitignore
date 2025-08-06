@@ -4,3 +4,4 @@ Manifest.toml
 .aider*
 /build
 /docs/build
+.vscode

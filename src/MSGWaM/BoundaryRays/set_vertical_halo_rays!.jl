@@ -11,6 +11,8 @@ Performs MPI communication between downward and upward neighbor processes. The n
 
   - `state`: Model state.
 """
+function set_vertical_halo_rays! end
+
 function set_vertical_halo_rays!(state::State)
     (; comm, sizezz, nzz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) =
         state.domain
