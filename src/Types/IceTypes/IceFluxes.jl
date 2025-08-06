@@ -2,6 +2,18 @@
 ```julia
 IceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
 ```
+
+```julia
+IceFluxes(namelists::Namelists, domain::Domain)
+```
+
+```julia
+IceFluxes(domain::Domain, icesetup::NoIce)
+```
+
+```julia
+IceFluxes(domain::Domain, icesetup::AbstractIce)
+```
 """
 struct IceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phin::A
@@ -9,22 +21,12 @@ struct IceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phiqv::A
 end
 
-"""
-```julia
-IceFluxes(namelists::Namelists, domain::Domain)
-```
-"""
 function IceFluxes(namelists::Namelists, domain::Domain)
     (; icesetup) = namelists.ice
 
     return IceFluxes(domain, icesetup)
 end
 
-"""
-```julia
-IceFluxes(domain::Domain, icesetup::NoIce)
-```
-"""
 function IceFluxes(domain::Domain, icesetup::NoIce)
     phin = zeros(0, 0, 0, 0)
     phiq = zeros(0, 0, 0, 0)
@@ -33,11 +35,6 @@ function IceFluxes(domain::Domain, icesetup::NoIce)
     return IceFluxes(phin, phiq, phiqv)
 end
 
-"""
-```julia
-IceFluxes(domain::Domain, icesetup::AbstractIce)
-```
-"""
 function IceFluxes(domain::Domain, icesetup::AbstractIce)
     (; nxx, nyy, nzz) = domain
 

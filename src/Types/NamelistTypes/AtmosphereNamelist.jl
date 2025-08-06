@@ -11,7 +11,25 @@ AtmosphereNamelist{
 
 Namelist for parameters describing the atmospheric background.
 
-# Fields
+```julia
+AtmosphereNamelist(;
+    specifyreynolds::Bool = false,
+    reinv::AbstractFloat = 0.0E+0,
+    mu_viscous_dim::AbstractFloat = 0.0E+0,
+    background::AbstractBackground = Isothermal(),
+    buoyancy_frequency::AbstractFloat = 1.0E-2,
+    theta0_dim::AbstractFloat = 3.0E+2,
+    temp0_dim::AbstractFloat = 3.0E+2,
+    press0_dim::AbstractFloat = 1.0E+5,
+    backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    coriolis_frequency::AbstractFloat = 0.0E+0,
+    coriolis_mode::AbstractCoriolisMode = FPlane(),
+)
+```
+
+Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
 
   - `specifyreynolds::A`: Flag to specify inverse Reynolds number instead of viscosity.
   - `reinv::B`: Inverse Reynolds number.
@@ -45,43 +63,6 @@ struct AtmosphereNamelist{
     coriolis_mode::E
 end
 
-"""
-```julia
-AtmosphereNamelist(;
-    specifyreynolds::Bool = false,
-    reinv::AbstractFloat = 0.0E+0,
-    mu_viscous_dim::AbstractFloat = 0.0E+0,
-    background::AbstractBackground = Isothermal(),
-    buoyancy_frequency::AbstractFloat = 1.0E-2,
-    theta0_dim::AbstractFloat = 3.0E+2,
-    temp0_dim::AbstractFloat = 3.0E+2,
-    press0_dim::AbstractFloat = 1.0E+5,
-    backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
-    coriolis_frequency::AbstractFloat = 0.0E+0,
-    coriolis_mode::AbstractCoriolisMode = FPlane(),
-)
-```
-
-Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties.
-
-# Arguments
-
-  - `specifyreynolds`: Flag to specify inverse Reynolds number instead of viscosity.
-  - `reinv`: Inverse Reynolds number.
-  - `mu_viscous_dim`: Kinematic viscosity at the surface.
-  - `background`: Atmospheric background.
-  - `buoyancy_frequency`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
-  - `theta0_dim`: Reference potential temperature.
-  - `temp0_dim`: Reference temperature.
-  - `press0_dim`: Reference pressure.
-  - `backgroundflow_dim`: Initial wind.
-  - `coriolis_frequency`: Coriolis frequency if `coriolis_mode == FPlane()`
-  - `coriolis_mode`: Approximation used for the Coriolis frequency.
-
-# Returns
-
-  - `::AtmosphereNamelist`: `AtmosphereNamelist` instance.
-"""
 function AtmosphereNamelist(;
     specifyreynolds::Bool = false,
     reinv::AbstractFloat = 0.0E+0,

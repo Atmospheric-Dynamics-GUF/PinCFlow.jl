@@ -3,25 +3,8 @@
 synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
 ```
 
-Synchronize `state.atmosphere.pstrattfc` with `predictands.p` and recompute `state.atmosphere.bvsstrattfc` if the atmosphere is compressible.
+Synchronize `state.atmosphere.pstrattfc` with `predictands.p` and recompute `state.atmosphere.bvsstrattfc` if the atmosphere is compressible by dispatching to the appropriate method.
 
-This function dispatches to the appropriate model-specific methods.
-
-# Arguments
-
-  - `state`: Model state.
-  - `predictands`: Predictands to use for the synchronization of the mass-weighted potential temperature.
-"""
-function synchronize_compressible_atmosphere!(
-    state::State,
-    predictands::Predictands,
-)
-    (; model) = state.namelists.setting
-    synchronize_compressible_atmosphere!(state, predictands, model)
-    return
-end
-
-"""
 ```julia
 synchronize_compressible_atmosphere!(
     state::State,
@@ -30,23 +13,8 @@ synchronize_compressible_atmosphere!(
 )
 ```
 
-Return for non-compressible modes.
+Return in non-compressible modes.
 
-# Arguments
-
-  - `state`: Model state.
-  - `predictands`: Predictands to use for the synchronization of the mass-weighted potential temperature.
-  - `model`: Dynamic equations.
-"""
-function synchronize_compressible_atmosphere!(
-    state::State,
-    predictands::Predictands,
-    model::AbstractModel,
-)
-    return
-end
-
-"""
 ```julia
 synchronize_compressible_atmosphere!(
     state::State,
@@ -69,6 +37,25 @@ In compressible mode, ``P`` and, through its dependence on ``P``, ``N^2`` are ti
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
+function synchronize_compressible_atmosphere! end
+
+function synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+)
+    (; model) = state.namelists.setting
+    synchronize_compressible_atmosphere!(state, predictands, model)
+    return
+end
+
+function synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+    model::AbstractModel,
+)
+    return
+end
+
 function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,

@@ -15,6 +15,8 @@ In each grid cell, this method moves all ray volumes as far to the front of the 
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
+function remove_rays! end
+
 function remove_rays!(state::State)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray, rays) = state.wkb

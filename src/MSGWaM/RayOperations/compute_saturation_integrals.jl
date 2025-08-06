@@ -44,6 +44,8 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``\\overline{\\r
   - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
+function compute_saturation_integrals end
+
 function compute_saturation_integrals(
     state::State,
     indices::NTuple{3, <:Integer},

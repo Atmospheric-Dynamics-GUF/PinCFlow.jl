@@ -7,6 +7,12 @@ Arrays for the reconstructions of prognostic variables.
 
 The first three dimensions represent physical space, the fourth dimension represents the direction in which the reconstruction was performed and the fifth dimension represents the two cell edges of the reconstruction.
 
+```julia
+Reconstructions(domain::Domain)
+```
+
+Construct a `Reconstructions` instance with zero-initialized arrays.
+
 # Fields
 
   - `rhotilde::A`: Reconstructed density.
@@ -14,6 +20,10 @@ The first three dimensions represent physical space, the fourth dimension repres
   - `utilde::A`: Reconstructed zonal momentum.
   - `vtilde::A`: Reconstructed meridional momentum.
   - `wtilde::A`: Reconstructed vertical momentum.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     rhotilde::A
@@ -23,21 +33,6 @@ struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     wtilde::A
 end
 
-"""
-```julia
-Reconstructions(domain::Domain)
-```
-
-Initialize arrays for the reconstruction of prognostic variables.
-
-# Arguments
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-# Returns
-
-  - `::Reconstructions`: `Reconstructions` instance with zero-initialized arrays.
-"""
 function Reconstructions(domain::Domain)
 
     # Get parameters.

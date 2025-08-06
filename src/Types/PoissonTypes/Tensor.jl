@@ -5,6 +5,12 @@ Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Tensor elements of the linear operator, as computed by [`PinCFlow.PoissonSolver.compute_operator!`](@ref).
 
+```julia
+Tensor(domain::Domain)
+```
+
+Create a `Tensor` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
+
 # Fields
 
   - `ac_b::A`: Coefficient applied to ``s``.
@@ -34,6 +40,10 @@ Tensor elements of the linear operator, as computed by [`PinCFlow.PoissonSolver.
   - `abuu_b::A`: Coefficient applied to ``s_{j - 1, k + 2}``.
   - `afdd_b::A`: Coefficient applied to ``s_{j + 1, k - 2}``.
   - `afuu_b::A`: Coefficient applied to ``s_{j + 1, k + 2}``.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
     ac_b::A
@@ -65,21 +75,6 @@ struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
     afuu_b::A
 end
 
-"""
-```julia
-Tensor(domain::Domain)
-```
-
-Initialize tensor-element arrays sized according to the dimensions of the MPI subdomain.
-
-# Arguments
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-# Returns
-
-  - `::Tensor`: `Tensor` instance with zero-initialized arrays.
-"""
 function Tensor(domain::Domain)
     (; nx, ny, nz) = domain
 

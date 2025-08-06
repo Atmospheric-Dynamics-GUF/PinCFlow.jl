@@ -9,6 +9,14 @@ Sponge{
 
 Composite type for Rayleigh-damping coefficients, sponge-layer bounds and extents, as well as an auxiliary array for the computation of horizontal means.
 
+```julia
+Sponge(namelists::Namelists, domain::Domain, grid::Grid)
+```
+
+Construct a `Sponge` instance, using the model parameters in `namelists`.
+
+The vertical extent of the sponge is set to the fraction `namelists.sponge.spongeheight` of the vertical extent of the domain. The horizontal extents of the unified sponge are computed similarly, using the same parameter multiplied by `0.5` (since the sponge is centered at the horizontal boundaries).
+
 # Fields
 
 Rayleigh-damping coefficients:
@@ -34,6 +42,12 @@ Horizontal sponge extent:
 Auxiliary array:
 
   - `horizontal_mean::C`: Auxiliary array for the computation of horizontal means.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
 """
 struct Sponge{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -62,25 +76,6 @@ struct Sponge{
     horizontal_mean::C
 end
 
-"""
-```julia
-Sponge(namelists::Namelists, domain::Domain, grid::Grid)
-```
-
-Construct a `Sponge` instance, using the model parameters `namelists`.
-
-The vertical extent of the sponge is set to the fraction `namelists.sponge.spongeheight` of the vertical extent of the domain. The horizontal extents of the unified sponge are computed similarly, using the same parameter multiplied by `0.5` (since the sponge is centered at the horizontal boundaries).
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `grid`: Collection of parameters and fields that describe the grid.
-
-# Returns
-
-  - `::Sponge`: `Sponge` instance.
-"""
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     (; spongeheight) = namelists.sponge
     (; nxx, nyy, nzz, nz) = domain

@@ -5,6 +5,14 @@ Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 
 Collection of domain-decomposition and MPI-communication parameters.
 
+```julia
+Domain(namelists::Namelists)
+```
+
+Construct a `Domain` instance from the model parameters in `namelists`.
+
+If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\widehat{x}`` and ``\\widehat{y}``) but not in the last (``\\widehat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.sizex`, `namelists.domain.sizey` and `namelists.domain.sizez`) by the number of processes in that direction (`npx`, `npy` and `npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``, respectively.
+
 # Fields
 
 General MPI communication:
@@ -54,6 +62,10 @@ Horizontal and vertical communication:
 
   - `layer_comm::A`: MPI communicator for processes in the same layer (i.e. with the same vertical index).
   - `column_comm::A`: MPI communicator for processes in the same column (i.e. with the same horizontal indices).
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
 """
 struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 
@@ -104,23 +116,6 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-"""
-```julia
-Domain(namelists::Namelists) -> Domain
-```
-
-Construct a `Domain` from the model parameters in `namelists`.
-
-If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\widehat{x}`` and ``\\widehat{y}``) but not in the last (``\\widehat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division between the global grid size (`namelists.domain.sizex`, `namelists.domain.sizey` and `namelists.domain.sizez`) and the number of processes in that direction (`npx`, `npy` and `npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``, respectively.
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-
-# Returns
-
-  - `::Domain`: `Domain` instance.
-"""
 function Domain(namelists::Namelists)
     (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz, base_comm) =
         namelists.domain

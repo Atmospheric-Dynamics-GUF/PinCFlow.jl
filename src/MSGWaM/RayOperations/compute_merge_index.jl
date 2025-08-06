@@ -31,6 +31,8 @@ This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to sort r
 
   - `::Integer`: Position on the 1D spectral grid.
 """
+function compute_merge_index end
+
 function compute_merge_index(
     wnr::AbstractFloat,
     wnr_min_p::AbstractFloat,

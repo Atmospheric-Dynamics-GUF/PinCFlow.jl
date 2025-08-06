@@ -9,7 +9,17 @@ SettingNamelist{
 
 Namelist for parameters describing the general model setting.
 
-# Fields
+```julia
+SettingNamelist(;
+    model::AbstractModel = PseudoIncompressible(),
+    testcase::AbstractTestCase = MountainWave(),
+    zboundaries::AbstractBoundaries = SolidWallBoundaries(),
+)
+```
+
+Construct a `SettingNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
 
   - `model::A`: Dynamic equations.
   - `testcase::B`: Test case on wich the current simulation is based.
@@ -25,27 +35,6 @@ struct SettingNamelist{
     zboundaries::C
 end
 
-"""
-```julia
-SettingNamelist(;
-    model::AbstractModel = PseudoIncompressible(),
-    testcase::AbstractTestCase = MountainWave(),
-    zboundaries::AbstractBoundaries = SolidWallBoundaries(),
-)
-```
-
-Construct a `SettingNamelist` instance with the given keyword arguments as properties.
-
-# Arguments
-
-  - `model`: Dynamic equations.
-  - `testcase`: Test case on wich the current simulation is based.
-  - `zboundaries`: Vertical boundary conditions.
-
-# Returns
-
-  - `::SettingNamelist`: `SettingNamelist` instance.
-"""
 function SettingNamelist(;
     model::AbstractModel = PseudoIncompressible(),
     testcase::AbstractTestCase = MountainWave(),

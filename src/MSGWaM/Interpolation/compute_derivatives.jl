@@ -8,10 +8,72 @@ Compute the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\pa
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right) = \\frac{u_{\\mathrm{b}, i + 1 / 2} - u_{\\mathrm{b}, i - 1 / 2}}{\\Delta \\widehat{x}} + G^{13} \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} + u_{\\mathrm{b}, i - 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2, k - 1} - u_{\\mathrm{b}, i - 1 / 2, k - 1}}{4 \\Delta \\widehat{z}},
+\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right) = \\frac{u_{\\mathrm{b}, i + 1 / 2} - u_{\\mathrm{b}, i - 1 / 2}}{\\Delta \\widehat{x}} + G^{13} \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} + u_{\\mathrm{b}, i - 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2, k - 1} - u_{\\mathrm{b}, i - 1 / 2, k - 1}}{4 \\Delta \\widehat{z}}.
 ```
 
-where unshifted indices have been omitted.
+```julia
+compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDY)
+```
+
+Compute the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) at two specified positions on the grid.
+
+The derivative is given by
+
+```math
+\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_{i + 1 / 2, j + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, j + 1} - u_{\\mathrm{b}, i + 1 / 2}}{\\Delta \\widehat{y}} + \\frac{G^{23} + G^{23}_{i + 1} + G^{23}_{j + 1} + G^{23}_{i + 1, j + 1}}{4} \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} + u_{\\mathrm{b}, i + 1 / 2, j + 1, k + 1} - u_{\\mathrm{b}, i + 1 / 2, k - 1} - u_{\\mathrm{b}, i + 1 / 2, j + 1, k - 1}}{4 \\Delta \\widehat{z}}.
+```
+
+```julia
+compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDZ)
+```
+
+Compute the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) at two specified positions on the grid.
+
+The derivative is given by
+
+```math
+\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_{i + 1 / 2, k + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2}}{\\Delta \\widehat{z}} \\left(\\frac{J J_{k + 1}}{J + J_{k + 1}} + \\frac{J_{i + 1} J_{i + 1, k + 1}}{J_{i + 1} + J_{i + 1, k + 1}}\\right)^{- 1}.
+```
+
+At grid points beyond the vertical boundaries, it is set to zero.
+
+```julia
+compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDX)
+```
+
+Compute the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) at two specified positions on the grid.
+
+The derivative is given by
+
+```math
+\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2, j + 1 / 2} = \\frac{v_{\\mathrm{b}, i + 1, j + 1 / 2} - v_{\\mathrm{b}, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{G^{13} + G^{13}_{i + 1} + G^{13}_{j + 1} + G^{13}_{i + 1, j + 1}}{4} \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} + v_{\\mathrm{b}, i + 1, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2, k - 1} - v_{\\mathrm{b}, i + 1, j + 1 / 2, k - 1}}{4 \\Delta \\widehat{z}}.
+```
+
+```julia
+compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDY)
+```
+
+Compute the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) at two specified positions on the grid.
+
+The derivative is given by
+
+```math
+\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right) = \\frac{v_{\\mathrm{b}, j + 1 / 2} - v_{\\mathrm{b}, j - 1 / 2}}{\\Delta \\widehat{y}} + G^{23} \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} + v_{\\mathrm{b}, j - 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2, k - 1} - v_{\\mathrm{b}, j - 1 / 2, k - 1}}{4 \\Delta \\widehat{z}}.
+```
+
+```julia
+compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDZ)
+```
+
+Compute the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) at two specified positions on the grid.
+
+The derivative is given by
+
+```math
+\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_{j + 1 / 2, k + 1 / 2} = \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2}}{\\Delta \\widehat{z}} \\left(\\frac{J J_{k + 1}}{J + J_{k + 1}} + \\frac{J_{j + 1} J_{j + 1, k + 1}}{J_{j + 1} + J_{j + 1, k + 1}}\\right)^{- 1}.
+```
+
+At grid points beyond the vertical boundaries, it is set to zero.
 
 # Arguments
 
@@ -21,9 +83,11 @@ where unshifted indices have been omitted.
 
 # Returns
 
-  - `::AbstractFloat`: ``\\partial u_\\mathrm{b} / \\partial x`` at `(ix, jy, kzd)`.
-  - `::AbstractFloat`: ``\\partial u_\\mathrm{b} / \\partial x`` at `(ix, jy, kzu)`.
+  - `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzd)`.
+  - `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzu)`.
 """
+function compute_derivatives end
+
 function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
@@ -54,32 +118,6 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-"""
-```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDY)
-```
-
-Compute the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) at two specified positions on the grid.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_{i + 1 / 2, j + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, j + 1} - u_{\\mathrm{b}, i + 1 / 2}}{\\Delta \\widehat{y}} + \\frac{G^{23} + G^{23}_{i + 1} + G^{23}_{j + 1} + G^{23}_{i + 1, j + 1}}{4} \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} + u_{\\mathrm{b}, i + 1 / 2, j + 1, k + 1} - u_{\\mathrm{b}, i + 1 / 2, k - 1} - u_{\\mathrm{b}, i + 1 / 2, j + 1, k - 1}}{4 \\Delta \\widehat{z}},
-```
-
-where unshifted indices have been omitted.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
-  - `phitype`: Type of derivative to compute.
-
-# Returns
-
-  - `::AbstractFloat`: ``\\partial u_\\mathrm{b} / \\partial y`` at `(ix + 1 / 2, jy + 1 / 2, kzd)`.
-  - `::AbstractFloat`: ``\\partial u_\\mathrm{b} / \\partial y`` at `(ix + 1 / 2, jy + 1 / 2, kzu)`.
-"""
 function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
@@ -122,32 +160,6 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-"""
-```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDZ)
-```
-
-Compute the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) at two specified positions on the grid.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_{i + 1 / 2, k + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2}}{\\Delta \\widehat{z}} \\left(\\frac{J J_{k + 1}}{J + J_{k + 1}} + \\frac{J_{i + 1} J_{i + 1, k + 1}}{J_{i + 1} + J_{i + 1, k + 1}}\\right)^{- 1},
-```
-
-where unshifted indices have been omitted. At grid points beyond the vertical boundaries, the derivative is set to zero.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
-  - `phitype`: Type of derivative to compute.
-
-# Returns
-
-  - `::AbstractFloat`: ``\\partial u_\\mathrm{b} / \\partial z`` at `(ix + 1 / 2, jy, kzd + 1 / 2)`.
-  - `::AbstractFloat`: ``\\partial u_\\mathrm{b} / \\partial z`` at `(ix + 1 / 2, jy, kzu + 1 / 2)`.
-"""
 function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
@@ -204,32 +216,6 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-"""
-```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDX)
-```
-
-Compute the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) at two specified positions on the grid.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2, j + 1 / 2} = \\frac{v_{\\mathrm{b}, i + 1, j + 1 / 2} - v_{\\mathrm{b}, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{G^{13} + G^{13}_{i + 1} + G^{13}_{j + 1} + G^{13}_{i + 1, j + 1}}{4} \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} + v_{\\mathrm{b}, i + 1, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2, k - 1} - v_{\\mathrm{b}, i + 1, j + 1 / 2, k - 1}}{4 \\Delta \\widehat{z}},
-```
-
-where unshifted indices have been omitted.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
-  - `phitype`: Type of derivative to compute.
-
-# Returns
-
-  - `::AbstractFloat`: ``\\partial v_\\mathrm{b} / \\partial x`` at `(ix + 1 / 2, jy + 1 / 2, kzd)`.
-  - `::AbstractFloat`: ``\\partial v_\\mathrm{b} / \\partial x`` at `(ix + 1 / 2, jy + 1 / 2, kzu)`.
-"""
 function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
@@ -272,32 +258,6 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-"""
-```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDY)
-```
-
-Compute the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) at two specified positions on the grid.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right) = \\frac{v_{\\mathrm{b}, j + 1 / 2} - v_{\\mathrm{b}, j - 1 / 2}}{\\Delta \\widehat{y}} + G^{23} \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} + v_{\\mathrm{b}, j - 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2, k - 1} - v_{\\mathrm{b}, j - 1 / 2, k - 1}}{4 \\Delta \\widehat{z}},
-```
-
-where unshifted indices have been omitted.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
-  - `phitype`: Type of derivative to compute.
-
-# Returns
-
-  - `::AbstractFloat`: ``\\partial v_\\mathrm{b} / \\partial y`` at `(ix, jy, kzd)`.
-  - `::AbstractFloat`: ``\\partial v_\\mathrm{b} / \\partial y`` at `(ix, jy, kzu)`.
-"""
 function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
@@ -328,32 +288,6 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-"""
-```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDZ)
-```
-
-Compute the vertical derivative of the zonal wind (``\\partial v_\\mathrm{b} / \\partial z``) at two specified positions on the grid.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_{j + 1 / 2, k + 1 / 2} = \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2}}{\\Delta \\widehat{z}} \\left(\\frac{J J_{k + 1}}{J + J_{k + 1}} + \\frac{J_{j + 1} J_{j + 1, k + 1}}{J_{j + 1} + J_{j + 1, k + 1}}\\right)^{- 1},
-```
-
-where unshifted indices have been omitted. At grid points beyond the vertical boundaries, the derivative is set to zero.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
-  - `phitype`: Type of derivative to compute.
-
-# Returns
-
-  - `::AbstractFloat`: ``\\partial v_\\mathrm{b} / \\partial z`` at `(ix, jy + 1 / 2, kzd + 1 / 2)`.
-  - `::AbstractFloat`: ``\\partial v_\\mathrm{b} / \\partial z`` at `(ix, jy + 1 / 2, kzu + 1 / 2)`.
-"""
 function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},

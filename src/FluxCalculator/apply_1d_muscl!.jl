@@ -7,7 +7,7 @@ apply_1d_muscl!(
 )
 ```
 
-Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in one dimension.
+Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in one dimension.
 
 # Arguments
 
@@ -15,6 +15,8 @@ Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for
   - `phitilde`: Output matrix with reconstructed values. The two columns of `phitilde` contain the reconstructions to the left and right. No reconstruction is computed for the first and last row of `phitilde`.
   - `phisize`: Length of the input vector `phi`.
 """
+function apply_1d_muscl! end
+
 function apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},

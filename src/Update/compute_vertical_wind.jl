@@ -27,6 +27,8 @@ Compute the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
 
   - [`PinCFlow.Update.transform`](@ref)
 """
+function compute_vertical_wind end
+
 function compute_vertical_wind(
     i::Integer,
     j::Integer,
