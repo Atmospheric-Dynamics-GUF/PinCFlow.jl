@@ -28,7 +28,7 @@ Construct an `Ice` instance, with array dimensions and initial values set accord
 
   - `icepredictands::A`: Prognostic variables of the ice-physics scheme.
   - `icetendencies::B`: Runge-Kutta updates of the ice variables.
-  - `iceauxiliaries::C`: Auxiliary arrays (currently not needed).
+  - `iceauxiliaries::C`: Initial states of the ice variables (currently not needed).
   - `icereconstructions::D`: Reconstructions of the ice variables.
   - `icefluxes::E`: Fluxes of the ice variables.
 
