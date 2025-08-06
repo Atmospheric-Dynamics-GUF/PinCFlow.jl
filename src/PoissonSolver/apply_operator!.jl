@@ -14,6 +14,21 @@ Apply the total linear operator to the solution array `sin`.
 
 Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is paralellized in that direction), due to the solid-wall boundaries.
 
+```julia
+apply_operator!(
+    sin::AbstractArray{<:AbstractFloat, 3},
+    ls::AbstractArray{<:AbstractFloat, 3},
+    hortot::Horizontal,
+    namelists::Namelists,
+    domain::Domain,
+    poisson::Poisson,
+)
+```
+
+Apply the "horizontal part" of the linear operator (excluding the lower, center and upper diagonal) to the solution array `sin`.
+
+Before the operator is applied, the boundary/halo values of `sin` are set, in the same way as in the method applying the total operator.
+
 # Arguments
 
   - `sin`: Solution array.
@@ -29,6 +44,8 @@ Before the operator is applied, the boundary/halo values of `sin` are set, using
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
   - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
+function apply_operator! end
+
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
@@ -263,37 +280,6 @@ function apply_operator!(
     return
 end
 
-"""
-```julia
-apply_operator!(
-    sin::AbstractArray{<:AbstractFloat, 3},
-    ls::AbstractArray{<:AbstractFloat, 3},
-    hortot::Horizontal,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
-)
-```
-
-Apply the "horizontal part" of the linear operator (excluding the lower, center and upper diagonal) to the solution array `sin`.
-
-Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is paralellized in that direction), due to the solid-wall boundaries.
-
-# Arguments
-
-  - `sin`: Solution array.
-  - `ls`: Result of applying the operator to the solution array.
-  - `hortot`: Linear-operator mode.
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
-
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
-"""
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},

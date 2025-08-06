@@ -26,6 +26,8 @@ From the given horizontal ray-volume position and extent, determine the indices 
   - `::Integer`: Meridional index of the grid cell that contains the backward edge.
   - `::Integer`: Meridional index of the grid cell that contains the forward edge.
 """
+function compute_horizontal_cell_indices end
+
 function compute_horizontal_cell_indices(
     state::State,
     xr::AbstractFloat,

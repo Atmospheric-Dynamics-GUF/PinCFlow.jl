@@ -10,6 +10,8 @@ Copy the specified fields in `state.variables.predictands` to their counterparts
   - `state`: Model state.
   - `variables`: Names of the fields to create backups of.
 """
+function save_backups! end
+
 function save_backups!(state::State, variables::Vararg{Symbol})
     (; backups, predictands) = state.variables
 

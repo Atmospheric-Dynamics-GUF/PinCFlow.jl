@@ -10,7 +10,7 @@ apply_3d_muscl!(
 )
 ```
 
-Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in three dimensions.
+Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in three dimensions.
 
 # Arguments
 
@@ -25,6 +25,8 @@ Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for
 
   - [`PinCFlow.FluxCalculator.apply_1d_muscl!`](@ref)
 """
+function apply_3d_muscl! end
+
 function apply_3d_muscl!(
     phi::AbstractArray{<:AbstractFloat, 3},
     phitilde::AbstractArray{<:AbstractFloat, 5},

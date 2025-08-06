@@ -2,16 +2,15 @@
 ```julia
 TurbulenceNamelist{A <: AbstractTurbulence}
 ```
+
+```julia
+TurbulenceNamelist(; turbulencesetup::AbstractTurbulence = NoTurbulence())
+```
 """
 struct TurbulenceNamelist{A <: AbstractTurbulence}
     turbulencesetup::A
 end
 
-"""
-```julia
-TurbulenceNamelist(; turbulencesetup::AbstractTurbulence = NoTurbulence())
-```
-"""
 function TurbulenceNamelist(;
     turbulencesetup::AbstractTurbulence = NoTurbulence(),
 )

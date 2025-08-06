@@ -1,3 +1,18 @@
+"""
+```julia
+implicit_integration!(
+    state::State,
+    dtstage::AbstractFloat,
+    time::AbstractFloat,
+    ntotalbicg::Integer,
+    side::RHS,
+    iout::Integer,
+    machine_start_time::DateTime,
+)
+```
+"""
+function implicit_integration! end
+
 function implicit_integration!(
     state::State,
     dtstage::AbstractFloat,
