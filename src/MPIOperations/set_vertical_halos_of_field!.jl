@@ -9,7 +9,7 @@ set_vertical_halos_of_field!(
 )
 ```
 
-Exchange vertical halo values of a 3D array by performing MPI communication between downward and upward neighbor processes.
+Exchange a specified number of vertical halo values of a 3D array by performing MPI communication between downward and upward neighbor processes.
 
 Solid walls are assumed at the vertical boundaries of the domain. The corresponding ghost-cell values are not changed.
 
@@ -23,9 +23,9 @@ set_vertical_halos_of_field!(
 )
 ```
 
-Exchange vertical halo values of a 5D array by performing MPI communication between downward and upward neighbor processes.
+Exchange a specified number of vertical halo values of a 5D array with an algorithm similar to that implemented in the above method.
 
-Solid walls are assumed at the vertical boundaries of the domain. The corresponding ghost-cell values are not changed. The first three dimensions of the array are assumed to represent the dimensions of physical space.
+The vertical domain boundaries are treated as described above. The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
 # Arguments
 

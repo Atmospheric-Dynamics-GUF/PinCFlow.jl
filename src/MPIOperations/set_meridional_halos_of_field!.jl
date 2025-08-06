@@ -7,7 +7,7 @@ set_meridional_halos_of_field!(
 )
 ```
 
-Exchange meridional halo values of a matrix by performing bidirectional MPI communication between backward and forward neighbor processes.
+Exchange all meridional halo values of a matrix by performing bidirectional MPI communication between backward and forward neighbor processes.
 
 ```julia
 set_meridional_halos_of_field!(
@@ -18,7 +18,7 @@ set_meridional_halos_of_field!(
 )
 ```
 
-Exchange meridional halo values of a 3D array by performing bidirectional MPI communication between backward and forward neighbor processes.
+Exchange a specified number of meridional halo values of a 3D array with an algorithm similar to that implemented in the method for matrices.
 
 ```julia
 set_meridional_halos_of_field!(
@@ -29,7 +29,7 @@ set_meridional_halos_of_field!(
 )
 ```
 
-Exchange meridional halo values of a 5D array by performing bidirectional MPI communication between backward and forward neighbor processes.
+Exchange a specified number of meridional halo values of a 5D array with an algorithm similar to that implemented in the method for 3D arrays.
 
 The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
