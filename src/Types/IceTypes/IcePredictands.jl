@@ -3,6 +3,8 @@
 IcePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
+Arrays for prognostic ice variables.
+
 ```julia
 IcePredictands(
     namelists::Namelists,
@@ -13,6 +15,8 @@ IcePredictands(
     variables::Variables,
 )
 ```
+
+Construct an `IcePredictands` instance with dimensions and initial values depending on the general configuration of ice physics, by dispatching to the appropriate method.
 
 ```julia
 IcePredictands(
@@ -26,6 +30,8 @@ IcePredictands(
 )
 ```
 
+Construct an `IcePredictands` instance with zero-size arrays for configurations without ice physics.
+
 ```julia
 IcePredictands(
     namelists::Namelists,
@@ -37,11 +43,29 @@ IcePredictands(
     variables::Variables,
 )
 ```
+
+Construct an `IcePredictands` instance with all arrays initialized as ``z \\rho`` (non-dimensionalized).
+
+# Fields
+
+  - `n::A`: Ice-crystal number concentration.
+  - `q::A`: Ice mixing ratio.
+  - `qv::A`: Water-vapor mixing ratio.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+  - `grid`: Collection of parameters and fields describing the grid.
+  - `icesetup`: General ice-physics configuration.
+  - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 """
 struct IcePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
-    n::A # ice crystal number concentration n
-    q::A # ice mixing ratio q
-    qv::A # vapor mixing ratio qv
+    n::A
+    q::A
+    qv::A
 end
 
 function IcePredictands(

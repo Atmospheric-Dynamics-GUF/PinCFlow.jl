@@ -9,6 +9,8 @@ Ice{
 }
 ```
 
+Container for arrays needed by the ice-physics scheme.
+
 ```julia
 Ice(
     namelists::Namelists,
@@ -19,6 +21,33 @@ Ice(
     variables::Variables,
 )
 ```
+
+Construct an `Ice` instance, with array dimensions and initial values set according to the model configuration.
+
+# Fields
+
+  - `icepredictands::A`: Prognostic variables of the ice-physics scheme.
+  - `icetendencies::B`: Runge-Kutta updates of the ice variables.
+  - `iceauxiliaries::C`: Auxiliary arrays (currently not needed).
+  - `icereconstructions::D`: Reconstructions of the ice variables.
+  - `icefluxes::E`: Fluxes of the ice variables.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+  - `grid`: Collection of parameters and fields describing the grid.
+  - `variables`: Container for arrays needed for the prediction of the prognostic variables.
+
+# See also
+
+  - [`PinCFlow.Types.IceTypes.IcePredictands`](@ref)
+  - [`PinCFlow.Types.IceTypes.IceTendencies`](@ref)
+  - [`PinCFlow.Types.IceTypes.IceAuxiliaries`](@ref)
+  - [`PinCFlow.Types.IceTypes.IceReconstructions`](@ref)
+  - [`PinCFlow.Types.IceTypes.IceFluxes`](@ref)
 """
 struct Ice{
     A <: IcePredictands,
