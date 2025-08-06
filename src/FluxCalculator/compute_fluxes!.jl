@@ -19,7 +19,7 @@ compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 
 Compute the density-fluctuation fluxes in all three directions.
 
-The fluxes are computed from the MUSCL reconstruction of ``\\rho' / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. They are written into `state.variables.fluxes.phirhop`.
+The computation is analogous to that of the density fluxes. The fluxes are written into `state.variables.fluxes.phirhop`.
 
 ```julia
 compute_fluxes!(
@@ -59,15 +59,15 @@ compute_fluxes!(state::State, old_predictands::Predictands, variable::V)
 
 Compute the sums of advective and viscous meridional-momentum fluxes in all three directions.
 
-The advective fluxes are computed from the MUSCL reconstruction of ``\\rho v / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. The viscous fluxes are computed from linear interpolations of the corresponding elements of the viscous stress tensor. The total fluxes are written into `state.variables.fluxes.phiv`.
+The computation is analogous to that of the zonal-momentum fluxes. The total fluxes are written into `state.variables.fluxes.phiv`.
 
 ```julia
 compute_fluxes!(state::State, old_predictands::Predictands, variable::W)
 ```
 
-Compute the sums of advective and viscous meridional-momentum fluxes in all three directions.
+Compute the sums of advective and viscous vertical-momentum fluxes in all three directions.
 
-The advective fluxes are computed from the MUSCL reconstruction of ``\\rho w / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. The viscous fluxes are computed from linear interpolations of the corresponding elements of the viscous stress tensor. The total fluxes are written into `state.variables.fluxes.phiw`.
+The computation is analogous to those of the zonal-momentum and meridional-momentum fluxes. The total fluxes are written into `state.variables.fluxes.phiw`.
 
 ```julia
 compute_fluxes!(state::State, predictands::Predictands, tracersetup::NoTracer)
