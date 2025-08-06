@@ -3,17 +3,37 @@
 TracerFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
 ```
 
+Arrays for fluxes of tracers.
+
+The first three dimensions represent physical space and the fourth dimension represents the flux direction.
+
 ```julia
 TracerFluxes(namelists::Namelists, domain::Domain)
 ```
+
+Construct a `TracerFluxes` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
 
 ```julia
 TracerFluxes(domain::Domain, tracersetup::NoTracer)
 ```
 
+Construct a `TracerFluxes` instance with zero-size arrays for configurations without tracer transport.
+
 ```julia
 TracerFluxes(domain::Domain, tracersetup::AbstractTracer)
 ```
+
+Construct a `TracerFluxes` instance with zero-initialized arrays.
+
+# Fields
+
+  - `phichi::A`: Fluxes of a non-dimensional tracer.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `tracersetup`: General tracer-transport configuration.
 """
 struct TracerFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phichi::A
