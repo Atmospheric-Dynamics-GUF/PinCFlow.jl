@@ -23,6 +23,24 @@ and the reference tolerance is given by
 
 where ``b_u``, ``b_v`` and ``b_{\\widehat{w}}`` are the zonal, meridional and vertical parts of ``b``, respectively. Note that in Boussinesq mode, ``P = \\mathrm{const}`` will cancel out, so that the appropriate divergence constraint remains.
 
+```julia
+compute_rhs!(
+    state::State,
+    b::AbstractArray{<:AbstractFloat, 3},
+    model::Compressible,
+)
+```
+
+Compute the scaled right-hand side of the Poisson equation in compressible mode and return a reference tolerance for the convergence criterion.
+
+The scaled right-hand side is given by
+
+```math
+b = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left\\{\\frac{1}{\\Delta \\widehat{x}} \\left[\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2} - \\left(J P\\right)_{i - 1 / 2} u_{i - 1 / 2}\\right] + \\frac{1}{\\Delta \\widehat{y}} \\left[\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2} - \\left(J P\\right)_{j - 1 / 2} v_{j - 1 / 2}\\right] + \\frac{1}{\\Delta \\widehat{z}} \\left[\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - \\left(J P\\right)_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right]\\right\\} + \\frac{\\sqrt{\\overline{\\rho}}}{P} S,
+```
+
+where ``S`` is the diabatic heating, as computed by `compute_volume_force`, and the reference tolerance is computed in the same way as in the method for pseudo-incompressible/Boussinesq mode.
+
 # Arguments
 
   - `state`: Model state.
@@ -32,7 +50,13 @@ where ``b_u``, ``b_v`` and ``b_{\\widehat{w}}`` are the zonal, meridional and ve
 # Returns
 
   - `::AbstractFloat`: Reference tolerance for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
+
+# See also
+
+  - [`PinCFlow.Update.compute_volume_force`](@ref)
 """
+function compute_rhs! end
+
 function compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
@@ -147,45 +171,6 @@ function compute_rhs!(
     return tolref
 end
 
-"""
-```julia
-compute_rhs!(
-    state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    model::Compressible,
-)
-```
-
-Compute the scaled right-hand side of the Poisson equation in compressible mode and return a reference tolerance for the convergence criterion.
-
-The scaled right-hand side is given by
-
-```math
-b = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left\\{\\frac{1}{\\Delta \\widehat{x}} \\left[\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2} - \\left(J P\\right)_{i - 1 / 2} u_{i - 1 / 2}\\right] + \\frac{1}{\\Delta \\widehat{y}} \\left[\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2} - \\left(J P\\right)_{j - 1 / 2} v_{j - 1 / 2}\\right] + \\frac{1}{\\Delta \\widehat{z}} \\left[\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - \\left(J P\\right)_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right]\\right\\} + \\frac{\\sqrt{\\overline{\\rho}}}{P} S,
-```
-
-where ``S`` is the diabatic heating, as computed by `compute_volume_force`, and the reference tolerance is given by
-
-```math
-\\tau_\\mathrm{ref} = \\frac{\\sum_{i, j, k} b_{i, j, k}^2}{\\sum_{i, j, k} \\left(b_{u, i, j, k}^2 + b_{v, i, j, k}^2 + b_{\\widehat{w}, i, j, k}^2\\right)},
-```
-
-where ``b_u``, ``b_v`` and ``b_{\\widehat{w}}`` are the zonal, meridional and vertical parts of ``b``, respectively.
-
-# Arguments
-
-  - `state`: Model state.
-  - `b`: Output array containing the right-hand side.
-  - `model`: Dynamic equations.
-
-# Returns
-
-  - `::AbstractFloat`: Reference tolerance for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-"""
 function compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},

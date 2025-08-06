@@ -34,6 +34,8 @@ Solve the Poisson equation using a preconditioned BicGStab algorithm.
   - [`PinCFlow.PoissonSolver.apply_preconditioner!`](@ref)
   - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
 """
+function apply_bicgstab! end
+
 function apply_bicgstab!(
     b_in::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,

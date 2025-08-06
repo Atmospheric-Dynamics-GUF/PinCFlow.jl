@@ -2,13 +2,7 @@
 ```julia
 TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
-"""
-struct TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
-    tke::A
-    tte::A
-end
 
-"""
 ```julia
 TurbulencePredictands(
     namelists::Namelists,
@@ -19,7 +13,36 @@ TurbulencePredictands(
     variables::Variables,
 )
 ```
+
+```julia
+TurbulencePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    turbulencesetup::NoTurbulence,
+    variables::Variables,
+)
+```
+
+```julia
+TurbulencePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    turbulencesetup::AbstractTurbulence,
+    variables::Variables,
+)
+```
 """
+struct TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
+    tke::A
+    tte::A
+end
+
 function TurbulencePredictands(
     namelists::Namelists,
     constants::Constants,
@@ -41,19 +64,6 @@ function TurbulencePredictands(
     )
 end
 
-"""
-```julia
-TurbulencePredictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    turbulencesetup::NoTurbulence,
-    variables::Variables,
-)
-```
-"""
 function TurbulencePredictands(
     namelists::Namelists,
     constants::Constants,
@@ -69,19 +79,6 @@ function TurbulencePredictands(
     return TurbulencePredictands(tke, tte)
 end
 
-"""
-```julia
-TurbulencePredictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    turbulencesetup::AbstractTurbulence,
-    variables::Variables,
-)
-```
-"""
 function TurbulencePredictands(
     namelists::Namelists,
     constants::Constants,

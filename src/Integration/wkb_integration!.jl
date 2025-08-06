@@ -1,3 +1,10 @@
+"""
+```julia
+wkb_integration!(state::State, dtstage::AbstractFloat)
+```
+"""
+function wkb_integration! end
+
 function wkb_integration!(state::State, dtstage::AbstractFloat)
     (; nstages) = state.time
 

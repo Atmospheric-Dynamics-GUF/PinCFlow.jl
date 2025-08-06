@@ -66,6 +66,8 @@ If the squared intrinsic frequency is smaller than the squared Coriolis paramete
   - `::AbstractFloat`: Vertical wavenumber.
   - `::AbstractFloat`: Wave-action density.
 """
+function compute_orographic_mode end
+
 function compute_orographic_mode(
     displm::AbstractFloat,
     wnk::AbstractFloat,

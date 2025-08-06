@@ -55,6 +55,8 @@ This method is used to compute the properties of merged ray volumes. It is calle
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
 """
+function update_merged_rays! end
+
 function update_merged_rays!(
     merge_mode::AbstractMergeMode,
     merged_rays::AbstractVector{<:MergedRays},

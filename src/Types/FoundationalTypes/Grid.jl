@@ -12,6 +12,47 @@ Grid{
 
 Collection of parameters and fields that describe the grid.
 
+```julia
+Grid(namelists::Namelists, constants::Constants, domain::Domain)
+```
+
+Construct a `Grid` instance, using the specifications in `namelists.grid` and the MPI decomposition described by `domain`.
+
+This constructor creates a 3D parallelized grid for a terrain-following, vertically stretched coordinate system. The global computational grid is defined by
+
+```math
+\\begin{align*}
+    \\widehat{x} & = L_x^{\\left(0\\right)} + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\widehat{x},\\\\
+    \\widehat{y} & = L_y^{\\left(0\\right)} + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\widehat{y},\\\\
+    \\widehat{z} & = L_z^{\\left(0\\right)} + \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\widehat{z},\\\\
+\\end{align*}
+```
+
+where ``\\left(L_x^{\\left(0\\right)}, L_y^{\\left(0\\right)}, L_z^{\\left(0\\right)}\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\widehat{x}, \\Delta \\widehat{y}, \\Delta \\widehat{z}\\right)`` are the lower bounds of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. The vertical layer centers and edges of the stretched and physical grids are given by
+
+```math
+\\begin{align*}
+    \\widetilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h_\\mathrm{b}}{L_z} \\widetilde{z}_{k + 1 / 2} + h_\\mathrm{b},\\\\
+    \\widetilde{z} & = \\frac{\\widetilde{z}_{k + 1 / 2} + \\widetilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h_\\mathrm{b}}{L_z} \\widetilde{z} + h_\\mathrm{b},
+\\end{align*}
+```
+
+where ``L_z``, ``s`` and ``h_\\mathrm{b}`` are the vertical extent of the domain (`diff(namelists.domain.lz)`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the resolved surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
+
+```math
+J = \\frac{L_z - h_\\mathrm{b}}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
+```
+
+and the non-Cartesian elements of the metric tensor are
+
+```math
+\\begin{align*}
+    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
+    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
+    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h_\\mathrm{b}}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\} \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
+\\end{align*}
+```
+
 # Fields
 
 Domain boundaries:
@@ -48,6 +89,18 @@ Physical coordinates:
 
   - `ztfc::E`: Physical height at cell centers.
   - `ztildetfc::E`: Physical height at vertical cell edges.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
 struct Grid{
     A <: AbstractVector{<:AbstractFloat},
@@ -88,64 +141,6 @@ struct Grid{
     ztildetfc::E
 end
 
-"""
-```julia
-Grid(namelists::Namelists, constants::Constants, domain::Domain) -> Grid
-```
-
-Construct a `Grid` instance, using the specifications in `namelists.grid` and the MPI decomposition described by `domain`.
-
-This constructor creates a 3D parallelized grid for a terrain-following, vertically stretched coordinate system. The global computational grid is defined by
-
-```math
-\\begin{align*}
-    \\widehat{x} & = L_x^{\\left(0\\right)} + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\widehat{x},\\\\
-    \\widehat{y} & = L_y^{\\left(0\\right)} + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\widehat{y},\\\\
-    \\widehat{z} & = L_z^{\\left(0\\right)} + \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\widehat{z},\\\\
-\\end{align*}
-```
-
-where ``\\left(L_x^{\\left(0\\right)}, L_y^{\\left(0\\right)}, L_z^{\\left(0\\right)}\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\widehat{x}, \\Delta \\widehat{y}, \\Delta \\widehat{z}\\right)`` are the lower bounds of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. The vertical layer centers and edges of the stretched and physical grids are given by
-
-```math
-\\begin{align*}
-    \\widetilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h_\\mathrm{b}}{L_z} \\widetilde{z}_{k + 1 / 2} + h_\\mathrm{b},\\\\
-    \\widetilde{z} & = \\frac{\\widetilde{z}_{k + 1 / 2} + \\widetilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h_\\mathrm{b}}{L_z} \\widetilde{z} + h_\\mathrm{b},
-\\end{align*}
-```
-
-where ``L_z``, ``s`` and ``h_\\mathrm{b}`` are the vertical extent of the domain (`diff(namelists.domain.lz)`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the resolved surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
-
-```math
-J = \\frac{L_z - h_\\mathrm{b}}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
-```
-
-and the non-Cartesian elements of the metric tensor are
-
-```math
-\\begin{align*}
-    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h_\\mathrm{b}}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\} \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
-\\end{align*}
-```
-
-# Arguments
-
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-# Returns
-
-  - `::Grid`: `Grid` instance.
-
-# See also
-
-  - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-"""
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain
     (; testcase) = namelists.setting

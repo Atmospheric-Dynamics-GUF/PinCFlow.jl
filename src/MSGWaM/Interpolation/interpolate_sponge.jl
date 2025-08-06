@@ -28,6 +28,8 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
   - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
+function interpolate_sponge end
+
 function interpolate_sponge(
     xlc::AbstractFloat,
     ylc::AbstractFloat,

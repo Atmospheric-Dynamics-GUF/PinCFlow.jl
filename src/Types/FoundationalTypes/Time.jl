@@ -5,6 +5,12 @@ Time{A <: Integer, B <: AbstractVector{<:AbstractFloat}}
 
 Time integration parameters for the low-storage third-order Runge-Kutta scheme.
 
+```julia
+Time()
+```
+
+Construct a `Time` instance.
+
 # Fields
 
   - `nstages::A`: Number of Runge-Kutta stages, i.e. ``n_\\mathrm{RK} = 3``.
@@ -19,17 +25,6 @@ struct Time{A <: Integer, B <: AbstractVector{<:AbstractFloat}}
     stepfrac::B
 end
 
-"""
-```julia
-Time()
-```
-
-Constructs a `Time` instance.
-
-# Returns
-
-  - `::Time`: `Time` instance.
-"""
 function Time()
 
     # Set Runge-Kutta parameters.

@@ -17,6 +17,8 @@ This method first enforces zonal boundary conditions for `state.wkb.nray` (by ap
   - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_halo_rays!`](@ref)
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
+function set_zonal_boundary_rays! end
+
 function set_zonal_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; npx) = namelists.domain

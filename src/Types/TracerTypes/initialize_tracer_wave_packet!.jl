@@ -12,22 +12,7 @@ initialize_tracer_wave_packet!(
     testcase::AbstractTestCase,
 )
 ```
-"""
-function initialize_tracer_wave_packet!(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    variables::Variables,
-    alphatracer::AbstractFloat,
-    chi::AbstractArray{<:AbstractFloat, 3},
-    testcase::AbstractTestCase,
-)
-    return
-end
 
-"""
 ```julia
 initialize_tracer_wave_packet!(
     namelists::Namelists,
@@ -42,6 +27,22 @@ initialize_tracer_wave_packet!(
 )
 ```
 """
+function initialize_tracer_wave_packet! end
+
+function initialize_tracer_wave_packet!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    variables::Variables,
+    alphatracer::AbstractFloat,
+    chi::AbstractArray{<:AbstractFloat, 3},
+    testcase::AbstractTestCase,
+)
+    return
+end
+
 function initialize_tracer_wave_packet!(
     namelists::Namelists,
     constants::Constants,

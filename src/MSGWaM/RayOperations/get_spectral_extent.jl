@@ -16,6 +16,8 @@ Return the spectral extents of the ray volume specified by `indices`.
   - `::AbstractFloat`: Extent in ``l``-direction.
   - `::AbstractFloat`: Extent in ``m``-direction.
 """
+function get_spectral_extent end
+
 function get_spectral_extent(rays::Rays, indices::NTuple{4, <:Integer})
     return (
         rays.dkray[indices...],

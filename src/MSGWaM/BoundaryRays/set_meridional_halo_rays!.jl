@@ -11,6 +11,8 @@ Performs bidirectional MPI communication between backward and forward neighbor p
 
   - `state`: Model state.
 """
+function set_meridional_halo_rays! end
+
 function set_meridional_halo_rays!(state::State)
     (; comm, nx, nz, i0, i1, j0, j1, k0, k1, backward, forward) = state.domain
     (; nray, rays) = state.wkb

@@ -2,6 +2,10 @@
 ```julia
 IceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
+
+```julia
+IceAuxiliaries(icepredictands::IcePredictands)
+```
 """
 struct IceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     initialn::A
@@ -9,11 +13,6 @@ struct IceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     initialqv::A
 end
 
-"""
-```julia
-IceAuxiliaries(icepredictands::IcePredictands)
-```
-"""
 function IceAuxiliaries(icepredictands::IcePredictands)
     initialn = copy(getfield(icepredictands, :n))
     initialq = copy(getfield(icepredictands, :q))

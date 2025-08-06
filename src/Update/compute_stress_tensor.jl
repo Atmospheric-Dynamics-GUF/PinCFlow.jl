@@ -50,6 +50,8 @@ where
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
+function compute_stress_tensor end
+
 function compute_stress_tensor(
     i::Integer,
     j::Integer,

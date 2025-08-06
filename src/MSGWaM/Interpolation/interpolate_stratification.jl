@@ -7,6 +7,14 @@ Interpolate the squared buoyancy frequency (``N^2``) to `zlc`.
 
 This method first determines the two points in ``z`` that are closest to `zlc`. As horizontal position, it uses `(i0, j0)`, which is arbitrary, since ``N^2`` has no horizontal dependence. Subsequently, simple linear interpolation is performed to find ``N^2`` at `zlc`.
 
+```julia
+interpolate_stratification(zlc::AbstractFloat, state::State, strtype::DN2DZ)
+```
+
+Interpolate the vertical derivative of the squared buoyancy frequency (``\\partial N^2 / \\partial z``) to `zlc`.
+
+This method first determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. As for ``N^2``, `(i0, j0)` is used as the horizontal position, and simple linear interpolation is performed to find ``\\partial N^2 / \\partial z`` at `zlc`.
+
 # Arguments
 
   - `zlc`: Vertical position of interest.
@@ -15,12 +23,15 @@ This method first determines the two points in ``z`` that are closest to `zlc`. 
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``N^2`` at the location of interest.
+  - `::AbstractFloat`: Interpolated stratification quantity at the location of interest.
 
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
+function interpolate_stratification end
+
 function interpolate_stratification(
     zlc::AbstractFloat,
     state::State,
@@ -61,29 +72,6 @@ function interpolate_stratification(
     return str
 end
 
-"""
-```julia
-interpolate_stratification(zlc::AbstractFloat, state::State, strtype::DN2DZ)
-```
-
-Interpolate the vertical derivative of the squared buoyancy frequency (``\\partial N^2 / \\partial z``) to `zlc`.
-
-This method first determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. As horizontal position, it uses `(i0, j0)`, which is arbitrary, since ``\\partial N^2 / \\partial z`` has no horizontal dependence. Subsequently, simple linear interpolation is performed to find ``\\partial N^2 / \\partial z`` at `zlc`.
-
-# Arguments
-
-  - `zlc`: Vertical position of interest.
-  - `state`: Model state.
-  - `strtype`: Stratification quantity to interpolate.
-
-# Returns
-
-  - `::AbstractFloat`: Interpolated ``\\partial N^2 / \\partial z`` at the location of interest.
-
-# See also
-
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
-"""
 function interpolate_stratification(
     zlc::AbstractFloat,
     state::State,
