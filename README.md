@@ -6,7 +6,11 @@ PinCFlow integrates the pseudo-incompressible equations in a conservative flux f
 
 The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that unresolved gravity waves may be parameterized in a manner that accounts for transience and horizontal propagation. The resolved fields are updated with tendencies computed by MSGWaM at the beginning of every time step. A description of PinCFlow-MSGWaM can be found in [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
 
-## Workflow
+## User guide
+
+## Developer guide
+
+### Workflow
 
 The code is shared in a GitLab repository. Any contributions to the code should adhere to the following workflow.
 
@@ -22,20 +26,7 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
 1. Request to merge your remote development branch into the remote master branch.
 
-## Building and accessing the documentation
-
-The code uses Documenter.jl to build the documentation. To build the documentation, run the following command in the root directory of the repository:
-
-```julia
-julia --project=docs -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
-julia --project=docs docs/make.jl
-```
-
-The documentation will be generated in the `docs/build` directory. To view the documentation, open the `index.html` file in a web browser.
-
-## Style guide
-
-### Code
+### Writing code
 
 * Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module.
 
@@ -49,7 +40,7 @@ The documentation will be generated in the `docs/build` directory. To view the d
 
 * Use `@views` for expressions that create slices.
 
-### Documentation
+### Writing documentation
 
 * Write a docstring for every module, function and type.
 
@@ -88,6 +79,17 @@ The documentation will be generated in the `docs/build` directory. To view the d
 * Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences rather than Unicode characters.
 
 * Place the starting and ending `"""` characters on lines by themselves.
+
+### Building and accessing the documentation
+
+The code uses Documenter.jl to build the documentation. To build the documentation, run the following command in the root directory of the repository:
+
+```julia
+julia --project=docs -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+julia --project=docs docs/make.jl
+```
+
+The documentation will be generated in the `docs/build` directory. To view the documentation, open the `index.html` file in a web browser.
 
 ## List of publications
 

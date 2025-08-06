@@ -1,6 +1,10 @@
 using Documenter
 using PinCFlow
 
+# Copy README file.
+cp("README.md", "docs/src/index.md"; force = true)
+
+# Generate documentation.
 makedocs(;
     sitename = "PinCFlow Documentation",
     remotes = nothing,
