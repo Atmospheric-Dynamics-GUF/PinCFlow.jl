@@ -9,6 +9,8 @@ compute_compressible_wind_factor(
 
 Compute the factor by which the wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``, ``\\left(i, j + 1 / 2, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)`` by dispatching to a method specific for the dynamic equations and the component indicated by `variable`.
 
+In compressible mode, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` instead of ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\widehat{w}_{k + 1 / 2}``.
+
 ```julia
 compute_compressible_wind_factor(
     state::State,
@@ -18,9 +20,7 @@ compute_compressible_wind_factor(
 )
 ```
 
-Return `1.0` as the factor by which the wind should be multiplied in non-compressible mode.
-
-In non-compressible modes, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\widehat{w}_{k + 1 / 2}``.
+Return ``1`` as the factor by which the wind should be multiplied in non-compressible mode.
 
 ```julia
 compute_compressible_wind_factor(
@@ -31,9 +31,7 @@ compute_compressible_wind_factor(
 )
 ```
 
-Compute the factor by which the zonal wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``.
-
-In compressible mode, the Euler steps that are used to integrate the right-hand side of the zonal-momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``.
+Return ``\\left(J P\\right)_{i + 1 / 2}`` as the factor by which the zonal wind should be multiplied in compressible mode.
 
 ```julia
 compute_compressible_wind_factor(
@@ -44,9 +42,7 @@ compute_compressible_wind_factor(
 )
 ```
 
-Compute the factor by which the meridional wind should be multiplied at ``\\left(i, j + 1 / 2, k\\right)``.
-
-In compressible mode, the Euler steps that are used to integrate the right-hand side of the zonal-momentum equation update ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}``.
+Return ``\\left(J P\\right)_{j + 1 / 2}`` as the factor by which the meridional wind should be multiplied in compressible mode.
 
 ```julia
 compute_compressible_wind_factor(
@@ -57,9 +53,9 @@ compute_compressible_wind_factor(
 )
 ```
 
-Compute the factor by which the transformed vertical wind should be multiplied at ``\\left(i, j, k + 1 / 2\\right)``.
+Return ``\\left(J P\\right)_{k + 1 / 2}`` as the factor by which the transformed vertical wind should be multiplied in compressible mode.
 
-In compressible mode, the Euler steps that are used to integrate the right-hand side of the transformed-vertical-momentum equation update ``\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}``. The interpolation is given by
+The interpolation is given by
 
 ```math
 \\left(J P\\right)_{k + 1 / 2} = \\frac{J J_{k + 1} \\left(P + P_{k + 1}\\right)}{J + J_{k + 1}}.

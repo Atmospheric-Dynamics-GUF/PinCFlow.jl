@@ -75,10 +75,10 @@ with
 and otherwise, it is
 
 ```math
-\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right)
+\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right),
 ```
 
-where ``N_\\mathrm{R}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``\\Delta x_\\mathrm{R}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``\\Delta y_\\mathrm{R}``, ``z_{\\mathrm{R}, 0}``, ``z_{\\mathrm{R}, 1}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.cosmosteps`, and the properties `xsponge0`, `xsponge1`, `dxsponge`, `ysponge0`, `ysponge1`, `dysponge`, `zsponge0`, `zsponge1` and `dzsponge` of `state.sponge`, respectively.
+where ``N_\\mathrm{R}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``z_{\\mathrm{R}, 0}`` and ``z_{\\mathrm{R}, 1}`` are given by `state.namelists.sponge.cosmosteps` and the properties `xsponge0`, `xsponge1`, `ysponge0`, `ysponge1`, `zsponge0` and `zsponge1` of `state.sponge`, respectively.
 
 ```julia
 compute_sponge!(state::State, dt::AbstractFloat, spongetype::PolynomialSponge)
@@ -116,10 +116,10 @@ with
 and otherwise, it is
 
 ```math
-\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right)
+\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right),
 ```
 
-where ``\\alpha_{\\mathrm{R}, \\max}``, ``n_\\mathrm{R}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``\\Delta x_\\mathrm{R}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``\\Delta y_\\mathrm{R}``, ``z_{\\mathrm{R}, 0}``, ``z_{\\mathrm{R}, 1}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_dim`, `state.namelists.sponge.spongeorder`, and the properties `xsponge0`, `xsponge1`, `dxsponge`, `ysponge0`, `ysponge1`, `dysponge`, `zsponge0`, `zsponge1` and `dzsponge` of `state.sponge`, respectively.
+where ``n_\\mathrm{R}`` is given by `state.namelists.sponge.spongeorder`.
 
 ```julia
 compute_sponge!(state::State, dt::AbstractFloat, spongetype::SinusoidalSponge)
@@ -157,10 +157,8 @@ with
 and otherwise, it is
 
 ```math
-\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right)
+\\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right).
 ```
-
-where ``\\alpha_{\\mathrm{R}, \\max}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``\\Delta x_\\mathrm{R}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``\\Delta y_\\mathrm{R}``, ``z_{\\mathrm{R}, 0}``, ``z_{\\mathrm{R}, 1}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_dim` and the properties `xsponge0`, `xsponge1`, `dxsponge`, `ysponge0`, `ysponge1`, `dysponge`, `zsponge0`, `zsponge1` and `dzsponge` of `state.sponge`, respectively.
 
 # Arguments
 

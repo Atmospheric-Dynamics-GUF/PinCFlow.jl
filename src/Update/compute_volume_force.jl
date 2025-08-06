@@ -18,7 +18,7 @@ compute_volume_force(
 )
 ```
 
-Return `0.0` as the volume force in non-WKB test cases.
+Return ``0`` as the volume force in non-WKB test cases.
 
 ```julia
 compute_volume_force(
