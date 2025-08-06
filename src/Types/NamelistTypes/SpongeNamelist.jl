@@ -11,7 +11,28 @@ SpongeNamelist{
 
 Namelist for parameters describing the sponge.
 
-# Fields
+```julia
+SpongeNamelist(;
+    spongelayer::Bool = false,
+    sponge_uv::Bool = false,
+    spongeheight::AbstractFloat = 5.0E-1,
+    spongealphaz_dim::AbstractFloat = 1.0E-2,
+    spongealphaz_fac::AbstractFloat = 1.0E+0,
+    unifiedsponge::Bool = false,
+    lateralsponge::Bool = false,
+    spongetype::AbstractSponge = PolynomialSponge(),
+    spongeorder::Integer = 1,
+    cosmosteps::Integer = 1,
+    relax_to_mean::Bool = true,
+    perturbation_period::AbstractFloat = 0.0E+0,
+    perturbation_amplitude::AbstractFloat = 0.0E+0,
+    relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+)
+```
+
+Construct a `SpongeNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
 
   - `spongelayer::A`: Switch for enabling Rayleigh-damping in the sponge layer.
   - `sponge_uv::A`: Switch for applying the non-unified sponge to the horizontal wind.
@@ -51,49 +72,6 @@ struct SpongeNamelist{
     relaxation_wind::E
 end
 
-"""
-```julia
-SpongeNamelist(;
-    spongelayer::Bool = false,
-    sponge_uv::Bool = false,
-    spongeheight::AbstractFloat = 5.0E-1,
-    spongealphaz_dim::AbstractFloat = 1.0E-2,
-    spongealphaz_fac::AbstractFloat = 1.0E+0,
-    unifiedsponge::Bool = false,
-    lateralsponge::Bool = false,
-    spongetype::AbstractSponge = PolynomialSponge(),
-    spongeorder::Integer = 1,
-    cosmosteps::Integer = 1,
-    relax_to_mean::Bool = true,
-    perturbation_period::AbstractFloat = 0.0E+0,
-    perturbation_amplitude::AbstractFloat = 0.0E+0,
-    relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
-)
-```
-
-Construct a `SpongeNamelist` instance with the given keyword arguments as properties.
-
-# Arguments
-
-  - `spongelayer`: Switch for enabling Rayleigh-damping in the sponge layer.
-  - `sponge_uv`: Switch for applying the non-unified sponge to the horizontal wind.
-  - `spongeheight`: Fractional vertical extent of the sponge.
-  - `spongealphaz_dim`: Rayleigh-damping coefficient of the unified sponge.
-  - `spongealphaz_fac`: Rayleigh-damping coefficient of the non-unified sponge, multiplied by the time step.
-  - `unifiedsponge`: Switch for the unified sponge (provides several profiles and is applied to all prognostic variables).
-  - `lateralsponge`: Switch for the lateral unified sponge.
-  - `spongetype`: Profile of the unified sponge.
-  - `spongeorder`: Order of the polynomial unified sponge.
-  - `cosmosteps`: Factor by which the time step is mulitplied in the damping coefficient of the COSMO-like unified sponge.
-  - `relax_to_mean`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
-  - `perturbation_period`: Period of an oscillating perturbation on top of `relaxation_wind`.
-  - `perturbation_amplitude`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
-  - `relaxation_wind`: Wind to be obtained through Rayleigh damping in the unified sponge.
-
-# Returns
-
-  - `::SpongeNamelist`: `SpongeNamelist` instance.
-"""
 function SpongeNamelist(;
     spongelayer::Bool = false,
     sponge_uv::Bool = false,

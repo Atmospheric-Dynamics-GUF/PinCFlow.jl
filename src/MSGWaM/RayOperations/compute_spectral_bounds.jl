@@ -18,6 +18,8 @@ This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to create
   - `::AbstractFloat`: Minimum negative wavenumber.
   - `::AbstractFloat`: Maximum negative wavenumber.
 """
+function compute_spectral_bounds end
+
 function compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
 
     # Initialize minima and maxima.

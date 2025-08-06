@@ -10,15 +10,77 @@ correct!(
 
 Correct the Exner-pressure, wind and buoyancy (density fluctuations) such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.
 
-This method calls the appropriate methods for the correction of each individual variable.
+This method calls specific methods for the correction of each individual variable.
+
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    variable::U,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
+
+Correct the zonal wind to account for the pressure differences obtained from the solution to the Poisson problem.
+
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    variable::V,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
+
+Correct the meridional wind to account for the pressure differences obtained from the solution to the Poisson problem.
+
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    variable::W,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
+
+Correct the transformed vertical wind to account for the pressure differences obtained from the solution to the Poisson problem.
+
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    variable::RhoP,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
+
+Correct the buoyancy (density fluctuations) to account for the pressure differences obtained from the solution to the Poisson problem.
+
+```julia
+correct!(state::State, variable::PiP)
+```
+
+Update the Exner-pressure fluctuations with the differences obtained from the solution to the Poisson problem.
 
 # Arguments
 
   - `state`: Model state.
   - `dt`: Time step.
+  - `variable`: Variable to correct.
   - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
   - `facprs`: Factor by which the Exner-pressure correction is multiplied.
+
+# See also
+
+  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
+  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
 """
+function correct! end
+
 function correct!(
     state::State,
     dt::AbstractFloat,
@@ -33,31 +95,6 @@ function correct!(
     return
 end
 
-"""
-```julia
-correct!(
-    state::State,
-    dt::AbstractFloat,
-    variable::U,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
-```
-
-Correct the zonal wind to account for the pressure differences obtained from the solution to the Poisson problem.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to correct.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
-
-# See also
-
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-"""
 function correct!(
     state::State,
     dt::AbstractFloat,
@@ -152,31 +189,6 @@ function correct!(
     return
 end
 
-"""
-```julia
-correct!(
-    state::State,
-    dt::AbstractFloat,
-    variable::V,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
-```
-
-Correct the meridional wind to account for the pressure differences obtained from the solution to the Poisson problem.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to correct.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
-
-# See also
-
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-"""
 function correct!(
     state::State,
     dt::AbstractFloat,
@@ -271,32 +283,6 @@ function correct!(
     return
 end
 
-"""
-```julia
-correct!(
-    state::State,
-    dt::AbstractFloat,
-    variable::W,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
-```
-
-Correct the transformed vertical wind to account for the pressure differences obtained from the solution to the Poisson problem.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to correct.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
-
-# See also
-
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
-"""
 function correct!(
     state::State,
     dt::AbstractFloat,
@@ -430,31 +416,6 @@ function correct!(
     return
 end
 
-"""
-```julia
-correct!(
-    state::State,
-    dt::AbstractFloat,
-    variable::RhoP,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
-```
-
-Correct the buoyancy (density fluctuations) to account for the pressure differences obtained from the solution to the Poisson problem.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to correct.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
-
-# See also
-
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
-"""
 function correct!(
     state::State,
     dt::AbstractFloat,
@@ -631,18 +592,6 @@ function correct!(
     return
 end
 
-"""
-```julia
-correct!(state::State, variable::PiP)
-```
-
-Update the Exner-pressure fluctuations with the differences obtained from the solution to the Poisson problem.
-
-# Arguments
-
-  - `state`: Model state.
-  - `variable`: Variable to correct.
-"""
 function correct!(state::State, variable::PiP)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; pip) = state.variables.predictands

@@ -28,6 +28,8 @@ This method is heavily used for interpolation to ray-volume positions. To ensure
 
   - `::Integer`: Index of the next level.
 """
+function get_next_level end
+
 function get_next_level(
     i::Integer,
     j::Integer,

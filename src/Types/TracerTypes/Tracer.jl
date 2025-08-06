@@ -8,6 +8,17 @@ Tracer{
     E <: TracerFluxes,
 }
 ```
+
+```julia
+Tracer(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    variables::Variables,
+)
+```
 """
 struct Tracer{
     A <: TracerPredictands,
@@ -23,18 +34,6 @@ struct Tracer{
     tracerfluxes::E
 end
 
-"""
-```julia
-Tracer(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    variables::Variables,
-)
-```
-"""
 function Tracer(
     namelists::Namelists,
     constants::Constants,
