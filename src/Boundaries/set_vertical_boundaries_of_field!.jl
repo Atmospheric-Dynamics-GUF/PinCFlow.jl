@@ -11,7 +11,7 @@ set_vertical_boundaries_of_field!(
 )
 ```
 
-Enforce vertical boundary conditions for 3D fields in a `SolidWallBoundaries` configuration.
+Enforce vertical boundary conditions for a 3D array (assuming solid-wall boundaries).
 
 Halo exchange is used for multi-process domains (`npz > 1`). Use `mode = +` (`mode = -`) for line-reflected (point-reflected) ghost-cell values.
 
@@ -25,9 +25,9 @@ set_vertical_boundaries_of_field!(
 )
 ```
 
-Enforce vertical boundary conditions for 5D fields.
+Exchange halo values of a 5D array if multiple processes are used in the vertical (`npz > 1`).
 
-Halo exchange is used for multi-process domains (`npz > 1`). Boundary conditions are enforced across all elements in dimensions 4 and 5.
+This method is applied to reconstruction arrays. Vertical boundary conditions are not enforced for these but for the fluxes determined from them.
 
 # Arguments
 

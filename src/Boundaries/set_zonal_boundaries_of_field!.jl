@@ -7,7 +7,7 @@ set_zonal_boundaries_of_field!(
 )
 ```
 
-Enforce zonal boundary conditions for 2D fields.
+Enforce zonal boundary conditions for a matrix.
 
 Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges.
 
@@ -20,9 +20,9 @@ set_zonal_boundaries_of_field!(
 )
 ```
 
-Enforce zonal boundary conditions for 3D fields.
+Enforce zonal boundary conditions for a 3D array.
 
-Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges.
+Halo exchange is used in the same manner as in the method for matrices.
 
 ```julia
 set_zonal_boundaries_of_field!(
@@ -35,7 +35,7 @@ set_zonal_boundaries_of_field!(
 
 Enforce zonal boundary conditions for 5D fields.
 
-Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges. Boundary conditions are enforced across all elements in dimensions 4 and 5.
+Halo exchange is used in the same manner as in the methods for matrices and 3D arrays. The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
 # Arguments
 
