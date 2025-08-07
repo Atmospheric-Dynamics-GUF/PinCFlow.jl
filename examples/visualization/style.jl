@@ -1,11 +1,35 @@
 using PythonPlot
 
 """
-Compute symmetric contours levels and crop the colormap accordingly.
+```julia
+symmetric_contours(
+    minimum::AbstractFloat,
+    maximum::AbstractFloat;
+    number::Integer = 10,
+    colormap_name::String = "seismic",
+)
+```
+
+Compute symmetric contours levels and return them and a correspondingly cropped colormap.
+
+# Arguments
+
+  - `minimum`: Smallest value to be plotted.
+  - `maximum`: Largest value to be plotted.
+
+# Keywords
+
+  - `number`: Number of contour levels.
+  - `colormap_name`: Name under which the chosen colormap is registered.
+
+# Returns
+
+  - `::LinRange{<:AbstractFloat, <:Integer}`: Contour levels.
+  - `::PythonCall.Core.Py`: Cropped colormap.
 """
 function symmetric_contours(
     minimum::AbstractFloat,
-    maximum::AbstractFloat,
+    maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::String = "seismic",
 )
