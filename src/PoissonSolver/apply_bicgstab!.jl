@@ -114,6 +114,7 @@ function apply_bicgstab!(
     if res == 0.0 || res / b_norm <= tol
         if master
             println("=> No iteration needed!")
+            println("")
         end
         niter = 0
         return (errflag, niter)
