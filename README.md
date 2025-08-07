@@ -72,7 +72,7 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
     1. If the type is composite, list all positional and optional arguments of the explicitly defined constructor methods with descriptions (but without types and default values) in an `# Arguments` section, with one `-` bullet for each.
 
-    1. If the type is composite, list all keyword arguments of the explicitly defined constructor methods with descriptions (but without types and default values) in a `# Keywords section`, with one `-` bullet for each.
+    1. If the type is composite, list all keyword arguments of the explicitly defined constructor methods with descriptions (but without types and default values) in a `# Keywords` section, with one `-` bullet for each.
 
     1. If the type is composite, list links to constructors/functions that are called in any of the explicitly defined constructor methods in a # See also section, with one `-` bullet for each.
 
