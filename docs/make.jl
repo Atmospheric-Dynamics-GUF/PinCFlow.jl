@@ -5,6 +5,11 @@ using PinCFlow
 # Copy README file.
 cp("README.md", "docs/src/index.md"; force = true)
 
+# Copy example plots.
+for file in readdir("examples/results/"; join = true)
+    cp(file, "docs/src/" * file; force = true)
+end
+
 # Generate documentation.
 makedocs(;
     sitename = "PinCFlow Documentation",

@@ -110,7 +110,7 @@ matplotlib.rcParams["text.usetex"] = true
 matplotlib.rcParams["text.latex.preamble"] =
     "\\usepackage{amsmath, amstext, amssymb, amsfonts, amsthm}" *
     "\\allowdisplaybreaks" *
-    "\\usepackage[slantedGreek]{newtxmath}" *
+    # "\\usepackage[slantedGreek]{newtxmath}" *
     "\\renewcommand*\\rmdefault{ptm}" *
     "\\renewcommand*\\sfdefault{phv}" *
     "\\renewcommand*\\ttdefault{lmtt}"

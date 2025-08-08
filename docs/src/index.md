@@ -8,6 +8,134 @@ The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that un
 
 ## User guide
 
+### Installation
+
+To install PinCFlow, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then clone this repository with
+
+```
+git clone git@gitlab.dkrz.de:atmodynamics-goethe-universitaet-frankfurt/pinc.git
+```
+
+and set up the project environment by running
+
+```
+julia --project -e 'using Pkg; Pkg.instantiate()'
+```
+
+in the root directory of your clone.
+
+### Running the model
+
+As a minimal example, the script
+
+```julia
+using PinCFlow
+
+integrate(Namelists())
+```
+
+runs PinCFlow in its default configuration, if executed with
+
+```
+julia --project --check-bounds=no --math-mode=fast script.jl
+```
+
+in the root directory of the repository. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the governing equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. For instance, running the script
+
+```julia
+# examples/submit/periodic_hill.jl
+
+using PinCFlow
+
+atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
+domain = DomainNamelist(;
+    sizex = 40,
+    sizey = 1,
+    sizez = 40,
+    lx_dim = (-1.0E+4, 1.0E+4),
+    ly_dim = (-1.0E+4, 1.0E+4),
+    lz_dim = (0.0E+0, 2.0E+4),
+)
+grid = GridNamelist(; mountainheight_dim = 1.0E+1, mountainwidth_dim = 1.0E+4)
+output = OutputNamelist(;
+    output_variables = (:w,),
+    output_file = ARGS[1] * "/pincflow_output.h5",
+)
+sponge = SpongeNamelist(; spongelayer = true)
+
+integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+
+```
+
+yields a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ that generates a mountain wave above a periodic hill. The vertical wind is written to the output file `pincflow_output.h5` in the directory specified by an additional argument to the script. More involved examples are given in the "Examples" section of the documentation. A description of all namelists and their parameters is provided in the "Reference" section.
+
+If you want to run PinCFlow in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). You can do so by running
+
+```
+mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
+${mpiexec} -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
+```
+
+with `tasks` set to the number of MPI processes. Note that in `script.jl`, the parameters `npx`, `npy` and `npz` of the namelist `domain`, which represent the number of MPI processes in the three dimensions of physical space, need to be set such that their product is equal to `tasks`.
+
+However, if you plan to run PinCFlow on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
+
+```
+julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names = ["/path/to/mpi/library/"])'
+julia --project -e 'using HDF5; HDF5.API.set_libraries!("/path/to/libhdf5.so", "/path/to/libhdf5_hl.so")'
+```
+
+with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). You can then run
+
+```
+mpiexec -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
+```
+
+with `mpiexec` being your chosen system binary.
+
+### Visualizing the results
+
+PinCFlow uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5` (from the directory in which the run script is executed). This may be changed by setting the parameter `output_file` of the namelist `output` accordingly. The dimensions of most output fields are (in order) $\widehat{x}$ (zonal axis), $\widehat{y}$ (meridional axis), $\widehat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume property fields differ slightly in that they have an additional (spectral) dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the namelist `output` accordingly (more details are given in the "Reference" section of the documentation).
+
+For the visualization of simulation results, we recommend using [PythonPlot.jl](https://github.com/JuliaPy/PythonPlot.jl). A style configuration and a function that facilitates the generation of symmetric contour plots are provided in `examples/visualization/style.jl`. The script
+
+```julia
+# examples/visualization/periodic_hill.jl
+
+using HDF5
+using LaTeXStrings
+
+include("style.jl")
+
+# Import the data.
+data = h5open(ARGS[1] * "/pincflow_output.h5")
+
+# Set the grid.
+x = data["x"][:] ./ 1000
+z = data["z"][:, 1, :] ./ 1000
+x = x .* ones(size(z))
+
+# Get the vertical wind.
+w = data["w"][:, 1, :, end]
+
+# Close the file.
+close(data)
+
+# Create the plot.
+(levels, colormap) = symmetric_contours(minimum(w), maximum(w))
+contours = contourf(x, z, w; levels = levels, cmap = colormap)
+xlabel(L"x\,\left[\mathrm{km}\right]")
+ylabel(L"z\,\left[\mathrm{km}\right]")
+colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
+savefig("examples/results/periodic_hill.png")
+clf()
+
+```
+
+is an example for how to visualize the vertical wind at the end of a simple mountain-wave simulation performed with the script introduced [above](#running-the-model). Once again, the directory which the output file has been saved to is given as an additional argument to the script. The resulting plot is displayed below.
+
+![](examples/results/periodic_hill.png)
+
 ## Developer guide
 
 ### Workflow
