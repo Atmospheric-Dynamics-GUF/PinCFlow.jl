@@ -70,14 +70,14 @@ Return the gravity-wave impact on the mass-weighted potential temperature (diaba
 
 # Arguments
 
-- `state`: Model state.
-- `indices`: Grid-cell indices.
-- `variable`: Variable (equation) of choice.
-- `testcase`: Test case on which the current simulation is based.
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-- `::AbstractFloat`: Volume force in the specified equation.
+  - `::AbstractFloat`: Volume force in the specified equation.
 """
 function compute_volume_force end
 

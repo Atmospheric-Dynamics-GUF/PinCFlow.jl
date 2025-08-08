@@ -13,7 +13,7 @@ Construct a `TurbulenceNamelist` instance with the given keyword arguments as pr
 
 # Fields/Keywords
 
-- `turbulencesetup::A`: General turbulence-physics configuration.
+  - `turbulencesetup::A`: General turbulence-physics configuration.
 """
 struct TurbulenceNamelist{A <: AbstractTurbulence}
     turbulencesetup::A

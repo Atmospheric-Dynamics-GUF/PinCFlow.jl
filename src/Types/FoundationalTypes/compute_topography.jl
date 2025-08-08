@@ -14,19 +14,19 @@ Compute and return the topography for the WKB-mountain-wave test case.
 
 The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
 
-1. 2D cosine mountains:
+ 1. 2D cosine mountains:
 
     ```math
         h_\\mathrm{b} = \\frac{h_0}{2}, \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0, \\quad h_\\mathrm{w} = \\frac{h_0}{2}
     ```
 
-1. ``-``
+ 1. ``-``
 
-1. ``-``
+ 1. ``-``
 
-1. ``-``
+ 1. ``-``
 
-1. 2D cosine envelope and even background:
+ 1. 2D cosine envelope and even background:
 
     ```math
     \\begin{align*}
@@ -38,9 +38,9 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{align*}
     ```
 
-1. ``-``
+ 1. ``-``
 
-1. 2D Gaussian envelope and even background:
+ 1. 2D Gaussian envelope and even background:
 
     ```math
     \\begin{align*}
@@ -49,9 +49,9 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{align*}
     ```
 
-1. ``-``
+ 1. ``-``
 
-1. 2D cosine envelope and cosine background:
+ 1. 2D cosine envelope and cosine background:
 
     ```math
     \\begin{align*}
@@ -63,9 +63,9 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{align*}
     ```
 
-1. ``-``
+ 1. ``-``
 
-1. 2D Gaussian envelope and Gaussian background:
+ 1. 2D Gaussian envelope and Gaussian background:
 
     ```math
     \\begin{align*}
@@ -74,9 +74,9 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{align*}
     ```
 
-1. ``-``
+ 1. ``-``
 
-1. 3D WKB topography:
+ 1. 3D WKB topography:
 
     ```math
     \\begin{align*}
@@ -105,31 +105,31 @@ Compute and return the topography for non-WKB-mountain-wave test cases.
 
 The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
 
-1. 2D cosine mountains:
+ 1. 2D cosine mountains:
 
     ```math
     h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
     ```
 
-1. 3D cosine mountains:
+ 1. 3D cosine mountains:
 
     ```math
     h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
     ```
 
-1. 2D isolated mountain:
+ 1. 2D isolated mountain:
 
     ```math
     h \\left(x\\right) = \\frac{h_0}{1 + \\left(x - x_0\\right)^2 / l_0^2}
     ```
 
-1. 3D isolated mountain:
+ 1. 3D isolated mountain:
 
     ```math
     h \\left(x, y\\right) = \\frac{h_0}{1 + \\left[\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2\\right] / l_0^2}
     ```
 
-1. 2D cosine envelope and even background:
+ 1. 2D cosine envelope and even background:
 
     ```math
     h \\left(x\\right) = \\begin{cases}
@@ -138,7 +138,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{cases}
     ```
 
-1. 3D cosine envelope and even background:
+ 1. 3D cosine envelope and even background:
 
     ```math
     h \\left(x, y\\right) = \\begin{cases}
@@ -147,19 +147,19 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{cases}
     ```
 
-1. 2D Gaussian envelope and even background:
+ 1. 2D Gaussian envelope and even background:
 
     ```math
     h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
     ```
 
-1. 3D Gaussian envelope and even background:
+ 1. 3D Gaussian envelope and even background:
 
     ```math
     h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
     ```
 
-1. 2D cosine envelope and cosine background:
+ 1. 2D cosine envelope and cosine background:
 
     ```math
     h \\left(x\\right) = \\begin{cases}
@@ -168,7 +168,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{cases}
     ```
 
-1. 3D cosine envelope and cosine background:
+ 1. 3D cosine envelope and cosine background:
 
     ```math
     h \\left(x, y\\right) = \\begin{cases}
@@ -177,19 +177,19 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{cases}
     ```
 
-1. 2D Gaussian envelope and Gaussian background:
+ 1. 2D Gaussian envelope and Gaussian background:
 
     ```math
     h \\left(x\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
     ```
 
-1. 3D Gaussian envelope and Gaussian background:
+ 1. 3D Gaussian envelope and Gaussian background:
 
     ```math
     h \\left(x, y\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
     ```
 
-1. 3D WKB topography:
+ 1. 3D WKB topography:
 
     ```math
     \\begin{align*}
@@ -205,24 +205,24 @@ Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the propert
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `constants`: Physical constants and reference values.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `x`: ``\\widehat{x}``-coordinate grid points.
-- `y`: ``\\widehat{y}``-coordinate grid points.
-- `testcase`: Test case on which the current simulation is based.
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `x`: ``\\widehat{x}``-coordinate grid points.
+  - `y`: ``\\widehat{y}``-coordinate grid points.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-- `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
-- `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography.
-- `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum.
-- `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum.
+  - `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum.
 
 # See also
 
-- [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
-- [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_topography end
 

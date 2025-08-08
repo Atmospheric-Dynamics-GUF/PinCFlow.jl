@@ -14,16 +14,16 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 
 # Arguments
 
-- `phi`: Input array.
-- `phitilde`: Output array with reconstructed values. The fourth dimension represents the directions in which the input was reconstructed and the fifth dimension the reconstructions to the left and right.
-- `nxx`: Size of `phi` in ``\\widehat{x}``-direction.
-- `nyy`: Size of `phi` in ``\\widehat{y}``-direction.
-- `nzz`: Size of `phi` in ``\\widehat{z}``-direction.
-- `limitertype`: Type of flux limiter to use.
+  - `phi`: Input array.
+  - `phitilde`: Output array with reconstructed values. The fourth dimension represents the directions in which the input was reconstructed and the fifth dimension the reconstructions to the left and right.
+  - `nxx`: Size of `phi` in ``\\widehat{x}``-direction.
+  - `nyy`: Size of `phi` in ``\\widehat{y}``-direction.
+  - `nzz`: Size of `phi` in ``\\widehat{z}``-direction.
+  - `limitertype`: Type of flux limiter to use.
 
 # See also
 
-- [`PinCFlow.FluxCalculator.apply_1d_muscl!`](@ref)
+  - [`PinCFlow.FluxCalculator.apply_1d_muscl!`](@ref)
 """
 function apply_3d_muscl! end
 

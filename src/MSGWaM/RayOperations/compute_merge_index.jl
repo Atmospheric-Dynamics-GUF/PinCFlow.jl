@@ -18,18 +18,18 @@ This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to sort r
 
 # Arguments
 
-- `wnr`: Wavenumber value.
-- `wnr_min_p`: Minimum positive wavenumber.
-- `wnr_max_p`: Maximum positive wavenumber.
-- `wnr_min_n`: Minimum negative wavenumber.
-- `wnr_max_n`: Maximum negative wavenumber.
-- `dwnr_mrg_p`: Logarithmic spacing of discrete positive wavenumbers.
-- `dwnr_mrg_n`: Logarithmic spacing of discrete negative wavenumbers.
-- `nray`: Number of spectral grid points.
+  - `wnr`: Wavenumber value.
+  - `wnr_min_p`: Minimum positive wavenumber.
+  - `wnr_max_p`: Maximum positive wavenumber.
+  - `wnr_min_n`: Minimum negative wavenumber.
+  - `wnr_max_n`: Maximum negative wavenumber.
+  - `dwnr_mrg_p`: Logarithmic spacing of discrete positive wavenumbers.
+  - `dwnr_mrg_n`: Logarithmic spacing of discrete negative wavenumbers.
+  - `nray`: Number of spectral grid points.
 
 # Returns
 
-- `::Integer`: Position on the 1D spectral grid.
+  - `::Integer`: Position on the 1D spectral grid.
 """
 function compute_merge_index end
 

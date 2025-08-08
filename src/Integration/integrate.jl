@@ -13,36 +13,36 @@ The initialization begins with the construction of the model state (an instance 
 
 At the beginning of each time-loop iteration, the time step is determined from several stability criteria, using `compute_time_step`. In case the updated simulation time is later than the next output time, the time step is corrected accordingly. Subsequently, the damping coefficient of the sponge layer (which may depend on the time step) is calculated. Following this, MSGWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
 
-1. Explicit RK3 integration of LHS over ``\\Delta t / 2``.
-1. Implicit Euler integration of RHS over ``\\Delta t / 2``.
-1. Explicit Euler integration of RHS over ``\\Delta t / 2``.
-1. Explicit RK3 integration of LHS over ``\\Delta t``.
-1. Implicit Euler integration of RHS over ``\\Delta t / 2``.
+ 1. Explicit RK3 integration of LHS over ``\\Delta t / 2``.
+ 1. Implicit Euler integration of RHS over ``\\Delta t / 2``.
+ 1. Explicit Euler integration of RHS over ``\\Delta t / 2``.
+ 1. Explicit RK3 integration of LHS over ``\\Delta t``.
+ 1. Implicit Euler integration of RHS over ``\\Delta t / 2``.
 
 Therein, the left-hand sides of the equations include advective fluxes, diffusion terms, rotation and heating, whereas the pressure gradient, buoyancy term and momentum-flux divergence due to unresolved gravity waves are on the right-hand sides. Boundary conditions are enforced continuously. At the end of the time step, the updated fields are written into the output file if the next output time has been reached.
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
+  - `namelists`: Namelists with all model parameters.
 
 # See also
 
-- [`PinCFlow.Types.State`](@ref)
-- [`PinCFlow.Integration.modify_compressible_wind!`](@ref)
-- [`PinCFlow.Boundaries.set_boundaries!`](@ref)
-- [`PinCFlow.PoissonSolver.apply_corrector!`](@ref)
-- [`PinCFlow.Output.create_output`](@ref)
-- [`PinCFlow.Output.write_output`](@ref)
-- [`PinCFlow.MSGWaM.RayUpdate.initialize_rays!`](@ref)
-- [`PinCFlow.Output.read_input!`](@ref)
-- [`PinCFlow.Integration.synchronize_compressible_atmosphere!`](@ref)
-- [`PinCFlow.Integration.compute_time_step`](@ref)
-- [`PinCFlow.Update.compute_sponge!`](@ref)
-- [`PinCFlow.Integration.wkb_integration!`](@ref)
-- [`PinCFlow.Integration.synchronize_density_fluctuations!`](@ref)
-- [`PinCFlow.Integration.explicit_integration!`](@ref)
-- [`PinCFlow.Integration.implicit_integration!`](@ref)
-- [`PinCFlow.Integration.reset_predictands!`](@ref)
+  - [`PinCFlow.Types.State`](@ref)
+  - [`PinCFlow.Integration.modify_compressible_wind!`](@ref)
+  - [`PinCFlow.Boundaries.set_boundaries!`](@ref)
+  - [`PinCFlow.PoissonSolver.apply_corrector!`](@ref)
+  - [`PinCFlow.Output.create_output`](@ref)
+  - [`PinCFlow.Output.write_output`](@ref)
+  - [`PinCFlow.MSGWaM.RayUpdate.initialize_rays!`](@ref)
+  - [`PinCFlow.Output.read_input!`](@ref)
+  - [`PinCFlow.Integration.synchronize_compressible_atmosphere!`](@ref)
+  - [`PinCFlow.Integration.compute_time_step`](@ref)
+  - [`PinCFlow.Update.compute_sponge!`](@ref)
+  - [`PinCFlow.Integration.wkb_integration!`](@ref)
+  - [`PinCFlow.Integration.synchronize_density_fluctuations!`](@ref)
+  - [`PinCFlow.Integration.explicit_integration!`](@ref)
+  - [`PinCFlow.Integration.implicit_integration!`](@ref)
+  - [`PinCFlow.Integration.reset_predictands!`](@ref)
 """
 function integrate end
 

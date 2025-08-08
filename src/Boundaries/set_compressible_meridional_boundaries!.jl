@@ -13,12 +13,12 @@ Enforce meridional boundary conditions for mass-weighted potential temperature i
 
 # Arguments
 
-- `state`: Model state.
-- `model`: Dynamic equations.
+  - `state`: Model state.
+  - `model`: Dynamic equations.
 
 # See also
 
-- [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_compressible_meridional_boundaries! end
 

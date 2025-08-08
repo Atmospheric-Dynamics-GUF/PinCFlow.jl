@@ -13,12 +13,12 @@ Enforce zonal boundary conditions for mass-weighted potential temperature in com
 
 # Arguments
 
-- `state`: Model state.
-- `model`: Dynamic equations.
+  - `state`: Model state.
+  - `model`: Dynamic equations.
 
 # See also
 
-- [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 """
 function set_compressible_zonal_boundaries! end
 

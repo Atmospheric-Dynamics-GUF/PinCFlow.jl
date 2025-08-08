@@ -65,19 +65,19 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 
 # Arguments
 
-- `state`: Model state.
-- `testcase`: Test case on which the current simulation is based.
-- `wkb_mode`: Approximations used by MSGWaM.
-- `direction`: Shift direction.
+  - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
+  - `direction`: Shift direction.
 
 # See also
 
-- [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
-- [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
-- [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.check_rays`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.check_rays`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function shift_rays! end
 

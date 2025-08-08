@@ -30,19 +30,19 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``\\overline{\\r
 
 # Arguments
 
-- `state`: Model state.
-- `indices`: Grid-cell indices.
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
 
 # Returns
 
-- `::AbstractFloat`: Discretized saturation integral ``S_1``.
-- `::AbstractFloat`: Discretized saturation integral ``S_2``.
+  - `::AbstractFloat`: Discretized saturation integral ``S_1``.
+  - `::AbstractFloat`: Discretized saturation integral ``S_2``.
 
 # See also
 
-- [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
-- [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
 function compute_saturation_integrals end
 

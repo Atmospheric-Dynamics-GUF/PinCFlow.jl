@@ -13,19 +13,19 @@ Compute the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
 
 # Arguments
 
-- `i`: Zonal grid-cell index.
-- `j`: Meridional grid-cell index.
-- `k`: Vertical grid-cell index.
-- `predictands`: Prognostic variables.
-- `grid`: Collection of parameters and fields that describe the grid.
+  - `i`: Zonal grid-cell index.
+  - `j`: Meridional grid-cell index.
+  - `k`: Vertical grid-cell index.
+  - `predictands`: Prognostic variables.
+  - `grid`: Collection of parameters and fields that describe the grid.
 
 # Returns
 
-- `::AbstractFloat`: Cartesian vertical wind at `(i, j, k + 1 / 2)`.
+  - `::AbstractFloat`: Cartesian vertical wind at `(i, j, k + 1 / 2)`.
 
 # See also
 
-- [`PinCFlow.Update.transform`](@ref)
+  - [`PinCFlow.Update.transform`](@ref)
 """
 function compute_vertical_wind end
 

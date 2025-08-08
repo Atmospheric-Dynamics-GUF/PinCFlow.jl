@@ -29,14 +29,14 @@ The vertical domain boundaries are treated as described above. The first three d
 
 # Arguments
 
-- `field`: Input array.
-- `namelists`: Namelists with all model parameters.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `zboundaries`: Vertical boundary conditions.
+  - `field`: Input array.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `zboundaries`: Vertical boundary conditions.
 
 # Keywords
 
-- `layers`: The number of halo layers in each dimension. Use `-1` for the default values from `namelists`.
+  - `layers`: The number of halo layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_vertical_halos_of_field! end
 

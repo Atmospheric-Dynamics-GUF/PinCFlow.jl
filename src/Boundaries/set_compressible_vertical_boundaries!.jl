@@ -31,13 +31,13 @@ Enforce vertical boundary conditions for vertical mass-weighted potential-temper
 
 # Arguments
 
-- `state`: Model state.
-- `variables`: Boundary-variable category.
-- `model`: Dynamic equations.
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `model`: Dynamic equations.
 
 # See also
 
-- [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_compressible_vertical_boundaries! end
 

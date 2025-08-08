@@ -9,7 +9,7 @@ The dimensions of the datasets are set to those of the domain, whereas the chunk
 
 # Arguments
 
-- `state`: Model state.
+  - `state`: Model state.
 """
 function create_output end
 

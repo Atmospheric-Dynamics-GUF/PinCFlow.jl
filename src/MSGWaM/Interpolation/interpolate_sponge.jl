@@ -14,19 +14,19 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 
 # Arguments
 
-- `xlc`: Zonal position of interest.
-- `ylc`: Meridional position of interest.
-- `zlc`: Vertical position of interest.
-- `state`: Model state.
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state`: Model state.
 
 # Returns
 
-- `::AbstractFloat`: Interpolated ``\\alpha_\\mathrm{R}`` at the location of interest.
+  - `::AbstractFloat`: Interpolated ``\\alpha_\\mathrm{R}`` at the location of interest.
 
 # See also
 
-- [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
-- [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_sponge end
 

@@ -31,17 +31,17 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
 # Fields/Keywords
 
-- `specifyreynolds::A`: Flag to specify inverse Reynolds number instead of viscosity.
-- `reinv::B`: Inverse Reynolds number.
-- `mu_viscous_dim::B`: Kinematic viscosity at the surface.
-- `background::C`: Atmospheric background.
-- `buoyancy_frequency::B`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
-- `theta0_dim::B`: Reference potential temperature.
-- `temp0_dim::B`: Reference temperature.
-- `press0_dim::B`: Reference pressure.
-- `backgroundflow_dim::D`: Initial wind.
-- `coriolis_frequency::B`: Coriolis frequency if `coriolis_mode == FPlane()`
-- `coriolis_mode::E`: Approximation used for the Coriolis frequency.
+  - `specifyreynolds::A`: Flag to specify inverse Reynolds number instead of viscosity.
+  - `reinv::B`: Inverse Reynolds number.
+  - `mu_viscous_dim::B`: Kinematic viscosity at the surface.
+  - `background::C`: Atmospheric background.
+  - `buoyancy_frequency::B`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
+  - `theta0_dim::B`: Reference potential temperature.
+  - `temp0_dim::B`: Reference temperature.
+  - `press0_dim::B`: Reference pressure.
+  - `backgroundflow_dim::D`: Initial wind.
+  - `coriolis_frequency::B`: Coriolis frequency if `coriolis_mode == FPlane()`
+  - `coriolis_mode::E`: Approximation used for the Coriolis frequency.
 """
 struct AtmosphereNamelist{
     A <: Bool,

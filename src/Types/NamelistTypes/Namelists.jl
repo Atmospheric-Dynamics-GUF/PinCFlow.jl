@@ -41,35 +41,35 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
 
 # Fields/Keywords
 
-- `domain::A`: Namelist for parameters describing the model domain.
-- `output::B`: Namelist for I/O parameters.
-- `setting::C`: Namelist for parameters describing the general model setting.
-- `discretization::D`: Namelist for parameters describing discretization.
-- `poisson::E`: Namelist for parameters used by the Poisson solver.
-- `atmosphere::F`: Namelist for parameters describing the atmospheric background.
-- `grid::G`: Namelist for parameters describing the grid.
-- `sponge::H`: Namelist for parameters describing the sponge.
-- `wkb::I`: Namelist for parameters used by MSGWaM.
-- `tracer::J`: Namelist for parameters configuring tracer transport.
-- `ice::K`: Namelist for parameters configuring ice physics.
-- `turbulence::L`: Namelist for parameters configuring turbulence parameterization.
-- `wavepacket::M`: Namelist for parameters used for the `WavePacket` test case.
+  - `domain::A`: Namelist for parameters describing the model domain.
+  - `output::B`: Namelist for I/O parameters.
+  - `setting::C`: Namelist for parameters describing the general model setting.
+  - `discretization::D`: Namelist for parameters describing discretization.
+  - `poisson::E`: Namelist for parameters used by the Poisson solver.
+  - `atmosphere::F`: Namelist for parameters describing the atmospheric background.
+  - `grid::G`: Namelist for parameters describing the grid.
+  - `sponge::H`: Namelist for parameters describing the sponge.
+  - `wkb::I`: Namelist for parameters used by MSGWaM.
+  - `tracer::J`: Namelist for parameters configuring tracer transport.
+  - `ice::K`: Namelist for parameters configuring ice physics.
+  - `turbulence::L`: Namelist for parameters configuring turbulence parameterization.
+  - `wavepacket::M`: Namelist for parameters used for the `WavePacket` test case.
 
 # See also
 
-- [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.SettingNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.PoissonNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.IceNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
-- [`PinCFlow.Types.NamelistTypes.WavePacketNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.SettingNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.PoissonNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.IceNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.WavePacketNamelist`](@ref)
 """
 struct Namelists{
     A <: DomainNamelist,

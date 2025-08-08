@@ -65,14 +65,14 @@ Enforce zonal boundary conditions for gravity-wave-tendency fields needed in `Mu
 
 # Arguments
 
-- `state`: Model state.
-- `variables`: Boundary-variable category.
-- `wkb_mode`: Approximations used by MSGWaM.
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
-- [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-- [`PinCFlow.Boundaries.set_compressible_zonal_boundaries!`](@ref)
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_compressible_zonal_boundaries!`](@ref)
 """
 function set_zonal_boundaries! end
 

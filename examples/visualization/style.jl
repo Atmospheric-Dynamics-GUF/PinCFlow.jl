@@ -14,18 +14,18 @@ Compute symmetric contours levels and return them and a correspondingly cropped 
 
 # Arguments
 
-- `minimum`: Smallest value to be plotted.
-- `maximum`: Largest value to be plotted.
+  - `minimum`: Smallest value to be plotted.
+  - `maximum`: Largest value to be plotted.
 
 # Keywords
 
-- `number`: Number of contour levels.
-- `colormap_name`: Name under which the chosen colormap is registered.
+  - `number`: Number of contour levels.
+  - `colormap_name`: Name under which the chosen colormap is registered.
 
 # Returns
 
-- `::LinRange{<:AbstractFloat, <:Integer}`: Contour levels.
-- `::PythonCall.Core.Py`: Cropped colormap.
+  - `::LinRange{<:AbstractFloat, <:Integer}`: Contour levels.
+  - `::PythonCall.Core.Py`: Cropped colormap.
 """
 function symmetric_contours(
     minimum::AbstractFloat,

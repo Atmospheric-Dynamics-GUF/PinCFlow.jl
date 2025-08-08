@@ -35,15 +35,15 @@ Zonal (meridional) boundary conditions are only enforced if `state.namelists.dom
 
 # Arguments
 
-- `state`: Model state.
-- `testcase`: Test case on which the current simulation is based.
-- `wkb_mode`: Approximations used by MSGWaM.
+  - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
-- [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
-- [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
-- [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
 """
 function set_boundary_rays! end
 

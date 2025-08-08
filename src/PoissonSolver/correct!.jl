@@ -68,16 +68,16 @@ Update the Exner-pressure fluctuations with the differences obtained from the so
 
 # Arguments
 
-- `state`: Model state.
-- `dt`: Time step.
-- `variable`: Variable to correct.
-- `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-- `facprs`: Factor by which the Exner-pressure correction is multiplied.
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `variable`: Variable to correct.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # See also
 
-- [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-- [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
+  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
+  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
 """
 function correct! end
 

@@ -17,39 +17,39 @@ The Reynolds number is the only constant that depends on the model parameters in
 
 Natural constants:
 
-- `gamma::A`: Ratio of specific heats ``\\gamma = c_p / c_V = 1.4``.
-- `gammainv::A`: Inverse ratio of specific heats ``1 / \\gamma``.
-- `kappa::A`: Ratio between specific gas constant and specific heat capacity at constant pressure ``\\kappa = \\left(\\gamma - 1\\right) / \\gamma = R / c_p = 2 / 7``.
-- `kappainv::A`: Ratio between specific heat capacity at constant pressure and specific gas constant ``1 / \\kappa``.
-- `rsp::A`: Specific gas constant ``R = 287 \\, \\mathrm{J \\, kg^{- 1} \\, K^{- 1}}``.
-- `g::A`: Gravitational acceleration ``g = 9.81 \\, \\mathrm{m \\, s^{- 2}}``.
+  - `gamma::A`: Ratio of specific heats ``\\gamma = c_p / c_V = 1.4``.
+  - `gammainv::A`: Inverse ratio of specific heats ``1 / \\gamma``.
+  - `kappa::A`: Ratio between specific gas constant and specific heat capacity at constant pressure ``\\kappa = \\left(\\gamma - 1\\right) / \\gamma = R / c_p = 2 / 7``.
+  - `kappainv::A`: Ratio between specific heat capacity at constant pressure and specific gas constant ``1 / \\kappa``.
+  - `rsp::A`: Specific gas constant ``R = 287 \\, \\mathrm{J \\, kg^{- 1} \\, K^{- 1}}``.
+  - `g::A`: Gravitational acceleration ``g = 9.81 \\, \\mathrm{m \\, s^{- 2}}``.
 
 Reference quantities:
 
-- `rhoref::A`: Reference density ``\\rho_\\mathrm{ref} = 1.184 \\, \\mathrm{kg \\, m^{- 3}}``.
-- `pref::A`: Reference pressure ``p_\\mathrm{ref} = 101325 \\, \\mathrm{Pa}``.
-- `aref::A`: Reference sound speed ``c_\\mathrm{ref} = \\sqrt{p_\\mathrm{ref} / \\rho_\\mathrm{ref}}``.
-- `uref::A`: Reference wind ``u_\\mathrm{ref} = a_\\mathrm{ref}``.
-- `lref::A`: Reference length ``L_\\mathrm{ref} = p_\\mathrm{ref} /\\left(g \\rho_\\mathrm{ref}\\right)``.
-- `tref::A`: Reference time ``t_\\mathrm{ref} = L_\\mathrm{ref} / a_\\mathrm{ref}``.
-- `thetaref::A`: Reference potential temperature ``\\theta_\\mathrm{ref} = a_\\mathrm{ref}^2 / R``.
-- `fref::A`: Reference body force ``F_\\mathrm{ref} = \\rho_\\mathrm{ref} u_\\mathrm{ref}^2 / L_\\mathrm{ref}``.
+  - `rhoref::A`: Reference density ``\\rho_\\mathrm{ref} = 1.184 \\, \\mathrm{kg \\, m^{- 3}}``.
+  - `pref::A`: Reference pressure ``p_\\mathrm{ref} = 101325 \\, \\mathrm{Pa}``.
+  - `aref::A`: Reference sound speed ``c_\\mathrm{ref} = \\sqrt{p_\\mathrm{ref} / \\rho_\\mathrm{ref}}``.
+  - `uref::A`: Reference wind ``u_\\mathrm{ref} = a_\\mathrm{ref}``.
+  - `lref::A`: Reference length ``L_\\mathrm{ref} = p_\\mathrm{ref} /\\left(g \\rho_\\mathrm{ref}\\right)``.
+  - `tref::A`: Reference time ``t_\\mathrm{ref} = L_\\mathrm{ref} / a_\\mathrm{ref}``.
+  - `thetaref::A`: Reference potential temperature ``\\theta_\\mathrm{ref} = a_\\mathrm{ref}^2 / R``.
+  - `fref::A`: Reference body force ``F_\\mathrm{ref} = \\rho_\\mathrm{ref} u_\\mathrm{ref}^2 / L_\\mathrm{ref}``.
 
 Non-dimensional parameters
 
-- `g_ndim::A`: Non-dimensional gravitational acceleration ``\\widehat{g} = g L_\\mathrm{ref} / u_\\mathrm{ref}^2``.
-- `re::A`: Reynolds number ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu`` (with ``\\mu`` being the kinematic viscosity at the surface).
-- `ma::A`: Mach number ``\\mathrm{Ma} = u_\\mathrm{ref} / a_\\mathrm{ref}``.
-- `mainv2::A`: Inverse Mach number squared ``\\mathrm{Ma}^{- 2}``.
-- `ma2::A`: Mach number squared ``\\mathrm{Ma}^2``.
-- `fr::A`: Froude number ``\\mathrm{Fr} = u_\\mathrm{ref} / \\sqrt{g L_\\mathrm{ref}}``.
-- `frinv2::A`: Inverse Froude number squared ``\\mathrm{Fr}^{- 2}``.
-- `fr2::A`: Froude number squared ``\\mathrm{Fr}^{2}``.
-- `sig::A`: Ratio between squared Mach number and squared Froude number ``\\sigma = \\mathrm{Ma}^2 / \\mathrm{Fr}^2``.
+  - `g_ndim::A`: Non-dimensional gravitational acceleration ``\\widehat{g} = g L_\\mathrm{ref} / u_\\mathrm{ref}^2``.
+  - `re::A`: Reynolds number ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu`` (with ``\\mu`` being the kinematic viscosity at the surface).
+  - `ma::A`: Mach number ``\\mathrm{Ma} = u_\\mathrm{ref} / a_\\mathrm{ref}``.
+  - `mainv2::A`: Inverse Mach number squared ``\\mathrm{Ma}^{- 2}``.
+  - `ma2::A`: Mach number squared ``\\mathrm{Ma}^2``.
+  - `fr::A`: Froude number ``\\mathrm{Fr} = u_\\mathrm{ref} / \\sqrt{g L_\\mathrm{ref}}``.
+  - `frinv2::A`: Inverse Froude number squared ``\\mathrm{Fr}^{- 2}``.
+  - `fr2::A`: Froude number squared ``\\mathrm{Fr}^{2}``.
+  - `sig::A`: Ratio between squared Mach number and squared Froude number ``\\sigma = \\mathrm{Ma}^2 / \\mathrm{Fr}^2``.
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
+  - `namelists`: Namelists with all model parameters.
 """
 struct Constants{A <: AbstractFloat}
 

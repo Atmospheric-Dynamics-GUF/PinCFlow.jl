@@ -30,30 +30,30 @@ This method is used to compute the properties of merged ray volumes. It is calle
 
 # Arguments
 
-- `merge_mode`: Merging strategy.
-- `merged_rays`: Array of merged ray volumes.
-- `jray`: Index of the merged ray volume to update.
-- `xr`: Position of the old ray volume in ``x``.
-- `dxr`: Extent of the old ray volume in ``x``.
-- `yr`: Position of the old ray volume in ``y``.
-- `dyr`: Extent of the old ray volume in ``y``.
-- `zr`: Position of the old ray volume in ``z``.
-- `dzr`: Extent of the old ray volume in ``z``.
-- `kr`: Position of the old ray volume in ``k``.
-- `dkr`: Extent of the old ray volume in ``k``.
-- `lr`: Position of the old ray volume in ``l``.
-- `dlr`: Extent of the old ray volume in ``k``.
-- `mr`: Position of the old ray volume in ``m``.
-- `dmr`: Extent of the old ray volume in ``m``.
-- `fxk`: Phase-space factor of the old ray volume in ``x``-``k`` subspace.
-- `fyl`: Phase-space factor of the old ray volume in ``y``-``l`` subspace.
-- `fzm`: Phase-space factor of the old ray volume in ``z``-``m`` subspace.
-- `nr`: Phase-space wave-action density of the old ray volume.
-- `omegar`: Intrinsic frequency of the old ray volume.
+  - `merge_mode`: Merging strategy.
+  - `merged_rays`: Array of merged ray volumes.
+  - `jray`: Index of the merged ray volume to update.
+  - `xr`: Position of the old ray volume in ``x``.
+  - `dxr`: Extent of the old ray volume in ``x``.
+  - `yr`: Position of the old ray volume in ``y``.
+  - `dyr`: Extent of the old ray volume in ``y``.
+  - `zr`: Position of the old ray volume in ``z``.
+  - `dzr`: Extent of the old ray volume in ``z``.
+  - `kr`: Position of the old ray volume in ``k``.
+  - `dkr`: Extent of the old ray volume in ``k``.
+  - `lr`: Position of the old ray volume in ``l``.
+  - `dlr`: Extent of the old ray volume in ``k``.
+  - `mr`: Position of the old ray volume in ``m``.
+  - `dmr`: Extent of the old ray volume in ``m``.
+  - `fxk`: Phase-space factor of the old ray volume in ``x``-``k`` subspace.
+  - `fyl`: Phase-space factor of the old ray volume in ``y``-``l`` subspace.
+  - `fzm`: Phase-space factor of the old ray volume in ``z``-``m`` subspace.
+  - `nr`: Phase-space wave-action density of the old ray volume.
+  - `omegar`: Intrinsic frequency of the old ray volume.
 
 # See also
 
-- [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
 """
 function update_merged_rays! end
 

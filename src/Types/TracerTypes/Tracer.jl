@@ -26,28 +26,28 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
 # Fields
 
-- `tracerpredictands::A`: Tracers.
-- `tracertendencies::B`: Runge-Kutta updates of the tracers.
-- `tracerauxiliaries::C`: Initial states of the tracers.
-- `tracerreconstructions::D`: Reconstructions of the tracers.
-- `tracerfluxes::E`: Fluxes of the tracers.
+  - `tracerpredictands::A`: Tracers.
+  - `tracertendencies::B`: Runge-Kutta updates of the tracers.
+  - `tracerauxiliaries::C`: Initial states of the tracers.
+  - `tracerreconstructions::D`: Reconstructions of the tracers.
+  - `tracerfluxes::E`: Fluxes of the tracers.
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `constants`: Physical constants and reference values.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `atmosphere`: Atmospheric-background fields.
-- `grid`: Collection of parameters and fields describing the grid.
-- `variables`: Container for arrays needed for the prediction of the prognostic variables.
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+  - `grid`: Collection of parameters and fields describing the grid.
+  - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 
 # See also
 
-- [`PinCFlow.Types.TracerTypes.TracerPredictands`](@ref)
-- [`PinCFlow.Types.TracerTypes.TracerTendencies`](@ref)
-- [`PinCFlow.Types.TracerTypes.TracerAuxiliaries`](@ref)
-- [`PinCFlow.Types.TracerTypes.TracerReconstructions`](@ref)
-- [`PinCFlow.Types.TracerTypes.TracerFluxes`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerPredictands`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerTendencies`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerAuxiliaries`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerReconstructions`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerFluxes`](@ref)
 """
 struct Tracer{
     A <: TracerPredictands,

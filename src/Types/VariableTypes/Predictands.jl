@@ -63,22 +63,22 @@ Predictands(
 
 # Fields
 
-- `rho::A`: Density.
-- `rhop::A`: Density-fluctuations.
-- `u::A`: Zonal wind.
-- `v::A`: Meridional wind.
-- `w::A`: Transformed vertical wind.
-- `pip::A`: Exner-pressure fluctuations.
-- `p::B`: Mass-weighted potential temperature.
+  - `rho::A`: Density.
+  - `rhop::A`: Density-fluctuations.
+  - `u::A`: Zonal wind.
+  - `v::A`: Meridional wind.
+  - `w::A`: Transformed vertical wind.
+  - `pip::A`: Exner-pressure fluctuations.
+  - `p::B`: Mass-weighted potential temperature.
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `constants`: Physical constants and reference values.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `atmosphere`: Atmospheric-background fields.
-- `model`: Dynamic equations.
-- `testcase`: Test case on which the current simulation is based.
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+  - `model`: Dynamic equations.
+  - `testcase`: Test case on which the current simulation is based.
 """
 struct Predictands{
     A <: AbstractArray{<:AbstractFloat, 3},

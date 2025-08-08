@@ -102,23 +102,23 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 
 # Arguments
 
-- `state`: Model state.
-- `dt`: Time step.
-- `rkstage`: Runge-Kutta-stage index.
-- `testcase`: Test case on which the current simulation is based.
-- `wkb_mode`: Approximations used by MSGWaM.
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `rkstage`: Runge-Kutta-stage index.
+  - `testcase`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
-- [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
-- [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
-- [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
-- [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
-- [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
+  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function propagate_rays! end
 

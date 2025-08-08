@@ -242,22 +242,22 @@ update!(
 
 # Arguments
 
-- `state`: Model state.
-- `dt`: Time step.
-- `m`: Runge-Kutta-stage index.
-- `variable`: Variable to update.
-- `model`: Dynamic equations.
-- `side`: Side of the equation.
-- `integration`: Type of the Euler step.
-- `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `m`: Runge-Kutta-stage index.
+  - `variable`: Variable to update.
+  - `model`: Dynamic equations.
+  - `side`: Side of the equation.
+  - `integration`: Type of the Euler step.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
 # See also
 
-- [`PinCFlow.Update.compute_volume_force`](@ref)
-- [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-- [`PinCFlow.Update.compute_vertical_wind`](@ref)
-- [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
-- [`PinCFlow.Update.transform`](@ref)
+  - [`PinCFlow.Update.compute_volume_force`](@ref)
+  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
+  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
+  - [`PinCFlow.Update.transform`](@ref)
 """
 function update! end
 

@@ -34,7 +34,7 @@ Out of the eight grid points, four each are assumed to be to the left, to the ri
 
 The exact algorithm is as follows.
 
-1. Interpolation in ``x``:
+ 1. Interpolation in ``x``:
 
     ```math
     \\begin{align*}
@@ -45,7 +45,7 @@ The exact algorithm is as follows.
     \\end{align*}
     ```
 
-1. Interpolation in ``y``:
+ 1. Interpolation in ``y``:
 
     ```math
     \\begin{align*}
@@ -54,7 +54,7 @@ The exact algorithm is as follows.
     \\end{align*}
     ```
 
-1. Interpolation in ``z``:
+ 1. Interpolation in ``z``:
 
     ```math
     \\phi_\\mathrm{C} = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
@@ -77,37 +77,37 @@ Due to their large number, the positions and values are given as keyword argumen
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
+  - `namelists`: Namelists with all model parameters.
 
 # Keywords
 
-- `philbd`: Value at the point to the left, behind and below.
-- `philbu`: Value at the point to the left, behind and above.
-- `philfd`: Value at the point to the left, in front and below.
-- `philfu`: Value at the point to the left, in front and above.
-- `phirbd`: Value at the point to the right, behind and below.
-- `phirbu`: Value at the point to the right, behind and above.
-- `phirfd`: Value at the point to the right, in front and below.
-- `phirfu`: Value at the point to the right, in front and above.
-- `zlbd`: Vertical coordinate of the point to the left, behind and below.
-- `zlbu`: Vertical coordinate of the point to the left, behind and above.
-- `zlfd`: Vertical coordinate of the point to the left, in front and below.
-- `zlfu`: Vertical coordinate of the point to the left, in front and above.
-- `zrbd`: Vertical coordinate of the point to the right, behind and below.
-- `zrbu`: Vertical coordinate of the point to the right, behind and above.
-- `zrfd`: Vertical coordinate of the point to the right, in front and below.
-- `zrfu`: Vertical coordinate of the point to the right, in front and above.
-- `zlc`: Vertical position of interest.
-- `yb`: Meridional coordinate of the points behind.
-- `yf`: Meridional coordinate of the points in front.
-- `ylc`: Meridional position of interest.
-- `xl`: Zonal coordinate of the points to the left.
-- `xr`: Zonal coordinate of the points to the right.
-- `xlc`: Zonal position of interest.
+  - `philbd`: Value at the point to the left, behind and below.
+  - `philbu`: Value at the point to the left, behind and above.
+  - `philfd`: Value at the point to the left, in front and below.
+  - `philfu`: Value at the point to the left, in front and above.
+  - `phirbd`: Value at the point to the right, behind and below.
+  - `phirbu`: Value at the point to the right, behind and above.
+  - `phirfd`: Value at the point to the right, in front and below.
+  - `phirfu`: Value at the point to the right, in front and above.
+  - `zlbd`: Vertical coordinate of the point to the left, behind and below.
+  - `zlbu`: Vertical coordinate of the point to the left, behind and above.
+  - `zlfd`: Vertical coordinate of the point to the left, in front and below.
+  - `zlfu`: Vertical coordinate of the point to the left, in front and above.
+  - `zrbd`: Vertical coordinate of the point to the right, behind and below.
+  - `zrbu`: Vertical coordinate of the point to the right, behind and above.
+  - `zrfd`: Vertical coordinate of the point to the right, in front and below.
+  - `zrfu`: Vertical coordinate of the point to the right, in front and above.
+  - `zlc`: Vertical position of interest.
+  - `yb`: Meridional coordinate of the points behind.
+  - `yf`: Meridional coordinate of the points in front.
+  - `ylc`: Meridional position of interest.
+  - `xl`: Zonal coordinate of the points to the left.
+  - `xr`: Zonal coordinate of the points to the right.
+  - `xlc`: Zonal position of interest.
 
 # Returns
 
-- `::AbstractFloat`: Interpolated value at the location of interest.
+  - `::AbstractFloat`: Interpolated value at the location of interest.
 """
 function interpolate end
 

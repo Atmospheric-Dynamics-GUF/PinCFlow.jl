@@ -9,8 +9,8 @@ Handles periodic boundaries in the horizontal and solid-wall boundaries in the v
 
 # See also
 
-- [`PinCFlow.Types`](@ref)
-- [`PinCFlow.MPIOperations`](@ref)
+  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.MPIOperations`](@ref)
 """
 module Boundaries
 

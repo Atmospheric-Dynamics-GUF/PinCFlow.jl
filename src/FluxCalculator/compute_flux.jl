@@ -7,13 +7,13 @@ Compute the upstream flux from reconstructed values, based on the sign of the tr
 
 # Arguments
 
-- `usurf`: Transporting velocity.
-- `phiup`: Upstream reconstruction for `usurf > 0`.
-- `phidown`: Downstream reconstruction for `usurf > 0`.
+  - `usurf`: Transporting velocity.
+  - `phiup`: Upstream reconstruction for `usurf > 0`.
+  - `phidown`: Downstream reconstruction for `usurf > 0`.
 
 # Returns
 
-- `::AbstractFloat`: Product of `usurf` and the upstream reconstruction.
+  - `::AbstractFloat`: Product of `usurf` and the upstream reconstruction.
 """
 function compute_flux end
 

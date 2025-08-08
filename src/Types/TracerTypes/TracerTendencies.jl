@@ -25,13 +25,13 @@ Construct a `TracerTendencies` instance with zero-initialized arrays.
 
 # Fields
 
-- `dchi::A`: Runge-Kutta update of a non-dimensional tracer.
+  - `dchi::A`: Runge-Kutta update of a non-dimensional tracer.
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `tracersetup`: General tracer-transport configuration.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `tracersetup`: General tracer-transport configuration.
 """
 struct TracerTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dchi::A

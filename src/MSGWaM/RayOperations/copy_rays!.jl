@@ -11,9 +11,9 @@ Copy all properties of the ray volume specified by `source` to that specified by
 
 # Arguments
 
-- `rays`: Collection of ray-volume-property arrays.
-- `source`: Indices of the source ray volume.
-- `target`: Indices of the target ray volume.
+  - `rays`: Collection of ray-volume-property arrays.
+  - `source`: Indices of the source ray volume.
+  - `target`: Indices of the target ray volume.
 """
 function copy_rays! end
 

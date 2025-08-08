@@ -7,14 +7,14 @@ Module for the construction of a single composite type that contains all informa
 
 # See also
 
-- [`PinCFlow.Types.NamelistTypes`](@ref)
-- [`PinCFlow.Types.FoundationalTypes`](@ref)
-- [`PinCFlow.Types.PoissonTypes`](@ref)
-- [`PinCFlow.Types.VariableTypes`](@ref)
-- [`PinCFlow.Types.WKBTypes`](@ref)
-- [`PinCFlow.Types.TracerTypes`](@ref)
-- [`PinCFlow.Types.IceTypes`](@ref)
-- [`PinCFlow.Types.TurbulenceTypes`](@ref)
+  - [`PinCFlow.Types.NamelistTypes`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes`](@ref)
+  - [`PinCFlow.Types.PoissonTypes`](@ref)
+  - [`PinCFlow.Types.VariableTypes`](@ref)
+  - [`PinCFlow.Types.WKBTypes`](@ref)
+  - [`PinCFlow.Types.TracerTypes`](@ref)
+  - [`PinCFlow.Types.IceTypes`](@ref)
+  - [`PinCFlow.Types.TurbulenceTypes`](@ref)
 """
 module Types
 

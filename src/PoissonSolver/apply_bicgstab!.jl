@@ -15,24 +15,24 @@ Solve the Poisson equation using a preconditioned BicGStab algorithm.
 
 # Arguments
 
-- `b_in`: Right-hand side.
-- `tolref`: Reference tolerance for convergence criterion.
-- `sol`: Solution (Exner-pressure differences).
-- `namelists`: Namelists with all model parameters.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `grid`: Collection of parameters and fields that describe the grid.
-- `poisson`: Operator and workspace arrays needed for the Poisson equation.
+  - `b_in`: Right-hand side.
+  - `tolref`: Reference tolerance for convergence criterion.
+  - `sol`: Solution (Exner-pressure differences).
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # Returns
 
-- `::Bool`: Error flag.
-- `::Integer`: Number of iterations.
+  - `::Bool`: Error flag.
+  - `::Integer`: Number of iterations.
 
 # See also
 
-- [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
-- [`PinCFlow.PoissonSolver.apply_preconditioner!`](@ref)
-- [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
+  - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
+  - [`PinCFlow.PoissonSolver.apply_preconditioner!`](@ref)
+  - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
 """
 function apply_bicgstab! end
 

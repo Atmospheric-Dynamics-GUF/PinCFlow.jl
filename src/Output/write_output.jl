@@ -14,20 +14,20 @@ The output is written in parallel, using the chunking prepared by `create_output
 
 The list of available output variables (as specified in `state.namelists.output.output_variables`) is as follows.
 
-- `:rhop`: Density fluctuations (restart variable).
-- `:u`: Zonal wind.
-- `:us`: Staggered zonal wind (restart variable).
-- `:v`: Meridional wind.
-- `:vs`: Staggered meridional wind (restart variable).
-- `:w`: Vertical wind (computed with `compute_vertical_wind`).
-- `:ws`: Staggered vertical wind (computed with `compute_vertical_wind`).
-- `:wtfc`: Transformed vertical wind.
-- `:wstfc`: Staggered transformed vertical wind (restart variable).
-- `:thetap`: Potential-temperature fluctuations.
-- `:pip`: Exner-pressure fluctuations (restart variable).
-- `:dudt`: Zonal-momentum drag due to unresolved gravity waves.
-- `:dvdt`: Meridional-momentum drag due to unresolved gravity waves.
-- `:dthetadt`: Mass-weighted potential-temperature tendency due to unresolved gravity waves.
+  - `:rhop`: Density fluctuations (restart variable).
+  - `:u`: Zonal wind.
+  - `:us`: Staggered zonal wind (restart variable).
+  - `:v`: Meridional wind.
+  - `:vs`: Staggered meridional wind (restart variable).
+  - `:w`: Vertical wind (computed with `compute_vertical_wind`).
+  - `:ws`: Staggered vertical wind (computed with `compute_vertical_wind`).
+  - `:wtfc`: Transformed vertical wind.
+  - `:wstfc`: Staggered transformed vertical wind (restart variable).
+  - `:thetap`: Potential-temperature fluctuations.
+  - `:pip`: Exner-pressure fluctuations (restart variable).
+  - `:dudt`: Zonal-momentum drag due to unresolved gravity waves.
+  - `:dvdt`: Meridional-momentum drag due to unresolved gravity waves.
+  - `:dthetadt`: Mass-weighted potential-temperature tendency due to unresolved gravity waves.
 
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
@@ -35,18 +35,18 @@ All output variables are re-dimensionalized with the scale parameters stored in 
 
 # Arguments
 
-- `state`: Model state.
-- `time`: Simulation time.
-- `iout`: Output counter. This is the temporal index of the output. It is advanced before the output is written, so that the first call of `write_output` should receive `iout = 0`.
-- `machine_start_time`: Wall-clock start time.
+  - `state`: Model state.
+  - `time`: Simulation time.
+  - `iout`: Output counter. This is the temporal index of the output. It is advanced before the output is written, so that the first call of `write_output` should receive `iout = 0`.
+  - `machine_start_time`: Wall-clock start time.
 
 # Returns
 
-- `::Integer`: Advanced output counter.
+  - `::Integer`: Advanced output counter.
 
 # See also
 
-- [`PinCFlow.Update.compute_vertical_wind`](@ref)
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function write_output end
 

@@ -13,22 +13,22 @@ Construct a `GWIntegrals` instance, with arrays sized according to the given dim
 
 # Fields
 
-- `uu::A`: Zonal zonal-momentum flux.
-- `uv::A`: Meridional zonal-momentum flux.
-- `uw::A`: Vertical zonal-momentum flux.
-- `vv::A`: Meridional meridional-momentum flux.
-- `vw::A`: Vertical meridional-momentum flux.
-- `etx::A`: Elastic term in the zonal-momentum equation.
-- `ety::A`: Elastic term in the meridional momentum equation.
-- `utheta::A`: Zonal mass-weighted potential-temperature flux.
-- `vtheta::A`: Meridional mass-weighted potential-temperature flux.
-- `e::A`: Wave-energy density.
+  - `uu::A`: Zonal zonal-momentum flux.
+  - `uv::A`: Meridional zonal-momentum flux.
+  - `uw::A`: Vertical zonal-momentum flux.
+  - `vv::A`: Meridional meridional-momentum flux.
+  - `vw::A`: Vertical meridional-momentum flux.
+  - `etx::A`: Elastic term in the zonal-momentum equation.
+  - `ety::A`: Elastic term in the meridional momentum equation.
+  - `utheta::A`: Zonal mass-weighted potential-temperature flux.
+  - `vtheta::A`: Meridional mass-weighted potential-temperature flux.
+  - `e::A`: Wave-energy density.
 
 # Arguments
 
-- `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
-- `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
-- `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
+  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
+  - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 """
 struct GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     uu::A

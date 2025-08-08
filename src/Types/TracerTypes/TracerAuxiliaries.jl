@@ -13,11 +13,11 @@ Construct a `TracerAuxiliaries` instance by copying the arrays in `tracerpredict
 
 # Fields
 
-- `initialtracer::A`: Initial state of a non-dimensional tracer.
+  - `initialtracer::A`: Initial state of a non-dimensional tracer.
 
 # Arguments
 
-- `tracerpredictands`: Tracers.
+  - `tracerpredictands`: Tracers.
 """
 struct TracerAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     initialtracer::A

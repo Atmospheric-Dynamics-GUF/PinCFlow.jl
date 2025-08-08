@@ -31,14 +31,14 @@ Enforce all boundary conditions for gravity-wave-tendency fields.
 
 # Arguments
 
-- `state`: Model state.
-- `variables`: Boundary-variable category.
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
 
 # See also
 
-- [`PinCFlow.Boundaries.set_zonal_boundaries!`](@ref)
-- [`PinCFlow.Boundaries.set_meridional_boundaries!`](@ref)
-- [`PinCFlow.Boundaries.set_vertical_boundaries!`](@ref)
+  - [`PinCFlow.Boundaries.set_zonal_boundaries!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries!`](@ref)
+  - [`PinCFlow.Boundaries.set_vertical_boundaries!`](@ref)
 """
 function set_boundaries! end
 

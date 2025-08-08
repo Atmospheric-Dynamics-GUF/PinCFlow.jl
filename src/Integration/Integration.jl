@@ -9,13 +9,13 @@ Provides helper functions for computing the time step, managing time levels and 
 
 # See also
 
-- [`PinCFlow.Types`](@ref)
-- [`PinCFlow.Boundaries`](@ref)
-- [`PinCFlow.Update`](@ref)
-- [`PinCFlow.PoissonSolver`](@ref)
-- [`PinCFlow.FluxCalculator`](@ref)
-- [`PinCFlow.Output`](@ref)
-- [`PinCFlow.MSGWaM`](@ref)
+  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.Boundaries`](@ref)
+  - [`PinCFlow.Update`](@ref)
+  - [`PinCFlow.PoissonSolver`](@ref)
+  - [`PinCFlow.FluxCalculator`](@ref)
+  - [`PinCFlow.Output`](@ref)
+  - [`PinCFlow.MSGWaM`](@ref)
 """
 module Integration
 

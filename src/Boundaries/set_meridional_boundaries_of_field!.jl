@@ -39,17 +39,17 @@ Halo exchange is used in the same manner as in the methods for matrices and 3D a
 
 # Arguments
 
-- `field`: Input array.
-- `namelists`: Namelists with all model parameters.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `field`: Input array.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Keywords
 
-- `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+  - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 
 # See also
 
-- [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref)
+  - [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref)
 """
 function set_meridional_boundaries_of_field! end
 

@@ -7,14 +7,14 @@ Return the physical position of the ray volume specified by `indices`.
 
 # Arguments
 
-- `rays`: Collection of ray-volume-property arrays.
-- `indices`: Indices of the ray volume of interest.
+  - `rays`: Collection of ray-volume-property arrays.
+  - `indices`: Indices of the ray volume of interest.
 
 # Returns
 
-- `::AbstractFloat`: Position in ``x``-direction.
-- `::AbstractFloat`: Position in ``y``-direction.
-- `::AbstractFloat`: Position in ``z``-direction.
+  - `::AbstractFloat`: Position in ``x``-direction.
+  - `::AbstractFloat`: Position in ``y``-direction.
+  - `::AbstractFloat`: Position in ``z``-direction.
 """
 function get_physical_position end
 

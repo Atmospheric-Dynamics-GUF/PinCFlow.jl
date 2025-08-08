@@ -29,13 +29,13 @@ In compressible mode, ``P`` and, through its dependence on ``P``, ``N^2`` are ti
 
 # Arguments
 
-- `state`: Model state.
-- `predictands`: Predictands to use for the synchronization of the mass-weighted potential temperature.
-- `model`: Dynamic equations.
+  - `state`: Model state.
+  - `predictands`: Predictands to use for the synchronization of the mass-weighted potential temperature.
+  - `model`: Dynamic equations.
 
 # See also
 
-- [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function synchronize_compressible_atmosphere! end
 

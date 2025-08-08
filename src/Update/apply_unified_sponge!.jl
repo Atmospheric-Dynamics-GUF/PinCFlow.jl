@@ -236,11 +236,11 @@ apply_unified_sponge!(
 
 # Arguments
 
-- `state`: Model state.
-- `dt`: Time step.
-- `time`: Simulation time.
-- `variable`: Variable to apply Rayleigh damping to.
-- `model`: Dynamic equations.
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge! end
 

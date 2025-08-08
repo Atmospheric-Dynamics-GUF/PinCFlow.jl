@@ -34,21 +34,21 @@ where
 
 # Arguments
 
-- `i`: Zonal grid-cell index.
-- `j`: Meridional grid-cell index.
-- `k`: Vertical grid-cell index.
-- `mu`: First contravariant tensor index.
-- `nu`: Second contravariant tensor index.
-- `predictands`: Prognostic variables.
-- `grid`: Collection of parameters and fields that describe the grid.
+  - `i`: Zonal grid-cell index.
+  - `j`: Meridional grid-cell index.
+  - `k`: Vertical grid-cell index.
+  - `mu`: First contravariant tensor index.
+  - `nu`: Second contravariant tensor index.
+  - `predictands`: Prognostic variables.
+  - `grid`: Collection of parameters and fields that describe the grid.
 
 # Returns
 
-- `::AbstractFloat`: Element `(mu, nu)` of the Cartesian stress tensor at `(i, j, k)`.
+  - `::AbstractFloat`: Element `(mu, nu)` of the Cartesian stress tensor at `(i, j, k)`.
 
 # See also
 
-- [`PinCFlow.Update.compute_vertical_wind`](@ref)
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function compute_stress_tensor end
 

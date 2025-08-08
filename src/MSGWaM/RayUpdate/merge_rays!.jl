@@ -33,23 +33,23 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 
 # Arguments
 
-- `state`: Model state.
-- `testcase`: Test case on which the current simulation is based.
-- `wkb_mode`: Approximations used by MSGWaM.
+  - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
-- [`PinCFlow.MSGWaM.RayOperations.MergedRays`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.compute_spectral_bounds`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.get_surfaces`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.compute_merge_index`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.update_merged_rays!`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.MergedRays`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.compute_spectral_bounds`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.get_surfaces`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.compute_merge_index`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.update_merged_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
 """
 function merge_rays! end
 

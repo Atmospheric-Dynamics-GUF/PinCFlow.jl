@@ -33,15 +33,15 @@ Initialize the fluctuations of a non-dimensional tracer with a wave-packet infer
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `constants`: Physical constants and reference values.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `atmosphere`: Atmospheric background fields.
-- `grid`: Collection of parameters and fields that describe the grid.
-- `variables`: Container for arrays needed for the prediction of the prognostic variables.
-- `alphatracer`: Ratio between the tracer fluctuations and the buoyancy fluctuations divided by the squared buoyancy frequency.
-- `chi`: Non-dimensional tracer.
-- `testcase`: Test case on which the current simulation is based.
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric background fields.
+  - `grid`: Collection of parameters and fields that describe the grid.
+  - `variables`: Container for arrays needed for the prediction of the prognostic variables.
+  - `alphatracer`: Ratio between the tracer fluctuations and the buoyancy fluctuations divided by the squared buoyancy frequency.
+  - `chi`: Non-dimensional tracer.
+  - `testcase`: Test case on which the current simulation is based.
 """
 function initialize_tracer_wave_packet! end
 

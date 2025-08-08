@@ -63,14 +63,14 @@ The interpolation is given by
 
 # Arguments
 
-- `state`: Model state.
-- `indices`: Grid-cell indices.
-- `variable`: Variable for which the factor is needed.
-- `model`: Dynamic equations.
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
-- `::AbstractFloat`: Wind factor.
+  - `::AbstractFloat`: Wind factor.
 """
 function compute_compressible_wind_factor end
 

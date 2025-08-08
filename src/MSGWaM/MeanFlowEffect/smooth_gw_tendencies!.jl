@@ -155,14 +155,14 @@ Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
 
 # Arguments
 
-- `state`: Model state.
-- `output`: Field to smooth.
-- `sm_filter`: Filter type.
-- `direction`: Directions to smooth in.
+  - `state`: Model state.
+  - `output`: Field to smooth.
+  - `sm_filter`: Filter type.
+  - `direction`: Directions to smooth in.
 
 # See also
 
-- [`PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!`](@ref)
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!`](@ref)
 """
 function smooth_gw_tendencies! end
 

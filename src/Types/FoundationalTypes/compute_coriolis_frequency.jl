@@ -13,15 +13,15 @@ Set the Coriolis parameter to ``f = f_0``, with ``f_0`` being given by `namelist
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `constants`: Physical constants and reference values.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `grid`: Collection of parameters and fields describing the grid.
-- `coriolis_mode`: Approximation used for the Coriolis frequency.
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields describing the grid.
+  - `coriolis_mode`: Approximation used for the Coriolis frequency.
 
 # Returns
 
-- `::AbstractVector{<:AbstractFloat}`: Coriolis parameter with the meridional dependence specified by `coriolis_mode`.
+  - `::AbstractVector{<:AbstractFloat}`: Coriolis parameter with the meridional dependence specified by `coriolis_mode`.
 """
 function compute_coriolis_frequency end
 

@@ -15,15 +15,15 @@ Construct a `Reconstructions` instance with zero-initialized arrays.
 
 # Fields
 
-- `rhotilde::A`: Reconstructed density.
-- `rhoptilde::A`: Reconstructed density fluctuations.
-- `utilde::A`: Reconstructed zonal momentum.
-- `vtilde::A`: Reconstructed meridional momentum.
-- `wtilde::A`: Reconstructed vertical momentum.
+  - `rhotilde::A`: Reconstructed density.
+  - `rhoptilde::A`: Reconstructed density fluctuations.
+  - `utilde::A`: Reconstructed zonal momentum.
+  - `vtilde::A`: Reconstructed meridional momentum.
+  - `wtilde::A`: Reconstructed vertical momentum.
 
 # Arguments
 
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     rhotilde::A

@@ -7,7 +7,7 @@ Check if all ray volumes are assigned to the correct grid cells.
 
 # Arguments
 
-- `state`: Model state.
+  - `state`: Model state.
 """
 function check_rays end
 

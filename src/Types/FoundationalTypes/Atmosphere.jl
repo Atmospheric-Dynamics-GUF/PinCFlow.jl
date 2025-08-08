@@ -99,25 +99,25 @@ where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `n
 
 # Fields
 
-- `pstrattfc::A`: Mass-weighted potential temperature ``P \\left(z\\right)`` (``P \\left(x, y, z, t\\right)`` in compressible mode).
-- `thetastrattfc::A`: Background potential temperature ``\\overline{\\theta} \\left(z\\right)``.
-- `rhostrattfc::A`: Background density ``\\overline{\\rho} \\left(z\\right)``.
-- `bvsstrattfc::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
-- `fc::B`: Coriolis frequency ``f \\left(y\\right)``.
+  - `pstrattfc::A`: Mass-weighted potential temperature ``P \\left(z\\right)`` (``P \\left(x, y, z, t\\right)`` in compressible mode).
+  - `thetastrattfc::A`: Background potential temperature ``\\overline{\\theta} \\left(z\\right)``.
+  - `rhostrattfc::A`: Background density ``\\overline{\\rho} \\left(z\\right)``.
+  - `bvsstrattfc::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
+  - `fc::B`: Coriolis frequency ``f \\left(y\\right)``.
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `constants`: Physical constants and reference values.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `grid`: Collection of parameters and fields that describe the grid.
-- `model`: Dynamic equations.
-- `background`: Atmospheric background.
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
+  - `model`: Dynamic equations.
+  - `background`: Atmospheric background.
 
 # See also
 
-- [`PinCFlow.Types.FoundationalTypes.compute_coriolis_frequency`](@ref)
-- [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.compute_coriolis_frequency`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
 """
 struct Atmosphere{
     A <: AbstractArray{<:AbstractFloat, 3},

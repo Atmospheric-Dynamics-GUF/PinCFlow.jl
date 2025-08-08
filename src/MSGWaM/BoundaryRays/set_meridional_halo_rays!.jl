@@ -9,7 +9,7 @@ Performs bidirectional MPI communication between backward and forward neighbor p
 
 # Arguments
 
-- `state`: Model state.
+  - `state`: Model state.
 """
 function set_meridional_halo_rays! end
 

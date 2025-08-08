@@ -28,16 +28,16 @@ where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\ri
 
 # Arguments
 
-- `sin`: Residual array.
-- `sout`: Solution of the preconditioner.
-- `namelists`: Namelists with all model parameters.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `grid`: Collection of parameters and fields that describe the grid.
-- `poisson`: Operator and workspace arrays needed for the Poisson equation.
+  - `sin`: Residual array.
+  - `sout`: Solution of the preconditioner.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # See also
 
-- [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
+  - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
 """
 function apply_preconditioner! end
 

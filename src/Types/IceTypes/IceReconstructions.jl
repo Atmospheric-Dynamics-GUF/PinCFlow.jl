@@ -27,15 +27,15 @@ Construct an `IceReconstructions` instance with zero-initialized arrays.
 
 # Fields
 
-- `ntilde::A`: Reconstructions of the ice-crystal number concentration.
-- `qtilde::A`: Reconstructions of the ice mixing ratio.
-- `qvtilde::A`: Reconstructions of the water-vapor mixing ratio.
+  - `ntilde::A`: Reconstructions of the ice-crystal number concentration.
+  - `qtilde::A`: Reconstructions of the ice mixing ratio.
+  - `qvtilde::A`: Reconstructions of the water-vapor mixing ratio.
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `icesetup`: General ice-physics configuration.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `icesetup`: General ice-physics configuration.
 """
 struct IceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     ntilde::A

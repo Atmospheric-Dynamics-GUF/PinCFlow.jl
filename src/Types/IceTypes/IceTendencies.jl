@@ -25,15 +25,15 @@ Construct an `IceTendencies` instance with zero-initialized arrays.
 
 # Fields
 
-- `dn::A`: Runge-Kutta update of the ice-crystal number concentration.
-- `dq::A`: Runge-Kutta update of the ice mixing ratio.
-- `dqv::A`: Runge-Kutta update of the water-vapor mixing ratio.
+  - `dn::A`: Runge-Kutta update of the ice-crystal number concentration.
+  - `dq::A`: Runge-Kutta update of the ice mixing ratio.
+  - `dqv::A`: Runge-Kutta update of the water-vapor mixing ratio.
 
 # Arguments
 
-- `namelists`: Namelists with all model parameters.
-- `domain`: Collection of domain-decomposition and MPI-communication parameters.
-- `icesetup`: General ice-physics configuration.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `icesetup`: General ice-physics configuration.
 """
 struct IceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dn::A

@@ -9,14 +9,14 @@ If the domain is parallelized in ``\\widehat{z}``, ray-volume counts and the ray
 
 # Arguments
 
-- `state`: Model state.
-- `zboundaries`: Vertical boundary conditions.
+  - `state`: Model state.
+  - `zboundaries`: Vertical boundary conditions.
 
 # See also
 
-- [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
-- [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_halo_rays!`](@ref)
-- [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_halo_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function set_vertical_boundary_rays! end
 
