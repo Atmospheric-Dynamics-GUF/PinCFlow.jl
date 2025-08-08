@@ -28,17 +28,123 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
 ### Writing code
 
-* Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module.
+Contributions to the code should respect the following rules.
+
+* Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module (see below for a diagram of PinCFlow's modular structure).
+
+* Variables that are communicated between functions should be stored at an appropriate level of the `State` instance (see below for a diagram of PinCFlow's model-state structure).
+
+* Use type parameters to declare the types of all composite-type fields.
+
+* Declare the types of all method arguments.
+
+* Use `@views` in front of expressions that create slices.
 
 * Do not use Unicode.
 
 * Use `CamelCase` for the names of modules and types. Use single captial letters for type parameters. For all other objects, use `snake_case` (in case the name only contains (preferrably whole) words, e.g. `vertical_wind`) and `squashedcase` (in case the name is mathematical, e.g. `what` for $\widehat{w}$).
 
-* Use parametric composite types.
+```mermaid
+---
+config:
+    theme: forest
+    fontFamily: monospace
+---
 
-* Declare the types of method arguments.
+mindmap
+    root(PinCFlow)
+        (Types)
+            (NamelistTypes)
+            (FoundationalTypes)
+            (VariableTypes)
+            (PoissonTypes)
+            (WKBTypes)
+            (TracerTypes)
+            (IceTypes)
+            (TurbulenceTypes)
+        (MPIOperations)
+        (Boundaries)
+        (FluxCalculator)
+        (PoissonSolver)
+        (Update)
+        (MSGWaM)
+            (Interpolation)
+            (RayOperations)
+            (RaySources)
+            (BoundaryRays)
+            (RayUpdate)
+            (MeanFlowEffect)
+        (Integration)
+        (Output)
+```
 
-* Use `@views` for expressions that create slices.
+```mermaid
+---
+config:
+    theme: forest
+    fontFamily: monospace
+---
+
+mindmap
+    root(State)
+        (Namelists)
+            (AtmosphereNamelist)
+            (Discretization-<br>Namelist)
+            (DomainNamelist)
+            (GridNamelist)
+            (IceNamelist)
+            (OutputNamelist)
+            (PoissonNamelist)
+            (SettingNamelist)
+            (SpongeNamelist)
+            (TracerNamelist)
+            (TurbulenceNamelist)
+            (WavePacketNamelist)
+            (WKBNamelist)
+        (Time)
+        (Constants)
+        (Domain)
+        (Grid)
+        (Atmosphere)
+        (Sponge)
+        (Poisson)
+            (BicGStab)
+            (Correction)
+            (Operator)
+            (Preconditioner)
+            (Tensor)
+        (Variables)
+            (Auxiliaries)
+            (Backups)
+            (Fluxes)
+            (Predictands)
+            (Reconstructions)
+            (Tendencies)
+        (WKB)
+            (GWIntegrals)
+            (GWTendencies)
+            (Increments)
+            (Rays)
+            (SurfaceIndices)
+        (Tracer)
+            (TracerAuxiliaries)
+            (TracerFluxes)
+            (TracerPredictands)
+            (Tracer-<br>Reconstructions)
+            (TracerTendencies)
+        (Ice)
+            (IceAuxiliaries)
+            (IceFluxes)
+            (IcePredictands)
+            (IceReconstructions)
+            (IceTendencies)
+        (Turbulence)
+            (Turbulence-<br>Auxiliaries)
+            (TurbulenceFluxes)
+            (Turbulence-<br>Predictands)
+            (Turbulence-<br>Reconstructions)
+            (TurbulenceTendencies)
+```
 
 ### Writing documentation
 
