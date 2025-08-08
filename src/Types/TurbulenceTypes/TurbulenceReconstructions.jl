@@ -27,14 +27,14 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 
 # Fields
 
-  - `tketilde::A`: Reconstructions of the turbulent kinetic energy.
-  - `ttetilde::A`: Reconstructions of the total turbulent energy.
+- `tketilde::A`: Reconstructions of the turbulent kinetic energy.
+- `ttetilde::A`: Reconstructions of the total turbulent energy.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `turbulencesetup`: General turbulence-physics configuration.
+- `namelists`: Namelists with all model parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `turbulencesetup`: General turbulence-physics configuration.
 """
 struct TurbulenceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     tketilde::A

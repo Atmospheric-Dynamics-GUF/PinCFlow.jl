@@ -57,50 +57,50 @@ and the non-Cartesian elements of the metric tensor are
 
 Domain boundaries:
 
-  - `lx::A`: Non-dimensional domain boundaries in ``\\widehat{x}``-direction.
-  - `ly::A`: Non-dimensional domain boundaries in ``\\widehat{y}``-direction.
-  - `lz::A`: Non-dimensional domain boundaries in ``\\widehat{z}``-direction.
+- `lx::A`: Non-dimensional domain boundaries in ``\\widehat{x}``-direction.
+- `ly::A`: Non-dimensional domain boundaries in ``\\widehat{y}``-direction.
+- `lz::A`: Non-dimensional domain boundaries in ``\\widehat{z}``-direction.
 
 Grid spacing:
 
-  - `dx::B`: Grid spacing ``\\Delta \\widehat{x}``.
-  - `dy::B`: Grid spacing ``\\Delta \\widehat{y}``.
-  - `dz::B`: Grid spacing ``\\Delta \\widehat{z}``.
+- `dx::B`: Grid spacing ``\\Delta \\widehat{x}``.
+- `dy::B`: Grid spacing ``\\Delta \\widehat{y}``.
+- `dz::B`: Grid spacing ``\\Delta \\widehat{z}``.
 
 Coordinate arrays:
 
-  - `x::A`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
-  - `y::A`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
-  - `z::A`: Cell-centered ``\\widehat{z}``-coordinate of the entire domain.
+- `x::A`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
+- `y::A`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
+- `z::A`: Cell-centered ``\\widehat{z}``-coordinate of the entire domain.
 
 Topography:
 
-  - `topography_surface::C`: Resolved surface topography.
-  - `topography_spectrum::D`: Spectrum of the unresolved surface topography.
-  - `k_spectrum::D`: Zonal wavenumbers of the spectrum.
-  - `l_spectrum::D`: Meridional wavenumbers of the spectrum.
+- `topography_surface::C`: Resolved surface topography.
+- `topography_spectrum::D`: Spectrum of the unresolved surface topography.
+- `k_spectrum::D`: Zonal wavenumbers of the spectrum.
+- `l_spectrum::D`: Meridional wavenumbers of the spectrum.
 
 Coordinate transformation.
 
-  - `jac::E`: Jacobian.
-  - `met::F`: Metric tensor.
+- `jac::E`: Jacobian.
+- `met::F`: Metric tensor.
 
 Physical coordinates:
 
-  - `ztfc::E`: Physical height at cell centers.
-  - `ztildetfc::E`: Physical height at vertical cell edges.
+- `ztfc::E`: Physical height at cell centers.
+- `ztildetfc::E`: Physical height at vertical cell edges.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `namelists`: Namelists with all model parameters.
+- `constants`: Physical constants and reference values.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # See also
 
-  - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
-  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+- [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
+- [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+- [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
 struct Grid{
     A <: AbstractVector{<:AbstractFloat},

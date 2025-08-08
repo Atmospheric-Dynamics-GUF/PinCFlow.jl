@@ -77,10 +77,10 @@ where ``\\phi_i`` are the elements of `ìnput`.
 
 # Arguments
 
-  - `output`: Filtered output vector.
-  - `input`: Input vector.
-  - `bounds`: Index bounds.
-  - `order`: Order of the Shapiro filter.
+- `output`: Filtered output vector.
+- `input`: Input vector.
+- `bounds`: Index bounds.
+- `order`: Order of the Shapiro filter.
 """
 function apply_shapiro_filter! end
 

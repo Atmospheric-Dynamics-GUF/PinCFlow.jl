@@ -9,13 +9,13 @@ This method first enforces meridional boundary conditions for `state.wkb.nray` (
 
 # Arguments
 
-  - `state`: Model state.
+- `state`: Model state.
 
 # See also
 
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_halo_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+- [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+- [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_halo_rays!`](@ref)
+- [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function set_meridional_boundary_rays! end
 

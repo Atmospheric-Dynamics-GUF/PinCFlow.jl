@@ -9,7 +9,7 @@ Performs bidirectional MPI communication between left and right neighbor process
 
 # Arguments
 
-  - `state`: Model state.
+- `state`: Model state.
 """
 function set_zonal_halo_rays! end
 

@@ -21,9 +21,9 @@ Construct a `SettingNamelist` instance with the given keyword arguments as prope
 
 # Fields/Keywords
 
-  - `model::A`: Dynamic equations.
-  - `testcase::B`: Test case on wich the current simulation is based.
-  - `zboundaries::C`: Vertical boundary conditions.
+- `model::A`: Dynamic equations.
+- `testcase::B`: Test case on wich the current simulation is based.
+- `zboundaries::C`: Vertical boundary conditions.
 """
 struct SettingNamelist{
     A <: AbstractModel,

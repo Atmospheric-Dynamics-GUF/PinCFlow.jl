@@ -35,13 +35,13 @@ The first three dimensions of the array are assumed to represent the dimensions 
 
 # Arguments
 
-  - `field`: Input array.
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `field`: Input array.
+- `namelists`: Namelists with all model parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Keywords
 
-  - `layers`: The number of halo layers in each dimension. Use `-1` for the default values from `namelists`.
+- `layers`: The number of halo layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_zonal_halos_of_field! end
 

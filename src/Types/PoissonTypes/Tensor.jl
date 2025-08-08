@@ -13,37 +13,37 @@ Create a `Tensor` instance with zero-initialized arrays sized according to the d
 
 # Fields
 
-  - `ac_b::A`: Coefficient applied to ``s``.
-  - `acv_b::A`: Sum of vertical coefficients (upper and lower diagonals).
-  - `ach_b::A`: Sum of horizontal coefficients (left, right, forward and backward diagonals).
-  - `al_b::A`: Coefficient applied to ``s_{i - 1}``.
-  - `ar_b::A`: Coefficient applied to ``s_{i + 1}``.
-  - `ab_b::A`: Coefficient applied to ``s_{j - 1}``.
-  - `af_b::A`: Coefficient applied to ``s_{j + 1}``.
-  - `ad_b::A`: Coefficient applied to ``s_{k - 1}``.
-  - `au_b::A`: Coefficient applied to ``s_{k + 1}``.
-  - `ald_b::A`: Coefficient applied to ``s_{i - 1, k - 1}``.
-  - `alu_b::A`: Coefficient applied to ``s_{i - 1, k + 1}``.
-  - `ard_b::A`: Coefficient applied to ``s_{i + 1, k - 1}``.
-  - `aru_b::A`: Coefficient applied to ``s_{i + 1, k + 1}``.
-  - `abd_b::A`: Coefficient applied to ``s_{j - 1, k - 1}``.
-  - `abu_b::A`: Coefficient applied to ``s_{j - 1, k + 1}``.
-  - `afd_b::A`: Coefficient applied to ``s_{j + 1, k - 1}``.
-  - `afu_b::A`: Coefficient applied to ``s_{j + 1, k + 1}``.
-  - `add_b::A`: Coefficient applied to ``s_{k - 2}``.
-  - `auu_b::A`: Coefficient applied to ``s_{k + 2}``.
-  - `aldd_b::A`: Coefficient applied to ``s_{i - 1, k - 2}``.
-  - `aluu_b::A`: Coefficient applied to ``s_{i - 1, k + 2}``.
-  - `ardd_b::A`: Coefficient applied to ``s_{i + 1, k - 2}``.
-  - `aruu_b::A`: Coefficient applied to ``s_{i + 1, k + 2}``.
-  - `abdd_b::A`: Coefficient applied to ``s_{j - 1, k - 2}``.
-  - `abuu_b::A`: Coefficient applied to ``s_{j - 1, k + 2}``.
-  - `afdd_b::A`: Coefficient applied to ``s_{j + 1, k - 2}``.
-  - `afuu_b::A`: Coefficient applied to ``s_{j + 1, k + 2}``.
+- `ac_b::A`: Coefficient applied to ``s``.
+- `acv_b::A`: Sum of vertical coefficients (upper and lower diagonals).
+- `ach_b::A`: Sum of horizontal coefficients (left, right, forward and backward diagonals).
+- `al_b::A`: Coefficient applied to ``s_{i - 1}``.
+- `ar_b::A`: Coefficient applied to ``s_{i + 1}``.
+- `ab_b::A`: Coefficient applied to ``s_{j - 1}``.
+- `af_b::A`: Coefficient applied to ``s_{j + 1}``.
+- `ad_b::A`: Coefficient applied to ``s_{k - 1}``.
+- `au_b::A`: Coefficient applied to ``s_{k + 1}``.
+- `ald_b::A`: Coefficient applied to ``s_{i - 1, k - 1}``.
+- `alu_b::A`: Coefficient applied to ``s_{i - 1, k + 1}``.
+- `ard_b::A`: Coefficient applied to ``s_{i + 1, k - 1}``.
+- `aru_b::A`: Coefficient applied to ``s_{i + 1, k + 1}``.
+- `abd_b::A`: Coefficient applied to ``s_{j - 1, k - 1}``.
+- `abu_b::A`: Coefficient applied to ``s_{j - 1, k + 1}``.
+- `afd_b::A`: Coefficient applied to ``s_{j + 1, k - 1}``.
+- `afu_b::A`: Coefficient applied to ``s_{j + 1, k + 1}``.
+- `add_b::A`: Coefficient applied to ``s_{k - 2}``.
+- `auu_b::A`: Coefficient applied to ``s_{k + 2}``.
+- `aldd_b::A`: Coefficient applied to ``s_{i - 1, k - 2}``.
+- `aluu_b::A`: Coefficient applied to ``s_{i - 1, k + 2}``.
+- `ardd_b::A`: Coefficient applied to ``s_{i + 1, k - 2}``.
+- `aruu_b::A`: Coefficient applied to ``s_{i + 1, k + 2}``.
+- `abdd_b::A`: Coefficient applied to ``s_{j - 1, k - 2}``.
+- `abuu_b::A`: Coefficient applied to ``s_{j - 1, k + 2}``.
+- `afdd_b::A`: Coefficient applied to ``s_{j + 1, k - 2}``.
+- `afuu_b::A`: Coefficient applied to ``s_{j + 1, k + 2}``.
 
 # Arguments
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
     ac_b::A

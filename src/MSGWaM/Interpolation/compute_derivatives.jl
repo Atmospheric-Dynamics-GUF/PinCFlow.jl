@@ -77,14 +77,14 @@ At grid points beyond the vertical boundaries, it is set to zero.
 
 # Arguments
 
-  - `state`: Model state.
-  - `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
-  - `phitype`: Type of derivative to compute.
+- `state`: Model state.
+- `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
+- `phitype`: Type of derivative to compute.
 
 # Returns
 
-  - `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzd)`.
-  - `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzu)`.
+- `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzd)`.
+- `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzu)`.
 """
 function compute_derivatives end
 

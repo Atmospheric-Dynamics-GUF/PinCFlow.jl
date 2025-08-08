@@ -48,18 +48,18 @@ Construct a `TurbulencePredictands` instance with both arrays initialized as ``t
 
 # Fields
 
-  - `tke::A`: Turbulent kinetic energy.
-  - `tte::A`: Total turbulent energy.
+- `tke::A`: Turbulent kinetic energy.
+- `tte::A`: Total turbulent energy.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `atmosphere`: Atmospheric-background fields.
-  - `grid`: Collection of parameters and fields describing the grid.
-  - `turbulencesetup`: General turbulence-physics configuration.
-  - `variables`: Container for arrays needed for the prediction of the prognostic variables.
+- `namelists`: Namelists with all model parameters.
+- `constants`: Physical constants and reference values.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `atmosphere`: Atmospheric-background fields.
+- `grid`: Collection of parameters and fields describing the grid.
+- `turbulencesetup`: General turbulence-physics configuration.
+- `variables`: Container for arrays needed for the prediction of the prognostic variables.
 """
 struct TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     tke::A

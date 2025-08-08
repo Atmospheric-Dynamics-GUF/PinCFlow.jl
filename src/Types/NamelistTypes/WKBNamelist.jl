@@ -50,35 +50,35 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
 # Fields/Keywords
 
-  - `xrmin_dim::A`: Lower bound in ``x`` of the region where ray volumes are initialized.
-  - `xrmax_dim::A`: Upper bound in ``x`` of the region where ray volumes are initialized.
-  - `yrmin_dim::A`: Lower bound in ``y`` of the region where ray volumes are initialized.
-  - `yrmax_dim::A`: Upper bound in ``y`` of the region where ray volumes are initialized.
-  - `zrmin_dim::A`: Lower bound in ``z`` of the region where ray volumes are initialized.
-  - `zrmax_dim::A`: Upper bound in ``z`` of the region where ray volumes are initialized.
-  - `nrxl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{x}``-direction.
-  - `nryl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{y}``-direction.
-  - `nrzl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{z}``-direction.
-  - `nrk_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
-  - `nrl_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``l``-direction.
-  - `nrm_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
-  - `nray_fac::B`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
-  - `fac_dk_init::A`: Relative inital ray-volume extent in ``k``.
-  - `fac_dl_init::A`: Relative inital ray-volume extent in ``l``.
-  - `fac_dm_init::A`: Relative inital ray-volume extent in ``m``.
-  - `branchr::B`: Frequency branch.
-  - `merge_mode::C`: Ray-volume merging strategy (conserved quantity).
-  - `nsmth_wkb::B`: Order of the smoothing applied to the mean-flow tendencies.
-  - `lsmth_wkb::D`: Switch for smoothing the mean-flow tendencies.
-  - `sm_filter::E`: Filter to use for the smoothing of the mean-flow tendencies.
-  - `zmin_wkb_dim::A`: Minimum altitude for ray-tracing and mean-flow impact.
-  - `lsaturation::D`: Switch for the saturation scheme.
-  - `alpha_sat::A`: Relative saturation threshold.
-  - `wkb_mode::F`: Approximations used by MSGWaM.
-  - `blocking::D`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
-  - `long_threshold::A`: Long-number threshold used by the blocked-layer scheme.
-  - `drag_coefficient::A`: Dimensionless (relative) drag coefficient used by the blocked layer scheme.
-  - `nwm::B`: Number of wave modes per grid cell.
+- `xrmin_dim::A`: Lower bound in ``x`` of the region where ray volumes are initialized.
+- `xrmax_dim::A`: Upper bound in ``x`` of the region where ray volumes are initialized.
+- `yrmin_dim::A`: Lower bound in ``y`` of the region where ray volumes are initialized.
+- `yrmax_dim::A`: Upper bound in ``y`` of the region where ray volumes are initialized.
+- `zrmin_dim::A`: Lower bound in ``z`` of the region where ray volumes are initialized.
+- `zrmax_dim::A`: Upper bound in ``z`` of the region where ray volumes are initialized.
+- `nrxl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{x}``-direction.
+- `nryl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{y}``-direction.
+- `nrzl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{z}``-direction.
+- `nrk_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
+- `nrl_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``l``-direction.
+- `nrm_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
+- `nray_fac::B`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
+- `fac_dk_init::A`: Relative inital ray-volume extent in ``k``.
+- `fac_dl_init::A`: Relative inital ray-volume extent in ``l``.
+- `fac_dm_init::A`: Relative inital ray-volume extent in ``m``.
+- `branchr::B`: Frequency branch.
+- `merge_mode::C`: Ray-volume merging strategy (conserved quantity).
+- `nsmth_wkb::B`: Order of the smoothing applied to the mean-flow tendencies.
+- `lsmth_wkb::D`: Switch for smoothing the mean-flow tendencies.
+- `sm_filter::E`: Filter to use for the smoothing of the mean-flow tendencies.
+- `zmin_wkb_dim::A`: Minimum altitude for ray-tracing and mean-flow impact.
+- `lsaturation::D`: Switch for the saturation scheme.
+- `alpha_sat::A`: Relative saturation threshold.
+- `wkb_mode::F`: Approximations used by MSGWaM.
+- `blocking::D`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
+- `long_threshold::A`: Long-number threshold used by the blocked-layer scheme.
+- `drag_coefficient::A`: Dimensionless (relative) drag coefficient used by the blocked layer scheme.
+- `nwm::B`: Number of wave modes per grid cell.
 """
 struct WKBNamelist{
     A <: AbstractFloat,

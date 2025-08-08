@@ -48,19 +48,19 @@ Construct an `IcePredictands` instance with all arrays initialized as ``z \\rho`
 
 # Fields
 
-  - `n::A`: Ice-crystal number concentration.
-  - `q::A`: Ice mixing ratio.
-  - `qv::A`: Water-vapor mixing ratio.
+- `n::A`: Ice-crystal number concentration.
+- `q::A`: Ice mixing ratio.
+- `qv::A`: Water-vapor mixing ratio.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `atmosphere`: Atmospheric-background fields.
-  - `grid`: Collection of parameters and fields describing the grid.
-  - `icesetup`: General ice-physics configuration.
-  - `variables`: Container for arrays needed for the prediction of the prognostic variables.
+- `namelists`: Namelists with all model parameters.
+- `constants`: Physical constants and reference values.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `atmosphere`: Atmospheric-background fields.
+- `grid`: Collection of parameters and fields describing the grid.
+- `icesetup`: General ice-physics configuration.
+- `variables`: Container for arrays needed for the prediction of the prognostic variables.
 """
 struct IcePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     n::A

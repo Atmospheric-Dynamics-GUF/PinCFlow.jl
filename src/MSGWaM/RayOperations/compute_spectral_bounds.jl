@@ -9,14 +9,14 @@ This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to create
 
 # Arguments
 
-  - `wavenumbers`: Vector of wavenumbers in the considered spectral dimension.
+- `wavenumbers`: Vector of wavenumbers in the considered spectral dimension.
 
 # Returns
 
-  - `::AbstractFloat`: Minimum positive wavenumber.
-  - `::AbstractFloat`: Maximum positive wavenumber.
-  - `::AbstractFloat`: Minimum negative wavenumber.
-  - `::AbstractFloat`: Maximum negative wavenumber.
+- `::AbstractFloat`: Minimum positive wavenumber.
+- `::AbstractFloat`: Maximum positive wavenumber.
+- `::AbstractFloat`: Minimum negative wavenumber.
+- `::AbstractFloat`: Maximum negative wavenumber.
 """
 function compute_spectral_bounds end
 

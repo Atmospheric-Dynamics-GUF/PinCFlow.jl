@@ -21,33 +21,33 @@ The vertical extent of the sponge is set to the fraction `namelists.sponge.spong
 
 Rayleigh-damping coefficients:
 
-  - `alphaunifiedsponge::A`: Coefficient of the unified sponge (used in all prognostic equations).
-  - `kr_sp_tfc::A`: Coefficient of the non-unified sponge (used in the auxiliary equation).
-  - `kr_sp_w_tfc::A`: Coefficient of the non-unified sponge (used in the transformed-vertical-momentum equation).
+- `alphaunifiedsponge::A`: Coefficient of the unified sponge (used in all prognostic equations).
+- `kr_sp_tfc::A`: Coefficient of the non-unified sponge (used in the auxiliary equation).
+- `kr_sp_w_tfc::A`: Coefficient of the non-unified sponge (used in the transformed-vertical-momentum equation).
 
 Vertical sponge extent:
 
-  - `zsponge::B`: Lower edge of the sponge.
-  - `dzsponge::B`: Vertical extent of the sponge.
+- `zsponge::B`: Lower edge of the sponge.
+- `dzsponge::B`: Vertical extent of the sponge.
 
 Horizontal sponge extent:
 
-  - `xsponge0::B`: Right edge of the unified sponge.
-  - `xsponge1::B`: Left edge of the unified sponge.
-  - `ysponge0::B`: Forward edge of the unified sponge.
-  - `ysponge1::B`: Backward edge of the unified sponge.
-  - `dxsponge::B`: Halved zonal extent of the unified sponge.
-  - `dysponge::B`: Halved meridional extent of the unified sponge.
+- `xsponge0::B`: Right edge of the unified sponge.
+- `xsponge1::B`: Left edge of the unified sponge.
+- `ysponge0::B`: Forward edge of the unified sponge.
+- `ysponge1::B`: Backward edge of the unified sponge.
+- `dxsponge::B`: Halved zonal extent of the unified sponge.
+- `dysponge::B`: Halved meridional extent of the unified sponge.
 
 Auxiliary array:
 
-  - `horizontal_mean::C`: Auxiliary array for the computation of horizontal means.
+- `horizontal_mean::C`: Auxiliary array for the computation of horizontal means.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `grid`: Collection of parameters and fields that describe the grid.
+- `namelists`: Namelists with all model parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `grid`: Collection of parameters and fields that describe the grid.
 """
 struct Sponge{
     A <: AbstractArray{<:AbstractFloat, 3},

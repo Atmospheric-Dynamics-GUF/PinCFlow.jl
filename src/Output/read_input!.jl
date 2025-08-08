@@ -7,7 +7,7 @@ Read initial values for all prognostic variables from an HDF5 input file.
 
 # Arguments
 
-  - `state`: Model state.
+- `state`: Model state.
 """
 function read_input! end
 

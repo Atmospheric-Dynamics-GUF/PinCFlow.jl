@@ -9,7 +9,7 @@ Performs MPI communication between downward and upward neighbor processes. The n
 
 # Arguments
 
-  - `state`: Model state.
+- `state`: Model state.
 """
 function set_vertical_halo_rays! end
 

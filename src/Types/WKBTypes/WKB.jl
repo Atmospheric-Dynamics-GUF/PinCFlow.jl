@@ -50,42 +50,42 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
 # Fields
 
-  - `nxray::A`: Number of ray volumes allowed in ``\\widehat{x}``, per grid cell and wave mode (`nray_fac * nrxl * nrk_init`, taken from `namelists.wkb`).
-  - `nyray::A`: Number of ray volumes allowed in ``\\widehat{y}``, per grid cell and wave mode (`nray_fac * nryl * nrl_init`, taken from `namelists.wkb`).
-  - `nzray::A`: Number of ray volumes allowed in ``\\widehat{z}``, per grid cell and wave mode (`nray_fac * nrzl * nrm_init`, taken from `namelists.wkb`).
-  - `nxray_wrk::A`: `2 * nxray`.
-  - `nyray_wrk::A`: `2 * nyray`.
-  - `nzray_wrk::A`: `2 * nzray`.
-  - `nray_max::A`: Maximum ray-volume count allowed per grid-cell before merging is triggered (`nxray * nyray * nzray * namelists.wkb.nwm`).
-  - `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays (`nxray_wrk * nyray_wrk * nzray_wrk`).
-  - `n_sfc::A`: Number of orographic wave modes.
-  - `nray::B`: Ray-volume count in each grid cell.
-  - `rays::C`: Prognostic ray-volume properties.
-  - `surface_indices::D`: Indices that connect orographic wave modes to ray volumes.
-  - `increments::E`: Increments of the prognostic ray-volume properties.
-  - `integrals::F`: Integrals of ray-volume properties.
-  - `tendencies::G`: Gravity-wave drag and heating fields.
-  - `cgx_max::H`: Maximum zonal group velocities.
-  - `cgy_max::H`: Maximum meridional group velocities.
-  - `cgz_max::I`: Maximum vertical group velocities.
-  - `zb::J`: Upper edge of the blocked layer.
-  - `diffusion::I`: Diffusion induced by wave breaking.
+- `nxray::A`: Number of ray volumes allowed in ``\\widehat{x}``, per grid cell and wave mode (`nray_fac * nrxl * nrk_init`, taken from `namelists.wkb`).
+- `nyray::A`: Number of ray volumes allowed in ``\\widehat{y}``, per grid cell and wave mode (`nray_fac * nryl * nrl_init`, taken from `namelists.wkb`).
+- `nzray::A`: Number of ray volumes allowed in ``\\widehat{z}``, per grid cell and wave mode (`nray_fac * nrzl * nrm_init`, taken from `namelists.wkb`).
+- `nxray_wrk::A`: `2 * nxray`.
+- `nyray_wrk::A`: `2 * nyray`.
+- `nzray_wrk::A`: `2 * nzray`.
+- `nray_max::A`: Maximum ray-volume count allowed per grid-cell before merging is triggered (`nxray * nyray * nzray * namelists.wkb.nwm`).
+- `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays (`nxray_wrk * nyray_wrk * nzray_wrk`).
+- `n_sfc::A`: Number of orographic wave modes.
+- `nray::B`: Ray-volume count in each grid cell.
+- `rays::C`: Prognostic ray-volume properties.
+- `surface_indices::D`: Indices that connect orographic wave modes to ray volumes.
+- `increments::E`: Increments of the prognostic ray-volume properties.
+- `integrals::F`: Integrals of ray-volume properties.
+- `tendencies::G`: Gravity-wave drag and heating fields.
+- `cgx_max::H`: Maximum zonal group velocities.
+- `cgy_max::H`: Maximum meridional group velocities.
+- `cgz_max::I`: Maximum vertical group velocities.
+- `zb::J`: Upper edge of the blocked layer.
+- `diffusion::I`: Diffusion induced by wave breaking.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `grid`: Collection of parameters and fields that describe the grid.
-  - `testcase`: Test case on which the current simulation is based.
+- `namelists`: Namelists with all model parameters.
+- `constants`: Physical constants and reference values.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `grid`: Collection of parameters and fields that describe the grid.
+- `testcase`: Test case on which the current simulation is based.
 
 # See also
 
-  - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
-  - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
-  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
-  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
-  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
+- [`PinCFlow.Types.WKBTypes.Rays`](@ref)
+- [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
+- [`PinCFlow.Types.WKBTypes.Increments`](@ref)
+- [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
+- [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
 """
 struct WKB{
     A <: Integer,

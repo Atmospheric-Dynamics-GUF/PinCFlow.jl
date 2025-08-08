@@ -34,20 +34,20 @@ Construct a `SpongeNamelist` instance with the given keyword arguments as proper
 
 # Fields/Keywords
 
-  - `spongelayer::A`: Switch for enabling Rayleigh-damping in the sponge layer.
-  - `sponge_uv::A`: Switch for applying the non-unified sponge to the horizontal wind.
-  - `spongeheight::B`: Fractional vertical extent of the sponge.
-  - `spongealphaz_dim::B`: Rayleigh-damping coefficient of the unified sponge.
-  - `spongealphaz_fac::B`: Rayleigh-damping coefficient of the non-unified sponge, multiplied by the time step.
-  - `unifiedsponge::A`: Switch for the unified sponge (provides several profiles and is applied to all prognostic variables).
-  - `lateralsponge::A`: Switch for the lateral unified sponge.
-  - `spongetype::C`: Profile of the unified sponge.
-  - `spongeorder::D`: Order of the polynomial unified sponge.
-  - `cosmosteps::D`: Factor by which the time step is mulitplied in the damping coefficient of the COSMO-like unified sponge.
-  - `relax_to_mean::A`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
-  - `perturbation_period::B`: Period of an oscillating perturbation on top of `relaxation_wind`.
-  - `perturbation_amplitude::B`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
-  - `relaxation_wind::E`: Wind to be obtained through Rayleigh damping in the unified sponge.
+- `spongelayer::A`: Switch for enabling Rayleigh-damping in the sponge layer.
+- `sponge_uv::A`: Switch for applying the non-unified sponge to the horizontal wind.
+- `spongeheight::B`: Fractional vertical extent of the sponge.
+- `spongealphaz_dim::B`: Rayleigh-damping coefficient of the unified sponge.
+- `spongealphaz_fac::B`: Rayleigh-damping coefficient of the non-unified sponge, multiplied by the time step.
+- `unifiedsponge::A`: Switch for the unified sponge (provides several profiles and is applied to all prognostic variables).
+- `lateralsponge::A`: Switch for the lateral unified sponge.
+- `spongetype::C`: Profile of the unified sponge.
+- `spongeorder::D`: Order of the polynomial unified sponge.
+- `cosmosteps::D`: Factor by which the time step is mulitplied in the damping coefficient of the COSMO-like unified sponge.
+- `relax_to_mean::A`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
+- `perturbation_period::B`: Period of an oscillating perturbation on top of `relaxation_wind`.
+- `perturbation_amplitude::B`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
+- `relaxation_wind::E`: Wind to be obtained through Rayleigh damping in the unified sponge.
 """
 struct SpongeNamelist{
     A <: Bool,

@@ -20,12 +20,12 @@ Construct a `DiscretizationNamelist` instance with the given keyword arguments a
 
 # Fields/Keywords
 
-  - `cfl::A`: Number used for the CFL condition in the time step computation.
-  - `cfl_wave::A`: Number used for the WKB-CFL condition in the time step computation.
-  - `dtmin_dim::A`: Minimum time step allowed for the integration.
-  - `dtmax_dim::A`: Maximum time step allowed for the integration.
-  - `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax_dim` is used as a fixed time step.
-  - `limitertype::C`: Flux limiter used by the MUSCL scheme.
+- `cfl::A`: Number used for the CFL condition in the time step computation.
+- `cfl_wave::A`: Number used for the WKB-CFL condition in the time step computation.
+- `dtmin_dim::A`: Minimum time step allowed for the integration.
+- `dtmax_dim::A`: Maximum time step allowed for the integration.
+- `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax_dim` is used as a fixed time step.
+- `limitertype::C`: Flux limiter used by the MUSCL scheme.
 """
 struct DiscretizationNamelist{
     A <: AbstractFloat,

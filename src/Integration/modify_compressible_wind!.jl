@@ -27,9 +27,9 @@ Interpolate ``J P`` to the wind grids and replace the wind components with the r
 
 # Arguments
 
-  - `state`: Model state.
-  - `operation`: Binary operation used for modification.
-  - `model`: Dynamic equations.
+- `state`: Model state.
+- `operation`: Binary operation used for modification.
+- `model`: Dynamic equations.
 """
 function modify_compressible_wind! end
 

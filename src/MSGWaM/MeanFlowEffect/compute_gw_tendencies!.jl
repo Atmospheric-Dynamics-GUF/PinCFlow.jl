@@ -20,7 +20,7 @@ where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` 
 
 # Arguments
 
-  - `state::State`: Model state.
+- `state::State`: Model state.
 """
 function compute_gw_tendencies! end
 

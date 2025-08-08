@@ -107,15 +107,15 @@ compute_fluxes!(
 
 # Arguments
 
-  - `state`: Model state.
-  - `predictands`/`old_predictands`: The predictands that are used to compute the transporting velocities.
-  - `model`: Dynamic equations.
-  - `variable`: Flux variable.
+- `state`: Model state.
+- `predictands`/`old_predictands`: The predictands that are used to compute the transporting velocities.
+- `model`: Dynamic equations.
+- `variable`: Flux variable.
 
 # See also
 
-  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
-  - [`PinCFlow.Update.compute_stress_tensor`](@ref)
+- [`PinCFlow.FluxCalculator.compute_flux`](@ref)
+- [`PinCFlow.Update.compute_stress_tensor`](@ref)
 """
 function compute_fluxes! end
 

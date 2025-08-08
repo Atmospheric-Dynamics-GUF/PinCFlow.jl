@@ -11,10 +11,10 @@ Enforce vertical boundary conditions for all predictand fields.
 
 The symmetry conditions are as follows:
 
-  - Density-fluctuation fields (`rho`, `rhop`): point reflection (`-`)
-  - Vertical velocity (`w`): point reflection (`-`) on the staggered grid
-  - Horizontal velocities (`u`, `v`): line reflection (`+`)
-  - Exner-pressure fluctuations (`pip`): line reflection (`+`)
+- Density-fluctuation fields (`rho`, `rhop`): point reflection (`-`)
+- Vertical velocity (`w`): point reflection (`-`) on the staggered grid
+- Horizontal velocities (`u`, `v`): line reflection (`+`)
+- Exner-pressure fluctuations (`pip`): line reflection (`+`)
 
 ```julia
 set_vertical_boundaries!(
@@ -102,15 +102,15 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields needed in 
 
 # Arguments
 
-  - `state`: Model state.
-  - `variables`: Boundary-variable category.
-  - `zboundaries`: Vertical boundary conditions.
-  - `wkb_mode`: Approximations used by MSGWaM.
+- `state`: Model state.
+- `variables`: Boundary-variable category.
+- `zboundaries`: Vertical boundary conditions.
+- `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
-  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_compressible_vertical_boundaries!`](@ref)
+- [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+- [`PinCFlow.Boundaries.set_compressible_vertical_boundaries!`](@ref)
 """
 function set_vertical_boundaries! end
 

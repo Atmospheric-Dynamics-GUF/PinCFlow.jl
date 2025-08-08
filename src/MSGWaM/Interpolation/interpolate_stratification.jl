@@ -17,18 +17,18 @@ This method first determines the two points in ``z + J \\Delta \\widehat{z} / 2`
 
 # Arguments
 
-  - `zlc`: Vertical position of interest.
-  - `state`: Model state.
-  - `strtype`: Stratification quantity to interpolate.
+- `zlc`: Vertical position of interest.
+- `state`: Model state.
+- `strtype`: Stratification quantity to interpolate.
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated stratification quantity at the location of interest.
+- `::AbstractFloat`: Interpolated stratification quantity at the location of interest.
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+- [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+- [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function interpolate_stratification end
 

@@ -55,24 +55,24 @@ The discretized transformation rule for the vertical wind is given by
 
 # Arguments
 
-  - `i`: Zonal grid-cell index.
-  - `j`: Meridional grid-cell index.
-  - `k`: Vertical grid-cell index.
-  - `uedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k)`.
-  - `uuedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k + 1)`.
-  - `uedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k)`.
-  - `uuedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k + 1)`.
-  - `vedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k)`.
-  - `vuedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k + 1)`.
-  - `vedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k)`.
-  - `vuedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k + 1)`.
-  - `wedgeu`: Transformed-vertical-wind equivalent at `(i, j, k + 1 / 2)`
-  - `coordinate`: Coordinate system to transform to.
-  - `grid`: Collection of parameters and fields that describe the grid.
+- `i`: Zonal grid-cell index.
+- `j`: Meridional grid-cell index.
+- `k`: Vertical grid-cell index.
+- `uedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k)`.
+- `uuedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k + 1)`.
+- `uedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k)`.
+- `uuedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k + 1)`.
+- `vedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k)`.
+- `vuedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k + 1)`.
+- `vedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k)`.
+- `vuedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k + 1)`.
+- `wedgeu`: Transformed-vertical-wind equivalent at `(i, j, k + 1 / 2)`
+- `coordinate`: Coordinate system to transform to.
+- `grid`: Collection of parameters and fields that describe the grid.
 
 # Returns
 
-  - `::AbstractFloat`: Vertical-wind-like transformation of the given variable at `(i, j, k + 1 / 2)`.
+- `::AbstractFloat`: Vertical-wind-like transformation of the given variable at `(i, j, k + 1 / 2)`.
 """
 function transform end
 

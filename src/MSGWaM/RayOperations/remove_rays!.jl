@@ -9,11 +9,11 @@ In each grid cell, this method moves all ray volumes as far to the front of the 
 
 # Arguments
 
-  - `state`: Model state.
+- `state`: Model state.
 
 # See also
 
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+- [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function remove_rays! end
 

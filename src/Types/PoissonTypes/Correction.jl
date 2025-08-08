@@ -13,12 +13,12 @@ Create a `Correction` instance with zero-initialized arrays sized according to t
 
 # Fields
 
-  - `corx::A`: Correction term for the zonal wind.
-  - `cory::A`: Correction term for the meridional wind.
+- `corx::A`: Correction term for the zonal wind.
+- `cory::A`: Correction term for the meridional wind.
 
 # Arguments
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Correction{A <: AbstractArray{<:AbstractFloat, 3}}
     corx::A

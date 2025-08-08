@@ -22,22 +22,22 @@ is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \
 
 # Arguments
 
-  - `state`: Model state.
-  - `b`: Right-hand side.
-  - `tolref`: Reference tolerance for convergence criterion.
-  - `dt`: Time step.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
+- `state`: Model state.
+- `b`: Right-hand side.
+- `tolref`: Reference tolerance for convergence criterion.
+- `dt`: Time step.
+- `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+- `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # Returns
 
-  - `::Bool`: Error flag.
-  - `::Integer`: Number of iterations.
+- `::Bool`: Error flag.
+- `::Integer`: Number of iterations.
 
 # See also
 
-  - [`PinCFlow.PoissonSolver.compute_operator!`](@ref)
-  - [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref)
+- [`PinCFlow.PoissonSolver.compute_operator!`](@ref)
+- [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref)
 """
 function solve_poisson! end
 

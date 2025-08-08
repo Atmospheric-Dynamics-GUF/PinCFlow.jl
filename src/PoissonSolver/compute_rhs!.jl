@@ -43,17 +43,17 @@ where ``S`` is the diabatic heating, as computed by `compute_volume_force`, and 
 
 # Arguments
 
-  - `state`: Model state.
-  - `b`: Output array containing the right-hand side.
-  - `model`: Dynamic equations.
+- `state`: Model state.
+- `b`: Output array containing the right-hand side.
+- `model`: Dynamic equations.
 
 # Returns
 
-  - `::AbstractFloat`: Reference tolerance for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
+- `::AbstractFloat`: Reference tolerance for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 
 # See also
 
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
+- [`PinCFlow.Update.compute_volume_force`](@ref)
 """
 function compute_rhs! end
 

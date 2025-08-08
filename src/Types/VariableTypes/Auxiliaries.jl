@@ -13,11 +13,11 @@ Construct an `Auxiliaries` instance with a zero-initialized auxiliary array size
 
 # Fields
 
-  - `phi::A`: Auxiliary array used as input for [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref).
+- `phi::A`: Auxiliary array used as input for [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref).
 
 # Arguments
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     phi::A

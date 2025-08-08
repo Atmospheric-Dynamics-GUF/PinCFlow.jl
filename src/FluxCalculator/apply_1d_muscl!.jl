@@ -11,9 +11,9 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 
 # Arguments
 
-  - `phi`: Input vector.
-  - `phitilde`: Output matrix with reconstructed values. The two columns of `phitilde` contain the reconstructions to the left and right. No reconstruction is computed for the first and last row of `phitilde`.
-  - `phisize`: Length of the input vector `phi`.
+- `phi`: Input vector.
+- `phitilde`: Output matrix with reconstructed values. The two columns of `phitilde` contain the reconstructions to the left and right. No reconstruction is computed for the first and last row of `phitilde`.
+- `phisize`: Length of the input vector `phi`.
 """
 function apply_1d_muscl! end
 

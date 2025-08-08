@@ -25,28 +25,28 @@ Construct a `Variables` instance, with array dimensions and initial values set a
 
 # Fields
 
-  - `predictands::A`: Prognostic variables.
-  - `tendencies::B`: Runge-Kutta updates and pressure correction.
-  - `backups::C`: Backups of the prognostic variables needed in the semi-implicit time scheme.
-  - `auxiliaries::D`: Auxiliary array needed in the reconstruction.
-  - `reconstructions::E`: Reconstructions of the prognostic variables.
-  - `fluxes::F`: Fluxes of the prognostic variables.
+- `predictands::A`: Prognostic variables.
+- `tendencies::B`: Runge-Kutta updates and pressure correction.
+- `backups::C`: Backups of the prognostic variables needed in the semi-implicit time scheme.
+- `auxiliaries::D`: Auxiliary array needed in the reconstruction.
+- `reconstructions::E`: Reconstructions of the prognostic variables.
+- `fluxes::F`: Fluxes of the prognostic variables.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `atmosphere`: Atmospheric-background fields.
+- `namelists`: Namelists with all model parameters.
+- `constants`: Physical constants and reference values.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `atmosphere`: Atmospheric-background fields.
 
 # See also
 
-  - [`PinCFlow.Types.VariableTypes.Predictands`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Tendencies`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Backups`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Auxiliaries`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Reconstructions`](@ref)
-  - [`PinCFlow.Types.VariableTypes.Fluxes`](@ref)
+- [`PinCFlow.Types.VariableTypes.Predictands`](@ref)
+- [`PinCFlow.Types.VariableTypes.Tendencies`](@ref)
+- [`PinCFlow.Types.VariableTypes.Backups`](@ref)
+- [`PinCFlow.Types.VariableTypes.Auxiliaries`](@ref)
+- [`PinCFlow.Types.VariableTypes.Reconstructions`](@ref)
+- [`PinCFlow.Types.VariableTypes.Fluxes`](@ref)
 """
 struct Variables{
     A <: Predictands,

@@ -13,20 +13,20 @@ Determine the index of the next level above `z` at the horizontal position `(i, 
 
 This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
 
-  - In MPI processes at the lower boundary of the domain, the returned index cannot be smaller than `domain.k0`, in other processes, it cannot be smaller than 3.
-  - In MPI processes at the upper boundary of the domain, the returned index cannot be larger than `domain.k1 + 1`, in other processes, it cannot be larger than `domain.nzz - 1`.
+- In MPI processes at the lower boundary of the domain, the returned index cannot be smaller than `domain.k0`, in other processes, it cannot be smaller than 3.
+- In MPI processes at the upper boundary of the domain, the returned index cannot be larger than `domain.k1 + 1`, in other processes, it cannot be larger than `domain.nzz - 1`.
 
 # Arguments
 
-  - `i`: Zonal index.
-  - `j`: Meridional index.
-  - `z`: Vertical position.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `grid`: Collection of parameters and fields that describe the grid.
+- `i`: Zonal index.
+- `j`: Meridional index.
+- `z`: Vertical position.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `grid`: Collection of parameters and fields that describe the grid.
 
 # Returns
 
-  - `::Integer`: Index of the next level.
+- `::Integer`: Index of the next level.
 """
 function get_next_level end
 

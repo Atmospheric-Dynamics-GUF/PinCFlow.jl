@@ -7,9 +7,9 @@ Module that contains a collection of types for WKB ray tracing calculations incl
 
 # See also
 
-  - [`PinCFlow.Types.NamelistTypes`](@ref)
-  - [`PinCFlow.Types.FoundationalTypes`](@ref)
-  - [`PinCFlow.Types.VariableTypes`](@ref)
+- [`PinCFlow.Types.NamelistTypes`](@ref)
+- [`PinCFlow.Types.FoundationalTypes`](@ref)
+- [`PinCFlow.Types.VariableTypes`](@ref)
 """
 module WKBTypes
 

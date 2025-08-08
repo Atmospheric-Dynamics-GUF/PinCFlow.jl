@@ -13,11 +13,11 @@ Create an `Operator` instance with a zero-initialized array sized according to t
 
 # Fields
 
-  - `s::A`: Auxiliary array for enforcing boundary conditions and performing MPI communication prior to the application of the linear operator.
+- `s::A`: Auxiliary array for enforcing boundary conditions and performing MPI communication prior to the application of the linear operator.
 
 # Arguments
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Operator{A <: AbstractArray{<:AbstractFloat, 3}}
     s::A

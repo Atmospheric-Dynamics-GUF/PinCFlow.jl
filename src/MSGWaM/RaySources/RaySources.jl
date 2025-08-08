@@ -7,8 +7,8 @@ Module for ray-volume sources.
 
 # See also
 
-  - [`PinCFlow.Types`](@ref)
-  - [`PinCFlow.MSGWaM.RayOperations`](@ref)
+- [`PinCFlow.Types`](@ref)
+- [`PinCFlow.MSGWaM.RayOperations`](@ref)
 """
 module RaySources
 

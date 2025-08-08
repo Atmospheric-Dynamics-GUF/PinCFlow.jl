@@ -13,7 +13,7 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 
 # Fields/Keywords
 
-  - `tracersetup::A`: General tracer configuration.
+- `tracersetup::A`: General tracer configuration.
 """
 struct TracerNamelist{A <: AbstractTracer}
     tracersetup::A

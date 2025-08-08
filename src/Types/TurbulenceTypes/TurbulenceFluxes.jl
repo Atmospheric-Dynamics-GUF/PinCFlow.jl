@@ -27,14 +27,14 @@ Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 
 # Fields
 
-  - `phitke::A`: Fluxes of the turbulent kinetic energy.
-  - `phitte::A`: Fluxes of the total turbulent energy.
+- `phitke::A`: Fluxes of the turbulent kinetic energy.
+- `phitte::A`: Fluxes of the total turbulent energy.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `turbulencesetup`: General turbulence-physics configuration.
+- `namelists`: Namelists with all model parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `turbulencesetup`: General turbulence-physics configuration.
 """
 struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitke::A

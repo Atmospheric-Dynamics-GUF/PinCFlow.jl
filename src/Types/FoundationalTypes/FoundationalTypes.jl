@@ -7,7 +7,7 @@ Module that contains the composite types `Time`, `Constants`, `Domain`, `Grid`, 
 
 # See also
 
-  - [`PinCFlow.Types.NamelistTypes`](@ref)
+- [`PinCFlow.Types.NamelistTypes`](@ref)
 """
 module FoundationalTypes
 

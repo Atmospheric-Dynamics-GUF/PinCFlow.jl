@@ -27,13 +27,13 @@ Construct a `TracerReconstructions` instance with zero-initialized arrays.
 
 # Fields
 
-  - `chitilde::A`: Reconstructions of a non-dimensional tracer.
+- `chitilde::A`: Reconstructions of a non-dimensional tracer.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `tracersetup`: General tracer-transport configuration.
+- `namelists`: Namelists with all model parameters.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `tracersetup`: General tracer-transport configuration.
 """
 struct TracerReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     chitilde::A

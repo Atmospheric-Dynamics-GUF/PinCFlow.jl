@@ -7,8 +7,8 @@ Main module of PinCFlow.
 
 # See also
 
-  - [`PinCFlow.Types`](@ref)
-  - [`PinCFlow.Integration`](@ref)
+- [`PinCFlow.Types`](@ref)
+- [`PinCFlow.Integration`](@ref)
 """
 module PinCFlow
 

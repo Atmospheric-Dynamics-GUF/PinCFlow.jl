@@ -39,8 +39,8 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 
 # Arguments
 
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
+- `state`: Model state.
+- `testcase`: Test case on which the current simulation is based.
 """
 function apply_blocked_layer_scheme! end
 

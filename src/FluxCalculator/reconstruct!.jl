@@ -73,15 +73,15 @@ reconstruct!(state::State, turbulencesetup::AbstractTurbulence)
 
 # Arguments
 
-  - `state`: Model state.
-  - `variable`: The reconstructed variable.
+- `state`: Model state.
+- `variable`: The reconstructed variable.
 
 # See also
 
-  - [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref)
-  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+- [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref)
+- [`PinCFlow.Update.compute_vertical_wind`](@ref)
+- [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+- [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function reconstruct! end
 

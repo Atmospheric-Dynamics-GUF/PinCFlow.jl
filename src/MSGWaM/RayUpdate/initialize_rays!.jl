@@ -21,14 +21,14 @@ In each grid cell, `nwm` wave modes are computed, using e.g. `activate_orographi
 
 # Arguments
 
-  - `state`: Model state.
-  - `testcase`: Test case on which the current simulation is based.
+- `state`: Model state.
+- `testcase`: Test case on which the current simulation is based.
 
 # See also
 
-  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
+- [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+- [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+- [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """
 function initialize_rays! end
 

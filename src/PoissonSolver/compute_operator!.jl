@@ -21,13 +21,13 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 
 # Arguments
 
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+- `state`: Model state.
+- `dt`: Time step.
+- `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
 # See also
 
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
+- [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
 """
 function compute_operator! end
 

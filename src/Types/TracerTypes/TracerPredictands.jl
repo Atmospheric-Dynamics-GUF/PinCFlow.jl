@@ -50,21 +50,21 @@ The initialization consists of three steps. First, the tracer is set to ``\\chi 
 
 # Fields
 
-  - `chi::A`: Non-dimensional tracer.
+- `chi::A`: Non-dimensional tracer.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-  - `constants`: Physical constants and reference values.
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-  - `atmosphere`: Atmospheric-background fields.
-  - `grid`: Collection of parameters and fields describing the grid.
-  - `tracersetup`: General tracer-transport configuration.
-  - `variables`: Container for arrays needed for the prediction of the prognostic variables.
+- `namelists`: Namelists with all model parameters.
+- `constants`: Physical constants and reference values.
+- `domain`: Collection of domain-decomposition and MPI-communication parameters.
+- `atmosphere`: Atmospheric-background fields.
+- `grid`: Collection of parameters and fields describing the grid.
+- `tracersetup`: General tracer-transport configuration.
+- `variables`: Container for arrays needed for the prediction of the prognostic variables.
 
 # See also
 
-  - [`PinCFlow.Types.TracerTypes.initialize_tracer_wave_packet!`](@ref)
+- [`PinCFlow.Types.TracerTypes.initialize_tracer_wave_packet!`](@ref)
 """
 struct TracerPredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     chi::A

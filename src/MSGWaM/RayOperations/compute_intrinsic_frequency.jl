@@ -15,16 +15,16 @@ where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)
 
 # Arguments
 
-  - `state`: Model state
-  - `indices`: Indices of the ray volume of interest.
+- `state`: Model state
+- `indices`: Indices of the ray volume of interest.
 
 # Returns
 
-  - `::AbstractFloat`: Intrinsic frequency.
+- `::AbstractFloat`: Intrinsic frequency.
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+- [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
 function compute_intrinsic_frequency end
 

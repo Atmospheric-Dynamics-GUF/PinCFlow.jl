@@ -13,18 +13,18 @@ From the given horizontal ray-volume position and extent, determine the indices 
 
 # Arguments
 
-  - `state`: Model state.
-  - `xr`: Ray-volume position in ``x``.
-  - `yr`: Ray-volume position in ``y``.
-  - `dxr`: Ray-volume extent in ``x``.
-  - `dyr`: Ray-volume extent in ``y``.
+- `state`: Model state.
+- `xr`: Ray-volume position in ``x``.
+- `yr`: Ray-volume position in ``y``.
+- `dxr`: Ray-volume extent in ``x``.
+- `dyr`: Ray-volume extent in ``y``.
 
 # Returns
 
-  - `::Integer`: Zonal index of the grid cell that contains the left edge.
-  - `::Integer`: Zonal index of the grid cell that contains the right edge.
-  - `::Integer`: Meridional index of the grid cell that contains the backward edge.
-  - `::Integer`: Meridional index of the grid cell that contains the forward edge.
+- `::Integer`: Zonal index of the grid cell that contains the left edge.
+- `::Integer`: Zonal index of the grid cell that contains the right edge.
+- `::Integer`: Meridional index of the grid cell that contains the backward edge.
+- `::Integer`: Meridional index of the grid cell that contains the forward edge.
 """
 function compute_horizontal_cell_indices end
 
