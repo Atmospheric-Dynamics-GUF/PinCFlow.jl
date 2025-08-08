@@ -42,6 +42,8 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
 ### Writing documentation
 
+Contributions to the code should always be accompanied by corresponding contributions to the documentation, respecting the following rules.
+
 * Write a docstring for every module, function and type.
 
 * Module docstrings:
@@ -76,20 +78,20 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
     1. If the type is composite, list links to constructors/functions that are called in any of the explicitly defined constructor methods in a # See also section, with one `-` bullet for each.
 
-* Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences rather than Unicode characters.
+* Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences instead of Unicode characters.
 
 * Place the starting and ending `"""` characters on lines by themselves.
 
 ### Building and accessing the documentation
 
-The code uses Documenter.jl to build the documentation. To build the documentation, run the following command in the root directory of the repository:
+The code uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
 
-```julia
-julia --project=docs -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+```
+julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
 julia --project=docs docs/make.jl
 ```
 
-The documentation will be generated in the `docs/build` directory. To view the documentation, open the `index.html` file in a web browser.
+in the root directory of the repository. The documentation will be generated in the `docs/build` directory. To view it, open `docs/build/index.html` in a web browser or preview the file in Visual Studio Code with [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server).
 
 ## List of publications
 
