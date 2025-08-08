@@ -16,14 +16,14 @@ makedocs(;
     remotes = nothing,
     pages = [
         "Home" => "index.md",
+        "Examples" => [
+            "Mountain-wave simulation" => "examples/mountain_wave_simulation.md",
+            "WKB mountain-wave simulation" => "examples/wkb_mountain_wave_simulation.md",
+        ],
         "Theory" => [
             "Continuous equations" => "theory/continous_equations.md",
             "Temporal discretization" => "theory/temporal_discretization.md",
             "Spatial discretization" => "theory/spatial_discretization.md",
-        ],
-        "Examples" => [
-            "Mountain-wave simulation" => "examples/mountain_wave_simulation.md",
-            "WKB mountain-wave simulation" => "examples/wkb_mountain_wave_simulation.md",
         ],
         "Reference" => [
             "Types" => "reference/types.md",
