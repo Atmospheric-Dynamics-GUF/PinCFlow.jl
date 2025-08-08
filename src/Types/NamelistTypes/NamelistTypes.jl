@@ -302,7 +302,7 @@ struct ConstantWaveAction <: AbstractMergeMode end
 ConstantWaveEnergy <: AbstractMergeMode
 ```
 
-Singleton f or the constant-wave-energy ray-volume merging algorithm.
+Singleton for the constant-wave-energy ray-volume merging algorithm.
 """
 struct ConstantWaveEnergy <: AbstractMergeMode end
 
