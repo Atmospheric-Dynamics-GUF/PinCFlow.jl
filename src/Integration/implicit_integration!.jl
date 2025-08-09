@@ -10,6 +10,18 @@ implicit_integration!(
     machine_start_time::DateTime,
 )
 ```
+
+Perform an implicit Euler step on the right-hand sides of the prognostic equations, solve the Poisson equation and correct the Exner-pressure, momentum and density fluctuations accordingly.
+
+# Arguments
+
+  - `state`: Model state.
+  - `dtstage`: Fractional time step.
+  - `time`: Simulation time.
+  - `ntotalbicg`: BicGStab-iterations counter.
+  - `side`: Side of the equations.
+  - `iout`: Output counter.
+  - `machine_start_time`: Wall-clock start time.
 """
 function implicit_integration! end
 
