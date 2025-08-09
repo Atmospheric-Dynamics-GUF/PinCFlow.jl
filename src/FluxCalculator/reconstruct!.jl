@@ -5,7 +5,7 @@ reconstruct!(state::State)
 
 Reconstruct the prognostic variables at the cell interfaces of their respective grids, using the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL).
 
-This method calls specialized methods for each variable (`Rho`, `RhoP`, `U`, `V`, and `W`).
+This method calls specialized methods for each prognostic variable.
 
 ```julia
 reconstruct!(state::State, variable::Rho)
@@ -51,30 +51,51 @@ The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_bound
 reconstruct!(state::State, tracersetup::NoTracer)
 ```
 
+Return for configurations without tracer transport.
+
 ```julia
 reconstruct!(state::State, tracersetup::AbstractTracer)
 ```
+
+Reconstruct the tracers.
+
+Similar to the density, the tracers are divided by ``P`` before reconstruction.
 
 ```julia
 reconstruct!(state::State, icesetup::NoIce)
 ```
 
+Return for configurations without ice physics.
+
 ```julia
 reconstruct!(state::State, icesetup::AbstractIce)
 ```
+
+Reconstruct the ice variables.
+
+Similar to the density, the ice variables are divided by ``P`` before reconstruction.
 
 ```julia
 reconstruct!(state::State, turbulencesetup::NoTurbulence)
 ```
 
+Return for configurations without turbulence physics.
+
 ```julia
 reconstruct!(state::State, turbulencesetup::AbstractTurbulence)
 ```
+
+Reconstruct the turbulence variables.
+
+Similar to the density, the turbulence variables are divided by ``P`` before reconstruction.
 
 # Arguments
 
   - `state`: Model state.
   - `variable`: The reconstructed variable.
+  - `tracersetup`: General tracer-transport configuration.
+  - `icesetup`: General ice-physics configuration.
+  - `turbulencesetup`: General turbulence-physics configuration.
 
 # See also
 

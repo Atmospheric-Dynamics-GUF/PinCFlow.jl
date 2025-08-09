@@ -3,7 +3,7 @@
 compute_fluxes!(state::State, predictands::Predictands)
 ```
 
-Compute fluxes by dispatching to specialized methods for each prognostic variable (`Rho`, `RhoP`, `U`, `V`, `W`, and `P`).
+Compute fluxes by dispatching to specialized methods for each prognostic variable.
 
 ```julia
 compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
@@ -73,6 +73,8 @@ The computation is analogous to those of the zonal-momentum and meridional-momen
 compute_fluxes!(state::State, predictands::Predictands, tracersetup::NoTracer)
 ```
 
+Return for configurations without tracer transport.
+
 ```julia
 compute_fluxes!(
     state::State,
@@ -81,13 +83,23 @@ compute_fluxes!(
 )
 ```
 
+Compute the tracer fluxes in all three directions.
+
+The computation is analogous to that of the density fluxes.
+
 ```julia
 compute_fluxes!(state::State, predictands::Predictands, icesetup::NoIce)
 ```
 
+Return for configurations without ice physics.
+
 ```julia
 compute_fluxes!(state::State, predictands::Predictands, icesetup::AbstractIce)
 ```
+
+Compute the fluxes of ice variables in all three directions.
+
+The computation is analogous to that of the density fluxes.
 
 ```julia
 compute_fluxes!(
@@ -97,6 +109,8 @@ compute_fluxes!(
 )
 ```
 
+Return for configurations without turbulence physics.
+
 ```julia
 compute_fluxes!(
     state::State,
@@ -105,12 +119,19 @@ compute_fluxes!(
 )
 ```
 
+Compute the fluxes of turbulence variables in all three directions.
+
+The computation is analogous to that of the density fluxes.
+
 # Arguments
 
   - `state`: Model state.
   - `predictands`/`old_predictands`: The predictands that are used to compute the transporting velocities.
   - `model`: Dynamic equations.
   - `variable`: Flux variable.
+  - `tracersetup`: General tracer-transport configuration.
+  - `icesetup`: General ice-physics configuration.
+  - `turbulencesetup`: General turbulence-physics configuration.
 
 # See also
 
