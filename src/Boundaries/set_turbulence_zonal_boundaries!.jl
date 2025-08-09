@@ -7,6 +7,8 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
+Return for configurations without turbulence physics.
+
 ```julia
 set_turbulence_zonal_boundaries!(
     state::State,
@@ -14,6 +16,8 @@ set_turbulence_zonal_boundaries!(
     turbulencesetup::AbstractTurbulence,
 )
 ```
+
+Enforce zonal boundary conditions for prognostic turbulence variables.
 
 ```julia
 set_turbulence_zonal_boundaries!(
@@ -23,6 +27,8 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
+Return for configurations without turbulence physics.
+
 ```julia
 set_turbulence_zonal_boundaries!(
     state::State,
@@ -30,6 +36,18 @@ set_turbulence_zonal_boundaries!(
     turbulencesetup::AbstractTurbulence,
 )
 ```
+
+Enforce zonal boundary conditions for reconstructions of turbulence variables.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `turbulencesetup`: General turbulence-physics configuration.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 """
 function set_turbulence_zonal_boundaries! end
 

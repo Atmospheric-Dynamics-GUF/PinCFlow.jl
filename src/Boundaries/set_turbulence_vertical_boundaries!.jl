@@ -7,6 +7,8 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
+Return for configurations without turbulence physics.
+
 ```julia
 set_turbulence_vertical_boundaries!(
     state::State,
@@ -15,6 +17,8 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
+Enforce vertical boundary conditions for prognostic turbulence variables.
+
 ```julia
 set_turbulence_vertical_boundaries!(
     state::State,
@@ -22,6 +26,8 @@ set_turbulence_vertical_boundaries!(
     turbulencesetup::NoTurbulence,
 )
 ```
+
+Return for configurations without turbulence physics.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -31,6 +37,8 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
+Enforce vertical boundary conditions for reconstructions of turbulence variables.
+
 ```julia
 set_turbulence_vertical_boundaries!(
     state::State,
@@ -39,6 +47,8 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
+Return for configurations without turbulence physics.
+
 ```julia
 set_turbulence_vertical_boundaries!(
     state::State,
@@ -46,6 +56,18 @@ set_turbulence_vertical_boundaries!(
     turbulencesetup::AbstractTurbulence,
 )
 ```
+
+Set the vertical fluxes of turbulence variables at the vertical boundaries to zero.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `turbulencesetup`: General turbulence-physics configuration.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_turbulence_vertical_boundaries! end
 

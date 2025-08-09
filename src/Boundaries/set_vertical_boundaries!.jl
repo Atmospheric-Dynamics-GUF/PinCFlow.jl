@@ -111,6 +111,9 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields needed in 
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
   - [`PinCFlow.Boundaries.set_compressible_vertical_boundaries!`](@ref)
+  - [`PinCFlow.Boundaries.set_tracer_vertical_boundaries!`](@ref)
+  - [`PinCFlow.Boundaries.set_ice_vertical_boundaries!`](@ref)
+  - [`PinCFlow.Boundaries.set_turbulence_vertical_boundaries!`](@ref)
 """
 function set_vertical_boundaries! end
 

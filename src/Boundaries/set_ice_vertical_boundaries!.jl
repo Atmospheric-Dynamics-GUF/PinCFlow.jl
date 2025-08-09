@@ -7,6 +7,8 @@ set_ice_vertical_boundaries!(
 )
 ```
 
+Return for configurations without ice physics.
+
 ```julia
 set_ice_vertical_boundaries!(
     state::State,
@@ -15,6 +17,8 @@ set_ice_vertical_boundaries!(
 )
 ```
 
+Enforce vertical boundary conditions for prognostic ice variables.
+
 ```julia
 set_ice_vertical_boundaries!(
     state::State,
@@ -22,6 +26,8 @@ set_ice_vertical_boundaries!(
     icesetup::NoIce,
 )
 ```
+
+Return for configurations without ice physics.
 
 ```julia
 set_ice_vertical_boundaries!(
@@ -31,6 +37,8 @@ set_ice_vertical_boundaries!(
 )
 ```
 
+Enforce vertical boundary conditions for reconstructions of ice variables.
+
 ```julia
 set_ice_vertical_boundaries!(
     state::State,
@@ -39,6 +47,8 @@ set_ice_vertical_boundaries!(
 )
 ```
 
+Return for configurations without ice physics.
+
 ```julia
 set_ice_vertical_boundaries!(
     state::State,
@@ -46,6 +56,18 @@ set_ice_vertical_boundaries!(
     icesetup::AbstractIce,
 )
 ```
+
+Set the vertical fluxes of ice variables at the vertical boundaries to zero.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `icesetup`: General ice-physics configuration.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_ice_vertical_boundaries! end
 

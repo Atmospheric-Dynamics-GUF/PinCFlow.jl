@@ -7,6 +7,8 @@ set_ice_meridional_boundaries!(
 )
 ```
 
+Return for configurations without ice physics.
+
 ```julia
 set_ice_meridional_boundaries!(
     state::State,
@@ -14,6 +16,8 @@ set_ice_meridional_boundaries!(
     icesetup::AbstractIce,
 )
 ```
+
+Enforce meridional boundary conditions for prognostic ice variables.
 
 ```julia
 set_ice_meridional_boundaries!(
@@ -23,6 +27,8 @@ set_ice_meridional_boundaries!(
 )
 ```
 
+Return for configurations without ice physics.
+
 ```julia
 set_ice_meridional_boundaries!(
     state::State,
@@ -30,6 +36,18 @@ set_ice_meridional_boundaries!(
     icesetup::AbstractIce,
 )
 ```
+
+Enforce meridional boundary conditions for reconstructions of ice variables.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `icesetup`: General ice-physics configuration.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_ice_meridional_boundaries! end
 
