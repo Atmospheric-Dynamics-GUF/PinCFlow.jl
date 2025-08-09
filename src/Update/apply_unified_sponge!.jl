@@ -189,6 +189,8 @@ apply_unified_sponge!(
 )
 ```
 
+Return for configurations without tracer transport.
+
 ```julia
 apply_unified_sponge!(
     state::State,
@@ -197,6 +199,16 @@ apply_unified_sponge!(
     tracersetup::AbstractTracer,
 )
 ```
+
+Integrate the Rayleigh-damping terms that represent the unified sponge in the tracer equations.
+
+In each tracer equation, the update is given by
+
+```math
+\\chi \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\chi + \\alpha_\\mathrm{R} \\Delta t \\chi_0\\right),
+```
+
+where ``\\chi_0`` is the initial distribution of the tracer.
 
 ```julia
 apply_unified_sponge!(
@@ -207,6 +219,8 @@ apply_unified_sponge!(
 )
 ```
 
+Return for configurations without ice physics.
+
 ```julia
 apply_unified_sponge!(
     state::State,
@@ -215,6 +229,20 @@ apply_unified_sponge!(
     icesetup::IceOn,
 )
 ```
+
+Integrate the Rayleigh-damping terms that represent the unified sponge in the prognostic equations of the ice-physics scheme.
+
+The updates are given by
+
+```math
+\\begin{align*}
+    n & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(n + \\alpha_\\mathrm{R} \\Delta t n_0\\right),\\\\
+    q & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(q + \\alpha_\\mathrm{R} \\Delta t q_0\\right),\\\\
+    q_\\mathrm{v} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(q_\\mathrm{v} + \\alpha_\\mathrm{R} \\Delta t q_{\\mathrm{v}, 0}\\right),
+\\end{align*}
+```
+
+where ``n_0``, ``q_0`` and ``q_{\\mathrm{v}, 0}`` are the initial distributions of the ice-crystal number concentration, ice mixing ratio and water-vapor mixing ratio, respectively.
 
 ```julia
 apply_unified_sponge!(
@@ -225,6 +253,8 @@ apply_unified_sponge!(
 )
 ```
 
+Return for configurations without turbulence physics.
+
 ```julia
 apply_unified_sponge!(
     state::State,
@@ -234,6 +264,19 @@ apply_unified_sponge!(
 )
 ```
 
+Integrate the Rayleigh-damping terms that represent the unified sponge in the prognostic equations of the turbulence scheme.
+
+The updates are given by
+
+```math
+\\begin{align*}
+    \\mathrm{TKE} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\mathrm{TKE} + \\alpha_\\mathrm{R} \\Delta t \\overline{\\mathrm{TKE}}\\right),\\\\
+    \\mathrm{TTE} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\mathrm{TTE} + \\alpha_\\mathrm{R} \\Delta t \\overline{\\mathrm{TTE}}\\right),
+\\end{align*}
+```
+
+where ``\\overline{\\mathrm{TKE}}`` and ``\\overline{\\mathrm{TTE}}`` are the background values of the turbulent kinetic energy and total turbulent energy, respectively.
+
 # Arguments
 
   - `state`: Model state.
@@ -241,6 +284,9 @@ apply_unified_sponge!(
   - `time`: Simulation time.
   - `variable`: Variable to apply Rayleigh damping to.
   - `model`: Dynamic equations.
+  - `tracersetup`: General tracer-transport configuration.
+  - `icesetup`: General ice-physics configuration.
+  - `turbulencesetup`: General turbulence-physics configuration.
 """
 function apply_unified_sponge! end
 

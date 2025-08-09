@@ -205,6 +205,8 @@ Update the mass-weighted potential temperature with a Runge-Kutta step on the le
 update!(state::State, dt::AbstractFloat, m::Integer, tracersetup::NoTracer)
 ```
 
+Return for configurations without tracer transport.
+
 ```julia
 update!(
     state::State,
@@ -214,13 +216,19 @@ update!(
 )
 ```
 
+Update the tracers with a Runge-Kutta step on the left-hand sides of the equations (as of now, the right-hand sides are still zero).
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, icesetup::AbstractIce)
 ```
 
+Return for configurations without ice physics.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
 ```
+
+Update the ice variables with a Runge-Kutta step on the left-hand sides of the equations (as of now, the right-hand sides are still zero).
 
 ```julia
 update!(
@@ -231,6 +239,8 @@ update!(
 )
 ```
 
+Return for configurations without turbulence physics.
+
 ```julia
 update!(
     state::State,
@@ -239,6 +249,8 @@ update!(
     turbulencesetup::AbstractTurbulence,
 )
 ```
+
+Update the turbulence variables with a Runge-Kutta step on the left-hand sides of the equations (as of now, the right-hand sides are still zero).
 
 # Arguments
 
@@ -250,6 +262,9 @@ update!(
   - `side`: Side of the equation.
   - `integration`: Type of the Euler step.
   - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `tracersetup`: General tracer-transport configuration.
+  - `icesetup`: General ice-physics configuration.
+  - `turbulencesetup`: General turbulence-physics configuration.
 
 # See also
 
