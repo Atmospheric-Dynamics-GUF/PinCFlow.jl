@@ -28,7 +28,7 @@ Construct a `Turbulence` instance, with array dimensions and initial values set 
 
   - `turbulencepredictands::A`: Prognostic variables of the turbulence scheme.
   - `turbulencetendencies::B`: Runge-Kutta updates of the turbulence variables.
-  - `turbulenceauxiliaries::C`: Background values (currently not needed).
+  - `turbulenceauxiliaries::C`: Background values.
   - `turbulencereconstructions::D`: Reconstructions of the turbulence variables.
   - `turbulencefluxes::E`: Fluxes of the turbulence variables.
 

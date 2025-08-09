@@ -3,7 +3,7 @@
 TurbulenceAuxiliaries{A <: AbstractFloat}
 ```
 
-Background values for turbulence variables (currently not needed).
+Background values for turbulence variables.
 
 ```julia
 TurbulenceAuxiliaries(constants::Constants)

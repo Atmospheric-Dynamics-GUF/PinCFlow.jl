@@ -3,7 +3,7 @@
 IceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Initial states of the ice variables (currently not needed).
+Initial states of the ice variables.
 
 ```julia
 IceAuxiliaries(icepredictands::IcePredictands)
