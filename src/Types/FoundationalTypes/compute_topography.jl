@@ -32,8 +32,8 @@ The supported topography shapes are as follows, listed according to the value of
     \\begin{align*}
         h_\\mathrm{b} & = \\frac{h_0}{2}, \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0\\\\
         h_\\mathrm{w} \\left(x\\right) & = \\begin{cases}
-            \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
-            0 & \\mathrm{else},
+            \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+            0 & \\mathrm{else}
         \\end{cases}
     \\end{align*}
     ```
@@ -57,7 +57,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\begin{align*}
         h_\\mathrm{b} \\left(x\\right) & = h_\\mathrm{w} \\left(x\\right), \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0,\\\\
         h_\\mathrm{w} \\left(x\\right) & = \\begin{cases}
-            \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+            \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left|x - x_0\\right| \\leq r_l l_0,\\\\
             0 & \\mathrm{else}
         \\end{cases}
     \\end{align*}
@@ -82,9 +82,9 @@ The supported topography shapes are as follows, listed according to the value of
     \\begin{align*}
         h_\\mathrm{b} \\left(x, y\\right) & = r_h n_h h_\\mathrm{w} \\left(x, y\\right), \\quad k_{h, \\alpha} = \\frac{\\pi}{l_0} \\cos \\left(\\frac{\\pi \\alpha}{n_h}\\right), \\quad l_{h, \\alpha} = \\frac{\\pi}{l_0} \\sin \\left(\\frac{\\pi \\alpha}{n_h}\\right),\\\\
         h_\\mathrm{w} \\left(x, y\\right) & = \\begin{cases}
-            \\frac{h_0}{2 n_h \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
-            0 & \\mathrm{else},
-        \\end{cases}\\\\
+            \\frac{h_0}{2 n_h \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\mathrm{if} \\quad \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+            0 & \\mathrm{else}
+        \\end{cases}
     \\end{align*}
     ```
 
@@ -133,7 +133,7 @@ The supported topography shapes are as follows, listed according to the value of
 
     ```math
     h \\left(x\\right) = \\begin{cases}
-        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left|x - x_0\\right| \\leq r_l l_0,\\\\
         \\frac{h_0}{2} & \\mathrm{else}
     \\end{cases}
     ```
@@ -142,7 +142,7 @@ The supported topography shapes are as follows, listed according to the value of
 
     ```math
     h \\left(x, y\\right) = \\begin{cases}
-        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\mathrm{if} \\quad \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
         \\frac{h_0}{2} & \\mathrm{else}
     \\end{cases}
     ```
@@ -163,7 +163,7 @@ The supported topography shapes are as follows, listed according to the value of
 
     ```math
     h \\left(x\\right) = \\begin{cases}
-        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left|x - x_0\\right| \\leq r_l l_0,\\\\
         0 & \\mathrm{else}
     \\end{cases}
     ```
@@ -172,7 +172,7 @@ The supported topography shapes are as follows, listed according to the value of
 
     ```math
     h \\left(x, y\\right) = \\begin{cases}
-        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\mathrm{if} \\quad \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
         0 & \\mathrm{else}
     \\end{cases}
     ```
@@ -194,7 +194,7 @@ The supported topography shapes are as follows, listed according to the value of
     ```math
     \\begin{align*}
         h \\left(x, y\\right) & = \\begin{cases}
-            \\frac{h_0}{2 \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{r_h + n_h^{- 1} \\sum\\limits_{\\alpha = 0}^{n_h - 1} \\cos \\left[k_\\alpha \\left(x - x_0\\right) + l_\\alpha \\left(y - y_0\\right)\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+            \\frac{h_0}{2 \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{r_h + n_h^{- 1} \\sum\\limits_{\\alpha = 0}^{n_h - 1} \\cos \\left[k_\\alpha \\left(x - x_0\\right) + l_\\alpha \\left(y - y_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
             0 & \\mathrm{else},
         \\end{cases}\\\\
         k_\\alpha & = \\frac{\\pi}{l_0} \\cos \\left(\\frac{\\pi \\alpha}{n_h}\\right), \\quad l_\\alpha = \\frac{\\pi}{l_0} \\sin \\left(\\frac{\\pi \\alpha}{n_h}\\right)
