@@ -24,6 +24,7 @@ makedocs(;
             "Continuous equations" => "theory/continous_equations.md",
             "Temporal discretization" => "theory/temporal_discretization.md",
             "Spatial discretization" => "theory/spatial_discretization.md",
+            "References" => "theory/references.md",
         ],
         "Reference" => [
             "Types" => "reference/types.md",
