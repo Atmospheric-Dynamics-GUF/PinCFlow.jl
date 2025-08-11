@@ -85,7 +85,14 @@ julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; lib
 julia --project -e 'using HDF5; HDF5.API.set_libraries!("/path/to/libhdf5.so", "/path/to/libhdf5_hl.so")'
 ```
 
-with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). You can then run
+with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `LocalPreferences.toml`, so that the new backends will be used by all future scripts run in the project. By running
+
+```
+julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
+julia --project -e 'using HDF5; HDF5.API.set_libraries!()'
+```
+
+you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```
 mpiexec -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
@@ -276,14 +283,14 @@ Contributions to the code should always be accompanied by corresponding contribu
     1. List all positional and optional arguments with descriptions (but without types and default values) in an `# Arguments` section, with one bullet for each.
     1. List all keyword arguments with descriptions (but without types and default values) in a `# Keywords` section, with one bullet for each.
     1. If the methods of a function return something other than `nothing`, list all returned objects with descriptions in a `# Returns` section, with one bullet for each.
-    1. List links to constructors/functions that are called in any of the explicitly defined constructor methods in a # See also section, with one bullet for each.
+    1. List links to constructors/functions that are called in any of the explicitly defined constructor methods in a `# See also` section, with one bullet for each.
   - Type docstrings:
     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a second paragraph with more details.
     1. If the type is composite, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) a second paragraph with more details, for each explicitly defined constructor method.
     1. If the type is composite, list all fields with their type restrictions and descriptions in a `# Fields` section, with one bullet for each.
     1. If the type is composite, list all positional and optional arguments of the explicitly defined constructor methods with descriptions (but without types and default values) in an `# Arguments` section, with one bullet for each.
     1. If the type is composite, list all keyword arguments of the explicitly defined constructor methods with descriptions (but without types and default values) in a `# Keywords` section, with one bullet for each.
-    1. If the type is composite, list links to constructors/functions that are called in any of the explicitly defined constructor methods in a # See also section, with one bullet for each.
+    1. If the type is composite, list links to constructors/functions that are called in any of the explicitly defined constructor methods in a `# See also` section, with one bullet for each.
   - Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences instead of Unicode characters.
   - Place the starting and ending `"""` characters on lines by themselves.
 
