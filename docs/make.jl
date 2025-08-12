@@ -21,10 +21,8 @@ makedocs(;
             "WKB mountain-wave simulation" => "examples/wkb_mountain_wave_simulation.md",
         ],
         "Theory" => [
-            "Continuous equations" => "theory/continous_equations.md",
-            "Temporal discretization" => "theory/temporal_discretization.md",
-            "Spatial discretization" => "theory/spatial_discretization.md",
-            "References" => "theory/references.md",
+            "Continuous equations" => "theory/continuous_equations.md",
+            "Discretization" => "theory/discretization.md",
         ],
         "Reference" => [
             "Types" => "reference/types.md",
