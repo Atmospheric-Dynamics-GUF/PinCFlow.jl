@@ -22,7 +22,7 @@ The vertical extent of the sponge is set to the fraction `namelists.sponge.spong
 Rayleigh-damping coefficients:
 
   - `alphaunifiedsponge::A`: Coefficient of the unified sponge (used in all prognostic equations).
-  - `kr_sp_tfc::A`: Coefficient of the non-unified sponge (used in the auxiliary equation).
+  - `kr_sp_tfc::A`: Coefficient of the non-unified sponge (used in the horizontal-momentum equation).
   - `kr_sp_w_tfc::A`: Coefficient of the non-unified sponge (used in the transformed-vertical-momentum equation).
 
 Vertical sponge extent:
