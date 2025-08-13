@@ -51,21 +51,33 @@ If the squared intrinsic frequency is smaller than the squared Coriolis paramete
 # Arguments
 
   - `displm`: Topographic displacement.
+
   - `wnk`: Zonal wavenumber from the topographic spectrum.
+
   - `wnl`: Meridional wavenumber from the topographic spectrum.
+
   - `uavg`: Vertically averaged resolved zonal wind.
+
   - `vavg`: Vertically averaged resolved meridional wind.
+
   - `rhoavg`: Vertically averaged background density.
+
   - `bvsavg`: Vertically averaged squared buoyancy frequency.
+
   - `fc`: Coriolis parameter.
+
   - `branch`: Frequency branch.
 
 # Returns
 
   - `::AbstractFloat`: Intrinsic frequency.
+
   - `::AbstractFloat`: Zonal wavenumber.
+
   - `::AbstractFloat`: Meridional wavenumber.
+
   - `::AbstractFloat`: Vertical wavenumber.
+
   - `::AbstractFloat`: Wave-action density.
 """
 function compute_orographic_mode end

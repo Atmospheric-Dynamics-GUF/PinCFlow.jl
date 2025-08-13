@@ -10,6 +10,7 @@ Provides functions for updating the prognostic variables at the various stages o
 # See also
 
   - [`PinCFlow.Types`](@ref)
+
   - [`PinCFlow.Boundaries`](@ref)
 """
 module Update

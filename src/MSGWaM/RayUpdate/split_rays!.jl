@@ -64,11 +64,17 @@ The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``. Thi
 # Arguments
 
   - `state`: Model state.
+
   - `testcase`: Test case on which the current simulation is based.
+
   - `wkb_mode`: Approximations used by MSGWaM.
+
   - `ix`: Grid-cell index in ``\\widehat{x}``-direction
+
   - `jy`: Grid-cell index in ``\\widehat{y}``-direction
+
   - `kz`: Grid-cell index in ``\\widehat{z}``-direction
+
   - `axis`: Axis perpendicular to the split.
 
 # See also

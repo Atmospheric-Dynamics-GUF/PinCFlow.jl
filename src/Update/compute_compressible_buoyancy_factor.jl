@@ -82,8 +82,11 @@ f_w = \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} = \\frac{J_{k + 1
 # Arguments
 
   - `state`: Model state.
+
   - `indices`: Grid-cell indices.
+
   - `variable`: Variable for which the factor is needed.
+
   - `model`: Dynamic equations.
 
 # Returns

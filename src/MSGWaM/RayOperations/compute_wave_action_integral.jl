@@ -32,10 +32,15 @@ This method is used to implement conservation of wave energy in ray-volume mergi
 # Arguments
 
   - `merge_mode`: Merging strategy.
+
   - `nr`: Phase-space wave-action density.
+
   - `omegar`: Intrinsic frequency.
+
   - `fxk`: Phase space factor in the ``x``-``k`` subspace.
+
   - `fyl`: Phase space factor in the ``y``-``l`` subspace.
+
   - `fzm`: Phase space factor in the ``z``-``m`` subspace.
 
 # Returns

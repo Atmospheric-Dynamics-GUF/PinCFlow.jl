@@ -16,6 +16,7 @@ where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)
 # Arguments
 
   - `state`: Model state
+
   - `indices`: Indices of the ray volume of interest.
 
 # Returns

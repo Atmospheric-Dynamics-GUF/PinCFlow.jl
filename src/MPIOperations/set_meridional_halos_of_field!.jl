@@ -36,7 +36,9 @@ The first three dimensions of the array are assumed to represent the dimensions 
 # Arguments
 
   - `field`: Input array.
+
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Keywords

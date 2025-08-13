@@ -13,22 +13,31 @@ Perform the corrector step by computing the right-hand side and linear operator 
 # Arguments
 
   - `state`: Model state.
+
   - `dt`: Time step.
+
   - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+
   - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # Returns
 
   - `::Bool`: Error flag.
+
   - `::Integer`: Number of iterations.
 
 # See also
 
   - [`PinCFlow.PoissonSolver.compute_rhs!`](@ref)
+
   - [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
+
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.PoissonSolver.correct!`](@ref)
 """
 function apply_corrector! end

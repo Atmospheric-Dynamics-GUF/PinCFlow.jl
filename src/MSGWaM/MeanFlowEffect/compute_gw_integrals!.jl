@@ -73,12 +73,15 @@ This method computes the sums ``M_{u w}`` and ``M_{v w}`` (see above for details
 # Arguments
 
   - `state::State`: Model state.
+
   - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function compute_gw_integrals! end

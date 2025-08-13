@@ -42,7 +42,9 @@ Enforce zonal boundary conditions for reconstructions of ice variables.
 # Arguments
 
   - `state`: Model state.
+
   - `variables`: Boundary-variable category.
+
   - `icesetup`: General ice-physics configuration.
 
 # See also

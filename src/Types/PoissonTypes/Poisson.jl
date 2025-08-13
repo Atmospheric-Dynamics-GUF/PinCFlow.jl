@@ -21,11 +21,17 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 # Fields
 
   - `rhs::A`: Right-hand side.
+
   - `solution::A`: Solution of the Poisson problem.
+
   - `tensor::B`: Tensor elements of the linear operator.
+
   - `operator::C`: Workspace arrays for applying the linear operator.
+
   - `preconditioner::D`: Workspace arrays for applying the preconditioner.
+
   - `bicgstab::E`: Workspace arrays used by the BicGStab algorithm.
+
   - `correction::F`: Correction terms used to update the horizontal wind in the corrector step.
 
 # Arguments
@@ -35,9 +41,13 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 # See also
 
   - [`PinCFlow.Types.PoissonTypes.Tensor`](@ref)
+
   - [`PinCFlow.Types.PoissonTypes.Operator`](@ref)
+
   - [`PinCFlow.Types.PoissonTypes.Preconditioner`](@ref)
+
   - [`PinCFlow.Types.PoissonTypes.BicGStab`](@ref)
+
   - [`PinCFlow.Types.PoissonTypes.Correction`](@ref)
 """
 struct Poisson{

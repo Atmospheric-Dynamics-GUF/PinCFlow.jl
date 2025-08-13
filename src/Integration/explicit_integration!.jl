@@ -28,9 +28,13 @@ Perform an explicit Euler step on the right-hand sides of the prognostic equatio
 # Arguments
 
   - `state`: Model state.
+
   - `p0`: The predictands that are used to compute the transporting velocities in the computation of the fluxes.
+
   - `dtstage`: Fractional time step.
+
   - `time`: Simulation time.
+
   - `side`: Side of the equations.
 """
 function explicit_integration! end

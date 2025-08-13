@@ -55,11 +55,17 @@ The initialization consists of three steps. First, the tracer is set to ``\\chi 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `constants`: Physical constants and reference values.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `atmosphere`: Atmospheric-background fields.
+
   - `grid`: Collection of parameters and fields describing the grid.
+
   - `tracersetup`: General tracer-transport configuration.
+
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 
 # See also

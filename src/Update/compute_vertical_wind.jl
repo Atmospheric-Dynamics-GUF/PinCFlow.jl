@@ -14,9 +14,13 @@ Compute the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
 # Arguments
 
   - `i`: Zonal grid-cell index.
+
   - `j`: Meridional grid-cell index.
+
   - `k`: Vertical grid-cell index.
+
   - `predictands`: Prognostic variables.
+
   - `grid`: Collection of parameters and fields that describe the grid.
 
 # Returns

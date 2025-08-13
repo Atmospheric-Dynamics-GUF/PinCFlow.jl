@@ -10,6 +10,7 @@ In the first step, MSGWaM's saturation scheme is applied to account for the impa
 # Arguments
 
   - `state`: Model state.
+
   - `dtstage`: Time step.
 """
 function wkb_integration! end

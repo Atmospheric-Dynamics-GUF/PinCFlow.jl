@@ -14,7 +14,9 @@ Construct an `IceAuxiliaries` instance by copying the arrays in `icepredictands`
 # Fields
 
   - `initialn::A`: Auxiliary array for the ice-crystal number concentration.
+
   - `initialq::A`: Auxiliary array for the ice mixing ratio.
+
   - `initialqv::A`: Auxiliary array for the water-vapor mixing ratio.
 
 # Arguments

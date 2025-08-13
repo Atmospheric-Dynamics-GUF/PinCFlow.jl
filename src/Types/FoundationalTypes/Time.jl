@@ -14,8 +14,11 @@ Construct a `Time` instance.
 # Fields
 
   - `nstages::A`: Number of Runge-Kutta stages, i.e. ``n_\\mathrm{RK} = 3``.
+
   - `alphark::B`: Runge-Kutta coefficients for the total tendency, i.e. ``\\boldsymbol{\\alpha}_\\mathrm{RK} = \\left(0, - 5 / 9, - 153 / 128\\right)``.
+
   - `betark::B`: Runge-Kutta coefficients for the previous tendency, i.e. ``\\boldsymbol{\\beta}_\\mathrm{RK} = \\left(1 / 3, 15 / 16, 8 / 15\\right)``.
+
   - `stepfrac::B`: Time step fractions for each stage, i.e. ``\\boldsymbol{f}_\\mathrm{RK} = \\left(1 / 3, 5 / 12, 1 / 4\\right)``.
 """
 struct Time{A <: Integer, B <: AbstractVector{<:AbstractFloat}}

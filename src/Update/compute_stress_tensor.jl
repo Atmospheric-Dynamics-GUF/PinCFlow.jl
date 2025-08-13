@@ -35,11 +35,17 @@ where
 # Arguments
 
   - `i`: Zonal grid-cell index.
+
   - `j`: Meridional grid-cell index.
+
   - `k`: Vertical grid-cell index.
+
   - `mu`: First contravariant tensor index.
+
   - `nu`: Second contravariant tensor index.
+
   - `predictands`: Prognostic variables.
+
   - `grid`: Collection of parameters and fields that describe the grid.
 
 # Returns

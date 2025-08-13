@@ -163,12 +163,15 @@ and otherwise, it is
 # Arguments
 
   - `state`: Model state.
+
   - `dt`: Time step.
+
   - `spongetype`: Specification of the spatial dependence of the  Rayleigh-damping coefficient.
 
 # See also
 
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_sponge! end

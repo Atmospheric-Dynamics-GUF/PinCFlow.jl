@@ -62,7 +62,9 @@ Set the vertical tracer fluxes at the vertical boundaries to zero.
 # Arguments
 
   - `state`: Model state.
+
   - `variables`: Boundary-variable category.
+
   - `tracersetup`: General tracer-transport configuration.
 
 # See also

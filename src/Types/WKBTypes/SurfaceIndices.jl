@@ -14,18 +14,27 @@ Construct a `SurfaceIndices` instance, with arrays sized according to the given 
 # Fields
 
   - `ir_sfc::A`: Ray-volume indices.
+
   - `ix2_sfc::B`: Zonal indices within grid cells.
+
   - `jy2_sfc::B`: Meridional indices within grid cells.
+
   - `kz2_sfc::B`: Vertical indices within grid cells.
+
   - `ik_sfc::B`: Index in ``k``.
+
   - `jl_sfc::B`: Index in ``l``.
+
   - `km_sfc::B`: Index in ``m``.
+
   - `iwm_sfc::B`: Wave-mode index.
 
 # Arguments
 
   - `n_sfc`: Number of orographic wave modes per grid cell.
+
   - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+
   - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
 """
 struct SurfaceIndices{

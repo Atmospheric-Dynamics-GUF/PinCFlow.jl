@@ -42,7 +42,9 @@ Enforce zonal boundary conditions for reconstructions of turbulence variables.
 # Arguments
 
   - `state`: Model state.
+
   - `variables`: Boundary-variable category.
+
   - `turbulencesetup`: General turbulence-physics configuration.
 
 # See also

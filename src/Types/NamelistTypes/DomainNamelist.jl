@@ -28,17 +28,29 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 # Fields/Keywords
 
   - `sizex::A`: Number of grid cells in ``\\widehat{x}``-direction.
+
   - `sizey::A`: Number of grid cells in ``\\widehat{y}``-direction.
+
   - `sizez::A`: Number of grid cells in ``\\widehat{z}``-direction.
+
   - `nbx::A`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
+
   - `nby::A`: Number of boundary/halo cells in ``\\widehat{y}``-direction.
+
   - `nbz::A`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
+
   - `lx_dim::B`: Domain boundaries in ``\\widehat{x}``-direction.
+
   - `ly_dim::B`: Domain boundaries in ``\\widehat{y}``-direction.
+
   - `lz_dim::B`: Domain boundaries in ``\\widehat{z}``-direction.
+
   - `npx::A`: Number of MPI processes in ``\\widehat{x}``-direction.
+
   - `npy::A`: Number of MPI processes in ``\\widehat{y}``-direction.
+
   - `npz::A`: Number of MPI processes in ``\\widehat{z}``-direction.
+
   - `base_comm::C`: MPI base communicator.
 """
 struct DomainNamelist{

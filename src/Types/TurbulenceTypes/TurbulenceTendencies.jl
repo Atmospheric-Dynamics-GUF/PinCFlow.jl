@@ -26,12 +26,15 @@ Construct a `TurbulenceTendencies` instance with zero-initialized arrays.
 # Fields
 
   - `dtke::A`: Runge-Kutta update of the turbulent kinetic energy.
+
   - `dtte::A`: Runge-Kutta update of the total turbulent energy.
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `turbulencesetup`: General turbulence-physics configuration.
 """
 struct TurbulenceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}

@@ -14,6 +14,7 @@ Create a `Correction` instance with zero-initialized arrays sized according to t
 # Fields
 
   - `corx::A`: Correction term for the zonal wind.
+
   - `cory::A`: Correction term for the meridional wind.
 
 # Arguments

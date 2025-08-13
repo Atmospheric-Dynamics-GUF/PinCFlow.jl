@@ -27,16 +27,27 @@ Construct a `WavePacketNamelist` instance with the given keyword arguments as pr
 # Fields/Keywords
 
   - `wavepacketdim::B`: Dimensionality of the envelope (set to 1 for pure ``z``-dependence, 2 for ``x``- and ``z``-dependence, and 3 for dependence in all directions).
+
   - `lambdax_dim::A`: Zonal wavelength.
+
   - `lambday_dim::A`: Meridional wavelength.
+
   - `lambdaz_dim::A`: Vertical wavelength.
+
   - `x0_dim::A`: Zonal center.
+
   - `y0_dim::A`: Meridional center.
+
   - `z0_dim::A`: Vertical center.
+
   - `sigmax_dim::A`: Zonal envelope half-width.
+
   - `sigmay_dim::A`: Meridional envelope half-width.
+
   - `sigmaz_dim::A`: Vertical envelope half-width.
+
   - `a0::A`: Maximum amplitude in relation to saturation threshold.
+
   - `branch::B`: Frequency branch.
 """
 struct WavePacketNamelist{A <: AbstractFloat, B <: Integer}

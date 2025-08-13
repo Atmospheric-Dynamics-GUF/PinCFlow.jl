@@ -206,22 +206,31 @@ Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the propert
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `constants`: Physical constants and reference values.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `x`: ``\\widehat{x}``-coordinate grid points.
+
   - `y`: ``\\widehat{y}``-coordinate grid points.
+
   - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
   - `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
+
   - `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography.
+
   - `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum.
+
   - `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum.
 
 # See also
 
   - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_topography end

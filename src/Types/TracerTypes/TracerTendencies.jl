@@ -30,7 +30,9 @@ Construct a `TracerTendencies` instance with zero-initialized arrays.
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `tracersetup`: General tracer-transport configuration.
 """
 struct TracerTendencies{A <: AbstractArray{<:AbstractFloat, 3}}

@@ -8,7 +8,9 @@ Module for composite types needed for tracer transport.
 # See also
 
   - [`PinCFlow.Types.NamelistTypes`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
+
   - [`PinCFlow.Types.VariableTypes`](@ref)
 """
 module TracerTypes

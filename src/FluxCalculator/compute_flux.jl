@@ -8,7 +8,9 @@ Compute the upstream flux from reconstructed values, based on the sign of the tr
 # Arguments
 
   - `usurf`: Transporting velocity.
+
   - `phiup`: Upstream reconstruction for `usurf > 0`.
+
   - `phidown`: Downstream reconstruction for `usurf > 0`.
 
 # Returns

@@ -280,12 +280,19 @@ where ``\\overline{\\mathrm{TKE}}`` and ``\\overline{\\mathrm{TTE}}`` are the ba
 # Arguments
 
   - `state`: Model state.
+
   - `dt`: Time step.
+
   - `time`: Simulation time.
+
   - `variable`: Variable to apply Rayleigh damping to.
+
   - `model`: Dynamic equations.
+
   - `tracersetup`: General tracer-transport configuration.
+
   - `icesetup`: General ice-physics configuration.
+
   - `turbulencesetup`: General turbulence-physics configuration.
 """
 function apply_unified_sponge! end

@@ -126,16 +126,23 @@ The computation is analogous to that of the density fluxes.
 # Arguments
 
   - `state`: Model state.
+
   - `predictands`/`old_predictands`: The predictands that are used to compute the transporting velocities.
+
   - `model`: Dynamic equations.
+
   - `variable`: Flux variable.
+
   - `tracersetup`: General tracer-transport configuration.
+
   - `icesetup`: General ice-physics configuration.
+
   - `turbulencesetup`: General turbulence-physics configuration.
 
 # See also
 
   - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
+
   - [`PinCFlow.Update.compute_stress_tensor`](@ref)
 """
 function compute_fluxes! end

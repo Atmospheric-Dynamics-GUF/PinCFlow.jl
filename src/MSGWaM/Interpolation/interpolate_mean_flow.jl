@@ -128,9 +128,13 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 # Arguments
 
   - `xlc`: Zonal position of interest.
+
   - `ylc`: Meridional position of interest.
+
   - `zlc`: Vertical position of interest.
+
   - `state`: Model state.
+
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -140,9 +144,13 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
 """
 function interpolate_mean_flow end

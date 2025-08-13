@@ -16,9 +16,13 @@ Construct a `Reconstructions` instance with zero-initialized arrays.
 # Fields
 
   - `rhotilde::A`: Reconstructed density.
+
   - `rhoptilde::A`: Reconstructed density fluctuations.
+
   - `utilde::A`: Reconstructed zonal momentum.
+
   - `vtilde::A`: Reconstructed meridional momentum.
+
   - `wtilde::A`: Reconstructed vertical momentum.
 
 # Arguments

@@ -42,7 +42,9 @@ Enforce zonal boundary conditions for reconstructions of tracers.
 # Arguments
 
   - `state`: Model state.
+
   - `variables`: Boundary-variable category.
+
   - `tracersetup`: General tracer-transport configuration.
 
 # See also

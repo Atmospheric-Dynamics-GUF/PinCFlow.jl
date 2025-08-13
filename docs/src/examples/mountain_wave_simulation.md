@@ -176,9 +176,15 @@ visualizes the vertical wind at the end of the above simulation (i.e. after one 
 ## See also
 
   - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
+
   - [`PinCFlow.Update.compute_sponge!`](@ref)
+
   - [`PinCFlow.Update.apply_unified_sponge!`](@ref)

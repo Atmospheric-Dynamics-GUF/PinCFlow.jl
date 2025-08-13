@@ -28,13 +28,17 @@ Construct an `IceFluxes` instance with zero-initialized arrays.
 # Fields
 
   - `phin::A`: Fluxes of the ice-crystal number concentration.
+
   - `phiq::A`: Fluxes of the ice mixing ratio.
+
   - `phiqv::A`: Fluxes of the water-vapor mixing ratio.
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `icesetup`: General ice-physics configuration.
 """
 struct IceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}

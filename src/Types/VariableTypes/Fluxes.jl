@@ -31,16 +31,23 @@ Construct a `Fluxes` instance in compressible mode.
 # Fields
 
   - `phirho::A`: Density fluxes.
+
   - `phirhop::A`: Density-fluctuation fluxes.
+
   - `phiu::A`: Zonal-momentum fluxes.
+
   - `phiv::A`: Meridional-momentum fluxes.
+
   - `phiw::A`: Transformed-vertical-momentum fluxes.
+
   - `phip::B`: Mass-weighted potential-temperature fluxes.
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `model`: Dynamic equations.
 """
 struct Fluxes{

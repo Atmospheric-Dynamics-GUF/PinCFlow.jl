@@ -16,11 +16,17 @@ Perform an implicit Euler step on the right-hand sides of the prognostic equatio
 # Arguments
 
   - `state`: Model state.
+
   - `dtstage`: Fractional time step.
+
   - `time`: Simulation time.
+
   - `ntotalbicg`: BicGStab-iterations counter.
+
   - `side`: Side of the equations.
+
   - `iout`: Output counter.
+
   - `machine_start_time`: Wall-clock start time.
 """
 function implicit_integration! end

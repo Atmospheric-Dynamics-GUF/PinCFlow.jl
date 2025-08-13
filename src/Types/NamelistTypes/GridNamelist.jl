@@ -22,11 +22,17 @@ Construct a `GridNamelist` instance with the given keyword arguments as properti
 # Fields/Keywords
 
   - `mountainheight_dim::A`: Mountain height (summit).
+
   - `mountainwidth_dim::A`: Mountain half-width.
+
   - `mountain_case::B`: Mountain shape. See [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref) for available options.
+
   - `height_factor::A`: Factor between the amplitudes of the large and small orographic features.
+
   - `width_factor::A`: Factor between the wavelengths of the large and small orographic features.
+
   - `spectral_modes::B`: Number of spectral modes used for `mountain_case == 13`.
+
   - `stretch_exponent::A`: Vertical-grid-stretching parameter.
 """
 struct GridNamelist{A <: AbstractFloat, B <: Integer}

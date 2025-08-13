@@ -44,7 +44,9 @@ where ``S`` is the diabatic heating, as computed by `compute_volume_force`, and 
 # Arguments
 
   - `state`: Model state.
+
   - `b`: Output array containing the right-hand side.
+
   - `model`: Dynamic equations.
 
 # Returns

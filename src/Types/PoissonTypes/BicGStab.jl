@@ -17,14 +17,23 @@ Create a `BicGStab` instance with zero-initialized workspace arrays sized accord
 # Fields
 
   - `r_vm::A`: Vertically-averaged residual.
+
   - `p::B`: Search direction.
+
   - `r0::B`: Initial residual.
+
   - `rold::B`: Previous residual.
+
   - `r::B`: Current residual.
+
   - `s::B`: Intermediate solution.
+
   - `t::B`: Result of applying the linear operator to `s`.
+
   - `v::B`: Result of applying the linear operator to `p`.
+
   - `matvec::B`: Intermediate result of applying the linear operator.
+
   - `v_pc::B`: Output of the preconditioner.
 
 # Arguments

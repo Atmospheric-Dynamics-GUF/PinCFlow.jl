@@ -30,7 +30,9 @@ In compressible mode, ``P`` and, through its dependence on ``P``, ``N^2`` are ti
 # Arguments
 
   - `state`: Model state.
+
   - `predictands`: Predictands to use for the synchronization of the mass-weighted potential temperature.
+
   - `model`: Dynamic equations.
 
 # See also

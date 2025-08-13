@@ -64,8 +64,11 @@ The interpolation is given by
 # Arguments
 
   - `state`: Model state.
+
   - `indices`: Grid-cell indices.
+
   - `variable`: Variable for which the factor is needed.
+
   - `model`: Dynamic equations.
 
 # Returns

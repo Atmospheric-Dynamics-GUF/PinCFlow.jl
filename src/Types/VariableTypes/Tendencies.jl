@@ -29,17 +29,25 @@ Create a `Tendencies` instance in compressible mode.
 # Fields
 
   - `drho::A`: Density update.
+
   - `drhop::A`: Density-fluctuation update.
+
   - `du::A`: Zonal-momentum update.
+
   - `dv::A`: Meridional-momentum update.
+
   - `dw::A`: Transformed-vertical-momentum update.
+
   - `dpip::A`: Exner-pressure update.
+
   - `dp::B`: Mass-weighted potential-temperature update.
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `model`: Dynamic equations.
 """
 struct Tendencies{

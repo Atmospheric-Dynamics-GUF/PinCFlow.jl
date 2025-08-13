@@ -22,7 +22,9 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 # Arguments
 
   - `state`: Model state.
+
   - `dt`: Time step.
+
   - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
 # See also

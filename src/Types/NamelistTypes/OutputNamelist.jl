@@ -33,16 +33,27 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
 # Fields/Keywords
 
   - `output_variables::A`: A tuple of symbols representing the variables that should be written to the output file.
+
   - `save_ray_volumes::B`: A boolean indicating whether to write ray-volume data.
+
   - `prepare_restart::B`: A boolean indicating whether to write all variables needed for restart simulations.
+
   - `restart::B`: A boolean indicating whether to initialize with data from a previous state (as written in `input_file`).
+
   - `iin::C`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations.
+
   - `output_steps::B`: If set to `true`, write output every `noutput` time steps.
+
   - `noutput::C`: Output interval (in indices) if `output_steps == true`.
+
   - `maxiter::C`: Maximum number of iterations if `output_steps == true`.
+
   - `outputtimediff::D`: Output interval (in physical time) if `output_steps == false`.
+
   - `maxtime::D`: Simulation time if `output_steps == false`.
+
   - `input_file::E`: File from which to read input data in restart simulations.
+
   - `output_file::E`: File to which output data is written.
 """
 struct OutputNamelist{

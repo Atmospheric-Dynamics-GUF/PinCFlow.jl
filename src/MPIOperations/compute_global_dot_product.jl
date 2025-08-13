@@ -12,7 +12,9 @@ Compute the dot product of two 3D arrays distributed across MPI processes.
 # Arguments
 
   - `a`: First input array.
+
   - `b`: Second input array (must have the same shape as `a`).
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Returns

@@ -62,7 +62,9 @@ Set the vertical fluxes of ice variables at the vertical boundaries to zero.
 # Arguments
 
   - `state`: Model state.
+
   - `variables`: Boundary-variable category.
+
   - `icesetup`: General ice-physics configuration.
 
 # See also
