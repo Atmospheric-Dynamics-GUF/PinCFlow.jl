@@ -362,11 +362,11 @@ Markdown code should use the following syntax.
     ```markdown
     This is a sentence above a block quote.
 
-    > This is the first paragraph of a block quote.
-    >
-    > > This is a nested block quote.
-    >
-    > This is the second paragraph of a block quote.
+      > This is the first paragraph of a block quote.
+      >
+      >   > This is a nested block quote.
+      >
+      > This is the second paragraph of a block quote.
 
     This is a sentence below a block quote.
 
