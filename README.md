@@ -12,13 +12,13 @@ The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that un
 
 To install PinCFlow, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then clone this repository with
 
-```
+```shell
 git clone git@gitlab.dkrz.de:atmodynamics-goethe-universitaet-frankfurt/pinc.git
 ```
 
 and set up the project environment by running
 
-```
+```shell
 julia --project -e 'using Pkg; Pkg.instantiate()'
 ```
 
@@ -36,7 +36,7 @@ integrate(Namelists())
 
 runs PinCFlow in its default configuration, if executed with
 
-```
+```shell
 julia --project --check-bounds=no --math-mode=fast script.jl
 ```
 
@@ -71,7 +71,7 @@ yields a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ tha
 
 If you want to run PinCFlow in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). You can do so by running
 
-```
+```shell
 mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
 ${mpiexec} -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
 ```
@@ -80,21 +80,21 @@ with `tasks` set to the number of MPI processes. Note that in `script.jl`, the p
 
 However, if you plan to run PinCFlow on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 
-```
+```shell
 julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names = ["/path/to/mpi/library/"])'
 julia --project -e 'using HDF5; HDF5.API.set_libraries!("/path/to/libhdf5.so", "/path/to/libhdf5_hl.so")'
 ```
 
 with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `LocalPreferences.toml`, so that the new backends will be used by all future scripts run in the project. By running
 
-```
+```shell
 julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
 julia --project -e 'using HDF5; HDF5.API.set_libraries!()'
 ```
 
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
-```
+```shell
 mpiexec -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
 ```
 
@@ -298,7 +298,7 @@ Contributions to the code should always be accompanied by corresponding contribu
 
 The code uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
 
-```
+```shell
 julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
 julia --project=docs docs/make.jl
 ```

@@ -41,7 +41,7 @@ integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
 performs a 3D mountain-wave simulation with parallelization in the zonal and meridional dimensions, and writes the vertical wind to `pincflow_output.h5`, if executed with
 
-```
+```shell
 mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
 ${mpiexec} -n 64 julia --project --check-bounds=no --math-mode=fast examples/submit/mountain_wave.jl .
 ```
