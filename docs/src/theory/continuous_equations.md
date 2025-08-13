@@ -5,26 +5,26 @@
 PinCFlow uses a height-based terrain-following coordinate system ([Gal-Chen & Somerville, 1975](https://doi.org/10.1016/0021-9991(75)90037-6)) with vertical stretching. The transformation from the Cartesian system $\boldsymbol{x} = \left(x, y, z\right)^\mathrm{T}$ to the numerical system $\widehat{\boldsymbol{x}} = \left(\widehat{x}, \widehat{y}, \widehat{z}\right)^\mathrm{T}$ is given by
 
 $$\begin{align*}
-    \widehat{z} & = \widehat{z} \left(\widetilde{z}\right), & \left(\widehat{x}, \widehat{y}, \widetilde{z}\right) & = \left(x, y, L_z \frac{z - h_\mathrm{b}}{L_z - h_\mathrm{b}}\right), &  \left(x, y, z\right) & = \left(\widehat{x}, \widehat{y}, \frac{L_z - h_\mathrm{b}}{L_z}{\widetilde{z}} + h_\mathrm{b}\right),
+    \widehat{z} & = \widehat{z} \left(\widetilde{z}\right), & \left(\widehat{x}, \widehat{y}, \widetilde{z}\right) & = \left(x, y, L_z \frac{z - h}{L_z - h}\right), &  \left(x, y, z\right) & = \left(\widehat{x}, \widehat{y}, \frac{L_z - h}{L_z}{\widetilde{z}} + h\right),
 \end{align*}$$
 
-where $L_z$ is the vertical extent of the model domain and $h_\mathrm{b}$ is the resolved surface topography. The contravariant basis vectors of the transformed system are
+where $L_z$ is the vertical extent of the model domain and $h$ is the surface topography. The contravariant basis vectors of the transformed system are
 
 $$\begin{align*}
-    \boldsymbol{\epsilon}^{\widehat{x}} & = \boldsymbol{e}^x, & \boldsymbol{\epsilon}^{\widehat{y}} & = \boldsymbol{e}^y, & \boldsymbol{\epsilon}^{\widehat{z}} = \frac{\partial h_\mathrm{b}}{\partial \widehat{x}} \frac{\widetilde{z} - L_z}{L_z - h_\mathrm{b}} \frac{\partial \widehat{z}}{\partial \widetilde{z}} \boldsymbol{e}^x + \frac{\partial h_\mathrm{b}}{\partial y} \frac{\widetilde{z} - L_z}{L_z - h_\mathrm{b}} \frac{\partial \widehat{z}}{\partial \widetilde{z}} \boldsymbol{e}^y + \frac{L_z}{L_z - h_\mathrm{b}} \frac{\partial \widehat{z}}{\partial \widetilde{z}}\boldsymbol{e}^z.
+    \boldsymbol{\epsilon}^{\widehat{x}} & = \boldsymbol{e}^x, & \boldsymbol{\epsilon}^{\widehat{y}} & = \boldsymbol{e}^y, & \boldsymbol{\epsilon}^{\widehat{z}} = \frac{\partial h}{\partial \widehat{x}} \frac{\widetilde{z} - L_z}{L_z - h} \frac{\partial \widehat{z}}{\partial \widetilde{z}} \boldsymbol{e}^x + \frac{\partial h}{\partial y} \frac{\widetilde{z} - L_z}{L_z - h} \frac{\partial \widehat{z}}{\partial \widetilde{z}} \boldsymbol{e}^y + \frac{L_z}{L_z - h} \frac{\partial \widehat{z}}{\partial \widetilde{z}}\boldsymbol{e}^z.
 \end{align*}$$
 
 The scalar products of these yield the metric tensor
 
 $$G^{\mu \nu} = \begin{pmatrix}
-    1 & 0 & \frac{\partial h_\mathrm{b}}{\partial x} \frac{\widetilde{z} - L_z}{L_z - h_\mathrm{b}} \frac{\partial \widehat{z}}{\partial \widetilde{z}}\\
-    0 & 1 & \frac{\partial h_\mathrm{b}}{\partial y} \frac{\widetilde{z} - L_z}{L_z - h_\mathrm{b}} \frac{\partial \widehat{z}}{\partial \widetilde{z}}\\
-    \frac{\partial h_\mathrm{b}}{\partial x} \frac{\widetilde{z} - L_z}{L_z - h_\mathrm{b}} \frac{\partial \widehat{z}}{\partial \widetilde{z}} & \frac{\partial h_\mathrm{b}}{\partial y} \frac{\widetilde{z} - L_z}{L_z - h_\mathrm{b}} \frac{\partial \widehat{z}}{\partial \widetilde{z}} & \left\{\left(\frac{L_z}{L_z - h_\mathrm{b}}\right)^2 + \left(\frac{\widetilde{z} - L_z}{L_z - h_\mathrm{b}}\right)^2 \left[\left(\frac{\partial h_\mathrm{b}}{\partial x}\right)^2 + \left(\frac{\partial h_\mathrm{b}}{\partial y}\right)^2\right]\right\} \left(\frac{\partial \widehat{z}}{\partial \widetilde{z}}\right)^2,
+    1 & 0 & \frac{\partial h}{\partial x} \frac{\widetilde{z} - L_z}{L_z - h} \frac{\partial \widehat{z}}{\partial \widetilde{z}}\\
+    0 & 1 & \frac{\partial h}{\partial y} \frac{\widetilde{z} - L_z}{L_z - h} \frac{\partial \widehat{z}}{\partial \widetilde{z}}\\
+    \frac{\partial h}{\partial x} \frac{\widetilde{z} - L_z}{L_z - h} \frac{\partial \widehat{z}}{\partial \widetilde{z}} & \frac{\partial h}{\partial y} \frac{\widetilde{z} - L_z}{L_z - h} \frac{\partial \widehat{z}}{\partial \widetilde{z}} & \left\{\left(\frac{L_z}{L_z - h}\right)^2 + \left(\frac{\widetilde{z} - L_z}{L_z - h}\right)^2 \left[\left(\frac{\partial h}{\partial x}\right)^2 + \left(\frac{\partial h}{\partial y}\right)^2\right]\right\} \left(\frac{\partial \widehat{z}}{\partial \widetilde{z}}\right)^2,
 \end{pmatrix}$$
 
 from which the Jacobian
 
-$$J = \frac{L_z - h_\mathrm{b}} {L_z} \frac{\partial \widetilde{z}}{\partial \widehat{z}}$$
+$$J = \frac{L_z - h} {L_z} \frac{\partial \widetilde{z}}{\partial \widehat{z}}$$
 
 can be determined. Finally, the transformation rule for the wind reads
 
