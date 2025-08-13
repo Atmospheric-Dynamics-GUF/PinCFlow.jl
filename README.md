@@ -385,7 +385,7 @@ Markdown code should use the following syntax.
 
         This is the second paragraph of the first item.
 
-      - This is the second item of a list with paragraphs.
+      - This is the second item.
 
     This is a sentence below an unnumbered list.
     ```
@@ -403,7 +403,7 @@ Markdown code should use the following syntax.
 
         This is the second paragraph of the first item.
 
-     1. This is the second item of a list with paragraphs.
+     1. This is the second item.
 
      This is a sentence below a numbered list.
     ```
