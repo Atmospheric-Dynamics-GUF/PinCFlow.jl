@@ -3,7 +3,7 @@
 apply_corrector!(
     state::State,
     dt::AbstractFloat,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -15,7 +15,7 @@ Perform the corrector step by computing the right-hand side and linear operator 
 
   - `dt`: Time step.
 
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
 # Returns
 
@@ -42,7 +42,7 @@ function apply_corrector! end
 function apply_corrector!(
     state::State,
     dt::AbstractFloat,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; namelists, domain) = state
     (; model, zboundaries) = namelists.setting
@@ -56,7 +56,8 @@ function apply_corrector!(
     tolref = compute_rhs!(state, rhs, model)
 
     # Solve Poisson equation.
-    (errflagbicg, niterbicg) = solve_poisson!(state, rhs, tolref, dt, facray)
+    (errflagbicg, niterbicg) =
+        solve_poisson!(state, rhs, tolref, dt, rayleigh_factor)
 
     # Return if an error occurred.
     if errflagbicg
@@ -69,7 +70,7 @@ function apply_corrector!(
     set_vertical_boundaries_of_field!(dpip, namelists, domain, zboundaries, +)
 
     # Correct momentum and buoyancy.
-    correct!(state, dt, facray)
+    correct!(state, dt, rayleigh_factor)
 
     return (errflagbicg, niterbicg)
 end

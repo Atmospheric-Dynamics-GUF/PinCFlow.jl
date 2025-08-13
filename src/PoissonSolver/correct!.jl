@@ -1,6 +1,10 @@
 """
 ```julia
-correct!(state::State, dt::AbstractFloat, facray::AbstractFloat)
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
+)
 ```
 
 Correct the Exner-pressure, wind and buoyancy (density fluctuations) such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.
@@ -12,7 +16,7 @@ correct!(
     state::State,
     dt::AbstractFloat,
     variable::U,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -23,7 +27,7 @@ correct!(
     state::State,
     dt::AbstractFloat,
     variable::V,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -34,7 +38,7 @@ correct!(
     state::State,
     dt::AbstractFloat,
     variable::W,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -45,7 +49,7 @@ correct!(
     state::State,
     dt::AbstractFloat,
     variable::RhoP,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -65,7 +69,7 @@ Update the Exner-pressure fluctuations with the differences obtained from the so
 
   - `variable`: Variable to correct.
 
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
 # See also
 
@@ -75,11 +79,15 @@ Update the Exner-pressure fluctuations with the differences obtained from the so
 """
 function correct! end
 
-function correct!(state::State, dt::AbstractFloat, facray::AbstractFloat)
-    correct!(state, dt, U(), facray)
-    correct!(state, dt, V(), facray)
-    correct!(state, dt, W(), facray)
-    correct!(state, dt, RhoP(), facray)
+function correct!(
+    state::State,
+    dt::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
+)
+    correct!(state, dt, U(), rayleigh_factor)
+    correct!(state, dt, V(), rayleigh_factor)
+    correct!(state, dt, W(), rayleigh_factor)
+    correct!(state, dt, RhoP(), rayleigh_factor)
     correct!(state, PiP())
     return
 end
@@ -88,7 +96,7 @@ function correct!(
     state::State,
     dt::AbstractFloat,
     variable::U,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; spongelayer, sponge_uv) = state.namelists.sponge
@@ -113,7 +121,7 @@ function correct!(
                 dt *
                 0.5 *
                 (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) *
-                facray
+                rayleigh_factor
         end
 
         # Compute values at cell edges.
@@ -181,7 +189,7 @@ function correct!(
     state::State,
     dt::AbstractFloat,
     variable::V,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; spongelayer, sponge_uv) = state.namelists.sponge
@@ -206,7 +214,7 @@ function correct!(
                 dt *
                 0.5 *
                 (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) *
-                facray
+                rayleigh_factor
         end
 
         # Compute values at cell edges.
@@ -274,7 +282,7 @@ function correct!(
     state::State,
     dt::AbstractFloat,
     variable::W,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
     (; zboundaries) = state.namelists.setting
@@ -302,7 +310,7 @@ function correct!(
                 dt * (
                     jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
                     jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) * facray
+                ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
         end
 
         # Compute values at cell edges.
@@ -406,7 +414,7 @@ function correct!(
     state::State,
     dt::AbstractFloat,
     variable::RhoP,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; spongelayer) = state.namelists.sponge
@@ -424,7 +432,7 @@ function correct!(
         facw = 1.0
 
         if spongelayer
-            facw += dt * kr_sp_w_tfc[i, j, k] * facray
+            facw += dt * kr_sp_w_tfc[i, j, k] * rayleigh_factor
         end
 
         # Compute P coefficients.

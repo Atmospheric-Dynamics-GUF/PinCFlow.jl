@@ -54,7 +54,7 @@ update!(
     variable::RhoP,
     side::RHS,
     integration::Implicit,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -85,7 +85,7 @@ update!(
     variable::U,
     side::RHS,
     integration::Implicit,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -116,7 +116,7 @@ update!(
     variable::V,
     side::RHS,
     integration::Implicit,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -147,7 +147,7 @@ update!(
     variable::W,
     side::RHS,
     integration::Implicit,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -268,7 +268,7 @@ Update the turbulence variables with a Runge-Kutta step on the left-hand sides o
 
   - `integration`: Type of the Euler step.
 
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
   - `tracersetup`: General tracer-transport configuration.
 
@@ -424,7 +424,7 @@ function update!(
     variable::RhoP,
     side::RHS,
     integration::Implicit,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -579,7 +579,7 @@ function update!(
         facw = 1.0
 
         if spongelayer
-            facw += dt * kr_sp_w_tfc[i, j, k] * facray
+            facw += dt * kr_sp_w_tfc[i, j, k] * rayleigh_factor
         end
 
         # Predict buoyancy.
@@ -776,7 +776,7 @@ function update!(
     variable::U,
     side::RHS,
     integration::Implicit,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; zboundaries) = state.namelists.setting
@@ -847,7 +847,7 @@ function update!(
                 dt *
                 0.5 *
                 (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) *
-                facray
+                rayleigh_factor
         end
 
         # Update wind.
@@ -1016,7 +1016,7 @@ function update!(
     variable::V,
     side::RHS,
     integration::Implicit,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; zboundaries) = state.namelists.setting
@@ -1087,7 +1087,7 @@ function update!(
                 dt *
                 0.5 *
                 (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) *
-                facray
+                rayleigh_factor
         end
 
         # Update wind.
@@ -1376,7 +1376,7 @@ function update!(
     variable::W,
     side::RHS,
     integration::Implicit,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
     (; zboundaries) = state.namelists.setting
@@ -1480,7 +1480,7 @@ function update!(
                 dt * (
                     jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
                     jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) * facray
+                ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
         end
 
         # Buoyancy is predicted after momentum in implicit steps.

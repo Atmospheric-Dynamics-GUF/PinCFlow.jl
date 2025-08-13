@@ -1,6 +1,10 @@
 """
 ```julia
-compute_operator!(state::State, dt::AbstractFloat, facray::AbstractFloat)
+compute_operator!(
+    state::State,
+    dt::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
+)
 ```
 
 Compute the tensor elements of the linear operator on the left-hand side of the Poisson equation.
@@ -25,7 +29,7 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 
   - `dt`: Time step.
 
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
 # See also
 
@@ -36,7 +40,7 @@ function compute_operator! end
 function compute_operator!(
     state::State,
     dt::AbstractFloat,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; preconditioner) = state.namelists.poisson
@@ -358,86 +362,86 @@ function compute_operator!(
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) *
-                    facray
+                    rayleigh_factor
                 facedgel =
                     facedgel +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k] + kr_sp_tfc[i - 1, j, k]) *
-                    facray
+                    rayleigh_factor
                 facedgef =
                     facedgef +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) *
-                    facray
+                    rayleigh_factor
                 facedgeb =
                     facedgeb +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j - 1, k]) *
-                    facray
+                    rayleigh_factor
                 facuedger =
                     facuedger +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k + 1] + kr_sp_tfc[i + 1, j, k + 1]) *
-                    facray
+                    rayleigh_factor
                 facuedgel =
                     facuedgel +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k + 1] + kr_sp_tfc[i - 1, j, k + 1]) *
-                    facray
+                    rayleigh_factor
                 facuedgef =
                     facuedgef +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k + 1] + kr_sp_tfc[i, j + 1, k + 1]) *
-                    facray
+                    rayleigh_factor
                 facuedgeb =
                     facuedgeb +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k + 1] + kr_sp_tfc[i, j - 1, k + 1]) *
-                    facray
+                    rayleigh_factor
                 facdedger =
                     facdedger +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k - 1] + kr_sp_tfc[i + 1, j, k - 1]) *
-                    facray
+                    rayleigh_factor
                 facdedgel =
                     facdedgel +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k - 1] + kr_sp_tfc[i - 1, j, k - 1]) *
-                    facray
+                    rayleigh_factor
                 facdedgef =
                     facdedgef +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k - 1] + kr_sp_tfc[i, j + 1, k - 1]) *
-                    facray
+                    rayleigh_factor
                 facdedgeb =
                     facdedgeb +
                     dt *
                     0.5 *
                     (kr_sp_tfc[i, j, k - 1] + kr_sp_tfc[i, j - 1, k - 1]) *
-                    facray
+                    rayleigh_factor
             end
             facedgeu =
                 facedgeu +
                 dt * (
                     jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
                     jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) * facray
+                ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
             facedged =
                 facedged +
                 dt * (
                     jac[i, j, k - 1] * kr_sp_w_tfc[i, j, k] +
                     jac[i, j, k] * kr_sp_w_tfc[i, j, k - 1]
-                ) / (jac[i, j, k] + jac[i, j, k - 1]) * facray
+                ) / (jac[i, j, k] + jac[i, j, k - 1]) * rayleigh_factor
         end
 
         # Compute implicit coefficients.

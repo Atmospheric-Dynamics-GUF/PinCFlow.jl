@@ -5,7 +5,7 @@ solve_poisson!(
     b::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
     dt::AbstractFloat,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
 ```
 
@@ -29,7 +29,7 @@ is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \
 
   - `dt`: Time step.
 
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
 # Returns
 
@@ -50,7 +50,7 @@ function solve_poisson!(
     b::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
     dt::AbstractFloat,
-    facray::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
 )
     (; namelists, domain, grid, poisson) = state
     (; model) = namelists.setting
@@ -66,7 +66,7 @@ function solve_poisson!(
     end
     dtinv = 1.0 / dt
 
-    compute_operator!(state, dt, facray)
+    compute_operator!(state, dt, rayleigh_factor)
 
     (errflagbicg, niterbicg) =
         apply_bicgstab!(b, tolref, sol, namelists, domain, grid, poisson)

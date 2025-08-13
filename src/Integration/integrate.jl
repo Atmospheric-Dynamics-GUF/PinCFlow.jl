@@ -289,6 +289,7 @@ function integrate(namelists::Namelists)
             RHS(),
             iout,
             machine_start_time,
+            1.0,
         )
 
         p1 = deepcopy(state.variables.predictands)
@@ -326,6 +327,7 @@ function integrate(namelists::Namelists)
             RHS(),
             iout,
             machine_start_time,
+            2.0,
         )
 
         if master
