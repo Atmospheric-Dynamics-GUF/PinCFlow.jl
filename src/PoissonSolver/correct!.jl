@@ -1,11 +1,6 @@
 """
 ```julia
-correct!(
-    state::State,
-    dt::AbstractFloat,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
+correct!(state::State, dt::AbstractFloat, facray::AbstractFloat)
 ```
 
 Correct the Exner-pressure, wind and buoyancy (density fluctuations) such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.
@@ -18,7 +13,6 @@ correct!(
     dt::AbstractFloat,
     variable::U,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
 ```
 
@@ -30,7 +24,6 @@ correct!(
     dt::AbstractFloat,
     variable::V,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
 ```
 
@@ -42,7 +35,6 @@ correct!(
     dt::AbstractFloat,
     variable::W,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
 ```
 
@@ -54,7 +46,6 @@ correct!(
     dt::AbstractFloat,
     variable::RhoP,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
 ```
 
@@ -76,8 +67,6 @@ Update the Exner-pressure fluctuations with the differences obtained from the so
 
   - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
-
 # See also
 
   - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
@@ -86,16 +75,11 @@ Update the Exner-pressure fluctuations with the differences obtained from the so
 """
 function correct! end
 
-function correct!(
-    state::State,
-    dt::AbstractFloat,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
-    correct!(state, dt, U(), facray, facprs)
-    correct!(state, dt, V(), facray, facprs)
-    correct!(state, dt, W(), facray, facprs)
-    correct!(state, dt, RhoP(), facray, facprs)
+function correct!(state::State, dt::AbstractFloat, facray::AbstractFloat)
+    correct!(state, dt, U(), facray)
+    correct!(state, dt, V(), facray)
+    correct!(state, dt, W(), facray)
+    correct!(state, dt, RhoP(), facray)
     correct!(state, PiP())
     return
 end
@@ -105,7 +89,6 @@ function correct!(
     dt::AbstractFloat,
     variable::U,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; spongelayer, sponge_uv) = state.namelists.sponge
@@ -184,7 +167,7 @@ function correct!(
         end
 
         # Compute velocity correction.
-        corx[i, j, k] = facprs * dt / facu * pgradx
+        corx[i, j, k] = dt / facu * pgradx
         jpr = compute_compressible_wind_factor(state, (i, j, k), U())
         du = -jpr * corx[i, j, k]
 
@@ -199,7 +182,6 @@ function correct!(
     dt::AbstractFloat,
     variable::V,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; spongelayer, sponge_uv) = state.namelists.sponge
@@ -278,7 +260,7 @@ function correct!(
         end
 
         # Compute velocity correction.
-        cory[i, j, k] = facprs * dt / facv * pgrady
+        cory[i, j, k] = dt / facv * pgrady
         jpf = compute_compressible_wind_factor(state, (i, j, k), V())
         dv = -jpf * cory[i, j, k]
 
@@ -293,7 +275,6 @@ function correct!(
     dt::AbstractFloat,
     variable::W,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
     (; zboundaries) = state.namelists.setting
@@ -395,7 +376,7 @@ function correct!(
         jpu = compute_compressible_wind_factor(state, (i, j, k), W())
         fw = compute_compressible_buoyancy_factor(state, (i, j, k), W())
         dw =
-            -facprs * dt / (facw + fw * bvsstw * dt^2.0) * jpu * pgradz -
+            -dt / (facw + fw * bvsstw * dt^2.0) * jpu * pgradz -
             1.0 / (facw + fw * bvsstw * dt^2.0) *
             fw *
             bvsstw *
@@ -426,7 +407,6 @@ function correct!(
     dt::AbstractFloat,
     variable::RhoP,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
     (; spongelayer) = state.namelists.sponge
@@ -573,12 +553,7 @@ function correct!(
         fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
         db =
             -1.0 / (facw + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
-                -fb *
-                bvsstrattfc[i, j, k] *
-                facprs *
-                dt^2.0 *
-                jac[i, j, k] *
-                pgradz +
+                -fb * bvsstrattfc[i, j, k] * dt^2.0 * jac[i, j, k] * pgradz +
                 fb *
                 bvsstrattfc[i, j, k] *
                 dt *

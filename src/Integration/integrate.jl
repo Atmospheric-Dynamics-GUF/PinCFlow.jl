@@ -137,7 +137,7 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0, 1.0)
+        (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0)
 
         if errflagbicg
             create_output(state)

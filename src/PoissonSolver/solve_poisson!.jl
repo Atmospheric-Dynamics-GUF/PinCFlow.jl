@@ -6,7 +6,6 @@ solve_poisson!(
     tolref::AbstractFloat,
     dt::AbstractFloat,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
 ```
 
@@ -32,8 +31,6 @@ is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \
 
   - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
-
 # Returns
 
   - `::Bool`: Error flag.
@@ -54,7 +51,6 @@ function solve_poisson!(
     tolref::AbstractFloat,
     dt::AbstractFloat,
     facray::AbstractFloat,
-    facprs::AbstractFloat,
 )
     (; namelists, domain, grid, poisson) = state
     (; model) = namelists.setting
@@ -85,7 +81,7 @@ function solve_poisson!(
     end
 
     # Pass solution to pressure correction.
-    dpip[i0:i1, j0:j1, k0:k1] .= dtinv ./ facprs .* sol
+    dpip[i0:i1, j0:j1, k0:k1] .= dtinv .* sol
 
     return (errflagbicg, niterbicg)
 end
