@@ -323,6 +323,187 @@ Contributions to the code should always be accompanied by corresponding contribu
 
   - Place the starting and ending `"""` characters on lines by themselves.
 
+### Markdown syntax
+
+Markdown code should use the following syntax.
+
+  - Headings:
+
+    ```markdown
+    # Heading level 1
+
+    ## Heading level 2
+
+    ### Heading level 3
+
+    #### Heading level 4
+
+    ##### Heading level 5
+
+    ###### Heading level 6
+    ```
+
+  - Paragraphs:
+
+    ```markdown
+    This is the first paragraph.
+
+    This is the second paragraph.
+    ```
+
+  - Emphasis:
+
+    ```markdown
+    This sentence contains *italic*, **bold** and ***italic bold*** words.
+    ```
+
+  - Block quotes:
+
+    ```markdown
+    This is a sentence above a block quote.
+
+    > This is the first paragraph of a block quote.
+    >
+    > > This is a nested block quote.
+    >
+    > This is the second paragraph of a block quote.
+
+    This is a sentence below a block quote.
+
+    ```
+
+  - Unnumbered lists:
+
+    ```markdown
+    This is a sentence above an unnumbered list.
+
+      - This is the first paragraph of the first item.
+
+          - This is the first item of a nested list.
+
+          - This is the second item of a nested list.
+
+        This is the second paragraph of the first item.
+
+      - This is the second item of a list with paragraphs.
+
+    This is a sentence below an unnumbered list.
+    ```
+
+  - Numbered lists:
+
+    ```markdown
+    This is a sentence above a numbered list.
+
+     1. This is the first paragraph of the first item.
+
+         1. This is the first item of a nested list.
+
+         1. This is the second item of a nested list.
+
+        This is the second paragraph of the first item.
+
+     1. This is the second item of a list with paragraphs.
+
+     This is a sentence below a numbered list.
+    ```
+
+  - Inline code:
+
+    ```markdown
+    This sentence contains inline `code` and inline `` `nested code` ``.
+    ```
+
+  - Code blocks:
+
+    `````````markdown
+    This sentence contains the code block
+
+    ```julia
+    if true
+        println("true")
+    end
+    ```
+
+    and other stuff. This sentence contains the nested code blocks
+
+    ``````markdown
+    ```julia
+    if true
+        println("true")
+    end
+    ```
+    ``````
+
+    and other stuff.
+    `````````
+
+  - Horizontal rule:
+
+    ```markdown
+    ---
+    ```
+
+  - URLs and email addresses:
+
+    ```markdown
+    This sentence contains the URL <http://example.com> and the email address <fake@example.com>.
+    ```
+
+  - Links:
+
+    ```markdown
+    This sentence contains a [link](http://example.com).
+    ```
+
+  - Images:
+
+    ```markdown
+    ![](image.png)
+    ```
+
+  - Backslash escapes:
+
+    ```markdown
+    This sentence contains the backslash escapes \\\`\*\_\{\}\[\]\(\)\#\+\-\.\!.
+    ```
+
+  - Inline math:
+
+    ```markdown
+    This sentence contains the equation $x^2 + y^2 = z^2$.
+    ```
+
+  - Centered math:
+
+    ```markdown
+    This sentence contains the equation
+
+    $$x^2 + y^2 = z^2$$
+
+    and other stuff.
+    ```
+
+In docstrings, the following syntax elements are different.
+
+  - Inline math:
+
+    ```markdown
+    This sentence contains the equation ``x^2 + y^2 = z^2``.
+    ```
+
+  - Centered math:
+
+    ``````markdown
+    This sentence contains the equation
+
+    ```math
+    x^2 + y^2 = z^2
+    ```
+
+    and other stuff.
+    ``````
+
 ### Building and accessing the documentation
 
 The code uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
