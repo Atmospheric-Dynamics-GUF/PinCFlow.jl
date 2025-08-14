@@ -6,7 +6,7 @@ get_next_half_level(
     z::AbstractFloat,
     domain::Domain,
     grid::Grid,
-)
+)::Integer
 ```
 
 Determine the index of the next half-level above `z` at the horizontal position `(i, j)`.
@@ -28,10 +28,6 @@ This method is heavily used for interpolation to ray-volume positions. To ensure
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
   - `grid`: Collection of parameters and fields that describe the grid.
-
-# Returns
-
-  - `::Integer`: Index of the next half-level.
 """
 function get_next_half_level end
 
@@ -41,7 +37,7 @@ function get_next_half_level(
     z::AbstractFloat,
     domain::Domain,
     grid::Grid,
-)
+)::Integer
     (; sizezz, nzz, ko, k0, k1) = domain
     (; ztildetfc) = grid
 

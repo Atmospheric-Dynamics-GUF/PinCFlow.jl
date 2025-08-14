@@ -6,7 +6,7 @@ compute_vertical_wind(
     k::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
 ```
 
 Compute the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
@@ -23,10 +23,6 @@ Compute the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
 
   - `grid`: Collection of parameters and fields that describe the grid.
 
-# Returns
-
-  - `::AbstractFloat`: Cartesian vertical wind at `(i, j, k + 1 / 2)`.
-
 # See also
 
   - [`PinCFlow.Update.transform`](@ref)
@@ -39,7 +35,7 @@ function compute_vertical_wind(
     k::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
     (; u, v, w) = predictands
 
     uedger = u[i, j, k]

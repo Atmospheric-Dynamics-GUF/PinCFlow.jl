@@ -1,6 +1,6 @@
 """
 ```julia
-compute_intrinsic_frequency(state::State, indices::NTuple{4, <:Integer})
+compute_intrinsic_frequency(state::State, indices::NTuple{4, <:Integer})::AbstractFloat
 ```
 
 Compute the intrinsic frequency of the ray volume specified by `indices`.
@@ -19,10 +19,6 @@ where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)
 
   - `indices`: Indices of the ray volume of interest.
 
-# Returns
-
-  - `::AbstractFloat`: Intrinsic frequency.
-
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
@@ -32,7 +28,7 @@ function compute_intrinsic_frequency end
 function compute_intrinsic_frequency(
     state::State,
     indices::NTuple{4, <:Integer},
-)
+)::AbstractFloat
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
     (; tref) = state.constants

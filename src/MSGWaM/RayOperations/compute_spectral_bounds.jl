@@ -1,29 +1,21 @@
 """
 ```julia
-compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
+compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})::Tuple{AbstractFloat, AbstractFloat, AbstractFloat, AbstractFloat}
 ```
 
-Compute the minima and maxima of positive and negative entries in `wavenumbers`.
+Compute the minima and maxima of positive and negative entries in `wavenumbers` and return them as tuple of `(min_positive, max_positive, min_negative, max_negative)`.
 
 This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to create spectral bins.
 
 # Arguments
 
   - `wavenumbers`: Vector of wavenumbers in the considered spectral dimension.
-
-# Returns
-
-  - `::AbstractFloat`: Minimum positive wavenumber.
-
-  - `::AbstractFloat`: Maximum positive wavenumber.
-
-  - `::AbstractFloat`: Minimum negative wavenumber.
-
-  - `::AbstractFloat`: Maximum negative wavenumber.
 """
 function compute_spectral_bounds end
 
-function compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
+function compute_spectral_bounds(
+    wavenumbers::AbstractVector{<:AbstractFloat},
+)::Tuple{AbstractFloat, AbstractFloat, AbstractFloat, AbstractFloat}
 
     # Initialize minima and maxima.
     krminp = 0.0

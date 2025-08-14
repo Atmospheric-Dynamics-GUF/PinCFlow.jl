@@ -1,9 +1,9 @@
 """
 ```julia
-compute_flux(usurf::AbstractFloat, phiup::AbstractFloat, phidown::AbstractFloat)
+compute_flux(usurf::AbstractFloat, phiup::AbstractFloat, phidown::AbstractFloat)::AbstractFloat
 ```
 
-Compute the upstream flux from reconstructed values, based on the sign of the transporting velocity.
+Compute and return the upstream flux from reconstructed values, based on the sign of the transporting velocity.
 
 # Arguments
 
@@ -12,10 +12,6 @@ Compute the upstream flux from reconstructed values, based on the sign of the tr
   - `phiup`: Upstream reconstruction for `usurf > 0`.
 
   - `phidown`: Downstream reconstruction for `usurf > 0`.
-
-# Returns
-
-  - `::AbstractFloat`: Product of `usurf` and the upstream reconstruction.
 """
 function compute_flux end
 
@@ -23,7 +19,7 @@ function compute_flux(
     usurf::AbstractFloat,
     phiup::AbstractFloat,
     phidown::AbstractFloat,
-)
+)::AbstractFloat
     if usurf > 0.0
         return usurf * phiup
     else

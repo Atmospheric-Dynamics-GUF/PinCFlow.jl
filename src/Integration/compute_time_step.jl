@@ -1,6 +1,6 @@
 """
 ```julia
-compute_time_step(state::State)
+compute_time_step(state::State)::AbstractFloat
 ```
 
 Compute adaptive time step based on several stability criteria.
@@ -37,17 +37,13 @@ The individual stability criteria are as follows.
 
   - `state`: Model state.
 
-# Returns
-
-  - `::AbstractFloat`: Time step.
-
 # See also
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function compute_time_step end
 
-function compute_time_step(state::State)
+function compute_time_step(state::State)::AbstractFloat
     (; grid) = state
     (; cfl, cfl_wave, dtmin_dim, dtmax_dim, adaptive_time_step) =
         state.namelists.discretization

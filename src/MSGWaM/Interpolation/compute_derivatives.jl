@@ -62,10 +62,10 @@ The derivative is given by
 ```
 
 ```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDZ)
+compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDZ)::Tuple{AbstractFloat, AbstractFloat}
 ```
 
-Compute the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) at two specified positions on the grid.
+Compute the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) at two specified positions, `(ix, jy, kzd)` and `(ix, jy, kzu)` on the grid.
 
 The derivative is given by
 
@@ -82,12 +82,6 @@ At grid points beyond the vertical boundaries, it is set to zero.
   - `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
 
   - `phitype`: Type of derivative to compute.
-
-# Returns
-
-  - `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzd)`.
-
-  - `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzu)`.
 """
 function compute_derivatives end
 
@@ -95,7 +89,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DUDX,
-)
+)::Tuple{AbstractFloat, AbstractFloat}
     (; dx, dz, met) = state.grid
     (; u) = state.variables.predictands
 
@@ -125,7 +119,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DUDY,
-)
+)::Tuple{AbstractFloat, AbstractFloat}
     (; dy, dz, met) = state.grid
     (; u) = state.variables.predictands
 
@@ -167,7 +161,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DUDZ,
-)
+)::Tuple{AbstractFloat, AbstractFloat}
     (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
     (; u) = state.variables.predictands
 
@@ -223,7 +217,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DVDX,
-)
+)::Tuple{AbstractFloat, AbstractFloat}
     (; dx, dz, met) = state.grid
     (; v) = state.variables.predictands
 
@@ -265,7 +259,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DVDY,
-)
+)::Tuple{AbstractFloat, AbstractFloat}
     (; dy, dz, met) = state.grid
     (; v) = state.variables.predictands
 
@@ -295,7 +289,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DVDZ,
-)
+)::Tuple{AbstractFloat, AbstractFloat}
     (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
     (; v) = state.variables.predictands
 

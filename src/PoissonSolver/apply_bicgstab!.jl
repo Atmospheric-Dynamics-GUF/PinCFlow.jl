@@ -8,10 +8,10 @@ apply_bicgstab!(
     domain::Domain,
     grid::Grid,
     poisson::Poisson,
-)
+)::Tuple{Bool, Integer}
 ```
 
-Solve the Poisson equation using a preconditioned BicGStab algorithm.
+Solve the Poisson equation using a preconditioned BicGStab algorithm and return a tuple of error flag and number of iterations.
 
 # Arguments
 
@@ -28,12 +28,6 @@ Solve the Poisson equation using a preconditioned BicGStab algorithm.
   - `grid`: Collection of parameters and fields that describe the grid.
 
   - `poisson`: Operator and workspace arrays needed for the Poisson equation.
-
-# Returns
-
-  - `::Bool`: Error flag.
-
-  - `::Integer`: Number of iterations.
 
 # See also
 
@@ -53,7 +47,7 @@ function apply_bicgstab!(
     domain::Domain,
     grid::Grid,
     poisson::Poisson,
-)
+)::Tuple{Bool, Integer}
     (; sizex, sizey, sizez) = namelists.domain
     (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
         namelists.poisson

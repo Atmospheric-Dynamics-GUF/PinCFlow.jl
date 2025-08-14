@@ -7,7 +7,7 @@ symmetric_contours(
     maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::String = "seismic",
-)
+)::Tuple{LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
 ```
 
 Compute symmetric contours levels and return them and a correspondingly cropped colormap.
@@ -23,19 +23,13 @@ Compute symmetric contours levels and return them and a correspondingly cropped 
   - `number`: Number of contour levels.
 
   - `colormap_name`: Name under which the chosen colormap is registered.
-
-# Returns
-
-  - `::LinRange{<:AbstractFloat, <:Integer}`: Contour levels.
-
-  - `::PythonCall.Core.Py`: Cropped colormap.
 """
 function symmetric_contours(
     minimum::AbstractFloat,
     maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::String = "seismic",
-)
+)::Tuple{LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
 
     # Compute contour levels.
     if minimum == -maximum ||

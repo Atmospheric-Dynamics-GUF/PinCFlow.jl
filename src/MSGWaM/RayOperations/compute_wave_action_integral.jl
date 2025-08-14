@@ -22,12 +22,17 @@ compute_wave_action_integral(
     fxk::AbstractFloat,
     fyl::AbstractFloat,
     fzm::AbstractFloat,
-)
+)::AbstractFloat
 ```
 
 Returns the wave energy obtained by multiplying the given phase-space wave-action density with the given intrinsic frequency and phase-space volume.
 
 This method is used to implement conservation of wave energy in ray-volume merging.
+
+Depending on the merge mode, the wave action is computed as follows:
+
+- `ConstantWaveAction`: `fxk * fyl * fzm * nr`
+- `ConstantWaveEnergy`: `fxk * fyl * fzm * nr * omegar`
 
 # Arguments
 
@@ -42,10 +47,6 @@ This method is used to implement conservation of wave energy in ray-volume mergi
   - `fyl`: Phase space factor in the ``y``-``l`` subspace.
 
   - `fzm`: Phase space factor in the ``z``-``m`` subspace.
-
-# Returns
-
-  - `::AbstractFloat`: Either `fxk * fyl * fzm * nr` (wave action) or `fxk * fyl * fzm * nr * omegar` (wave energy), depending on the method.
 """
 function compute_wave_action_integral end
 
@@ -56,7 +57,7 @@ function compute_wave_action_integral(
     fxk::AbstractFloat,
     fyl::AbstractFloat,
     fzm::AbstractFloat,
-)
+)::AbstractFloat
     return fxk * fyl * fzm * nr
 end
 
@@ -67,6 +68,6 @@ function compute_wave_action_integral(
     fxk::AbstractFloat,
     fyl::AbstractFloat,
     fzm::AbstractFloat,
-)
+)::AbstractFloat
     return fxk * fyl * fzm * nr * omegar
 end

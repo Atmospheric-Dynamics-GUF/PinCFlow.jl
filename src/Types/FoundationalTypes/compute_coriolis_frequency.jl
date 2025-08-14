@@ -6,10 +6,10 @@ compute_coriolis_frequency(
     domain::Domain,
     grid::Grid,
     coriolis_mode::FPlane,
-)
+)::AbstractVector{<:AbstractFloat}
 ```
 
-Set the Coriolis parameter to ``f = f_0``, with ``f_0`` being given by `namelists.atmosphere.coriolis_frequency`.
+Set the Coriolis parameter to ``f = f_0``, with ``f_0`` being given by `namelists.atmosphere.coriolis_frequency` and return a vector of length `nyy`.
 
 # Arguments
 
@@ -22,10 +22,6 @@ Set the Coriolis parameter to ``f = f_0``, with ``f_0`` being given by `namelist
   - `grid`: Collection of parameters and fields describing the grid.
 
   - `coriolis_mode`: Approximation used for the Coriolis frequency.
-
-# Returns
-
-  - `::AbstractVector{<:AbstractFloat}`: Coriolis parameter with the meridional dependence specified by `coriolis_mode`.
 """
 function compute_coriolis_frequency end
 
@@ -35,7 +31,7 @@ function compute_coriolis_frequency(
     domain::Domain,
     grid::Grid,
     coriolis_mode::FPlane,
-)
+)::AbstractVector{<:AbstractFloat}
     (; coriolis_frequency) = namelists.atmosphere
     (; tref) = constants
     (; nyy) = domain

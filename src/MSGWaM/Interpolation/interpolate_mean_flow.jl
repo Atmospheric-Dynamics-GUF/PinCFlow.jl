@@ -118,7 +118,7 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDZ,
-)
+)::AbstractFloat
 ```
 
 Interpolate the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
@@ -136,10 +136,6 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
   - `state`: Model state.
 
   - `phitype`: Mean-flow quantity to interpolate.
-
-# Returns
-
-  - `::AbstractFloat`: Interpolated mean-flow quantity at the location of interest.
 
 # See also
 
@@ -161,7 +157,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::U,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; u) = state.variables.predictands
@@ -283,7 +279,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::V,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; v) = state.variables.predictands
@@ -407,7 +403,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::W,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; predictands) = state.variables
     (; sizex, sizey) = namelists.domain
@@ -563,7 +559,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDX,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -689,7 +685,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDY,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -860,7 +856,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDZ,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -983,7 +979,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDX,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -1154,7 +1150,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDY,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -1281,7 +1277,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDZ,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain

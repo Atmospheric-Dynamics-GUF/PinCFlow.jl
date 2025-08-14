@@ -15,7 +15,7 @@ transform(
     wedgeu::AbstractFloat,
     coordinate::Cartesian,
     grid::Grid,
-)
+)::AbstractFloat
 ```
 
 Perform the transformation of a vertical-wind-like variable from the transformed system to the Cartesian one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`.
@@ -42,7 +42,7 @@ transform(
     wedgeu::AbstractFloat,
     coordinate::Transformed,
     grid::Grid,
-)
+)::AbstractFloat
 ```
 
 Perform the transformation of a vertical-wind-like variable from the Cartesian system to the transformed one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`.
@@ -82,10 +82,6 @@ The discretized transformation rule for the vertical wind is given by
   - `coordinate`: Coordinate system to transform to.
 
   - `grid`: Collection of parameters and fields that describe the grid.
-
-# Returns
-
-  - `::AbstractFloat`: Vertical-wind-like transformation of the given variable at `(i, j, k + 1 / 2)`.
 """
 function transform end
 
@@ -104,7 +100,7 @@ function transform(
     wedgeu::AbstractFloat,
     coordinate::Cartesian,
     grid::Grid,
-)
+)::AbstractFloat
     (; jac, met) = grid
 
     jacedgeu =
@@ -141,7 +137,7 @@ function transform(
     wedgeu::AbstractFloat,
     coordinate::Transformed,
     grid::Grid,
-)
+)::AbstractFloat
     (; jac, met) = grid
 
     jacedgeu =

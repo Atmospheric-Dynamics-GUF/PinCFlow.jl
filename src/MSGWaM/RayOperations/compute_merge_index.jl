@@ -9,7 +9,7 @@ compute_merge_index(
     dwnr_mrg_p::AbstractFloat,
     dwnr_mrg_n::AbstractFloat,
     nray::Integer,
-)
+)::Integer
 ```
 
 Computes the index of the wavenumber `wnr` on a 1D spectral grid specified by the other arguments.
@@ -33,10 +33,6 @@ This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to sort r
   - `dwnr_mrg_n`: Logarithmic spacing of discrete negative wavenumbers.
 
   - `nray`: Number of spectral grid points.
-
-# Returns
-
-  - `::Integer`: Position on the 1D spectral grid.
 """
 function compute_merge_index end
 
@@ -49,7 +45,7 @@ function compute_merge_index(
     dwnr_mrg_p::AbstractFloat,
     dwnr_mrg_n::AbstractFloat,
     nray::Integer,
-)
+)::Integer
     if wnr < 0
         if abs(log(-wnr / wnr_max_n) / dwnr_mrg_n) < 1
             iray = div(nray, 2) - 1
