@@ -171,7 +171,7 @@ Contributions to the code should respect the following rules.
 
   - Use type parameters to declare the types of all composite-type fields.
 
-  - Declare the types of all method arguments.
+  - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
   - Use `@views` in front of expressions that create slices.
 
@@ -300,8 +300,6 @@ Contributions to the code should always be accompanied by corresponding contribu
      1. List all positional and optional arguments with descriptions (but without types and default values) in an `# Arguments` section, with one bullet for each.
 
      1. List all keyword arguments with descriptions (but without types and default values) in a `# Keywords` section, with one bullet for each.
-
-     1. If the methods of a function return something other than `nothing`, list all returned objects with descriptions in a `# Returns` section, with one bullet for each.
 
      1. List links to constructors/functions that are called in any of the explicitly defined constructor methods in a `# See also` section, with one bullet for each.
 
