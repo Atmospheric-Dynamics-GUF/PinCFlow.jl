@@ -22,7 +22,7 @@ makedocs(;
         ],
         "Theory" => [
             "Physics" => "theory/physics.md",
-            "Discretization" => "theory/discretization.md",
+            "Numerics" => "theory/numerics.md",
         ],
         "Reference" => [
             "Types" => "reference/types.md",
