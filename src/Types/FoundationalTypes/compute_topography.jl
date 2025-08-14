@@ -7,7 +7,12 @@ compute_topography(
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
     testcase::WKBMountainWave,
-)
+)::Tuple{
+    <:AbstractMatrix{<:AbstractFloat},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+}
 ```
 
 Compute and return the topography for the WKB-mountain-wave test case.
@@ -90,6 +95,8 @@ The supported topography shapes are as follows, listed according to the value of
 
 Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain.
 
+The arrays in the returned tuple represent (in order) the resolved topography, the amplitudes of the unresolved topography, the corresponding zonal wavenumbers and the corresponding meridional wavenumbers.
+
 ```julia
 compute_topography(
     namelists::Namelists,
@@ -98,12 +105,15 @@ compute_topography(
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
     testcase::AbstractTestCase,
-)::Tuple{AbstractMatrix{<:AbstractFloat}, AbstractArray{<:AbstractFloat, 3}, AbstractArray{<:AbstractFloat, 3}, AbstractArray{<:AbstractFloat, 3}}:
+)::Tuple{
+    <:AbstractMatrix{<:AbstractFloat},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+}
 ```
 
 Compute and return the topography for non-WKB-mountain-wave test cases.
-
- Returns a tuple containing the resolved orography, the unresolved orography, the zonal wavenumbers of the unresolved orography, and the meridional wavenumbers of the unresolved orography.
 
 The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
 
@@ -205,6 +215,8 @@ The supported topography shapes are as follows, listed according to the value of
 
 Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain. The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`.
 
+The topography is represented by the first array in the returned tuple.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -235,10 +247,10 @@ function compute_topography(
     y::AbstractVector{<:AbstractFloat},
     testcase::WKBMountainWave,
 )::Tuple{
-    AbstractMatrix{<:AbstractFloat},
-    AbstractArray{<:AbstractFloat, 3},
-    AbstractArray{<:AbstractFloat, 3},
-    AbstractArray{<:AbstractFloat, 3},
+    <:AbstractMatrix{<:AbstractFloat},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
 }
     (; lx_dim, ly_dim) = namelists.domain
     (; testcase) = namelists.setting
@@ -398,10 +410,10 @@ function compute_topography(
     y::AbstractVector{<:AbstractFloat},
     testcase::AbstractTestCase,
 )::Tuple{
-    AbstractMatrix{<:AbstractFloat},
-    AbstractArray{<:AbstractFloat, 3},
-    AbstractArray{<:AbstractFloat, 3},
-    AbstractArray{<:AbstractFloat, 3},
+    <:AbstractMatrix{<:AbstractFloat},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
 }
     (; lx_dim, ly_dim) = namelists.domain
     (; testcase) = namelists.setting

@@ -12,7 +12,7 @@ compute_merge_index(
 )::Integer
 ```
 
-Computes the index of the wavenumber `wnr` on a 1D spectral grid specified by the other arguments.
+Return the index of the wavenumber `wnr` on a 1D spectral grid specified by the other arguments.
 
 This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to sort ray volumes into spectral bins.
 

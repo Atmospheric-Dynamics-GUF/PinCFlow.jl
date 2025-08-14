@@ -10,7 +10,7 @@ compute_wave_action_integral(
 )
 ```
 
-Returns the wave action obtained by multiplying the given phase-space wave-action density with the given phase-space volume.
+Return the wave action obtained by multiplying the given phase-space wave-action density with the given phase-space volume.
 
 This method is used to implement conservation of wave action in ray-volume merging.
 
@@ -25,14 +25,9 @@ compute_wave_action_integral(
 )::AbstractFloat
 ```
 
-Returns the wave energy obtained by multiplying the given phase-space wave-action density with the given intrinsic frequency and phase-space volume.
+Return the wave energy obtained by multiplying the given phase-space wave-action density with the given intrinsic frequency and phase-space volume.
 
 This method is used to implement conservation of wave energy in ray-volume merging.
-
-Depending on the merge mode, the wave action is computed as follows:
-
-- `ConstantWaveAction`: `fxk * fyl * fzm * nr`
-- `ConstantWaveEnergy`: `fxk * fyl * fzm * nr * omegar`
 
 # Arguments
 

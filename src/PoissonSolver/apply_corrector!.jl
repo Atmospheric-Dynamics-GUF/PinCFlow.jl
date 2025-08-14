@@ -4,12 +4,10 @@ apply_corrector!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)::Tuple{Bool, Integer}
+)::Tuple{Bool, <:Integer}
 ```
 
-Perform the corrector step by computing the right-hand side and linear operator of the discrete Poisson equation, solving it and correcting the Exner-pressure, wind and buoyancy accordingly.
-
-Return a tuple containing an error flag and the number of iterations.
+Perform the corrector step by computing the right-hand side and linear operator of the discrete Poisson equation, solving it and correcting the Exner-pressure, wind and buoyancy accordingly, before returning a tuple containing an error flag and the number of iterations.
 
 # Arguments
 
@@ -39,7 +37,7 @@ function apply_corrector!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)::Tuple{Bool, Integer}
+)::Tuple{Bool, <:Integer}
     (; namelists, domain) = state
     (; model, zboundaries) = namelists.setting
     (; rhs) = state.poisson

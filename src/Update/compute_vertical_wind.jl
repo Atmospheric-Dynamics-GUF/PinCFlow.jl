@@ -9,7 +9,7 @@ compute_vertical_wind(
 )::AbstractFloat
 ```
 
-Compute the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
+Compute and return the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
 
 # Arguments
 

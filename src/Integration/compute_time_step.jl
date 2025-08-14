@@ -3,7 +3,7 @@
 compute_time_step(state::State)::AbstractFloat
 ```
 
-Compute adaptive time step based on several stability criteria.
+Compute and return an adaptive time step based on several stability criteria.
 
 If `state.namelists.discretization.adaptive_time_step` is set to `true`, the returned time step is given by
 

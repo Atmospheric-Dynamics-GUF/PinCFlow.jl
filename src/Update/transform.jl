@@ -18,7 +18,7 @@ transform(
 )::AbstractFloat
 ```
 
-Perform the transformation of a vertical-wind-like variable from the transformed system to the Cartesian one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`.
+Perform the transformation of a vertical-wind-like variable from the transformed system to the Cartesian one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`, and return the result.
 
 The discretized transformation rule for the vertical wind is given by
 
@@ -45,7 +45,7 @@ transform(
 )::AbstractFloat
 ```
 
-Perform the transformation of a vertical-wind-like variable from the Cartesian system to the transformed one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`.
+Perform the transformation of a vertical-wind-like variable from the Cartesian system to the transformed one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`, and return the result.
 
 The discretized transformation rule for the vertical wind is given by
 

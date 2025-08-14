@@ -7,7 +7,7 @@ compute_global_dot_product(
 )::AbstractFloat
 ```
 
-Compute the dot product ``\\boldsymbol{a} \\cdot \\boldsymbol{b} = \\sum_i a_i \\cdot b_i`` of two 3D arrays distributed across MPI processes.
+Compute and return the dot product ``\\boldsymbol{a} \\cdot \\boldsymbol{b} = \\sum_i a_i \\cdot b_i`` of two 3D arrays distributed across MPI processes.
 
 # Arguments
 

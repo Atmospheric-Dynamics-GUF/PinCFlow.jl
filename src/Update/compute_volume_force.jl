@@ -7,7 +7,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Compute the volume force in the equation specified by `variable`.
+Return the volume force in the equation specified by `variable`.
 
 ```julia
 compute_volume_force(

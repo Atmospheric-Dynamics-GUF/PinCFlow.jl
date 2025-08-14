@@ -1,9 +1,12 @@
 """
 ```julia
-get_physical_extent(rays::Rays, indices::NTuple{4, <:Integer})::NTuple{3, <:AbstractFloat}
+get_physical_extent(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
 ```
 
-Return the physical extents of the ray volume specified by `indices` as tuple `(dx, dy, dz)`.
+Return the physical extents of the ray volume specified by `indices` as the tuple `(dxr, dyr, dzr)`.
 
 # Arguments
 

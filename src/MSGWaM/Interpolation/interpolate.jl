@@ -28,7 +28,7 @@ interpolate(
 )::AbstractFloat
 ```
 
-Perform trilinear interpolation to `(xlc, ylc, zlc)`, with values from eight surrounding grid points (two zonal positions, two meridional positions and eight vertical positions).
+Perform trilinear interpolation to `(xlc, ylc, zlc)`, with values from eight surrounding grid points (two zonal positions, two meridional positions and eight vertical positions), and return the result.
 
 Out of the eight grid points, four each are assumed to be to the left, to the right, behind, in front of, below and above the location of interest. Due to the grid being terrain-following, this includes eight different vertical positions, but only two zonal and two meridional positions. This is handled by performing successive linear interpolations, where the vertical position is interpolated along with the field of interest.
 

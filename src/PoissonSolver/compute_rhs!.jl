@@ -4,7 +4,7 @@ compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
     model::AbstractModel,
-)
+)::AbstractFloat
 ```
 
 Compute the scaled right-hand side of the Poisson equation in pseudo-incompressible/Boussinesq mode and return a reference tolerance for the convergence criterion.

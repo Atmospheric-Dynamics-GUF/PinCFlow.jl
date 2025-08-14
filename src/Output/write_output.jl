@@ -8,7 +8,7 @@ write_output(
 )::Integer
 ```
 
-Write the current simulation state to a previously created HDF5 output file and return the incremented output counter `iout`.
+Write the current simulation state to a previously created HDF5 output file and return the advanced output counter `iout`.
 
 The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `ztfc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
 

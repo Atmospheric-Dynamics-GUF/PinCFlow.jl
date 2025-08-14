@@ -1,7 +1,7 @@
 """
 ```julia
 OutputNamelist{
-    A <: Tuple{Vararg{Symbol, <:Integer}},
+    A <: Tuple{Vararg{Symbol}},
     B <: Bool,
     C <: Integer,
     D <: AbstractFloat,
@@ -13,7 +13,7 @@ Namelist for I/O parameters.
 
 ```julia
 OutputNamelist(;
-    output_variables::Tuple{Vararg{Symbol, <:Integer}} = (),
+    output_variables::Tuple{Vararg{Symbol}} = (),
     save_ray_volumes::Bool = false,
     prepare_restart::Bool = false,
     restart::Bool = false,
@@ -57,7 +57,7 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
   - `output_file::E`: File to which output data is written.
 """
 struct OutputNamelist{
-    A <: Tuple{Vararg{Symbol, <:Integer}},
+    A <: Tuple{Vararg{Symbol}},
     B <: Bool,
     C <: Integer,
     D <: AbstractFloat,
@@ -78,7 +78,7 @@ struct OutputNamelist{
 end
 
 function OutputNamelist(;
-    output_variables::Tuple{Vararg{Symbol, <:Integer}} = (),
+    output_variables::Tuple{Vararg{Symbol}} = (),
     save_ray_volumes::Bool = false,
     prepare_restart::Bool = false,
     restart::Bool = false,

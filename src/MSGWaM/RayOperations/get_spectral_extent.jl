@@ -1,9 +1,12 @@
 """
 ```julia
-get_spectral_extent(rays::Rays, indices::NTuple{4, <:Integer})::NTuple{3, <:AbstractFloat}
+get_spectral_extent(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
 ```
 
-Return the spectral extents of the ray volume specified by `indices` as tuple `(dk, dl, dm)`.
+Return the spectral extents of the ray volume specified by `indices` as the tuple `(dkr, dlr, dmr)`.
 
 # Arguments
 

@@ -11,7 +11,7 @@ compute_stress_tensor(
 )::AbstractFloat
 ```
 
-Compute the element `(mu, nu)` of the Cartesian viscous stress tensor at the grid point `(i, j, k)`, divided by the dynamic viscosity.
+Compute and return the element `(mu, nu)` of the Cartesian viscous stress tensor at the grid point `(i, j, k)`, divided by the dynamic viscosity.
 
 The discretized elements of the Cartesian viscous stress tensor are given by
 

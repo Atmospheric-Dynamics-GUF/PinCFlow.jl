@@ -1,9 +1,12 @@
 """
 ```julia
-get_physical_position(rays::Rays, indices::NTuple{4, <:Integer})::NTuple{3, <:AbstractFloat}
+get_physical_position(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
 ```
 
-Return the physical position of the ray volume specified by `indices` as tuple `(x, y, z)`.
+Return the physical position of the ray volume specified by `indices` as the tuple `(xr, yr, zr)`.
 
 # Arguments
 

@@ -1,9 +1,12 @@
 """
 ```julia
-get_surfaces(rays::Rays, indices::NTuple{4, <:Integer})::Tuple{AbstractFloat, AbstractFloat, AbstractFloat}
+get_surfaces(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
 ```
 
-Compute phase-space surface areas of the ray volume specified by `indices` and return a tuple `(area_xk, area_yl, area_zm)`.
+Compute phase-space surface areas of the ray volume specified by `indices` and return them as the tuple `(axk, ayl, azm)`.
 
 # Arguments
 
@@ -16,7 +19,7 @@ function get_surfaces end
 function get_surfaces(
     rays::Rays,
     indices::NTuple{4, <:Integer},
-)::Tuple{AbstractFloat, AbstractFloat, AbstractFloat}
+)::NTuple{3, <:AbstractFloat}
     (dxr, dyr, dzr) = get_physical_extent(rays, indices)
     (dkr, dlr, dmr) = get_spectral_extent(rays, indices)
     return (dxr * dkr, dyr * dlr, dzr * dmr)

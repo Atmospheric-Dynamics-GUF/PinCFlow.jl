@@ -1,11 +1,12 @@
 """
 ```julia
-compute_saturation_integrals(state::State, indices::NTuple{3, <:Integer})::Tuple{AbstractFloat, AbstractFloat}
+compute_saturation_integrals(
+    state::State,
+    indices::NTuple{3, <:Integer},
+)::NTuple{2, <:AbstractFloat}
 ```
 
-Compute two spectral integrals needed by the saturation scheme (in the grid cell specified by `indices`).
-
-Returns a tuple of ``S_1`` and ``S_2``.
+Compute and return the two spectral integrals ``S_1`` and ``S_2``, as needed by the saturation scheme (in the grid cell specified by `indices`).
 
 Computes the sums
 
@@ -49,7 +50,7 @@ function compute_saturation_integrals end
 function compute_saturation_integrals(
     state::State,
     indices::NTuple{3, <:Integer},
-)::Tuple{AbstractFloat, AbstractFloat}
+)::NTuple{2, <:AbstractFloat}
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
     (; io, jo, i0, j0) = domain

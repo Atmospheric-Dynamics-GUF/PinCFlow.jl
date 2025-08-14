@@ -9,7 +9,7 @@ compute_coriolis_frequency(
 )::AbstractVector{<:AbstractFloat}
 ```
 
-Set the Coriolis parameter to ``f = f_0``, with ``f_0`` being given by `namelists.atmosphere.coriolis_frequency` and return a vector of length `nyy`.
+Set the Coriolis parameter to ``f = f_0``, with ``f_0`` being given by `namelists.atmosphere.coriolis_frequency`, and return it as a vector of length `domain.nyy`.
 
 # Arguments
 

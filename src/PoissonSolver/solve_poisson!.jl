@@ -6,10 +6,10 @@ solve_poisson!(
     tolref::AbstractFloat,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)::Tuple{Bool, Integer}
+)::Tuple{Bool, <:Integer}
 ```
 
-Solve the Poisson equation.
+Solve the Poisson equation and return a tuple containing an error flag and the number of iterations.
 
 Given a right-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BicGStab algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\overline{\\rho}} / P`` in advance (the right-hand side has already been scaled at this point), so that the equation
 
@@ -18,8 +18,6 @@ Given a right-hand side and reference tolerance, this method computes the elemen
 ```
 
 is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \\pi = \\left(\\sqrt{\\overline{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
-
-The function returns the error flag and the number of iterations.
 
 # Arguments
 
@@ -47,7 +45,7 @@ function solve_poisson!(
     tolref::AbstractFloat,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)::Tuple{Bool, Integer}
+)::Tuple{Bool, <:Integer}
     (; namelists, domain, grid, poisson) = state
     (; model) = namelists.setting
     (; i0, i1, j0, j1, k0, k1) = domain

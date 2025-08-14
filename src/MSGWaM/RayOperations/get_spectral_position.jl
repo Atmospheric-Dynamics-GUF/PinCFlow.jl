@@ -1,9 +1,12 @@
 """
 ```julia
-get_spectral_position(rays::Rays, indices::NTuple{4, <:Integer})::NTuple{3, <:AbstractFloat}
+get_spectral_position(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
 ```
 
-Return the spectral position of the ray volume specified by `indices` as tuple `(k, l, m)`.
+Return the spectral position of the ray volume specified by `indices` as the tuple `(kr, lr, mr)`.
 
 # Arguments
 

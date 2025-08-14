@@ -1,3 +1,4 @@
+using PythonCall
 using PythonPlot
 
 """
@@ -7,7 +8,7 @@ symmetric_contours(
     maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::String = "seismic",
-)::Tuple{LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
+)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
 ```
 
 Compute symmetric contours levels and return them and a correspondingly cropped colormap.
@@ -29,7 +30,7 @@ function symmetric_contours(
     maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::String = "seismic",
-)::Tuple{LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
+)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
 
     # Compute contour levels.
     if minimum == -maximum ||
