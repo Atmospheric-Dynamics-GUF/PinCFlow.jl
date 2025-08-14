@@ -21,7 +21,7 @@ makedocs(;
             "WKB mountain-wave simulation" => "examples/wkb_mountain_wave_simulation.md",
         ],
         "Theory" => [
-            "Continuous equations" => "theory/continuous_equations.md",
+            "Physics" => "theory/physics.md",
             "Discretization" => "theory/discretization.md",
         ],
         "Reference" => [
