@@ -12,7 +12,7 @@ end
 
 # Generate documentation.
 makedocs(;
-    sitename = "PinCFlow Documentation",
+    sitename = "PinCFlow",
     remotes = nothing,
     pages = [
         "Home" => "index.md",
