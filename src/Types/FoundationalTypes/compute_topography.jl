@@ -98,10 +98,12 @@ compute_topography(
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
     testcase::AbstractTestCase,
-)
+)::Tuple{AbstractMatrix{<:AbstractFloat}, AbstractArray{<:AbstractFloat, 3}, AbstractArray{<:AbstractFloat, 3}, AbstractArray{<:AbstractFloat, 3}}:
 ```
 
 Compute and return the topography for non-WKB-mountain-wave test cases.
+
+ Returns a tuple containing the resolved orography, the unresolved orography, the zonal wavenumbers of the unresolved orography, and the meridional wavenumbers of the unresolved orography.
 
 The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
 
@@ -217,16 +219,6 @@ Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the propert
 
   - `testcase`: Test case on which the current simulation is based.
 
-# Returns
-
-  - `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
-
-  - `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography.
-
-  - `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum.
-
-  - `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum.
-
 # See also
 
   - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
@@ -242,7 +234,12 @@ function compute_topography(
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
     testcase::WKBMountainWave,
-)
+)::Tuple{
+    AbstractMatrix{<:AbstractFloat},
+    AbstractArray{<:AbstractFloat, 3},
+    AbstractArray{<:AbstractFloat, 3},
+    AbstractArray{<:AbstractFloat, 3},
+}
     (; lx_dim, ly_dim) = namelists.domain
     (; testcase) = namelists.setting
     (; nwm) = namelists.wkb
@@ -400,7 +397,12 @@ function compute_topography(
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
     testcase::AbstractTestCase,
-)
+)::Tuple{
+    AbstractMatrix{<:AbstractFloat},
+    AbstractArray{<:AbstractFloat, 3},
+    AbstractArray{<:AbstractFloat, 3},
+    AbstractArray{<:AbstractFloat, 3},
+}
     (; lx_dim, ly_dim) = namelists.domain
     (; testcase) = namelists.setting
     (;

@@ -1,6 +1,6 @@
 """
 ```julia
-interpolate_stratification(zlc::AbstractFloat, state::State, strtype::N2)
+interpolate_stratification(zlc::AbstractFloat, state::State, strtype::N2)::AbstractFloat
 ```
 
 Interpolate the squared buoyancy frequency (``N^2``) to `zlc`.
@@ -8,7 +8,7 @@ Interpolate the squared buoyancy frequency (``N^2``) to `zlc`.
 This method first determines the two points in ``z`` that are closest to `zlc`. As horizontal position, it uses `(i0, j0)`, which is arbitrary, since ``N^2`` has no horizontal dependence. Subsequently, simple linear interpolation is performed to find ``N^2`` at `zlc`.
 
 ```julia
-interpolate_stratification(zlc::AbstractFloat, state::State, strtype::DN2DZ)
+interpolate_stratification(zlc::AbstractFloat, state::State, strtype::DN2DZ)::AbstractFloat
 ```
 
 Interpolate the vertical derivative of the squared buoyancy frequency (``\\partial N^2 / \\partial z``) to `zlc`.
@@ -23,10 +23,6 @@ This method first determines the two points in ``z + J \\Delta \\widehat{z} / 2`
 
   - `strtype`: Stratification quantity to interpolate.
 
-# Returns
-
-  - `::AbstractFloat`: Interpolated stratification quantity at the location of interest.
-
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
@@ -39,7 +35,7 @@ function interpolate_stratification(
     zlc::AbstractFloat,
     state::State,
     strtype::N2,
-)
+)::AbstractFloat
     (; domain, grid) = state
     (; bvsstrattfc) = state.atmosphere
     (; i0, j0) = domain
@@ -79,7 +75,7 @@ function interpolate_stratification(
     zlc::AbstractFloat,
     state::State,
     strtype::DN2DZ,
-)
+)::AbstractFloat
     (; domain, grid) = state
     (; bvsstrattfc) = state.atmosphere
     (; i0, j0) = domain

@@ -4,7 +4,7 @@ compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
-)
+)::AbstractFloat
 ```
 
 Compute the volume force in the equation specified by `variable`.
@@ -15,7 +15,7 @@ compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
     testcase::AbstractTestCase,
-)
+)::AbstractFloat
 ```
 
 Return ``0`` as the volume force in non-WKB test cases.
@@ -26,7 +26,7 @@ compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::U,
     testcase::AbstractWKBTestCase,
-)
+)::AbstractFloat
 ```
 
 Return the gravity-wave drag on the zonal momentum, interpolated to ``\\left(i + 1 / 2, j, k\\right)``.
@@ -37,7 +37,7 @@ compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::V,
     testcase::AbstractWKBTestCase,
-)
+)::AbstractFloat
 ```
 
 Return the gravity-wave drag on the meridional momentum, interpolated to ``\\left(i, j + 1 / 2, k\\right)``.
@@ -48,7 +48,7 @@ compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::W,
     testcase::AbstractWKBTestCase,
-)
+)::AbstractFloat
 ```
 
 Return the gravity-wave drag on the transformed vertical momentum, interpolated to ``\\left(i, j, k + 1 / 2\\right)``, as given by
@@ -63,7 +63,7 @@ compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::P,
     testcase::AbstractWKBTestCase,
-)
+)::AbstractFloat
 ```
 
 Return the gravity-wave impact on the mass-weighted potential temperature (diabatic heating).
@@ -77,10 +77,6 @@ Return the gravity-wave impact on the mass-weighted potential temperature (diaba
   - `variable`: Variable (equation) of choice.
 
   - `testcase`: Test case on which the current simulation is based.
-
-# Returns
-
-  - `::AbstractFloat`: Volume force in the specified equation.
 """
 function compute_volume_force end
 
@@ -88,7 +84,7 @@ function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
-)
+)::AbstractFloat
     (; testcase) = state.namelists.setting
 
     return compute_volume_force(state, indices, variable, testcase)
@@ -99,7 +95,7 @@ function compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
     testcase::AbstractTestCase,
-)
+)::AbstractFloat
     return 0.0
 end
 
@@ -108,7 +104,7 @@ function compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::U,
     testcase::AbstractWKBTestCase,
-)
+)::AbstractFloat
     (; dudt) = state.wkb.tendencies
     (ix, jy, kz) = indices
 
@@ -120,7 +116,7 @@ function compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::V,
     testcase::AbstractWKBTestCase,
-)
+)::AbstractFloat
     (; dvdt) = state.wkb.tendencies
     (ix, jy, kz) = indices
 
@@ -132,7 +128,7 @@ function compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::W,
     testcase::AbstractWKBTestCase,
-)
+)::AbstractFloat
     (; jac, met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
     (ix, jy, kz) = indices
@@ -154,7 +150,7 @@ function compute_volume_force(
     indices::NTuple{3, <:Integer},
     variable::P,
     testcase::AbstractWKBTestCase,
-)
+)::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
     (ix, jy, kz) = indices
 

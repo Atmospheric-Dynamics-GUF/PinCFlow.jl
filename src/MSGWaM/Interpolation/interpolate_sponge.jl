@@ -5,7 +5,7 @@ interpolate_sponge(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-)
+)::AbstractFloat
 ```
 
 Interpolate the Rayleigh-damping coefficient of the unified sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
@@ -22,10 +22,6 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 
   - `state`: Model state.
 
-# Returns
-
-  - `::AbstractFloat`: Interpolated ``\\alpha_\\mathrm{R}`` at the location of interest.
-
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
@@ -39,7 +35,7 @@ function interpolate_sponge(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; io, jo, i0, j0) = domain

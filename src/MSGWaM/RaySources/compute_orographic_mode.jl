@@ -10,7 +10,7 @@ compute_orographic_mode(
     bvsavg::AbstractFloat,
     fc::AbstractFloat,
     branch::Integer,
-)
+)::NTuple{6, <:AbstractFloat}
 ```
 
 Compute the properties of an orographic-gravity-wave mode.
@@ -67,18 +67,6 @@ If the squared intrinsic frequency is smaller than the squared Coriolis paramete
   - `fc`: Coriolis parameter.
 
   - `branch`: Frequency branch.
-
-# Returns
-
-  - `::AbstractFloat`: Intrinsic frequency.
-
-  - `::AbstractFloat`: Zonal wavenumber.
-
-  - `::AbstractFloat`: Meridional wavenumber.
-
-  - `::AbstractFloat`: Vertical wavenumber.
-
-  - `::AbstractFloat`: Wave-action density.
 """
 function compute_orographic_mode end
 
@@ -92,7 +80,7 @@ function compute_orographic_mode(
     bvsavg::AbstractFloat,
     fc::AbstractFloat,
     branch::Integer,
-)
+)::NTuple{6, <:AbstractFloat}
 
     # Compute horizontal wavenumber.
     wnh = sqrt(wnk^2 + wnl^2)

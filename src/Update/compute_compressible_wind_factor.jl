@@ -50,7 +50,7 @@ compute_compressible_wind_factor(
     indices::NTuple{3, <:Integer},
     variable::W,
     model::Compressible,
-)
+)::AbstractFloat
 ```
 
 Return ``\\left(J P\\right)_{k + 1 / 2}`` as the factor by which the transformed vertical wind should be multiplied in compressible mode.
@@ -70,10 +70,6 @@ The interpolation is given by
   - `variable`: Variable for which the factor is needed.
 
   - `model`: Dynamic equations.
-
-# Returns
-
-  - `::AbstractFloat`: Wind factor.
 """
 function compute_compressible_wind_factor end
 
@@ -81,7 +77,7 @@ function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
-)
+)::AbstractFloat
     (; model) = state.namelists.setting
     return compute_compressible_wind_factor(state, indices, variable, model)
 end
@@ -91,7 +87,7 @@ function compute_compressible_wind_factor(
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
     model::AbstractModel,
-)
+)::AbstractFloat
     return 1.0
 end
 
@@ -100,7 +96,7 @@ function compute_compressible_wind_factor(
     indices::NTuple{3, <:Integer},
     variable::U,
     model::Compressible,
-)
+)::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices
@@ -115,7 +111,7 @@ function compute_compressible_wind_factor(
     indices::NTuple{3, <:Integer},
     variable::V,
     model::Compressible,
-)
+)::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices
@@ -130,7 +126,7 @@ function compute_compressible_wind_factor(
     indices::NTuple{3, <:Integer},
     variable::W,
     model::Compressible,
-)
+)::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices

@@ -8,7 +8,7 @@ compute_stress_tensor(
     nu::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
 ```
 
 Compute the element `(mu, nu)` of the Cartesian viscous stress tensor at the grid point `(i, j, k)`, divided by the dynamic viscosity.
@@ -48,10 +48,6 @@ where
 
   - `grid`: Collection of parameters and fields that describe the grid.
 
-# Returns
-
-  - `::AbstractFloat`: Element `(mu, nu)` of the Cartesian stress tensor at `(i, j, k)`.
-
 # See also
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
@@ -66,7 +62,7 @@ function compute_stress_tensor(
     nu::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
     (; u, v, w) = predictands
     (; dx, dy, dz, jac, met) = grid
 

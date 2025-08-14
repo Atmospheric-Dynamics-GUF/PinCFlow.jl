@@ -25,7 +25,7 @@ interpolate(
     xl::AbstractFloat = NaN,
     xr::AbstractFloat = NaN,
     xlc::AbstractFloat = NaN,
-)
+)::AbstractFloat
 ```
 
 Perform trilinear interpolation to `(xlc, ylc, zlc)`, with values from eight surrounding grid points (two zonal positions, two meridional positions and eight vertical positions).
@@ -126,10 +126,6 @@ Due to their large number, the positions and values are given as keyword argumen
   - `xr`: Zonal coordinate of the points to the right.
 
   - `xlc`: Zonal position of interest.
-
-# Returns
-
-  - `::AbstractFloat`: Interpolated value at the location of interest.
 """
 function interpolate end
 
@@ -158,7 +154,7 @@ function interpolate(
     xl::AbstractFloat = NaN,
     xr::AbstractFloat = NaN,
     xlc::AbstractFloat = NaN,
-)
+)::AbstractFloat
     (; sizex, sizey) = namelists.domain
 
     # Interpolate in x.
