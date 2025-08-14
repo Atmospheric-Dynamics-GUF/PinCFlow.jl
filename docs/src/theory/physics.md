@@ -292,7 +292,7 @@ $$0 = \boldsymbol{u} \cdot \boldsymbol{n} = - u \frac{\partial h}{\partial x} - 
 
 one obtains
 
-$$\mathcal{N} = \frac{\overline{\rho}}{2} \sum\limits_\alpha \frac{\widehat{\omega}_\alpha \left|\boldsymbol{k}\right|^2}{k_\alpha^2 + l_\alpha^2} \left|h_{\mathrm{w}, \alpha}\right|^2 \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right) \qquad \mathrm{at} \quad z = h_\mathrm{b}.$$
+$$\mathcal{N} = \frac{\overline{\rho}}{2} \sum\limits_\alpha \frac{\widehat{\omega}_\alpha \left|\boldsymbol{k}_\alpha\right|^2}{k_\alpha^2 + l_\alpha^2} \left|h_{\mathrm{w}, \alpha}\right|^2 \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right) \qquad \mathrm{at} \quad z = h_\mathrm{b}.$$
 
 The vertical wavenumber at the source is
 
