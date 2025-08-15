@@ -440,21 +440,48 @@ function update!(
     (; wold) = state.variables.backups
 
     for k in k0:k1, j in j0:j1, i in i0:i1
+        rhoc = rho[i, j, k] + rhostrattfc[i, j, k]
+        rhoedgeu =
+            (
+                jac[i, j, k + 1] * rho[i, j, k] +
+                jac[i, j, k] * rho[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        rhoedgeu +=
+            (
+                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
+                jac[i, j, k] * rhostrattfc[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        rhoedged =
+            (
+                jac[i, j, k - 1] * rho[i, j, k] +
+                jac[i, j, k] * rho[i, j, k - 1]
+            ) / (jac[i, j, k] + jac[i, j, k - 1])
+        rhoedged +=
+            (
+                jac[i, j, k - 1] * rhostrattfc[i, j, k] +
+                jac[i, j, k] * rhostrattfc[i, j, k - 1]
+            ) / (jac[i, j, k] + jac[i, j, k - 1])
+
         jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
         jpedged = compute_compressible_wind_factor(state, (i, j, k - 1), W())
         w = 0.5 * (wold[i, j, k] / jpedgeu + wold[i, j, k - 1] / jpedged)
 
         lower_gradient =
             compute_pressure_gradient(state, pip, (i, j, k - 1), W())
+        lower_force = compute_volume_force(state, (i, j, k - 1), W())
         upper_gradient = compute_pressure_gradient(state, pip, (i, j, k), W())
+        upper_force = compute_volume_force(state, (i, j, k), W())
 
         if ko + k == k0 && zboundaries == SolidWallBoundaries()
             lower_gradient = 0.0
+            lower_force = 0.0
         elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             upper_gradient = 0.0
+            upper_force = 0.0
         end
 
         gradient = 0.5 * (lower_gradient + upper_gradient)
+        force = 0.5 * (lower_force / rhoedged + upper_force / rhoedgeu) * rhoc
 
         factor = 1.0
 
@@ -474,7 +501,7 @@ function update!(
                 bvsstrattfc[i, j, k] *
                 dt *
                 jac[i, j, k] *
-                (w - dt * gradient) +
+                (w + dt * (-gradient + force / rhoc)) +
                 factor * b +
                 fb *
                 bvsstrattfc[i, j, k] *

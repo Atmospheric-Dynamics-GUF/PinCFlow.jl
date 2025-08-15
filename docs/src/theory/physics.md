@@ -112,11 +112,11 @@ In Boussinesq mode, the continuity equation is removed and the density fluctuati
 
 In compressible mode, the identity $P = \overline{\rho} / \overline{\chi}$ no longer holds, i.e. the mass-weighted potential temperature has a spatiotemporal dependence. The divergence constraint is thus replaced with the prognostic equation
 
-$$\frac{\partial P}{\partial t} + \frac{1}{J} \left(\frac{\partial J P u}{\partial \widehat{x}} + \frac{\partial J P v}{\partial \widehat{y}} + \frac{\partial J P \widehat{w}}{\partial \widehat{z}}\right) + F^P + \alpha_\mathrm{R} P \left(1 - \frac{\overline{\rho}}{\rho}\right) = 0,$$
+$$\frac{\partial P}{\partial t} + \frac{1}{J} \left(\frac{\partial J P u}{\partial \widehat{x}} + \frac{\partial J P v}{\partial \widehat{y}} + \frac{\partial J P \widehat{w}}{\partial \widehat{z}}\right) - F^P + \alpha_\mathrm{R} P \left(1 - \frac{\overline{\rho}}{\rho}\right) = 0,$$
 
 where the volume force $F^P$ represents a diabatic heating (e.g. due to unresolved gravity waves) that is not allowed in pseudo-incompressible mode. This term must also be represented in the auxiliary equation, which now reads
 
-$$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) + \overline{\chi} F^P + \alpha_\mathrm{R} \rho' = \frac{N^2}{g} \rho w.$$
+$$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) - \overline{\chi} F^P + \alpha_\mathrm{R} \rho' = \frac{N^2}{g} \rho w.$$
 
 Note that in addition to the new volume-force term on the left-hand side, the background density on the right-hand side has been replaced with the full density. This is due to the fact that the squared buoyancy frequency now has the slightly different definition $N^2 = - \left(g / \chi\right) \left(\mathrm{d} \overline{\chi} / \mathrm{d} z\right)$. Moreover, since the background density is equal to $\overline{\chi} P$, it now also has a spatiotemporal dependence ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
 
