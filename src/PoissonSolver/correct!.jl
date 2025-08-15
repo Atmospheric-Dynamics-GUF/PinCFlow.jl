@@ -73,6 +73,8 @@ Update the Exner-pressure fluctuations with the differences obtained from the so
 
 # See also
 
+  - [`PinCFlow.Update.compute_pressure_gradient`](@ref)
+
   - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
 
   - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
@@ -98,88 +100,34 @@ function correct!(
     variable::U,
     rayleigh_factor::AbstractFloat,
 )
-    (; nbz) = state.namelists.domain
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
-    (; kappainv, mainv2) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dz, met) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
     (; corx) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, u) = state.variables.predictands
+    (; u) = state.variables.predictands
 
     kz0 = k0
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
     for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
-        facu = 1.0
+        factor = 1.0
 
         if spongelayer && sponge_uv
-            facu +=
+            factor +=
                 dt *
                 0.5 *
                 (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) *
                 rayleigh_factor
         end
 
-        # Compute values at cell edges.
-        rhou =
-            0.5 * (
-                rho[i, j, k] +
-                rho[i + 1, j, k] +
-                rhostrattfc[i, j, k] +
-                rhostrattfc[i + 1, j, k]
-            )
-        pedger = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
-        met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
+        gradient = compute_pressure_gradient(state, dpip, (i, j, k), U())
 
-        # Compute pressure difference gradient component.
-        if ko + k == k0 && zboundaries == SolidWallBoundaries()
-            dpuuedger = 0.5 * (dpip[i, j, k + 2] + dpip[i + 1, j, k + 2])
-            dpuedger = 0.5 * (dpip[i, j, k + 1] + dpip[i + 1, j, k + 1])
-            dpedger = 0.5 * (dpip[i, j, k] + dpip[i + 1, j, k])
-            pgradx =
-                kappainv * mainv2 / rhou *
-                pedger *
-                (
-                    (dpip[i + 1, j, k] - dpip[i, j, k]) / dx +
-                    met13edger *
-                    (-dpuuedger + 4.0 * dpuedger - 3.0 * dpedger) *
-                    0.5 / dz
-                )
-        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
-            dpddedger = 0.5 * (dpip[i, j, k - 2] + dpip[i + 1, j, k - 2])
-            dpdedger = 0.5 * (dpip[i, j, k - 1] + dpip[i + 1, j, k - 1])
-            dpedger = 0.5 * (dpip[i, j, k] + dpip[i + 1, j, k])
-            pgradx =
-                kappainv * mainv2 / rhou *
-                pedger *
-                (
-                    (dpip[i + 1, j, k] - dpip[i, j, k]) / dx +
-                    met13edger *
-                    (dpddedger - 4.0 * dpdedger + 3.0 * dpedger) *
-                    0.5 / dz
-                )
-        else
-            dpuedger = 0.5 * (dpip[i, j, k + 1] + dpip[i + 1, j, k + 1])
-            dpdedger = 0.5 * (dpip[i, j, k - 1] + dpip[i + 1, j, k - 1])
-            pgradx =
-                kappainv * mainv2 / rhou *
-                pedger *
-                (
-                    (dpip[i + 1, j, k] - dpip[i, j, k]) / dx +
-                    met13edger * (dpuedger - dpdedger) * 0.5 / dz
-                )
-        end
+        corx[i, j, k] = dt / factor * gradient
 
-        # Compute velocity correction.
-        corx[i, j, k] = dt / facu * pgradx
-        jpr = compute_compressible_wind_factor(state, (i, j, k), U())
-        du = -jpr * corx[i, j, k]
+        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
 
-        u[i, j, k] += du
+        u[i, j, k] -= jpedger * corx[i, j, k]
     end
 
     return
@@ -191,88 +139,34 @@ function correct!(
     variable::V,
     rayleigh_factor::AbstractFloat,
 )
-    (; nbz) = state.namelists.domain
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
-    (; kappainv, mainv2) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dy, dz, met) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
     (; cory) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, v) = state.variables.predictands
+    (; v) = state.variables.predictands
 
     kz0 = k0
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
     for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
-        facv = 1.0
+        factor = 1.0
 
         if spongelayer && sponge_uv
-            facv +=
+            factor +=
                 dt *
                 0.5 *
                 (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) *
                 rayleigh_factor
         end
 
-        # Compute values at cell edges.
-        rhov =
-            0.5 * (
-                rho[i, j, k] +
-                rho[i, j + 1, k] +
-                rhostrattfc[i, j, k] +
-                rhostrattfc[i, j + 1, k]
-            )
-        pedgef = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
-        met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
+        gradient = compute_pressure_gradient(state, dpip, (i, j, k), V())
 
-        # Compute pressure difference gradient component.
-        if ko + k == k0 && zboundaries == SolidWallBoundaries()
-            dpuuedgef = 0.5 * (dpip[i, j, k + 2] + dpip[i, j + 1, k + 2])
-            dpuedgef = 0.5 * (dpip[i, j, k + 1] + dpip[i, j + 1, k + 1])
-            dpedgef = 0.5 * (dpip[i, j, k] + dpip[i, j + 1, k])
-            pgrady =
-                kappainv * mainv2 / rhov *
-                pedgef *
-                (
-                    (dpip[i, j + 1, k] - dpip[i, j, k]) / dy +
-                    met23edgef *
-                    (-dpuuedgef + 4.0 * dpuedgef - 3.0 * dpedgef) *
-                    0.5 / dz
-                )
-        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
-            dpddedgef = 0.5 * (dpip[i, j, k - 2] + dpip[i, j + 1, k - 2])
-            dpdedgef = 0.5 * (dpip[i, j, k - 1] + dpip[i, j + 1, k - 1])
-            dpedgef = 0.5 * (dpip[i, j, k] + dpip[i, j + 1, k])
-            pgrady =
-                kappainv * mainv2 / rhov *
-                pedgef *
-                (
-                    (dpip[i, j + 1, k] - dpip[i, j, k]) / dy +
-                    met23edgef *
-                    (dpddedgef - 4.0 * dpdedgef + 3.0 * dpedgef) *
-                    0.5 / dz
-                )
-        else
-            dpuedgef = 0.5 * (dpip[i, j, k + 1] + dpip[i, j + 1, k + 1])
-            dpdedgef = 0.5 * (dpip[i, j, k - 1] + dpip[i, j + 1, k - 1])
-            pgrady =
-                kappainv * mainv2 / rhov *
-                pedgef *
-                (
-                    (dpip[i, j + 1, k] - dpip[i, j, k]) / dy +
-                    met23edgef * (dpuedgef - dpdedgef) * 0.5 / dz
-                )
-        end
+        cory[i, j, k] = dt / factor * gradient
 
-        # Compute velocity correction.
-        cory[i, j, k] = dt / facv * pgrady
-        jpf = compute_compressible_wind_factor(state, (i, j, k), V())
-        dv = -jpf * cory[i, j, k]
+        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
 
-        v[i, j, k] += dv
+        v[i, j, k] -= jpedgef * cory[i, j, k]
     end
 
     return
@@ -286,14 +180,13 @@ function correct!(
 )
     (; spongelayer) = state.namelists.sponge
     (; zboundaries) = state.namelists.setting
-    (; kappainv, mainv2) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac, met) = state.grid
-    (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
+    (; jac, met) = state.grid
+    (; bvsstrattfc) = state.atmosphere
     (; kr_sp_w_tfc) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, w) = state.variables.predictands
+    (; w) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
         error("Error in correct!: Unknown zboundaries!")
@@ -303,93 +196,34 @@ function correct!(
     kz1 = ko + nzz == sizezz ? k1 - 1 : k1
 
     for k in kz0:kz1, j in j0:j1, i in i0:i1
-        facw = 1.0
+        factor = 1.0
 
         if spongelayer
-            facw +=
+            factor +=
                 dt * (
                     jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
                     jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
         end
 
-        # Compute values at cell edges.
-        rhostratedgeu =
-            (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        rhoedge =
-            (
-                jac[i, j, k + 1] * rho[i, j, k] +
-                jac[i, j, k] * rho[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1]) + rhostratedgeu
-        pedgeu =
-            (
-                jac[i, j, k + 1] * pstrattfc[i, j, k] +
-                jac[i, j, k] * pstrattfc[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        bvsstw =
+        bvsstratedgeu =
             (
                 jac[i, j, k + 1] * bvsstrattfc[i, j, k] +
                 jac[i, j, k] * bvsstrattfc[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met13edgeu =
-            (
-                jac[i, j, k + 1] * met[i, j, k, 1, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 1, 3]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met23edgeu =
-            (
-                jac[i, j, k + 1] * met[i, j, k, 2, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 2, 3]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met33edgeu =
-            (
-                jac[i, j, k + 1] * met[i, j, k, 3, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 3, 3]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        dpredgeu =
-            (
-                jac[i + 1, j, k + 1] * dpip[i + 1, j, k] +
-                jac[i + 1, j, k] * dpip[i + 1, j, k + 1]
-            ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-        dpledgeu =
-            (
-                jac[i - 1, j, k + 1] * dpip[i - 1, j, k] +
-                jac[i - 1, j, k] * dpip[i - 1, j, k + 1]
-            ) / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
-        dpfedgeu =
-            (
-                jac[i, j + 1, k + 1] * dpip[i, j + 1, k] +
-                jac[i, j + 1, k] * dpip[i, j + 1, k + 1]
-            ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-        dpbedgeu =
-            (
-                jac[i, j - 1, k + 1] * dpip[i, j - 1, k] +
-                jac[i, j - 1, k] * dpip[i, j - 1, k + 1]
-            ) / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
 
-        # Compute pressure difference gradient component.
-        pgradz =
-            kappainv * mainv2 / rhoedge *
-            pedgeu *
-            (
-                met13edgeu * (dpredgeu - dpledgeu) * 0.5 / dx +
-                met23edgeu * (dpfedgeu - dpbedgeu) * 0.5 / dy +
-                met33edgeu * (dpip[i, j, k + 1] - dpip[i, j, k]) / dz
-            )
+        gradient = compute_pressure_gradient(state, dpip, (i, j, k), W())
 
-        # Compute velocity correction.
-        jpu = compute_compressible_wind_factor(state, (i, j, k), W())
+        jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
         fw = compute_compressible_buoyancy_factor(state, (i, j, k), W())
-        dw =
-            -dt / (facw + fw * bvsstw * dt^2.0) * jpu * pgradz -
-            1.0 / (facw + fw * bvsstw * dt^2.0) *
+
+        w[i, j, k] +=
+            -dt / (factor + fw * bvsstratedgeu * dt^2.0) * jpedgeu * gradient -
+            1.0 / (factor + fw * bvsstratedgeu * dt^2.0) *
             fw *
-            bvsstw *
+            bvsstratedgeu *
             dt^2.0 *
-            jpu *
+            jpedgeu *
             0.5 *
             (
                 jac[i, j, k + 1] * (
@@ -403,8 +237,6 @@ function correct!(
                     (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
                 )
             ) / (jac[i, j, k] + jac[i, j, k + 1])
-
-        w[i, j, k] += dw
     end
 
     return
@@ -419,154 +251,43 @@ function correct!(
     (; nbz) = state.namelists.domain
     (; spongelayer) = state.namelists.sponge
     (; zboundaries) = state.namelists.setting
-    (; kappainv, mainv2, g_ndim) = state.constants
+    (; g_ndim) = state.constants
     (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac, met) = state.grid
-    (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
+    (; jac, met) = state.grid
+    (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; kr_sp_w_tfc) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.tendencies
     (; rho, rhop) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
-        facw = 1.0
+        factor = 1.0
 
         if spongelayer
-            facw += dt * kr_sp_w_tfc[i, j, k] * rayleigh_factor
+            factor += dt * kr_sp_w_tfc[i, j, k] * rayleigh_factor
         end
 
-        # Compute P coefficients.
-        pedgeu =
-            (
-                jac[i, j, k + 1] * pstrattfc[i, j, k] +
-                jac[i, j, k] * pstrattfc[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        pedged =
-            (
-                jac[i, j, k - 1] * pstrattfc[i, j, k] +
-                jac[i, j, k] * pstrattfc[i, j, k - 1]
-            ) / (jac[i, j, k] + jac[i, j, k - 1])
+        lower_gradient =
+            compute_pressure_gradient(state, dpip, (i, j, k - 1), W())
+        upper_gradient = compute_pressure_gradient(state, dpip, (i, j, k), W())
 
-        # Compute density coefficients.
-        rhow0 =
-            (
-                jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
-                jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        rhowm =
-            (
-                jac[i, j, k - 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
-                jac[i, j, k] * (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1])
-            ) / (jac[i, j, k] + jac[i, j, k - 1])
-
-        # Interpolate metric tensor elements.
-        met13edgeu =
-            (
-                jac[i, j, k + 1] * met[i, j, k, 1, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 1, 3]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met13edged =
-            (
-                jac[i, j, k - 1] * met[i, j, k, 1, 3] +
-                jac[i, j, k] * met[i, j, k - 1, 1, 3]
-            ) / (jac[i, j, k] + jac[i, j, k - 1])
-        met23edgeu =
-            (
-                jac[i, j, k + 1] * met[i, j, k, 2, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 2, 3]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met23edged =
-            (
-                jac[i, j, k - 1] * met[i, j, k, 2, 3] +
-                jac[i, j, k] * met[i, j, k - 1, 2, 3]
-            ) / (jac[i, j, k] + jac[i, j, k - 1])
-        met33edgeu =
-            (
-                jac[i, j, k + 1] * met[i, j, k, 3, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 3, 3]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met33edged =
-            (
-                jac[i, j, k - 1] * met[i, j, k, 3, 3] +
-                jac[i, j, k] * met[i, j, k - 1, 3, 3]
-            ) / (jac[i, j, k] + jac[i, j, k - 1])
-
-        # Interpolate pressure differences.
-        dpredgeu =
-            (
-                jac[i + 1, j, k + 1] * dpip[i + 1, j, k] +
-                jac[i + 1, j, k] * dpip[i + 1, j, k + 1]
-            ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-        dpledgeu =
-            (
-                jac[i - 1, j, k + 1] * dpip[i - 1, j, k] +
-                jac[i - 1, j, k] * dpip[i - 1, j, k + 1]
-            ) / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
-        dpredged =
-            (
-                jac[i + 1, j, k - 1] * dpip[i + 1, j, k] +
-                jac[i + 1, j, k] * dpip[i + 1, j, k - 1]
-            ) / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
-        dpledged =
-            (
-                jac[i - 1, j, k - 1] * dpip[i - 1, j, k] +
-                jac[i - 1, j, k] * dpip[i - 1, j, k - 1]
-            ) / (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
-        dpfedgeu =
-            (
-                jac[i, j + 1, k + 1] * dpip[i, j + 1, k] +
-                jac[i, j + 1, k] * dpip[i, j + 1, k + 1]
-            ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-        dpbedgeu =
-            (
-                jac[i, j - 1, k + 1] * dpip[i, j - 1, k] +
-                jac[i, j - 1, k] * dpip[i, j - 1, k + 1]
-            ) / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
-        dpfedged =
-            (
-                jac[i, j + 1, k - 1] * dpip[i, j + 1, k] +
-                jac[i, j + 1, k] * dpip[i, j + 1, k - 1]
-            ) / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
-        dpbedged =
-            (
-                jac[i, j - 1, k - 1] * dpip[i, j - 1, k] +
-                jac[i, j - 1, k] * dpip[i, j - 1, k - 1]
-            ) / (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
-
-        # Compute pressure difference gradients.
-        pgradzedgeu =
-            kappainv * mainv2 * pedgeu / rhow0 * (
-                0.5 * met13edgeu * (dpredgeu - dpledgeu) / dx +
-                0.5 * met23edgeu * (dpfedgeu - dpbedgeu) / dy +
-                met33edgeu * (dpip[i, j, k + 1] - dpip[i, j, k]) / dz
-            )
-        pgradzedged =
-            kappainv * mainv2 * pedged / rhowm * (
-                0.5 * met13edged * (dpredged - dpledged) / dx +
-                0.5 * met23edged * (dpfedged - dpbedged) / dy +
-                met33edged * (dpip[i, j, k] - dpip[i, j, k - 1]) / dz
-            )
-
-        # Adjust at boundaries.
         if ko + k == k0 && zboundaries == SolidWallBoundaries()
-            pgradzedged = 0.0
+            lower_gradient = 0.0
         elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
-            pgradzedgeu = 0.0
+            upper_gradient = 0.0
         end
 
-        # Interpolate.
-        pgradz = 0.5 * (pgradzedgeu + pgradzedged)
+        gradient = 0.5 * (lower_gradient + upper_gradient)
 
-        # Compute buoyancy correction.
         fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
         db =
-            -1.0 / (facw + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
-                -fb * bvsstrattfc[i, j, k] * dt^2.0 * jac[i, j, k] * pgradz +
+            -1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
+                -fb * bvsstrattfc[i, j, k] * dt^2.0 * jac[i, j, k] * gradient +
                 fb *
                 bvsstrattfc[i, j, k] *
                 dt *
                 jac[i, j, k] *
-                facw *
+                factor *
                 0.5 *
                 (
                     met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
@@ -585,9 +306,11 @@ function correct!(state::State, variable::PiP)
     (; pip) = state.variables.predictands
     (; dpip) = state.variables.tendencies
 
-    @views pip[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)] .=
-        pip[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)] .+
-        dpip[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)]
+    i = (i0 - 1):(i1 + 1)
+    j = (j0 - 1):(j1 + 1)
+    k = (k0 - 1):(k1 + 1)
+
+    @views pip[i, j, k] .= pip[i, j, k] .+ dpip[i, j, k]
 
     return
 end
