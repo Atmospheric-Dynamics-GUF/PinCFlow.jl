@@ -63,13 +63,13 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
      1. Predictor step:
 
         $$\begin{align*}
-            u^{n + 1 / 2} & = \left(1 + \alpha_\mathrm{R}^{uv, n + 1} \frac{\Delta t}{2}\right)^{- 1} \left(u^\# - \frac{\Delta t c_p}{2} \frac{1}{\rho^\#} \mathcal{P}^{u, n}\right),\\
-            v^{n + 1 / 2} & = \left(1 + \alpha_\mathrm{R}^{uv, n + 1} \frac{\Delta t}{2}\right)^{- 1} \left(v^\# - \frac{\Delta t c_p}{2} \frac{1}{\rho^\#} \mathcal{P}^{v, n}\right),\\
+            u^{n + 1 / 2} & = \left(1 + \alpha_\mathrm{R}^{uv, n + 1} \frac{\Delta t}{2}\right)^{- 1} \left(u^\# - \frac{\Delta t c_p}{2} \frac{P}{\rho^\#} \mathcal{P}^{u, n}\right),\\
+            v^{n + 1 / 2} & = \left(1 + \alpha_\mathrm{R}^{uv, n + 1} \frac{\Delta t}{2}\right)^{- 1} \left(v^\# - \frac{\Delta t c_p}{2} \frac{P}{\rho^\#} \mathcal{P}^{v, n}\right),\\
             \widehat{w}^{n + 1 / 2} & = \left[1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
-            & \quad \times \left[\widehat{w}^\# - \frac{\Delta t c_p}{2} \frac{1}{\rho^\#} \mathcal{P}^{\widehat{w}, n} + \frac{\Delta t}{2} \frac{b'^\#}{J}\right.\\
+            & \quad \times \left[\widehat{w}^\# - \frac{\Delta t c_p}{2} \frac{P}{\rho^\#} \mathcal{P}^{\widehat{w}, n} + \frac{\Delta t}{2} \frac{b'^\#}{J}\right.\\
             & \qquad \quad + \left.\frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{1 3} u^{n + 1 / 2} + G^{2 3} v^{n + 1 / 2}\right)\right],\\
             b'^{n + 1 / 2} & = \left[1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
-            & \quad \times \left[- \frac{\overline{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left(\widehat{w}^n - \frac{\Delta t c_p}{2} \frac{1}{\rho^\#} \mathcal{P}^{\widehat{w}, n}\right) + \left(1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2}\right) b'^n\right.\\
+            & \quad \times \left[- \frac{\overline{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left(\widehat{w}^n - \frac{\Delta t c_p}{2} \frac{P}{\rho^\#} \mathcal{P}^{\widehat{w}, n}\right) + \left(1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2}\right) b'^n\right.\\
             & \qquad \quad + \left.\frac{\overline{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left(1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2}\right) \left(G^{1 3} u^{n + 1 / 2} + G^{2 3} v^{n + 1 / 2}\right)\right]
         \end{align*}$$
 
@@ -79,7 +79,7 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
             & \frac{1}{J} \left(\frac{\partial J P u^{n + 1 / 2}}{\partial \widehat{x}} + \frac{\partial J P v^{n + 1 / 2}}{\partial \widehat{y}} + \frac{\partial J P \widehat{w}^{n + 1 / 2}}{\partial \widehat{z}}\right)\\
             & \quad = \frac{1}{J} \left\{\frac{\partial J P C^{u, \#}}{\partial \widehat{x}} + \frac{\partial J P C^{v, \#}}{\partial \widehat{y}}\right.\\
             & \qquad \qquad + \frac{\partial}{\partial \widehat{z}} \left[\left(1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}\right.\\
-            & \qquad \qquad \qquad \quad \times \left.\left.\frac{\Delta t c_p}{2} \frac{J P}{\rho^\#} \mathcal{D}^{\widehat{w}} + J P \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{13} \mathcal{C}^{u, \#, n + 1} + G^{23} \mathcal{C}^{v, \#, n + 1}\right)\right]\right\}
+            & \qquad \qquad \qquad \quad \times \left.\left.\frac{\Delta t c_p}{2} \frac{J P^2}{\rho^\#} \mathcal{D}^{\widehat{w}} + J P \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{13} \mathcal{C}^{u, \#, n + 1} + G^{23} \mathcal{C}^{v, \#, n + 1}\right)\right]\right\}
         \end{align*}$$
 
      1. Corrector step:
@@ -88,9 +88,9 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
             u^{n + 1 / 2} & \rightarrow u^{n + 1 / 2} - \mathcal{C}^{u, \#, n + 1},\\
             v^{n + 1 / 2} & \rightarrow v^{n + 1 / 2} - \mathcal{C}^{v, \#, n + 1},\\
             \widehat{w}^{n + 1 / 2} & \rightarrow \widehat{w}^{n + 1 / 2} - \left(1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}\\
-            & \quad \times \left[\frac{\Delta t c_p}{2} \frac{1}{\rho^\#} \mathcal{D}^{\widehat{w}} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{1 3} \mathcal{C}^{u, \#, n + 1} + G^{23} \mathcal{C}^{v, \#, n + 1}\right)\right],\\
+            & \quad \times \left[\frac{\Delta t c_p}{2} \frac{P}{\rho^\#} \mathcal{D}^{\widehat{w}} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{1 3} \mathcal{C}^{u, \#, n + 1} + G^{23} \mathcal{C}^{v, \#, n + 1}\right)\right],\\
             b'^{n + 1 / 2} & \rightarrow b'^{n + 1 / 2} - \left(1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}\\
-            & \quad \times \left[- \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} J c_p \frac{1}{\rho^\#} \mathcal{D}^{\widehat{w}}\right.\\
+            & \quad \times \left[- \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} J c_p \frac{P}{\rho^\#} \mathcal{D}^{\widehat{w}}\right.\\
             & \qquad \quad + \left.\frac{\overline{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left(1 + \alpha_\mathrm{R}^{\widehat{w}, n + 1} \frac{\Delta t}{2}\right)  \left(G^{1 3} \mathcal{C}^{u, \#, n + 1} + G^{2 3} \mathcal{C}^{v, \#, n + 1}\right)\right],\\
             \pi'^{n + 1 / 2} & = \pi'^n + \Delta \pi'
         \end{align*}$$
@@ -98,24 +98,24 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
     Therein, the pressure-difference gradient is given by
 
     $$\begin{align*}
-        \mathcal{D}^u & = P \left(\frac{\partial \Delta \pi'}{\partial \widehat{x}} + G^{13} \frac{\partial \Delta \pi'}{\partial \widehat{z}}\right),\\
-        \mathcal{D}^v & = P \left(\frac{\partial \Delta \pi'}{\partial \widehat{y}} + G^{23} \frac{\partial \Delta \pi'}{\partial \widehat{z}}\right),\\
-        \mathcal{D}^{\widehat{w}} & = P \left(G^{13} \frac{\partial \Delta \pi'}{\partial \widehat{x}} + G^{23} \frac{\partial \Delta \pi'}{\partial \widehat{y}} + G^{33} \frac{\partial \Delta \pi'}{\partial \widehat{z}}\right)
+        \mathcal{D}^u & = \left(\frac{\partial \Delta \pi'}{\partial \widehat{x}} + G^{13} \frac{\partial \Delta \pi'}{\partial \widehat{z}}\right),\\
+        \mathcal{D}^v & = \left(\frac{\partial \Delta \pi'}{\partial \widehat{y}} + G^{23} \frac{\partial \Delta \pi'}{\partial \widehat{z}}\right),\\
+        \mathcal{D}^{\widehat{w}} & = \left(G^{13} \frac{\partial \Delta \pi'}{\partial \widehat{x}} + G^{23} \frac{\partial \Delta \pi'}{\partial \widehat{y}} + G^{33} \frac{\partial \Delta \pi'}{\partial \widehat{z}}\right)
     \end{align*}$$
 
     and the horizontal-wind correction terms are
 
     $$\begin{align*}
-        \mathcal{C}^{u, \#, n + 1} & = \left(1 + \alpha_\mathrm{R}^{uv, n + 1} \frac{\Delta t}{2}\right)^{- 1} \Delta t c_p \frac{1}{\rho^\#} \mathcal{D}^u,\\
-        \mathcal{C}^{v, \#, n + 1} & = \left(1 + \alpha_\mathrm{R}^{uv, n + 1} \frac{\Delta t}{2}\right)^{- 1} \Delta t c_p \frac{1}{\rho^\#} \mathcal{D}^v.
+        \mathcal{C}^{u, \#, n + 1} & = \left(1 + \alpha_\mathrm{R}^{uv, n + 1} \frac{\Delta t}{2}\right)^{- 1} \frac{\Delta t c_p}{2} \frac{P}{\rho^\#} \mathcal{D}^u,\\
+        \mathcal{C}^{v, \#, n + 1} & = \left(1 + \alpha_\mathrm{R}^{uv, n + 1} \frac{\Delta t}{2}\right)^{- 1} \frac{\Delta t c_p}{2} \frac{P}{\rho^\#} \mathcal{D}^v.
     \end{align*}$$
 
  1. The right-hand sides (without the Rayleigh-damping terms) are integrated over $\Delta t / 2$ with an explicit Euler step. Therein, the Exner-pressure fluctuations $\pi'^{n + 1 / 2}$ are used to compute the pressure gradient. The exact updates are
 
     $$\begin{align*}
-        u^* & = u^n - \frac{\Delta t c_p}{2} \frac{1}{\rho^n} \mathcal{P}^{u, n + 1 / 2},\\
-        v^* & = v^n - \frac{\Delta t c_p}{2} \frac{1}{\rho^n} \mathcal{P}^{v, n + 1 / 2},\\
-        \widehat{w}^* & = \widehat{w}^n + \frac{\Delta t}{2} \left(- c_p \frac{1}{\rho^n} \mathcal{P}^{\widehat{w}, n + 1 / 2} + \frac{b'^n}{J}\right),\\
+        u^* & = u^n - \frac{\Delta t c_p}{2} \frac{P}{\rho^n} \mathcal{P}^{u, n + 1 / 2},\\
+        v^* & = v^n - \frac{\Delta t c_p}{2} \frac{P}{\rho^n} \mathcal{P}^{v, n + 1 / 2},\\
+        \widehat{w}^* & = \widehat{w}^n + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^n} \mathcal{P}^{\widehat{w}, n + 1 / 2} + \frac{b'^n}{J}\right),\\
         b'^* & = b'^n - \frac{\Delta t}{2} \frac{\overline{\rho}}{\rho^n} N^2 w^n.
     \end{align*}$$
 
