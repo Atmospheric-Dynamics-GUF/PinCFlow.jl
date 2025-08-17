@@ -259,6 +259,31 @@ Another detailed description follows here.
 
  1. The right-hand sides are integrated over over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
+## MSGWaM
+
+At the beginning of each time step, the saturation scheme is applied via integration of the respective term in the phase-space wave-action density equation with an explicit Euler step. i.e.
+
+$$\mathcal{N}^{n + 1} = \mathcal{N}^n - \Delta t \mathcal{S}_s^n.$$
+
+The ray equations are then integrated with the low-storage RK3 scheme, following
+
+$$\begin{align*}
+    q^{x, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial k} + \alpha_\mathrm{RK}^m q^{x, m}, & x^{m + 1} & = x^m + \beta_\mathrm{RK}^m q^{x, m + 1},\\
+    q^{y, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial l}  + \alpha_\mathrm{RK}^m q^{y, m}, & y^{m + 1} & = y^m + \beta_\mathrm{RK}^m q^{y, m + 1},\\
+    q^{z, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial m} + \alpha_\mathrm{RK}^m q^{z, m}, & z^{m + 1} & = z^m + \beta_\mathrm{RK}^m q^{z, m + 1},\\
+    q^{k, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial \widehat{x}} + G^{13} \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + \alpha_\mathrm{RK}^m q^{k, m}, & k^{m + 1} & = k^m + \beta_\mathrm{RK}^m q^{k, m + 1},\\
+    q^{l, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial \widehat{y}} + G^{23} \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + \alpha_\mathrm{RK}^m q^{l, m}, & l^{m + 1} & = l^m + \beta_\mathrm{RK}^m q^{l, m + 1},\\
+    q^{m, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + G^{23} \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + \alpha_\mathrm{RK}^m q^{m, m}, & m^{m + 1} & = m^m + \beta_\mathrm{RK}^m q^{m, m + 1},
+\end{align*}$$
+
+where $\Omega^{m, n} = \Omega \left(\boldsymbol{x}^m, \boldsymbol{k}^m, \widehat{\boldsymbol{u}}^n\right)$. At the end of every RK3 stage, the Rayleigh damping of the unified sponge is applied to the phase-space wave-action density with a fractional implicit Euler step, i.e.
+
+$$\mathcal{N}^{n + 1} \rightarrow \left(1 + 2 \alpha_\mathrm{R} f_\mathrm{RK}^m \Delta t\right)^{- 1} \mathcal{N}$$
+
+Note that the intrinsic frequency does not need to be updated since it depends on the other variables. Finally, the mean-flow tendencies for the current time step are calculated from the updated wave-property fields.
+
 ## Spatial discretization
 
-PinCFlow is a finite-volume code that operates on a three-dimensional staggered C-grid ([Arakawa & Lamb, 1977](https://doi.org/10.1016/b978-0-12-460817-7.50009-4)), with scalar fields defined at the cell centers and velocity components defined at the respective interfaces ([Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)). Advective-flux divergences are discretized with a monotone upwind scheme for conservation laws ([van Leer, 2003](https://doi.org/10.2514/6.2003-3559)) and a monotonized-centered variant limiter (e.g. [Kemm, 2010](https://doi.org/10.1002/fld.2357)). More specifically, the implementation is such that $P \widehat{\boldsymbol{u}}$ is the carrier flux (based on [Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Benacchio et al., 2014](https://doi.org/10.1175/mwr-d-13-00384.1); [Smolarkiewicz et al., 2014](https://doi.org/10.1016/j.jcp.2014.01.031) and [Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)). All other terms are discretized with centered differences (e.g. [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)). A Cartesian version of this is described in [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1) and [Schmid et al. (2021)](https://doi.org/10.1175/MWR-D-21-0126.1). The details of the full implementation in the transformed coordinate system are provided in the reference of the code.
+PinCFlow is a finite-volume code that operates on a three-dimensional staggered C-grid ([Arakawa & Lamb, 1977](https://doi.org/10.1016/b978-0-12-460817-7.50009-4)), with scalar fields defined at the cell centers and velocity components defined at the respective interfaces ([Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)). Advective-flux divergences are discretized with a monotone upwind scheme for conservation laws ([van Leer, 2003](https://doi.org/10.2514/6.2003-3559)) and a monotonized-centered variant limiter (e.g. [Kemm, 2010](https://doi.org/10.1002/fld.2357)). More specifically, the implementation is such that $P \widehat{\boldsymbol{u}}$ is the carrier flux (based on [Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Benacchio et al., 2014](https://doi.org/10.1175/mwr-d-13-00384.1); [Smolarkiewicz et al., 2014](https://doi.org/10.1016/j.jcp.2014.01.031) and [Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)). All other terms are discretized with centered differences (e.g. [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)). A Cartesian version of this is described in [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1) and [Schmid et al. (2021)](https://doi.org/10.1175/MWR-D-21-0126.1).
+
+The spatial discretization of MSGWaM is based on the definition of ray volumes, six-dimensional cubes in phase space. The ray equations are integrated at the center points and surface midpoints, using trilinear interpolation to get mean-flow information at the locations of interest. To prevent uninhibited growing, ray volumes are split when their extent in any dimension of physical space exceeds the corresponding grid spacing. This is counteracted by merging in spectral space to keep the number of ray volumes below a user-defined threshold. In the computation of the mean-flow impact, the contribution of each ray volume is weighted by the fraction of the local grid cell covered by it. A more detailed description of the algorithm can be found in [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
