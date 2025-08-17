@@ -6,19 +6,28 @@ TracerTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 Arrays for the Runge-Kutta updates of tracers.
 
 ```julia
-TracerTendencies(namelists::Namelists, domain::Domain)
+TracerTendencies(
+    namelists::Namelists,
+    domain::Domain,
+)::TracerTendencies
 ```
 
 Construct a `TracerTendencies` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
 
 ```julia
-TracerTendencies(domain::Domain, tracersetup::NoTracer)
+TracerTendencies(
+    domain::Domain,
+    tracersetup::NoTracer,
+)::TracerTendencies
 ```
 
 Construct a `TracerTendencies` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerTendencies(domain::Domain, tracersetup::AbstractTracer)
+TracerTendencies(
+    domain::Domain,
+    tracersetup::AbstractTracer,
+)::TracerTendencies
 ```
 
 Construct a `TracerTendencies` instance with zero-initialized arrays.
@@ -39,18 +48,27 @@ struct TracerTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dchi::A
 end
 
-function TracerTendencies(namelists::Namelists, domain::Domain)
+function TracerTendencies(
+    namelists::Namelists,
+    domain::Domain,
+)::TracerTendencies
     (; tracersetup) = namelists.tracer
     return TracerTendencies(domain, tracersetup)
 end
 
-function TracerTendencies(domain::Domain, tracersetup::NoTracer)
+function TracerTendencies(
+    domain::Domain,
+    tracersetup::NoTracer,
+)::TracerTendencies
     dchi = zeros(0, 0, 0)
 
     return TracerTendencies(dchi)
 end
 
-function TracerTendencies(domain::Domain, tracersetup::AbstractTracer)
+function TracerTendencies(
+    domain::Domain,
+    tracersetup::AbstractTracer,
+)::TracerTendencies
     (; nxx, nyy, nzz) = domain
 
     dchi = zeros(nxx, nyy, nzz)

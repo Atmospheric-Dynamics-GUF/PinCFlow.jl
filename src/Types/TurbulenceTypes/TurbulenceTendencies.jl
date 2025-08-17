@@ -6,19 +6,28 @@ TurbulenceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 Arrays for the Runge-Kutta updates of turbulence variables.
 
 ```julia
-TurbulenceTendencies(namelists::Namelists, domain::Domain)
+TurbulenceTendencies(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceTendencies
 ```
 
 Construct a `TurbulenceTendencies` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-TurbulenceTendencies(domain::Domain, turbulencesetup::NoTurbulence)
+TurbulenceTendencies(
+    domain::Domain,
+    turbulencesetup::NoTurbulence,
+)::TurbulenceTendencies
 ```
 
 Construct a `TurbulenceTendencies` instance with zero-size arrays for configurations without turbulence physics.
 
 ```julia
-TurbulenceTendencies(domain::Domain, turbulencesetup::AbstractTurbulence)
+TurbulenceTendencies(
+    domain::Domain,
+    turbulencesetup::AbstractTurbulence,
+)::TurbulenceTendencies
 ```
 
 Construct a `TurbulenceTendencies` instance with zero-initialized arrays.
@@ -42,13 +51,19 @@ struct TurbulenceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dtte::A
 end
 
-function TurbulenceTendencies(namelists::Namelists, domain::Domain)
+function TurbulenceTendencies(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceTendencies
     (; turbulencesetup) = namelists.turbulence
 
     return TurbulenceTendencies(domain, turbulencesetup)
 end
 
-function TurbulenceTendencies(domain::Domain, turbulencesetup::NoTurbulence)
+function TurbulenceTendencies(
+    domain::Domain,
+    turbulencesetup::NoTurbulence,
+)::TurbulenceTendencies
     dtke = zeros(0, 0, 0)
     dtte = zeros(0, 0, 0)
 
@@ -58,7 +73,7 @@ end
 function TurbulenceTendencies(
     domain::Domain,
     turbulencesetup::AbstractTurbulence,
-)
+)::TurbulenceTendencies
     (; nxx, nyy, nzz) = domain
 
     dtke = zeros(nxx, nyy, nzz)

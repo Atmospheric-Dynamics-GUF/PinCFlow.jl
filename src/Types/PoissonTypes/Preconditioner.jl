@@ -9,7 +9,7 @@ Preconditioner{
 Workspace arrays for applying the preconditioner.
 
 ```julia
-Preconditioner(domain::Domain)
+Preconditioner(domain::Domain)::Preconditioner
 ```
 
 Create a `Preconditioner` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
@@ -41,7 +41,7 @@ struct Preconditioner{
     q_pc_bc::B
 end
 
-function Preconditioner(domain::Domain)
+function Preconditioner(domain::Domain)::Preconditioner
 
     # Get all necessary fields.
     (; nx, ny, nz) = domain

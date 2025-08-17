@@ -19,7 +19,7 @@ Ice(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::Ice
 ```
 
 Construct an `Ice` instance, with array dimensions and initial values set according to the model configuration.
@@ -83,7 +83,7 @@ function Ice(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::Ice
     icepredictands = IcePredictands(
         namelists,
         constants,

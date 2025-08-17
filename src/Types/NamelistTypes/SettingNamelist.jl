@@ -14,7 +14,7 @@ SettingNamelist(;
     model::AbstractModel = PseudoIncompressible(),
     testcase::AbstractTestCase = MountainWave(),
     zboundaries::AbstractBoundaries = SolidWallBoundaries(),
-)
+)::SettingNamelist
 ```
 
 Construct a `SettingNamelist` instance with the given keyword arguments as properties.
@@ -41,6 +41,6 @@ function SettingNamelist(;
     model::AbstractModel = PseudoIncompressible(),
     testcase::AbstractTestCase = MountainWave(),
     zboundaries::AbstractBoundaries = SolidWallBoundaries(),
-)
+)::SettingNamelist
     return SettingNamelist(model, testcase, zboundaries)
 end

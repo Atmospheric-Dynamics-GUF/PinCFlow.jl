@@ -14,7 +14,7 @@ Predictands(
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
-)
+)::Predictands
 ```
 
 Construct a `Predictands` instance with dimensions and initial values depending on whether or not the model is compressible and which test case is initialized, by dispatching to the appropriate method.
@@ -27,7 +27,7 @@ Predictands(
     atmosphere::Atmosphere,
     model::AbstractModel,
     testcase::AbstractTestCase,
-)
+)::Predictands
 ```
 
 Construct a `Predictands` instance in non-compressible modes and non-wave-packet test cases.
@@ -42,7 +42,7 @@ Predictands(
     atmosphere::Atmosphere,
     model::Compressible,
     testcase::AbstractTestCase,
-)
+)::Predictands
 ```
 
 Construct a `Predictands` instance in compressible mode and non-wave-packet test cases.
@@ -58,7 +58,7 @@ Predictands(
     grid::Grid,
     model::PseudoIncompressible,
     testcase::WavePacket,
-)
+)::Predictands
 ```
 
 # Fields
@@ -110,7 +110,7 @@ function Predictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-)
+)::Predictands
     (; model, testcase) = namelists.setting
     return Predictands(
         namelists,
@@ -131,7 +131,7 @@ function Predictands(
     grid::Grid,
     model::AbstractModel,
     testcase::AbstractTestCase,
-)
+)::Predictands
     (; backgroundflow_dim) = namelists.atmosphere
     (; uref) = constants
     (; nxx, nyy, nzz) = domain
@@ -157,7 +157,7 @@ function Predictands(
     grid::Grid,
     model::Compressible,
     testcase::AbstractTestCase,
-)
+)::Predictands
     (; backgroundflow_dim) = namelists.atmosphere
     (; uref) = constants
     (; nxx, nyy, nzz) = domain
@@ -186,7 +186,7 @@ function Predictands(
     grid::Grid,
     model::PseudoIncompressible,
     testcase::WavePacket,
-)
+)::Predictands
     (; backgroundflow_dim, theta0_dim) = namelists.atmosphere
     (; nbx, nby, nbz) = namelists.domain
     (;

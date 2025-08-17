@@ -8,19 +8,25 @@ Arrays for the reconstruction of ice variables.
 The first three dimensions represent physical space, the fourth dimension represents the direction in which the reconstruction was performed and the fifth dimension represents the two cell edges of the reconstruction.
 
 ```julia
-IceReconstructions(namelists::Namelists, domain::Domain)
+IceReconstructions(
+    namelists::Namelists,
+    domain::Domain,
+)::IceReconstructions
 ```
 
 Construct an `IceReconstructions` instance with dimensions depending on the general ice-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-IceReconstructions(domain::Domain, icesetup::NoIce)
+IceReconstructions(domain::Domain, icesetup::NoIce)::IceReconstructions
 ```
 
 Construct an `IceReconstructions` instance with zero-size arrays for configurations without ice physics.
 
 ```julia
-IceReconstructions(domain::Domain, icesetup::AbstractIce)
+IceReconstructions(
+    domain::Domain,
+    icesetup::AbstractIce,
+)::IceReconstructions
 ```
 
 Construct an `IceReconstructions` instance with zero-initialized arrays.
@@ -47,13 +53,16 @@ struct IceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     qvtilde::A
 end
 
-function IceReconstructions(namelists::Namelists, domain::Domain)
+function IceReconstructions(
+    namelists::Namelists,
+    domain::Domain,
+)::IceReconstructions
     (; icesetup) = namelists.ice
 
     return IceReconstructions(domain, icesetup)
 end
 
-function IceReconstructions(domain::Domain, icesetup::NoIce)
+function IceReconstructions(domain::Domain, icesetup::NoIce)::IceReconstructions
     ntilde = zeros(0, 0, 0, 0, 0)
     qtilde = zeros(0, 0, 0, 0, 0)
     qvtilde = zeros(0, 0, 0, 0, 0)
@@ -61,7 +70,10 @@ function IceReconstructions(domain::Domain, icesetup::NoIce)
     return IceReconstructions(ntilde, qtilde, qvtilde)
 end
 
-function IceReconstructions(domain::Domain, icesetup::AbstractIce)
+function IceReconstructions(
+    domain::Domain,
+    icesetup::AbstractIce,
+)::IceReconstructions
     (; nxx, nyy, nzz) = domain
 
     ntilde = zeros(nxx, nyy, nzz, 3, 2)

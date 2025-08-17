@@ -13,7 +13,7 @@ Grid{
 Collection of parameters and fields that describe the grid.
 
 ```julia
-Grid(namelists::Namelists, constants::Constants, domain::Domain)
+Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
 ```
 
 Construct a `Grid` instance, using the specifications in `namelists.grid` and the MPI decomposition described by `domain`.
@@ -156,7 +156,7 @@ struct Grid{
     ztildetfc::E
 end
 
-function Grid(namelists::Namelists, constants::Constants, domain::Domain)
+function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain
     (; testcase) = namelists.setting
     (; stretch_exponent,) = namelists.grid

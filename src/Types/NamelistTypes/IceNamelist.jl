@@ -6,7 +6,7 @@ IceNamelist{A <: AbstractIce}
 Namelist for the inclusion of ice physics.
 
 ```julia
-IceNamelist(; icesetup::AbstractIce = NoIce())
+IceNamelist(; icesetup::AbstractIce = NoIce())::IceNamelist
 ```
 
 Construct an `IceNamelist` instance with the given keyword arguments as properties.
@@ -19,6 +19,6 @@ struct IceNamelist{A <: AbstractIce}
     icesetup::A
 end
 
-function IceNamelist(; icesetup::AbstractIce = NoIce())
+function IceNamelist(; icesetup::AbstractIce = NoIce())::IceNamelist
     return IceNamelist(icesetup)
 end

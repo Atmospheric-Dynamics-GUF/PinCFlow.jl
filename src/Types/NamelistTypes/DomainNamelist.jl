@@ -20,7 +20,7 @@ DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::DomainNamelist
 ```
 
 Construct a `DomainNamelist` instance with the given keyword arguments as properties.
@@ -87,7 +87,7 @@ function DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::DomainNamelist
     return DomainNamelist(
         sizex,
         sizey,

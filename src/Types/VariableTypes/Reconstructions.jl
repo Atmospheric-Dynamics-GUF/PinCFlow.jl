@@ -8,7 +8,7 @@ Arrays for the reconstructions of prognostic variables.
 The first three dimensions represent physical space, the fourth dimension represents the direction in which the reconstruction was performed and the fifth dimension represents the two cell edges of the reconstruction.
 
 ```julia
-Reconstructions(domain::Domain)
+Reconstructions(domain::Domain)::Reconstructions
 ```
 
 Construct a `Reconstructions` instance with zero-initialized arrays.
@@ -37,7 +37,7 @@ struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     wtilde::A
 end
 
-function Reconstructions(domain::Domain)
+function Reconstructions(domain::Domain)::Reconstructions
 
     # Get parameters.
     (; nxx, nyy, nzz) = domain

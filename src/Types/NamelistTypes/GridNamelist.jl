@@ -14,7 +14,7 @@ GridNamelist(;
     width_factor::AbstractFloat = 1.0E+0,
     spectral_modes::Integer = 1,
     stretch_exponent::AbstractFloat = 1.0E+0,
-)
+)::GridNamelist
 ```
 
 Construct a `GridNamelist` instance with the given keyword arguments as properties.
@@ -53,7 +53,7 @@ function GridNamelist(;
     width_factor::AbstractFloat = 1.0E+0,
     spectral_modes::Integer = 1,
     stretch_exponent::AbstractFloat = 1.0E+0,
-)
+)::GridNamelist
     return GridNamelist(
         mountainheight_dim,
         mountainwidth_dim,

@@ -6,7 +6,7 @@ Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 Collection of domain-decomposition and MPI-communication parameters.
 
 ```julia
-Domain(namelists::Namelists)
+Domain(namelists::Namelists)::Domain
 ```
 
 Construct a `Domain` instance from the model parameters in `namelists`.
@@ -140,7 +140,7 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-function Domain(namelists::Namelists)
+function Domain(namelists::Namelists)::Domain
     (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz, base_comm) =
         namelists.domain
     (; zboundaries) = namelists.setting

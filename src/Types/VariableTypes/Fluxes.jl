@@ -11,19 +11,19 @@ Arrays for fluxes needed in the computation of the left-hand sides.
 The first three dimensions represent physical space and the fourth dimension represents the flux direction.
 
 ```julia
-Fluxes(namelists::Namelists, domain::Domain)
+Fluxes(namelists::Namelists, domain::Domain)::Fluxes
 ```
 
 Construct a `Fluxes` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
 
 ```julia
-Fluxes(domain::Domain, model::AbstractModel)
+Fluxes(domain::Domain, model::AbstractModel)::Fluxes
 ```
 
 Construct a `Fluxes` instance in non-compressible modes, with a zero-size array for mass-weighted potential-temperature fluxes.
 
 ```julia
-Fluxes(domain::Domain, model::Compressible)
+Fluxes(domain::Domain, model::Compressible)::Fluxes
 ```
 
 Construct a `Fluxes` instance in compressible mode.
@@ -62,12 +62,12 @@ struct Fluxes{
     phip::B
 end
 
-function Fluxes(namelists::Namelists, domain::Domain)
+function Fluxes(namelists::Namelists, domain::Domain)::Fluxes
     (; model) = namelists.setting
     return Fluxes(domain, model)
 end
 
-function Fluxes(domain::Domain, model::AbstractModel)
+function Fluxes(domain::Domain, model::AbstractModel)::Fluxes
     (; nxx, nyy, nzz) = domain
 
     # Initialize the fluxes.
@@ -78,7 +78,7 @@ function Fluxes(domain::Domain, model::AbstractModel)
     return Fluxes(phirho, phirhop, phiu, phiv, phiw, phip)
 end
 
-function Fluxes(domain::Domain, model::Compressible)
+function Fluxes(domain::Domain, model::Compressible)::Fluxes
     (; nxx, nyy, nzz) = domain
 
     # Initialize the fluxes.

@@ -6,7 +6,7 @@ Constants{A <: AbstractFloat}
 Composite type for natural constants, reference quantities and non-dimensional parameters.
 
 ```julia
-Constants(namelists::Namelists)
+Constants(namelists::Namelists)::Constants
 ```
 
 Create a `Constants` instance.
@@ -105,7 +105,7 @@ struct Constants{A <: AbstractFloat}
     sig::A
 end
 
-function Constants(namelists::Namelists)
+function Constants(namelists::Namelists)::Constants
 
     # Get parameters.
     (; specifyreynolds, reinv, mu_viscous_dim) = namelists.atmosphere

@@ -25,7 +25,7 @@ OutputNamelist(;
     maxtime::AbstractFloat = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
-)
+)::OutputNamelist
 ```
 
 Construct an `OutputNamelist` instance with the given keyword arguments as properties.
@@ -90,7 +90,7 @@ function OutputNamelist(;
     maxtime::AbstractFloat = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
-)
+)::OutputNamelist
     return OutputNamelist(
         output_variables,
         save_ray_volumes,

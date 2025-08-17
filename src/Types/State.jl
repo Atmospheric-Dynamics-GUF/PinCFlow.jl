@@ -22,7 +22,7 @@ Model state container.
 An instance of this composite type holds complete information about the model configuration and simulation state, so that it is sufficient as primary input to most methods. The construction of such an instance is the first operation performed in [`PinCFlow.Integration.integrate`](@ref), since it almost fully initializes the model.
 
 ```julia
-State(namelists::Namelists)
+State(namelists::Namelists)::State
 ```
 
 Construct a `State` instance and thus initialize the model.
@@ -117,7 +117,7 @@ struct State{
     turbulence::M
 end
 
-function State(namelists::Namelists)
+function State(namelists::Namelists)::State
 
     # Initialize everything.
     constants = Constants(namelists)

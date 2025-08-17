@@ -6,7 +6,7 @@ GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 Integrals of ray-volume properties.
 
 ```julia
-GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
+GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::GWIntegrals
 ```
 
 Construct a `GWIntegrals` instance, with arrays sized according to the given dimensions.
@@ -54,6 +54,6 @@ struct GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     e::A
 end
 
-function GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
+function GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::GWIntegrals
     return GWIntegrals([zeros(nxx, nyy, nzz) for i in 1:10]...)
 end

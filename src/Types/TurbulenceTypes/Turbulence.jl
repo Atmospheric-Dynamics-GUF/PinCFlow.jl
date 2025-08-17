@@ -19,7 +19,7 @@ Turbulence(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::Turbulence
 ```
 
 Construct a `Turbulence` instance, with array dimensions and initial values set according to the model configuration.
@@ -83,7 +83,7 @@ function Turbulence(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::Turbulence
     turbulencepredictands = TurbulencePredictands(
         namelists,
         constants,

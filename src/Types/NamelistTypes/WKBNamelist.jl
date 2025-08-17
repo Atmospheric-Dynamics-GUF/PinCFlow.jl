@@ -43,7 +43,7 @@ WKBNamelist(;
     long_threshold::AbstractFloat = 2.5E-1,
     drag_coefficient::AbstractFloat = 1.0E+0,
     nwm::Integer = 1,
-)
+)::WKBNamelist
 ```
 
 Construct a `WKBNamelist` instance with the given keyword arguments as properties.
@@ -177,7 +177,7 @@ function WKBNamelist(;
     long_threshold::AbstractFloat = 2.5E-1,
     drag_coefficient::AbstractFloat = 1.0E+0,
     nwm::Integer = 1,
-)
+)::WKBNamelist
     return WKBNamelist(
         xrmin_dim,
         xrmax_dim,

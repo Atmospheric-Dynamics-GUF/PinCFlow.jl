@@ -14,7 +14,7 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+)::Atmosphere
 ```
 
 Create an `Atmosphere` instance by dispatching to a method specific for the background and dynamic equations set in `namelists`.
@@ -27,7 +27,7 @@ Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::UniformBoussinesq,
-)
+)::Atmosphere
 ```
 
 Create an `Atmosphere` instance with background fields describing a uniform (i.e. neutral) Boussinesq atmosphere.
@@ -53,7 +53,7 @@ Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::StratifiedBoussinesq,
-)
+)::Atmosphere
 ```
 
 Create an `Atmosphere` instance with background fields describing a stratified Boussinesq atmosphere.
@@ -79,7 +79,7 @@ Atmosphere(
     grid::Grid,
     model::AbstractModel,
     background::Isothermal,
-)
+)::Atmosphere
 ```
 
 Create an `Atmosphere` instance with background fields describing an isothermal atmosphere.
@@ -145,7 +145,7 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+)::Atmosphere
     (; model) = namelists.setting
     (; background) = namelists.atmosphere
     return Atmosphere(namelists, constants, domain, grid, model, background)
@@ -158,7 +158,7 @@ function Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::UniformBoussinesq,
-)
+)::Atmosphere
     (; theta0_dim, coriolis_mode) = namelists.atmosphere
     (; thetaref) = constants
     (; nxx, nyy, nzz) = domain
@@ -189,7 +189,7 @@ function Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::StratifiedBoussinesq,
-)
+)::Atmosphere
     (; buoyancy_frequency, theta0_dim, coriolis_mode) = namelists.atmosphere
     (; tref, thetaref) = constants
     (; nxx, nyy, nzz) = domain
@@ -220,7 +220,7 @@ function Atmosphere(
     grid::Grid,
     model::AbstractModel,
     background::Isothermal,
-)
+)::Atmosphere
     (; nbz) = namelists.domain
     (; zboundaries) = namelists.setting
     (; temp0_dim, press0_dim, coriolis_mode) = namelists.atmosphere

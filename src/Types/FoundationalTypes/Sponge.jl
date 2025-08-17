@@ -10,7 +10,7 @@ Sponge{
 Composite type for Rayleigh-damping coefficients, sponge-layer bounds and extents, as well as an auxiliary array for the computation of horizontal means.
 
 ```julia
-Sponge(namelists::Namelists, domain::Domain, grid::Grid)
+Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
 ```
 
 Construct a `Sponge` instance, using the model parameters in `namelists`.
@@ -86,7 +86,7 @@ struct Sponge{
     horizontal_mean::C
 end
 
-function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
+function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
     (; spongeheight) = namelists.sponge
     (; nxx, nyy, nzz, nz) = domain
     (; lx, ly, lz) = grid

@@ -13,7 +13,7 @@ DiscretizationNamelist(;
     dtmax_dim::AbstractFloat = 1.0E+3,
     adaptive_time_step::Bool = true,
     limitertype::AbstractLimiter = MCVariant(),
-)
+)::DiscretizationNamelist
 ```
 
 Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
@@ -52,7 +52,7 @@ function DiscretizationNamelist(;
     dtmax_dim::AbstractFloat = 1.0E+3,
     adaptive_time_step::Bool = true,
     limitertype::AbstractLimiter = MCVariant(),
-)
+)::DiscretizationNamelist
     return DiscretizationNamelist(
         cfl,
         cfl_wave,

@@ -13,7 +13,7 @@ TracerPredictands(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::TracerPredictands
 ```
 
 Construct a `TracerPredictands` instance with dimensions and initial values depending on the general configuration of tracer transport, by dispatching to the appropriate method.
@@ -27,7 +27,7 @@ TracerPredictands(
     grid::Grid,
     tracersetup::AbstractTracer,
     variables::Variables,
-)
+)::TracerPredictands
 ```
 
 Construct a `TracerPredictands` instance with zero-size arrays for configurations without tracer transport.
@@ -41,7 +41,7 @@ TracerPredictands(
     grid::Grid,
     tracersetup::LinearTracer,
     variables::Variables,
-)
+)::TracerPredictands
 ```
 
 Construct a `TracerPredictands` instance with an initialized non-dimensional tracer.
@@ -83,7 +83,7 @@ function TracerPredictands(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::TracerPredictands
     (; tracersetup) = namelists.tracer
 
     return TracerPredictands(
@@ -105,7 +105,7 @@ function TracerPredictands(
     grid::Grid,
     tracersetup::AbstractTracer,
     variables::Variables,
-)
+)::TracerPredictands
     chi = zeros(0, 0, 0)
 
     return TracerPredictands(chi)
@@ -119,7 +119,7 @@ function TracerPredictands(
     grid::Grid,
     tracersetup::LinearTracer,
     variables::Variables,
-)
+)::TracerPredictands
     (; nxx, nyy, nzz) = domain
     (; ztfc) = grid
     (; rhostrattfc) = atmosphere

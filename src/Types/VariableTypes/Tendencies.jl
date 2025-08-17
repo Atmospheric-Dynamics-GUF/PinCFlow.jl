@@ -9,19 +9,19 @@ Tendencies{
 Container for the Runge-Kutta updates of the prognostic variables, as well as the Exner-pressure update of the Poisson solver.
 
 ```julia
-Tendencies(namelists::Namelists, domain::Domain)
+Tendencies(namelists::Namelists, domain::Domain)::Tendencies
 ```
 
 Create a `Tendencies` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
 
 ```julia
-Tendencies(domain::Domain, model::AbstractModel)
+Tendencies(domain::Domain, model::AbstractModel)::Tendencies
 ```
 
 Create a `Tendencies` instance in non-compressible modes, with a zero-size array for the mass-weighted potential-temperature update.
 
 ```julia
-Tendencies(domain::Domain, model::Compressible)
+Tendencies(domain::Domain, model::Compressible)::Tendencies
 ```
 
 Create a `Tendencies` instance in compressible mode.
@@ -63,12 +63,12 @@ struct Tendencies{
     dp::B
 end
 
-function Tendencies(namelists::Namelists, domain::Domain)
+function Tendencies(namelists::Namelists, domain::Domain)::Tendencies
     (; model) = namelists.setting
     return Tendencies(domain, model)
 end
 
-function Tendencies(domain::Domain, model::AbstractModel)
+function Tendencies(domain::Domain, model::AbstractModel)::Tendencies
     (; nxx, nyy, nzz) = domain
 
     # Initialize the tendencies.
@@ -79,7 +79,7 @@ function Tendencies(domain::Domain, model::AbstractModel)
     return Tendencies(drho, drhop, du, dv, dw, dpip, dp)
 end
 
-function Tendencies(domain::Domain, model::Compressible)
+function Tendencies(domain::Domain, model::Compressible)::Tendencies
     (; nxx, nyy, nzz) = domain
 
     # Initialize the tendencies.

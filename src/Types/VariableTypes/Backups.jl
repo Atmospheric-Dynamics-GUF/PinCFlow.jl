@@ -6,7 +6,7 @@ Backups{A <: AbstractArray{<:AbstractFloat, 3}}
 Container for backup copies needed in the semi-implicit time scheme.
 
 ```julia
-Backups(domain::Domain)
+Backups(domain::Domain)::Backups
 ```
 
 Initialize backup arrays sized according to the dimensions of the MPI subdomain.
@@ -35,7 +35,7 @@ struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     wold::A
 end
 
-function Backups(domain::Domain)
+function Backups(domain::Domain)::Backups
     (; nxx, nyy, nzz) = domain
 
     # Initialize the backups.

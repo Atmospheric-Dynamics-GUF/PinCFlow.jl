@@ -24,7 +24,7 @@ AtmosphereNamelist(;
     backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
     coriolis_mode::AbstractCoriolisMode = FPlane(),
-)
+)::AtmosphereNamelist
 ```
 
 Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties.
@@ -85,7 +85,7 @@ function AtmosphereNamelist(;
     backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
     coriolis_mode::AbstractCoriolisMode = FPlane(),
-)
+)::AtmosphereNamelist
     return AtmosphereNamelist(
         specifyreynolds,
         reinv,

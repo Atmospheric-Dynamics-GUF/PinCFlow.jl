@@ -19,7 +19,7 @@ WavePacketNamelist(;
     sigmaz_dim::AbstractFloat = 2.0E+3,
     a0::AbstractFloat = 9.0E-1,
     branch::Integer = -1,
-)
+)::WavePacketNamelist
 ```
 
 Construct a `WavePacketNamelist` instance with the given keyword arguments as properties.
@@ -78,7 +78,7 @@ function WavePacketNamelist(;
     sigmaz_dim::AbstractFloat = 2.0E+3,
     a0::AbstractFloat = 9.0E-1,
     branch::Integer = -1,
-)
+)::WavePacketNamelist
     return WavePacketNamelist(
         wavepacketdim,
         lambdax_dim,

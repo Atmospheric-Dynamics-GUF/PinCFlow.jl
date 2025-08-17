@@ -6,7 +6,7 @@ TurbulenceAuxiliaries{A <: AbstractFloat}
 Background values for turbulence variables.
 
 ```julia
-TurbulenceAuxiliaries(constants::Constants)
+TurbulenceAuxiliaries(constants::Constants)::TurbulenceAuxiliaries
 ```
 
 Construct a `TurbulenceAuxiliaries` instance with both fields set to ``t_\\mathrm{ref}^2 / \\left(10 L_\\mathrm{ref}^2\\right)``, where ``t_\\mathrm{ref}`` and ``L_\\mathrm{ref}`` are given by the properties `tref` and `lref` of `constants`, respectively.
@@ -26,11 +26,11 @@ struct TurbulenceAuxiliaries{A <: AbstractFloat}
     ttebg::A
 end
 
-function TurbulenceAuxiliaries(constants::Constants)
+function TurbulenceAuxiliaries(constants::Constants)::TurbulenceAuxiliaries
     (; lref, tref) = constants
 
-    tkebg = 0.1 * tref ^ 2.0 / lref ^ 2.0
-    ttebg = 0.1 * tref ^ 2.0 / lref ^ 2.0
+    tkebg = 0.1 * tref^2.0 / lref^2.0
+    ttebg = 0.1 * tref^2.0 / lref^2.0
 
     return TurbulenceAuxiliaries(tkebg, ttebg)
 end

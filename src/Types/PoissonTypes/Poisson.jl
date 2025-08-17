@@ -13,7 +13,7 @@ Poisson{
 Main container for Poisson-solver workspace and solution arrays.
 
 ```julia
-Poisson(domain::Domain)
+Poisson(domain::Domain)::Poisson
 ```
 
 Create a `Poisson` instance with an initialized Poisson-solver workspace, sized according to the dimensions of the MPI subdomain.
@@ -67,7 +67,7 @@ struct Poisson{
     correction::F
 end
 
-function Poisson(domain::Domain)
+function Poisson(domain::Domain)::Poisson
 
     # Get all necessary fields.
     (; nx, ny, nz) = domain

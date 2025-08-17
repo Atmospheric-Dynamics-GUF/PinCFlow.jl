@@ -8,19 +8,28 @@ Arrays for fluxes of turbulence variables.
 The first three dimensions represent physical space and the fourth dimension represents the flux direction.
 
 ```julia
-TurbulenceFluxes(namelists::Namelists, domain::Domain)
+TurbulenceFluxes(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-TurbulenceFluxes(domain::Domain, turbulencesetup::NoTurbulence)
+TurbulenceFluxes(
+    domain::Domain,
+    turbulencesetup::NoTurbulence,
+)::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations without turbulence physics.
 
 ```julia
-TurbulenceFluxes(domain::Domain, turbulencesetup::AbstractTurbulence)
+TurbulenceFluxes(
+    domain::Domain,
+    turbulencesetup::AbstractTurbulence,
+)::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
@@ -44,20 +53,29 @@ struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitte::A
 end
 
-function TurbulenceFluxes(namelists::Namelists, domain::Domain)
+function TurbulenceFluxes(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceFluxes
     (; turbulencesetup) = namelists.turbulence
 
     return TurbulenceFluxes(domain, turbulencesetup)
 end
 
-function TurbulenceFluxes(domain::Domain, turbulencesetup::NoTurbulence)
+function TurbulenceFluxes(
+    domain::Domain,
+    turbulencesetup::NoTurbulence,
+)::TurbulenceFluxes
     phitke = zeros(0, 0, 0, 0)
     phitte = zeros(0, 0, 0, 0)
 
     return TurbulenceFluxes(phitke, phitte)
 end
 
-function TurbulenceFluxes(domain::Domain, turbulencesetup::AbstractTurbulence)
+function TurbulenceFluxes(
+    domain::Domain,
+    turbulencesetup::AbstractTurbulence,
+)::TurbulenceFluxes
     (; nxx, nyy, nzz) = domain
 
     phitke = zeros(nxx, nyy, nzz, 3)

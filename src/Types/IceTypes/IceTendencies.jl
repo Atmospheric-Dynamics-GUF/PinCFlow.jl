@@ -6,19 +6,19 @@ IceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 Arrays for the Runge-Kutta updates of ice variables.
 
 ```julia
-IceTendencies(namelists::Namelists, domain::Domain)
+IceTendencies(namelists::Namelists, domain::Domain)::IceTendencies
 ```
 
 Construct an `IceTendencies` instance with dimensions depending on the general ice-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-IceTendencies(domain::Domain, icesetup::NoIce)
+IceTendencies(domain::Domain, icesetup::NoIce)::IceTendencies
 ```
 
 Construct an `IceTendencies` instance with zero-size arrays for configurations without ice physics.
 
 ```julia
-IceTendencies(domain::Domain, icesetup::AbstractIce)
+IceTendencies(domain::Domain, icesetup::AbstractIce)::IceTendencies
 ```
 
 Construct an `IceTendencies` instance with zero-initialized arrays.
@@ -45,12 +45,12 @@ struct IceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dqv::A
 end
 
-function IceTendencies(namelists::Namelists, domain::Domain)
+function IceTendencies(namelists::Namelists, domain::Domain)::IceTendencies
     (; icesetup) = namelists.ice
     return IceTendencies(domain, icesetup)
 end
 
-function IceTendencies(domain::Domain, icesetup::NoIce)
+function IceTendencies(domain::Domain, icesetup::NoIce)::IceTendencies
     dn = zeros(0, 0, 0)
     dq = zeros(0, 0, 0)
     dqv = zeros(0, 0, 0)
@@ -58,7 +58,7 @@ function IceTendencies(domain::Domain, icesetup::NoIce)
     return IceTendencies(dn, dq, dqv)
 end
 
-function IceTendencies(domain::Domain, icesetup::AbstractIce)
+function IceTendencies(domain::Domain, icesetup::AbstractIce)::IceTendencies
     (; nxx, nyy, nzz) = domain
 
     dn = zeros(nxx, nyy, nzz)

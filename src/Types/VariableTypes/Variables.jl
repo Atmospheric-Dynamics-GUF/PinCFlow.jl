@@ -18,7 +18,7 @@ Variables(
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
-)
+)::Variables
 ```
 
 Construct a `Variables` instance, with array dimensions and initial values set according to the model configuration.
@@ -83,7 +83,7 @@ function Variables(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-)
+)::Variables
 
     # Initialize all fields.
     predictands = Predictands(namelists, constants, domain, atmosphere, grid)

@@ -6,7 +6,7 @@ Rays{A <: AbstractArray{<:AbstractFloat, 4}}
 Container for prognostic ray-volume properties.
 
 ```julia
-Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
+Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
 ```
 
 Construct a `Rays` instance, with arrays sized according to the given dimensions.
@@ -65,6 +65,6 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     dens::A
 end
 
-function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
+function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
     return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13]...)
 end

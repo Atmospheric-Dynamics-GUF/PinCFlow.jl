@@ -27,7 +27,7 @@ SpongeNamelist(;
     perturbation_period::AbstractFloat = 0.0E+0,
     perturbation_amplitude::AbstractFloat = 0.0E+0,
     relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
-)
+)::SpongeNamelist
 ```
 
 Construct a `SpongeNamelist` instance with the given keyword arguments as properties.
@@ -100,7 +100,7 @@ function SpongeNamelist(;
     perturbation_period::AbstractFloat = 0.0E+0,
     perturbation_amplitude::AbstractFloat = 0.0E+0,
     relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
-)
+)::SpongeNamelist
     return SpongeNamelist(
         spongelayer,
         sponge_uv,

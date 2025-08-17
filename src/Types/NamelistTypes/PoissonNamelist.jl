@@ -14,7 +14,7 @@ PoissonNamelist(;
     maxiteradi::Integer = 2,
     initialcleaning::Bool = true,
     relative_tolerance::Bool = false,
-)
+)::PoissonNamelist
 ```
 
 Construct a `PoissonNamelists` instance with the given keyword arguments as properties.
@@ -53,7 +53,7 @@ function PoissonNamelist(;
     maxiteradi::Integer = 2,
     initialcleaning::Bool = true,
     relative_tolerance::Bool = false,
-)
+)::PoissonNamelist
     return PoissonNamelist(
         tolpoisson,
         maxiterpoisson,

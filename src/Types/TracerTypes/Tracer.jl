@@ -19,7 +19,7 @@ Tracer(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::Tracer
 ```
 
 Construct a `Tracer` instance, with array dimensions and initial values set according to the model configuration.
@@ -83,7 +83,7 @@ function Tracer(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::Tracer
     tracerpredictands = TracerPredictands(
         namelists,
         constants,

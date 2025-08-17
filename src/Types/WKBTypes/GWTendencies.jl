@@ -6,7 +6,7 @@ GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 Gravity-wave drag and heating fields.
 
 ```julia
-GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
+GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::GWTendencies
 ```
 
 Construct a `GWTendencies` instance, with arrays sized according to the given dimensions.
@@ -33,6 +33,6 @@ struct GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dthetadt::A
 end
 
-function GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
+function GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::GWTendencies
     return GWTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)
 end

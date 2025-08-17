@@ -6,7 +6,7 @@ Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
 Tensor elements of the linear operator, as computed by [`PinCFlow.PoissonSolver.compute_operator!`](@ref).
 
 ```julia
-Tensor(domain::Domain)
+Tensor(domain::Domain)::Tensor
 ```
 
 Create a `Tensor` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
@@ -101,7 +101,7 @@ struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
     afuu_b::A
 end
 
-function Tensor(domain::Domain)
+function Tensor(domain::Domain)::Tensor
     (; nx, ny, nz) = domain
 
     # Return a Tensor instance.

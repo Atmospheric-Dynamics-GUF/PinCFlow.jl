@@ -17,7 +17,12 @@ WKB{
 Main container for WKB ray-tracing data and parameters.
 
 ```julia
-WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
+WKB(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+)::WKB
 ```
 
 Construct a `WKB` instance by dispatching to a test-case-specific method.
@@ -29,7 +34,7 @@ WKB(
     domain::Domain,
     grid::Grid,
     testcase::AbstractTestCase,
-)
+)::WKB
 ```
 
 Construct a `WKB` instance with zero-size arrays for non-WKB test cases.
@@ -41,7 +46,7 @@ WKB(
     domain::Domain,
     grid::Grid,
     testcase::AbstractWKBTestCase,
-)
+)::WKB
 ```
 
 Construct a `WKB` instance.
@@ -153,7 +158,7 @@ function WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+)::WKB
     (; testcase) = namelists.setting
     return WKB(namelists, constants, domain, grid, testcase)
 end
@@ -164,7 +169,7 @@ function WKB(
     domain::Domain,
     grid::Grid,
     testcase::AbstractTestCase,
-)
+)::WKB
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
@@ -186,7 +191,7 @@ function WKB(
     domain::Domain,
     grid::Grid,
     testcase::AbstractWKBTestCase,
-)
+)::WKB
     (;
         xrmin_dim,
         xrmax_dim,

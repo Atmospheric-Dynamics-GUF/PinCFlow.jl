@@ -34,7 +34,7 @@ Namelists(;
     ice::IceNamelist = IceNamelist(),
     turbulence::TurbulenceNamelist = TurbulenceNamelist(),
     wavepacket::WavePacketNamelist = WavePacketNamelist(),
-)
+)::Namelists
 ```
 
 Construct a `Namelists` instance with the given keyword arguments as properties.
@@ -139,7 +139,7 @@ function Namelists(;
     ice::IceNamelist = IceNamelist(),
     turbulence::TurbulenceNamelist = TurbulenceNamelist(),
     wavepacket::WavePacketNamelist = WavePacketNamelist(),
-)
+)::Namelists
     return Namelists(
         domain,
         output,

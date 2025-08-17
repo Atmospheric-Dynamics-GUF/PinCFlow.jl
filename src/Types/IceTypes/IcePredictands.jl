@@ -13,7 +13,7 @@ IcePredictands(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::IcePredictands
 ```
 
 Construct an `IcePredictands` instance with dimensions and initial values depending on the general configuration of ice physics, by dispatching to the appropriate method.
@@ -27,7 +27,7 @@ IcePredictands(
     grid::Grid,
     icesetup::NoIce,
     variables::Variables,
-)
+)::IcePredictands
 ```
 
 Construct an `IcePredictands` instance with zero-size arrays for configurations without ice physics.
@@ -41,7 +41,7 @@ IcePredictands(
     grid::Grid,
     icesetup::AbstractIce,
     variables::Variables,
-)
+)::IcePredictands
 ```
 
 Construct an `IcePredictands` instance with all arrays initialized as ``z \\rho`` (non-dimensionalized).
@@ -83,7 +83,7 @@ function IcePredictands(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)
+)::IcePredictands
     (; icesetup) = namelists.ice
 
     return IcePredictands(
@@ -105,7 +105,7 @@ function IcePredictands(
     grid::Grid,
     icesetup::NoIce,
     variables::Variables,
-)
+)::IcePredictands
     n = zeros(0, 0, 0)
     q = zeros(0, 0, 0)
     qv = zeros(0, 0, 0)
@@ -121,7 +121,7 @@ function IcePredictands(
     grid::Grid,
     icesetup::AbstractIce,
     variables::Variables,
-)
+)::IcePredictands
     (; nxx, nyy, nzz) = domain
     (; ztfc) = grid
     (; rhostrattfc) = atmosphere

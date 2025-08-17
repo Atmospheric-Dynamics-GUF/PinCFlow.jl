@@ -6,7 +6,12 @@ Increments{A <: AbstractArray{<:AbstractFloat, 4}}
 Ray-volume-propagation increments.
 
 ```julia
-Increments(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
+Increments(
+    nray_wrk::Integer,
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+)::Increments
 ```
 
 Construct an `Increments` instance, with arrays sized according to the given dimensions.
@@ -53,6 +58,11 @@ struct Increments{A <: AbstractArray{<:AbstractFloat, 4}}
     ddzray::A
 end
 
-function Increments(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
+function Increments(
+    nray_wrk::Integer,
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+)::Increments
     return Increments([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:9]...)
 end

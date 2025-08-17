@@ -6,7 +6,7 @@ IceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
 Initial states of the ice variables.
 
 ```julia
-IceAuxiliaries(icepredictands::IcePredictands)
+IceAuxiliaries(icepredictands::IcePredictands)::IceAuxiliaries
 ```
 
 Construct an `IceAuxiliaries` instance by copying the arrays in `icepredictands`.
@@ -29,7 +29,7 @@ struct IceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     initialqv::A
 end
 
-function IceAuxiliaries(icepredictands::IcePredictands)
+function IceAuxiliaries(icepredictands::IcePredictands)::IceAuxiliaries
     initialn = copy(getfield(icepredictands, :n))
     initialq = copy(getfield(icepredictands, :q))
     initialqv = copy(getfield(icepredictands, :qv))
