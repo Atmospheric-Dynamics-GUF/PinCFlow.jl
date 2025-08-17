@@ -1,15 +1,15 @@
 """
 ```julia
-GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Integrals of ray-volume properties.
 
 ```julia
-GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::GWIntegrals
+WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
 ```
 
-Construct a `GWIntegrals` instance, with arrays sized according to the given dimensions.
+Construct a `WKBIntegrals` instance, with arrays sized according to the given dimensions.
 
 # Fields
 
@@ -41,7 +41,7 @@ Construct a `GWIntegrals` instance, with arrays sized according to the given dim
 
   - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 """
-struct GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     uu::A
     uv::A
     uw::A
@@ -54,6 +54,6 @@ struct GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     e::A
 end
 
-function GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::GWIntegrals
-    return GWIntegrals([zeros(nxx, nyy, nzz) for i in 1:10]...)
+function WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
+    return WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:10]...)
 end

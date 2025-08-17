@@ -42,7 +42,7 @@ Set the vertical fluxes at the vertical boundaries to zero (in `SolidWallBoundar
 ```julia
 set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     zboundaries::SolidWallBoundaries,
 )
 ```
@@ -52,7 +52,7 @@ Enforce vertical boundary conditions for gravity-wave-integral fields by dispatc
 ```julia
 set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     zboundaries::SolidWallBoundaries,
     wkb_mode::AbstractWKBMode,
 )
@@ -63,7 +63,7 @@ Enforce vertical boundary conditions for gravity-wave-integral fields needed in 
 ```julia
 set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     zboundaries::SolidWallBoundaries,
     wkb_mode::MultiColumn,
 )
@@ -74,7 +74,7 @@ Enforce vertical boundary conditions for gravity-wave-integral fields needed in 
 ```julia
 set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     zboundaries::SolidWallBoundaries,
 )
 ```
@@ -84,7 +84,7 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields by dispatc
 ```julia
 set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     zboundaries::SolidWallBoundaries,
     wkb_mode::AbstractWKBMode,
 )
@@ -95,7 +95,7 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields needed in 
 ```julia
 set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     zboundaries::SolidWallBoundaries,
     wkb_mode::MultiColumn,
 )
@@ -230,7 +230,7 @@ end
 
 function set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     zboundaries::SolidWallBoundaries,
 )
     (; wkb_mode) = state.namelists.wkb
@@ -240,7 +240,7 @@ end
 
 function set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     zboundaries::SolidWallBoundaries,
     wkb_mode::AbstractWKBMode,
 )
@@ -264,7 +264,7 @@ end
 
 function set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     zboundaries::SolidWallBoundaries,
     wkb_mode::MultiColumn,
 )
@@ -288,7 +288,7 @@ end
 
 function set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     zboundaries::SolidWallBoundaries,
 )
     (; wkb_mode) = state.namelists.wkb
@@ -298,7 +298,7 @@ end
 
 function set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     zboundaries::SolidWallBoundaries,
     wkb_mode::AbstractWKBMode,
 )
@@ -321,7 +321,7 @@ end
 
 function set_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     zboundaries::SolidWallBoundaries,
     wkb_mode::MultiColumn,
 )

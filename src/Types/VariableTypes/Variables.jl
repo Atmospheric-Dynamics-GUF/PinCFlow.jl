@@ -2,7 +2,7 @@
 ```julia
 Variables{
     A <: Predictands,
-    B <: Tendencies,
+    B <: Increments,
     C <: Backups,
     D <: Auxiliaries,
     E <: Reconstructions,
@@ -27,7 +27,7 @@ Construct a `Variables` instance, with array dimensions and initial values set a
 
   - `predictands::A`: Prognostic variables.
 
-  - `tendencies::B`: Runge-Kutta updates and pressure correction.
+  - `increments::B`: Runge-Kutta increments and pressure correction.
 
   - `backups::C`: Backups of the prognostic variables needed in the semi-implicit time scheme.
 
@@ -51,7 +51,7 @@ Construct a `Variables` instance, with array dimensions and initial values set a
 
   - [`PinCFlow.Types.VariableTypes.Predictands`](@ref)
 
-  - [`PinCFlow.Types.VariableTypes.Tendencies`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Increments`](@ref)
 
   - [`PinCFlow.Types.VariableTypes.Backups`](@ref)
 
@@ -63,14 +63,14 @@ Construct a `Variables` instance, with array dimensions and initial values set a
 """
 struct Variables{
     A <: Predictands,
-    B <: Tendencies,
+    B <: Increments,
     C <: Backups,
     D <: Auxiliaries,
     E <: Reconstructions,
     F <: Fluxes,
 }
     predictands::A
-    tendencies::B
+    increments::B
     backups::C
     auxiliaries::D
     reconstructions::E
@@ -87,7 +87,7 @@ function Variables(
 
     # Initialize all fields.
     predictands = Predictands(namelists, constants, domain, atmosphere, grid)
-    tendencies = Tendencies(namelists, domain)
+    increments = Increments(namelists, domain)
     backups = Backups(domain)
     auxiliaries = Auxiliaries(domain)
     reconstructions = Reconstructions(domain)
@@ -96,7 +96,7 @@ function Variables(
     # Return a Variables instance.
     return Variables(
         predictands,
-        tendencies,
+        increments,
         backups,
         auxiliaries,
         reconstructions,

@@ -5,9 +5,9 @@ WKB{
     B <: AbstractArray{<:Integer, 3},
     C <: Rays,
     D <: SurfaceIndices,
-    E <: Increments,
-    F <: GWIntegrals,
-    G <: GWTendencies,
+    E <: WKBIncrements,
+    F <: WKBIntegrals,
+    G <: WKBTendencies,
     H <: Ref{<:AbstractFloat},
     I <: AbstractArray{<:AbstractFloat, 3},
     J <: AbstractMatrix{<:AbstractFloat},
@@ -79,7 +79,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `surface_indices::D`: Indices that connect orographic wave modes to ray volumes.
 
-  - `increments::E`: Increments of the prognostic ray-volume properties.
+  - `increments::E`: WKBIncrements of the prognostic ray-volume properties.
 
   - `integrals::F`: Integrals of ray-volume properties.
 
@@ -113,20 +113,20 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
 
-  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
+  - [`PinCFlow.Types.WKBTypes.WKBIncrements`](@ref)
 
-  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
+  - [`PinCFlow.Types.WKBTypes.WKBIntegrals`](@ref)
 
-  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
+  - [`PinCFlow.Types.WKBTypes.WKBTendencies`](@ref)
 """
 struct WKB{
     A <: Integer,
     B <: AbstractArray{<:Integer, 3},
     C <: Rays,
     D <: SurfaceIndices,
-    E <: Increments,
-    F <: GWIntegrals,
-    G <: GWTendencies,
+    E <: WKBIncrements,
+    F <: WKBIntegrals,
+    G <: WKBTendencies,
     H <: Ref{<:AbstractFloat},
     I <: AbstractArray{<:AbstractFloat, 3},
     J <: AbstractMatrix{<:AbstractFloat},
@@ -175,9 +175,9 @@ function WKB(
         zeros(Int, 0, 0, 0),
         Rays(0, 0, 0, 0),
         SurfaceIndices(0, 0, 0),
-        Increments(0, 0, 0, 0),
-        GWIntegrals(0, 0, 0),
-        GWTendencies(0, 0, 0),
+        WKBIncrements(0, 0, 0, 0),
+        WKBIntegrals(0, 0, 0),
+        WKBTendencies(0, 0, 0),
         [Ref(0.0) for i in 1:2]...,
         zeros(0, 0, 0),
         zeros(0, 0),
@@ -300,9 +300,9 @@ function WKB(
     nray = zeros(Int, nxx, nyy, nzz)
     rays = Rays(nray_wrk, nxx, nyy, nzz)
     surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
-    increments = Increments(nray_wrk, nxx, nyy, nzz)
-    integrals = GWIntegrals(nxx, nyy, nzz)
-    tendencies = GWTendencies(nxx, nyy, nzz)
+    increments = WKBIncrements(nray_wrk, nxx, nyy, nzz)
+    integrals = WKBIntegrals(nxx, nyy, nzz)
+    tendencies = WKBTendencies(nxx, nyy, nzz)
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
     cgz_max = zeros(nxx, nyy, nzz)

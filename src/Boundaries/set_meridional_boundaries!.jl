@@ -12,7 +12,10 @@ set_meridional_boundaries!(state::State, variables::BoundaryReconstructions)
 Enforce meridional boundary conditions for all reconstruction fields.
 
 ```julia
-set_meridional_boundaries!(state::State, variables::BoundaryGWIntegrals)
+set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+)
 ```
 
 Enforce meridional boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
@@ -20,7 +23,7 @@ Enforce meridional boundary conditions for gravity-wave-integral fields by dispa
 ```julia
 set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
 )
 ```
@@ -30,7 +33,7 @@ Enforce meridional boundary conditions for gravity-wave-integral fields needed i
 ```julia
 set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::MultiColumn,
 )
 ```
@@ -38,7 +41,10 @@ set_meridional_boundaries!(
 Enforce meridional boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
 
 ```julia
-set_meridional_boundaries!(state::State, variables::BoundaryGWTendencies)
+set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+)
 ```
 
 Enforce meridional boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
@@ -46,7 +52,7 @@ Enforce meridional boundary conditions for gravity-wave-tendency fields by dispa
 ```julia
 set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
 )
 ```
@@ -56,7 +62,7 @@ Enforce meridional boundary conditions for gravity-wave-tendency fields needed i
 ```julia
 set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::MultiColumn,
 )
 ```
@@ -139,7 +145,7 @@ end
 
 function set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
 )
     (; wkb_mode) = state.namelists.wkb
     set_meridional_boundaries!(state, variables, wkb_mode)
@@ -148,7 +154,7 @@ end
 
 function set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
@@ -168,7 +174,7 @@ end
 
 function set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state
@@ -188,7 +194,7 @@ end
 
 function set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
 )
     (; wkb_mode) = state.namelists.wkb
     set_meridional_boundaries!(state, variables, wkb_mode)
@@ -197,7 +203,7 @@ end
 
 function set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
@@ -216,7 +222,7 @@ end
 
 function set_meridional_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state

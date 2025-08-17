@@ -18,13 +18,13 @@ set_boundaries!(state::State, variables::BoundaryFluxes)
 Enforce vertical boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 
 ```julia
-set_boundaries!(state::State, variables::BoundaryGWIntegrals)
+set_boundaries!(state::State, variables::BoundaryWKBIntegrals)
 ```
 
 Enforce all boundary conditions for gravity-wave-integral fields.
 
 ```julia
-set_boundaries!(state::State, variables::BoundaryGWTendencies)
+set_boundaries!(state::State, variables::BoundaryWKBTendencies)
 ```
 
 Enforce all boundary conditions for gravity-wave-tendency fields.
@@ -67,7 +67,7 @@ function set_boundaries!(state::State, variables::BoundaryFluxes)
     return
 end
 
-function set_boundaries!(state::State, variables::BoundaryGWIntegrals)
+function set_boundaries!(state::State, variables::BoundaryWKBIntegrals)
     (; zboundaries) = state.namelists.setting
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
@@ -75,7 +75,7 @@ function set_boundaries!(state::State, variables::BoundaryGWIntegrals)
     return
 end
 
-function set_boundaries!(state::State, variables::BoundaryGWTendencies)
+function set_boundaries!(state::State, variables::BoundaryWKBTendencies)
     (; zboundaries) = state.namelists.setting
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)

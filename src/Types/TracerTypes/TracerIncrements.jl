@@ -1,36 +1,36 @@
 """
 ```julia
-TracerTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+TracerIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Arrays for the Runge-Kutta updates of tracers.
 
 ```julia
-TracerTendencies(
+TracerIncrements(
     namelists::Namelists,
     domain::Domain,
-)::TracerTendencies
+)::TracerIncrements
 ```
 
-Construct a `TracerTendencies` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
+Construct a `TracerIncrements` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
 
 ```julia
-TracerTendencies(
+TracerIncrements(
     domain::Domain,
     tracersetup::NoTracer,
-)::TracerTendencies
+)::TracerIncrements
 ```
 
-Construct a `TracerTendencies` instance with zero-size arrays for configurations without tracer transport.
+Construct a `TracerIncrements` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerTendencies(
+TracerIncrements(
     domain::Domain,
     tracersetup::AbstractTracer,
-)::TracerTendencies
+)::TracerIncrements
 ```
 
-Construct a `TracerTendencies` instance with zero-initialized arrays.
+Construct a `TracerIncrements` instance with zero-initialized arrays.
 
 # Fields
 
@@ -44,34 +44,34 @@ Construct a `TracerTendencies` instance with zero-initialized arrays.
 
   - `tracersetup`: General tracer-transport configuration.
 """
-struct TracerTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+struct TracerIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dchi::A
 end
 
-function TracerTendencies(
+function TracerIncrements(
     namelists::Namelists,
     domain::Domain,
-)::TracerTendencies
+)::TracerIncrements
     (; tracersetup) = namelists.tracer
-    return TracerTendencies(domain, tracersetup)
+    return TracerIncrements(domain, tracersetup)
 end
 
-function TracerTendencies(
+function TracerIncrements(
     domain::Domain,
     tracersetup::NoTracer,
-)::TracerTendencies
+)::TracerIncrements
     dchi = zeros(0, 0, 0)
 
-    return TracerTendencies(dchi)
+    return TracerIncrements(dchi)
 end
 
-function TracerTendencies(
+function TracerIncrements(
     domain::Domain,
     tracersetup::AbstractTracer,
-)::TracerTendencies
+)::TracerIncrements
     (; nxx, nyy, nzz) = domain
 
     dchi = zeros(nxx, nyy, nzz)
 
-    return TracerTendencies(dchi)
+    return TracerIncrements(dchi)
 end

@@ -185,7 +185,7 @@ function propagate_rays!(
     kz0 = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
     kz1 = k1
 
-    # Initialize RK tendencies at the first RK stage.
+    # Initialize WKB increments at the first RK stage.
     if rkstage == 1
         dxray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
         dyray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0

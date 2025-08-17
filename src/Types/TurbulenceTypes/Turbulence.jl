@@ -2,7 +2,7 @@
 ```julia
 Turbulence{
     A <: TurbulencePredictands,
-    B <: TurbulenceTendencies,
+    B <: TurbulenceIncrements,
     C <: TurbulenceAuxiliaries,
     D <: TurbulenceReconstructions,
     E <: TurbulenceFluxes,
@@ -28,7 +28,7 @@ Construct a `Turbulence` instance, with array dimensions and initial values set 
 
   - `turbulencepredictands::A`: Prognostic variables of the turbulence scheme.
 
-  - `turbulencetendencies::B`: Runge-Kutta updates of the turbulence variables.
+  - `turbulenceincrements::B`: Runge-Kutta updates of the turbulence variables.
 
   - `turbulenceauxiliaries::C`: Background values.
 
@@ -54,7 +54,7 @@ Construct a `Turbulence` instance, with array dimensions and initial values set 
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulencePredictands`](@ref)
 
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceTendencies`](@ref)
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceIncrements`](@ref)
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceAuxiliaries`](@ref)
 
@@ -64,13 +64,13 @@ Construct a `Turbulence` instance, with array dimensions and initial values set 
 """
 struct Turbulence{
     A <: TurbulencePredictands,
-    B <: TurbulenceTendencies,
+    B <: TurbulenceIncrements,
     C <: TurbulenceAuxiliaries,
     D <: TurbulenceReconstructions,
     E <: TurbulenceFluxes,
 }
     turbulencepredictands::A
-    turbulencetendencies::B
+    turbulenceincrements::B
     turbulenceauxiliaries::C
     turbulencereconstructions::D
     turbulencefluxes::E
@@ -92,14 +92,14 @@ function Turbulence(
         grid,
         variables,
     )
-    turbulencetendencies = TurbulenceTendencies(namelists, domain)
+    turbulenceincrements = TurbulenceIncrements(namelists, domain)
     turbulenceauxiliaries = TurbulenceAuxiliaries(constants)
     turbulencereconstructions = TurbulenceReconstructions(namelists, domain)
     turbulencefluxes = TurbulenceFluxes(namelists, domain)
 
     return Turbulence(
         turbulencepredictands,
-        turbulencetendencies,
+        turbulenceincrements,
         turbulenceauxiliaries,
         turbulencereconstructions,
         turbulencefluxes,

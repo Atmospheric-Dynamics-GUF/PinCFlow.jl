@@ -54,17 +54,17 @@ function compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
 
     compute_gw_integrals!(state, wkb_mode)
 
-    set_boundaries!(state, BoundaryGWIntegrals())
+    set_boundaries!(state, BoundaryWKBIntegrals())
 
     compute_gw_tendencies!(state)
 
-    set_boundaries!(state, BoundaryGWTendencies())
+    set_boundaries!(state, BoundaryWKBTendencies())
 
     smooth_gw_tendencies!(state)
 
     apply_blocked_layer_scheme!(state)
 
-    set_boundaries!(state, BoundaryGWTendencies())
+    set_boundaries!(state, BoundaryWKBTendencies())
 
     return
 end

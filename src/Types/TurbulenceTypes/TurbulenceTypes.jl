@@ -20,14 +20,14 @@ using ..FoundationalTypes
 using ..VariableTypes
 
 include("TurbulencePredictands.jl")
-include("TurbulenceTendencies.jl")
+include("TurbulenceIncrements.jl")
 include("TurbulenceAuxiliaries.jl")
 include("TurbulenceReconstructions.jl")
 include("TurbulenceFluxes.jl")
 include("Turbulence.jl")
 
 export TurbulencePredictands,
-    TurbulenceTendencies,
+    TurbulenceIncrements,
     TurbulenceAuxiliaries,
     TurbulenceReconstructions,
     TurbulenceFluxes,

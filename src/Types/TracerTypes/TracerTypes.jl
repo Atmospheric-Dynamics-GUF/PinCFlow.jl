@@ -20,7 +20,7 @@ using ..FoundationalTypes
 using ..VariableTypes
 
 include("TracerPredictands.jl")
-include("TracerTendencies.jl")
+include("TracerIncrements.jl")
 include("TracerAuxiliaries.jl")
 include("TracerReconstructions.jl")
 include("TracerFluxes.jl")
@@ -28,7 +28,7 @@ include("Tracer.jl")
 include("initialize_tracer_wave_packet!.jl")
 
 export TracerPredictands,
-    TracerTendencies,
+    TracerIncrements,
     TracerAuxiliaries,
     TracerReconstructions,
     TracerFluxes,

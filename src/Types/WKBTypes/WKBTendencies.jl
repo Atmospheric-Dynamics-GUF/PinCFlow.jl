@@ -1,15 +1,15 @@
 """
 ```julia
-GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Gravity-wave drag and heating fields.
 
 ```julia
-GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::GWTendencies
+WKBTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::WKBTendencies
 ```
 
-Construct a `GWTendencies` instance, with arrays sized according to the given dimensions.
+Construct a `WKBTendencies` instance, with arrays sized according to the given dimensions.
 
 # Fields
 
@@ -27,12 +27,12 @@ Construct a `GWTendencies` instance, with arrays sized according to the given di
 
   - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 """
-struct GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+struct WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dudt::A
     dvdt::A
     dthetadt::A
 end
 
-function GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::GWTendencies
-    return GWTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)
+function WKBTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::WKBTendencies
+    return WKBTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)
 end

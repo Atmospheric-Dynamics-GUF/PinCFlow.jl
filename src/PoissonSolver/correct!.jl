@@ -104,7 +104,7 @@ function correct!(
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; kr_sp_tfc) = state.sponge
     (; corx) = state.poisson.correction
-    (; dpip) = state.variables.tendencies
+    (; dpip) = state.variables.increments
     (; u) = state.variables.predictands
 
     kz0 = k0
@@ -143,7 +143,7 @@ function correct!(
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; kr_sp_tfc) = state.sponge
     (; cory) = state.poisson.correction
-    (; dpip) = state.variables.tendencies
+    (; dpip) = state.variables.increments
     (; v) = state.variables.predictands
 
     kz0 = k0
@@ -185,7 +185,7 @@ function correct!(
     (; bvsstrattfc) = state.atmosphere
     (; kr_sp_w_tfc) = state.sponge
     (; corx, cory) = state.poisson.correction
-    (; dpip) = state.variables.tendencies
+    (; dpip) = state.variables.increments
     (; w) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
@@ -257,7 +257,7 @@ function correct!(
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; kr_sp_w_tfc) = state.sponge
     (; corx, cory) = state.poisson.correction
-    (; dpip) = state.variables.tendencies
+    (; dpip) = state.variables.increments
     (; rho, rhop) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
@@ -304,7 +304,7 @@ end
 function correct!(state::State, variable::PiP)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; pip) = state.variables.predictands
-    (; dpip) = state.variables.tendencies
+    (; dpip) = state.variables.increments
 
     i = (i0 - 1):(i1 + 1)
     j = (j0 - 1):(j1 + 1)

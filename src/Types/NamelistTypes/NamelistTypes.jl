@@ -104,7 +104,7 @@ abstract type AbstractWKBTestCase <: AbstractTestCase end
 AbstractWKBFilter
 ```
 
-Abstract type for filtering methods applied to gravity-wave tendencies.
+Abstract type for filtering methods applied to mean-flow tendencies.
 """
 abstract type AbstractWKBFilter end
 
@@ -338,7 +338,7 @@ struct MultiColumn <: AbstractWKBMode end
 Box <: AbstractWKBFilter
 ```
 
-Singleton for a box filter as smoothing method applied to gravity-wave tendencies.
+Singleton for a box filter as smoothing method applied to mean-flow tendencies.
 """
 struct Box <: AbstractWKBFilter end
 
@@ -347,7 +347,7 @@ struct Box <: AbstractWKBFilter end
 Shapiro <: AbstractWKBFilter
 ```
 
-Singleton for a Shapiro filter as smoothing method applied to gravity-wave tendencies.
+Singleton for a Shapiro filter as smoothing method applied to mean-flow tendencies.
 """
 struct Shapiro <: AbstractWKBFilter end
 

@@ -41,7 +41,7 @@ function apply_corrector!(
     (; namelists, domain) = state
     (; model, zboundaries) = namelists.setting
     (; rhs) = state.poisson
-    (; dpip) = state.variables.tendencies
+    (; dpip) = state.variables.increments
 
     # Initialize RHS.
     rhs .= 0.0

@@ -318,7 +318,7 @@ function update!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; drho) = state.variables.tendencies
+    (; drho) = state.variables.increments
     (; phirho) = state.variables.fluxes
     (; rho) = state.variables.predictands
 
@@ -357,7 +357,7 @@ function update!(
     (; dx, dy, dz, jac) = state.grid
     (; thetastrattfc) = state.atmosphere
     (; alphark, betark) = state.time
-    (; drhop) = state.variables.tendencies
+    (; drhop) = state.variables.increments
     (; phirhop) = state.variables.fluxes
     (; rhop) = state.variables.predictands
 
@@ -534,7 +534,7 @@ function update!(
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhostrattfc, fc) = state.atmosphere
-    (; du) = state.variables.tendencies
+    (; du) = state.variables.increments
     (; phiu) = state.variables.fluxes
     (; rhoold, uold) = state.variables.backups
     (; rho, u, v) = state.variables.predictands
@@ -687,7 +687,7 @@ function update!(
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhostrattfc, fc) = state.atmosphere
-    (; dv) = state.variables.tendencies
+    (; dv) = state.variables.increments
     (; phiv) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
     (; rho, v) = state.variables.predictands
@@ -839,7 +839,7 @@ function update!(
     (; grid) = state
     (; dx, dy, dz, jac, met) = grid
     (; rhostrattfc, fc) = state.atmosphere
-    (; dw) = state.variables.tendencies
+    (; dw) = state.variables.increments
     (; phiu, phiv, phiw) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
     (; rho, w) = state.variables.predictands
@@ -1226,7 +1226,7 @@ function update!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; dp) = state.variables.tendencies
+    (; dp) = state.variables.increments
     (; phip) = state.variables.fluxes
     (; p) = state.variables.predictands
 
@@ -1274,11 +1274,11 @@ function update!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; tracertendencies, tracerpredictands, tracerfluxes) = state.tracer
+    (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
 
     for (fd, field) in enumerate(fieldnames(TracerPredictands))
         if m == 1
-            getfield(tracertendencies, fd) .= 0.0
+            getfield(tracerincrements, fd) .= 0.0
         end
 
         for k in k0:k1, j in j0:j1, i in i0:i1
@@ -1294,10 +1294,10 @@ function update!(
 
             f = -fluxdiff
 
-            getfield(tracertendencies, fd)[i, j, k] =
-                dt * f + alphark[m] * getfield(tracertendencies, fd)[i, j, k]
+            getfield(tracerincrements, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(tracerincrements, fd)[i, j, k]
             getfield(tracerpredictands, fd)[i, j, k] +=
-                betark[m] * getfield(tracertendencies, fd)[i, j, k]
+                betark[m] * getfield(tracerincrements, fd)[i, j, k]
         end
     end
 
@@ -1317,11 +1317,11 @@ function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; icetendencies, icepredictands, icefluxes) = state.ice
+    (; iceincrements, icepredictands, icefluxes) = state.ice
 
     for (fd, field) in enumerate(fieldnames(IcePredictands))
         if m == 1
-            getfield(icetendencies, fd) .= 0.0
+            getfield(iceincrements, fd) .= 0.0
         end
 
         for k in k0:k1, j in j0:j1, i in i0:i1
@@ -1337,10 +1337,10 @@ function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
 
             f = -fluxdiff
 
-            getfield(icetendencies, fd)[i, j, k] =
-                dt * f + alphark[m] * getfield(icetendencies, fd)[i, j, k]
+            getfield(iceincrements, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
             getfield(icepredictands, fd)[i, j, k] +=
-                betark[m] * getfield(icetendencies, fd)[i, j, k]
+                betark[m] * getfield(iceincrements, fd)[i, j, k]
         end
     end
 
@@ -1365,12 +1365,12 @@ function update!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; turbulencetendencies, turbulencepredictands, turbulencefluxes) =
+    (; turbulenceincrements, turbulencepredictands, turbulencefluxes) =
         state.turbulence
 
     for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
         if m == 1
-            getfield(turbulencetendencies, fd) .= 0.0
+            getfield(turbulenceincrements, fd) .= 0.0
         end
 
         for k in k0:k1, j in j0:j1, i in i0:i1
@@ -1386,11 +1386,11 @@ function update!(
 
             f = -fluxdiff
 
-            getfield(turbulencetendencies, fd)[i, j, k] =
+            getfield(turbulenceincrements, fd)[i, j, k] =
                 dt * f +
-                alphark[m] * getfield(turbulencetendencies, fd)[i, j, k]
+                alphark[m] * getfield(turbulenceincrements, fd)[i, j, k]
             getfield(turbulencepredictands, fd)[i, j, k] +=
-                betark[m] * getfield(turbulencetendencies, fd)[i, j, k]
+                betark[m] * getfield(turbulenceincrements, fd)[i, j, k]
         end
     end
 

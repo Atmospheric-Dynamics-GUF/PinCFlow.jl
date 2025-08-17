@@ -19,13 +19,13 @@ using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
 
-include("GWIntegrals.jl")
-include("GWTendencies.jl")
+include("WKBIntegrals.jl")
+include("WKBTendencies.jl")
 include("Rays.jl")
-include("Increments.jl")
+include("WKBIncrements.jl")
 include("SurfaceIndices.jl")
 include("WKB.jl")
 
-export GWIntegrals, GWTendencies, Rays, Increments, SurfaceIndices, WKB
+export WKBIntegrals, WKBTendencies, Rays, WKBIncrements, SurfaceIndices, WKB
 
 end

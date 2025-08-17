@@ -100,7 +100,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWIntegrals)
+    for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
 
@@ -270,7 +270,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWIntegrals)
+    for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
 
@@ -407,7 +407,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWIntegrals)
+    for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
 

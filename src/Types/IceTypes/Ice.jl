@@ -2,7 +2,7 @@
 ```julia
 Ice{
     A <: IcePredictands,
-    B <: IceTendencies,
+    B <: IceIncrements,
     C <: IceAuxiliaries,
     D <: IceReconstructions,
     E <: IceFluxes,
@@ -28,7 +28,7 @@ Construct an `Ice` instance, with array dimensions and initial values set accord
 
   - `icepredictands::A`: Prognostic variables of the ice-physics scheme.
 
-  - `icetendencies::B`: Runge-Kutta updates of the ice variables.
+  - `iceincrements::B`: Runge-Kutta updates of the ice variables.
 
   - `iceauxiliaries::C`: Initial states of the ice variables.
 
@@ -54,7 +54,7 @@ Construct an `Ice` instance, with array dimensions and initial values set accord
 
   - [`PinCFlow.Types.IceTypes.IcePredictands`](@ref)
 
-  - [`PinCFlow.Types.IceTypes.IceTendencies`](@ref)
+  - [`PinCFlow.Types.IceTypes.IceIncrements`](@ref)
 
   - [`PinCFlow.Types.IceTypes.IceAuxiliaries`](@ref)
 
@@ -64,13 +64,13 @@ Construct an `Ice` instance, with array dimensions and initial values set accord
 """
 struct Ice{
     A <: IcePredictands,
-    B <: IceTendencies,
+    B <: IceIncrements,
     C <: IceAuxiliaries,
     D <: IceReconstructions,
     E <: IceFluxes,
 }
     icepredictands::A
-    icetendencies::B
+    iceincrements::B
     iceauxiliaries::C
     icereconstructions::D
     icefluxes::E
@@ -92,14 +92,14 @@ function Ice(
         grid,
         variables,
     )
-    icetendencies = IceTendencies(namelists, domain)
+    iceincrements = IceIncrements(namelists, domain)
     iceauxiliaries = IceAuxiliaries(icepredictands)
     icereconstructions = IceReconstructions(namelists, domain)
     icefluxes = IceFluxes(namelists, domain)
 
     return Ice(
         icepredictands,
-        icetendencies,
+        iceincrements,
         iceauxiliaries,
         icereconstructions,
         icefluxes,

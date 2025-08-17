@@ -1,36 +1,36 @@
 """
 ```julia
-TurbulenceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Arrays for the Runge-Kutta updates of turbulence variables.
 
 ```julia
-TurbulenceTendencies(
+TurbulenceIncrements(
     namelists::Namelists,
     domain::Domain,
-)::TurbulenceTendencies
+)::TurbulenceIncrements
 ```
 
-Construct a `TurbulenceTendencies` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
+Construct a `TurbulenceIncrements` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-TurbulenceTendencies(
+TurbulenceIncrements(
     domain::Domain,
     turbulencesetup::NoTurbulence,
-)::TurbulenceTendencies
+)::TurbulenceIncrements
 ```
 
-Construct a `TurbulenceTendencies` instance with zero-size arrays for configurations without turbulence physics.
+Construct a `TurbulenceIncrements` instance with zero-size arrays for configurations without turbulence physics.
 
 ```julia
-TurbulenceTendencies(
+TurbulenceIncrements(
     domain::Domain,
     turbulencesetup::AbstractTurbulence,
-)::TurbulenceTendencies
+)::TurbulenceIncrements
 ```
 
-Construct a `TurbulenceTendencies` instance with zero-initialized arrays.
+Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 
 # Fields
 
@@ -46,38 +46,38 @@ Construct a `TurbulenceTendencies` instance with zero-initialized arrays.
 
   - `turbulencesetup`: General turbulence-physics configuration.
 """
-struct TurbulenceTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+struct TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dtke::A
     dtte::A
 end
 
-function TurbulenceTendencies(
+function TurbulenceIncrements(
     namelists::Namelists,
     domain::Domain,
-)::TurbulenceTendencies
+)::TurbulenceIncrements
     (; turbulencesetup) = namelists.turbulence
 
-    return TurbulenceTendencies(domain, turbulencesetup)
+    return TurbulenceIncrements(domain, turbulencesetup)
 end
 
-function TurbulenceTendencies(
+function TurbulenceIncrements(
     domain::Domain,
     turbulencesetup::NoTurbulence,
-)::TurbulenceTendencies
+)::TurbulenceIncrements
     dtke = zeros(0, 0, 0)
     dtte = zeros(0, 0, 0)
 
-    return TurbulenceTendencies(dtke, dtte)
+    return TurbulenceIncrements(dtke, dtte)
 end
 
-function TurbulenceTendencies(
+function TurbulenceIncrements(
     domain::Domain,
     turbulencesetup::AbstractTurbulence,
-)::TurbulenceTendencies
+)::TurbulenceIncrements
     (; nxx, nyy, nzz) = domain
 
     dtke = zeros(nxx, nyy, nzz)
     dtte = zeros(nxx, nyy, nzz)
 
-    return TurbulenceTendencies(dtke, dtte)
+    return TurbulenceIncrements(dtke, dtte)
 end

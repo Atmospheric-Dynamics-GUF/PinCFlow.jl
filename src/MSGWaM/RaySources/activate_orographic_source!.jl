@@ -346,7 +346,7 @@ function activate_orographic_source!(state::State)
                             (iray, ix, jy, kz),
                             (nrlc, ix, jy, kz + 1),
                         )
-                        for field in fieldnames(Increments)
+                        for field in fieldnames(WKBIncrements)
                             getfield(increments, field)[nrlc, ix, jy, kz + 1] =
                                 getfield(increments, field)[iray, ix, jy, kz]
                             getfield(increments, field)[iray, ix, jy, kz] = 0.0

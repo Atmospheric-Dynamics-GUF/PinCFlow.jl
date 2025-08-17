@@ -2,7 +2,7 @@
 ```julia
 Tracer{
     A <: TracerPredictands,
-    B <: TracerTendencies,
+    B <: TracerIncrements,
     C <: TracerAuxiliaries,
     D <: TracerReconstructions,
     E <: TracerFluxes,
@@ -28,7 +28,7 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
   - `tracerpredictands::A`: Tracers.
 
-  - `tracertendencies::B`: Runge-Kutta updates of the tracers.
+  - `tracerincrements::B`: Runge-Kutta updates of the tracers.
 
   - `tracerauxiliaries::C`: Initial states of the tracers.
 
@@ -54,7 +54,7 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
   - [`PinCFlow.Types.TracerTypes.TracerPredictands`](@ref)
 
-  - [`PinCFlow.Types.TracerTypes.TracerTendencies`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerIncrements`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.TracerAuxiliaries`](@ref)
 
@@ -64,13 +64,13 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 """
 struct Tracer{
     A <: TracerPredictands,
-    B <: TracerTendencies,
+    B <: TracerIncrements,
     C <: TracerAuxiliaries,
     D <: TracerReconstructions,
     E <: TracerFluxes,
 }
     tracerpredictands::A
-    tracertendencies::B
+    tracerincrements::B
     tracerauxiliaries::C
     tracerreconstructions::D
     tracerfluxes::E
@@ -92,14 +92,14 @@ function Tracer(
         grid,
         variables,
     )
-    tracertendencies = TracerTendencies(namelists, domain)
+    tracerincrements = TracerIncrements(namelists, domain)
     tracerauxiliaries = TracerAuxiliaries(tracerpredictands)
     tracerreconstructions = TracerReconstructions(namelists, domain)
     tracerfluxes = TracerFluxes(namelists, domain)
 
     return Tracer(
         tracerpredictands,
-        tracertendencies,
+        tracerincrements,
         tracerauxiliaries,
         tracerreconstructions,
         tracerfluxes,
