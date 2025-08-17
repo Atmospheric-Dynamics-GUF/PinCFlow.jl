@@ -139,7 +139,7 @@ $$\begin{align*}
     5. && \left[\rho'^{n + 1}, \left(\rho \widehat{\boldsymbol{u}}\right)^{n + 1}, \pi'^{n + 1}\right] & = \mathrm{RI}_{\Delta t / 2} \left[\rho^{**}, \rho'^{**}, P^{**}, \left(\rho \widehat{\boldsymbol{u}}\right)^{**}, \pi'^{**}, 2 \alpha_\mathrm{R}^{uv, n + 1}, 2 \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right]
 \end{align*}$$
 
-(see [Benacchio & Klein (2019)](https://doi.org/10.1175/mwr-d-19-0073.1) and [Chew et al. (2022)](https://doi.org/10.1175/MWR-D-21-0175.1)). Another detailed description follows here.
+(see [Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1); [Chew et al., 2022](https://doi.org/10.1175/MWR-D-21-0175.1)). Another detailed description follows here.
 
  1. The left-hand sides are integrated over $\Delta t / 2$ with the low-storage RK3 scheme. Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the unified sponge. This is now performed such that $P \widehat{\boldsymbol{u}}$ is the transporting wind (strictly speaking, this is also done in pseudo-incompressible mode, however, in a spatially continuous equation, this is not discernible), so that the updates at every RK3 stage are as follows.
 
@@ -280,7 +280,7 @@ where $\Omega^{m, n} = \Omega \left(\boldsymbol{x}^m, \boldsymbol{k}^m, \widehat
 
 $$\mathcal{N}^{n + 1} \rightarrow \left(1 + 2 \alpha_\mathrm{R} f_\mathrm{RK}^m \Delta t\right)^{- 1} \mathcal{N}$$
 
-Note that the intrinsic frequency does not need to be updated since it depends on the other variables. Finally, the mean-flow tendencies for the current time step are calculated from the updated wave-property fields.
+Note that the intrinsic frequency does not need to be updated since it depends on the other variables. Finally, the mean-flow tendencies for the current time step are calculated from the updated wave-property fields ([Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
 
 ## Spatial discretization
 
