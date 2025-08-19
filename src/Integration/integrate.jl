@@ -161,6 +161,11 @@ function integrate(namelists::Namelists)
         synchronize_compressible_atmosphere!(state, state.variables.predictands)
     end
 
+    # CHANGE
+    #compute_source_ice!(state)
+    #println("Press Enter to continue...")
+    #readline()
+    
     #------------------------------------------
     #              Initial output
     #------------------------------------------
@@ -222,6 +227,12 @@ function integrate(namelists::Namelists)
         end
 
         time += dt
+
+        #--------------------------------------------------------------
+        #              Update RHS ice variables
+        #--------------------------------------------------------------
+
+        explicit_integration_rhs_ice!(state, dt)
 
         #-----------------------------------------------------------------
         #                         Sponge layer

@@ -215,7 +215,22 @@ function create_output(state::State)
                     );
                     chunk = (cx, cy, cz, ct),
                 )
-            end
+            end            
+        end
+
+        if !(typeof(state.namelists.ice.icesetup) <: NoIce)
+            for field in fieldnames(IceAuxiliaries)
+                create_dataset(
+                    file,
+                    string(field),
+                    datatype(Float32),
+                    dataspace(
+                        (sizex, sizey, sizez, 0),
+                        (sizex, sizey, sizez, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end            
         end
 
         if !(typeof(state.namelists.turbulence.turbulencesetup) <: NoTurbulence)

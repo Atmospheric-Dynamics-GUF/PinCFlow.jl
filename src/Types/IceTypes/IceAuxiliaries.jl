@@ -8,15 +8,15 @@ IceAuxiliaries(icepredictands::IcePredictands)
 ```
 """
 struct IceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
-    initialn::A
-    initialq::A
-    initialqv::A
+    iaux1::A
+    iaux2::A
+    iaux3::A
 end
 
 function IceAuxiliaries(icepredictands::IcePredictands)
-    initialn = copy(getfield(icepredictands, :n))
-    initialq = copy(getfield(icepredictands, :q))
-    initialqv = copy(getfield(icepredictands, :qv))
+    iaux1 = copy(getfield(icepredictands, :n))
+    iaux2 = copy(getfield(icepredictands, :q))
+    iaux3 = copy(getfield(icepredictands, :qv))
 
-    return IceAuxiliaries(initialn, initialq, initialqv)
+    return IceAuxiliaries(iaux1, iaux2, iaux3)
 end
