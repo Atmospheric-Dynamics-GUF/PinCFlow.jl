@@ -211,12 +211,12 @@ function compute_rhs!(
         bu = (ur - ul) / dx / jac[i, j, k] * ma^2.0 * kappa
         bv = (vf - vb) / dy / jac[i, j, k] * ma^2.0 * kappa
         bw = (wu - wd) / dz / jac[i, j, k] * ma^2.0 * kappa
-        divsum_local += bu + bv + bw + heating
+        divsum_local += bu + bv + bw - heating
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
         heating /= fcscal
-        b[ib, jb, kb] = bu + bv + bw + heating
+        b[ib, jb, kb] = bu + bv + bw - heating
         # Compute check sum for solvability criterion.
         divl2_local += b[ib, jb, kb]^2.0
         bl2loc = bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0

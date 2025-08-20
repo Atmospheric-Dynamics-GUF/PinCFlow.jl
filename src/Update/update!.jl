@@ -378,7 +378,7 @@ function update!(
 
         heating = compute_volume_force(state, (i, j, k), P())
 
-        f = -fluxdiff + heating / thetastrattfc[i, j, k]
+        f = -fluxdiff - heating / thetastrattfc[i, j, k]
 
         drhop[i, j, k] = dt * f + alphark[m] * drhop[i, j, k]
         rhop[i, j, k] += betark[m] * drhop[i, j, k]
@@ -1194,7 +1194,7 @@ function update!(
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
 
-        pip[i, j, k] -= dt * (fluxdiff + heating) / dpdpi
+        pip[i, j, k] -= dt * (fluxdiff - heating) / dpdpi
     end
 
     return
@@ -1247,7 +1247,7 @@ function update!(
 
         heating = compute_volume_force(state, (i, j, k), P())
 
-        f = -fluxdiff - heating
+        f = -fluxdiff + heating
 
         dp[i, j, k] = dt * f + alphark[m] * dp[i, j, k]
         p[i, j, k] += betark[m] * dp[i, j, k]

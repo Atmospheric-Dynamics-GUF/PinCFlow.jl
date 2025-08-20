@@ -127,7 +127,7 @@ function compute_gw_tendencies!(state::State)
 
         if fc != 0.0 && (sizex > 1 || sizey > 1)
             if sizex > 1
-                tendencies.dthetadt[ix, jy, kz] +=
+                tendencies.dthetadt[ix, jy, kz] -=
                     rhotot * (
                         (
                             integrals.utheta[ix + 1, jy, kz] -
@@ -141,7 +141,7 @@ function compute_gw_tendencies!(state::State)
             end
 
             if sizey > 1
-                tendencies.dthetadt[ix, jy, kz] +=
+                tendencies.dthetadt[ix, jy, kz] -=
                     rhotot * (
                         (
                             integrals.vtheta[ix, jy + 1, kz] -
