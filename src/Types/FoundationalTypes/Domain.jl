@@ -6,7 +6,7 @@ Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 Collection of domain-decomposition and MPI-communication parameters.
 
 ```julia
-Domain(namelists::Namelists)
+Domain(namelists::Namelists)::Domain
 ```
 
 Construct a `Domain` instance from the model parameters in `namelists`.
@@ -18,49 +18,73 @@ If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first 
 General MPI communication:
 
   - `comm::A`: MPI communicator with Cartesian topology for the computational domain.
+
   - `master::B`: Boolean flag indicating if this process is the master process (rank 0).
+
   - `rank::C`: MPI rank of this process within the communicator `comm`.
+
   - `root::C`: Root process rank (0).
 
 Dimensions of the MPI subdomain:
 
   - `nx::C`: Number of physical grid points in ``\\widehat{x}``-direction.
+
   - `ny::C`: Number of physical grid points in ``\\widehat{y}``-direction.
+
   - `nz::C`: Number of physical grid points in ``\\widehat{z}``-direction.
+
   - `nx::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+
   - `ny::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+
   - `nz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
 
 Dimensions of the entire domain:
 
   - `sizexx::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+
   - `sizeyy::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+
   - `sizezz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
 
 Index offsets and bounds:
 
   - `io::C`: MPI offset in ``\\widehat{x}``-direction.
+
   - `jo::C`: MPI offset in ``\\widehat{y}``-direction.
+
   - `ko::C`: MPI offset in ``\\widehat{z}``-direction.
+
   - `i0::C`: First physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+
   - `i1::C`: Last physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+
   - `j0::C`: First physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+
   - `j1::C`: Last physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+
   - `k0::C`: First physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+
   - `k1::C`: Last physical grid cell of the subdomain in ``\\widehat{z}``-direction.
 
 Neighbor-process ranks:
 
   - `left::C`: Rank of the next process to the left (negative ``x``-direction).
+
   - `right::C`: Rank of the next process to the right (positive ``x``-direction).
+
   - `backward::C`: Rank of the next process to the back (negative ``y``-direction).
+
   - `forward::C`: Rank of the next process to the front (positive ``y``-direction).
+
   - `down::C`: Rank of the next process to the bottom (negative ``z``-direction).
+
   - `up::C`: Rank of the next process to the top (positive ``z``-direction).
 
 Horizontal and vertical communication:
 
   - `layer_comm::A`: MPI communicator for processes in the same layer (i.e. with the same vertical index).
+
   - `column_comm::A`: MPI communicator for processes in the same column (i.e. with the same horizontal indices).
 
 # Arguments
@@ -116,7 +140,7 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-function Domain(namelists::Namelists)
+function Domain(namelists::Namelists)::Domain
     (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz, base_comm) =
         namelists.domain
     (; zboundaries) = namelists.setting

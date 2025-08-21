@@ -10,8 +10,11 @@ Provides functions for configurations that are serial or parallel in any dimensi
 # See also
 
   - [`PinCFlow.Types`](@ref)
+
   - [`PinCFlow.MPIOperations`](@ref)
+
   - [`PinCFlow.Boundaries`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations`](@ref)
 """
 module BoundaryRays

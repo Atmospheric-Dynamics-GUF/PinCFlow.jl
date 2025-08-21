@@ -6,10 +6,10 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::U,
-)
+)::AbstractFloat
 ```
 
-Interpolate the zonal wind (``u_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the zonal wind (``u_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``u_\\mathrm{b}`` to the location of interest, using `interpolate`.
 
@@ -20,10 +20,10 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::V,
-)
+)::AbstractFloat
 ```
 
-Interpolate the meridional wind (``v_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the meridional wind (``v_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the zonal wind (``u_\\mathrm{b}``).
 
@@ -34,10 +34,10 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::W,
-)
+)::AbstractFloat
 ```
 
-Interpolate the vertical wind (``w_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the vertical wind (``w_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``w_\\mathrm{b}`` to the location of interest, using `compute_vertical_wind` and `interpolate`. At grid points beyond the vertical boundaries, the values used in the interpolation are replaced with zeros.
 
@@ -48,10 +48,10 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDX,
-)
+)::AbstractFloat
 ```
 
-Interpolate the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u_\\mathrm{b} / \\partial x`` to the location of interest, using `compute_derivatives` and `interpolate`.
 
@@ -62,10 +62,10 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDY,
-)
+)::AbstractFloat
 ```
 
-Interpolate the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u_\\mathrm{b} / \\partial y`` to the location of interest, using `compute_derivatives` and `interpolate`.
 
@@ -76,10 +76,10 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDZ,
-)
+)::AbstractFloat
 ```
 
-Interpolate the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u_\\mathrm{b} / \\partial z`` to the location of interest, using `compute_derivatives` and `interpolate`.
 
@@ -90,10 +90,10 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDX,
-)
+)::AbstractFloat
 ```
 
-Interpolate the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``).
 
@@ -104,10 +104,10 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDY,
-)
+)::AbstractFloat
 ```
 
-Interpolate the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``).
 
@@ -118,31 +118,35 @@ interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDZ,
-)
+)::AbstractFloat
 ```
 
-Interpolate the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``).
 
 # Arguments
 
   - `xlc`: Zonal position of interest.
+
   - `ylc`: Meridional position of interest.
+
   - `zlc`: Vertical position of interest.
+
   - `state`: Model state.
+
   - `phitype`: Mean-flow quantity to interpolate.
-
-# Returns
-
-  - `::AbstractFloat`: Interpolated mean-flow quantity at the location of interest.
 
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
 """
 function interpolate_mean_flow end
@@ -153,7 +157,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::U,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; u) = state.variables.predictands
@@ -275,7 +279,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::V,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; v) = state.variables.predictands
@@ -399,7 +403,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::W,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; predictands) = state.variables
     (; sizex, sizey) = namelists.domain
@@ -555,7 +559,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDX,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -681,7 +685,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDY,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -852,7 +856,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DUDZ,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -975,7 +979,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDX,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -1146,7 +1150,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDY,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -1273,7 +1277,7 @@ function interpolate_mean_flow(
     zlc::AbstractFloat,
     state::State,
     phitype::DVDZ,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain

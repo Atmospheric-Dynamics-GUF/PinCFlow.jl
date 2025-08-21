@@ -14,6 +14,7 @@ Enforce meridional boundary conditions for mass-weighted potential temperature i
 # Arguments
 
   - `state`: Model state.
+
   - `model`: Dynamic equations.
 
 # See also

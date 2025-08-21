@@ -22,7 +22,7 @@ Model state container.
 An instance of this composite type holds complete information about the model configuration and simulation state, so that it is sufficient as primary input to most methods. The construction of such an instance is the first operation performed in [`PinCFlow.Integration.integrate`](@ref), since it almost fully initializes the model.
 
 ```julia
-State(namelists::Namelists)
+State(namelists::Namelists)::State
 ```
 
 Construct a `State` instance and thus initialize the model.
@@ -32,17 +32,29 @@ This method first uses the parameters specified in `namelists` to construct inst
 # Fields
 
   - `namelists::A`: Namelists with all model parameters.
+
   - `time::B`: Runge-Kutta time integration coefficients.
+
   - `constants::C`: Physical constants and reference values.
+
   - `domain::D`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `grid::E`: Collection of parameters and fields that describe the grid.
+
   - `atmosphere::F`: Atmospheric-background fields.
+
   - `sponge::G`: Sponge-layer parameters and damping coefficients.
+
   - `poisson::H`: Workspace and solution arrays for the Poisson solver.
+
   - `variables::I`: Arrays needed for the predictions of the prognostic variables.
+
   - `wkb::J`: Container for WKB ray-tracing data and parameters.
+
   - `tracer::K`: ...
+
   - `ice::L`: ...
+
   - `turbulence::M`: ...
 
 # Arguments
@@ -52,16 +64,27 @@ This method first uses the parameters specified in `namelists` to construct inst
 # See also
 
   - [`PinCFlow.Types.FoundationalTypes.Constants`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.Time`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.Domain`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.Grid`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.Atmosphere`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
+
   - [`PinCFlow.Types.PoissonTypes.Poisson`](@ref)
+
   - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
+
   - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
+
   - [`PinCFlow.Types.TracerTypes.Tracer`](@ref)
+
   - [`PinCFlow.Types.IceTypes.Ice`](@ref)
+
   - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
 """
 struct State{
@@ -94,7 +117,7 @@ struct State{
     turbulence::M
 end
 
-function State(namelists::Namelists)
+function State(namelists::Namelists)::State
 
     # Initialize everything.
     constants = Constants(namelists)

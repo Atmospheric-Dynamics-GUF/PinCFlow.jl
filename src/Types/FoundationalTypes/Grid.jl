@@ -13,7 +13,7 @@ Grid{
 Collection of parameters and fields that describe the grid.
 
 ```julia
-Grid(namelists::Namelists, constants::Constants, domain::Domain)
+Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
 ```
 
 Construct a `Grid` instance, using the specifications in `namelists.grid` and the MPI decomposition described by `domain`.
@@ -32,24 +32,24 @@ where ``\\left(L_x^{\\left(0\\right)}, L_y^{\\left(0\\right)}, L_z^{\\left(0\\ri
 
 ```math
 \\begin{align*}
-    \\widetilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h_\\mathrm{b}}{L_z} \\widetilde{z}_{k + 1 / 2} + h_\\mathrm{b},\\\\
-    \\widetilde{z} & = \\frac{\\widetilde{z}_{k + 1 / 2} + \\widetilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h_\\mathrm{b}}{L_z} \\widetilde{z} + h_\\mathrm{b},
+    \\widetilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\widetilde{z}_{k + 1 / 2} + h,\\\\
+    \\widetilde{z} & = \\frac{\\widetilde{z}_{k + 1 / 2} + \\widetilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h}{L_z} \\widetilde{z} + h,
 \\end{align*}
 ```
 
-where ``L_z``, ``s`` and ``h_\\mathrm{b}`` are the vertical extent of the domain (`diff(namelists.domain.lz)`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the resolved surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
+where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`diff(namelists.domain.lz)`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
 
 ```math
-J = \\frac{L_z - h_\\mathrm{b}}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
+J = \\frac{L_z - h}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
 ```
 
 and the non-Cartesian elements of the metric tensor are
 
 ```math
 \\begin{align*}
-    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h_\\mathrm{b}}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\} \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
+    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\widetilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
+    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\widetilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
+    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\} \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
 \\end{align*}
 ```
 
@@ -58,48 +58,63 @@ and the non-Cartesian elements of the metric tensor are
 Domain boundaries:
 
   - `lx::A`: Non-dimensional domain boundaries in ``\\widehat{x}``-direction.
+
   - `ly::A`: Non-dimensional domain boundaries in ``\\widehat{y}``-direction.
+
   - `lz::A`: Non-dimensional domain boundaries in ``\\widehat{z}``-direction.
 
 Grid spacing:
 
   - `dx::B`: Grid spacing ``\\Delta \\widehat{x}``.
+
   - `dy::B`: Grid spacing ``\\Delta \\widehat{y}``.
+
   - `dz::B`: Grid spacing ``\\Delta \\widehat{z}``.
 
 Coordinate arrays:
 
   - `x::A`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
+
   - `y::A`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
+
   - `z::A`: Cell-centered ``\\widehat{z}``-coordinate of the entire domain.
 
 Topography:
 
   - `topography_surface::C`: Resolved surface topography.
+
   - `topography_spectrum::D`: Spectrum of the unresolved surface topography.
+
   - `k_spectrum::D`: Zonal wavenumbers of the spectrum.
+
   - `l_spectrum::D`: Meridional wavenumbers of the spectrum.
 
 Coordinate transformation.
 
   - `jac::E`: Jacobian.
+
   - `met::F`: Metric tensor.
 
 Physical coordinates:
 
   - `ztfc::E`: Physical height at cell centers.
+
   - `ztildetfc::E`: Physical height at vertical cell edges.
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `constants`: Physical constants and reference values.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # See also
 
   - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
 struct Grid{
@@ -141,7 +156,7 @@ struct Grid{
     ztildetfc::E
 end
 
-function Grid(namelists::Namelists, constants::Constants, domain::Domain)
+function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain
     (; testcase) = namelists.setting
     (; stretch_exponent,) = namelists.grid
