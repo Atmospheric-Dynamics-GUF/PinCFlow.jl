@@ -502,6 +502,8 @@ In docstrings, the following syntax elements are different.
     and other stuff.
     ``````
 
+Moreover, every backslash used for LaTeX commands in equations has to be doubled.
+
 ### Building and accessing the documentation
 
 The code uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
