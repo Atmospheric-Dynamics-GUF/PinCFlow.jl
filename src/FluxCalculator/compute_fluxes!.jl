@@ -17,7 +17,7 @@ The fluxes are computed from the MUSCL reconstruction of ``\\rho / P`` and the l
 compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 ```
 
-Compute the density-fluctuation fluxes in all three directions.
+Compute the density-fluctuations fluxes in all three directions.
 
 The computation is analogous to that of the density fluxes. The fluxes are written into `state.variables.fluxes.phirhop`.
 

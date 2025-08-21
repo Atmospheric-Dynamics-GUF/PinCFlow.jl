@@ -11,7 +11,7 @@ Enforce vertical boundary conditions for all predictand fields.
 
 The symmetry conditions are as follows:
 
-  - Density-fluctuation fields (`rho`, `rhop`): point reflection (`-`)
+  - Density-fluctuations fields (`rho`, `rhop`): point reflection (`-`)
 
   - Vertical velocity (`w`): point reflection (`-`) on the staggered grid
 

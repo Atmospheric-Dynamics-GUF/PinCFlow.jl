@@ -7,14 +7,19 @@
 The pseudo-incompressible equations are integrated with the semi-implicit time scheme
 
 $$\begin{align*}
-    1. && \left(\rho^\#, \rho'^\#, \widehat{\boldsymbol{u}}^\#\right) & = \mathrm{L}_{\Delta t / 2} \left(\rho^n, \rho'^n, \widehat{\boldsymbol{u}}^n, \widehat{\boldsymbol{u}}^n, \alpha_\mathrm{R}^{n + 1}\right)\\
-    2. && \left(\rho'^{n + 1 / 2}, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \pi'^{n + 1 / 2}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^\#, \rho'^\#, \widehat{\boldsymbol{u}}^\#, \pi'^n, \alpha_\mathrm{R}^{uv, n + 1}, \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right)\\
-    3. && \left(\rho'^*, \widehat{\boldsymbol{u}}^*\right) & = \mathrm{RE}_{\Delta t / 2} \left(\rho^n, \rho'^n, \widehat{\boldsymbol{u}}^n, \pi'^{n + 1 / 2}\right)\\
-    4. && \left(\rho^{**}, \rho'^{**}, \widehat{\boldsymbol{u}}^{**}\right) & = \mathrm{L}_{\Delta t} \left(\rho^n, \rho'^*, \widehat{\boldsymbol{u}}^*, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \alpha_\mathrm{R}^{n + 1}\right)\\
-    5. && \left(\rho'^{n + 1}, \widehat{\boldsymbol{u}}^{n + 1}, \pi'^{n + 1}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^{**}, \rho'^{**}, \widehat{\boldsymbol{u}}^{**}, \pi'^{n + 1 / 2}, 2 \alpha_\mathrm{R}^{uv, n + 1}, 2 \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right),
+    1. && \rho'^n & = \rho^n - \overline{\rho},\\
+    2. && \left(\rho^\#, \rho'^\#, \widehat{\boldsymbol{u}}^\#\right) & = \mathrm{L}_{\Delta t / 2} \left(\rho^n, \rho'^n, \widehat{\boldsymbol{u}}^n, \widehat{\boldsymbol{u}}^n, \alpha_\mathrm{R}^{n + 1}\right)\\
+    3. && \left(\rho'^{n + 1 / 2}, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \pi'^{n + 1 / 2}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^\#, \rho'^\#, \widehat{\boldsymbol{u}}^\#, \pi'^n, \alpha_\mathrm{R}^{uv, n + 1}, \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right)\\
+    4. && \left(\rho'^*, \widehat{\boldsymbol{u}}^*\right) & = \mathrm{RE}_{\Delta t / 2} \left(\rho^n, \rho'^n, \widehat{\boldsymbol{u}}^n, \pi'^{n + 1 / 2}\right)\\
+    5. && \left(\rho^{**}, \rho'^{**}, \widehat{\boldsymbol{u}}^{**}\right) & = \mathrm{L}_{\Delta t} \left(\rho^n, \rho'^*, \widehat{\boldsymbol{u}}^*, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \alpha_\mathrm{R}^{n + 1}\right)\\
+    6. && \left(\rho'^{n + 1}, \widehat{\boldsymbol{u}}^{n + 1}, \pi'^{n + 1}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^{**}, \rho'^{**}, \widehat{\boldsymbol{u}}^{**}, \pi'^{n + 1 / 2}, 2 \alpha_\mathrm{R}^{uv, n + 1}, 2 \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right),
 \end{align*}$$
 
 where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an explicit integration of the left-hand sides, an implicit integration of the right-hand sides and an explicit integration of the right-hand sides, each over the time step indicated in its subscript, respectively. The superscripts represent various time levels between those before ($n$) and after ($n + 1$) the current time step $\Delta t = t^{n + 1} - t^n$. In $\mathrm{L}$, the fourth argument is the velocity by which the prognostic variables are transported ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1)). A complete description of the exact implementation of these steps follows here.
+
+ 1. The density fluctuations are synchronized with the full density, i.e.
+
+    $$\rho'^n = \rho^n - \overline{\rho}.$$
 
  1. The left-hand sides are integrated over $\Delta t / 2$ with a low-storage RK3 scheme ([Williamson, 1980](https://doi.org/10.1016/0021-9991(80)90033-9)). Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the unified sponge. At every RK3 stage $m$, the following updates are performed.
 
@@ -26,7 +31,7 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
             \rho^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\rho^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \overline{\rho}\right)
         \end{align*}$$
 
-     1. Density-fluctuation update:
+     1. Density-fluctuations update:
 
         $$\begin{align*}
             q^{\rho', m + 1} & = - \frac{\Delta t}{2 J} \left[\frac{\partial J \rho'^m u^n}{\partial \widehat{x}} + \frac{\partial J \rho'^m v^n}{\partial \widehat{y}} + \frac{\partial J \rho'^m \widehat{w}^n}{\partial \widehat{z}}\right] + \alpha_\mathrm{RK}^m q^{\rho', m},\\
@@ -119,7 +124,7 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
 
  1. The left-hand sides are integrated over $\Delta t$ with the low-storage RK3 scheme. Fractional implicit Euler steps are once again used to integrate the Rayleigh-damping terms of the unified sponge. This step is equivalent to the first one, except for the differences indicated in the compact description above.
 
- 1. The right-hand sides are integrated over over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
+ 1. The right-hand sides are integrated over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
 ### Boussinesq mode
 
@@ -130,16 +135,21 @@ In Boussinesq mode, the time scheme remains mostly unchanged. As has been mentio
 In compressible mode, the time scheme is changed in several ways, due to the mass-weighted potential temperature having a spatiotemporal dependence and being directly coupled to the Exner-pressure. It may be summarized by
 
 $$\begin{align*}
-    1. && \left(\rho^\#, \rho'^\#, P^\#, \widehat{\boldsymbol{u}}^\#, \pi'^\#\right) & = \mathrm{L}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \widehat{\boldsymbol{u}}^n, \pi'^n, P^n, \widehat{\boldsymbol{u}}^n, \alpha_\mathrm{R}^{n + 1}\right)\\
-    2. && \left(\rho'^{n + 1 / 2}, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \pi'^{n + 1 / 2}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^\#, \rho'^\#, P^\#, \widehat{\boldsymbol{u}}^\#, \pi'^\#, \alpha_\mathrm{R}^{uv, n + 1}, \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right)\\
-    3. && \left(\rho'^*, \widehat{\boldsymbol{u}}^*, \pi'^*\right) & = \mathrm{RE}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \widehat{\boldsymbol{u}}^n, \pi'^n\right)\\
-    4. && \left(\rho^{**}, \rho'^{**}, P^{**}, \widehat{\boldsymbol{u}}^{**}, \pi'^{**}\right) & = \mathrm{L}_{\Delta t} \left(\rho^n, \rho'^*, P^n, \widehat{\boldsymbol{u}}^*, \pi'^{n + 1 / 2}, P^\#, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \alpha_\mathrm{R}^{n + 1}\right)\\
-    5. && \left(\rho'^{n + 1}, \widehat{\boldsymbol{u}}^{n + 1}, \pi'^{n + 1}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^{**}, \rho'^{**}, P^{**}, \widehat{\boldsymbol{u}}^{**}, \pi'^{**}, 2 \alpha_\mathrm{R}^{uv, n + 1}, 2 \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right)
+    1. && \rho'^n & = \rho^n - \frac{P^n}{\overline{\theta}},\\
+    2. && \left(\rho^\#, \rho'^\#, P^\#, \widehat{\boldsymbol{u}}^\#, \pi'^\#\right) & = \mathrm{L}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \widehat{\boldsymbol{u}}^n, \pi'^n, P^n, \widehat{\boldsymbol{u}}^n, \alpha_\mathrm{R}^{n + 1}\right)\\
+    3. && \left(\rho'^{n + 1 / 2}, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \pi'^{n + 1 / 2}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^\#, \rho'^\#, P^\#, \widehat{\boldsymbol{u}}^\#, \pi'^\#, \alpha_\mathrm{R}^{uv, n + 1}, \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right)\\
+    4. && \left(\rho'^*, \widehat{\boldsymbol{u}}^*, \pi'^*\right) & = \mathrm{RE}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \widehat{\boldsymbol{u}}^n, \pi'^n\right)\\
+    5. && \left(\rho^{**}, \rho'^{**}, P^{**}, \widehat{\boldsymbol{u}}^{**}, \pi'^{**}\right) & = \mathrm{L}_{\Delta t} \left(\rho^n, \rho'^*, P^n, \widehat{\boldsymbol{u}}^*, \pi'^{n + 1 / 2}, P^\#, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \alpha_\mathrm{R}^{n + 1}\right)\\
+    6. && \left(\rho'^{n + 1}, \widehat{\boldsymbol{u}}^{n + 1}, \pi'^{n + 1}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^{**}, \rho'^{**}, P^{**}, \widehat{\boldsymbol{u}}^{**}, \pi'^{**}, 2 \alpha_\mathrm{R}^{uv, n + 1}, 2 \alpha_\mathrm{R}^{\widehat{w}, n + 1}\right)
 \end{align*}$$
 
 (see [Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1); [Chew et al., 2022](https://doi.org/10.1175/MWR-D-21-0175.1)). Another detailed description follows here.
 
- 1. The left-hand sides are integrated over $\Delta t / 2$ with the low-storage RK3 scheme. Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the unified sponge. This is now performed such that $P \widehat{\boldsymbol{u}}$ is the transporting wind (strictly speaking, this is also done in pseudo-incompressible mode, however, in a spatially continuous equation, this is not discernible), so that the updates at every RK3 stage are as follows.
+ 1. The density fluctuations are synchronized with the full density, i.e.
+
+    $$\rho'^n = \rho^n - \frac{P^n}{\overline{\theta}}.$$
+
+ 1. The left-hand sides are integrated over $\Delta t / 2$ with the low-storage RK3 scheme. Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the unified sponge. The fact that this is performed such that $P \widehat{\boldsymbol{u}}$ is the transporting wind now becomes relevant not only for the spatial discretization but also for the temporal one, so that the updates at every RK3 stage are as follows.
 
      1. Density update:
 
@@ -150,7 +160,7 @@ $$\begin{align*}
             \rho^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\rho^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \overline{\rho}\right)
         \end{align*}$$
 
-     1. Density-fluctuation update:
+     1. Density-fluctuations update:
 
         $$\begin{align*}
             q^{\rho', m + 1} & = \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(\rho' / P\right)^m \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho' / P\right)^m \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho' / P\right)^m \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right]\right.\\
@@ -198,7 +208,7 @@ $$\begin{align*}
 
     where $\left(\partial P / \partial \pi'\right)^\# = \left(\gamma - 1\right)^{- 1} \left(R / p_\mathrm{ref}\right)^{1 - \gamma} \left(P^\#\right)^{2 - \gamma}$, with $\gamma$ being the ratio between the specific heat capacities and constant pressure and volume, $R$ being the specific gas constant and $p_\mathrm{ref}$ being the reference (ground) pressure.
 
- 1. The right-hand sides are integrated over $\Delta t / 2$ with an implicit Euler step. The divergence constraint is then enforced by solving a Poisson equation for Exner-pressure differences $\Delta \pi'$, which are used to correct the wind, the density fluctuations and the Exner-pressure itself. In principle, this is the same as in pseudo-incompressible mode, however, due to the different definition of $N^2$ and two new terms in the Poisson equation, there are some deviations. The details are as follows.
+ 1. The right-hand sides are integrated over $\Delta t / 2$ with an implicit Euler step. The divergence constraint is then enforced by solving a Poisson equation for Exner-pressure differences $\Delta \pi'$, which are used to correct the wind, the density fluctuations and the Exner-pressure itself. In principle, this is the same as in pseudo-incompressible mode, however, instead of $\widehat{\boldsymbol{u}}^{n + 1 / 2}$, the predictor step calculates $\widehat{\boldsymbol{U}}^{n + 1 / 2}$, which is obtained by multiplying the equation with $P^\#$. The details are as follows.
 
      1. Predictor step:
 
@@ -271,14 +281,14 @@ $$\begin{align*}
     q^{z, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial m} + \alpha_\mathrm{RK}^m q^{z, m}, & z^{m + 1} & = z^m + \beta_\mathrm{RK}^m q^{z, m + 1},\\
     q^{k, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial \widehat{x}} + G^{13} \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + \alpha_\mathrm{RK}^m q^{k, m}, & k^{m + 1} & = k^m + \beta_\mathrm{RK}^m q^{k, m + 1},\\
     q^{l, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial \widehat{y}} + G^{23} \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + \alpha_\mathrm{RK}^m q^{l, m}, & l^{m + 1} & = l^m + \beta_\mathrm{RK}^m q^{l, m + 1},\\
-    q^{m, m + 1} & = \Delta t \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + G^{23} \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + \alpha_\mathrm{RK}^m q^{m, m}, & m^{m + 1} & = m^m + \beta_\mathrm{RK}^m q^{m, m + 1},
+    q^{m, m + 1} & = \frac{\Delta t}{J} \frac{\partial \Omega^{m, n}}{\partial \widehat{z}} + \alpha_\mathrm{RK}^m q^{m, m}, & m^{m + 1} & = m^m + \beta_\mathrm{RK}^m q^{m, m + 1},
 \end{align*}$$
 
 where $\Omega^{m, n} = \Omega \left(\boldsymbol{x}^m, \boldsymbol{k}^m, \widehat{\boldsymbol{u}}^n\right)$. At the end of every RK3 stage, the Rayleigh damping of the unified sponge is applied to the phase-space wave-action density with a fractional implicit Euler step, i.e.
 
-$$\mathcal{N}^{n + 1} \rightarrow \left(1 + 2 \alpha_\mathrm{R} f_\mathrm{RK}^m \Delta t\right)^{- 1} \mathcal{N}$$
+$$\mathcal{N}^{n + 1} \rightarrow \left(1 + 2 \alpha_\mathrm{R} f_\mathrm{RK}^m \Delta t\right)^{- 1} \mathcal{N}.$$
 
-Note that the intrinsic frequency does not need to be updated since it depends on the other variables. Finally, the mean-flow tendencies for the current time step are calculated from the updated wave-property fields ([Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
+Note that the intrinsic frequency does not need to be updated since it is completely determined the other variables. Finally, the mean-flow tendencies for the current time step are calculated from the updated wave-property fields ([Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
 
 ## Spatial discretization
 

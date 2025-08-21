@@ -32,7 +32,7 @@ Construct a `Fluxes` instance in compressible mode.
 
   - `phirho::A`: Density fluxes.
 
-  - `phirhop::A`: Density-fluctuation fluxes.
+  - `phirhop::A`: Density-fluctuations fluxes.
 
   - `phiu::A`: Zonal-momentum fluxes.
 

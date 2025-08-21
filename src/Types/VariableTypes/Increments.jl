@@ -30,7 +30,7 @@ Create a `Increments` instance in compressible mode.
 
   - `drho::A`: Density update.
 
-  - `drhop::A`: Density-fluctuation update.
+  - `drhop::A`: Density-fluctuations update.
 
   - `du::A`: Zonal-momentum update.
 
