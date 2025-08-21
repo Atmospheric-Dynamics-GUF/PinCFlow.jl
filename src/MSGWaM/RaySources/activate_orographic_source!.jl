@@ -46,7 +46,7 @@ The launch algorithm distinguishes between the following situations (regarding p
 
  1. There is no ray volume with nonzero wave-action density. A new ray volume is launched.
 
- 1. There is a ray volume with nonzero wave-action density, which has at least partially passed the lower boundary. It is either clipped or extended such that its lower edge coincides with the surface and the part below the surface is discarded. Its position in the ray-volume array is then shifted so that it is assigned to the first model layer. Finally, a new ray volume is launched.
+ 1. There is a ray volume with nonzero wave-action density that has at least partially passed through the lower boundary. The ray volume is either clipped or extended, such that its lower edge coincides with the surface, and the part below the surface is discarded. Then, it is assigned to the first model layer. Finally, a new ray volume is launched.
 
  1. There is a ray volume with nonzero wave-action density, which has not yet crossed the lower boundary. It is replaced with a new one.
 
