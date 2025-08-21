@@ -1,4 +1,4 @@
-# PinCFlow
+# PinCFlow.jl
 
 ## Introduction
 
