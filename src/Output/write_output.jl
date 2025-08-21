@@ -162,16 +162,8 @@ function write_output(
             ] = thetastrattfc[i0:i1, j0:j1, k0:k1] .* thetaref
         end
 
-        # Write the buoyancy frequency.
-        if model == Compressible()
-            HDF5.set_extent_dims(file["n2"], (sizex, sizey, sizez, iout))
-            @views file["n2"][
-                (io + 1):(io + nx),
-                (jo + 1):(jo + ny),
-                (ko + 1):(ko + nz),
-                iout,
-            ] = bvsstrattfc[i0:i1, j0:j1, k0:k1] ./ tref .^ 2
-        elseif model != Boussinesq() && iout == 1
+        # Write the squared buoyancy frequency.
+        if model != Boussinesq() && iout == 1
             @views file["n2"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),

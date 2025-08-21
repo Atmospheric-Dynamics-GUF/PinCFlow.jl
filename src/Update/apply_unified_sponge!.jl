@@ -57,7 +57,7 @@ Integrate the Rayleigh-damping term that represents the unified sponge in the au
 The update is given by
 
 ```math
-\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho} \\left(1 - \\frac{\\overline{\\chi} P}{\\rho}\\right)\\right].
+\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho} \\left(1 - \\frac{P}{\\rho \\overline{\\theta}}\\right)\\right].
 ```
 
 ```julia

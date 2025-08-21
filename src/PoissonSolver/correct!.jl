@@ -77,7 +77,7 @@ Update the Exner-pressure fluctuations with the differences obtained from the so
 
   - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
 
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
+  - [`PinCFlow.Update.compute_buoyancy_factor`](@ref)
 """
 function correct! end
 
@@ -215,7 +215,7 @@ function correct!(
         gradient = compute_pressure_gradient(state, dpip, (i, j, k), W())
 
         jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
-        fw = compute_compressible_buoyancy_factor(state, (i, j, k), W())
+        fw = compute_buoyancy_factor(state, (i, j, k), W())
 
         w[i, j, k] +=
             -dt / (factor + fw * bvsstratedgeu * dt^2.0) * jpedgeu * gradient -
@@ -279,7 +279,7 @@ function correct!(
 
         gradient = 0.5 * (lower_gradient + upper_gradient)
 
-        fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        fb = compute_buoyancy_factor(state, (i, j, k), RhoP())
         db =
             -1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
                 -fb * bvsstrattfc[i, j, k] * dt^2.0 * jac[i, j, k] * gradient +

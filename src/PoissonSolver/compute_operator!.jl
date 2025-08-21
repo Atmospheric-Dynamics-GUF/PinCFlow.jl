@@ -33,7 +33,7 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 
 # See also
 
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
+  - [`PinCFlow.Update.compute_buoyancy_factor`](@ref)
 """
 function compute_operator! end
 
@@ -216,8 +216,8 @@ function compute_operator!(
                 jac[i, j, k] * rho[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1]) + rhostratedged
 
-        fwu = compute_compressible_buoyancy_factor(state, (i, j, k), W())
-        fwd = compute_compressible_buoyancy_factor(state, (i, j, k - 1), W())
+        fwu = compute_buoyancy_factor(state, (i, j, k), W())
+        fwd = compute_buoyancy_factor(state, (i, j, k - 1), W())
 
         rhouedger =
             0.5 * (

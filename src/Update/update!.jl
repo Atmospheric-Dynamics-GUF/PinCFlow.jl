@@ -284,7 +284,7 @@ Update the turbulence variables with a Runge-Kutta step on the left-hand sides o
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
+  - [`PinCFlow.Update.compute_buoyancy_factor`](@ref)
 
   - [`PinCFlow.Update.compute_pressure_gradient`](@ref)
 
@@ -411,7 +411,7 @@ function update!(
             )
 
         buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        fb = compute_buoyancy_factor(state, (i, j, k), RhoP())
         buoy -= dt * fb * bvsstrattfc[i, j, k] * wvrt
 
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
@@ -494,7 +494,7 @@ function update!(
         jpedgel = compute_compressible_wind_factor(state, (i - 1, j, k), U())
         jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
         jpedgeb = compute_compressible_wind_factor(state, (i, j - 1, k), V())
-        fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        fb = compute_buoyancy_factor(state, (i, j, k), RhoP())
         b =
             1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
                 -fb *
@@ -1128,7 +1128,7 @@ function update!(
         vu = 0.5 * (v[i, j, k + 1] / jpuedgef + v[i, j - 1, k + 1] / jpuedgeb)
 
         jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
-        fw = compute_compressible_buoyancy_factor(state, (i, j, k), W())
+        fw = compute_buoyancy_factor(state, (i, j, k), W())
 
         w[i, j, k] =
             1.0 / (factor + fw * bvsstratedgeu * dt^2.0) * (
