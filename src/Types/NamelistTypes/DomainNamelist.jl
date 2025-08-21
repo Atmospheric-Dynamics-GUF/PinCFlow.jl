@@ -7,9 +7,9 @@ Namelist for parameters describing the model domain.
 
 ```julia
 DomainNamelist(;
-    sizex::Integer = 4,
-    sizey::Integer = 4,
-    sizez::Integer = 4,
+    sizex::Integer = 3,
+    sizey::Integer = 3,
+    sizez::Integer = 3,
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
@@ -20,7 +20,7 @@ DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::DomainNamelist
 ```
 
 Construct a `DomainNamelist` instance with the given keyword arguments as properties.
@@ -28,17 +28,29 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 # Fields/Keywords
 
   - `sizex::A`: Number of grid cells in ``\\widehat{x}``-direction.
+
   - `sizey::A`: Number of grid cells in ``\\widehat{y}``-direction.
+
   - `sizez::A`: Number of grid cells in ``\\widehat{z}``-direction.
+
   - `nbx::A`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
+
   - `nby::A`: Number of boundary/halo cells in ``\\widehat{y}``-direction.
+
   - `nbz::A`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
+
   - `lx_dim::B`: Domain boundaries in ``\\widehat{x}``-direction.
+
   - `ly_dim::B`: Domain boundaries in ``\\widehat{y}``-direction.
+
   - `lz_dim::B`: Domain boundaries in ``\\widehat{z}``-direction.
+
   - `npx::A`: Number of MPI processes in ``\\widehat{x}``-direction.
+
   - `npy::A`: Number of MPI processes in ``\\widehat{y}``-direction.
+
   - `npz::A`: Number of MPI processes in ``\\widehat{z}``-direction.
+
   - `base_comm::C`: MPI base communicator.
 """
 struct DomainNamelist{
@@ -62,9 +74,9 @@ struct DomainNamelist{
 end
 
 function DomainNamelist(;
-    sizex::Integer = 4,
-    sizey::Integer = 4,
-    sizez::Integer = 4,
+    sizex::Integer = 3,
+    sizey::Integer = 3,
+    sizez::Integer = 3,
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
@@ -75,7 +87,7 @@ function DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::DomainNamelist
     return DomainNamelist(
         sizex,
         sizey,

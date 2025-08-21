@@ -20,7 +20,9 @@ Reset the density, density fluctuations, wind components, Exner pressure and mas
 # Arguments
 
   - `state`: Model state.
+
   - `predictands`: Fields to reset to.
+
   - `model`: Dynamic equations.
 """
 function reset_predictands! end

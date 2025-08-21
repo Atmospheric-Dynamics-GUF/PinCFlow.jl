@@ -38,7 +38,7 @@ function compute_gw_tendencies!(state::State)
     # Set the Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWTendencies)
+    for field in fieldnames(WKBTendencies)
         getfield(tendencies, field) .= 0.0
     end
 

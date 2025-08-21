@@ -46,21 +46,28 @@ The launch algorithm distinguishes between the following situations (regarding p
 
  1. There is no ray volume with nonzero wave-action density. A new ray volume is launched.
 
- 2. There is a ray volume with nonzero wave-action density, which has at least partially passed the lower boundary. It is either clipped or extended such that its lower edge coincides with the surface and the part below the surface is discarded. Its position in the ray-volume array is then shifted so that it is assigned to the first model layer. Finally, a new ray volume is launched.
- 3. There is a ray volume with nonzero wave-action density, which has not yet crossed the lower boundary. It is replaced with a new one.
+ 1. There is a ray volume with nonzero wave-action density that has at least partially passed through the lower boundary. The ray volume is either clipped or extended, such that its lower edge coincides with the surface, and the part below the surface is discarded. Then, it is assigned to the first model layer `k0`, i.e. its indices are changed from `(iray, ix, jy, k0 - 1)` to `(jray, ix, jy, k0)`, where `jray` is the new last ray-volume index at `(ix, jy, k0)`. Finally, a new ray volume is launched.
+
+ 1. There is a ray volume with nonzero wave-action density, which has not yet crossed the lower boundary. It is replaced with a new one.
 
 # Arguments
 
   - `state`: Model state.
+
   - `omi_ini`: Array for intrinsic frequencies.
+
   - `wnk_ini`: Array for zonal wavenumbers.
+
   - `wnl_ini`: Array for meridional wavenumbers.
+
   - `wnm_ini`: Array for vertical wavenumbers.
+
   - `wad_ini`: Array for wave-action densities.
 
 # See also
 
   - [`PinCFlow.MSGWaM.RaySources.compute_orographic_mode`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function activate_orographic_source! end
@@ -339,7 +346,7 @@ function activate_orographic_source!(state::State)
                             (iray, ix, jy, kz),
                             (nrlc, ix, jy, kz + 1),
                         )
-                        for field in fieldnames(Increments)
+                        for field in fieldnames(WKBIncrements)
                             getfield(increments, field)[nrlc, ix, jy, kz + 1] =
                                 getfield(increments, field)[iray, ix, jy, kz]
                             getfield(increments, field)[iray, ix, jy, kz] = 0.0

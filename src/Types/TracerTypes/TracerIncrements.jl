@@ -1,0 +1,77 @@
+"""
+```julia
+TracerIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
+```
+
+Arrays for the Runge-Kutta updates of tracers.
+
+```julia
+TracerIncrements(
+    namelists::Namelists,
+    domain::Domain,
+)::TracerIncrements
+```
+
+Construct a `TracerIncrements` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
+
+```julia
+TracerIncrements(
+    domain::Domain,
+    tracersetup::NoTracer,
+)::TracerIncrements
+```
+
+Construct a `TracerIncrements` instance with zero-size arrays for configurations without tracer transport.
+
+```julia
+TracerIncrements(
+    domain::Domain,
+    tracersetup::AbstractTracer,
+)::TracerIncrements
+```
+
+Construct a `TracerIncrements` instance with zero-initialized arrays.
+
+# Fields
+
+  - `dchi::A`: Runge-Kutta update of a non-dimensional tracer.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+  - `tracersetup`: General tracer-transport configuration.
+"""
+struct TracerIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
+    dchi::A
+end
+
+function TracerIncrements(
+    namelists::Namelists,
+    domain::Domain,
+)::TracerIncrements
+    (; tracersetup) = namelists.tracer
+    return TracerIncrements(domain, tracersetup)
+end
+
+function TracerIncrements(
+    domain::Domain,
+    tracersetup::NoTracer,
+)::TracerIncrements
+    dchi = zeros(0, 0, 0)
+
+    return TracerIncrements(dchi)
+end
+
+function TracerIncrements(
+    domain::Domain,
+    tracersetup::AbstractTracer,
+)::TracerIncrements
+    (; nxx, nyy, nzz) = domain
+
+    dchi = zeros(nxx, nyy, nzz)
+
+    return TracerIncrements(dchi)
+end

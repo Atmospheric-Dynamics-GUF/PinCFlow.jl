@@ -10,8 +10,11 @@ Provides the functions needed to solve the Poisson equation of the semi-implicit
 # See also
 
   - [`PinCFlow.Types`](@ref)
+
   - [`PinCFlow.MPIOperations`](@ref)
+
   - [`PinCFlow.Boundaries`](@ref)
+
   - [`PinCFlow.Update`](@ref)
 """
 module PoissonSolver
