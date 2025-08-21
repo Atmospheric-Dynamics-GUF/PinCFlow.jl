@@ -16,7 +16,7 @@ $$\begin{align*}
 
 where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an explicit integration of the left-hand sides, an implicit integration of the right-hand sides and an explicit integration of the right-hand sides, each over the time step indicated in its subscript, respectively. The superscripts represent various time levels between those before ($n$) and after ($n + 1$) the current time step $\Delta t = t^{n + 1} - t^n$. In $\mathrm{L}$, the fourth argument is the velocity by which the prognostic variables are transported ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1)). A complete description of the exact implementation of these steps follows here.
 
- 1. The left-hand sides are integrated over $\Delta t / 2$ with a low-storage RK3 scheme ([Williamson, 1980](https://doi.org/10.1016/0021-9991(80)90033-9)). Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the unified sponge. At every RK3 stage $m$, the following  are performed.
+ 1. The left-hand sides are integrated over $\Delta t / 2$ with a low-storage RK3 scheme ([Williamson, 1980](https://doi.org/10.1016/0021-9991(80)90033-9)). Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the unified sponge. At every RK3 stage $m$, the following updates are performed.
 
      1. Density update:
 
