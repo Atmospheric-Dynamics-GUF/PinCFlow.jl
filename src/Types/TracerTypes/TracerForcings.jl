@@ -8,7 +8,7 @@ TracerForcings{
 ```
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain)
+TracerForcings(namelists::Namelists, domain::Domain)::TracerForcings
 ```
 """
 struct TracerForcings{
@@ -27,7 +27,7 @@ struct TracerForcings{
     chiturbw::C
 end
 
-function TracerForcings(namelists::Namelists, domain::Domain)
+function TracerForcings(namelists::Namelists, domain::Domain)::TracerForcings
     (; tracersetup) = namelists.tracer
 
     return

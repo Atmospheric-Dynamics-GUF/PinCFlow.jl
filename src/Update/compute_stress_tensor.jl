@@ -8,10 +8,10 @@ compute_stress_tensor(
     nu::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
 ```
 
-Compute the element `(mu, nu)` of the Cartesian viscous stress tensor at the grid point `(i, j, k)`, divided by the dynamic viscosity.
+Compute and return the element `(mu, nu)` of the Cartesian viscous stress tensor at the grid point `(i, j, k)`, divided by the dynamic viscosity.
 
 The discretized elements of the Cartesian viscous stress tensor are given by
 
@@ -35,16 +35,18 @@ where
 # Arguments
 
   - `i`: Zonal grid-cell index.
+
   - `j`: Meridional grid-cell index.
+
   - `k`: Vertical grid-cell index.
+
   - `mu`: First contravariant tensor index.
+
   - `nu`: Second contravariant tensor index.
+
   - `predictands`: Prognostic variables.
+
   - `grid`: Collection of parameters and fields that describe the grid.
-
-# Returns
-
-  - `::AbstractFloat`: Element `(mu, nu)` of the Cartesian stress tensor at `(i, j, k)`.
 
 # See also
 
@@ -60,7 +62,7 @@ function compute_stress_tensor(
     nu::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
     (; u, v, w) = predictands
     (; dx, dy, dz, jac, met) = grid
 

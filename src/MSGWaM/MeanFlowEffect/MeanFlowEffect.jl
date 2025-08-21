@@ -10,8 +10,11 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 # See also
 
   - [`PinCFlow.Types`](@ref)
+
   - [`PinCFlow.Boundaries`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation`](@ref)
+
   - [`PinCFlow.MSGWaM.RayUpdate`](@ref)
 """
 module MeanFlowEffect

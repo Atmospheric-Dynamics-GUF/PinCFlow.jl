@@ -14,7 +14,7 @@ SettingNamelist(;
     model::AbstractModel = PseudoIncompressible(),
     testcase::AbstractTestCase = MountainWave(),
     zboundaries::AbstractBoundaries = SolidWallBoundaries(),
-)
+)::SettingNamelist
 ```
 
 Construct a `SettingNamelist` instance with the given keyword arguments as properties.
@@ -22,7 +22,9 @@ Construct a `SettingNamelist` instance with the given keyword arguments as prope
 # Fields/Keywords
 
   - `model::A`: Dynamic equations.
+
   - `testcase::B`: Test case on wich the current simulation is based.
+
   - `zboundaries::C`: Vertical boundary conditions.
 """
 struct SettingNamelist{
@@ -39,6 +41,6 @@ function SettingNamelist(;
     model::AbstractModel = PseudoIncompressible(),
     testcase::AbstractTestCase = MountainWave(),
     zboundaries::AbstractBoundaries = SolidWallBoundaries(),
-)
+)::SettingNamelist
     return SettingNamelist(model, testcase, zboundaries)
 end

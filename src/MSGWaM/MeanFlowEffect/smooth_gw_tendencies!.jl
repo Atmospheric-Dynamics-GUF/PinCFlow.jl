@@ -156,8 +156,11 @@ Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
 # Arguments
 
   - `state`: Model state.
+
   - `output`: Field to smooth.
+
   - `sm_filter`: Filter type.
+
   - `direction`: Directions to smooth in.
 
 # See also

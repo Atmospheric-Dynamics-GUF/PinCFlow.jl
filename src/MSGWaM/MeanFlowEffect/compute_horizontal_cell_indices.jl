@@ -6,25 +6,22 @@ compute_horizontal_cell_indices(
     yr::AbstractFloat,
     dxr::AbstractFloat,
     dyr::AbstractFloat,
-)
+)::NTuple{4, <:Integer}
 ```
 
-From the given horizontal ray-volume position and extent, determine the indices of the grid cells that contain the ray-volume edges.
+From the given horizontal ray-volume position and extent, determine the indices of the grid cells that contain the ray-volume edges and return them (in the order left, right, backward and forward).
 
 # Arguments
 
   - `state`: Model state.
+
   - `xr`: Ray-volume position in ``x``.
+
   - `yr`: Ray-volume position in ``y``.
+
   - `dxr`: Ray-volume extent in ``x``.
+
   - `dyr`: Ray-volume extent in ``y``.
-
-# Returns
-
-  - `::Integer`: Zonal index of the grid cell that contains the left edge.
-  - `::Integer`: Zonal index of the grid cell that contains the right edge.
-  - `::Integer`: Meridional index of the grid cell that contains the backward edge.
-  - `::Integer`: Meridional index of the grid cell that contains the forward edge.
 """
 function compute_horizontal_cell_indices end
 
@@ -34,7 +31,7 @@ function compute_horizontal_cell_indices(
     yr::AbstractFloat,
     dxr::AbstractFloat,
     dyr::AbstractFloat,
-)
+)::NTuple{4, <:Integer}
     (; sizex, sizey) = state.namelists.domain
     (; i0, i1, j0, j1, io, jo) = state.domain
     (; lx, ly, dx, dy) = state.grid

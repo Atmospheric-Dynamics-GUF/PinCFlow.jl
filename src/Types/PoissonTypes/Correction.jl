@@ -6,7 +6,7 @@ Correction{A <: AbstractArray{<:AbstractFloat, 3}}
 Correction terms used to update the horizontal wind in the corrector step.
 
 ```julia
-Correction(domain::Domain)
+Correction(domain::Domain)::Correction
 ```
 
 Create a `Correction` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
@@ -14,6 +14,7 @@ Create a `Correction` instance with zero-initialized arrays sized according to t
 # Fields
 
   - `corx::A`: Correction term for the zonal wind.
+
   - `cory::A`: Correction term for the meridional wind.
 
 # Arguments
@@ -25,7 +26,7 @@ struct Correction{A <: AbstractArray{<:AbstractFloat, 3}}
     cory::A
 end
 
-function Correction(domain::Domain)
+function Correction(domain::Domain)::Correction
 
     # Get all necessary fields.
     (; nxx, nyy, nzz) = domain

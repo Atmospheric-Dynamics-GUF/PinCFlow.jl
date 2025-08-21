@@ -6,7 +6,7 @@ Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
 Auxiliary array used in the reconstruction of prognostic variables.
 
 ```julia
-Auxiliaries(domain::Domain)
+Auxiliaries(domain::Domain)::Auxiliaries
 ```
 
 Construct an `Auxiliaries` instance with a zero-initialized auxiliary array sized according to the MPI subdomain dimensions.
@@ -23,7 +23,7 @@ struct Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     phi::A
 end
 
-function Auxiliaries(domain::Domain)
+function Auxiliaries(domain::Domain)::Auxiliaries
     (; nxx, nyy, nzz) = domain
 
     # Initialize the auxiliaries.

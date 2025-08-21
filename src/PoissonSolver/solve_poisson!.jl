@@ -5,12 +5,11 @@ solve_poisson!(
     b::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
     dt::AbstractFloat,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
+    rayleigh_factor::AbstractFloat,
+)::Tuple{Bool, <:Integer}
 ```
 
-Solve the Poisson equation.
+Solve the Poisson equation and return a tuple containing an error flag and the number of iterations.
 
 Given a right-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BicGStab algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\overline{\\rho}} / P`` in advance (the right-hand side has already been scaled at this point), so that the equation
 
@@ -23,20 +22,19 @@ is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \
 # Arguments
 
   - `state`: Model state.
+
   - `b`: Right-hand side.
+
   - `tolref`: Reference tolerance for convergence criterion.
+
   - `dt`: Time step.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
-# Returns
-
-  - `::Bool`: Error flag.
-  - `::Integer`: Number of iterations.
+  - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
 # See also
 
   - [`PinCFlow.PoissonSolver.compute_operator!`](@ref)
+
   - [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref)
 """
 function solve_poisson! end
@@ -46,14 +44,13 @@ function solve_poisson!(
     b::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
     dt::AbstractFloat,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
+    rayleigh_factor::AbstractFloat,
+)::Tuple{Bool, <:Integer}
     (; namelists, domain, grid, poisson) = state
     (; model) = namelists.setting
     (; i0, i1, j0, j1, k0, k1) = domain
     (; rhostrattfc, pstrattfc) = state.atmosphere
-    (; dpip) = state.variables.tendencies
+    (; dpip) = state.variables.increments
 
     sol = state.poisson.solution
     sol .= 0.0
@@ -63,7 +60,7 @@ function solve_poisson!(
     end
     dtinv = 1.0 / dt
 
-    compute_operator!(state, dt, facray)
+    compute_operator!(state, dt, rayleigh_factor)
 
     (errflagbicg, niterbicg) =
         apply_bicgstab!(b, tolref, sol, namelists, domain, grid, poisson)
@@ -78,7 +75,7 @@ function solve_poisson!(
     end
 
     # Pass solution to pressure correction.
-    dpip[i0:i1, j0:j1, k0:k1] .= dtinv ./ facprs .* sol
+    dpip[i0:i1, j0:j1, k0:k1] .= dtinv .* sol
 
     return (errflagbicg, niterbicg)
 end

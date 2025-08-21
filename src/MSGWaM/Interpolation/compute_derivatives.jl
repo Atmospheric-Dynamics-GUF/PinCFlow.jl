@@ -1,9 +1,13 @@
 """
 ```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDX)
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DUDX,
+)::NTuple{2, <:AbstractFloat}
 ```
 
-Compute the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) at two specified positions on the grid.
+Compute and return the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) near the two grid points specified by `indices`.
 
 The derivative is given by
 
@@ -12,10 +16,14 @@ The derivative is given by
 ```
 
 ```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDY)
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DUDY,
+)::NTuple{2, <:AbstractFloat}
 ```
 
-Compute the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) at two specified positions on the grid.
+Compute and return the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) near the two grid points specified by `indices`.
 
 The derivative is given by
 
@@ -24,10 +32,14 @@ The derivative is given by
 ```
 
 ```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDZ)
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DUDZ,
+)::NTuple{2, <:AbstractFloat}
 ```
 
-Compute the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) at two specified positions on the grid.
+Compute and return the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) near the two grid points specified by `indices`.
 
 The derivative is given by
 
@@ -38,10 +50,14 @@ The derivative is given by
 At grid points beyond the vertical boundaries, it is set to zero.
 
 ```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDX)
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DVDX,
+)::NTuple{2, <:AbstractFloat}
 ```
 
-Compute the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) at two specified positions on the grid.
+Compute and return the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) near the two grid points specified by `indices`.
 
 The derivative is given by
 
@@ -50,10 +66,14 @@ The derivative is given by
 ```
 
 ```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDY)
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DVDY,
+)::NTuple{2, <:AbstractFloat}
 ```
 
-Compute the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) at two specified positions on the grid.
+Compute and return the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) near the two grid points specified by `indices`.
 
 The derivative is given by
 
@@ -62,10 +82,14 @@ The derivative is given by
 ```
 
 ```julia
-compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDZ)
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DVDZ,
+)::NTuple{2, <:AbstractFloat}
 ```
 
-Compute the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) at two specified positions on the grid.
+Compute and return the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) near the two grid points specified by `indices`.
 
 The derivative is given by
 
@@ -78,13 +102,10 @@ At grid points beyond the vertical boundaries, it is set to zero.
 # Arguments
 
   - `state`: Model state.
-  - `indices`: Grid indices `(ix, jy, kzd, kzu)` of the two positions at which to compute the derivative.
+
+  - `indices`: Indices `(ix, jy, kzd, kzu)` of the two grid points at which to compute the derivative.
+
   - `phitype`: Type of derivative to compute.
-
-# Returns
-
-  - `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzd)`.
-  - `::AbstractFloat`: Specified derivative near the grid point `(ix, jy, kzu)`.
 """
 function compute_derivatives end
 
@@ -92,7 +113,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DUDX,
-)
+)::NTuple{2, <:AbstractFloat}
     (; dx, dz, met) = state.grid
     (; u) = state.variables.predictands
 
@@ -122,7 +143,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DUDY,
-)
+)::NTuple{2, <:AbstractFloat}
     (; dy, dz, met) = state.grid
     (; u) = state.variables.predictands
 
@@ -164,7 +185,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DUDZ,
-)
+)::NTuple{2, <:AbstractFloat}
     (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
     (; u) = state.variables.predictands
 
@@ -220,7 +241,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DVDX,
-)
+)::NTuple{2, <:AbstractFloat}
     (; dx, dz, met) = state.grid
     (; v) = state.variables.predictands
 
@@ -262,7 +283,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DVDY,
-)
+)::NTuple{2, <:AbstractFloat}
     (; dy, dz, met) = state.grid
     (; v) = state.variables.predictands
 
@@ -292,7 +313,7 @@ function compute_derivatives(
     state::State,
     indices::NTuple{4, <:Integer},
     phitype::DVDZ,
-)
+)::NTuple{2, <:AbstractFloat}
     (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
     (; v) = state.variables.predictands
 

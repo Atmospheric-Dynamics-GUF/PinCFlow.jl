@@ -14,7 +14,7 @@ PoissonNamelist(;
     maxiteradi::Integer = 2,
     initialcleaning::Bool = true,
     relative_tolerance::Bool = false,
-)
+)::PoissonNamelist
 ```
 
 Construct a `PoissonNamelists` instance with the given keyword arguments as properties.
@@ -22,11 +22,17 @@ Construct a `PoissonNamelists` instance with the given keyword arguments as prop
 # Fields/Keywords
 
   - `tolpoisson::A`: Tolerance for the convergence criterion of the Poisson solver.
+
   - `maxiterpoisson::B`: Maximum number of iterations performed by the Poisson solver before it terminates regardless of convergence.
+
   - `preconditioner::C`: Whether to use a preconditioner to accelerate the convergence of the Poisson solver.
+
   - `dtau::A`: Pseudo-time step coefficient used by the preconditioner.
+
   - `maxiteradi::B`: Number of iterations performed by the preconditioner.
+
   - `initialcleaning::C`: Whether to solve the Poisson problem at initialization to guarantee an initially divergence-free state.
+
   - `relative_tolerance::C`: If set to `true`, the tolerance used for the convergence criterion is given by `tolpoisson`. If set to `false`, the tolerance is given by `tolpoisson` divided by a reference value determined from the right-hand side.
 """
 struct PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
@@ -47,7 +53,7 @@ function PoissonNamelist(;
     maxiteradi::Integer = 2,
     initialcleaning::Bool = true,
     relative_tolerance::Bool = false,
-)
+)::PoissonNamelist
     return PoissonNamelist(
         tolpoisson,
         maxiterpoisson,

@@ -22,14 +22,19 @@ This method first computes several spectral integrals (using `compute_gw_integra
 # Arguments
 
   - `state`: Model state.
+
   - `testcase`: Test case on which the current simulation is based.
 
 # See also
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref)
+
   - [`PinCFlow.Boundaries.set_boundaries!`](@ref)
+
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tendencies!`](@ref)
+
   - [`PinCFlow.MSGWaM.MeanFlowEffect.smooth_gw_tendencies!`](@ref)
+
   - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_blocked_layer_scheme!`](@ref)
 """
 function compute_mean_flow_effect! end
@@ -49,17 +54,17 @@ function compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
 
     compute_gw_integrals!(state, wkb_mode)
 
-    set_boundaries!(state, BoundaryGWIntegrals())
+    set_boundaries!(state, BoundaryWKBIntegrals())
 
     compute_gw_tendencies!(state)
 
-    set_boundaries!(state, BoundaryGWTendencies())
+    set_boundaries!(state, BoundaryWKBTendencies())
 
     smooth_gw_tendencies!(state)
 
     apply_blocked_layer_scheme!(state)
 
-    set_boundaries!(state, BoundaryGWTendencies())
+    set_boundaries!(state, BoundaryWKBTendencies())
 
     return
 end
