@@ -9,6 +9,14 @@ The script
 
 using PinCFlow
 
+if length(ARGS) == 0
+    output_file = "./pincflow_output.h5"
+elseif length(ARGS) == 1
+    output_file = ARGS[1] * "/pincflow_output.h5"
+else
+    error("Too many arguments to the script!")
+end
+
 atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
     sizex = 40,
@@ -19,7 +27,7 @@ domain = DomainNamelist(;
     nbz = 3,
     lx_dim = (-2.0E+5, 2.0E+5),
     ly_dim = (-2.0E+5, 2.0E+5),
-    lz_dim = (0.0, 2.0E+4),
+    lz_dim = (0.0E+0, 2.0E+4),
     npx = 8,
     npy = 8,
 )
@@ -30,10 +38,7 @@ grid = GridNamelist(;
     height_factor = 2.0E+0,
     width_factor = 1.0E+1,
 )
-output = OutputNamelist(;
-    output_variables = (:w,),
-    output_file = ARGS[1] * "/pincflow_output.h5",
-)
+output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 setting = SettingNamelist(; testcase = WKBMountainWave())
 sponge = SpongeNamelist(;
     spongelayer = true,
@@ -62,7 +67,7 @@ performs a 3D WKB mountain-wave simulation with parallelization in the zonal and
 
 ```shell
 mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 64 julia --project --check-bounds=no --math-mode=fast examples/submit/wkb_mountain_wave.jl .
+${mpiexec} -n 64 julia --project --check-bounds=no --math-mode=fast examples/submit/wkb_mountain_wave.jl
 ```
 
 from the root directory of the repository (provided MPI.jl and HDF5.jl are configured to use their default backends). The full surface topography is given by
@@ -109,7 +114,13 @@ using LaTeXStrings
 include("style.jl")
 
 # Import the data.
-data = h5open(ARGS[1] * "/pincflow_output.h5")
+if length(ARGS) == 0
+    data = h5open("./pincflow_output.h5")
+elseif length(ARGS) == 1
+    data = h5open(ARGS[1] * "/pincflow_output.h5")
+else
+    error("Too many arguments to the script!")
+end
 
 # Set the grid.
 x = data["x"][:] ./ 1000

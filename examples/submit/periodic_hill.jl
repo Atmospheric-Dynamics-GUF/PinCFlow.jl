@@ -2,6 +2,14 @@
 
 using PinCFlow
 
+if length(ARGS) == 0
+    output_file = "./pincflow_output.h5"
+elseif length(ARGS) == 1
+    output_file = ARGS[1] * "/pincflow_output.h5"
+else
+    error("Too many arguments to the script!")
+end
+
 atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
     sizex = 40,
@@ -12,10 +20,7 @@ domain = DomainNamelist(;
     lz_dim = (0.0E+0, 2.0E+4),
 )
 grid = GridNamelist(; mountainheight_dim = 1.0E+1, mountainwidth_dim = 1.0E+4)
-output = OutputNamelist(;
-    output_variables = (:w,),
-    output_file = ARGS[1] * "/pincflow_output.h5",
-)
+output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(; spongelayer = true)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))

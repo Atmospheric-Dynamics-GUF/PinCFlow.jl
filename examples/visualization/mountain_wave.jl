@@ -6,7 +6,13 @@ using LaTeXStrings
 include("style.jl")
 
 # Import the data.
-data = h5open(ARGS[1] * "/pincflow_output.h5")
+if length(ARGS) == 0
+    data = h5open("./pincflow_output.h5")
+elseif length(ARGS) == 1
+    data = h5open(ARGS[1] * "/pincflow_output.h5")
+else
+    error("Too many arguments to the script!")
+end
 
 # Set the grid.
 x = data["x"][:] ./ 1000
