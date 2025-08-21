@@ -116,9 +116,9 @@ $$\frac{\partial P}{\partial t} + \frac{1}{J} \left(\frac{\partial J P u}{\parti
 
 where the volume force $F^P$ represents a diabatic heating (e.g. due to unresolved gravity waves) that is not allowed in pseudo-incompressible mode. This term must also be represented in the auxiliary equation, which now reads
 
-$$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) - \overline{\chi} F^P + \alpha_\mathrm{R} \rho' = \frac{N^2}{g} \rho w.$$
+$$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) + \overline{\chi} F^P + \alpha_\mathrm{R} \left[\rho' - \overline{\rho} \left(1 - \frac{\overline{\chi} P}{\rho}\right)\right] = \frac{N^2 \overline{\chi} P w}{g}.$$
 
-Note that in addition to the new volume-force term on the left-hand side, the background density on the right-hand side has been replaced with the full density. This is due to the fact that the squared buoyancy frequency now has the slightly different definition $N^2 = - \left(g / \chi\right) \left(\mathrm{d} \overline{\chi} / \mathrm{d} z\right)$. Moreover, the background density $\rho - \rho' = \overline{\chi} P$ is no longer persistently equal to $\overline{\rho}$ ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
+Note that in addition to the new volume-force term on the left-hand side, $\overline{\rho}$ has been replaced with $\rho - \rho' = \overline{\chi} P$, which is no longer persistently equal to $\overline{\rho}$ ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
 
 ## MSGWaM
 

@@ -57,7 +57,7 @@ Integrate the Rayleigh-damping term that represents the unified sponge in the au
 The update is given by
 
 ```math
-\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\rho'.
+\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho} \\left(1 - \\frac{\\overline{\\chi} P}{\\rho}\\right)\\right].
 ```
 
 ```julia
@@ -334,13 +334,47 @@ function apply_unified_sponge!(
         return
     end
 
-    rho_bg = 0.0
+    rhobg = 0.0
     for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphaunifiedsponge[i, j, k]
-        rho_old = rho[i, j, k]
+        rhoold = rho[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
-        rho_new = (1.0 - beta) * rho_bg + beta * rho_old
-        rho[i, j, k] = rho_new
+        rhonew = (1.0 - beta) * rhobg + beta * rhoold
+        rho[i, j, k] = rhonew
+    end
+
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::RhoP,
+    model::Compressible,
+)
+    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; rhostrattfc, thetastrattfc) = state.atmosphere
+    (; alphaunifiedsponge) = state.sponge
+    (; rho, rhop, p) = state.variables.predictands
+
+    if !spongelayer || !unifiedsponge
+        return
+    end
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        rhopbg =
+            rhostrattfc[i, j, k] * (
+                1.0 -
+                p[i, j, k] / thetastrattfc[i, j, k] /
+                (rho[i, j, k] + rhostrattfc[i, j, k])
+            )
+        alpha = alphaunifiedsponge[i, j, k]
+        rhopold = rhop[i, j, k]
+        beta = 1.0 / (1.0 + alpha * dt)
+        rhopnew = (1.0 - beta) * rhopbg + beta * rhopold
+        rhop[i, j, k] = rhopnew
     end
 
     return
@@ -362,13 +396,13 @@ function apply_unified_sponge!(
         return
     end
 
-    rho_bg = 0.0
+    rhobg = 0.0
     for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphaunifiedsponge[i, j, k]
-        rho_old = rhop[i, j, k]
+        rhoold = rhop[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
-        rho_new = (1.0 - beta) * rho_bg + beta * rho_old
-        rhop[i, j, k] = rho_new
+        rhonew = (1.0 - beta) * rhobg + beta * rhoold
+        rhop[i, j, k] = rhonew
     end
 
     return

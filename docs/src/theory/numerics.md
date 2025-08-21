@@ -153,16 +153,16 @@ $$\begin{align*}
      1. Density-fluctuation update:
 
         $$\begin{align*}
-            q^{\rho', m + 1} & = \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(\rho' / P\right)^m \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho' / P\right)^m \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho' / P\right)^m \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right] + \overline{\chi} F^{P, n + 1}\right\}\\
-            & \quad + \alpha_\mathrm{RK}^m q^{\rho', m},\\
+            q^{\rho', m + 1} & = \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(\rho' / P\right)^m \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho' / P\right)^m \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho' / P\right)^m \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right]\right.\\
+            & \qquad \qquad + \left.\overline{\chi} F^{P, n + 1}\right\} + \alpha_\mathrm{RK}^m q^{\rho', m},\\
             \rho'^{m + 1} & = \rho'^m + \beta_\mathrm{RK}^m q^{\rho', m + 1},\\
-            \rho'^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \rho'^{m + 1}
+            \rho'^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left[\rho'^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \overline{\rho} \left(1 - \frac{\overline{\chi} P^{m + 1}}{\rho^{m + 1}}\right)\right]
         \end{align*}$$
 
      1. Mass-weighted potential-temperature update:
 
         $$\begin{align*}
-            q^{P, m + 1} & = \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right] + F^{P, n + 1}\right\}\\
+            q^{P, m + 1} & = \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right] - F^{P, n + 1}\right\}\\
             & \quad + \alpha_\mathrm{RK}^m q^{P, m},\\
             P^{m + 1} & = P^m + \beta_\mathrm{RK}^m q^{P, m + 1},\\
             P^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} P^{m + 1} \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \frac{\overline{\rho}}{\rho^{m + 1}}\right)
