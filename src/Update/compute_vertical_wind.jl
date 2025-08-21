@@ -6,22 +6,22 @@ compute_vertical_wind(
     k::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
 ```
 
-Compute the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
+Compute and return the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
 
 # Arguments
 
   - `i`: Zonal grid-cell index.
+
   - `j`: Meridional grid-cell index.
+
   - `k`: Vertical grid-cell index.
+
   - `predictands`: Prognostic variables.
+
   - `grid`: Collection of parameters and fields that describe the grid.
-
-# Returns
-
-  - `::AbstractFloat`: Cartesian vertical wind at `(i, j, k + 1 / 2)`.
 
 # See also
 
@@ -35,7 +35,7 @@ function compute_vertical_wind(
     k::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
     (; u, v, w) = predictands
 
     uedger = u[i, j, k]

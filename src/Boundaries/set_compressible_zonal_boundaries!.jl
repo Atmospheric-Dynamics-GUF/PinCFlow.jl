@@ -14,6 +14,7 @@ Enforce zonal boundary conditions for mass-weighted potential temperature in com
 # Arguments
 
   - `state`: Model state.
+
   - `model`: Dynamic equations.
 
 # See also

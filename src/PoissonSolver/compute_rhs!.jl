@@ -4,7 +4,7 @@ compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
     model::AbstractModel,
-)
+)::AbstractFloat
 ```
 
 Compute the scaled right-hand side of the Poisson equation in pseudo-incompressible/Boussinesq mode and return a reference tolerance for the convergence criterion.
@@ -28,7 +28,7 @@ compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
     model::Compressible,
-)
+)::AbstractFloat
 ```
 
 Compute the scaled right-hand side of the Poisson equation in compressible mode and return a reference tolerance for the convergence criterion.
@@ -44,12 +44,10 @@ where ``S`` is the diabatic heating, as computed by `compute_volume_force`, and 
 # Arguments
 
   - `state`: Model state.
+
   - `b`: Output array containing the right-hand side.
+
   - `model`: Dynamic equations.
-
-# Returns
-
-  - `::AbstractFloat`: Reference tolerance for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 
 # See also
 
@@ -61,7 +59,7 @@ function compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
     model::AbstractModel,
-)
+)::AbstractFloat
     (; sizex, sizey, sizez) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
@@ -175,7 +173,7 @@ function compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
     model::Compressible,
-)
+)::AbstractFloat
     (; sizex, sizey, sizez) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain

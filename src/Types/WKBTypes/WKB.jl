@@ -5,9 +5,9 @@ WKB{
     B <: AbstractArray{<:Integer, 3},
     C <: Rays,
     D <: SurfaceIndices,
-    E <: Increments,
-    F <: GWIntegrals,
-    G <: GWTendencies,
+    E <: WKBIncrements,
+    F <: WKBIntegrals,
+    G <: WKBTendencies,
     H <: Ref{<:AbstractFloat},
     I <: AbstractArray{<:AbstractFloat, 3},
     J <: AbstractMatrix{<:AbstractFloat},
@@ -17,7 +17,12 @@ WKB{
 Main container for WKB ray-tracing data and parameters.
 
 ```julia
-WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
+WKB(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+)::WKB
 ```
 
 Construct a `WKB` instance by dispatching to a test-case-specific method.
@@ -29,7 +34,7 @@ WKB(
     domain::Domain,
     grid::Grid,
     testcase::AbstractTestCase,
-)
+)::WKB
 ```
 
 Construct a `WKB` instance with zero-size arrays for non-WKB test cases.
@@ -41,7 +46,7 @@ WKB(
     domain::Domain,
     grid::Grid,
     testcase::AbstractWKBTestCase,
-)
+)::WKB
 ```
 
 Construct a `WKB` instance.
@@ -51,50 +56,77 @@ This method primarily determines the size of the spectral dimension of ray-volum
 # Fields
 
   - `nxray::A`: Number of ray volumes allowed in ``\\widehat{x}``, per grid cell and wave mode (`nray_fac * nrxl * nrk_init`, taken from `namelists.wkb`).
+
   - `nyray::A`: Number of ray volumes allowed in ``\\widehat{y}``, per grid cell and wave mode (`nray_fac * nryl * nrl_init`, taken from `namelists.wkb`).
+
   - `nzray::A`: Number of ray volumes allowed in ``\\widehat{z}``, per grid cell and wave mode (`nray_fac * nrzl * nrm_init`, taken from `namelists.wkb`).
+
   - `nxray_wrk::A`: `2 * nxray`.
+
   - `nyray_wrk::A`: `2 * nyray`.
+
   - `nzray_wrk::A`: `2 * nzray`.
+
   - `nray_max::A`: Maximum ray-volume count allowed per grid-cell before merging is triggered (`nxray * nyray * nzray * namelists.wkb.nwm`).
+
   - `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays (`nxray_wrk * nyray_wrk * nzray_wrk`).
+
   - `n_sfc::A`: Number of orographic wave modes.
+
   - `nray::B`: Ray-volume count in each grid cell.
+
   - `rays::C`: Prognostic ray-volume properties.
+
   - `surface_indices::D`: Indices that connect orographic wave modes to ray volumes.
-  - `increments::E`: Increments of the prognostic ray-volume properties.
+
+  - `increments::E`: WKBIncrements of the prognostic ray-volume properties.
+
   - `integrals::F`: Integrals of ray-volume properties.
+
   - `tendencies::G`: Gravity-wave drag and heating fields.
+
   - `cgx_max::H`: Maximum zonal group velocities.
+
   - `cgy_max::H`: Maximum meridional group velocities.
+
   - `cgz_max::I`: Maximum vertical group velocities.
+
   - `zb::J`: Upper edge of the blocked layer.
+
   - `diffusion::I`: Diffusion induced by wave breaking.
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `constants`: Physical constants and reference values.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `grid`: Collection of parameters and fields that describe the grid.
+
   - `testcase`: Test case on which the current simulation is based.
 
 # See also
 
   - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
+
   - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
-  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
-  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
-  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.WKBIncrements`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.WKBIntegrals`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.WKBTendencies`](@ref)
 """
 struct WKB{
     A <: Integer,
     B <: AbstractArray{<:Integer, 3},
     C <: Rays,
     D <: SurfaceIndices,
-    E <: Increments,
-    F <: GWIntegrals,
-    G <: GWTendencies,
+    E <: WKBIncrements,
+    F <: WKBIntegrals,
+    G <: WKBTendencies,
     H <: Ref{<:AbstractFloat},
     I <: AbstractArray{<:AbstractFloat, 3},
     J <: AbstractMatrix{<:AbstractFloat},
@@ -126,7 +158,7 @@ function WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+)::WKB
     (; testcase) = namelists.setting
     return WKB(namelists, constants, domain, grid, testcase)
 end
@@ -137,15 +169,15 @@ function WKB(
     domain::Domain,
     grid::Grid,
     testcase::AbstractTestCase,
-)
+)::WKB
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
         Rays(0, 0, 0, 0),
         SurfaceIndices(0, 0, 0),
-        Increments(0, 0, 0, 0),
-        GWIntegrals(0, 0, 0),
-        GWTendencies(0, 0, 0),
+        WKBIncrements(0, 0, 0, 0),
+        WKBIntegrals(0, 0, 0),
+        WKBTendencies(0, 0, 0),
         [Ref(0.0) for i in 1:2]...,
         zeros(0, 0, 0),
         zeros(0, 0),
@@ -159,7 +191,7 @@ function WKB(
     domain::Domain,
     grid::Grid,
     testcase::AbstractWKBTestCase,
-)
+)::WKB
     (;
         xrmin_dim,
         xrmax_dim,
@@ -268,9 +300,9 @@ function WKB(
     nray = zeros(Int, nxx, nyy, nzz)
     rays = Rays(nray_wrk, nxx, nyy, nzz)
     surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
-    increments = Increments(nray_wrk, nxx, nyy, nzz)
-    integrals = GWIntegrals(nxx, nyy, nzz)
-    tendencies = GWTendencies(nxx, nyy, nzz)
+    increments = WKBIncrements(nray_wrk, nxx, nyy, nzz)
+    integrals = WKBIntegrals(nxx, nyy, nzz)
+    tendencies = WKBTendencies(nxx, nyy, nzz)
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
     cgz_max = zeros(nxx, nyy, nzz)

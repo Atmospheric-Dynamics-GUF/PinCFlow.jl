@@ -103,21 +103,33 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 # Arguments
 
   - `state`: Model state.
+
   - `dt`: Time step.
+
   - `rkstage`: Runge-Kutta-stage index.
+
   - `testcase`: Test case on which the current simulation is based.
+
   - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
   - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
+
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function propagate_rays! end
@@ -173,7 +185,7 @@ function propagate_rays!(
     kz0 = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
     kz1 = k1
 
-    # Initialize RK tendencies at the first RK stage.
+    # Initialize WKB increments at the first RK stage.
     if rkstage == 1
         dxray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
         dyray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0

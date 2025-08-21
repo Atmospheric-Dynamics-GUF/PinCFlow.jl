@@ -32,7 +32,9 @@ Enforce vertical boundary conditions for vertical mass-weighted potential-temper
 # Arguments
 
   - `state`: Model state.
+
   - `variables`: Boundary-variable category.
+
   - `model`: Dynamic equations.
 
 # See also

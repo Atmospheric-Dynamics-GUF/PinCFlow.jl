@@ -6,7 +6,7 @@ Operator{A <: AbstractArray{<:AbstractFloat, 3}}
 Workspace array for applying the linear operator of the Poisson solver.
 
 ```julia
-Operator(domain::Domain)
+Operator(domain::Domain)::Operator
 ```
 
 Create an `Operator` instance with a zero-initialized array sized according to the dimensions of the MPI subdomain.
@@ -23,7 +23,7 @@ struct Operator{A <: AbstractArray{<:AbstractFloat, 3}}
     s::A
 end
 
-function Operator(domain::Domain)
+function Operator(domain::Domain)::Operator
 
     # Get all necessary fields.
     (; nxx, nyy, nzz) = domain

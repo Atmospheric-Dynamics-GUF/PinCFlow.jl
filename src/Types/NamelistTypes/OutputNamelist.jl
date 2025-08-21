@@ -1,7 +1,7 @@
 """
 ```julia
 OutputNamelist{
-    A <: Tuple{Vararg{Symbol, <:Integer}},
+    A <: Tuple{Vararg{Symbol}},
     B <: Bool,
     C <: Integer,
     D <: AbstractFloat,
@@ -13,7 +13,7 @@ Namelist for I/O parameters.
 
 ```julia
 OutputNamelist(;
-    output_variables::Tuple{Vararg{Symbol, <:Integer}} = (),
+    output_variables::Tuple{Vararg{Symbol}} = (),
     save_ray_volumes::Bool = false,
     prepare_restart::Bool = false,
     restart::Bool = false,
@@ -25,7 +25,7 @@ OutputNamelist(;
     maxtime::AbstractFloat = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
-)
+)::OutputNamelist
 ```
 
 Construct an `OutputNamelist` instance with the given keyword arguments as properties.
@@ -33,20 +33,31 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
 # Fields/Keywords
 
   - `output_variables::A`: A tuple of symbols representing the variables that should be written to the output file.
+
   - `save_ray_volumes::B`: A boolean indicating whether to write ray-volume data.
+
   - `prepare_restart::B`: A boolean indicating whether to write all variables needed for restart simulations.
+
   - `restart::B`: A boolean indicating whether to initialize with data from a previous state (as written in `input_file`).
+
   - `iin::C`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations.
+
   - `output_steps::B`: If set to `true`, write output every `noutput` time steps.
+
   - `noutput::C`: Output interval (in indices) if `output_steps == true`.
+
   - `maxiter::C`: Maximum number of iterations if `output_steps == true`.
+
   - `outputtimediff::D`: Output interval (in physical time) if `output_steps == false`.
+
   - `maxtime::D`: Simulation time if `output_steps == false`.
+
   - `input_file::E`: File from which to read input data in restart simulations.
+
   - `output_file::E`: File to which output data is written.
 """
 struct OutputNamelist{
-    A <: Tuple{Vararg{Symbol, <:Integer}},
+    A <: Tuple{Vararg{Symbol}},
     B <: Bool,
     C <: Integer,
     D <: AbstractFloat,
@@ -67,7 +78,7 @@ struct OutputNamelist{
 end
 
 function OutputNamelist(;
-    output_variables::Tuple{Vararg{Symbol, <:Integer}} = (),
+    output_variables::Tuple{Vararg{Symbol}} = (),
     save_ray_volumes::Bool = false,
     prepare_restart::Bool = false,
     restart::Bool = false,
@@ -79,7 +90,7 @@ function OutputNamelist(;
     maxtime::AbstractFloat = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
-)
+)::OutputNamelist
     return OutputNamelist(
         output_variables,
         save_ray_volumes,

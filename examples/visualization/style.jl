@@ -1,14 +1,36 @@
+using PythonCall
 using PythonPlot
 
 """
-Compute symmetric contours levels and crop the colormap accordingly.
+```julia
+symmetric_contours(
+    minimum::AbstractFloat,
+    maximum::AbstractFloat;
+    number::Integer = 10,
+    colormap_name::String = "seismic",
+)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
+```
+
+Compute symmetric contours levels and return them and a correspondingly cropped colormap.
+
+# Arguments
+
+  - `minimum`: Smallest value to be plotted.
+
+  - `maximum`: Largest value to be plotted.
+
+# Keywords
+
+  - `number`: Number of contour levels.
+
+  - `colormap_name`: Name under which the chosen colormap is registered.
 """
 function symmetric_contours(
     minimum::AbstractFloat,
-    maximum::AbstractFloat,
+    maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::String = "seismic",
-)
+)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
 
     # Compute contour levels.
     if minimum == -maximum ||
@@ -86,7 +108,7 @@ matplotlib.rcParams["text.usetex"] = true
 matplotlib.rcParams["text.latex.preamble"] =
     "\\usepackage{amsmath, amstext, amssymb, amsfonts, amsthm}" *
     "\\allowdisplaybreaks" *
-    "\\usepackage[slantedGreek]{newtxmath}" *
+    # "\\usepackage[slantedGreek]{newtxmath}" *
     "\\renewcommand*\\rmdefault{ptm}" *
     "\\renewcommand*\\sfdefault{phv}" *
     "\\renewcommand*\\ttdefault{lmtt}"

@@ -1,9 +1,12 @@
 """
 ```julia
-compute_saturation_integrals(state::State, indices::NTuple{3, <:Integer})
+compute_saturation_integrals(
+    state::State,
+    indices::NTuple{3, <:Integer},
+)::NTuple{2, <:AbstractFloat}
 ```
 
-Compute two spectral integrals needed by the saturation scheme (in the grid cell specified by `indices`).
+Compute and return the two spectral integrals ``S_1`` and ``S_2``, as needed by the saturation scheme (in the grid cell specified by `indices`).
 
 Computes the sums
 
@@ -31,17 +34,15 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``\\overline{\\r
 # Arguments
 
   - `state`: Model state.
+
   - `indices`: Grid-cell indices.
-
-# Returns
-
-  - `::AbstractFloat`: Discretized saturation integral ``S_1``.
-  - `::AbstractFloat`: Discretized saturation integral ``S_2``.
 
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
 function compute_saturation_integrals end
@@ -49,7 +50,7 @@ function compute_saturation_integrals end
 function compute_saturation_integrals(
     state::State,
     indices::NTuple{3, <:Integer},
-)
+)::NTuple{2, <:AbstractFloat}
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
     (; io, jo, i0, j0) = domain

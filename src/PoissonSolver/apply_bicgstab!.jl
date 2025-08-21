@@ -8,30 +8,33 @@ apply_bicgstab!(
     domain::Domain,
     grid::Grid,
     poisson::Poisson,
-)
+)::Tuple{Bool, <:Integer}
 ```
 
-Solve the Poisson equation using a preconditioned BicGStab algorithm.
+Solve the Poisson equation using a preconditioned BicGStab algorithm and return a tuple containing an error flag and the number of iterations.
 
 # Arguments
 
   - `b_in`: Right-hand side.
+
   - `tolref`: Reference tolerance for convergence criterion.
+
   - `sol`: Solution (Exner-pressure differences).
+
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `grid`: Collection of parameters and fields that describe the grid.
+
   - `poisson`: Operator and workspace arrays needed for the Poisson equation.
-
-# Returns
-
-  - `::Bool`: Error flag.
-  - `::Integer`: Number of iterations.
 
 # See also
 
   - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
+
   - [`PinCFlow.PoissonSolver.apply_preconditioner!`](@ref)
+
   - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
 """
 function apply_bicgstab! end
@@ -44,7 +47,7 @@ function apply_bicgstab!(
     domain::Domain,
     grid::Grid,
     poisson::Poisson,
-)
+)::Tuple{Bool, <:Integer}
     (; sizex, sizey, sizez) = namelists.domain
     (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
         namelists.poisson
@@ -114,6 +117,7 @@ function apply_bicgstab!(
     if res == 0.0 || res / b_norm <= tol
         if master
             println("=> No iteration needed!")
+            println("")
         end
         niter = 0
         return (errflag, niter)

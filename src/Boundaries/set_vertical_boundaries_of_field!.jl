@@ -32,14 +32,19 @@ This method is applied to reconstruction arrays. Vertical boundary conditions ar
 # Arguments
 
   - `field`: Input array.
+
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `zboundaries`: Vertical boundary conditions.
+
   - `mode`: Method used for setting the boundary-cell values.
 
 # Keywords
 
   - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+
   - `staggered`: A switch for whether or not the field is on the staggered vertical grid.
 
 # See also

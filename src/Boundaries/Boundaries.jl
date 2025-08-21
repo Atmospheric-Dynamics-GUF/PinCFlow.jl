@@ -10,6 +10,7 @@ Handles periodic boundaries in the horizontal and solid-wall boundaries in the v
 # See also
 
   - [`PinCFlow.Types`](@ref)
+
   - [`PinCFlow.MPIOperations`](@ref)
 """
 module Boundaries
@@ -55,21 +56,21 @@ struct BoundaryFluxes <: AbstractBoundaryVariables end
 
 """
 ```julia
-BoundaryGWIntegrals <: AbstractBoundaryVariables
+BoundaryWKBIntegrals <: AbstractBoundaryVariables
 ```
 
 Boundary-variable category for gravity-wave-integral fields.
 """
-struct BoundaryGWIntegrals <: AbstractBoundaryVariables end
+struct BoundaryWKBIntegrals <: AbstractBoundaryVariables end
 
 """
 ```julia
-BoundaryGWTendencies <: AbstractBoundaryVariables
+BoundaryWKBTendencies <: AbstractBoundaryVariables
 ```
 
 Boundary-variable category for gravity-wave-tendency fields.
 """
-struct BoundaryGWTendencies <: AbstractBoundaryVariables end
+struct BoundaryWKBTendencies <: AbstractBoundaryVariables end
 
 include("set_boundaries!.jl")
 include("set_compressible_meridional_boundaries!.jl")
@@ -94,8 +95,8 @@ include("set_zonal_boundaries!.jl")
 export BoundaryPredictands,
     BoundaryReconstructions,
     BoundaryFluxes,
-    BoundaryGWIntegrals,
-    BoundaryGWTendencies
+    BoundaryWKBIntegrals,
+    BoundaryWKBTendencies
 
 export set_boundaries!,
     set_meridional_boundaries_of_field!,
