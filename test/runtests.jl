@@ -1,6 +1,4 @@
-include("../src/PinCFlow.jl")
-
-using .PinCFlow
+using PinCFlow
 using Statistics
 using Test
 using HDF5
@@ -39,6 +37,7 @@ configurations = Dict(
         for background in keys(configurations[model])
             for testcase in keys(configurations[model][background])
                 println((model, background, testcase))
+
                 atmosphere = AtmosphereNamelist(;
                     specifyreynolds = false,
                     reinv = 0.0E+0,

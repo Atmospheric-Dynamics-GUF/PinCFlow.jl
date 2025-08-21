@@ -10,9 +10,13 @@ In addition to ray-volume initialization and propagation, functions for tracking
 # See also
 
   - [`PinCFlow.Types`](@ref)
+
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations`](@ref)
+
   - [`PinCFlow.MSGWaM.RaySources`](@ref)
 """
 module RayUpdate

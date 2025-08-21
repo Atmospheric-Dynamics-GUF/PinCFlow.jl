@@ -8,12 +8,19 @@ Module for the construction of a single composite type that contains all informa
 # See also
 
   - [`PinCFlow.Types.NamelistTypes`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
+
   - [`PinCFlow.Types.PoissonTypes`](@ref)
+
   - [`PinCFlow.Types.VariableTypes`](@ref)
+
   - [`PinCFlow.Types.WKBTypes`](@ref)
+
   - [`PinCFlow.Types.TracerTypes`](@ref)
+
   - [`PinCFlow.Types.IceTypes`](@ref)
+
   - [`PinCFlow.Types.TurbulenceTypes`](@ref)
 """
 module Types
@@ -205,16 +212,16 @@ export DomainNamelist,
     Correction,
     Poisson,
     Predictands,
-    Tendencies,
+    Increments,
     Backups,
     Auxiliaries,
     Reconstructions,
     Fluxes,
     Variables,
-    GWIntegrals,
-    GWTendencies,
+    WKBIntegrals,
+    WKBTendencies,
     Rays,
-    Increments,
+    WKBIncrements,
     SurfaceIndices,
     WKB,
     Tracer,
@@ -225,21 +232,21 @@ export DomainNamelist,
     LinearTracer,
     TracerPredictands,
     TracerAuxiliaries,
-    TracerTendencies,
+    TracerIncrements,
     TracerReconstructions,
     TracerFluxes,
     IceOn,
     NoIce,
     IcePredictands,
     IceAuxiliaries,
-    IceTendencies,
+    IceIncrements,
     IceReconstructions,
     IceFluxes,
     TurbulenceOn,
     NoTurbulence,
     TurbulencePredictands,
     TurbulenceAuxiliaries,
-    TurbulenceTendencies,
+    TurbulenceIncrements,
     TurbulenceReconstructions,
     TurbulenceFluxes
 
