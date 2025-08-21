@@ -1,11 +1,14 @@
 """
 ```julia
-compute_intrinsic_frequency(state::State, indices::NTuple{4, <:Integer})
+compute_intrinsic_frequency(
+    state::State,
+    indices::NTuple{4, <:Integer},
+)::AbstractFloat
 ```
 
-Compute the intrinsic frequency of the ray volume specified by `indices`.
+Return the intrinsic frequency of the ray volume specified by `indices`.
 
-Calculates the intrinsic frequency from the dispersion relation
+The intrinsic frequency is calculated from the dispersion relation
 
 ```math
 \\widehat{\\omega}_\\alpha = \\sigma \\sqrt{\\frac{N^2 \\left(k_\\alpha^2 + l_\\alpha^2\\right) + f^2 m_\\alpha^2}{\\left|\\boldsymbol{k}_\\alpha\\right|^2}},
@@ -16,11 +19,8 @@ where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)
 # Arguments
 
   - `state`: Model state
+
   - `indices`: Indices of the ray volume of interest.
-
-# Returns
-
-  - `::AbstractFloat`: Intrinsic frequency.
 
 # See also
 
@@ -31,7 +31,7 @@ function compute_intrinsic_frequency end
 function compute_intrinsic_frequency(
     state::State,
     indices::NTuple{4, <:Integer},
-)
+)::AbstractFloat
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
     (; tref) = state.constants

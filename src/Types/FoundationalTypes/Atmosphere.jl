@@ -14,7 +14,7 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+)::Atmosphere
 ```
 
 Create an `Atmosphere` instance by dispatching to a method specific for the background and dynamic equations set in `namelists`.
@@ -27,7 +27,7 @@ Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::UniformBoussinesq,
-)
+)::Atmosphere
 ```
 
 Create an `Atmosphere` instance with background fields describing a uniform (i.e. neutral) Boussinesq atmosphere.
@@ -53,7 +53,7 @@ Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::StratifiedBoussinesq,
-)
+)::Atmosphere
 ```
 
 Create an `Atmosphere` instance with background fields describing a stratified Boussinesq atmosphere.
@@ -79,7 +79,7 @@ Atmosphere(
     grid::Grid,
     model::AbstractModel,
     background::Isothermal,
-)
+)::Atmosphere
 ```
 
 Create an `Atmosphere` instance with background fields describing an isothermal atmosphere.
@@ -100,23 +100,33 @@ where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `n
 # Fields
 
   - `pstrattfc::A`: Mass-weighted potential temperature ``P \\left(z\\right)`` (``P \\left(x, y, z, t\\right)`` in compressible mode).
+
   - `thetastrattfc::A`: Background potential temperature ``\\overline{\\theta} \\left(z\\right)``.
+
   - `rhostrattfc::A`: Background density ``\\overline{\\rho} \\left(z\\right)``.
+
   - `bvsstrattfc::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
+
   - `fc::B`: Coriolis frequency ``f \\left(y\\right)``.
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
   - `constants`: Physical constants and reference values.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `grid`: Collection of parameters and fields that describe the grid.
+
   - `model`: Dynamic equations.
+
   - `background`: Atmospheric background.
 
 # See also
 
   - [`PinCFlow.Types.FoundationalTypes.compute_coriolis_frequency`](@ref)
+
   - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
 """
 struct Atmosphere{
@@ -135,7 +145,7 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+)::Atmosphere
     (; model) = namelists.setting
     (; background) = namelists.atmosphere
     return Atmosphere(namelists, constants, domain, grid, model, background)
@@ -148,7 +158,7 @@ function Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::UniformBoussinesq,
-)
+)::Atmosphere
     (; theta0_dim, coriolis_mode) = namelists.atmosphere
     (; thetaref) = constants
     (; nxx, nyy, nzz) = domain
@@ -179,7 +189,7 @@ function Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::StratifiedBoussinesq,
-)
+)::Atmosphere
     (; buoyancy_frequency, theta0_dim, coriolis_mode) = namelists.atmosphere
     (; tref, thetaref) = constants
     (; nxx, nyy, nzz) = domain
@@ -210,7 +220,7 @@ function Atmosphere(
     grid::Grid,
     model::AbstractModel,
     background::Isothermal,
-)
+)::Atmosphere
     (; nbz) = namelists.domain
     (; zboundaries) = namelists.setting
     (; temp0_dim, press0_dim, coriolis_mode) = namelists.atmosphere

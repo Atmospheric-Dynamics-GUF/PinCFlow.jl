@@ -4,10 +4,10 @@ compute_compressible_buoyancy_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
-)
+)::AbstractFloat
 ```
 
-Compute the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)`` by dispatching to a method specific for the dynamic equations and `variable`.
+Compute the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, by dispatching to a method specific for the dynamic equations and `variable`, and return the result.
 
 In pseudo-incompressible mode, the squared buoyancy frequency used by PinCFlow is
 
@@ -35,7 +35,7 @@ compute_compressible_buoyancy_factor(
     indices::NTuple{3, <:Integer},
     variable::RhoP,
     model::Compressible,
-)
+)::AbstractFloat
 ```
 
 Return ``f_{b'} = 1`` as the factor by which the buoyancy term should be multiplied in compressible mode.
@@ -46,7 +46,7 @@ compute_compressible_buoyancy_factor(
     indices::NTuple{3, <:Integer},
     variable::RhoP,
     model::AbstractModel,
-)
+)::AbstractFloat
 ```
 
 Return ``f_{b'} = \\overline{\\rho} / \\rho`` as the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` in pseudo-incompressible mode (this method is also used in Boussinesq mode).
@@ -57,7 +57,7 @@ compute_compressible_buoyancy_factor(
     indices::NTuple{3, <:Integer},
     variable::W,
     model::Compressible,
-)
+)::AbstractFloat
 ```
 
 Return ``f_w = 1`` as the factor by which the buoyancy term should be multiplied in compressible mode.
@@ -68,7 +68,7 @@ compute_compressible_buoyancy_factor(
     indices::NTuple{3, <:Integer},
     variable::W,
     model::AbstractModel,
-)
+)::AbstractFloat
 ```
 
 Return ``f_w = \\overline{\\rho}_{k + 1 / 2} / \\rho_{k + 1 / 2}`` as the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k + 1 / 2\\right)`` in pseudo-incompressible mode (this method is also used in Boussinesq mode).
@@ -82,13 +82,12 @@ f_w = \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} = \\frac{J_{k + 1
 # Arguments
 
   - `state`: Model state.
+
   - `indices`: Grid-cell indices.
+
   - `variable`: Variable for which the factor is needed.
+
   - `model`: Dynamic equations.
-
-# Returns
-
-  - `::AbstractFloat`: Buoyancy factor.
 """
 function compute_compressible_buoyancy_factor end
 
@@ -96,7 +95,7 @@ function compute_compressible_buoyancy_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
-)
+)::AbstractFloat
     (; model) = state.namelists.setting
     return compute_compressible_buoyancy_factor(state, indices, variable, model)
 end
@@ -106,7 +105,7 @@ function compute_compressible_buoyancy_factor(
     indices::NTuple{3, <:Integer},
     variable::RhoP,
     model::Compressible,
-)
+)::AbstractFloat
     return 1.0
 end
 
@@ -115,7 +114,7 @@ function compute_compressible_buoyancy_factor(
     indices::NTuple{3, <:Integer},
     variable::RhoP,
     model::AbstractModel,
-)
+)::AbstractFloat
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (ix, jy, kz) = indices
@@ -127,7 +126,7 @@ function compute_compressible_buoyancy_factor(
     indices::NTuple{3, <:Integer},
     variable::W,
     model::Compressible,
-)
+)::AbstractFloat
     return 1.0
 end
 
@@ -136,7 +135,7 @@ function compute_compressible_buoyancy_factor(
     indices::NTuple{3, <:Integer},
     variable::W,
     model::AbstractModel,
-)
+)::AbstractFloat
     (; jac) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands

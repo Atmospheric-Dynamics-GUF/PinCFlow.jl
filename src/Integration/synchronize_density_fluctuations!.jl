@@ -41,6 +41,7 @@ In compressible mode, the density fluctuations are defined as the product of mas
 # Arguments
 
   - `state`: Model state.
+
   - `model`: Dynamic equations.
 """
 function synchronize_density_fluctuations! end

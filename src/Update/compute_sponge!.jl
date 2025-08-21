@@ -9,15 +9,15 @@ If `state.namelists.sponge.unifiedsponge` is `false`, this method directly compu
 
 ```math
 \\begin{align*}
-    \\alpha_\\mathrm{R}^{\\rho'} \\left(z\\right) & = \\begin{cases}
+    \\alpha_\\mathrm{R}^{uv} \\left(z\\right) & = \\begin{cases}
         \\frac{a_\\mathrm{R}}{\\Delta t} \\sin^2 \\left[\\frac{\\pi \\left(z - z_\\mathrm{R}\\right)}{2 \\left(L_z - z_\\mathrm{R}\\right)}\\right] & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
         0 & \\mathrm{else},
     \\end{cases}\\\\
-    \\alpha_\\mathrm{R}^{\\widehat{w}} \\left(z\\right) & = \\frac{\\alpha_\\mathrm{R}^{\\rho'}}{J},
+    \\alpha_\\mathrm{R}^{\\widehat{w}} \\left(z\\right) & = \\frac{\\alpha_\\mathrm{R}^{uv}}{J},
 \\end{align*}
 ```
 
-where ``a_\\mathrm{R}`` and ``z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_fac` and `state.sponge.zsponge`, respectively. These coefficients are only used in the prognostic equations for the density fluctuations (``\\alpha_\\mathrm{R}^{\\rho'}``) and transformed vertical wind (``\\alpha_\\mathrm{R}^{\\widehat{w}}``). The corresponding damping terms are integrated on the right-hand sides. If `state.namelists.sponge.unifiedsponge` is `true`, this method dispatches to a specific method that computes the Rayleigh damping coefficient of the sponge defined for `state.namelists.sponge.spongetype`.
+where ``a_\\mathrm{R}`` and ``z_\\mathrm{R}`` are given by `state.namelists.sponge.spongealphaz_fac` and `state.sponge.zsponge`, respectively. These coefficients are only used in the prognostic equations for the horizontal wind (``\\alpha_\\mathrm{R}^{uv}``, only if `state.namelists.sponge.sponge_uv` is `true`) and the transformed vertical wind (``\\alpha_\\mathrm{R}^{\\widehat{w}}``). The corresponding damping terms are integrated on the right-hand sides. If `state.namelists.sponge.unifiedsponge` is `true`, this method dispatches to a specific method that computes the Rayleigh damping coefficient of the sponge defined for `state.namelists.sponge.spongetype`.
 
 ```julia
 compute_sponge!(state::State, dt::AbstractFloat, spongetype::ExponentialSponge)
@@ -163,12 +163,15 @@ and otherwise, it is
 # Arguments
 
   - `state`: Model state.
+
   - `dt`: Time step.
+
   - `spongetype`: Specification of the spatial dependence of the  Rayleigh-damping coefficient.
 
 # See also
 
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_sponge! end

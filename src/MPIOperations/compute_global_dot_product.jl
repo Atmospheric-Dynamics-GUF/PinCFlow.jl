@@ -4,20 +4,18 @@ compute_global_dot_product(
     a::AbstractArray{<:AbstractFloat, 3},
     b::AbstractArray{<:AbstractFloat, 3},
     domain::Domain,
-)
+)::AbstractFloat
 ```
 
-Compute the dot product of two 3D arrays distributed across MPI processes.
+Compute and return the dot product ``\\boldsymbol{a} \\cdot \\boldsymbol{b} = \\sum_i a_i \\cdot b_i`` of two 3D arrays distributed across MPI processes.
 
 # Arguments
 
   - `a`: First input array.
+
   - `b`: Second input array (must have the same shape as `a`).
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-# Returns
-
-  - `::AbstractFloat`: Global dot product ``\\boldsymbol{a} \\cdot \\boldsymbol{b} = \\sum_i a_i \\cdot b_i`` across all MPI processes.
 """
 function compute_global_dot_product end
 
@@ -25,7 +23,7 @@ function compute_global_dot_product(
     a::AbstractArray{<:AbstractFloat, 3},
     b::AbstractArray{<:AbstractFloat, 3},
     domain::Domain,
-)
+)::AbstractFloat
 
     # Get parameters.
     (; comm) = domain

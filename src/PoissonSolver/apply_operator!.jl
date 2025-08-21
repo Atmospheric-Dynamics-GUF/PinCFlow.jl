@@ -32,16 +32,23 @@ Before the operator is applied, the boundary/halo values of `sin` are set, in th
 # Arguments
 
   - `sin`: Solution array.
+
   - `ls`: Result of applying the operator to the solution array.
+
   - `hortot`: Linear-operator mode.
+
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
   - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # See also
 
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
 function apply_operator! end

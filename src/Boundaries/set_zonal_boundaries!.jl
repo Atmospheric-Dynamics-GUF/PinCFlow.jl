@@ -12,7 +12,7 @@ set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
 Enforce zonal boundary conditions for all reconstruction fields.
 
 ```julia
-set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
+set_zonal_boundaries!(state::State, variables::BoundaryWKBIntegrals)
 ```
 
 Enforce zonal boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
@@ -20,7 +20,7 @@ Enforce zonal boundary conditions for gravity-wave-integral fields by dispatchin
 ```julia
 set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
 )
 ```
@@ -30,7 +30,7 @@ Enforce zonal boundary conditions for gravity-wave-integral fields needed in `Si
 ```julia
 set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::MultiColumn,
 )
 ```
@@ -38,7 +38,7 @@ set_zonal_boundaries!(
 Enforce zonal boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
 
 ```julia
-set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
+set_zonal_boundaries!(state::State, variables::BoundaryWKBTendencies)
 ```
 
 Enforce zonal boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
@@ -46,7 +46,7 @@ Enforce zonal boundary conditions for gravity-wave-tendency fields by dispatchin
 ```julia
 set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
 )
 ```
@@ -56,7 +56,7 @@ Enforce zonal boundary conditions for gravity-wave-tendency fields needed in `Si
 ```julia
 set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::MultiColumn,
 )
 ```
@@ -66,13 +66,22 @@ Enforce zonal boundary conditions for gravity-wave-tendency fields needed in `Mu
 # Arguments
 
   - `state`: Model state.
+
   - `variables`: Boundary-variable category.
+
   - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.Boundaries.set_compressible_zonal_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_tracer_zonal_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_ice_zonal_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_turbulence_zonal_boundaries!`](@ref)
 """
 function set_zonal_boundaries! end
 
@@ -123,7 +132,7 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
     return
 end
 
-function set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
+function set_zonal_boundaries!(state::State, variables::BoundaryWKBIntegrals)
     (; wkb_mode) = state.namelists.wkb
     set_zonal_boundaries!(state, variables, wkb_mode)
     return
@@ -131,7 +140,7 @@ end
 
 function set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
@@ -151,7 +160,7 @@ end
 
 function set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state
@@ -169,7 +178,7 @@ function set_zonal_boundaries!(
     return
 end
 
-function set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
+function set_zonal_boundaries!(state::State, variables::BoundaryWKBTendencies)
     (; wkb_mode) = state.namelists.wkb
     set_zonal_boundaries!(state, variables, wkb_mode)
     return
@@ -177,7 +186,7 @@ end
 
 function set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
@@ -196,7 +205,7 @@ end
 
 function set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state

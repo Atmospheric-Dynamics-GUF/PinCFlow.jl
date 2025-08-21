@@ -104,9 +104,36 @@ abstract type AbstractWKBTestCase <: AbstractTestCase end
 AbstractWKBFilter
 ```
 
-Abstract type for filtering methods applied to gravity-wave tendencies.
+Abstract type for filtering methods applied to mean-flow tendencies.
 """
 abstract type AbstractWKBFilter end
+
+"""
+```julia
+AbstractTracer
+```
+
+Abstract type for the inclusion of a tracer.
+"""
+abstract type AbstractTracer end
+
+"""
+```julia
+AbstractIce
+```
+
+Abstract type for the inclusion of ice physics.
+"""
+abstract type AbstractIce end
+
+"""
+```julia
+AbstractTurbulence
+```
+
+Abstract type for the inclusion of turbulence physics.
+"""
+abstract type AbstractTurbulence end
 
 """
 ```julia
@@ -198,6 +225,13 @@ Singleton for WKB-mountain-wave test cases.
 """
 struct WKBMountainWave <: AbstractWKBTestCase end
 
+"""
+```julia
+WavePacket <: AbstractTestCase
+```
+
+Singleton for wave-packet test cases.
+"""
 struct WavePacket <: AbstractTestCase end
 
 """
@@ -268,7 +302,7 @@ struct ConstantWaveAction <: AbstractMergeMode end
 ConstantWaveEnergy <: AbstractMergeMode
 ```
 
-Singleton f or the constant-wave-energy ray-volume merging algorithm.
+Singleton for the constant-wave-energy ray-volume merging algorithm.
 """
 struct ConstantWaveEnergy <: AbstractMergeMode end
 
@@ -304,7 +338,7 @@ struct MultiColumn <: AbstractWKBMode end
 Box <: AbstractWKBFilter
 ```
 
-Singleton for a box filter as smoothing method applied to gravity-wave tendencies.
+Singleton for a box filter as smoothing method applied to mean-flow tendencies.
 """
 struct Box <: AbstractWKBFilter end
 
@@ -313,20 +347,62 @@ struct Box <: AbstractWKBFilter end
 Shapiro <: AbstractWKBFilter
 ```
 
-Singleton for a Shapiro filter as smoothing method applied to gravity-wave tendencies.
+Singleton for a Shapiro filter as smoothing method applied to mean-flow tendencies.
 """
 struct Shapiro <: AbstractWKBFilter end
 
-abstract type AbstractTracer end
+"""
+```julia
+NoTracer <: AbstractTracer
+```
+
+Singleton for model configurations without a tracer.
+"""
 struct NoTracer <: AbstractTracer end
+
+"""
+```julia
+LinearTracer <: AbstractTracer
+```
+
+Singleton for model configurations with an initially linear tracer.
+"""
 struct LinearTracer <: AbstractTracer end
 
-abstract type AbstractIce end
+"""
+```julia
+NoIce <: AbstractIce
+```
+
+Singleton for model configurations without ice physics.
+"""
 struct NoIce <: AbstractIce end
+
+"""
+```julia
+IceOn <: AbstractIce
+```
+
+Singleton for model configurations with ice physics.
+"""
 struct IceOn <: AbstractIce end
 
-abstract type AbstractTurbulence end
+"""
+```julia
+NoTurbulence <: AbstractTurbulence
+```
+
+Singleton for model configurations without turbulence physics.
+"""
 struct NoTurbulence <: AbstractTurbulence end
+
+"""
+```julia
+TurbulenceOn <: AbstractTurbulence
+```
+
+Singleton for model configurations with turbulence physics.
+"""
 struct TurbulenceOn <: AbstractTurbulence end
 
 using MPI

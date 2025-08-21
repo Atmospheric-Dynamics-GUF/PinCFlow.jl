@@ -40,7 +40,9 @@ Halo exchange is used in the same manner as in the methods for matrices and 3D a
 # Arguments
 
   - `field`: Input array.
+
   - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Keywords
