@@ -69,18 +69,18 @@ and the viscous-flux divergences are
 $$\begin{align*}
     \mathcal{V}^u & = \frac{1}{J} \left(\frac{\partial J \widehat{\Pi}^{11}}{\partial \widehat{x}} + \frac{\partial J \widehat{\Pi}^{12}}{\partial \widehat{y}} + \frac{\partial J \widehat{\Pi}^{13}}{\partial \widehat{z}}\right),\\
     \mathcal{V}^v & = \frac{1}{J} \left(\frac{\partial J \widehat{\Pi}^{21}}{\partial \widehat{x}} + \frac{\partial J \widehat{\Pi}^{22}}{\partial \widehat{y}} + \frac{\partial J \widehat{\Pi}^{23}}{\partial \widehat{z}}\right),\\
-    \mathcal{V}^{\widehat{w}} & = G^{13} \mathcal{V}^u + G^{23} \mathcal{V}^v + \frac{1}{J^2} \left[\frac{\partial J \Pi^{31}}{\partial \widehat{x}} + \frac{\partial J \Pi^{32}}{\partial \widehat{y}}\right.\notag\\
-    & \qquad \qquad \qquad \qquad \qquad \quad + \left.\frac{\partial}{\partial \widehat{z}} \left(J G^{13} \Pi^{13} + J G^{23} \Pi^{23} + \Pi^{33}\right)\right].
+    \mathcal{V}^{\widehat{w}} & = G^{13} \mathcal{V}^u + G^{23} \mathcal{V}^v + \frac{1}{J^2} \left[\frac{\partial J \Pi^{31}}{\partial \widehat{x}} + \frac{\partial J \Pi^{32}}{\partial \widehat{y}} + \frac{\partial}{\partial \widehat{z}} \left(J G^{13} \Pi^{13} + J G^{23} \Pi^{23} + \Pi^{33}\right)\right].
 \end{align*}$$
 
 Therein, the elements of the (symmetric) transformed viscous-stress tensor are
 
 $$\begin{align*}
-    \widehat{\Pi}^{11} & = \Pi^{11}, \qquad \widehat{\Pi}^{12} = \Pi^{12}, \qquad \widehat{\Pi}^{22} = \Pi^{22},\\
+    \widehat{\Pi}^{11} & = \Pi^{11},\\
+    \widehat{\Pi}^{12} & = \Pi^{12},\\
+    \widehat{\Pi}^{22} & = \Pi^{22},\\
     \widehat{\Pi}^{13} & = G^{13} \Pi^{11} + G^{23} \Pi^{12} + \frac{1}{J} \Pi^{13},\\
     \widehat{\Pi}^{23} & = G^{13} \Pi^{12} + G^{23} \Pi^{22} + \frac{1}{J} \Pi^{23},\\
-    \widehat{\Pi}^{33} & = \left(G^{13}\right)^2 \Pi^{11} + \left(G^{23}\right)^2 \Pi^{22} + \frac{1}{J^2} \Pi^{33}\notag\\
-    & \quad + 2 \left(G^{13} G^{23} \Pi^{12} + \frac{G^{13}}{J} \Pi^{13} + \frac{G^{23}}{J} \Pi^{23}\right)
+    \widehat{\Pi}^{33} & = \left(G^{13}\right)^2 \Pi^{11} + \left(G^{23}\right)^2 \Pi^{22} + \frac{1}{J^2} \Pi^{33} + 2 \left(G^{13} G^{23} \Pi^{12} + \frac{G^{13}}{J} \Pi^{13} + \frac{G^{23}}{J} \Pi^{23}\right)
 \end{align*}$$
 
 and those of its Cartesian counterpart are
