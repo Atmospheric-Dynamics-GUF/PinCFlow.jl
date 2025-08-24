@@ -627,7 +627,7 @@ function apply_unified_sponge!(
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphaunifiedsponge) = state.sponge
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhostrattfc) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
     if !spongelayer || !unifiedsponge
@@ -638,11 +638,11 @@ function apply_unified_sponge!(
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
         pib =
-            rhostrattfc[i, j, k] * pstrattfc[i, j, k] /
+            rhostrattfc[i, j, k] * p[i, j, k] /
             (rho[i, j, k] + rhostrattfc[i, j, k]) / dpdpi
         alpha = alphaunifiedsponge[i, j, k]
         pipold = pip[i, j, k]
-        pipnew = pipold - alpha * dt * (pstrattfc[i, j, k] / dpdpi - pib)
+        pipnew = pipold - alpha * dt * (p[i, j, k] / dpdpi - pib)
         pip[i, j, k] = pipnew
     end
 
@@ -669,7 +669,7 @@ function apply_unified_sponge!(
     (; spongelayer, unifiedsponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphaunifiedsponge) = state.sponge
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhostrattfc) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
     if !spongelayer || !unifiedsponge
@@ -678,7 +678,7 @@ function apply_unified_sponge!(
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         pb =
-            rhostrattfc[i, j, k] * pstrattfc[i, j, k] /
+            rhostrattfc[i, j, k] * p[i, j, k] /
             (rho[i, j, k] + rhostrattfc[i, j, k])
         alpha = alphaunifiedsponge[i, j, k]
         pold = p[i, j, k]
