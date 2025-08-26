@@ -48,7 +48,6 @@ export MountainWave, WKBMountainWave, WavePacket
 export PeriodicBoundaries, SolidWallBoundaries
 export MCVariant
 export UniformBoussinesq, StratifiedBoussinesq, Isothermal
-export FPlane
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro

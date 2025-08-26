@@ -57,7 +57,6 @@ configurations = Dict(
                         press0_dim = 1.0E+5,
                         backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0),
                         coriolis_frequency = 1.0E-4,
-                        coriolis_mode = FPlane(),
                     )
 
                     discretization = DiscretizationNamelist(;

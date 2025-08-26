@@ -20,15 +20,6 @@ abstract type AbstractBackground end
 
 """
 ```julia
-AbstractCoriolisMode
-```
-
-Abstract type for approximations of the Coriolis parameter.
-"""
-abstract type AbstractCoriolisMode end
-
-"""
-```julia
 AbstractLimiter
 ```
 
@@ -161,15 +152,6 @@ Isothermal <: AbstractBackground
 Singleton for an isothermal atmosphere in pseudo-incompressible or compressible mode.
 """
 struct Isothermal <: AbstractBackground end
-
-"""
-```julia
-FPlane <: AbstractCoriolisMode
-```
-
-Singleton for the ``f``-plane approximation of the Coriolis parameter.
-"""
-struct FPlane <: AbstractCoriolisMode end
 
 """
 ```julia
@@ -423,7 +405,6 @@ include("TurbulenceNamelist.jl")
 include("Namelists.jl")
 
 export AbstractBackground,
-    AbstractCoriolisMode,
     AbstractLimiter,
     AbstractModel,
     AbstractTestCase,
@@ -440,7 +421,6 @@ export AbstractBackground,
 export UniformBoussinesq,
     StratifiedBoussinesq,
     Isothermal,
-    FPlane,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,

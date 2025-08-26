@@ -136,7 +136,6 @@ using .TurbulenceTypes
 include("State.jl")
 
 export AbstractBackground,
-    AbstractCoriolisMode,
     AbstractLimiter,
     AbstractVariable,
     AbstractModel,
@@ -163,7 +162,6 @@ export Rho,
     UniformBoussinesq,
     StratifiedBoussinesq,
     Isothermal,
-    FPlane,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,

@@ -530,14 +530,18 @@ function update!(
     variable::U,
     side::LHS,
 )
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
+    (; tref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, fc) = state.atmosphere
+    (; rhostrattfc) = state.atmosphere
     (; du) = state.variables.increments
     (; phiu) = state.variables.fluxes
     (; rhoold, uold) = state.variables.backups
     (; rho, u, v) = state.variables.predictands
+
+    fc = coriolis_frequency * tref
 
     if m == 1
         du .= 0.0
@@ -567,7 +571,7 @@ function update!(
         vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
         volforce =
             0.5 *
-            fc[j] *
+            fc *
             (
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) * vc +
                 (rhoold[i + 1, j, k] + rhostrattfc[i + 1, j, k]) * vr
@@ -683,14 +687,18 @@ function update!(
     variable::V,
     side::LHS,
 )
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
+    (; tref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, fc) = state.atmosphere
+    (; rhostrattfc) = state.atmosphere
     (; dv) = state.variables.increments
     (; phiv) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
     (; rho, v) = state.variables.predictands
+
+    fc = coriolis_frequency * tref
 
     if m == 1
         dv .= 0.0
@@ -720,11 +728,11 @@ function update!(
         uf = 0.5 * (uold[i, j + 1, k] + uold[i - 1, j + 1, k])
 
         volforce =
-            -0.5 * (
-                fc[j] * (rhoold[i, j, k] + rhostrattfc[i, j, k]) * uc +
-                fc[j + 1] *
-                (rhoold[i, j + 1, k] + rhostrattfc[i, j + 1, k]) *
-                uf
+            -0.5 *
+            fc *
+            (
+                (rhoold[i, j, k] + rhostrattfc[i, j, k]) * uc +
+                (rhoold[i, j + 1, k] + rhostrattfc[i, j + 1, k]) * uf
             )
 
         force = -fluxdiff + volforce
@@ -833,16 +841,20 @@ function update!(
     variable::W,
     side::LHS,
 )
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; zboundaries) = state.namelists.setting
     (; alphark, betark) = state.time
+    (; tref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; dx, dy, dz, jac, met) = grid
-    (; rhostrattfc, fc) = state.atmosphere
+    (; rhostrattfc) = state.atmosphere
     (; dw) = state.variables.increments
     (; phiu, phiv, phiw) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
     (; rho, w) = state.variables.predictands
+
+    fc = coriolis_frequency * tref
 
     # Initialize fields for transformation of momentum flux divergence.
     (fluxdiffu, fluxdiffv) = (zeros(2, 2) for i in 1:2)
@@ -929,7 +941,7 @@ function update!(
         uu = 0.5 * (uold[i, j, k + 1] + uold[i - 1, j, k + 1])
 
         volforce =
-            fc[j] * (
+            fc * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 1, 3] *
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
@@ -939,7 +951,7 @@ function update!(
                 (rhoold[i, j, k + 1] + rhostrattfc[i, j, k + 1]) *
                 vu
             ) / (jac[i, j, k] + jac[i, j, k + 1]) -
-            fc[j] * (
+            fc * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 2, 3] *
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
