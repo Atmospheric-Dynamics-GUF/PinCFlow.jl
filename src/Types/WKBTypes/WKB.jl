@@ -225,13 +225,13 @@ function WKB(
     zrmax = zrmax_dim / lref
 
     # Check if the boundaries for ray-volume propagation are within the domain.
-    if xrmin < lx[1] || xrmax > lx[2]
+    if xrmin < -lx / 2 || xrmax > lx / 2
         error("Error in WKB: xrmin too small or xrmax too large!")
     end
-    if yrmin < ly[1] || yrmax > ly[2]
+    if yrmin < -ly / 2 || yrmax > ly / 2
         error("Error in WKB: yrmin too small or yrmax too large!")
     end
-    if zrmin < lz[1] || zrmax > lz[2]
+    if zrmin < 0 || zrmax > lz
         error("Error in WKB: zrmin too small or zrmax too large!")
     end
 

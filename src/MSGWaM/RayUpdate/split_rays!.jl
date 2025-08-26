@@ -264,8 +264,8 @@ function split_rays!(
 
         dzr = rays.dzray[iray, ix, jy, kz]
 
-        ixrv = floor(Int, (xr - lx[1]) / dx) + i0 - io
-        jyrv = floor(Int, (yr - ly[1]) / dy) + j0 - jo
+        ixrv = floor(Int, (xr + lx / 2) / dx) + i0 - io
+        jyrv = floor(Int, (yr + ly / 2) / dy) + j0 - jo
         kzrvd = get_next_half_level(ixrv, jyrv, zr - 0.5 * dzr, domain, grid)
         kzrvu = get_next_half_level(ixrv, jyrv, zr + 0.5 * dzr, domain, grid)
 

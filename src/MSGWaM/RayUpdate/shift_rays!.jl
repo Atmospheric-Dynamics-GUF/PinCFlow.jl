@@ -161,7 +161,7 @@ function shift_rays!(state::State, direction::X)
     for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
         for iray in 1:nray[ixrv, jyrv, kzrv]
             xr = rays.x[iray, ixrv, jyrv, kzrv]
-            ix = floor(Int, (xr - lx[1]) / dx) + i0 - io
+            ix = floor(Int, (xr + lx / 2) / dx) + i0 - io
 
             if ix != ixrv
                 if abs(ix - ixrv) > 1
@@ -198,7 +198,7 @@ function shift_rays!(state::State, direction::Y)
     for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
         for iray in 1:nray[ixrv, jyrv, kzrv]
             yr = rays.y[iray, ixrv, jyrv, kzrv]
-            jy = floor(Int, (yr - ly[1]) / dy) + j0 - jo
+            jy = floor(Int, (yr + ly / 2) / dy) + j0 - jo
 
             if jy != jyrv
                 if abs(jy - jyrv) > 1

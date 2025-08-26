@@ -169,7 +169,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
+        ixl = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (U): ixl = ", ixl, " < 1")
         end
@@ -191,7 +191,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (U): jyl = ", jyl, " < 1")
         end
@@ -291,7 +291,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (V): ixl = ", ixl, " < 1")
         end
@@ -313,7 +313,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
+        jyb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (V): jyb = ", jyb, " < 1")
         end
@@ -415,7 +415,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (W): ixl = ", ixl, " < 1")
         end
@@ -437,7 +437,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (W): jyb = ", jyb, " < 1")
         end
@@ -569,7 +569,7 @@ function interpolate_mean_flow(
         phi = 0.0
         return phi
     else
-        ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if ixl - 1 < 1
             error(
                 "Error in interpolate_mean_flow (DUDX): ixl - 1 = ",
@@ -595,7 +595,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (DUDX): jyb = ", jyb, " < 1")
         end
@@ -696,7 +696,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
+        ixl = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (DUDY): ixl = ", ixl, " < 1")
         end
@@ -718,7 +718,7 @@ function interpolate_mean_flow(
         phi = 0.0
         return phi
     else
-        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
+        jyb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (DUDY): jyb = ", jyb, " < 1")
         end
@@ -867,7 +867,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
+        ixl = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (DUDZ): ixl = ", ixl, " < 1")
         end
@@ -889,7 +889,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (DUDZ): jyb = ", jyb, " < 1")
         end
@@ -990,7 +990,7 @@ function interpolate_mean_flow(
         phi = 0.0
         return phi
     else
-        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
+        ixl = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (DVDX): ixl = ", ixl, " < 1")
         end
@@ -1012,7 +1012,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
+        jyb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (DVDX): jyb = ", jyb, " < 1")
         end
@@ -1161,7 +1161,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (DVDY): ixl = ", ixl, " < 1")
         end
@@ -1183,7 +1183,7 @@ function interpolate_mean_flow(
         phi = 0.0
         return phi
     else
-        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jyb - 1 < 1
             error(
                 "Error in interpolate_mean_flow (DVDY): jyb - 1 = ",
@@ -1288,7 +1288,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (DVDZ): ixl = ", ixl, " < 1")
         end
@@ -1310,7 +1310,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
+        jyb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow: jyb = ", jyb, " < 1")
         end

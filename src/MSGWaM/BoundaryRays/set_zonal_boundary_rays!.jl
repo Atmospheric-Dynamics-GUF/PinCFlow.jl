@@ -50,7 +50,7 @@ function set_zonal_boundary_rays!(state::State)
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):i0
             for iray in 1:nray[ix, jy, kz]
                 xr = rays.x[iray, ix, jy, kz]
-                xrt = xr - lx[2] + lx[1]
+                xrt = xr - lx
 
                 if abs(xrt - x[io + ix]) < abs(xr - x[io + ix])
                     xr = xrt
@@ -65,7 +65,7 @@ function set_zonal_boundary_rays!(state::State)
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1), ix in i1:(i1 + 1)
             for iray in 1:nray[ix, jy, kz]
                 xr = rays.x[iray, ix, jy, kz]
-                xrt = xr + lx[2] - lx[1]
+                xrt = xr + lx
 
                 if abs(xrt - x[io + ix]) < abs(xr - x[io + ix])
                     xr = xrt

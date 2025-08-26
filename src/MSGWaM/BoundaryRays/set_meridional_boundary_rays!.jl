@@ -55,7 +55,7 @@ function set_meridional_boundary_rays!(state::State)
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):j0, ix in (i0 - 1):(i1 + 1)
             for iray in 1:nray[ix, jy, kz]
                 yr = rays.y[iray, ix, jy, kz]
-                yrt = yr - ly[2] + ly[1]
+                yrt = yr - ly
 
                 if abs(yrt - y[jo + jy]) < abs(yr - y[jo + jy])
                     yr = yrt
@@ -70,7 +70,7 @@ function set_meridional_boundary_rays!(state::State)
         for kz in (k0 - 1):(k1 + 1), jy in j1:(j1 + 1), ix in (i0 - 1):(i1 + 1)
             for iray in 1:nray[ix, jy, kz]
                 yr = rays.y[iray, ix, jy, kz]
-                yrt = yr + ly[2] - ly[1]
+                yrt = yr + ly
 
                 if abs(yrt - y[jo + jy]) < abs(yr - y[jo + jy])
                     yr = yrt

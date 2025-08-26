@@ -154,13 +154,13 @@ function apply_saturation_scheme!(
             zr = rays.z[iray, ix, jy, kz]
 
             if sizex > 1
-                ix = floor(Int, (xr - lx[1]) / dx) + i0 - io
+                ix = floor(Int, (xr + lx / 2) / dx) + i0 - io
             else
                 ix = i0
             end
 
             if sizey > 1
-                jy = floor(Int, (yr - ly[1]) / dy) + j0 - jo
+                jy = floor(Int, (yr + ly / 2) / dy) + j0 - jo
             else
                 jy = j0
             end

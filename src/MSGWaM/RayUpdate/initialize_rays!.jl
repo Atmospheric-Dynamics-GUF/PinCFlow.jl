@@ -97,8 +97,8 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         ix0 = i0
         ix1 = i1
     else
-        ix0 = max(i0, floor(Int, (xrmin - lx[1]) / dx) + i0 - io)
-        ix1 = min(i1, floor(Int, (xrmax - lx[1]) / dx) + i0 - io)
+        ix0 = max(i0, floor(Int, (xrmin + lx / 2) / dx) + i0 - io)
+        ix1 = min(i1, floor(Int, (xrmax + lx / 2) / dx) + i0 - io)
     end
 
     # Set meridional index bounds.
@@ -106,8 +106,8 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         jy0 = j0
         jy1 = j1
     else
-        jy0 = max(j0, floor(Int, (yrmin - ly[1]) / dy) + j0 - jo)
-        jy1 = min(j1, floor(Int, (yrmax - ly[1]) / dy) + j0 - jo)
+        jy0 = max(j0, floor(Int, (yrmin + ly / 2) / dy) + j0 - jo)
+        jy1 = min(j1, floor(Int, (yrmax + ly / 2) / dy) + j0 - jo)
     end
 
     # Set vertical index bounds.
@@ -201,7 +201,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             zr = rays.z[iray, ix, jy, kz]
 
             # Check if ray volume is too low.
-            if zr < lz[1] - dz
+            if zr < -dz
                 error(
                     "Error in initialize_rays!: Ray volume",
                     iray,

@@ -195,8 +195,7 @@ function compute_sponge!(state::State, dt::AbstractFloat)
                 kr_sp_tfc[i, j, k] =
                     alpspg *
                     sin(
-                        0.5 * pi * (ztfc[i, j, k] - zsponge) /
-                        (lz[2] - zsponge),
+                        0.5 * pi * (ztfc[i, j, k] - zsponge) / (lz - zsponge),
                     )^2.0
                 kr_sp_w_tfc[i, j, k] = kr_sp_tfc[i, j, k] / jac[i, j, k]
             end
@@ -268,29 +267,29 @@ function compute_sponge!(
         if sizez > 1
             alphaunifiedsponge[i, j, k] =
                 alphaunifiedsponge[i, j, k] +
-                spongealphaz * exp((height - lz[2]) / dzsponge)
+                spongealphaz * exp((height - lz) / dzsponge)
         end
         if lateralsponge
             if sizex > 1
-                if x[io + i] <= 0.5 * (lx[1] + lx[2])
+                if x[io + i] <= 0
                     alphaunifiedsponge[i, j, k] =
                         alphaunifiedsponge[i, j, k] +
-                        spongealphax * exp((lx[1] - x[io + i]) / dxsponge)
+                        spongealphax * exp((-lx / 2 - x[io + i]) / dxsponge)
                 else
                     alphaunifiedsponge[i, j, k] =
                         alphaunifiedsponge[i, j, k] +
-                        spongealphax * exp((x[io + i] - lx[2]) / dxsponge)
+                        spongealphax * exp((x[io + i] - lx / 2) / dxsponge)
                 end
             end
             if sizey > 1
-                if y[jo + j] <= 0.5 * (ly[1] + ly[2])
+                if y[jo + j] <= 0
                     alphaunifiedsponge[i, j, k] =
                         alphaunifiedsponge[i, j, k] +
-                        spongealphay * exp((ly[1] - y[jo + j]) / dysponge)
+                        spongealphay * exp((-ly / 2 - y[jo + j]) / dysponge)
                 else
                     alphaunifiedsponge[i, j, k] =
                         alphaunifiedsponge[i, j, k] +
-                        spongealphay * exp((y[jo + j] - ly[2]) / dysponge)
+                        spongealphay * exp((y[jo + j] - ly / 2) / dysponge)
                 end
             end
         end

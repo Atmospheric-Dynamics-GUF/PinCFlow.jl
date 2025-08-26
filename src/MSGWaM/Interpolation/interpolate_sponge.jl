@@ -44,7 +44,7 @@ function interpolate_sponge(
 
     # Dermine closest points in horizontal direction.
     if sizex > 1
-        ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         ixr = ixl + 1
     else
         ixl = i0
@@ -55,7 +55,7 @@ function interpolate_sponge(
 
     # Determine closest points in meridional direction.
     if sizey > 1
-        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         jyf = jyb + 1
     else
         jyb = j0

@@ -55,8 +55,8 @@ function set_vertical_boundary_rays!(
                 dzr = rays.dzray[iray, ix, jy, kz]
                 wnrm = rays.m[iray, ix, jy, kz]
 
-                ixrv = floor(Int, (xr - lx[1]) / dx) + i0 - io
-                jyrv = floor(Int, (yr - ly[1]) / dy) + j0 - jo
+                ixrv = floor(Int, (xr + lx / 2) / dx) + i0 - io
+                jyrv = floor(Int, (yr + ly / 2) / dy) + j0 - jo
                 if topography_surface[ixrv, jyrv] - zr + 0.5 * dzr > eps()
                     rays.z[iray, ix, jy, kz] =
                         2.0 * topography_surface[ixrv, jyrv] - zr + dzr
@@ -74,13 +74,13 @@ function set_vertical_boundary_rays!(
                 zr = rays.z[iray, ix, jy, kz]
                 dzr = rays.dzray[iray, ix, jy, kz]
 
-                if zr - 0.5 * dzr > lz[2]
+                if zr - 0.5 * dzr > lz
                     continue
                 end
-                if zr + 0.5 * dzr > lz[2]
-                    rays.dzray[iray, ix, jy, kz] = lz[2] - zr + 0.5 * dzr
+                if zr + 0.5 * dzr > lz
+                    rays.dzray[iray, ix, jy, kz] = lz - zr + 0.5 * dzr
                     rays.z[iray, ix, jy, kz] =
-                        lz[2] - 0.5 * rays.dzray[iray, ix, jy, kz]
+                        lz - 0.5 * rays.dzray[iray, ix, jy, kz]
                 end
 
                 nrlc += 1

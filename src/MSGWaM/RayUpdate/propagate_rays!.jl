@@ -325,9 +325,9 @@ function propagate_rays!(
 
             cgz_max[ix, jy, kz] = max(cgz_max[ix, jy, kz], abs(cgrz))
 
-            # Refraction is only allowed above lz[1] + zmin_wkb_dim / lref.
+            # Refraction is only allowed above zmin_wkb_dim / lref.
 
-            if zr > lz[1] + zmin_wkb_dim / lref
+            if zr > zmin_wkb_dim / lref
 
                 #-------------------------------
                 #      Change of wavenumber

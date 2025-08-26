@@ -1,8 +1,8 @@
 """
 ```julia
 Grid{
-    A <: AbstractVector{<:AbstractFloat},
-    B <: AbstractFloat,
+    A <: AbstractFloat,
+    B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
     E <: AbstractArray{<:AbstractFloat, 3},
@@ -22,13 +22,24 @@ This constructor creates a 3D parallelized grid for a terrain-following, vertica
 
 ```math
 \\begin{align*}
-    \\widehat{x} & = L_x^{\\left(0\\right)} + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\widehat{x},\\\\
-    \\widehat{y} & = L_y^{\\left(0\\right)} + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\widehat{y},\\\\
-    \\widehat{z} & = L_z^{\\left(0\\right)} + \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\widehat{z},\\\\
+    \\widehat{x}_i & = - L_x / 2 + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\widehat{x}, & i & \\in \\left\\{1, ..., N_{\\mathrm{t}, \\widehat{x}}\\right\\},\\\\
+    \\widehat{y}_j & = - L_y / 2 + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\widehat{y}, & j & \\in \\left\\{1, ..., N_{\\mathrm{t}, \\widehat{y}}\\right\\},\\\\
+    \\widehat{z}_k & = \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\widehat{z}, & k & \\in \\left\\{1, ..., N_{\\mathrm{t}, \\widehat{z}}\\right\\},\\\\
 \\end{align*}
 ```
 
-where ``\\left(L_x^{\\left(0\\right)}, L_y^{\\left(0\\right)}, L_z^{\\left(0\\right)}\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\widehat{x}, \\Delta \\widehat{y}, \\Delta \\widehat{z}\\right)`` are the lower bounds of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. The vertical layer centers and edges of the stretched and physical grids are given by
+where ``\\left(L_x, L_y\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\widehat{x}, \\Delta \\widehat{y}, \\Delta \\widehat{z}\\right)`` are the horizontal extents of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. The total number of grid points in each dimension (``N_{\\mathrm{t}, \\widehat{x}}``, ``N_{\\mathrm{t}, \\widehat{y}}`` or ``N_{\\mathrm{t}, \\widehat{z}}``) is defined as the respective number of physical grid points (``N_{\\widehat{x}}``, ``N_{\\widehat{y}}`` or ``N_{\\widehat{z}}``) plus two times the number of ghost cells beyond each boundary (``N_{\\mathrm{b}, \\widehat{x}}``, ``N_{\\mathrm{b}, \\widehat{y}}`` or ``N_{\\mathrm{b}, \\widehat{z}}``). Throughout the documentation, the position of any variable on this grid is indicated with the indices ``\\left(i, j, k\\right)`` in its subscript. Therein, unshifted indices are omitted for the sake of brevity. The grid is staggered, i.e. the wind components are defined at the midpoints of those cell surfaces that are orthogonal to their respective directions. Interpolations are therefore necessary in many places. These are indicated as in
+
+```math
+\\begin{align*}
+    \\rho_{i + 1 / 2} & = \\frac{\\rho + \\rho_{i + 1}}{2}, & \\rho_{j + 1 / 2} & = \\frac{\\rho + \\rho_{j + 1}}{2}, & \\rho_{k + 1 / 2} & = \\frac{J_{k + 1} \\rho + J \\rho_{k + 1}}{J_{k + 1} + J},\\\\
+    u & = \\frac{u_{i - 1 / 2} + u_{i + 1 / 2}}{2}, & u_{j + 1 / 2} & = \\frac{u + u_{j + 1}}{2}, & u_{k + 1 / 2} & = \\frac{J_{k + 1} u + J u_{k + 1}}{J_{k + 1} + J},\\\\
+    v_{i + 1 / 2} & = \\frac{v + v_{i + 1}}{2}, & v & = \\frac{v_{j - 1 / 2} + v_{j + 1 / 2}}{2}, & v_{k + 1 / 2} & = \\frac{J_{k + 1} v + J v_{k + 1}}{J_{k + 1} + J},\\\\
+    \\widehat{w}_{i + 1 / 2} & = \\frac{\\widehat{w} + \\widehat{w}_{i + 1}}{2}, & \\widehat{w}_{j + 1 / 2} & = \\frac{\\widehat{w} + \\widehat{w}_{j + 1}}{2}, & \\widehat{w} & = \\frac{\\widehat{w}_{k - 1 / 2} + \\widehat{w}_{k + 1 / 2}}{2}.
+\\end{align*}
+```
+
+The vertical layer centers and edges of the stretched and physical grids are given by
 
 ```math
 \\begin{align*}
@@ -37,7 +48,7 @@ where ``\\left(L_x^{\\left(0\\right)}, L_y^{\\left(0\\right)}, L_z^{\\left(0\\ri
 \\end{align*}
 ```
 
-where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`diff(namelists.domain.lz)`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
+where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz_dim`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
 
 ```math
 J = \\frac{L_z - h}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
@@ -49,35 +60,36 @@ and the non-Cartesian elements of the metric tensor are
 \\begin{align*}
     G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\widetilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
     G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\widetilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\} \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
+    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\}\\\\
+    & \\quad \\times \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
 \\end{align*}
 ```
 
 # Fields
 
-Domain boundaries:
+Domain extent:
 
-  - `lx::A`: Non-dimensional domain boundaries in ``\\widehat{x}``-direction.
+  - `lx::A`: Non-dimensional domain extent in ``\\widehat{x}``-direction.
 
-  - `ly::A`: Non-dimensional domain boundaries in ``\\widehat{y}``-direction.
+  - `ly::A`: Non-dimensional domain extent in ``\\widehat{y}``-direction.
 
-  - `lz::A`: Non-dimensional domain boundaries in ``\\widehat{z}``-direction.
+  - `lz::A`: Non-dimensional domain extent in ``\\widehat{z}``-direction.
 
 Grid spacing:
 
-  - `dx::B`: Grid spacing ``\\Delta \\widehat{x}``.
+  - `dx::A`: Grid spacing ``\\Delta \\widehat{x}``.
 
-  - `dy::B`: Grid spacing ``\\Delta \\widehat{y}``.
+  - `dy::A`: Grid spacing ``\\Delta \\widehat{y}``.
 
-  - `dz::B`: Grid spacing ``\\Delta \\widehat{z}``.
+  - `dz::A`: Grid spacing ``\\Delta \\widehat{z}``.
 
 Coordinate arrays:
 
-  - `x::A`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
+  - `x::B`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
 
-  - `y::A`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
+  - `y::B`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
 
-  - `z::A`: Cell-centered ``\\widehat{z}``-coordinate of the entire domain.
+  - `z::B`: Cell-centered ``\\widehat{z}``-coordinate of the entire domain.
 
 Topography:
 
@@ -118,8 +130,8 @@ Physical coordinates:
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
 struct Grid{
-    A <: AbstractVector{<:AbstractFloat},
-    B <: AbstractFloat,
+    A <: AbstractFloat,
+    B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
     E <: AbstractArray{<:AbstractFloat, 3},
@@ -132,14 +144,14 @@ struct Grid{
     lz::A
 
     # Grid spacings.
-    dx::B
-    dy::B
-    dz::B
+    dx::A
+    dy::A
+    dz::A
 
     # Coordinates.
-    x::A
-    y::A
-    z::A
+    x::B
+    y::B
+    z::B
 
     # Topography.
     topography_surface::C
@@ -164,31 +176,31 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; lref) = constants
 
     # Non-dimensionalize domain boundaries.
-    lx = [lx_dim...] ./ lref
-    ly = [ly_dim...] ./ lref
-    lz = [lz_dim...] ./ lref
+    lx = lx_dim / lref
+    ly = ly_dim / lref
+    lz = lz_dim / lref
 
     # Compute grid spacings.
-    dx = (lx[2] - lx[1]) / sizex
-    dy = (ly[2] - ly[1]) / sizey
-    dz = (lz[2] - lz[1]) / sizez
+    dx = lx / sizex
+    dy = ly / sizey
+    dz = lz / sizez
 
     # Compute x-coordinate.
     x = zeros(sizexx)
     for ix in 1:sizexx
-        x[ix] = lx[1] + (ix - i0) * dx + dx / 2
+        x[ix] = -lx / 2 + (ix - i0) * dx + dx / 2
     end
 
     # Compute y-coordinate.
     y = zeros(sizeyy)
     for jy in 1:sizeyy
-        y[jy] = ly[1] + (jy - j0) * dy + dy / 2
+        y[jy] = -ly / 2 + (jy - j0) * dy + dy / 2
     end
 
     # Compute z-coordinate.
     z = zeros(sizezz)
     for kz in 1:sizezz
-        z[kz] = lz[1] + (kz - k0) * dz + dz / 2
+        z[kz] = (kz - k0) * dz + dz / 2
     end
 
     # Initialize the stretched vertical grid.
@@ -198,23 +210,17 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     for kz in 1:sizezz
         level = z[kz] + 0.5 * dz
         if level < 0
-            ztildes[kz] = -lz[2] * (-level / lz[2])^stretch_exponent
-        elseif level > lz[2]
-            ztildes[kz] =
-                2 * lz[2] -
-                lz[2] * ((2 * lz[2] - level) / lz[2])^stretch_exponent
+            ztildes[kz] = -lz * (-level / lz)^stretch_exponent
+        elseif level > lz
+            ztildes[kz] = 2 * lz - lz * ((2 * lz - level) / lz)^stretch_exponent
         else
-            ztildes[kz] = lz[2] * (level / lz[2])^stretch_exponent
+            ztildes[kz] = lz * (level / lz)^stretch_exponent
         end
     end
     for kz in 2:sizezz
         zs[kz] = 0.5 * (ztildes[kz] + ztildes[kz - 1])
     end
     zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
-
-    if lz[1] != 0.0
-        error("Error in Grid: lz[1] must be zero for TFC!")
-    end
 
     # Compute the topography.
     (topography_surface, topography_spectrum, k_spectrum, l_spectrum) =
@@ -231,7 +237,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     # Compute the Jacobian.
     for kz in kz0:nzz
         jac[:, :, kz] .=
-            (lz[2] .- topography_surface) ./ lz[2] .*
+            (lz .- topography_surface) ./ lz .*
             (ztildes[ko + kz] .- ztildes[ko + kz - 1]) ./ dz
     end
     ko == 0 && @views jac[:, :, 1] .= jac[:, :, 2 * nbz]
@@ -246,37 +252,35 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     for kz in kz0:nzz, jy in 1:nyy, ix in i0:i1
         met13[ix, jy, kz] =
             (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
-            (2.0 * dx) * (zs[ko + kz] - lz[2]) /
-            (lz[2] - topography_surface[ix, jy]) * dz /
+            (2.0 * dx) * (zs[ko + kz] - lz) /
+            (lz - topography_surface[ix, jy]) * dz /
             (ztildes[ko + kz] - ztildes[ko + kz - 1])
     end
     set_zonal_boundaries_of_field!(met13, namelists, domain)
     ko == 0 && @views met13[:, :, 1] .=
-        met13[:, :, 2 * nbz] .* (zs[1] .- lz[2]) ./ (zs[2 * nbz] .- lz[2])
+        met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
     met[:, :, :, 1, 3] .= met13
     met[:, :, :, 3, 1] .= met13
 
     for kz in 2:nzz, jy in j0:j1, ix in 1:nxx
         met23[ix, jy, kz] =
             (topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]) /
-            (2.0 * dy) * (zs[ko + kz] - lz[2]) /
-            (lz[2] - topography_surface[ix, jy]) * dz /
+            (2.0 * dy) * (zs[ko + kz] - lz) /
+            (lz - topography_surface[ix, jy]) * dz /
             (ztildes[ko + kz] - ztildes[ko + kz - 1])
     end
     set_meridional_boundaries_of_field!(met23, namelists, domain)
     ko == 0 && @views met23[:, :, 1] .=
-        met23[:, :, 2 * nbz] .* (zs[1] .- lz[2]) ./ (zs[2 * nbz] .- lz[2])
+        met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
     met[:, :, :, 2, 3] .= met23
     met[:, :, :, 3, 2] .= met23
 
     for kz in kz0:nzz, jy in j0:j1, ix in i0:i1
         met33[ix, jy, kz] =
             (
-                (lz[2] / (lz[2] - topography_surface[ix, jy]))^2.0 +
+                (lz / (lz - topography_surface[ix, jy]))^2.0 +
+                ((zs[ko + kz] - lz) / (lz - topography_surface[ix, jy]))^2.0 *
                 (
-                    (zs[ko + kz] - lz[2]) /
-                    (lz[2] - topography_surface[ix, jy])
-                )^2.0 * (
                     (
                         (
                             topography_surface[ix + 1, jy] -
@@ -295,8 +299,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     ko == 0 && for jy in j0:j1, ix in i0:i1
         met33[ix, jy, 1] =
             (
-                (lz[2] / (lz[2] - topography_surface[ix, jy]))^2.0 +
-                ((zs[1] - lz[2]) / (lz[2] - topography_surface[ix, jy]))^2.0 * (
+                (lz / (lz - topography_surface[ix, jy]))^2.0 +
+                ((zs[1] - lz) / (lz - topography_surface[ix, jy]))^2.0 * (
                     (
                         (
                             topography_surface[ix + 1, jy] -
@@ -322,10 +326,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     # Compute the physical layers.
     for kz in 1:nzz
         ztildetfc[:, :, kz] .=
-            (lz[2] .- topography_surface) ./ lz[2] .* ztildes[ko + kz] .+
+            (lz .- topography_surface) ./ lz .* ztildes[ko + kz] .+
             topography_surface
         ztfc[:, :, kz] .=
-            (lz[2] .- topography_surface) ./ lz[2] .* zs[ko + kz] .+
+            (lz .- topography_surface) ./ lz .* zs[ko + kz] .+
             topography_surface
     end
 

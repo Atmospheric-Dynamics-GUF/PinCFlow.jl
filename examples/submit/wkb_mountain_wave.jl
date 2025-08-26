@@ -18,9 +18,9 @@ domain = DomainNamelist(;
     nbx = 3,
     nby = 3,
     nbz = 3,
-    lx_dim = (-2.0E+5, 2.0E+5),
-    ly_dim = (-2.0E+5, 2.0E+5),
-    lz_dim = (0.0E+0, 2.0E+4),
+    lx_dim = 4.0E+5,
+    ly_dim = 4.0E+5,
+    lz_dim = 2.0E+4,
     npx = 8,
     npy = 8,
 )

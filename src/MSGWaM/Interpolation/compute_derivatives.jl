@@ -204,7 +204,7 @@ function compute_derivatives(
                 (jac[ix + 1, jy, kzu] + jac[ix + 1, jy, kzu + 1])
             )
     else
-        if ztildetfc[ix, jy, kzu] < lz[2]
+        if ztildetfc[ix, jy, kzu] < lz
             phid =
                 (u[ix, jy, kzd + 1] - u[ix, jy, kzd]) / dz / (
                     jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
@@ -219,7 +219,7 @@ function compute_derivatives(
                     jac[ix + 1, jy, kzu] * jac[ix + 1, jy, kzu + 1] /
                     (jac[ix + 1, jy, kzu] + jac[ix + 1, jy, kzu + 1])
                 )
-        elseif ztildetfc[ix, jy, kzd] < lz[2]
+        elseif ztildetfc[ix, jy, kzd] < lz
             phid =
                 (u[ix, jy, kzd + 1] - u[ix, jy, kzd]) / dz / (
                     jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
@@ -332,7 +332,7 @@ function compute_derivatives(
                 (jac[ix, jy + 1, kzu] + jac[ix, jy + 1, kzu + 1])
             )
     else
-        if ztildetfc[ix, jy, kzu] < lz[2]
+        if ztildetfc[ix, jy, kzu] < lz
             phid =
                 (v[ix, jy, kzd + 1] - v[ix, jy, kzd]) / dz / (
                     jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
@@ -347,7 +347,7 @@ function compute_derivatives(
                     jac[ix, jy + 1, kzu] * jac[ix, jy + 1, kzu + 1] /
                     (jac[ix, jy + 1, kzu] + jac[ix, jy + 1, kzu + 1])
                 )
-        elseif ztildetfc[ix, jy, kzd] < lz[2]
+        elseif ztildetfc[ix, jy, kzd] < lz
             phid =
                 (v[ix, jy, kzd + 1] - v[ix, jy, kzd]) / dz / (
                     jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /

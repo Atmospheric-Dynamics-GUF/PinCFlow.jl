@@ -37,8 +37,8 @@ function compute_horizontal_cell_indices(
     (; lx, ly, dx, dy) = state.grid
 
     if sizex > 1
-        ixmin = floor(Int, (xr - lx[1] - dxr / 2) / dx) + i0 - io
-        ixmax = floor(Int, (xr - lx[1] + dxr / 2) / dx) + i0 - io
+        ixmin = floor(Int, (xr + lx / 2 - dxr / 2) / dx) + i0 - io
+        ixmax = floor(Int, (xr + lx / 2 + dxr / 2) / dx) + i0 - io
 
         if ixmin > i1 + 1
             error(
@@ -68,8 +68,8 @@ function compute_horizontal_cell_indices(
     end
 
     if sizey > 1
-        jymin = floor(Int, (yr - ly[1] - dyr / 2) / dy) + j0 - jo
-        jymax = floor(Int, (yr - ly[1] + dyr / 2) / dy) + j0 - jo
+        jymin = floor(Int, (yr + ly / 2 - dyr / 2) / dy) + j0 - jo
+        jymax = floor(Int, (yr + ly / 2 + dyr / 2) / dy) + j0 - jo
 
         if jymin > j1 + 1
             error(

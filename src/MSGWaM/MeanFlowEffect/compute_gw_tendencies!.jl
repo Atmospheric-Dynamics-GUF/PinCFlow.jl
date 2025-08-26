@@ -30,7 +30,7 @@ function compute_gw_tendencies!(state::State)
     (; zmin_wkb_dim) = state.namelists.wkb
     (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; lz, dx, dy, dz, ztfc, jac, met) = state.grid
+    (; dx, dy, dz, ztfc, jac, met) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (; integrals, tendencies) = state.wkb
@@ -43,7 +43,7 @@ function compute_gw_tendencies!(state::State)
     end
 
     for kz in k0:k1, jy in j0:j1, ix in i0:i1
-        if ztfc[ix, jy, kz] < lz[1] + zmin_wkb_dim / lref
+        if ztfc[ix, jy, kz] < zmin_wkb_dim / lref
             continue
         end
 
