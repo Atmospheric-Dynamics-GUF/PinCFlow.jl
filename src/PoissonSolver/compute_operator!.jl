@@ -445,18 +445,18 @@ function compute_operator!(
         end
 
         # Compute implicit coefficients.
-        imphoredger = 1.0 / (facedger^2.0)
-        imphoredgel = 1.0 / (facedgel^2.0)
-        imphoredgef = 1.0 / (facedgef^2.0)
-        imphoredgeb = 1.0 / (facedgeb^2.0)
-        imphoruedger = 1.0 / (facuedger^2.0)
-        imphoruedgel = 1.0 / (facuedgel^2.0)
-        imphoruedgef = 1.0 / (facuedgef^2.0)
-        imphoruedgeb = 1.0 / (facuedgeb^2.0)
-        imphordedger = 1.0 / (facdedger^2.0)
-        imphordedgel = 1.0 / (facdedgel^2.0)
-        imphordedgef = 1.0 / (facdedgef^2.0)
-        imphordedgeb = 1.0 / (facdedgeb^2.0)
+        imphoredger = 1.0 / facedger
+        imphoredgel = 1.0 / facedgel
+        imphoredgef = 1.0 / facedgef
+        imphoredgeb = 1.0 / facedgeb
+        imphoruedger = 1.0 / facuedger
+        imphoruedgel = 1.0 / facuedgel
+        imphoruedgef = 1.0 / facuedgef
+        imphoruedgeb = 1.0 / facuedgeb
+        imphordedger = 1.0 / facdedger
+        imphordedgel = 1.0 / facdedgel
+        imphordedgef = 1.0 / facdedgef
+        imphordedgeb = 1.0 / facdedgeb
         impveredgeu = 1.0 / (facedgeu + fwu * bvsstratedgeu * dt^2.0)
         impveredged = 1.0 / (facedged + fwd * bvsstratedged * dt^2.0)
 
@@ -465,7 +465,7 @@ function compute_operator!(
         # G(i + 1 / 2)
         if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedger =
-                jacinv / dx * pedgerdiv * imphoredger * facedger / rhoedger +
+                jacinv / dx * pedgerdiv * imphoredger / rhoedger +
                 jacinv / dz *
                 pedgeudiv *
                 impveredgeu *
@@ -475,11 +475,10 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 1, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoredger *
-                facedger / rhoedger
+                imphoredger / rhoedger
         elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedger =
-                jacinv / dx * pedgerdiv * imphoredger * facedger / rhoedger -
+                jacinv / dx * pedgerdiv * imphoredger / rhoedger -
                 jacinv / dz *
                 pedgeddiv *
                 impveredged *
@@ -489,11 +488,10 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 1, 3] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphoredger *
-                facedger / rhoedger
+                imphoredger / rhoedger
         else
             gedger =
-                jacinv / dx * pedgerdiv * imphoredger * facedger / rhoedger +
+                jacinv / dx * pedgerdiv * imphoredger / rhoedger +
                 jacinv / dz *
                 pedgeudiv *
                 impveredgeu *
@@ -503,8 +501,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 1, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoredger *
-                facedger / rhoedger -
+                imphoredger / rhoedger -
                 jacinv / dz *
                 pedgeddiv *
                 impveredged *
@@ -514,14 +511,13 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 1, 3] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphoredger *
-                facedger / rhoedger
+                imphoredger / rhoedger
         end
 
         # G(i - 1 / 2)
         if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedgel =
-                -jacinv / dx * pedgeldiv * imphoredgel * facedgel / rhoedgel +
+                -jacinv / dx * pedgeldiv * imphoredgel / rhoedgel +
                 jacinv / dz *
                 pedgeudiv *
                 impveredgeu *
@@ -531,11 +527,10 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 1, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoredgel *
-                facedgel / rhoedgel
+                imphoredgel / rhoedgel
         elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedgel =
-                -jacinv / dx * pedgeldiv * imphoredgel * facedgel / rhoedgel -
+                -jacinv / dx * pedgeldiv * imphoredgel / rhoedgel -
                 jacinv / dz *
                 pedgeddiv *
                 impveredged *
@@ -545,11 +540,10 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 1, 3] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphoredgel *
-                facedgel / rhoedgel
+                imphoredgel / rhoedgel
         else
             gedgel =
-                -jacinv / dx * pedgeldiv * imphoredgel * facedgel / rhoedgel +
+                -jacinv / dx * pedgeldiv * imphoredgel / rhoedgel +
                 jacinv / dz *
                 pedgeudiv *
                 impveredgeu *
@@ -559,8 +553,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 1, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoredgel *
-                facedgel / rhoedgel -
+                imphoredgel / rhoedgel -
                 jacinv / dz *
                 pedgeddiv *
                 impveredged *
@@ -570,14 +563,13 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 1, 3] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphoredgel *
-                facedgel / rhoedgel
+                imphoredgel / rhoedgel
         end
 
         # G(j + 1 / 2)
         if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedgef =
-                jacinv / dy * pedgefdiv * imphoredgef * facedgef / rhoedgef +
+                jacinv / dy * pedgefdiv * imphoredgef / rhoedgef +
                 jacinv / dz *
                 pedgeudiv *
                 impveredgeu *
@@ -587,11 +579,10 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 2, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoredgef *
-                facedgef / rhoedgef
+                imphoredgef / rhoedgef
         elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedgef =
-                jacinv / dy * pedgefdiv * imphoredgef * facedgef / rhoedgef -
+                jacinv / dy * pedgefdiv * imphoredgef / rhoedgef -
                 jacinv / dz *
                 pedgeddiv *
                 impveredged *
@@ -601,11 +592,10 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 2, 3] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphoredgef *
-                facedgef / rhoedgef
+                imphoredgef / rhoedgef
         else
             gedgef =
-                jacinv / dy * pedgefdiv * imphoredgef * facedgef / rhoedgef +
+                jacinv / dy * pedgefdiv * imphoredgef / rhoedgef +
                 jacinv / dz *
                 pedgeudiv *
                 impveredgeu *
@@ -615,8 +605,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 2, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoredgef *
-                facedgef / rhoedgef -
+                imphoredgef / rhoedgef -
                 jacinv / dz *
                 pedgeddiv *
                 impveredged *
@@ -626,14 +615,13 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 2, 3] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphoredgef *
-                facedgef / rhoedgef
+                imphoredgef / rhoedgef
         end
 
         # G(j - 1 / 2)
         if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedgeb =
-                -jacinv / dy * pedgebdiv * imphoredgeb * facedgeb / rhoedgeb +
+                -jacinv / dy * pedgebdiv * imphoredgeb / rhoedgeb +
                 jacinv / dz *
                 pedgeudiv *
                 impveredgeu *
@@ -643,11 +631,10 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 2, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoredgeb *
-                facedgeb / rhoedgeb
+                imphoredgeb / rhoedgeb
         elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedgeb =
-                -jacinv / dy * pedgebdiv * imphoredgeb * facedgeb / rhoedgeb -
+                -jacinv / dy * pedgebdiv * imphoredgeb / rhoedgeb -
                 jacinv / dz *
                 pedgeddiv *
                 impveredged *
@@ -657,11 +644,10 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 2, 3] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphoredgeb *
-                facedgeb / rhoedgeb
+                imphoredgeb / rhoedgeb
         else
             gedgeb =
-                -jacinv / dy * pedgebdiv * imphoredgeb * facedgeb / rhoedgeb +
+                -jacinv / dy * pedgebdiv * imphoredgeb / rhoedgeb +
                 jacinv / dz *
                 pedgeudiv *
                 impveredgeu *
@@ -671,8 +657,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 2, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoredgeb *
-                facedgeb / rhoedgeb -
+                imphoredgeb / rhoedgeb -
                 jacinv / dz *
                 pedgeddiv *
                 impveredged *
@@ -682,8 +667,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k, 2, 3] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphoredgeb *
-                facedgeb / rhoedgeb
+                imphoredgeb / rhoedgeb
         end
 
         # G(k + 1 / 2)
@@ -714,8 +698,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k + 1, 1, 3] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoruedger *
-                facuedger / rhouedger
+                imphoruedger / rhouedger
         end
 
         # G(i - 1 / 2, k + 1)
@@ -732,8 +715,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k + 1, 1, 3] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoruedgel *
-                facuedgel / rhouedgel
+                imphoruedgel / rhouedgel
         end
 
         # G(j + 1 / 2, k + 1)
@@ -750,8 +732,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k + 1, 2, 3] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoruedgef *
-                facuedgef / rhouedgef
+                imphoruedgef / rhouedgef
         end
 
         # G(j - 1 / 2, k + 1)
@@ -768,8 +749,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k + 1, 2, 3] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k + 1]) *
-                imphoruedgeb *
-                facuedgeb / rhouedgeb
+                imphoruedgeb / rhouedgeb
         end
 
         # G(i + 1 / 2, k - 1)
@@ -786,8 +766,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k - 1, 1, 3] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphordedger *
-                facdedger / rhodedger
+                imphordedger / rhodedger
         end
 
         # G(i - 1 / 2, k - 1)
@@ -804,8 +783,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k - 1, 1, 3] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphordedgel *
-                facdedgel / rhodedgel
+                imphordedgel / rhodedgel
         end
 
         # G(j + 1 / 2, k - 1)
@@ -822,8 +800,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k - 1, 2, 3] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphordedgef *
-                facdedgef / rhodedgef
+                imphordedgef / rhodedgef
         end
 
         # G(j - 1 / 2, k - 1)
@@ -840,8 +817,7 @@ function compute_operator!(
                 0.5 *
                 met[i, j, k - 1, 2, 3] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k - 1]) *
-                imphordedgeb *
-                facdedgeb / rhodedgeb
+                imphordedgeb / rhodedgeb
         end
 
         # Compute tensor elements
