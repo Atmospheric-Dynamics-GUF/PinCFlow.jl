@@ -35,7 +35,7 @@ split_rays!(state::State, wkb_mode::MultiColumn)
 
 In each dimension of physical space, split ray volumes which have an extent larger than the local grid spacing.
 
-The splitting is performed sequentially, such that a ray volume with extents that exceed the grid spacings in all directions is split into exactly eight smaller ray volumes of the same size.
+The splitting is performed sequentially, such that a ray volume with extents that are all between once and twice as large as allowed is split into exactly eight smaller ray volumes (all of which have the same size).
 
 ```julia
 split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::X)
@@ -43,7 +43,7 @@ split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::X)
 
 In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta x_\\alpha > \\Delta \\widehat{x}``.
 
-The splitting is carried out by first copying the ray volume and then adjusting the positions and extents of the original and the copy.
+The number of splits is the result of ceiling division of ``\\Delta x_\\alpha`` by ``\\Delta \\widehat{x}``. Each split is carried out by adjusting the position and extent of the ray volume, copying it and changing the position of the copy appropriately.
 
 ```julia
 split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::Y)
@@ -59,7 +59,7 @@ split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::Z)
 
 In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta z_\\alpha > J_{\\min} \\Delta \\widehat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
 
-The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``. This method technically allows for ray volumes that have become arbitrarily large in the vertical and splits them as many times as needed. In practice, this is prevented by the WKB-CFL condition, since vertical shifting would be problematic in such situations.
+The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 
 # Arguments
 
@@ -174,14 +174,14 @@ function split_rays!(
         dxr = rays.dxray[iray, ix, jy, kz]
 
         if dxr > dx
-            nrlc += 1
-
-            rays.dxray[iray, ix, jy, kz] = 0.5 * dxr
-
-            copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
-
-            rays.x[iray, ix, jy, kz] = xr - 0.25 * dxr
-            rays.x[nrlc, ix, jy, kz] = xr + 0.25 * dxr
+            factor = ceil(Int, dxr / dx)
+            rays.x[iray, ix, jy, kz] = xr + (1 / factor - 1) * dxr / 2
+            rays.dxray[iray, ix, jy, kz] = dxr / factor
+            for jray in (nrlc + 1):(nrlc + factor - 1)
+                copy_rays!(rays, (iray, ix, jy, kz), (jray, ix, jy, kz))
+                rays.x[jray, ix, jy, kz] += (jray - nrlc) * dxr / factor
+            end
+            nrlc += factor - 1
         end
     end
 
@@ -217,14 +217,14 @@ function split_rays!(
         dyr = rays.dyray[iray, ix, jy, kz]
 
         if dyr > dy
-            nrlc += 1
-
-            rays.dyray[iray, ix, jy, kz] = 0.5 * dyr
-
-            copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
-
-            rays.y[iray, ix, jy, kz] = yr - 0.25 * dyr
-            rays.y[nrlc, ix, jy, kz] = yr + 0.25 * dyr
+            factor = ceil(Int, dyr / dy)
+            rays.y[iray, ix, jy, kz] = yr + (1 / factor - 1) * dyr / 2
+            rays.dyray[iray, ix, jy, kz] = dyr / factor
+            for jray in (nrlc + 1):(nrlc + factor - 1)
+                copy_rays!(rays, (iray, ix, jy, kz), (jray, ix, jy, kz))
+                rays.y[jray, ix, jy, kz] += (jray - nrlc) * dyr / factor
+            end
+            nrlc += factor - 1
         end
     end
 
