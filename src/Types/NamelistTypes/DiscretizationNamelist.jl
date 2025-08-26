@@ -1,6 +1,10 @@
 """
 ```julia
-DiscretizationNamelist{A <: AbstractFloat, B <: Bool, C <: AbstractLimiter}
+DiscretizationNamelist{
+    A <: AbstractFloat,
+    B <: Bool,
+    C <: AbstractLimiter,
+}
 ```
 
 Namelist for parameters describing the discretization.
