@@ -220,7 +220,7 @@ where $\alpha_\mathrm{s}$ is a saturation coefficient that accounts for uncertai
 
 ### Rayleigh damping
 
-The Rayleigh damping in the unified sponge layer introduced [above](#Pseudo-incompressible-equations) is represented by the sink
+The Rayleigh damping in the unified sponge layer introduced above is represented by the sink
 
 $$\mathcal{S}_\mathrm{R} = - 2 \alpha_\mathrm{R} \mathcal{N}$$
 
@@ -256,7 +256,7 @@ $$\begin{align*}
 
 ### 1D steady-state theory
 
-In the 1D steady-state theory, the phase-space-wave-action-density equation from the [previous section](#1D-transient-theory) is integrated over spectral space, the temporal derivative is removed and the quasilinear approximation is used to express the result in terms of the physical-space wave-action densities of individual spectral modes ($\mathcal{A}_\alpha$). This yields
+In the 1D steady-state theory, the phase-space-wave-action-density equation from the previous section is integrated over spectral space, the temporal derivative is removed and the quasilinear approximation is used to express the result in terms of the physical-space wave-action densities of individual spectral modes ($\mathcal{A}_\alpha$). This yields
 
 $$J^{- 1} \frac{\partial \mathcal{A}_\alpha}{\partial \widehat{z}} = \sum\limits_s \mathcal{Q}_{s, \alpha},$$
 

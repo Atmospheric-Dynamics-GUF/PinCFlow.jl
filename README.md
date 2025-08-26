@@ -150,7 +150,7 @@ clf()
 
 ```
 
-is an example for how to visualize the vertical wind at the end of a simple mountain-wave simulation performed with the script introduced [above](#Running-the-model). Once again, the directory which the output file has been saved to is given as an additional argument to the script. The resulting plot is displayed below.
+is an example for how to visualize the vertical wind at the end of a simple mountain-wave simulation performed with the script introduced above. Once again, the directory which the output file has been saved to is given as an additional argument to the script. The resulting plot is displayed below.
 
 ![](examples/results/periodic_hill.png)
 
