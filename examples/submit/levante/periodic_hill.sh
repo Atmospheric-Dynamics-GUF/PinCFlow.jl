@@ -1,5 +1,6 @@
 #!/bin/bash
-#SBATCH --partition=compute
+##SBATCH --partition=compute
+#SBATCH --partition=interactive
 #SBATCH --job-name=periodic_hill
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
