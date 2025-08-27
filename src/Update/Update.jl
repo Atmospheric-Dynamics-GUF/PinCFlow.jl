@@ -55,11 +55,11 @@ Singleton for the integration of the right-hand side of an equation.
 """
 struct RHS end
 
-include("apply_unified_sponge!.jl")
+include("apply_lhs_sponge!.jl")
 include("compute_buoyancy_factor.jl")
 include("compute_compressible_wind_factor.jl")
 include("compute_pressure_gradient.jl")
-include("compute_sponge!.jl")
+include("compute_sponges!.jl")
 include("compute_stress_tensor.jl")
 include("compute_vertical_wind.jl")
 include("compute_volume_force.jl")
@@ -68,11 +68,11 @@ include("update!.jl")
 
 export LHS, RHS
 
-export apply_unified_sponge!,
+export apply_lhs_sponge!,
     compute_buoyancy_factor,
     compute_compressible_wind_factor,
     compute_pressure_gradient,
-    compute_sponge!,
+    compute_sponges!,
     compute_stress_tensor,
     compute_vertical_wind,
     compute_volume_force,

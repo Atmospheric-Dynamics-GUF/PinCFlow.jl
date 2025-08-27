@@ -32,8 +32,7 @@ grid = GridNamelist(; mountain_case = 4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(;
     spongelayer = true,
-    spongealphaz_dim = 1.79E-2,
-    unifiedsponge = true,
+    alpharmax = 1.79E-2,
     lateralsponge = true,
     spongetype = SinusoidalSponge(),
     relax_to_mean = false,
@@ -57,7 +56,7 @@ $$h \left(x, y\right) = \frac{h_0}{1 + \left(x^2 + y^2\right) / l_0^2},$$
 
 where the default values $h_0 = 100 \, \mathrm{m}$ and $l_0 = 1 \, \mathrm{km}$ are being used. The atmosphere is isothermal, with the default temperature $T_0 = 300 \, \mathrm{K}$ and the initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \, \mathrm{m \, s^{- 1}}$.
 
-Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge layer defined by
+Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge defined by
 
 $$\alpha_\mathrm{R} \left(x, y, z\right) = \frac{\alpha_{\mathrm{R}, x} \left(x\right) + \alpha_{\mathrm{R}, y} \left(y\right) + \alpha_{\mathrm{R}, z} \left(z\right)}{3}$$
 
@@ -196,6 +195,6 @@ visualizes the vertical wind at the end of the above simulation (i.e. after one 
 
   - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
 
-  - [`PinCFlow.Update.compute_sponge!`](@ref)
+  - [`PinCFlow.Update.compute_sponges!`](@ref)
 
-  - [`PinCFlow.Update.apply_unified_sponge!`](@ref)
+  - [`PinCFlow.Update.apply_lhs_sponge!`](@ref)

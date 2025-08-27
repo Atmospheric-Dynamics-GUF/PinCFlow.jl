@@ -102,7 +102,7 @@ function correct!(
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; kr_sp_tfc) = state.sponge
+    (; betar) = state.sponge
     (; corx) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; u) = state.variables.predictands
@@ -117,7 +117,7 @@ function correct!(
             factor +=
                 dt *
                 0.5 *
-                (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) *
+                (betar[i, j, k] + betar[i + 1, j, k]) *
                 rayleigh_factor
         end
 
@@ -141,7 +141,7 @@ function correct!(
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; kr_sp_tfc) = state.sponge
+    (; betar) = state.sponge
     (; cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; v) = state.variables.predictands
@@ -156,7 +156,7 @@ function correct!(
             factor +=
                 dt *
                 0.5 *
-                (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) *
+                (betar[i, j, k] + betar[i, j + 1, k]) *
                 rayleigh_factor
         end
 
@@ -183,7 +183,7 @@ function correct!(
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; bvsstrattfc) = state.atmosphere
-    (; kr_sp_w_tfc) = state.sponge
+    (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; w) = state.variables.predictands
@@ -201,8 +201,8 @@ function correct!(
         if spongelayer
             factor +=
                 dt * (
-                    jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
-                    jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]
+                    jac[i, j, k + 1] * betar[i, j, k] +
+                    jac[i, j, k] * betar[i, j, k + 1]
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
         end
 
@@ -255,7 +255,7 @@ function correct!(
     (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
-    (; kr_sp_w_tfc) = state.sponge
+    (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; rho, rhop) = state.variables.predictands
@@ -264,7 +264,7 @@ function correct!(
         factor = 1.0
 
         if spongelayer
-            factor += dt * kr_sp_w_tfc[i, j, k] * rayleigh_factor
+            factor += dt * betar[i, j, k] * rayleigh_factor
         end
 
         lower_gradient =

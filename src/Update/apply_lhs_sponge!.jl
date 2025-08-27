@@ -1,6 +1,6 @@
 """
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -8,10 +8,10 @@ apply_unified_sponge!(
 )
 ```
 
-Perform an implicit substep to integrate the Rayleigh-damping term that represents the unified sponge layer in the prognostic equation for `variable` by dispatching to the appropriate model-specific method.
+Perform an implicit substep to integrate the Rayleigh-damping term that represents the LHS sponge in the prognostic equation for `variable` by dispatching to the appropriate model-specific method.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -23,7 +23,7 @@ apply_unified_sponge!(
 Return in Boussinesq mode (constant density).
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -32,7 +32,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping term that represents the unified sponge in the continuity equation.
+Integrate the Rayleigh-damping term that represents the LHS sponge in the continuity equation.
 
 The update is given by
 
@@ -40,10 +40,10 @@ The update is given by
 \\rho \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho}\\right),
 ```
 
-where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponges!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -52,7 +52,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping term that represents the unified sponge in the auxiliary equation.
+Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation.
 
 The update is given by
 
@@ -61,7 +61,7 @@ The update is given by
 ```
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -70,7 +70,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping term that represents the unified sponge in the zonal-momentum equation.
+Integrate the Rayleigh-damping term that represents the LHS sponge in the zonal-momentum equation.
 
 The update is given by
 
@@ -81,7 +81,7 @@ u_{i + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t
 If `state.namelists.sponge.relax_to_mean` is `false`, ``u_\\mathrm{r}``, ``a_\\mathrm{r}`` and ``t_\\mathrm{r}`` are given by the sponge-namelist parameters `relaxation_wind[1]`, `perturbation_amplitude` and `perturbation_period`, respectively. Otherwise, ``u_\\mathrm{r}`` is the average of ``u_{i + 1 / 2}`` across the terrain-following coordinate surface and ``a_\\mathrm{r} = 0``.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -90,7 +90,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping term that represents the unified sponge in the meridional-momentum equation.
+Integrate the Rayleigh-damping term that represents the LHS sponge in the meridional-momentum equation.
 
 The update is given by
 
@@ -101,7 +101,7 @@ v_{j + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t
 The computation of the relaxation wind is analogous to that in the method for the zonal momentum, with ``v_\\mathrm{r}`` given by `state.namelists.sponge.relaxation_wind[2]`.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -110,7 +110,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping term that represents the unified sponge in the transformed-vertical-momentum equation.
+Integrate the Rayleigh-damping term that represents the LHS sponge in the transformed-vertical-momentum equation.
 
 The update is given by
 
@@ -121,7 +121,7 @@ The update is given by
 The computation of the relaxation wind is analogous to that in the methods for the zonal and meridional momenta, with ``\\widehat{w}_\\mathrm{r}`` given by `state.namelists.sponge.relaxation_wind[3]`.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -133,7 +133,7 @@ apply_unified_sponge!(
 Return in non-compressible modes (Exner-pressure fluctuations are only updated in the corrector step).
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -151,7 +151,7 @@ The update is given by
 ```
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -163,7 +163,7 @@ apply_unified_sponge!(
 Return in non-compressible modes (mass-weighted potential temperature is constant in time).
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -172,7 +172,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping term that represents the unified sponge in the thermodynamic-energy equation.
+Integrate the Rayleigh-damping term that represents the LHS sponge in the thermodynamic-energy equation.
 
 The update is given by
 
@@ -181,7 +181,7 @@ P \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} P \\left(1
 ```
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -192,7 +192,7 @@ apply_unified_sponge!(
 Return for configurations without tracer transport.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -200,7 +200,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the unified sponge in the tracer equations.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations.
 
 In each tracer equation, the update is given by
 
@@ -211,7 +211,7 @@ In each tracer equation, the update is given by
 where ``\\chi_0`` is the initial distribution of the tracer.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -222,7 +222,7 @@ apply_unified_sponge!(
 Return for configurations without ice physics.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -230,7 +230,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the unified sponge in the prognostic equations of the ice-physics scheme.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the prognostic equations of the ice-physics scheme.
 
 The updates are given by
 
@@ -245,7 +245,7 @@ The updates are given by
 where ``n_0``, ``q_0`` and ``q_{\\mathrm{v}, 0}`` are the initial distributions of the ice-crystal number concentration, ice mixing ratio and water-vapor mixing ratio, respectively.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -256,7 +256,7 @@ apply_unified_sponge!(
 Return for configurations without turbulence physics.
 
 ```julia
-apply_unified_sponge!(
+apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -264,7 +264,7 @@ apply_unified_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the unified sponge in the prognostic equations of the turbulence scheme.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the prognostic equations of the turbulence scheme.
 
 The updates are given by
 
@@ -295,20 +295,20 @@ where ``\\overline{\\mathrm{TKE}}`` and ``\\overline{\\mathrm{TTE}}`` are the ba
 
   - `turbulencesetup`: General turbulence-physics configuration.
 """
-function apply_unified_sponge! end
+function apply_lhs_sponge! end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::AbstractVariable,
 )
     (; model) = state.namelists.setting
-    apply_unified_sponge!(state, dt, time, variable, model)
+    apply_lhs_sponge!(state, dt, time, variable, model)
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -318,25 +318,25 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
     model::AbstractModel,
 )
-    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
     (; rho) = state.variables.predictands
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
     rhobg = 0.0
     for k in k0:k1, j in j0:j1, i in i0:i1
-        alpha = alphaunifiedsponge[i, j, k]
+        alpha = alphar[i, j, k]
         rhoold = rho[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
         rhonew = (1.0 - beta) * rhobg + beta * rhoold
@@ -346,20 +346,20 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
     model::Compressible,
 )
-    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc, thetastrattfc) = state.atmosphere
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
     (; rho, rhop, p) = state.variables.predictands
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
@@ -370,7 +370,7 @@ function apply_unified_sponge!(
                 p[i, j, k] / thetastrattfc[i, j, k] /
                 (rho[i, j, k] + rhostrattfc[i, j, k])
             )
-        alpha = alphaunifiedsponge[i, j, k]
+        alpha = alphar[i, j, k]
         rhopold = rhop[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
         rhopnew = (1.0 - beta) * rhopbg + beta * rhopold
@@ -380,25 +380,25 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
     model::AbstractModel,
 )
-    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
     (; rhop) = state.variables.predictands
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
     rhobg = 0.0
     for k in k0:k1, j in j0:j1, i in i0:i1
-        alpha = alphaunifiedsponge[i, j, k]
+        alpha = alphar[i, j, k]
         rhoold = rhop[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
         rhonew = (1.0 - beta) * rhobg + beta * rhoold
@@ -408,7 +408,7 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -418,7 +418,6 @@ function apply_unified_sponge!(
     (; sizex, sizey) = state.namelists.domain
     (;
         spongelayer,
-        unifiedsponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -426,10 +425,10 @@ function apply_unified_sponge!(
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge, horizontal_mean) = state.sponge
+    (; alphar, horizontal_mean) = state.sponge
     (; u) = state.variables.predictands
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
@@ -460,9 +459,7 @@ function apply_unified_sponge!(
             ubg = horizontal_mean[k - k0 + 1]
         end
         for j in j0:j1, i in i0:i1
-            alpha =
-                0.5 *
-                (alphaunifiedsponge[i, j, k] + alphaunifiedsponge[i + 1, j, k])
+            alpha = 0.5 * (alphar[i, j, k] + alphar[i + 1, j, k])
             uold = u[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
             unew = (1.0 - beta) * ubg + beta * uold
@@ -473,7 +470,7 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -483,7 +480,6 @@ function apply_unified_sponge!(
     (; sizex, sizey) = state.namelists.domain
     (;
         spongelayer,
-        unifiedsponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -491,10 +487,10 @@ function apply_unified_sponge!(
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge, horizontal_mean) = state.sponge
+    (; alphar, horizontal_mean) = state.sponge
     (; v) = state.variables.predictands
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
@@ -525,9 +521,7 @@ function apply_unified_sponge!(
             vbg = horizontal_mean[k - k0 + 1]
         end
         for j in j0:j1, i in i0:i1
-            alpha =
-                0.5 *
-                (alphaunifiedsponge[i, j, k] + alphaunifiedsponge[i, j + 1, k])
+            alpha = 0.5 * (alphar[i, j, k] + alphar[i, j + 1, k])
             vold = v[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
             vnew = (1.0 - beta) * vbg + beta * vold
@@ -538,7 +532,7 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -548,7 +542,6 @@ function apply_unified_sponge!(
     (; sizex, sizey) = state.namelists.domain
     (;
         spongelayer,
-        unifiedsponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -556,11 +549,11 @@ function apply_unified_sponge!(
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge, horizontal_mean) = state.sponge
+    (; alphar, horizontal_mean) = state.sponge
     (; w) = state.variables.predictands
     (; jac) = state.grid
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
@@ -593,8 +586,8 @@ function apply_unified_sponge!(
         for j in j0:j1, i in i0:i1
             alpha =
                 (
-                    jac[i, j, k + 1] * alphaunifiedsponge[i, j, k] +
-                    jac[i, j, k] * alphaunifiedsponge[i, j, k + 1]
+                    jac[i, j, k + 1] * alphar[i, j, k] +
+                    jac[i, j, k] * alphar[i, j, k + 1]
                 ) / (jac[i, j, k] + jac[i, j, k + 1])
             wold = w[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
@@ -606,7 +599,7 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -616,21 +609,21 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
     model::Compressible,
 )
-    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
     (; rhostrattfc) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
@@ -640,7 +633,7 @@ function apply_unified_sponge!(
         pib =
             rhostrattfc[i, j, k] * p[i, j, k] /
             (rho[i, j, k] + rhostrattfc[i, j, k]) / dpdpi
-        alpha = alphaunifiedsponge[i, j, k]
+        alpha = alphar[i, j, k]
         pipold = pip[i, j, k]
         pipnew = pipold - alpha * dt * (p[i, j, k] / dpdpi - pib)
         pip[i, j, k] = pipnew
@@ -649,7 +642,7 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -659,20 +652,20 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
     model::Compressible,
 )
-    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
     (; rhostrattfc) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
@@ -680,7 +673,7 @@ function apply_unified_sponge!(
         pb =
             rhostrattfc[i, j, k] * p[i, j, k] /
             (rho[i, j, k] + rhostrattfc[i, j, k])
-        alpha = alphaunifiedsponge[i, j, k]
+        alpha = alphar[i, j, k]
         pold = p[i, j, k]
         beta = 1 / (1 + alpha * dt)
         pnew = (1 - beta) * pb + beta * pold
@@ -690,7 +683,7 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -699,25 +692,25 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     tracersetup::AbstractTracer,
 )
-    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
     (; tracerpredictands) = state.tracer
     (; initialtracer) = state.tracer.tracerauxiliaries
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
     for field in fieldnames(TracerPredictands)
         for k in k0:k1, j in j0:j1, i in i0:i1
-            alpha = alphaunifiedsponge[i, j, k]
+            alpha = alphar[i, j, k]
             chi_old = getfield(tracerpredictands, field)[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
             chi_new = (1.0 - beta) * initialtracer[i, j, k] + beta * chi_old
@@ -728,7 +721,7 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -737,26 +730,26 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     icesetup::IceOn,
 )
-    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
     (; icepredictands) = state.ice
     (; iceauxiliaries) = state.ice
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
     for (fd, field) in enumerate(fieldnames(IcePredictands))
         for k in k0:k1, j in j0:j1, i in i0:i1
             ice_bg = getfield(iceauxiliaries, fd)[i, j, k]
-            alpha = alphaunifiedsponge[i, j, k]
+            alpha = alphar[i, j, k]
             ice_old = getfield(icepredictands, fd)[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
             ice_new = (1.0 - beta) * ice_bg + beta * ice_old
@@ -767,7 +760,7 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -776,26 +769,26 @@ function apply_unified_sponge!(
     return
 end
 
-function apply_unified_sponge!(
+function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     turbulencesetup::AbstractTurbulence,
 )
-    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
     (; turbulencepredictands) = state.turbulence
     (; turbulenceauxiliaries) = state.turbulence
 
-    if !spongelayer || !unifiedsponge
+    if !spongelayer
         return
     end
 
     for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
         for k in k0:k1, j in j0:j1, i in i0:i1
             turbulence_bg = getfield(turbulenceauxiliaries, fd)
-            alpha = alphaunifiedsponge[i, j, k]
+            alpha = alphar[i, j, k]
             turbulence_old = getfield(turbulencepredictands, fd)[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
             turbulence_new =

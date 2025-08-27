@@ -43,8 +43,7 @@ setting = SettingNamelist(; testcase = WKBMountainWave())
 sponge = SpongeNamelist(;
     spongelayer = true,
     spongeheight = 1.0E-1,
-    spongealphaz_dim = 1.79E-2,
-    unifiedsponge = true,
+    alpharmax = 1.79E-2,
     lateralsponge = true,
     spongetype = ExponentialSponge(),
     relax_to_mean = false,
@@ -217,8 +216,8 @@ visualizes the vertical wind at the end of the above simulation (i.e. after one 
 
   - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
 
-  - [`PinCFlow.Update.compute_sponge!`](@ref)
+  - [`PinCFlow.Update.compute_sponges!`](@ref)
 
-  - [`PinCFlow.Update.apply_unified_sponge!`](@ref)
+  - [`PinCFlow.Update.apply_lhs_sponge!`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)

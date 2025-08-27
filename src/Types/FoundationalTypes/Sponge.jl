@@ -7,7 +7,7 @@ Sponge{
 }
 ```
 
-Composite type for Rayleigh-damping coefficients, sponge-layer bounds and extents, as well as an auxiliary array for the computation of horizontal means.
+Composite type for Rayleigh-damping coefficients, sponge bounds and extents, as well as an auxiliary array for the computation of horizontal means.
 
 ```julia
 Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
@@ -15,37 +15,35 @@ Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
 
 Construct a `Sponge` instance, using the model parameters in `namelists`.
 
-The vertical extent of the sponge is set to the fraction `namelists.sponge.spongeheight` of the vertical extent of the domain. The horizontal extents of the unified sponge are computed similarly, using the same parameter multiplied by `0.5` (since the sponge is centered at the horizontal boundaries).
+The vertical extent of the sponge is set to the fraction `namelists.sponge.spongeheight` of the vertical extent of the domain. The horizontal extents of the LHS sponge are computed similarly, using the same parameter multiplied by `0.5` (since the sponge is centered at the horizontal boundaries).
 
 # Fields
 
 Rayleigh-damping coefficients:
 
-  - `alphaunifiedsponge::A`: Coefficient of the unified sponge (used in all prognostic equations).
+  - `alphar::A`: Coefficient of the LHS sponge (used in all prognostic equations).
 
-  - `kr_sp_tfc::A`: Coefficient of the non-unified sponge (used in the horizontal-momentum equation).
-
-  - `kr_sp_w_tfc::A`: Coefficient of the non-unified sponge (used in the transformed-vertical-momentum equation).
+  - `betar::A`: Coefficient of the RHS sponge (used in the momentum equation).
 
 Vertical sponge extent:
 
-  - `zsponge::B`: Lower edge of the sponge.
+  - `zsponge::B`: Lower edge of both sponges.
 
-  - `dzsponge::B`: Vertical extent of the sponge.
+  - `dzsponge::B`: Vertical extent of both sponges.
 
 Horizontal sponge extent:
 
-  - `xsponge0::B`: Right edge of the unified sponge.
+  - `xsponge0::B`: Right edge of the LHS sponge.
 
-  - `xsponge1::B`: Left edge of the unified sponge.
+  - `xsponge1::B`: Left edge of the LHS sponge.
 
-  - `ysponge0::B`: Forward edge of the unified sponge.
+  - `ysponge0::B`: Forward edge of the LHS sponge.
 
-  - `ysponge1::B`: Backward edge of the unified sponge.
+  - `ysponge1::B`: Backward edge of the LHS sponge.
 
-  - `dxsponge::B`: Halved zonal extent of the unified sponge.
+  - `dxsponge::B`: Halved zonal extent of the LHS sponge.
 
-  - `dysponge::B`: Halved meridional extent of the unified sponge.
+  - `dysponge::B`: Halved meridional extent of the LHS sponge.
 
 Auxiliary array:
 
@@ -66,9 +64,8 @@ struct Sponge{
 }
 
     # Damping coefficients.
-    alphaunifiedsponge::A
-    kr_sp_tfc::A
-    kr_sp_w_tfc::A
+    alphar::A
+    betar::A
 
     # Vertical sponge extent.
     zsponge::B
@@ -91,11 +88,10 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
     (; nxx, nyy, nzz, nz) = domain
     (; lx, ly, lz) = grid
 
-    # Initialize the sponge layer coefficients.
-    (kr_sp_tfc, kr_sp_w_tfc, alphaunifiedsponge) =
-        (zeros(nxx, nyy, nzz) for i in 1:3)
+    # Initialize the sponge coefficients.
+    (betar, alphar) = (zeros(nxx, nyy, nzz) for i in 1:3)
 
-    # Set up the sponge layer.
+    # Set up the sponges.
     dzsponge = spongeheight * lz
     zsponge = lz - dzsponge
     dxsponge = spongeheight * lx / 2
@@ -110,9 +106,8 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
 
     # Return a Sponge instance.
     return Sponge(
-        alphaunifiedsponge,
-        kr_sp_tfc,
-        kr_sp_w_tfc,
+        alphar,
+        betar,
         zsponge,
         dzsponge,
         xsponge0,

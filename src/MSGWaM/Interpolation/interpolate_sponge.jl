@@ -8,7 +8,7 @@ interpolate_sponge(
 )::AbstractFloat
 ```
 
-Interpolate the Rayleigh-damping coefficient of the unified sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+Interpolate the Rayleigh-damping coefficient of the LHS sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\alpha_\\mathrm{R}`` to the location of interest, using `interpolate`.
 
@@ -40,7 +40,7 @@ function interpolate_sponge(
     (; sizex, sizey) = namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
 
     # Dermine closest points in horizontal direction.
     if sizex > 1
@@ -87,17 +87,17 @@ function interpolate_sponge(
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
 
-    philbd = alphaunifiedsponge[ixl, jyb, kzlbd]
-    philbu = alphaunifiedsponge[ixl, jyb, kzlbu]
+    philbd = alphar[ixl, jyb, kzlbd]
+    philbu = alphar[ixl, jyb, kzlbu]
 
-    philfd = alphaunifiedsponge[ixl, jyf, kzlfd]
-    philfu = alphaunifiedsponge[ixl, jyf, kzlfu]
+    philfd = alphar[ixl, jyf, kzlfd]
+    philfu = alphar[ixl, jyf, kzlfu]
 
-    phirbd = alphaunifiedsponge[ixr, jyb, kzrbd]
-    phirbu = alphaunifiedsponge[ixr, jyb, kzrbu]
+    phirbd = alphar[ixr, jyb, kzrbd]
+    phirbu = alphar[ixr, jyb, kzrbu]
 
-    phirfd = alphaunifiedsponge[ixr, jyf, kzrfd]
-    phirfu = alphaunifiedsponge[ixr, jyf, kzrfu]
+    phirfd = alphar[ixr, jyf, kzrfd]
+    phirfu = alphar[ixr, jyf, kzrfu]
 
     # Interpolate.
     phi = interpolate(

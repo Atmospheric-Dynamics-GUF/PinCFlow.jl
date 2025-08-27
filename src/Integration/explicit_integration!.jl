@@ -11,7 +11,7 @@ explicit_integration!(
 
 Integrate the left-hand sides of the prognostic equations with a Runge-Kutta time step.
 
-At each Runge-Kutta stage, the prognostic variables are first reconstructed and their advective and diffusive fluxes are calculated. Subsequently, each variable is updated with its integrated left-hand side, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the unified sponge. After the Runge-Kutta loop, if the atmosphere is compressible, the Exner-pressure is updated with a full implicit Euler step to account for it being impacted by the Rayleigh damping of the mass-weighted potential temperature.
+At each Runge-Kutta stage, the prognostic variables are first reconstructed and their advective and diffusive fluxes are calculated. Subsequently, each variable is updated with its integrated left-hand side, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the LHS sponge. After the Runge-Kutta loop, if the atmosphere is compressible, the Exner-pressure is updated with a full implicit Euler step to account for it being impacted by the Rayleigh damping of the mass-weighted potential temperature.
 
 ```julia
 explicit_integration!(
@@ -62,32 +62,22 @@ function explicit_integration!(
         save_backups!(state, :rho)
 
         update!(state, dtstage, rkstage, Rho())
-        apply_unified_sponge!(state, stepfrac[rkstage] * dtstage, time, Rho())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, Rho())
 
         update!(state, dtstage, rkstage, RhoP(), side)
-        apply_unified_sponge!(state, stepfrac[rkstage] * dtstage, time, RhoP())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, RhoP())
 
         update!(state, dtstage, rkstage, P())
-        apply_unified_sponge!(state, stepfrac[rkstage] * dtstage, time, P())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, P())
 
         update!(state, dtstage, rkstage, tracersetup)
-        apply_unified_sponge!(
-            state,
-            stepfrac[rkstage] * dtstage,
-            time,
-            tracersetup,
-        )
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, tracersetup)
 
         update!(state, dtstage, rkstage, icesetup)
-        apply_unified_sponge!(
-            state,
-            stepfrac[rkstage] * dtstage,
-            time,
-            icesetup,
-        )
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, icesetup)
 
         update!(state, dtstage, rkstage, turbulencesetup)
-        apply_unified_sponge!(
+        apply_lhs_sponge!(
             state,
             stepfrac[rkstage] * dtstage,
             time,
@@ -99,16 +89,16 @@ function explicit_integration!(
         update!(state, dtstage, rkstage, U(), side)
         update!(state, dtstage, rkstage, V(), side)
         update!(state, dtstage, rkstage, W(), side)
-        apply_unified_sponge!(state, stepfrac[rkstage] * dtstage, time, U())
-        apply_unified_sponge!(state, stepfrac[rkstage] * dtstage, time, V())
-        apply_unified_sponge!(state, stepfrac[rkstage] * dtstage, time, W())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, U())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, V())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, W())
 
         set_boundaries!(state, BoundaryPredictands())
     end
 
     synchronize_compressible_atmosphere!(state, state.variables.predictands)
 
-    apply_unified_sponge!(state, dtstage, time, PiP())
+    apply_lhs_sponge!(state, dtstage, time, PiP())
 
     return
 end

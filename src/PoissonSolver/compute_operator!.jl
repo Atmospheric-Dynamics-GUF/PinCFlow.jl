@@ -50,7 +50,7 @@ function compute_operator!(
     (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; pstrattfc, rhostrattfc, bvsstrattfc) = state.atmosphere
-    (; kr_sp_tfc, kr_sp_w_tfc) = state.sponge
+    (; betar) = state.sponge
     (;
         ac_b,
         acv_b,
@@ -361,86 +361,86 @@ function compute_operator!(
                     facedger +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) *
+                    (betar[i, j, k] + betar[i + 1, j, k]) *
                     rayleigh_factor
                 facedgel =
                     facedgel +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k] + kr_sp_tfc[i - 1, j, k]) *
+                    (betar[i, j, k] + betar[i - 1, j, k]) *
                     rayleigh_factor
                 facedgef =
                     facedgef +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) *
+                    (betar[i, j, k] + betar[i, j + 1, k]) *
                     rayleigh_factor
                 facedgeb =
                     facedgeb +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j - 1, k]) *
+                    (betar[i, j, k] + betar[i, j - 1, k]) *
                     rayleigh_factor
                 facuedger =
                     facuedger +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k + 1] + kr_sp_tfc[i + 1, j, k + 1]) *
+                    (betar[i, j, k + 1] + betar[i + 1, j, k + 1]) *
                     rayleigh_factor
                 facuedgel =
                     facuedgel +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k + 1] + kr_sp_tfc[i - 1, j, k + 1]) *
+                    (betar[i, j, k + 1] + betar[i - 1, j, k + 1]) *
                     rayleigh_factor
                 facuedgef =
                     facuedgef +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k + 1] + kr_sp_tfc[i, j + 1, k + 1]) *
+                    (betar[i, j, k + 1] + betar[i, j + 1, k + 1]) *
                     rayleigh_factor
                 facuedgeb =
                     facuedgeb +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k + 1] + kr_sp_tfc[i, j - 1, k + 1]) *
+                    (betar[i, j, k + 1] + betar[i, j - 1, k + 1]) *
                     rayleigh_factor
                 facdedger =
                     facdedger +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k - 1] + kr_sp_tfc[i + 1, j, k - 1]) *
+                    (betar[i, j, k - 1] + betar[i + 1, j, k - 1]) *
                     rayleigh_factor
                 facdedgel =
                     facdedgel +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k - 1] + kr_sp_tfc[i - 1, j, k - 1]) *
+                    (betar[i, j, k - 1] + betar[i - 1, j, k - 1]) *
                     rayleigh_factor
                 facdedgef =
                     facdedgef +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k - 1] + kr_sp_tfc[i, j + 1, k - 1]) *
+                    (betar[i, j, k - 1] + betar[i, j + 1, k - 1]) *
                     rayleigh_factor
                 facdedgeb =
                     facdedgeb +
                     dt *
                     0.5 *
-                    (kr_sp_tfc[i, j, k - 1] + kr_sp_tfc[i, j - 1, k - 1]) *
+                    (betar[i, j, k - 1] + betar[i, j - 1, k - 1]) *
                     rayleigh_factor
             end
             facedgeu =
                 facedgeu +
                 dt * (
-                    jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
-                    jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]
+                    jac[i, j, k + 1] * betar[i, j, k] +
+                    jac[i, j, k] * betar[i, j, k + 1]
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
             facedged =
                 facedged +
                 dt * (
-                    jac[i, j, k - 1] * kr_sp_w_tfc[i, j, k] +
-                    jac[i, j, k] * kr_sp_w_tfc[i, j, k - 1]
+                    jac[i, j, k - 1] * betar[i, j, k] +
+                    jac[i, j, k] * betar[i, j, k - 1]
                 ) / (jac[i, j, k] + jac[i, j, k - 1]) * rayleigh_factor
         end
 

@@ -36,8 +36,7 @@ setting = SettingNamelist(; testcase = WKBMountainWave())
 sponge = SpongeNamelist(;
     spongelayer = true,
     spongeheight = 1.0E-1,
-    spongealphaz_dim = 1.79E-2,
-    unifiedsponge = true,
+    alpharmax = 1.79E-2,
     lateralsponge = true,
     spongetype = ExponentialSponge(),
     relax_to_mean = false,

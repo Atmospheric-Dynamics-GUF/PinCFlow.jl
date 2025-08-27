@@ -43,7 +43,7 @@ This method first uses the parameters specified in `namelists` to construct inst
 
   - `atmosphere::F`: Atmospheric-background fields.
 
-  - `sponge::G`: Sponge-layer parameters and damping coefficients.
+  - `sponge::G`: Sponge parameters and damping coefficients.
 
   - `poisson::H`: Workspace and solution arrays for the Poisson solver.
 

@@ -433,7 +433,7 @@ function update!(
     (; zboundaries) = state.namelists.setting
     (; jac, met) = state.grid
     (; spongelayer) = state.namelists.sponge
-    (; kr_sp_w_tfc) = state.sponge
+    (; betar) = state.sponge
     (; g_ndim) = state.constants
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; rho, rhop, u, v, pip) = state.variables.predictands
@@ -486,7 +486,7 @@ function update!(
         factor = 1.0
 
         if spongelayer
-            factor += dt * kr_sp_w_tfc[i, j, k] * rayleigh_factor
+            factor += dt * betar[i, j, k] * rayleigh_factor
         end
 
         b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
@@ -645,7 +645,7 @@ function update!(
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc) = state.atmosphere
-    (; kr_sp_tfc) = state.sponge
+    (; betar) = state.sponge
     (; rho, u, pip) = state.variables.predictands
 
     kz0 = k0
@@ -666,7 +666,7 @@ function update!(
             factor +=
                 dt *
                 0.5 *
-                (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) *
+                (betar[i, j, k] + betar[i + 1, j, k]) *
                 rayleigh_factor
         end
 
@@ -799,7 +799,7 @@ function update!(
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc) = state.atmosphere
-    (; kr_sp_tfc) = state.sponge
+    (; betar) = state.sponge
     (; rho, v, pip) = state.variables.predictands
 
     kz0 = k0
@@ -820,7 +820,7 @@ function update!(
             factor +=
                 dt *
                 0.5 *
-                (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) *
+                (betar[i, j, k] + betar[i, j + 1, k]) *
                 rayleigh_factor
         end
 
@@ -1069,7 +1069,7 @@ function update!(
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
-    (; kr_sp_w_tfc) = state.sponge
+    (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
@@ -1111,8 +1111,8 @@ function update!(
         if spongelayer
             factor +=
                 dt * (
-                    jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
-                    jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]
+                    jac[i, j, k + 1] * betar[i, j, k] +
+                    jac[i, j, k] * betar[i, j, k + 1]
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
         end
 

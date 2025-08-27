@@ -25,8 +25,7 @@ grid = GridNamelist(; mountain_case = 4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(;
     spongelayer = true,
-    spongealphaz_dim = 1.79E-2,
-    unifiedsponge = true,
+    alpharmax = 1.79E-2,
     lateralsponge = true,
     spongetype = SinusoidalSponge(),
     relax_to_mean = false,
