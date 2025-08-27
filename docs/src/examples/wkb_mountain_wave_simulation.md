@@ -27,7 +27,7 @@ domain = DomainNamelist(;
     nbz = 3,
     lx_dim = 4.0E+5,
     ly_dim = 4.0E+5,
-    lz_dim = 2.0E+4),
+    lz_dim = 2.0E+4,
     npx = 8,
     npy = 8,
 )
@@ -44,6 +44,7 @@ sponge = SpongeNamelist(;
     spongelayer = true,
     spongeheight = 1.0E-1,
     alpharmax = 1.79E-2,
+    betarmax = 0.0E+0,
     lateralsponge = true,
     spongetype = ExponentialSponge(),
     relax_to_mean = false,

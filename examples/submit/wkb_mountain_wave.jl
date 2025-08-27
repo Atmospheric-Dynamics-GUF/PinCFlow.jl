@@ -37,6 +37,7 @@ sponge = SpongeNamelist(;
     spongelayer = true,
     spongeheight = 1.0E-1,
     alpharmax = 1.79E-2,
+    betarmax = 0.0E+0,
     lateralsponge = true,
     spongetype = ExponentialSponge(),
     relax_to_mean = false,

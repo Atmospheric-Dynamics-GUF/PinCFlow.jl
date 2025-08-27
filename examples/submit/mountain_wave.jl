@@ -26,6 +26,7 @@ output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(;
     spongelayer = true,
     alpharmax = 1.79E-2,
+    betarmax = 0.0E+0,
     lateralsponge = true,
     spongetype = SinusoidalSponge(),
     relax_to_mean = false,
