@@ -2,13 +2,41 @@ using Documenter
 using DocumenterMermaid
 using PinCFlow
 
-# Copy README file.
-cp("README.md", "docs/src/index.md"; force = true)
+# Insert example scripts.
+for folder in ("examples/submit/", "examples/visualization/"),
+    script_file in readdir(folder)
+
+    if endswith(script_file, ".jl") && script_file != "style.jl"
+        script = read(folder * script_file, String)
+        code = Regex(
+            "(?s)(?<=`{3}julia\\n)# " *
+            folder *
+            script_file[1:(end - 3)] *
+            "\\.jl\\n(.(?!\\n`{3}))*.",
+        )
+        if script_file == "periodic_hill.jl"
+            page_file = "README.md"
+        else
+            page_file =
+                "docs/src/examples/" *
+                script_file[1:(end - 3)] *
+                "_simulation.md"
+        end
+        page = replace(read(page_file, String), code => script)
+        open(page_file, "w") do io
+            write(io, page)
+            return
+        end
+    end
+end
 
 # Copy example plots.
 for file in readdir("examples/results/"; join = true)
     cp(file, "docs/src/" * file; force = true)
 end
+
+# Copy README file.
+cp("README.md", "docs/src/index.md"; force = true)
 
 # Generate documentation.
 makedocs(;
