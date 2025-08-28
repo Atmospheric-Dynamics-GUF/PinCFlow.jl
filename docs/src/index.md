@@ -300,13 +300,13 @@ Contributions to the code should always be accompanied by corresponding contribu
 
   - Module docstrings:
 
-     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a second paragraph with more details.
+     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) additional paragraphs with more details.
 
      1. List links to imported modules in a `# See also` section, with one bullet for each.
 
   - Function docstrings:
 
-     1. For every method, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) a second paragraph with more details.
+     1. For every method, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) additional paragraphs with more details.
 
      1. List all positional and optional arguments with descriptions (but without types and default values) in an `# Arguments` section, with one bullet for each.
 
@@ -318,7 +318,7 @@ Contributions to the code should always be accompanied by corresponding contribu
 
      1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a second paragraph with more details.
 
-     1. If the type is composite, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) a second paragraph with more details, for each explicitly defined constructor method.
+     1. If the type is composite, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) additional paragraphs with more details, for each explicitly defined constructor method.
 
      1. If the type is composite, list all fields with their type restrictions and descriptions in a `# Fields` section, with one bullet for each.
 
