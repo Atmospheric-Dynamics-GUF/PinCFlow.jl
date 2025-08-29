@@ -1,169 +1,164 @@
 function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
-    (; domain, grid) = state
-    (; sizex, sizey) = state.namelists.domain
-    (; coriolis_frequency) = state.namelists.atmosphere
-    (; branchr) = state.namelists.wkb
-    (; tref) = state.constants
-    (; i0, i1, j0, j1, k0, k1, io, jo) = domain
-    (; dx, dy, dz, x, y, ztildetfc, jac) = grid
-    (; rhostrattfc, thetastrattfc) = state.atmosphere
-    (; nray, rays, integrals) = state.wkb
+	(; domain, grid) = state
+	(; sizex, sizey) = state.namelists.domain
+	(; coriolis_frequency) = state.namelists.atmosphere
+	(; branchr) = state.namelists.wkb
+	(; tref, fr2) = state.constants
+	(; i0, i1, j0, j1, k0, k1, io, jo) = domain
+	(; dx, dy, dz, x, y, ztildetfc, jac) = grid
+	(; rhostrattfc, thetastrattfc) = state.atmosphere
+	(; nray, rays, integrals) = state.wkb
 
-    # Set Coriolis parameter.
-    fc = coriolis_frequency * tref
+	# Set Coriolis parameter.
+	fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWIntegrals)
-        getfield(integrals, field) .= 0.0
-    end
+	for field in fieldnames(GWIntegrals)
+		getfield(integrals, field) .= 0.0
+	end
 
-    for kzrv in (k0 - 1):(k1 + 1),
-        jyrv in (j0 - 1):(j1 + 1),
-        ixrv in (i0 - 1):(i1 + 1)
+	for kzrv in (k0-1):(k1+1),
+		jyrv in (j0-1):(j1+1),
+		ixrv in (i0-1):(i1+1)
 
-        for iray in 1:nray[ixrv, jyrv, kzrv]
-            if rays.dens[iray, ixrv, jyrv, kzrv] == 0
-                continue
-            end
+		for iray in 1:nray[ixrv, jyrv, kzrv]
+			if rays.dens[iray, ixrv, jyrv, kzrv] == 0
+				continue
+			end
 
-            xr = rays.x[iray, ixrv, jyrv, kzrv]
-            yr = rays.y[iray, ixrv, jyrv, kzrv]
-            zr = rays.z[iray, ixrv, jyrv, kzrv]
+			xr = rays.x[iray, ixrv, jyrv, kzrv]
+			yr = rays.y[iray, ixrv, jyrv, kzrv]
+			zr = rays.z[iray, ixrv, jyrv, kzrv]
 
-            dxr = rays.dxray[iray, ixrv, jyrv, kzrv]
-            dyr = rays.dyray[iray, ixrv, jyrv, kzrv]
-            dzr = rays.dzray[iray, ixrv, jyrv, kzrv]
+			dxr = rays.dxray[iray, ixrv, jyrv, kzrv]
+			dyr = rays.dyray[iray, ixrv, jyrv, kzrv]
+			dzr = rays.dzray[iray, ixrv, jyrv, kzrv]
 
-            kr = rays.k[iray, ixrv, jyrv, kzrv]
-            lr = rays.l[iray, ixrv, jyrv, kzrv]
-            mr = rays.m[iray, ixrv, jyrv, kzrv]
+			kr = rays.k[iray, ixrv, jyrv, kzrv]
+			lr = rays.l[iray, ixrv, jyrv, kzrv]
+			mr = rays.m[iray, ixrv, jyrv, kzrv]
 
-            dkr = rays.dkray[iray, ixrv, jyrv, kzrv]
-            dlr = rays.dlray[iray, ixrv, jyrv, kzrv]
-            dmr = rays.dmray[iray, ixrv, jyrv, kzrv]
+			dkr = rays.dkray[iray, ixrv, jyrv, kzrv]
+			dlr = rays.dlray[iray, ixrv, jyrv, kzrv]
+			dmr = rays.dmray[iray, ixrv, jyrv, kzrv]
 
-            khr = sqrt(kr^2 + lr^2)
+			khr = sqrt(kr^2 + lr^2)
 
-            n2r = interpolate_stratification(zr, state, N2())
+			n2r = interpolate_stratification(zr, state, N2())
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+			omir =
+				branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-            cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-            cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
+			cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+			cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+			cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
-            (ixmin, ixmax, jymin, jymax) =
-                compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+			(ixmin, ixmax, jymin, jymax) =
+				compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
-            for ix in ixmin:ixmax
-                if sizex > 1
-                    dxi = (
-                        min(xr + dxr / 2, x[io + ix] + dx / 2) -
-                        max(xr - dxr / 2, x[io + ix] - dx / 2)
-                    )
+			for ix in ixmin:ixmax
 
-                    fcpspx = dkr * dxi / dx
-                else
-                    fcpspx = 1.0
-                end
+				for jy in jymin:jymax
 
-                for jy in jymin:jymax
-                    if sizey > 1
-                        dyi = (
-                            min(yr + dyr / 2, y[jo + jy] + dy / 2) -
-                            max(yr - dyr / 2, y[jo + jy] - dy / 2)
-                        )
+					kzmin =
+						get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
+					kzmax =
+						get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
 
-                        fcpspy = dlr * dyi / dy
-                    else
-                        fcpspy = 1.0
-                    end
+					for kz in kzmin:kzmax
 
-                    kzmin =
-                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
-                    kzmax =
-                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+						for ii in 1:nscx
+							ii2 = (ix - 1) * nscx + ii
+							for jj in 1:nscy
+								jj2 = (jy - 1) * nscy + jj
+								for kk in 1:nscz
+									kk2 = (kz - 1) * nscz + kk
 
-                    for kz in kzmin:kzmax
-                        dzi =
-                            min((zr + dzr / 2), ztildetfc[ix, jy, kz]) -
-                            max((zr - dzr / 2), ztildetfc[ix, jy, kz - 1])
+									#subcell center
+									xsc = x[ix+io] - dx / 2.0 +
+										  (ii - 0.5) * dxsc
+									ysc = y[jy+jo] - dy / 2.0 +
+										  (jj - 0.5) * dysc
+									zsc = ztildetfc[ix, jy, kz-1] +
+										  (kk - 0.5) * dzsc * jac[ix, jy, kz]
 
-                        fcpspz = dmr * dzi / jac[ix, jy, kz] / dz
+									#interpolate phase/amplitude RV at cell center
 
-                        wadr =
-                            fcpspx *
-                            fcpspy *
-                            fcpspz *
-                            rays.dens[iray, ixrv, jyrv, kzrv]
+									dxx = xsc - xr
+									dyy = ysc - yr
+									dzz = zsc - zr
 
-                        if sizex > 1
-                            if fc != 0
-                                integrals.uu[ix, jy, kz] +=
-                                    wadr * (
-                                        kr * cgirx -
-                                        (kr * cgirx + lr * cgiry) /
-                                        (1 - (omir / fc)^2)
-                                    )
-                            else
-                                integrals.uu[ix, jy, kz] += wadr * kr * cgirx
-                            end
-                        end
+									if abs(dxx) < (dxr + dxsc) / 2 &&
+									   abs(dyy) < (dyr + dysc) / 2 &&
+									   abs(dzz) < (dzr + dzsc*jac[ix, jy, kz]) / 2
 
-                        if sizex > 1 || sizey > 1
-                            integrals.uv[ix, jy, kz] += wadr * cgirx * lr
-                        end
+										if sizex > 1
+											dxi = (
+												min(xr + dxr / 2, xsc + dxsc * 0.5) -
+												max(xr - dxr / 2, xsc - dxsc * 0.5)
+											)
+											fcpspx = dkr * dxi / dxsc
+										else
+											fcpspx = 1.0
+										end
 
-                        integrals.uw[ix, jy, kz] +=
-                            wadr * kr * cgirz / (1 - (fc / omir)^2)
+										if sizey > 1
+											dyi = (
+												min((yr + dyr * 0.5), ysc + dysc * 0.5) -
+												max((yr - dyr * 0.5), ysc - dysc * 0.5))
+											fcpspy = dlr * dyi / dysc
+										else
+											fcpspy = 1.0
+										end
 
-                        if sizey > 1
-                            if fc != 0
-                                integrals.vv[ix, jy, kz] +=
-                                    wadr * (
-                                        lr * cgiry -
-                                        (kr * cgirx + lr * cgiry) /
-                                        (1 - (omir / fc)^2)
-                                    )
-                            else
-                                integrals.vv[ix, jy, kz] += wadr * lr * cgiry
-                            end
-                        end
+										dzi = (min((zr + dzr * 0.5),
+											zsc + dzsc * jac[ix, jy, kz] * 0.5) -
+											   max((zr - dzr * 0.5),
+											zsc - dzsc * jac[ix, jy, kz] * 0.5))
 
-                        integrals.vw[ix, jy, kz] +=
-                            wadr * lr * cgirz / (1 - (fc / omir)^2)
+										fcpspz = dmr * dzi / jac[ix, jy, kz] / dzsc
 
-                        if fc != 0
-                            integrals.etx[ix, jy, kz] +=
-                                wadr * fc^2 * n2r * kr * mr / (
-                                    rhostrattfc[ix, jy, kz] *
-                                    g_ndim *
-                                    omir *
-                                    (khr^2 + mr^2)
-                                )
+										fcpswn = fcpspz * fcpspy * fcpspx
 
-                            integrals.ety[ix, jy, kz] +=
-                                wadr * fc^2 * n2r * lr * mr / (
-                                    rhostrattfc[ix, jy, kz] *
-                                    g_ndim *
-                                    omir *
-                                    (khr^2 + mr^2)
-                                )
-                        end
+										amprw = sqrt(
+											abs(omir) * 2.0 * khr^2 /
+											(khr^2 + mr^2) /
+											rhostrattfc[ix, jy, kz] * fcpswn *
+											rays.dens[iray, ixrv, jyrv, kzrv])
 
-                        integrals.e[ix, jy, kz] += wadr * omir
-                    end
-                end
-            end
-        end
-    end
+										#to be consisten with LES wavepacket simulation
+										#there amplitude of b11 is real with sign from vert. wavenumber
+										b11 = amprw / abs(omir / n2r) * sign(mr)
+										w10 = Complex(0.0, omir / n2r) * b11 # amplitude w
 
-    if fc != 0
-        for kz in k0:k1, jy in j0:j1, ix in i0:i1
-            integrals.utheta[ix, jy, kz] =
-                thetastrattfc[ix, jy, kz] / fc * integrals.ety[ix, jy, kz]
-            integrals.vtheta[ix, jy, kz] =
-                -thetastrattfc[ix, jy, kz] / fc * integrals.etx[ix, jy, kz]
-        end
-    end
+										theta0 = thetastrattfc[ix, jy, kz]
+										theta11 = fr2 * theta0 * b11
+
+										pi12 = Complex(0.0, kappa * ma2 *
+															(omir * omir - n2r) / n2r / mr /
+															thetastrattfc[ix, jy, kz]) * b11
+
+										# phase at cell center
+										dphi = (rays.dphi[iray, ixrv, jyrv, kzrv] + kr
+																					*
+																					dxx + lr * dyy + mr * dzz)
+
+										thetaPrime = real(theta11 * exp(dphi * 1.0im))
+										expPrime = real(pi12 * exp(dphi * 1.0im))
+										wPrime = real(w10 * exp(dphi * 1.0im))
+
+										#superimpose fields
+										sgs.wwp[ii2, jj2, kk2] = sgs.wwp[ii2, jj2, kk2] + wPrime
+										sgs.epp[ii2, jj2, kk2] = sgs.epp[ii2, jj2, kk2] + expPrime
+										sgs.thp[ii2, jj2, kk2] = sgs.thp[ii2, jj2, kk2] + thetaPrime
+									end
+
+								end
+							end
+						end
+
+					end
+				end
+			end
+		end
+	end
 end

@@ -30,7 +30,8 @@ struct Ice{
     G <: IceConstants,
     H <: GW,
     I <: SgsGW,
-    J <: SgsPredictands
+    J <: SgsPredictands,
+    K <: SubGrid
     }
     
     icepredictands::A
@@ -43,6 +44,7 @@ struct Ice{
     gw::H
     sgs::I
     sgspredictands::J
+    subgrid::K
 end
 
 function Ice(
@@ -70,14 +72,9 @@ function Ice(
     icefluxes = IceFluxes(namelists, domain)
     icesource = IceSource(domain)
     gw = GW(namelists, domain)
-    sgs = SgsGW(namelists, domain)
-    # sgs_predictands = SgsPredictands(
-    #     namelists,
-    #     constants,
-    #     domain,
-    #     atmosphere,
-    #     grid)
-    sgspredictands = SgsPredictands(icepredictands)
+    subgrid = SubGrid(namelists, domain, grid)
+    sgs = SgsGW(namelists, domain, subgrid)
+    sgspredictands = SgsPredictands(namelists, domain, icepredictands, subgrid)
 
     return Ice(
         icepredictands,
@@ -89,6 +86,7 @@ function Ice(
         iceconstants,
         gw,
         sgs,
-        sgspredictands
+        sgspredictands,
+        subgrid
     )
 end

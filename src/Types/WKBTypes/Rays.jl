@@ -26,6 +26,7 @@ Construct a `Rays` instance, with arrays sized according to the given dimensions
   - `dlray::A`: Extent in ``l``.
   - `dmray::A`: Extent in ``m``.
   - `dens::A`: Phase-space wave-action density.
+  - `dphi::A`: phase.
 
 # Arguments
 
@@ -48,8 +49,18 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     dlray::A
     dmray::A
     dens::A
+    dphi::A
 end
 
-function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
-    return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13]...)
+function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, namelists::Namelists)
+    (; icesetup) = namelists.ice
+    return Rays(nray_wrk, nxx, nyy, nzz, icesetup)
+end
+
+function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, icesetup::NoIce)
+    return Rays([[zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13], 0]...)
+end
+
+function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, icesetup::AbstractIce)
+    return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:14]...)
 end

@@ -141,7 +141,7 @@ function WKB(
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
-        Rays(0, 0, 0, 0),
+        Rays(0, 0, 0, 0, namelists),
         SurfaceIndices(0, 0, 0),
         Increments(0, 0, 0, 0),
         GWIntegrals(0, 0, 0),
@@ -266,7 +266,7 @@ function WKB(
 
     # Initialize ray-volume arrays.
     nray = zeros(Int, nxx, nyy, nzz)
-    rays = Rays(nray_wrk, nxx, nyy, nzz)
+    rays = Rays(nray_wrk, nxx, nyy, nzz, namelists)
     surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
     increments = Increments(nray_wrk, nxx, nyy, nzz)
     integrals = GWIntegrals(nxx, nyy, nzz)

@@ -10,6 +10,7 @@ function GW(namelists::Namelists, domain::Domain)
 end
 
 function GW(domain::Domain, icesetup::NoIce)
+
     wwp = zeros(0, 0, 0)
     epp = zeros(0, 0, 0)
     thp = zeros(0, 0, 0)
@@ -18,6 +19,7 @@ function GW(domain::Domain, icesetup::NoIce)
 end
 
 function GW(domain::Domain, icesetup::AbstractIce)
+    
     (; nxx, nyy, nzz) = domain
 
     wwp = zeros(nxx, nyy, nzz)

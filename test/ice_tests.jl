@@ -15,8 +15,7 @@ domain = DomainNamelist(;
     lx_dim = (0.0, 2.0E+4),
     ly_dim = (0.0, 2.0E+4),
     lz_dim = (0.0, 2.0E+4),
-    npx = 1,
-    
+    npx = 1,    
     npy = 1,
 )
 
@@ -30,14 +29,13 @@ output = OutputNamelist(;
     maxiter = 1,
     outputtimediff = 3.6E+1, #E+3
     maxtime = 3.6E+1, #E+3
-    fancy_namelists = true,
     input_file = "./test/pincflow_input.h5",
     output_file = "./test/pincflow_output.h5",
 )
 
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
-    testcase = MountainWave(),
+    testcase = WKBMountainWave(),
     zboundaries = SolidWallBoundaries(),
 )
 
@@ -97,15 +95,59 @@ sponge = SpongeNamelist(;
     perturbation_amplitude = 0.0E+0,
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )
-ice = IceNamelist(
+ wavepacket = WavePacketNamelist(;
+                    wavepacketdim = 3,
+                    lambdax_dim = 1.0E+4,
+                    lambday_dim = 1.0E+4,
+                    lambdaz_dim = 1.0E+3,
+                    x0_dim = 0.0E+0,
+                    y0_dim = 0.0E+0,
+                    z0_dim = 5.0E+3,
+                    sigmax_dim = 1.0E+5,
+                    sigmay_dim = 1.0E+5,
+                    sigmaz_dim = 1.0E+4,
+                    a0 = 1.0E+0,
+                    branch = -1,
+                )
+ice = IceNamelist(;
     icesetup = IceOn(),
-    dt_ice = 1., 
-    #ice_source = 1,
-    #ice_predictands = IcePredictands(),
-    #ice_auxiliaries = IceAuxiliaries(IcePredictands()),
-    #ice_physics = IcePhysics(),
+    dt_ice = 1.,
+    nscx = 1,
+    nscy = 1,
+    nscz = 1,
+    compute_cloudcover = 2
 )
-
+wkb = WKBNamelist(;
+                    xrmin_dim = 0.0E+4,
+                    xrmax_dim = 2.0E+4,
+                    yrmin_dim = 0.0E+4,
+                    yrmax_dim = 2.0E+4,
+                    zrmin_dim = 0.0E+0,
+                    zrmax_dim = 2.0E+4,
+                    nrxl = 1,
+                    nryl = 1,
+                    nrzl = 1,
+                    nrk_init = 1,
+                    nrl_init = 1,
+                    nrm_init = 1,
+                    nray_fac = 4,
+                    fac_dk_init = 1.0E-1,
+                    fac_dl_init = 1.0E-1,
+                    fac_dm_init = 1.0E-1,
+                    branchr = -1,
+                    merge_mode = ConstantWaveAction(),
+                    nsmth_wkb = 2,
+                    lsmth_wkb = true,
+                    sm_filter = Shapiro(),
+                    zmin_wkb_dim = 0.0,
+                    lsaturation = true,
+                    alpha_sat = 1.0E+0,
+                    wkb_mode = MultiColumn(),
+                    blocking = true,
+                    long_threshold = 2.5E-1,
+                    drag_coefficient = 1.0E+0,
+                    nwm = 1,
+                )
 namelists = Namelists(;
     domain = domain,
     output = output,
@@ -115,7 +157,9 @@ namelists = Namelists(;
     atmosphere = atmosphere,
     grid = grid,
     sponge = sponge,
-    ice=ice
+    ice=ice,
+    wkb=wkb,
+    wavepacket=wavepacket,
 )
 
 integrate(namelists)

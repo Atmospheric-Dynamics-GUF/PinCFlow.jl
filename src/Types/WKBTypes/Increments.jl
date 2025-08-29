@@ -22,6 +22,7 @@ Construct an `Increments` instance, with arrays sized according to the given dim
   - `ddxray::A`: Increments for the extent in ``x``.
   - `ddyray::A`: Increments for the extent in ``y``.
   - `ddzray::A`: Increments for the extent in ``z``.
+  - `dpray::A`: Increments for the phase ``dphi``.
 
 # Arguments
 
@@ -40,8 +41,9 @@ struct Increments{A <: AbstractArray{<:AbstractFloat, 4}}
     ddxray::A
     ddyray::A
     ddzray::A
+    dpray::A
 end
 
 function Increments(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
-    return Increments([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:9]...)
+    return Increments([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:10]...)
 end

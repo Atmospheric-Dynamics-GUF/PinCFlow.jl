@@ -6,7 +6,7 @@ include("../src/PinCFlow.jl")
 
 using .PinCFlow
 #using HDF5
-cd
+
 domain = DomainNamelist(;
     sizex = 40,
     sizey = 1,
@@ -44,7 +44,7 @@ setting = SettingNamelist(;
 discretization = DiscretizationNamelist(;
     cfl = 5.0E-1,
     dtmin_dim = 1.0E-5,
-    dtmax_dim = 6.0E+1,
+    dtmax_dim = 1.0E+0,
     adaptive_time_step = true,
     limitertype = MCVariant(),
 )
@@ -54,7 +54,7 @@ poisson = PoissonNamelist(;
     maxiterpoisson = 1000,
     preconditioner = true,
     dtau = 4.0E+0,
-    maxiteradi = 2,
+    maxiteradi = 10,
     initialcleaning = true,
     relative_tolerance = false,
 )

@@ -6,36 +6,27 @@ end
 
 function SgsPredictands(
     namelists::Namelists,
-    constants::Constants,
     domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    variables::Variables,
-    iceconstants::IceConstants
+    icepredictands::IcePredictands,
+    subgrid::SubGrid
 )
     (; icesetup) = namelists.ice
 
     return SgsPredictands(
         namelists,
-        constants,
         domain,
-        atmosphere,
-        grid,
+        icepredictands,
+        subgrid,
         icesetup,
-        variables,
-        iceconstants
     )
 end
 
 function SgsPredictands(
     namelists::Namelists,
-    constants::Constants,
     domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    icesetup::NoIce,
-    variables::Variables,
-    iceconstants::IceConstants 
+    icepredictands::IcePredictands,
+    subgrid::SubGrid,
+    icesetup::NoIce
 )
     n = zeros(0, 0, 0)
     q = zeros(0, 0, 0)
@@ -45,44 +36,38 @@ function SgsPredictands(
 end
 
 function SgsPredictands(
+    namelists::Namelists,
     domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    icesetup::AbstractIce,
-    variables::Variables,
-    iceconstants::IceConstants,
-    icepredictands::IcePredictands
-
+    icepredictands::IcePredictands,
+    subgrid :: SubGrid,
+    icesetup::AbstractIce
 )
 
-    (; nxx, nyy, nzz) = domain
     (; i0, i1, j0, j1, k0, k1) = domain 
-    (; ztfc) = grid
-    (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = atmosphere
-    (; rho, rhop, u, v, w, pip, p) = variables.predictands
-    (; kappainv, pref, gamma, lref) = constants
-    (; press0_dim) = namelists.atmosphere
-    (;epsil0hat, meanMassIce, mRef) = iceconstants 
-
-
+    (; nscx, nscy, nscz, compute_cloudcover) = namelists.ice
     (; n, q, qv) = icepredictands
+    (; nxnscxx, nynscyy, nznsczz) = subgrid
 
-    sgs_n = n
-    sgs_q = q
-    sgs_qv = qv
+    if compute_cloudcover == 2
+
+        sgs_n = zeros(nxnscxx, nynscyy, nznsczz)
+        sgs_q = zeros(nxnscxx, nynscyy, nznsczz)
+        sgs_qv = zeros(nxnscxx, nynscyy, nznsczz)
+
+        # initialize
+        for ix in i0:i1, jy in j0:j1, kz in k0:k1
+                sgs_n[(ix - 1)*nscx+1 : ix* nscx , (jy - 1)*nscy+1: jy* nscy, (kz - 1)*nscz+1 : kz * nscz ] .=  n[ix, jy, kz]
+                sgs_q[(ix - 1)*nscx+1 : ix* nscx , (jy - 1)*nscy+1: jy* nscy, (kz - 1)*nscz+1 : kz * nscz ] .=  q[ix, jy, kz]
+                sgs_qv[(ix - 1)*nscx+1 : ix* nscx , (jy - 1)*nscy+1: jy* nscy, (kz - 1)*nscz+1 : kz * nscz ] .=  qv[ix, jy, kz]
+        end
+    else
+
+        sgs_n = zeros(0,0,0)
+        sgs_q = zeros(0,0,0)
+        sgs_qv = zeros(0,0,0)
+
+    end
 
     return SgsPredictands(sgs_n, sgs_q, sgs_qv)
-end
 
-function SgsPredictands(
-    icepredictands::IcePredictands
-
-)
-    (; n, q, qv) = icepredictands
-
-    sgs_n = n
-    sgs_q = q
-    sgs_qv = qv
-
-    return SgsPredictands(sgs_n, sgs_q, sgs_qv)
 end

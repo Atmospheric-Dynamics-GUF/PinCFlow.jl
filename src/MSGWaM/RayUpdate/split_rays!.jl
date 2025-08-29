@@ -161,6 +161,7 @@ function split_rays!(
 )
     (; dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
+    (; icesetup) = state.namelists.ice 
 
     nrlc = nray[ix, jy, kz]
     for iray in 1:nray[ix, jy, kz]
@@ -176,6 +177,13 @@ function split_rays!(
 
             rays.x[iray, ix, jy, kz] = xr - 0.25 * dxr
             rays.x[nrlc, ix, jy, kz] = xr + 0.25 * dxr
+
+            if icesetup isa AbstractIce
+                  dphi = rays.dphi[iRay, ix, jy, kz]
+                  deltaPhi = 0.25 * dxr * rays.k[iRay, ix, jy, kz]
+                  rays.dphi[iRay, ix, jy, kz] = dphi - deltaPhi
+                  rays.dphi[nrlc, ix, jy, kz] = dphi + deltaPhi
+            end
         end
     end
 
@@ -204,6 +212,7 @@ function split_rays!(
 )
     (; dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
+   (; icesetup) = state.namelists.ice 
 
     nrlc = nray[ix, jy, kz]
     for iray in 1:nray[ix, jy, kz]
@@ -219,6 +228,13 @@ function split_rays!(
 
             rays.y[iray, ix, jy, kz] = yr - 0.25 * dyr
             rays.y[nrlc, ix, jy, kz] = yr + 0.25 * dyr
+
+            if icesetup isa AbstractIce
+                  dphi = rays.dphi[iRay, ix, jy, kz]
+                  deltaPhi = 0.25 * dyr * rays.l[iRay, ix, jy, kz]
+                  rays.dphi[iRay, ix, jy, kz] = dphi - deltaPhi
+                  rays.dphi[nrlc, ix, jy, kz] = dphi + deltaPhi
+            end
         end
     end
 
@@ -249,6 +265,7 @@ function split_rays!(
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dz, jac) = grid
     (; nray_wrk, nray, rays) = state.wkb
+    (; icesetup) = state.namelists.ice 
 
     nrlc = nray[ix, jy, kz]
     for iray in 1:nray[ix, jy, kz]
@@ -272,9 +289,22 @@ function split_rays!(
             factor = ceil(Int, dzr / dzmin)
             rays.z[iray, ix, jy, kz] = zr + (1 / factor - 1) * dzr / 2
             rays.dzray[iray, ix, jy, kz] = dzr / factor
+
+            if icesetup isa AbstractIce
+                dphi = rays.dphi[iRay, ix, jy, kz] - rays.m[iRay, ix, jy, kz] * zr
+                deltaPhi = rays.z[iRay, ix, jy, kz] * rays.m[iRay, ix, jy, kz]
+                rays.dphi[iRay, ix, jy, kz] = dphi + deltaPhi
+            end
+
             for jray in (nrlc + 1):(nrlc + factor - 1)
                 copy_rays!(rays, (iray, ix, jy, kz), (jray, ix, jy, kz))
                 rays.z[jray, ix, jy, kz] += (jray - nrlc) * dzr / factor
+                
+                if icesetup isa AbstractIce
+                    deltaPhi = rays.z[jray, ix, jy, kz] * rays.m[jray, ix, jy, kz]
+                    rays.dphi[jray, ix, jy, kz] = dphi + deltaPhi
+                end
+
             end
             nrlc += factor - 1
         end
