@@ -41,7 +41,7 @@ function apply_corrector!(
     rayleigh_factor::AbstractFloat,
 )::Tuple{Bool, <:Integer}
     (; namelists, domain) = state
-    (; model, zboundaries) = namelists.setting
+    (; model) = namelists.setting
     (; rhs) = state.poisson
     (; dpip) = state.variables.increments
 
@@ -63,7 +63,7 @@ function apply_corrector!(
     # Set boundaries of pressure correction.
     set_zonal_boundaries_of_field!(dpip, namelists, domain)
     set_meridional_boundaries_of_field!(dpip, namelists, domain)
-    set_vertical_boundaries_of_field!(dpip, namelists, domain, zboundaries, +)
+    set_vertical_boundaries_of_field!(dpip, namelists, domain, +)
 
     # Correct momentum and buoyancy.
     correct!(state, dt, rayleigh_factor)

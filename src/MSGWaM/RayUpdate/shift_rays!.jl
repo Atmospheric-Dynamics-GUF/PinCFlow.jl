@@ -110,11 +110,9 @@ function shift_rays!(state::State, wkb_mode::SteadyState)
 end
 
 function shift_rays!(state::State, wkb_mode::SingleColumn)
-    (; zboundaries) = state.namelists.setting
-
-    set_vertical_boundary_rays!(state, zboundaries)
+    set_vertical_boundary_rays!(state)
     shift_rays!(state, Z())
-    set_vertical_boundary_rays!(state, zboundaries)
+    set_vertical_boundary_rays!(state)
     remove_rays!(state)
 
     check_rays(state)
@@ -124,7 +122,6 @@ end
 
 function shift_rays!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain
-    (; zboundaries) = state.namelists.setting
 
     if sizex > 1
         set_zonal_boundary_rays!(state)
@@ -140,9 +137,9 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
         remove_rays!(state)
     end
 
-    set_vertical_boundary_rays!(state, zboundaries)
+    set_vertical_boundary_rays!(state)
     shift_rays!(state, Z())
-    set_vertical_boundary_rays!(state, zboundaries)
+    set_vertical_boundary_rays!(state)
     remove_rays!(state)
 
     check_rays(state)

@@ -45,7 +45,6 @@ export DomainNamelist,
 # Export singletons needed in namelists.
 export Boussinesq, PseudoIncompressible, Compressible
 export MountainWave, WKBMountainWave, WavePacket
-export PeriodicBoundaries, SolidWallBoundaries
 export MCVariant
 export UniformBoussinesq, StratifiedBoussinesq, Isothermal
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge

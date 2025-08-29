@@ -87,7 +87,6 @@ function set_ice_vertical_boundaries!(
     icesetup::AbstractIce,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; icepredictands) = state.ice
 
     for field in fieldnames(IcePredictands)
@@ -95,7 +94,6 @@ function set_ice_vertical_boundaries!(
             getfield(icepredictands, field),
             namelists,
             domain,
-            zboundaries,
             -,
         )
     end
@@ -117,7 +115,6 @@ function set_ice_vertical_boundaries!(
     icesetup::AbstractIce,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; icereconstructions) = state.ice
 
     for field in fieldnames(IceReconstructions)
@@ -125,7 +122,6 @@ function set_ice_vertical_boundaries!(
             getfield(icereconstructions, field),
             namelists,
             domain,
-            zboundaries,
         )
     end
 

@@ -62,7 +62,6 @@ function apply_operator!(
     poisson::Poisson,
 )
     (; npz) = namelists.domain
-    (; zboundaries) = namelists.setting
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
     (;
         ac_b,
@@ -105,13 +104,7 @@ function apply_operator!(
             domain;
             layers = (1, 1, 2),
         )
-        set_vertical_halos_of_field!(
-            s,
-            namelists,
-            domain,
-            zboundaries;
-            layers = (1, 1, 2),
-        )
+        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(
@@ -296,7 +289,6 @@ function apply_operator!(
     poisson::Poisson,
 )
     (; npz) = namelists.domain
-    (; zboundaries) = namelists.setting
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
     (;
         al_b,
@@ -336,13 +328,7 @@ function apply_operator!(
             domain;
             layers = (1, 1, 2),
         )
-        set_vertical_halos_of_field!(
-            s,
-            namelists,
-            domain,
-            zboundaries;
-            layers = (1, 1, 2),
-        )
+        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(

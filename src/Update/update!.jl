@@ -430,7 +430,6 @@ function update!(
 )
     (; nbz) = state.namelists.domain
     (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; zboundaries) = state.namelists.setting
     (; jac, met) = state.grid
     (; spongelayer) = state.namelists.sponge
     (; betar) = state.sponge
@@ -472,10 +471,10 @@ function update!(
         upper_gradient = compute_pressure_gradient(state, pip, (i, j, k), W())
         upper_force = compute_volume_force(state, (i, j, k), W())
 
-        if ko + k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0
             lower_gradient = 0.0
             lower_force = 0.0
-        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz
             upper_gradient = 0.0
             upper_force = 0.0
         end
@@ -842,7 +841,6 @@ function update!(
     side::LHS,
 )
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; zboundaries) = state.namelists.setting
     (; alphark, betark) = state.time
     (; tref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -861,10 +859,6 @@ function update!(
 
     if m == 1
         dw .= 0.0
-    end
-
-    if zboundaries != SolidWallBoundaries()
-        error("Error in update!: Unknown case zBoundary!")
     end
 
     kz0 = ko == 0 ? k0 : k0 - 1
@@ -1005,17 +999,12 @@ function update!(
     side::RHS,
     integration::Explicit,
 )
-    (; zboundaries) = state.namelists.setting
     (; g_ndim) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
-
-    if zboundaries != SolidWallBoundaries()
-        error("Error in update!: Unknown zboundaries!")
-    end
 
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 - 1 : k1
@@ -1064,17 +1053,12 @@ function update!(
     rayleigh_factor::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
     (; g_ndim) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
-
-    if zboundaries != SolidWallBoundaries()
-        error("Error in update!: Unknown zboundaries!")
-    end
 
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 - 1 : k1

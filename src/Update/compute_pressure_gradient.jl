@@ -78,7 +78,6 @@ function compute_pressure_gradient(
     variable::U,
 )::AbstractFloat
     (; nbz) = state.namelists.domain
-    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; sizezz, ko, k0) = state.domain
     (; dx, dz, met) = state.grid
@@ -95,7 +94,7 @@ function compute_pressure_gradient(
     met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
 
     # Compute the pressure gradient component.
-    if ko + k == k0 && zboundaries == SolidWallBoundaries()
+    if ko + k == k0
         pipuuedger = 0.5 * (pip[i, j, k + 2] + pip[i + 1, j, k + 2])
         pipuedger = 0.5 * (pip[i, j, k + 1] + pip[i + 1, j, k + 1])
         pipedger = 0.5 * (pip[i, j, k] + pip[i + 1, j, k])
@@ -106,7 +105,7 @@ function compute_pressure_gradient(
                 (-pipuuedger + 4.0 * pipuedger - 3.0 * pipedger) *
                 0.5 / dz
             )
-    elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
+    elseif ko + k == sizezz - nbz
         pipddedger = 0.5 * (pip[i, j, k - 2] + pip[i + 1, j, k - 2])
         pipdedger = 0.5 * (pip[i, j, k - 1] + pip[i + 1, j, k - 1])
         pipedger = 0.5 * (pip[i, j, k] + pip[i + 1, j, k])
@@ -137,7 +136,6 @@ function compute_pressure_gradient(
     variable::V,
 )::AbstractFloat
     (; nbz) = state.namelists.domain
-    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; sizezz, ko, k0) = state.domain
     (; dy, dz, met) = state.grid
@@ -154,7 +152,7 @@ function compute_pressure_gradient(
     met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
     # Compute the pressure gradient component.
-    if ko + k == k0 && zboundaries == SolidWallBoundaries()
+    if ko + k == k0
         pipuuedgef = 0.5 * (pip[i, j, k + 2] + pip[i, j + 1, k + 2])
         pipuedgef = 0.5 * (pip[i, j, k + 1] + pip[i, j + 1, k + 1])
         pipedgef = 0.5 * (pip[i, j, k] + pip[i, j + 1, k])
@@ -165,7 +163,7 @@ function compute_pressure_gradient(
                 (-pipuuedgef + 4.0 * pipuedgef - 3.0 * pipedgef) *
                 0.5 / dz
             )
-    elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
+    elseif ko + k == sizezz - nbz
         pipddedgef = 0.5 * (pip[i, j, k - 2] + pip[i, j + 1, k - 2])
         pipdedgef = 0.5 * (pip[i, j, k - 1] + pip[i, j + 1, k - 1])
         pipedgef = 0.5 * (pip[i, j, k] + pip[i, j + 1, k])
@@ -195,16 +193,11 @@ function compute_pressure_gradient(
     indices::NTuple{3, <:Integer},
     variable::W,
 )::AbstractFloat
-    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; dx, dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (i, j, k) = indices
-
-    if zboundaries != SolidWallBoundaries()
-        error("Error in compute_pressure_gradient: Unknown zboundaries!")
-    end
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.

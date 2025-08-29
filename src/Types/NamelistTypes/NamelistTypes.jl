@@ -47,15 +47,6 @@ abstract type AbstractTestCase end
 
 """
 ```julia
-AbstractBoundaries
-```
-
-Abstract type for vertical boundary conditions.
-"""
-abstract type AbstractBoundaries end
-
-"""
-```julia
 AbstractSponge
 ```
 
@@ -215,24 +206,6 @@ WavePacket <: AbstractTestCase
 Singleton for wave-packet test cases.
 """
 struct WavePacket <: AbstractTestCase end
-
-"""
-```julia
-PeriodicBoundaries <: AbstractBoundaries
-```
-
-Singleton for periodic boundary conditions in the vertical.
-"""
-struct PeriodicBoundaries <: AbstractBoundaries end
-
-"""
-```julia
-SolidWallBoundaries <: AbstractBoundaries
-```
-
-Singleton for solid-wall boundary conditions in the vertical.
-"""
-struct SolidWallBoundaries <: AbstractBoundaries end
 
 """
 ```julia
@@ -408,7 +381,6 @@ export AbstractBackground,
     AbstractLimiter,
     AbstractModel,
     AbstractTestCase,
-    AbstractBoundaries,
     AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
@@ -428,8 +400,6 @@ export UniformBoussinesq,
     MountainWave,
     WKBMountainWave,
     WavePacket,
-    PeriodicBoundaries,
-    SolidWallBoundaries,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,

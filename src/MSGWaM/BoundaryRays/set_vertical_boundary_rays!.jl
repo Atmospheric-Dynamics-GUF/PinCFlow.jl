@@ -1,6 +1,6 @@
 """
 ```julia
-set_vertical_boundary_rays!(state::State, zboundaries::SolidWallBoundaries)
+set_vertical_boundary_rays!(state::State)
 ```
 
 Enforce vertical boundary conditions for ray volumes.
@@ -10,8 +10,6 @@ If the domain is parallelized in ``\\widehat{z}``, ray-volume counts and the ray
 # Arguments
 
   - `state`: Model state.
-
-  - `zboundaries`: Vertical boundary conditions.
 
 # See also
 
@@ -23,10 +21,7 @@ If the domain is parallelized in ``\\widehat{z}``, ray-volume counts and the ray
 """
 function set_vertical_boundary_rays! end
 
-function set_vertical_boundary_rays!(
-    state::State,
-    zboundaries::SolidWallBoundaries,
-)
+function set_vertical_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; npz) = namelists.domain
     (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
@@ -38,8 +33,7 @@ function set_vertical_boundary_rays!(
         set_vertical_halos_of_field!(
             nray,
             namelists,
-            domain,
-            zboundaries;
+            domain;
             layers = (1, 1, 1),
         )
         set_vertical_halo_rays!(state)

@@ -57,10 +57,9 @@ function set_compressible_vertical_boundaries!(
     model::Compressible,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; p) = state.variables.predictands
 
-    set_vertical_boundaries_of_field!(p, namelists, domain, zboundaries, +)
+    set_vertical_boundaries_of_field!(p, namelists, domain, +)
 
     return
 end

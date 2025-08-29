@@ -87,7 +87,6 @@ function set_turbulence_vertical_boundaries!(
     turbulencesetup::AbstractTurbulence,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; turbulencepredictands) = state.turbulence
 
     for field in fieldnames(TurbulencePredictands)
@@ -95,7 +94,6 @@ function set_turbulence_vertical_boundaries!(
             getfield(turbulencepredictands, field),
             namelists,
             domain,
-            zboundaries,
             -,
         )
     end
@@ -117,7 +115,6 @@ function set_turbulence_vertical_boundaries!(
     turbulencesetup::AbstractTurbulence,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; turbulencereconstructions) = state.turbulence
 
     for field in fieldnames(TurbulenceReconstructions)
@@ -125,7 +122,6 @@ function set_turbulence_vertical_boundaries!(
             getfield(turbulencereconstructions, field),
             namelists,
             domain,
-            zboundaries,
         )
     end
 

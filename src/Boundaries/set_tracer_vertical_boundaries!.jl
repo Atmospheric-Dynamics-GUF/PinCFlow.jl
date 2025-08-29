@@ -87,7 +87,6 @@ function set_tracer_vertical_boundaries!(
     tracersetup::AbstractTracer,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; tracerpredictands) = state.tracer
 
     for field in fieldnames(TracerPredictands)
@@ -95,7 +94,6 @@ function set_tracer_vertical_boundaries!(
             getfield(tracerpredictands, field),
             namelists,
             domain,
-            zboundaries,
             -,
         )
     end
@@ -117,7 +115,6 @@ function set_tracer_vertical_boundaries!(
     tracersetup::AbstractTracer,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; tracerreconstructions) = state.tracer
 
     for field in fieldnames(TracerReconstructions)
@@ -125,7 +122,6 @@ function set_tracer_vertical_boundaries!(
             getfield(tracerreconstructions, field),
             namelists,
             domain,
-            zboundaries,
         )
     end
 

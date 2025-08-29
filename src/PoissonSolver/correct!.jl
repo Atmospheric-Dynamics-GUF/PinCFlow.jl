@@ -179,7 +179,6 @@ function correct!(
     rayleigh_factor::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; bvsstrattfc) = state.atmosphere
@@ -187,10 +186,6 @@ function correct!(
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; w) = state.variables.predictands
-
-    if zboundaries != SolidWallBoundaries()
-        error("Error in correct!: Unknown zboundaries!")
-    end
 
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 - 1 : k1
@@ -250,7 +245,6 @@ function correct!(
 )
     (; nbz) = state.namelists.domain
     (; spongelayer) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
     (; g_ndim) = state.constants
     (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -271,9 +265,9 @@ function correct!(
             compute_pressure_gradient(state, dpip, (i, j, k - 1), W())
         upper_gradient = compute_pressure_gradient(state, dpip, (i, j, k), W())
 
-        if ko + k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0
             lower_gradient = 0.0
-        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz
             upper_gradient = 0.0
         end
 

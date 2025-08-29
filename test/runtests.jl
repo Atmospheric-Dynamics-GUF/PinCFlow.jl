@@ -123,11 +123,8 @@ configurations = Dict(
                         relative_tolerance = false,
                     )
 
-                    setting = SettingNamelist(;
-                        model = model,
-                        testcase = testcase,
-                        zboundaries = SolidWallBoundaries(),
-                    )
+                    setting =
+                        SettingNamelist(; model = model, testcase = testcase)
 
                     sponge = SpongeNamelist(;
                         spongelayer = true,

@@ -3,8 +3,7 @@
 set_vertical_halos_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
-    domain::Domain,
-    zboundaries::SolidWallBoundaries;
+    domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
 ```
@@ -17,8 +16,7 @@ Solid walls are assumed at the vertical boundaries of the domain. The correspond
 set_vertical_halos_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
-    domain::Domain,
-    zboundaries::SolidWallBoundaries;
+    domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
 ```
@@ -35,8 +33,6 @@ The vertical domain boundaries are treated as described above. The first three d
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `zboundaries`: Vertical boundary conditions.
-
 # Keywords
 
   - `layers`: The number of halo layers in each dimension. Use `-1` for the default values from `namelists`.
@@ -46,8 +42,7 @@ function set_vertical_halos_of_field! end
 function set_vertical_halos_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
-    domain::Domain,
-    zboundaries::SolidWallBoundaries;
+    domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; nbz) = namelists.domain
@@ -100,8 +95,7 @@ end
 function set_vertical_halos_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
-    domain::Domain,
-    zboundaries::SolidWallBoundaries;
+    domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; nbz) = namelists.domain

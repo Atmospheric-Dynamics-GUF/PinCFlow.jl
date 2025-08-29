@@ -193,7 +193,6 @@ function Atmosphere(
     background::Isothermal,
 )::Atmosphere
     (; nbz) = namelists.domain
-    (; zboundaries) = namelists.setting
     (; temp0_dim, press0_dim) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma, g_ndim) = constants
     (; sizezz, nxx, nyy, nzz, ko, k0, k1) = domain
@@ -220,13 +219,7 @@ function Atmosphere(
     end
 
     # Compute the squared buoyancy frequency at the boundaries.
-    set_vertical_boundaries_of_field!(
-        bvsstrattfc,
-        namelists,
-        domain,
-        zboundaries,
-        +,
-    )
+    set_vertical_boundaries_of_field!(bvsstrattfc, namelists, domain, +)
     if ko == 0
         for k in 1:nbz
             bvsstrattfc[:, :, k] .=

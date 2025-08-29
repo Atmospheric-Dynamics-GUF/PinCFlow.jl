@@ -4,7 +4,6 @@ set_vertical_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain,
-    zboundaries::SolidWallBoundaries,
     mode::Function;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
@@ -19,8 +18,7 @@ Halo exchange is used for multi-process domains (`npz > 1`). Use `mode = +` (`mo
 set_vertical_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
-    domain::Domain,
-    zboundaries::SolidWallBoundaries;
+    domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
 ```
@@ -36,8 +34,6 @@ This method is applied to reconstruction arrays. Vertical boundary conditions ar
   - `namelists`: Namelists with all model parameters.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `zboundaries`: Vertical boundary conditions.
 
   - `mode`: Method used for setting the boundary-cell values.
 
@@ -57,7 +53,6 @@ function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain,
-    zboundaries::SolidWallBoundaries,
     mode::Function;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
@@ -70,13 +65,7 @@ function set_vertical_boundaries_of_field!(
     nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     if npz > 1
-        set_vertical_halos_of_field!(
-            field,
-            namelists,
-            domain,
-            zboundaries;
-            layers,
-        )
+        set_vertical_halos_of_field!(field, namelists, domain; layers)
     end
 
     i = (i0 - nbx):(i1 + nbx)
@@ -114,20 +103,13 @@ end
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
-    domain::Domain,
-    zboundaries::SolidWallBoundaries;
+    domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; npz) = namelists.domain
 
     if npz > 1
-        set_vertical_halos_of_field!(
-            field,
-            namelists,
-            domain,
-            zboundaries;
-            layers,
-        )
+        set_vertical_halos_of_field!(field, namelists, domain; layers)
     end
 
     return

@@ -143,7 +143,6 @@ end
 function Domain(namelists::Namelists)::Domain
     (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz, base_comm) =
         namelists.domain
-    (; zboundaries) = namelists.setting
 
     # Initialize MPI.
     if base_comm == MPI.COMM_WORLD
@@ -174,11 +173,7 @@ function Domain(namelists::Namelists)::Domain
 
     # Set dimensions and periodicity.
     dims = [npx, npy, npz]
-    if zboundaries == SolidWallBoundaries()
-        periods = [true, true, false]
-    else
-        error("Error in Domain: Unknown zboundaries!")
-    end
+    periods = [true, true, false]
 
     # Create a Cartesian topology.
     comm = MPI.Cart_create(base_comm, dims; periodic = periods)
