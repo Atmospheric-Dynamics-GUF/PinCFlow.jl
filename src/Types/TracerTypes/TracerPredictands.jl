@@ -44,9 +44,7 @@ TracerPredictands(
 )::TracerPredictands
 ```
 
-Construct a `TracerPredictands` instance with an initialized non-dimensional tracer.
-
-The initialization consists of three steps. First, the tracer is set to ``\\chi = z``, then fluctuations in the shape of a wave packet are added if the test case calls for it (see `initialize_tracer_wave_packet!`). Finally, the density is absorbed into the tracer, i.e. the substitution ``\\chi \\rightarrow \\rho \\chi`` is performed.
+Construct a `TracerPredictands` instance with an initialized non-dimensional tracer linearly increasing with altitude. The tracer field is multiplied by the density.
 
 # Fields
 
@@ -68,9 +66,6 @@ The initialization consists of three steps. First, the tracer is set to ``\\chi 
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 
-# See also
-
-  - [`PinCFlow.Types.TracerTypes.initialize_tracer_wave_packet!`](@ref)
 """
 struct TracerPredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     chi::A
@@ -129,18 +124,6 @@ function TracerPredictands(
     alphatracer = 1.0
     chi = zeros(nxx, nyy, nzz)
     chi .= alphatracer .* ztfc
-
-    initialize_tracer_wave_packet!(
-        namelists,
-        constants,
-        domain,
-        atmosphere,
-        grid,
-        variables,
-        alphatracer,
-        chi,
-        testcase,
-    )
 
     chi .= chi .* (rho .+ rhostrattfc)
 

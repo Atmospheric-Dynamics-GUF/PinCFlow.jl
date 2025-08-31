@@ -1,4 +1,57 @@
-function conductive_heating(state::State, indices::NTuple{3, <:Integer})
+"""
+```julia
+conductive_heating(
+    state::State,
+    indices::NTuple{3, <:Integer},
+)::AbstractFloat
+```
+
+Compute and return the conductive heating by dispatching to specialized methods dependent on the model.
+
+```julia 
+conductive_heating(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    model::Boussinesq,
+)::AbstractFloat
+```
+
+Returns 0.0 as conductive heating in Boussinesq mode.
+
+```julia 
+conductive_heating(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    model::PseudoIncompressible,
+)::AbstractFloat 
+```
+
+Returns 0.0 as conductive heating in PseudoIncompressible mode.
+
+```julia 
+conductive_heating(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    model::Compressible,
+)::AbstractFloat 
+```
+
+Computes and returns the conductive heating as the divergence of potential temperature fluxes.
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `indices`: Grid-cell indices.
+
+  - `model`: Dynamic equations.
+"""
+function conductive_heating end
+
+function conductive_heating(
+    state::State,
+    indices::NTuple{3, <:Integer},
+)::AbstractFloat
     (; model) = state.namelists.setting
 
     return conductive_heating(state, indices, model)
@@ -8,7 +61,7 @@ function conductive_heating(
     state::State,
     indices::NTuple{3, <:Integer},
     model::Boussinesq,
-)
+)::AbstractFloat
     return 0.0
 end
 
@@ -16,7 +69,7 @@ function conductive_heating(
     state::State,
     indices::NTuple{3, <:Integer},
     model::PseudoIncompressible,
-)
+)::AbstractFloat
     return 0.0
 end
 
@@ -24,7 +77,7 @@ function conductive_heating(
     state::State,
     indices::NTuple{3, <:Integer},
     model::Compressible,
-)
+)::AbstractFloat
     (; phitheta) = state.variables.fluxes
     (; rho) = state.variables.predictands
     (; jac, dx, dy, dz) = state.grid

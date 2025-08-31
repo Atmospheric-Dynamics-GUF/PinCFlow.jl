@@ -88,40 +88,14 @@ Compute the tracer fluxes in all three directions.
 The computation is analogous to that of the density fluxes.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, icesetup::NoIce)
-```
-
-Return for configurations without ice physics.
-
-```julia
-compute_fluxes!(state::State, predictands::Predictands, icesetup::AbstractIce)
-```
-
-Compute the fluxes of ice variables in all three directions.
-
-The computation is analogous to that of the density fluxes.
-
-```julia
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    turbulencesetup::NoTurbulence,
+    variable::Theta,
 )
 ```
 
-Return for configurations without turbulence physics.
-
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulencesetup::AbstractTurbulence,
-)
-```
-
-Compute the fluxes of turbulence variables in all three directions.
-
-The computation is analogous to that of the density fluxes.
+Compute the potential temperature fluxes for thermal diffusivity as ``\\mu\\nabla\\theta``.
 
 # Arguments
 
@@ -135,15 +109,13 @@ The computation is analogous to that of the density fluxes.
 
   - `tracersetup`: General tracer-transport configuration.
 
-  - `icesetup`: General ice-physics configuration.
-
-  - `turbulencesetup`: General turbulence-physics configuration.
-
 # See also
 
   - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
 
   - [`PinCFlow.Update.compute_stress_tensor`](@ref)
+
+  - [`PinCFlow.Update.conductive_heating`](@ref)
 """
 function compute_fluxes! end
 
@@ -159,12 +131,6 @@ function compute_fluxes!(state::State, predictands::Predictands)
 
     compute_fluxes!(state, predictands, model, P())
     compute_fluxes!(state, predictands, state.namelists.tracer.tracersetup)
-    compute_fluxes!(state, predictands, state.namelists.ice.icesetup)
-    compute_fluxes!(
-        state,
-        predictands,
-        state.namelists.turbulence.turbulencesetup,
-    )
     return
 end
 
@@ -1523,158 +1489,6 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    icesetup::NoIce,
-)
-    return
-end
-
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    icesetup::AbstractIce,
-)
-
-    # Get all necessary fields.
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac) = state.grid
-    (; pstrattfc) = state.atmosphere
-    (; icereconstructions, icefluxes) = state.ice
-
-    # Get old wind.
-    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
-
-    for (fd, field) in enumerate(fieldnames(IcePredictands))
-        for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
-            chir = getfield(icereconstructions, fd)[i + 1, j, k, 1, 1]
-            chil = getfield(icereconstructions, fd)[i, j, k, 1, 2]
-
-            pedger =
-                0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
-                )
-            usurf = pedger * u0[i, j, k]
-
-            fchi = compute_flux(usurf, chil, chir)
-
-            getfield(icefluxes, fd)[i, j, k, 1] = fchi
-        end
-
-        for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
-            chif = getfield(icereconstructions, fd)[i, j + 1, k, 2, 1]
-            chib = getfield(icereconstructions, fd)[i, j, k, 2, 2]
-
-            pedgef =
-                0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
-                )
-            vsurf = pedgef * v0[i, j, k]
-
-            gchi = compute_flux(vsurf, chib, chif)
-
-            getfield(icefluxes, fd)[i, j, k, 2] = gchi
-        end
-
-        for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
-            chiu = getfield(icereconstructions, fd)[i, j, k + 1, 3, 1]
-            chid = getfield(icereconstructions, fd)[i, j, k, 3, 2]
-
-            pedgeu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-            wsurf = pedgeu * w0[i, j, k]
-
-            hchi = compute_flux(wsurf, chid, chiu)
-
-            getfield(icefluxes, fd)[i, j, k, 3] = hchi
-        end
-    end
-
-    return
-end
-
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulencesetup::NoTurbulence,
-)
-    return
-end
-
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulencesetup::AbstractTurbulence,
-)
-
-    # Get all necessary fields.
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac) = state.grid
-    (; pstrattfc) = state.atmosphere
-    (; turbulencereconstructions, turbulencefluxes) = state.turbulence
-
-    # Get old wind.
-    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
-
-    for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
-        for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
-            chir = getfield(turbulencereconstructions, fd)[i + 1, j, k, 1, 1]
-            chil = getfield(turbulencereconstructions, fd)[i, j, k, 1, 2]
-
-            pedger =
-                0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
-                )
-            usurf = pedger * u0[i, j, k]
-
-            fchi = compute_flux(usurf, chil, chir)
-
-            getfield(turbulencefluxes, fd)[i, j, k, 1] = fchi
-        end
-
-        for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
-            chif = getfield(turbulencereconstructions, fd)[i, j + 1, k, 2, 1]
-            chib = getfield(turbulencereconstructions, fd)[i, j, k, 2, 2]
-
-            pedgef =
-                0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
-                )
-            vsurf = pedgef * v0[i, j, k]
-
-            gchi = compute_flux(vsurf, chib, chif)
-
-            getfield(turbulencefluxes, fd)[i, j, k, 2] = gchi
-        end
-
-        for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
-            chiu = getfield(turbulencereconstructions, fd)[i, j, k + 1, 3, 1]
-            chid = getfield(turbulencereconstructions, fd)[i, j, k, 3, 2]
-
-            pedgeu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-            wsurf = pedgeu * w0[i, j, k]
-
-            hchi = compute_flux(wsurf, chid, chiu)
-
-            getfield(turbulencefluxes, fd)[i, j, k, 3] = hchi
-        end
-    end
-
-    return
-end
-
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
     variable::Theta,
 )
 
@@ -1686,9 +1500,6 @@ function compute_fluxes!(
     (; mu_conduct_dim) = state.namelists.atmosphere
     (; uref, lref) = state.constants
     (; rho) = state.variables.predictands
-
-    # Get old wind.
-    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
     if mu_conduct_dim == 0.0
         return

@@ -392,52 +392,6 @@ function write_output(
             end
         end
 
-        if !(typeof(state.namelists.ice.icesetup) <: NoIce)
-            for field in fieldnames(IcePredictands)
-                HDF5.set_extent_dims(
-                    file[string(field)],
-                    (sizex, sizey, sizez, iout),
-                )
-                @views file[string(field)][
-                    (io + 1):(io + nx),
-                    (jo + 1):(jo + ny),
-                    (ko + 1):(ko + nz),
-                    iout,
-                ] =
-                    getfield(state.ice.icepredictands, field)[
-                        i0:i1,
-                        j0:j1,
-                        k0:k1,
-                    ] ./ (
-                        rhostrattfc[i0:i1, j0:j1, k0:k1] .+
-                        rho[i0:i1, j0:j1, k0:k1]
-                    ) .* lref
-            end
-        end
-
-        if !(typeof(state.namelists.turbulence.turbulencesetup) <: NoTurbulence)
-            for field in fieldnames(TurbulencePredictands)
-                HDF5.set_extent_dims(
-                    file[string(field)],
-                    (sizex, sizey, sizez, iout),
-                )
-                @views file[string(field)][
-                    (io + 1):(io + nx),
-                    (jo + 1):(jo + ny),
-                    (ko + 1):(ko + nz),
-                    iout,
-                ] =
-                    getfield(state.turbulence.turbulencepredictands, field)[
-                        i0:i1,
-                        j0:j1,
-                        k0:k1,
-                    ] ./ (
-                        rhostrattfc[i0:i1, j0:j1, k0:k1] .+
-                        rho[i0:i1, j0:j1, k0:k1]
-                    ) .* (lref .^ 2.0) ./ (tref .^ 2.0)
-            end
-        end
-
         # Write WKB variables.
         if typeof(testcase) <: AbstractWKBTestCase
 

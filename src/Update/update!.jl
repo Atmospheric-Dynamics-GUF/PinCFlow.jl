@@ -218,40 +218,6 @@ update!(
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations (as of now, the right-hand sides are still zero).
 
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, icesetup::AbstractIce)
-```
-
-Return for configurations without ice physics.
-
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
-```
-
-Update the ice variables with a Runge-Kutta step on the left-hand sides of the equations (as of now, the right-hand sides are still zero).
-
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulencesetup::NoTurbulence,
-)
-```
-
-Return for configurations without turbulence physics.
-
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulencesetup::AbstractTurbulence,
-)
-```
-
-Update the turbulence variables with a Runge-Kutta step on the left-hand sides of the equations (as of now, the right-hand sides are still zero).
-
 # Arguments
 
   - `state`: Model state.
@@ -272,10 +238,6 @@ Update the turbulence variables with a Runge-Kutta step on the left-hand sides o
 
   - `tracersetup`: General tracer-transport configuration.
 
-  - `icesetup`: General ice-physics configuration.
-
-  - `turbulencesetup`: General turbulence-physics configuration.
-
 # See also
 
   - [`PinCFlow.Update.compute_volume_force`](@ref)
@@ -289,6 +251,8 @@ Update the turbulence variables with a Runge-Kutta step on the left-hand sides o
   - [`PinCFlow.Update.compute_pressure_gradient`](@ref)
 
   - [`PinCFlow.Update.transform`](@ref)
+
+  - [`PinCFlow.Update.conductive_heating`](@ref)
 """
 function update! end
 
@@ -1300,99 +1264,6 @@ function update!(
                 dt * f + alphark[m] * getfield(tracerincrements, fd)[i, j, k]
             getfield(tracerpredictands, fd)[i, j, k] +=
                 betark[m] * getfield(tracerincrements, fd)[i, j, k]
-        end
-    end
-
-    return
-end
-
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    icesetup::AbstractIce,
-)
-    return
-end
-
-function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac) = state.grid
-    (; alphark, betark) = state.time
-    (; iceincrements, icepredictands, icefluxes) = state.ice
-
-    for (fd, field) in enumerate(fieldnames(IcePredictands))
-        if m == 1
-            getfield(iceincrements, fd) .= 0.0
-        end
-
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            fl = getfield(icefluxes, fd)[i - 1, j, k, 1]
-            fr = getfield(icefluxes, fd)[i, j, k, 1]
-            gb = getfield(icefluxes, fd)[i, j - 1, k, 2]
-            gf = getfield(icefluxes, fd)[i, j, k, 2]
-            hd = getfield(icefluxes, fd)[i, j, k - 1, 3]
-            hu = getfield(icefluxes, fd)[i, j, k, 3]
-
-            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
-            fluxdiff /= jac[i, j, k]
-
-            f = -fluxdiff
-
-            getfield(iceincrements, fd)[i, j, k] =
-                dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
-            getfield(icepredictands, fd)[i, j, k] +=
-                betark[m] * getfield(iceincrements, fd)[i, j, k]
-        end
-    end
-
-    return
-end
-
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulencesetup::NoTurbulence,
-)
-    return
-end
-
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulencesetup::AbstractTurbulence,
-)
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac) = state.grid
-    (; alphark, betark) = state.time
-    (; turbulenceincrements, turbulencepredictands, turbulencefluxes) =
-        state.turbulence
-
-    for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
-        if m == 1
-            getfield(turbulenceincrements, fd) .= 0.0
-        end
-
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            fl = getfield(turbulencefluxes, fd)[i - 1, j, k, 1]
-            fr = getfield(turbulencefluxes, fd)[i, j, k, 1]
-            gb = getfield(turbulencefluxes, fd)[i, j - 1, k, 2]
-            gf = getfield(turbulencefluxes, fd)[i, j, k, 2]
-            hd = getfield(turbulencefluxes, fd)[i, j, k - 1, 3]
-            hu = getfield(turbulencefluxes, fd)[i, j, k, 3]
-
-            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
-            fluxdiff /= jac[i, j, k]
-
-            f = -fluxdiff
-
-            getfield(turbulenceincrements, fd)[i, j, k] =
-                dt * f +
-                alphark[m] * getfield(turbulenceincrements, fd)[i, j, k]
-            getfield(turbulencepredictands, fd)[i, j, k] +=
-                betark[m] * getfield(turbulenceincrements, fd)[i, j, k]
         end
     end
 
