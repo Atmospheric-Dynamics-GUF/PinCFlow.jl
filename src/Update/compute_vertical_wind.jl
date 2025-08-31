@@ -1,20 +1,33 @@
 """
-    compute_vertical_wind(i::Integer, j::Integer, k::Integer, predictands::Predictands, grid::Grid)
+```julia
+compute_vertical_wind(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    predictands::Predictands,
+    grid::Grid,
+)::AbstractFloat
+```
 
-Compute contravariant vertical velocity w^ζ in terrain-following coordinates.
+Compute and return the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
 
 # Arguments
-- `i, j, k::Integer`: Grid indices  
-- `predictands::Predictands`: Velocity field variables
-- `grid::Grid`: Metric tensor and coordinate information
 
-# Returns
-- `AbstractFloat`: Contravariant vertical velocity component
+  - `i`: Zonal grid-cell index.
 
-# Implementation
-Extracts velocity components at cell edges and applies coordinate transformation
-via [`transform`](@ref) function to account for terrain-following effects.
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
+
+  - `predictands`: Prognostic variables.
+
+  - `grid`: Collection of parameters and fields that describe the grid.
+
+# See also
+
+  - [`PinCFlow.Update.transform`](@ref)
 """
+function compute_vertical_wind end
 
 function compute_vertical_wind(
     i::Integer,
@@ -22,7 +35,7 @@ function compute_vertical_wind(
     k::Integer,
     predictands::Predictands,
     grid::Grid,
-)
+)::AbstractFloat
     (; u, v, w) = predictands
 
     uedger = u[i, j, k]

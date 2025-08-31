@@ -1,3 +1,44 @@
+"""
+```julia
+explicit_integration!(
+    state::State,
+    p0::Predictands,
+    dtstage::AbstractFloat,
+    time::AbstractFloat,
+    side::LHS,
+)
+```
+
+Integrate the left-hand sides of the prognostic equations with a Runge-Kutta time step.
+
+At each Runge-Kutta stage, the prognostic variables are first reconstructed and their advective and diffusive fluxes are calculated. Subsequently, each variable is updated with its integrated left-hand side, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the unified sponge. After the Runge-Kutta loop, if the atmosphere is compressible, the Exner-pressure is updated with a full implicit Euler step to account for it being impacted by the Rayleigh damping of the mass-weighted potential temperature.
+
+```julia
+explicit_integration!(
+    state::State,
+    p0::Predictands,
+    dtstage::AbstractFloat,
+    time::AbstractFloat,
+    side::RHS,
+)
+```
+
+Perform an explicit Euler step on the right-hand sides of the prognostic equations and, if the atmosphere is compressible, update the Exner-pressure such that it is synchronized with the mass-weighted potential temperature.
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `p0`: The predictands that are used to compute the transporting velocities in the computation of the fluxes.
+
+  - `dtstage`: Fractional time step.
+
+  - `time`: Simulation time.
+
+  - `side`: Side of the equations.
+"""
+function explicit_integration! end
+
 function explicit_integration!(
     state::State,
     p0::Predictands,

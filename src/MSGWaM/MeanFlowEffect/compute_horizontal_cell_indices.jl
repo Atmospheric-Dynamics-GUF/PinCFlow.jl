@@ -1,34 +1,37 @@
 """
-    compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+```julia
+compute_horizontal_cell_indices(
+    state::State,
+    xr::AbstractFloat,
+    yr::AbstractFloat,
+    dxr::AbstractFloat,
+    dyr::AbstractFloat,
+)::NTuple{4, <:Integer}
+```
 
-Calculate grid cell indices that overlap with a ray volume in horizontal dimensions.
+From the given horizontal ray-volume position and extent, determine the indices of the grid cells that contain the ray-volume edges and return them (in the order left, right, backward and forward).
 
 # Arguments
 
-  - `state`: Simulation state containing domain and grid information
-  - `xr`: Ray center x-coordinate in computational space
-  - `yr`: Ray center y-coordinate in computational space
-  - `dxr`: Ray volume width in x-direction
-  - `dyr`: Ray volume width in y-direction
+  - `state`: Model state.
 
-# Returns
+  - `xr`: Ray-volume position in ``x``.
 
-  - `Tuple{Int,Int,Int,Int}`: (ixmin, ixmax, jymin, jymax) - minimum and maximum grid indices
-    in x and y directions that overlap with the ray volume
+  - `yr`: Ray-volume position in ``y``.
 
-# Implementation
+  - `dxr`: Ray-volume extent in ``x``.
 
-For each direction, calculates cell indices by:
-
- 1. Finding grid cells containing ray volume boundaries
- 2. Ensuring indices remain within computational domain
- 3. Handling 1D domains by setting min/max indices to the same value
-
-# Error Checking
-
-Throws error if ray volume falls completely outside computational domain
+  - `dyr`: Ray-volume extent in ``y``.
 """
-function compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+function compute_horizontal_cell_indices end
+
+function compute_horizontal_cell_indices(
+    state::State,
+    xr::AbstractFloat,
+    yr::AbstractFloat,
+    dxr::AbstractFloat,
+    dyr::AbstractFloat,
+)::NTuple{4, <:Integer}
     (; sizex, sizey) = state.namelists.domain
     (; i0, i1, j0, j1, io, jo) = state.domain
     (; lx, ly, dx, dy) = state.grid

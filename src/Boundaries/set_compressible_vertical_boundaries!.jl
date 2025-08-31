@@ -1,8 +1,48 @@
 """
-    set_compressible_vertical_boundaries!(state, variables, model::AbstractModel)
+```julia
+set_compressible_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+    model::AbstractModel,
+)
+```
 
-No-op for non-compressible models.
+Return in non-compressible modes.
+
+```julia
+set_compressible_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Compressible,
+)
+```
+
+Enforce vertical boundary conditions for mass-weighted potential temperature in compressible mode (line reflection).
+
+```julia
+set_compressible_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Compressible,
+)
+```
+
+Enforce vertical boundary conditions for vertical mass-weighted potential-temperature flux (no flux through boundaries).
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `variables`: Boundary-variable category.
+
+  - `model`: Dynamic equations.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
+function set_compressible_vertical_boundaries! end
+
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
@@ -11,11 +51,6 @@ function set_compressible_vertical_boundaries!(
     return
 end
 
-"""
-    set_compressible_vertical_boundaries!(state, variables::BoundaryPredictands, model::Compressible)
-
-Set vertical boundaries for pressure field in compressible model with symmetric conditions.
-"""
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -30,11 +65,6 @@ function set_compressible_vertical_boundaries!(
     return
 end
 
-"""
-    set_compressible_vertical_boundaries!(state, variables::BoundaryFluxes, model::Compressible)
-
-Set vertical pressure flux boundaries to zero at solid walls.
-"""
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,

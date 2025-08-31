@@ -1,36 +1,46 @@
 """
-    modify_compressible_wind!(state::State, operation::Function)
+```julia
+modify_compressible_wind!(state::State, operation::Function)
+```
 
-Apply operation to wind fields based on model type.
+Modify the wind with ``J P`` if the atmosphere is compressible by dispatching to the appropriate method.
 
-This function dispatches to the appropriate model-specific implementation
-for modifying wind components in compressible flow models.
+```julia
+modify_compressible_wind!(
+    state::State,
+    operation::Function,
+    model::AbstractModel,
+)
+```
+
+Return in non-compressible modes.
+
+```julia
+modify_compressible_wind!(
+    state::State,
+    operation::Function,
+    model::Compressible,
+)
+```
+
+Interpolate ``J P`` to the wind grids and replace the wind components with the result of applying `operation` to them and the interpolations.
 
 # Arguments
 
-  - `state::State`: Simulation state containing model configuration
-  - `operation::Function`: Binary operation to apply (typically `*` or `/`)
+  - `state`: Model state.
+
+  - `operation`: Binary operation used for modification.
+
+  - `model`: Dynamic equations.
 """
+function modify_compressible_wind! end
+
 function modify_compressible_wind!(state::State, operation::Function)
     (; model) = state.namelists.setting
     modify_compressible_wind!(state, operation, model)
     return
 end
 
-"""
-    modify_compressible_wind!(state::State, operation::Function, model::AbstractModel)
-
-No-op for non-compressible models.
-
-Non-compressible models don't require wind field modifications as they
-don't use pressure-density coupling in the momentum equations.
-
-# Arguments
-
-  - `state::State`: Simulation state (unused)
-  - `operation::Function`: Operation function (unused)
-  - `model::AbstractModel`: Non-compressible model type
-"""
 function modify_compressible_wind!(
     state::State,
     operation::Function,
@@ -39,28 +49,6 @@ function modify_compressible_wind!(
     return
 end
 
-"""
-    modify_compressible_wind!(state::State, operation::Function, model::Compressible)
-
-Modify wind components for compressible model using pressure weighting.
-
-Applies the specified operation to wind components using pressure-weighted
-averages. This is used in semi-implicit time stepping to account for
-pressure-density coupling in compressible flows.
-
-# Arguments
-
-  - `state::State`: Simulation state containing grid, domain, and predictand fields
-  - `operation::Function`: Binary operation (typically `*` for scaling, `/` for unscaling)
-  - `model::Compressible`: Compressible model type
-
-# Details
-
-  - Modifies u-component using pressure average between adjacent x-points
-  - Modifies v-component using pressure average between adjacent y-points
-  - Modifies w-component using Jacobian-weighted pressure average between z-levels
-  - Operations are applied only within the computational domain (i0:i1, j0:j1, k0:k1)
-"""
 function modify_compressible_wind!(
     state::State,
     operation::Function,

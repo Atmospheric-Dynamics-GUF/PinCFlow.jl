@@ -1,3 +1,32 @@
+"""
+```julia
+SettingNamelist{
+    A <: AbstractModel,
+    B <: AbstractTestCase,
+    C <: AbstractBoundaries,
+}
+```
+
+Namelist for parameters describing the general model setting.
+
+```julia
+SettingNamelist(;
+    model::AbstractModel = PseudoIncompressible(),
+    testcase::AbstractTestCase = MountainWave(),
+    zboundaries::AbstractBoundaries = SolidWallBoundaries(),
+)::SettingNamelist
+```
+
+Construct a `SettingNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
+
+  - `model::A`: Dynamic equations.
+
+  - `testcase::B`: Test case on wich the current simulation is based.
+
+  - `zboundaries::C`: Vertical boundary conditions.
+"""
 struct SettingNamelist{
     A <: AbstractModel,
     B <: AbstractTestCase,
@@ -8,29 +37,10 @@ struct SettingNamelist{
     zboundaries::C
 end
 
-"""
-    SettingNamelist(; 
-        model = PseudoIncompressible(),
-        testcase = MountainWave(),
-        zboundaries = SolidWallBoundaries()
-    )
-
-Core simulation configuration specifying equation set, test case, and vertical boundary conditions.
-
-# Arguments
-
-  - `model = PseudoIncompressible()`: Governing equation set. Options: `PseudoIncompressible()`, `Boussinesq()`, `Compressible()`
-  - `testcase = MountainWave()`: Initial/forcing configuration. Options: `MountainWave()`, `WKBMountainWave()`
-  - `zboundaries = SolidWallBoundaries()`: Vertical boundary treatment. Options: `SolidWallBoundaries()`, `PeriodicBoundaries()`
-
-# Usage
-
-Determines which equations are solved, how initial conditions are set, and boundary condition implementation.
-"""
 function SettingNamelist(;
-    model = PseudoIncompressible(),
-    testcase = MountainWave(),
-    zboundaries = SolidWallBoundaries(),
-)
+    model::AbstractModel = PseudoIncompressible(),
+    testcase::AbstractTestCase = MountainWave(),
+    zboundaries::AbstractBoundaries = SolidWallBoundaries(),
+)::SettingNamelist
     return SettingNamelist(model, testcase, zboundaries)
 end

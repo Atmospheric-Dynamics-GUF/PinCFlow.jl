@@ -1,80 +1,102 @@
 """
-    compute_compressible_wind_factor(state::State, indices::NTuple{3, <:Integer}, variable::AbstractVariable)
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+)::AbstractFloat
+```
 
-Model-dispatched wind factor computation for momentum equation scaling.
+Compute the factor by which the wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``, ``\\left(i, j + 1 / 2, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, by dispatching to a method specific for the dynamic equations and the component indicated by `variable`, and return the result.
 
-The compressible wind factor accounts for pressure-density coupling in momentum equations.
-In compressible flows, momentum equations require pressure-weighted scaling to maintain
-proper balance between kinetic and potential energy components.
+In compressible mode, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` instead of ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\widehat{w}_{k + 1 / 2}``.
+
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+    model::AbstractModel,
+)::AbstractFloat
+```
+
+Return ``1`` as the factor by which the wind should be multiplied in non-compressible mode.
+
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::U,
+    model::Compressible,
+)::AbstractFloat
+```
+
+Return ``\\left(J P\\right)_{i + 1 / 2}`` as the factor by which the zonal wind should be multiplied in compressible mode.
+
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::V,
+    model::Compressible,
+)::AbstractFloat
+```
+
+Return ``\\left(J P\\right)_{j + 1 / 2}`` as the factor by which the meridional wind should be multiplied in compressible mode.
+
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::W,
+    model::Compressible,
+)::AbstractFloat
+```
+
+Return ``\\left(J P\\right)_{k + 1 / 2}`` as the factor by which the transformed vertical wind should be multiplied in compressible mode.
+
+The interpolation is given by
+
+```math
+\\left(J P\\right)_{k + 1 / 2} = \\frac{J J_{k + 1} \\left(P + P_{k + 1}\\right)}{J + J_{k + 1}}.
+```
 
 # Arguments
 
-  - `state::State`: Simulation state
-  - `indices::NTuple{3, <:Integer}`: Grid indices (ix, jy, kz)
-  - `variable::AbstractVariable`: Variable type for which to compute factor
+  - `state`: Model state.
 
-# Returns
+  - `indices`: Grid-cell indices.
 
-  - `AbstractFloat`: Pressure-weighted scaling factor
+  - `variable`: Variable for which the factor is needed.
 
-# Usage
-
-Applied in momentum updates as: `u_new = u_old + dt * force * wind_factor`
-where the wind factor ensures proper compressible flow dynamics.
+  - `model`: Dynamic equations.
 """
+function compute_compressible_wind_factor end
+
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
-)
+)::AbstractFloat
     (; model) = state.namelists.setting
     return compute_compressible_wind_factor(state, indices, variable, model)
 end
 
-"""
-    compute_compressible_wind_factor(state, indices, variable::AbstractVariable, model::AbstractModel)
-
-Unity wind factor for non-compressible models.
-
-Non-compressible models use constant density assumptions, eliminating
-the need for pressure-weighted momentum scaling.
-
-# Returns
-
-  - `Float64`: Always returns 1.0
-"""
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
     model::AbstractModel,
-)
+)::AbstractFloat
     return 1.0
 end
-
-"""
-    compute_compressible_wind_factor(state, indices, variable::U, model::Compressible)
-
-Pressure-weighted wind factor for zonal velocity.
-
-Computes Jacobian-weighted pressure average between horizontally adjacent cells
-to account for variable density effects on zonal momentum transport.
-
-# Implementation
-Averages pressure between grid points (i, i+1) weighted by grid Jacobians:
-factor = (J[i]*P[i] + J[i+1]*P[i+1]) / 2
-
-
-# Returns
-- `AbstractFloat`: Pressure-weighted factor for zonal momentum scaling
-"""
 
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::U,
     model::Compressible,
-)
+)::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices
@@ -84,28 +106,12 @@ function compute_compressible_wind_factor(
     ) / 2
 end
 
-"""
-    compute_compressible_wind_factor(state, indices, variable::V, model::Compressible)
-
-Pressure-weighted wind factor for meridional velocity.
-
-Computes Jacobian-weighted pressure average between meridionally adjacent cells
-for proper meridional momentum equation scaling in compressible flows.
-
-# Implementation
-Averages pressure between grid points (j, j+1) weighted by grid Jacobians:
-factor = (J[i]*P[i] + J[i+1]*P[i+1]) / 2
-
-# Returns
-- `AbstractFloat`: Pressure-weighted factor for meridional momentum scaling
-"""
-
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::V,
     model::Compressible,
-)
+)::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices
@@ -115,29 +121,12 @@ function compute_compressible_wind_factor(
     ) / 2
 end
 
-"""
-    compute_compressible_wind_factor(state, indices, variable::W, model::Compressible)
-
-Pressure-weighted wind factor for vertical velocity in compressible flows.
-
-Computes double Jacobian-weighted pressure average between vertically adjacent cells
-accounting for terrain-following coordinate transformations and variable density effects
-on vertical momentum transport.
-
-
-# Returns
-- `AbstractFloat`: Pressure-weighted scaling factor
-
-# Implementation
-Formula: `J[k]*J[k+1]*(P[k] + P[k+1]) / (J[k] + J[k+1])`
-"""
-
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::W,
     model::Compressible,
-)
+)::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices

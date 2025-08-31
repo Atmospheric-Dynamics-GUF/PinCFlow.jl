@@ -1,27 +1,163 @@
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::U)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::U,
+)::AbstractFloat
+```
 
-Interpolate zonal velocity component (U) to a given 3D location using trilinear interpolation.
+Interpolate the zonal wind (``u_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``u_\\mathrm{b}`` to the location of interest, using `interpolate`.
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::V,
+)::AbstractFloat
+```
+
+Interpolate the meridional wind (``v_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the zonal wind (``u_\\mathrm{b}``).
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::W,
+)::AbstractFloat
+```
+
+Interpolate the vertical wind (``w_\\mathrm{b}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``w_\\mathrm{b}`` to the location of interest, using `compute_vertical_wind` and `interpolate`. At grid points beyond the vertical boundaries, the values used in the interpolation are replaced with zeros.
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DUDX,
+)::AbstractFloat
+```
+
+Interpolate the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u_\\mathrm{b} / \\partial x`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DUDY,
+)::AbstractFloat
+```
+
+Interpolate the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u_\\mathrm{b} / \\partial y`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DUDZ,
+)::AbstractFloat
+```
+
+Interpolate the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u_\\mathrm{b} / \\partial z`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DVDX,
+)::AbstractFloat
+```
+
+Interpolate the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``).
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DVDY,
+)::AbstractFloat
+```
+
+Interpolate the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``).
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DVDZ,
+)::AbstractFloat
+```
+
+Interpolate the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``).
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::U`: Type specifier for zonal velocity component
+  - `xlc`: Zonal position of interest.
 
-# Returns
+  - `ylc`: Meridional position of interest.
 
-  - Interpolated U velocity value at the specified location
+  - `zlc`: Vertical position of interest.
+
+  - `state`: Model state.
+
+  - `phitype`: Mean-flow quantity to interpolate.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
 """
+function interpolate_mean_flow end
+
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::U,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; u) = state.variables.predictands
@@ -34,14 +170,14 @@ function interpolate_mean_flow(
         ixr = i0
     else
         ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
-        if (ixl < 1)
+        if ixl < 1
             error("Error in interpolate_mean_flow (U): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
-        if ixr > nxx
+        if ixr + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (U): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (U): ixr + 1 = ",
+                ixr + 1,
                 "> nxx = ",
                 nxx,
             )
@@ -56,7 +192,7 @@ function interpolate_mean_flow(
         jyf = j0
     else
         jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
-        if (jyb < 1)
+        if jyb < 1
             error("Error in interpolate_mean_flow (U): jyl = ", jyl, " < 1")
         end
         jyf = jyb + 1
@@ -76,23 +212,23 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    zlbd = (ztfc[ixl, jyb, kzlbd] + ztfc[ixl + 1, jyb, kzlbd]) / 2
+    zlbu = (ztfc[ixl, jyb, kzlbu] + ztfc[ixl + 1, jyb, kzlbu]) / 2
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    zlfd = (ztfc[ixl, jyf, kzlfd] + ztfc[ixl + 1, jyf, kzlfd]) / 2
+    zlfu = (ztfc[ixl, jyf, kzlfu] + ztfc[ixl + 1, jyf, kzlfu]) / 2
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    zrbd = (ztfc[ixr, jyb, kzrbd] + ztfc[ixr + 1, jyb, kzrbd]) / 2
+    zrbu = (ztfc[ixr, jyb, kzrbu] + ztfc[ixr + 1, jyb, kzrbu]) / 2
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    zrfd = (ztfc[ixr, jyf, kzrfd] + ztfc[ixr + 1, jyf, kzrfd]) / 2
+    zrfu = (ztfc[ixr, jyf, kzrfu] + ztfc[ixr + 1, jyf, kzrfu]) / 2
 
     philbd = u[ixl, jyb, kzlbd]
     philbu = u[ixl, jyb, kzlbu]
@@ -137,30 +273,13 @@ function interpolate_mean_flow(
     return phi
 end
 
-"""
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::V)
-
-Interpolate meridional velocity component (V) to a given 3D location using trilinear interpolation.
-
-# Arguments
-
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::V`: Type specifier for meridional velocity component
-
-# Returns
-
-  - Interpolated V velocity value at the specified location
-"""
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::V,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; v) = state.variables.predictands
@@ -199,10 +318,10 @@ function interpolate_mean_flow(
             error("Error in interpolate_mean_flow (V): jyb = ", jyb, " < 1")
         end
         jyf = jyb + 1
-        if jyf > nyy
+        if jyf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (V): jyf = ",
-                jyf,
+                "Error in interpolate_mean_flow (V): jyf + 1 = ",
+                jyf + 1,
                 " > nyy = ",
                 nyy,
             )
@@ -215,23 +334,23 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    zlbd = (ztfc[ixl, jyb, kzlbd] + ztfc[ixl, jyb + 1, kzlbd]) / 2
+    zlbu = (ztfc[ixl, jyb, kzlbu] + ztfc[ixl, jyb + 1, kzlbu]) / 2
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    zlfd = (ztfc[ixl, jyf, kzlfd] + ztfc[ixl, jyf + 1, kzlfd]) / 2
+    zlfu = (ztfc[ixl, jyf, kzlfu] + ztfc[ixl, jyf + 1, kzlfu]) / 2
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    zrbd = (ztfc[ixr, jyb, kzrbd] + ztfc[ixr, jyb + 1, kzrbd]) / 2
+    zrbu = (ztfc[ixr, jyb, kzrbu] + ztfc[ixr, jyb + 1, kzrbu]) / 2
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    zrfd = (ztfc[ixr, jyf, kzrfd] + ztfc[ixr, jyf + 1, kzrfd]) / 2
+    zrfu = (ztfc[ixr, jyf, kzrfu] + ztfc[ixr, jyf + 1, kzrfu]) / 2
 
     # Assign the values.
 
@@ -278,31 +397,13 @@ function interpolate_mean_flow(
     return phi
 end
 
-"""
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::W)
-
-Interpolate vertical velocity component (W) to a given 3D location using trilinear interpolation.
-Handles topography by setting velocity to zero below surface level.
-
-# Arguments
-
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::W`: Type specifier for vertical velocity component
-
-# Returns
-
-  - Interpolated W velocity value at the specified location
-"""
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::W,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; predictands) = state.variables
     (; sizex, sizey) = namelists.domain
@@ -452,31 +553,13 @@ function interpolate_mean_flow(
     return phi
 end
 
-"""
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DUDX)
-
-Interpolate zonal derivative of zonal velocity (∂u/∂x) to a given 3D location.
-Returns zero for single-point domains in x-direction.
-
-# Arguments
-
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DUDX`: Type specifier for ∂u/∂x derivative
-
-# Returns
-
-  - Interpolated ∂u/∂x value at the specified location
-"""
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::DUDX,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -596,31 +679,13 @@ function interpolate_mean_flow(
     return phi
 end
 
-"""
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DUDY)
-
-Interpolate meridional derivative of zonal velocity (∂u/∂y) to a given 3D location.
-Returns zero for single-point domains in y-direction.
-
-# Arguments
-
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DUDY`: Type specifier for ∂u/∂y derivative
-
-# Returns
-
-  - Interpolated ∂u/∂y value at the specified location
-"""
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::DUDY,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -636,10 +701,10 @@ function interpolate_mean_flow(
             error("Error in interpolate_mean_flow (DUDY): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
-        if ixr > nxx
+        if ixr + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDY): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (DUDY): ixr + 1 = ",
+                ixr + 1,
                 " > nxx = ",
                 nxx,
             )
@@ -674,23 +739,71 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    zlbd =
+        (
+            ztfc[ixl, jyb, kzlbd] +
+            ztfc[ixl + 1, jyb, kzlbd] +
+            ztfc[ixl, jyb + 1, kzlbd] +
+            ztfc[ixl + 1, jyb + 1, kzlbd]
+        ) / 4
+    zlbu =
+        (
+            ztfc[ixl, jyb, kzlbu] +
+            ztfc[ixl + 1, jyb, kzlbu] +
+            ztfc[ixl, jyb + 1, kzlbu] +
+            ztfc[ixl + 1, jyb + 1, kzlbu]
+        ) / 4
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    zlfd =
+        (
+            ztfc[ixl, jyf, kzlfd] +
+            ztfc[ixl + 1, jyf, kzlfd] +
+            ztfc[ixl, jyf + 1, kzlfd] +
+            ztfc[ixl + 1, jyf + 1, kzlfd]
+        ) / 4
+    zlfu =
+        (
+            ztfc[ixl, jyf, kzlfu] +
+            ztfc[ixl + 1, jyf, kzlfu] +
+            ztfc[ixl, jyf + 1, kzlfu] +
+            ztfc[ixl + 1, jyf + 1, kzlfu]
+        ) / 4
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    zrbd =
+        (
+            ztfc[ixr, jyb, kzrbd] +
+            ztfc[ixr + 1, jyb, kzrbd] +
+            ztfc[ixr, jyb + 1, kzrbd] +
+            ztfc[ixr + 1, jyb + 1, kzrbd]
+        ) / 4
+    zrbu =
+        (
+            ztfc[ixr, jyb, kzrbu] +
+            ztfc[ixr + 1, jyb, kzrbu] +
+            ztfc[ixr, jyb + 1, kzrbu] +
+            ztfc[ixr + 1, jyb + 1, kzrbu]
+        ) / 4
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    zrfd =
+        (
+            ztfc[ixr, jyf, kzrfd] +
+            ztfc[ixr + 1, jyf, kzrfd] +
+            ztfc[ixr, jyf + 1, kzrfd] +
+            ztfc[ixr + 1, jyf + 1, kzrfd]
+        ) / 4
+    zrfu =
+        (
+            ztfc[ixr, jyf, kzrfu] +
+            ztfc[ixr + 1, jyf, kzrfu] +
+            ztfc[ixr, jyf + 1, kzrfu] +
+            ztfc[ixr + 1, jyf + 1, kzrfu]
+        ) / 4
 
     # Assign the values.
 
@@ -737,30 +850,13 @@ function interpolate_mean_flow(
     return phi
 end
 
-"""
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DUDZ)
-
-Interpolate vertical derivative of zonal velocity (∂u/∂z) to a given 3D location.
-
-# Arguments
-
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DUDZ`: Type specifier for ∂u/∂z derivative
-
-# Returns
-
-  - Interpolated ∂u/∂z value at the specified location
-"""
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::DUDZ,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -776,10 +872,10 @@ function interpolate_mean_flow(
             error("Error in interpolate_mean_flow (DUDZ): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
-        if ixr > nxx
+        if ixr + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDZ): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (DUDZ): ixr + 1 = ",
+                ixr + 1,
                 " > nxx = ",
                 nxx,
             )
@@ -814,23 +910,23 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztildetfc[ixl, jyb, kzlbd]
-    zlbu = ztildetfc[ixl, jyb, kzlbu]
+    zlbd = (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl + 1, jyb, kzlbd]) / 2
+    zlbu = (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl + 1, jyb, kzlbu]) / 2
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztildetfc[ixl, jyf, kzlfd]
-    zlfu = ztildetfc[ixl, jyf, kzlfu]
+    zlfd = (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl + 1, jyf, kzlfd]) / 2
+    zlfu = (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl + 1, jyf, kzlfu]) / 2
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztildetfc[ixr, jyb, kzrbd]
-    zrbu = ztildetfc[ixr, jyb, kzrbu]
+    zrbd = (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr + 1, jyb, kzrbd]) / 2
+    zrbu = (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr + 1, jyb, kzrbu]) / 2
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztildetfc[ixr, jyf, kzrfd]
-    zrfu = ztildetfc[ixr, jyf, kzrfu]
+    zrfd = (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr + 1, jyf, kzrfd]) / 2
+    zrfu = (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr + 1, jyf, kzrfu]) / 2
 
     # Assign the values.
 
@@ -877,31 +973,13 @@ function interpolate_mean_flow(
     return phi
 end
 
-"""
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DVDX)
-
-Interpolate zonal derivative of meridional velocity (∂v/∂x) to a given 3D location.
-Returns zero for single-point domains in x-direction.
-
-# Arguments
-
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DVDX`: Type specifier for ∂v/∂x derivative
-
-# Returns
-
-  - Interpolated ∂v/∂x value at the specified location
-"""
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::DVDX,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -955,23 +1033,71 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    zlbd =
+        (
+            ztfc[ixl, jyb, kzlbd] +
+            ztfc[ixl + 1, jyb, kzlbd] +
+            ztfc[ixl, jyb + 1, kzlbd] +
+            ztfc[ixl + 1, jyb + 1, kzlbd]
+        ) / 4
+    zlbu =
+        (
+            ztfc[ixl, jyb, kzlbu] +
+            ztfc[ixl + 1, jyb, kzlbu] +
+            ztfc[ixl, jyb + 1, kzlbu] +
+            ztfc[ixl + 1, jyb + 1, kzlbu]
+        ) / 4
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    zlfd =
+        (
+            ztfc[ixl, jyf, kzlfd] +
+            ztfc[ixl + 1, jyf, kzlfd] +
+            ztfc[ixl, jyf + 1, kzlfd] +
+            ztfc[ixl + 1, jyf + 1, kzlfd]
+        ) / 4
+    zlfu =
+        (
+            ztfc[ixl, jyf, kzlfu] +
+            ztfc[ixl + 1, jyf, kzlfu] +
+            ztfc[ixl, jyf + 1, kzlfu] +
+            ztfc[ixl + 1, jyf + 1, kzlfu]
+        ) / 4
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    zrbd =
+        (
+            ztfc[ixr, jyb, kzrbd] +
+            ztfc[ixr + 1, jyb, kzrbd] +
+            ztfc[ixr, jyb + 1, kzrbd] +
+            ztfc[ixr + 1, jyb + 1, kzrbd]
+        ) / 4
+    zrbu =
+        (
+            ztfc[ixr, jyb, kzrbu] +
+            ztfc[ixr + 1, jyb, kzrbu] +
+            ztfc[ixr, jyb + 1, kzrbu] +
+            ztfc[ixr + 1, jyb + 1, kzrbu]
+        ) / 4
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    zrfd =
+        (
+            ztfc[ixr, jyf, kzrfd] +
+            ztfc[ixr + 1, jyf, kzrfd] +
+            ztfc[ixr, jyf + 1, kzrfd] +
+            ztfc[ixr + 1, jyf + 1, kzrfd]
+        ) / 4
+    zrfu =
+        (
+            ztfc[ixr, jyf, kzrfu] +
+            ztfc[ixr + 1, jyf, kzrfu] +
+            ztfc[ixr, jyf + 1, kzrfu] +
+            ztfc[ixr + 1, jyf + 1, kzrfu]
+        ) / 4
 
     # Assign the values.
 
@@ -1018,31 +1144,13 @@ function interpolate_mean_flow(
     return phi
 end
 
-"""
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DVDY)
-
-Interpolate meridional derivative of meridional velocity (∂v/∂y) to a given 3D location.
-Returns zero for single-point domains in y-direction.
-
-# Arguments
-
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DVDY`: Type specifier for ∂v/∂y derivative
-
-# Returns
-
-  - Interpolated ∂v/∂y value at the specified location
-"""
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::DVDY,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -1163,30 +1271,13 @@ function interpolate_mean_flow(
     return phi
 end
 
-"""
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DVDZ)
-
-Interpolate vertical derivative of meridional velocity (∂v/∂z) to a given 3D location.
-
-# Arguments
-
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DVDZ`: Type specifier for ∂v/∂z derivative
-
-# Returns
-
-  - Interpolated ∂v/∂z value at the specified location
-"""
 function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
     phitype::DVDZ,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -1224,10 +1315,10 @@ function interpolate_mean_flow(
             error("Error in interpolate_mean_flow: jyb = ", jyb, " < 1")
         end
         jyf = jyb + 1
-        if jyf > nyy
+        if jyf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow: jyf = ",
-                jyf,
+                "Error in interpolate_mean_flow: jyf + 1 = ",
+                jyf + 1,
                 " > nyy = ",
                 nyy,
             )
@@ -1240,23 +1331,23 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztildetfc[ixl, jyb, kzlbd]
-    zlbu = ztildetfc[ixl, jyb, kzlbu]
+    zlbd = (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl, jyb + 1, kzlbd]) / 2
+    zlbu = (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl, jyb + 1, kzlbu]) / 2
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztildetfc[ixl, jyf, kzlfd]
-    zlfu = ztildetfc[ixl, jyf, kzlfu]
+    zlfd = (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl, jyf + 1, kzlfd]) / 2
+    zlfu = (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl, jyf + 1, kzlfu]) / 2
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztildetfc[ixr, jyb, kzrbd]
-    zrbu = ztildetfc[ixr, jyb, kzrbu]
+    zrbd = (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr, jyb + 1, kzrbd]) / 2
+    zrbu = (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr, jyb + 1, kzrbu]) / 2
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztildetfc[ixr, jyf, kzrfd]
-    zrfu = ztildetfc[ixr, jyf, kzrfu]
+    zrfd = (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr, jyf + 1, kzrfd]) / 2
+    zrfu = (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr, jyf + 1, kzrfu]) / 2
 
     # Assign the values.
 

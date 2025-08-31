@@ -1,19 +1,54 @@
 """
-    Fluxes{A, B}
+```julia
+Fluxes{
+    A <: AbstractArray{<:AbstractFloat, 4},
+    B <: AbstractArray{<:AbstractFloat, 4},
+}
+```
 
-Storage for numerical fluxes in three spatial directions (x, y, z) on a 3D grid.
+Arrays for fluxes needed in the computation of the left-hand sides.
+
+The first three dimensions represent physical space and the fourth dimension represents the flux direction.
+
+```julia
+Fluxes(namelists::Namelists, domain::Domain)::Fluxes
+```
+
+Construct a `Fluxes` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
+
+```julia
+Fluxes(domain::Domain, model::AbstractModel)::Fluxes
+```
+
+Construct a `Fluxes` instance in non-compressible modes, with a zero-size array for mass-weighted potential-temperature fluxes.
+
+```julia
+Fluxes(domain::Domain, model::Compressible)::Fluxes
+```
+
+Construct a `Fluxes` instance in compressible mode.
 
 # Fields
 
-  - `phirho::A`: Density flux arrays (nxx × nyy × nzz × 3)
-  - `phirhop::A`: Density perturbation flux arrays (nxx × nyy × nzz × 3)
-  - `phiu::A`: x-velocity flux arrays (nxx × nyy × nzz × 3)
-  - `phiv::A`: y-velocity flux arrays (nxx × nyy × nzz × 3)
-  - `phiw::A`: z-velocity flux arrays (nxx × nyy × nzz × 3)
-  - `phip::B`: Pressure flux arrays (model-dependent dimensions)
+  - `phirho::A`: Density fluxes.
 
-The fourth dimension represents the three spatial directions for flux computation (x=1, y=2, z=3).
-For incompressible models, `phip` is empty (0×0×0×0).
+  - `phirhop::A`: Density-fluctuation fluxes.
+
+  - `phiu::A`: Zonal-momentum fluxes.
+
+  - `phiv::A`: Meridional-momentum fluxes.
+
+  - `phiw::A`: Transformed-vertical-momentum fluxes.
+
+  - `phip::B`: Mass-weighted potential-temperature fluxes.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+  - `model`: Dynamic equations.
 """
 struct Fluxes{
     A <: AbstractArray{<:AbstractFloat, 4},
@@ -28,22 +63,12 @@ struct Fluxes{
     phip::B
 end
 
-"""
-    Fluxes(namelists::Namelists, domain::Domain)
-
-Construct `Fluxes` from configuration namelists and domain specification.
-"""
-function Fluxes(namelists::Namelists, domain::Domain)
+function Fluxes(namelists::Namelists, domain::Domain)::Fluxes
     (; model) = namelists.setting
     return Fluxes(domain, model)
 end
 
-"""
-    Fluxes(domain::Domain, model::AbstractModel)
-
-Construct `Fluxes` for incompressible models with empty pressure flux array.
-"""
-function Fluxes(domain::Domain, model::AbstractModel)
+function Fluxes(domain::Domain, model::AbstractModel)::Fluxes
     (; nxx, nyy, nzz) = domain
 
     # Initialize the fluxes.
@@ -54,12 +79,7 @@ function Fluxes(domain::Domain, model::AbstractModel)
     return Fluxes(phirho, phirhop, phiu, phiv, phiw, phitheta, phip)
 end
 
-"""
-    Fluxes(domain::Domain, model::Compressible)
-
-Construct `Fluxes` for compressible models including pressure flux arrays.
-"""
-function Fluxes(domain::Domain, model::Compressible)
+function Fluxes(domain::Domain, model::Compressible)::Fluxes
     (; nxx, nyy, nzz) = domain
 
     # Initialize the fluxes.

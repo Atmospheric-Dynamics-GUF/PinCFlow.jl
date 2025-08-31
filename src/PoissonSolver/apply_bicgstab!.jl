@@ -1,36 +1,44 @@
 """
-    apply_bicgstab!(b_in, tolref, sol, namelists, domain, grid, poisson)
+```julia
+apply_bicgstab!(
+    b_in::AbstractArray{<:AbstractFloat, 3},
+    tolref::AbstractFloat,
+    sol::AbstractArray{<:AbstractFloat, 3},
+    namelists::Namelists,
+    domain::Domain,
+    grid::Grid,
+    poisson::Poisson,
+)::Tuple{Bool, <:Integer}
+```
 
-Solve the linear system using BiCGStab iterative method.
-
-Implements the Bi-Conjugate Gradient Stabilized method for solving the discrete
-Poisson equation. This is the core linear algebra routine for the pressure correction
-step.
+Solve the Poisson equation using a preconditioned BicGStab algorithm and return a tuple containing an error flag and the number of iterations.
 
 # Arguments
 
-  - `b_in::AbstractArray{<:AbstractFloat, 3}`: Right-hand side vector
-  - `tolref::AbstractFloat`: Reference tolerance for relative error checking
-  - `sol::AbstractArray{<:AbstractFloat, 3}`: Solution vector (input/output)
-  - `namelists::Namelists`: Solver parameters (tolerance, max iterations, preconditioner flag)
-  - `domain::Domain`: MPI domain info for parallel reductions
-  - `grid::Grid`: Grid information
-  - `poisson::Poisson`: Operator and workspace arrays
+  - `b_in`: Right-hand side.
 
-# Returns
+  - `tolref`: Reference tolerance for convergence criterion.
 
-  - `(errflag, niter)`: Convergence flag and iteration count
+  - `sol`: Solution (Exner-pressure differences).
 
-# Convergence criteria
+  - `namelists`: Namelists with all model parameters.
 
-  - Absolute and relative residual norms computed globally across MPI processes
-  - Separate monitoring of 3D and vertically-averaged residuals
-  - Convergence when both criteria are satisfied
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-# Parallelization
+  - `grid`: Collection of parameters and fields that describe the grid.
 
-  - Preconditioner requires vertical communication between processes
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
+
+# See also
+
+  - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
+
+  - [`PinCFlow.PoissonSolver.apply_preconditioner!`](@ref)
+
+  - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
 """
+function apply_bicgstab! end
+
 function apply_bicgstab!(
     b_in::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
@@ -39,7 +47,7 @@ function apply_bicgstab!(
     domain::Domain,
     grid::Grid,
     poisson::Poisson,
-)
+)::Tuple{Bool, <:Integer}
     (; sizex, sizey, sizez) = namelists.domain
     (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
         namelists.poisson
@@ -109,6 +117,7 @@ function apply_bicgstab!(
     if res == 0.0 || res / b_norm <= tol
         if master
             println("=> No iteration needed!")
+            println("")
         end
         niter = 0
         return (errflag, niter)
@@ -209,6 +218,5 @@ function apply_bicgstab!(
     errflag = true
     niter = j_b
 
-    # Return.
     return (errflag, niter)
 end

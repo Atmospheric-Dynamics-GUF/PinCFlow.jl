@@ -1,15 +1,53 @@
 """
-    Rays
+```julia
+Rays{A <: AbstractArray{<:AbstractFloat, 4}}
+```
 
-Container for ray position, wavenumber, and propagation data.
+Container for prognostic ray-volume properties.
+
+```julia
+Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
+```
+
+Construct a `Rays` instance, with arrays sized according to the given dimensions.
 
 # Fields
 
-  - `x`, `y`, `z`: Ray positions in physical space
-  - `k`, `l`, `m`: Ray wavenumbers in spectral space
-  - `dxray`, `dyray`, `dzray`: Ray position increments
-  - `dkray`, `dlray`, `dmray`: Ray wavenumber increments
-  - `dens`: Ray density (wave action density)
+  - `x::A`: Position in ``x``.
+
+  - `y::A`: Position in ``y``.
+
+  - `z::A`: Position in ``z``.
+
+  - `k::A`: Position in ``k``.
+
+  - `l::A`: Position in ``l``.
+
+  - `m::A`: Position in ``m``.
+
+  - `dxray::A`: Extent in ``x``.
+
+  - `dyray::A`: Extent in ``y``.
+
+  - `dzray::A`: Extent in ``z``.
+
+  - `dkray::A`: Extent in ``k``.
+
+  - `dlray::A`: Extent in ``l``.
+
+  - `dmray::A`: Extent in ``m``.
+
+  - `dens::A`: Phase-space wave-action density.
+
+# Arguments
+
+  - `nray_wrk`: Size of the spectral dimension of ray-volume arrays.
+
+  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+
+  - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
+
+  - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 """
 struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     x::A
@@ -27,6 +65,6 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     dens::A
 end
 
-function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
+function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
     return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13]...)
 end

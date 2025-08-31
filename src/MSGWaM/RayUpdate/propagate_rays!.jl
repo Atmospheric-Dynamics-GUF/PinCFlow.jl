@@ -1,37 +1,145 @@
 """
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+```julia
+propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+```
 
-Entry point for ray propagation based on test case type.
+Integrate the wave-action-density and ray equations by dispatching to a test-case-specific method.
 
-Dispatches to the appropriate propagation method depending on whether the
-simulation uses WKB ray tracing or standard test cases.
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    testcase::AbstractTestCase,
+)
+```
+
+Return for non-WKB test cases.
+
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Integrate the wave-action-density and ray equations by dispatching to a WKB-mode-specific method.
+
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    wkb_mode::AbstractWKBMode,
+)
+```
+
+Integrate the wave-action-density and ray equations derived from 1D or 3D transient WKB theory.
+
+The ray equations are given by
+
+```math
+\\begin{align*}
+    \\frac{\\mathrm{d} x_\\alpha}{\\mathrm{d} t} & = c_{\\mathrm{g}, x, \\alpha} = u_{\\mathrm{b}, \\alpha} + k_\\alpha \\frac{N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\frac{\\mathrm{d} y_\\alpha}{\\mathrm{d} t} & = c_{\\mathrm{g}, y, \\alpha} = v_{\\mathrm{b}, \\alpha} + l_\\alpha \\frac{N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\frac{\\mathrm{d} z_\\alpha}{\\mathrm{d} t} & = c_{\\mathrm{g}, z, \\alpha} = - \\frac{m_\\alpha \\left(\\widehat{\\omega}_\\alpha^2 - f^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\frac{\\mathrm{d} k_\\alpha}{\\mathrm{d} t} & = \\dot{k}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_\\alpha,\\\\
+    \\frac{\\mathrm{d} l_\\alpha}{\\mathrm{d} t} & = \\dot{l}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_\\alpha,\\\\
+    \\frac{\\mathrm{d} m_\\alpha}{\\mathrm{d} t} & = \\dot{m}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_\\alpha - \\frac{k_\\alpha^2 + l_\\alpha^2}{2 \\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_\\alpha,
+\\end{align*}
+```
+
+where the subscript ``\\alpha`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition to these, MSGWaM integrates prognostic equations for the ray-volume extents, given by
+
+```math
+\\begin{align*}
+    \\frac{\\mathrm{d} \\Delta x_\\alpha}{\\mathrm{d} t} & = \\frac{\\mathrm{d} x_{\\alpha, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} x_{\\alpha, -}}{\\mathrm{d} t} = u_{\\mathrm{b}, \\alpha, +} - u_{\\mathrm{b}, \\alpha, -},\\\\
+    \\frac{\\mathrm{d} \\Delta y_\\alpha}{\\mathrm{d} t} & = \\frac{\\mathrm{d} y_{\\alpha, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} y_{\\alpha, -}}{\\mathrm{d} t} = v_{\\mathrm{b}, \\alpha, +} - v_{\\mathrm{b}, \\alpha, -},\\\\
+    \\frac{\\mathrm{d} \\Delta z_\\alpha}{\\mathrm{d} t} & = \\frac{\\mathrm{d} z_{\\alpha, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} z_{\\alpha, -}}{\\mathrm{d} t} = c_{\\mathrm{g} z, \\alpha, +} - c_{\\mathrm{g} z, \\alpha, -},
+\\end{align*}
+```
+
+where ``u_{\\mathrm{b}, \\alpha, \\pm}`` is the interpolation of ``u_\\mathrm{b}`` to ``x_{\\alpha, \\pm} = x_\\alpha \\pm \\Delta x_\\alpha / 2`` and ``v_{\\mathrm{b}, \\alpha, \\pm}`` is the equivalent for ``v_\\mathrm{b}`` in ``y``-direction. In the computation of ``c_{\\mathrm{g} z, \\alpha, \\pm}``, the intrinsic frequency and squared buoyancy frequency are interpolated to ``z_{\\alpha, \\pm} = z_\\alpha \\pm \\Delta z_\\alpha / 2``. The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the prognostic equation for the phase-space wave-action density reads
+
+```math
+\\frac{\\mathrm{d} \\mathcal{N}_\\alpha}{\\mathrm{d} t} = - 2 \\alpha_{\\mathrm{R}, \\alpha} \\mathcal{N}_\\alpha,
+```
+
+where ``\\alpha_{\\mathrm{R}, \\alpha}`` is the interpolation of the Rayleigh-damping coefficient to the ray-volume position, obtained from `interpolate_sponge`. While the ray equations are integrated with the low-storage third-order Runge-Kutta scheme, the phase-space wave-action density is updated with an implicit substep at the end of each Runge-Kutta stage. The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation.
+
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    wkb_mode::SteadyState,
+)
+```
+
+Update the vertical wavenumber and wave-action density, using steady-state WKB theory.
+
+In steady-state mode, the ray volumes are stationary in physical space. In mountain-wave simulations, this method first updates the ray volumes in the launch layer by calling `activate_orographic_source!`. Subsequently, it performs a vertical sweep to update all other ray volumes. Therein, the vertical wavenumber is set to
+
+```math
+m_\\alpha = - \\sigma \\sqrt{\\frac{\\left(k_\\alpha^2 + l_\\alpha^2\\right) \\left(N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha^2 - f^2}},
+```
+
+where ``N_\\alpha^2`` is the squared buoyancy frequency interpolated to the ray-volume position (with `interpolate_stratification`) and ``\\widehat{\\omega}_\\alpha = - k_\\alpha u_\\mathrm{b} - l_\\alpha v_\\mathrm{b}`` is the intrinsic frequency (in the case of mountain waves, for which ``\\omega_\\alpha = 0``). The new wave-action-density field is obtained by integrating
+
+```math
+\\frac{\\partial \\mathcal{A}_\\alpha}{\\partial z} = - 2 \\alpha_{\\mathrm{R}, \\alpha} \\mathcal{A}_\\alpha - 2 K \\left|\\boldsymbol{k}_\\alpha\\right|^2 \\mathcal{A}_\\alpha,
+```
+
+where ``\\alpha_{\\mathrm{R}, \\alpha}`` is the Rayleigh-damping coefficient interpolated to the ray-volume position (using `interpolate_sponge`) and
+
+```math
+K = \\left[2 \\sum\\limits_\\alpha \\frac{J \\Delta \\widehat{z}}{c_{\\mathrm{g}, z, \\alpha}} \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right| \\left|\\boldsymbol{k}_\\alpha\\right|\\right)^2 f_\\alpha\\right]^{- 1} \\max \\left[0, \\sum_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha - \\alpha_\\mathrm{S}^2 N^4\\right]
+```
+
+is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.MSGWaM.RayUpdate.apply_saturation_scheme!`](@ref) for more details). After the first right-hand-side term has been integrated with an implicit step, the second term is integrated with the pseudo-time step ``J \\Delta \\widehat{z} / c_{\\mathrm{g} z, \\alpha}``, which corresponds to the substitution ``\\mathcal{A}_\\alpha \\rightarrow \\left(1 - 2 J \\Delta \\widehat{z} / c_{\\mathrm{g} z, \\alpha} K \\left|\\boldsymbol{k}_\\alpha\\right|^2\\right) \\mathcal{A}_\\alpha``. If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step size
-  - `rkstage::Integer`: Runge-Kutta stage number
+  - `state`: Model state.
+
+  - `dt`: Time step.
+
+  - `rkstage`: Runge-Kutta-stage index.
+
+  - `testcase`: Test case on which the current simulation is based.
+
+  - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
+
+  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
+function propagate_rays! end
+
 function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
     (; testcase) = state.namelists.setting
     propagate_rays!(state, dt, rkstage, testcase)
     return
 end
 
-"""
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, testcase::AbstractTestCase)
-
-No-op for non-WKB test cases.
-
-Standard test cases don't use ray tracing, so no ray propagation is needed.
-
-# Arguments
-
-  - `state::State`: Simulation state (unused)
-  - `dt::AbstractFloat`: Time step (unused)
-  - `rkstage::Integer`: RK stage (unused)
-  - `testcase::AbstractTestCase`: Non-WKB test case
-"""
 function propagate_rays!(
     state::State,
     dt::AbstractFloat,
@@ -41,20 +149,6 @@ function propagate_rays!(
     return
 end
 
-"""
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, testcase::AbstractWKBTestCase)
-
-Propagate rays for WKB test cases based on WKB mode.
-
-Dispatches to the specific WKB mode implementation for ray propagation.
-
-# Arguments
-
-  - `state::State`: Simulation state containing WKB configuration
-  - `dt::AbstractFloat`: Time step size
-  - `rkstage::Integer`: Runge-Kutta stage number
-  - `testcase::AbstractWKBTestCase`: WKB test case specification
-"""
 function propagate_rays!(
     state::State,
     dt::AbstractFloat,
@@ -66,50 +160,6 @@ function propagate_rays!(
     return
 end
 
-"""
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, wkb_mode::AbstractWKBMode)
-
-Propagate rays using general WKB ray tracing equations.
-
-Implements the full ray tracing equations including:
-
-  - Position updates using group velocities
-  - Wavenumber refraction due to background flow gradients
-  - Ray volume extent evolution
-  - Wave action density transport with sponge layer damping
-
-# Arguments
-
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step size
-  - `rkstage::Integer`: Runge-Kutta stage number (1-based)
-  - `wkb_mode::AbstractWKBMode`: WKB mode (MultiColumn, SingleColumn, etc.)
-
-# Ray Tracing Equations
-
-## Position Evolution
-
-  - Horizontal: `dx/dt = cgx = (∂ω/∂k) + u`, `dy/dt = cgy = (∂ω/∂l) + v`
-  - Vertical: `dz/dt = cgz = ∂ω/∂m`
-
-## Wavenumber Evolution (Refraction)
-
-  - `dk/dt = -∂u/∂x·k - ∂v/∂x·l`
-  - `dl/dt = -∂u/∂y·k - ∂v/∂y·l`
-  - `dm/dt = -∂u/∂z·k - ∂v/∂z·l - k²∂N²/∂z/(2ω + k²+l²+m²)`
-
-## Ray Volume Extent Evolution
-
-Ray volumes can stretch or compress as they propagate through varying background flows.
-
-# Features
-
-  - Multi-stage Runge-Kutta time integration
-  - Group velocity calculation for CFL constraints
-  - Orographic source activation for mountain wave test cases
-  - Unified sponge layer damping
-  - Refraction only above minimum altitude threshold
-"""
 function propagate_rays!(
     state::State,
     dt::AbstractFloat,
@@ -135,7 +185,7 @@ function propagate_rays!(
     kz0 = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
     kz1 = k1
 
-    # Initialize RK tendencies at the first RK stage.
+    # Initialize WKB increments at the first RK stage.
     if rkstage == 1
         dxray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
         dyray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
@@ -297,7 +347,7 @@ function propagate_rays!(
                 dldt = -dudyr * kr - dvdyr * lr
                 dmdt =
                     -dudzr * kr - dvdzr * lr -
-                    khr^2 * dn2dzr / (2 * omir + (khr^2 + mr^2))
+                    khr^2 * dn2dzr / (2 * omir * (khr^2 + mr^2))
 
                 dkray[iray, ix, jy, kz] =
                     dt * dkdt + alphark[rkstage] * dkray[iray, ix, jy, kz]
@@ -407,49 +457,6 @@ function propagate_rays!(
     return
 end
 
-"""
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, wkb_mode::SteadyState)
-
-Propagate rays using steady-state vertical propagation.
-
-Implements a simplified ray propagation scheme where rays move only vertically
-through a steady background atmosphere. This is computationally efficient for
-mountain wave simulations where horizontal propagation can be neglected.
-
-# Arguments
-
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step size (used for sponge damping)
-  - `rkstage::Integer`: Runge-Kutta stage number
-  - `wkb_mode::SteadyState`: Steady-state WKB mode
-
-# Algorithm
-
- 1. **Vertical Transport**: Copies rays from level k-1 to level k
- 2. **Coordinate Transformation**: Adjusts ray positions for terrain-following coordinates
- 3. **Local Dispersion**: Computes vertical wavenumber from local conditions
- 4. **Wave Action Conservation**: `ρ·cgz·A = constant` along ray paths
- 5. **Saturation Scheme**: Applies wave breaking parameterization
- 6. **MPI Communication**: Exchanges rays between vertical neighbor processes
-
-# Steady-State Assumptions
-
-  - Background flow and stratification are approximately steady
-  - Horizontal ray propagation is negligible compared to vertical
-  - Rays maintain their horizontal wavenumber spectrum
-  - Only vertical group velocity matters for transport
-
-# Boundary Conditions
-
-  - **Critical Levels**: Rays are absorbed where `f < ω < N`
-  - **Reflecting Levels**: Ray action set to zero in unstable regions
-  - **Sponge Damping**: Exponential decay in specified regions
-
-# Performance
-
-Much faster than full ray tracing for mountain wave problems where the
-steady-state assumption is valid.
-"""
 function propagate_rays!(
     state::State,
     dt::AbstractFloat,

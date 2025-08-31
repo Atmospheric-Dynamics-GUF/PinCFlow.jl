@@ -1,32 +1,77 @@
 """
-    activate_orographic_source!(state::State, omi_ini::AbstractArray{<:AbstractFloat, 4}, wnk_ini::AbstractArray{<:AbstractFloat, 4}, wnl_ini::AbstractArray{<:AbstractFloat, 4}, wnm_ini::AbstractArray{<:AbstractFloat, 4}, wad_ini::AbstractArray{<:AbstractFloat, 4})
+```julia
+activate_orographic_source!(
+    state::State,
+    omi_ini::AbstractArray{<:AbstractFloat, 4},
+    wnk_ini::AbstractArray{<:AbstractFloat, 4},
+    wnl_ini::AbstractArray{<:AbstractFloat, 4},
+    wnm_ini::AbstractArray{<:AbstractFloat, 4},
+    wad_ini::AbstractArray{<:AbstractFloat, 4},
+)
+```
 
-Initialize orographic wave source for ray initialization phase.
+Compute ray-volume properties in the launch layer (i.e. at `k = k0 - 1`) for the initialization of MSGWaM.
 
-Computes initial wave mode characteristics for all wavenumber modes at the
-surface level, used during ray volume initialization.
+Sets the launch-layer values of arrays for initial ray-volume properties (intrinsic frequencies, wavenumbers and wave-action densities). For this purpose, the horizontal components of the resolved wind, the background density and the squared buoyancy frequency are vertically averaged between the surface and an approximation for the summits of the unresolved orography. The vertical averages are then used to compute a non-dimensionalized mountain wave amplitude, from which an approximate reduction of the generated wave amplitude due to blocking is inferred (see below). Afterwards, the ray-volume properties are obtained by calling `compute_orographic_mode` with the correspondingly scaled mode of the orographic spectrum and the vertical averages as arguments.
+
+```julia
+activate_orographic_source!(state::State)
+```
+
+Launch ray volumes that represent unresolved orographic gravity waves.
+
+In each column of MPI processes at the lower boundary, this method first computes vertical averages of the horizontal components of the resolved wind, the background density and the squared buoyancy frequency between ``h_\\mathrm{b}`` (the surface) and ``h_\\mathrm{b} + \\Delta h`` (an approximation for the summits of the unresolved orography, with ``\\Delta h = \\sum_\\alpha \\left|h_{\\mathrm{w}, \\alpha}\\right|``). The vertical averages are then used to compute a non-dimensionalized mountain wave amplitude, from which an approximate reduction of the generated wave amplitude due to blocking, as well as the depth of the blocked layer, is inferred. A loop over the spectral modes of the unresolved orography follows, in which the properties of each mode are computed, using `compute_orographic_mode` with the scaled mode of the orographic spectrum and vertical averages as arguments, and corresponding ray volumes are launched at `k = k0 - 1`.
+
+The parameterization of blocking is built around the non-dimensionalized mountain wave amplitude, or Long number,
+
+```math
+\\mathrm{Lo} = \\frac{N_h \\Delta h}{\\left|\\boldsymbol{u}_h\\right|},
+```
+
+where ``N_h`` is the square root of the vertically averaged squared buoyancy frequency and ``\\boldsymbol{u}_h`` is the vertically averaged resolved horizontal wind. This number is used to estimate the depth of the blocked layer as
+
+```math
+\\Delta z_\\mathrm{B} = 2 \\Delta h \\max \\left(0, \\frac{\\mathrm{Lo} - C}{\\mathrm{Lo}}\\right),
+```
+
+where ``C`` is a critical value represented by the model parameter `state.namelists.wkb.long_threshold`. The corresponding scaling of the orographic spectrum is given by
+
+```math
+r \\left(\\mathrm{Lo}\\right) = \\frac{2 \\Delta h - \\Delta z_\\mathrm{B}}{2 \\Delta h} = \\min \\left(1, \\frac{C}{\\mathrm{Lo}}\\right),
+```
+
+so that ``\\Delta z_\\mathrm{B} = 2 \\Delta h \\left(1 - r\\right)``. In addition to the reduction of the mountain-wave amplitude, the present blocked-layer scheme adds a blocked-flow drag to the mean-flow impact. This is implemented in [`PinCFlow.MSGWaM.MeanFlowEffect.apply_blocked_layer_scheme!`](@ref).
+
+The launch algorithm distinguishes between the following situations (regarding previously launched ray volumes).
+
+ 1. There is no ray volume with nonzero wave-action density. A new ray volume is launched.
+
+ 1. There is a ray volume with nonzero wave-action density that has at least partially passed through the lower boundary. The ray volume is either clipped or extended, such that its lower edge coincides with the surface, and the part below the surface is discarded. Then, it is assigned to the first model layer `k0`, i.e. its indices are changed from `(iray, ix, jy, k0 - 1)` to `(jray, ix, jy, k0)`, where `jray` is the new last ray-volume index at `(ix, jy, k0)`. Finally, a new ray volume is launched.
+
+ 1. There is a ray volume with nonzero wave-action density, which has not yet crossed the lower boundary. It is replaced with a new one.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `omi_ini`: Output array for intrinsic frequencies [nwm, nx, ny, nz]
-  - `wnk_ini`: Output array for x-direction wavenumbers [nwm, nx, ny, nz]
-  - `wnl_ini`: Output array for y-direction wavenumbers [nwm, nx, ny, nz]
-  - `wnm_ini`: Output array for vertical wavenumbers [nwm, nx, ny, nz]
-  - `wad_ini`: Output array for wave action densities [nwm, nx, ny, nz]
+  - `state`: Model state.
 
-# Process
+  - `omi_ini`: Array for intrinsic frequencies.
 
- 1. **Surface Only**: Only processes surface grid cells (`ko == 0`)
- 2. **Background Averaging**: Computes column-averaged wind, density, and stratification
- 3. **Topographic Spectrum**: Uses pre-computed topographic wavenumber spectrum
- 4. **Mode Calculation**: Calls `compute_orographic_mode` for each spectral mode
- 5. **Storage**: Saves results in provided arrays for later ray initialization
+  - `wnk_ini`: Array for zonal wavenumbers.
 
-# Applications
+  - `wnl_ini`: Array for meridional wavenumbers.
 
-Used during simulation initialization to pre-compute source characteristics.
+  - `wnm_ini`: Array for vertical wavenumbers.
+
+  - `wad_ini`: Array for wave-action densities.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_mode`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
+function activate_orographic_source! end
+
 function activate_orographic_source!(
     state::State,
     omi_ini::AbstractArray{<:AbstractFloat, 4},
@@ -83,11 +128,11 @@ function activate_orographic_source!(
 
         # Determine the blocked layer.
         @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
-            long =
+            @views long =
                 sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
                 sum(abs.(topography_spectrum[:, ix, jy]))
             ratio = min(1, long_threshold / long)
-            zb[ix, jy] =
+            @views zb[ix, jy] =
                 ztildetfc[ix, jy, k0 - 1] +
                 sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
         elseif blocking
@@ -127,74 +172,6 @@ function activate_orographic_source!(
     return
 end
 
-"""
-    activate_orographic_source!(state::State, dt::AbstractFloat)
-
-Activate orographic wave source during time integration.
-
-Updates surface ray volumes to maintain continuous wave generation from
-topography, handling ray replacement, clipping, and new ray creation
-as rays propagate away from the surface.
-
-# Arguments
-
-  - `state::State`: Complete simulation state
-
-# Algorithm
-
- 1. **Surface Processing**: Only operates on surface processes (`ko == 0`)
-
- 2. **Background Conditions**: Re-computes column-averaged atmospheric state
- 3. **Blocking Calculation**: Applies flow blocking parameterization if enabled
- 4. **Ray Management**: For each surface ray volume:
-
-      + **Existing rays**: Update or remove based on wave conditions
-      + **Propagated rays**: Clip/extend rays crossing vertical boundaries
-      + **New rays**: Create fresh ray volumes with current source strength
- 5. **Mode Characteristics**: Re-compute wave properties for current conditions
- 6. **Ray Properties**: Set physical/spectral positions, extents, and wave action
-
-# Flow Blocking
-
-When enabled, reduces effective topographic height based on:
-
-  - **Linearity parameter**: `L = N·h / U` (ratio of buoyancy to advection timescales)
-  - **Blocking ratio**: `r = min(1, L_threshold / L)`
-  - **Effective height**: `h_eff = h · r`
-  - **Blocked layer depth**: `z_b = h · (1 - 2r)`
-
-# Ray Volume Management
-
-Three cases for existing ray volumes:
-
- 1. **No existing ray** (`iray < 0`): Create new ray if source is active
- 2. **Existing ray, zero source**: Remove ray and mark inactive
- 3. **Existing ray, active source**: Update ray properties
-
-# Boundary Handling
-
-  - **Steady State**: Simple replacement of ray properties
-
-  - **Time Dependent**:
-
-      + Shift rays crossing vertical boundaries to next level
-      + Clip ray extents at boundary interfaces
-      + Preserve wave action through coordinate transformations
-
-# Wave Action Conservation
-
-Maintains consistency between:
-
-  - Source strength from topographic spectrum
-  - Ray volume phase space density
-  - Spectral volume normalization factors
-
-# Error Checking
-
-  - Validates ray counts don't exceed working limits
-  - Ensures non-zero vertical wavenumber for active sources
-  - Checks ray positioning within valid domains
-"""
 function activate_orographic_source!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -272,11 +249,11 @@ function activate_orographic_source!(state::State)
 
         # Determine the blocked layer.
         @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
-            long =
+            @views long =
                 sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
                 sum(abs.(topography_spectrum[:, ix, jy]))
             ratio = min(1, long_threshold / long)
-            zb[ix, jy] =
+            @views zb[ix, jy] =
                 ztildetfc[ix, jy, k0 - 1] +
                 sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
         elseif blocking
@@ -369,7 +346,7 @@ function activate_orographic_source!(state::State)
                             (iray, ix, jy, kz),
                             (nrlc, ix, jy, kz + 1),
                         )
-                        for field in fieldnames(Increments)
+                        for field in fieldnames(WKBIncrements)
                             getfield(increments, field)[nrlc, ix, jy, kz + 1] =
                                 getfield(increments, field)[iray, ix, jy, kz]
                             getfield(increments, field)[iray, ix, jy, kz] = 0.0

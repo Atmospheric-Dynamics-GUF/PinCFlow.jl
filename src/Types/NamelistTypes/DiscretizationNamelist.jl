@@ -1,3 +1,37 @@
+"""
+```julia
+DiscretizationNamelist{A <: AbstractFloat, B <: Bool, C <: AbstractLimiter}
+```
+
+Namelist for parameters describing the discretization.
+
+```julia
+DiscretizationNamelist(;
+    cfl::AbstractFloat = 5.0E-1,
+    cfl_wave::AbstractFloat = 5.0E-1,
+    dtmin_dim::AbstractFloat = 1.0E-6,
+    dtmax_dim::AbstractFloat = 1.0E+3,
+    adaptive_time_step::Bool = true,
+    limitertype::AbstractLimiter = MCVariant(),
+)::DiscretizationNamelist
+```
+
+Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
+
+  - `cfl::A`: Number used for the CFL condition in the time step computation.
+
+  - `cfl_wave::A`: Number used for the WKB-CFL condition in the time step computation.
+
+  - `dtmin_dim::A`: Minimum time step allowed for the integration.
+
+  - `dtmax_dim::A`: Maximum time step allowed for the integration.
+
+  - `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax_dim` is used as a fixed time step.
+
+  - `limitertype::C`: Flux limiter used by the MUSCL scheme.
+"""
 struct DiscretizationNamelist{
     A <: AbstractFloat,
     B <: Bool,
@@ -11,28 +45,14 @@ struct DiscretizationNamelist{
     limitertype::C
 end
 
-"""
-DiscretizationNamelist(;<keyword arguments>)
-
-Construct a DiscretizationNamelist object, which holds parameters for the time discretization.
-
-# Arguments
-
-  - `cfl::Float = 0.5`: Courant-Friedrichs-Lewy number used in `compute_time_step`.
-  - `cfl_wave::Float = 0.5`: Courant-Friedrichs-Lewy number for WKB mode.
-  - `dtmin_dim::Float = 1.0E-6`: minimum time step the integration routine is allowed to take.
-  - `dtmax_dim::Float = 1.0E+3`: maximum time step the integration routine is allowed to take.
-  - `adaptive_time_step::Bool = true`: whether to use adaptive time step. If false, a constant time step based on `dtmax_dim` is used.
-  - `limitertype::AbstractLimiter = MCVariant()`: type of limiter used in MUSCL scheme. Currently the only option is `MCVariant()`.
-"""
 function DiscretizationNamelist(;
-    cfl = 5.0E-1,
-    cfl_wave = 5.0E-1,
-    dtmin_dim = 1.0E-6,
-    dtmax_dim = 1.0E+3,
-    adaptive_time_step = true,
-    limitertype = MCVariant(),
-)
+    cfl::AbstractFloat = 5.0E-1,
+    cfl_wave::AbstractFloat = 5.0E-1,
+    dtmin_dim::AbstractFloat = 1.0E-6,
+    dtmax_dim::AbstractFloat = 1.0E+3,
+    adaptive_time_step::Bool = true,
+    limitertype::AbstractLimiter = MCVariant(),
+)::DiscretizationNamelist
     return DiscretizationNamelist(
         cfl,
         cfl_wave,

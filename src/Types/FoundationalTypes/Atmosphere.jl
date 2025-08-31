@@ -1,128 +1,134 @@
 """
-    Atmosphere{A, B}
-
-A type representing the atmospheric background state in terrain-following coordinates.
-
-# Type Parameters
-- `A <: AbstractArray{<:AbstractFloat, 3}`: 3D array type for field variables
-- `B <: AbstractVector{<:AbstractFloat}`: Vector type for parameters
-
-# Fields
-- `pstrattfc::A`: Background pressure [p/pref]
-- `thetastrattfc::A`: Background potential temperature [θ/θref]
-- `rhostrattfc::A`: Background density [ρ/ρref]
-- `bvsstrattfc::A`: Brunt-Väisälä frequency squared [N²/Nref²]
-- `fc::B`: Coriolis parameter [f/fref]
-
-# Constructors
-    Atmosphere(namelists, constants, domain, grid)
-    Atmosphere(namelists, constants, domain, grid, model, background)
-
-## Parameters
-- `namelists::Namelists`: Configuration parameters
-- `constants::Constants`: Physical constants
-- `domain::Domain`: Computational domain information
-- `grid::Grid`: Grid configuration
-- `model`: Atmospheric model type (e.g., `Boussinesq`, `AbstractModel`)
-- `background`: Background state type (e.g., `Isothermal`, `UniformBoussinesq`)
-
-# Model Types
-- `Boussinesq`: Boussinesq approximation
-- Subtypes of `AbstractModel`: Other atmospheric models
-
-# Background Types
-- `Isothermal`: Isothermal background state
-- `UniformBoussinesq`: Uniform background for Boussinesq model
-- `StratifiedBoussinesq`: Stratified background for Boussinesq model
-
-# Examples
 ```julia
-# Create atmosphere with default model and background
-atm = Atmosphere(namelists, constants, domain, grid)
-
-# Create Boussinesq atmosphere with uniform background
-atm = Atmosphere(
-    namelists, 
-    constants, 
-    domain, 
-    grid, 
-    Boussinesq(), 
-    UniformBoussinesq()
-)
+Atmosphere{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractVector{<:AbstractFloat},
+}
 ```
 
-# Notes
-- All fields are non-dimensionalized using reference values from `Constants`
-- Coordinates are in terrain-following system
-- Grid decomposition for parallel computation is handled through `Domain`
+Composite type for atmospheric background fields and Coriolis frequency.
 
-# Constructor Documentation
+```julia
+Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+)::Atmosphere
+```
 
-## Default Constructor
-    Atmosphere(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
+Create an `Atmosphere` instance by dispatching to a method specific for the background and dynamic equations set in `namelists`.
 
-Creates an atmosphere with model and background types specified in namelists.
+```julia
+Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    model::Boussinesq,
+    background::UniformBoussinesq,
+)::Atmosphere
+```
 
-## Boussinesq Model with Uniform Background
-    Atmosphere(
-        namelists::Namelists, 
-        constants::Constants, 
-        domain::Domain, 
-        grid::Grid,
-        model::Boussinesq,
-        background::UniformBoussinesq
-    )
+Create an `Atmosphere` instance with background fields describing a uniform (i.e. neutral) Boussinesq atmosphere.
 
-Creates a uniform Boussinesq atmosphere with:
-- Constant density (ρ = ρref)
-- Uniform potential temperature (θ = θ0)
-- Zero buoyancy frequency (N² = 0)
-- Coriolis parameter based on specified mode
+The background fields are given by
 
-## Boussinesq Model with Stratified Background
-    Atmosphere(
-        namelists::Namelists, 
-        constants::Constants, 
-        domain::Domain, 
-        grid::Grid,
-        model::Boussinesq,
-        background::StratifiedBoussinesq
-    )
+```math
+\\begin{align*}
+    \\overline{\\rho} & = \\rho_0,\\\\
+    \\overline{\\theta} & = \\theta_0,\\\\
+    P & = \\overline{\\rho} \\overline{\\theta},\\\\
+    N^2 & = 0,
+\\end{align*}
+```
 
-Creates a stratified Boussinesq atmosphere with:
-- Constant density: ρ = ρ_ref
-- Uniform potential temperature: θ = θ_0
-- Constant pressure from equation of state: p = ρΘ
-- Constant buoyancy frequency (N² = N0²)
-- Coriolis parameter based on specified mode
+where ``\\rho_0`` and ``\\theta_0`` are given by `constants.rhoref` and `namelists.atmosphere.theta0_dim`, respectively. The Coriolis frequency is computed with `compute_coriolis_frequency`, depending on `namelists.atmosphere.coriolis_mode`.
 
-## General Model with Isothermal Background
-    Atmosphere(
-        namelists::Namelists, 
-        constants::Constants, 
-        domain::Domain, 
-        grid::Grid,
-        model::AbstractModel,
-        background::Isothermal
-    )
+```julia
+Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    model::Boussinesq,
+    background::StratifiedBoussinesq,
+)::Atmosphere
+```
 
-Creates an isothermal atmosphere with:
-- Exponential pressure profile: p(z) = p0 * exp(-σz/γT0)
-- Temperature profile: θ(z) = T0 * exp(κσz/T0)
-- Density from equation of state: ρ = p/θ
-- N² computed from vertical θ gradient
-- Handles boundary conditions for N² calculation
+Create an `Atmosphere` instance with background fields describing a stratified Boussinesq atmosphere.
 
-# Parameters
-- `namelists`: Configuration settings including:
-  * `atmosphere`: Background state parameters
-  * `domain`: Domain configuration
-  * `setting`: Model settings
-- `constants`: Physical constants and reference values
-- `domain`: Grid domain information including parallel decomposition
-- `grid`: Grid metrics and coordinate information
+The background fields are given by
+
+```math
+\\begin{align*}
+    \\overline{\\rho} & = \\rho_0,\\\\
+    \\overline{\\theta} & = \\theta_0,\\\\
+    P & = \\overline{\\rho} \\overline{\\theta},\\\\
+    N^2 & = N_0^2,
+\\end{align*}
+```
+
+where ``\\rho_0``, ``\\theta_0`` and ``N_0`` are given by `constants.rhoref`, `namelists.atmosphere.theta0_dim` and `namelists.atmosphere.buoyancy_frequency`, respectively. The Coriolis frequency is computed with `compute_coriolis_frequency`, depending on `namelists.atmosphere.coriolis_mode`.
+
+```julia
+Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    model::AbstractModel,
+    background::Isothermal,
+)::Atmosphere
+```
+
+Create an `Atmosphere` instance with background fields describing an isothermal atmosphere.
+
+The background fields are given by
+
+```math
+\\begin{align*}
+    P \\left(z\\right) & = p_0 \\exp \\left(- \\frac{\\sigma z}{\\gamma T_0}\\right),\\\\
+    \\overline{\\theta} \\left(z\\right) & = T_0 \\exp \\left(\\frac{\\kappa \\sigma z}{T_0}\\right),\\\\
+    \\overline{\\rho} \\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)},\\\\
+    N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}},
+\\end{align*}
+```
+
+where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.press0_dim`, `namelists.atmosphere.temp0_dim`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively. The Coriolis frequency is computed with `compute_coriolis_frequency`, depending on `namelists.atmosphere.coriolis_mode`.
+
+# Fields
+
+  - `pstrattfc::A`: Mass-weighted potential temperature ``P \\left(z\\right)`` (``P \\left(x, y, z, t\\right)`` in compressible mode).
+
+  - `thetastrattfc::A`: Background potential temperature ``\\overline{\\theta} \\left(z\\right)``.
+
+  - `rhostrattfc::A`: Background density ``\\overline{\\rho} \\left(z\\right)``.
+
+  - `bvsstrattfc::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
+
+  - `fc::B`: Coriolis frequency ``f \\left(y\\right)``.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+
+  - `constants`: Physical constants and reference values.
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+  - `grid`: Collection of parameters and fields that describe the grid.
+
+  - `model`: Dynamic equations.
+
+  - `background`: Atmospheric background.
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.compute_coriolis_frequency`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
 """
-
 struct Atmosphere{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractVector{<:AbstractFloat},
@@ -139,7 +145,7 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+)::Atmosphere
     (; model) = namelists.setting
     (; background) = namelists.atmosphere
     return Atmosphere(namelists, constants, domain, grid, model, background)
@@ -152,7 +158,7 @@ function Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::UniformBoussinesq,
-)
+)::Atmosphere
     (; theta0_dim, coriolis_mode) = namelists.atmosphere
     (; thetaref) = constants
     (; nxx, nyy, nzz) = domain
@@ -164,7 +170,7 @@ function Atmosphere(
     bvsstrattfc = zeros(nxx, nyy, nzz)
 
     # Set the Coriolis parameter.
-    fc = compute_coriolis_parameter(
+    fc = compute_coriolis_frequency(
         namelists,
         constants,
         domain,
@@ -183,7 +189,7 @@ function Atmosphere(
     grid::Grid,
     model::Boussinesq,
     background::StratifiedBoussinesq,
-)
+)::Atmosphere
     (; buoyancy_frequency, theta0_dim, coriolis_mode) = namelists.atmosphere
     (; tref, thetaref) = constants
     (; nxx, nyy, nzz) = domain
@@ -195,7 +201,7 @@ function Atmosphere(
     bvsstrattfc = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
 
     # Set the Coriolis parameter.
-    fc = compute_coriolis_parameter(
+    fc = compute_coriolis_frequency(
         namelists,
         constants,
         domain,
@@ -214,7 +220,7 @@ function Atmosphere(
     grid::Grid,
     model::AbstractModel,
     background::Isothermal,
-)
+)::Atmosphere
     (; nbz) = namelists.domain
     (; zboundaries) = namelists.setting
     (; temp0_dim, press0_dim, coriolis_mode) = namelists.atmosphere
@@ -266,7 +272,7 @@ function Atmosphere(
     end
 
     # Set the Coriolis parameter.
-    fc = compute_coriolis_parameter(
+    fc = compute_coriolis_frequency(
         namelists,
         constants,
         domain,

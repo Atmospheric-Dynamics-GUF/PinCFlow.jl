@@ -1,3 +1,40 @@
+"""
+```julia
+GridNamelist{A <: AbstractFloat, B <: Integer}
+```
+
+Namelist for parameters describing the grid.
+
+```julia
+GridNamelist(;
+    mountainheight_dim::AbstractFloat = 1.0E+2,
+    mountainwidth_dim::AbstractFloat = 1.0E+3,
+    mountain_case::Integer = 1,
+    height_factor::AbstractFloat = 1.0E+0,
+    width_factor::AbstractFloat = 1.0E+0,
+    spectral_modes::Integer = 1,
+    stretch_exponent::AbstractFloat = 1.0E+0,
+)::GridNamelist
+```
+
+Construct a `GridNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
+
+  - `mountainheight_dim::A`: Mountain height (summit).
+
+  - `mountainwidth_dim::A`: Mountain half-width.
+
+  - `mountain_case::B`: Mountain shape. See [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref) for available options.
+
+  - `height_factor::A`: Factor between the amplitudes of the large and small orographic features.
+
+  - `width_factor::A`: Factor between the wavelengths of the large and small orographic features.
+
+  - `spectral_modes::B`: Number of spectral modes used for `mountain_case == 13`.
+
+  - `stretch_exponent::A`: Vertical-grid-stretching parameter.
+"""
 struct GridNamelist{A <: AbstractFloat, B <: Integer}
     mountainheight_dim::A
     mountainwidth_dim::A
@@ -8,30 +45,15 @@ struct GridNamelist{A <: AbstractFloat, B <: Integer}
     stretch_exponent::A
 end
 
-"""
-GridNamelist(; <keyword arguments>)
-
-Configuration parameters for topography and vertical grid stretching.
-
-# Arguments
-
-  - `mountainheight_dim::AbstractFloat = 1.0E+2`: Mountain height [m]
-  - `mountainwidth_dim::AbstractFloat = 1.0E+3`: Mountain width [m]
-  - `mountain_case::Integer = 1`: Mountain profile selector. See [compute_topography] for a available options.
-  - `height_factor::AbstractFloat = 1.0E+0`: Topography height scaling
-  - `width_factor::AbstractFloat = 1.0E+0`: Topography width scaling
-  - `spectral_modes::Integer = 1`: Number of spectral modes for terrain representation
-  - `stretch_exponent::AbstractFloat = 1.0E+0`: Vertical grid stretching parameter
-"""
 function GridNamelist(;
-    mountainheight_dim = 1.0E+2,
-    mountainwidth_dim = 1.0E+3,
-    mountain_case = 1,
-    height_factor = 1.0E+0,
-    width_factor = 1.0E+0,
-    spectral_modes = 1,
-    stretch_exponent = 1.0E+0,
-)
+    mountainheight_dim::AbstractFloat = 1.0E+2,
+    mountainwidth_dim::AbstractFloat = 1.0E+3,
+    mountain_case::Integer = 1,
+    height_factor::AbstractFloat = 1.0E+0,
+    width_factor::AbstractFloat = 1.0E+0,
+    spectral_modes::Integer = 1,
+    stretch_exponent::AbstractFloat = 1.0E+0,
+)::GridNamelist
     return GridNamelist(
         mountainheight_dim,
         mountainwidth_dim,

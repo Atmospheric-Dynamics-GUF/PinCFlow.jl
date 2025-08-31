@@ -1,102 +1,41 @@
 """
-    interpolate_sponge(xlc::AbstractFloat, ylc::AbstractFloat, zlc::AbstractFloat, state::State) -> AbstractFloat
+```julia
+interpolate_sponge(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+)::AbstractFloat
+```
 
-Interpolate sponge layer damping coefficient to arbitrary 3D position.
+Interpolate the Rayleigh-damping coefficient of the unified sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
-Computes the wave damping coefficient for sponge layers at any point in the
-computational domain through trilinear interpolation. Sponge layers prevent
-spurious wave reflections from domain boundaries and provide controlled
-wave absorption in specified regions.
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\alpha_\\mathrm{R}`` to the location of interest, using `interpolate`.
 
 # Arguments
 
-  - `xlc, ylc, zlc::AbstractFloat`: Target coordinates for interpolation
-  - `state::State`: Complete simulation state containing sponge configuration
+  - `xlc`: Zonal position of interest.
 
-# Returns
+  - `ylc`: Meridional position of interest.
 
-  - `AbstractFloat`: Sponge damping coefficient [dimensionless] at target position
+  - `zlc`: Vertical position of interest.
 
-# Physical Background
+  - `state`: Model state.
 
-Sponge layers implement exponential damping:
+# See also
 
-  - **Wave amplitude**: `A(t) = A₀ * exp(-α * t)` where α is damping coefficient
-  - **Damping timescale**: `τ = 1/α` determines absorption rate
-  - **Spatial variation**: Coefficient varies smoothly across domain
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
 
-# Sponge Layer Design
-
-## Purpose
-
-  - **Boundary absorption**: Prevent wave reflection from domain edges
-  - **Numerical stability**: Remove spurious high-frequency modes
-  - **Physical realism**: Mimic atmospheric dissipation processes
-  - **Computational efficiency**: Avoid expensive boundary conditions
-
-## Implementation
-
-  - **Gradual onset**: Smooth spatial transition to avoid numerical artifacts
-  - **Direction-dependent**: Different strengths in x, y, z directions
-  - **Unified formulation**: Single coefficient for all wave components
-
-# Algorithm
-
- 1. **Grid Point Location**: Find 8 surrounding grid points in 3D space
- 2. **Coefficient Extraction**: Get sponge values from `alphaunifiedsponge` array
- 3. **Coordinate Determination**: Compute vertical levels for each horizontal point
- 4. **Trilinear Interpolation**: Use general `interpolate` function for final value
-
-# Grid Point Identification
-
-For each dimension:
-
-  - **X-direction**: Floor operation to find left/right grid indices
-  - **Y-direction**: Floor operation to find backward/forward indices
-  - **Z-direction**: Use `get_next_level` for proper vertical level assignment
-
-# Coordinate System Handling
-
-  - **Domain dimensions**: Automatically handles 1D, 2D, and 3D configurations
-  - **Terrain-following**: Uses `ztfc` coordinates for vertical interpolation
-  - **Staggered grids**: Accounts for different grid staggering patterns
-
-# Applications
-
-## Wave Damping
-
-Used in ray propagation for exponential amplitude reduction:
-
-```julia
-A_new = A_old * exp(-2 * α_sponge * dt)
-```
-
-## Boundary Zones
-
-  - **Upper atmosphere**: Prevent wave reflection from model top
-  - **Lateral boundaries**: Absorb outgoing waves in limited-area models
-  - **Near-surface**: Optional damping of unrealistic wave modes
-
-# Performance Optimization
-
-  - **Efficient interpolation**: Reuses general interpolation infrastructure
-  - **Minimal overhead**: Fast coefficient lookup during ray propagation
-  - **Memory efficient**: Single storage array for all sponge coefficients
-
-# Numerical Considerations
-
-    # Dermine closest points in horizontal direction.
-
-  - **Smooth transitions**: Avoids discontinuous jumps in damping rate
-  - **Conservation**: Maintains overall wave energy budget accounting
-  - **Stability**: Prevents numerical instabilities from excessive damping
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
+function interpolate_sponge end
+
 function interpolate_sponge(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-)
+)::AbstractFloat
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; io, jo, i0, j0) = domain

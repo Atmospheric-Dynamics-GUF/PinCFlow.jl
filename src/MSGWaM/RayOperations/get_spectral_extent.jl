@@ -1,12 +1,25 @@
 """
-    get_spectral_extent(rays::Rays, indices::NTuple{4, <:Integer})
+```julia
+get_spectral_extent(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
+```
+
+Return the spectral extents of the ray volume specified by `indices` as the tuple `(dkr, dlr, dmr)`.
 
 # Arguments
 
-  - `rays::Rays`: Ray volume data structure
-  - `indices::NTuple{4, <:Integer}`: Ray indices (iray, ix, jy, kz)
+  - `rays`: Collection of ray-volume-property arrays.
+
+  - `indices`: Indices of the ray volume of interest.
 """
-function get_spectral_extent(rays::Rays, indices::NTuple{4, <:Integer})
+function get_spectral_extent end
+
+function get_spectral_extent(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
     return (
         rays.dkray[indices...],
         rays.dlray[indices...],

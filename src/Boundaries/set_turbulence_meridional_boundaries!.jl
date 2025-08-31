@@ -1,3 +1,58 @@
+"""
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    turbulencesetup::NoTurbulence,
+)
+```
+
+Return for configurations without turbulence physics.
+
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    turbulencesetup::AbstractTurbulence,
+)
+```
+
+Enforce meridional boundary conditions for prognostic turbulence variables.
+
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    turbulencesetup::NoTurbulence,
+)
+```
+
+Return for configurations without turbulence physics.
+
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    turbulencesetup::AbstractTurbulence,
+)
+```
+
+Enforce meridional boundary conditions for reconstructions of turbulence variables.
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `variables`: Boundary-variable category.
+
+  - `turbulencesetup`: General turbulence-physics configuration.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+"""
+function set_turbulence_meridional_boundaries! end
+
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,

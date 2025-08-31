@@ -1,26 +1,29 @@
 """
-    compute_flux(usurf, phiup, phidown)
+```julia
+compute_flux(
+    usurf::AbstractFloat,
+    phiup::AbstractFloat,
+    phidown::AbstractFloat,
+)::AbstractFloat
+```
 
-Compute upwind flux based on surface velocity direction.
-
-Selects the appropriate scalar value (`phiup` or `phidown`) based on the sign of the
-surface velocity `usurf` to ensure numerical stability through upwind differencing.
+Compute and return the upstream flux from reconstructed values, based on the sign of the transporting velocity.
 
 # Arguments
 
-  - `usurf::AbstractFloat`: Surface velocity (positive = rightward/upward flow)
-  - `phiup::AbstractFloat`: Scalar value upstream when flow is negative
-  - `phidown::AbstractFloat`: Scalar value upstream when flow is positive
+  - `usurf`: Transporting velocity.
 
-# Returns
+  - `phiup`: Upstream reconstruction for `usurf > 0`.
 
-  - `AbstractFloat`: Flux value `usurf * phi` where `phi` is chosen by flow direction
+  - `phidown`: Downstream reconstruction for `usurf > 0`.
 """
+function compute_flux end
+
 function compute_flux(
     usurf::AbstractFloat,
     phiup::AbstractFloat,
     phidown::AbstractFloat,
-)
+)::AbstractFloat
     if usurf > 0.0
         return usurf * phiup
     else

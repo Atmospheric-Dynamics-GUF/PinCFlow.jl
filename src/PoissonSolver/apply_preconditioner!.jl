@@ -1,29 +1,51 @@
 """
-    apply_preconditioner!(sin, sout, namelists, domain, grid, poisson)
+```julia
+apply_preconditioner!(
+    sin::AbstractArray{<:AbstractFloat, 3},
+    sout::AbstractArray{<:AbstractFloat, 3},
+    namelists::Namelists,
+    domain::Domain,
+    grid::Grid,
+    poisson::Poisson,
+)
+```
 
-Apply line relaxation preconditioner for the Poisson equation.
+Apply a preconditioner to the Poisson problem.
 
-This preconditioner uses alternating direction implicit (ADI) method with vertical
-line relaxation to accelerate convergence of the BiCGStab solver. It treats the
-vertical direction implicitly while horizontal coupling is handled explicitly.
+This preconditioner integrates the auxiliary equation
+
+```math
+\\frac{\\mathrm{d} s}{\\mathrm{d} \\eta} = \\mathcal{L}_\\mathrm{h} \\left(s\\right) + \\mathcal{L}_\\mathrm{v} \\left(s\\right) - b,
+```
+
+where ``s`` is the iterative solution, ``\\eta`` is a pseudo-time variable, ``\\mathcal{L}_\\mathrm{v}`` contains the lower, center and upper diagonals of the linear operator, ``\\mathcal{L}_\\mathrm{h}`` contains all remaining elements, and ``b`` is the right-hand side. The integration is performed in a semi-implicit manner, following
+
+```math
+\\left(1 - \\Delta \\eta \\mathcal{L}_\\mathrm{v}\\right) \\left(s^{\\left(m + 1\\right)}\\right) = \\left(1 + \\Delta \\eta \\mathcal{L}_\\mathrm{h}\\right) \\left(s^{\\left(m\\right)}\\right) - \\Delta \\eta b,
+```
+
+where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\right)^{- 2} + \\left(\\Delta \\widehat{y}\\right)^{- 2}\\right]^{- 1}``, with ``\\Delta \\tau`` being a namelist parameter (`state.namelist.poisson.dtau`). Therein, the implicit problem is solved with the Thomas algorithm for tridiagonal matrices. The number of iterations is given by `state.namelist.poisson.maxiteradi`. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is paralellized in the vertical.
 
 # Arguments
 
-  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input residual field
-  - `sout::AbstractArray{<:AbstractFloat, 3}`: Preconditioned output field
-  - `namelists::Namelists`: Contains preconditioner parameters (dtau, maxiteradi)
-  - `domain::Domain`: MPI domain decomposition info for vertical communication
-  - `grid::Grid`: Grid spacing for pseudo-time step calculation
-  - `poisson::Poisson`: Operator coefficients and preconditioner workspace
+  - `sin`: Residual array.
 
-# Algorithm
+  - `sout`: Solution of the preconditioner.
 
- 1. Set pseudo-time step based on horizontal grid spacing
- 2. Iterate ADI relaxation sweeps
- 3. Perform tridiagonal solves in vertical direction
- 4. Handle MPI communication for domain boundaries
- 5. Apply upward and downward elimination sweeps
+  - `namelists`: Namelists with all model parameters.
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+  - `grid`: Collection of parameters and fields that describe the grid.
+
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
+
+# See also
+
+  - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
 """
+function apply_preconditioner! end
+
 function apply_preconditioner!(
     sin::AbstractArray{<:AbstractFloat, 3},
     sout::AbstractArray{<:AbstractFloat, 3},
@@ -52,64 +74,62 @@ function apply_preconditioner!(
         s_pc .+= deta .* (q_pc .- sin)
 
         # Set the lower boundary.
-        @views if ko == 0
-            q_pc[:, :, 1] .=
+        if ko == 0
+            @views q_pc[:, :, 1] .=
                 deta .* au_b[:, :, 1] ./ (1 .- deta .* ac_b[:, :, 1])
-            s_pc[:, :, 1] ./= 1 .- deta .* ac_b[:, :, 1]
+            @views s_pc[:, :, 1] ./= 1 .- deta .* ac_b[:, :, 1]
         else
             MPI.Recv!(q_pc_bc, comm; source = down, tag = 1)
             MPI.Recv!(s_pc_bc, comm; source = down, tag = 2)
 
-            p_pc .=
+            @views p_pc .=
                 1 ./
                 (1 .- deta .* ac_b[:, :, 1] .- deta .* ad_b[:, :, 1] .* q_pc_bc)
-            q_pc[:, :, 1] .= deta .* au_b[:, :, 1] .* p_pc
-            s_pc[:, :, 1] .=
+            @views q_pc[:, :, 1] .= deta .* au_b[:, :, 1] .* p_pc
+            @views s_pc[:, :, 1] .=
                 (s_pc[:, :, 1] .+ deta .* ad_b[:, :, 1] .* s_pc_bc) .* p_pc
         end
 
         # Perform upward sweep.
-        @views for k in 2:nz
-            p_pc .=
+        for k in 2:nz
+            @views p_pc .=
                 1 ./ (
                     1 .- deta .* ac_b[:, :, k] .-
                     deta .* ad_b[:, :, k] .* q_pc[:, :, k - 1]
                 )
-            q_pc[:, :, k] .= deta .* au_b[:, :, k] .* p_pc
-            s_pc[:, :, k] .=
+            @views q_pc[:, :, k] .= deta .* au_b[:, :, k] .* p_pc
+            @views s_pc[:, :, k] .=
                 (s_pc[:, :, k] .+ deta .* ad_b[:, :, k] .* s_pc[:, :, k - 1]) .*
                 p_pc
         end
 
         # Communicate the upper boundary and set it for the downward sweep.
-        @views if ko + nzz != sizezz
-            q_pc_bc .= q_pc[:, :, nz]
-            s_pc_bc .= s_pc[:, :, nz]
+        if ko + nzz != sizezz
+            @views q_pc_bc .= q_pc[:, :, nz]
+            @views s_pc_bc .= s_pc[:, :, nz]
 
             MPI.Send(q_pc_bc, comm; dest = up, tag = 1)
             MPI.Send(s_pc_bc, comm; dest = up, tag = 2)
 
             MPI.Recv!(s_pc_bc, comm; source = up)
 
-            s_pc[:, :, nz] .+= q_pc[:, :, nz] .* s_pc_bc
+            @views s_pc[:, :, nz] .+= q_pc[:, :, nz] .* s_pc_bc
         end
 
         # Perform downward sweep.
-        @views for k in (nz - 1):-1:1
-            s_pc[:, :, k] .+= q_pc[:, :, k] .* s_pc[:, :, k + 1]
+        for k in (nz - 1):-1:1
+            @views s_pc[:, :, k] .+= q_pc[:, :, k] .* s_pc[:, :, k + 1]
         end
 
         # Communicate the lower boundary.
-        @views if ko != 0
-            s_pc_bc .= s_pc[:, :, 1]
+        if ko != 0
+            @views s_pc_bc .= s_pc[:, :, 1]
 
             MPI.Send(s_pc_bc, comm; dest = down)
         end
     end
 
-    # Set final result.
     sout .= s_pc
 
-    # Return.
     return
 end

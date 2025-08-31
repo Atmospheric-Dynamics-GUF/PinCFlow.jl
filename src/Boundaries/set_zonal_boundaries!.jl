@@ -1,9 +1,90 @@
 """
-    set_zonal_boundaries!(state, variables::BoundaryPredictands)
+```julia
+set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
+```
 
-Set zonal boundaries for all predictand fields (rho, rhop, u, v, w, pip) and handle
-compressible model boundaries.
+Enforce zonal boundary conditions for all predictand fields.
+
+```julia
+set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
+```
+
+Enforce zonal boundary conditions for all reconstruction fields.
+
+```julia
+set_zonal_boundaries!(state::State, variables::BoundaryWKBIntegrals)
+```
+
+Enforce zonal boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
+
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::AbstractWKBMode,
+)
+```
+
+Enforce zonal boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations.
+
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::MultiColumn,
+)
+```
+
+Enforce zonal boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
+
+```julia
+set_zonal_boundaries!(state::State, variables::BoundaryWKBTendencies)
+```
+
+Enforce zonal boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
+
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::AbstractWKBMode,
+)
+```
+
+Enforce zonal boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations.
+
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::MultiColumn,
+)
+```
+
+Enforce zonal boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations.
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `variables`: Boundary-variable category.
+
+  - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_compressible_zonal_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_tracer_zonal_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_ice_zonal_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_turbulence_zonal_boundaries!`](@ref)
 """
+function set_zonal_boundaries! end
+
 function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -29,11 +110,6 @@ function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     return
 end
 
-"""
-    set_zonal_boundaries!(state, variables::BoundaryReconstructions)
-
-Set zonal boundaries for all reconstruction fields.
-"""
 function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
     (; namelists, domain) = state
     (; reconstructions) = state.variables
@@ -56,25 +132,15 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
     return
 end
 
-"""
-    set_zonal_boundaries!(state, variables::BoundaryGWIntegrals)
-
-Set zonal boundaries for gravity wave integral fields. Dispatches based on WKB mode.
-"""
-function set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
+function set_zonal_boundaries!(state::State, variables::BoundaryWKBIntegrals)
     (; wkb_mode) = state.namelists.wkb
     set_zonal_boundaries!(state, variables, wkb_mode)
     return
 end
 
-"""
-    set_zonal_boundaries!(state, variables::BoundaryGWIntegrals, wkb_mode::AbstractWKBMode)
-
-Set zonal boundaries for basic GW integral fields (uw, vw, e) with minimal boundary layers.
-"""
 function set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
@@ -92,15 +158,9 @@ function set_zonal_boundaries!(
     return
 end
 
-"""
-    set_zonal_boundaries!(state, variables::BoundaryGWIntegrals, wkb_mode::MultiColumn)
-
-Set zonal boundaries for extended GW integral fields in multi-column mode, including
-cross-correlations (uu, uv, vv) and energy transport terms.
-"""
 function set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state
@@ -118,25 +178,15 @@ function set_zonal_boundaries!(
     return
 end
 
-"""
-    set_zonal_boundaries!(state, variables::BoundaryGWTendencies)
-
-Set zonal boundaries for GW tendency fields. Dispatches based on WKB mode.
-"""
-function set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
+function set_zonal_boundaries!(state::State, variables::BoundaryWKBTendencies)
     (; wkb_mode) = state.namelists.wkb
     set_zonal_boundaries!(state, variables, wkb_mode)
     return
 end
 
-"""
-    set_zonal_boundaries!(state, variables::BoundaryGWTendencies, wkb_mode::AbstractWKBMode)
-
-Set zonal boundaries for basic GW tendency fields (dudt, dvdt).
-"""
 function set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
@@ -153,15 +203,9 @@ function set_zonal_boundaries!(
     return
 end
 
-"""
-    set_zonal_boundaries!(state, variables::BoundaryGWTendencies, wkb_mode::MultiColumn)
-
-Set zonal boundaries for GW tendency fields in multi-column mode, including
-temperature tendency (dthetadt).
-"""
 function set_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state

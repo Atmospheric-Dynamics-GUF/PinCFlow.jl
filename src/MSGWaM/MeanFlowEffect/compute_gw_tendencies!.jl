@@ -1,89 +1,30 @@
 """
-    compute_gw_tendencies!(state)
+```julia
+compute_gw_tendencies!(state::State)
+```
 
-Compute gravity wave momentum and heating tendencies from wave stress divergence.
+Compute the gravity-wave impact on the momentum and mass-weighted potential temperature.
 
-Calculates the acceleration and heating of the mean flow due to gravity wave
-momentum transport and Eliassen-Palm flux divergence, based on previously
-computed wave momentum flux integrals.
+Calculates the tendencies that are to be added to the equations for momentum and mass-weighted potential temperature. These are given by
+
+```math
+\\begin{align*}
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} u_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\overline{\\rho}} \\left(\\frac{M_{u u, i + 1} - M_{u u, i - 1}}{2 \\Delta \\widehat{x}} + G^{13} \\frac{M_{u u, k + 1} - M_{u u, k - 1}}{2 \\Delta \\widehat{z}} + \\frac{M_{u v, j + 1} - M_{u v, j - 1}}{2 \\Delta \\widehat{y}} + G^{23} \\frac{M_{u v, k + 1} - M_{u v, k - 1}}{2 \\Delta \\widehat{z}} + \\frac{M_{u w, k + 1} - M_{u w, k - 1}}{2 J \\Delta \\widehat{z}}\\right) + E_u,\\\\
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} v_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\overline{\\rho}} \\left(\\frac{M_{v u, i + 1} - M_{v u, i - 1}}{2 \\Delta \\widehat{x}} + G^{13} \\frac{M_{v u, k + 1} - M_{v u, k - 1}}{2 \\Delta \\widehat{z}} + \\frac{M_{v v, j + 1} - M_{v v, j - 1}}{2 \\Delta \\widehat{y}} + G^{23} \\frac{M_{v v, k + 1} - M_{v v, k - 1}}{2 \\Delta \\widehat{z}} + \\frac{M_{v w, k + 1} - M_{v w, k - 1}}{2 J \\Delta \\widehat{z}}\\right) + E_v,\\\\
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\widehat{w}_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = G^{13} \\left(\\frac{\\partial \\rho_\\mathrm{b} u_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} + G^{23} \\left(\\frac{\\partial \\rho_\\mathrm{b} v_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w},\\\\
+    \\left(\\frac{\\partial P_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\rho_\\mathrm{b} \\left(\\frac{T_{u, i + 1} - T_{u, i - 1}}{2 \\Delta \\widehat{x}} + G^{13} \\frac{T_{u, k + 1} - T_{u, k - 1}}{2 \\Delta \\widehat{z}} + \\frac{T_{v, j + 1} - T_{u, j - 1}}{2 \\Delta \\widehat{y}} + G^{23} \\frac{T_{v, k + 1} - T_{v, k - 1}}{2 \\Delta \\widehat{z}}\\right),
+\\end{align*}
+```
+
+where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\overline{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. For a documentation of the fluxes ``\\left(M_{u u}, M_{u v}, M_{u w}, M_{v v}, M_{v w}\\right)``, ``\\left(E_u, E_v\\right)`` and ``\\left(T_u, T_v\\right)``, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.zmin_wkb_dim`, all tendencies are set to zero.
 
 # Arguments
 
-  - `state`: Complete simulation state containing GW integrals and atmospheric fields
-
-# Physical Theory
-
-## Momentum Equation
-
-The gravity wave momentum tendencies represent the deceleration of the mean flow
-due to momentum flux divergence:
-
-`∂u/∂t = -∇ · (momentum flux) + Eliassen-Palm force`
-
-For each momentum component:
-
-  - **Zonal**: `∂u/∂t = -∂(uw)/∂z - ∂(uu)/∂x - ∂(uv)/∂y + Fx`
-  - **Meridional**: `∂v/∂t = -∂(vw)/∂z - ∂(uv)/∂x - ∂(vv)/∂y + Fy`
-
-## Eliassen-Palm Forces
-
-When rotation is important (`fc ≠ 0`):
-
-  - `Fx = ρ · fc² · N² · k · m / (ρ₀ · g · ω · (k² + l² + m²))`
-  - `Fy = ρ · fc² · N² · l · m / (ρ₀ · g · ω · (k² + l² + m²))`
-
-## Heating Terms
-
-Potential temperature tendencies from EP flux divergence:
-
-  - `∂θ/∂t = θ₀/fc · [∂(vθ)/∂y + ∂(uθ)/∂x + met₁₃·∂(uθ)/∂z + met₂₃·∂(vθ)/∂z]`
-
-# Coordinate System
-
-Accounts for terrain-following coordinates using metric tensor:
-
-  - `met[i,j,k,1,3]`: X-Z metric component
-  - `met[i,j,k,2,3]`: Y-Z metric component
-  - `met[i,j,k,3,3]`: Z-Z metric component
-
-# Grid Staggering
-
-  - Momentum fluxes: Computed at appropriate staggered locations
-  - Derivatives: Centered differences with appropriate metric factors
-  - Density weighting: Uses total density `ρ = ρ' + ρ₀`
-
-# Vertical Derivatives
-
-Uses terrain-following coordinate system:
-
-  - `∂/∂z` → `(1/jac) · ∂/∂ζ` where `ζ` is the terrain-following coordinate
-  - Grid spacing corrections for stretched coordinates
-
-# Domain Restrictions
-
-Only computes tendencies above minimum WKB altitude:
-
-  - `z > lz[1] + zmin_wkb_dim / lref`
-  - Below this level, tendencies remain zero
-
-# Output Fields
-
-Updates the following tendency fields:
-
-  - `tendencies.dudt[i,j,k]`: Zonal wind tendency
-
-  - `tendencies.dvdt[i,j,k]`: Meridional wind tendency
-  - `tendencies.dthetadt[i,j,k]`: Potential temperature tendency
-
-    # Set the Coriolis parameter.
-
-# Conservation Properties
-
-  - Momentum: Conserved through proper flux divergence calculation
-  - Energy: Heating terms maintain thermodynamic consistency
-  - Angular momentum: Preserved when rotation effects included
+  - `state::State`: Model state.
 """
-function compute_gw_tendencies!(state)
+function compute_gw_tendencies! end
+
+function compute_gw_tendencies!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; zmin_wkb_dim) = state.namelists.wkb
@@ -97,7 +38,7 @@ function compute_gw_tendencies!(state)
     # Set the Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWTendencies)
+    for field in fieldnames(WKBTendencies)
         getfield(tendencies, field) .= 0.0
     end
 
@@ -186,7 +127,7 @@ function compute_gw_tendencies!(state)
 
         if fc != 0.0 && (sizex > 1 || sizey > 1)
             if sizex > 1
-                integrals.dthetadt[ix, jy, kz] +=
+                tendencies.dthetadt[ix, jy, kz] +=
                     rhotot * (
                         (
                             integrals.utheta[ix + 1, jy, kz] -
@@ -200,7 +141,7 @@ function compute_gw_tendencies!(state)
             end
 
             if sizey > 1
-                integrals.dthetadt[ix, jy, kz] +=
+                tendencies.dthetadt[ix, jy, kz] +=
                     rhotot * (
                         (
                             integrals.vtheta[ix, jy + 1, kz] -

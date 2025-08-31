@@ -1,51 +1,61 @@
 """
-    synchronize_density_fluctuations!(state::State)
+```julia
+synchronize_density_fluctuations!(state::State)
+```
 
-Synchronize density fluctuations based on the model type.
+Synchronize the density fluctuations in `state.variables.predictands.rhop` with the density in `state.variables.predictands.rho` by dispatching to a model-specific method.
 
-This function dispatches to the appropriate model-specific implementation
-for synchronizing density fluctuations in the simulation state.
+```julia
+synchronize_density_fluctuations!(state::State, model::Boussinesq)
+```
+
+Return in Boussinesq mode.
+
+In Boussinesq mode, density fluctuations don't require synchronization,
+since the density is assumed constant except in the buoyancy equation.
+
+```julia
+synchronize_density_fluctuations!(state::State, model::PseudoIncompressible)
+```
+
+Synchronize the density fluctuations in `state.variables.predictands.rhop` with the density in `state.variables.predictands.rho`.
+
+In pseudo-incompressible mode, the density fluctuations are defined as the product of mass-weighted potential temperature ``P`` and the fluctuations of the inverse potential temperature ``\\chi'``. Since ``P`` is constant, this is reduced to the difference between the full density and the background density, i.e.
+
+```math
+\\rho' = P \\chi' = \\frac{P}{\\theta} - \\frac{P}{\\overline{\\theta}} = \\rho - \\overline{\\rho}.
+```
+
+```julia
+synchronize_density_fluctuations!(state::State, model::Compressible)
+```
+
+Synchronize the density fluctuations in `state.variables.predictands.rhop` with the density in `state.variables.predictands.rho`.
+
+In compressible mode, the density fluctuations are defined as the product of mass-weighted potential temperature ``P`` and the fluctuations of the inverse potential temperature ``\\chi'``. In contrast to pseudo-incompressible mode, ``P`` is time-dependent, so that this is not reduced to the difference between the full density and the background density, i.e.
+
+```math
+\\rho' = P \\chi' = \\frac{P}{\\theta} - \\frac{P}{\\overline{\\theta}} = \\rho - \\frac{P}{\\overline{\\theta}}.
+```
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing model configuration
+  - `state`: Model state.
+
+  - `model`: Dynamic equations.
 """
+function synchronize_density_fluctuations! end
+
 function synchronize_density_fluctuations!(state::State)
     (; model) = state.namelists.setting
     synchronize_density_fluctuations!(state, model)
     return
 end
 
-"""
-    synchronize_density_fluctuations!(state::State, model::Boussinesq)
-
-No-op for Boussinesq model.
-
-For Boussinesq approximation, density fluctuations don't require synchronization
-as density is assumed constant except in buoyancy terms.
-
-# Arguments
-
-  - `state::State`: Simulation state (unused)
-  - `model::Boussinesq`: Boussinesq model type
-"""
 function synchronize_density_fluctuations!(state::State, model::Boussinesq)
     return
 end
 
-"""
-    synchronize_density_fluctuations!(state::State, model::PseudoIncompressible)
-
-Synchronize density fluctuations for pseudo-incompressible model.
-
-For pseudo-incompressible flow, the density fluctuation field `rhop` is
-synchronized with the total density field `rho`.
-
-# Arguments
-
-  - `state::State`: Simulation state containing density fields
-  - `model::PseudoIncompressible`: Pseudo-incompressible model type
-"""
 function synchronize_density_fluctuations!(
     state::State,
     model::PseudoIncompressible,
@@ -57,25 +67,6 @@ function synchronize_density_fluctuations!(
     return
 end
 
-"""
-    synchronize_density_fluctuations!(state::State, model::Compressible)
-
-Synchronize density fluctuations for compressible model.
-
-For compressible flow, the density fluctuation field `rhop` is computed
-as the deviation from the hydrostatic balance, accounting for stratified
-background atmosphere conditions.
-
-# Arguments
-
-  - `state::State`: Simulation state containing density and atmosphere fields
-  - `model::Compressible`: Compressible model type
-
-# Details
-
-Computes: `rhop = rho + rhostrattfc - pstrattfc / thetastrattfc`
-where the correction term represents deviations from hydrostatic equilibrium.
-"""
 function synchronize_density_fluctuations!(state::State, model::Compressible)
     (; rhostrattfc, thetastrattfc, pstrattfc) = state.atmosphere
     (; rho, rhop) = state.variables.predictands

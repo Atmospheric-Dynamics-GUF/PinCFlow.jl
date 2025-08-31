@@ -1,14 +1,58 @@
 """
-    set_vertical_boundaries_of_field!(field, namelists, domain, zboundaries::SolidWallBoundaries, mode; layers, staggered)
+```julia
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    zboundaries::SolidWallBoundaries,
+    mode::Function;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+    staggered = false,
+)
+```
 
-Set vertical boundary conditions for 3D fields at solid walls.
+Enforce vertical boundary conditions for a 3D array (assuming solid-wall boundaries).
+
+Halo exchange is used for multi-process domains (`npz > 1`). Use `mode = +` (`mode = -`) for line-reflected (point-reflected) ghost-cell values.
+
+```julia
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain,
+    zboundaries::SolidWallBoundaries;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
+
+Exchange halo values of a 5D array if multiple processes are used in the vertical (`npz > 1`).
+
+This method is applied to reconstruction arrays. Vertical boundary conditions are not enforced for these but for the fluxes determined from them.
 
 # Arguments
 
-  - `mode::Function`: Boundary condition mode (+ for symmetric, - for antisymmetric)
-  - `staggered::Bool`: Whether field is on staggered vertical grid (sets boundary values to zero)
-  - `layers::NTuple{3, <:Integer}`: Boundary layer sizes. Use -1 for defaults.
+  - `field`: Input array.
+
+  - `namelists`: Namelists with all model parameters.
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+  - `zboundaries`: Vertical boundary conditions.
+
+  - `mode`: Method used for setting the boundary-cell values.
+
+# Keywords
+
+  - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+
+  - `staggered`: A switch for whether or not the field is on the staggered vertical grid.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
+function set_vertical_boundaries_of_field! end
+
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
@@ -67,11 +111,6 @@ function set_vertical_boundaries_of_field!(
     return
 end
 
-"""
-    set_vertical_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists, domain, zboundaries; layers)
-
-Set vertical boundary conditions for 5D fields. Uses halo exchange for multi-process domains.
-"""
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,

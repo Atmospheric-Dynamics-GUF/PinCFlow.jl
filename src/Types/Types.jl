@@ -1,16 +1,119 @@
+"""
+```julia
+Types
+```
+
+Module for the construction of a single composite type that contains all information on the current model state.
+
+# See also
+
+  - [`PinCFlow.Types.NamelistTypes`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes`](@ref)
+
+  - [`PinCFlow.Types.PoissonTypes`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes`](@ref)
+
+  - [`PinCFlow.Types.IceTypes`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes`](@ref)
+"""
 module Types
 
+"""
+```julia
+AbstractVariable
+```
+
+Abstract type for prognostic variables.
+"""
 abstract type AbstractVariable end
 
+"""
+```julia
+Rho <: AbstractVariable
+```
+
+Singleton that represents density fluctuations predicted with the continuity equation.
+"""
 struct Rho <: AbstractVariable end
+
+"""
+```julia
+RhoP <: AbstractVariable
+```
+
+Singleton that represents density fluctuations predicted with the auxiliary equation.
+"""
 struct RhoP <: AbstractVariable end
+
+"""
+```julia
+U <: AbstractVariable
+```
+
+Singleton that represents the zonal wind.
+"""
 struct U <: AbstractVariable end
+
+"""
+```julia
+V <: AbstractVariable
+```
+
+Singleton that represents the meridional wind.
+"""
 struct V <: AbstractVariable end
+
+"""
+```julia
+W <: AbstractVariable
+```
+
+Singleton that represents the (transformed) vertical wind.
+"""
 struct W <: AbstractVariable end
+
+"""
+```julia
+PiP <: AbstractVariable
+```
+
+Singleton that represents the Exner-pressure fluctuations.
+"""
 struct PiP <: AbstractVariable end
+
+"""
+```julia
+P <: AbstractVariable
+```
+
+Singleton that represents the mass-weighted potential temperature.
+"""
 struct P <: AbstractVariable end
 struct Theta <: AbstractVariable end
+
+"""
+```julia
+Explicit
+```
+
+Singleton for explicit integration in time.
+"""
 struct Explicit end
+
+"""
+```julia
+Implicit
+```
+
+Singleton for implicit integration in time.
+"""
 struct Implicit end
 
 include("NamelistTypes/NamelistTypes.jl")
@@ -111,16 +214,16 @@ export DomainNamelist,
     Correction,
     Poisson,
     Predictands,
-    Tendencies,
+    Increments,
     Backups,
     Auxiliaries,
     Reconstructions,
     Fluxes,
     Variables,
-    GWIntegrals,
-    GWTendencies,
+    WKBIntegrals,
+    WKBTendencies,
     Rays,
-    Increments,
+    WKBIncrements,
     SurfaceIndices,
     WKB,
     Tracer,
@@ -131,21 +234,21 @@ export DomainNamelist,
     LinearTracer,
     TracerPredictands,
     TracerAuxiliaries,
-    TracerTendencies,
+    TracerIncrements,
     TracerReconstructions,
     TracerFluxes,
     IceOn,
     NoIce,
     IcePredictands,
     IceAuxiliaries,
-    IceTendencies,
+    IceIncrements,
     IceReconstructions,
     IceFluxes,
     TurbulenceOn,
     NoTurbulence,
     TurbulencePredictands,
     TurbulenceAuxiliaries,
-    TurbulenceTendencies,
+    TurbulenceIncrements,
     TurbulenceReconstructions,
     TurbulenceFluxes
 

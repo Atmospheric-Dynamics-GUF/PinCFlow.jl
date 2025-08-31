@@ -1,3 +1,28 @@
+"""
+```julia
+Integration
+```
+
+Module for integration of the full system.
+
+Provides helper functions for computing the time step, managing time levels and synchronizing fields, as well as the main function for running PinCFlow.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.Boundaries`](@ref)
+
+  - [`PinCFlow.Update`](@ref)
+
+  - [`PinCFlow.PoissonSolver`](@ref)
+
+  - [`PinCFlow.FluxCalculator`](@ref)
+
+  - [`PinCFlow.Output`](@ref)
+
+  - [`PinCFlow.MSGWaM`](@ref)
+"""
 module Integration
 
 using MPI

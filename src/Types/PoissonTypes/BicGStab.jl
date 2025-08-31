@@ -1,25 +1,44 @@
 """
-    BicGStab{A <: AbstractMatrix{<:AbstractFloat}, B <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+BicGStab{
+    A <: AbstractMatrix{<:AbstractFloat},
+    B <: AbstractArray{<:AbstractFloat, 3},
+}
+```
 
-Workspace arrays for the BiCGStab iterative linear solver.
+Workspace arrays used by [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
+
+```julia
+BicGStab(domain::Domain)::BicGStab
+```
+
+Create a `BicGStab` instance with zero-initialized workspace arrays sized according to dimensions of the MPI subdomain.
 
 # Fields
 
-  - `r_vm::A`: Vertically-averaged residual vector for convergence monitoring (nx × ny)
-  - `p::B`: Search direction vector (nx × ny × nz)
-  - `r0::B`: Initial residual vector (fixed throughout iteration) (nx × ny × nz)
-  - `rold::B`: Previous residual vector (nx × ny × nz)
-  - `r::B`: Current residual vector (nx × ny × nz)
-  - `s::B`: Intermediate vector in BiCGStab algorithm (nx × ny × nz)
-  - `t::B`: Matrix-vector product of s (nx × ny × nz)
-  - `v::B`: Matrix-vector product of p (nx × ny × nz)
-  - `matvec::B`: General matrix-vector product workspace (nx × ny × nz)
-  - `v_pc::B`: Preconditioned vector workspace (nx × ny × nz)
+  - `r_vm::A`: Vertically-averaged residual.
 
-# Usage
+  - `p::B`: Search direction.
 
-Provides temporary storage for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref)
-to avoid repeated memory allocations during iterative solving.
+  - `r0::B`: Initial residual.
+
+  - `rold::B`: Previous residual.
+
+  - `r::B`: Current residual.
+
+  - `s::B`: Intermediate solution.
+
+  - `t::B`: Result of applying the linear operator to `s`.
+
+  - `v::B`: Result of applying the linear operator to `p`.
+
+  - `matvec::B`: Intermediate result of applying the linear operator.
+
+  - `v_pc::B`: Output of the preconditioner.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct BicGStab{
     A <: AbstractMatrix{<:AbstractFloat},
@@ -37,21 +56,7 @@ struct BicGStab{
     v_pc::B
 end
 
-"""
-    BicGStab(namelists::Namelists, domain::Domain)
-
-Initialize BiCGStab workspace arrays sized according to local domain.
-
-# Arguments
-
-  - `namelists::Namelists`: Configuration parameters (unused)
-  - `domain::Domain`: Local domain dimensions
-
-# Returns
-
-  - `BicGStab`: Workspace container with zero-initialized arrays
-"""
-function BicGStab(namelists::Namelists, domain::Domain)
+function BicGStab(domain::Domain)::BicGStab
     (; nx, ny, nz) = domain
     return BicGStab(zeros(nx, ny), [zeros(nx, ny, nz) for i in 1:9]...)
 end

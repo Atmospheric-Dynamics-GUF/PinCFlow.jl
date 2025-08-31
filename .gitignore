@@ -1,6 +1,7 @@
 .CondaPkg
 LocalPreferences.toml
+Manifest.toml
 .aider*
 /build
 /docs/build
-examples/submit/local
+.vscode

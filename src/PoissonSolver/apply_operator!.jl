@@ -1,27 +1,58 @@
 """
-    apply_operator!(sin, ls, hortot::Total, namelists, domain, poisson)
+```julia
+apply_operator!(
+    sin::AbstractArray{<:AbstractFloat, 3},
+    ls::AbstractArray{<:AbstractFloat, 3},
+    hortot::Total,
+    namelists::Namelists,
+    domain::Domain,
+    poisson::Poisson,
+)
+```
 
-Apply the discrete Poisson operator including all directional components.
+Apply the total linear operator to the solution array `sin`.
 
-This function performs the matrix-vector multiplication for the discretized Poisson
-operator, including horizontal (x,y) and vertical (z) derivatives with cross-coupling
-terms for terrain-following coordinates.
+Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is paralellized in that direction), due to the solid-wall boundaries.
+
+```julia
+apply_operator!(
+    sin::AbstractArray{<:AbstractFloat, 3},
+    ls::AbstractArray{<:AbstractFloat, 3},
+    hortot::Horizontal,
+    namelists::Namelists,
+    domain::Domain,
+    poisson::Poisson,
+)
+```
+
+Apply the "horizontal part" of the linear operator (excluding the lower, center and upper diagonal) to the solution array `sin`.
+
+Before the operator is applied, the boundary/halo values of `sin` are set, in the same way as in the method applying the total operator.
 
 # Arguments
 
-  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input field
-  - `ls::AbstractArray{<:AbstractFloat, 3}`: Output field (operator applied to input)
-  - `hortot::Total`: Flag indicating full 3D operator application
-  - `namelists::Namelists`: Simulation parameters
-  - `domain::Domain`: Domain decomposition information
-  - `poisson::Poisson`: Poisson solver data structures containing operator coefficients
+  - `sin`: Solution array.
 
-# Notes
+  - `ls`: Result of applying the operator to the solution array.
 
-  - Uses stencil coefficients pre-computed in `compute_operator!`
-  - Handles boundary conditions through halo exchanges
-  - Modifies `ls` in place
+  - `hortot`: Linear-operator mode.
+
+  - `namelists`: Namelists with all model parameters.
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
+function apply_operator! end
+
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
@@ -256,22 +287,6 @@ function apply_operator!(
     return
 end
 
-"""
-    apply_operator!(sin, ls, hortot::Horizontal, namelists, domain, poisson)
-
-Apply only the horizontal components of the Poisson operator.
-
-Used in the preconditioner.
-
-# Arguments
-
-  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input field
-  - `ls::AbstractArray{<:AbstractFloat, 3}`: Output field
-  - `hortot::Horizontal`: Flag for horizontal-only operation
-  - `namelists::Namelists`: Simulation parameters
-  - `domain::Domain`: Domain information
-  - `poisson::Poisson`: Operator coefficient storage
-"""
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},

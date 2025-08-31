@@ -1,20 +1,31 @@
 """
-    Backups{A <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+Backups{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
-Storage container for backup copies of predictand variables during time stepping.
+Container for backup copies needed in the semi-implicit time scheme.
+
+```julia
+Backups(domain::Domain)::Backups
+```
+
+Initialize backup arrays sized according to the dimensions of the MPI subdomain.
 
 # Fields
 
-  - `rhoold::A`: Previous density values (nxx x nyy x nzz)
-  - `rhopold::A`: Previous density fluctuation values (nxx x nyy x nzz)
-  - `uold::A`: Previous zonal velocity values (nxx x nyy x nzz)
-  - `vold::A`: Previous meridional velocity values (nxx x nyy x nzz)
-  - `wold::A`: Previous vertical velocity values (nxx x nyy x nzz)
+  - `rhoold::A`: Density backup.
 
-# Usage
+  - `rhopold::A`: Density-fluctuations backup.
 
-Backup fields store previous time step values for multi-stage time integration schemes.
-Used by [`save_backups!`](src/Integration/save_backups%21.jl) to preserve state before updates.
+  - `uold::A`: Zonal-wind backup.
+
+  - `vold::A`: Meridional-wind backup.
+
+  - `wold::A`: Transformed-vertical-wind backup.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     rhoold::A
@@ -24,20 +35,7 @@ struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     wold::A
 end
 
-"""
-    Backups(domain::Domain)
-
-Initialize backup storage arrays sized according to domain decomposition.
-
-# Arguments
-
-  - `domain::Domain`: Domain specification containing grid dimensions
-
-# Returns
-
-  - `Backups`: Container with zero-initialized backup arrays
-"""
-function Backups(domain::Domain)
+function Backups(domain::Domain)::Backups
     (; nxx, nyy, nzz) = domain
 
     # Initialize the backups.

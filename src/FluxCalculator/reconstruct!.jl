@@ -1,26 +1,118 @@
 """
-    reconstruct!(state::State)
-    reconstruct!(state::State, variable::Union{Rho,RhoP})
-    reconstruct!(state::State, variable::Union{U,V,W})
+```julia
+reconstruct!(state::State)
+```
 
-Perform MUSCL reconstruction for state variables in a computational domain.
+Reconstruct the prognostic variables at the cell interfaces of their respective grids, using the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL).
 
-These functions handle the reconstruction of various flow quantities using the MUSCL scheme.
-The reconstruction is performed separately for each variable.
+This method calls specialized methods for each prognostic variable.
+
+```julia
+reconstruct!(state::State, variable::Rho)
+```
+
+Reconstruct the density.
+
+Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhotilde`.
+
+```julia
+reconstruct!(state::State, variable::RhoP)
+```
+
+Reconstruct the density fluctuations.
+
+Similar to the density, the density fluctuations are divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhoptilde`.
+
+```julia
+reconstruct!(state::State, variable::U)
+```
+
+Reconstruct the zonal momentum.
+
+Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the zonal momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.utilde`.
+
+```julia
+reconstruct!(state::State, variable::V)
+```
+
+Reconstruct the meridional momentum.
+
+Similar to the zonal momentum, the meridional momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.vtilde`.
+
+```julia
+reconstruct!(state::State, variable::W)
+```
+
+Reconstruct the vertical momentum.
+
+The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Similar to the zonal and meridional momenta, the vertical momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.wtilde`.
+
+```julia
+reconstruct!(state::State, tracersetup::NoTracer)
+```
+
+Return for configurations without tracer transport.
+
+```julia
+reconstruct!(state::State, tracersetup::AbstractTracer)
+```
+
+Reconstruct the tracers.
+
+Similar to the density, the tracers are divided by ``P`` before reconstruction.
+
+```julia
+reconstruct!(state::State, icesetup::NoIce)
+```
+
+Return for configurations without ice physics.
+
+```julia
+reconstruct!(state::State, icesetup::AbstractIce)
+```
+
+Reconstruct the ice variables.
+
+Similar to the density, the ice variables are divided by ``P`` before reconstruction.
+
+```julia
+reconstruct!(state::State, turbulencesetup::NoTurbulence)
+```
+
+Return for configurations without turbulence physics.
+
+```julia
+reconstruct!(state::State, turbulencesetup::AbstractTurbulence)
+```
+
+Reconstruct the turbulence variables.
+
+Similar to the density, the turbulence variables are divided by ``P`` before reconstruction.
 
 # Arguments
 
-  - `state::State`: The complete state object containing all simulation variables
-  - `variable`: Type parameter indicating which variable to reconstruct (Rho, RhoP, U, V, or W)
+  - `state`: Model state.
 
-# Details
+  - `variable`: The reconstructed variable.
 
-  - For density (Rho) and density perturbation (RhoP): Scales by reference pressure
-  - For velocities (U,V,W): Includes density averaging at appropriate cell faces and pressure scaling
-  - W-component additionally requires special vertical wind computation and boundary handling
+  - `tracersetup`: General tracer-transport configuration.
 
-The functions modify the corresponding 'tilde' variables in `state.variables.reconstructions`.
+  - `icesetup`: General ice-physics configuration.
+
+  - `turbulencesetup`: General turbulence-physics configuration.
+
+# See also
+
+  - [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref)
+
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
+function reconstruct! end
+
 function reconstruct!(state::State)
     (; tracersetup) = state.namelists.tracer
     (; icesetup) = state.namelists.ice
@@ -39,14 +131,6 @@ function reconstruct!(state::State)
     return
 end
 
-# Density reconstruction methods share implementation pattern
-"""
-    reconstruct!(state::State, variable::Rho)
-    reconstruct!(state::State, variable::RhoP)
-
-Reconstruct density or density perturbation fields.
-Scales the field by the reference pressure before applying MUSCL reconstruction.
-"""
 function reconstruct!(state::State, variable::Rho)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
@@ -79,18 +163,6 @@ function reconstruct!(state::State, variable::RhoP)
     return
 end
 
-"""
-    reconstruct!(state::State, variable::U)
-    reconstruct!(state::State, variable::V)
-    reconstruct!(state::State, variable::W)
-
-Reconstruct velocity components (u,v,w).
-Includes:
-
-  - Density averaging at appropriate cell faces
-  - Pressure scaling
-  - For W: Additional vertical wind computation and boundary condition handling
-"""
 function reconstruct!(state::State, variable::U)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain

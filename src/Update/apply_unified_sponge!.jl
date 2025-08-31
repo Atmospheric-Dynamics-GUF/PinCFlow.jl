@@ -1,23 +1,302 @@
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::AbstractVariable)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::AbstractVariable,
+)
+```
 
-Apply unified sponge layer damping to prevent spurious wave reflections.
+Perform an implicit substep to integrate the Rayleigh-damping term that represents the unified sponge layer in the prognostic equation for `variable` by dispatching to the appropriate model-specific method.
 
-# Mathematical Formulation
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Rho,
+    model::Boussinesq,
+)
+```
 
-Sponge damping uses exponential relaxation: `φ_new = β*φ_old + (1-β)*φ_bg`
-where `β = 1/(1 + α*dt)` and α is the spatially-varying damping coefficient.
+Return in Boussinesq mode (constant density).
 
-# Implementation Strategy
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Rho,
+    model::AbstractModel,
+)
+```
 
-  - **Variable-specific backgrounds**: Each variable relaxes toward appropriate reference state
-  - **Staggered grid handling**: Damping coefficients averaged at edge locations
-  - **Time-dependent perturbations**: Optional sinusoidal modulation of background states
-  - **Horizontal averaging**: Option to relax toward instantaneous horizontal mean
+Integrate the Rayleigh-damping term that represents the unified sponge in the continuity equation.
 
-The unified approach uses single damping coefficient field for all variables,
-computed by [`compute_sponge!`](@ref) with various spatial profiles.
+The update is given by
+
+```math
+\\rho \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho}\\right),
+```
+
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::RhoP,
+    model::AbstractModel,
+)
+```
+
+Integrate the Rayleigh-damping term that represents the unified sponge in the auxiliary equation.
+
+The update is given by
+
+```math
+\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\rho'.
+```
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::U,
+    model::AbstractModel,
+)
+```
+
+Integrate the Rayleigh-damping term that represents the unified sponge in the zonal-momentum equation.
+
+The update is given by
+
+```math
+u_{i + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{u_{i + 1 / 2} + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t u_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\}.
+```
+
+If `state.namelists.sponge.relax_to_mean` is `false`, ``u_\\mathrm{r}``, ``a_\\mathrm{r}`` and ``t_\\mathrm{r}`` are given by the sponge-namelist parameters `relaxation_wind[1]`, `perturbation_amplitude` and `perturbation_period`, respectively. Otherwise, ``u_\\mathrm{r}`` is the average of ``u_{i + 1 / 2}`` across the terrain-following coordinate surface and ``a_\\mathrm{r} = 0``.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::V,
+    model::AbstractModel,
+)
+```
+
+Integrate the Rayleigh-damping term that represents the unified sponge in the meridional-momentum equation.
+
+The update is given by
+
+```math
+v_{j + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{v_{j + 1 / 2} + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t v_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\}.
+```
+
+The computation of the relaxation wind is analogous to that in the method for the zonal momentum, with ``v_\\mathrm{r}`` given by `state.namelists.sponge.relaxation_wind[2]`.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::W,
+    model::AbstractModel,
+)
+```
+
+Integrate the Rayleigh-damping term that represents the unified sponge in the transformed-vertical-momentum equation.
+
+The update is given by
+
+```math
+\\widehat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{\\widehat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\widehat{w}_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\},
+```
+
+The computation of the relaxation wind is analogous to that in the methods for the zonal and meridional momenta, with ``\\widehat{w}_\\mathrm{r}`` given by `state.namelists.sponge.relaxation_wind[3]`.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::PiP,
+    model::AbstractModel,
+)
+```
+
+Return in non-compressible modes (Exner-pressure fluctuations are only updated in the corrector step).
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::PiP,
+    model::Compressible,
+)
+```
+
+Update the Exner-pressure fluctuations to account for the Rayleigh damping applied to the mass-weighted potential temperature.
+
+The update is given by
+
+```math
+\\pi' \\rightarrow \\pi' - \\alpha_\\mathrm{R} \\Delta t P \\frac{\\partial \\pi'}{\\partial P} \\left(1 - \\frac{\\overline{\\rho}}{\\rho}\\right).
+```
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::P,
+    model::AbstractModel,
+)
+```
+
+Return in non-compressible modes (mass-weighted potential temperature is constant in time).
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::P,
+    model::Compressible,
+)
+```
+
+Integrate the Rayleigh-damping term that represents the unified sponge in the thermodynamic-energy equation.
+
+The update is given by
+
+```math
+P \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} P \\left(1 + \\alpha_\\mathrm{R} \\Delta t \\frac{\\overline{\\rho}}{\\rho}\\right).
+```
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    tracersetup::NoTracer,
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    tracersetup::AbstractTracer,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the unified sponge in the tracer equations.
+
+In each tracer equation, the update is given by
+
+```math
+\\chi \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\chi + \\alpha_\\mathrm{R} \\Delta t \\chi_0\\right),
+```
+
+where ``\\chi_0`` is the initial distribution of the tracer.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    icesetup::AbstractIce,
+)
+```
+
+Return for configurations without ice physics.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    icesetup::IceOn,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the unified sponge in the prognostic equations of the ice-physics scheme.
+
+The updates are given by
+
+```math
+\\begin{align*}
+    n & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(n + \\alpha_\\mathrm{R} \\Delta t n_0\\right),\\\\
+    q & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(q + \\alpha_\\mathrm{R} \\Delta t q_0\\right),\\\\
+    q_\\mathrm{v} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(q_\\mathrm{v} + \\alpha_\\mathrm{R} \\Delta t q_{\\mathrm{v}, 0}\\right),
+\\end{align*}
+```
+
+where ``n_0``, ``q_0`` and ``q_{\\mathrm{v}, 0}`` are the initial distributions of the ice-crystal number concentration, ice mixing ratio and water-vapor mixing ratio, respectively.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulencesetup::NoTurbulence,
+)
+```
+
+Return for configurations without turbulence physics.
+
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulencesetup::AbstractTurbulence,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the unified sponge in the prognostic equations of the turbulence scheme.
+
+The updates are given by
+
+```math
+\\begin{align*}
+    \\mathrm{TKE} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\mathrm{TKE} + \\alpha_\\mathrm{R} \\Delta t \\overline{\\mathrm{TKE}}\\right),\\\\
+    \\mathrm{TTE} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\mathrm{TTE} + \\alpha_\\mathrm{R} \\Delta t \\overline{\\mathrm{TTE}}\\right),
+\\end{align*}
+```
+
+where ``\\overline{\\mathrm{TKE}}`` and ``\\overline{\\mathrm{TTE}}`` are the background values of the turbulent kinetic energy and total turbulent energy, respectively.
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `dt`: Time step.
+
+  - `time`: Simulation time.
+
+  - `variable`: Variable to apply Rayleigh damping to.
+
+  - `model`: Dynamic equations.
+
+  - `tracersetup`: General tracer-transport configuration.
+
+  - `icesetup`: General ice-physics configuration.
+
+  - `turbulencesetup`: General turbulence-physics configuration.
 """
+function apply_unified_sponge! end
+
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -29,11 +308,6 @@ function apply_unified_sponge!(
     return
 end
 
-"""
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::Rho, model::Boussinesq)
-
-No-op for Boussinesq density (incompressible assumption).
-"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -44,13 +318,6 @@ function apply_unified_sponge!(
     return
 end
 
-"""
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::Rho, model::AbstractModel)
-
-Apply sponge damping to density perturbations.
-
-Relaxes toward zero background density perturbation: ρ' → 0.
-"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -79,13 +346,6 @@ function apply_unified_sponge!(
     return
 end
 
-"""
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::RhoP, model::AbstractModel)
-
-Apply sponge damping to potential density perturbations.
-
-Relaxes toward zero background potential density perturbation.
-"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -114,22 +374,6 @@ function apply_unified_sponge!(
     return
 end
 
-"""
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::U, model::AbstractModel)
-
-Apply sponge damping to zonal wind with background relaxation.
-
-# Relaxation Options
-
-  - **Mean relaxation**: Toward horizontal mean if `relax_to_mean=true`
-  - **Fixed background**: Toward `relaxation_wind[1]` with optional perturbations
-  - **Edge averaging**: Uses average of adjacent cell damping coefficients
-
-# Time Modulation
-
-Background wind can vary sinusoidally: `u_bg = u₀(1 + A*sin(2πt/T))`
-where A is amplitude and T is period.
-"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -195,14 +439,6 @@ function apply_unified_sponge!(
     return
 end
 
-"""
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::V, model::AbstractModel)
-
-Apply sponge damping to meridional wind with background relaxation.
-
-Similar to zonal wind but for y-component with appropriate staggering.
-Uses `relaxation_wind[2]` for fixed background state.
-"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -268,17 +504,6 @@ function apply_unified_sponge!(
     return
 end
 
-"""
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::W, model::AbstractModel)
-
-Apply sponge damping to vertical wind with Jacobian-weighted averaging.
-
-Uses harmonic mean of damping coefficients weighted by Jacobian for proper
-vertical staggering in terrain-following coordinates:
-`α = (J[k+1]*α[k] + J[k]*α[k+1])/(J[k] + J[k+1])`
-
-Uses `relaxation_wind[3]` for fixed background vertical velocity.
-"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -400,13 +625,6 @@ function apply_unified_sponge!(
     return
 end
 
-"""
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::P, model::Compressible)
-
-Apply sponge damping to pressure field for compressible model.
-
-Relaxes toward hydrostatic background pressure: `p_bg = ρ₀*p₀/(ρ + ρ₀)`
-"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,

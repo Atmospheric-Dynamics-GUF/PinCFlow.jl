@@ -1,102 +1,141 @@
 """
-    compute_compressible_buoyancy_factor(state, indices, variable)
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+)::AbstractFloat
+```
 
-Compute compressible buoyancy factor for the given variable at specified grid indices.
-Dispatches based on the model type from the state configuration.
+Compute the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, by dispatching to a method specific for the dynamic equations and `variable`, and return the result.
+
+In pseudo-incompressible mode, the squared buoyancy frequency used by PinCFlow is
+
+```math
+N^2 = \\frac{g}{\\overline{\\theta}} \\frac{\\mathrm{d} \\overline{\\theta}}{\\mathrm{d} z},
+```
+
+whereas in compressible mode, it is
+
+```math
+N^2 = \\frac{g P}{\\rho \\overline{\\theta}^2} \\frac{\\mathrm{d} \\overline{\\theta}}{\\mathrm{d} z}.
+```
+
+In both modes, the buoyancy term is expressed in terms of ``N^2``. Thus, one has
+
+```math
+\\left(\\frac{\\partial b'}{\\partial t}\\right)_{N^2} = f_{b'} N^2 w,
+```
+
+with ``f_{b'} = 1`` in compressible mode and ``f_{b'} = \\overline{\\rho} / \\rho`` in pseudo-incompressible mode. This method returns either ``f_{b'}`` at ``\\left(i, j, k\\right)`` or ``f_w``, which is the interpolation of ``f_{b'}`` to ``\\left(i, j, k + 1 / 2\\right)``, based on the type of `variable`. Note that both values of ``f_{b'}`` are equivalent in Boussinesq mode, where ``\\rho = \\overline{\\rho} = \\rho_0`` (since the density fluctuations are treated separately).
+
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::RhoP,
+    model::Compressible,
+)::AbstractFloat
+```
+
+Return ``f_{b'} = 1`` as the factor by which the buoyancy term should be multiplied in compressible mode.
+
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::RhoP,
+    model::AbstractModel,
+)::AbstractFloat
+```
+
+Return ``f_{b'} = \\overline{\\rho} / \\rho`` as the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` in pseudo-incompressible mode (this method is also used in Boussinesq mode).
+
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::W,
+    model::Compressible,
+)::AbstractFloat
+```
+
+Return ``f_w = 1`` as the factor by which the buoyancy term should be multiplied in compressible mode.
+
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::W,
+    model::AbstractModel,
+)::AbstractFloat
+```
+
+Return ``f_w = \\overline{\\rho}_{k + 1 / 2} / \\rho_{k + 1 / 2}`` as the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k + 1 / 2\\right)`` in pseudo-incompressible mode (this method is also used in Boussinesq mode).
+
+The interpolation to ``\\left(i, j, k + 1 / 2\\right)`` follows
+
+```math
+f_w = \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} = \\frac{J_{k + 1} \\overline{\\rho} + J \\overline{\\rho}_{k + 1}}{J_{k + 1} \\rho + J \\rho_{k + 1}}.
+```
 
 # Arguments
 
-  - `state::State`: Current simulation state
-  - `indices::NTuple{3, <:Integer}`: Grid indices (ix, jy, kz)
-  - `variable::AbstractVariable`: Variable type for which to compute the factor
+  - `state`: Model state.
 
-# Returns
+  - `indices`: Grid-cell indices.
 
-  - `AbstractFloat`: Buoyancy scaling factor
+  - `variable`: Variable for which the factor is needed.
+
+  - `model`: Dynamic equations.
 """
+function compute_compressible_buoyancy_factor end
+
 function compute_compressible_buoyancy_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::AbstractVariable,
-)
+)::AbstractFloat
     (; model) = state.namelists.setting
     return compute_compressible_buoyancy_factor(state, indices, variable, model)
 end
 
-"""
-    compute_compressible_buoyancy_factor(state, indices, variable::RhoP, model::Compressible)
-
-Return unity buoyancy factor for density perturbations in fully compressible model.
-
-# Returns
-
-  - `Float64`: Always returns 1.0
-"""
 function compute_compressible_buoyancy_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::RhoP,
     model::Compressible,
-)
+)::AbstractFloat
     return 1.0
 end
 
-"""
-    compute_compressible_buoyancy_factor(state, indices, variable::RhoP, model::AbstractModel)
-
-Compute buoyancy factor for density perturbations in non-compressible models.
-Factor represents the ratio of reference density to total density.
-
-# Returns
-
-  - `AbstractFloat`: ρ₀/(ρ + ρ₀) where ρ₀ is reference density and ρ is density perturbation
-"""
 function compute_compressible_buoyancy_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::RhoP,
     model::AbstractModel,
-)
+)::AbstractFloat
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (ix, jy, kz) = indices
     return rhostrattfc[ix, jy, kz] / (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz])
 end
 
-"""
-    compute_compressible_buoyancy_factor(state, indices, variable::W, model::Compressible)
-
-Return unity buoyancy factor for vertical velocity in fully compressible model.
-
-# Returns
-
-  - `Float64`: Always returns 1.0
-"""
 function compute_compressible_buoyancy_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::W,
     model::Compressible,
-)
+)::AbstractFloat
     return 1.0
 end
 
-"""
-    compute_compressible_buoyancy_factor(state, indices, variable::W, model::AbstractModel)
-
-Compute buoyancy factor for vertical velocity in non-compressible models.
-Uses Jacobian-weighted interpolation between vertical levels.
-
-# Returns
-
-  - `AbstractFloat`: Jacobian-weighted factor accounting for grid stretching and density variation
-"""
 function compute_compressible_buoyancy_factor(
     state::State,
     indices::NTuple{3, <:Integer},
     variable::W,
     model::AbstractModel,
-)
+)::AbstractFloat
     (; jac) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands

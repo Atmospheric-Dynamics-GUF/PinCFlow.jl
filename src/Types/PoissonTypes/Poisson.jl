@@ -1,23 +1,54 @@
 """
-    Poisson{A, B, C, D, E, F}
+```julia
+Poisson{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: Tensor,
+    C <: Operator,
+    D <: Preconditioner,
+    E <: BicGStab,
+    F <: Correction,
+}
+```
 
-Main container for Poisson solver workspace and solution arrays.
+Main container for Poisson-solver workspace and solution arrays.
+
+```julia
+Poisson(domain::Domain)::Poisson
+```
+
+Create a `Poisson` instance with an initialized Poisson-solver workspace, sized according to the dimensions of the MPI subdomain.
 
 # Fields
 
-  - `rhs::A`: Right-hand side vector
-  - `solution::A`: Solution vector
-  - `tensor::B`: Matrix coefficient tensor for 27-point stencil
-  - `operator::C`: Operator workspace for matrix-vector products
-  - `preconditioner::D`: Preconditioner workspace arrays
-  - `bicgstab::E`: BiCGStab iterative solver workspace
-  - `correction::F`: Pressure correction terms for velocity field
+  - `rhs::A`: Right-hand side.
 
-# Usage
+  - `solution::A`: Solution of the Poisson problem.
 
-Central data structure used by [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
-to solve the pressure Poisson equation and apply corrections to maintain
-mass conservation.
+  - `tensor::B`: Tensor elements of the linear operator.
+
+  - `operator::C`: Workspace arrays for applying the linear operator.
+
+  - `preconditioner::D`: Workspace arrays for applying the preconditioner.
+
+  - `bicgstab::E`: Workspace arrays used by the BicGStab algorithm.
+
+  - `correction::F`: Correction terms used to update the horizontal wind in the corrector step.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+# See also
+
+  - [`PinCFlow.Types.PoissonTypes.Tensor`](@ref)
+
+  - [`PinCFlow.Types.PoissonTypes.Operator`](@ref)
+
+  - [`PinCFlow.Types.PoissonTypes.Preconditioner`](@ref)
+
+  - [`PinCFlow.Types.PoissonTypes.BicGStab`](@ref)
+
+  - [`PinCFlow.Types.PoissonTypes.Correction`](@ref)
 """
 struct Poisson{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -36,21 +67,7 @@ struct Poisson{
     correction::F
 end
 
-"""
-    Poisson(namelists::Namelists, domain::Domain)
-
-Initialize complete Poisson solver workspace sized according to local domain.
-
-# Arguments
-
-  - `namelists::Namelists`: Configuration parameters
-  - `domain::Domain`: Local domain dimensions
-
-# Returns
-
-  - `Poisson`: Container with all solver components initialized
-"""
-function Poisson(namelists::Namelists, domain::Domain)
+function Poisson(domain::Domain)::Poisson
 
     # Get all necessary fields.
     (; nx, ny, nz) = domain
@@ -60,7 +77,7 @@ function Poisson(namelists::Namelists, domain::Domain)
     tensor = Tensor(domain)
     operator = Operator(domain)
     preconditioner = Preconditioner(domain)
-    bicgstab = BicGStab(namelists, domain)
+    bicgstab = BicGStab(domain)
     correction = Correction(domain)
 
     # Return a Poisson instance.

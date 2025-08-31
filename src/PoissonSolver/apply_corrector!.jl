@@ -1,40 +1,49 @@
 """
-    apply_corrector!(state, dt, facray, facprs)
+```julia
+apply_corrector!(
+    state::State,
+    dt::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
+)::Tuple{Bool, <:Integer}
+```
 
-Apply the pressure correction step to enforce mass conservation.
+Perform the corrector step and return a tuple containing an error flag and the number of BicGStab iterations.
 
-This is the main interface for the pressure correction procedure. It computes the
-right-hand side, solves the Poisson equation, and applies velocity/density corrections
-to satisfy the divergence-free condition.
+The right-hand side and the linear operator of the discrete Poisson equation are calculated. The equation is then solved for Exner-pressure differences, using a preconditioned BicGStab algorithm. Finally, the Exner-pressure, wind and density fluctuations are corrected accordingly.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step size
-  - `facray::AbstractFloat`: Rayleigh damping factor for sponge boundaries
-  - `facprs::AbstractFloat`: Pressure correction scaling factor
+  - `state`: Model state.
 
-# Returns
+  - `dt`: Time step.
 
-  - `(errflagbicg, niterbicg)`: Error status and iteration count from linear solver
+  - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-# Process
+# See also
 
- 1. Initialize and compute RHS of Poisson equation
- 2. Solve linear system using BiCGStab
- 3. Set boundary conditions on pressure correction
- 4. Apply momentum and buoyancy corrections
+  - [`PinCFlow.PoissonSolver.compute_rhs!`](@ref)
+
+  - [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.PoissonSolver.correct!`](@ref)
 """
+function apply_corrector! end
+
 function apply_corrector!(
     state::State,
     dt::AbstractFloat,
-    facray::AbstractFloat,
-    facprs::AbstractFloat,
-)
+    rayleigh_factor::AbstractFloat,
+)::Tuple{Bool, <:Integer}
     (; namelists, domain) = state
     (; model, zboundaries) = namelists.setting
     (; rhs) = state.poisson
-    (; dpip) = state.variables.tendencies
+    (; dpip) = state.variables.increments
 
     # Initialize RHS.
     rhs .= 0.0
@@ -44,7 +53,7 @@ function apply_corrector!(
 
     # Solve Poisson equation.
     (errflagbicg, niterbicg) =
-        solve_poisson!(state, rhs, tolref, dt, facray, facprs)
+        solve_poisson!(state, rhs, tolref, dt, rayleigh_factor)
 
     # Return if an error occurred.
     if errflagbicg
@@ -57,8 +66,7 @@ function apply_corrector!(
     set_vertical_boundaries_of_field!(dpip, namelists, domain, zboundaries, +)
 
     # Correct momentum and buoyancy.
-    correct!(state, dt, facray, facprs)
+    correct!(state, dt, rayleigh_factor)
 
-    # Return.
     return (errflagbicg, niterbicg)
 end

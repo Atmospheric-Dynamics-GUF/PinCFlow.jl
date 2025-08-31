@@ -1,3 +1,96 @@
+"""
+```julia
+Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
+```
+
+Collection of domain-decomposition and MPI-communication parameters.
+
+```julia
+Domain(namelists::Namelists)::Domain
+```
+
+Construct a `Domain` instance from the model parameters in `namelists`.
+
+If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\widehat{x}`` and ``\\widehat{y}``) but not in the last (``\\widehat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.sizex`, `namelists.domain.sizey` and `namelists.domain.sizez`) by the number of processes in that direction (`npx`, `npy` and `npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``, respectively.
+
+# Fields
+
+General MPI communication:
+
+  - `comm::A`: MPI communicator with Cartesian topology for the computational domain.
+
+  - `master::B`: Boolean flag indicating if this process is the master process (rank 0).
+
+  - `rank::C`: MPI rank of this process within the communicator `comm`.
+
+  - `root::C`: Root process rank (0).
+
+Dimensions of the MPI subdomain:
+
+  - `nx::C`: Number of physical grid points in ``\\widehat{x}``-direction.
+
+  - `ny::C`: Number of physical grid points in ``\\widehat{y}``-direction.
+
+  - `nz::C`: Number of physical grid points in ``\\widehat{z}``-direction.
+
+  - `nx::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+
+  - `ny::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+
+  - `nz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
+
+Dimensions of the entire domain:
+
+  - `sizexx::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+
+  - `sizeyy::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+
+  - `sizezz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
+
+Index offsets and bounds:
+
+  - `io::C`: MPI offset in ``\\widehat{x}``-direction.
+
+  - `jo::C`: MPI offset in ``\\widehat{y}``-direction.
+
+  - `ko::C`: MPI offset in ``\\widehat{z}``-direction.
+
+  - `i0::C`: First physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+
+  - `i1::C`: Last physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+
+  - `j0::C`: First physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+
+  - `j1::C`: Last physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+
+  - `k0::C`: First physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+
+  - `k1::C`: Last physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+
+Neighbor-process ranks:
+
+  - `left::C`: Rank of the next process to the left (negative ``x``-direction).
+
+  - `right::C`: Rank of the next process to the right (positive ``x``-direction).
+
+  - `backward::C`: Rank of the next process to the back (negative ``y``-direction).
+
+  - `forward::C`: Rank of the next process to the front (positive ``y``-direction).
+
+  - `down::C`: Rank of the next process to the bottom (negative ``z``-direction).
+
+  - `up::C`: Rank of the next process to the top (positive ``z``-direction).
+
+Horizontal and vertical communication:
+
+  - `layer_comm::A`: MPI communicator for processes in the same layer (i.e. with the same vertical index).
+
+  - `column_comm::A`: MPI communicator for processes in the same column (i.e. with the same horizontal indices).
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+"""
 struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 
     # MPI variables.
@@ -47,90 +140,23 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-"""
-    Domain(namelists::Namelists) -> Domain
-
-Construct a `Domain` instance for MPI domain decomposition.
-
-This constructor initializes the MPI environment and sets up a 3D Cartesian topology
-for parallel computation. It distributes the global computational domain across
-multiple MPI processes and establishes communication patterns for halo exchanges.
-
-# Arguments
-
-  - `namelists::Namelists`: Configuration object containing domain and setting parameters
-
-      + `namelists.domain`: Contains grid dimensions (`sizex`, `sizey`, `sizez`),
-        boundary cell counts (`nbx`, `nby`, `nbz`), and process counts (`npx`, `npy`, `npz`)
-      + `namelists.setting`: Contains boundary condition settings (`zboundaries`)
-
-# Returns
-
-A `Domain` instance with the following fields:
-
-## MPI Communication
-
-  - `comm`: MPI communicator with Cartesian topology for the computational domain
-  - `master`: Boolean flag indicating if this process is the master process (rank 0)
-  - `rank`: MPI rank of this process within the communicator
-  - `root`: Root process rank (typically 0)
-
-## Local Grid Dimensions
-
-  - `nx`, `ny`, `nz`: Number of grid points in each direction for this process (excluding boundary cells)
-  - `nxx`, `nyy`, `nzz`: Total grid points in each direction including boundary cells (`n* + 2*nb*`)
-
-## Global Grid Dimensions
-
-  - `sizexx`, `sizeyy`, `sizezz`: Global grid size in each direction including boundary cells
-
-## Index Management
-
-  - `io`, `jo`, `ko`: Index offsets in each direction for global-to-local coordinate transformation
-  - `i0`, `i1`: Starting and ending indices for computational domain in x-direction
-  - `j0`, `j1`: Starting and ending indices for computational domain in y-direction
-  - `k0`, `k1`: Starting and ending indices for computational domain in z-direction
-
-## Neighbor Process Ranks
-
-  - `left`, `right`: MPI ranks of neighbor processes in x-direction (negative/positive)
-  - `backward`, `forward`: MPI ranks of neighbor processes in y-direction (negative/positive)
-  - `down`, `up`: MPI ranks of neighbor processes in z-direction (negative/positive)
-
-## Specialized Communicators
-
-  - `layer_comm`: MPI communicator for processes in the same horizontal layer (same k-coordinate)
-  - `column_comm`: MPI communicator for processes in the same vertical column (same i,j coordinates)
-
-# Usage
-
-Arrays should be allocated with dimensions `[nxx, nyy, nzz]` and accessed using
-indices `i0:i1`, `j0:j1`, `k0:k1` for the computational domain.
-
-# Error Conditions
-
-Throws an error if:
-
-  - Process decomposition doesn't match total process count (`npx * npy * npz != np`)
-  - Boundary cell count exceeds local domain size in any parallelized direction
-  - Unknown boundary condition type is specified
-
-Currently supports `SolidWallBoundaries()` for z-direction with periodic boundaries in x and y.
-"""
-function Domain(namelists::Namelists)
-    (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz) = namelists.domain
+function Domain(namelists::Namelists)::Domain
+    (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz, base_comm) =
+        namelists.domain
     (; zboundaries) = namelists.setting
 
     # Initialize MPI.
-    MPI.Init()
-    rank = MPI.Comm_rank(MPI.COMM_WORLD)
+    if base_comm == MPI.COMM_WORLD
+        MPI.Init()
+    end
+    rank = MPI.Comm_rank(base_comm)
     root = 0
     if rank == root
         master = true
     else
         master = false
     end
-    np = MPI.Comm_size(MPI.COMM_WORLD)
+    np = MPI.Comm_size(base_comm)
 
     # Check if parallelization is set up correctly.
     if master && npx * npy * npz != np
@@ -155,7 +181,7 @@ function Domain(namelists::Namelists)
     end
 
     # Create a Cartesian topology.
-    comm = MPI.Cart_create(MPI.COMM_WORLD, dims; periodic = periods)
+    comm = MPI.Cart_create(base_comm, dims; periodic = periods)
     rank = MPI.Comm_rank(comm)
     coords = MPI.Cart_coords(comm, rank)
 

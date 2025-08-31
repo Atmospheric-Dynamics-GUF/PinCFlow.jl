@@ -1,59 +1,81 @@
 """
-    update_merged_rays!(merge_mode::AbstractMergeMode, merged_rays::AbstractVector{<:MergedRays}, jray::Integer, xr::AbstractFloat, dxr::AbstractFloat, yr::AbstractFloat, dyr::AbstractFloat, zr::AbstractFloat, dzr::AbstractFloat, kr::AbstractFloat, dkr::AbstractFloat, lr::AbstractFloat, dlr::AbstractFloat, mr::AbstractFloat, dmr::AbstractFloat, fxk::AbstractFloat, fyl::AbstractFloat, fzm::AbstractFloat, nr::AbstractFloat, omegar::AbstractFloat)
+```julia
+update_merged_rays!(
+    merge_mode::AbstractMergeMode,
+    merged_rays::AbstractVector{<:MergedRays},
+    jray::Integer,
+    xr::AbstractFloat,
+    dxr::AbstractFloat,
+    yr::AbstractFloat,
+    dyr::AbstractFloat,
+    zr::AbstractFloat,
+    dzr::AbstractFloat,
+    kr::AbstractFloat,
+    dkr::AbstractFloat,
+    lr::AbstractFloat,
+    dlr::AbstractFloat,
+    mr::AbstractFloat,
+    dmr::AbstractFloat,
+    fxk::AbstractFloat,
+    fyl::AbstractFloat,
+    fzm::AbstractFloat,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
+)
+```
 
-Update merged ray volume data structure during ray merging process.
+Update the fields of `merged_rays[jray]` such that they contain the outermost bounds and total wave action/energy of all contributing ray volumes.
 
-Accumulates ray volume information into spectral bins, expanding spatial and
-spectral extents as needed and integrating wave action densities.
+This method is used to compute the properties of merged ray volumes. It is called for every old ray volume that contributes to the new, merged volume and updates the outermost bounds in physical and spectral space, as well as the total wave action/energy, accordingly.
 
 # Arguments
 
-  - `merge_mode::AbstractMergeMode`: Merging strategy (affects wave action integration)
-  - `merged_rays::AbstractVector{<:MergedRays}`: Array of merged ray bins to update
-  - `jray::Integer`: Bin index for this ray volume
-  - `xr, yr, zr::AbstractFloat`: Ray physical position coordinates
-  - `dxr, dyr, dzr::AbstractFloat`: Ray physical extent in each direction
-  - `kr, lr, mr::AbstractFloat`: Ray spectral position coordinates
-  - `dkr, dlr, dmr::AbstractFloat`: Ray spectral extent in each direction
-  - `fxk, fyl, fzm::AbstractFloat`: Phase space volume factors
-  - `nr::AbstractFloat`: Wave action density
-  - `omegar::AbstractFloat`: Intrinsic frequency
+  - `merge_mode`: Merging strategy.
 
-# Merging Process
+  - `merged_rays`: Array of merged ray volumes.
 
- 1. **First Ray in Bin**: Initialize extent boundaries from ray edges
- 2. **Subsequent Rays**: Expand boundaries to encompass all rays in bin
- 3. **Wave Action Integration**: Accumulate wave action using merge mode-specific formula
+  - `jray`: Index of the merged ray volume to update.
 
-# Spatial Extent Expansion
+  - `xr`: Position of the old ray volume in ``x``.
 
-For each direction (x, y, z):
+  - `dxr`: Extent of the old ray volume in ``x``.
 
-  - `min_boundary = min(current_min, ray_center - ray_extent/2)`
-  - `max_boundary = max(current_max, ray_center + ray_extent/2)`
+  - `yr`: Position of the old ray volume in ``y``.
 
-# Spectral Extent Expansion
+  - `dyr`: Extent of the old ray volume in ``y``.
 
-For each wavenumber (k, l, m):
+  - `zr`: Position of the old ray volume in ``z``.
 
-  - `min_boundary = min(current_min, k_center - k_extent/2)`
-  - `max_boundary = max(current_max, k_center + k_extent/2)`
+  - `dzr`: Extent of the old ray volume in ``z``.
 
-# Wave Action Accumulation
+  - `kr`: Position of the old ray volume in ``k``.
 
-Uses `compute_wave_action_integral` with merge mode to properly weight
-the contribution based on:
+  - `dkr`: Extent of the old ray volume in ``k``.
 
-  - Raw wave action density `nr`
-  - Frequency factor `omegar`
-  - Phase space volume factors `fxk`, `fyl`, `fzm`
+  - `lr`: Position of the old ray volume in ``l``.
 
-# Applications
+  - `dlr`: Extent of the old ray volume in ``k``.
 
-Called during the ray merging process for each ray being combined into
-a spectral bin, building up the merged ray characteristics that will
-be used to create the final merged ray volumes.
+  - `mr`: Position of the old ray volume in ``m``.
+
+  - `dmr`: Extent of the old ray volume in ``m``.
+
+  - `fxk`: Phase-space factor of the old ray volume in ``x``-``k`` subspace.
+
+  - `fyl`: Phase-space factor of the old ray volume in ``y``-``l`` subspace.
+
+  - `fzm`: Phase-space factor of the old ray volume in ``z``-``m`` subspace.
+
+  - `nr`: Phase-space wave-action density of the old ray volume.
+
+  - `omegar`: Intrinsic frequency of the old ray volume.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
 """
+function update_merged_rays! end
+
 function update_merged_rays!(
     merge_mode::AbstractMergeMode,
     merged_rays::AbstractVector{<:MergedRays},

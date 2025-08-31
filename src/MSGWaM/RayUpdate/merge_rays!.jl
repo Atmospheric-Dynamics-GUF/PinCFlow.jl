@@ -1,119 +1,90 @@
 """
-    merge_rays!(state::State)
+```julia
+merge_rays!(state::State)
+```
 
-Entry point for ray merging operations based on test case type.
+Merge ray volumes by dispatching to a test-case-specific method.
 
-Dispatches to the appropriate merging method depending on the simulation
-configuration.
+```julia
+merge_rays!(state::State, testcase::AbstractTestCase)
+```
+
+Return for non-WKB test cases.
+
+```julia
+merge_rays!(state::State, testcase::AbstractWKBTestCase)
+```
+
+Merge ray volumes by dispatching to a WKB-mode-specific method.
+
+```julia
+merge_rays!(state::State, wkb_mode::SteadyState)
+```
+
+Return for steady-state WKB mode.
+
+```julia
+merge_rays!(state::State, wkb_mode::AbstractWKBMode)
+```
+
+Merge ray volumes in grid cells in which their count exceeds a threshold.
+
+This method checks in each grid cell if the number of ray volumes exceeds a maximum that was determined from namelist parameters (`state.wkb.nray_max`). If it does, the ray volumes in that cell are merged such that the new count is smaller or equal to the threshold. This is done by binning them on a spectral grid with logarithmic spacing, defined from the minima and maxima of the contributing negative and positive wavenumbers in all spectral dimensions. The merging is performed such that the bounds of the new ray volumes coincide with the outermost bounds of the old ray volumes and wave action (or wave energy, depending on the merging strategy) is conserved.
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing ray data
+  - `state`: Model state.
+
+  - `testcase`: Test case on which the current simulation is based.
+
+  - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.RayOperations.MergedRays`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_spectral_bounds`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_surfaces`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_merge_index`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.update_merged_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
 """
+function merge_rays! end
+
 function merge_rays!(state::State)
     (; testcase) = state.namelists.setting
     merge_rays!(state, testcase)
     return
 end
 
-"""
-    merge_rays!(state::State, testcase::AbstractTestCase)
-
-No-op for non-WKB test cases.
-
-Standard test cases don't use ray tracing, so no ray merging is needed.
-
-# Arguments
-
-  - `state::State`: Simulation state (unused)
-  - `testcase::AbstractTestCase`: Non-WKB test case
-"""
 function merge_rays!(state::State, testcase::AbstractTestCase)
     return
 end
 
-"""
-    merge_rays!(state::State, testcase::AbstractWKBTestCase)
-
-Merge rays for WKB test cases based on WKB mode.
-
-Dispatches to the specific WKB mode implementation for ray merging.
-
-# Arguments
-
-  - `state::State`: Simulation state containing WKB configuration and ray data
-  - `testcase::AbstractWKBTestCase`: WKB test case specification
-"""
 function merge_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     merge_rays!(state, wkb_mode)
     return
 end
 
-"""
-    merge_rays!(state::State, wkb_mode::SteadyState)
-
-No-op for steady-state WKB mode.
-
-Steady-state mode typically doesn't require ray merging as the ray
-distribution remains relatively stable.
-
-# Arguments
-
-  - `state::State`: Simulation state (unused)
-  - `wkb_mode::SteadyState`: Steady-state WKB mode
-"""
 function merge_rays!(state::State, wkb_mode::SteadyState)
     return
 end
 
-"""
-    merge_rays!(state::State, wkb_mode::AbstractWKBMode)
-
-Merge rays when ray count exceeds maximum per grid cell.
-
-When the number of ray volumes in a grid cell exceeds the maximum allowed,
-this function combines nearby rays in phase space to reduce the total count
-while preserving wave action and spectral characteristics.
-
-# Arguments
-
-  - `state::State`: Complete simulation state
-  - `wkb_mode::AbstractWKBMode`: WKB mode (MultiColumn, SingleColumn, etc.)
-
-# Algorithm
-
- 1. **Check Ray Count**: Only merge if `nray > nray_max` in any cell
- 2. **Define Spectral Bins**: Create logarithmic bins in k, l, m space
- 3. **Spectral Bounds**: Compute min/max wavenumbers for positive/negative values
- 4. **Ray Assignment**: Assign each ray to appropriate spectral bin
- 5. **Spatial Merging**: Combine spatial extents (min/max positions)
- 6. **Spectral Merging**: Combine spectral extents in each bin
- 7. **Wave Action Integration**: Conserve total wave action in each bin
- 8. **Reconstruction**: Create merged rays at bin centers
-
-# Spectral Binning
-
-  - **Positive wavenumbers**: Logarithmic spacing from k_min to k_max
-  - **Negative wavenumbers**: Logarithmic spacing from -k_max to -k_min
-  - **Bin count**: User-specified (nxray, nyray, nzray)
-
-# Wave Action Conservation
-
-Total wave action is preserved: `∑ A_old = ∑ A_new`
-where A includes both density and phase space volume factors.
-
-# Benefits
-
-  - Prevents excessive ray counts that would slow computation
-  - Maintains spectral representation of wave field
-  - Preserves total wave energy and momentum flux
-  - Enables long-time integrations
-
-# Statistics
-
-Reports before/after ray counts if merging occurs.
-"""
 function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
     (; sizex, sizey) = state.namelists.domain
     (; merge_mode) = state.namelists.wkb

@@ -1,3 +1,16 @@
+"""
+```julia
+RayOperations
+```
+
+Module for various ray-volume operations needed throughout MSGWaM.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation`](@ref)
+"""
 module RayOperations
 
 using ...Types

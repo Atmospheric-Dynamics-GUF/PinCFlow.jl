@@ -1,15 +1,60 @@
 """
-    set_meridional_boundaries_of_field!(field::AbstractMatrix, namelists, domain)
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractMatrix{<:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)
+```
 
-Set meridional boundary conditions for 2D fields. Uses halo exchange for multi-process domains (`npy > 1`),
-otherwise applies periodic boundaries by copying values from opposite domain edges.
+Enforce meridional boundary conditions for a matrix.
+
+Halo exchange is used for multi-process domains (`npy > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges.
+
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
+
+Enforce meridional boundary conditions for a 3D array.
+
+Halo exchange is used in the same manner as in the method for matrices.
+
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
+
+Enforce meridional boundary conditions for a 5D array.
+
+Halo exchange is used in the same manner as in the methods for matrices and 3D arrays. The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
 # Arguments
 
-  - `field::AbstractMatrix{<:AbstractFloat}`: 2D field array to apply boundaries to
-  - `namelists::Namelists`: Configuration containing domain parameters (`npy`, `nby`)
-  - `domain::Domain`: Domain indices containing `j0`, `j1`
+  - `field`: Input array.
+
+  - `namelists`: Namelists with all model parameters.
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+# Keywords
+
+  - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref)
 """
+function set_meridional_boundaries_of_field! end
+
 function set_meridional_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
@@ -30,18 +75,6 @@ function set_meridional_boundaries_of_field!(
     return
 end
 
-"""
-    set_meridional_boundaries_of_field!(field::AbstractArray{<:Real, 3}, namelists, domain; layers)
-
-Set meridional boundary conditions for 3D fields.
-
-# Arguments
-
-  - `field::AbstractArray{<:Real, 3}`: 3D field array to apply boundaries to
-  - `namelists::Namelists`: Configuration containing domain parameters (`npy`, `nbx`, `nby`, `nbz`)
-  - `domain::Domain`: Domain indices containing `i0`, `i1`, `j0`, `j1`, `k0`, `k1`
-  - `layers::NTuple{3, <:Integer}`: Tuple `(nbx, nby, nbz)` specifying boundary layer thickness. Use `-1` for default values from namelists.
-"""
 function set_meridional_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
@@ -70,19 +103,6 @@ function set_meridional_boundaries_of_field!(
     return
 end
 
-"""
-    set_meridional_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists, domain; layers)
-
-Set meridional boundary conditions for 5D fields. Applies boundary conditions across all elements
-in dimensions 4 and 5.
-
-# Arguments
-
-  - `field::AbstractArray{<:AbstractFloat, 5}`: 5D field array to apply boundaries to
-  - `namelists::Namelists`: Configuration containing domain parameters (`npy`, `nbx`, `nby`, `nbz`)
-  - `domain::Domain`: Domain indices containing `i0`, `i1`, `j0`, `j1`, `k0`, `k1`
-  - `layers::NTuple{3, <:Integer}`: Tuple `(nbx, nby, nbz)` specifying boundary layer thickness. Use `-1` for default values from namelists.
-"""
 function set_meridional_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,

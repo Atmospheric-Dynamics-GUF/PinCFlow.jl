@@ -1,20 +1,34 @@
 """
-    Preconditioner{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractMatrix{<:AbstractFloat}}
+```julia
+Preconditioner{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractMatrix{<:AbstractFloat},
+}
+```
 
-Workspace arrays for line relaxation preconditioner using alternating direction implicit (ADI) method.
+Workspace arrays for applying the preconditioner.
+
+```julia
+Preconditioner(domain::Domain)::Preconditioner
+```
+
+Create a `Preconditioner` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
 
 # Fields
 
-  - `s_pc::A`: Preconditioned solution workspace (nx × ny × nz)
-  - `q_pc::A`: Upper diagonal coefficients for tridiagonal solve (nx × ny × nz)
-  - `p_pc::B`: Diagonal pivot workspace for elimination (nx × ny)
-  - `s_pc_bc::B`: Boundary communication buffer for solution (nx × ny)
-  - `q_pc_bc::B`: Boundary communication buffer for coefficients (nx × ny)
+  - `s_pc::A`: Solution computed by the preconditioner.
 
-# Usage
+  - `q_pc::A`: Auxiliary array used for the upward sweep.
 
-Provides temporary storage for [`PinCFlow.PoissonSolver.apply_preconditioner!`](@ref)
-to perform vertical line relaxation with MPI communication between domains.
+  - `p_pc::B`: Auxiliary array used for the upward sweep and downward pass.
+
+  - `s_pc_bc::B`: MPI communication buffer for `s_pc`.
+
+  - `q_pc_bc::B`: MPI communication buffer for `q_pc`.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Preconditioner{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -27,20 +41,7 @@ struct Preconditioner{
     q_pc_bc::B
 end
 
-"""
-    Preconditioner(domain::Domain)
-
-Initialize preconditioner workspace arrays sized according to local domain.
-
-# Arguments
-
-  - `domain::Domain`: Local domain dimensions
-
-# Returns
-
-  - `Preconditioner`: Container with zero-initialized workspace arrays
-"""
-function Preconditioner(domain::Domain)
+function Preconditioner(domain::Domain)::Preconditioner
 
     # Get all necessary fields.
     (; nx, ny, nz) = domain

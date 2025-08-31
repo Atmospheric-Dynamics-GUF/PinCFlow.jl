@@ -1,17 +1,32 @@
 """
-    set_compressible_zonal_boundaries!(state, model::AbstractModel)
+```julia
+set_compressible_zonal_boundaries!(state::State, model::AbstractModel)
+```
 
-No-op for non-compressible models.
+Return in non-compressible modes.
+
+```julia
+set_compressible_zonal_boundaries!(state, model::Compressible)
+```
+
+Enforce zonal boundary conditions for mass-weighted potential temperature in compressible mode.
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `model`: Dynamic equations.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 """
+function set_compressible_zonal_boundaries! end
+
 function set_compressible_zonal_boundaries!(state::State, model::AbstractModel)
     return
 end
 
-"""
-    set_compressible_zonal_boundaries!(state, model::Compressible)
-
-Set zonal boundaries for pressure field in compressible model.
-"""
 function set_compressible_zonal_boundaries!(state::State, model::Compressible)
     (; namelists, domain) = state
     (; p) = state.variables.predictands

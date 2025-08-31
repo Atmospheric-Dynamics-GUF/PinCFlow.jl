@@ -1,95 +1,75 @@
 """
-    Constants{A<:AbstractFloat}
+```julia
+Constants{A <: AbstractFloat}
+```
 
-Physical constants and reference quantities.
-
-This struct contains all dimensional and non-dimensional parameters used throughout
-the model, including thermodynamic constants, reference scales, and
-derived flow parameters for proper non-dimensionalization.
-
-# Type Parameters
-
-  - `A<:AbstractFloat`: Floating-point precision type
-
-# Physical Constants
-
-  - `gamma::A`: Ratio of specific heats for dry air (cp/cv ≡ 1.4)
-  - `gammainv::A`: Inverse ratio of specific heats (1/γ)
-  - `kappa::A`: Poisson constant (γ-1)/γ ≡ R/cp ≈ 0.286
-  - `kappainv::A`: Inverse Poisson constant γ/(γ-1) ≡ cp/R
-  - `rsp::A`: Specific gas constant for dry air [J/(kg·K)] ≡ 287.0
-  - `g::A`: Gravitational acceleration [m/s²] ≡ 9.81
-
-# Reference Quantities
-
-  - `rhoref::A`: Reference density [kg/m³] ≡ 1.184 (sea level)
-  - `pref::A`: Reference pressure [Pa] ≡ 101325.0 (sea level)
-  - `aref::A`: Reference sound speed [m/s] = √(pref/ρref)
-  - `uref::A`: Reference velocity [m/s] = aref (Mach 1 scaling)
-  - `lref::A`: Reference length [m] = pref/(ρref·g) (pressure scale height)
-  - `tref::A`: Reference time [s] = lref/aref (acoustic time scale)
-  - `thetaref::A`: Reference temperature [K] = aref²/rsp
-  - `fref::A`: Reference body force [N/m³] = ρref·uref²/lref
-
-# Non-dimensional Parameters
-
-  - `g_ndim::A`: Non-dimensional gravity = g/(uref²/lref) ≡ Fr⁻²
-  - `re::A`: Reynolds number = ρref·uref·lref/μ
-  - `ma::A`: Mach number = uref/aref ≡ 1.0 (by construction)
-  - `mainv2::A`: Inverse Mach number squared = (aref/uref)²
-  - `ma2::A`: Mach number squared = (uref/aref)²
-  - `fr::A`: Froude number = uref/√(g·lref) ≡ 1.0 (by construction)
-  - `frinv2::A`: Inverse Froude number squared = g·lref/uref²
-  - `fr2::A`: Froude number squared = uref²/(g·lref)
-  - `sig::A`: Stratification parameter = Ma²/Fr² = ρref·g·lref/pref
-
-# Constructor
-
-    Constants(namelists::Namelists)
-
-Creates a Constants instance from simulation parameters.
-
-## Parameters
-
-  - `namelists::Namelists`: Configuration containing:
-
-      + `atmosphere.specifyreynolds`: Whether to use prescribed Reynolds number
-      + `atmosphere.reinv`: Inverse Reynolds number (if prescribed)
-      + `atmosphere.mu_viscous_dim`: Dynamic viscosity [Pa·s] (if computed)
-
-## Non-dimensionalization Scheme
-
-The model uses a consistent non-dimensionalization based on:
-
-  - **Length scale**: Pressure scale height lref = pref/(ρref·g)
-  - **Velocity scale**: Sound speed uref = √(pref/ρref)
-  - **Time scale**: Acoustic time tref = lref/uref
-  - **Pressure scale**: Reference pressure pref
-  - **Density scale**: Reference density ρref
-  - **Temperature scale**: Acoustic temperature θref = uref²/rsp
-
-## Examples
+Composite type for natural constants, reference quantities and non-dimensional parameters.
 
 ```julia
-# Create constants from namelists
-constants = Constants(namelists)
-
-# Access physical constants
-γ = constants.gamma          # 1.4
-R = constants.rsp           # 287.0 J/(kg·K)
-g = constants.g             # 9.81 m/s²
-
-# Reference scales
-ρ₀ = constants.rhoref       # 1.184 kg/m³
-p₀ = constants.pref         # 101325.0 Pa
-c₀ = constants.aref         # ~293 m/s
-L₀ = constants.lref         # ~8700 m
-
-# Non-dimensional parameters
-Re = constants.re           # Reynolds number
-Ma = constants.ma           # Mach number (≡ 1)
-Fr = constants.fr           # Froude number (≡ 1)
+Constants(namelists::Namelists)::Constants
 ```
+
+Create a `Constants` instance.
+
+The Reynolds number is the only constant that depends on the model parameters in `namelists`. If `namelists.atmosphere.specifyreynolds` is `false`, the Reynolds number is ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu``, with ``\\mu`` being the kinematic viscosity at the surface, given by `namelists.atmosphere.mu_viscous_dim`. Otherwise, it is set to the inverse of `namelists.atmosphere.reinv`.
+
+# Fields
+
+Natural constants:
+
+  - `gamma::A`: Ratio of specific heats ``\\gamma = c_p / c_V = 1.4``.
+
+  - `gammainv::A`: Inverse ratio of specific heats ``1 / \\gamma``.
+
+  - `kappa::A`: Ratio between specific gas constant and specific heat capacity at constant pressure ``\\kappa = \\left(\\gamma - 1\\right) / \\gamma = R / c_p = 2 / 7``.
+
+  - `kappainv::A`: Ratio between specific heat capacity at constant pressure and specific gas constant ``1 / \\kappa``.
+
+  - `rsp::A`: Specific gas constant ``R = 287 \\, \\mathrm{J \\, kg^{- 1} \\, K^{- 1}}``.
+
+  - `g::A`: Gravitational acceleration ``g = 9.81 \\, \\mathrm{m \\, s^{- 2}}``.
+
+Reference quantities:
+
+  - `rhoref::A`: Reference density ``\\rho_\\mathrm{ref} = 1.184 \\, \\mathrm{kg \\, m^{- 3}}``.
+
+  - `pref::A`: Reference pressure ``p_\\mathrm{ref} = 101325 \\, \\mathrm{Pa}``.
+
+  - `aref::A`: Reference sound speed ``c_\\mathrm{ref} = \\sqrt{p_\\mathrm{ref} / \\rho_\\mathrm{ref}}``.
+
+  - `uref::A`: Reference wind ``u_\\mathrm{ref} = a_\\mathrm{ref}``.
+
+  - `lref::A`: Reference length ``L_\\mathrm{ref} = p_\\mathrm{ref} /\\left(g \\rho_\\mathrm{ref}\\right)``.
+
+  - `tref::A`: Reference time ``t_\\mathrm{ref} = L_\\mathrm{ref} / a_\\mathrm{ref}``.
+
+  - `thetaref::A`: Reference potential temperature ``\\theta_\\mathrm{ref} = a_\\mathrm{ref}^2 / R``.
+
+  - `fref::A`: Reference body force ``F_\\mathrm{ref} = \\rho_\\mathrm{ref} u_\\mathrm{ref}^2 / L_\\mathrm{ref}``.
+
+Non-dimensional parameters
+
+  - `g_ndim::A`: Non-dimensional gravitational acceleration ``\\widehat{g} = g L_\\mathrm{ref} / u_\\mathrm{ref}^2``.
+
+  - `re::A`: Reynolds number ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu`` (with ``\\mu`` being the kinematic viscosity at the surface).
+
+  - `ma::A`: Mach number ``\\mathrm{Ma} = u_\\mathrm{ref} / a_\\mathrm{ref}``.
+
+  - `mainv2::A`: Inverse Mach number squared ``\\mathrm{Ma}^{- 2}``.
+
+  - `ma2::A`: Mach number squared ``\\mathrm{Ma}^2``.
+
+  - `fr::A`: Froude number ``\\mathrm{Fr} = u_\\mathrm{ref} / \\sqrt{g L_\\mathrm{ref}}``.
+
+  - `frinv2::A`: Inverse Froude number squared ``\\mathrm{Fr}^{- 2}``.
+
+  - `fr2::A`: Froude number squared ``\\mathrm{Fr}^{2}``.
+
+  - `sig::A`: Ratio between squared Mach number and squared Froude number ``\\sigma = \\mathrm{Ma}^2 / \\mathrm{Fr}^2``.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
 """
 struct Constants{A <: AbstractFloat}
 
@@ -125,7 +105,7 @@ struct Constants{A <: AbstractFloat}
     sig::A
 end
 
-function Constants(namelists::Namelists)
+function Constants(namelists::Namelists)::Constants
 
     # Get parameters.
     (; specifyreynolds, reinv, mu_viscous_dim) = namelists.atmosphere

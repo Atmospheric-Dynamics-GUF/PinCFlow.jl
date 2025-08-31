@@ -1,35 +1,96 @@
 """
-    apply_saturation_scheme!(state::State, dt::AbstractFloat)
+```julia
+apply_saturation_scheme!(state::State, dt::AbstractFloat)
+```
 
-Entry point for wave saturation scheme based on test case type.
+Apply the saturation scheme by dispatching to a test-case-specific method.
 
-Dispatches to the appropriate saturation implementation depending on
-simulation configuration.
+```julia
+apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    testcase::AbstractTestCase,
+)
+```
+
+Return for non-WKB test cases.
+
+```julia
+apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Apply the saturation scheme by dispatching to a WKB-mode-specific method.
+
+```julia
+apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::SteadyState)
+```
+
+Return for steady-state configurations.
+
+In steady-state mode, saturation is handled by [`PinCFlow.MSGWaM.RayUpdate.propagate_rays!`](@ref).
+
+```julia
+apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    wkb_mode::AbstractWKBMode,
+)
+```
+
+Apply the saturation scheme.
+
+Saturation is assumed to occur when the static-instability criterion
+
+```math
+\\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha \\geq \\alpha_\\mathrm{S}^2 N^4
+```
+
+is locally fulfilled (i.e. within a grid cell). Therein, ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}`` is the wavevector, ``\\left|b_{\\mathrm{w}, \\alpha}\\right|^2`` is the squared gravity-wave amplitude of the buoyancy, ``f_\\alpha`` is the maximum grid-cell fraction each ray volume can cover, ``N`` is the buoyancy frequency and ``\\alpha_\\mathrm{S}`` is a saturation coefficient that represents the uncertainties of the criterion. The phase-space wave-action density is then reduced in accordance with
+
+```math
+\\frac{\\Delta \\left|b_{\\mathrm{w}, \\alpha}\\right|^2}{\\Delta t} = - 2 K \\left|\\boldsymbol{k}_\\alpha\\right|^2 \\left|b_{\\mathrm{w}, \\alpha}\\right|^2,
+```
+
+which is based on the assumption that wave breaking leads to turbulent fluxes that may be parameterized with a flux-gradient ansatz. The turbulent viscosity and diffusivity
+
+```math
+K = \\left[2 \\Delta t\\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right| \\left|\\boldsymbol{k}_\\alpha\\right|\\right)^2 f_\\alpha\\right]^{- 1} \\max \\left[0, \\sum_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha - \\alpha_\\mathrm{S}^2 N^4\\right]
+```
+
+is such that wave action is reduced exactly to the saturation threshold. The two sums involved in this scheme (discretizations of spectral integrals) are computed with `compute_spectral_integrals`.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step for saturation calculation
+  - `state`: Model state.
+
+  - `dt`: Time step.
+
+  - `testcase`: Test case on which the current simulation is based.
+
+  - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_saturation_integrals`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
 """
+function apply_saturation_scheme! end
+
 function apply_saturation_scheme!(state::State, dt::AbstractFloat)
     (; testcase) = state.namelists.setting
     apply_saturation_scheme!(state, dt, testcase)
     return
 end
 
-"""
-    apply_saturation_scheme!(state::State, dt::AbstractFloat, testcase::AbstractTestCase)
-
-No-op for non-WKB test cases.
-
-Standard test cases don't use ray tracing or wave saturation.
-
-# Arguments
-
-  - `state::State`: Simulation state (unused)
-  - `dt::AbstractFloat`: Time step (unused)
-  - `testcase::AbstractTestCase`: Non-WKB test case
-"""
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
@@ -38,19 +99,6 @@ function apply_saturation_scheme!(
     return
 end
 
-"""
-    apply_saturation_scheme!(state::State, dt::AbstractFloat, testcase::AbstractWKBTestCase)
-
-Apply saturation scheme for WKB test cases based on WKB mode.
-
-Dispatches to the specific WKB mode implementation.
-
-# Arguments
-
-  - `state::State`: Simulation state containing WKB configuration
-  - `dt::AbstractFloat`: Time step for saturation calculation
-  - `testcase::AbstractWKBTestCase`: WKB test case specification
-"""
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
@@ -61,20 +109,6 @@ function apply_saturation_scheme!(
     return
 end
 
-"""
-    apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::SteadyState)
-
-No-op for steady-state WKB mode.
-
-Steady-state mode handles saturation differently, typically within
-the propagation step rather than as a separate scheme.
-
-# Arguments
-
-  - `state::State`: Simulation state (unused)
-  - `dt::AbstractFloat`: Time step (unused)
-  - `wkb_mode::SteadyState`: Steady-state WKB mode
-"""
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
@@ -83,69 +117,6 @@ function apply_saturation_scheme!(
     return
 end
 
-"""
-    apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::AbstractWKBMode)
-
-Apply wave breaking saturation scheme to limit wave amplitudes.
-
-Implements a parameterization of wave breaking that prevents wave amplitudes
-from exceeding critical values, representing the onset of convective instability
-and turbulent mixing in the atmosphere.
-
-# Arguments
-
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step for diffusion calculation
-  - `wkb_mode::AbstractWKBMode`: WKB mode (MultiColumn, SingleColumn, etc.)
-
-# Saturation Theory
-
-Wave breaking occurs when wave-induced potential temperature perturbations
-exceed a critical fraction of the background stratification:
-
-`|θ'| > α_sat · θ₀ · N/g`
-
-where:
-
-  - `α_sat`: Saturation parameter (typically 0.1-1.0)
-  - `θ₀`: Background potential temperature
-  - `N`: Brunt-Väisälä frequency
-  - `g`: Gravitational acceleration
-
-# Algorithm
-
- 1. **Saturation Integral**: Compute `mb2 = ∫ (wave momentum flux)`
- 2. **Critical Value**: `mb2_crit = α_sat² · N²`
- 3. **Diffusion Coefficient**: `κ = (mb2 - mb2_crit) / (2·dt·mb2k2)` if mb2 > mb2_crit
- 4. **Wave Action Reduction**: `A_new = A_old · max(0, 1 - 2κ·dt·|k|²)`
- 5. **Ray Removal**: Remove rays with zero wave action
-
-# Saturation Integrals
-
-  - `mb2`: Total squared momentum flux `∫ ρ·A·ω·(k²+l²+m²)`
-  - `mb2k2`: Weighted momentum flux for diffusion `∫ ρ·A·ω·|k|²·(vertical transport)`
-
-# Physical Interpretation
-
-  - **Pre-breaking**: Waves propagate without significant damping
-  - **At saturation**: Turbulent diffusion removes excess wave energy
-  - **Post-breaking**: Wave field relaxes toward saturated state
-
-# Grid Cell Processing
-
-Applied independently to each grid cell, allowing for spatially varying
-saturation based on local wave field and background conditions.
-
-# Diagnostics
-
-  - Reports saturation violations if residual exceeds tolerance
-  - Removes rays with negligible wave action density
-
-# Conservation
-
-Total wave action is not conserved during saturation - the "lost" action
-represents conversion to turbulent kinetic energy and mixing.
-"""
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,

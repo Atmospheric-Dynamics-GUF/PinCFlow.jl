@@ -1,15 +1,93 @@
+"""
+```julia
+Interpolation
+```
+
+Module for interpolating mean-flow quantities to ray-volume positions.
+
+Provides functions that find the grid points closest to a given ray-volume position and perform trilinear interpolation of mean-flow quantities.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.Update`](@ref)
+"""
 module Interpolation
 
 using ...Types
 using ...Update
 
+"""
+```julia
+N2 <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``N^2``.
+"""
 struct N2 <: AbstractVariable end
+
+"""
+```julia
+DN2DZ <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial N^2 / \\partial z``.
+"""
 struct DN2DZ <: AbstractVariable end
+
+"""
+```julia
+DUDX <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial x``.
+"""
 struct DUDX <: AbstractVariable end
+
+"""
+```julia
+DUDY <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial y``.
+"""
 struct DUDY <: AbstractVariable end
+
+"""
+```julia
+DUDZ <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial z``.
+"""
 struct DUDZ <: AbstractVariable end
+
+"""
+```julia
+DVDX <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial x``.
+"""
 struct DVDX <: AbstractVariable end
+
+"""
+```julia
+DVDY <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial y``.
+"""
 struct DVDY <: AbstractVariable end
+
+"""
+```julia
+DVDZ <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial z``.
+"""
 struct DVDZ <: AbstractVariable end
 
 include("compute_derivatives.jl")

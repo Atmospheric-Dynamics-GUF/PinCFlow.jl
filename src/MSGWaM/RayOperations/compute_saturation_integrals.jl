@@ -1,94 +1,56 @@
 """
-    compute_saturation_integrals(state::State, indices::NTuple{3, <:Integer}) -> Tuple{AbstractFloat, AbstractFloat}
+```julia
+compute_saturation_integrals(
+    state::State,
+    indices::NTuple{3, <:Integer},
+)::NTuple{2, <:AbstractFloat}
+```
 
-Compute wave saturation integrals for a grid cell.
+Compute and return the two spectral integrals ``S_1`` and ``S_2``, as needed by the saturation scheme (in the grid cell specified by `indices`).
 
-Calculates the momentum flux and diffusion integrals needed for the wave
-saturation scheme, which parameterizes wave breaking when wave amplitudes
-exceed critical values.
+Computes the sums
+
+```math
+\\begin{align*}
+    S_1 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha,\\\\
+    S_2 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right| \\left|\\boldsymbol{k}_\\alpha\\right|\\right)^2 f_\\alpha,
+\\end{align*}
+```
+
+where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}`` is the wavevector,
+
+```math
+f_\\alpha = \\max \\left(1, \\frac{\\Delta x_\\alpha}{\\Delta \\widehat{x}}\\right) \\max \\left(1, \\frac{\\Delta y_\\alpha}{\\Delta \\widehat{y}}\\right) \\max \\left(1, \\frac{\\Delta z_\\alpha}{J \\Delta \\widehat{z}}\\right)
+```
+
+is the maximum grid-cell fraction that can be covered by each ray volume (with ``\\left(\\Delta x_\\alpha, \\Delta y_\\alpha, \\Delta z_\\alpha\\right)`` being the ray-volume extents in physical space) and
+
+```math
+\\left|b_{\\mathrm{w}, \\alpha}\\right|^2 = \\frac{2}{\\overline{\\rho}} \\frac{N_\\alpha^4 \\left(k_\\alpha^2 + l_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2} \\mathcal{N}_\\alpha \\Delta k_\\alpha \\Delta l_\\alpha \\Delta m_\\alpha
+```
+
+is the squared gravity-wave amplitude of the buoyancy. Therein, ``\\overline{\\rho}`` is the background density, ``N_\\alpha^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`), ``\\widehat{\\omega}_\\alpha`` is the intrinsic frequency (calculated with `compute_intrinsic_frequency`), ``\\mathcal{N}_\\alpha`` is the phase-space wave-action density and ``\\left(\\Delta k_\\alpha, \\Delta l_\\alpha, \\Delta m_\\alpha\\right)`` are the ray-volume extents in spectral space.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `indices::NTuple{3, <:Integer}`: Grid cell indices (ix, jy, kz)
+  - `state`: Model state.
 
-# Returns
+  - `indices`: Grid-cell indices.
 
-  - `Tuple{AbstractFloat, AbstractFloat}`: Saturation integrals (mb2, mb2k2)
+# See also
 
-      + `mb2`: Total momentum flux integral `∫ ρ·A·ω·(k²+l²+m²)`
-      + `mb2k2`: Diffusion-weighted integral for saturation calculation
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 
-# Physical Theory
+  - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
 
-## Wave Breaking Criterion
-
-Convective instability occurs when potential temperature perturbations exceed:
-`|θ'| > α_sat · θ₀ · N/g`
-
-## Momentum Flux Integral
-
-`mb2 = ∫ (2N²/ρ₀) · A · (k²m²/(k²+l²+m²)) · (1/ω) · dV_phasespace`
-
-where:
-
-  - `N²`: Brunt-Väisälä frequency squared
-  - `ρ₀`: Background density
-  - `A`: Wave action density
-  - `k²,l²,m²`: Wavenumber components
-  - `ω`: Intrinsic frequency
-  - `dV_phasespace`: Phase space volume element
-
-## Diffusion Integral
-
-`mb2k2`: Similar to mb2 but weighted for diffusion calculations
-
-# Algorithm
-
- 1. **Ray Loop**: Iterate over all ray volumes in the grid cell
- 2. **Position Mapping**: Determine which grid cell each ray occupies
- 3. **Phase Space Factors**: Compute spatial and spectral overlap fractions
- 4. **Local Properties**: Interpolate stratification and compute frequency
- 5. **Integral Contributions**: Add weighted contributions from each ray
-
-# Saturation Scheme
-
-Used to compute turbulent diffusion coefficient:
-
-```julia
-if mb2 > α_sat² · N²
-    κ = (mb2 - α_sat² · N²) / (2 · dt · mb2k2)
-else
-    κ = 0
-end
-```
-
-# Phase Space Weighting
-
-Accounts for:
-
-  - Ray volume overlap with grid cell
-  - Spectral resolution factors
-  - Coordinate system metrics (terrain-following)
-
-# Applications
-
-  - Wave breaking parameterization
-  - Turbulent mixing calculations
-  - Energy dissipation estimates
-  - Momentum flux saturation
-
-# Grid Cell Association
-
-    # Get indices.
-
-Rays are associated with grid cells based on their center positions,
-with appropriate interpolation for rays spanning multiple cells.
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
+function compute_saturation_integrals end
+
 function compute_saturation_integrals(
     state::State,
     indices::NTuple{3, <:Integer},
-)
+)::NTuple{2, <:AbstractFloat}
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
     (; io, jo, i0, j0) = domain

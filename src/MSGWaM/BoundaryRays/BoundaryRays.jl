@@ -1,3 +1,22 @@
+"""
+```julia
+BoundaryRays
+```
+
+Module for enforcing boundary conditions for ray volumes.
+
+Provides functions for configurations that are serial or parallel in any dimension of physical space. Assumes periodicity in the horizontal and solid-wall boundaries in the vertical.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.MPIOperations`](@ref)
+
+  - [`PinCFlow.Boundaries`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations`](@ref)
+"""
 module BoundaryRays
 
 using MPI

@@ -1,11 +1,24 @@
 """
-    get_spectral_position(rays::Rays, indices::NTuple{4, <:Integer})
+```julia
+get_spectral_position(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
+```
+
+Return the spectral position of the ray volume specified by `indices` as the tuple `(kr, lr, mr)`.
 
 # Arguments
 
-  - `rays::Rays`: Ray volume data structure
-  - `indices::NTuple{4, <:Integer}`: Ray indices (iray, ix, jy, kz)
+  - `rays`: Collection of ray-volume-property arrays.
+
+  - `indices`: Indices of the ray volume of interest.
 """
-function get_spectral_position(rays::Rays, indices::NTuple{4, <:Integer})
+function get_spectral_position end
+
+function get_spectral_position(
+    rays::Rays,
+    indices::NTuple{4, <:Integer},
+)::NTuple{3, <:AbstractFloat}
     return (rays.k[indices...], rays.l[indices...], rays.m[indices...])
 end

@@ -1,8 +1,17 @@
 """
-    Boundaries
+```julia
+Boundaries
+```
 
-Module for setting boundary conditions on different variable types and field dimensions.
-Handles periodic boundaries, solid wall boundaries, and MPI halo exchanges.
+Module for enforcing boundary conditions for different variable types and field dimensions.
+
+Handles periodic boundaries in the horizontal and solid-wall boundaries in the vertical, as well as MPI communication in all dimensions.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.MPIOperations`](@ref)
 """
 module Boundaries
 
@@ -10,34 +19,58 @@ using ..Types
 using ..MPIOperations
 
 """
-Abstract type for boundary variable categories.
+```julia
+AbstractBoundaryVariables
+```
+
+Abstract type for boundary-variable categories.
 """
 abstract type AbstractBoundaryVariables end
 
 """
-Boundary variables for predictand fields (rho, rhop, u, v, w, pip).
+```julia
+BoundaryPredictands <: AbstractBoundaryVariables
+```
+
+Boundary-variable category for predictand fields.
 """
 struct BoundaryPredictands <: AbstractBoundaryVariables end
 
 """
-Boundary variables for reconstruction fields.
+```julia
+BoundaryReconstructions <: AbstractBoundaryVariables
+```
+
+Boundary-variable category for reconstruction fields.
 """
 struct BoundaryReconstructions <: AbstractBoundaryVariables end
 
 """
-Boundary variables for flux fields.
+```julia
+BoundaryFluxes <: AbstractBoundaryVariables
+```
+
+Boundary-variable category for flux fields.
 """
 struct BoundaryFluxes <: AbstractBoundaryVariables end
 
 """
-Boundary variables for gravity wave integral fields.
+```julia
+BoundaryWKBIntegrals <: AbstractBoundaryVariables
+```
+
+Boundary-variable category for gravity-wave-integral fields.
 """
-struct BoundaryGWIntegrals <: AbstractBoundaryVariables end
+struct BoundaryWKBIntegrals <: AbstractBoundaryVariables end
 
 """
-Boundary variables for gravity wave tendency fields.
+```julia
+BoundaryWKBTendencies <: AbstractBoundaryVariables
+```
+
+Boundary-variable category for gravity-wave-tendency fields.
 """
-struct BoundaryGWTendencies <: AbstractBoundaryVariables end
+struct BoundaryWKBTendencies <: AbstractBoundaryVariables end
 
 include("set_boundaries!.jl")
 include("set_compressible_meridional_boundaries!.jl")
@@ -62,8 +95,8 @@ include("set_zonal_boundaries!.jl")
 export BoundaryPredictands,
     BoundaryReconstructions,
     BoundaryFluxes,
-    BoundaryGWIntegrals,
-    BoundaryGWTendencies
+    BoundaryWKBIntegrals,
+    BoundaryWKBTendencies
 
 export set_boundaries!,
     set_meridional_boundaries_of_field!,

@@ -1,3 +1,113 @@
+"""
+```julia
+WKBNamelist{
+    A <: AbstractFloat,
+    B <: Integer,
+    C <: AbstractMergeMode,
+    D <: Bool,
+    E <: AbstractWKBFilter,
+    F <: AbstractWKBMode,
+}
+```
+
+Namelist for parameters used by MSGWaM.
+
+```julia
+WKBNamelist(;
+    xrmin_dim::AbstractFloat = 0.0E+0,
+    xrmax_dim::AbstractFloat = 1.0E+3,
+    yrmin_dim::AbstractFloat = 0.0E+0,
+    yrmax_dim::AbstractFloat = 1.0E+3,
+    zrmin_dim::AbstractFloat = 0.0E+0,
+    zrmax_dim::AbstractFloat = 1.0E+3,
+    nrxl::Integer = 1,
+    nryl::Integer = 1,
+    nrzl::Integer = 1,
+    nrk_init::Integer = 1,
+    nrl_init::Integer = 1,
+    nrm_init::Integer = 1,
+    nray_fac::Integer = 4,
+    fac_dk_init::AbstractFloat = 1.0E-1,
+    fac_dl_init::AbstractFloat = 1.0E-1,
+    fac_dm_init::AbstractFloat = 1.0E-1,
+    branchr::Integer = -1,
+    merge_mode::AbstractMergeMode = ConstantWaveAction(),
+    nsmth_wkb::Integer = 2,
+    lsmth_wkb::Bool = true,
+    sm_filter::AbstractWKBFilter = Shapiro(),
+    zmin_wkb_dim::AbstractFloat = 0.0E+0,
+    lsaturation::Bool = true,
+    alpha_sat::AbstractFloat = 1.0E+0,
+    wkb_mode::AbstractWKBMode = MultiColumn(),
+    blocking::Bool = false,
+    long_threshold::AbstractFloat = 2.5E-1,
+    drag_coefficient::AbstractFloat = 1.0E+0,
+    nwm::Integer = 1,
+)::WKBNamelist
+```
+
+Construct a `WKBNamelist` instance with the given keyword arguments as properties.
+
+# Fields/Keywords
+
+  - `xrmin_dim::A`: Lower bound in ``x`` of the region where ray volumes are initialized.
+
+  - `xrmax_dim::A`: Upper bound in ``x`` of the region where ray volumes are initialized.
+
+  - `yrmin_dim::A`: Lower bound in ``y`` of the region where ray volumes are initialized.
+
+  - `yrmax_dim::A`: Upper bound in ``y`` of the region where ray volumes are initialized.
+
+  - `zrmin_dim::A`: Lower bound in ``z`` of the region where ray volumes are initialized.
+
+  - `zrmax_dim::A`: Upper bound in ``z`` of the region where ray volumes are initialized.
+
+  - `nrxl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{x}``-direction.
+
+  - `nryl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{y}``-direction.
+
+  - `nrzl::B`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{z}``-direction.
+
+  - `nrk_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
+
+  - `nrl_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``l``-direction.
+
+  - `nrm_init::B`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
+
+  - `nray_fac::B`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
+
+  - `fac_dk_init::A`: Relative inital ray-volume extent in ``k``.
+
+  - `fac_dl_init::A`: Relative inital ray-volume extent in ``l``.
+
+  - `fac_dm_init::A`: Relative inital ray-volume extent in ``m``.
+
+  - `branchr::B`: Frequency branch.
+
+  - `merge_mode::C`: Ray-volume merging strategy (conserved quantity).
+
+  - `nsmth_wkb::B`: Order of the smoothing applied to the mean-flow tendencies.
+
+  - `lsmth_wkb::D`: Switch for smoothing the mean-flow tendencies.
+
+  - `sm_filter::E`: Filter to use for the smoothing of the mean-flow tendencies.
+
+  - `zmin_wkb_dim::A`: Minimum altitude for ray-tracing and mean-flow impact.
+
+  - `lsaturation::D`: Switch for the saturation scheme.
+
+  - `alpha_sat::A`: Relative saturation threshold.
+
+  - `wkb_mode::F`: Approximations used by MSGWaM.
+
+  - `blocking::D`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
+
+  - `long_threshold::A`: Long-number threshold used by the blocked-layer scheme.
+
+  - `drag_coefficient::A`: Dimensionless (relative) drag coefficient used by the blocked layer scheme.
+
+  - `nwm::B`: Number of wave modes per grid cell.
+"""
 struct WKBNamelist{
     A <: AbstractFloat,
     B <: Integer,
@@ -37,75 +147,37 @@ struct WKBNamelist{
     nwm::B
 end
 
-"""
-    WKBNamelist(; <keyword arguments>)
-
-Construct a WKBNamelist instance, which holds parameters for the WKB ray tracing algorithm.
-
-# Arguments:
-
-  - `xrmin_dim::AbstractFloat = 0.0E+0`: Minimum x-coordinate of ray tracing domain in dimensional units.
-  - `xrmax_dim::AbstractFloat = 1.0E+3`: Maximum x-coordinate of ray tracing domain in dimensional units.
-  - `yrmin_dim::AbstractFloat = 0.0E+0`: Minimum y-coordinate of ray tracing domain in dimensional units.
-  - `yrmax_dim::AbstractFloat = 1.0E+3`: Maximum y-coordinate of ray tracing domain in dimensional units.
-  - `zrmin_dim::AbstractFloat = 0.0E+0`: Minimum z-coordinate of ray tracing domain in dimensional units.
-  - `zrmax_dim::AbstractFloat = 1.0E+3`: Maximum z-coordinate of ray tracing domain in dimensional units.
-  - `nrxl::Integer = 1`: Number of ray launch points in x-direction.
-  - `nryl::Integer = 1`: Number of ray launch points in y-direction.
-  - `nrzl::Integer = 1`: Number of ray launch points in z-direction.
-  - `nrk_init::Integer = 1`: Initial number of wavenumber points in x-direction.
-  - `nrl_init::Integer = 1`: Initial number of wavenumber points in y-direction.
-  - `nrm_init::Integer = 1`: Initial number of wavenumber points in z-direction.
-  - `nray_fac::Integer = 4`: Ray multiplication factor.
-  - `fac_dk_init::AbstractFloat = 1.0E-1`: Initial wavenumber spacing factor in x-direction.
-  - `fac_dl_init::AbstractFloat = 1.0E-1`: Initial wavenumber spacing factor in y-direction.
-  - `fac_dm_init::AbstractFloat = 1.0E-1`: Initial wavenumber spacing factor in z-direction.
-  - `branchr::Integer = -1`: Branch selection for ray tracing.
-  - `merge_mode::AbstractMergeMode = ConstantWaveAction()`: Algorithm to use when merging ray beams.
-  - `nsmth_wkb::Integer = 2`: Number of smoothing passes for WKB solution.
-  - `lsmth_wkb::Bool = true`: Whether to apply smoothing to WKB solution.
-  - `sm_filter::AbstractWKBFilter = Shapiro()`: Type of smoothing filter to apply to WKB solution.
-  - `zmin_wkb_dim::AbstractFloat = 0.0`: Minimum height for WKB calculation in dimensional units.
-  - `lsaturation::Bool = true`: Whether to apply wave saturation.
-  - `alpha_sat::AbstractFloat = 1.0E+0`: Saturation coefficient.
-  - `wkb_mode::AbstractWKBMode = MultiColumn()`: WKB calculation mode.
-  - `blocking::Bool = false`: Whether to apply wave blocking.
-  - `long_threshold::AbstractFloat = 2.5E-1`: Threshold for long wavelength approximation.
-  - `drag_coefficient::AbstractFloat = 1.0E+0`: Coefficient for wave-induced drag.
-  - `nwm::Integer = 1`: Number of wave modes.
-  - `launch_algorithm::AbstractLaunchAlgorithm = Clip()`: Algorithm used for wave launching.
-"""
 function WKBNamelist(;
-    xrmin_dim = 0.0E+0,
-    xrmax_dim = 1.0E+3,
-    yrmin_dim = 0.0E+0,
-    yrmax_dim = 1.0E+3,
-    zrmin_dim = 0.0E+0,
-    zrmax_dim = 1.0E+3,
-    nrxl = 1,
-    nryl = 1,
-    nrzl = 1,
-    nrk_init = 1,
-    nrl_init = 1,
-    nrm_init = 1,
-    nray_fac = 4,
-    fac_dk_init = 1.0E-1,
-    fac_dl_init = 1.0E-1,
-    fac_dm_init = 1.0E-1,
-    branchr = -1,
-    merge_mode = ConstantWaveAction(),
-    nsmth_wkb = 2,
-    lsmth_wkb = true,
-    sm_filter = Shapiro(),
-    zmin_wkb_dim = 0.0,
-    lsaturation = true,
-    alpha_sat = 1.0E+0,
-    wkb_mode = MultiColumn(),
-    blocking = false,
-    long_threshold = 2.5E-1,
-    drag_coefficient = 1.0E+0,
-    nwm = 1,
-)
+    xrmin_dim::AbstractFloat = 0.0E+0,
+    xrmax_dim::AbstractFloat = 1.0E+3,
+    yrmin_dim::AbstractFloat = 0.0E+0,
+    yrmax_dim::AbstractFloat = 1.0E+3,
+    zrmin_dim::AbstractFloat = 0.0E+0,
+    zrmax_dim::AbstractFloat = 1.0E+3,
+    nrxl::Integer = 1,
+    nryl::Integer = 1,
+    nrzl::Integer = 1,
+    nrk_init::Integer = 1,
+    nrl_init::Integer = 1,
+    nrm_init::Integer = 1,
+    nray_fac::Integer = 4,
+    fac_dk_init::AbstractFloat = 1.0E-1,
+    fac_dl_init::AbstractFloat = 1.0E-1,
+    fac_dm_init::AbstractFloat = 1.0E-1,
+    branchr::Integer = -1,
+    merge_mode::AbstractMergeMode = ConstantWaveAction(),
+    nsmth_wkb::Integer = 2,
+    lsmth_wkb::Bool = true,
+    sm_filter::AbstractWKBFilter = Shapiro(),
+    zmin_wkb_dim::AbstractFloat = 0.0E+0,
+    lsaturation::Bool = true,
+    alpha_sat::AbstractFloat = 1.0E+0,
+    wkb_mode::AbstractWKBMode = MultiColumn(),
+    blocking::Bool = false,
+    long_threshold::AbstractFloat = 2.5E-1,
+    drag_coefficient::AbstractFloat = 1.0E+0,
+    nwm::Integer = 1,
+)::WKBNamelist
     return WKBNamelist(
         xrmin_dim,
         xrmax_dim,

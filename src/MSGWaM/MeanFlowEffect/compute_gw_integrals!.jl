@@ -1,77 +1,97 @@
 """
-    compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+```julia
+compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+```
 
-Compute gravity wave momentum flux integrals for multi-column WKB mode.
+Compute the gravity-wave integrals needed for the computation of the mean-flow impact in multi-column mode.
 
-Calculates momentum flux and Eliassen-Palm flux components by integrating
-over all ray volumes, accounting for their spatial and spectral distribution
-across grid cells.
+This method computes the sums
+
+```math
+\\begin{align*}
+    M_{u u} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} u_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    M_{u v} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} v_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    M_{u w} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} w_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    M_{v v} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} v_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    M_{v w} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} w_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    T_u & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    T_v & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    E_u & = \\frac{f}{\\overline{\\theta}} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    E_v & = \\frac{f}{\\overline{\\theta}} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
+    E & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F \\mathcal{E}\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}.
+\\end{align*}
+```
+
+Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes that are at least partially within the grid cell at ``\\left(i, j, k\\right)``, ``F_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}`` are the corresponding ray volume fractions and ``\\left(u_\\mathrm{w}, v_\\mathrm{w}, w_\\mathrm{w}, \\theta_\\mathrm{w}, \\mathcal{E}\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}`` are the wave amplitudes of the wind, those of the potential temperature and the wave-energy densities. The background density, Coriolis parameter and background potential temperature are denoted by ``\\overline{\\rho}``, ``f`` and ``\\overline{\\theta}``, respectively. The computation is based on the relations
+
+```math
+\\begin{align*}
+    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} u_{\\mathrm{w}, \\alpha}^* & = \\left(k_\\alpha \\widehat{c}_{\\mathrm{g} x, \\alpha} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_\\alpha \\widehat{c}_{\\mathrm{g} x, \\alpha} + l_\\alpha \\widehat{c}_{\\mathrm{g} y, \\alpha}}{1 - \\left(\\widehat{\\omega}_\\alpha / f\\right)^2}\\right) \\mathcal{A}_\\alpha,\\\\
+    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} v_{\\mathrm{w}, \\alpha}^* & = l_\\alpha \\widehat{c}_{\\mathrm{g} x, \\alpha} \\mathcal{A}_\\alpha,\\\\
+    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = \\frac{k_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha}}{1 - \\left(f / \\widehat{\\omega}_\\alpha\\right)^2} \\mathcal{A}_\\alpha,\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} v_{\\mathrm{w}, \\alpha}^* & = \\left(l_\\alpha \\widehat{c}_{\\mathrm{g} y, \\alpha} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_\\alpha \\widehat{c}_{\\mathrm{g} x, \\alpha} + l_\\alpha \\widehat{c}_{\\mathrm{g} y, \\alpha}}{1 - \\left(\\widehat{\\omega}_\\alpha / f\\right)^2}\\right) \\mathcal{A}_\\alpha,\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = \\frac{l_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha}}{1 - \\left(f / \\widehat{\\omega}_\\alpha\\right)^2} \\mathcal{A}_\\alpha,\\\\
+    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} \\theta_{\\mathrm{w}, \\alpha}^* & = \\frac{f}{g \\overline{\\theta}} \\frac{l_\\alpha m_\\alpha N_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} \\theta_{\\mathrm{w}, \\alpha}^* & = - \\frac{f}{g \\overline{\\theta}} \\frac{k_\\alpha m_\\alpha N_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\mathcal{E}_\\alpha & = \\widehat{\\omega}_\\alpha \\mathcal{A}_\\alpha,
+\\end{align*}
+```
+
+where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}``, ``\\widehat{\\boldsymbol{c}}_{\\mathrm{g}, \\alpha} = \\left(\\widehat{c}_{\\mathrm{g} x, \\alpha}, \\widehat{c}_{\\mathrm{g} y, \\alpha}, \\widehat{c}_{\\mathrm{g} z, \\alpha}\\right)^\\mathrm{T}``, ``\\widehat{\\omega}_\\alpha``, ``\\mathcal{A}_\\alpha``, ``g`` and ``N_\\alpha^2`` are the wavevector, intrinsic group velocity, intrinsic frequency, wave-action density, gravitational acceleration and squared buoyancy frequency interpolated to the ray-volume position, respectively. The components of the intrinsic group velocity are given by
+
+```math
+\\begin{align*}
+    \\widehat{c}_{\\mathrm{g} x, \\alpha} & = \\frac{k_\\alpha \\left(N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\widehat{c}_{\\mathrm{g} y, \\alpha} & = \\frac{l_\\alpha \\left(N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\widehat{c}_{\\mathrm{g} z, \\alpha} & = - \\frac{m_\\alpha \\left(\\widehat{\\omega}_\\alpha^2 - f^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2}.
+\\end{align*}
+```
+
+```julia
+compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+```
+
+Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
+
+This method computes the sums ``M_{u w}``, ``M_{v w}``, ``T_u``, ``T_v``, ``E_u``, ``E_v`` and ``E`` (see above for details).
+
+```julia
+compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+```
+
+Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
+
+This method computes the sums ``M_{u w}`` and ``M_{v w}`` (see above for details). In contrast to the multi-column and single-column modes, the steady-state mode uses the pseudo-momentum approximation
+
+```math
+\\begin{align*}
+    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = k_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha} \\mathcal{A}_\\alpha,\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = l_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha} \\mathcal{A}_\\alpha.
+\\end{align*}
+```
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `wkb_mode::MultiColumn`: Multi-column WKB mode allowing horizontal propagation
+  - `state::State`: Model state.
 
-# Computed Integrals
+  - `wkb_mode`: Approximations used by MSGWaM.
 
-## Momentum Flux Components
+# See also
 
-  - `uu`: Zonal momentum flux in x-direction `⟨u'u'⟩`
-  - `uv`: Cross momentum flux `⟨u'v'⟩`
-  - `uw`: Vertical zonal momentum flux `⟨u'w'⟩`
-  - `vv`: Meridional momentum flux in y-direction `⟨v'v'⟩`
-  - `vw`: Vertical meridional momentum flux `⟨v'w'⟩`
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
-## Eliassen-Palm Components
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
 
-  - `etx`: Zonal EP flux component
-  - `ety`: Meridional EP flux component
-  - `utheta`: Zonal heat flux `⟨u'θ'⟩`
-  - `vtheta`: Meridional heat flux `⟨v'θ'⟩`
-
-## Energy
-
-  - `e`: Wave energy density
-
-# Integration Process
-
-For each ray volume:
-
- 1. **Overlap Calculation**: Determine which grid cells the ray intersects
- 2. **Phase Space Factors**: Compute spectral and spatial overlap fractions
- 3. **Group Velocities**: Calculate from local dispersion relation
- 4. **Flux Components**: Compute momentum flux using group velocity relations
- 5. **Grid Integration**: Distribute ray contribution across overlapping cells
-
-# Dispersion Relations
-
-Uses full gravity wave dispersion relation including rotation:
-
-  - `ω² = N²k_h²/(k_h² + m²) + f²m²/(k_h² + m²)`
-  - Group velocities: `cg_i = ∂ω/∂k_i`
-
-# Rotational Effects
-
-When Coriolis parameter `f ≠ 0`:
-
-  - Modified momentum flux expressions account for wave polarization
-  - Eliassen-Palm fluxes include geostrophic adjustment effects
-  - Heat flux components computed from EP flux relations
-
-# Spatial Distribution
-
-Ray contributions are distributed across grid cells based on:
-
-  - **Physical overlap**: Ray volume intersection with grid cells
-  - **Spectral weighting**: Wavenumber extent and resolution
-  - **Phase space volume**: Conservation of wave action density    # Set Coriolis parameter.
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
+function compute_gw_integrals! end
+
 function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
-    (; tref) = state.constants
+    (; g_ndim, tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = grid
     (; rhostrattfc, thetastrattfc) = state.atmosphere
@@ -80,7 +100,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWIntegrals)
+    for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
 
@@ -236,49 +256,12 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     end
 end
 
-"""
-    compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
-
-Compute gravity wave integrals for single-column WKB mode.
-
-Simplified integration for column models where only vertical momentum
-transport matters and horizontal propagation is neglected.
-
-# Arguments
-
-  - `state::State`: Complete simulation state
-  - `wkb_mode::SingleColumn`: Single-column mode with vertical-only propagation
-
-# Computed Integrals
-
-Focus on vertical momentum transport:
-
-  - `uw`: Vertical zonal momentum flux `⟨u'w'⟩`
-  - `vw`: Vertical meridional momentum flux `⟨v'w'⟩`
-  - `etx`, `ety`: Eliassen-Palm flux components
-  - `e`: Wave energy density
-
-# Simplified Physics
-
-  - No horizontal momentum fluxes (`uu`, `uv`, `vv` not computed)
-  - Only vertical group velocity matters
-  - Dispersion relation still includes rotation effects
-  - Heat fluxes computed if rotation present
-
-# Efficiency
-
-Much faster than multi-column mode since:
-
-  - No horizontal ray tracking needed
-  - Simplified overlap calculations
-  - Reduced flux components to compute
-"""
 function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
-    (; tref) = state.constants
+    (; g_ndim, tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = grid
     (; rhostrattfc, thetastrattfc) = state.atmosphere
@@ -287,7 +270,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWIntegrals)
+    for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
 
@@ -411,41 +394,6 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     end
 end
 
-"""
-    compute_gw_integrals!(state::State, wkb_mode::SteadyState)
-
-Compute gravity wave integrals for steady-state WKB mode.
-
-Minimal integration for steady-state mountain wave simulations
-where only essential momentum flux components are needed.
-
-# Arguments
-
-  - `state::State`: Complete simulation state
-  - `wkb_mode::SteadyState`: Steady-state mode with fixed background
-
-# Computed Integrals
-
-Only essential momentum transport:
-
-  - `uw`: Vertical zonal momentum flux
-  - `vw`: Vertical meridional momentum flux
-
-# Steady-State Assumptions
-
-  - Background atmosphere is time-independent
-  - Wave field reaches quasi-equilibrium
-  - Only vertical momentum transport affects mean flow
-  - No EP flux computations needed
-
-# Applications
-
-Optimized for:
-
-  - Mountain wave drag parameterizations
-  - Long-term climate integrations
-  - Cases where transient effects are negligible
-"""
 function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -459,7 +407,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(GWIntegrals)
+    for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
 

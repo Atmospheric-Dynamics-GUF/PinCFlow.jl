@@ -1,42 +1,75 @@
 """
-    Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
-Storage for 27-point stencil matrix coefficients of the Poisson operator.
+Tensor elements of the linear operator, as computed by [`PinCFlow.PoissonSolver.compute_operator!`](@ref).
+
+```julia
+Tensor(domain::Domain)::Tensor
+```
+
+Create a `Tensor` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
 
 # Fields
 
-  - `ac_b::A`: Center coefficient
-  - `acv_b::A`: Center vertical coefficient
-  - `ach_b::A`: Center horizontal coefficient
-  - `al_b::A`: Left neighbor coefficient
-  - `ar_b::A`: Right neighbor coefficient
-  - `ab_b::A`: Back neighbor coefficient
-  - `af_b::A`: Front neighbor coefficient
-  - `ad_b::A`: Down neighbor coefficient
-  - `au_b::A`: Up neighbor coefficient
-  - `ald_b::A`: Left-down diagonal coefficient
-  - `alu_b::A`: Left-up diagonal coefficient
-  - `ard_b::A`: Right-down diagonal coefficient
-  - `aru_b::A`: Right-up diagonal coefficient
-  - `abd_b::A`: Back-down diagonal coefficient
-  - `abu_b::A`: Back-up diagonal coefficient
-  - `afd_b::A`: Front-down diagonal coefficient
-  - `afu_b::A`: Front-up diagonal coefficient
-  - `add_b::A`: Down-down coefficient
-  - `auu_b::A`: Up-up coefficient
-  - `aldd_b::A`: Left-down-down coefficient
-  - `aluu_b::A`: Left-up-up coefficient
-  - `ardd_b::A`: Right-down-down coefficient
-  - `aruu_b::A`: Right-up-up coefficient
-  - `abdd_b::A`: Back-down-down coefficient
-  - `abuu_b::A`: Back-up-up coefficient
-  - `afdd_b::A`: Front-down-down coefficient
-  - `afuu_b::A`: Front-up-up coefficient
+  - `ac_b::A`: Coefficient applied to ``s``.
 
-# Usage
+  - `acv_b::A`: Sum of vertical coefficients (upper and lower diagonals).
 
-Matrix coefficients are computed by [`PinCFlow.PoissonSolver.compute_operator!`](@ref)
-and used by [`PinCFlow.PoissonSolver.apply_operator!`](@ref) for matrix-vector products.
+  - `ach_b::A`: Sum of horizontal coefficients (left, right, forward and backward diagonals).
+
+  - `al_b::A`: Coefficient applied to ``s_{i - 1}``.
+
+  - `ar_b::A`: Coefficient applied to ``s_{i + 1}``.
+
+  - `ab_b::A`: Coefficient applied to ``s_{j - 1}``.
+
+  - `af_b::A`: Coefficient applied to ``s_{j + 1}``.
+
+  - `ad_b::A`: Coefficient applied to ``s_{k - 1}``.
+
+  - `au_b::A`: Coefficient applied to ``s_{k + 1}``.
+
+  - `ald_b::A`: Coefficient applied to ``s_{i - 1, k - 1}``.
+
+  - `alu_b::A`: Coefficient applied to ``s_{i - 1, k + 1}``.
+
+  - `ard_b::A`: Coefficient applied to ``s_{i + 1, k - 1}``.
+
+  - `aru_b::A`: Coefficient applied to ``s_{i + 1, k + 1}``.
+
+  - `abd_b::A`: Coefficient applied to ``s_{j - 1, k - 1}``.
+
+  - `abu_b::A`: Coefficient applied to ``s_{j - 1, k + 1}``.
+
+  - `afd_b::A`: Coefficient applied to ``s_{j + 1, k - 1}``.
+
+  - `afu_b::A`: Coefficient applied to ``s_{j + 1, k + 1}``.
+
+  - `add_b::A`: Coefficient applied to ``s_{k - 2}``.
+
+  - `auu_b::A`: Coefficient applied to ``s_{k + 2}``.
+
+  - `aldd_b::A`: Coefficient applied to ``s_{i - 1, k - 2}``.
+
+  - `aluu_b::A`: Coefficient applied to ``s_{i - 1, k + 2}``.
+
+  - `ardd_b::A`: Coefficient applied to ``s_{i + 1, k - 2}``.
+
+  - `aruu_b::A`: Coefficient applied to ``s_{i + 1, k + 2}``.
+
+  - `abdd_b::A`: Coefficient applied to ``s_{j - 1, k - 2}``.
+
+  - `abuu_b::A`: Coefficient applied to ``s_{j - 1, k + 2}``.
+
+  - `afdd_b::A`: Coefficient applied to ``s_{j + 1, k - 2}``.
+
+  - `afuu_b::A`: Coefficient applied to ``s_{j + 1, k + 2}``.
+
+# Arguments
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
     ac_b::A
@@ -68,20 +101,7 @@ struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
     afuu_b::A
 end
 
-"""
-    Tensor(domain::Domain)
-
-Initialize tensor coefficient arrays sized according to local domain.
-
-# Arguments
-
-  - `domain::Domain`: Local domain dimensions
-
-# Returns
-
-  - `Tensor`: Container with zero-initialized coefficient arrays
-"""
-function Tensor(domain::Domain)
+function Tensor(domain::Domain)::Tensor
     (; nx, ny, nz) = domain
 
     # Return a Tensor instance.
