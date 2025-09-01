@@ -82,6 +82,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         cgy_max,
         cgz_max,
     ) = state.wkb
+    (; icesetup) = state.namelists.ice    
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -290,6 +291,10 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             cgirz = -wnrm * (omir^2 - fc^2) / (omir * (wnrh^2 + wnrm^2))
             if abs(wzr + cgirz) > abs(cgz_max[ix, jy, kz])
                 cgz_max[ix, jy, kz] = max(cgz_max[ix, jy, kz], abs(wzr + cgirz))
+            end
+
+            if icesetup isa AbstractIce 
+                rays.dphi[iray, ix, jy, kz] = wnrk * xr + wnrl * yr + wnrm * zr
             end
         end
 

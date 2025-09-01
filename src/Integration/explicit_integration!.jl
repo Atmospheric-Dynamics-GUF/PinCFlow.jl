@@ -78,7 +78,8 @@ function explicit_integration!(
             tracersetup,
         )
 
-        update!(state, dtstage, rkstage, icesetup)
+        #CHANGES no ice advection
+        #update!(state, dtstage, rkstage, icesetup)
         apply_unified_sponge!(
             state,
             stepfrac[rkstage] * dtstage,

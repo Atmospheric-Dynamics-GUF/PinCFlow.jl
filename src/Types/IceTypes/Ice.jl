@@ -68,12 +68,25 @@ struct Ice{
     C <: IceAuxiliaries,
     D <: IceReconstructions,
     E <: IceFluxes,
-}
+    F <: IceSource,
+    G <: IceConstants,
+    H <: GW,
+    I <: SgsGW,
+    J <: SgsPredictands,
+    K <: SubGrid
+    }
+    
     icepredictands::A
     iceincrements::B
     iceauxiliaries::C
     icereconstructions::D
     icefluxes::E
+    icesource::F
+    iceconstants::G
+    gw::H
+    sgs::I
+    sgspredictands::J
+    subgrid::K
 end
 
 function Ice(
@@ -83,7 +96,9 @@ function Ice(
     atmosphere::Atmosphere,
     grid::Grid,
     variables::Variables,
-)::Ice
+)
+    iceconstants = IceConstants(constants)
+
     icepredictands = IcePredictands(
         namelists,
         constants,
@@ -91,11 +106,17 @@ function Ice(
         atmosphere,
         grid,
         variables,
+        iceconstants 
     )
     iceincrements = IceIncrements(namelists, domain)
     iceauxiliaries = IceAuxiliaries(icepredictands)
     icereconstructions = IceReconstructions(namelists, domain)
     icefluxes = IceFluxes(namelists, domain)
+    icesource = IceSource(namelists, domain)
+    gw = GW(namelists, domain)
+    subgrid = SubGrid(namelists, domain, grid)
+    sgs = SgsGW(namelists, domain, subgrid)
+    sgspredictands = SgsPredictands(namelists, domain, icepredictands, subgrid)
 
     return Ice(
         icepredictands,
@@ -103,5 +124,11 @@ function Ice(
         iceauxiliaries,
         icereconstructions,
         icefluxes,
+        icesource,
+        iceconstants,
+        gw,
+        sgs,
+        sgspredictands,
+        subgrid
     )
 end

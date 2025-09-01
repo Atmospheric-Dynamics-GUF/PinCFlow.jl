@@ -24,15 +24,15 @@ Construct an `IceAuxiliaries` instance by copying the arrays in `icepredictands`
   - `icepredictands`: Arrays for prognostic ice variables.
 """
 struct IceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
-    initialn::A
-    initialq::A
-    initialqv::A
+	iaux1::A
+	iaux2::A
+	iaux3::A
 end
 
-function IceAuxiliaries(icepredictands::IcePredictands)::IceAuxiliaries
-    initialn = copy(getfield(icepredictands, :n))
-    initialq = copy(getfield(icepredictands, :q))
-    initialqv = copy(getfield(icepredictands, :qv))
+function IceAuxiliaries(icepredictands::IcePredictands)
+	iaux1 = copy(getfield(icepredictands, :n))
+	iaux2 = copy(getfield(icepredictands, :q))
+	iaux3 = copy(getfield(icepredictands, :qv))
 
-    return IceAuxiliaries(initialn, initialq, initialqv)
+	return IceAuxiliaries(iaux1, iaux2, iaux3)
 end
