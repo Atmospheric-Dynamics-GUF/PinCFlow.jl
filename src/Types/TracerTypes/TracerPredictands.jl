@@ -117,11 +117,12 @@ function TracerPredictands(
 )::TracerPredictands
     (; nxx, nyy, nzz) = domain
     (; ztfc) = grid
+    (; lref) = constants
     (; rhostrattfc) = atmosphere
     (; rho) = variables.predictands
     (; testcase) = namelists.setting
 
-    alphatracer = 1.0
+    alphatracer = 1.0 * lref
     chi = zeros(nxx, nyy, nzz)
     chi .= alphatracer .* ztfc
 

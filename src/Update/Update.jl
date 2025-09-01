@@ -54,8 +54,32 @@ RHS
 Singleton for the integration of the right-hand side of an equation.
 """
 struct RHS end
+
+"""
+```julia 
+X 
+```
+
+Singleton for x-axis along which a calculation should be performed.
+"""
 struct X end 
+
+"""
+```julia 
+Y 
+```
+
+Singleton for y-axis along which a calculation should be performed.
+"""
 struct Y end
+
+"""
+```julia 
+Z 
+```
+
+Singleton for z-axis along which a calculation should be performed.
+"""
 struct Z end
 
 include("apply_unified_sponge!.jl")
@@ -71,7 +95,7 @@ include("update!.jl")
 include("conductive_heating.jl")
 include("compute_momentum_diffusion_terms.jl")
 
-export LHS, RHS
+export LHS, RHS, X, Y, Z
 
 export apply_unified_sponge!,
     compute_compressible_buoyancy_factor,

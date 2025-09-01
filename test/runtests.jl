@@ -41,6 +41,8 @@ configurations = Dict(
                     specifyreynolds = false,
                     reinv = 0.0E+0,
                     mu_viscous_dim = 1.5E-5,
+                    mu_conduct_dim = 1.5E-5,
+                    mu_mom_diff_dim = 1.5E-5,
                     background = background,
                     buoyancy_frequency = 1.0E-2,
                     theta0_dim = 3.0E+2,
@@ -136,10 +138,7 @@ configurations = Dict(
                     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
                 )
 
-                tracer = TracerNamelist(; tracersetup = NoTracer())
-
-                turbulence =
-                    TurbulenceNamelist(; turbulencesetup = NoTurbulence())
+                tracer = TracerNamelist(; tracersetup = LinearTracer())
 
                 wkb = WKBNamelist(;
                     xrmin_dim = -5.0E+4,
@@ -196,6 +195,7 @@ configurations = Dict(
                 )
 
                 for key in keys(reference)
+                    println("key = ", key)
                     @test all(isapprox.(data[key], reference[key]))
                 end
 

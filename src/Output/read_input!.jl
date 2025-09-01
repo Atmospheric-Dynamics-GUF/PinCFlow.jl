@@ -22,6 +22,7 @@ function read_input!(state::State)
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; nray_max, nray, rays) = state.wkb
+    (; rhostrattfc) = state.atmosphere
 
     # Determine dimensionality.
     dim = 1
@@ -94,6 +95,21 @@ function read_input!(state::State)
                     (ko + 1):(ko + nz),
                     iin,
                 ] ./ rhoref ./ thetaref
+        end
+
+        if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
+            for field in fieldnames(TracerPredictands)
+                @views getfield(state.tracer.tracerpredictands, field)[i0:i1, j0:j1, k0:k1] =
+                file[string(field)][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    (ko + 1):(ko + nz),
+                    iin,
+                ] .* (
+                        rhostrattfc[i0:i1, j0:j1, k0:k1] .+
+                        rho[i0:i1, j0:j1, k0:k1]
+                )
+            end
         end
 
         # Read ray-volume properties.
