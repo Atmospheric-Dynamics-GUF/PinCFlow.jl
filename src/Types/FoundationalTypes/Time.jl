@@ -13,7 +13,7 @@ Construct a `Time` instance.
 
 # Fields
 
-  - `nstages::A`: Number of Runge-Kutta stages, i.e. ``n_\\mathrm{RK} = 3``.
+  - `nstages::A`: Number of Runge-Kutta stages, i.e. ``N_\\mathrm{RK} = 3``.
 
   - `alphark::B`: Runge-Kutta coefficients for the total tendency, i.e. ``\\boldsymbol{\\alpha}_\\mathrm{RK} = \\left(0, - 5 / 9, - 153 / 128\\right)``.
 
