@@ -18,8 +18,8 @@ end
 x = data["x"][:] ./ 1000
 y = data["y"][:] ./ 1000
 z = data["z"][:, :, :] ./ 1000
-x = [xi for xi in x, iy in 1:size(z)[2], iz in 1:size(z)[3]]
-y = [yi for ix in 1:size(z)[1], yi in y, iz in 1:size(z)[3]]
+x = [xi for xi in x, j in size(z)[2], k in size(z)[3]]
+y = [yj for i in size(z)[1], yj in y, k in size(z)[3]]
 
 # Get the vertical wind.
 w = data["w"][:, :, :, end]
@@ -31,14 +31,14 @@ close(data)
 figure(; figsize = (12, 3))
 
 # Plot in x-y plane.
-iz = 10
+k = 10
 subplot(131)
-(levels, colormap) =
-    symmetric_contours(minimum(w[:, :, iz]), maximum(w[:, :, iz]))
-contours = contourf(
-    x[:, :, iz],
-    y[:, :, iz],
-    w[:, :, iz];
+@views (levels, colormap) =
+    symmetric_contours(minimum(w[:, :, k]), maximum(w[:, :, k]))
+@views contours = contourf(
+    x[:, :, k],
+    y[:, :, k],
+    w[:, :, k];
     levels = levels,
     cmap = colormap,
 )
@@ -48,36 +48,36 @@ title(L"z\approx 5\,\mathrm{km}")
 colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Plot in x-z plane.
-iy = 20
+j = 20
 subplot(132)
-(levels, colormap) =
-    symmetric_contours(minimum(w[:, iy, :]), maximum(w[:, iy, :]))
-contours = contourf(
-    x[:, iy, :],
-    z[:, iy, :],
-    w[:, iy, :];
+@views (levels, colormap) =
+    symmetric_contours(minimum(w[:, j, :]), maximum(w[:, j, :]))
+@views contours = contourf(
+    x[:, j, :],
+    z[:, j, :],
+    w[:, j, :];
     levels = levels,
     cmap = colormap,
 )
-plot(x[:, iy, 1], z[:, iy, 1]; color = "black", linewidth = 0.5)
+@views plot(x[:, j, 1], z[:, j, 1]; color = "black", linewidth = 0.5)
 xlabel(L"x\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"y\approx 0\,\mathrm{km}")
 colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Plot in y-z plane.
-ix = 20
+i = 20
 subplot(133)
-(levels, colormap) =
-    symmetric_contours(minimum(w[ix, :, :]), maximum(w[ix, :, :]))
-contours = contourf(
-    y[ix, :, :],
-    z[ix, :, :],
-    w[ix, :, :];
+@views (levels, colormap) =
+    symmetric_contours(minimum(w[i, :, :]), maximum(w[i, :, :]))
+@views contours = contourf(
+    y[i, :, :],
+    z[i, :, :],
+    w[i, :, :];
     levels = levels,
     cmap = colormap,
 )
-plot(y[ix, :, 1], z[ix, :, 1]; color = "black", linewidth = 0.5)
+@views plot(y[i, :, 1], z[i, :, 1]; color = "black", linewidth = 0.5)
 xlabel(L"y\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"x\approx 0\,\mathrm{km}")
