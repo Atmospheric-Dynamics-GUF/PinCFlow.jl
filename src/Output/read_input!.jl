@@ -17,8 +17,7 @@ function read_input!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model, testcase) = state.namelists.setting
-    (; comm, sizezz, nx, ny, nz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
-        state.domain
+    (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; nray_max, nray, rays) = state.wkb
@@ -32,6 +31,16 @@ function read_input!(state::State)
         dim += 1
     end
 
+    # Define slices.
+    dk0 = ko == 0 ? 1 : 0
+    (r, i, j, k, kr) = (1:nray_max, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (id, jd, kd, krd) = (
+        (io + 1):(io + nx),
+        (jo + 1):(jo + ny),
+        (ko + 1):(ko + nz),
+        (ko + 2 - dk0):(ko + nz + 1),
+    )
+
     # Open the file. Note: Fused in-place assignments cannot be used here!
     time = h5open(input_file, "r", comm) do file
 
@@ -39,124 +48,61 @@ function read_input!(state::State)
         time = file["t"][iin] / tref
 
         # Read the density fluctuations.
-        @views rhop[i0:i1, j0:j1, k0:k1] =
-            file["rhop"][
-                (io + 1):(io + nx),
-                (jo + 1):(jo + ny),
-                (ko + 1):(ko + nz),
-                iin,
-            ] ./ rhoref
+        rhop[i, j, k] = file["rhop"][id, jd, kd, iin] ./ rhoref
         if model != Boussinesq()
-            @views rho[i0:i1, j0:j1, k0:k1] .= rhop[i0:i1, j0:j1, k0:k1]
+            for kk in k, jj in j, ii in i
+                rho[ii, jj, kk] = rhop[ii, jj, kk]
+            end
         end
 
         # Read the staggered zonal wind.
-        @views u[i0:i1, j0:j1, k0:k1] =
-            file["us"][
-                (io + 1):(io + nx),
-                (jo + 1):(jo + ny),
-                (ko + 1):(ko + nz),
-                iin,
-            ] ./ uref
+        u[i, j, k] = file["us"][id, jd, kd, iin] ./ uref
 
         # Read the staggered meridional wind.
-        @views v[i0:i1, j0:j1, k0:k1] =
-            file["vs"][
-                (io + 1):(io + nx),
-                (jo + 1):(jo + ny),
-                (ko + 1):(ko + nz),
-                iin,
-            ] ./ uref
+        v[i, j, k] = file["vs"][id, jd, kd, iin] ./ uref
 
         # Read the staggered transformed vertical wind.
-        @views w[i0:i1, j0:j1, k0:k1] =
-            file["wstfc"][
-                (io + 1):(io + nx),
-                (jo + 1):(jo + ny),
-                (ko + 1):(ko + nz),
-                iin,
-            ] ./ uref
+        w[i, j, k] = file["wstfc"][id, jd, kd, iin] ./ uref
 
         # Read the Exner-pressure fluctuations.
-        @views pip[i0:i1, j0:j1, k0:k1] = file["pip"][
-            (io + 1):(io + nx),
-            (jo + 1):(jo + ny),
-            (ko + 1):(ko + nz),
-            iin,
-        ]
+        pip[i, j, k] = file["pip"][id, jd, kd, iin]
 
         # Read the mass-weighted potential temperature.
         if model == Compressible()
-            @views p[i0:i1, j0:j1, k0:k1] =
-                file["p"][
-                    (io + 1):(io + nx),
-                    (jo + 1):(jo + ny),
-                    (ko + 1):(ko + nz),
-                    iin,
-                ] ./ rhoref ./ thetaref
+            p[i, j, k] = file["p"][id, jd, kd, iin] ./ rhoref ./ thetaref
         end
 
         # Read ray-volume properties.
         if typeof(testcase) <: AbstractWKBTestCase
-            dk0 = ko == 0 ? 1 : 0
-
             for (output_name, field_name) in zip(
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
-                @views getfield(rays, field_name)[
-                    1:nray_max,
-                    i0:i1,
-                    j0:j1,
-                    (k0 - dk0):k1,
-                ] =
-                    file[output_name][
-                        1:nray_max,
-                        (io + 1):(io + nx),
-                        (jo + 1):(jo + ny),
-                        (ko + 2 - dk0):(ko + nz + 1),
-                        iin,
-                    ] ./ lref
+                getfield(rays, field_name)[r, i, j, kr] =
+                    file[output_name][r, id, jd, krd, iin] ./ lref
             end
 
             for (output_name, field_name) in zip(
                 ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
-                @views getfield(rays, field_name)[
-                    1:nray_max,
-                    i0:i1,
-                    j0:j1,
-                    (k0 - dk0):k1,
-                ] =
-                    file[output_name][
-                        1:nray_max,
-                        (io + 1):(io + nx),
-                        (jo + 1):(jo + ny),
-                        (ko + 2 - dk0):(ko + nz + 1),
-                        iin,
-                    ] .* lref
+                getfield(rays, field_name)[r, i, j, kr] =
+                    file[output_name][r, id, jd, krd, iin] .* lref
             end
 
-            @views rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - dk0):k1] =
-                file["nr"][
-                    1:nray_max,
-                    (io + 1):(io + nx),
-                    (jo + 1):(jo + ny),
-                    (ko + 2 - dk0):(ko + nz + 1),
-                    iin,
-                ] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
+            rays.dens[r, i, j, kr] =
+                file["nr"][r, id, jd, krd, iin] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
 
             # Determine nray.
-            for kz in (k0 - dk0):k1, jy in j0:j1, ix in i0:i1
+            for kk in kr, jj in j, ii in i
                 nrlc = 0
-                for iray in 1:nray_max
-                    if rays.dens[iray, ix, jy, kz] == 0
+                for rr in r
+                    if rays.dens[rr, ii, jj, kk] == 0
                         continue
                     end
                     nrlc += 1
                 end
-                nray[ix, jy, kz] = nrlc
+                nray[ii, jj, kk] = nrlc
             end
         end
 
