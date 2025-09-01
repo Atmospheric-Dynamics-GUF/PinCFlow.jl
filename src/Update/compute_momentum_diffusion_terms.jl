@@ -1,3 +1,139 @@
+"""
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    direction::X,
+)::AbstractFloat
+```
+
+Compute and return the diffusive zonal momentum fluxes in x-direction.
+
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    direction::Y,
+)::AbstractFloat
+```
+
+Compute and return the diffusive zonal momentum fluxes in y-direction.
+
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    direction::Z,
+)::AbstractFloat
+```
+
+Compute and return the diffusive zonal momentum fluxes in z-direction.
+
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    direction::X,
+)::AbstractFloat
+```
+
+Compute and return the diffusive meridional momentum fluxes in x-direction.
+
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    direction::Y,
+)::AbstractFloat
+```
+
+Compute and return the diffusive meridional momentum fluxes in y-direction.
+
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    direction::Z,
+)::AbstractFloat
+```
+
+Compute and return the diffusive meridional momentum fluxes in z-direction.
+
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    direction::X,
+)::AbstractFloat
+```
+
+Compute and return the diffusive vertical momentum fluxes in x-direction.
+
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    direction::Y,
+)::AbstractFloat
+```
+
+Compute and return the diffusive vertical momentum fluxes in y-direction.
+
+```julia
+compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    direction::Z,
+)::AbstractFloat
+```
+
+Compute and return the diffusive vertical momentum fluxes in z-direction.
+
+# Arguments 
+
+  - `state`: Model state.
+
+  - `i`: Grid-cell index on the x-axis.
+
+  - `j`: Grid-cell index on the y-axis.
+
+  - `k`: Grid-cell index on the z-axis. 
+
+  - `variable`: Wind direction. 
+
+  - `direction`: Direction of the flux.
+
+"""
+
+function compute_momentum_diffusion_terms end
+
 function compute_momentum_diffusion_terms(
     state::State,
     i::Integer,
@@ -5,7 +141,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::U,
     direction::X,
-)
+)::AbstractFloat
     (; u) = state.variables.predictands
     (; dx, dz, met) = state.grid
 
@@ -26,7 +162,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::U,
     direction::Y,
-)
+)::AbstractFloat
     (; u) = state.variables.predictands
     (; dy, dz, met) = state.grid
 
@@ -48,7 +184,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::U,
     direction::Z,
-)
+)::AbstractFloat
     (; u) = state.variables.predictands
     (; dx, dy, dz, met) = state.grid
 
@@ -72,7 +208,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::V,
     direction::X,
-)
+)::AbstractFloat
     (; v) = state.variables.predictands
     (; dx, dz, met) = state.grid
 
@@ -94,7 +230,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::V,
     direction::Y,
-)
+)::AbstractFloat
     (; v) = state.variables.predictands
     (; dy, dz, met) = state.grid
 
@@ -115,7 +251,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::V,
     direction::Z,
-)
+)::AbstractFloat
     (; v) = state.variables.predictands
     (; dx, dy, dz, met) = state.grid
 
@@ -139,7 +275,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::W,
     direction::X,
-)
+)::AbstractFloat
     (; dx, dz, met) = state.grid
     (; predictands) = state.variables
     (; grid) = state
@@ -172,7 +308,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::W,
     direction::Y,
-)
+)::AbstractFloat
     (; dy, dz, met) = state.grid
     (; predictands) = state.variables
     (; grid) = state
@@ -205,7 +341,7 @@ function compute_momentum_diffusion_terms(
     k::Integer,
     variable::W,
     direction::Z,
-)
+)::AbstractFloat
     (; dx, dy, dz, met) = state.grid
     (; predictands) = state.variables
     (; grid) = state
