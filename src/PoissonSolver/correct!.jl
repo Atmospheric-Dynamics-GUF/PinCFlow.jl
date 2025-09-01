@@ -22,6 +22,14 @@ correct!(
 
 Correct the zonal wind to account for the pressure differences obtained from the solution to the Poisson problem.
 
+The correction is given by
+
+```math
+u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} - \\mathcal{C}_{i + 1 / 2}^u = u_{i + 1 / 2} - \\left(1 + \\alpha_{\\mathrm{R}, i + 1 / 2}^{uv} \\delta t\\right)^{- 1} \\delta t c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{D}_{i + 1 / 2}^u,
+```
+
+where ``\\delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^u`` is computed with `compute_pressure_gradient`.
+
 ```julia
 correct!(
     state::State,
@@ -32,6 +40,14 @@ correct!(
 ```
 
 Correct the meridional wind to account for the pressure differences obtained from the solution to the Poisson problem.
+
+The correction is given by
+
+```math
+v_{j + 1 / 2} \\rightarrow v_{j + 1 / 2} - \\mathcal{C}_{j + 1 / 2}^v = v_{j + 1 / 2} - \\left(1 + \\alpha_{\\mathrm{R}, j + 1 / 2}^{uv} \\delta t\\right)^{- 1} \\delta t c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{D}_{j + 1 / 2}^v,
+```
+
+where ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^v`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -44,6 +60,17 @@ correct!(
 
 Correct the transformed vertical wind to account for the pressure differences obtained from the solution to the Poisson problem.
 
+The correction is given by
+
+```math
+\\begin{align*}
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\widehat{w}_{k + 1 / 2} - \\left[1 + \\alpha_{\\mathrm{R}, k + 1 / 2}^{\\widehat{w}} \\delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}} + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^u\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^v\\right)_{k + 1 / 2}\\right]\\right\\},
+\\end{align*}
+```
+
+where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` is computed with `compute_pressure_gradient`.
+
 ```julia
 correct!(
     state::State,
@@ -53,7 +80,19 @@ correct!(
 )
 ```
 
-Correct the buoyancy (density fluctuations) to account for the pressure differences obtained from the solution to the Poisson problem.
+Correct the buoyancy (representative for the density fluctuations) to account for the pressure differences obtained from the solution to the Poisson problem.
+
+The correction is given by
+
+```math
+\\begin{align*}
+    b' & \\rightarrow b' - \\left[1 + \\alpha_\\mathrm{R}^{\\widehat{w}} \\delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{\\overline{\\rho}}{\\rho} \\left(N \\delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\delta t J \\left(1 + \\alpha_\\mathrm{R}^{\\widehat{w}} \\delta t\\right) \\left(G^{1 3} \\mathcal{C}^u + G^{2 3} \\mathcal{C}^v\\right)\\right],
+\\end{align*}
+```
+
+where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\widehat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
 
 ```julia
 correct!(state::State, variable::PiP)
