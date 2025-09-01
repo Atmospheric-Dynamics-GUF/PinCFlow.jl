@@ -1,4 +1,21 @@
+  function compute_source_ice! end
+
 function compute_source_ice!(state::State)
+    icesetup = state.namelists.ice.icesetup
+    compute_source_ice!(state, icesetup)
+    return
+end
+
+function compute_source_ice!(state::State, icesetup::NoIce)
+    return
+end
+
+function compute_source_ice!(state::State, icesetup::AbstractIce)
+    compute_source_ice!(state, icesetup)
+    return
+end
+
+function compute_source_ice!(state::State, icesetup::IceOn)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time

@@ -58,7 +58,7 @@ function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, namel
 end
 
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, icesetup::NoIce)
-    return Rays([[zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13], 0]...)
+    return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:14]...)
 end
 
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, icesetup::AbstractIce)

@@ -1,6 +1,22 @@
+
+function explicit_integration! end
+
 function explicit_integration_rhs_ice!(
     state::State,
     dtstage::AbstractFloat,
+) 
+    icesetup = state.namelists.ice.icesetup
+    return explicit_integration_rhs_ice!(state, dtstage, icesetup)
+end
+
+function explicit_integration_rhs_ice!(state::State, dtstage::AbstractFloat, icesetup::NoIce)
+     return    
+end
+
+function explicit_integration_rhs_ice!(
+    state::State,
+    dtstage::AbstractFloat,
+    icesetup::IceOn,
 )
     (; nstages) = state.time
     (; tracersetup) = state.namelists.tracer

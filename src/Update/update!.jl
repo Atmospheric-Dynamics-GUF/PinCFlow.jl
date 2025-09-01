@@ -1652,15 +1652,15 @@ function update!(
 
     return
 end
-
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    icesetup::AbstractIce,
-)
-    return
-end
+  
+# function update!(
+#     state::State,
+#     dt::AbstractFloat,
+#     m::Integer,
+#     icesetup::AbstractIce,
+# )
+#     return
+# end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
     (; i0, i1, j0, j1, k0, k1) = state.domain

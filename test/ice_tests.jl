@@ -111,12 +111,13 @@ sponge = SpongeNamelist(;
                 )
 ice = IceNamelist(;
     icesetup = IceOn(),
+#    icesetup = NoIce(),
     dt_ice = 1.,
     nscx = 1,
     nscy = 1,
     nscz = 1,
     compute_cloudcover = 2
-)
+ )
 wkb = WKBNamelist(;
                     xrmin_dim = 0.0E+4,
                     xrmax_dim = 2.0E+4,

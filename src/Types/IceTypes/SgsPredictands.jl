@@ -32,7 +32,7 @@ function SgsPredictands(
     q = zeros(0, 0, 0)
     qv = zeros(0, 0, 0)
 
-    return IcePredictands(n, q, qv)
+    return SgsPredictands(n, q, qv)
 end
 
 function SgsPredictands(

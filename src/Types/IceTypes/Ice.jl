@@ -70,7 +70,7 @@ function Ice(
     iceauxiliaries = IceAuxiliaries(icepredictands)
     icereconstructions = IceReconstructions(namelists, domain)
     icefluxes = IceFluxes(namelists, domain)
-    icesource = IceSource(domain)
+    icesource = IceSource(namelists, domain)
     gw = GW(namelists, domain)
     subgrid = SubGrid(namelists, domain, grid)
     sgs = SgsGW(namelists, domain, subgrid)
