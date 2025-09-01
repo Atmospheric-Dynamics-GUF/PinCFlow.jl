@@ -33,10 +33,7 @@ The background fields are given by
 
 ```math
 \\begin{align*}
-    \\overline{\\rho} & = \\rho_0,\\\\
-    \\overline{\\theta} & = \\theta_0,\\\\
-    P & = \\overline{\\rho} \\overline{\\theta},\\\\
-    N^2 & = 0,
+    \\overline{\\rho} & = \\rho_0, & \\overline{\\theta} & = \\theta_0, & P & = \\overline{\\rho} \\overline{\\theta}, & N^2 & = 0,
 \\end{align*}
 ```
 
@@ -59,10 +56,7 @@ The background fields are given by
 
 ```math
 \\begin{align*}
-    \\overline{\\rho} & = \\rho_0,\\\\
-    \\overline{\\theta} & = \\theta_0,\\\\
-    P & = \\overline{\\rho} \\overline{\\theta},\\\\
-    N^2 & = N_0^2,
+    \\overline{\\rho} & = \\rho_0, & \\overline{\\theta} & = \\theta_0, & P & = \\overline{\\rho} \\overline{\\theta}, & N^2 & = N_0^2,
 \\end{align*}
 ```
 
