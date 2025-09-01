@@ -95,7 +95,7 @@ compute_fluxes!(
 )
 ```
 
-Compute the potential temperature fluxes for thermal diffusivity as ``\\mu\\nabla\\theta``.
+Compute the potential temperature fluxes for molecular diffusivity as ``\\mu\\nabla\\theta``.
 
 # Arguments
 
