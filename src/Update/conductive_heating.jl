@@ -36,7 +36,7 @@ conductive_heating(
 )::AbstractFloat 
 ```
 
-Computes and return the conductive heating as the divergence of potential temperature fluxes.
+Compute and return the conductive heating as the divergence of potential temperature fluxes.
 
 # Arguments
 
