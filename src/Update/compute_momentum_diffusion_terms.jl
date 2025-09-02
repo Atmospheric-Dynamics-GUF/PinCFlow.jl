@@ -13,7 +13,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive zonal momentum fluxes in ``\\widehat{x}``-direction. 
 
 ```math
-\\Xi^{u}_{x} = \\frac{u_{i+1/2} - u_{i-1/2}}{\\Delta \\widehat{x}} + G^{13}\\frac{u_{k+1} - u_{k-1}}{2\\Delta \\widehat{z}}
+\\Xi^{u}_{\\widehat{x}} = \\frac{u_{i+1/2} - u_{i-1/2}}{\\Delta \\widehat{x}} + G^{13}\\frac{u_{k+1} - u_{k-1}}{2\\Delta \\widehat{z}}
 ```
 
 ```julia
@@ -30,7 +30,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive zonal momentum fluxes in ``\\widehat{y}``-direction.
 
 ```math
-\\Xi^{u}_{y} = \\frac{u_{j+1}-u_{j-1}}{2\\Delta \\widehat{y}} + G^{23}\\frac{u_{k+1}-u_{k-1}}{2\\Delta \\widehat{z}}
+\\Xi^{u}_{\\widehat{y}} = \\frac{u_{j+1}-u_{j-1}}{2\\Delta \\widehat{y}} + G^{23}\\frac{u_{k+1}-u_{k-1}}{2\\Delta \\widehat{z}}
 ```
 
 ```julia
@@ -47,7 +47,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive zonal momentum fluxes in ``\\widehat{z}``-direction.
 
 ```math
-\\Xi^{u}_{z} = G^{13}\\frac{u_{i+1/2}-u_{i-1/2}}{\\Delta \\widehat{x}} + G^{23}\\frac{u_{j+1}-u_{j-1}}{2 \\Delta \\widehat{y}} + G^{33}\\frac{u_{k+1}-u_{k-1}}{2 \\Delta \\widehat{z}} 
+\\Xi^{u}_{\\widehat{z}} = G^{13}\\frac{u_{i+1/2}-u_{i-1/2}}{\\Delta \\widehat{x}} + G^{23}\\frac{u_{j+1}-u_{j-1}}{2 \\Delta \\widehat{y}} + G^{33}\\frac{u_{k+1}-u_{k-1}}{2 \\Delta \\widehat{z}} 
 ```
 
 ```julia
@@ -64,7 +64,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive meridional momentum fluxes in ``\\widehat{x}``-direction.
 
 ```math 
-\\Xi^{v}_{x} = \\frac{v_{i+1} - v_{i-1}}{2 \\Delta \\widehat{x}} + G^{13}\\frac{v_{k+1}-v_{k-1}}{2\\Delta \\widehat{z}}
+\\Xi^{v}_{\\widehat{x}} = \\frac{v_{i+1} - v_{i-1}}{2 \\Delta \\widehat{x}} + G^{13}\\frac{v_{k+1}-v_{k-1}}{2\\Delta \\widehat{z}}
 ```
 
 ```julia
@@ -81,7 +81,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive meridional momentum fluxes in ``\\widehat{y}``-direction.
 
 ```math 
-\\Xi^{v}_{y} = \\frac{v_{j+1/2} - v_{j-1/2}}{\\Delta \\widehat{y}} + G^{23}\\frac{v_{k+1}-v_{k-1}}{2 \\Delta \\widehat{z}}
+\\Xi^{v}_{\\widehat{y}} = \\frac{v_{j+1/2} - v_{j-1/2}}{\\Delta \\widehat{y}} + G^{23}\\frac{v_{k+1}-v_{k-1}}{2 \\Delta \\widehat{z}}
 ```
 
 ```julia
@@ -98,7 +98,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive meridional momentum fluxes in ``\\widehat{z}``-direction.
 
 ```math 
-\\Xi^{v}_{z} = G^{13}\\frac{v_{i+1} - v_{i-1}}{2\\Delta\\widehat{x}} + G^{23}\\frac{v_{j+1/2}-v_{j-1/2}}{\\Delta \\widehat{y}} + G^{33}\\frac{v_{k+1}-v_{k-1}}{2\\Delta\\widehat{z}}
+\\Xi^{v}_{\\widehat{z}} = G^{13}\\frac{v_{i+1} - v_{i-1}}{2\\Delta\\widehat{x}} + G^{23}\\frac{v_{j+1/2}-v_{j-1/2}}{\\Delta \\widehat{y}} + G^{33}\\frac{v_{k+1}-v_{k-1}}{2\\Delta\\widehat{z}}
 ```
 
 ```julia
@@ -115,7 +115,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive vertical momentum fluxes in ``\\widehat{x}``-direction.
 
 ```math 
-\\Xi^{\\widehat{w}}_{x} = \\frac{\\widehat{w}_{i+1} - \\widehat{w}_{i-1}}{2\\Delta\\widehat{x}} + G^{13}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
+\\Xi^{\\widehat{w}}_{\\widehat{x}} = \\frac{\\widehat{w}_{i+1} - \\widehat{w}_{i-1}}{2\\Delta\\widehat{x}} + G^{13}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
 ```
 
 ```julia
@@ -132,7 +132,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive vertical momentum fluxes in ``\\widehat{y}``-direction.
 
 ```math 
-\\Xi^{\\widehat{w}}_{y} = \\frac{\\widehat{w}_{j+1}-\\widehat{w}_{j-1}}{2\\Delta\\widehat{y}} + G^{23}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
+\\Xi^{\\widehat{w}}_{\\widehat{y}} = \\frac{\\widehat{w}_{j+1}-\\widehat{w}_{j-1}}{2\\Delta\\widehat{y}} + G^{23}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
 ```
 
 ```julia
@@ -149,7 +149,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive vertical momentum fluxes in ``\\widehat{z}``-direction.
 
 ```math 
-\\Xi^{\\widehat{w}}_{z} = G^{13}\\frac{\\widehat{w}_{i+1}-\\widehat{w}_{i-1}}{2\\Delta\\widehat{x}} + G^{23}\\frac{\\widehat{w}_{j+1}-\\widehat{w}_{j-1}}{2\\Delta\\widehat{y}} + G^{33}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
+\\Xi^{\\widehat{w}}_{\\widehat{z}} = G^{13}\\frac{\\widehat{w}_{i+1}-\\widehat{w}_{i-1}}{2\\Delta\\widehat{x}} + G^{23}\\frac{\\widehat{w}_{j+1}-\\widehat{w}_{j-1}}{2\\Delta\\widehat{y}} + G^{33}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
 ```
 
 # Arguments 
