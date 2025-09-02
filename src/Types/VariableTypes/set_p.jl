@@ -7,8 +7,11 @@ set_p(
     nzz::Integer,
     pstrattfc::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
+```
 
-Construct `p` with zero-size array for non-compressible dynamic equations.
+Return a zero-size array in non-compressible modes.
+
+In these cases, the mass-weighted potential temperature is a background field: constant in Boussinesq mode, vertically varying in pseudo-incompressible mode.
 
 ```julia 
 set_p(
@@ -18,10 +21,24 @@ set_p(
     nzz::Integer,
     pstrattfc::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
-
-Construct `p` with as copy of `pstrattfc` in compressible mode.
-
 ```
+
+Return a copy of `pstrattfc` in compressible mode.
+
+In compressible mode, the mass-weighted potential temperature is a prognostic variable.
+
+# Arguments:
+
+  - `mode`: Dynamic equations.
+
+  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+
+  - `nyy`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+
+  - `nzz`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+
+  - `pstrattfc`: Mass-weighted potential temperature.
+
 """
 
 function set_p end
