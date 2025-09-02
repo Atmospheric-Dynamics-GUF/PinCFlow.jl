@@ -651,17 +651,9 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
-        coef_dr =
-            mu_mom_diff * (
-                jac[i + 1, j, k + 1] * rhostrattfc[i + 1, j, k0] +
-                jac[i + 1, j, k] * rhostrattfc[i + 1, j, k0]
-            ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
+        coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
 
-        coef_dl =
-            mu_mom_diff * (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
-                jac[i, j, k] * rhostrattfc[i, j, k0]
-            ) / (jac[i, j, k + 1] + jac[i, j, k])
+        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -986,17 +978,9 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
-        coef_dr =
-            mu_mom_diff * (
-                jac[i, j + 1, k + 1] * rhostrattfc[i, j + 1, k0] +
-                jac[i, j + 1, k] * rhostrattfc[i, j + 1, k0]
-            ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
+        coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
 
-        coef_dl =
-            mu_mom_diff * (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
-                jac[i, j, k] * rhostrattfc[i, j, k0]
-            ) / (jac[i, j, k + 1] + jac[i, j, k])
+        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1296,17 +1280,9 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
-        coef_dr =
-            mu_mom_diff * (
-                jac[i + 1, j, k + 1] * rhostrattfc[i + 1, j, k0] +
-                jac[i + 1, j, k] * rhostrattfc[i + 1, j, k0]
-            ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
+        coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
 
-        coef_dl =
-            mu_mom_diff * (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
-                jac[i, j, k] * rhostrattfc[i, j, k0]
-            ) / (jac[i, j, k + 1] + jac[i, j, k])
+        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1346,17 +1322,9 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
-        coef_dr =
-            mu_mom_diff * (
-                jac[i, j + 1, k + 1] * rhostrattfc[i, j + 1, k0] +
-                jac[i, j + 1, k] * rhostrattfc[i, j + 1, k0]
-            ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
+        coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
 
-        coef_dl =
-            mu_mom_diff * (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
-                jac[i, j, k] * rhostrattfc[i, j, k0]
-            ) / (jac[i, j, k + 1] + jac[i, j, k])
+        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1609,48 +1577,64 @@ function compute_fluxes!(
 
     for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         coef_t =
-            mu_conduct *
-            0.5 *
-            (
-                rhostrattfc[i, j, 1] / rhostrattfc[i, j, k] +
-                rhostrattfc[i, j, 1] / rhostrattfc[i, j, k + 1]
-            )
+            mu_conduct * (
+                jac[i, j, k + 1] * rhostrattfc[i, j, 1] / rhostrattfc[i, j, k] +
+                jac[i, j, k] * rhostrattfc[i, j, 1] / rhostrattfc[i, j, k + 1]
+            ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         rhol =
-            0.5 * (
-                rho[i - 1, j, k] +
-                rhostrattfc[i - 1, j, k] +
-                rho[i - 1, j, k + 1] +
-                rhostrattfc[i - 1, j, k + 1]
-            )
+            (
+                jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
+                jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
+            ) / (jac[i, j, k + 1] + jac[i, j, k])
+
         rhor =
-            0.5 * (
-                rho[i + 1, j, k] +
-                rhostrattfc[i + 1, j, k] +
-                rho[i + 1, j, k + 1] +
-                rhostrattfc[i + 1, j, k + 1]
-            )
+            (
+                jac[i + 1, j, k + 1] *
+                (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k]) +
+                jac[i + 1, j, k] *
+                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1])
+            ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
+
         rhob =
-            0.5 * (
-                rho[i, j - 1, k] +
-                rhostrattfc[i, j - 1, k] +
-                rho[i, j - 1, k + 1] +
-                rhostrattfc[i, j - 1, k + 1]
-            )
+            (
+                jac[i, j - 1, k + 1] *
+                (rho[i, j - 1, k] + rhostrattfc[i, j - 1, k]) +
+                jac[i, j - 1, k] *
+                (rho[i, j - 1, k + 1] + rhostrattfc[i, j - 1, k + 1])
+            ) / (jac[i, j - 1, k + 1] + jac[i, j - 1, k])
+
         rhof =
-            0.5 * (
-                rho[i, j + 1, k] +
-                rhostrattfc[i, j + 1, k] +
-                rho[i, j + 1, k + 1] +
-                rhostrattfc[i, j + 1, k + 1]
-            )
+            (
+                jac[i, j + 1, k + 1] *
+                (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k]) +
+                jac[i, j + 1, k] *
+                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1])
+            ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
+
         rhod = rho[i, j, k] + rhostrattfc[i, j, k]
         rhou = rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]
 
-        pl = 0.5 * (pstrattfc[i - 1, j, k] + pstrattfc[i - 1, j, k + 1])
-        pr = 0.5 * (pstrattfc[i + 1, j, k] + pstrattfc[i + 1, j, k + 1])
-        pb = 0.5 * (pstrattfc[i, j - 1, k] + pstrattfc[i, j - 1, k + 1])
-        pf = 0.5 * (pstrattfc[i, j + 1, k] + pstrattfc[i, j + 1, k + 1])
+        pl =
+            (
+                jac[i - 1, j, k + 1] * pstrattfc[i - 1, j, k] +
+                jac[i - 1, j, k] * pstrattfc[i - 1, j, k + 1]
+            ) / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
+        pr =
+            (
+                jac[i + 1, j, k + 1] * pstrattfc[i + 1, j, k] +
+                jac[i + 1, j, k] * pstrattfc[i + 1, j, k + 1]
+            ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+        pb =
+            (
+                jac[i, j - 1, k + 1] * pstrattfc[i, j - 1, k] +
+                jac[i, j - 1, k] * pstrattfc[i, j - 1, k + 1]
+            ) / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
+        pf =
+            (
+                jac[i, j + 1, k + 1] * pstrattfc[i, j + 1, k] +
+                jac[i, j + 1, k] * pstrattfc[i, j + 1, k + 1]
+            ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
         pd = pstrattfc[i, j, k]
         pu = pstrattfc[i, j, k + 1]
 
