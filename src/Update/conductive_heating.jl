@@ -16,7 +16,7 @@ conductive_heating(
 )::AbstractFloat
 ```
 
-Returns 0.0 as conductive heating in Boussinesq mode.
+Return 0 as conductive heating in Boussinesq mode.
 
 ```julia 
 conductive_heating(
@@ -26,7 +26,7 @@ conductive_heating(
 )::AbstractFloat 
 ```
 
-Returns 0.0 as conductive heating in PseudoIncompressible mode.
+Return 0 as conductive heating in PseudoIncompressible mode.
 
 ```julia 
 conductive_heating(
@@ -36,7 +36,7 @@ conductive_heating(
 )::AbstractFloat 
 ```
 
-Computes and returns the conductive heating as the divergence of potential temperature fluxes.
+Computes and return the conductive heating as the divergence of potential temperature fluxes.
 
 # Arguments
 
