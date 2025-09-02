@@ -6,7 +6,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::WKBMountainWave,
+    testcase::AbstractWKBTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -15,7 +15,7 @@ compute_topography(
 }
 ```
 
-Compute and return the topography for the WKB-mountain-wave test case.
+Compute and return the topography for WKB test cases.
 
 The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
 
@@ -113,7 +113,7 @@ compute_topography(
 }
 ```
 
-Compute and return the topography for non-WKB-mountain-wave test cases.
+Compute and return the topography for non-WKB test cases.
 
 The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
 
