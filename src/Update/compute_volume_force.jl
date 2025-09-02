@@ -87,7 +87,10 @@ function compute_volume_force(
 )::AbstractFloat
     (; testcase) = state.namelists.setting
 
-    return compute_volume_force(state, indices, variable, testcase)
+    force = compute_volume_force(state, indices, variable, testcase) +
+        conductive_heating(state, indices)
+
+    return force
 end
 
 function compute_volume_force(
