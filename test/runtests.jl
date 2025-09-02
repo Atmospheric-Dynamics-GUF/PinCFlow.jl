@@ -195,7 +195,6 @@ configurations = Dict(
                 )
 
                 for key in keys(reference)
-                    println("key = ", key)
                     @test all(isapprox.(data[key], reference[key]))
                 end
 
