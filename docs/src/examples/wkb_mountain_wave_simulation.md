@@ -67,7 +67,7 @@ performs a 3D WKB mountain-wave simulation with parallelization in the zonal and
 
 ```shell
 mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 64 julia --project --check-bounds=no --math-mode=fast examples/submit/wkb_mountain_wave.jl
+${mpiexec} -n 64 julia --project --check-bounds=no examples/submit/wkb_mountain_wave.jl
 ```
 
 from the root directory of the repository (provided MPI.jl and HDF5.jl are configured to use their default backends). The full surface topography is given by

@@ -48,7 +48,7 @@ performs a 3D mountain-wave simulation with parallelization in the zonal and mer
 
 ```shell
 mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 64 julia --project --check-bounds=no --math-mode=fast examples/submit/mountain_wave.jl
+${mpiexec} -n 64 julia --project --check-bounds=no examples/submit/mountain_wave.jl
 ```
 
 from the root directory of the repository (provided MPI.jl and HDF5.jl are configured to use their default backends). The surface topography is given by

@@ -37,7 +37,7 @@ integrate(Namelists())
 runs PinCFlow in its default configuration, if executed with
 
 ```shell
-julia --project --check-bounds=no --math-mode=fast script.jl
+julia --project --check-bounds=no script.jl
 ```
 
 in the root directory of the repository. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the governing equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. For instance, running the script
@@ -78,7 +78,7 @@ If you want to run PinCFlow in parallel, make sure you are using the correct bac
 
 ```shell
 mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
+${mpiexec} -n ${tasks} julia --project --check-bounds=no script.jl
 ```
 
 with `tasks` set to the number of MPI processes. Note that in `script.jl`, the parameters `npx`, `npy` and `npz` of the namelist `domain`, which represent the number of MPI processes in the three dimensions of physical space, need to be set such that their product is equal to `tasks`.
@@ -100,7 +100,7 @@ julia --project -e 'using HDF5; HDF5.API.set_libraries!()'
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```shell
-mpiexec -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
+mpiexec -n ${tasks} julia --project --check-bounds=no script.jl
 ```
 
 with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow on [Goethe](https://csc.uni-frankfurt.de/wiki/doku.php?id=public:usage:goethe) or [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in `examples/submit`.
