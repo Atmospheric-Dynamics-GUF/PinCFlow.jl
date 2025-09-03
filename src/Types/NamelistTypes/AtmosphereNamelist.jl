@@ -16,6 +16,8 @@ AtmosphereNamelist(;
     specifyreynolds::Bool = false,
     reinv::AbstractFloat = 0.0E+0,
     mu_viscous_dim::AbstractFloat = 0.0E+0,
+    mu_conduct_dim::AbstractFloat = 0.0E+0,
+    mu_mom_diff_dim::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
     theta0_dim::AbstractFloat = 3.0E+2,
@@ -36,6 +38,10 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
   - `reinv::B`: Inverse Reynolds number.
 
   - `mu_viscous_dim::B`: Kinematic viscosity at the surface.
+
+  - `mu_conduct_dim::B`: Molecular diffusivity in the potential temperature.
+
+  - `mu_mom_diff_dim::B`: Turbulent diffusivity in the momentum.
 
   - `background::C`: Atmospheric background.
 
@@ -63,6 +69,8 @@ struct AtmosphereNamelist{
     specifyreynolds::A
     reinv::B
     mu_viscous_dim::B
+    mu_conduct_dim::B
+    mu_mom_diff_dim::B
     background::C
     buoyancy_frequency::B
     theta0_dim::B
@@ -77,6 +85,8 @@ function AtmosphereNamelist(;
     specifyreynolds::Bool = false,
     reinv::AbstractFloat = 0.0E+0,
     mu_viscous_dim::AbstractFloat = 0.0E+0,
+    mu_conduct_dim::AbstractFloat = 0.0E+0,
+    mu_mom_diff_dim::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
     theta0_dim::AbstractFloat = 3.0E+2,
@@ -90,6 +100,8 @@ function AtmosphereNamelist(;
         specifyreynolds,
         reinv,
         mu_viscous_dim,
+        mu_conduct_dim,
+        mu_mom_diff_dim,
         background,
         buoyancy_frequency,
         theta0_dim,
