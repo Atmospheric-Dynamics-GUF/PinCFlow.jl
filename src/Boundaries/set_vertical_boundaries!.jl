@@ -120,10 +120,6 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields needed in 
   - [`PinCFlow.Boundaries.set_compressible_vertical_boundaries!`](@ref)
 
   - [`PinCFlow.Boundaries.set_tracer_vertical_boundaries!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_ice_vertical_boundaries!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_turbulence_vertical_boundaries!`](@ref)
 """
 function set_vertical_boundaries! end
 
@@ -136,8 +132,6 @@ function set_vertical_boundaries!(
     (; model, zboundaries) = namelists.setting
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
     (; tracersetup) = namelists.tracer
-    (; icesetup) = namelists.ice
-    (; turbulencesetup) = namelists.turbulence
 
     set_vertical_boundaries_of_field!(rho, namelists, domain, zboundaries, -)
     set_vertical_boundaries_of_field!(rhop, namelists, domain, zboundaries, -)
@@ -159,8 +153,6 @@ function set_vertical_boundaries!(
     set_compressible_vertical_boundaries!(state, variables, model)
 
     set_tracer_vertical_boundaries!(state, variables, tracersetup)
-    set_ice_vertical_boundaries!(state, variables, icesetup)
-    set_turbulence_vertical_boundaries!(state, variables, turbulencesetup)
 
     return
 end
@@ -174,8 +166,6 @@ function set_vertical_boundaries!(
     (; zboundaries) = namelists.setting
     (; reconstructions) = state.variables
     (; tracersetup) = namelists.tracer
-    (; icesetup) = namelists.ice
-    (; turbulencesetup) = namelists.turbulence
 
     for field in fieldnames(Reconstructions)
         set_vertical_boundaries_of_field!(
@@ -187,8 +177,6 @@ function set_vertical_boundaries!(
     end
 
     set_tracer_vertical_boundaries!(state, variables, tracersetup)
-    set_ice_vertical_boundaries!(state, variables, icesetup)
-    set_turbulence_vertical_boundaries!(state, variables, turbulencesetup)
 
     return
 end
@@ -202,28 +190,24 @@ function set_vertical_boundaries!(
     (; fluxes) = state.variables
     (; model) = state.namelists.setting
     (; tracersetup) = state.namelists.tracer
-    (; icesetup) = state.namelists.ice
-    (; turbulencesetup) = state.namelists.turbulence
 
     # Set all vertical boundary fluxes to zero.
 
     if ko == 0
-        for field in (:phirho, :phirhop, :phiu, :phiv)
+        for field in (:phirho, :phirhop, :phiu, :phiv, :phitheta)
             getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
     if ko + nzz == sizezz
-        for field in (:phirho, :phirhop, :phiu, :phiv, :phiw)
+        for field in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
     end
 
     set_compressible_vertical_boundaries!(state, variables, model)
     set_tracer_vertical_boundaries!(state, variables, tracersetup)
-    set_ice_vertical_boundaries!(state, variables, icesetup)
-    set_turbulence_vertical_boundaries!(state, variables, turbulencesetup)
 
     return
 end

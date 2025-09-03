@@ -11,9 +11,6 @@ Namelists{
     H <: SpongeNamelist,
     I <: WKBNamelist,
     J <: TracerNamelist,
-    K <: IceNamelist,
-    L <: TurbulenceNamelist,
-    M <: WavePacketNamelist,
 }
 ```
 
@@ -31,9 +28,6 @@ Namelists(;
     sponge::SpongeNamelist = SpongeNamelist(),
     wkb::WKBNamelist = WKBNamelist(),
     tracer::TracerNamelist = TracerNamelist(),
-    ice::IceNamelist = IceNamelist(),
-    turbulence::TurbulenceNamelist = TurbulenceNamelist(),
-    wavepacket::WavePacketNamelist = WavePacketNamelist(),
 )::Namelists
 ```
 
@@ -61,12 +55,6 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
 
   - `tracer::J`: Namelist for parameters configuring tracer transport.
 
-  - `ice::K`: Namelist for parameters configuring ice physics.
-
-  - `turbulence::L`: Namelist for parameters configuring turbulence parameterization.
-
-  - `wavepacket::M`: Namelist for parameters used for the `WavePacket` test case.
-
 # See also
 
   - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
@@ -88,12 +76,6 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
   - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.IceNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.WavePacketNamelist`](@ref)
 """
 struct Namelists{
     A <: DomainNamelist,
@@ -106,9 +88,6 @@ struct Namelists{
     H <: SpongeNamelist,
     I <: WKBNamelist,
     J <: TracerNamelist,
-    K <: IceNamelist,
-    L <: TurbulenceNamelist,
-    M <: WavePacketNamelist,
 }
     domain::A
     output::B
@@ -120,9 +99,6 @@ struct Namelists{
     sponge::H
     wkb::I
     tracer::J
-    ice::K
-    turbulence::L
-    wavepacket::M
 end
 
 function Namelists(;
@@ -136,9 +112,6 @@ function Namelists(;
     sponge::SpongeNamelist = SpongeNamelist(),
     wkb::WKBNamelist = WKBNamelist(),
     tracer::TracerNamelist = TracerNamelist(),
-    ice::IceNamelist = IceNamelist(),
-    turbulence::TurbulenceNamelist = TurbulenceNamelist(),
-    wavepacket::WavePacketNamelist = WavePacketNamelist(),
 )::Namelists
     return Namelists(
         domain,
@@ -151,8 +124,5 @@ function Namelists(;
         sponge,
         wkb,
         tracer,
-        ice,
-        turbulence,
-        wavepacket,
     )
 end
