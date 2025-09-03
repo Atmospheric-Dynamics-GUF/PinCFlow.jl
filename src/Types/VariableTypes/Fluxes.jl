@@ -72,7 +72,8 @@ function Fluxes(domain::Domain, model::AbstractModel)::Fluxes
     (; nxx, nyy, nzz) = domain
 
     # Initialize the fluxes.
-    (phirho, phirhop, phiu, phiv, phiw, phitheta) = (zeros(nxx, nyy, nzz, 3) for i in 1:6)
+    (phirho, phirhop, phiu, phiv, phiw, phitheta) =
+        (zeros(nxx, nyy, nzz, 3) for i in 1:6)
     phip = zeros(0, 0, 0, 0)
 
     # Return a Fluxes instance.

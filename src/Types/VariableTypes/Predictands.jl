@@ -84,14 +84,7 @@ function Predictands(
     grid::Grid,
 )::Predictands
     (; testcase) = namelists.setting
-    return Predictands(
-        namelists,
-        constants,
-        domain,
-        atmosphere,
-        grid,
-        testcase,
-    )
+    return Predictands(namelists, constants, domain, atmosphere, grid, testcase)
 end
 
 function Predictands(

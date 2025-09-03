@@ -62,7 +62,7 @@ X
 
 Singleton for ``\\widehat{x}``-axis along which a calculation should be performed.
 """
-struct X end 
+struct X end
 
 """
 ```julia 

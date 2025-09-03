@@ -184,7 +184,7 @@ function compute_momentum_diffusion_terms(
     ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
 
     diffux =
-        (u[i, j, k] - u[i - i, j, k]) / dx +
+        (u[i, j, k] - u[i - 1, j, k]) / dx +
         met[i, j, k, 1, 3] * (uu - ud) / (2.0 * dz)
 
     return diffux
