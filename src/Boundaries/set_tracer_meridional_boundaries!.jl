@@ -106,3 +106,63 @@ function set_tracer_meridional_boundaries!(
 
     return
 end
+
+function set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    wkb_model::AbstractWKBMode,
+    tracersetup::NoTracer,
+)
+    return
+end
+
+function set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::AbstractTracer,
+)
+    (; namelists, domain) = state
+    (; chiq0) = state.tracer.tracerforcings
+
+    for field in (:uchi, :vchi, :wchi)
+        set_meridional_boundaries_of_field!(
+            getfield(chiq0, field),
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
+
+    return
+end
+
+function set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::NoTracer,
+)
+    return 
+end
+
+function set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::AbstractTracer,
+)
+    (; namelists, domain) = state
+    (; chiq0) = state.tracer.tracerforcings
+
+    for field in (:dchidt,)
+        set_meridional_boundaries_of_field!(
+            getfield(chiq0, field),
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
+
+    return
+end

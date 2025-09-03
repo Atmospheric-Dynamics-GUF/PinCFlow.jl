@@ -201,6 +201,21 @@ function create_output(state::State)
                     chunk = (cx, cy, cz, ct),
                 )
             end
+
+            if state.namelists.tracer.leading_order_impact
+                for field in fieldnames(TracerGWImpact)
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (sizex, sizey, sizez, 0),
+                            (sizex, sizey, sizez, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end 
+            end
         end
 
         # Create datasets for WKB variables.

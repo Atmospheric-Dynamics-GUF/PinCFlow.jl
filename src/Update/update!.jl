@@ -1225,6 +1225,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     tracersetup::NoTracer,
+    testcase::AbstractTestCase
 )
     return
 end
@@ -1234,6 +1235,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     tracersetup::AbstractTracer,
+    testcase::AbstractTestCase,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1245,18 +1247,18 @@ function update!(
             getfield(tracerincrements, fd) .= 0.0
         end
 
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            fl = getfield(tracerfluxes, fd)[i - 1, j, k, 1]
-            fr = getfield(tracerfluxes, fd)[i, j, k, 1]
-            gb = getfield(tracerfluxes, fd)[i, j - 1, k, 2]
-            gf = getfield(tracerfluxes, fd)[i, j, k, 2]
-            hd = getfield(tracerfluxes, fd)[i, j, k - 1, 3]
-            hu = getfield(tracerfluxes, fd)[i, j, k, 3]
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        fl = phichi[i - 1, j, k, 1]
+        fr = phichi[i, j, k, 1]
+        gb = phichi[i, j - 1, k, 2]
+        gf = phichi[i, j, k, 2]
+        hd = phichi[i, j, k - 1, 3]
+        hu = phichi[i, j, k, 3]
 
-            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
-            fluxdiff /= jac[i, j, k]
+        fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+        fluxdiff /= jac[i, j, k]
 
-            f = -fluxdiff
+        f = -fluxdiff
 
             getfield(tracerincrements, fd)[i, j, k] =
                 dt * f + alphark[m] * getfield(tracerincrements, fd)[i, j, k]
@@ -1267,3 +1269,50 @@ function update!(
 
     return
 end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracersetup::AbstractTracer,
+    testcase::AbstractWKBTestCase,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; dchi) = state.tracer.tracertendencies
+    (; chi) = state.tracer.tracerpredictands
+    (; phichi) = state.tracer.tracerfluxes
+    (; chiq0) = state.tracer.tracerforcings
+    (; leading_order_impact) = state.namelists.tracer
+
+    if m == 1
+        dchi .= 0.0
+    end
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        fl = phichi[i - 1, j, k, 1]
+        fr = phichi[i, j, k, 1]
+        gb = phichi[i, j - 1, k, 2]
+        gf = phichi[i, j, k, 2]
+        hd = phichi[i, j, k - 1, 3]
+        hu = phichi[i, j, k, 3]
+
+        fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+        fluxdiff /= jac[i, j, k]
+
+        force = 0.0
+
+        if leading_order_impact
+            force = chiq0.dchidt[i, j, k]
+        end
+
+        f = -fluxdiff + force
+
+        dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]
+        chi[i, j, k] += betark[m] * dchi[i, j, k]
+    end
+
+    return
+end
+

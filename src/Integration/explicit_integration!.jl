@@ -48,6 +48,7 @@ function explicit_integration!(
 )
     (; nstages, stepfrac) = state.time
     (; tracersetup) = state.namelists.tracer
+    (; testcase) = state.namelists.setting
 
     for rkstage in 1:nstages
         reconstruct!(state)
@@ -68,7 +69,7 @@ function explicit_integration!(
         update!(state, dtstage, rkstage, P())
         apply_unified_sponge!(state, stepfrac[rkstage] * dtstage, time, P())
 
-        update!(state, dtstage, rkstage, tracersetup)
+        update!(state, dtstage, rkstage, tracersetup, testcase)
         apply_unified_sponge!(
             state,
             stepfrac[rkstage] * dtstage,

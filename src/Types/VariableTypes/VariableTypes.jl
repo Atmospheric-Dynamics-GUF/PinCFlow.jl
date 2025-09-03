@@ -16,6 +16,7 @@ module VariableTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 
+include("set_p.jl")
 include("Predictands.jl")
 include("Increments.jl")
 include("Backups.jl")

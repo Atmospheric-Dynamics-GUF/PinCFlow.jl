@@ -19,10 +19,13 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 """
 struct TracerNamelist{A <: AbstractTracer}
     tracersetup::A
+    leading_order_impact::B
 end
 
 function TracerNamelist(;
+   
     tracersetup::AbstractTracer = NoTracer(),
+    leading_order_impact = true,
 )::TracerNamelist
-    return TracerNamelist(tracersetup)
+    return TracerNamelist(tracersetup, leading_order_impact)
 end

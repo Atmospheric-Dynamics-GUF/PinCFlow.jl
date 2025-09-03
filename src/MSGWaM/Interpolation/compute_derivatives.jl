@@ -364,3 +364,375 @@ function compute_derivatives(
 
     return (phid, phiu)
 end
+
+function compute_derivatives(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DCHIDX,
+)
+    (; sizex, sizey) = state.namelists.domain
+    (; lx, ly, lz, dx, dy, dz, x, y, ztfc) = state.grid
+    (; nxx, nyy, nzz, io, jo, ko, i0, j0, k0) = state.domain
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
+    (; domain, grid) = state
+
+    if sizex == 1
+        return 0.0
+    else
+        # find closest points in zonal direction 
+        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
+        if (ixl < 1)
+            error("Error in compute_derivatives (DCHIDX): ixl = ", ixl, " < 1")
+        end
+        ixr = ixl + 1
+        if ixr > nxx
+            error(
+                "Error in compute_derivatives (DCHIDX): ixr = ",
+                ixr,
+                "> nxx = ",
+                nxx,
+            )
+        end
+
+        xr = x[ixr + io]
+        xl = x[ixl + io]
+
+        if abs(xr - xlc) > abs(xlc - xl)
+            ix = ixl
+        else
+            ix = ixr
+        end
+
+        # find closest points in meridional direction
+        if sizey == 1
+            jyb = j0
+            jyf = j0
+        else
+            jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+            if (jyb < 1)
+                error(
+                    "Error in compute_derivatives (DCHIDX): jyl = ",
+                    jyl,
+                    " < 1",
+                )
+            end
+            jyf = jyb + 1
+            if jyf > nyy
+                error(
+                    "Error in compute_derivatives (DCHIDX): jyr = ",
+                    jyr,
+                    " > nyy = ",
+                    nyy,
+                )
+            end
+        end
+        yf = y[jyf + jo]
+        yb = y[jyb + jo]
+
+        if abs(yf - ylc) > abs(ylc - yb)
+            jy = jyb
+        else
+            jy = jyf
+        end
+
+        # find closest index on z-axis 
+        kzu = get_next_level(ix, jy, zlc, domain, grid)
+        kzd = kzu - 1
+
+        zu = ztfc[ix, jy, kzu]
+        zd = ztfc[ix, jy, kzd]
+
+        if abs(zu - zlc) > abs(zlc - zd)
+            kz = kzd
+        else
+            kz = kzu
+        end
+
+        dchil =
+            (
+                chi[ixl + 1, jy, kz] /
+                (rho[ixl + 1, jy, kz] + rhostrattfc[ixl + 1, jy, kz]) -
+                chi[ixl, jy, kz] /
+                (rho[ixl, jy, kz] + rhostrattfc[ixl, jy, kz])
+            ) / dx
+        dchir =
+            (
+                chi[ixr + 1, jy, kz] /
+                (rho[ixr + 1, jy, kz] + rhostrattfc[ixr + 1, jy, kz]) -
+                chi[ixr, jy, kz] /
+                (rho[ixr, jy, kz] + rhostrattfc[ixr, jy, kz])
+            ) / dx
+
+        if xr < xl
+            then
+            error(
+                "Error in compute_derivatives (DCHIDX): xr = ",
+                xr,
+                " < xl = ",
+                xl,
+            )
+        elseif xr == xl
+            factor = 0.0
+        elseif xlc > xr
+            factor = 0.0
+        elseif xlc > xl
+            factor = (xr - xlc) / dx
+        else
+            factor = 1.0
+        end
+
+        dchidx = factor * dchil + (1.0 - factor) * dchir
+
+        return dchidx
+    end
+end
+
+function compute_derivatives(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DCHIDY,
+)
+    (; sizex, sizey) = state.namelists.domain
+    (; lx, ly, lz, dx, dy, dz, x, y, ztfc) = state.grid
+    (; nxx, nyy, nzz, io, jo, ko, i0, j0, k0) = state.domain
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
+    (; domain, grid) = state
+
+    if sizey == 1
+        return 0.0
+    else
+        # find closest points in zonal direction 
+        if sizex == 1
+            ixl = i0
+            ixr = i0
+        else
+            ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
+            if (ixl < 1)
+                error(
+                    "Error in compute_derivatives (DCHIDY): ixl = ",
+                    ixl,
+                    " < 1",
+                )
+            end
+            ixr = ixl + 1
+            if ixr > nxx
+                error(
+                    "Error in compute_derivatives (DCHIDY): ixr = ",
+                    ixr,
+                    "> nxx = ",
+                    nxx,
+                )
+            end
+        end
+        xr = x[ixr + io]
+        xl = x[ixl + io]
+
+        if abs(xr - xlc) > abs(xlc - xl)
+            ix = ixl
+        else
+            ix = ixr
+        end
+
+        # find closest points in meridional direction
+        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+        if (jyb < 1)
+            error("Error in compute_derivatives (DCHIDY): jyl = ", jyl, " < 1")
+        end
+        jyf = jyb + 1
+        if jyf > nyy
+            error(
+                "Error in compute_derivatives (DCHIDY): jyr = ",
+                jyr,
+                " > nyy = ",
+                nyy,
+            )
+        end
+
+        yf = y[jyf + jo]
+        yb = y[jyb + jo]
+
+        if abs(yf - ylc) > abs(ylc - yb)
+            jy = jyb
+        else
+            jy = jyf
+        end
+
+        # find closest index on z-axis 
+        kzu = get_next_level(ix, jy, zlc, domain, grid)
+        kzd = kzu - 1
+
+        zu = ztfc[ix, jy, kzu]
+        zd = ztfc[ix, jy, kzd]
+
+        if abs(zu - zlc) > abs(zlc - zd)
+            kz = kzd
+        else
+            kz = kzu
+        end
+
+        dchif =
+            (
+                chi[ix, jyf + 1, kz] /
+                (rho[ix, jyf + 1, kz] + rhostrattfc[ix, jyf + 1, kz]) -
+                chi[ix, jyf, kz] /
+                (rho[ix, jyf, kz] + rhostrattfc[ix, jyf, kz])
+            ) / dy
+        dchib =
+            (
+                chi[ix, jyb + 1, kz] /
+                (rho[ix, jyb + 1, kz] + rhostrattfc[ix, jyb + 1, kz]) -
+                chi[ix, jyb, kz] /
+                (rho[ix, jyb, kz] + rhostrattfc[ix, jyb, kz])
+            ) / dy
+
+        if yf < yb
+            then
+            error(
+                "Error in compute_derivatives (DCHIDY): yf = ",
+                yf,
+                " < yb = ",
+                yb,
+            )
+        elseif yf == yb
+            factor = 0.0
+        elseif ylc > yf
+            factor = 0.0
+        elseif ylc > yb
+            factor = (yf - ylc) / dy
+        else
+            factor = 1.0
+        end
+
+        dchidy = factor * dchib + (1.0 - factor) * dchif
+
+        return dchidy
+    end
+end
+
+function compute_derivatives(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DCHIDZ,
+)
+    (; sizex, sizey) = state.namelists.domain
+    (; lx, ly, lz, dx, dy, dz, x, y, ztfc) = state.grid
+    (; nxx, nyy, nzz, io, jo, ko, i0, j0, k0) = state.domain
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
+    (; domain, grid) = state
+
+    # find closest points in zonal direction 
+    if sizex == 1
+        ixl = i0
+        ixr = i0
+    else
+        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
+        if (ixl < 1)
+            error("Error in compute_derivatives (DCHIDZ): ixl = ", ixl, " < 1")
+        end
+        ixr = ixl + 1
+        if ixr > nxx
+            error(
+                "Error in compute_derivatives (DCHIDZ): ixr = ",
+                ixr,
+                "> nxx = ",
+                nxx,
+            )
+        end
+    end
+    xr = x[ixr + io]
+    xl = x[ixl + io]
+
+    if abs(xr - xlc) > abs(xlc - xl)
+        ix = ixl
+    else
+        ix = ixr
+    end
+
+    # find closest points in meridional direction
+    if sizey == 1
+        jyb = j0
+        jyf = j0
+    else
+        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+        if (jyb < 1)
+            error("Error in compute_derivatives (DCHIDZ): jyl = ", jyl, " < 1")
+        end
+        jyf = jyb + 1
+        if jyf > nyy
+            error(
+                "Error in compute_derivatives (DCHIDZ): jyr = ",
+                jyr,
+                " > nyy = ",
+                nyy,
+            )
+        end
+    end
+    yf = y[jyf + jo]
+    yb = y[jyb + jo]
+
+    if abs(yf - ylc) > abs(ylc - yb)
+        jy = jyb
+    else
+        jy = jyf
+    end
+
+    # find closest index on z-axis 
+    kzu = get_next_level(ix, jy, zlc, domain, grid)
+    kzd = kzu - 1
+
+    zu = ztfc[ix, jy, kzu]
+    zd = ztfc[ix, jy, kzd]
+
+    if abs(zu - zlc) > abs(zlc - zd)
+        kz = kzd
+    else
+        kz = kzu
+    end
+
+    dchiu =
+        (
+            chi[ix, jy, kzu + 1] /
+            (rho[ix, jy, kzu + 1] + rhostrattfc[ix, jy, kzu + 1]) -
+            chi[ix, jy, kzu] / (rho[ix, jy, kzu] + rhostrattfc[ix, jy, kzu])
+        ) / dz
+    dchid =
+        (
+            chi[ix, jy, kzd + 1] /
+            (rho[ix, jy, kzd + 1] + rhostrattfc[ix, jy, kzd + 1]) -
+            chi[ix, jy, kzd] / (rho[ix, jy, kzd] + rhostrattfc[ix, jy, kzd])
+        ) / dz
+
+    if zu < zd
+        then
+        error(
+            "Error in compute_derivatives (DCHIDZ): zu = ",
+            zu,
+            " < zd = ",
+            zd,
+        )
+    elseif zu == zd
+        factor = 0.0
+    elseif zlc > zu
+        factor = 0.0
+    elseif zlc > zd
+        factor = (zu - zlc) / dz
+    else
+        factor = 1.0
+    end
+
+    dchidz = factor * dchid + (1.0 - factor) * dchiu
+
+    return dchidz
+end

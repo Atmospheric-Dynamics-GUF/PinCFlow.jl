@@ -96,7 +96,7 @@ function set_tracer_vertical_boundaries!(
             namelists,
             domain,
             zboundaries,
-            -,
+            +,
         )
     end
 
@@ -158,6 +158,75 @@ function set_tracer_vertical_boundaries!(
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end
+    end
+
+    return
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    boundaries::AbstractBoundaries,
+    wkb_model::AbstractWKBMode,
+    tracersetup::NoTracer,
+)
+    return
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    boundaries::AbstractBoundaries,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::AbstractTracer,
+)
+    (; namelists, domain) = state
+    (; zboundaries) = namelists.setting
+    (; chiq0) = state.tracer.tracerforcings
+
+    for field in (:uchi, :vchi, :wchi)
+        set_vertical_boundaries_of_field!(
+            getfield(chiq0, field),
+            namelists,
+            domain,
+            zboundaries,
+            +;
+            layers = (1, 1, 1),
+        )
+    end
+
+    return
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    boundaries::AbstractBoundaries,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::NoTracer,
+)
+    return
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    boundaries::AbstractBoundaries,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::AbstractTracer,
+)
+    (; namelists, domain) = state
+    (; zboundaries) = namelists.setting
+    (; chiq0) = state.tracer.tracerforcings
+
+    for field in (:dchidt,)
+        set_vertical_boundaries_of_field!(
+            getfield(chiq0, field),
+            namelists,
+            domain,
+            zboundaries,
+            +,
+        )
     end
 
     return

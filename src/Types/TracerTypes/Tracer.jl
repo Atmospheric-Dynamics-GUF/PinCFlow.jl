@@ -68,12 +68,14 @@ struct Tracer{
     C <: TracerAuxiliaries,
     D <: TracerReconstructions,
     E <: TracerFluxes,
+    F <: TracerForcings,
 }
     tracerpredictands::A
     tracerincrements::B
     tracerauxiliaries::C
     tracerreconstructions::D
     tracerfluxes::E
+    tracerforcings::F
 end
 
 function Tracer(
@@ -96,6 +98,7 @@ function Tracer(
     tracerauxiliaries = TracerAuxiliaries(tracerpredictands)
     tracerreconstructions = TracerReconstructions(namelists, domain)
     tracerfluxes = TracerFluxes(namelists, domain)
+    tracerforcings = TracerForcings(namelists, domain)
 
     return Tracer(
         tracerpredictands,
@@ -103,5 +106,6 @@ function Tracer(
         tracerauxiliaries,
         tracerreconstructions,
         tracerfluxes,
+        tracerforcings,
     )
 end

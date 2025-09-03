@@ -84,6 +84,7 @@ Singleton for dispatch to operations in all directions.
 struct XYZ end
 
 include("apply_saturation_scheme!.jl")
+include("initialize_wkb_wave_packet!.jl")
 include("initialize_rays!.jl")
 include("merge_rays!.jl")
 include("propagate_rays!.jl")
