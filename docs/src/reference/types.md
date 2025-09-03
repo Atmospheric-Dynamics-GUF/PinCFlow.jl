@@ -39,15 +39,3 @@ Modules = [PinCFlow.Types.WKBTypes]
 ```@autodocs
 Modules = [PinCFlow.Types.TracerTypes]
 ```
-
-## IceTypes
-
-```@autodocs
-Modules = [PinCFlow.Types.IceTypes]
-```
-
-## TurbulenceTypes
-
-```@autodocs
-Modules = [PinCFlow.Types.TurbulenceTypes]
-```

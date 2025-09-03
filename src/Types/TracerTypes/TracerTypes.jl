@@ -25,7 +25,6 @@ include("TracerAuxiliaries.jl")
 include("TracerReconstructions.jl")
 include("TracerFluxes.jl")
 include("Tracer.jl")
-include("initialize_tracer_wave_packet!.jl")
 
 export TracerPredictands,
     TracerIncrements,
