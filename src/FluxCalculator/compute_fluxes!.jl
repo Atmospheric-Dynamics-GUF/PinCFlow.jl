@@ -1488,23 +1488,24 @@ function compute_fluxes!(
                 rhostrattfc[i + 1, j, k0] / rhostrattfc[i + 1, j, k]
             )
 
-        thetal = (rho[i, j, k] + rhostrattfc[i, j, k]) / pstrattfc[i, j, k]
+        thetal = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
         thetar =
-            (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k]) /
-            pstrattfc[i + 1, j, k]
+            pstrattfc[i + 1, j, k] /
+            (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k])
+
         thetad =
             0.5 * (
-                (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1]) /
-                pstrattfc[i, j, k - 1] +
-                (rho[i + 1, j, k - 1] + rhostrattfc[i + 1, j, k - 1]) /
-                pstrattfc[i + 1, j, k - 1]
+                pstrattfc[i, j, k - 1] /
+                (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1]) +
+                pstrattfc[i + 1, j, k - 1] /
+                (rho[i + 1, j, k - 1] + rhostrattfc[i + 1, j, k - 1])
             )
         thetau =
             0.5 * (
-                (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) /
-                pstrattfc[i, j, k + 1] +
-                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1]) /
-                pstrattfc[i + 1, j, k + 1]
+                pstrattfc[i, j, k + 1] /
+                (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) +
+                pstrattfc[i + 1, j, k + 1] /
+                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1])
             )
 
         dtht_dxi =
@@ -1532,23 +1533,24 @@ function compute_fluxes!(
                 rhostrattfc[i, j + 1, k0] / rhostrattfc[i, j + 1, k]
             )
 
-        thetab = (rho[i, j, k] + rhostrattfc[i, j, k]) / pstrattfc[i, j, k]
+        thetab = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
         thetaf =
-            (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k]) /
-            pstrattfc[i, j + 1, k]
+            pstrattfc[i, j + 1, k] /
+            (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k])
+
         thetad =
             0.5 * (
-                (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1]) /
-                pstrattfc[i, j, k - 1] +
-                (rho[i, j + 1, k - 1] + rhostrattfc[i, j + 1, k - 1]) /
-                pstrattfc[i, j + 1, k - 1]
+                pstrattfc[i, j, k - 1] /
+                (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1]) +
+                pstrattfc[i, j + 1, k - 1] /
+                (rho[i, j + 1, k - 1] + rhostrattfc[i, j + 1, k - 1])
             )
         thetau =
             0.5 * (
-                (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) /
-                pstrattfc[i, j, k + 1] +
-                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1]) /
-                pstrattfc[i, j + 1, k + 1]
+                pstrattfc[i, j, k + 1] /
+                (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) +
+                pstrattfc[i, j + 1, k + 1] /
+                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1])
             )
 
         dtht_dyi =
@@ -1576,66 +1578,52 @@ function compute_fluxes!(
 
         thetal =
             (
-                jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) /
-                pstrattfc[i, j, k] +
-                jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) /
-                pstrattfc[i, j, k + 1]
-            ) / (jac[i, j, k + 1] + jac[i, j, k])
+                jac[i - 1, j, k + 1] * pstrattfc[i - 1, j, k] /
+                (rho[i - 1, j, k] + rhostrattfc[i - 1, j, k]) +
+                jac[i - 1, j, k] * pstrattfc[i - 1, j, k + 1] /
+                (rho[i - 1, j, k + 1] + rhostrattfc[i - 1, j, k + 1])
+            ) / (jac[i - 1, j, k + 1] + jac[i - 1, j, k])
 
         thetar =
             (
-                jac[i + 1, j, k + 1] *
-                (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k]) /
-                pstrattfc[i + 1, j, k] +
-                jac[i + 1, j, k] *
-                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1]) /
-                pstrattfc[i + 1, j, k + 1]
+                jac[i + 1, j, k + 1] * pstrattfc[i + 1, j, k] /
+                (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k]) +
+                jac[i + 1, j, k] * pstrattfc[i + 1, j, k + 1] /
+                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1])
             ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
 
         thetab =
             (
-                jac[i, j - 1, k + 1] *
-                (rho[i, j - 1, k] + rhostrattfc[i, j - 1, k]) /
-                pstrattfc[i, j - 1, k] +
-                jac[i, j - 1, k] *
-                (rho[i, j - 1, k + 1] + rhostrattfc[i, j - 1, k + 1]) /
-                pstrattfc[i, j - 1, k + 1]
+                jac[i, j - 1, k + 1] * pstrattfc[i, j - 1, k] /
+                (rho[i, j - 1, k] + rhostrattfc[i, j - 1, k]) +
+                jac[i, j - 1, k] * pstrattfc[i, j - 1, k + 1] /
+                (rho[i, j - 1, k + 1] + rhostrattfc[i, j - 1, k + 1])
             ) / (jac[i, j - 1, k + 1] + jac[i, j - 1, k])
 
         thetaf =
             (
-                jac[i, j + 1, k + 1] *
-                (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k]) /
-                pstrattfc[i, j + 1, k] +
-                jac[i, j + 1, k] *
-                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1]) /
-                pstrattfc[i, j + 1, k + 1]
+                jac[i, j + 1, k + 1] * pstrattfc[i, j + 1, k] /
+                (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k]) +
+                jac[i, j + 1, k] * pstrattfc[i, j + 1, k + 1] /
+                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1])
             ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
 
-        thetad = (rho[i, j, k] + rhostrattfc[i, j, k]) / pstrattfc[i, j, k]
+        thetad = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
         thetau =
-            (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) /
-            pstrattfc[i, j, k + 1]
+            pstrattfc[i, j, k + 1] /
+            (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
 
         dtht_dzi =
-            0.5 *
+            jac[i, j, k] *
+            jac[i, j, k + 1] *
             (
-                jac[i, j, k] * met[i, j, k, 1, 3] +
-                jac[i, j, k + 1] * met[i, j, k + 1, 1, 3]
-            ) *
-            (thetar - thetal) / (2.0 * dx) +
-            0.5 *
-            (
-                jac[i, j, k] * met[i, j, k, 2, 3] +
-                jac[i, j, k + 1] * met[i, j, k + 1, 2, 3]
-            ) *
-            (thetaf - thetab) / (2.0 * dy) +
-            0.5 *
-            (
-                jac[i, j, k] * met[i, j, k, 3, 3] +
-                jac[i, j, k + 1] * met[i, j, k + 1, 3, 3]
-            ) *
-            (thetau - thetad) / dz
+                (met[i, j, k, 1, 3] + met[i, j, k + 1, 1, 3]) *
+                (thetar - thetal) / (2.0 * dx) +
+                (met[i, j, k, 2, 3] + met[i, j, k + 1, 2, 3]) *
+                (thetaf - thetab) / (2.0 * dy) +
+                (met[i, j, k, 3, 3] + met[i, j, k + 1, 3, 3]) *
+                (thetau - thetad) / dz
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
     end
