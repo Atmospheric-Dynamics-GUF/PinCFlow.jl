@@ -21,7 +21,6 @@ configurations = Dict(
         Isothermal() => Dict(
             MountainWave() => "pseudo_incompressible_isothermal_mountain_wave",
             WKBMountainWave() => "pseudo_incompressible_isothermal_wkb_mountain_wave",
-            WavePacket() => "pseudo_incompressible_isothermal_wave_packet",
         ),
     ),
     Compressible() => Dict(
@@ -42,6 +41,8 @@ configurations = Dict(
                     specifyreynolds = false,
                     reinv = 0.0E+0,
                     mu_viscous_dim = 1.5E-5,
+                    mu_conduct_dim = 1.5E-5,
+                    mu_mom_diff_dim = 1.5E-5,
                     background = background,
                     buoyancy_frequency = 1.0E-2,
                     theta0_dim = 3.0E+2,
@@ -86,8 +87,6 @@ configurations = Dict(
                     spectral_modes = 1,
                     stretch_exponent = 1.2E+0,
                 )
-
-                ice = IceNamelist(; icesetup = NoIce())
 
                 output = OutputNamelist(;
                     output_variables = (),
@@ -139,25 +138,7 @@ configurations = Dict(
                     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
                 )
 
-                tracer = TracerNamelist(; tracersetup = NoTracer())
-
-                turbulence =
-                    TurbulenceNamelist(; turbulencesetup = NoTurbulence())
-
-                wavepacket = WavePacketNamelist(;
-                    wavepacketdim = 3,
-                    lambdax_dim = 1.0E+4,
-                    lambday_dim = 1.0E+4,
-                    lambdaz_dim = 1.0E+3,
-                    x0_dim = 0.0E+0,
-                    y0_dim = 0.0E+0,
-                    z0_dim = 5.0E+3,
-                    sigmax_dim = 1.0E+5,
-                    sigmay_dim = 1.0E+5,
-                    sigmaz_dim = 1.0E+4,
-                    a0 = 1.0E+0,
-                    branch = -1,
-                )
+                tracer = TracerNamelist(; tracersetup = LinearTracer())
 
                 wkb = WKBNamelist(;
                     xrmin_dim = -5.0E+4,
@@ -202,9 +183,6 @@ configurations = Dict(
                     sponge,
                     wkb,
                     tracer,
-                    ice,
-                    turbulence,
-                    wavepacket,
                 )
 
                 integrate(namelists)
