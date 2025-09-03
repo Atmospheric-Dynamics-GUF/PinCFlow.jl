@@ -165,7 +165,7 @@ end
 
 function set_tracer_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     boundaries::AbstractBoundaries,
     wkb_model::AbstractWKBMode,
     tracersetup::NoTracer,
@@ -175,7 +175,7 @@ end
 
 function set_tracer_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::AbstractTracer,
@@ -200,7 +200,7 @@ end
 
 function set_tracer_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
@@ -210,7 +210,7 @@ end
 
 function set_tracer_vertical_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::AbstractTracer,

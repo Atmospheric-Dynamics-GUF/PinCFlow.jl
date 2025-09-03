@@ -109,7 +109,7 @@ end
 
 function set_tracer_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_model::AbstractWKBMode,
     tracersetup::NoTracer,
 )
@@ -118,7 +118,7 @@ end
 
 function set_tracer_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWIntegrals,
+    variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
     tracersetup::AbstractTracer,
 )
@@ -139,7 +139,7 @@ end
 
 function set_tracer_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
@@ -148,7 +148,7 @@ end
 
 function set_tracer_zonal_boundaries!(
     state::State,
-    variables::BoundaryGWTendencies,
+    variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
     tracersetup::AbstractTracer,
 )

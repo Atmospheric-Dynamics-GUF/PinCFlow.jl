@@ -1280,7 +1280,7 @@ function update!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; dchi) = state.tracer.tracertendencies
+    (; dchi) = state.tracer.tracerincrements
     (; chi) = state.tracer.tracerpredictands
     (; phichi) = state.tracer.tracerfluxes
     (; chiq0) = state.tracer.tracerforcings

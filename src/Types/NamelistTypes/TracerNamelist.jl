@@ -17,7 +17,7 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 
   - `tracersetup::A`: General tracer configuration.
 """
-struct TracerNamelist{A <: AbstractTracer}
+struct TracerNamelist{A <: AbstractTracer, B <: Bool}
     tracersetup::A
     leading_order_impact::B
 end
