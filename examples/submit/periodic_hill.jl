@@ -22,5 +22,8 @@ domain = DomainNamelist(;
 grid = GridNamelist(; mountainheight_dim = 1.0E+1, mountainwidth_dim = 1.0E+4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(; spongelayer = true)
+turbulence = TurbulenceNamelist(; turbulencesetup = TurbulenceOn())
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, turbulence))
+
+#turbulence = TurbulenceNamelist(; turbulencesetup = TurbulenceOn())

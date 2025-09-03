@@ -31,7 +31,7 @@ close(data)
 figure(; figsize = (12, 3))
 
 # Plot in x-y plane.
-iz = 10
+iz = 5
 subplot(131)
 (levels, colormap) =
     symmetric_contours(minimum(w[:, :, iz]), maximum(w[:, :, iz]))
@@ -48,7 +48,7 @@ title(L"z\approx 5\,\mathrm{km}")
 colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Plot in x-z plane.
-iy = 20
+iy = 10
 subplot(132)
 (levels, colormap) =
     symmetric_contours(minimum(w[:, iy, :]), maximum(w[:, iy, :]))
@@ -66,7 +66,7 @@ title(L"y\approx 0\,\mathrm{km}")
 colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Plot in y-z plane.
-ix = 20
+ix = 10
 subplot(133)
 (levels, colormap) =
     symmetric_contours(minimum(w[ix, :, :]), maximum(w[ix, :, :]))

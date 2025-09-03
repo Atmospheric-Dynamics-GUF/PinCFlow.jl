@@ -12,14 +12,14 @@ end
 
 atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
-    sizex = 40,
-    sizey = 40,
-    sizez = 40,
+    sizex = 4,
+    sizey = 4,
+    sizez = 2,
     lx_dim = (-1.0E+4, 1.0E+4),
     ly_dim = (-1.0E+4, 1.0E+4),
     lz_dim = (0.0E+0, 2.0E+4),
-    npx = 8,
-    npy = 8,
+    npx = 1,
+    npy = 1,
 )
 grid = GridNamelist(; mountain_case = 4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
