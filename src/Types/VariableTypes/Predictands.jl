@@ -100,7 +100,6 @@ function Predictands(
     (; uref) = constants
     (; nxx, nyy, nzz) = domain
     (; pstrattfc) = atmosphere
-    (; pstrattfc) = atmosphere
 
     # Initialize the predictands.
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
