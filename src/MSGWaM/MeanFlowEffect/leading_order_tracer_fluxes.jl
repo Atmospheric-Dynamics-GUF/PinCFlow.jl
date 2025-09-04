@@ -11,7 +11,7 @@ leading_order_tracer_fluxes(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    direction::UCHI,
+    direction::UChi,
 )::AbstractFloat
 ```
 
@@ -34,7 +34,7 @@ leading_order_tracer_fluxes(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    direction::VCHI,
+    direction::VChi,
 )::AbstractFloat
 ```
 
@@ -57,7 +57,7 @@ leading_order_tracer_fluxes(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    direction::WCHI,
+    direction::WChi,
 )::AbstractFloat
 ```
 
@@ -81,7 +81,7 @@ function leading_order_tracer_fluxes(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    direction::UCHI,
+    direction::UChi,
 )::AbstractFloat
     dchidy = compute_derivatives(xlc, ylc, zlc, state, DChiDY())
     dchidz = compute_derivatives(xlc, ylc, zlc, state, DChiDZ())
@@ -102,7 +102,7 @@ function leading_order_tracer_fluxes(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    direction::VCHI,
+    direction::VChi,
 )::AbstractFloat
     dchidx = compute_derivatives(xlc, ylc, zlc, state, DChiDX())
     dchidz = compute_derivatives(xlc, ylc, zlc, state, DChiDZ())
@@ -123,7 +123,7 @@ function leading_order_tracer_fluxes(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    direction::WCHI,
+    direction::WChi,
 )::AbstractFloat
     dchidx = compute_derivatives(xlc, ylc, zlc, state, DChiDX())
     dchidy = compute_derivatives(xlc, ylc, zlc, state, DChiDY())

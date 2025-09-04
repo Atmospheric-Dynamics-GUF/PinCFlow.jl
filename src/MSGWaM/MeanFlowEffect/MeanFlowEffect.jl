@@ -27,30 +27,30 @@ using ..RayUpdate
 
 """
 ```julia 
-UCHI <: AbstractVariable 
+UChi <: AbstractVariable 
 ```
 
 Singleton for dispatch to calculation of zonal gravity-wave-tracer fluxes.
 """
-struct UCHI <: AbstractVariable end
+struct UChi <: AbstractVariable end
 
 """
 ```julia 
-VCHI <: AbstractVariable 
+VChi <: AbstractVariable 
 ```
 
 Singleton for dispatch to calculation of meridional gravity-wave-tracer fluxes.
 """
-struct VCHI <: AbstractVariable end
+struct VChi <: AbstractVariable end
 
 """
 ```julia 
-WCHI <: AbstractVariable 
+WChi <: AbstractVariable 
 ```
 
 Singleton for dispatch to calculation of vertical gravity-wave-tracer fluxes.
 """
-struct WCHI <: AbstractVariable end
+struct WChi <: AbstractVariable end
 
 include("compute_leading_order_tracer_fluxes!.jl")
 include("leading_order_tracer_fluxes.jl")

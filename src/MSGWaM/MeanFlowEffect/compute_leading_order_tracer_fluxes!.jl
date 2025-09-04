@@ -140,7 +140,7 @@ function compute_leading_order_tracer_fluxes!(
         xlc,
         ylc,
         zlc,
-        UCHI(),
+        UChi(),
     )
 
     vchi[ix, jy, kz] += leading_order_tracer_fluxes(
@@ -154,7 +154,7 @@ function compute_leading_order_tracer_fluxes!(
         xlc,
         ylc,
         zlc,
-        VCHI(),
+        VChi(),
     )
 
     wchi[ix, jy, kz] += leading_order_tracer_fluxes(
@@ -168,7 +168,7 @@ function compute_leading_order_tracer_fluxes!(
         xlc,
         ylc,
         zlc,
-        WCHI(),
+        WChi(),
     )
     return
 end
