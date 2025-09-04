@@ -1234,6 +1234,16 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
+    tracersetup::NoTracer,
+    testcase::AbstractWKBTestCase
+)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
     tracersetup::AbstractTracer,
     testcase::AbstractTestCase,
 )
