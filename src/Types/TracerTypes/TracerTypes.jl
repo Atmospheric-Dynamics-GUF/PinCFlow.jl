@@ -24,7 +24,7 @@ include("TracerIncrements.jl")
 include("TracerAuxiliaries.jl")
 include("TracerReconstructions.jl")
 include("TracerFluxes.jl")
-include("TracerGWImpact.jl")
+include("TracerWKBImpact.jl")
 include("TracerForcings.jl")
 include("Tracer.jl")
 
@@ -34,6 +34,6 @@ export TracerPredictands,
     TracerReconstructions,
     TracerFluxes,
     TracerGWForcings,
-    TracerGWImpact,
+    TracerWKBImpact,
     Tracer
 end

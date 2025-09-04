@@ -202,7 +202,25 @@ update!(
 Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracersetup::NoTracer)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracersetup::NoTracer,
+    testcase::AbstractTestCase,
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracersetup::NoTracer,
+    testcase::AbstractWKBTestCase,
+)
 ```
 
 Return for configurations without tracer transport.
@@ -213,10 +231,23 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     tracersetup::AbstractTracer,
+    testcase::AbstractTestCase,
 )
 ```
 
-Update the tracers with a Runge-Kutta step on the left-hand sides of the equations (as of now, the right-hand sides are still zero).
+Update the tracers with a Runge-Kutta step on the left-hand sides of the equations.
+
+```julia 
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracersetup::AbstractTracer,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Update the tracers with a Runge-Kutta step on the left-hand sides with WKB right-hand side terms according to namelists configuration. 
 
 # Arguments
 
@@ -237,6 +268,8 @@ Update the tracers with a Runge-Kutta step on the left-hand sides of the equatio
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
   - `tracersetup`: General tracer-transport configuration.
+
+  - `testcase`: Test case on which the current simulation is based.
 
 # See also
 

@@ -153,6 +153,18 @@ smooth_gw_tendencies!(
 
 Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
 
+```julia 
+smooth_gw_tendencies!(state::State, tracersetup::AbstractTracer)
+```
+
+Apply smoothing to tracer tendencies.
+
+```julia 
+smooth_gw_tendencies!(state::State, tracersetup::NoTracer)
+```
+
+Return for configurations without tracer transport.
+
 # Arguments
 
   - `state`: Model state.
@@ -162,6 +174,8 @@ Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
   - `sm_filter`: Filter type.
 
   - `direction`: Directions to smooth in.
+
+  - `tracersetup`: General tracer-transport configuration.
 
 # See also
 

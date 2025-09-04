@@ -216,13 +216,12 @@ export DomainNamelist,
     State,
     NoTracer,
     LinearTracer,
-    LikeDensity,
     TracerPredictands,
     TracerAuxiliaries,
     TracerIncrements,
     TracerReconstructions,
     TracerFluxes,
     TracerForcings,
-    TracerGWImpact
+    TracerWKBImpact
 
 end

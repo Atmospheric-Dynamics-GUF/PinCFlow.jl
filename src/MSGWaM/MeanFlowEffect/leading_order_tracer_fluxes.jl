@@ -1,3 +1,75 @@
+"""
+```julia 
+leading_order_tracer_fluxes(
+    state::State,
+    fc::AbstractFloat,
+    omir::AbstractFloat,
+    wnrk::AbstractFloat,
+    wnrl::AbstractFloat,
+    wnrm::AbstractFloat,
+    wadr::AbstractFloat,
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    direction::UCHI,
+)::AbstractFloat
+```
+
+Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the zonal leading-order gravity-wave tracer fluxes ``\\overline{\\rho}\\langle u'\\chi'\\rangle``.
+
+The flux-contributions are given by 
+```math 
+\\overline{\\rho} u_{w,\\alpha}\\chi^*_{w,\\alpha} = \\frac{f}{\\widehat{\\omega}_{\\alpha}}\\frac{m_{\\alpha}}{|\\mathbf{k}_{\\alpha}|^2}\\mathcal{A}_{\\alpha}\\left(l_{\\alpha}\\partial_{z}\\chi_b - m_{\\alpha}\\partial_y\\chi_b \\right)
+```
+
+```julia 
+leading_order_tracer_fluxes(
+    state::State,
+    fc::AbstractFloat,
+    omir::AbstractFloat,
+    wnrk::AbstractFloat,
+    wnrl::AbstractFloat,
+    wnrm::AbstractFloat,
+    wadr::AbstractFloat,
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    direction::VCHI,
+)::AbstractFloat
+```
+
+Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the meridional leading-order gravity-wave tracer fluxes ``\\overline{\\rho}\\langle v'\\chi'\\rangle``.
+
+The fluxes are given by 
+```math 
+\\overline{\\rho} v_{w,\\alpha}\\chi^*_{w,\\alpha} = \\frac{f}{\\widehat{\\omega}_{\\alpha}}\\frac{m_{\\alpha}}{|\\mathbf{k}_{\\alpha}|^2}\\mathcal{A}_{\\alpha}\\left(m_{\\alpha}\\partial_{x}\\chi_b - k_{\\alpha}\\partial_z\\chi_b \\right)
+```
+
+```julia 
+leading_order_tracer_fluxes(
+    state::State,
+    fc::AbstractFloat,
+    omir::AbstractFloat,
+    wnrk::AbstractFloat,
+    wnrl::AbstractFloat,
+    wnrm::AbstractFloat,
+    wadr::AbstractFloat,
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    direction::WCHI,
+)::AbstractFloat
+```
+
+Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the vertical leading-order gravity-wave tracer fluxes ``\\overline{\\rho}\\langle w'\\chi'\\rangle``.
+
+The fluxes are given by 
+```math 
+\\overline{\\rho} w_{w,\\alpha}\\chi^*_{w,\\alpha} = \\frac{f}{\\widehat{\\omega}_{\\alpha}}\\frac{m_{\\alpha}}{|\\mathbf{k}_{\\alpha}|^2}\\mathcal{A}_{\\alpha}\\left(k_{\\alpha}\\partial_{y}\\chi_b - l_{\\alpha}\\partial_x\\chi_b \\right)
+```
+"""
+function leading_order_tracer_fluxes end
+
 function leading_order_tracer_fluxes(
     state::State,
     fc::AbstractFloat,
@@ -10,7 +82,7 @@ function leading_order_tracer_fluxes(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     direction::UCHI,
-)
+)::AbstractFloat
     dchidy = compute_derivatives(xlc, ylc, zlc, state, DCHIDY())
     dchidz = compute_derivatives(xlc, ylc, zlc, state, DCHIDZ())
 
@@ -31,7 +103,7 @@ function leading_order_tracer_fluxes(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     direction::VCHI,
-)
+)::AbstractFloat
     dchidx = compute_derivatives(xlc, ylc, zlc, state, DCHIDX())
     dchidz = compute_derivatives(xlc, ylc, zlc, state, DCHIDZ())
 
@@ -52,7 +124,7 @@ function leading_order_tracer_fluxes(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     direction::WCHI,
-)
+)::AbstractFloat
     dchidx = compute_derivatives(xlc, ylc, zlc, state, DCHIDX())
     dchidy = compute_derivatives(xlc, ylc, zlc, state, DCHIDY())
 

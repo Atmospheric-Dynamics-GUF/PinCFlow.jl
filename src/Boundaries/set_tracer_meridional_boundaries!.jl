@@ -39,6 +39,50 @@ set_tracer_meridional_boundaries!(
 
 Enforce meridional boundary conditions for reconstructions of tracers.
 
+```julia 
+set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_model::AbstractWKBMode,
+    tracersetup::NoTracer,
+)
+```
+
+Return for configuations without tracer transport.
+
+```julia 
+set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::AbstractTracer,
+)
+```
+
+Enforce meridional boundary conditions for tracer-gravity-wave-integral fields.
+
+```julia 
+set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::NoTracer,
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia 
+set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::AbstractTracer,
+)
+```    
+
+Enforce meridional boundary conditions for tracer-gravity-wave-tendency fields.
+
 # Arguments
 
   - `state`: Model state.
@@ -46,6 +90,8 @@ Enforce meridional boundary conditions for reconstructions of tracers.
   - `variables`: Boundary-variable category.
 
   - `tracersetup`: General tracer-transport configuration.
+
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 

@@ -202,8 +202,9 @@ function create_output(state::State)
                 )
             end
 
-            if state.namelists.tracer.leading_order_impact
-                for field in fieldnames(TracerGWImpact)
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt in output_variables
+                for field in fieldnames(TracerWKBImpact)
                     create_dataset(
                         file,
                         string(field),

@@ -89,8 +89,32 @@ DVDZ <: AbstractVariable
 Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial z``.
 """
 struct DVDZ <: AbstractVariable end
+
+"""
+```julia 
+DCHIDX <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial x``.
+"""
 struct DCHIDX <: AbstractVariable end
+
+"""
+```julia 
+DCHIDY <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial y``.
+"""
 struct DCHIDY <: AbstractVariable end
+
+"""
+```julia 
+DCHIDZ <: AbstractVariable
+```
+
+Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial z``.
+"""
 struct DCHIDZ <: AbstractVariable end
 
 include("compute_derivatives.jl")

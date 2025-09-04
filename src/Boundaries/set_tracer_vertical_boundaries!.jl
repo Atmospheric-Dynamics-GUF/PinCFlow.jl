@@ -59,6 +59,54 @@ set_tracer_vertical_boundaries!(
 
 Set the vertical tracer fluxes at the vertical boundaries to zero.
 
+```julia 
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    boundaries::AbstractBoundaries,
+    wkb_model::AbstractWKBMode,
+    tracersetup::NoTracer,
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia 
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    boundaries::AbstractBoundaries,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::AbstractTracer,
+)
+```
+
+Enforce vertical boundary conditions for tracer-gravity-wave-integral fields.
+
+```julia 
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    boundaries::AbstractBoundaries,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::NoTracer,
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia 
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    boundaries::AbstractBoundaries,
+    wkb_mode::AbstractWKBMode,
+    tracersetup::AbstractTracer,
+)
+```
+
+Enforce vertical boundary conditions for tracer-gravity-wave-tendency fields.
+
 # Arguments
 
   - `state`: Model state.
@@ -66,6 +114,8 @@ Set the vertical tracer fluxes at the vertical boundaries to zero.
   - `variables`: Boundary-variable category.
 
   - `tracersetup`: General tracer-transport configuration.
+
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 

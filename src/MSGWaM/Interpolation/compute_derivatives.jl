@@ -99,6 +99,42 @@ The derivative is given by
 
 At grid points beyond the vertical boundaries, it is set to zero.
 
+```julia 
+compute_derivatives(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DCHIDX,
+)
+```
+
+Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial x``) near the location specified by `xlc`, `ylc`, and `zlc`.
+
+```julia 
+compute_derivatives(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DCHIDY,
+)
+```
+
+Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial x``) near the location specified by `xlc`, `ylc`, and `zlc`.
+
+```julia 
+compute_derivatives(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DCHIDZ,
+)
+```
+
+Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial x``) near the location specified by `xlc`, `ylc`, and `zlc`.
+
 # Arguments
 
   - `state`: Model state.
@@ -106,6 +142,12 @@ At grid points beyond the vertical boundaries, it is set to zero.
   - `indices`: Indices `(ix, jy, kzd, kzu)` of the two grid points at which to compute the derivative.
 
   - `phitype`: Type of derivative to compute.
+
+  - `xlc`: Location in `\\widehat{x}`-direction.
+
+  - `ylc`: Location in `\\widehat{y}`-direction.
+
+  - `zlc`: Location in `\\widehat{z}`-direction.
 """
 function compute_derivatives end
 
