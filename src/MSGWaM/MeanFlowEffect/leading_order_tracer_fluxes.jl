@@ -10,7 +10,7 @@ function leading_order_tracer_fluxes(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     direction::UCHI,
-) 
+)
     dchidy = compute_derivatives(xlc, ylc, zlc, state, DCHIDY())
     dchidz = compute_derivatives(xlc, ylc, zlc, state, DCHIDZ())
 

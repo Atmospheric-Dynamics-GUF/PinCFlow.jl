@@ -169,8 +169,7 @@ function set_zonal_boundaries!(
     return
 end
 
-
-function set_zonal_boundaries!(state::State, variables::BoundaryWKBTendencies) 
+function set_zonal_boundaries!(state::State, variables::BoundaryWKBTendencies)
     (; wkb_mode) = state.namelists.wkb
     (; tracersetup) = state.namelists.tracer
     set_zonal_boundaries!(state, variables, wkb_mode)

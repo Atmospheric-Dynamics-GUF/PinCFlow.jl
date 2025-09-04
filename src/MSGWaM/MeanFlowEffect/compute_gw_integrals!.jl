@@ -398,14 +398,13 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
                         integrals.e[ix, jy, kz] += wadr * omir
 
-
                         compute_leading_order_tracer_fluxes!(
                             state,
                             state.namelists.tracer.tracersetup,
                             fc,
                             omir,
-                            0.,
-                            0.,
+                            0.0,
+                            0.0,
                             wnrm,
                             wadr,
                             xr,
@@ -530,7 +529,6 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                         integrals.uw[ix, jy, kz] += wadr * kr * cgirz
 
                         integrals.vw[ix, jy, kz] += wadr * lr * cgirz
-
 
                         compute_leading_order_tracer_fluxes!(
                             state,

@@ -391,7 +391,8 @@ function write_output(
                     )
             end
 
-            if state.namelists.tracer.leading_order_impact && :dchidt in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt in output_variables
                 for field in (:dchidt,)
                     HDF5.set_extent_dims(
                         file[string(field)],

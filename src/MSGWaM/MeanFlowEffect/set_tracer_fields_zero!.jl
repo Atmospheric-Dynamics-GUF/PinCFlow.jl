@@ -14,6 +14,6 @@ function set_tracer_field_zero!(state::State, tracersetup::AbstractTracer)
     (; chiq0) = state.tracer.tracerforcings
 
     for field in fieldnames(TracerGWImpact)
-        getfield(chiq0, field) .= 0.0 
+        getfield(chiq0, field) .= 0.0
     end
 end

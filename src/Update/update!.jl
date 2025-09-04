@@ -1235,7 +1235,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     tracersetup::NoTracer,
-    testcase::AbstractWKBTestCase
+    testcase::AbstractWKBTestCase,
 )
     return
 end

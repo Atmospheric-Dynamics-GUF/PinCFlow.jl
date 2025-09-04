@@ -275,7 +275,7 @@ function integrate(namelists::Namelists)
         end
 
         explicit_integration!(state, p0, 0.5 * dt, time, LHS())
-        
+
         if master
             println("(2) Implicit integration of RHS over dt/2...")
             println("")
@@ -313,7 +313,7 @@ function integrate(namelists::Namelists)
         synchronize_compressible_atmosphere!(state, p0)
 
         explicit_integration!(state, p0, dt, time, LHS())
-        
+
         if master
             println("(5) Implicit integration of RHS over dt/2...")
             println("")

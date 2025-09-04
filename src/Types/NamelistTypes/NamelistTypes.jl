@@ -341,7 +341,7 @@ LinearTracer <: AbstractTracer
 Singleton for model configurations with an initially linear tracer.
 """
 struct LinearTracer <: AbstractTracer end
- 
+
 using MPI
 
 include("DomainNamelist.jl")

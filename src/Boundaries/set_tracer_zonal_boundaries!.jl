@@ -143,8 +143,8 @@ function set_tracer_zonal_boundaries!(
     wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
-    return 
-end 
+    return
+end
 
 function set_tracer_zonal_boundaries!(
     state::State,

@@ -23,7 +23,7 @@ struct TracerNamelist{A <: AbstractTracer, B <: Bool}
 end
 
 function TracerNamelist(;
-   
+
     tracersetup::AbstractTracer = NoTracer(),
     leading_order_impact = true,
 )::TracerNamelist

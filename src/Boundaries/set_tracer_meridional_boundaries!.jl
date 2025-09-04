@@ -143,7 +143,7 @@ function set_tracer_meridional_boundaries!(
     wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
-    return 
+    return
 end
 
 function set_tracer_meridional_boundaries!(
