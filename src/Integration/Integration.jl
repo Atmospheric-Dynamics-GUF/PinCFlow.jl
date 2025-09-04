@@ -35,6 +35,24 @@ using ..FluxCalculator
 using ..Output
 using ..MSGWaM
 
+"""
+```julia
+Dissipation
+```
+
+Singleton for the dissipation step of the turbulence computation.
+"""
+struct Dissipation end
+
+"""
+```julia
+Diffusion
+```
+
+Singleton for the diffusion step of the turbulence computation.
+"""
+struct Diffusion end
+
 include("compute_time_step.jl")
 include("integrate.jl")
 include("modify_compressible_wind!.jl")
@@ -45,6 +63,9 @@ include("synchronize_density_fluctuations!.jl")
 include("explicit_integration!.jl")
 include("implicit_integration!.jl")
 include("wkb_integration!.jl")
+include("turbulence_computation!.jl")
+
+export Dissipation, Diffusion
 
 export integrate
 

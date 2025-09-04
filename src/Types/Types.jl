@@ -248,6 +248,7 @@ export DomainNamelist,
     TurbulenceAuxiliaries,
     TurbulenceIncrements,
     TurbulenceReconstructions,
-    TurbulenceFluxes
+    TurbulenceFluxes,
+    TurbulenceConstants
 
 end
