@@ -83,8 +83,8 @@ function leading_order_tracer_fluxes(
     zlc::AbstractFloat,
     direction::UCHI,
 )::AbstractFloat
-    dchidy = compute_derivatives(xlc, ylc, zlc, state, DCHIDY())
-    dchidz = compute_derivatives(xlc, ylc, zlc, state, DCHIDZ())
+    dchidy = compute_derivatives(xlc, ylc, zlc, state, DChiDY())
+    dchidz = compute_derivatives(xlc, ylc, zlc, state, DChiDZ())
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
@@ -104,8 +104,8 @@ function leading_order_tracer_fluxes(
     zlc::AbstractFloat,
     direction::VCHI,
 )::AbstractFloat
-    dchidx = compute_derivatives(xlc, ylc, zlc, state, DCHIDX())
-    dchidz = compute_derivatives(xlc, ylc, zlc, state, DCHIDZ())
+    dchidx = compute_derivatives(xlc, ylc, zlc, state, DChiDX())
+    dchidz = compute_derivatives(xlc, ylc, zlc, state, DChiDZ())
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
@@ -125,8 +125,8 @@ function leading_order_tracer_fluxes(
     zlc::AbstractFloat,
     direction::WCHI,
 )::AbstractFloat
-    dchidx = compute_derivatives(xlc, ylc, zlc, state, DCHIDX())
-    dchidy = compute_derivatives(xlc, ylc, zlc, state, DCHIDY())
+    dchidx = compute_derivatives(xlc, ylc, zlc, state, DChiDX())
+    dchidy = compute_derivatives(xlc, ylc, zlc, state, DChiDY())
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 

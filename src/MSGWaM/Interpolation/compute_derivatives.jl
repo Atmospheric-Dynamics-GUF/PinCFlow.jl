@@ -105,7 +105,7 @@ compute_derivatives(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    phitype::DCHIDX,
+    phitype::DChiDX,
 )
 ```
 
@@ -117,7 +117,7 @@ compute_derivatives(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    phitype::DCHIDY,
+    phitype::DChiDY,
 )
 ```
 
@@ -129,7 +129,7 @@ compute_derivatives(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    phitype::DCHIDZ,
+    phitype::DChiDZ,
 )
 ```
 
@@ -412,7 +412,7 @@ function compute_derivatives(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    phitype::DCHIDX,
+    phitype::DChiDX,
 )
     (; sizex, sizey) = state.namelists.domain
     (; lx, ly, lz, dx, dy, dz, x, y, ztfc) = state.grid
@@ -428,12 +428,12 @@ function compute_derivatives(
         # find closest points in zonal direction 
         ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
         if (ixl < 1)
-            error("Error in compute_derivatives (DCHIDX): ixl = ", ixl, " < 1")
+            error("Error in compute_derivatives (DChiDX): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
         if ixr > nxx
             error(
-                "Error in compute_derivatives (DCHIDX): ixr = ",
+                "Error in compute_derivatives (DChiDX): ixr = ",
                 ixr,
                 "> nxx = ",
                 nxx,
@@ -457,7 +457,7 @@ function compute_derivatives(
             jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
             if (jyb < 1)
                 error(
-                    "Error in compute_derivatives (DCHIDX): jyl = ",
+                    "Error in compute_derivatives (DChiDX): jyl = ",
                     jyl,
                     " < 1",
                 )
@@ -465,7 +465,7 @@ function compute_derivatives(
             jyf = jyb + 1
             if jyf > nyy
                 error(
-                    "Error in compute_derivatives (DCHIDX): jyr = ",
+                    "Error in compute_derivatives (DChiDX): jyr = ",
                     jyr,
                     " > nyy = ",
                     nyy,
@@ -512,7 +512,7 @@ function compute_derivatives(
         if xr < xl
             then
             error(
-                "Error in compute_derivatives (DCHIDX): xr = ",
+                "Error in compute_derivatives (DChiDX): xr = ",
                 xr,
                 " < xl = ",
                 xl,
@@ -538,7 +538,7 @@ function compute_derivatives(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    phitype::DCHIDY,
+    phitype::DChiDY,
 )
     (; sizex, sizey) = state.namelists.domain
     (; lx, ly, lz, dx, dy, dz, x, y, ztfc) = state.grid
@@ -559,7 +559,7 @@ function compute_derivatives(
             ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
             if (ixl < 1)
                 error(
-                    "Error in compute_derivatives (DCHIDY): ixl = ",
+                    "Error in compute_derivatives (DChiDY): ixl = ",
                     ixl,
                     " < 1",
                 )
@@ -567,7 +567,7 @@ function compute_derivatives(
             ixr = ixl + 1
             if ixr > nxx
                 error(
-                    "Error in compute_derivatives (DCHIDY): ixr = ",
+                    "Error in compute_derivatives (DChiDY): ixr = ",
                     ixr,
                     "> nxx = ",
                     nxx,
@@ -586,12 +586,12 @@ function compute_derivatives(
         # find closest points in meridional direction
         jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
         if (jyb < 1)
-            error("Error in compute_derivatives (DCHIDY): jyl = ", jyl, " < 1")
+            error("Error in compute_derivatives (DChiDY): jyl = ", jyl, " < 1")
         end
         jyf = jyb + 1
         if jyf > nyy
             error(
-                "Error in compute_derivatives (DCHIDY): jyr = ",
+                "Error in compute_derivatives (DChiDY): jyr = ",
                 jyr,
                 " > nyy = ",
                 nyy,
@@ -638,7 +638,7 @@ function compute_derivatives(
         if yf < yb
             then
             error(
-                "Error in compute_derivatives (DCHIDY): yf = ",
+                "Error in compute_derivatives (DChiDY): yf = ",
                 yf,
                 " < yb = ",
                 yb,
@@ -664,7 +664,7 @@ function compute_derivatives(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    phitype::DCHIDZ,
+    phitype::DChiDZ,
 )
     (; sizex, sizey) = state.namelists.domain
     (; lx, ly, lz, dx, dy, dz, x, y, ztfc) = state.grid
@@ -681,12 +681,12 @@ function compute_derivatives(
     else
         ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
         if (ixl < 1)
-            error("Error in compute_derivatives (DCHIDZ): ixl = ", ixl, " < 1")
+            error("Error in compute_derivatives (DChiDZ): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
         if ixr > nxx
             error(
-                "Error in compute_derivatives (DCHIDZ): ixr = ",
+                "Error in compute_derivatives (DChiDZ): ixr = ",
                 ixr,
                 "> nxx = ",
                 nxx,
@@ -709,12 +709,12 @@ function compute_derivatives(
     else
         jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
         if (jyb < 1)
-            error("Error in compute_derivatives (DCHIDZ): jyl = ", jyl, " < 1")
+            error("Error in compute_derivatives (DChiDZ): jyl = ", jyl, " < 1")
         end
         jyf = jyb + 1
         if jyf > nyy
             error(
-                "Error in compute_derivatives (DCHIDZ): jyr = ",
+                "Error in compute_derivatives (DChiDZ): jyr = ",
                 jyr,
                 " > nyy = ",
                 nyy,
@@ -759,7 +759,7 @@ function compute_derivatives(
     if zu < zd
         then
         error(
-            "Error in compute_derivatives (DCHIDZ): zu = ",
+            "Error in compute_derivatives (DChiDZ): zu = ",
             zu,
             " < zd = ",
             zd,

@@ -92,30 +92,30 @@ struct DVDZ <: AbstractVariable end
 
 """
 ```julia 
-DCHIDX <: AbstractVariable
+DChiDX <: AbstractVariable
 ```
 
 Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial x``.
 """
-struct DCHIDX <: AbstractVariable end
+struct DChiDX <: AbstractVariable end
 
 """
 ```julia 
-DCHIDY <: AbstractVariable
+DChiDY <: AbstractVariable
 ```
 
 Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial y``.
 """
-struct DCHIDY <: AbstractVariable end
+struct DChiDY <: AbstractVariable end
 
 """
 ```julia 
-DCHIDZ <: AbstractVariable
+DChiDZ <: AbstractVariable
 ```
 
 Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial z``.
 """
-struct DCHIDZ <: AbstractVariable end
+struct DChiDZ <: AbstractVariable end
 
 include("compute_derivatives.jl")
 include("get_next_half_level.jl")
@@ -125,7 +125,7 @@ include("interpolate_sponge.jl")
 include("interpolate_stratification.jl")
 include("interpolate.jl")
 
-export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DCHIDX, DCHIDY, DCHIDZ
+export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DChiDX, DChiDY, DChiDZ
 
 export get_next_half_level,
     get_next_level,
