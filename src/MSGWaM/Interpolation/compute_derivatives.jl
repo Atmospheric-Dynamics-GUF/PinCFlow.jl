@@ -121,7 +121,7 @@ compute_derivatives(
 )
 ```
 
-Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial x``) near the location specified by `xlc`, `ylc`, and `zlc`.
+Compute and return the meridional derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial y``) near the location specified by `xlc`, `ylc`, and `zlc`.
 
 ```julia 
 compute_derivatives(
@@ -133,7 +133,7 @@ compute_derivatives(
 )
 ```
 
-Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial x``) near the location specified by `xlc`, `ylc`, and `zlc`.
+Compute and return the vertical derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial z``) near the location specified by `xlc`, `ylc`, and `zlc`.
 
 # Arguments
 
