@@ -47,7 +47,6 @@ function set_boundaries! end
 
 function set_boundaries!(state::State, variables::BoundaryPredictands)
     (; zboundaries) = state.namelists.setting
-
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
     set_vertical_boundaries!(state, variables, zboundaries)
