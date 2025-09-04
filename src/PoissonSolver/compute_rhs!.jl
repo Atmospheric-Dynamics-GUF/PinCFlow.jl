@@ -62,19 +62,14 @@ function compute_rhs!(
 )::AbstractFloat
     (; sizex, sizey, sizez) = state.namelists.domain
     (; ma, kappa) = state.constants
-    (; comm, nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; u, v, w) = state.variables.predictands
 
-    # Initialize summation fields.
-    divmax = 0.0
-    divsum = 0.0
-    divsum_local = 0.0
+    # Initialize summation variables.
     divl2 = 0.0
-    divl2_local = 0.0
     divl2_norm = 0.0
-    divl2_norm_local = 0.0
 
     # Calculate RHS for TFC.
     for k in k0:k1, j in j0:j1, i in i0:i1
@@ -126,34 +121,19 @@ function compute_rhs!(
         bu = (pedger * ur - pedgel * ul) / dx / jac[i, j, k] * ma^2.0 * kappa
         bv = (pedgef * vf - pedgeb * vb) / dy / jac[i, j, k] * ma^2.0 * kappa
         bw = (pedgeu * wu - pedged * wd) / dz / jac[i, j, k] * ma^2.0 * kappa
-        divsum_local += bu + bv + bw
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
         b[ib, jb, kb] = bu + bv + bw
         # Compute check sum for solvability criterion.
-        divl2_local += b[ib, jb, kb]^2.0
-        bl2loc = bu^2.0 + bv^2.0 + bw^2.0
-        divl2_norm_local += bl2loc
-        if abs(b[ib, jb, kb]) > divmax
-            divmax = abs(b[ib, jb, kb])
-        end
+        divl2 += b[ib, jb, kb]^2.0
+        divl2_norm += bu^2.0 + bv^2.0 + bw^2.0
     end
 
-    # MPI: sum divSum_local over all procs
-    divsum = MPI.Allreduce(divsum_local, +, comm)
-
-    # MPI: sum divL2_local over all procs
-    divl2 = MPI.Allreduce(divl2_local, +, comm)
-
-    # MPI: sum divL2_norm_local over all procs
-    divl2_norm = MPI.Allreduce(divl2_norm_local, +, comm)
-
-    # scale div
-    divl2_local = sqrt(divl2_local / nx / ny / nz)
+    divl2 = MPI.Allreduce(divl2, +, comm)
     divl2 = sqrt(divl2 / sizex / sizey / sizez)
 
-    divl2_norm_local = sqrt(divl2_norm_local / nx / ny / nz)
+    divl2_norm = MPI.Allreduce(divl2_norm, +, comm)
     divl2_norm = sqrt(divl2_norm / sizex / sizey / sizez)
 
     if divl2_norm != 0.0
@@ -182,13 +162,8 @@ function compute_rhs!(
     (; u, v, w) = state.variables.predictands
 
     # Initialize summation fields.
-    divmax = 0.0
-    divsum = 0.0
-    divsum_local = 0.0
     divl2 = 0.0
-    divl2_local = 0.0
     divl2_norm = 0.0
-    divl2_norm_local = 0.0
 
     # Calculate RHS for TFC.
     for k in k0:k1, j in j0:j1, i in i0:i1
@@ -211,35 +186,20 @@ function compute_rhs!(
         bu = (ur - ul) / dx / jac[i, j, k] * ma^2.0 * kappa
         bv = (vf - vb) / dy / jac[i, j, k] * ma^2.0 * kappa
         bw = (wu - wd) / dz / jac[i, j, k] * ma^2.0 * kappa
-        divsum_local += bu + bv + bw - heating
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
         heating /= fcscal
         b[ib, jb, kb] = bu + bv + bw - heating
         # Compute check sum for solvability criterion.
-        divl2_local += b[ib, jb, kb]^2.0
-        bl2loc = bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0
-        divl2_norm_local += bl2loc
-        if abs(b[ib, jb, kb]) > divmax
-            divmax = abs(b[ib, jb, kb])
-        end
+        divl2 += b[ib, jb, kb]^2.0
+        divl2_norm += bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0
     end
 
-    # MPI: sum divSum_local over all procs
-    divsum = MPI.Allreduce(divsum_local, +, comm)
-
-    # MPI: sum divL2_local over all procs
-    divl2 = MPI.Allreduce(divl2_local, +, comm)
-
-    # MPI: sum divL2_norm_local over all procs
-    divl2_norm = MPI.Allreduce(divl2_norm_local, +, comm)
-
-    # scale div
-    divl2_local = sqrt(divl2_local / nx / ny / nz)
+    divl2 = MPI.Allreduce(divl2, +, comm)
     divl2 = sqrt(divl2 / sizex / sizey / sizez)
 
-    divl2_norm_local = sqrt(divl2_norm_local / nx / ny / nz)
+    divl2_norm = MPI.Allreduce(divl2_norm, +, comm)
     divl2_norm = sqrt(divl2_norm / sizex / sizey / sizez)
 
     if divl2_norm != 0.0
