@@ -41,12 +41,5 @@ function TracerForcings(
 )
     (; nxx, nyy, nzz) = domain
 
-    (; model) = namelists.setting 
-    (; leading_order_impact) = namelists.tracer
-
-    if leading_order_impact && model == PseudoIncompressible()
-        error("Cannot calculate leading_order_impact in TFC with PI model")
-    end
-
     return TracerForcings(TracerGWImpact(nxx, nyy, nzz))
 end

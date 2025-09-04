@@ -1295,6 +1295,7 @@ function update!(
     (; phichi) = state.tracer.tracerfluxes
     (; chiq0) = state.tracer.tracerforcings
     (; leading_order_impact) = state.namelists.tracer
+    (; model) = state.namelists.setting
 
     if m == 1
         dchi .= 0.0
@@ -1313,7 +1314,7 @@ function update!(
 
         force = 0.0
 
-        if leading_order_impact
+        if leading_order_impact && model == Compressible()
             force = chiq0.dchidt[i, j, k]
         end
 
