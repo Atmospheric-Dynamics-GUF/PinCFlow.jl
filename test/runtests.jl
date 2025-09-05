@@ -196,7 +196,9 @@ configurations = Dict(
                     )
 
                     for key in keys(reference)
-                        @test all(@. isapprox(data[key], reference[key]))
+                        @testset "$key" begin
+                            @test all(@. isapprox(data[key], reference[key]))
+                        end
                     end
 
                     close(data)
