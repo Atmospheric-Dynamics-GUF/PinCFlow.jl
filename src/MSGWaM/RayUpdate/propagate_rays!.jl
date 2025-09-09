@@ -489,7 +489,7 @@ function propagate_rays!(
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
 
-        count = maximum(nray[i0:i1, j0:j1, k0 - 1])
+        @views count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if count > 0
             fields = fieldnames(Rays)
             rays_down = zeros(length(fields), count, nx, ny)
@@ -677,7 +677,7 @@ function propagate_rays!(
         @views nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
-        count = maximum(nray[i0:i1, j0:j1, k1])
+        @views count = maximum(nray[i0:i1, j0:j1, k1])
         if count > 0
             fields = fieldnames(Rays)
             rays_up = zeros(length(fields), count, nx, ny)

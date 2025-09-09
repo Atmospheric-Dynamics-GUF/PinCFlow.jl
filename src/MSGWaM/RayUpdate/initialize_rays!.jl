@@ -320,7 +320,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     end
 
     # Compute global ray-volume count.
-    local_sum = sum(nray[ix0:ix1, jy0:jy1, kz0:kz1])
+    @views local_sum = sum(nray[ix0:ix1, jy0:jy1, kz0:kz1])
     global_sum = MPI.Allreduce(local_sum, +, comm)
 
     # Print information.

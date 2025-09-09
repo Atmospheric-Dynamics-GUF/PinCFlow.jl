@@ -326,11 +326,11 @@ function Predictands(
     end
 
     for ix in (i0 - 1):(i1 + 1)
-        u[ix, :, :] .= 0.5 .* (u[ix, :, :] .+ u[ix + 1, :, :])
+        @views u[ix, :, :] .= 0.5 .* (u[ix, :, :] .+ u[ix + 1, :, :])
     end
 
     for jy in (j0 - 1):(j1 + 1)
-        v[:, jy, :] .= 0.5 .* (v[:, jy, :] .+ v[:, jy + 1, :])
+        @views v[:, jy, :] .= 0.5 .* (v[:, jy, :] .+ v[:, jy + 1, :])
     end
 
     for kz in (k0 - 1):(k1 + 1),
