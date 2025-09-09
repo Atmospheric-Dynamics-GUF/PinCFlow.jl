@@ -100,8 +100,10 @@ function activate_orographic_source!(
     # Iterate over surface grid cells.
     for jy in j0:j1, ix in i0:i1
 
-        # Average mean wind, reference density and buoyancy frequency. This should
-        # be done without a vertical loop.
+        # Sum the magnitudes of the spectrum.
+        @views hsum = sum(abs, topography_spectrum[:, ix, jy])
+
+        # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
         vavg = 0.0
         rhoavg = 0.0
@@ -115,9 +117,7 @@ function activate_orographic_source!(
             rhoavg += rhostrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
             bvsavg += bvsstrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
             dzsum += jac[ix, jy, kz] * dz
-            @views if ztildetfc[ix, jy, kz] >
-                      ztildetfc[ix, jy, k0 - 1] +
-                      sum(abs.(topography_spectrum[:, ix, jy]))
+            if ztildetfc[ix, jy, kz] > ztildetfc[ix, jy, k0 - 1] + hsum
                 break
             end
         end
@@ -127,14 +127,10 @@ function activate_orographic_source!(
         bvsavg /= dzsum
 
         # Determine the blocked layer.
-        @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
-            @views long =
-                sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
-                sum(abs.(topography_spectrum[:, ix, jy]))
+        if blocking && hsum > 0
+            long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
             ratio = min(1, long_threshold / long)
-            @views zb[ix, jy] =
-                ztildetfc[ix, jy, k0 - 1] +
-                sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
+            zb[ix, jy] = ztildetfc[ix, jy, k0 - 1] + hsum * (1 - 2 * ratio)
         elseif blocking
             ratio = 1
             zb[ix, jy] = ztildetfc[ix, jy, k0 - 1]
@@ -221,8 +217,10 @@ function activate_orographic_source!(state::State)
     # Iterate over surface grid cells.
     for jy in j0:j1, ix in i0:i1
 
-        # Average mean wind, reference density and buoyancy frequency. This
-        # should be done without a vertical loop.
+        # Sum the magnitudes of the spectrum.
+        @views hsum = sum(abs, topography_spectrum[:, ix, jy])
+
+        # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
         vavg = 0.0
         rhoavg = 0.0
@@ -236,9 +234,7 @@ function activate_orographic_source!(state::State)
             rhoavg += rhostrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
             bvsavg += bvsstrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
             dzsum += jac[ix, jy, kz] * dz
-            @views if ztildetfc[ix, jy, kz] >
-                      ztildetfc[ix, jy, k0 - 1] +
-                      sum(abs.(topography_spectrum[:, ix, jy]))
+            if ztildetfc[ix, jy, kz] > ztildetfc[ix, jy, k0 - 1] + hsum
                 break
             end
         end
@@ -248,14 +244,10 @@ function activate_orographic_source!(state::State)
         bvsavg /= dzsum
 
         # Determine the blocked layer.
-        @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
-            @views long =
-                sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
-                sum(abs.(topography_spectrum[:, ix, jy]))
+        if blocking && hsum > 0
+            long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
             ratio = min(1, long_threshold / long)
-            @views zb[ix, jy] =
-                ztildetfc[ix, jy, k0 - 1] +
-                sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
+            zb[ix, jy] = ztildetfc[ix, jy, k0 - 1] + hsum * (1 - 2 * ratio)
         elseif blocking
             ratio = 1.0
             zb[ix, jy] = ztildetfc[ix, jy, k0 - 1]

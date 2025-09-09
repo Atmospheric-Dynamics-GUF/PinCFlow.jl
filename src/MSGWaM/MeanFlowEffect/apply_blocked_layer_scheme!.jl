@@ -85,27 +85,35 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
         if fraction <= 0
             continue
         else
-            @views kavg[1] =
-                sum(
-                    abs.(topography_spectrum[:, ix, jy]) .*
-                    k_spectrum[:, ix, jy],
-                ) / sum(abs.(topography_spectrum[:, ix, jy]))
-            @views kavg[2] =
-                sum(
-                    abs.(topography_spectrum[:, ix, jy]) .*
-                    l_spectrum[:, ix, jy],
-                ) / sum(abs.(topography_spectrum[:, ix, jy]))
+            @views hsum = sum(abs, topography_spectrum[:, ix, jy])
+            @views ksum = mapreduce(
+                (a, b) -> abs(a) * b,
+                +,
+                k_spectrum[:, ix, jy],
+                topography_spectrum[:, ix, jy],
+            )
+
+            @views lsum = mapreduce(
+                (a, b) -> abs(a) * b,
+                +,
+                l_spectrum[:, ix, jy],
+                topography_spectrum[:, ix, jy],
+            )
+            kavg[1] = ksum / hsum
+            kavg[2] = lsum / hsum
 
             uperp .=
                 (
                     (u[ix, jy, kz] .+ u[ix - 1, jy, kz]) .* kavg[1] .+
                     (v[ix, jy, kz] .+ v[ix, jy - 1, kz]) .* kavg[2]
                 ) ./ 2 .* kavg ./ dot(kavg, kavg)
+
             drag .=
                 -drag_coefficient .*
                 (rho[ix, jy, kz] .+ rhostrattfc[ix, jy, kz]) .*
                 sqrt(dot(kavg, kavg)) ./ (2 .* pi) .* sqrt(dot(uperp, uperp)) .*
                 uperp
+
             dudt[ix, jy, kz] =
                 fraction * drag[1] + (1 - fraction) * dudt[ix, jy, kz]
             dvdt[ix, jy, kz] =
