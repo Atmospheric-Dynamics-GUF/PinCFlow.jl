@@ -68,31 +68,31 @@ function set_vertical_boundaries_of_field!(
         set_vertical_halos_of_field!(field, namelists, domain; layers)
     end
 
-    i = (i0 - nbx):(i1 + nbx)
-    j = (j0 - nby):(j1 + nby)
+    ii = (i0 - nbx):(i1 + nbx)
+    jj = (j0 - nby):(j1 + nby)
 
     if ko == 0
         if staggered
-            field[i, j, k0 - 1] .= 0.0
+            field[ii, jj, k0 - 1] .= 0.0
             for k in 1:nbz
-                @views field[i, j, k0 - k] .= mode(field[i, j, k0 + k - 2])
+                @views field[ii, jj, k0 - k] .= mode(field[ii, jj, k0 + k - 2])
             end
         else
             for k in 1:nbz
-                @views field[i, j, k0 - k] .= mode(field[i, j, k0 + k - 1])
+                @views field[ii, jj, k0 - k] .= mode(field[ii, jj, k0 + k - 1])
             end
         end
     end
 
     if ko + nzz == sizezz
         if staggered
-            field[i, j, k1] .= 0.0
+            field[ii, jj, k1] .= 0.0
             for k in 1:nbz
-                @views field[i, j, k1 + k] .= mode(field[i, j, k1 - k])
+                @views field[ii, jj, k1 + k] .= mode(field[ii, jj, k1 - k])
             end
         else
             for k in 1:nbz
-                @views field[i, j, k1 + k] .= mode(field[i, j, k1 - k + 1])
+                @views field[ii, jj, k1 + k] .= mode(field[ii, jj, k1 - k + 1])
             end
         end
     end

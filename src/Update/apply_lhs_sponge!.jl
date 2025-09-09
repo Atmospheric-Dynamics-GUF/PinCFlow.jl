@@ -432,15 +432,15 @@ function apply_lhs_sponge!(
         return
     end
 
+    (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
+
     horizontal_mean .= 0.0
 
     # Determine relaxation wind.
     if relax_to_mean
-        for k in k0:k1
-            @views horizontal_mean[k - k0 + 1] = sum(u[i0:i1, j0:j1, k])
-        end
+        @views horizontal_mean .=
+            sum(u[ii, jj, kk] ./ sizex ./ sizey; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-        horizontal_mean ./= (sizex .* sizey)
     else
         ubg = relaxation_wind[1] / uref
         if perturbation_period > 0.0
@@ -454,11 +454,11 @@ function apply_lhs_sponge!(
     end
 
     # Update the zonal wind.
-    for k in k0:k1
+    for k in kk
         if relax_to_mean
             ubg = horizontal_mean[k - k0 + 1]
         end
-        for j in j0:j1, i in i0:i1
+        for j in jj, i in ii
             alpha = 0.5 * (alphar[i, j, k] + alphar[i + 1, j, k])
             uold = u[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
@@ -494,15 +494,15 @@ function apply_lhs_sponge!(
         return
     end
 
+    (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
+
     horizontal_mean .= 0.0
 
     # Determine relaxation wind.
     if relax_to_mean
-        for k in k0:k1
-            @views horizontal_mean[k - k0 + 1] = sum(v[i0:i1, j0:j1, k])
-        end
+        @views horizontal_mean .=
+            sum(v[ii, jj, kk] ./ sizex ./ sizey; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-        horizontal_mean ./= (sizex .* sizey)
     else
         vbg = relaxation_wind[2] / uref
         if perturbation_period > 0.0
@@ -516,11 +516,11 @@ function apply_lhs_sponge!(
     end
 
     # Update the meridional wind.
-    for k in k0:k1
+    for k in kk
         if relax_to_mean
             vbg = horizontal_mean[k - k0 + 1]
         end
-        for j in j0:j1, i in i0:i1
+        for j in jj, i in ii
             alpha = 0.5 * (alphar[i, j, k] + alphar[i, j + 1, k])
             vold = v[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
@@ -557,15 +557,15 @@ function apply_lhs_sponge!(
         return
     end
 
+    (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
+
     horizontal_mean .= 0.0
 
     # Determine relaxation wind.
     if relax_to_mean
-        for k in k0:k1
-            @views horizontal_mean[k - k0 + 1] = sum(w[i0:i1, j0:j1, k])
-        end
+        @views horizontal_mean .=
+            sum(w[ii, jj, kk] ./ sizex ./ sizey; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-        horizontal_mean ./= (sizex .* sizey)
     else
         wbg = relaxation_wind[3] / uref
         if perturbation_period > 0.0
@@ -579,11 +579,11 @@ function apply_lhs_sponge!(
     end
 
     # Update the vertical wind.
-    for k in k0:k1
+    for k in kk
         if relax_to_mean
             wbg = horizontal_mean[k - k0 + 1]
         end
-        for j in j0:j1, i in i0:i1
+        for j in jj, i in ii
             alpha =
                 (
                     jac[i, j, k + 1] * alphar[i, j, k] +

@@ -179,7 +179,7 @@ function compute_sponges! end
 
 function compute_sponges!(state::State, dt::AbstractFloat)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; ztfc, lz, jac) = state.grid
+    (; ztfc, lz) = state.grid
     (; betar, zsponge) = state.sponge
     (; spongelayer, spongetype, betarmax) = state.namelists.sponge
 

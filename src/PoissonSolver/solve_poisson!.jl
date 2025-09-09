@@ -47,7 +47,6 @@ function solve_poisson!(
     rayleigh_factor::AbstractFloat,
 )::Tuple{Bool, <:Integer}
     (; namelists, domain, grid, poisson) = state
-    (; model) = namelists.setting
     (; i0, i1, j0, j1, k0, k1) = domain
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; dpip) = state.variables.increments
@@ -69,13 +68,14 @@ function solve_poisson!(
         return (errflagbicg, niterbicg)
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
-        sol[i - i0 + 1, j - j0 + 1, k - k0 + 1] /= fcscal
-    end
+    ii = i0:i1
+    jj = j0:j1
+    kk = k0:k1
+
+    @views sol ./= sqrt.(pstrattfc[ii, jj, kk] .^ 2 ./ rhostrattfc[ii, jj, kk])
 
     # Pass solution to pressure correction.
-    dpip[i0:i1, j0:j1, k0:k1] .= dtinv .* sol
+    dpip[ii, jj, kk] .= dtinv .* sol
 
     return (errflagbicg, niterbicg)
 end

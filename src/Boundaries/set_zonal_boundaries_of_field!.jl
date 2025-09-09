@@ -91,12 +91,12 @@ function set_zonal_boundaries_of_field!(
     if npx > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
-        j = (j0 - nby):(j1 + nby)
-        k = (k0 - nbz):(k1 + nbz)
+        jj = (j0 - nby):(j1 + nby)
+        kk = (k0 - nbz):(k1 + nbz)
 
         for i in 1:nbx
-            @views field[i0 - i, j, k] .= field[i1 - i + 1, j, k]
-            @views field[i1 + i, j, k] .= field[i0 + i - 1, j, k]
+            @views field[i0 - i, jj, kk] .= field[i1 - i + 1, jj, kk]
+            @views field[i1 + i, jj, kk] .= field[i0 + i - 1, jj, kk]
         end
     end
 
@@ -119,12 +119,14 @@ function set_zonal_boundaries_of_field!(
     if npx > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
-        j = (j0 - nby):(j1 + nby)
-        k = (k0 - nbz):(k1 + nbz)
+        jj = (j0 - nby):(j1 + nby)
+        kk = (k0 - nbz):(k1 + nbz)
 
         for i in 1:nbx
-            @views field[i0 - i, j, k, :, :] .= field[i1 - i + 1, j, k, :, :]
-            @views field[i1 + i, j, k, :, :] .= field[i0 + i - 1, j, k, :, :]
+            @views field[i0 - i, jj, kk, :, :] .=
+                field[i1 - i + 1, jj, kk, :, :]
+            @views field[i1 + i, jj, kk, :, :] .=
+                field[i0 + i - 1, jj, kk, :, :]
         end
     end
 

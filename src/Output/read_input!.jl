@@ -33,8 +33,8 @@ function read_input!(state::State)
 
     # Define slices.
     dk0 = ko == 0 ? 1 : 0
-    (r, i, j, k, kr) = (1:nray_max, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
-    (id, jd, kd, krd) = (
+    (rr, ii, jj, kk, kkr) = (1:nray_max, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),
         (jo + 1):(jo + ny),
         (ko + 1):(ko + nz),
@@ -48,28 +48,26 @@ function read_input!(state::State)
         time = file["t"][iin] / tref
 
         # Read the density fluctuations.
-        rhop[i, j, k] = file["rhop"][id, jd, kd, iin] ./ rhoref
+        rhop[ii, jj, kk] = file["rhop"][iid, jjd, kkd, iin] ./ rhoref
         if model != Boussinesq()
-            for kk in k, jj in j, ii in i
-                rho[ii, jj, kk] = rhop[ii, jj, kk]
-            end
+            @views rho[ii, jj, kk] .= rhop[ii, jj, kk]
         end
 
         # Read the staggered zonal wind.
-        u[i, j, k] = file["us"][id, jd, kd, iin] ./ uref
+        u[ii, jj, kk] = file["us"][iid, jjd, kkd, iin] ./ uref
 
         # Read the staggered meridional wind.
-        v[i, j, k] = file["vs"][id, jd, kd, iin] ./ uref
+        v[ii, jj, kk] = file["vs"][iid, jjd, kkd, iin] ./ uref
 
         # Read the staggered transformed vertical wind.
-        w[i, j, k] = file["wstfc"][id, jd, kd, iin] ./ uref
+        w[ii, jj, kk] = file["wstfc"][iid, jjd, kkd, iin] ./ uref
 
         # Read the Exner-pressure fluctuations.
-        pip[i, j, k] = file["pip"][id, jd, kd, iin]
+        pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin]
 
         # Read the mass-weighted potential temperature.
         if model == Compressible()
-            p[i, j, k] = file["p"][id, jd, kd, iin] ./ rhoref ./ thetaref
+            p[ii, jj, kk] = file["p"][iid, jjd, kkd, iin] ./ rhoref ./ thetaref
         end
 
         # Read ray-volume properties.
@@ -78,31 +76,32 @@ function read_input!(state::State)
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
-                getfield(rays, field_name)[r, i, j, kr] =
-                    file[output_name][r, id, jd, krd, iin] ./ lref
+                getfield(rays, field_name)[rr, ii, jj, kkr] =
+                    file[output_name][rr, iid, jjd, kkrd, iin] ./ lref
             end
 
             for (output_name, field_name) in zip(
                 ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
-                getfield(rays, field_name)[r, i, j, kr] =
-                    file[output_name][r, id, jd, krd, iin] .* lref
+                getfield(rays, field_name)[rr, ii, jj, kkr] =
+                    file[output_name][rr, iid, jjd, kkrd, iin] .* lref
             end
 
-            rays.dens[r, i, j, kr] =
-                file["nr"][r, id, jd, krd, iin] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
+            rays.dens[rr, ii, jj, kkr] =
+                file["nr"][rr, iid, jjd, kkrd, iin] ./ rhoref ./ uref .^ 2 ./
+                tref ./ lref .^ dim
 
             # Determine nray.
-            for kk in kr, jj in j, ii in i
+            for k in kkr, j in jj, i in ii
                 nrlc = 0
-                for rr in r
-                    if rays.dens[rr, ii, jj, kk] == 0
+                for r in rr
+                    if rays.dens[r, i, j, k] == 0
                         continue
                     end
                     nrlc += 1
                 end
-                nray[ii, jj, kk] = nrlc
+                nray[i, j, k] = nrlc
             end
         end
 

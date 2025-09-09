@@ -86,20 +86,20 @@ function set_meridional_halos_of_field!(
     nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
     nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    i = (i0 - nbx):(i1 + nbx)
-    k = (k0 - nbz):(k1 + nbz)
+    ii = (i0 - nbx):(i1 + nbx)
+    kk = (k0 - nbz):(k1 + nbz)
 
     @views MPI.Sendrecv!(
-        field[i, (j1 - nby + 1):j1, k],
-        field[i, (j0 - nby):(j0 - 1), k],
+        field[ii, (j1 - nby + 1):j1, kk],
+        field[ii, (j0 - nby):(j0 - 1), kk],
         comm;
         dest = forward,
         source = backward,
     )
 
     @views MPI.Sendrecv!(
-        field[i, j0:(j0 + nby - 1), k],
-        field[i, (j1 + 1):(j1 + nby), k],
+        field[ii, j0:(j0 + nby - 1), kk],
+        field[ii, (j1 + 1):(j1 + nby), kk],
         comm;
         dest = backward,
         source = forward,
@@ -120,20 +120,20 @@ function set_meridional_halos_of_field!(
     nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
     nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    i = (i0 - nbx):(i1 + nbx)
-    k = (k0 - nbz):(k1 + nbz)
+    ii = (i0 - nbx):(i1 + nbx)
+    kk = (k0 - nbz):(k1 + nbz)
 
     @views MPI.Sendrecv!(
-        field[i, (j1 - nby + 1):j1, k, :, :],
-        field[i, (j0 - nby):(j0 - 1), k, :, :],
+        field[ii, (j1 - nby + 1):j1, kk, :, :],
+        field[ii, (j0 - nby):(j0 - 1), kk, :, :],
         comm;
         dest = forward,
         source = backward,
     )
 
     @views MPI.Sendrecv!(
-        field[i, j0:(j0 + nby - 1), k, :, :],
-        field[i, (j1 + 1):(j1 + nby), k, :, :],
+        field[ii, j0:(j0 + nby - 1), kk, :, :],
+        field[ii, (j1 + 1):(j1 + nby), kk, :, :],
         comm;
         dest = backward,
         source = forward,

@@ -339,11 +339,11 @@ function correct!(state::State, variable::PiP)
     (; pip) = state.variables.predictands
     (; dpip) = state.variables.increments
 
-    i = (i0 - 1):(i1 + 1)
-    j = (j0 - 1):(j1 + 1)
-    k = (k0 - 1):(k1 + 1)
+    ii = (i0 - 1):(i1 + 1)
+    jj = (j0 - 1):(j1 + 1)
+    kk = (k0 - 1):(k1 + 1)
 
-    @views pip[i, j, k] .= pip[i, j, k] .+ dpip[i, j, k]
+    @views pip[ii, jj, kk] .+= dpip[ii, jj, kk]
 
     return
 end

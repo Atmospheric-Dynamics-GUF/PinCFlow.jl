@@ -91,12 +91,12 @@ function set_meridional_boundaries_of_field!(
     if npy > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
-        i = (i0 - nbx):(i1 + nbx)
-        k = (k0 - nbz):(k1 + nbz)
+        ii = (i0 - nbx):(i1 + nbx)
+        kk = (k0 - nbz):(k1 + nbz)
 
         for j in 1:nby
-            @views field[i, j0 - j, k] .= field[i, j1 - j + 1, k]
-            @views field[i, j1 + j, k] .= field[i, j0 + j - 1, k]
+            @views field[ii, j0 - j, kk] .= field[ii, j1 - j + 1, kk]
+            @views field[ii, j1 + j, kk] .= field[ii, j0 + j - 1, kk]
         end
     end
 
@@ -119,12 +119,14 @@ function set_meridional_boundaries_of_field!(
     if npy > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
-        i = (i0 - nbx):(i1 + nbx)
-        k = (k0 - nbz):(k1 + nbz)
+        ii = (i0 - nbx):(i1 + nbx)
+        kk = (k0 - nbz):(k1 + nbz)
 
         for j in 1:nby
-            @views field[i, j0 - j, k, :, :] .= field[i, j1 - j + 1, k, :, :]
-            @views field[i, j1 + j, k, :, :] .= field[i, j0 + j - 1, k, :, :]
+            @views field[ii, j0 - j, kk, :, :] .=
+                field[ii, j1 - j + 1, kk, :, :]
+            @views field[ii, j1 + j, kk, :, :] .=
+                field[ii, j0 + j - 1, kk, :, :]
         end
     end
 
