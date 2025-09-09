@@ -439,7 +439,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     if relax_to_mean
         @views horizontal_mean .=
-            sum(u[ii, jj, kk] ./ sizex ./ sizey; dims = (1, 2))[1, 1, :]
+            sum(a -> a / sizex / sizey, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         ubg = relaxation_wind[1] / uref
@@ -501,7 +501,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     if relax_to_mean
         @views horizontal_mean .=
-            sum(v[ii, jj, kk] ./ sizex ./ sizey; dims = (1, 2))[1, 1, :]
+            sum(a -> a / sizex / sizey, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         vbg = relaxation_wind[2] / uref
@@ -564,7 +564,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     if relax_to_mean
         @views horizontal_mean .=
-            sum(w[ii, jj, kk] ./ sizex ./ sizey; dims = (1, 2))[1, 1, :]
+            sum(a -> a / sizex / sizey, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         wbg = relaxation_wind[3] / uref

@@ -82,16 +82,16 @@ function apply_bicgstab!(
     p .= r0
     r .= r0
 
-    res_local = mapreduce(a -> a^2, +, r)
+    res_local = sum(a -> a^2, r)
     res = MPI.Allreduce(res_local, +, comm)
     res = sqrt(res / sizex / sizey / sizez)
 
     b_norm = res
 
-    r_vm .= sum(r ./ sizez; dims = 3)
+    r_vm .= sum(a -> a / sizez, r; dims = 3)
     MPI.Allreduce!(r_vm, +, column_comm)
 
-    res_local = mapreduce(a -> a^2, +, r_vm)
+    res_local = sum(a -> a^2, r_vm)
     res_vm = MPI.Allreduce(res_local, +, layer_comm)
     res_vm = sqrt(res_vm / sizex / sizey)
 
@@ -147,14 +147,14 @@ function apply_bicgstab!(
         #   Abort criterion
         #-----------------------
 
-        res_local = mapreduce(a -> a^2, +, r)
+        res_local = sum(a -> a^2, r)
         res = MPI.Allreduce(res_local, +, comm)
         res = sqrt(res / sizex / sizey / sizez)
 
-        r_vm .= sum(r ./ sizez; dims = 3)
+        r_vm .= sum(a -> a / sizez, r; dims = 3)
         MPI.Allreduce!(r_vm, +, column_comm)
 
-        res_local = mapreduce(a -> a^2, +, r_vm)
+        res_local = sum(a -> a^2, r_vm)
         res_vm = MPI.Allreduce(res_local, +, layer_comm)
         res_vm = sqrt(res_vm / sizex / sizey)
 
