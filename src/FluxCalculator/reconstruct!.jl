@@ -225,11 +225,14 @@ function reconstruct!(state::State, variable::W)
     (; rhostrattfc, pstrattfc) = state.atmosphere
 
     @views phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
+
     for kz in (k0 - 1):(k1 + 1), jy in j0:j1, ix in i0:i1
         phi[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, predictands, grid)
     end
+
     set_zonal_boundaries_of_field!(phi, namelists, domain)
     set_meridional_boundaries_of_field!(phi, namelists, domain)
+
     for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
         rhoedgeu =
             (
