@@ -99,37 +99,23 @@ function update_merged_rays!(
     omegar::AbstractFloat,
 )
     if merged_rays[jray].nr[] == 0
-        merged_rays[jray].xr .= [xr - dxr / 2, xr + dxr / 2]
-        merged_rays[jray].yr .= [yr - dyr / 2, yr + dyr / 2]
-        merged_rays[jray].zr .= [zr - dzr / 2, zr + dzr / 2]
-        merged_rays[jray].kr .= [kr - dkr / 2, kr + dkr / 2]
-        merged_rays[jray].lr .= [lr - dlr / 2, lr + dlr / 2]
-        merged_rays[jray].mr .= [mr - dmr / 2, mr + dmr / 2]
+        for (i, o) in ((1, -), (2, +))
+            merged_rays[jray].xr[i] = o(xr, dxr / 2)
+            merged_rays[jray].yr[i] = o(yr, dyr / 2)
+            merged_rays[jray].zr[i] = o(zr, dzr / 2)
+            merged_rays[jray].kr[i] = o(kr, dkr / 2)
+            merged_rays[jray].lr[i] = o(lr, dlr / 2)
+            merged_rays[jray].mr[i] = o(mr, dmr / 2)
+        end
     else
-        merged_rays[jray].xr .= [
-            min(merged_rays[jray].xr[1], xr - dxr / 2),
-            max(merged_rays[jray].xr[2], xr + dxr / 2),
-        ]
-        merged_rays[jray].yr .= [
-            min(merged_rays[jray].yr[1], yr - dyr / 2),
-            max(merged_rays[jray].yr[2], yr + dyr / 2),
-        ]
-        merged_rays[jray].zr .= [
-            min(merged_rays[jray].zr[1], zr - dzr / 2),
-            max(merged_rays[jray].zr[2], zr + dzr / 2),
-        ]
-        merged_rays[jray].kr .= [
-            min(merged_rays[jray].kr[1], kr - dkr / 2),
-            max(merged_rays[jray].kr[2], kr + dkr / 2),
-        ]
-        merged_rays[jray].lr .= [
-            min(merged_rays[jray].lr[1], lr - dlr / 2),
-            max(merged_rays[jray].lr[2], lr + dlr / 2),
-        ]
-        merged_rays[jray].mr .= [
-            min(merged_rays[jray].mr[1], mr - dmr / 2),
-            max(merged_rays[jray].mr[2], mr + dmr / 2),
-        ]
+        for (i, e, o) in ((1, min, -), (2, max, +))
+            merged_rays[jray].xr[i] = e(merged_rays[jray].xr[i], o(xr, dxr / 2))
+            merged_rays[jray].yr[i] = e(merged_rays[jray].yr[i], o(yr, dyr / 2))
+            merged_rays[jray].zr[i] = e(merged_rays[jray].zr[i], o(zr, dzr / 2))
+            merged_rays[jray].kr[i] = e(merged_rays[jray].kr[i], o(kr, dkr / 2))
+            merged_rays[jray].lr[i] = e(merged_rays[jray].lr[i], o(lr, dlr / 2))
+            merged_rays[jray].mr[i] = e(merged_rays[jray].mr[i], o(mr, dmr / 2))
+        end
     end
 
     merged_rays[jray].nr[] +=
