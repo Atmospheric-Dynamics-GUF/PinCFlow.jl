@@ -77,9 +77,9 @@ function compute_time_step(state::State)::AbstractFloat
         #     CFL condition
         #----------------------
 
-        @views umax = maximum(abs.(u[i0:i1, j0:j1, k0:k1])) + eps()
-        @views vmax = maximum(abs.(v[i0:i1, j0:j1, k0:k1])) + eps()
-        @views wmax = maximum(abs.(w[i0:i1, j0:j1, k0:k1])) + eps()
+        @views umax = maximum(abs, u[i0:i1, j0:j1, k0:k1]) + eps()
+        @views vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps()
+        @views wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps()
 
         dtconv_loc = cfl * min(dx / umax, dy / vmax, dz / wmax)
 
