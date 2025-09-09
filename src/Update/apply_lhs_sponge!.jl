@@ -210,73 +210,6 @@ In each tracer equation, the update is given by
 
 where ``\\chi_0`` is the initial distribution of the tracer.
 
-```julia
-apply_lhs_sponge!(
-    state::State,
-    dt::AbstractFloat,
-    time::AbstractFloat,
-    icesetup::AbstractIce,
-)
-```
-
-Return for configurations without ice physics.
-
-```julia
-apply_lhs_sponge!(
-    state::State,
-    dt::AbstractFloat,
-    time::AbstractFloat,
-    icesetup::IceOn,
-)
-```
-
-Integrate the Rayleigh-damping terms that represent the LHS sponge in the prognostic equations of the ice-physics scheme.
-
-The updates are given by
-
-```math
-\\begin{align*}
-    n & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(n + \\alpha_\\mathrm{R} \\Delta t n_0\\right),\\\\
-    q & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(q + \\alpha_\\mathrm{R} \\Delta t q_0\\right),\\\\
-    q_\\mathrm{v} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(q_\\mathrm{v} + \\alpha_\\mathrm{R} \\Delta t q_{\\mathrm{v}, 0}\\right),
-\\end{align*}
-```
-
-where ``n_0``, ``q_0`` and ``q_{\\mathrm{v}, 0}`` are the initial distributions of the ice-crystal number concentration, ice mixing ratio and water-vapor mixing ratio, respectively.
-
-```julia
-apply_lhs_sponge!(
-    state::State,
-    dt::AbstractFloat,
-    time::AbstractFloat,
-    turbulencesetup::NoTurbulence,
-)
-```
-
-Return for configurations without turbulence physics.
-
-```julia
-apply_lhs_sponge!(
-    state::State,
-    dt::AbstractFloat,
-    time::AbstractFloat,
-    turbulencesetup::AbstractTurbulence,
-)
-```
-
-Integrate the Rayleigh-damping terms that represent the LHS sponge in the prognostic equations of the turbulence scheme.
-
-The updates are given by
-
-```math
-\\begin{align*}
-    \\mathrm{TKE} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\mathrm{TKE} + \\alpha_\\mathrm{R} \\Delta t \\overline{\\mathrm{TKE}}\\right),\\\\
-    \\mathrm{TTE} & \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\mathrm{TTE} + \\alpha_\\mathrm{R} \\Delta t \\overline{\\mathrm{TTE}}\\right),
-\\end{align*}
-```
-
-where ``\\overline{\\mathrm{TKE}}`` and ``\\overline{\\mathrm{TTE}}`` are the background values of the turbulent kinetic energy and total turbulent energy, respectively.
-
 # Arguments
 
   - `state`: Model state.
@@ -290,10 +223,6 @@ where ``\\overline{\\mathrm{TKE}}`` and ``\\overline{\\mathrm{TTE}}`` are the ba
   - `model`: Dynamic equations.
 
   - `tracersetup`: General tracer-transport configuration.
-
-  - `icesetup`: General ice-physics configuration.
-
-  - `turbulencesetup`: General turbulence-physics configuration.
 """
 function apply_lhs_sponge! end
 
@@ -715,85 +644,6 @@ function apply_lhs_sponge!(
             beta = 1.0 / (1.0 + alpha * dt)
             chi_new = (1.0 - beta) * initialtracer[i, j, k] + beta * chi_old
             getfield(tracerpredictands, field)[i, j, k] = chi_new
-        end
-    end
-
-    return
-end
-
-function apply_lhs_sponge!(
-    state::State,
-    dt::AbstractFloat,
-    time::AbstractFloat,
-    icesetup::AbstractIce,
-)
-    return
-end
-
-function apply_lhs_sponge!(
-    state::State,
-    dt::AbstractFloat,
-    time::AbstractFloat,
-    icesetup::IceOn,
-)
-    (; spongelayer) = state.namelists.sponge
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphar) = state.sponge
-    (; icepredictands) = state.ice
-    (; iceauxiliaries) = state.ice
-
-    if !spongelayer
-        return
-    end
-
-    for (fd, field) in enumerate(fieldnames(IcePredictands))
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            ice_bg = getfield(iceauxiliaries, fd)[i, j, k]
-            alpha = alphar[i, j, k]
-            ice_old = getfield(icepredictands, fd)[i, j, k]
-            beta = 1.0 / (1.0 + alpha * dt)
-            ice_new = (1.0 - beta) * ice_bg + beta * ice_old
-            getfield(icepredictands, fd)[i, j, k] = ice_new
-        end
-    end
-
-    return
-end
-
-function apply_lhs_sponge!(
-    state::State,
-    dt::AbstractFloat,
-    time::AbstractFloat,
-    turbulencesetup::NoTurbulence,
-)
-    return
-end
-
-function apply_lhs_sponge!(
-    state::State,
-    dt::AbstractFloat,
-    time::AbstractFloat,
-    turbulencesetup::AbstractTurbulence,
-)
-    (; spongelayer) = state.namelists.sponge
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; alphar) = state.sponge
-    (; turbulencepredictands) = state.turbulence
-    (; turbulenceauxiliaries) = state.turbulence
-
-    if !spongelayer
-        return
-    end
-
-    for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            turbulence_bg = getfield(turbulenceauxiliaries, fd)
-            alpha = alphar[i, j, k]
-            turbulence_old = getfield(turbulencepredictands, fd)[i, j, k]
-            beta = 1.0 / (1.0 + alpha * dt)
-            turbulence_new =
-                (1.0 - beta) * turbulence_bg + beta * turbulence_old
-            getfield(turbulencepredictands, fd)[i, j, k] = turbulence_new
         end
     end
 

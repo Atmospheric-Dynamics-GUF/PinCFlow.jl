@@ -21,6 +21,7 @@ function read_input!(state::State)
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; nray_max, nray, rays) = state.wkb
+    (; rhostrattfc) = state.atmosphere
 
     # Determine dimensionality.
     dim = 1
@@ -68,6 +69,14 @@ function read_input!(state::State)
         # Read the mass-weighted potential temperature.
         if model == Compressible()
             p[ii, jj, kk] = file["p"][iid, jjd, kkd, iin] ./ rhoref ./ thetaref
+        end
+
+        if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
+            for field in fieldnames(TracerPredictands)
+                @views getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
+                    file[string(field)][iid, jjd, kkd, iin] .*
+                    (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
         end
 
         # Read ray-volume properties.

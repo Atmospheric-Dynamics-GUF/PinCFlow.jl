@@ -282,35 +282,7 @@ function write_output(
                         ii,
                         jj,
                         kk,
-                    ] ./ (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk]) .* lref
-            end
-        end
-
-        if !(typeof(state.namelists.ice.icesetup) <: NoIce)
-            for field in fieldnames(IcePredictands)
-                HDF5.set_extent_dims(
-                    file[string(field)],
-                    (sizex, sizey, sizez, iout),
-                )
-                @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.ice.icepredictands, field)[ii, jj, kk] ./
-                    (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk]) .* lref
-            end
-        end
-
-        if !(typeof(state.namelists.turbulence.turbulencesetup) <: NoTurbulence)
-            for field in fieldnames(TurbulencePredictands)
-                HDF5.set_extent_dims(
-                    file[string(field)],
-                    (sizex, sizey, sizez, iout),
-                )
-                @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulencepredictands, field)[
-                        ii,
-                        jj,
-                        kk,
-                    ] ./ (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk]) .*
-                    lref .^ 2 ./ tref .^ 2
+                    ] ./ (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk])
             end
         end
 

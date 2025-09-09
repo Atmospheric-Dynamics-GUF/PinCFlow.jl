@@ -18,10 +18,6 @@ Module for the construction of a single composite type that contains all informa
   - [`PinCFlow.Types.WKBTypes`](@ref)
 
   - [`PinCFlow.Types.TracerTypes`](@ref)
-
-  - [`PinCFlow.Types.IceTypes`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes`](@ref)
 """
 module Types
 
@@ -99,6 +95,15 @@ struct P <: AbstractVariable end
 
 """
 ```julia
+Theta <: AbstractVariable
+```
+
+Singleton that represents the potential temperature.
+"""
+struct Theta <: AbstractVariable end
+
+"""
+```julia
 Explicit
 ```
 
@@ -121,8 +126,6 @@ include("PoissonTypes/PoissonTypes.jl")
 include("VariableTypes/VariableTypes.jl")
 include("WKBTypes/WKBTypes.jl")
 include("TracerTypes/TracerTypes.jl")
-include("IceTypes/IceTypes.jl")
-include("TurbulenceTypes/TurbulenceTypes.jl")
 
 using .NamelistTypes
 using .FoundationalTypes
@@ -130,8 +133,6 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
-using .IceTypes
-using .TurbulenceTypes
 
 include("State.jl")
 
@@ -145,9 +146,7 @@ export AbstractBackground,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter,
-    AbstractTracer,
-    AbstractIce,
-    AbstractTurbulence
+    AbstractTracer
 
 export Rho,
     RhoP,
@@ -156,6 +155,7 @@ export Rho,
     W,
     PiP,
     P,
+    Theta,
     Explicit,
     Implicit,
     UniformBoussinesq,
@@ -167,7 +167,6 @@ export Rho,
     Compressible,
     MountainWave,
     WKBMountainWave,
-    WavePacket,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,
@@ -186,13 +185,10 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
-    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
-    IceNamelist,
-    TurbulenceNamelist,
     Namelists,
     Time,
     Constants,
@@ -220,8 +216,6 @@ export DomainNamelist,
     SurfaceIndices,
     WKB,
     Tracer,
-    Ice,
-    Turbulence,
     State,
     NoTracer,
     LinearTracer,
@@ -229,20 +223,6 @@ export DomainNamelist,
     TracerAuxiliaries,
     TracerIncrements,
     TracerReconstructions,
-    TracerFluxes,
-    IceOn,
-    NoIce,
-    IcePredictands,
-    IceAuxiliaries,
-    IceIncrements,
-    IceReconstructions,
-    IceFluxes,
-    TurbulenceOn,
-    NoTurbulence,
-    TurbulencePredictands,
-    TurbulenceAuxiliaries,
-    TurbulenceIncrements,
-    TurbulenceReconstructions,
-    TurbulenceFluxes
+    TracerFluxes
 
 end

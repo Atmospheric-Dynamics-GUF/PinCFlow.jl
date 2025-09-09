@@ -48,8 +48,6 @@ function explicit_integration!(
 )
     (; nstages, stepfrac) = state.time
     (; tracersetup) = state.namelists.tracer
-    (; icesetup) = state.namelists.ice
-    (; turbulencesetup) = state.namelists.turbulence
 
     for rkstage in 1:nstages
         reconstruct!(state)
@@ -72,17 +70,6 @@ function explicit_integration!(
 
         update!(state, dtstage, rkstage, tracersetup)
         apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, tracersetup)
-
-        update!(state, dtstage, rkstage, icesetup)
-        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, icesetup)
-
-        update!(state, dtstage, rkstage, turbulencesetup)
-        apply_lhs_sponge!(
-            state,
-            stepfrac[rkstage] * dtstage,
-            time,
-            turbulencesetup,
-        )
 
         set_boundaries!(state, BoundaryPredictands())
 

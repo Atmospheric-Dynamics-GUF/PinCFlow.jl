@@ -101,24 +101,6 @@ abstract type AbstractTracer end
 
 """
 ```julia
-AbstractIce
-```
-
-Abstract type for the inclusion of ice physics.
-"""
-abstract type AbstractIce end
-
-"""
-```julia
-AbstractTurbulence
-```
-
-Abstract type for the inclusion of turbulence physics.
-"""
-abstract type AbstractTurbulence end
-
-"""
-```julia
 UniformBoussinesq <: AbstractBackground
 ```
 
@@ -197,15 +179,6 @@ WKBMountainWave <: AbstractWKBTestCase
 Singleton for WKB-mountain-wave test cases.
 """
 struct WKBMountainWave <: AbstractWKBTestCase end
-
-"""
-```julia
-WavePacket <: AbstractTestCase
-```
-
-Singleton for wave-packet test cases.
-"""
-struct WavePacket <: AbstractTestCase end
 
 """
 ```julia
@@ -324,42 +297,6 @@ Singleton for model configurations with an initially linear tracer.
 """
 struct LinearTracer <: AbstractTracer end
 
-"""
-```julia
-NoIce <: AbstractIce
-```
-
-Singleton for model configurations without ice physics.
-"""
-struct NoIce <: AbstractIce end
-
-"""
-```julia
-IceOn <: AbstractIce
-```
-
-Singleton for model configurations with ice physics.
-"""
-struct IceOn <: AbstractIce end
-
-"""
-```julia
-NoTurbulence <: AbstractTurbulence
-```
-
-Singleton for model configurations without turbulence physics.
-"""
-struct NoTurbulence <: AbstractTurbulence end
-
-"""
-```julia
-TurbulenceOn <: AbstractTurbulence
-```
-
-Singleton for model configurations with turbulence physics.
-"""
-struct TurbulenceOn <: AbstractTurbulence end
-
 using MPI
 
 include("DomainNamelist.jl")
@@ -368,13 +305,10 @@ include("SettingNamelist.jl")
 include("DiscretizationNamelist.jl")
 include("PoissonNamelist.jl")
 include("AtmosphereNamelist.jl")
-include("WavePacketNamelist.jl")
 include("GridNamelist.jl")
 include("SpongeNamelist.jl")
 include("WKBNamelist.jl")
 include("TracerNamelist.jl")
-include("IceNamelist.jl")
-include("TurbulenceNamelist.jl")
 include("Namelists.jl")
 
 export AbstractBackground,
@@ -386,9 +320,7 @@ export AbstractBackground,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter,
-    AbstractTracer,
-    AbstractIce,
-    AbstractTurbulence
+    AbstractTracer
 
 export UniformBoussinesq,
     StratifiedBoussinesq,
@@ -399,7 +331,6 @@ export UniformBoussinesq,
     Compressible,
     MountainWave,
     WKBMountainWave,
-    WavePacket,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,
@@ -412,11 +343,7 @@ export UniformBoussinesq,
     Box,
     Shapiro,
     NoTracer,
-    LinearTracer,
-    NoIce,
-    IceOn,
-    NoTurbulence,
-    TurbulenceOn
+    LinearTracer
 
 export DomainNamelist,
     OutputNamelist,
@@ -424,13 +351,10 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
-    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
-    IceNamelist,
-    TurbulenceNamelist,
     Namelists
 
 end

@@ -22,7 +22,6 @@ configurations = Dict(
         Isothermal() => Dict(
             MountainWave() => "pseudo_incompressible_isothermal_mountain_wave",
             WKBMountainWave() => "pseudo_incompressible_isothermal_wkb_mountain_wave",
-            WavePacket() => "pseudo_incompressible_isothermal_wave_packet",
         ),
     ),
     Compressible() => Dict(
@@ -142,25 +141,7 @@ configurations = Dict(
                         relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
                     )
 
-                    tracer = TracerNamelist(; tracersetup = NoTracer())
-
-                    turbulence =
-                        TurbulenceNamelist(; turbulencesetup = NoTurbulence())
-
-                    wavepacket = WavePacketNamelist(;
-                        wavepacketdim = 3,
-                        lambdax_dim = 1.0E+4,
-                        lambday_dim = 1.0E+4,
-                        lambdaz_dim = 1.0E+3,
-                        x0_dim = 0.0E+0,
-                        y0_dim = 0.0E+0,
-                        z0_dim = 5.0E+3,
-                        sigmax_dim = 1.0E+5,
-                        sigmay_dim = 1.0E+5,
-                        sigmaz_dim = 1.0E+4,
-                        a0 = 1.0E+0,
-                        branch = -1,
-                    )
+                    tracer = TracerNamelist(; tracersetup = LinearTracer())
 
                     wkb = WKBNamelist(;
                         xrmin_dim = -5.0E+4,
@@ -205,9 +186,6 @@ configurations = Dict(
                         sponge,
                         wkb,
                         tracer,
-                        ice,
-                        turbulence,
-                        wavepacket,
                     )
 
                     integrate(namelists)

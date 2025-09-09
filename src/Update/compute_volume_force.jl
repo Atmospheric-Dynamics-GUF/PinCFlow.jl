@@ -154,5 +154,5 @@ function compute_volume_force(
     (; dthetadt) = state.wkb.tendencies
     (ix, jy, kz) = indices
 
-    return dthetadt[ix, jy, kz]
+    return dthetadt[ix, jy, kz] + conductive_heating(state, indices)
 end

@@ -88,40 +88,14 @@ Compute the tracer fluxes in all three directions.
 The computation is analogous to that of the density fluxes.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, icesetup::NoIce)
-```
-
-Return for configurations without ice physics.
-
-```julia
-compute_fluxes!(state::State, predictands::Predictands, icesetup::AbstractIce)
-```
-
-Compute the fluxes of ice variables in all three directions.
-
-The computation is analogous to that of the density fluxes.
-
-```julia
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    turbulencesetup::NoTurbulence,
+    variable::Theta,
 )
 ```
 
-Return for configurations without turbulence physics.
-
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulencesetup::AbstractTurbulence,
-)
-```
-
-Compute the fluxes of turbulence variables in all three directions.
-
-The computation is analogous to that of the density fluxes.
+Compute the potential temperature fluxes for molecular diffusivity as ``\\mu\\nabla\\theta``.
 
 # Arguments
 
@@ -135,15 +109,13 @@ The computation is analogous to that of the density fluxes.
 
   - `tracersetup`: General tracer-transport configuration.
 
-  - `icesetup`: General ice-physics configuration.
-
-  - `turbulencesetup`: General turbulence-physics configuration.
-
 # See also
 
   - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
 
   - [`PinCFlow.Update.compute_stress_tensor`](@ref)
+
+  - [`PinCFlow.Update.conductive_heating`](@ref)
 """
 function compute_fluxes! end
 
@@ -155,15 +127,10 @@ function compute_fluxes!(state::State, predictands::Predictands)
     compute_fluxes!(state, predictands, U())
     compute_fluxes!(state, predictands, V())
     compute_fluxes!(state, predictands, W())
+    compute_fluxes!(state, predictands, Theta())
 
     compute_fluxes!(state, predictands, model, P())
     compute_fluxes!(state, predictands, state.namelists.tracer.tracersetup)
-    compute_fluxes!(state, predictands, state.namelists.ice.icesetup)
-    compute_fluxes!(
-        state,
-        predictands,
-        state.namelists.turbulence.turbulencesetup,
-    )
     return
 end
 
@@ -406,13 +373,14 @@ function compute_fluxes!(
 
     # Get all necessary fields.
     (; grid) = state
-    (; re) = state.constants
+    (; re, uref, lref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; predictands) = state.variables
+    (; mu_mom_diff_dim) = state.namelists.atmosphere
 
     # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -520,7 +488,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
-        coef_v = 1 / re * rhostrattfc[i + 1, j, 1]
+        coef_v = 1 / re * rhostrattfc[i + 1, j, k0]
 
         frhou_visc =
             coef_v *
@@ -539,10 +507,10 @@ function compute_fluxes!(
             1 / re *
             0.25 *
             (
-                rhostrattfc[i, j, 1] +
-                rhostrattfc[i + 1, j, 1] +
-                rhostrattfc[i, j + 1, 1] +
-                rhostrattfc[i + 1, j + 1, 1]
+                rhostrattfc[i, j, k0] +
+                rhostrattfc[i + 1, j, k0] +
+                rhostrattfc[i, j + 1, k0] +
+                rhostrattfc[i + 1, j + 1, k0]
             )
 
         grhou_visc =
@@ -568,7 +536,7 @@ function compute_fluxes!(
 
     for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
         coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i + 1, j, 1])
+            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
 
         stresstens13 =
             met[i, j, k, 1, 3] *
@@ -615,6 +583,111 @@ function compute_fluxes!(
         phiu[i, j, k, 3] -= hrhou_visc
     end
 
+    #-------------------------------------------------------------------
+    #             Diffusion fluxes
+    #-------------------------------------------------------------------
+
+    if mu_mom_diff_dim == 0.0
+        return
+    end
+
+    mu_mom_diff = mu_mom_diff_dim / uref / lref
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
+        coef_d = mu_mom_diff * rhostrattfc[i + 1, j, k0]
+
+        frhou_diff =
+            coef_d *
+            jac[i + 1, j, k] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k, U(), X())
+
+        phiu[i, j, k, 1] -= frhou_diff
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
+        coef_d =
+            mu_mom_diff *
+            0.25 *
+            (
+                rhostrattfc[i, j, k0] +
+                rhostrattfc[i + 1, j, k0] +
+                rhostrattfc[i, j + 1, k0] +
+                rhostrattfc[i + 1, j + 1, k0]
+            )
+
+        grhou_diff =
+            coef_d *
+            0.25 *
+            (
+                jac[i, j, k] *
+                compute_momentum_diffusion_terms(state, i, j, k, U(), Y()) +
+                jac[i + 1, j, k] *
+                compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Y()) +
+                jac[i, j + 1, k] *
+                compute_momentum_diffusion_terms(state, i, j + 1, k, U(), Y()) +
+                jac[i + 1, j + 1, k] * compute_momentum_diffusion_terms(
+                    state,
+                    i + 1,
+                    j + 1,
+                    k,
+                    U(),
+                    Y(),
+                )
+            )
+
+        phiu[i, j, k, 2] -= grhou_diff
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
+        coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
+
+        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
+
+        coef_d = 0.5 * (coef_dr + coef_dl)
+
+        mom_diff =
+            jac[i, j, k] *
+            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())
+
+        mom_diff_r =
+            jac[i + 1, j, k] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Z())
+
+        mom_diff_u =
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, U(), Z())
+
+        mom_diff_ru =
+            jac[i + 1, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k + 1, U(), Z())
+
+        hrhou_diff =
+            coef_d *
+            0.5 *
+            (
+                jac[i, j, k] * jac[i, j, k + 1] * (mom_diff + mom_diff_u) /
+                (jac[i, j, k] + jac[i, j, k + 1]) +
+                jac[i + 1, j, k] *
+                jac[i + 1, j, k + 1] *
+                (mom_diff_r + mom_diff_ru) /
+                (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+            )
+
+        phiu[i, j, k, 3] -= hrhou_diff
+    end
+
     # Return.
     return
 end
@@ -627,13 +700,14 @@ function compute_fluxes!(
 
     # Get all necessary fields.
     (; grid) = state
-    (; re) = state.constants
+    (; re, uref, lref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; predictands) = state.variables
+    (; mu_mom_diff_dim) = state.namelists.atmosphere
 
     # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -745,10 +819,10 @@ function compute_fluxes!(
             1 / re *
             0.25 *
             (
-                rhostrattfc[i, j, 1] +
-                rhostrattfc[i + 1, j, 1] +
-                rhostrattfc[i, j + 1, 1] +
-                rhostrattfc[i + 1, j + 1, 1]
+                rhostrattfc[i, j, k0] +
+                rhostrattfc[i + 1, j, k0] +
+                rhostrattfc[i, j + 1, k0] +
+                rhostrattfc[i + 1, j + 1, k0]
             )
 
         frhov_visc =
@@ -773,7 +847,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
-        coef_v = 1 / re * rhostrattfc[i, j + 1, 1]
+        coef_v = 1 / re * rhostrattfc[i, j + 1, k0]
 
         grhov_visc =
             coef_v *
@@ -789,7 +863,7 @@ function compute_fluxes!(
 
     for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
         coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i, j + 1, 1])
+            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
 
         stresstens23 =
             met[i, j, k, 1, 3] *
@@ -836,6 +910,111 @@ function compute_fluxes!(
         phiv[i, j, k, 3] -= hrhov_visc
     end
 
+    #-------------------------------------------------------------------
+    #                          Diffusion fluxes
+    #-------------------------------------------------------------------
+
+    if mu_mom_diff_dim == 0.0
+        return
+    end
+
+    mu_mom_diff = mu_mom_diff_dim / uref / lref
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
+        coef_d =
+            mu_mom_diff *
+            0.25 *
+            (
+                rhostrattfc[i, j, k0] +
+                rhostrattfc[i + 1, j, k0] +
+                rhostrattfc[i, j + 1, k0] +
+                rhostrattfc[i + 1, j + 1, k0]
+            )
+
+        frhov_diff =
+            coef_d *
+            0.25 *
+            (
+                jac[i, j, k] *
+                compute_momentum_diffusion_terms(state, i, j, k, V(), X()) +
+                jac[i + 1, j, k] *
+                compute_momentum_diffusion_terms(state, i + 1, j, k, V(), X()) +
+                jac[i, j + 1, k] *
+                compute_momentum_diffusion_terms(state, i, j + 1, k, V(), X()) +
+                jac[i + 1, j + 1, k] * compute_momentum_diffusion_terms(
+                    state,
+                    i + 1,
+                    j + 1,
+                    k,
+                    V(),
+                    X(),
+                )
+            )
+
+        phiv[i, j, k, 1] -= frhov_diff
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
+        coef_d = mu_mom_diff * rhostrattfc[i, j + 1, k0]
+
+        grhov_diff =
+            coef_d *
+            jac[i, j + 1, k] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Y())
+
+        phiv[i, j, k, 2] -= grhov_diff
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
+        coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
+
+        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
+
+        coef_d = 0.5 * (coef_dr + coef_dl)
+
+        u_diff =
+            jac[i, j, k] *
+            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())
+
+        u_diff_f =
+            jac[i, j + 1, k] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Z())
+
+        u_diff_u =
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, V(), Z())
+
+        u_diff_fu =
+            jac[i, j + 1, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k + 1, V(), Z())
+
+        hrhov_diff =
+            coef_d *
+            0.5 *
+            (
+                jac[i, j, k] * jac[i, j, k + 1] * (u_diff + u_diff_u) /
+                (jac[i, j, k] + jac[i, j, k + 1]) +
+                jac[i, j + 1, k] *
+                jac[i, j + 1, k + 1] *
+                (u_diff_f + u_diff_fu) /
+                (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+            )
+
+        phiv[i, j, k, 3] -= hrhov_diff
+    end
+
     # Return.
     return
 end
@@ -848,13 +1027,14 @@ function compute_fluxes!(
 
     # Get all necessary fields.
     (; grid) = state
-    (; re) = state.constants
+    (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; predictands) = state.variables
+    (; mu_mom_diff_dim) = state.namelists.atmosphere
 
     # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -982,7 +1162,7 @@ function compute_fluxes!(
 
     for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i + 1, j, 1])
+            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
 
         frhow_visc =
             coef_v *
@@ -1026,7 +1206,7 @@ function compute_fluxes!(
 
     for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i, j + 1, 1])
+            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
 
         grhow_visc =
             coef_v *
@@ -1069,7 +1249,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        coef_v = 1 / re * rhostrattfc[i, j, 1]
+        coef_v = 1 / re * rhostrattfc[i, j, k0]
 
         hrhow_visc =
             coef_v * (
@@ -1081,6 +1261,115 @@ function compute_fluxes!(
                 compute_stress_tensor(i, j, k + 1, 3, 2, predictands, grid) +
                 compute_stress_tensor(i, j, k + 1, 3, 3, predictands, grid)
             )
+
+        phiw[i, j, k, 3] -= hrhow_visc
+    end
+
+    #-------------------------------------------------------------------
+    #                          Diffusion fluxes
+    #-------------------------------------------------------------------
+
+    if mu_mom_diff_dim == 0.0
+        return
+    end
+
+    mu_mom_diff = mu_mom_diff_dim / uref / lref
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+        coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
+
+        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
+
+        coef_d = 0.5 * (coef_dr + coef_dl)
+
+        w_diff =
+            jac[i, j, k] *
+            compute_momentum_diffusion_terms(state, i, j, k, W(), X())
+
+        w_diff_r =
+            jac[i + 1, j, k] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k, W(), X())
+
+        w_diff_u =
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), X())
+
+        w_diff_ru =
+            jac[i + 1, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k + 1, W(), X())
+
+        frhow_diff =
+            coef_d *
+            0.5 *
+            (
+                jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
+                (jac[i, j, k] + jac[i, j, k + 1]) +
+                jac[i + 1, j, k] *
+                jac[i + 1, j, k + 1] *
+                (w_diff_r + w_diff_ru) /
+                (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+            )
+
+        phiw[i, j, k, 1] -= frhow_diff
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+        coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
+
+        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
+
+        coef_d = 0.5 * (coef_dr + coef_dl)
+
+        w_diff =
+            jac[i, j, k] *
+            compute_momentum_diffusion_terms(state, i, j, k, W(), Y())
+
+        w_diff_f =
+            jac[i, j + 1, k] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k, W(), Y())
+
+        w_diff_u =
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Y())
+
+        w_diff_fu =
+            jac[i, j + 1, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k + 1, W(), Y())
+
+        grhow_diff =
+            coef_d *
+            0.5 *
+            (
+                jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
+                (jac[i, j, k] + jac[i, j, k + 1]) +
+                jac[i, j + 1, k] *
+                jac[i, j + 1, k + 1] *
+                (w_diff_f + w_diff_fu) /
+                (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+            )
+
+        phiw[i, j, k, 2] -= grhow_diff
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+        coef_d = mu_mom_diff * rhostrattfc[i, j, k0]
+
+        hrhow_visc =
+            coef_d *
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Z())
 
         phiw[i, j, k, 3] -= hrhow_visc
     end
@@ -1168,151 +1457,177 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    icesetup::NoIce,
-)
-    return
-end
-
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    icesetup::AbstractIce,
+    variable::Theta,
 )
 
     # Get all necessary fields.
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac) = state.grid
-    (; pstrattfc) = state.atmosphere
-    (; icereconstructions, icefluxes) = state.ice
+    (; jac, dx, dy, dz, met) = state.grid
+    (; pstrattfc, rhostrattfc) = state.atmosphere
+    (; phitheta) = state.variables.fluxes
+    (; mu_conduct_dim) = state.namelists.atmosphere
+    (; uref, lref) = state.constants
+    (; rho) = state.variables.predictands
 
-    # Get old wind.
-    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
-
-    for (fd, field) in enumerate(fieldnames(IcePredictands))
-        for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
-            chir = getfield(icereconstructions, fd)[i + 1, j, k, 1, 1]
-            chil = getfield(icereconstructions, fd)[i, j, k, 1, 2]
-
-            pedger =
-                0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
-                )
-            usurf = pedger * u0[i, j, k]
-
-            fchi = compute_flux(usurf, chil, chir)
-
-            getfield(icefluxes, fd)[i, j, k, 1] = fchi
-        end
-
-        for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
-            chif = getfield(icereconstructions, fd)[i, j + 1, k, 2, 1]
-            chib = getfield(icereconstructions, fd)[i, j, k, 2, 2]
-
-            pedgef =
-                0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
-                )
-            vsurf = pedgef * v0[i, j, k]
-
-            gchi = compute_flux(vsurf, chib, chif)
-
-            getfield(icefluxes, fd)[i, j, k, 2] = gchi
-        end
-
-        for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
-            chiu = getfield(icereconstructions, fd)[i, j, k + 1, 3, 1]
-            chid = getfield(icereconstructions, fd)[i, j, k, 3, 2]
-
-            pedgeu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-            wsurf = pedgeu * w0[i, j, k]
-
-            hchi = compute_flux(wsurf, chid, chiu)
-
-            getfield(icefluxes, fd)[i, j, k, 3] = hchi
-        end
+    if mu_conduct_dim == 0.0
+        return
     end
 
-    return
-end
+    mu_conduct = mu_conduct_dim / uref / lref
 
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulencesetup::NoTurbulence,
-)
-    return
-end
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
 
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulencesetup::AbstractTurbulence,
-)
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+        coef_t =
+            mu_conduct *
+            0.5 *
+            (
+                rhostrattfc[i, j, k0] / rhostrattfc[i, j, k] +
+                rhostrattfc[i + 1, j, k0] / rhostrattfc[i + 1, j, k]
+            )
 
-    # Get all necessary fields.
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac) = state.grid
-    (; pstrattfc) = state.atmosphere
-    (; turbulencereconstructions, turbulencefluxes) = state.turbulence
+        thetal = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
+        thetar =
+            pstrattfc[i + 1, j, k] /
+            (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k])
 
-    # Get old wind.
-    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
+        thetad =
+            0.5 * (
+                pstrattfc[i, j, k - 1] /
+                (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1]) +
+                pstrattfc[i + 1, j, k - 1] /
+                (rho[i + 1, j, k - 1] + rhostrattfc[i + 1, j, k - 1])
+            )
+        thetau =
+            0.5 * (
+                pstrattfc[i, j, k + 1] /
+                (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) +
+                pstrattfc[i + 1, j, k + 1] /
+                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1])
+            )
 
-    for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
-        for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
-            chir = getfield(turbulencereconstructions, fd)[i + 1, j, k, 1, 1]
-            chil = getfield(turbulencereconstructions, fd)[i, j, k, 1, 2]
+        dtht_dxi =
+            0.5 * (jac[i, j, k] + jac[i + 1, j, k]) * (thetar - thetal) / dx +
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 1, 3] +
+                jac[i + 1, j, k] * met[i + 1, j, k, 1, 3]
+            ) *
+            (thetau - thetad) / (2.0 * dz)
 
-            pedger =
-                0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
-                )
-            usurf = pedger * u0[i, j, k]
-
-            fchi = compute_flux(usurf, chil, chir)
-
-            getfield(turbulencefluxes, fd)[i, j, k, 1] = fchi
-        end
-
-        for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
-            chif = getfield(turbulencereconstructions, fd)[i, j + 1, k, 2, 1]
-            chib = getfield(turbulencereconstructions, fd)[i, j, k, 2, 2]
-
-            pedgef =
-                0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
-                )
-            vsurf = pedgef * v0[i, j, k]
-
-            gchi = compute_flux(vsurf, chib, chif)
-
-            getfield(turbulencefluxes, fd)[i, j, k, 2] = gchi
-        end
-
-        for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
-            chiu = getfield(turbulencereconstructions, fd)[i, j, k + 1, 3, 1]
-            chid = getfield(turbulencereconstructions, fd)[i, j, k, 3, 2]
-
-            pedgeu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-            wsurf = pedgeu * w0[i, j, k]
-
-            hchi = compute_flux(wsurf, chid, chiu)
-
-            getfield(turbulencefluxes, fd)[i, j, k, 3] = hchi
-        end
+        phitheta[i, j, k, 1] = -coef_t * dtht_dxi
     end
 
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+        coef_t =
+            mu_conduct *
+            0.5 *
+            (
+                rhostrattfc[i, j, k0] / rhostrattfc[i, j, k] +
+                rhostrattfc[i, j + 1, k0] / rhostrattfc[i, j + 1, k]
+            )
+
+        thetab = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
+        thetaf =
+            pstrattfc[i, j + 1, k] /
+            (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k])
+
+        thetad =
+            0.5 * (
+                pstrattfc[i, j, k - 1] /
+                (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1]) +
+                pstrattfc[i, j + 1, k - 1] /
+                (rho[i, j + 1, k - 1] + rhostrattfc[i, j + 1, k - 1])
+            )
+        thetau =
+            0.5 * (
+                pstrattfc[i, j, k + 1] /
+                (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) +
+                pstrattfc[i, j + 1, k + 1] /
+                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1])
+            )
+
+        dtht_dyi =
+            0.5 * (jac[i, j, k] + jac[i, j + 1, k]) * (thetaf - thetab) / dy +
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 2, 3] +
+                jac[i, j + 1, k] * met[i, j + 1, k, 2, 3]
+            ) *
+            (thetau - thetad) / (2.0 * dz)
+
+        phitheta[i, j, k, 2] = -coef_t * dtht_dyi
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+        coef_t =
+            mu_conduct * (
+                jac[i, j, k + 1] * rhostrattfc[i, j, 1] / rhostrattfc[i, j, k] +
+                jac[i, j, k] * rhostrattfc[i, j, 1] / rhostrattfc[i, j, k + 1]
+            ) / (jac[i, j, k + 1] + jac[i, j, k])
+
+        thetal =
+            (
+                jac[i - 1, j, k + 1] * pstrattfc[i - 1, j, k] /
+                (rho[i - 1, j, k] + rhostrattfc[i - 1, j, k]) +
+                jac[i - 1, j, k] * pstrattfc[i - 1, j, k + 1] /
+                (rho[i - 1, j, k + 1] + rhostrattfc[i - 1, j, k + 1])
+            ) / (jac[i - 1, j, k + 1] + jac[i - 1, j, k])
+
+        thetar =
+            (
+                jac[i + 1, j, k + 1] * pstrattfc[i + 1, j, k] /
+                (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k]) +
+                jac[i + 1, j, k] * pstrattfc[i + 1, j, k + 1] /
+                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1])
+            ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
+
+        thetab =
+            (
+                jac[i, j - 1, k + 1] * pstrattfc[i, j - 1, k] /
+                (rho[i, j - 1, k] + rhostrattfc[i, j - 1, k]) +
+                jac[i, j - 1, k] * pstrattfc[i, j - 1, k + 1] /
+                (rho[i, j - 1, k + 1] + rhostrattfc[i, j - 1, k + 1])
+            ) / (jac[i, j - 1, k + 1] + jac[i, j - 1, k])
+
+        thetaf =
+            (
+                jac[i, j + 1, k + 1] * pstrattfc[i, j + 1, k] /
+                (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k]) +
+                jac[i, j + 1, k] * pstrattfc[i, j + 1, k + 1] /
+                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1])
+            ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
+
+        thetad = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
+        thetau =
+            pstrattfc[i, j, k + 1] /
+            (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
+
+        dtht_dzi =
+            jac[i, j, k] *
+            jac[i, j, k + 1] *
+            (
+                (met[i, j, k, 1, 3] + met[i, j, k + 1, 1, 3]) *
+                (thetar - thetal) / (2.0 * dx) +
+                (met[i, j, k, 2, 3] + met[i, j, k + 1, 2, 3]) *
+                (thetaf - thetab) / (2.0 * dy) +
+                (met[i, j, k, 3, 3] + met[i, j, k + 1, 3, 3]) *
+                (thetau - thetad) / dz
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+
+        phitheta[i, j, k, 3] = -coef_t * dtht_dzi
+    end
+
+    # Return.
     return
 end

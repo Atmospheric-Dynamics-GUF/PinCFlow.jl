@@ -61,34 +61,6 @@ Reconstruct the tracers.
 
 Similar to the density, the tracers are divided by ``P`` before reconstruction.
 
-```julia
-reconstruct!(state::State, icesetup::NoIce)
-```
-
-Return for configurations without ice physics.
-
-```julia
-reconstruct!(state::State, icesetup::AbstractIce)
-```
-
-Reconstruct the ice variables.
-
-Similar to the density, the ice variables are divided by ``P`` before reconstruction.
-
-```julia
-reconstruct!(state::State, turbulencesetup::NoTurbulence)
-```
-
-Return for configurations without turbulence physics.
-
-```julia
-reconstruct!(state::State, turbulencesetup::AbstractTurbulence)
-```
-
-Reconstruct the turbulence variables.
-
-Similar to the density, the turbulence variables are divided by ``P`` before reconstruction.
-
 # Arguments
 
   - `state`: Model state.
@@ -96,10 +68,6 @@ Similar to the density, the turbulence variables are divided by ``P`` before rec
   - `variable`: The reconstructed variable.
 
   - `tracersetup`: General tracer-transport configuration.
-
-  - `icesetup`: General ice-physics configuration.
-
-  - `turbulencesetup`: General turbulence-physics configuration.
 
 # See also
 
@@ -115,8 +83,6 @@ function reconstruct! end
 
 function reconstruct!(state::State)
     (; tracersetup) = state.namelists.tracer
-    (; icesetup) = state.namelists.ice
-    (; turbulencesetup) = state.namelists.turbulence
 
     reconstruct!(state, Rho())
     reconstruct!(state, RhoP())
@@ -125,8 +91,6 @@ function reconstruct!(state::State)
     reconstruct!(state, W())
 
     reconstruct!(state, tracersetup)
-    reconstruct!(state, icesetup)
-    reconstruct!(state, turbulencesetup)
 
     return
 end
@@ -274,65 +238,6 @@ function reconstruct!(state::State, tracersetup::AbstractTracer)
         apply_3d_muscl!(
             phi,
             getfield(tracerreconstructions, fd),
-            nxx,
-            nyy,
-            nzz,
-            limitertype,
-        )
-    end
-
-    return
-end
-
-function reconstruct!(state::State, icesetup::NoIce)
-    return
-end
-
-function reconstruct!(state::State, icesetup::AbstractIce)
-    (; limitertype) = state.namelists.discretization
-    (; k0, k1, nxx, nyy, nzz) = state.domain
-    (; phi) = state.variables.auxiliaries
-    (; pstrattfc) = state.atmosphere
-    (; icereconstructions, icepredictands) = state.ice
-
-    for (fd, field) in enumerate(fieldnames(IcePredictands))
-        for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
-            phi[ix, jy, kz] =
-                getfield(icepredictands, fd)[ix, jy, kz] / pstrattfc[ix, jy, kz]
-        end
-        apply_3d_muscl!(
-            phi,
-            getfield(icereconstructions, fd),
-            nxx,
-            nyy,
-            nzz,
-            limitertype,
-        )
-    end
-
-    return
-end
-
-function reconstruct!(state::State, turbulencesetup::NoTurbulence)
-    return
-end
-
-function reconstruct!(state::State, turbulencesetup::AbstractTurbulence)
-    (; limitertype) = state.namelists.discretization
-    (; k0, k1, nxx, nyy, nzz) = state.domain
-    (; phi) = state.variables.auxiliaries
-    (; pstrattfc) = state.atmosphere
-    (; turbulencereconstructions, turbulencepredictands) = state.turbulence
-
-    for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
-        for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
-            phi[ix, jy, kz] =
-                getfield(turbulencepredictands, fd)[ix, jy, kz] /
-                pstrattfc[ix, jy, kz]
-        end
-        apply_3d_muscl!(
-            phi,
-            getfield(turbulencereconstructions, fd),
             nxx,
             nyy,
             nzz,
