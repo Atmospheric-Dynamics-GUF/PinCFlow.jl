@@ -187,15 +187,19 @@ function propagate_rays!(
 
     # Initialize WKB increments at the first RK stage.
     if rkstage == 1
-        dxray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
-        dyray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
-        dzray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
-        dkray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
-        dlray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
-        dmray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
-        ddxray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
-        ddyray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
-        ddzray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
+            for iray in 1:nray[ix, jy, kz]
+                dxray[iray, ix, jy, kz] = 0.0
+                dyray[iray, ix, jy, kz] = 0.0
+                dzray[iray, ix, jy, kz] = 0.0
+                dkray[iray, ix, jy, kz] = 0.0
+                dlray[iray, ix, jy, kz] = 0.0
+                dmray[iray, ix, jy, kz] = 0.0
+                ddxray[iray, ix, jy, kz] = 0.0
+                ddyray[iray, ix, jy, kz] = 0.0
+                ddzray[iray, ix, jy, kz] = 0.0
+            end
+        end
     end
 
     cgx_max[] = 0.0
