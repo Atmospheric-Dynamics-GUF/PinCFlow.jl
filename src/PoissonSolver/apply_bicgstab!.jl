@@ -1,7 +1,7 @@
 """
 ```julia
 apply_bicgstab!(
-    b_in::AbstractArray{<:AbstractFloat, 3},
+    b::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
     sol::AbstractArray{<:AbstractFloat, 3},
     namelists::Namelists,
@@ -15,7 +15,7 @@ Solve the Poisson equation using a preconditioned BicGStab algorithm and return 
 
 # Arguments
 
-  - `b_in`: Right-hand side.
+  - `b`: Right-hand side.
 
   - `tolref`: Reference tolerance for convergence criterion.
 
@@ -40,7 +40,7 @@ Solve the Poisson equation using a preconditioned BicGStab algorithm and return 
 function apply_bicgstab! end
 
 function apply_bicgstab!(
-    b_in::AbstractArray{<:AbstractFloat, 3},
+    b::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
     sol::AbstractArray{<:AbstractFloat, 3},
     namelists::Namelists,
@@ -77,39 +77,22 @@ function apply_bicgstab!(
     # Set error flag.
     errflag = false
 
-    b = b_in
-
     apply_operator!(sol, matvec, Total(), namelists, domain, poisson)
     r0 .= b .- matvec
     p .= r0
     r .= r0
 
-    res_local = 0.0
-    for k in 1:nz, j in 1:ny, i in 1:nx
-        res_local += r[i, j, k]^2
-    end
-
-    # MPI: Find global residual.
+    res_local = mapreduce(a -> a^2, +, r)
     res = MPI.Allreduce(res_local, +, comm)
-
     res = sqrt(res / sizex / sizey / sizez)
 
     b_norm = res
 
-    r_vm .= 0.0
-    for k in 1:nz
-        @views r_vm .+= r[:, :, k]
-    end
+    r_vm .= sum(r ./ sizez; dims = 3)
     MPI.Allreduce!(r_vm, +, column_comm)
-    r_vm ./= sizez
 
-    res_local = 0.0
-    for j in 1:ny, i in 1:nx
-        res_local += r_vm[i, j]^2
-    end
-
+    res_local = mapreduce(a -> a^2, +, r_vm)
     res_vm = MPI.Allreduce(res_local, +, layer_comm)
-
     res_vm = sqrt(res_vm / sizex / sizey)
 
     b_vm_norm = res_vm
@@ -164,30 +147,15 @@ function apply_bicgstab!(
         #   Abort criterion
         #-----------------------
 
-        res_local = 0.0
-        for k in 1:nz, j in 1:ny, i in 1:nx
-            res_local += r[i, j, k]^2
-        end
-
-        # MPI: Find global residual.
+        res_local = mapreduce(a -> a^2, +, r)
         res = MPI.Allreduce(res_local, +, comm)
-
         res = sqrt(res / sizex / sizey / sizez)
 
-        r_vm .= 0.0
-        for k in 1:nz
-            @views r_vm .+= r[:, :, k]
-        end
+        r_vm .= sum(r ./ sizez; dims = 3)
         MPI.Allreduce!(r_vm, +, column_comm)
-        r_vm ./= sizez
 
-        res_local = 0.0
-        for j in 1:ny, i in 1:nx
-            res_local += r_vm[i, j]^2
-        end
-
+        res_local = mapreduce(a -> a^2, +, r_vm)
         res_vm = MPI.Allreduce(res_local, +, layer_comm)
-
         res_vm = sqrt(res_vm / sizex / sizey)
 
         if max(res / b_norm, res_vm / b_vm_norm) <= tol
