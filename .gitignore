@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .CondaPkg
 LocalPreferences.toml
 Manifest.toml
@@ -5,3 +6,16 @@ Manifest.toml
 /build
 /docs/build
 .vscode
+=======
+slurm*.out
+*~
+build/
+!build/.gitkeep 
+output/
+!output/.gitkeep 
+*.h5
+git_hash
+
+
+
+>>>>>>> test_julia

@@ -220,6 +220,14 @@ export DomainNamelist,
     TracerAuxiliaries,
     TracerIncrements,
     TracerReconstructions,
-    TracerFluxes
-
+    TracerFluxes,
+    IceOn,
+    NoIce,
+    IcePredictands,
+    IceAuxiliaries,
+    IceIncrements,
+    IceReconstructions,
+    IceFluxes,
+    IceSource,
+    IceConstants
 end

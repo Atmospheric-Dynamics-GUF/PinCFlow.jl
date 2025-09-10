@@ -76,6 +76,15 @@ function explicit_integration!(
             tracersetup,
         )
 
+        #CHANGES no ice advection
+        #update!(state, dtstage, rkstage, icesetup)
+        apply_unified_sponge!(
+            state,
+            stepfrac[rkstage] * dtstage,
+            time,
+            icesetup,
+        )
+
         set_boundaries!(state, BoundaryPredictands())
 
         update!(state, dtstage, rkstage, U(), side)

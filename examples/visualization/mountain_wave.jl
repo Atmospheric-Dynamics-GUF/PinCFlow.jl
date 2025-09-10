@@ -3,15 +3,18 @@
 using HDF5
 using LaTeXStrings
 
-include("style.jl")
-
-# Import the data.
-if length(ARGS) == 0
-    data = h5open("./pincflow_output.h5")
-elseif length(ARGS) == 1
-    data = h5open(ARGS[1] * "/pincflow_output.h5")
+# Set paths.
+host_name = readchomp(`hostname`)
+user_name = readchomp(`whoami`)
+if occursin("login", host_name)
+	data_path =
+		"/scratch/atmodynamics/" * user_name * "/pinc/examples/mountain_wave/"
+	reference_path = data_path
+elseif occursin("dkrz", host_name)
+	data_path = "/scratch/b/" * user_name * "/pinc/examples/mountain_wave/"
+	reference_path = data_path
 else
-    error("Too many arguments to the script!")
+	data_path = "~/PF/pinc/test/"
 end
 
 # Set the grid.
@@ -34,13 +37,13 @@ figure(; figsize = (12, 3))
 iz = 10
 subplot(131)
 (levels, colormap) =
-    symmetric_contours(minimum(w[:, :, iz]), maximum(w[:, :, iz]))
+	symmetric_contours(minimum(w[:, :, iz]), maximum(w[:, :, iz]))
 contours = contourf(
-    x[:, :, iz],
-    y[:, :, iz],
-    w[:, :, iz];
-    levels = levels,
-    cmap = colormap,
+	x[:, :, iz],
+	y[:, :, iz],
+	w[:, :, iz];
+	levels = levels,
+	cmap = colormap,
 )
 xlabel(L"x\,\left[\mathrm{km}\right]")
 ylabel(L"y\,\left[\mathrm{km}\right]")
@@ -51,13 +54,13 @@ colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 iy = 20
 subplot(132)
 (levels, colormap) =
-    symmetric_contours(minimum(w[:, iy, :]), maximum(w[:, iy, :]))
+	symmetric_contours(minimum(w[:, iy, :]), maximum(w[:, iy, :]))
 contours = contourf(
-    x[:, iy, :],
-    z[:, iy, :],
-    w[:, iy, :];
-    levels = levels,
-    cmap = colormap,
+	x[:, iy, :],
+	z[:, iy, :],
+	w[:, iy, :];
+	levels = levels,
+	cmap = colormap,
 )
 plot(x[:, iy, 1], z[:, iy, 1]; color = "black", linewidth = 0.5)
 xlabel(L"x\,\left[\mathrm{km}\right]")
@@ -69,13 +72,13 @@ colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 ix = 20
 subplot(133)
 (levels, colormap) =
-    symmetric_contours(minimum(w[ix, :, :]), maximum(w[ix, :, :]))
+	symmetric_contours(minimum(w[ix, :, :]), maximum(w[ix, :, :]))
 contours = contourf(
-    y[ix, :, :],
-    z[ix, :, :],
-    w[ix, :, :];
-    levels = levels,
-    cmap = colormap,
+	y[ix, :, :],
+	z[ix, :, :],
+	w[ix, :, :];
+	levels = levels,
+	cmap = colormap,
 )
 plot(y[ix, :, 1], z[ix, :, 1]; color = "black", linewidth = 0.5)
 xlabel(L"y\,\left[\mathrm{km}\right]")

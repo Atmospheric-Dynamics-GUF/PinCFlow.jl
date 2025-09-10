@@ -54,6 +54,9 @@ RHS
 Singleton for the integration of the right-hand side of an equation.
 """
 struct RHS end
+struct IceUpdateAdv end
+struct IceUpdatePhy end
+struct IceUpdateBoth end
 
 """
 ```julia 
@@ -95,7 +98,7 @@ include("update!.jl")
 include("conductive_heating.jl")
 include("compute_momentum_diffusion_terms.jl")
 
-export LHS, RHS, X, Y, Z
+export LHS, RHS, X, Y, Z, IceUpdatePhy
 
 export apply_unified_sponge!,
     compute_compressible_buoyancy_factor,

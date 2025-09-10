@@ -1267,3 +1267,96 @@ function update!(
 
     return
 end
+  
+function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; iceincrements, icepredictands, icefluxes) = state.ice
+
+    for (fd, field) in enumerate(fieldnames(IcePredictands))
+        if m == 1
+            getfield(iceincrements, fd) .= 0.0
+        end
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = getfield(icefluxes, fd)[i - 1, j, k, 1]
+            fr = getfield(icefluxes, fd)[i, j, k, 1]
+            gb = getfield(icefluxes, fd)[i, j - 1, k, 2]
+            gf = getfield(icefluxes, fd)[i, j, k, 2]
+            hd = getfield(icefluxes, fd)[i, j, k - 1, 3]
+            hu = getfield(icefluxes, fd)[i, j, k, 3]
+
+            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+            fluxdiff /= jac[i, j, k]
+
+            f = -fluxdiff
+
+            getfield(iceincrements, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
+            getfield(icepredictands, fd)[i, j, k] +=
+                betark[m] * getfield(iceincrements, fd)[i, j, k]
+        end
+    end
+
+    return
+end
+
+function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn, update_type::IceUpdateAdv)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; iceincrements, icepredictands, icefluxes) = state.ice
+
+    for (fd, field) in enumerate(fieldnames(IcePredictands))
+        if m == 1
+            getfield(iceincrements, fd) .= 0.0
+        end
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = getfield(icefluxes, fd)[i - 1, j, k, 1]
+            fr = getfield(icefluxes, fd)[i, j, k, 1]
+            gb = getfield(icefluxes, fd)[i, j - 1, k, 2]
+            gf = getfield(icefluxes, fd)[i, j, k, 2]
+            hd = getfield(icefluxes, fd)[i, j, k - 1, 3]
+            hu = getfield(icefluxes, fd)[i, j, k, 3]
+
+            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+            fluxdiff /= jac[i, j, k]
+
+            f = -fluxdiff
+
+            getfield(ncies, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(ncies, fd)[i, j, k]
+            getfield(icepredictands, fd)[i, j, k] +=
+                betark[m] * getfield(ncies, fd)[i, j, k]
+        end
+    end
+
+    return
+end
+
+function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUpdatePhy)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; iceincrements, icepredictands, icesource) = state.ice
+
+    for (fd, field) in enumerate(fieldnames(IcePredictands))
+        if m == 1
+            getfield(iceincrements, fd) .= 0.0
+        end
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            
+            f = getfield(icesource, fd)[i, j, k]
+
+            getfield(iceincrements, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
+            getfield(icepredictands, fd)[i, j, k] +=
+                betark[m] * getfield(iceincrements, fd)[i, j, k]
+        end
+    end
+
+    return
+end

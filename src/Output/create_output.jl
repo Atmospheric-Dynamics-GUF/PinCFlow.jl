@@ -20,6 +20,8 @@ function create_output(state::State)
     (; model, testcase) = state.namelists.setting
     (; comm) = state.domain
     (; nray_max) = state.wkb
+    (; compute_cloudcover) = state.namelists.ice
+    (; nxnscxx, nynscyy, nznsczz) = state.ice.subgrid
 
     # Set the chunk dimensions.
     cr = nray_max
@@ -41,6 +43,26 @@ function create_output(state::State)
             dataspace((sizex, sizey, sizez));
             chunk = (cx, cy, cz),
         )
+        #changes for cloudcover
+        if !(typeof(state.namelists.ice.icesetup) <: NoIce) &&compute_cloudcover == 2
+            (; sizex2, sizey2, sizez2) = state.ice.subgrid
+            
+            cx2 = div(sizex2, npx)
+            cy2 = div(sizey2, npy)
+            cz2 = div(sizez2, npz)
+
+            create_dataset(file, "x2", datatype(Float32), dataspace((sizex2,)))
+            create_dataset(file, "y2", datatype(Float32), dataspace((sizey2,)))
+
+            create_dataset(
+                file,
+                "z2", 
+                datatype(Float32),
+                dataspace((sizex2, sizey2, sizez2));
+                chunk = (cx2, cy2, cz2),
+            )
+        end
+        
         create_dataset(
             file,
             "t",
@@ -201,6 +223,36 @@ function create_output(state::State)
                     chunk = (cx, cy, cz, ct),
                 )
             end
+        end
+
+        if !(typeof(state.namelists.ice.icesetup) <: NoIce)
+            for field in fieldnames(IcePredictands)
+                create_dataset(
+                    file,
+                    string(field),
+                    datatype(Float32),
+                    dataspace(
+                        (sizex, sizey, sizez, 0),
+                        (sizex, sizey, sizez, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end            
+        end
+
+        if !(typeof(state.namelists.ice.icesetup) <: NoIce)
+            for field in fieldnames(IceAuxiliaries)
+                create_dataset(
+                    file,
+                    string(field),
+                    datatype(Float32),
+                    dataspace(
+                        (sizex, sizey, sizez, 0),
+                        (sizex, sizey, sizez, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end            
         end
 
         # Create datasets for WKB variables.
