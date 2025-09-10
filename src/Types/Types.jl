@@ -18,6 +18,10 @@ Module for the construction of a single composite type that contains all informa
   - [`PinCFlow.Types.WKBTypes`](@ref)
 
   - [`PinCFlow.Types.TracerTypes`](@ref)
+
+  - [`PinCFlow.Types.IceTypes`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes`](@ref)
 """
 module Types
 
@@ -92,7 +96,6 @@ P <: AbstractVariable
 Singleton that represents the mass-weighted potential temperature.
 """
 struct P <: AbstractVariable end
-struct Theta <: AbstractVariable end
 
 """
 ```julia
@@ -118,6 +121,7 @@ include("PoissonTypes/PoissonTypes.jl")
 include("VariableTypes/VariableTypes.jl")
 include("WKBTypes/WKBTypes.jl")
 include("TracerTypes/TracerTypes.jl")
+include("IceTypes/IceTypes.jl")
 
 using .NamelistTypes
 using .FoundationalTypes
@@ -125,6 +129,7 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
+using .IceTypes
 
 include("State.jl")
 
@@ -140,7 +145,8 @@ export AbstractBackground,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter,
-    AbstractTracer
+    AbstractTracer,
+    AbstractIce
 
 export Rho,
     RhoP,
@@ -149,7 +155,6 @@ export Rho,
     W,
     PiP,
     P,
-    Theta,
     Explicit,
     Implicit,
     UniformBoussinesq,
@@ -162,6 +167,7 @@ export Rho,
     Compressible,
     MountainWave,
     WKBMountainWave,
+    WavePacket,
     PeriodicBoundaries,
     SolidWallBoundaries,
     ExponentialSponge,
@@ -182,10 +188,12 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
+    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    IceNamelist,
     Namelists,
     Time,
     Constants,
@@ -213,6 +221,7 @@ export DomainNamelist,
     SurfaceIndices,
     WKB,
     Tracer,
+    Ice,
     State,
     NoTracer,
     LinearTracer,
@@ -230,4 +239,5 @@ export DomainNamelist,
     IceFluxes,
     IceSource,
     IceConstants
+
 end
