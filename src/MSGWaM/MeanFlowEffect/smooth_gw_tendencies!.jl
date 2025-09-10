@@ -220,8 +220,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @views output[i, j, k] =
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        output[i, j, k] =
             sum(
                 input[
                     (i - nsmth_wkb):(i + nsmth_wkb),
@@ -252,8 +252,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @views output[i, j, k] =
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        output[i, j, k] =
             sum(
                 input[
                     (i - nsmth_wkb):(i + nsmth_wkb),
@@ -284,8 +284,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @views output[i, j, k] =
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        output[i, j, k] =
             sum(
                 input[
                     i,
@@ -313,8 +313,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @views output[i, j, k] =
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        output[i, j, k] =
             sum(input[i, j, (k - nsmth_wkb):(k + nsmth_wkb)]) /
             (2 * nsmth_wkb + 1)
     end
@@ -371,8 +371,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for j in 1:nyy, i in 1:nxx
-        @views apply_shapiro_filter!(
+    @ivy for j in 1:nyy, i in 1:nxx
+        apply_shapiro_filter!(
             output[i, j, :],
             input[i, j, :],
             (k0, k1),
@@ -398,8 +398,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in 1:nzz, i in 1:nxx
-        @views apply_shapiro_filter!(
+    @ivy for k in 1:nzz, i in 1:nxx
+        apply_shapiro_filter!(
             output[i, :, k],
             input[i, :, k],
             (j0, j1),
@@ -425,8 +425,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in 1:nzz, j in 1:nyy
-        @views apply_shapiro_filter!(
+    @ivy for k in 1:nzz, j in 1:nyy
+        apply_shapiro_filter!(
             output[:, j, k],
             input[:, j, k],
             (i0, i1),

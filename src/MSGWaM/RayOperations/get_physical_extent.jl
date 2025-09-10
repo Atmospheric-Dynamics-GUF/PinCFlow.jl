@@ -20,7 +20,7 @@ function get_physical_extent(
     rays::Rays,
     indices::NTuple{4, <:Integer},
 )::NTuple{3, <:AbstractFloat}
-    return (
+    @ivy return (
         rays.dxray[indices...],
         rays.dyray[indices...],
         rays.dzray[indices...],

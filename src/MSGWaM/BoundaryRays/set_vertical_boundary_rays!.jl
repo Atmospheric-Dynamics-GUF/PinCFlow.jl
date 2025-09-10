@@ -40,7 +40,7 @@ function set_vertical_boundary_rays!(state::State)
     end
 
     # Reflect ray volumes at the lower boundary.
-    if ko == 0
+    @ivy if ko == 0
         for kz in k0:(k0 + 1), jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
             for iray in 1:nray[ix, jy, kz]
                 xr = rays.x[iray, ix, jy, kz]
@@ -61,7 +61,7 @@ function set_vertical_boundary_rays!(state::State)
     end
 
     # Cut ray volumes at the upper boundary.
-    if ko + nzz == sizezz
+    @ivy if ko + nzz == sizezz
         for kz in (k1 - 1):k1, jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
             nrlc = 0
             for iray in 1:nray[ix, jy, kz]

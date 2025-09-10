@@ -24,6 +24,7 @@ using ..Types
 using ..MPIOperations
 using ..Boundaries
 using ..Update
+using ..PinCFlow
 
 """
 ```julia

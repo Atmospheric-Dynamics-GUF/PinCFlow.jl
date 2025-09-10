@@ -43,7 +43,7 @@ function read_input!(state::State)
     )
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
-    time = h5open(input_file, "r", comm) do file
+    @ivy time = h5open(input_file, "r", comm) do file
 
         # Read the time.
         time = file["t"][iin] / tref
@@ -51,7 +51,7 @@ function read_input!(state::State)
         # Read the density fluctuations.
         rhop[ii, jj, kk] = file["rhop"][iid, jjd, kkd, iin] ./ rhoref
         if model != Boussinesq()
-            @views rho[ii, jj, kk] .= rhop[ii, jj, kk]
+            rho[ii, jj, kk] .= rhop[ii, jj, kk]
         end
 
         # Read the staggered zonal wind.
@@ -73,7 +73,7 @@ function read_input!(state::State)
 
         if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
-                @views getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
+                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
                     file[string(field)][iid, jjd, kkd, iin] .*
                     (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk])
             end

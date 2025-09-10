@@ -150,7 +150,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         pedger = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
         rhor = rhotilde[i + 1, j, k, 1, 1] + rhostratedger / pedger
@@ -172,7 +172,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         pedgef = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
         rhof = rhotilde[i, j + 1, k, 2, 1] + rhostratedgef / pedgef
@@ -194,7 +194,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         rhostratedgeu =
             (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k] +
@@ -240,7 +240,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhor = rhoptilde[i + 1, j, k, 1, 1]
         rhol = rhoptilde[i, j, k, 1, 2]
 
@@ -260,7 +260,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhof = rhoptilde[i, j + 1, k, 2, 1]
         rhob = rhoptilde[i, j, k, 2, 2]
 
@@ -280,7 +280,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         rhou = rhoptilde[i, j, k + 1, 3, 1]
         rhod = rhoptilde[i, j, k, 3, 2]
 
@@ -326,7 +326,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         phip[i, j, k, 1] =
             0.5 *
             (
@@ -340,7 +340,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         phip[i, j, k, 2] =
             0.5 *
             (
@@ -354,7 +354,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         phip[i, j, k, 3] =
             jac[i, j, k] *
             jac[i, j, k + 1] *
@@ -392,7 +392,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
         # The uTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -421,7 +421,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         # The uTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -450,7 +450,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
         # The uTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -487,7 +487,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
         coef_v = 1 / re * rhostrattfc[i + 1, j, k0]
 
         frhou_visc =
@@ -502,7 +502,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -534,7 +534,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
         coef_v =
             1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
 
@@ -597,7 +597,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
         coef_d = mu_mom_diff * rhostrattfc[i + 1, j, k0]
 
         frhou_diff =
@@ -612,7 +612,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
             mu_mom_diff *
             0.25 *
@@ -650,7 +650,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
         coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
 
         coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
@@ -719,7 +719,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         # The vTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -748,7 +748,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
         # The vTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -777,7 +777,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
         # The vTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -814,7 +814,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -846,7 +846,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
         coef_v = 1 / re * rhostrattfc[i, j + 1, k0]
 
         grhov_visc =
@@ -861,7 +861,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
         coef_v =
             1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
 
@@ -924,7 +924,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
             mu_mom_diff *
             0.25 *
@@ -962,7 +962,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
         coef_d = mu_mom_diff * rhostrattfc[i, j + 1, k0]
 
         grhov_diff =
@@ -977,7 +977,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
         coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
 
         coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
@@ -1043,7 +1043,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         # The wTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -1083,7 +1083,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         # The wTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -1123,7 +1123,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         # The wTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -1160,7 +1160,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_v =
             1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
 
@@ -1204,7 +1204,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_v =
             1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
 
@@ -1248,7 +1248,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         coef_v = 1 / re * rhostrattfc[i, j, k0]
 
         hrhow_visc =
@@ -1279,7 +1279,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
 
         coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
@@ -1321,7 +1321,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
 
         coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
@@ -1363,7 +1363,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         coef_d = mu_mom_diff * rhostrattfc[i, j, k0]
 
         hrhow_visc =
@@ -1401,7 +1401,7 @@ function compute_fluxes!(
     # Get old wind.
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
-    for (fd, field) in enumerate(fieldnames(TracerPredictands))
+    @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
         for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
             chir = getfield(tracerreconstructions, fd)[i + 1, j, k, 1, 1]
             chil = getfield(tracerreconstructions, fd)[i, j, k, 1, 2]
@@ -1479,7 +1479,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         coef_t =
             mu_conduct *
             0.5 *
@@ -1524,7 +1524,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         coef_t =
             mu_conduct *
             0.5 *
@@ -1569,7 +1569,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         coef_t =
             mu_conduct * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, 1] / rhostrattfc[i, j, k] +

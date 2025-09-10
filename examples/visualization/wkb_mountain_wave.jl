@@ -6,7 +6,7 @@ using LaTeXStrings
 include("style.jl")
 
 # Import the data.
-if length(ARGS) == 0
+@ivy if length(ARGS) == 0
     data = h5open("./pincflow_output.h5")
 elseif length(ARGS) == 1
     data = h5open(ARGS[1] * "/pincflow_output.h5")
@@ -33,9 +33,9 @@ figure(; figsize = (12, 3))
 # Plot in x-y plane.
 k = 10
 subplot(131)
-@views (levels, colormap) =
+@ivy (levels, colormap) =
     symmetric_contours(minimum(w[:, :, k]), maximum(w[:, :, k]))
-@views contours = contourf(
+@ivy contours = contourf(
     x[:, :, k],
     y[:, :, k],
     w[:, :, k];
@@ -50,16 +50,16 @@ colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 # Plot in x-z plane.
 j = 20
 subplot(132)
-@views (levels, colormap) =
+@ivy (levels, colormap) =
     symmetric_contours(minimum(w[:, j, :]), maximum(w[:, j, :]))
-@views contours = contourf(
+@ivy contours = contourf(
     x[:, j, :],
     z[:, j, :],
     w[:, j, :];
     levels = levels,
     cmap = colormap,
 )
-@views plot(x[:, j, 1], z[:, j, 1]; color = "black", linewidth = 0.5)
+@ivy plot(x[:, j, 1], z[:, j, 1]; color = "black", linewidth = 0.5)
 xlabel(L"x\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"y\approx 0\,\mathrm{km}")
@@ -68,16 +68,16 @@ colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 # Plot in y-z plane.
 i = 20
 subplot(133)
-@views (levels, colormap) =
+@ivy (levels, colormap) =
     symmetric_contours(minimum(w[i, :, :]), maximum(w[i, :, :]))
-@views contours = contourf(
+@ivy contours = contourf(
     y[i, :, :],
     z[i, :, :],
     w[i, :, :];
     levels = levels,
     cmap = colormap,
 )
-@views plot(y[i, :, 1], z[i, :, 1]; color = "black", linewidth = 0.5)
+@ivy plot(y[i, :, 1], z[i, :, 1]; color = "black", linewidth = 0.5)
 xlabel(L"y\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"x\approx 0\,\mathrm{km}")

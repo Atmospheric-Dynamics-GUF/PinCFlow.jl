@@ -100,7 +100,7 @@ function compute_compressible_wind_factor(
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices
-    return (
+    @ivy return (
         jac[ix, jy, kz] * p[ix, jy, kz] +
         jac[ix + 1, jy, kz] * p[ix + 1, jy, kz]
     ) / 2
@@ -115,7 +115,7 @@ function compute_compressible_wind_factor(
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices
-    return (
+    @ivy return (
         jac[ix, jy, kz] * p[ix, jy, kz] +
         jac[ix, jy + 1, kz] * p[ix, jy + 1, kz]
     ) / 2
@@ -130,7 +130,7 @@ function compute_compressible_wind_factor(
     (; jac) = state.grid
     (; p) = state.variables.predictands
     (ix, jy, kz) = indices
-    return jac[ix, jy, kz] *
+    @ivy return jac[ix, jy, kz] *
            jac[ix, jy, kz + 1] *
            (p[ix, jy, kz] + p[ix, jy, kz + 1]) /
            (jac[ix, jy, kz] + jac[ix, jy, kz + 1])

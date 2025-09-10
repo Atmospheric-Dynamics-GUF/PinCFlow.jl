@@ -93,7 +93,7 @@ function apply_shapiro_filter!(
     bounds::NTuple{2, <:Integer},
     order::Val{1},
 )
-    for i in bounds[1]:bounds[2]
+    @ivy for i in bounds[1]:bounds[2]
         output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
     end
     return
@@ -105,7 +105,7 @@ function apply_shapiro_filter!(
     bounds::NTuple{2, <:Integer},
     order::Val{2},
 )
-    for i in bounds[1]:bounds[2]
+    @ivy for i in bounds[1]:bounds[2]
         output[i] =
             (
                 -input[i - 2] - input[i + 2] +
@@ -122,7 +122,7 @@ function apply_shapiro_filter!(
     bounds::NTuple{2, <:Integer},
     order::Val{3},
 )
-    for i in bounds[1]:bounds[2]
+    @ivy for i in bounds[1]:bounds[2]
         output[i] =
             (
                 input[i - 3] + input[i + 3] -
@@ -140,7 +140,7 @@ function apply_shapiro_filter!(
     bounds::NTuple{2, <:Integer},
     order::Val{4},
 )
-    for i in bounds[1]:bounds[2]
+    @ivy for i in bounds[1]:bounds[2]
         output[i] =
             (
                 -input[i - 4] - input[i + 4] +

@@ -37,7 +37,7 @@ function set_meridional_boundary_rays!(state::State)
     )
 
     # Set ray-volumes properties.
-    if npy > 1
+    @ivy if npy > 1
         set_meridional_halo_rays!(state)
     else
         for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
@@ -51,7 +51,7 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    if jo == 0
+    @ivy if jo == 0
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):j0, ix in (i0 - 1):(i1 + 1)
             for iray in 1:nray[ix, jy, kz]
                 yr = rays.y[iray, ix, jy, kz]
@@ -66,7 +66,7 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    if jo + nyy == sizeyy
+    @ivy if jo + nyy == sizeyy
         for kz in (k0 - 1):(k1 + 1), jy in j1:(j1 + 1), ix in (i0 - 1):(i1 + 1)
             for iray in 1:nray[ix, jy, kz]
                 yr = rays.y[iray, ix, jy, kz]

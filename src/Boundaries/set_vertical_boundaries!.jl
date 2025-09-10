@@ -164,14 +164,14 @@ function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
 
     # Set all vertical boundary fluxes to zero.
 
-    if ko == 0
+    @ivy if ko == 0
         for field in (:phirho, :phirhop, :phiu, :phiv, :phitheta)
             getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    if ko + nzz == sizezz
+    @ivy if ko + nzz == sizezz
         for field in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end

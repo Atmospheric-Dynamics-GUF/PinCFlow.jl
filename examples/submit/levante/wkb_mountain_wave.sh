@@ -25,9 +25,9 @@ julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; lib
 julia --project -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia --project --check-bounds=no examples/submit/wkb_mountain_wave.jl ${scratch} 1>${scratch}/run.log 2>&1
+# srun --cpu_bind=verbose --distribution=block:cyclic julia --project examples/submit/wkb_mountain_wave.jl ${scratch} 1>${scratch}/run.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 64 julia --project --check-bounds=no examples/submit/wkb_mountain_wave.jl ${scratch} 1>${scratch}/run.log 2>&1
+mpiexec -n 64 julia --project examples/submit/wkb_mountain_wave.jl ${scratch} 1>${scratch}/run.log 2>&1
 
 exit 0

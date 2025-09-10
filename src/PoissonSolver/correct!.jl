@@ -149,7 +149,7 @@ function correct!(
     kz0 = k0
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
 
         if spongelayer && sponge_uv
@@ -188,7 +188,7 @@ function correct!(
     kz0 = k0
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
 
         if spongelayer && sponge_uv
@@ -229,7 +229,7 @@ function correct!(
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 - 1 : k1
 
-    for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in i0:i1
         factor = 1.0
 
         if spongelayer
@@ -293,7 +293,7 @@ function correct!(
     (; dpip) = state.variables.increments
     (; rho, rhop) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         factor = 1.0
 
         if spongelayer
@@ -343,7 +343,7 @@ function correct!(state::State, variable::PiP)
     jj = (j0 - 1):(j1 + 1)
     kk = (k0 - 1):(k1 + 1)
 
-    @views pip[ii, jj, kk] .+= dpip[ii, jj, kk]
+    @ivy pip[ii, jj, kk] .+= dpip[ii, jj, kk]
 
     return
 end

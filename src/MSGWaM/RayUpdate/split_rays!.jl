@@ -107,14 +107,14 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
-    @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
+    @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
         split_rays!(ix, jy, kz, state, Z())
     end
 
-    @views nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
+    @ivy nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after > nray_before
@@ -131,10 +131,10 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
-    @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
+    @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
         if sizex > 1
             split_rays!(ix, jy, kz, state, X())
         end
@@ -146,7 +146,7 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
         split_rays!(ix, jy, kz, state, Z())
     end
 
-    @views nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
+    @ivy nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after > nray_before
@@ -168,8 +168,8 @@ function split_rays!(
     (; dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    nrlc = nray[ix, jy, kz]
-    for iray in 1:nray[ix, jy, kz]
+    @ivy nrlc = nray[ix, jy, kz]
+    @ivy for iray in 1:nray[ix, jy, kz]
         xr = rays.x[iray, ix, jy, kz]
         dxr = rays.dxray[iray, ix, jy, kz]
 
@@ -185,7 +185,7 @@ function split_rays!(
         end
     end
 
-    if nrlc > nray[ix, jy, kz]
+    @ivy if nrlc > nray[ix, jy, kz]
         nray[ix, jy, kz] = nrlc
 
         if nray[ix, jy, kz] > nray_wrk
@@ -211,8 +211,8 @@ function split_rays!(
     (; dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    nrlc = nray[ix, jy, kz]
-    for iray in 1:nray[ix, jy, kz]
+    @ivy nrlc = nray[ix, jy, kz]
+    @ivy for iray in 1:nray[ix, jy, kz]
         yr = rays.y[iray, ix, jy, kz]
         dyr = rays.dyray[iray, ix, jy, kz]
 
@@ -228,7 +228,7 @@ function split_rays!(
         end
     end
 
-    if nrlc > nray[ix, jy, kz]
+    @ivy if nrlc > nray[ix, jy, kz]
         nray[ix, jy, kz] = nrlc
 
         if nray[ix, jy, kz] > nray_wrk
@@ -256,8 +256,8 @@ function split_rays!(
     (; lx, ly, dx, dy, dz, jac) = grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    nrlc = nray[ix, jy, kz]
-    for iray in 1:nray[ix, jy, kz]
+    @ivy nrlc = nray[ix, jy, kz]
+    @ivy for iray in 1:nray[ix, jy, kz]
         xr = rays.x[iray, ix, jy, kz]
         yr = rays.y[iray, ix, jy, kz]
         zr = rays.z[iray, ix, jy, kz]
@@ -286,7 +286,7 @@ function split_rays!(
         end
     end
 
-    if nrlc > nray[ix, jy, kz]
+    @ivy if nrlc > nray[ix, jy, kz]
         nray[ix, jy, kz] = nrlc
 
         if nray[ix, jy, kz] > nray_wrk

@@ -10,7 +10,7 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive zonal momentum fluxes in ``\\widehat{x}``-direction. 
+Compute and return the diffusive zonal momentum fluxes in ``\\widehat{x}``-direction.
 
 ```math
 \\Xi^{u}_{\\widehat{x}} = \\frac{u_{i+1/2} - u_{i-1/2}}{\\Delta \\widehat{x}} + G^{13}\\frac{u_{k+1} - u_{k-1}}{2\\Delta \\widehat{z}}
@@ -47,7 +47,7 @@ compute_momentum_diffusion_terms(
 Compute and return the diffusive zonal momentum fluxes in ``\\widehat{z}``-direction.
 
 ```math
-\\Xi^{u}_{\\widehat{z}} = G^{13}\\frac{u_{i+1/2}-u_{i-1/2}}{\\Delta \\widehat{x}} + G^{23}\\frac{u_{j+1}-u_{j-1}}{2 \\Delta \\widehat{y}} + G^{33}\\frac{u_{k+1}-u_{k-1}}{2 \\Delta \\widehat{z}} 
+\\Xi^{u}_{\\widehat{z}} = G^{13}\\frac{u_{i+1/2}-u_{i-1/2}}{\\Delta \\widehat{x}} + G^{23}\\frac{u_{j+1}-u_{j-1}}{2 \\Delta \\widehat{y}} + G^{33}\\frac{u_{k+1}-u_{k-1}}{2 \\Delta \\widehat{z}}
 ```
 
 ```julia
@@ -63,7 +63,7 @@ compute_momentum_diffusion_terms(
 
 Compute and return the diffusive meridional momentum fluxes in ``\\widehat{x}``-direction.
 
-```math 
+```math
 \\Xi^{v}_{\\widehat{x}} = \\frac{v_{i+1} - v_{i-1}}{2 \\Delta \\widehat{x}} + G^{13}\\frac{v_{k+1}-v_{k-1}}{2\\Delta \\widehat{z}}
 ```
 
@@ -80,7 +80,7 @@ compute_momentum_diffusion_terms(
 
 Compute and return the diffusive meridional momentum fluxes in ``\\widehat{y}``-direction.
 
-```math 
+```math
 \\Xi^{v}_{\\widehat{y}} = \\frac{v_{j+1/2} - v_{j-1/2}}{\\Delta \\widehat{y}} + G^{23}\\frac{v_{k+1}-v_{k-1}}{2 \\Delta \\widehat{z}}
 ```
 
@@ -97,7 +97,7 @@ compute_momentum_diffusion_terms(
 
 Compute and return the diffusive meridional momentum fluxes in ``\\widehat{z}``-direction.
 
-```math 
+```math
 \\Xi^{v}_{\\widehat{z}} = G^{13}\\frac{v_{i+1} - v_{i-1}}{2\\Delta\\widehat{x}} + G^{23}\\frac{v_{j+1/2}-v_{j-1/2}}{\\Delta \\widehat{y}} + G^{33}\\frac{v_{k+1}-v_{k-1}}{2\\Delta\\widehat{z}}
 ```
 
@@ -114,7 +114,7 @@ compute_momentum_diffusion_terms(
 
 Compute and return the diffusive vertical momentum fluxes in ``\\widehat{x}``-direction.
 
-```math 
+```math
 \\Xi^{\\widehat{w}}_{\\widehat{x}} = \\frac{\\widehat{w}_{i+1} - \\widehat{w}_{i-1}}{2\\Delta\\widehat{x}} + G^{13}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
 ```
 
@@ -131,7 +131,7 @@ compute_momentum_diffusion_terms(
 
 Compute and return the diffusive vertical momentum fluxes in ``\\widehat{y}``-direction.
 
-```math 
+```math
 \\Xi^{\\widehat{w}}_{\\widehat{y}} = \\frac{\\widehat{w}_{j+1}-\\widehat{w}_{j-1}}{2\\Delta\\widehat{y}} + G^{23}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
 ```
 
@@ -148,11 +148,11 @@ compute_momentum_diffusion_terms(
 
 Compute and return the diffusive vertical momentum fluxes in ``\\widehat{z}``-direction.
 
-```math 
+```math
 \\Xi^{\\widehat{w}}_{\\widehat{z}} = G^{13}\\frac{\\widehat{w}_{i+1}-\\widehat{w}_{i-1}}{2\\Delta\\widehat{x}} + G^{23}\\frac{\\widehat{w}_{j+1}-\\widehat{w}_{j-1}}{2\\Delta\\widehat{y}} + G^{33}\\frac{w_{k+1/2}-w_{k-1/2}}{\\Delta\\widehat{z}}
 ```
 
-# Arguments 
+# Arguments
 
   - `state`: Model state.
 
@@ -160,9 +160,9 @@ Compute and return the diffusive vertical momentum fluxes in ``\\widehat{z}``-di
 
   - `j`: Grid-cell index on the ``\\widehat{y}``-axis.
 
-  - `k`: Grid-cell index on the ``\\widehat{z}``-axis. 
+  - `k`: Grid-cell index on the ``\\widehat{z}``-axis.
 
-  - `variable`: Wind direction. 
+  - `variable`: Wind direction.
 
   - `direction`: Direction of the flux.
 
@@ -180,10 +180,10 @@ function compute_momentum_diffusion_terms(
     (; u) = state.variables.predictands
     (; dx, dz, met) = state.grid
 
-    uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
-    ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
+    @ivy uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
+    @ivy ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
 
-    diffux =
+    @ivy diffux =
         (u[i, j, k] - u[i - 1, j, k]) / dx +
         met[i, j, k, 1, 3] * (uu - ud) / (2.0 * dz)
 
@@ -201,12 +201,12 @@ function compute_momentum_diffusion_terms(
     (; u) = state.variables.predictands
     (; dy, dz, met) = state.grid
 
-    uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
-    ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
-    uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
-    ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
+    @ivy uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
+    @ivy ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
+    @ivy uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
+    @ivy ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
 
-    diffuy =
+    @ivy diffuy =
         (uf - ub) / (2.0 * dy) + met[i, j, k, 2, 3] * (uu - ud) / (2.0 * dz)
 
     return diffuy
@@ -223,12 +223,12 @@ function compute_momentum_diffusion_terms(
     (; u) = state.variables.predictands
     (; dx, dy, dz, met) = state.grid
 
-    uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
-    ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
-    uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
-    ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
+    @ivy uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
+    @ivy ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
+    @ivy uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
+    @ivy ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
 
-    diffuz =
+    @ivy diffuz =
         met[i, j, k, 1, 3] * (u[i, j, k] - u[i - 1, j, k]) / dx +
         met[i, j, k, 2, 3] * (uf - ub) / (2.0 * dy) +
         met[i, j, k, 3, 3] * (uu - ud) / (2.0 * dz)
@@ -247,12 +247,12 @@ function compute_momentum_diffusion_terms(
     (; v) = state.variables.predictands
     (; dx, dz, met) = state.grid
 
-    vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
-    vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
-    vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
-    vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
+    @ivy vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
+    @ivy vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
+    @ivy vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
+    @ivy vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
 
-    diffvx =
+    @ivy diffvx =
         (vr - vl) / (2.0 * dx) + met[i, j, k, 1, 3] * (vu - vd) / (2.0 * dz)
 
     return diffvx
@@ -269,10 +269,10 @@ function compute_momentum_diffusion_terms(
     (; v) = state.variables.predictands
     (; dy, dz, met) = state.grid
 
-    vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
-    vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
+    @ivy vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
+    @ivy vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
 
-    diffvy =
+    @ivy diffvy =
         (v[i, j, k] - v[i, j - 1, k]) / dy +
         met[i, j, k, 2, 3] * (vu - vd) / (2.0 * dz)
 
@@ -290,12 +290,12 @@ function compute_momentum_diffusion_terms(
     (; v) = state.variables.predictands
     (; dx, dy, dz, met) = state.grid
 
-    vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
-    vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
-    vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
-    vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
+    @ivy vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
+    @ivy vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
+    @ivy vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
+    @ivy vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
 
-    diffvz =
+    @ivy diffvz =
         met[i, j, k, 1, 3] * (vr - vl) / (2 * dx) +
         met[i, j, k, 2, 3] * (v[i, j, k] - v[i, j - 1, k]) / dy +
         met[i, j, k, 3, 3] * (vu - vd) / (2.0 * dz)
@@ -326,7 +326,7 @@ function compute_momentum_diffusion_terms(
             compute_vertical_wind(i - 1, j, k - 1, predictands, grid)
         )
 
-    diffwx =
+    @ivy diffwx =
         (wr - wl) / (2.0 * dx) +
         met[i, j, k, 1, 3] * (
             compute_vertical_wind(i, j, k, predictands, grid) -
@@ -359,7 +359,7 @@ function compute_momentum_diffusion_terms(
             compute_vertical_wind(i, j - 1, k - 1, predictands, grid)
         )
 
-    diffwy =
+    @ivy diffwy =
         (wf - wb) / (2.0 * dy) +
         met[i, j, k, 2, 3] * (
             compute_vertical_wind(i, j, k, predictands, grid) -
@@ -402,7 +402,7 @@ function compute_momentum_diffusion_terms(
             compute_vertical_wind(i, j - 1, k - 1, predictands, grid)
         )
 
-    diffwz =
+    @ivy diffwz =
         met[i, j, k, 1, 3] * (wr - wl) / (2.0 * dx) +
         met[i, j, k, 2, 3] * (wf - wb) / (2.0 * dy) +
         met[i, j, k, 3, 3] * (

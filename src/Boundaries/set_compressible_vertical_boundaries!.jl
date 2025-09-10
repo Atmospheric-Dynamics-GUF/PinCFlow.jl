@@ -72,11 +72,11 @@ function set_compressible_vertical_boundaries!(
     (; sizezz, nzz, ko, k0, k1) = state.domain
     (; phip) = state.variables.fluxes
 
-    if ko == 0
+    @ivy if ko == 0
         phip[:, :, k0 - 1, 3] .= 0.0
     end
 
-    if ko + nzz == sizezz
+    @ivy if ko + nzz == sizezz
         phip[:, :, k1, 3] .= 0.0
     end
 

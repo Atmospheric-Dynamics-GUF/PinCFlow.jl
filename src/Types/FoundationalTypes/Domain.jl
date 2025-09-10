@@ -181,17 +181,17 @@ function Domain(namelists::Namelists)::Domain
     coords = MPI.Cart_coords(comm, rank)
 
     # Set local grid size.
-    if coords[1] == npx - 1
+    @ivy if coords[1] == npx - 1
         nx = div(sizex, npx) + sizex % npx
     else
         nx = div(sizex, npx)
     end
-    if coords[2] == npy - 1
+    @ivy if coords[2] == npy - 1
         ny = div(sizey, npy) + sizey % npy
     else
         ny = div(sizey, npy)
     end
-    if coords[3] == npz - 1
+    @ivy if coords[3] == npz - 1
         nz = div(sizez, npz) + sizez % npz
     else
         nz = div(sizez, npz)
@@ -206,9 +206,9 @@ function Domain(namelists::Namelists)::Domain
     sizezz = sizez + 2 * nbz
 
     # Set index offsets.
-    io = coords[1] * div(sizex, npx)
-    jo = coords[2] * div(sizey, npy)
-    ko = coords[3] * div(sizez, npz)
+    @ivy io = coords[1] * div(sizex, npx)
+    @ivy jo = coords[2] * div(sizey, npy)
+    @ivy ko = coords[3] * div(sizez, npz)
 
     # Set index bounds.
     i0 = nbx + 1
@@ -224,8 +224,8 @@ function Domain(namelists::Namelists)::Domain
     (down, up) = MPI.Cart_shift(comm, 2, 1)
 
     # Create communicators for horizontal and vertical averages.
-    layer_comm = MPI.Comm_split(comm, coords[3], rank)
-    column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
+    @ivy layer_comm = MPI.Comm_split(comm, coords[3], rank)
+    @ivy column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
 
     # Return Domain instance.
     return Domain(

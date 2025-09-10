@@ -104,7 +104,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
         getfield(integrals, field) .= 0.0
     end
 
-    for kzrv in (k0 - 1):(k1 + 1),
+    @ivy for kzrv in (k0 - 1):(k1 + 1),
         jyrv in (j0 - 1):(j1 + 1),
         ixrv in (i0 - 1):(i1 + 1)
 
@@ -246,7 +246,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
         end
     end
 
-    if fc != 0
+    @ivy if fc != 0
         for kz in k0:k1, jy in j0:j1, ix in i0:i1
             integrals.utheta[ix, jy, kz] =
                 thetastrattfc[ix, jy, kz] / fc * integrals.ety[ix, jy, kz]
@@ -274,7 +274,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
         getfield(integrals, field) .= 0.0
     end
 
-    for kzrv in (k0 - 1):(k1 + 1),
+    @ivy for kzrv in (k0 - 1):(k1 + 1),
         jyrv in (j0 - 1):(j1 + 1),
         ixrv in (i0 - 1):(i1 + 1)
 
@@ -384,7 +384,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
         end
     end
 
-    if fc != 0
+    @ivy if fc != 0
         for kz in k0:k1, jy in j0:j1, ix in i0:i1
             integrals.utheta[ix, jy, kz] =
                 thetastrattfc[ix, jy, kz] / fc * integrals.ety[ix, jy, kz]
@@ -411,7 +411,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
         getfield(integrals, field) .= 0.0
     end
 
-    for kzrv in (k0 - 1):(k1 + 1),
+    @ivy for kzrv in (k0 - 1):(k1 + 1),
         jyrv in (j0 - 1):(j1 + 1),
         ixrv in (i0 - 1):(i1 + 1)
 

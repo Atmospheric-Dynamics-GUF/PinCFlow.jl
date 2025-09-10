@@ -3,7 +3,7 @@ using DocumenterMermaid
 using PinCFlow
 
 # Insert example scripts.
-for folder in ("examples/submit/", "examples/visualization/"),
+@ivy for folder in ("examples/submit/", "examples/visualization/"),
     script_file in readdir(folder)
 
     if endswith(script_file, ".jl") && script_file != "style.jl"

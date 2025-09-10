@@ -66,7 +66,7 @@ function compute_saturation_integrals(
     mb2k2 = 0.0
 
     # Loop over ray volumes.
-    for iray in 1:nray[ixrv, jyrv, kzrv]
+    @ivy for iray in 1:nray[ixrv, jyrv, kzrv]
 
         # Skip ray volumes with zero wave-action density.
         if rays.dens[iray, ixrv, jyrv, kzrv] == 0

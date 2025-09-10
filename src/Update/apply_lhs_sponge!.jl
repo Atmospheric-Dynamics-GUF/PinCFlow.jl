@@ -264,7 +264,7 @@ function apply_lhs_sponge!(
     end
 
     rhobg = 0.0
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rho[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -292,7 +292,7 @@ function apply_lhs_sponge!(
         return
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         rhopbg =
             rhostrattfc[i, j, k] * (
                 1.0 -
@@ -326,7 +326,7 @@ function apply_lhs_sponge!(
     end
 
     rhobg = 0.0
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rhop[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -366,8 +366,8 @@ function apply_lhs_sponge!(
     horizontal_mean .= 0.0
 
     # Determine relaxation wind.
-    if relax_to_mean
-        @views horizontal_mean .=
+    @ivy if relax_to_mean
+        horizontal_mean .=
             sum(a -> a / sizex / sizey, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
@@ -383,7 +383,7 @@ function apply_lhs_sponge!(
     end
 
     # Update the zonal wind.
-    for k in kk
+    @ivy for k in kk
         if relax_to_mean
             ubg = horizontal_mean[k - k0 + 1]
         end
@@ -428,8 +428,8 @@ function apply_lhs_sponge!(
     horizontal_mean .= 0.0
 
     # Determine relaxation wind.
-    if relax_to_mean
-        @views horizontal_mean .=
+    @ivy if relax_to_mean
+        horizontal_mean .=
             sum(a -> a / sizex / sizey, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
@@ -445,7 +445,7 @@ function apply_lhs_sponge!(
     end
 
     # Update the meridional wind.
-    for k in kk
+    @ivy for k in kk
         if relax_to_mean
             vbg = horizontal_mean[k - k0 + 1]
         end
@@ -491,8 +491,8 @@ function apply_lhs_sponge!(
     horizontal_mean .= 0.0
 
     # Determine relaxation wind.
-    if relax_to_mean
-        @views horizontal_mean .=
+    @ivy if relax_to_mean
+        horizontal_mean .=
             sum(a -> a / sizex / sizey, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
@@ -508,7 +508,7 @@ function apply_lhs_sponge!(
     end
 
     # Update the vertical wind.
-    for k in kk
+    @ivy for k in kk
         if relax_to_mean
             wbg = horizontal_mean[k - k0 + 1]
         end
@@ -556,7 +556,7 @@ function apply_lhs_sponge!(
         return
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
         pib =
@@ -598,7 +598,7 @@ function apply_lhs_sponge!(
         return
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         pb =
             rhostrattfc[i, j, k] * p[i, j, k] /
             (rho[i, j, k] + rhostrattfc[i, j, k])
@@ -637,7 +637,7 @@ function apply_lhs_sponge!(
         return
     end
 
-    for field in fieldnames(TracerPredictands)
+    @ivy for field in fieldnames(TracerPredictands)
         for k in k0:k1, j in j0:j1, i in i0:i1
             alpha = alphar[i, j, k]
             chi_old = getfield(tracerpredictands, field)[i, j, k]

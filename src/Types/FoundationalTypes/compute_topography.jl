@@ -278,7 +278,7 @@ function compute_topography(
     k_spectrum = zeros(nwm, nxx, nyy)
     l_spectrum = zeros(nwm, nxx, nyy)
 
-    for jy in j0:j1, ix in i0:i1
+    @ivy for jy in j0:j1, ix in i0:i1
         if mountain_case == 1
             # 2D cosine mountains
             topography_surface[ix, jy] = 0.5 * mountainheight
@@ -404,7 +404,7 @@ function compute_topography(
     k_spectrum = zeros(0, 0, 0)
     l_spectrum = zeros(0, 0, 0)
 
-    for jy in j0:j1, ix in i0:i1
+    @ivy for jy in j0:j1, ix in i0:i1
         if mountain_case == 1
             # 2D cosine mountains
             topography_surface[ix, jy] =

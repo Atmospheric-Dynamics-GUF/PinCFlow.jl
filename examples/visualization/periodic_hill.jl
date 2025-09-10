@@ -6,7 +6,7 @@ using LaTeXStrings
 include("style.jl")
 
 # Import the data.
-if length(ARGS) == 0
+@ivy if length(ARGS) == 0
     data = h5open("./pincflow_output.h5")
 elseif length(ARGS) == 1
     data = h5open(ARGS[1] * "/pincflow_output.h5")

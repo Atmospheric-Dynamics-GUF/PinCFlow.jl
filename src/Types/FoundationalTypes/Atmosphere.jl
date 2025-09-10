@@ -206,24 +206,24 @@ function Atmosphere(
 
     # Compute the squared buoyancy frequency.
     bvsstrattfc .= 0.0
-    for k in k0:k1
-        @views bvsstrattfc[:, :, k] .=
+    @ivy for k in k0:k1
+        bvsstrattfc[:, :, k] .=
             g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
             (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
     end
 
     # Compute the squared buoyancy frequency at the boundaries.
     set_vertical_boundaries_of_field!(bvsstrattfc, namelists, domain, +)
-    if ko == 0
+    @ivy if ko == 0
         for k in 1:nbz
-            @views bvsstrattfc[:, :, k] .=
+            bvsstrattfc[:, :, k] .=
                 g_ndim ./ thetastrattfc[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
                 (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
         end
     end
-    if ko + nzz == sizezz
+    @ivy if ko + nzz == sizezz
         for k in 1:nbz
-            @views bvsstrattfc[:, :, k1 + k] .=
+            bvsstrattfc[:, :, k1 + k] .=
                 g_ndim ./ thetastrattfc[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
                 (thetastrattfc[:, :, k1 + 1] .- thetastrattfc[:, :, k1]) ./ dz
         end

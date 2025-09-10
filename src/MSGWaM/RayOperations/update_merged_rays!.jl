@@ -98,7 +98,7 @@ function update_merged_rays!(
     nr::AbstractFloat,
     omegar::AbstractFloat,
 )
-    if merged_rays[jray].nr[] == 0
+    @ivy if merged_rays[jray].nr[] == 0
         for (i, o) in ((1, -), (2, +))
             merged_rays[jray].xr[i] = o(xr, dxr / 2)
             merged_rays[jray].yr[i] = o(yr, dyr / 2)

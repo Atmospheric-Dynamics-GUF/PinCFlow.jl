@@ -103,7 +103,7 @@ function reconstruct!(state::State, variable::Rho)
     (; rhotilde) = state.variables.reconstructions
     (; pstrattfc) = state.atmosphere
 
-    for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
+    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
         phi[ix, jy, kz] = rho[ix, jy, kz] / pstrattfc[ix, jy, kz]
     end
     apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, limitertype)
@@ -119,7 +119,7 @@ function reconstruct!(state::State, variable::RhoP)
     (; rhoptilde) = state.variables.reconstructions
     (; pstrattfc) = state.atmosphere
 
-    for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
+    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
         phi[ix, jy, kz] = rhop[ix, jy, kz] / pstrattfc[ix, jy, kz]
     end
     apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, limitertype)
@@ -135,7 +135,7 @@ function reconstruct!(state::State, variable::U)
     (; utilde) = state.variables.reconstructions
     (; rhostrattfc, pstrattfc) = state.atmosphere
 
-    for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:(nxx - 1)
+    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:(nxx - 1)
         rhoedge =
             0.5 * (
                 rho[ix, jy, kz] +
@@ -160,7 +160,7 @@ function reconstruct!(state::State, variable::V)
     (; vtilde) = state.variables.reconstructions
     (; rhostrattfc, pstrattfc) = state.atmosphere
 
-    for kz in (k0 - 1):(k1 + 1), jy in 1:(nyy - 1), ix in 1:nxx
+    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:(nyy - 1), ix in 1:nxx
         rhoedge =
             0.5 * (
                 rho[ix, jy, kz] +
@@ -188,16 +188,16 @@ function reconstruct!(state::State, variable::W)
     (; wtilde) = state.variables.reconstructions
     (; rhostrattfc, pstrattfc) = state.atmosphere
 
-    @views phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
+    @ivy phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
 
-    for kz in (k0 - 1):(k1 + 1), jy in j0:j1, ix in i0:i1
+    @ivy for kz in (k0 - 1):(k1 + 1), jy in j0:j1, ix in i0:i1
         phi[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, predictands, grid)
     end
 
     set_zonal_boundaries_of_field!(phi, namelists, domain)
     set_meridional_boundaries_of_field!(phi, namelists, domain)
 
-    for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
+    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
         rhoedgeu =
             (
                 jac[ix, jy, kz + 1] *
@@ -229,7 +229,7 @@ function reconstruct!(state::State, tracersetup::AbstractTracer)
     (; pstrattfc) = state.atmosphere
     (; tracerreconstructions, tracerpredictands) = state.tracer
 
-    for (fd, field) in enumerate(fieldnames(TracerPredictands))
+    @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
         for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
             phi[ix, jy, kz] =
                 getfield(tracerpredictands, fd)[ix, jy, kz] /

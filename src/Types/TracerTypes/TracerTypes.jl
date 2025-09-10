@@ -18,6 +18,7 @@ module TracerTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ...PinCFlow
 
 include("TracerPredictands.jl")
 include("TracerIncrements.jl")

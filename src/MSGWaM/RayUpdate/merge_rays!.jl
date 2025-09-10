@@ -92,7 +92,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
     (; nxray, nyray, nzray, nray_max, nray, rays) = state.wkb
 
     # Compute ray-volume count before merging.
-    @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
+    @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Initialize array for merged ray volumes.
@@ -100,14 +100,14 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         [MergedRays([[0.0, 0.0] for i in 1:6]..., Ref(0.0)) for i in 1:nray_max]
 
     # Loop over grid cells.
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
         if nray[ix, jy, kz] <= nray_max
             continue
         end
 
         # Set bins in k.
         if sizex > 1
-            @views (kr_min_p, kr_max_p, kr_min_n, kr_max_n) =
+            (kr_min_p, kr_max_p, kr_min_n, kr_max_n) =
                 compute_spectral_bounds(rays.k[1:nray[ix, jy, kz], ix, jy, kz])
             dkr_mrg_n = log(kr_max_n / kr_min_n) / (nxray / 2 - 1)
             dkr_mrg_p = log(kr_max_p / kr_min_p) / (nxray / 2 - 1)
@@ -118,7 +118,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
         # Set bins in l.
         if sizey > 1
-            @views (lr_min_p, lr_max_p, lr_min_n, lr_max_n) =
+            (lr_min_p, lr_max_p, lr_min_n, lr_max_n) =
                 compute_spectral_bounds(rays.l[1:nray[ix, jy, kz], ix, jy, kz])
             dlr_mrg_n = log(lr_max_n / lr_min_n) / (nyray / 2 - 1)
             dlr_mrg_p = log(lr_max_p / lr_min_p) / (nyray / 2 - 1)
@@ -128,7 +128,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         end
 
         # Set bins in m.
-        @views (mr_min_p, mr_max_p, mr_min_n, mr_max_n) =
+        (mr_min_p, mr_max_p, mr_min_n, mr_max_n) =
             compute_spectral_bounds(rays.m[1:nray[ix, jy, kz], ix, jy, kz])
         dmr_mrg_n = log(mr_max_n / mr_min_n) / (nzray / 2 - 1)
         dmr_mrg_p = log(mr_max_p / mr_min_p) / (nzray / 2 - 1)
@@ -302,7 +302,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
     end
 
     # Compute ray-volume count after merging.
-    @views nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
+    @ivy nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after < nray_before

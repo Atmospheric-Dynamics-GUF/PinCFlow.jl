@@ -20,5 +20,5 @@ function get_physical_position(
     rays::Rays,
     indices::NTuple{4, <:Integer},
 )::NTuple{3, <:AbstractFloat}
-    return (rays.x[indices...], rays.y[indices...], rays.z[indices...])
+    @ivy return (rays.x[indices...], rays.y[indices...], rays.z[indices...])
 end

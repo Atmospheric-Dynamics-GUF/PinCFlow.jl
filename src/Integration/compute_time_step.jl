@@ -60,7 +60,7 @@ function compute_time_step(state::State)::AbstractFloat
     #              Fixed time step
     #-------------------------------------------
 
-    if !adaptive_time_step
+    @ivy if !adaptive_time_step
         dt = dtmax_dim / tref
 
         if master
@@ -77,9 +77,9 @@ function compute_time_step(state::State)::AbstractFloat
         #     CFL condition
         #----------------------
 
-        @views umax = maximum(abs, u[i0:i1, j0:j1, k0:k1]) + eps()
-        @views vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps()
-        @views wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps()
+        umax = maximum(abs, u[i0:i1, j0:j1, k0:k1]) + eps()
+        vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps()
+        wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps()
 
         dtconv_loc = cfl * min(dx / umax, dy / vmax, dz / wmax)
 
@@ -132,7 +132,7 @@ function compute_time_step(state::State)::AbstractFloat
             kz1 = k1
 
             for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
-                @views dtwkb_loc = min(
+                dtwkb_loc = min(
                     dtwkb_loc,
                     minimum(
                         jac[

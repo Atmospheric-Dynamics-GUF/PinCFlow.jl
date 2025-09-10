@@ -17,6 +17,7 @@ module MPIOperations
 using MPI
 using LinearAlgebra
 using ..Types
+using ..PinCFlow
 
 include("compute_global_dot_product.jl")
 include("set_meridional_halos_of_field!.jl")

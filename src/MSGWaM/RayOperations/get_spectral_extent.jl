@@ -20,7 +20,7 @@ function get_spectral_extent(
     rays::Rays,
     indices::NTuple{4, <:Integer},
 )::NTuple{3, <:AbstractFloat}
-    return (
+    @ivy return (
         rays.dkray[indices...],
         rays.dlray[indices...],
         rays.dmray[indices...],

@@ -19,6 +19,7 @@ using Dates
 using HDF5
 using ..Types
 using ..Update
+using ..PinCFlow
 
 include("create_output.jl")
 include("read_input!.jl")

@@ -27,7 +27,7 @@ function copy_rays!(
     (irs, ixs, jys, kzs) = source
     (irt, ixt, jyt, kzt) = target
 
-    for field in fieldnames(Rays)
+    @ivy for field in fieldnames(Rays)
         getfield(rays, field)[irt, ixt, jyt, kzt] =
             getfield(rays, field)[irs, ixs, jys, kzs]
     end
