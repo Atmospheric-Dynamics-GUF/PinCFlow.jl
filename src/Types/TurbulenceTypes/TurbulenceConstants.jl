@@ -21,9 +21,17 @@ Free parameters:
 
   - `cepsilon::A`: Closure constant controlling the intensity of turbulent dissipation.
 
+  - `turbulencelengthscale::A`: The turbulence length scale L
+
   - `c3::A`: The inverse Prandtl number at neutrality
 
-  - `cK::A`: Free parameter 
+  - `cK::A`: Free parameter
+  
+Constants:
+
+  - `alphaturb::A`: The dissipation constant ``\\alpha = \\frac{C_\\epsilon}{L}``.
+
+  - `K_ek::A`: The diffusion constant ``\\alpha = \\frac{C_\\epsilon}{L}``.
 
 Exchange co-efficients:
 
@@ -49,16 +57,25 @@ struct TurbulenceConstants{
 
     # Dissipation constant
     cepsilon::A
+    turbulencelengthscale::A
+    alphaturb::A
+    K_ek::A
 end
 
 function TurbulenceConstants(namelists::Namelists)::TurbulenceConstants
     (; spongeheight) = namelists.sponge
 
     # Initialize the dissipation coefficients.
-    cepsilon = 0.85
+    cepsilon = 8.5E-1
+    turbulencelengthscale = 1.0
+    alphaturb = 8.5E-2
+    K_ek = 5.0E-1
 
     # Return a TurbulenceConstants instance.
     return TurbulenceConstants(
         cepsilon,
+        turbulencelengthscale,
+        alphaturb,
+        K_ek
     )
 end
