@@ -70,7 +70,7 @@ atmosphere = AtmosphereNamelist(;
 )
 
 grid = GridNamelist(;
-    mountainheight_dim = 1.0E+2,
+    mountainheight_dim = 1.0E+3,
     mountainwidth_dim = 1.0E+3,
     mountain_case = 3,
     height_factor = 1.0E+0,
@@ -95,27 +95,27 @@ sponge = SpongeNamelist(;
     perturbation_amplitude = 0.0E+0,
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )
- wavepacket = WavePacketNamelist(;
-                    wavepacketdim = 3,
-                    lambdax_dim = 1.0E+4,
-                    lambday_dim = 1.0E+4,
-                    lambdaz_dim = 1.0E+3,
-                    x0_dim = 0.0E+0,
-                    y0_dim = 0.0E+0,
-                    z0_dim = 5.0E+3,
-                    sigmax_dim = 1.0E+5,
-                    sigmay_dim = 1.0E+5,
-                    sigmaz_dim = 1.0E+4,
-                    a0 = 1.0E+0,
-                    branch = -1,
-                )
+#  wavepacket = WavePacketNamelist(;
+#                     wavepacketdim = 3,
+#                     lambdax_dim = 1.0E+4,
+#                     lambday_dim = 1.0E+4,
+#                     lambdaz_dim = 1.0E+3,
+#                     x0_dim = 0.0E+0,
+#                     y0_dim = 0.0E+0,
+#                     z0_dim = 5.0E+3,
+#                     sigmax_dim = 1.0E+5,
+#                     sigmay_dim = 1.0E+5,
+#                     sigmaz_dim = 1.0E+4,
+#                     a0 = 1.0E+0,
+#                     branch = -1,
+#                 )
 ice = IceNamelist(;
     icesetup = IceOn(),
 #    icesetup = NoIce(),
     dt_ice = 1.,
-    nscx = 1,
-    nscy = 1,
-    nscz = 1,
+    nscx = 5,
+    nscy = 5,
+    nscz = 5,
     compute_cloudcover = 2
  )
 wkb = WKBNamelist(;
@@ -160,7 +160,7 @@ namelists = Namelists(;
     sponge = sponge,
     ice=ice,
     wkb=wkb,
-    wavepacket=wavepacket,
+    #wavepacket=wavepacket,
 )
 
 integrate(namelists)
