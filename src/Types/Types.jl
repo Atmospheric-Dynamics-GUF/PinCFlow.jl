@@ -133,6 +133,7 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
+using ..PinCFlow
 
 include("State.jl")
 

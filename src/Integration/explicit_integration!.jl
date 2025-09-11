@@ -49,7 +49,7 @@ function explicit_integration!(
     (; nstages, stepfrac) = state.time
     (; tracersetup) = state.namelists.tracer
 
-    for rkstage in 1:nstages
+    @ivy for rkstage in 1:nstages
         reconstruct!(state)
         set_boundaries!(state, BoundaryReconstructions())
 

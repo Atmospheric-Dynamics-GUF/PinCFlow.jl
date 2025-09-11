@@ -8,7 +8,7 @@ conductive_heating(
 
 Compute and return the conductive heating by dispatching to specialized methods dependent on the model.
 
-```julia 
+```julia
 conductive_heating(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -18,22 +18,22 @@ conductive_heating(
 
 Return 0 as conductive heating in Boussinesq mode.
 
-```julia 
+```julia
 conductive_heating(
     state::State,
     indices::NTuple{3, <:Integer},
     model::PseudoIncompressible,
-)::AbstractFloat 
+)::AbstractFloat
 ```
 
 Return 0 as conductive heating in PseudoIncompressible mode.
 
-```julia 
+```julia
 conductive_heating(
     state::State,
     indices::NTuple{3, <:Integer},
     model::Compressible,
-)::AbstractFloat 
+)::AbstractFloat
 ```
 
 Compute and return the conductive heating as the divergence of potential temperature fluxes.
@@ -84,9 +84,9 @@ function conductive_heating(
     (; rhostrattfc) = state.atmosphere
     (i, j, k) = indices
 
-    rhotot = (rho[i, j, k] + rhostrattfc[i, j, k]) / jac[i, j, k]
+    @ivy rhotot = (rho[i, j, k] + rhostrattfc[i, j, k]) / jac[i, j, k]
 
-    heating =
+    @ivy heating =
         rhotot * (
             (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
             (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +

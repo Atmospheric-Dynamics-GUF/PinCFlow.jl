@@ -29,7 +29,7 @@ function apply_1d_muscl!(
     phitilde .= 1000.0
 
     # Reconstruct.
-    for i in 2:(phisize - 1)
+    @ivy for i in 2:(phisize - 1)
         deltal = phi[i] - phi[i - 1]
         deltar = phi[i + 1] - phi[i]
 

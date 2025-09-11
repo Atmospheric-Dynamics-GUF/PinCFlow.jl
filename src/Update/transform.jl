@@ -103,16 +103,16 @@ function transform(
 )::AbstractFloat
     (; jac, met) = grid
 
-    jacedgeu =
+    @ivy jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
         (jac[i, j, k] + jac[i, j, k + 1])
 
-    uc = 0.5 * (uedger + uedgel)
-    uu = 0.5 * (uuedger + uuedgel)
-    vc = 0.5 * (vedgef + vedgeb)
-    vu = 0.5 * (vuedgef + vuedgeb)
+    @ivy uc = 0.5 * (uedger + uedgel)
+    @ivy uu = 0.5 * (uuedger + uuedgel)
+    @ivy vc = 0.5 * (vedgef + vedgeb)
+    @ivy vu = 0.5 * (vuedgef + vuedgeb)
 
-    return jacedgeu * (
+    @ivy return jacedgeu * (
         -(
             jac[i, j, k + 1] *
             (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
@@ -140,16 +140,16 @@ function transform(
 )::AbstractFloat
     (; jac, met) = grid
 
-    jacedgeu =
+    @ivy jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
         (jac[i, j, k] + jac[i, j, k + 1])
 
-    uc = 0.5 * (uedger + uedgel)
-    uu = 0.5 * (uuedger + uuedgel)
-    vc = 0.5 * (vedgef + vedgeb)
-    vu = 0.5 * (vuedgef + vuedgeb)
+    @ivy uc = 0.5 * (uedger + uedgel)
+    @ivy uu = 0.5 * (uuedger + uuedgel)
+    @ivy vc = 0.5 * (vedgef + vedgeb)
+    @ivy vu = 0.5 * (vuedgef + vuedgeb)
 
-    return (
+    @ivy return (
         jac[i, j, k + 1] * (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
         jac[i, j, k] *
         (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)

@@ -66,25 +66,25 @@ function compute_stress_tensor(
     (; u, v, w) = predictands
     (; dx, dy, dz, jac, met) = grid
 
-    jacedger = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
-    jacedgel = 0.5 * (jac[i, j, k] + jac[i - 1, j, k])
-    jacedgef = 0.5 * (jac[i, j, k] + jac[i, j + 1, k])
-    jacedgeb = 0.5 * (jac[i, j, k] + jac[i, j - 1, k])
-    jacedgeu =
+    @ivy jacedger = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
+    @ivy jacedgel = 0.5 * (jac[i, j, k] + jac[i - 1, j, k])
+    @ivy jacedgef = 0.5 * (jac[i, j, k] + jac[i, j + 1, k])
+    @ivy jacedgeb = 0.5 * (jac[i, j, k] + jac[i, j - 1, k])
+    @ivy jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
         (jac[i, j, k] + jac[i, j, k + 1])
-    jacedged =
+    @ivy jacedged =
         2.0 * jac[i, j, k] * jac[i, j, k - 1] /
         (jac[i, j, k] + jac[i, j, k - 1])
 
-    uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
-    ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
-    uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
-    ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
-    vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
-    vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
-    vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
-    vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
+    @ivy uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
+    @ivy ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
+    @ivy uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
+    @ivy ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
+    @ivy vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
+    @ivy vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
+    @ivy vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
+    @ivy vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
     wr =
         0.5 * (
             compute_vertical_wind(i + 1, j, k, predictands, grid) +
@@ -106,7 +106,7 @@ function compute_stress_tensor(
             compute_vertical_wind(i, j - 1, k - 1, predictands, grid)
         )
 
-    if mu == 1 && nu == 1
+    @ivy if mu == 1 && nu == 1
         stress_tensor =
             2.0 * (u[i, j, k] - u[i - 1, j, k]) / dx +
             met[i, j, k, 1, 3] * (uu - ud) / dz -

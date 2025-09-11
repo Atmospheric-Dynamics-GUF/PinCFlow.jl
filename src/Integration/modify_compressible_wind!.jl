@@ -58,7 +58,7 @@ function modify_compressible_wind!(
     (; jac) = state.grid
     (; u, v, w, p) = state.variables.predictands
 
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
         u[ix, jy, kz] = operation(
             u[ix, jy, kz],
             (

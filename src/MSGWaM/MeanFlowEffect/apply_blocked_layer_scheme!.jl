@@ -76,7 +76,7 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
     (kavg, uperp, drag) = (zeros(2) for i in 1:3)
 
     # Adjust the drag to account for blocking.
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
         fraction =
             (
                 min(zb[ix, jy], ztildetfc[ix, jy, kz]) -
@@ -85,15 +85,15 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
         if fraction <= 0
             continue
         else
-            @views hsum = sum(abs, topography_spectrum[:, ix, jy])
-            @views ksum = mapreduce(
+            hsum = sum(abs, topography_spectrum[:, ix, jy])
+            ksum = mapreduce(
                 (a, b) -> abs(a) * b,
                 +,
                 k_spectrum[:, ix, jy],
                 topography_spectrum[:, ix, jy],
             )
 
-            @views lsum = mapreduce(
+            lsum = mapreduce(
                 (a, b) -> abs(a) * b,
                 +,
                 l_spectrum[:, ix, jy],

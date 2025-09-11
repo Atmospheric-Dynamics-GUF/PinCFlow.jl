@@ -119,7 +119,7 @@ function compute_derivatives(
 
     (ix, jy, kzd, kzu) = indices
 
-    phid =
+    @ivy phid =
         (u[ix, jy, kzd] - u[ix - 1, jy, kzd]) / dx +
         met[ix, jy, kzd, 1, 3] *
         0.25 *
@@ -127,7 +127,7 @@ function compute_derivatives(
             u[ix, jy, kzd + 1] + u[ix - 1, jy, kzd + 1] - u[ix, jy, kzd - 1] -
             u[ix - 1, jy, kzd - 1]
         ) / dz
-    phiu =
+    @ivy phiu =
         (u[ix, jy, kzu] - u[ix - 1, jy, kzu]) / dx +
         met[ix, jy, kzu, 1, 3] *
         0.25 *
@@ -149,7 +149,7 @@ function compute_derivatives(
 
     (ix, jy, kzd, kzu) = indices
 
-    phid =
+    @ivy phid =
         (u[ix, jy + 1, kzd] - u[ix, jy, kzd]) / dy +
         0.25 *
         (
@@ -163,7 +163,7 @@ function compute_derivatives(
             u[ix, jy, kzd + 1] + u[ix, jy + 1, kzd + 1] - u[ix, jy, kzd - 1] -
             u[ix, jy + 1, kzd - 1]
         ) / dz
-    phiu =
+    @ivy phiu =
         (u[ix, jy + 1, kzu] - u[ix, jy, kzu]) / dy +
         0.25 *
         (
@@ -191,7 +191,7 @@ function compute_derivatives(
 
     (ix, jy, kzd, kzu) = indices
 
-    if ztildetfc[ix, jy, kzu] < topography_surface[ix, jy]
+    @ivy if ztildetfc[ix, jy, kzu] < topography_surface[ix, jy]
         phid = 0.0
         phiu = 0.0
     elseif ztildetfc[ix, jy, kzd] < topography_surface[ix, jy]
@@ -247,7 +247,7 @@ function compute_derivatives(
 
     (ix, jy, kzd, kzu) = indices
 
-    phid =
+    @ivy phid =
         (v[ix + 1, jy, kzd] - v[ix, jy, kzd]) / dx +
         0.25 *
         (
@@ -261,7 +261,7 @@ function compute_derivatives(
             v[ix, jy, kzd + 1] + v[ix + 1, jy, kzd + 1] - v[ix, jy, kzd - 1] -
             v[ix + 1, jy, kzd - 1]
         ) / dz
-    phiu =
+    @ivy phiu =
         (v[ix + 1, jy, kzu] - v[ix, jy, kzu]) / dx +
         0.25 *
         (
@@ -289,7 +289,7 @@ function compute_derivatives(
 
     (ix, jy, kzd, kzu) = indices
 
-    phid =
+    @ivy phid =
         (v[ix, jy, kzd] - v[ix, jy - 1, kzd]) / dy +
         met[ix, jy, kzd, 2, 3] *
         0.25 *
@@ -297,7 +297,7 @@ function compute_derivatives(
             v[ix, jy, kzd + 1] + v[ix, jy - 1, kzd + 1] - v[ix, jy, kzd - 1] -
             v[ix, jy - 1, kzd - 1]
         ) / dz
-    phiu =
+    @ivy phiu =
         (v[ix, jy, kzu] - v[ix, jy - 1, kzu]) / dy +
         met[ix, jy, kzu, 2, 3] *
         0.25 *
@@ -319,7 +319,7 @@ function compute_derivatives(
 
     (ix, jy, kzd, kzu) = indices
 
-    if ztildetfc[ix, jy, kzu] < topography_surface[ix, jy]
+    @ivy if ztildetfc[ix, jy, kzu] < topography_surface[ix, jy]
         phid = 0.0
         phiu = 0.0
     elseif ztildetfc[ix, jy, kzd] < topography_surface[ix, jy]

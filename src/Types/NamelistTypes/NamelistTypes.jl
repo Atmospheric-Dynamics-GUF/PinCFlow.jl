@@ -298,6 +298,7 @@ Singleton for model configurations with an initially linear tracer.
 struct LinearTracer <: AbstractTracer end
 
 using MPI
+using ...PinCFlow
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")

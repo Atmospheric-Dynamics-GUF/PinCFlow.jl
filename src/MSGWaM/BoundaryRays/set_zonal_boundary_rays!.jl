@@ -32,7 +32,7 @@ function set_zonal_boundary_rays!(state::State)
     set_zonal_boundaries_of_field!(nray, namelists, domain; layers = (1, 1, 1))
 
     # Set ray-volumes properties.
-    if npx > 1
+    @ivy if npx > 1
         set_zonal_halo_rays!(state)
     else
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1)
@@ -46,7 +46,7 @@ function set_zonal_boundary_rays!(state::State)
         end
     end
 
-    if io == 0
+    @ivy if io == 0
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):i0
             for iray in 1:nray[ix, jy, kz]
                 xr = rays.x[iray, ix, jy, kz]
@@ -61,7 +61,7 @@ function set_zonal_boundary_rays!(state::State)
         end
     end
 
-    if io + nxx == sizexx
+    @ivy if io + nxx == sizexx
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1), ix in i1:(i1 + 1)
             for iray in 1:nray[ix, jy, kz]
                 xr = rays.x[iray, ix, jy, kz]

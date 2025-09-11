@@ -48,15 +48,15 @@ function set_vertical_halos_of_field!(
     (; nbz) = namelists.domain
     (; comm, sizezz, nzz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     ii = (i0 - nbx):(i1 + nbx)
     jj = (j0 - nby):(j1 + nby)
 
-    if ko == 0
-        @views MPI.Sendrecv!(
+    @ivy if ko == 0
+        MPI.Sendrecv!(
             field[ii, jj, (k1 - nbz + 1):k1],
             field[ii, jj, (k1 + 1):(k1 + nbz)],
             comm;
@@ -64,7 +64,7 @@ function set_vertical_halos_of_field!(
             source = up,
         )
     elseif ko + nzz == sizezz
-        @views MPI.Sendrecv!(
+        MPI.Sendrecv!(
             field[ii, jj, k0:(k0 + nbz - 1)],
             field[ii, jj, (k0 - nbz):(k0 - 1)],
             comm;
@@ -72,7 +72,7 @@ function set_vertical_halos_of_field!(
             source = down,
         )
     else
-        @views MPI.Sendrecv!(
+        MPI.Sendrecv!(
             field[ii, jj, (k1 - nbz + 1):k1],
             field[ii, jj, (k0 - nbz):(k0 - 1)],
             comm;
@@ -80,7 +80,7 @@ function set_vertical_halos_of_field!(
             source = down,
         )
 
-        @views MPI.Sendrecv!(
+        MPI.Sendrecv!(
             field[ii, jj, k0:(k0 + nbz - 1)],
             field[ii, jj, (k1 + 1):(k1 + nbz)],
             comm;
@@ -101,15 +101,15 @@ function set_vertical_halos_of_field!(
     (; nbz) = namelists.domain
     (; comm, sizezz, nzz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     ii = (i0 - nbx):(i1 + nbx)
     jj = (j0 - nby):(j1 + nby)
 
-    if ko == 0
-        @views MPI.Sendrecv!(
+    @ivy if ko == 0
+        MPI.Sendrecv!(
             field[ii, jj, (k1 - nbz + 1):k1, :, :],
             field[ii, jj, (k1 + 1):(k1 + nbz), :, :],
             comm;
@@ -117,7 +117,7 @@ function set_vertical_halos_of_field!(
             source = up,
         )
     elseif ko + nzz == sizezz
-        @views MPI.Sendrecv!(
+        MPI.Sendrecv!(
             field[ii, jj, k0:(k0 + nbz - 1), :, :],
             field[ii, jj, (k0 - nbz):(k0 - 1), :, :],
             comm;
@@ -125,7 +125,7 @@ function set_vertical_halos_of_field!(
             source = down,
         )
     else
-        @views MPI.Sendrecv!(
+        MPI.Sendrecv!(
             field[ii, jj, (k1 - nbz + 1):k1, :, :],
             field[ii, jj, (k0 - nbz):(k0 - 1), :, :],
             comm;
@@ -133,7 +133,7 @@ function set_vertical_halos_of_field!(
             source = down,
         )
 
-        @views MPI.Sendrecv!(
+        MPI.Sendrecv!(
             field[ii, jj, k0:(k0 + nbz - 1), :, :],
             field[ii, jj, (k1 + 1):(k1 + nbz), :, :],
             comm;

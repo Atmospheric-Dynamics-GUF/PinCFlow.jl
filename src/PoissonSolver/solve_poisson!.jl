@@ -72,10 +72,10 @@ function solve_poisson!(
     jj = j0:j1
     kk = k0:k1
 
-    @views sol ./= sqrt.(pstrattfc[ii, jj, kk] .^ 2 ./ rhostrattfc[ii, jj, kk])
+    @ivy sol ./= sqrt.(pstrattfc[ii, jj, kk] .^ 2 ./ rhostrattfc[ii, jj, kk])
 
     # Pass solution to pressure correction.
-    dpip[ii, jj, kk] .= dtinv .* sol
+    @ivy dpip[ii, jj, kk] .= dtinv .* sol
 
     return (errflagbicg, niterbicg)
 end

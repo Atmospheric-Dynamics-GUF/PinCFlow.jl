@@ -144,13 +144,13 @@ function set_tracer_vertical_boundaries!(
     (; sizezz, nzz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
 
-    if ko == 0
+    @ivy if ko == 0
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
-    if ko + nzz == sizezz
+    @ivy if ko + nzz == sizezz
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end

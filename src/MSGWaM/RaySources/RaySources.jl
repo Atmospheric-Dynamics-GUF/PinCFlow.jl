@@ -13,8 +13,9 @@ Module for ray-volume sources.
 """
 module RaySources
 
-using ...Types
 using ..RayOperations
+using ...Types
+using ...PinCFlow
 
 include("activate_orographic_source!.jl")
 include("compute_orographic_mode.jl")

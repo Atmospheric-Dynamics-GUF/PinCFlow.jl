@@ -186,7 +186,7 @@ function propagate_rays!(
     kz1 = k1
 
     # Initialize WKB increments at the first RK stage.
-    if rkstage == 1
+    @ivy if rkstage == 1
         for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
             for iray in 1:nray[ix, jy, kz]
                 dxray[iray, ix, jy, kz] = 0.0
@@ -204,9 +204,9 @@ function propagate_rays!(
 
     cgx_max[] = 0.0
     cgy_max[] = 0.0
-    cgz_max[i0:i1, j0:j1, kz0:kz1] .= 0.0
+    @ivy cgz_max[i0:i1, j0:j1, kz0:kz1] .= 0.0
 
-    for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
+    @ivy for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
         nskip = 0
         for iray in 1:nray[ix, jy, kz]
             (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
@@ -443,7 +443,7 @@ function propagate_rays!(
     #     Change of wave action
     #-------------------------------
 
-    if spongelayer
+    @ivy if spongelayer
         for kz in k0:k1, jy in j0:j1, ix in i0:i1
             for iray in 1:nray[ix, jy, kz]
                 (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
@@ -488,25 +488,25 @@ function propagate_rays!(
         activate_orographic_source!(state)
     end
 
-    if ko != 0
+    @ivy if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
 
-        @views count = maximum(nray[i0:i1, j0:j1, k0 - 1])
+        count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if count > 0
             fields = fieldnames(Rays)
             rays_down = zeros(length(fields), count, nx, ny)
             MPI.Recv!(rays_down, comm; source = down)
             for (index, field) in enumerate(fields)
-                @views getfield(rays, field)[1:count, i0:i1, j0:j1, k0 - 1] .=
+                getfield(rays, field)[1:count, i0:i1, j0:j1, k0 - 1] .=
                     rays_down[index, :, :, :]
             end
         end
     end
 
     # Loop over grid cells.
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
 
         # Set the ray-volume count.
         nray[ix, jy, kz] = nray[ix, jy, kz - 1]
@@ -677,16 +677,16 @@ function propagate_rays!(
         end
     end
 
-    if ko + nzz != sizezz
-        @views nray_up = nray[i0:i1, j0:j1, k1]
+    @ivy if ko + nzz != sizezz
+        nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
-        @views count = maximum(nray[i0:i1, j0:j1, k1])
+        count = maximum(nray[i0:i1, j0:j1, k1])
         if count > 0
             fields = fieldnames(Rays)
             rays_up = zeros(length(fields), count, nx, ny)
-            for (index, field) in enumerate(fields)
-                @views rays_up[index, :, :, :] .=
+        for (index, field) in enumerate(fields)
+                rays_up[index, :, :, :] .=
                     getfield(rays, field)[1:count, i0:i1, j0:j1, k1]
             end
             MPI.Send(rays_up, comm; dest = up)

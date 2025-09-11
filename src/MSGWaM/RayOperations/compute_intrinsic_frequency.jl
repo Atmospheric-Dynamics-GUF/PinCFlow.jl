@@ -37,10 +37,10 @@ function compute_intrinsic_frequency(
     (; tref) = state.constants
     (; rays) = state.wkb
 
-    zr = rays.z[indices...]
-    kr = rays.k[indices...]
-    lr = rays.l[indices...]
-    mr = rays.m[indices...]
+    @ivy zr = rays.z[indices...]
+    @ivy kr = rays.k[indices...]
+    @ivy lr = rays.l[indices...]
+    @ivy mr = rays.m[indices...]
     khr = sqrt(kr^2 + lr^2)
 
     n2r = interpolate_stratification(zr, state, N2())

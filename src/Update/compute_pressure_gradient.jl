@@ -111,14 +111,14 @@ function compute_pressure_gradient(
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
-    rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-    rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-    rhoedger += rhostratedger
-    pedger = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
-    met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
+    @ivy rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
+    @ivy rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
+    @ivy rhoedger += rhostratedger
+    @ivy pedger = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
+    @ivy met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
 
     # Compute the pressure gradient component.
-    if ko + k == k0
+    @ivy if ko + k == k0
         pipuuedger = 0.5 * (pip[i, j, k + 2] + pip[i + 1, j, k + 2])
         pipuedger = 0.5 * (pip[i, j, k + 1] + pip[i + 1, j, k + 1])
         pipedger = 0.5 * (pip[i, j, k] + pip[i + 1, j, k])
@@ -169,14 +169,14 @@ function compute_pressure_gradient(
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
-    rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-    rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-    rhoedgef += rhostratedgef
-    pedgef = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
-    met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
+    @ivy rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
+    @ivy rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
+    @ivy rhoedgef += rhostratedgef
+    @ivy pedgef = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
+    @ivy met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
     # Compute the pressure gradient component.
-    if ko + k == k0
+    @ivy if ko + k == k0
         pipuuedgef = 0.5 * (pip[i, j, k + 2] + pip[i, j + 1, k + 2])
         pipuedgef = 0.5 * (pip[i, j, k + 1] + pip[i, j + 1, k + 1])
         pipedgef = 0.5 * (pip[i, j, k] + pip[i, j + 1, k])
@@ -225,57 +225,57 @@ function compute_pressure_gradient(
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
-    rhoedgeu =
+    @ivy rhoedgeu =
         (jac[i, j, k + 1] * rho[i, j, k] + jac[i, j, k] * rho[i, j, k + 1]) /
         (jac[i, j, k] + jac[i, j, k + 1])
-    rhoedgeu +=
+    @ivy rhoedgeu +=
         (
             jac[i, j, k + 1] * rhostrattfc[i, j, k] +
             jac[i, j, k] * rhostrattfc[i, j, k + 1]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
-    pedgeu =
+    @ivy pedgeu =
         (
             jac[i, j, k + 1] * pstrattfc[i, j, k] +
             jac[i, j, k] * pstrattfc[i, j, k + 1]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
-    met13edgeu =
+    @ivy met13edgeu =
         (
             jac[i, j, k + 1] * met[i, j, k, 1, 3] +
             jac[i, j, k] * met[i, j, k + 1, 1, 3]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
-    met23edgeu =
+    @ivy met23edgeu =
         (
             jac[i, j, k + 1] * met[i, j, k, 2, 3] +
             jac[i, j, k] * met[i, j, k + 1, 2, 3]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
-    met33edgeu =
+    @ivy met33edgeu =
         (
             jac[i, j, k + 1] * met[i, j, k, 3, 3] +
             jac[i, j, k] * met[i, j, k + 1, 3, 3]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
 
     # Compute the pressure gradient component.
-    pipredgeu =
+    @ivy pipredgeu =
         (
             jac[i + 1, j, k + 1] * pip[i + 1, j, k] +
             jac[i + 1, j, k] * pip[i + 1, j, k + 1]
         ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-    pipledgeu =
+    @ivy pipledgeu =
         (
             jac[i - 1, j, k + 1] * pip[i - 1, j, k] +
             jac[i - 1, j, k] * pip[i - 1, j, k + 1]
         ) / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
-    pipfedgeu =
+    @ivy pipfedgeu =
         (
             jac[i, j + 1, k + 1] * pip[i, j + 1, k] +
             jac[i, j + 1, k] * pip[i, j + 1, k + 1]
         ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-    pipbedgeu =
+    @ivy pipbedgeu =
         (
             jac[i, j - 1, k + 1] * pip[i, j - 1, k] +
             jac[i, j - 1, k] * pip[i, j - 1, k + 1]
         ) / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
-    gradient =
+    @ivy gradient =
         kappainv * mainv2 * pedgeu / rhoedgeu * (
             met13edgeu * (pipredgeu - pipledgeu) * 0.5 / dx +
             met23edgeu * (pipfedgeu - pipbedgeu) * 0.5 / dy +

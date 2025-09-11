@@ -20,5 +20,5 @@ function get_spectral_position(
     rays::Rays,
     indices::NTuple{4, <:Integer},
 )::NTuple{3, <:AbstractFloat}
-    return (rays.k[indices...], rays.l[indices...], rays.m[indices...])
+    @ivy return (rays.k[indices...], rays.l[indices...], rays.m[indices...])
 end

@@ -18,6 +18,7 @@ module Update
 using MPI
 using ..Types
 using ..Boundaries
+using ..PinCFlow
 
 """
 ```julia

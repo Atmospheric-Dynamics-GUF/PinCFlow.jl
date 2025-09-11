@@ -13,6 +13,7 @@ module FoundationalTypes
 
 using MPI
 using ..NamelistTypes
+using ...PinCFlow
 
 include("Time.jl")
 include("Constants.jl")

@@ -1,4 +1,5 @@
 using PythonPlot
+using PinCFlow
 
 """
 ```julia
@@ -32,7 +33,7 @@ function symmetric_contours(
 )::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
 
     # Compute contour levels.
-    if minimum == -maximum ||
+    @ivy if minimum == -maximum ||
        sign(minimum) == sign(maximum) ||
        minimum == 0.0 ||
        maximum == 0.0
@@ -59,10 +60,10 @@ function symmetric_contours(
 
     # Get the colormap and peak.
     colormap = matplotlib.cm.get_cmap(colormap_name)
-    peak = max(abs(levels[1]), abs(levels[end]))
+    @ivy peak = max(abs(levels[1]), abs(levels[end]))
 
     # Crop the colormap.
-    if levels[1] > 0.0
+    @ivy if levels[1] > 0.0
         colormap = matplotlib.colors.LinearSegmentedColormap.from_list(
             "",
             colormap(LinRange(0.5, 1.0, 100)),

@@ -187,19 +187,19 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
 
     # Compute x-coordinate.
     x = zeros(sizexx)
-    for ix in 1:sizexx
+    @ivy for ix in 1:sizexx
         x[ix] = -lx / 2 + (ix - i0) * dx + dx / 2
     end
 
     # Compute y-coordinate.
     y = zeros(sizeyy)
-    for jy in 1:sizeyy
+    @ivy for jy in 1:sizeyy
         y[jy] = -ly / 2 + (jy - j0) * dy + dy / 2
     end
 
     # Compute z-coordinate.
     z = zeros(sizezz)
-    for kz in 1:sizezz
+    @ivy for kz in 1:sizezz
         z[kz] = (kz - k0) * dz + dz / 2
     end
 
@@ -207,7 +207,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (ztildes, zs) = (zeros(sizezz) for i in 1:2)
 
     # Compute the stretched vertical grid.
-    for kz in 1:sizezz
+    @ivy for kz in 1:sizezz
         level = z[kz] + 0.5 * dz
         if level < 0
             ztildes[kz] = -lz * (-level / lz)^stretch_exponent
@@ -217,10 +217,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
             ztildes[kz] = lz * (level / lz)^stretch_exponent
         end
     end
-    for kz in 2:sizezz
+    @ivy for kz in 2:sizezz
         zs[kz] = 0.5 * (ztildes[kz] + ztildes[kz - 1])
     end
-    zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
+    @ivy zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
 
     # Compute the topography.
     (topography_surface, topography_spectrum, k_spectrum, l_spectrum) =
@@ -235,21 +235,21 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     kz0 = ko == 0 ? 2 : 1
 
     # Compute the Jacobian.
-    for kz in kz0:nzz
+    @ivy for kz in kz0:nzz
         jac[:, :, kz] .=
             (lz .- topography_surface) ./ lz .*
             (ztildes[ko + kz] .- ztildes[ko + kz - 1]) ./ dz
     end
-    ko == 0 && @views jac[:, :, 1] .= jac[:, :, 2 * nbz]
+    @ivy ko == 0 && jac[:, :, 1] .= jac[:, :, 2 * nbz]
 
     # Compute the metric tensor.
 
-    met[:, :, :, 1, 2] .= 0.0
-    met[:, :, :, 2, 1] .= 0.0
-    met[:, :, :, 1, 1] .= 1.0
-    met[:, :, :, 2, 2] .= 1.0
+    @ivy met[:, :, :, 1, 2] .= 0.0
+    @ivy met[:, :, :, 2, 1] .= 0.0
+    @ivy met[:, :, :, 1, 1] .= 1.0
+    @ivy met[:, :, :, 2, 2] .= 1.0
 
-    for kz in kz0:nzz, jy in 1:nyy, ix in i0:i1
+    @ivy for kz in kz0:nzz, jy in 1:nyy, ix in i0:i1
         met13[ix, jy, kz] =
             (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
             (2.0 * dx) * (zs[ko + kz] - lz) /
@@ -257,12 +257,12 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
             (ztildes[ko + kz] - ztildes[ko + kz - 1])
     end
     set_zonal_boundaries_of_field!(met13, namelists, domain)
-    ko == 0 && @views met13[:, :, 1] .=
+    @ivy ko == 0 && met13[:, :, 1] .=
         met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
-    met[:, :, :, 1, 3] .= met13
-    met[:, :, :, 3, 1] .= met13
+    @ivy met[:, :, :, 1, 3] .= met13
+    @ivy met[:, :, :, 3, 1] .= met13
 
-    for kz in 2:nzz, jy in j0:j1, ix in 1:nxx
+    @ivy for kz in 2:nzz, jy in j0:j1, ix in 1:nxx
         met23[ix, jy, kz] =
             (topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]) /
             (2.0 * dy) * (zs[ko + kz] - lz) /
@@ -270,12 +270,12 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
             (ztildes[ko + kz] - ztildes[ko + kz - 1])
     end
     set_meridional_boundaries_of_field!(met23, namelists, domain)
-    ko == 0 && @views met23[:, :, 1] .=
+    @ivy ko == 0 && met23[:, :, 1] .=
         met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
-    met[:, :, :, 2, 3] .= met23
-    met[:, :, :, 3, 2] .= met23
+    @ivy met[:, :, :, 2, 3] .= met23
+    @ivy met[:, :, :, 3, 2] .= met23
 
-    for kz in kz0:nzz, jy in j0:j1, ix in i0:i1
+    @ivy for kz in kz0:nzz, jy in j0:j1, ix in i0:i1
         met33[ix, jy, kz] =
             (
                 (lz / (lz - topography_surface[ix, jy]))^2.0 +
@@ -296,7 +296,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
                 )
             ) * (dz / (ztildes[ko + kz] - ztildes[ko + kz - 1]))^2.0
     end
-    ko == 0 && for jy in j0:j1, ix in i0:i1
+    @ivy ko == 0 && for jy in j0:j1, ix in i0:i1
         met33[ix, jy, 1] =
             (
                 (lz / (lz - topography_surface[ix, jy]))^2.0 +
@@ -318,13 +318,13 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     end
     set_zonal_boundaries_of_field!(met33, namelists, domain)
     set_meridional_boundaries_of_field!(met33, namelists, domain)
-    met[:, :, :, 3, 3] .= met33
+    @ivy met[:, :, :, 3, 3] .= met33
 
     # Initialize the physical layers.
     (ztildetfc, ztfc) = (zeros(nxx, nyy, nzz) for i in 1:2)
 
     # Compute the physical layers.
-    for kz in 1:nzz
+    @ivy for kz in 1:nzz
         ztildetfc[:, :, kz] .=
             (lz .- topography_surface) ./ lz .* ztildes[ko + kz] .+
             topography_surface

@@ -72,7 +72,7 @@ function compute_rhs!(
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
         # Store velocities at cell edges.
@@ -166,7 +166,7 @@ function compute_rhs!(
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
         # Store velocities at cell edges.

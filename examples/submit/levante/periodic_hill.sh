@@ -21,6 +21,6 @@ julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; lib
 julia --project -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
 
 # Run the model.
-julia --project --check-bounds=no examples/submit/periodic_hill.jl ${scratch} 1>${scratch}/run.log 2>&1
+julia --project examples/submit/periodic_hill.jl ${scratch} 1>${scratch}/run.log 2>&1
 
 exit 0

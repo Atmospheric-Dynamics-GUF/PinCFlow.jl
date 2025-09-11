@@ -148,7 +148,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     dm_ini_nd = 0.0
 
     # Loop over all grid cells with ray volumes.
-    for kz in kz0:kz1, jy in jy0:jy1, ix in ix0:ix1
+    @ivy for kz in kz0:kz1, jy in jy0:jy1, ix in ix0:ix1
         iray = 0
         i_sfc = 0
 
@@ -320,7 +320,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     end
 
     # Compute global ray-volume count.
-    @views local_sum = sum(nray[ix0:ix1, jy0:jy1, kz0:kz1])
+    @ivy local_sum = sum(nray[ix0:ix1, jy0:jy1, kz0:kz1])
     global_sum = MPI.Allreduce(local_sum, +, comm)
 
     # Print information.

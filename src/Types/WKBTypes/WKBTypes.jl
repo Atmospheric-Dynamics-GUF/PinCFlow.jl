@@ -18,6 +18,7 @@ module WKBTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ...PinCFlow
 
 include("WKBIntegrals.jl")
 include("WKBTendencies.jl")

@@ -13,8 +13,9 @@ Module for various ray-volume operations needed throughout MSGWaM.
 """
 module RayOperations
 
-using ...Types
 using ..Interpolation
+using ...Types
+using ...PinCFlow
 
 include("MergedRays.jl")
 

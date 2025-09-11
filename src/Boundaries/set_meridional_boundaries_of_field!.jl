@@ -63,12 +63,12 @@ function set_meridional_boundaries_of_field!(
     (; npy, nby) = namelists.domain
     (; j0, j1) = domain
 
-    if npy > 1
+    @ivy if npy > 1
         set_meridional_halos_of_field!(field, namelists, domain)
     else
         for j in 1:nby
-            @views field[:, j0 - j] .= field[:, j1 - j + 1]
-            @views field[:, j1 + j] .= field[:, j0 + j - 1]
+            field[:, j0 - j] .= field[:, j1 - j + 1]
+            field[:, j1 + j] .= field[:, j0 + j - 1]
         end
     end
 
@@ -84,19 +84,19 @@ function set_meridional_boundaries_of_field!(
     (; npy) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    if npy > 1
+    @ivy if npy > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
         ii = (i0 - nbx):(i1 + nbx)
         kk = (k0 - nbz):(k1 + nbz)
 
         for j in 1:nby
-            @views field[ii, j0 - j, kk] .= field[ii, j1 - j + 1, kk]
-            @views field[ii, j1 + j, kk] .= field[ii, j0 + j - 1, kk]
+            field[ii, j0 - j, kk] .= field[ii, j1 - j + 1, kk]
+            field[ii, j1 + j, kk] .= field[ii, j0 + j - 1, kk]
         end
     end
 
@@ -112,21 +112,19 @@ function set_meridional_boundaries_of_field!(
     (; npy) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    if npy > 1
+    @ivy if npy > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
         ii = (i0 - nbx):(i1 + nbx)
         kk = (k0 - nbz):(k1 + nbz)
 
         for j in 1:nby
-            @views field[ii, j0 - j, kk, :, :] .=
-                field[ii, j1 - j + 1, kk, :, :]
-            @views field[ii, j1 + j, kk, :, :] .=
-                field[ii, j0 + j - 1, kk, :, :]
+            field[ii, j0 - j, kk, :, :] .= field[ii, j1 - j + 1, kk, :, :]
+            field[ii, j1 + j, kk, :, :] .= field[ii, j0 + j - 1, kk, :, :]
         end
     end
 

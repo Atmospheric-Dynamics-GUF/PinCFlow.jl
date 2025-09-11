@@ -17,6 +17,7 @@ module Interpolation
 
 using ...Types
 using ...Update
+using ...PinCFlow
 
 """
 ```julia

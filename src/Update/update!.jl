@@ -290,7 +290,7 @@ function update!(
         drho .= 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirho[i - 1, j, k, 1]
         fr = phirho[i, j, k, 1]
         gb = phirho[i, j - 1, k, 2]
@@ -329,7 +329,7 @@ function update!(
         drhop .= 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirhop[i - 1, j, k, 1]
         fr = phirhop[i, j, k, 1]
         gb = phirhop[i, j - 1, k, 2]
@@ -365,7 +365,7 @@ function update!(
     (; predictands) = state.variables
     (; rho, rhop) = predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         jpu = compute_compressible_wind_factor(state, (i, j, k), W())
         jpd = compute_compressible_wind_factor(state, (i, j, k - 1), W())
         wvrt =
@@ -402,7 +402,7 @@ function update!(
     (; rho, rhop, u, v, pip) = state.variables.predictands
     (; wold) = state.variables.backups
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k] + rhostrattfc[i, j, k]
         rhoedgeu =
             (
@@ -510,7 +510,7 @@ function update!(
         du .= 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
 
         # Compute zonal momentum flux divergence.
         fr = phiu[i, j, k, 1]
@@ -580,7 +580,7 @@ function update!(
     (; rhostrattfc) = state.atmosphere
     (; rho, u, pip) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         rhoedger += rhostratedger
@@ -614,7 +614,7 @@ function update!(
     kz0 = k0
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         rhoedger += rhostratedger
@@ -667,7 +667,7 @@ function update!(
         dv .= 0.0
     end
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
 
         # Compute meridional momentum flux divergence.
         fr = phiv[i, j, k, 1]
@@ -734,7 +734,7 @@ function update!(
     (; rhostrattfc) = state.atmosphere
     (; rho, v, pip) = state.variables.predictands
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         rhoedgef += rhostratedgef
@@ -768,7 +768,7 @@ function update!(
     kz0 = k0
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         rhoedgef += rhostratedgef
@@ -828,7 +828,7 @@ function update!(
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 - 1 : k1
 
-    for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
         fr = phiw[i, j, k, 1]
         fl = phiw[i - 1, j, k, 1]
@@ -973,7 +973,7 @@ function update!(
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 - 1 : k1
 
-    for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1027,7 +1027,7 @@ function update!(
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 - 1 : k1
 
-    for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in kz0:kz1, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1138,7 +1138,7 @@ function update!(
     (; uold, vold, wold) = state.variables.backups
     (; pip, p) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fl = uold[i - 1, j, k]
         fr = uold[i, j, k]
         gb = vold[i, j - 1, k]
@@ -1194,7 +1194,7 @@ function update!(
         dp .= 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phip[i - 1, j, k, 1]
         fr = phip[i, j, k, 1]
         gb = phip[i, j - 1, k, 2]
@@ -1236,7 +1236,7 @@ function update!(
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
 
-    for (fd, field) in enumerate(fieldnames(TracerPredictands))
+    @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
         if m == 1
             getfield(tracerincrements, fd) .= 0.0
         end

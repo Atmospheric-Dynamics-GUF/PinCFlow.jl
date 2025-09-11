@@ -98,10 +98,10 @@ function activate_orographic_source!(
     fc = coriolis_frequency * tref
 
     # Iterate over surface grid cells.
-    for jy in j0:j1, ix in i0:i1
+    @ivy for jy in j0:j1, ix in i0:i1
 
         # Sum the magnitudes of the spectrum.
-        @views hsum = sum(abs, topography_spectrum[:, ix, jy])
+        hsum = sum(abs, topography_spectrum[:, ix, jy])
 
         # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
@@ -215,10 +215,10 @@ function activate_orographic_source!(state::State)
     fc = coriolis_frequency * tref
 
     # Iterate over surface grid cells.
-    for jy in j0:j1, ix in i0:i1
+    @ivy for jy in j0:j1, ix in i0:i1
 
         # Sum the magnitudes of the spectrum.
-        @views hsum = sum(abs, topography_spectrum[:, ix, jy])
+        hsum = sum(abs, topography_spectrum[:, ix, jy])
 
         # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0

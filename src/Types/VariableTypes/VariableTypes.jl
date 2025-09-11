@@ -15,6 +15,7 @@ module VariableTypes
 
 using ..NamelistTypes
 using ..FoundationalTypes
+using ...PinCFlow
 
 include("Predictands.jl")
 include("Increments.jl")

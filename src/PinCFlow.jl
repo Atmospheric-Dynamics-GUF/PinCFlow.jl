@@ -13,6 +13,10 @@ Main module of PinCFlow.
 """
 module PinCFlow
 
+include("ivy.jl")
+
+export @ivy
+
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
 include("Boundaries/Boundaries.jl")

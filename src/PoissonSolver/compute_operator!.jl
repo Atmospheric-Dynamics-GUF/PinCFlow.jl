@@ -83,7 +83,7 @@ function compute_operator!(
     (; rho, p) = state.variables.predictands
 
     # Compute tensor elements for TFC.
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         # Compute scaling factors.
         fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
         fcscal_r = sqrt(pstrattfc[i + 1, j, k]^2.0 / rhostrattfc[i + 1, j, k])
