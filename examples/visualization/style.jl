@@ -34,9 +34,9 @@ function symmetric_contours(
 
     # Compute contour levels.
     @ivy if minimum == -maximum ||
-       sign(minimum) == sign(maximum) ||
-       minimum == 0.0 ||
-       maximum == 0.0
+            sign(minimum) == sign(maximum) ||
+            minimum == 0.0 ||
+            maximum == 0.0
         levels = LinRange(minimum, maximum, number)
     else
         peak = max(abs(minimum), abs(maximum))

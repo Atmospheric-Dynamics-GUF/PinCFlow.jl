@@ -910,23 +910,31 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    @ivy zlbd = (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl + 1, jyb, kzlbd]) / 2
-    @ivy zlbu = (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl + 1, jyb, kzlbu]) / 2
+    @ivy zlbd =
+        (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl + 1, jyb, kzlbd]) / 2
+    @ivy zlbu =
+        (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl + 1, jyb, kzlbu]) / 2
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    @ivy zlfd = (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl + 1, jyf, kzlfd]) / 2
-    @ivy zlfu = (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl + 1, jyf, kzlfu]) / 2
+    @ivy zlfd =
+        (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl + 1, jyf, kzlfd]) / 2
+    @ivy zlfu =
+        (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl + 1, jyf, kzlfu]) / 2
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    @ivy zrbd = (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr + 1, jyb, kzrbd]) / 2
-    @ivy zrbu = (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr + 1, jyb, kzrbu]) / 2
+    @ivy zrbd =
+        (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr + 1, jyb, kzrbd]) / 2
+    @ivy zrbu =
+        (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr + 1, jyb, kzrbu]) / 2
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    @ivy zrfd = (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr + 1, jyf, kzrfd]) / 2
-    @ivy zrfu = (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr + 1, jyf, kzrfu]) / 2
+    @ivy zrfd =
+        (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr + 1, jyf, kzrfd]) / 2
+    @ivy zrfu =
+        (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr + 1, jyf, kzrfu]) / 2
 
     # Assign the values.
 
@@ -1331,23 +1339,31 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    @ivy zlbd = (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl, jyb + 1, kzlbd]) / 2
-    @ivy zlbu = (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl, jyb + 1, kzlbu]) / 2
+    @ivy zlbd =
+        (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl, jyb + 1, kzlbd]) / 2
+    @ivy zlbu =
+        (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl, jyb + 1, kzlbu]) / 2
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    @ivy zlfd = (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl, jyf + 1, kzlfd]) / 2
-    @ivy zlfu = (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl, jyf + 1, kzlfu]) / 2
+    @ivy zlfd =
+        (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl, jyf + 1, kzlfd]) / 2
+    @ivy zlfu =
+        (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl, jyf + 1, kzlfu]) / 2
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    @ivy zrbd = (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr, jyb + 1, kzrbd]) / 2
-    @ivy zrbu = (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr, jyb + 1, kzrbu]) / 2
+    @ivy zrbd =
+        (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr, jyb + 1, kzrbd]) / 2
+    @ivy zrbu =
+        (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr, jyb + 1, kzrbu]) / 2
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    @ivy zrfd = (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr, jyf + 1, kzrfd]) / 2
-    @ivy zrfu = (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr, jyf + 1, kzrfu]) / 2
+    @ivy zrfd =
+        (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr, jyf + 1, kzrfd]) / 2
+    @ivy zrfu =
+        (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr, jyf + 1, kzrfu]) / 2
 
     # Assign the values.
 

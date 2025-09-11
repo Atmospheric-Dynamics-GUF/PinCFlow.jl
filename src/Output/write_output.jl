@@ -135,8 +135,7 @@ function write_output(
 
         # Write the background density.
         if model != Boussinesq() && iout == 1
-            file["rhobar"][iid, jjd, kkd] =
-                rhostrattfc[ii, jj, kk] .* rhoref
+            file["rhobar"][iid, jjd, kkd] = rhostrattfc[ii, jj, kk] .* rhoref
         end
 
         # Write the background potential temperature.
@@ -155,15 +154,15 @@ function write_output(
             HDF5.set_extent_dims(file["p"], (sizex, sizey, sizez, iout))
             file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
         elseif model != Boussinesq() && iout == 1
-            file["p"][iid, jjd, kkd] = pstrattfc[ii, jj, kk] .* rhoref .* thetaref
+            file["p"][iid, jjd, kkd] =
+                pstrattfc[ii, jj, kk] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.
         if prepare_restart || :rhop in output_variables
             HDF5.set_extent_dims(file["rhop"], (sizex, sizey, sizez, iout))
             if model == Boussinesq()
-                file["rhop"][iid, jjd, kkd, iout] =
-                rhop[ii, jj, kk] .* rhoref
+                file["rhop"][iid, jjd, kkd, iout] = rhop[ii, jj, kk] .* rhoref
             else
                 file["rhop"][iid, jjd, kkd, iout] = rho[ii, jj, kk] .* rhoref
             end
@@ -172,7 +171,8 @@ function write_output(
         # Write the zonal winds.
         if :u in output_variables
             HDF5.set_extent_dims(file["u"], (sizex, sizey, sizez, iout))
-            file["u"][iid, jjd, kkd, iout] = map(CartesianIndices((ii, jj, kk))) do ijk
+            file["u"][iid, jjd, kkd, iout] =
+                map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
                     return (u[i, j, k] + u[i - 1, j, k]) / 2 * uref
                 end
@@ -230,7 +230,7 @@ function write_output(
             file["wtfc"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                     return (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
+                    return (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
                 end
         end
 

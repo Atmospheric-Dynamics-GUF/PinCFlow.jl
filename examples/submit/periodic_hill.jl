@@ -24,4 +24,3 @@ output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(; spongelayer = true)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
-@time integrate(Namelists(; atmosphere, domain, grid, output, sponge))

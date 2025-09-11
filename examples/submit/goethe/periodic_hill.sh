@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=test
+#SBATCH --partition=general1
 #SBATCH --job-name=periodic_hill
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1

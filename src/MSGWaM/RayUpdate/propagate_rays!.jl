@@ -685,7 +685,7 @@ function propagate_rays!(
         if count > 0
             fields = fieldnames(Rays)
             rays_up = zeros(length(fields), count, nx, ny)
-        for (index, field) in enumerate(fields)
+            for (index, field) in enumerate(fields)
                 rays_up[index, :, :, :] .=
                     getfield(rays, field)[1:count, i0:i1, j0:j1, k1]
             end

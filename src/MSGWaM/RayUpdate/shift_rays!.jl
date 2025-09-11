@@ -155,7 +155,10 @@ function shift_rays!(state::State, direction::X)
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
+    @ivy for kzrv in kz0:kz1,
+        jyrv in (j0 - 1):(j1 + 1),
+        ixrv in (i0 - 1):(i1 + 1)
+
         for iray in 1:nray[ixrv, jyrv, kzrv]
             xr = rays.x[iray, ixrv, jyrv, kzrv]
             ix = floor(Int, (xr + lx / 2) / dx) + i0 - io
@@ -192,7 +195,10 @@ function shift_rays!(state::State, direction::Y)
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
+    @ivy for kzrv in kz0:kz1,
+        jyrv in (j0 - 1):(j1 + 1),
+        ixrv in (i0 - 1):(i1 + 1)
+
         for iray in 1:nray[ixrv, jyrv, kzrv]
             yr = rays.y[iray, ixrv, jyrv, kzrv]
             jy = floor(Int, (yr + ly / 2) / dy) + j0 - jo
@@ -229,7 +235,10 @@ function shift_rays!(state::State, direction::Z)
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
+    @ivy for kzrv in kz0:kz1,
+        jyrv in (j0 - 1):(j1 + 1),
+        ixrv in (i0 - 1):(i1 + 1)
+
         for iray in 1:nray[ixrv, jyrv, kzrv]
             zr = rays.z[iray, ixrv, jyrv, kzrv]
             kz = get_next_half_level(ixrv, jyrv, zr, domain, grid)

@@ -92,7 +92,7 @@ function compute_buoyancy_factor(
     (; rho) = state.variables.predictands
     (ix, jy, kz) = indices
     @ivy return pstrattfc[ix, jy, kz] / thetastrattfc[ix, jy, kz] /
-           (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz])
+                (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz])
 end
 
 function compute_buoyancy_factor(
@@ -104,7 +104,8 @@ function compute_buoyancy_factor(
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (ix, jy, kz) = indices
-    @ivy return rhostrattfc[ix, jy, kz] / (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz])
+    @ivy return rhostrattfc[ix, jy, kz] /
+                (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz])
 end
 
 function compute_buoyancy_factor(
