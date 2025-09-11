@@ -4,9 +4,7 @@ apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Total,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
+    state::State,
 )
 ```
 
@@ -19,9 +17,7 @@ apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Horizontal,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
+    state::State,
 )
 ```
 
@@ -37,11 +33,7 @@ Before the operator is applied, the boundary/halo values of `sin` are set, in th
 
   - `hortot`: Linear-operator mode.
 
-  - `namelists`: Namelists with all model parameters.
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
+  - `state`: Model state.
 
 # See also
 
@@ -57,12 +49,11 @@ function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Total,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
+    state::State,
 )
-    (; npz) = namelists.domain
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
+    (; namelists, domain) = state
+    (; npz) = state.namelists.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (;
         ac_b,
         al_b,
@@ -89,8 +80,8 @@ function apply_operator!(
         afdd_b,
         abuu_b,
         abdd_b,
-    ) = poisson.tensor
-    (; s) = poisson.operator
+    ) = state.poisson.tensor
+    (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
     @ivy s[i0:i1, j0:j1, k0:k1] .= sin
@@ -284,12 +275,11 @@ function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Horizontal,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
+    state::State,
 )
-    (; npz) = namelists.domain
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
+    (; namelists, domain) = state
+    (; npz) = state.namelists.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (;
         al_b,
         ar_b,
@@ -313,8 +303,8 @@ function apply_operator!(
         afdd_b,
         abuu_b,
         abdd_b,
-    ) = poisson.tensor
-    (; s) = poisson.operator
+    ) = state.poisson.tensor
+    (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
     @ivy s[i0:i1, j0:j1, k0:k1] .= sin

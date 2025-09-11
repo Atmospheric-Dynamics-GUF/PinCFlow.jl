@@ -28,7 +28,6 @@ function apply_bicgstab!(
     state::State,
     tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
-    (; namelists, domain, grid, poisson) = state
     (; sizex, sizey, sizez) = state.namelists.domain
     (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
         state.namelists.poisson
@@ -59,7 +58,7 @@ function apply_bicgstab!(
     # Set error flag.
     errflag = false
 
-    apply_operator!(solution, matvec, Total(), namelists, domain, poisson)
+    apply_operator!(solution, matvec, Total(), state)
     r0 .= rhs .- matvec
     p .= r0
     r .= r0
@@ -96,30 +95,30 @@ function apply_bicgstab!(
 
         # v = A*p
         if preconditioner
-            apply_preconditioner!(p, v_pc, namelists, domain, grid, poisson)
+            apply_preconditioner!(p, v_pc, state)
         else
             v_pc .= p
         end
-        apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
+        apply_operator!(v_pc, matvec, Total(), state)
         v .= matvec
 
         alpha =
-            compute_global_dot_product(r, r0, domain) /
-            compute_global_dot_product(v, r0, domain)
+            compute_global_dot_product(r, r0, state) /
+            compute_global_dot_product(v, r0, state)
         s .= r .- alpha .* v
 
         # t = A*s
         if preconditioner
-            apply_preconditioner!(s, v_pc, namelists, domain, grid, poisson)
+            apply_preconditioner!(s, v_pc, state)
         else
             v_pc .= s
         end
-        apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
+        apply_operator!(v_pc, matvec, Total(), state)
         t .= matvec
 
         omega =
-            compute_global_dot_product(t, s, domain) /
-            compute_global_dot_product(t, t, domain)
+            compute_global_dot_product(t, s, state) /
+            compute_global_dot_product(t, t, state)
         solution .+= alpha .* p .+ omega .* s
 
         rold .= r
@@ -151,26 +150,17 @@ function apply_bicgstab!(
 
             if preconditioner
                 s .= solution
-                apply_preconditioner!(
-                    s,
-                    solution,
-                    namelists,
-                    domain,
-                    grid,
-                    poisson,
-                )
+                apply_preconditioner!(s, solution, state)
             end
 
             return (errflag, niter)
         end
 
         beta =
-            alpha / omega * compute_global_dot_product(r, r0, domain) /
-            compute_global_dot_product(rold, r0, domain)
+            alpha / omega * compute_global_dot_product(r, r0, state) /
+            compute_global_dot_product(rold, r0, state)
         p .= r .+ beta .* (p .- omega .* v)
     end
-
-    # max iteration
 
     errflag = true
     niter = j_b

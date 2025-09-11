@@ -3,7 +3,7 @@
 compute_global_dot_product(
     a::AbstractArray{<:AbstractFloat, 3},
     b::AbstractArray{<:AbstractFloat, 3},
-    domain::Domain,
+    state::State,
 )::AbstractFloat
 ```
 
@@ -15,16 +15,16 @@ Compute and return the dot product ``\\boldsymbol{a} \\cdot \\boldsymbol{b} = \\
 
   - `b`: Second input array (must have the same shape as `a`).
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `state`: Model state.
 """
 function compute_global_dot_product end
 
 function compute_global_dot_product(
     a::AbstractArray{<:AbstractFloat, 3},
     b::AbstractArray{<:AbstractFloat, 3},
-    domain::Domain,
+    state::State,
 )::AbstractFloat
-    (; comm) = domain
+    (; comm) = state.domain
 
     # Compute local dot product.
     local_dot_product = mapreduce((a, b) -> a * b, +, a, b)

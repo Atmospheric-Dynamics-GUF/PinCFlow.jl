@@ -3,10 +3,7 @@
 apply_preconditioner!(
     sin::AbstractArray{<:AbstractFloat, 3},
     sout::AbstractArray{<:AbstractFloat, 3},
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    poisson::Poisson,
+    state::State,
 )
 ```
 
@@ -32,13 +29,7 @@ where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\ri
 
   - `sout`: Solution of the preconditioner.
 
-  - `namelists`: Namelists with all model parameters.
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
-
-  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
+  - `state`: Model state.
 
 # See also
 
@@ -49,16 +40,13 @@ function apply_preconditioner! end
 function apply_preconditioner!(
     sin::AbstractArray{<:AbstractFloat, 3},
     sout::AbstractArray{<:AbstractFloat, 3},
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    poisson::Poisson,
+    state::State,
 )
-    (; dtau, maxiteradi) = namelists.poisson
-    (; comm, sizezz, nz, nzz, ko, down, up) = domain
-    (; dx, dy) = grid
-    (; au_b, ac_b, ad_b) = poisson.tensor
-    (; s_pc, q_pc, p_pc, s_pc_bc, q_pc_bc) = poisson.preconditioner
+    (; dtau, maxiteradi) = state.namelists.poisson
+    (; comm, sizezz, nz, nzz, ko, down, up) = state.domain
+    (; dx, dy) = state.grid
+    (; au_b, ac_b, ad_b) = state.poisson.tensor
+    (; s_pc, q_pc, p_pc, s_pc_bc, q_pc_bc) = state.poisson.preconditioner
 
     # Initialize auxiliary fields.
     s_pc .= 0.0
@@ -70,7 +58,7 @@ function apply_preconditioner!(
 
     # Iterate.
     @ivy for niter in 1:maxiteradi
-        apply_operator!(s_pc, q_pc, Horizontal(), namelists, domain, poisson)
+        apply_operator!(s_pc, q_pc, Horizontal(), state)
         s_pc .+= deta .* (q_pc .- sin)
 
         # Set the lower boundary.
