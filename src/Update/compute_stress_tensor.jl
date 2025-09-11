@@ -6,8 +6,7 @@ compute_stress_tensor(
     k::Integer,
     mu::Integer,
     nu::Integer,
-    predictands::Predictands,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
 ```
 
@@ -44,9 +43,7 @@ where
 
   - `nu`: Second contravariant tensor index.
 
-  - `predictands`: Prognostic variables.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
+  - `state`: Model state.
 
 # See also
 
@@ -60,11 +57,12 @@ function compute_stress_tensor(
     k::Integer,
     mu::Integer,
     nu::Integer,
-    predictands::Predictands,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
-    (; u, v, w) = predictands
-    (; dx, dy, dz, jac, met) = grid
+    (; grid) = state
+    (; predictands) = state.variables
+    (; u, v, w) = state.variables.predictands
+    (; dx, dy, dz, jac, met) = state.grid
 
     @ivy jacedger = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
     @ivy jacedgel = 0.5 * (jac[i, j, k] + jac[i - 1, j, k])

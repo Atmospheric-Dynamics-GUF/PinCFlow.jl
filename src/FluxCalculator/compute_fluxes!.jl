@@ -482,7 +482,7 @@ function compute_fluxes!(
         frhou_visc =
             coef_v *
             jac[i + 1, j, k] *
-            compute_stress_tensor(i + 1, j, k, 1, 1, predictands, grid)
+            compute_stress_tensor(i + 1, j, k, 1, 1, state)
 
         phiu[i, j, k, 1] -= frhou_visc
     end
@@ -506,14 +506,13 @@ function compute_fluxes!(
             coef_v *
             0.25 *
             (
-                jac[i, j, k] *
-                compute_stress_tensor(i, j, k, 1, 2, predictands, grid) +
+                jac[i, j, k] * compute_stress_tensor(i, j, k, 1, 2, state) +
                 jac[i + 1, j, k] *
-                compute_stress_tensor(i + 1, j, k, 1, 2, predictands, grid) +
+                compute_stress_tensor(i + 1, j, k, 1, 2, state) +
                 jac[i, j + 1, k] *
-                compute_stress_tensor(i, j + 1, k, 1, 2, predictands, grid) +
+                compute_stress_tensor(i, j + 1, k, 1, 2, state) +
                 jac[i + 1, j + 1, k] *
-                compute_stress_tensor(i + 1, j + 1, k, 1, 2, predictands, grid)
+                compute_stress_tensor(i + 1, j + 1, k, 1, 2, state)
             )
 
         phiu[i, j, k, 2] -= grhou_visc
@@ -528,32 +527,27 @@ function compute_fluxes!(
             1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
 
         stresstens13 =
-            met[i, j, k, 1, 3] *
-            compute_stress_tensor(i, j, k, 1, 1, predictands, grid) +
-            met[i, j, k, 2, 3] *
-            compute_stress_tensor(i, j, k, 1, 2, predictands, grid) +
-            compute_stress_tensor(i, j, k, 1, 3, predictands, grid) /
-            jac[i, j, k]
+            met[i, j, k, 1, 3] * compute_stress_tensor(i, j, k, 1, 1, state) +
+            met[i, j, k, 2, 3] * compute_stress_tensor(i, j, k, 1, 2, state) +
+            compute_stress_tensor(i, j, k, 1, 3, state) / jac[i, j, k]
         stresstens13r =
             met[i + 1, j, k, 1, 3] *
-            compute_stress_tensor(i + 1, j, k, 1, 1, predictands, grid) +
+            compute_stress_tensor(i + 1, j, k, 1, 1, state) +
             met[i + 1, j, k, 2, 3] *
-            compute_stress_tensor(i + 1, j, k, 1, 2, predictands, grid) +
-            compute_stress_tensor(i + 1, j, k, 1, 3, predictands, grid) /
-            jac[i + 1, j, k]
+            compute_stress_tensor(i + 1, j, k, 1, 2, state) +
+            compute_stress_tensor(i + 1, j, k, 1, 3, state) / jac[i + 1, j, k]
         stresstens13u =
             met[i, j, k + 1, 1, 3] *
-            compute_stress_tensor(i, j, k + 1, 1, 1, predictands, grid) +
+            compute_stress_tensor(i, j, k + 1, 1, 1, state) +
             met[i, j, k + 1, 2, 3] *
-            compute_stress_tensor(i, j, k + 1, 1, 2, predictands, grid) +
-            compute_stress_tensor(i, j, k + 1, 1, 3, predictands, grid) /
-            jac[i, j, k + 1]
+            compute_stress_tensor(i, j, k + 1, 1, 2, state) +
+            compute_stress_tensor(i, j, k + 1, 1, 3, state) / jac[i, j, k + 1]
         stresstens13ru =
             met[i + 1, j, k + 1, 1, 3] *
-            compute_stress_tensor(i + 1, j, k + 1, 1, 1, predictands, grid) +
+            compute_stress_tensor(i + 1, j, k + 1, 1, 1, state) +
             met[i + 1, j, k + 1, 2, 3] *
-            compute_stress_tensor(i + 1, j, k + 1, 1, 2, predictands, grid) +
-            compute_stress_tensor(i + 1, j, k + 1, 1, 3, predictands, grid) /
+            compute_stress_tensor(i + 1, j, k + 1, 1, 2, state) +
+            compute_stress_tensor(i + 1, j, k + 1, 1, 3, state) /
             jac[i + 1, j, k + 1]
         hrhou_visc =
             coef_v *
@@ -814,14 +808,13 @@ function compute_fluxes!(
             coef_v *
             0.25 *
             (
-                jac[i, j, k] *
-                compute_stress_tensor(i, j, k, 2, 1, predictands, grid) +
+                jac[i, j, k] * compute_stress_tensor(i, j, k, 2, 1, state) +
                 jac[i + 1, j, k] *
-                compute_stress_tensor(i + 1, j, k, 2, 1, predictands, grid) +
+                compute_stress_tensor(i + 1, j, k, 2, 1, state) +
                 jac[i, j + 1, k] *
-                compute_stress_tensor(i, j + 1, k, 2, 1, predictands, grid) +
+                compute_stress_tensor(i, j + 1, k, 2, 1, state) +
                 jac[i + 1, j + 1, k] *
-                compute_stress_tensor(i + 1, j + 1, k, 2, 1, predictands, grid)
+                compute_stress_tensor(i + 1, j + 1, k, 2, 1, state)
             )
 
         phiv[i, j, k, 1] -= frhov_visc
@@ -837,7 +830,7 @@ function compute_fluxes!(
         grhov_visc =
             coef_v *
             jac[i, j + 1, k] *
-            compute_stress_tensor(i, j + 1, k, 2, 2, predictands, grid)
+            compute_stress_tensor(i, j + 1, k, 2, 2, state)
 
         phiv[i, j, k, 2] -= grhov_visc
     end
@@ -851,32 +844,27 @@ function compute_fluxes!(
             1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
 
         stresstens23 =
-            met[i, j, k, 1, 3] *
-            compute_stress_tensor(i, j, k, 2, 1, predictands, grid) +
-            met[i, j, k, 2, 3] *
-            compute_stress_tensor(i, j, k, 2, 2, predictands, grid) +
-            compute_stress_tensor(i, j, k, 2, 3, predictands, grid) /
-            jac[i, j, k]
+            met[i, j, k, 1, 3] * compute_stress_tensor(i, j, k, 2, 1, state) +
+            met[i, j, k, 2, 3] * compute_stress_tensor(i, j, k, 2, 2, state) +
+            compute_stress_tensor(i, j, k, 2, 3, state) / jac[i, j, k]
         stresstens23f =
             met[i, j + 1, k, 1, 3] *
-            compute_stress_tensor(i, j + 1, k, 2, 1, predictands, grid) +
+            compute_stress_tensor(i, j + 1, k, 2, 1, state) +
             met[i, j + 1, k, 2, 3] *
-            compute_stress_tensor(i, j + 1, k, 2, 2, predictands, grid) +
-            compute_stress_tensor(i, j + 1, k, 2, 3, predictands, grid) /
-            jac[i, j + 1, k]
+            compute_stress_tensor(i, j + 1, k, 2, 2, state) +
+            compute_stress_tensor(i, j + 1, k, 2, 3, state) / jac[i, j + 1, k]
         stresstens23u =
             met[i, j, k + 1, 1, 3] *
-            compute_stress_tensor(i, j, k + 1, 2, 1, predictands, grid) +
+            compute_stress_tensor(i, j, k + 1, 2, 1, state) +
             met[i, j, k + 1, 2, 3] *
-            compute_stress_tensor(i, j, k + 1, 2, 2, predictands, grid) +
-            compute_stress_tensor(i, j, k + 1, 2, 3, predictands, grid) /
-            jac[i, j, k + 1]
+            compute_stress_tensor(i, j, k + 1, 2, 2, state) +
+            compute_stress_tensor(i, j, k + 1, 2, 3, state) / jac[i, j, k + 1]
         stresstens23fu =
             met[i, j + 1, k + 1, 1, 3] *
-            compute_stress_tensor(i, j + 1, k + 1, 2, 1, predictands, grid) +
+            compute_stress_tensor(i, j + 1, k + 1, 2, 1, state) +
             met[i, j + 1, k + 1, 2, 3] *
-            compute_stress_tensor(i, j + 1, k + 1, 2, 2, predictands, grid) +
-            compute_stress_tensor(i, j + 1, k + 1, 2, 3, predictands, grid) /
+            compute_stress_tensor(i, j + 1, k + 1, 2, 2, state) +
+            compute_stress_tensor(i, j + 1, k + 1, 2, 3, state) /
             jac[i, j + 1, k + 1]
         hrhov_visc =
             coef_v *
@@ -1152,29 +1140,14 @@ function compute_fluxes!(
                 jac[i, j, k] *
                 jac[i, j, k + 1] *
                 (
-                    compute_stress_tensor(i, j, k, 3, 1, predictands, grid) +
-                    compute_stress_tensor(i, j, k + 1, 3, 1, predictands, grid)
+                    compute_stress_tensor(i, j, k, 3, 1, state) +
+                    compute_stress_tensor(i, j, k + 1, 3, 1, state)
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) +
                 jac[i + 1, j, k] *
                 jac[i + 1, j, k + 1] *
                 (
-                    compute_stress_tensor(
-                        i + 1,
-                        j,
-                        k,
-                        3,
-                        1,
-                        predictands,
-                        grid,
-                    ) + compute_stress_tensor(
-                        i + 1,
-                        j,
-                        k + 1,
-                        3,
-                        1,
-                        predictands,
-                        grid,
-                    )
+                    compute_stress_tensor(i + 1, j, k, 3, 1, state) +
+                    compute_stress_tensor(i + 1, j, k + 1, 3, 1, state)
                 ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
             )
 
@@ -1196,29 +1169,14 @@ function compute_fluxes!(
                 jac[i, j, k] *
                 jac[i, j, k + 1] *
                 (
-                    compute_stress_tensor(i, j, k, 3, 1, predictands, grid) +
-                    compute_stress_tensor(i, j, k + 1, 3, 1, predictands, grid)
+                    compute_stress_tensor(i, j, k, 3, 1, state) +
+                    compute_stress_tensor(i, j, k + 1, 3, 1, state)
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) +
                 jac[i, j + 1, k] *
                 jac[i, j + 1, k + 1] *
                 (
-                    compute_stress_tensor(
-                        i,
-                        j + 1,
-                        k,
-                        3,
-                        1,
-                        predictands,
-                        grid,
-                    ) + compute_stress_tensor(
-                        i,
-                        j + 1,
-                        k + 1,
-                        3,
-                        1,
-                        predictands,
-                        grid,
-                    )
+                    compute_stress_tensor(i, j + 1, k, 3, 1, state) +
+                    compute_stress_tensor(i, j + 1, k + 1, 3, 1, state)
                 ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
             )
 
@@ -1236,11 +1194,11 @@ function compute_fluxes!(
             coef_v * (
                 jac[i, j, k + 1] *
                 met[i, j, k + 1, 1, 3] *
-                compute_stress_tensor(i, j, k + 1, 3, 1, predictands, grid) +
+                compute_stress_tensor(i, j, k + 1, 3, 1, state) +
                 jac[i, j, k + 1] *
                 met[i, j, k + 1, 2, 3] *
-                compute_stress_tensor(i, j, k + 1, 3, 2, predictands, grid) +
-                compute_stress_tensor(i, j, k + 1, 3, 3, predictands, grid)
+                compute_stress_tensor(i, j, k + 1, 3, 2, state) +
+                compute_stress_tensor(i, j, k + 1, 3, 3, state)
             )
 
         phiw[i, j, k, 3] -= hrhow_visc
