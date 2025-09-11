@@ -49,7 +49,7 @@ function interpolate_stratification(
     (; i0, j0) = domain
     (; ztfc) = grid
 
-    kzu = get_next_level(i0, j0, zlc, domain, grid)
+    kzu = get_next_level(i0, j0, zlc, state)
     kzd = kzu - 1
 
     @ivy zd = ztfc[i0, j0, kzd]

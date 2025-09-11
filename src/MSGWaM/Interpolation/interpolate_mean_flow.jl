@@ -210,22 +210,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
+    kzlbu = get_next_level(ixl, jyb, zlc, state)
     kzlbd = kzlbu - 1
     @ivy zlbd = (ztfc[ixl, jyb, kzlbd] + ztfc[ixl + 1, jyb, kzlbd]) / 2
     @ivy zlbu = (ztfc[ixl, jyb, kzlbu] + ztfc[ixl + 1, jyb, kzlbu]) / 2
 
-    kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
+    kzlfu = get_next_level(ixl, jyf, zlc, state)
     kzlfd = kzlfu - 1
     @ivy zlfd = (ztfc[ixl, jyf, kzlfd] + ztfc[ixl + 1, jyf, kzlfd]) / 2
     @ivy zlfu = (ztfc[ixl, jyf, kzlfu] + ztfc[ixl + 1, jyf, kzlfu]) / 2
 
-    kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
+    kzrbu = get_next_level(ixr, jyb, zlc, state)
     kzrbd = kzrbu - 1
     @ivy zrbd = (ztfc[ixr, jyb, kzrbd] + ztfc[ixr + 1, jyb, kzrbd]) / 2
     @ivy zrbu = (ztfc[ixr, jyb, kzrbu] + ztfc[ixr + 1, jyb, kzrbu]) / 2
 
-    kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
+    kzrfu = get_next_level(ixr, jyf, zlc, state)
     kzrfd = kzrfu - 1
     @ivy zrfd = (ztfc[ixr, jyf, kzrfd] + ztfc[ixr + 1, jyf, kzrfd]) / 2
     @ivy zrfu = (ztfc[ixr, jyf, kzrfu] + ztfc[ixr + 1, jyf, kzrfu]) / 2
@@ -332,22 +332,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
+    kzlbu = get_next_level(ixl, jyb, zlc, state)
     kzlbd = kzlbu - 1
     @ivy zlbd = (ztfc[ixl, jyb, kzlbd] + ztfc[ixl, jyb + 1, kzlbd]) / 2
     @ivy zlbu = (ztfc[ixl, jyb, kzlbu] + ztfc[ixl, jyb + 1, kzlbu]) / 2
 
-    kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
+    kzlfu = get_next_level(ixl, jyf, zlc, state)
     kzlfd = kzlfu - 1
     @ivy zlfd = (ztfc[ixl, jyf, kzlfd] + ztfc[ixl, jyf + 1, kzlfd]) / 2
     @ivy zlfu = (ztfc[ixl, jyf, kzlfu] + ztfc[ixl, jyf + 1, kzlfu]) / 2
 
-    kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
+    kzrbu = get_next_level(ixr, jyb, zlc, state)
     kzrbd = kzrbu - 1
     @ivy zrbd = (ztfc[ixr, jyb, kzrbd] + ztfc[ixr, jyb + 1, kzrbd]) / 2
     @ivy zrbu = (ztfc[ixr, jyb, kzrbu] + ztfc[ixr, jyb + 1, kzrbu]) / 2
 
-    kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
+    kzrfu = get_next_level(ixr, jyf, zlc, state)
     kzrfd = kzrfu - 1
     @ivy zrfd = (ztfc[ixr, jyf, kzrfd] + ztfc[ixr, jyf + 1, kzrfd]) / 2
     @ivy zrfu = (ztfc[ixr, jyf, kzrfu] + ztfc[ixr, jyf + 1, kzrfu]) / 2
@@ -614,22 +614,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
+    kzlbu = get_next_level(ixl, jyb, zlc, state)
     kzlbd = kzlbu - 1
     @ivy zlbd = ztfc[ixl, jyb, kzlbd]
     @ivy zlbu = ztfc[ixl, jyb, kzlbu]
 
-    kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
+    kzlfu = get_next_level(ixl, jyf, zlc, state)
     kzlfd = kzlfu - 1
     @ivy zlfd = ztfc[ixl, jyf, kzlfd]
     @ivy zlfu = ztfc[ixl, jyf, kzlfu]
 
-    kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
+    kzrbu = get_next_level(ixr, jyb, zlc, state)
     kzrbd = kzrbu - 1
     @ivy zrbd = ztfc[ixr, jyb, kzrbd]
     @ivy zrbu = ztfc[ixr, jyb, kzrbu]
 
-    kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
+    kzrfu = get_next_level(ixr, jyf, zlc, state)
     kzrfd = kzrfu - 1
     @ivy zrfd = ztfc[ixr, jyf, kzrfd]
     @ivy zrfu = ztfc[ixr, jyf, kzrfu]
@@ -737,7 +737,7 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
+    kzlbu = get_next_level(ixl, jyb, zlc, state)
     kzlbd = kzlbu - 1
     @ivy zlbd =
         (
@@ -754,7 +754,7 @@ function interpolate_mean_flow(
             ztfc[ixl + 1, jyb + 1, kzlbu]
         ) / 4
 
-    kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
+    kzlfu = get_next_level(ixl, jyf, zlc, state)
     kzlfd = kzlfu - 1
     @ivy zlfd =
         (
@@ -771,7 +771,7 @@ function interpolate_mean_flow(
             ztfc[ixl + 1, jyf + 1, kzlfu]
         ) / 4
 
-    kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
+    kzrbu = get_next_level(ixr, jyb, zlc, state)
     kzrbd = kzrbu - 1
     @ivy zrbd =
         (
@@ -788,7 +788,7 @@ function interpolate_mean_flow(
             ztfc[ixr + 1, jyb + 1, kzrbu]
         ) / 4
 
-    kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
+    kzrfu = get_next_level(ixr, jyf, zlc, state)
     kzrfd = kzrfu - 1
     @ivy zrfd =
         (
@@ -1039,7 +1039,7 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
+    kzlbu = get_next_level(ixl, jyb, zlc, state)
     kzlbd = kzlbu - 1
     @ivy zlbd =
         (
@@ -1056,7 +1056,7 @@ function interpolate_mean_flow(
             ztfc[ixl + 1, jyb + 1, kzlbu]
         ) / 4
 
-    kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
+    kzlfu = get_next_level(ixl, jyf, zlc, state)
     kzlfd = kzlfu - 1
     @ivy zlfd =
         (
@@ -1073,7 +1073,7 @@ function interpolate_mean_flow(
             ztfc[ixl + 1, jyf + 1, kzlfu]
         ) / 4
 
-    kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
+    kzrbu = get_next_level(ixr, jyb, zlc, state)
     kzrbd = kzrbu - 1
     @ivy zrbd =
         (
@@ -1090,7 +1090,7 @@ function interpolate_mean_flow(
             ztfc[ixr + 1, jyb + 1, kzrbu]
         ) / 4
 
-    kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
+    kzrfu = get_next_level(ixr, jyf, zlc, state)
     kzrfd = kzrfu - 1
     @ivy zrfd =
         (
@@ -1214,22 +1214,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
+    kzlbu = get_next_level(ixl, jyb, zlc, state)
     kzlbd = kzlbu - 1
     @ivy zlbd = ztfc[ixl, jyb, kzlbd]
     @ivy zlbu = ztfc[ixl, jyb, kzlbu]
 
-    kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
+    kzlfu = get_next_level(ixl, jyf, zlc, state)
     kzlfd = kzlfu - 1
     @ivy zlfd = ztfc[ixl, jyf, kzlfd]
     @ivy zlfu = ztfc[ixl, jyf, kzlfu]
 
-    kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
+    kzrbu = get_next_level(ixr, jyb, zlc, state)
     kzrbd = kzrbu - 1
     @ivy zrbd = ztfc[ixr, jyb, kzrbd]
     @ivy zrbu = ztfc[ixr, jyb, kzrbu]
 
-    kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
+    kzrfu = get_next_level(ixr, jyf, zlc, state)
     kzrfd = kzrfu - 1
     @ivy zrfd = ztfc[ixr, jyf, kzrfd]
     @ivy zrfu = ztfc[ixr, jyf, kzrfu]

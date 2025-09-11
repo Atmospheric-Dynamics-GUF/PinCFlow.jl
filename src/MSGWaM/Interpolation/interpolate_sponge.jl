@@ -67,22 +67,22 @@ function interpolate_sponge(
     # Determine closest points in vertical direction and set interpolation
     # values.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
+    kzlbu = get_next_level(ixl, jyb, zlc, state)
     kzlbd = kzlbu - 1
     @ivy zlbd = ztfc[ixl, jyb, kzlbd]
     @ivy zlbu = ztfc[ixl, jyb, kzlbu]
 
-    kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
+    kzlfu = get_next_level(ixl, jyf, zlc, state)
     kzlfd = kzlfu - 1
     @ivy zlfd = ztfc[ixl, jyf, kzlfd]
     @ivy zlfu = ztfc[ixl, jyf, kzlfu]
 
-    kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
+    kzrbu = get_next_level(ixr, jyb, zlc, state)
     kzrbd = kzrbu - 1
     @ivy zrbd = ztfc[ixr, jyb, kzrbd]
     @ivy zrbu = ztfc[ixr, jyb, kzrbu]
 
-    kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
+    kzrfu = get_next_level(ixr, jyf, zlc, state)
     kzrfd = kzrfu - 1
     @ivy zrfd = ztfc[ixr, jyf, kzrfd]
     @ivy zrfu = ztfc[ixr, jyf, kzrfu]

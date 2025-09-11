@@ -14,7 +14,7 @@ This method is heavily used for interpolation to ray-volume positions. To ensure
 
   - In MPI processes at the lower boundary of the domain, the returned index cannot be smaller than `state.domain.k0`, in other processes, it cannot be smaller than 3.
 
-  - In MPI processes at the upper boundary of the domain, the returned index cannot be larger than `state.domain.k1`, in other processes, it cannot be larger than `domain.nzz - 1`.
+  - In MPI processes at the upper boundary of the domain, the returned index cannot be larger than `state.domain.k1`, in other processes, it cannot be larger than `state.domain.nzz - 1`.
 
 # Arguments
 
