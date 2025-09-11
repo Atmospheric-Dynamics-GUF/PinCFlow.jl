@@ -184,7 +184,9 @@ Contributions to the code should respect the following rules.
 
   - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
-  - Use `@views` in front of expressions that create slices.
+  - Use PinCFlow's `@ivy` in front of expressions that access elements of arrays/tuples.
+
+  - Always apply macros to the outermost expression block possible but do not create new blocks for this purpose.
 
   - Do not use Unicode.
 
