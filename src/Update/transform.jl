@@ -14,7 +14,7 @@ transform(
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
     coordinate::Cartesian,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
 ```
 
@@ -41,7 +41,7 @@ transform(
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
     coordinate::Transformed,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
 ```
 
@@ -81,7 +81,7 @@ The discretized transformation rule for the vertical wind is given by
 
   - `coordinate`: Coordinate system to transform to.
 
-  - `grid`: Collection of parameters and fields that describe the grid.
+  - `state`: Model state.
 """
 function transform end
 
@@ -99,9 +99,9 @@ function transform(
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
     coordinate::Cartesian,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
-    (; jac, met) = grid
+    (; jac, met) = state.grid
 
     @ivy jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
@@ -136,9 +136,9 @@ function transform(
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
     coordinate::Transformed,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
-    (; jac, met) = grid
+    (; jac, met) = state.grid
 
     @ivy jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /

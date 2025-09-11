@@ -886,7 +886,7 @@ function update!(
             fluxdiffv[2, 2],
             fluxdiff,
             Transformed(),
-            grid,
+            state,
         )
 
         # Explicit integration of Coriolis force in TFC.

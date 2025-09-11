@@ -58,6 +58,6 @@ function compute_vertical_wind(
         vuedgeb,
         wedgeu,
         Cartesian(),
-        state.grid,
+        state,
     )
 end
