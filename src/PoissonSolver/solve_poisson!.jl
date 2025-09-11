@@ -2,10 +2,9 @@
 ```julia
 solve_poisson!(
     state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    tolref::AbstractFloat,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
+    tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
 ```
 
@@ -23,13 +22,11 @@ is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \
 
   - `state`: Model state.
 
-  - `b`: Right-hand side.
-
-  - `tolref`: Reference tolerance for convergence criterion.
-
   - `dt`: Time step.
 
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
+
+  - `tolref`: Reference tolerance for convergence criterion.
 
 # See also
 
@@ -41,18 +38,17 @@ function solve_poisson! end
 
 function solve_poisson!(
     state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    tolref::AbstractFloat,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
+    tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
     (; namelists, domain, grid, poisson) = state
     (; i0, i1, j0, j1, k0, k1) = domain
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; dpip) = state.variables.increments
+    (; rhs, solution) = state.poisson
 
-    sol = state.poisson.solution
-    sol .= 0.0
+    solution .= 0.0
 
     if dt == 0.0
         error("Error in solve_poisson!: dt = 0.0!")
@@ -62,7 +58,7 @@ function solve_poisson!(
     compute_operator!(state, dt, rayleigh_factor)
 
     (errflagbicg, niterbicg) =
-        apply_bicgstab!(b, tolref, sol, namelists, domain, grid, poisson)
+        apply_bicgstab!(rhs, tolref, solution, namelists, domain, grid, poisson)
 
     if errflagbicg
         return (errflagbicg, niterbicg)
@@ -72,10 +68,11 @@ function solve_poisson!(
     jj = j0:j1
     kk = k0:k1
 
-    @ivy sol ./= sqrt.(pstrattfc[ii, jj, kk] .^ 2 ./ rhostrattfc[ii, jj, kk])
+    @ivy solution ./=
+        sqrt.(pstrattfc[ii, jj, kk] .^ 2 ./ rhostrattfc[ii, jj, kk])
 
     # Pass solution to pressure correction.
-    @ivy dpip[ii, jj, kk] .= dtinv .* sol
+    @ivy dpip[ii, jj, kk] .= dtinv .* solution
 
     return (errflagbicg, niterbicg)
 end
