@@ -57,8 +57,7 @@ function solve_poisson!(
 
     compute_operator!(state, dt, rayleigh_factor)
 
-    (errflagbicg, niterbicg) =
-        apply_bicgstab!(rhs, tolref, solution, namelists, domain, grid, poisson)
+    (errflagbicg, niterbicg) = apply_bicgstab!(state, tolref)
 
     if errflagbicg
         return (errflagbicg, niterbicg)

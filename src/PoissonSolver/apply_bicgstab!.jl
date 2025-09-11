@@ -1,13 +1,8 @@
 """
 ```julia
 apply_bicgstab!(
-    b::AbstractArray{<:AbstractFloat, 3},
+    state::State,
     tolref::AbstractFloat,
-    sol::AbstractArray{<:AbstractFloat, 3},
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    poisson::Poisson,
 )::Tuple{Bool, <:Integer}
 ```
 
@@ -15,19 +10,9 @@ Solve the Poisson equation using a preconditioned BicGStab algorithm and return 
 
 # Arguments
 
-  - `b`: Right-hand side.
+  - `state`: Model state.
 
   - `tolref`: Reference tolerance for convergence criterion.
-
-  - `sol`: Solution (Exner-pressure differences).
-
-  - `namelists`: Namelists with all model parameters.
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
-
-  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # See also
 
@@ -40,19 +25,16 @@ Solve the Poisson equation using a preconditioned BicGStab algorithm and return 
 function apply_bicgstab! end
 
 function apply_bicgstab!(
-    b::AbstractArray{<:AbstractFloat, 3},
+    state::State,
     tolref::AbstractFloat,
-    sol::AbstractArray{<:AbstractFloat, 3},
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    poisson::Poisson,
 )::Tuple{Bool, <:Integer}
-    (; sizex, sizey, sizez) = namelists.domain
+    (; namelists, domain, grid, poisson) = state
+    (; sizex, sizey, sizez) = state.namelists.domain
     (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
-        namelists.poisson
-    (; master, comm, nx, ny, nz, column_comm, layer_comm) = domain
-    (; r_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = poisson.bicgstab
+        state.namelists.poisson
+    (; master, comm, column_comm, layer_comm) = state.domain
+    (; rhs, solution) = state.poisson
+    (; r_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = state.poisson.bicgstab
 
     # Print information.
     if master
@@ -63,7 +45,7 @@ function apply_bicgstab!(
     end
 
     # Initialize solution.
-    sol .= 0.0
+    solution .= 0.0
 
     # Set parameters.
     maxit = maxiterpoisson
@@ -77,8 +59,8 @@ function apply_bicgstab!(
     # Set error flag.
     errflag = false
 
-    apply_operator!(sol, matvec, Total(), namelists, domain, poisson)
-    r0 .= b .- matvec
+    apply_operator!(solution, matvec, Total(), namelists, domain, poisson)
+    r0 .= rhs .- matvec
     p .= r0
     r .= r0
 
@@ -138,7 +120,7 @@ function apply_bicgstab!(
         omega =
             compute_global_dot_product(t, s, domain) /
             compute_global_dot_product(t, t, domain)
-        sol .+= alpha .* p .+ omega .* s
+        solution .+= alpha .* p .+ omega .* s
 
         rold .= r
         r .= s .- omega .* t
@@ -168,8 +150,15 @@ function apply_bicgstab!(
             niter = j_b
 
             if preconditioner
-                s .= sol
-                apply_preconditioner!(s, sol, namelists, domain, grid, poisson)
+                s .= solution
+                apply_preconditioner!(
+                    s,
+                    solution,
+                    namelists,
+                    domain,
+                    grid,
+                    poisson,
+                )
             end
 
             return (errflag, niter)
