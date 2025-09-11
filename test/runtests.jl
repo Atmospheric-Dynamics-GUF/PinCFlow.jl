@@ -93,8 +93,6 @@ configurations = Dict(
                         stretch_exponent = 1.2E+0,
                     )
 
-                    ice = IceNamelist(; icesetup = NoIce())
-
                     output = OutputNamelist(;
                         output_variables = (),
                         save_ray_volumes = true,
