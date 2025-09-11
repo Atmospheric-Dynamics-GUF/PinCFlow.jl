@@ -101,7 +101,7 @@ function interpolate_sponge(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,

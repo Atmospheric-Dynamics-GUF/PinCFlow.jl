@@ -244,7 +244,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
@@ -368,7 +368,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
@@ -524,7 +524,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
@@ -650,7 +650,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
@@ -821,7 +821,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
@@ -952,7 +952,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
@@ -1123,7 +1123,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
@@ -1250,7 +1250,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
@@ -1381,7 +1381,7 @@ function interpolate_mean_flow(
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,
