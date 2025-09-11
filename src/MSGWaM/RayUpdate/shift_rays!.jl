@@ -241,7 +241,7 @@ function shift_rays!(state::State, direction::Z)
 
         for iray in 1:nray[ixrv, jyrv, kzrv]
             zr = rays.z[iray, ixrv, jyrv, kzrv]
-            kz = get_next_half_level(ixrv, jyrv, zr, domain, grid)
+            kz = get_next_half_level(ixrv, jyrv, zr, state)
 
             if kz != kzrv
                 if abs(kz - kzrv) > 1

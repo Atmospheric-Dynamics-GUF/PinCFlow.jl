@@ -4,8 +4,7 @@ get_next_half_level(
     i::Integer,
     j::Integer,
     z::AbstractFloat,
-    domain::Domain,
-    grid::Grid,
+    state::State,
 )::Integer
 ```
 
@@ -13,9 +12,9 @@ Determine and return the index of the next half-level above `z` at the horizonta
 
 This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
 
-  - In MPI processes at the lower boundary of the domain, the returned index cannot be smaller than `domain.k0`, in other processes, it cannot be smaller than 3.
+  - In MPI processes at the lower boundary of the domain, the returned index cannot be smaller than `state.domain.k0`, in other processes, it cannot be smaller than 3.
 
-  - In MPI processes at the upper boundary of the domain, the returned index cannot be larger than `domain.k1`, in other processes, it cannot be larger than `domain.nzz - 1`.
+  - In MPI processes at the upper boundary of the domain, the returned index cannot be larger than `state.domain.k1`, in other processes, it cannot be larger than `domain.nzz - 1`.
 
 # Arguments
 
@@ -25,9 +24,7 @@ This method is heavily used for interpolation to ray-volume positions. To ensure
 
   - `z`: Vertical position.
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
+  - `state`: Model state.
 """
 function get_next_half_level end
 
@@ -35,11 +32,10 @@ function get_next_half_level(
     i::Integer,
     j::Integer,
     z::AbstractFloat,
-    domain::Domain,
-    grid::Grid,
+    state::State,
 )::Integer
-    (; sizezz, nzz, ko, k0, k1) = domain
-    (; ztildetfc) = grid
+    (; sizezz, nzz, ko, k0, k1) = state.domain
+    (; ztildetfc) = state.grid
 
     @ivy k = argmin(abs.(ztildetfc[i, j, :] .- z))
     @ivy if ztildetfc[i, j, k] < z

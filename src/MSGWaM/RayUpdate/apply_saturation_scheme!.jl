@@ -165,7 +165,7 @@ function apply_saturation_scheme!(
                 jy = j0
             end
 
-            kz = get_next_half_level(ix, jy, zr, domain, grid)
+            kz = get_next_half_level(ix, jy, zr, state)
 
             wnrk = rays.k[iray, ix, jy, kz]
             wnrl = rays.l[iray, ix, jy, kz]

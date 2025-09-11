@@ -92,7 +92,7 @@ function compute_saturation_integrals(
             jy = j0
         end
 
-        kz = get_next_half_level(ix, jy, zr, domain, grid)
+        kz = get_next_half_level(ix, jy, zr, state)
 
         n2r = interpolate_stratification(zr, state, N2())
 

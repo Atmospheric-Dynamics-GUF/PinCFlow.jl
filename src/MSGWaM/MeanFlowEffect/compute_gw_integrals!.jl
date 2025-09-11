@@ -167,10 +167,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         fcpspy = 1.0
                     end
 
-                    kzmin =
-                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
-                    kzmax =
-                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+                    kzmin = get_next_half_level(ix, jy, zr - dzr / 2, state)
+                    kzmax = get_next_half_level(ix, jy, zr + dzr / 2, state)
 
                     for kz in kzmin:kzmax
                         dzi =
@@ -335,10 +333,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                         fcpspy = 1.0
                     end
 
-                    kzmin =
-                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
-                    kzmax =
-                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+                    kzmin = get_next_half_level(ix, jy, zr - dzr / 2, state)
+                    kzmax = get_next_half_level(ix, jy, zr + dzr / 2, state)
 
                     for kz in kzmin:kzmax
                         dzi =
@@ -472,10 +468,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                         fcpspy = 1.0
                     end
 
-                    kzmin =
-                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
-                    kzmax =
-                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+                    kzmin = get_next_half_level(ix, jy, zr - dzr / 2, state)
+                    kzmax = get_next_half_level(ix, jy, zr + dzr / 2, state)
 
                     for kz in kzmin:kzmax
                         dzi =
