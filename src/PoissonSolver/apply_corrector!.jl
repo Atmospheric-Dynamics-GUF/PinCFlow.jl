@@ -41,15 +41,11 @@ function apply_corrector!(
     rayleigh_factor::AbstractFloat,
 )::Tuple{Bool, <:Integer}
     (; namelists, domain) = state
-    (; model) = namelists.setting
     (; rhs) = state.poisson
     (; dpip) = state.variables.increments
 
-    # Initialize RHS.
-    rhs .= 0.0
-
     # Calculate RHS and tolreance reference.
-    tolref = compute_rhs!(state, rhs, model)
+    tolref = compute_rhs!(state)
 
     # Solve Poisson equation.
     (errflagbicg, niterbicg) =

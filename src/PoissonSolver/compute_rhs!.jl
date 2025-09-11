@@ -1,10 +1,12 @@
 """
 ```julia
-compute_rhs!(
-    state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    model::AbstractModel,
-)::AbstractFloat
+compute_rhs!(state::State)::AbstractFloat
+```
+
+Compute the scaled right-hand side of the Poisson equation and return a reference tolerance for the convergence criterion by dispatching to a model-specific method.
+
+```julia
+compute_rhs!(state::State, model::AbstractModel)::AbstractFloat
 ```
 
 Compute the scaled right-hand side of the Poisson equation in pseudo-incompressible/Boussinesq mode and return a reference tolerance for the convergence criterion.
@@ -24,11 +26,7 @@ and the reference tolerance is given by
 where ``b_u``, ``b_v`` and ``b_{\\widehat{w}}`` are the zonal, meridional and vertical parts of ``b``, respectively. Note that in Boussinesq mode, ``P = \\mathrm{const}`` will cancel out, so that the appropriate divergence constraint remains.
 
 ```julia
-compute_rhs!(
-    state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    model::Compressible,
-)::AbstractFloat
+compute_rhs!(state::State, model::Compressible)::AbstractFloat
 ```
 
 Compute the scaled right-hand side of the Poisson equation in compressible mode and return a reference tolerance for the convergence criterion.
@@ -45,8 +43,6 @@ where ``S`` is the diabatic heating, as computed by `compute_volume_force`, and 
 
   - `state`: Model state.
 
-  - `b`: Output array containing the right-hand side.
-
   - `model`: Dynamic equations.
 
 # See also
@@ -55,17 +51,19 @@ where ``S`` is the diabatic heating, as computed by `compute_volume_force`, and 
 """
 function compute_rhs! end
 
-function compute_rhs!(
-    state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    model::AbstractModel,
-)::AbstractFloat
+function compute_rhs!(state::State)::AbstractFloat
+    (; model) = state.namelists.setting
+    return compute_rhs!(state, model)
+end
+
+function compute_rhs!(state::State, model::AbstractModel)::AbstractFloat
     (; sizex, sizey, sizez) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; u, v, w) = state.variables.predictands
+    (; rhs) = state.poisson
 
     # Initialize summation variables.
     divl2 = 0.0
@@ -124,9 +122,9 @@ function compute_rhs!(
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
-        b[ib, jb, kb] = bu + bv + bw
+        rhs[ib, jb, kb] = bu + bv + bw
         # Compute check sum for solvability criterion.
-        divl2 += b[ib, jb, kb]^2.0
+        divl2 += rhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0
     end
 
@@ -149,17 +147,14 @@ function compute_rhs!(
     return tolref
 end
 
-function compute_rhs!(
-    state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    model::Compressible,
-)::AbstractFloat
+function compute_rhs!(state::State, model::Compressible)::AbstractFloat
     (; sizex, sizey, sizez) = state.namelists.domain
     (; ma, kappa) = state.constants
-    (; comm, nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; u, v, w) = state.variables.predictands
+    (; rhs) = state.poisson
 
     # Initialize summation fields.
     divl2 = 0.0
@@ -190,9 +185,9 @@ function compute_rhs!(
         bv /= fcscal
         bw /= fcscal
         heating /= fcscal
-        b[ib, jb, kb] = bu + bv + bw - heating
+        rhs[ib, jb, kb] = bu + bv + bw - heating
         # Compute check sum for solvability criterion.
-        divl2 += b[ib, jb, kb]^2.0
+        divl2 += rhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0
     end
 
