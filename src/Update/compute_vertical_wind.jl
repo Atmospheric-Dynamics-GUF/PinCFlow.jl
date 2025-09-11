@@ -4,8 +4,7 @@ compute_vertical_wind(
     i::Integer,
     j::Integer,
     k::Integer,
-    predictands::Predictands,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
 ```
 
@@ -19,9 +18,7 @@ Compute and return the Cartesian vertical wind at the grid point `(i, j, k + 1 /
 
   - `k`: Vertical grid-cell index.
 
-  - `predictands`: Prognostic variables.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
+  - `state`: Model state.
 
 # See also
 
@@ -33,10 +30,9 @@ function compute_vertical_wind(
     i::Integer,
     j::Integer,
     k::Integer,
-    predictands::Predictands,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
-    (; u, v, w) = predictands
+    (; u, v, w) = state.variables.predictands
 
     @ivy uedger = u[i, j, k]
     @ivy uuedger = u[i, j, k + 1]
@@ -62,6 +58,6 @@ function compute_vertical_wind(
         vuedgeb,
         wedgeu,
         Cartesian(),
-        grid,
+        state.grid,
     )
 end

@@ -483,10 +483,10 @@ function interpolate_mean_flow(
         philbu = 0.0
     elseif zlbd < topography_surface[ixl, jyb]
         philbd = 0.0
-        philbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
+        philbu = compute_vertical_wind(ixl, jyb, kzlbu, state)
     else
-        philbd = compute_vertical_wind(ixl, jyb, kzlbd, predictands, grid)
-        philbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
+        philbd = compute_vertical_wind(ixl, jyb, kzlbd, state)
+        philbu = compute_vertical_wind(ixl, jyb, kzlbu, state)
     end
 
     @ivy if zlfu < topography_surface[ixl, jyf]
@@ -494,10 +494,10 @@ function interpolate_mean_flow(
         philfu = 0.0
     elseif zlfd < topography_surface[ixl, jyf]
         philfd = 0.0
-        philfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
+        philfu = compute_vertical_wind(ixl, jyf, kzlfu, state)
     else
-        philfd = compute_vertical_wind(ixl, jyf, kzlfd, predictands, grid)
-        philfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
+        philfd = compute_vertical_wind(ixl, jyf, kzlfd, state)
+        philfu = compute_vertical_wind(ixl, jyf, kzlfu, state)
     end
 
     @ivy if zrbu < topography_surface[ixr, jyb]
@@ -505,10 +505,10 @@ function interpolate_mean_flow(
         phirbu = 0.0
     elseif zrbd < topography_surface[ixr, jyb]
         phirbd = 0.0
-        phirbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
+        phirbu = compute_vertical_wind(ixr, jyb, kzrbu, state)
     else
-        phirbd = compute_vertical_wind(ixr, jyb, kzrbd, predictands, grid)
-        phirbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
+        phirbd = compute_vertical_wind(ixr, jyb, kzrbd, state)
+        phirbu = compute_vertical_wind(ixr, jyb, kzrbu, state)
     end
 
     @ivy if zrfu < topography_surface[ixr, jyf]
@@ -516,10 +516,10 @@ function interpolate_mean_flow(
         phirfu = 0.0
     elseif zrfd < topography_surface[ixr, jyf]
         phirfd = 0.0
-        phirfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
+        phirfu = compute_vertical_wind(ixr, jyf, kzrfu, state)
     else
-        phirfd = compute_vertical_wind(ixr, jyf, kzrfd, predictands, grid)
-        phirfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
+        phirfd = compute_vertical_wind(ixr, jyf, kzrfd, state)
+        phirfu = compute_vertical_wind(ixr, jyf, kzrfu, state)
     end
 
     # Interpolate.

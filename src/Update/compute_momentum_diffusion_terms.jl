@@ -317,20 +317,20 @@ function compute_momentum_diffusion_terms(
 
     wr =
         0.5 * (
-            compute_vertical_wind(i + 1, j, k, predictands, grid) +
-            compute_vertical_wind(i + 1, j, k - 1, predictands, grid)
+            compute_vertical_wind(i + 1, j, k, state) +
+            compute_vertical_wind(i + 1, j, k - 1, state)
         )
     wl =
         0.5 * (
-            compute_vertical_wind(i - 1, j, k, predictands, grid) +
-            compute_vertical_wind(i - 1, j, k - 1, predictands, grid)
+            compute_vertical_wind(i - 1, j, k, state) +
+            compute_vertical_wind(i - 1, j, k - 1, state)
         )
 
     @ivy diffwx =
         (wr - wl) / (2.0 * dx) +
         met[i, j, k, 1, 3] * (
-            compute_vertical_wind(i, j, k, predictands, grid) -
-            compute_vertical_wind(i, j, k - 1, predictands, grid)
+            compute_vertical_wind(i, j, k, state) -
+            compute_vertical_wind(i, j, k - 1, state)
         ) / dz
 
     return diffwx
@@ -350,20 +350,20 @@ function compute_momentum_diffusion_terms(
 
     wf =
         0.5 * (
-            compute_vertical_wind(i, j + 1, k, predictands, grid) +
-            compute_vertical_wind(i, j + 1, k - 1, predictands, grid)
+            compute_vertical_wind(i, j + 1, k, state) +
+            compute_vertical_wind(i, j + 1, k - 1, state)
         )
     wb =
         0.5 * (
-            compute_vertical_wind(i, j - 1, k, predictands, grid) +
-            compute_vertical_wind(i, j - 1, k - 1, predictands, grid)
+            compute_vertical_wind(i, j - 1, k, state) +
+            compute_vertical_wind(i, j - 1, k - 1, state)
         )
 
     @ivy diffwy =
         (wf - wb) / (2.0 * dy) +
         met[i, j, k, 2, 3] * (
-            compute_vertical_wind(i, j, k, predictands, grid) -
-            compute_vertical_wind(i, j, k - 1, predictands, grid)
+            compute_vertical_wind(i, j, k, state) -
+            compute_vertical_wind(i, j, k - 1, state)
         ) / dz
 
     return diffwy
@@ -383,31 +383,31 @@ function compute_momentum_diffusion_terms(
 
     wr =
         0.5 * (
-            compute_vertical_wind(i + 1, j, k, predictands, grid) +
-            compute_vertical_wind(i + 1, j, k - 1, predictands, grid)
+            compute_vertical_wind(i + 1, j, k, state) +
+            compute_vertical_wind(i + 1, j, k - 1, state)
         )
     wl =
         0.5 * (
-            compute_vertical_wind(i - 1, j, k, predictands, grid) +
-            compute_vertical_wind(i - 1, j, k - 1, predictands, grid)
+            compute_vertical_wind(i - 1, j, k, state) +
+            compute_vertical_wind(i - 1, j, k - 1, state)
         )
     wf =
         0.5 * (
-            compute_vertical_wind(i, j + 1, k, predictands, grid) +
-            compute_vertical_wind(i, j + 1, k - 1, predictands, grid)
+            compute_vertical_wind(i, j + 1, k, state) +
+            compute_vertical_wind(i, j + 1, k - 1, state)
         )
     wb =
         0.5 * (
-            compute_vertical_wind(i, j - 1, k, predictands, grid) +
-            compute_vertical_wind(i, j - 1, k - 1, predictands, grid)
+            compute_vertical_wind(i, j - 1, k, state) +
+            compute_vertical_wind(i, j - 1, k - 1, state)
         )
 
     @ivy diffwz =
         met[i, j, k, 1, 3] * (wr - wl) / (2.0 * dx) +
         met[i, j, k, 2, 3] * (wf - wb) / (2.0 * dy) +
         met[i, j, k, 3, 3] * (
-            compute_vertical_wind(i, j, k, predictands, grid) -
-            compute_vertical_wind(i, j, k - 1, predictands, grid)
+            compute_vertical_wind(i, j, k, state) -
+            compute_vertical_wind(i, j, k - 1, state)
         ) / dz
 
     return diffwz

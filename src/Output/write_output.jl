@@ -205,8 +205,8 @@ function write_output(
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
                     return (
-                        compute_vertical_wind(i, j, k, predictands, grid) +
-                        compute_vertical_wind(i, j, k - 1, predictands, grid)
+                        compute_vertical_wind(i, j, k, state) +
+                        compute_vertical_wind(i, j, k - 1, state)
                     ) / 2 * uref
                 end
         end
@@ -217,8 +217,7 @@ function write_output(
             file["ws"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return compute_vertical_wind(i, j, k, predictands, grid) *
-                           uref
+                    return compute_vertical_wind(i, j, k, state) * uref
                 end
         end
 

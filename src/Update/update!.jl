@@ -359,7 +359,6 @@ function update!(
     integration::Explicit,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; grid) = state
     (; g_ndim) = state.constants
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; predictands) = state.variables
@@ -370,8 +369,8 @@ function update!(
         jpd = compute_compressible_wind_factor(state, (i, j, k - 1), W())
         wvrt =
             0.5 * (
-                compute_vertical_wind(i, j, k, predictands, grid) / jpu +
-                compute_vertical_wind(i, j, k - 1, predictands, grid) / jpd
+                compute_vertical_wind(i, j, k, state) / jpu +
+                compute_vertical_wind(i, j, k - 1, state) / jpd
             )
 
         buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])

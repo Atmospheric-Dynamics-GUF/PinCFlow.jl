@@ -89,13 +89,8 @@ function compute_time_step(state::State)::AbstractFloat
                 cfl * jac[i, j, k] * dz / (
                     abs(
                         0.5 * (
-                            compute_vertical_wind(i, j, k, predictands, grid) + compute_vertical_wind(
-                                i,
-                                j,
-                                k - 1,
-                                predictands,
-                                grid,
-                            )
+                            compute_vertical_wind(i, j, k, state) +
+                            compute_vertical_wind(i, j, k - 1, state)
                         ),
                     ) + eps()
                 ),

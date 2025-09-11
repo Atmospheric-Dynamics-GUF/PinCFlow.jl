@@ -85,23 +85,23 @@ function compute_stress_tensor(
     @ivy vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
     wr =
         0.5 * (
-            compute_vertical_wind(i + 1, j, k, predictands, grid) +
-            compute_vertical_wind(i + 1, j, k - 1, predictands, grid)
+            compute_vertical_wind(i + 1, j, k, state) +
+            compute_vertical_wind(i + 1, j, k - 1, state)
         )
     wl =
         0.5 * (
-            compute_vertical_wind(i - 1, j, k, predictands, grid) +
-            compute_vertical_wind(i - 1, j, k - 1, predictands, grid)
+            compute_vertical_wind(i - 1, j, k, state) +
+            compute_vertical_wind(i - 1, j, k - 1, state)
         )
     wf =
         0.5 * (
-            compute_vertical_wind(i, j + 1, k, predictands, grid) +
-            compute_vertical_wind(i, j + 1, k - 1, predictands, grid)
+            compute_vertical_wind(i, j + 1, k, state) +
+            compute_vertical_wind(i, j + 1, k - 1, state)
         )
     wb =
         0.5 * (
-            compute_vertical_wind(i, j - 1, k, predictands, grid) +
-            compute_vertical_wind(i, j - 1, k - 1, predictands, grid)
+            compute_vertical_wind(i, j - 1, k, state) +
+            compute_vertical_wind(i, j - 1, k - 1, state)
         )
 
     @ivy if mu == 1 && nu == 1
@@ -124,8 +124,8 @@ function compute_stress_tensor(
             0.5 * (uu - ud) / dz / jac[i, j, k] +
             0.5 * (wr - wl) / dx +
             met[i, j, k, 1, 3] * (
-                compute_vertical_wind(i, j, k, predictands, grid) -
-                compute_vertical_wind(i, j, k - 1, predictands, grid)
+                compute_vertical_wind(i, j, k, state) -
+                compute_vertical_wind(i, j, k - 1, state)
             ) / dz
     elseif mu == 2 && nu == 2
         stress_tensor =
@@ -141,14 +141,14 @@ function compute_stress_tensor(
             0.5 * (vu - vd) / dz / jac[i, j, k] +
             0.5 * (wf - wb) / dy +
             met[i, j, k, 2, 3] * (
-                compute_vertical_wind(i, j, k, predictands, grid) -
-                compute_vertical_wind(i, j, k - 1, predictands, grid)
+                compute_vertical_wind(i, j, k, state) -
+                compute_vertical_wind(i, j, k - 1, state)
             ) / dz
     elseif mu == 3 && nu == 3
         stress_tensor =
             2.0 * (
-                compute_vertical_wind(i, j, k, predictands, grid) -
-                compute_vertical_wind(i, j, k - 1, predictands, grid)
+                compute_vertical_wind(i, j, k, state) -
+                compute_vertical_wind(i, j, k - 1, state)
             ) / dz / jac[i, j, k] -
             2.0 / 3.0 * (
                 (jacedger * u[i, j, k] - jacedgel * u[i - 1, j, k]) / dx +
