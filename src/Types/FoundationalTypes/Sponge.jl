@@ -104,7 +104,6 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
     # Initialize the auxiliary array for horizontal means.
     horizontal_mean = zeros(nz)
 
-    # Return a Sponge instance.
     return Sponge(
         alphar,
         betar,

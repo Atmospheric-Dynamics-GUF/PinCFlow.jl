@@ -56,6 +56,5 @@ function apply_3d_muscl!(
         apply_1d_muscl!(phi[ix, jy, :], phitilde[ix, jy, :, 3, :], nzz)
     end
 
-    # Return.
     return
 end

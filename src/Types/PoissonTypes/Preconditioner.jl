@@ -42,11 +42,7 @@ struct Preconditioner{
 end
 
 function Preconditioner(domain::Domain)::Preconditioner
-
-    # Get all necessary fields.
     (; nx, ny, nz) = domain
-
-    # Return a Preconditioner instance.
     return Preconditioner(
         [zeros(nx, ny, nz) for i in 1:2]...,
         [zeros(nx, ny) for i in 1:3]...,

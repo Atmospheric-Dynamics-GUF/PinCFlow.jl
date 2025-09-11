@@ -565,7 +565,6 @@ function update!(
         u[i, j, k] = uast
     end
 
-    # Return.
     return
 end
 
@@ -719,7 +718,6 @@ function update!(
         v[i, j, k] = vast
     end
 
-    # Return.
     return
 end
 

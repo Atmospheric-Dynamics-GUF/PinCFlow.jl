@@ -110,6 +110,5 @@ function Predictands(
     @ivy v .= backgroundflow_dim[2] / uref
     @ivy w .= backgroundflow_dim[3] / uref
 
-    # Return a Predictands instance.
     return Predictands(rho, rhop, u, v, w, pip, p)
 end

@@ -36,6 +36,5 @@ function Time()::Time
     betark = [1.0 / 3.0, 15.0 / 16.0, 8.0 / 15.0]
     stepfrac = [1.0 / 3.0, 5.0 / 12.0, 1.0 / 4.0]
 
-    # Return a Time instance.
     return Time(nstages, alphark, betark, stepfrac)
 end

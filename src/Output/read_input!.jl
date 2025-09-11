@@ -12,8 +12,6 @@ Read initial values for all prognostic variables from an HDF5 input file.
 function read_input! end
 
 function read_input!(state::State)
-
-    # Get all necessary fields.
     (; sizex, sizey) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model, testcase) = state.namelists.setting
@@ -114,10 +112,8 @@ function read_input!(state::State)
             end
         end
 
-        # Return.
         return time
     end
 
-    # Return.
     return time
 end

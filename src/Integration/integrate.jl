@@ -94,13 +94,11 @@ function integrate(namelists::Namelists)
     # Save machine start time.
     machine_start_time = now()
 
-    # Get all necessary fields.
     (; npx, npy, npz) = state.namelists.domain
     (; initialcleaning) = state.namelists.poisson
     (; dtmin_dim) = state.namelists.discretization
     (; restart, maxtime, outputtimediff, output_steps, maxiter, noutput) =
         state.namelists.output
-    (; nstages, stepfrac) = state.time
     (; tref) = state.constants
     (; master) = state.domain
 

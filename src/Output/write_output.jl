@@ -68,8 +68,6 @@ function write_output(
     iout::Integer,
     machine_start_time::DateTime,
 )::Integer
-
-    # Get all necessary fields.
     (; domain, grid) = state
     (; sizex, sizey, sizez) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
@@ -339,10 +337,8 @@ function write_output(
             end
         end
 
-        # Return.
         return
     end
 
-    # Return.
     return iout
 end

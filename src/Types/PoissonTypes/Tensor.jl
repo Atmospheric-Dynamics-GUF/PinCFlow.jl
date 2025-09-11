@@ -103,7 +103,5 @@ end
 
 function Tensor(domain::Domain)::Tensor
     (; nx, ny, nz) = domain
-
-    # Return a Tensor instance.
     return Tensor([zeros(nx, ny, nz) for i in 1:27]...)
 end

@@ -24,8 +24,6 @@ function compute_global_dot_product(
     b::AbstractArray{<:AbstractFloat, 3},
     domain::Domain,
 )::AbstractFloat
-
-    # Get parameters.
     (; comm) = domain
 
     # Compute local dot product.
@@ -34,6 +32,5 @@ function compute_global_dot_product(
     # Sum over all processes.
     global_dot_product = MPI.Allreduce(local_dot_product, +, comm)
 
-    # Return the result.
     return global_dot_product
 end

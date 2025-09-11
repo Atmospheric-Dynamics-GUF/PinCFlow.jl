@@ -117,7 +117,6 @@ function State(namelists::Namelists)::State
     wkb = WKB(namelists, constants, domain, grid)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
 
-    # Return a State instance.
     return State(
         namelists,
         time,

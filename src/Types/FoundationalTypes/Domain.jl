@@ -227,7 +227,6 @@ function Domain(namelists::Namelists)::Domain
     @ivy layer_comm = MPI.Comm_split(comm, coords[3], rank)
     @ivy column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
 
-    # Return Domain instance.
     return Domain(
         comm,
         master,

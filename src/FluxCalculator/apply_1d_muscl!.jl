@@ -59,6 +59,5 @@ function apply_1d_muscl!(
         end
     end
 
-    # Return.
     return
 end

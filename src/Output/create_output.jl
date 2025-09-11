@@ -249,10 +249,8 @@ function create_output(state::State)
             end
         end
 
-        # Return.
         return
     end
 
-    # Return.
     return
 end

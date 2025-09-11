@@ -55,7 +55,6 @@ function apply_corrector!(
     (errflagbicg, niterbicg) =
         solve_poisson!(state, rhs, tolref, dt, rayleigh_factor)
 
-    # Return if an error occurred.
     if errflagbicg
         return (errflagbicg, niterbicg)
     end

@@ -87,7 +87,6 @@ function symmetric_contours(
         )
     end
 
-    # Return the results.
     return (levels, colormap)
 end
 

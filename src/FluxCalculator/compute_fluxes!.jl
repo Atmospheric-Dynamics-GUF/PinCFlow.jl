@@ -135,15 +135,12 @@ function compute_fluxes!(state::State, predictands::Predictands)
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
-
-    # Get all necessary fields.
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; rhotilde) = state.variables.reconstructions
     (; phirho) = state.variables.fluxes
 
-    # Get old wind.
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
     #-----------------------------------------
@@ -220,20 +217,16 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
         phirho[i, j, k, 3] = hrho
     end
 
-    # Return.
     return
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
-
-    # Get all necessary fields.
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pstrattfc) = state.atmosphere
     (; rhoptilde) = state.variables.reconstructions
     (; phirhop) = state.variables.fluxes
 
-    # Get old wind.
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
     #-----------------------------------------
@@ -296,7 +289,6 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
         phirhop[i, j, k, 3] = hrhop
     end
 
-    # Return.
     return
 end
 
@@ -370,8 +362,6 @@ function compute_fluxes!(
     old_predictands::Predictands,
     variable::U,
 )
-
-    # Get all necessary fields.
     (; grid) = state
     (; re, uref, lref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -382,7 +372,6 @@ function compute_fluxes!(
     (; predictands) = state.variables
     (; mu_mom_diff_dim) = state.namelists.atmosphere
 
-    # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kz0 = k0
@@ -688,7 +677,6 @@ function compute_fluxes!(
         phiu[i, j, k, 3] -= hrhou_diff
     end
 
-    # Return.
     return
 end
 
@@ -697,8 +685,6 @@ function compute_fluxes!(
     old_predictands::Predictands,
     variable::V,
 )
-
-    # Get all necessary fields.
     (; grid) = state
     (; re, uref, lref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -709,7 +695,6 @@ function compute_fluxes!(
     (; predictands) = state.variables
     (; mu_mom_diff_dim) = state.namelists.atmosphere
 
-    # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kz0 = k0
@@ -1015,7 +1000,6 @@ function compute_fluxes!(
         phiv[i, j, k, 3] -= hrhov_diff
     end
 
-    # Return.
     return
 end
 
@@ -1024,8 +1008,6 @@ function compute_fluxes!(
     old_predictands::Predictands,
     variable::W,
 )
-
-    # Get all necessary fields.
     (; grid) = state
     (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -1036,7 +1018,6 @@ function compute_fluxes!(
     (; predictands) = state.variables
     (; mu_mom_diff_dim) = state.namelists.atmosphere
 
-    # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     #-----------------------------------------
@@ -1374,7 +1355,6 @@ function compute_fluxes!(
         phiw[i, j, k, 3] -= hrhow_visc
     end
 
-    # Return.
     return
 end
 
@@ -1391,14 +1371,11 @@ function compute_fluxes!(
     predictands::Predictands,
     tracersetup::AbstractTracer,
 )
-
-    # Get all necessary fields.
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pstrattfc) = state.atmosphere
     (; tracerreconstructions, tracerfluxes) = state.tracer
 
-    # Get old wind.
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
     @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
@@ -1459,8 +1436,6 @@ function compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
 )
-
-    # Get all necessary fields.
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dx, dy, dz, met) = state.grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
@@ -1628,6 +1603,5 @@ function compute_fluxes!(
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
     end
 
-    # Return.
     return
 end

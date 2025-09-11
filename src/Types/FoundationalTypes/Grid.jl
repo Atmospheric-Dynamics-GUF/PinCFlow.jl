@@ -333,7 +333,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
             topography_surface
     end
 
-    # Return a Grid instance.
     return Grid(
         lx,
         ly,

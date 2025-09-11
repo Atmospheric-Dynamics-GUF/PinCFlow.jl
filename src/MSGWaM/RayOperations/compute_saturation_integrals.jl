@@ -58,7 +58,6 @@ function compute_saturation_integrals(
     (; rhostrattfc) = state.atmosphere
     (; nray, rays) = state.wkb
 
-    # Get indices.
     (ixrv, jyrv, kzrv) = indices
 
     # Initialize Integrals.
@@ -133,6 +132,5 @@ function compute_saturation_integrals(
         mb2k2 += 2 * n2r^2 / rhostrattfc[ix, jy, kz] * densr * integral2
     end
 
-    # Return the results.
     return (mb2, mb2k2)
 end

@@ -152,7 +152,6 @@ function Atmosphere(
     pstrattfc = rhostrattfc .* thetastrattfc
     bvsstrattfc = zeros(nxx, nyy, nzz)
 
-    # Return an Atmosphere instance.
     return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
 end
 
@@ -174,7 +173,6 @@ function Atmosphere(
     pstrattfc = rhostrattfc .* thetastrattfc
     bvsstrattfc = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
 
-    # Return an Atmosphere instance.
     return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
 end
 
@@ -229,6 +227,5 @@ function Atmosphere(
         end
     end
 
-    # Return an Atmosphere instance.
     return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
 end
