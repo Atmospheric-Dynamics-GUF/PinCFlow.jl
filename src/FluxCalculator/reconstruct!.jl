@@ -103,9 +103,10 @@ function reconstruct!(state::State, variable::Rho)
     (; rhotilde) = state.variables.reconstructions
     (; pstrattfc) = state.atmosphere
 
-    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
-        phi[ix, jy, kz] = rho[ix, jy, kz] / pstrattfc[ix, jy, kz]
-    end
+    kk = (k0 - 1):(k1 + 1)
+
+    @. @ivy phi[:, :, kk] = rho[:, :, kk] / pstrattfc[:, :, kk]
+
     apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, limitertype)
 
     return
@@ -119,9 +120,10 @@ function reconstruct!(state::State, variable::RhoP)
     (; rhoptilde) = state.variables.reconstructions
     (; pstrattfc) = state.atmosphere
 
-    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
-        phi[ix, jy, kz] = rhop[ix, jy, kz] / pstrattfc[ix, jy, kz]
-    end
+    kk = (k0 - 1):(k1 + 1)
+
+    @. @ivy phi[:, :, kk] = rhop[:, :, kk] / pstrattfc[:, :, kk]
+
     apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, limitertype)
 
     return
