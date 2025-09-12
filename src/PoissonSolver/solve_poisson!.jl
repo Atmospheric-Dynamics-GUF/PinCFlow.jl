@@ -42,11 +42,10 @@ function solve_poisson!(
     rayleigh_factor::AbstractFloat,
     tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
-    (; namelists, domain, grid, poisson) = state
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; dpip) = state.variables.increments
-    (; rhs, solution) = state.poisson
+    (; solution) = state.poisson
 
     solution .= 0.0
 

@@ -111,8 +111,8 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
             drag .=
                 -drag_coefficient .*
                 (rho[ix, jy, kz] .+ rhostrattfc[ix, jy, kz]) .*
-                sqrt(dot(kavg, kavg)) ./ (2 .* pi) .* sqrt(dot(uperp, uperp)) .*
-                uperp
+                sqrt.(dot(kavg, kavg)) ./ (2 .* pi) .*
+                sqrt.(dot(uperp, uperp)) .* uperp
 
             dudt[ix, jy, kz] =
                 fraction * drag[1] + (1 - fraction) * dudt[ix, jy, kz]
