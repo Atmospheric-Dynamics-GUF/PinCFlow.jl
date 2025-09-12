@@ -11,7 +11,7 @@ set -x
 
 # Define the work directory.
 user=$(whoami)
-scratch=/scratch/atmodynamics/${user}/pinc/examples/periodic_hill/
+scratch=/scratch/atmodynamics/${user}/pincflow/examples/periodic_hill/
 mkdir -p ${scratch}
 
 # Configure MPI and HDF5.

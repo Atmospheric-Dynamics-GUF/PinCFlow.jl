@@ -17,7 +17,7 @@ set -x
 
 # Define the work directory.
 user=$(whoami)
-scratch=/scratch/b/${user}/pinc/examples/mountain_wave
+scratch=/scratch/b/${user}/pincflow/examples/mountain_wave
 mkdir -p ${scratch}
 
 # Configure MPI and HDF5.
