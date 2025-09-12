@@ -1,5 +1,11 @@
 """
 ```julia
+compute_gw_integrals!(state::State)
+```
+
+Compute the gravity-wave integrals needed for the computation of the mean-flow impact by dispatching to a WKB-mode-specific method.
+
+```julia
 compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 ```
 
@@ -85,6 +91,12 @@ This method computes the sums ``M_{u w}`` and ``M_{v w}`` (see above for details
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function compute_gw_integrals! end
+
+function compute_gw_integrals!(state::State)
+    (; wkb_mode) = state.namelists.wkb
+    compute_gw_integrals!(state, wkb_mode)
+    return
+end
 
 function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state

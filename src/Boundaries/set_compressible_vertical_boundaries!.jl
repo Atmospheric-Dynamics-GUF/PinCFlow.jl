@@ -3,6 +3,15 @@
 set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
+)
+```
+
+Enforce vertical boundary conditions for the specified variables in compressible mode by dispatching to a model-specific method.
+
+```julia
+set_compressible_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
     model::AbstractModel,
 )
 ```
@@ -17,7 +26,7 @@ set_compressible_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for mass-weighted potential temperature in compressible mode (line reflection).
+Enforce vertical boundary conditions for the mass-weighted potential temperature in compressible mode (line reflection).
 
 ```julia
 set_compressible_vertical_boundaries!(
@@ -27,7 +36,7 @@ set_compressible_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for vertical mass-weighted potential-temperature flux (no flux through boundaries).
+Enforce vertical boundary conditions for the vertical mass-weighted potential-temperature flux (no flux through boundaries).
 
 # Arguments
 
@@ -42,6 +51,15 @@ Enforce vertical boundary conditions for vertical mass-weighted potential-temper
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_compressible_vertical_boundaries! end
+
+function set_compressible_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+)
+    (; model) = state.namelists.setting
+    set_compressible_vertical_boundaries!(state, variables, model)
+    return
+end
 
 function set_compressible_vertical_boundaries!(
     state::State,

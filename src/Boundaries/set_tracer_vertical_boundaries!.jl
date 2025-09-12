@@ -2,6 +2,15 @@
 ```julia
 set_tracer_vertical_boundaries!(
     state::State,
+    variables::AbstractBoundaryVariables,
+)
+```
+
+Enforce vertical boundary conditions for tracers by dispatching to a tracer-configuration-specific method.
+
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
     variables::BoundaryPredictands,
     tracersetup::NoTracer,
 )
@@ -72,6 +81,15 @@ Set the vertical tracer fluxes at the vertical boundaries to zero.
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_tracer_vertical_boundaries! end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+)
+    (; tracersetup) = state.namelists.tracer
+    set_tracer_vertical_boundaries!(state, variables, tracersetup)
+    return
+end
 
 function set_tracer_vertical_boundaries!(
     state::State,

@@ -2,6 +2,15 @@
 ```julia
 set_tracer_meridional_boundaries!(
     state::State,
+    variables::AbstractBoundaryVariables,
+)
+```
+
+Enforce meridional boundary conditions for tracers by dispatching to a tracer-configuration-specific method.
+
+```julia
+set_tracer_meridional_boundaries!(
+    state::State,
     variables::BoundaryPredictands,
     tracersetup::NoTracer,
 )
@@ -52,6 +61,15 @@ Enforce meridional boundary conditions for reconstructions of tracers.
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_tracer_meridional_boundaries! end
+
+function set_tracer_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+)
+    (; tracersetup) = state.namelists.tracer
+    set_tracer_meridional_boundaries!(state, variables, tracersetup)
+    return
+end
 
 function set_tracer_meridional_boundaries!(
     state::State,

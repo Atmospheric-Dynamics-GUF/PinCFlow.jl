@@ -50,9 +50,7 @@ function compute_mean_flow_effect!(state::State, testcase::AbstractTestCase)
 end
 
 function compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
-    (; wkb_mode) = state.namelists.wkb
-
-    compute_gw_integrals!(state, wkb_mode)
+    compute_gw_integrals!(state)
 
     set_boundaries!(state, BoundaryWKBIntegrals())
 

@@ -84,8 +84,6 @@ function set_zonal_boundaries! end
 function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     (; namelists, domain) = state
     (; predictands) = state.variables
-    (; model) = namelists.setting
-    (; tracersetup) = namelists.tracer
 
     for field in (:rho, :rhop, :u, :v, :w, :pip)
         set_zonal_boundaries_of_field!(
@@ -95,9 +93,9 @@ function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
         )
     end
 
-    set_compressible_zonal_boundaries!(state, model)
+    set_compressible_zonal_boundaries!(state)
 
-    set_tracer_zonal_boundaries!(state, variables, tracersetup)
+    set_tracer_zonal_boundaries!(state, variables)
 
     return
 end
@@ -115,7 +113,7 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
         )
     end
 
-    set_tracer_zonal_boundaries!(state, variables, tracersetup)
+    set_tracer_zonal_boundaries!(state, variables)
 
     return
 end

@@ -114,9 +114,7 @@ function set_vertical_boundaries! end
 
 function set_vertical_boundaries!(state::State, variables::BoundaryPredictands)
     (; namelists, domain) = state
-    (; model) = namelists.setting
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
-    (; tracersetup) = namelists.tracer
 
     set_vertical_boundaries_of_field!(rho, namelists, domain, -)
     set_vertical_boundaries_of_field!(rhop, namelists, domain, -)
@@ -128,9 +126,9 @@ function set_vertical_boundaries!(state::State, variables::BoundaryPredictands)
 
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
 
-    set_compressible_vertical_boundaries!(state, variables, model)
+    set_compressible_vertical_boundaries!(state, variables)
 
-    set_tracer_vertical_boundaries!(state, variables, tracersetup)
+    set_tracer_vertical_boundaries!(state, variables)
 
     return
 end
@@ -141,7 +139,6 @@ function set_vertical_boundaries!(
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables
-    (; tracersetup) = namelists.tracer
 
     for field in fieldnames(Reconstructions)
         set_vertical_boundaries_of_field!(
@@ -151,7 +148,7 @@ function set_vertical_boundaries!(
         )
     end
 
-    set_tracer_vertical_boundaries!(state, variables, tracersetup)
+    set_tracer_vertical_boundaries!(state, variables)
 
     return
 end
@@ -159,8 +156,6 @@ end
 function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
     (; sizezz, nzz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
-    (; model) = state.namelists.setting
-    (; tracersetup) = state.namelists.tracer
 
     # Set all vertical boundary fluxes to zero.
 
@@ -177,8 +172,8 @@ function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
         end
     end
 
-    set_compressible_vertical_boundaries!(state, variables, model)
-    set_tracer_vertical_boundaries!(state, variables, tracersetup)
+    set_compressible_vertical_boundaries!(state, variables)
+    set_tracer_vertical_boundaries!(state, variables)
 
     return
 end
