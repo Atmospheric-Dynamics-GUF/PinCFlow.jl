@@ -109,6 +109,7 @@ struct Namelists{
     K <: IceNamelist,
     L <: TurbulenceNamelist,
     M <: WavePacketNamelist,
+    N <: MultiWavePacketNamelist,
 }
     domain::A
     output::B
@@ -123,6 +124,7 @@ struct Namelists{
     ice::K
     turbulence::L
     wavepacket::M
+    multiwavepacket::N
 end
 
 function Namelists(;
@@ -139,6 +141,7 @@ function Namelists(;
     ice::IceNamelist = IceNamelist(),
     turbulence::TurbulenceNamelist = TurbulenceNamelist(),
     wavepacket::WavePacketNamelist = WavePacketNamelist(),
+    multiwavepacket::MultiWavePacketNamelist = MultiWavePacketNamelist(),
 )::Namelists
     return Namelists(
         domain,
@@ -154,5 +157,6 @@ function Namelists(;
         ice,
         turbulence,
         wavepacket,
+        multiwavepacket,
     )
 end

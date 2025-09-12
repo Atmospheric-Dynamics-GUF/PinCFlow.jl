@@ -405,6 +405,10 @@ Singleton for model configurations with turbulence physics.
 """
 struct TurbulenceOn <: AbstractTurbulence end
 
+struct WKBMultipleWavePackets <: AbstractWKBTestCase end
+
+struct MultipleWavePackets <: AbstractTestCase end
+
 using MPI
 
 include("DomainNamelist.jl")
@@ -414,6 +418,7 @@ include("DiscretizationNamelist.jl")
 include("PoissonNamelist.jl")
 include("AtmosphereNamelist.jl")
 include("WavePacketNamelist.jl")
+include("MultiWavePacketNamelist.jl")
 include("GridNamelist.jl")
 include("SpongeNamelist.jl")
 include("WKBNamelist.jl")
@@ -466,7 +471,9 @@ export UniformBoussinesq,
     NoIce,
     IceOn,
     NoTurbulence,
-    TurbulenceOn
+    TurbulenceOn, 
+    MultipleWavePackets,
+    WKBMultipleWavePackets
 
 export DomainNamelist,
     OutputNamelist,
@@ -481,6 +488,7 @@ export DomainNamelist,
     TracerNamelist,
     IceNamelist,
     TurbulenceNamelist,
+    MultiWavePacketNamelist,
     Namelists
 
 end

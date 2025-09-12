@@ -171,6 +171,8 @@ export Rho,
     MountainWave,
     WKBMountainWave,
     WavePacket,
+    WKBMultipleWavePackets,
+    MultipleWavePackets,
     PeriodicBoundaries,
     SolidWallBoundaries,
     ExponentialSponge,
@@ -198,6 +200,7 @@ export DomainNamelist,
     TracerNamelist,
     IceNamelist,
     TurbulenceNamelist,
+    MultiWavePacketNamelist
     Namelists,
     Time,
     Constants,
@@ -251,5 +254,5 @@ export DomainNamelist,
     TurbulenceIncrements,
     TurbulenceReconstructions,
     TurbulenceFluxes
-
+    
 end

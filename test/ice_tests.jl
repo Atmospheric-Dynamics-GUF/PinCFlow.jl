@@ -36,6 +36,7 @@ output = OutputNamelist(;
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
     testcase = WKBMountainWave(),
+    #testcase = WKBMultipleWavePackets(),
     zboundaries = SolidWallBoundaries(),
 )
 
@@ -117,7 +118,7 @@ ice = IceNamelist(;
     nscy = 5,
     nscz = 5,
     compute_cloudcover = 2
- )
+ ) 
 wkb = WKBNamelist(;
                     xrmin_dim = 0.0E+4,
                     xrmax_dim = 2.0E+4,
@@ -149,6 +150,21 @@ wkb = WKBNamelist(;
                     drag_coefficient = 1.0E+0,
                     nwm = 1,
                 )
+# multiwavepacket = MultiWavePacketNamelist(;
+#     nwm = 1,
+#     wavepacketdim = [1],
+#     lambdax_dim = [1.0E+4],
+#     lambday_dim = [0.0E+0],
+#     lambdaz_dim = [1.0E+3],
+#     x0_dim = [1.0E+4],
+#     y0_dim = [1.0E+4],
+#     z0_dim = [5.0E+3],
+#     sigmax_dim = [1.0E+5],
+#     sigmay_dim = [1.0E+5],
+#     sigmaz_dim = [1.0E+4],
+#     a0 = [.9E+0],
+#     branch = [-1],
+# )
 namelists = Namelists(;
     domain = domain,
     output = output,
