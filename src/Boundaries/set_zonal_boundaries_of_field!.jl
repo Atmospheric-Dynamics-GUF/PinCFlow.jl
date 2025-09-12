@@ -33,7 +33,7 @@ set_zonal_boundaries_of_field!(
 )
 ```
 
-Enforce zonal boundary conditions for 5D fields.
+Enforce zonal boundary conditions for a 5D array.
 
 Halo exchange is used in the same manner as in the methods for matrices and 3D arrays. The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
