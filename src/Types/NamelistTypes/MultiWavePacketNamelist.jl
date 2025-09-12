@@ -67,19 +67,19 @@ struct MultiWavePacketNamelist{A <: AbstractArray{<:AbstractFloat, 1}, B <: Abst
 end
 
 function MultiWavePacketNamelist(;
-    nwm::Integer = 1,
-    wavepacketdim::Integer = [1],
-    lambdax_dim::AbstractFloat = [1.0E+3],
-    lambday_dim::AbstractFloat = [0.0E+0],
-    lambdaz_dim::AbstractFloat = [1.0E+3],
-    x0_dim::AbstractFloat = [5.0E+3],
-    y0_dim::AbstractFloat = [1.0E+3],
-    z0_dim::AbstractFloat = [1.0E+4],
-    sigmax_dim::AbstractFloat = [0.0E+0],
-    sigmay_dim::AbstractFloat = [0.0E+0],
-    sigmaz_dim::AbstractFloat = [2.0E+3],
-    a0::AbstractFloat = [9.0E-1],
-    branch::Integer = [-1],
+    nwm = 1,
+    wavepacketdim = [1],
+    lambdax_dim = [1.0E+3],
+    lambday_dim = [0.0E+0],
+    lambdaz_dim = [1.0E+3],
+    x0_dim = [5.0E+3],
+    y0_dim = [1.0E+3],
+    z0_dim = [1.0E+4],
+    sigmax_dim = [0.0E+0],
+    sigmay_dim = [0.0E+0],
+    sigmaz_dim = [2.0E+3],
+    a0 = [9.0E-1],
+    branch = [-1],
 )::MultiWavePacketNamelist
     return MultiWavePacketNamelist(
         wavepacketdim,
