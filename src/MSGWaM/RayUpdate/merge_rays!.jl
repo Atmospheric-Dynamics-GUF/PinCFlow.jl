@@ -243,7 +243,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
         # Reset the old ray volumes.
         for field in fieldnames(Rays)
-            getfield(rays, field)[:, ix, jy, kz] .= 0.0
+            @. $getfield(rays, field)[:, ix, jy, kz] = 0.0
         end
 
         # Construct the merged ray volumes.

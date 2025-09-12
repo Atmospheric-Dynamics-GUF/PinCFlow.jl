@@ -26,7 +26,7 @@ function apply_1d_muscl!(
 )
 
     # Initialize phitilde.
-    phitilde .= 1000.0
+    @. phitilde = 1000.0
 
     # Reconstruct.
     @ivy for i in 2:(phisize - 1)

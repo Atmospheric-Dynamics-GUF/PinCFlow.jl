@@ -188,7 +188,7 @@ function reconstruct!(state::State, variable::W)
     (; wtilde) = state.variables.reconstructions
     (; rhostrattfc, pstrattfc) = state.atmosphere
 
-    @ivy phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
+    @. @ivy phi[:, :, (k0 - 1):(k1 + 1)] = w[:, :, (k0 - 1):(k1 + 1)]
 
     @ivy for kz in (k0 - 1):(k1 + 1), jy in j0:j1, ix in i0:i1
         phi[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, state)

@@ -73,11 +73,11 @@ function set_compressible_vertical_boundaries!(
     (; phip) = state.variables.fluxes
 
     @ivy if ko == 0
-        phip[:, :, k0 - 1, 3] .= 0.0
+        @. phip[:, :, k0 - 1, 3] = 0.0
     end
 
     @ivy if ko + nzz == sizezz
-        phip[:, :, k1, 3] .= 0.0
+        @. phip[:, :, k1, 3] = 0.0
     end
 
     return

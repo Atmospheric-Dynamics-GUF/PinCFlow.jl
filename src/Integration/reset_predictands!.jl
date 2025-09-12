@@ -40,11 +40,11 @@ function reset_predictands!(
 )
     (; rho, rhop, u, v, w) = state.variables.predictands
 
-    rho .= predictands.rho
-    rhop .= predictands.rhop
-    u .= predictands.u
-    v .= predictands.v
-    w .= predictands.w
+    @. rho = predictands.rho
+    @. rhop = predictands.rhop
+    @. u = predictands.u
+    @. v = predictands.v
+    @. w = predictands.w
 
     return
 end
@@ -56,13 +56,13 @@ function reset_predictands!(
 )
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
-    rho .= predictands.rho
-    rhop .= predictands.rhop
-    u .= predictands.u
-    v .= predictands.v
-    w .= predictands.w
-    pip .= predictands.pip
-    p .= predictands.p
+    @. rho = predictands.rho
+    @. rhop = predictands.rhop
+    @. u = predictands.u
+    @. v = predictands.v
+    @. w = predictands.w
+    @. pip = predictands.pip
+    @. p = predictands.p
 
     return
 end

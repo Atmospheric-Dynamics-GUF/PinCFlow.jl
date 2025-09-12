@@ -67,8 +67,8 @@ function set_zonal_boundaries_of_field!(
         set_zonal_halos_of_field!(field, namelists, domain)
     else
         for i in 1:nbx
-            field[i0 - i, :] .= field[i1 - i + 1, :]
-            field[i1 + i, :] .= field[i0 + i - 1, :]
+            @. field[i0 - i, :] = field[i1 - i + 1, :]
+            @. field[i1 + i, :] = field[i0 + i - 1, :]
         end
     end
 
@@ -95,8 +95,8 @@ function set_zonal_boundaries_of_field!(
         kk = (k0 - nbz):(k1 + nbz)
 
         for i in 1:nbx
-            field[i0 - i, jj, kk] .= field[i1 - i + 1, jj, kk]
-            field[i1 + i, jj, kk] .= field[i0 + i - 1, jj, kk]
+            @. field[i0 - i, jj, kk] = field[i1 - i + 1, jj, kk]
+            @. field[i1 + i, jj, kk] = field[i0 + i - 1, jj, kk]
         end
     end
 
@@ -123,8 +123,8 @@ function set_zonal_boundaries_of_field!(
         kk = (k0 - nbz):(k1 + nbz)
 
         for i in 1:nbx
-            field[i0 - i, jj, kk, :, :] .= field[i1 - i + 1, jj, kk, :, :]
-            field[i1 + i, jj, kk, :, :] .= field[i0 + i - 1, jj, kk, :, :]
+            @. field[i0 - i, jj, kk, :, :] = field[i1 - i + 1, jj, kk, :, :]
+            @. field[i1 + i, jj, kk, :, :] = field[i0 + i - 1, jj, kk, :, :]
         end
     end
 

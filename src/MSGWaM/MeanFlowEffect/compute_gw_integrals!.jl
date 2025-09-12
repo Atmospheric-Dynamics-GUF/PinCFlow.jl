@@ -101,7 +101,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     fc = coriolis_frequency * tref
 
     for field in fieldnames(WKBIntegrals)
-        getfield(integrals, field) .= 0.0
+        @. $getfield(integrals, field)[:] = 0.0
     end
 
     @ivy for kzrv in (k0 - 1):(k1 + 1),
@@ -269,7 +269,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     fc = coriolis_frequency * tref
 
     for field in fieldnames(WKBIntegrals)
-        getfield(integrals, field) .= 0.0
+        @. $getfield(integrals, field)[:] = 0.0
     end
 
     @ivy for kzrv in (k0 - 1):(k1 + 1),
@@ -404,7 +404,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     fc = coriolis_frequency * tref
 
     for field in fieldnames(WKBIntegrals)
-        getfield(integrals, field) .= 0.0
+        @. $getfield(integrals, field)[:] = 0.0
     end
 
     @ivy for kzrv in (k0 - 1):(k1 + 1),

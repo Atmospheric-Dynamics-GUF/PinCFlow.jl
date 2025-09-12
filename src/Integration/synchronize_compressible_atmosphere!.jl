@@ -62,7 +62,7 @@ function synchronize_compressible_atmosphere!(
     (; pstrattfc) = state.atmosphere
     (; p) = predictands
 
-    pstrattfc .= p
+    @. pstrattfc = p
 
     return
 end

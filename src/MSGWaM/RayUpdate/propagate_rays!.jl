@@ -204,7 +204,7 @@ function propagate_rays!(
 
     cgx_max[] = 0.0
     cgy_max[] = 0.0
-    @ivy cgz_max[i0:i1, j0:j1, kz0:kz1] .= 0.0
+    @. @ivy cgz_max[i0:i1, j0:j1, kz0:kz1] = 0.0
 
     @ivy for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
         nskip = 0
@@ -491,7 +491,7 @@ function propagate_rays!(
     @ivy if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
-        nray[i0:i1, j0:j1, k0 - 1] .= nray_down
+        @. nray[i0:i1, j0:j1, k0 - 1] = nray_down
 
         count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if count > 0
@@ -499,7 +499,7 @@ function propagate_rays!(
             rays_down = zeros(length(fields), count, nx, ny)
             MPI.Recv!(rays_down, comm; source = down)
             for (index, field) in enumerate(fields)
-                getfield(rays, field)[1:count, i0:i1, j0:j1, k0 - 1] .=
+                @. $getfield(rays, field)[1:count, i0:i1, j0:j1, k0 - 1] =
                     rays_down[index, :, :, :]
             end
         end
@@ -686,8 +686,8 @@ function propagate_rays!(
             fields = fieldnames(Rays)
             rays_up = zeros(length(fields), count, nx, ny)
             for (index, field) in enumerate(fields)
-                rays_up[index, :, :, :] .=
-                    getfield(rays, field)[1:count, i0:i1, j0:j1, k1]
+                @. rays_up[index, :, :, :] =
+                    $getfield(rays, field)[1:count, i0:i1, j0:j1, k1]
             end
             MPI.Send(rays_up, comm; dest = up)
         end

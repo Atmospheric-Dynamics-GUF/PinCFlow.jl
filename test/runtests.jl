@@ -196,7 +196,7 @@ configurations = Dict(
                     )
 
                     for key in keys(reference)
-                        @test all(isapprox.(data[key], reference[key]))
+                        @test all(@. isapprox(data[key], reference[key]))
                     end
 
                     close(data)

@@ -44,7 +44,7 @@ function apply_bicgstab!(
     end
 
     # Initialize solution.
-    solution .= 0.0
+    @. solution = 0.0
 
     # Set parameters.
     maxit = maxiterpoisson
@@ -59,9 +59,9 @@ function apply_bicgstab!(
     errflag = false
 
     apply_operator!(solution, matvec, Total(), state)
-    r0 .= rhs .- matvec
-    p .= r0
-    r .= r0
+    @. r0 = rhs - matvec
+    @. p = r0
+    @. r = r0
 
     res_local = sum(a -> a^2, r)
     res = MPI.Allreduce(res_local, +, comm)
@@ -69,7 +69,7 @@ function apply_bicgstab!(
 
     b_norm = res
 
-    r_vm .= sum(a -> a / sizez, r; dims = 3)
+    @. r_vm = $sum(a -> a / sizez, r; dims = 3)
     MPI.Allreduce!(r_vm, +, column_comm)
 
     res_local = sum(a -> a^2, r_vm)
@@ -97,32 +97,32 @@ function apply_bicgstab!(
         if preconditioner
             apply_preconditioner!(p, v_pc, state)
         else
-            v_pc .= p
+            @. v_pc = p
         end
         apply_operator!(v_pc, matvec, Total(), state)
-        v .= matvec
+        @. v = matvec
 
         alpha =
             compute_global_dot_product(r, r0, state) /
             compute_global_dot_product(v, r0, state)
-        s .= r .- alpha .* v
+        @. s = r - alpha * v
 
         # t = A*s
         if preconditioner
             apply_preconditioner!(s, v_pc, state)
         else
-            v_pc .= s
+            @. v_pc = s
         end
         apply_operator!(v_pc, matvec, Total(), state)
-        t .= matvec
+        @. t = matvec
 
         omega =
             compute_global_dot_product(t, s, state) /
             compute_global_dot_product(t, t, state)
-        solution .+= alpha .* p .+ omega .* s
+        @. solution += alpha * p + omega * s
 
-        rold .= r
-        r .= s .- omega .* t
+        @. rold = r
+        @. r = s - omega * t
 
         #-----------------------
         #   Abort criterion
@@ -132,7 +132,7 @@ function apply_bicgstab!(
         res = MPI.Allreduce(res_local, +, comm)
         res = sqrt(res / sizex / sizey / sizez)
 
-        r_vm .= sum(a -> a / sizez, r; dims = 3)
+        @. r_vm = $sum(a -> a / sizez, r; dims = 3)
         MPI.Allreduce!(r_vm, +, column_comm)
 
         res_local = sum(a -> a^2, r_vm)
@@ -149,7 +149,7 @@ function apply_bicgstab!(
             niter = j_b
 
             if preconditioner
-                s .= solution
+                @. s = solution
                 apply_preconditioner!(s, solution, state)
             end
 
@@ -159,7 +159,7 @@ function apply_bicgstab!(
         beta =
             alpha / omega * compute_global_dot_product(r, r0, state) /
             compute_global_dot_product(rold, r0, state)
-        p .= r .+ beta .* (p .- omega .* v)
+        @. p = r + beta * (p - omega * v)
     end
 
     errflag = true
