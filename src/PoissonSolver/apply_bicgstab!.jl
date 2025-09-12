@@ -63,8 +63,8 @@ function apply_bicgstab!(
     @. p = r0
     @. r = r0
 
-    res_local = sum(a -> a^2, r)
-    res = MPI.Allreduce(res_local, +, comm)
+    res = sum(a -> a^2, r)
+    res = MPI.Allreduce(res, +, comm)
     res = sqrt(res / sizex / sizey / sizez)
 
     b_norm = res
@@ -72,8 +72,8 @@ function apply_bicgstab!(
     @. r_vm = $sum(a -> a / sizez, r; dims = 3)
     MPI.Allreduce!(r_vm, +, column_comm)
 
-    res_local = sum(a -> a^2, r_vm)
-    res_vm = MPI.Allreduce(res_local, +, layer_comm)
+    res_vm = sum(a -> a^2, r_vm)
+    res_vm = MPI.Allreduce(res_vm, +, layer_comm)
     res_vm = sqrt(res_vm / sizex / sizey)
 
     b_vm_norm = res_vm
@@ -128,15 +128,15 @@ function apply_bicgstab!(
         #   Abort criterion
         #-----------------------
 
-        res_local = sum(a -> a^2, r)
-        res = MPI.Allreduce(res_local, +, comm)
+        res = sum(a -> a^2, r)
+        res = MPI.Allreduce(res, +, comm)
         res = sqrt(res / sizex / sizey / sizez)
 
         @. r_vm = $sum(a -> a / sizez, r; dims = 3)
         MPI.Allreduce!(r_vm, +, column_comm)
 
-        res_local = sum(a -> a^2, r_vm)
-        res_vm = MPI.Allreduce(res_local, +, layer_comm)
+        res_vm = sum(a -> a^2, r_vm)
+        res_vm = MPI.Allreduce(res_vm, +, layer_comm)
         res_vm = sqrt(res_vm / sizex / sizey)
 
         if max(res / b_norm, res_vm / b_vm_norm) <= tol
