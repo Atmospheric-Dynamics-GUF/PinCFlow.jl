@@ -184,9 +184,9 @@ Contributions to the code should respect the following rules.
 
   - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
-  - Use PinCFlow's `@ivy` in front of expressions that access elements of arrays/tuples.
+  - Use PinCFlow's `@ivy` in front of expressions that access elements of arrays/tuples. Always apply this macro to the outermost expression possible but do not create new blocks for this purpose.
 
-  - Always apply macros to the outermost expression block possible but do not create new blocks for this purpose.
+  - Use `@.` in front of expressions that use broadcasting. Do not apply this macro to blocks.
 
   - Do not use Unicode.
 
