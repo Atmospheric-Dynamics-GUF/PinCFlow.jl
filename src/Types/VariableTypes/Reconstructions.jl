@@ -5,7 +5,7 @@ Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
 
 Arrays for the reconstructions of prognostic variables.
 
-The first three dimensions represent physical space, the fourth dimension represents the direction in which the reconstruction was performed and the fifth dimension represents the two cell edges of the reconstruction.
+The first three dimensions represent physical space, the fourth represents the physical-space dimension of the reconstruction and the fifth the two directions in which it is computed.
 
 ```julia
 Reconstructions(domain::Domain)::Reconstructions
