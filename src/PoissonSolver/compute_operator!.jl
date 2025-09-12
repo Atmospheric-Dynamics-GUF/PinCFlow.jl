@@ -53,8 +53,6 @@ function compute_operator!(
     (; betar) = state.sponge
     (;
         ac_b,
-        acv_b,
-        ach_b,
         al_b,
         ar_b,
         ab_b,
@@ -1639,13 +1637,6 @@ function compute_operator!(
         afdd_b[ia, ja, ka] = afdd
         abuu_b[ia, ja, ka] = abuu
         abdd_b[ia, ja, ka] = abdd
-
-        # Store horizontal and vertical components of AC (for
-        # preconditioner).
-        if preconditioner
-            ach_b[ia, ja, ka] = -ar - al - af - ab
-            acv_b[ia, ja, ka] = -au - ad
-        end
     end
 
     return

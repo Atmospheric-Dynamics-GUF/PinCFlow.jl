@@ -15,10 +15,6 @@ Create a `Tensor` instance with zero-initialized arrays sized according to the d
 
   - `ac_b::A`: Coefficient applied to ``s``.
 
-  - `acv_b::A`: Sum of vertical coefficients (upper and lower diagonals).
-
-  - `ach_b::A`: Sum of horizontal coefficients (left, right, forward and backward diagonals).
-
   - `al_b::A`: Coefficient applied to ``s_{i - 1}``.
 
   - `ar_b::A`: Coefficient applied to ``s_{i + 1}``.
@@ -73,8 +69,6 @@ Create a `Tensor` instance with zero-initialized arrays sized according to the d
 """
 struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
     ac_b::A
-    acv_b::A
-    ach_b::A
     al_b::A
     ar_b::A
     ab_b::A
@@ -103,5 +97,5 @@ end
 
 function Tensor(domain::Domain)::Tensor
     (; nx, ny, nz) = domain
-    return Tensor([zeros(nx, ny, nz) for i in 1:27]...)
+    return Tensor([zeros(nx, ny, nz) for i in 1:25]...)
 end
