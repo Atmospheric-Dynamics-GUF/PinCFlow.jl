@@ -39,7 +39,7 @@ function compute_gw_tendencies!(state::State)
     fc = coriolis_frequency * tref
 
     for field in fieldnames(WKBTendencies)
-        getfield(tendencies, field) .= 0.0
+        @. $getfield(tendencies, field)[:] = 0.0
     end
 
     @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1

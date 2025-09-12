@@ -102,17 +102,18 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
             kavg[1] = ksum / hsum
             kavg[2] = lsum / hsum
 
-            uperp .=
+            @. uperp =
                 (
-                    (u[ix, jy, kz] .+ u[ix - 1, jy, kz]) .* kavg[1] .+
-                    (v[ix, jy, kz] .+ v[ix, jy - 1, kz]) .* kavg[2]
-                ) ./ 2 .* kavg ./ dot(kavg, kavg)
+                    (u[ix, jy, kz] + u[ix - 1, jy, kz]) * kavg[1] +
+                    (v[ix, jy, kz] + v[ix, jy - 1, kz]) * kavg[2]
+                ) / 2 * kavg / $dot(kavg, kavg)
 
-            drag .=
-                -drag_coefficient .*
-                (rho[ix, jy, kz] .+ rhostrattfc[ix, jy, kz]) .*
-                sqrt.(dot(kavg, kavg)) ./ (2 .* pi) .*
-                sqrt.(dot(uperp, uperp)) .* uperp
+            @. drag =
+                -drag_coefficient *
+                (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]) *
+                sqrt($dot(kavg, kavg)) / (2 * pi) *
+                sqrt($dot(uperp, uperp)) *
+                uperp
 
             dudt[ix, jy, kz] =
                 fraction * drag[1] + (1 - fraction) * dudt[ix, jy, kz]

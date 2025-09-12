@@ -122,47 +122,48 @@ function write_output(
 
         # Write the horizontal grid.
         if iout == 1
-            file["x"][:] = x[i0:(i0 + sizex - 1)] .* lref
-            file["y"][:] = y[j0:(j0 + sizey - 1)] .* lref
+            file["x"][:] = @. x[i0:(i0 + sizex - 1)] * lref
+            file["y"][:] = @. y[j0:(j0 + sizey - 1)] * lref
         end
 
         # Write the vertical grid.
         if iout == 1
-            file["z"][iid, jjd, kkd] = ztfc[ii, jj, kk] .* lref
+            file["z"][iid, jjd, kkd] = @. ztfc[ii, jj, kk] * lref
         end
 
         # Write the background density.
         if model != Boussinesq() && iout == 1
-            file["rhobar"][iid, jjd, kkd] = rhostrattfc[ii, jj, kk] .* rhoref
+            file["rhobar"][iid, jjd, kkd] = @. rhostrattfc[ii, jj, kk] * rhoref
         end
 
         # Write the background potential temperature.
         if model != Boussinesq() && iout == 1
             file["thetabar"][iid, jjd, kkd] =
-                thetastrattfc[ii, jj, kk] .* thetaref
+                @. thetastrattfc[ii, jj, kk] * thetaref
         end
 
         # Write the squared buoyancy frequency.
         if model != Boussinesq() && iout == 1
-            file["n2"][iid, jjd, kkd] = bvsstrattfc[ii, jj, kk] ./ tref .^ 2
+            file["n2"][iid, jjd, kkd] = @. bvsstrattfc[ii, jj, kk] / tref^2
         end
 
         # Write the mass-weighted potential temperature.
         if model == Compressible()
             HDF5.set_extent_dims(file["p"], (sizex, sizey, sizez, iout))
-            file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
+            file["p"][iid, jjd, kkd, iout] =
+                @. p[ii, jj, kk] * rhoref * thetaref
         elseif model != Boussinesq() && iout == 1
             file["p"][iid, jjd, kkd] =
-                pstrattfc[ii, jj, kk] .* rhoref .* thetaref
+                @. pstrattfc[ii, jj, kk] * rhoref * thetaref
         end
 
         # Write the density fluctuations.
         if prepare_restart || :rhop in output_variables
             HDF5.set_extent_dims(file["rhop"], (sizex, sizey, sizez, iout))
             if model == Boussinesq()
-                file["rhop"][iid, jjd, kkd, iout] = rhop[ii, jj, kk] .* rhoref
+                file["rhop"][iid, jjd, kkd, iout] = @. rhop[ii, jj, kk] * rhoref
             else
-                file["rhop"][iid, jjd, kkd, iout] = rho[ii, jj, kk] .* rhoref
+                file["rhop"][iid, jjd, kkd, iout] = @. rho[ii, jj, kk] * rhoref
             end
         end
 
@@ -179,7 +180,7 @@ function write_output(
         # Write the staggered zonal winds.
         if prepare_restart || :us in output_variables
             HDF5.set_extent_dims(file["us"], (sizex, sizey, sizez, iout))
-            file["us"][iid, jjd, kkd, iout] = u[ii, jj, kk] .* uref
+            file["us"][iid, jjd, kkd, iout] = @. u[ii, jj, kk] * uref
         end
 
         # Write the meridional winds.
@@ -195,7 +196,7 @@ function write_output(
         # Write the staggered meridional winds.
         if prepare_restart || :vs in output_variables
             HDF5.set_extent_dims(file["vs"], (sizex, sizey, sizez, iout))
-            file["vs"][iid, jjd, kkd, iout] = v[ii, jj, kk] .* uref
+            file["vs"][iid, jjd, kkd, iout] = @. v[ii, jj, kk] * uref
         end
 
         # Write the vertical winds.
@@ -234,26 +235,24 @@ function write_output(
         # Write the staggered transformed vertical winds.
         if prepare_restart || :wstfc in output_variables
             HDF5.set_extent_dims(file["wstfc"], (sizex, sizey, sizez, iout))
-            file["wstfc"][iid, jjd, kkd, iout] = w[ii, jj, kk] .* uref
+            file["wstfc"][iid, jjd, kkd, iout] = @. w[ii, jj, kk] * uref
         end
 
         # Write the potential-temperature fluctuations.
         if :thetap in output_variables
             HDF5.set_extent_dims(file["thetap"], (sizex, sizey, sizez, iout))
             if model == Boussinesq()
-                file["thetap"][iid, jjd, kkd, iout] =
-                    (
-                        pstrattfc[ii, jj, kk] ./
-                        (rhostrattfc[ii, jj, kk] .+ rhop[ii, jj, kk]) .-
-                        thetastrattfc[ii, jj, kk]
-                    ) .* thetaref
+                file["thetap"][iid, jjd, kkd, iout] = @. (
+                    pstrattfc[ii, jj, kk] /
+                    (rhostrattfc[ii, jj, kk] + rhop[ii, jj, kk]) -
+                    thetastrattfc[ii, jj, kk]
+                ) * thetaref
             else
-                file["thetap"][iid, jjd, kkd, iout] =
-                    (
-                        pstrattfc[ii, jj, kk] ./
-                        (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk]) .-
-                        thetastrattfc[ii, jj, kk]
-                    ) .* thetaref
+                file["thetap"][iid, jjd, kkd, iout] = @. (
+                    pstrattfc[ii, jj, kk] /
+                    (rhostrattfc[ii, jj, kk] + rho[ii, jj, kk]) -
+                    thetastrattfc[ii, jj, kk]
+                ) * thetaref
             end
         end
 
@@ -270,11 +269,11 @@ function write_output(
                     (sizex, sizey, sizez, iout),
                 )
                 file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.tracer.tracerpredictands, field)[
+                    @. $getfield(state.tracer.tracerpredictands, field)[
                         ii,
                         jj,
                         kk,
-                    ] ./ (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk])
+                    ] / (rhostrattfc[ii, jj, kk] + rho[ii, jj, kk])
             end
         end
 
@@ -292,7 +291,7 @@ function write_output(
                         (nray_max, sizex, sizey, sizez + 1, iout),
                     )
                     file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
-                        getfield(rays, field_name)[rr, ii, jj, kkr] .* lref
+                        @. $getfield(rays, field_name)[rr, ii, jj, kkr] * lref
                 end
 
                 for (output_name, field_name) in zip(
@@ -304,7 +303,7 @@ function write_output(
                         (nray_max, sizex, sizey, sizez + 1, iout),
                     )
                     file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
-                        getfield(rays, field_name)[rr, ii, jj, kkr] ./ lref
+                        @. $getfield(rays, field_name)[rr, ii, jj, kkr] / lref
                 end
 
                 HDF5.set_extent_dims(
@@ -312,8 +311,11 @@ function write_output(
                     (nray_max, sizex, sizey, sizez + 1, iout),
                 )
                 file["nr"][1:nray_max, iid, jjd, kkrd, iout] =
-                    rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
-                    lref .^ dim
+                    @. rays.dens[rr, ii, jj, kkr] *
+                       rhoref *
+                       uref^2 *
+                       tref *
+                       lref^dim
             end
 
             # Write GW tendencies.
@@ -331,7 +333,7 @@ function write_output(
                         (sizex, sizey, sizez, iout),
                     )
                     file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(tendencies, field)[ii, jj, kk] .* scaling
+                        @. $getfield(tendencies, field)[ii, jj, kk] * scaling
                 end
             end
         end

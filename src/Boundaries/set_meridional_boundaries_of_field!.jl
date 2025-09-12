@@ -67,8 +67,8 @@ function set_meridional_boundaries_of_field!(
         set_meridional_halos_of_field!(field, namelists, domain)
     else
         for j in 1:nby
-            field[:, j0 - j] .= field[:, j1 - j + 1]
-            field[:, j1 + j] .= field[:, j0 + j - 1]
+            @. field[:, j0 - j] = field[:, j1 - j + 1]
+            @. field[:, j1 + j] = field[:, j0 + j - 1]
         end
     end
 
@@ -95,8 +95,8 @@ function set_meridional_boundaries_of_field!(
         kk = (k0 - nbz):(k1 + nbz)
 
         for j in 1:nby
-            field[ii, j0 - j, kk] .= field[ii, j1 - j + 1, kk]
-            field[ii, j1 + j, kk] .= field[ii, j0 + j - 1, kk]
+            @. field[ii, j0 - j, kk] = field[ii, j1 - j + 1, kk]
+            @. field[ii, j1 + j, kk] = field[ii, j0 + j - 1, kk]
         end
     end
 
@@ -123,8 +123,8 @@ function set_meridional_boundaries_of_field!(
         kk = (k0 - nbz):(k1 + nbz)
 
         for j in 1:nby
-            field[ii, j0 - j, kk, :, :] .= field[ii, j1 - j + 1, kk, :, :]
-            field[ii, j1 + j, kk, :, :] .= field[ii, j0 + j - 1, kk, :, :]
+            @. field[ii, j0 - j, kk, :, :] = field[ii, j1 - j + 1, kk, :, :]
+            @. field[ii, j1 + j, kk, :, :] = field[ii, j0 + j - 1, kk, :, :]
         end
     end
 

@@ -37,7 +37,7 @@ function get_next_level(
     (; sizezz, nzz, ko, k0, k1) = state.domain
     (; ztfc) = state.grid
 
-    @ivy k = argmin(abs.(ztfc[i, j, :] .- z))
+    @ivy k = argmin(@. abs(ztfc[i, j, :] - z))
     @ivy if ztfc[i, j, k] < z
         k += 1
     end
