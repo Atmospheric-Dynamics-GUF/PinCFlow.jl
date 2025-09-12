@@ -221,36 +221,19 @@ function compute_sponges!(
 
     alpharzmax = alpharmax * tref
 
-    if lateralsponge
-        ix0 = i0
-        ix1 = i1
-        jy0 = j0
-        jy1 = j1
-
-        if sizex > 1 && sizey > 1
-            alpharzmax = alpharzmax / 3.0
-            alpharxmax = alpharzmax
-            alpharymax = alpharzmax
-        elseif sizex > 1
-            alpharzmax = alpharzmax / 2.0
-            alpharxmax = alpharzmax
-            alpharymax = 0.0
-        elseif sizey > 1
-            alpharzmax = alpharzmax / 2.0
-            alpharxmax = 0.0
-            alpharymax = alpharzmax
-        else
-            alpharxmax = 0.0
-            alpharymax = 0.0
-        end
-    else
-        ix0 = 1
-        ix1 = nxx
-        jy0 = 1
-        jy1 = nyy
-    end
+    dim = 1
+    sizex > 1 && (dim += 1)
+    sizey > 1 && (dim += 1)
+    lateralsponge && (alpharzmax /= dim)
+    alpharxmax = alpharymax = alpharzmax
 
     @. alphar = 0.0
+
+    ix0 = lateralsponge ? i0 : 1
+    ix1 = lateralsponge ? i1 : nxx
+
+    jy0 = lateralsponge ? j0 : 1
+    jy1 = lateralsponge ? j1 : nyy
 
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
@@ -321,19 +304,13 @@ function compute_sponges!(
         zsponge,
     ) = state.sponge
 
-    if lateralsponge
-        ix0 = i0
-        ix1 = i1
-        jy0 = j0
-        jy1 = j1
-    else
-        ix0 = 1
-        ix1 = nxx
-        jy0 = 1
-        jy1 = nyy
-    end
-
     @. alphar = 0.0
+
+    ix0 = lateralsponge ? i0 : 1
+    ix1 = lateralsponge ? i1 : nxx
+
+    jy0 = lateralsponge ? j0 : 1
+    jy1 = lateralsponge ? j1 : nyy
 
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
@@ -415,36 +392,19 @@ function compute_sponges!(
 
     alpharzmax = alpharmax * tref
 
-    if lateralsponge
-        ix0 = i0
-        ix1 = i1
-        jy0 = j0
-        jy1 = j1
-
-        if sizex > 1 && sizey > 1
-            alpharzmax = alpharzmax / 3.0
-            alpharxmax = alpharzmax
-            alpharymax = alpharzmax
-        elseif sizex > 1
-            alpharzmax = alpharzmax / 2.0
-            alpharxmax = alpharzmax
-            alpharymax = 0.0
-        elseif sizey > 1
-            alpharzmax = alpharzmax / 2.0
-            alpharxmax = 0.0
-            alpharymax = alpharzmax
-        else
-            alpharxmax = 0.0
-            alpharymax = 0.0
-        end
-    else
-        ix0 = 1
-        ix1 = nxx
-        jy0 = 1
-        jy1 = nyy
-    end
+    dim = 1
+    sizex > 1 && (dim += 1)
+    sizey > 1 && (dim += 1)
+    lateralsponge && (alpharzmax /= dim)
+    alpharxmax = alpharymax = alpharzmax
 
     @. alphar = 0.0
+
+    ix0 = lateralsponge ? i0 : 1
+    ix1 = lateralsponge ? i1 : nxx
+
+    jy0 = lateralsponge ? j0 : 1
+    jy1 = lateralsponge ? j1 : nyy
 
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
@@ -525,36 +485,19 @@ function compute_sponges!(
 
     alpharzmax = alpharmax * tref
 
-    if lateralsponge
-        ix0 = i0
-        ix1 = i1
-        jy0 = j0
-        jy1 = j1
-
-        if sizex > 1 && sizey > 1
-            alpharzmax = alpharzmax / 3.0
-            alpharxmax = alpharzmax
-            alpharymax = alpharzmax
-        elseif sizex > 1
-            alpharzmax = alpharzmax / 2.0
-            alpharxmax = alpharzmax
-            alpharymax = 0.0
-        elseif sizey > 1
-            alpharzmax = alpharzmax / 2.0
-            alpharxmax = 0.0
-            alpharymax = alpharzmax
-        else
-            alpharxmax = 0.0
-            alpharymax = 0.0
-        end
-    else
-        ix0 = 1
-        ix1 = nxx
-        jy0 = 1
-        jy1 = nyy
-    end
+    dim = 1
+    sizex > 1 && (dim += 1)
+    sizey > 1 && (dim += 1)
+    lateralsponge && (alpharzmax /= dim)
+    alpharxmax = alpharymax = alpharzmax
 
     @. alphar = 0.0
+
+    ix0 = lateralsponge ? i0 : 1
+    ix1 = lateralsponge ? i1 : nxx
+
+    jy0 = lateralsponge ? j0 : 1
+    jy1 = lateralsponge ? j1 : nyy
 
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
