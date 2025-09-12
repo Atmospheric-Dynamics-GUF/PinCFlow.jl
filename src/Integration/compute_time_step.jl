@@ -81,11 +81,11 @@ function compute_time_step(state::State)::AbstractFloat
         vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps()
         wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps()
 
-        dtconv_loc = cfl * min(dx / umax, dy / vmax, dz / wmax)
+        dtconv = cfl * min(dx / umax, dy / vmax, dz / wmax)
 
         for k in k0:k1, j in j0:j1, i in i0:i1
-            dtconv_loc = min(
-                dtconv_loc,
+            dtconv = min(
+                dtconv,
                 cfl * jac[i, j, k] * dz / (
                     abs(
                         0.5 * (
@@ -96,7 +96,7 @@ function compute_time_step(state::State)::AbstractFloat
                 ),
             )
         end
-        dtconv = MPI.Allreduce(dtconv_loc, min, comm)
+        dtconv = MPI.Allreduce(dtconv, min, comm)
 
         #---------------------------
         #   von Neumann condition
@@ -104,11 +104,10 @@ function compute_time_step(state::State)::AbstractFloat
 
         dtvisc = 0.5 * min(dx^2, dy^2, dz^2) * re
 
-        dtvisc_loc = dtvisc
         for k in k0:k1, j in j0:j1, i in i0:i1
-            dtvisc_loc = min(dtvisc_loc, 0.5 * (jac[i, j, k] * dz)^2.0 * re)
+            dtvisc = min(dtvisc, 0.5 * (jac[i, j, k] * dz)^2.0 * re)
         end
-        dtvisc = MPI.Allreduce(dtvisc_loc, min, comm)
+        dtvisc = MPI.Allreduce(dtvisc, min, comm)
 
         #----------------------------
         #    Maximal time step
@@ -121,14 +120,14 @@ function compute_time_step(state::State)::AbstractFloat
         #----------------------------------
 
         if typeof(testcase) <: AbstractWKBTestCase
-            dtwkb_loc = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
+            dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
             kz0 = ko == 0 ? k0 - 1 : k0
             kz1 = k1
 
             for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
-                dtwkb_loc = min(
-                    dtwkb_loc,
+                dtwkb = min(
+                    dtwkb,
                     minimum(
                         jac[
                             (ix - 1):(ix + 1),
@@ -140,17 +139,17 @@ function compute_time_step(state::State)::AbstractFloat
             end
 
             if sizex > 1
-                dtwkb_loc = min(dtwkb_loc, dx / (cgx_max[] + eps()))
+                dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))
             end
             if sizey > 1
-                dtwkb_loc = min(dtwkb_loc, dy / (cgy_max[] + eps()))
+                dtwkb = min(dtwkb, dy / (cgy_max[] + eps()))
             end
 
-            dtwkb_loc *= cfl_wave
+            dtwkb *= cfl_wave
 
             # find global minimum
 
-            dtwkb = MPI.Allreduce(dtwkb_loc, min, comm)
+            dtwkb = MPI.Allreduce(dtwkb, min, comm)
         end
         #-------------------------------
         #        Make your choice
