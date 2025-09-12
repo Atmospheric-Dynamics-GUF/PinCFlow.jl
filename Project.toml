@@ -22,6 +22,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 BenchmarkTools = "1.6.0"
 Dates = "1.11.0"
+JuliaFormatter = "1.0.62"
 LinearAlgebra = "1.11.0"
 MPICH_jll = "4.3.0"
 PythonPlot = "1.0.6"
