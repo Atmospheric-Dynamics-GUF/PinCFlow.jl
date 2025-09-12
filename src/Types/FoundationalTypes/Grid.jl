@@ -83,13 +83,11 @@ Grid spacing:
 
   - `dz::A`: Grid spacing ``\\Delta \\widehat{z}``.
 
-Coordinate arrays:
+Horizontal coordinates:
 
   - `x::B`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
 
   - `y::B`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
-
-  - `z::B`: Cell-centered ``\\widehat{z}``-coordinate of the entire domain.
 
 Topography:
 
@@ -107,7 +105,7 @@ Coordinate transformation.
 
   - `met::F`: Metric tensor.
 
-Physical coordinates:
+Vertical coordinates:
 
   - `ztfc::E`: Physical height at cell centers.
 
@@ -148,10 +146,9 @@ struct Grid{
     dy::A
     dz::A
 
-    # Coordinates.
+    # Horizontal coordinates.
     x::B
     y::B
-    z::B
 
     # Topography.
     topography_surface::C
@@ -163,7 +160,7 @@ struct Grid{
     jac::E
     met::F
 
-    # Vertical layers.
+    # Vertical coordinates.
     ztfc::E
     ztildetfc::E
 end
@@ -341,7 +338,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
         dz,
         x,
         y,
-        z,
         topography_surface,
         topography_spectrum,
         k_spectrum,
