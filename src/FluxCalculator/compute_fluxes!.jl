@@ -382,10 +382,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
-        # The uTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         ur = utilde[i + 1, j, k, 1, 1]
         ul = utilde[i, j, k, 1, 2]
 
@@ -411,10 +407,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
-        # The uTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         uf = utilde[i, j + 1, k, 2, 1]
         ub = utilde[i, j, k, 2, 2]
 
@@ -440,10 +432,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
-        # The uTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         uu = utilde[i, j, k + 1, 3, 1]
         ud = utilde[i, j, k, 3, 2]
 
@@ -699,10 +687,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
-        # The vTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         vr = vtilde[i + 1, j, k, 1, 1]
         vl = vtilde[i, j, k, 1, 2]
 
@@ -728,10 +712,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
-        # The vTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         vf = vtilde[i, j + 1, k, 2, 1]
         vb = vtilde[i, j, k, 2, 2]
 
@@ -757,10 +737,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
-        # The vTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         vu = vtilde[i, j, k + 1, 3, 1]
         vd = vtilde[i, j, k, 3, 2]
 
@@ -1013,10 +989,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
-        # The wTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         wr = wtilde[i + 1, j, k, 1, 1]
         wl = wtilde[i, j, k, 1, 2]
 
@@ -1053,10 +1025,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
-        # The wTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         wf = wtilde[i, j + 1, k, 2, 1]
         wb = wtilde[i, j, k, 2, 2]
 
@@ -1093,10 +1061,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        # The wTilde are the reconstructed specific momenta, divided by P.
-        # These are to be multiplied by the linearly interpolated velocities
-        # (times P) in order to obtain the desired momentum fluxes.
-
         wu = wtilde[i, j, k + 1, 3, 1]
         wd = wtilde[i, j, k, 3, 2]
 
