@@ -1,6 +1,6 @@
 """
 ```julia
-ivy(x::Expr)
+@ivy(x::Expr)
 ```
 
 Return the expression `x` with `@inbounds` and `@views` in front of it.

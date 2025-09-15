@@ -13,7 +13,7 @@ Main module of PinCFlow.
 """
 module PinCFlow
 
-include("ivy.jl")
+include("@ivy.jl")
 
 export @ivy
 
