@@ -17,8 +17,6 @@ using ..Interpolation
 using ...Types
 using ...PinCFlow
 
-include("MergedRays.jl")
-
 include("check_rays.jl")
 include("compute_intrinsic_frequency.jl")
 include("compute_merge_index.jl")
@@ -33,8 +31,6 @@ include("get_spectral_position.jl")
 include("get_surfaces.jl")
 include("remove_rays!.jl")
 include("update_merged_rays!.jl")
-
-export MergedRays
 
 export check_rays,
     compute_intrinsic_frequency,

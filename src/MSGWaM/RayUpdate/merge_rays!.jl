@@ -41,8 +41,6 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 
 # See also
 
-  - [`PinCFlow.MSGWaM.RayOperations.MergedRays`](@ref)
-
   - [`PinCFlow.MSGWaM.RayOperations.compute_spectral_bounds`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
@@ -89,15 +87,11 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
     (; sizex, sizey) = state.namelists.domain
     (; merge_mode) = state.namelists.wkb
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
-    (; nxray, nyray, nzray, nray_max, nray, rays) = state.wkb
+    (; nxray, nyray, nzray, nray_max, nray, rays, merged_rays) = state.wkb
 
     # Compute ray-volume count before merging.
     @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
-
-    # Initialize array for merged ray volumes.
-    merged_rays =
-        [MergedRays([[0.0, 0.0] for i in 1:6]..., Ref(0.0)) for i in 1:nray_max]
 
     # Loop over grid cells.
     @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
@@ -134,9 +128,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         dmr_mrg_p = log(mr_max_p / mr_min_p) / (nzray / 2 - 1)
 
         # Reset the merged ray volumes.
-        for iray in 1:nray_max
-            merged_rays[iray].nr[] = 0.0
-        end
+        @. merged_rays.nr = 0.0
 
         # Loop over ray volumes.
         for iray in 1:nray[ix, jy, kz]
@@ -249,27 +241,27 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         # Construct the merged ray volumes.
         iray = 0
         for jray in 1:nray_max
-            if merged_rays[jray].nr[] == 0
+            if merged_rays.nr[jray] == 0
                 continue
             end
 
             iray += 1
 
-            rays.x[iray, ix, jy, kz] = mean(merged_rays[jray].xr)
-            rays.y[iray, ix, jy, kz] = mean(merged_rays[jray].yr)
-            rays.z[iray, ix, jy, kz] = mean(merged_rays[jray].zr)
+            rays.x[iray, ix, jy, kz] = mean(merged_rays.xr[:, jray])
+            rays.y[iray, ix, jy, kz] = mean(merged_rays.yr[:, jray])
+            rays.z[iray, ix, jy, kz] = mean(merged_rays.zr[:, jray])
 
-            rays.k[iray, ix, jy, kz] = mean(merged_rays[jray].kr)
-            rays.l[iray, ix, jy, kz] = mean(merged_rays[jray].lr)
-            rays.m[iray, ix, jy, kz] = mean(merged_rays[jray].mr)
+            rays.k[iray, ix, jy, kz] = mean(merged_rays.kr[:, jray])
+            rays.l[iray, ix, jy, kz] = mean(merged_rays.lr[:, jray])
+            rays.m[iray, ix, jy, kz] = mean(merged_rays.mr[:, jray])
 
-            rays.dxray[iray, ix, jy, kz] = diff(merged_rays[jray].xr)[1]
-            rays.dyray[iray, ix, jy, kz] = diff(merged_rays[jray].yr)[1]
-            rays.dzray[iray, ix, jy, kz] = diff(merged_rays[jray].zr)[1]
+            rays.dxray[iray, ix, jy, kz] = diff(merged_rays.xr[:, jray])[1]
+            rays.dyray[iray, ix, jy, kz] = diff(merged_rays.yr[:, jray])[1]
+            rays.dzray[iray, ix, jy, kz] = diff(merged_rays.zr[:, jray])[1]
 
-            rays.dkray[iray, ix, jy, kz] = diff(merged_rays[jray].kr)[1]
-            rays.dlray[iray, ix, jy, kz] = diff(merged_rays[jray].lr)[1]
-            rays.dmray[iray, ix, jy, kz] = diff(merged_rays[jray].mr)[1]
+            rays.dkray[iray, ix, jy, kz] = diff(merged_rays.kr[:, jray])[1]
+            rays.dlray[iray, ix, jy, kz] = diff(merged_rays.lr[:, jray])[1]
+            rays.dmray[iray, ix, jy, kz] = diff(merged_rays.mr[:, jray])[1]
 
             (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
 
@@ -291,7 +283,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
             rays.dens[iray, ix, jy, kz] = compute_wave_action_integral(
                 merge_mode,
-                merged_rays[jray].nr[],
+                merged_rays.nr[jray],
                 1 / omegar,
                 1 / fcpspx,
                 1 / fcpspy,
