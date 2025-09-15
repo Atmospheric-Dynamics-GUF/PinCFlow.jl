@@ -200,8 +200,8 @@ function compute_sponges!(state::State, dt::AbstractFloat)
         end
     end
 
-    @ivy ko == 0 && @. betar[:, :, k0 - 1] = betar[:, :, k0]
-    @ivy ko + nzz == sizezz && @. betar[:, :, k1 + 1] = betar[:, :, k1]
+    @ivy ko == 0 && betar[:, :, k0 - 1] .= betar[:, :, k0]
+    @ivy ko + nzz == sizezz && betar[:, :, k1 + 1] .= betar[:, :, k1]
 
     return
 end
@@ -227,7 +227,7 @@ function compute_sponges!(
     lateralsponge && (alpharzmax /= dim)
     alpharxmax = alpharymax = alpharzmax
 
-    @. alphar = 0.0
+    alphar .= 0.0
 
     ix0 = lateralsponge ? i0 : 1
     ix1 = lateralsponge ? i1 : nxx
@@ -276,8 +276,8 @@ function compute_sponges!(
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
-    @ivy ko == 0 && @. alphar[:, :, k0 - 1] = alphar[:, :, k0]
-    @ivy ko + nzz == sizezz && @. alphar[:, :, k1 + 1] = alphar[:, :, k1]
+    @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
+    @ivy ko + nzz == sizezz && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
 
     return
 end
@@ -304,7 +304,7 @@ function compute_sponges!(
         zsponge,
     ) = state.sponge
 
-    @. alphar = 0.0
+    alphar .= 0.0
 
     ix0 = lateralsponge ? i0 : 1
     ix1 = lateralsponge ? i1 : nxx
@@ -361,8 +361,8 @@ function compute_sponges!(
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
-    @ivy ko == 0 && @. alphar[:, :, k0 - 1] = alphar[:, :, k0]
-    @ivy ko + nzz == sizezz && @. alphar[:, :, k1 + 1] = alphar[:, :, k1]
+    @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
+    @ivy ko + nzz == sizezz && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
 
     return
 end
@@ -398,7 +398,7 @@ function compute_sponges!(
     lateralsponge && (alpharzmax /= dim)
     alpharxmax = alpharymax = alpharzmax
 
-    @. alphar = 0.0
+    alphar .= 0.0
 
     ix0 = lateralsponge ? i0 : 1
     ix1 = lateralsponge ? i1 : nxx
@@ -454,8 +454,8 @@ function compute_sponges!(
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
-    @ivy ko == 0 && @. alphar[:, :, k0 - 1] = alphar[:, :, k0]
-    @ivy ko + nzz == sizezz && @. alphar[:, :, k1 + 1] = alphar[:, :, k1]
+    @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
+    @ivy ko + nzz == sizezz && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
 
     return
 end
@@ -491,7 +491,7 @@ function compute_sponges!(
     lateralsponge && (alpharzmax /= dim)
     alpharxmax = alpharymax = alpharzmax
 
-    @. alphar = 0.0
+    alphar .= 0.0
 
     ix0 = lateralsponge ? i0 : 1
     ix1 = lateralsponge ? i1 : nxx
@@ -548,8 +548,8 @@ function compute_sponges!(
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
-    @ivy ko == 0 && @. alphar[:, :, k0 - 1] = alphar[:, :, k0]
-    @ivy ko + nzz == sizezz && @. alphar[:, :, k1 + 1] = alphar[:, :, k1]
+    @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
+    @ivy ko + nzz == sizezz && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
 
     return
 end

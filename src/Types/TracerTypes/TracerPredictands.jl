@@ -122,9 +122,9 @@ function TracerPredictands(
 
     alphatracer = lref
     chi = zeros(nxx, nyy, nzz)
-    @. chi = alphatracer * ztfc
+    chi .= alphatracer .* ztfc
 
-    @. chi = chi * (rho + rhostrattfc)
+    chi .= chi .* (rho .+ rhostrattfc)
 
     return TracerPredictands(chi)
 end

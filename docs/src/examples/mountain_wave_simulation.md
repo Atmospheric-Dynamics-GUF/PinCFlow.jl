@@ -106,11 +106,11 @@ else
 end
 
 # Set the grid.
-x = @. data["x"][:] / 1000
-y = @. data["y"][:] / 1000
-z = @. data["z"][:, :, :] / 1000
-x = [xi for xi in x, j in size(z)[2], k in size(z)[3]]
-y = [yj for i in size(z)[1], yj in y, k in size(z)[3]]
+x = data["x"][:] ./ 1000
+y = data["y"][:] ./ 1000
+z = data["z"][:, :, :] ./ 1000
+x = [xi for xi in x, j in 1:size(z)[2], k in 1:size(z)[3]]
+y = [yj for i in 1:size(z)[1], yj in y, k in 1:size(z)[3]]
 
 # Get the vertical wind.
 w = data["w"][:, :, :, end]

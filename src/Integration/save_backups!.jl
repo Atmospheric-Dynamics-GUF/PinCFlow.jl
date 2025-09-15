@@ -16,9 +16,8 @@ function save_backups! end
 function save_backups!(state::State, variables::Vararg{Symbol})
     (; backups, predictands) = state.variables
 
-    @ivy for field in variables
-        @. $getfield(backups, Symbol(field, :old))[:] =
-            $getfield(predictands, field)[:]
+    for field in variables
+        getfield(backups, Symbol(field, :old)) .= getfield(predictands, field)
     end
 
     return

@@ -128,7 +128,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         dmr_mrg_p = log(mr_max_p / mr_min_p) / (nzray / 2 - 1)
 
         # Reset the merged ray volumes.
-        @. merged_rays.nr = 0.0
+        merged_rays.nr .= 0.0
 
         # Loop over ray volumes.
         for iray in 1:nray[ix, jy, kz]
@@ -235,7 +235,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
         # Reset the old ray volumes.
         for field in fieldnames(Rays)
-            @. $getfield(rays, field)[:, ix, jy, kz] = 0.0
+            getfield(rays, field)[:, ix, jy, kz] .= 0.0
         end
 
         # Construct the merged ray volumes.

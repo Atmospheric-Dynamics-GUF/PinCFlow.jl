@@ -84,7 +84,7 @@ function apply_operator!(
     (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    @. @ivy s[i0:i1, j0:j1, k0:k1] = sin
+    @ivy s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
     if npz > 1
@@ -307,7 +307,7 @@ function apply_operator!(
     (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    @. @ivy s[i0:i1, j0:j1, k0:k1] = sin
+    @ivy s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
     if npz > 1

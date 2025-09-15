@@ -35,10 +35,10 @@ function set_meridional_halo_rays!(state::State)
     receive_forward = zeros(length(fields), nray_max_backward, nx + 2, nz + 2)
 
     @ivy for (index, field) in enumerate(fields)
-        @. send_forward[index, :, :, :] =
-            $getfield(rays, field)[1:nray_max_forward, ii, j1, kk]
-        @. send_backward[index, :, :, :] =
-            $getfield(rays, field)[1:nray_max_backward, ii, j0, kk]
+        send_forward[index, :, :, :] .=
+            getfield(rays, field)[1:nray_max_forward, ii, j1, kk]
+        send_backward[index, :, :, :] .=
+            getfield(rays, field)[1:nray_max_backward, ii, j0, kk]
     end
 
     MPI.Sendrecv!(
@@ -58,9 +58,9 @@ function set_meridional_halo_rays!(state::State)
     )
 
     @ivy for (index, field) in enumerate(fields)
-        @. $getfield(rays, field)[1:nray_max_forward, ii, j0 - 1, kk] =
+        getfield(rays, field)[1:nray_max_forward, ii, j0 - 1, kk] .=
             receive_backward[index, :, :, :]
-        @. $getfield(rays, field)[1:nray_max_backward, ii, j1 + 1, kk] =
+        getfield(rays, field)[1:nray_max_backward, ii, j1 + 1, kk] .=
             receive_forward[index, :, :, :]
     end
 

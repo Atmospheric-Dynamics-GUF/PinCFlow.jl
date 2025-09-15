@@ -37,7 +37,7 @@ function get_next_half_level(
     (; sizezz, nzz, ko, k0, k1) = state.domain
     (; ztildetfc) = state.grid
 
-    @ivy k = argmin(@. abs(ztildetfc[i, j, :] - z))
+    @ivy k = argmin(abs.(ztildetfc[i, j, :] .- z))
     @ivy if ztildetfc[i, j, k] < z
         k += 1
     end

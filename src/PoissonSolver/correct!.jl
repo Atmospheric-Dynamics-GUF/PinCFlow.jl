@@ -343,7 +343,7 @@ function correct!(state::State, variable::PiP)
     jj = (j0 - 1):(j1 + 1)
     kk = (k0 - 1):(k1 + 1)
 
-    @. pip[ii, jj, kk] += dpip[ii, jj, kk]
+    pip[ii, jj, kk] .+= dpip[ii, jj, kk]
 
     return
 end

@@ -37,34 +37,34 @@ function set_vertical_halo_rays!(state::State)
 
     @ivy if ko == 0
         for (index, field) in enumerate(fields)
-            @. send_up[index, :, :, :] =
-                $getfield(rays, field)[1:nray_max_up, ii, jj, k1]
+            send_up[index, :, :, :] .=
+                getfield(rays, field)[1:nray_max_up, ii, jj, k1]
         end
 
         MPI.Sendrecv!(send_up, receive_up, comm; dest = up, source = up)
 
         for (index, field) in enumerate(fields)
-            @. $getfield(rays, field)[1:nray_max_down, ii, jj, k1 + 1] =
+            getfield(rays, field)[1:nray_max_down, ii, jj, k1 + 1] .=
                 receive_up[index, :, :, :]
         end
     elseif ko + nzz == sizezz
         for (index, field) in enumerate(fields)
-            @. send_down[index, :, :, :] =
-                $getfield(rays, field)[1:nray_max_down, ii, jj, k0]
+            send_down[index, :, :, :] .=
+                getfield(rays, field)[1:nray_max_down, ii, jj, k0]
         end
 
         MPI.Sendrecv!(send_down, receive_down, comm; dest = down, source = down)
 
         for (index, field) in enumerate(fields)
-            @. $getfield(rays, field)[1:nray_max_up, ii, jj, k0 - 1] =
+            getfield(rays, field)[1:nray_max_up, ii, jj, k0 - 1] .=
                 receive_down[index, :, :, :]
         end
     else
         for (index, field) in enumerate(fields)
-            @. send_up[index, :, :, :] =
-                $getfield(rays, field)[1:nray_max_up, ii, jj, k1]
-            @. send_down[index, :, :, :] =
-                $getfield(rays, field)[1:nray_max_down, ii, jj, k0]
+            send_up[index, :, :, :] .=
+                getfield(rays, field)[1:nray_max_up, ii, jj, k1]
+            send_down[index, :, :, :] .=
+                getfield(rays, field)[1:nray_max_down, ii, jj, k0]
         end
 
         MPI.Sendrecv!(send_up, receive_down, comm; dest = up, source = down)
@@ -72,9 +72,9 @@ function set_vertical_halo_rays!(state::State)
         MPI.Sendrecv!(send_down, receive_up, comm; dest = down, source = up)
 
         for (index, field) in enumerate(fields)
-            @. $getfield(rays, field)[1:nray_max_up, ii, jj, k0 - 1] =
+            getfield(rays, field)[1:nray_max_up, ii, jj, k0 - 1] .=
                 receive_down[index, :, :, :]
-            @. $getfield(rays, field)[1:nray_max_down, ii, jj, k1 + 1] =
+            getfield(rays, field)[1:nray_max_down, ii, jj, k1 + 1] .=
                 receive_up[index, :, :, :]
         end
     end

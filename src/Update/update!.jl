@@ -287,7 +287,7 @@ function update!(
     (; rho) = state.variables.predictands
 
     if m == 1
-        @. drho = 0.0
+        drho .= 0.0
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
@@ -326,7 +326,7 @@ function update!(
     (; rhop) = state.variables.predictands
 
     if m == 1
-        @. drhop = 0.0
+        drhop .= 0.0
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
@@ -506,7 +506,7 @@ function update!(
     fc = coriolis_frequency * tref
 
     if m == 1
-        @. du = 0.0
+        du .= 0.0
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
@@ -662,7 +662,7 @@ function update!(
     fc = coriolis_frequency * tref
 
     if m == 1
-        @. dv = 0.0
+        dv .= 0.0
     end
 
     @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
@@ -819,7 +819,7 @@ function update!(
     (fluxdiffu, fluxdiffv) = (zeros(2, 2) for i in 1:2)
 
     if m == 1
-        @. dw = 0.0
+        dw .= 0.0
     end
 
     kz0 = ko == 0 ? k0 : k0 - 1
@@ -1188,7 +1188,7 @@ function update!(
     (; p) = state.variables.predictands
 
     if m == 1
-        @. dp = 0.0
+        dp .= 0.0
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
@@ -1235,7 +1235,7 @@ function update!(
 
     @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
         if m == 1
-            @. $getfield(tracerincrements, fd)[:] = 0.0
+            getfield(tracerincrements, fd) .= 0.0
         end
 
         for k in k0:k1, j in j0:j1, i in i0:i1

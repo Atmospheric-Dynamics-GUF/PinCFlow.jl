@@ -148,8 +148,8 @@ function Atmosphere(
 
     # Set the background fields.
     rhostrattfc = ones(nxx, nyy, nzz)
-    thetastrattfc = @. theta0_dim / thetaref * $ones(nxx, nyy, nzz)
-    pstrattfc = @. rhostrattfc * thetastrattfc
+    thetastrattfc = theta0_dim ./ thetaref .* ones(nxx, nyy, nzz)
+    pstrattfc = rhostrattfc .* thetastrattfc
     bvsstrattfc = zeros(nxx, nyy, nzz)
 
     return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
@@ -169,9 +169,9 @@ function Atmosphere(
 
     # Set the background fields.
     rhostrattfc = ones(nxx, nyy, nzz)
-    thetastrattfc = @. theta0_dim / thetaref * $ones(nxx, nyy, nzz)
-    pstrattfc = @. rhostrattfc * thetastrattfc
-    bvsstrattfc = @. (buoyancy_frequency * tref)^2 * $ones(nxx, nyy, nzz)
+    thetastrattfc = theta0_dim ./ thetaref .* ones(nxx, nyy, nzz)
+    pstrattfc = rhostrattfc .* thetastrattfc
+    bvsstrattfc = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
 
     return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
 end
@@ -198,33 +198,32 @@ function Atmosphere(
     p0 = press0_dim / pref
 
     # Compute the background fields.
-    @. pstrattfc = p0 * exp(-sig * ztfc / gamma / t0)
-    @. thetastrattfc = t0 * exp(kappa * sig / t0 * ztfc)
-    @. rhostrattfc = pstrattfc / thetastrattfc
+    pstrattfc .= p0 .* exp.(.-sig .* ztfc ./ gamma ./ t0)
+    thetastrattfc .= t0 .* exp.(kappa .* sig ./ t0 .* ztfc)
+    rhostrattfc .= pstrattfc ./ thetastrattfc
 
     # Compute the squared buoyancy frequency.
-    @. bvsstrattfc = 0.0
+    bvsstrattfc .= 0.0
     @ivy for k in k0:k1
-        @. bvsstrattfc[:, :, k] =
-            g_ndim / thetastrattfc[:, :, k] / jac[:, :, k] *
-            0.5 *
-            (thetastrattfc[:, :, k + 1] - thetastrattfc[:, :, k - 1]) / dz
+        bvsstrattfc[:, :, k] .=
+            g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
+            (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
     end
 
     # Compute the squared buoyancy frequency at the boundaries.
     set_vertical_boundaries_of_field!(bvsstrattfc, namelists, domain, +)
     @ivy if ko == 0
         for k in 1:nbz
-            @. bvsstrattfc[:, :, k] =
-                g_ndim / thetastrattfc[:, :, k0 - 1] / jac[:, :, k0 - 1] *
-                (thetastrattfc[:, :, k0] - thetastrattfc[:, :, k0 - 1]) / dz
+            bvsstrattfc[:, :, k] .=
+                g_ndim ./ thetastrattfc[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
+                (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
         end
     end
     @ivy if ko + nzz == sizezz
         for k in 1:nbz
-            @. bvsstrattfc[:, :, k1 + k] =
-                g_ndim / thetastrattfc[:, :, k1 + 1] / jac[:, :, k1 + 1] *
-                (thetastrattfc[:, :, k1 + 1] - thetastrattfc[:, :, k1]) / dz
+            bvsstrattfc[:, :, k1 + k] .=
+                g_ndim ./ thetastrattfc[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
+                (thetastrattfc[:, :, k1 + 1] .- thetastrattfc[:, :, k1]) ./ dz
         end
     end
 

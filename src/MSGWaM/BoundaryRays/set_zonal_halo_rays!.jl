@@ -35,10 +35,10 @@ function set_zonal_halo_rays!(state::State)
     receive_right = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
 
     @ivy for (index, field) in enumerate(fields)
-        @. send_right[index, :, :, :] =
-            $getfield(rays, field)[1:nray_max_right, i1, jj, kk]
-        @. send_left[index, :, :, :] =
-            $getfield(rays, field)[1:nray_max_left, i0, jj, kk]
+        send_right[index, :, :, :] .=
+            getfield(rays, field)[1:nray_max_right, i1, jj, kk]
+        send_left[index, :, :, :] .=
+            getfield(rays, field)[1:nray_max_left, i0, jj, kk]
     end
 
     MPI.Sendrecv!(send_right, receive_left, comm; dest = right, source = left)
@@ -46,9 +46,9 @@ function set_zonal_halo_rays!(state::State)
     MPI.Sendrecv!(send_left, receive_right, comm; dest = left, source = right)
 
     @ivy for (index, field) in enumerate(fields)
-        @. $getfield(rays, field)[1:nray_max_right, i0 - 1, jj, kk] =
+        getfield(rays, field)[1:nray_max_right, i0 - 1, jj, kk] .=
             receive_left[index, :, :, :]
-        @. $getfield(rays, field)[1:nray_max_left, i1 + 1, jj, kk] =
+        getfield(rays, field)[1:nray_max_left, i1 + 1, jj, kk] .=
             receive_right[index, :, :, :]
     end
 

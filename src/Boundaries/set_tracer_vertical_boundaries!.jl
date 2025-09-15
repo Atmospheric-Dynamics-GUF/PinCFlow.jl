@@ -164,13 +164,13 @@ function set_tracer_vertical_boundaries!(
 
     @ivy if ko == 0
         for field in fieldnames(TracerFluxes)
-            @. $getfield(tracerfluxes, field)[:, :, k0 - 1, 3] = 0.0
+            getfield(tracerfluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
     @ivy if ko + nzz == sizezz
         for field in fieldnames(TracerFluxes)
-            @. $getfield(tracerfluxes, field)[:, :, k1, 3] = 0.0
+            getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end
     end
 
