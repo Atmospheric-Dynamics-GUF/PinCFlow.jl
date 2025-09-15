@@ -136,7 +136,7 @@ function apply_saturation_scheme!(
     @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
 
         # Compute saturation integrals for wave-action reduction.
-        (mb2, mb2k2) = compute_saturation_integrals(state, (ix, jy, kz))
+        (mb2, mb2k2) = compute_saturation_integrals(state, ix, jy, kz)
 
         # Calculate the turbulent eddy diffusivity.
         n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
@@ -178,7 +178,7 @@ function apply_saturation_scheme!(
         end
 
         # Compute the saturation integrals again for diagnostics.
-        (mb2, mb2k2) = compute_saturation_integrals(state, (ix, jy, kz))
+        (mb2, mb2k2) = compute_saturation_integrals(state, ix, jy, kz)
 
         # Check if saturation is violated.
         n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())

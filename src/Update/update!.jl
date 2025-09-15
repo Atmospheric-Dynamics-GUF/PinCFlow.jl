@@ -340,7 +340,7 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        heating = compute_volume_force(state, (i, j, k), P())
+        heating = compute_volume_force(state, i, j, k, P())
 
         f = -fluxdiff - heating / thetastrattfc[i, j, k]
 
@@ -365,8 +365,8 @@ function update!(
     (; rho, rhop) = predictands
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        jpu = compute_compressible_wind_factor(state, (i, j, k), W())
-        jpd = compute_compressible_wind_factor(state, (i, j, k - 1), W())
+        jpu = compute_compressible_wind_factor(state, i, j, k, W())
+        jpd = compute_compressible_wind_factor(state, i, j, k - 1, W())
         wvrt =
             0.5 * (
                 compute_vertical_wind(i, j, k, state) / jpu +
@@ -374,7 +374,7 @@ function update!(
             )
 
         buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        fb = compute_buoyancy_factor(state, (i, j, k), RhoP())
+        fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         buoy -= dt * fb * bvsstrattfc[i, j, k] * wvrt
 
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
@@ -424,15 +424,14 @@ function update!(
                 jac[i, j, k] * rhostrattfc[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
 
-        jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
-        jpedged = compute_compressible_wind_factor(state, (i, j, k - 1), W())
+        jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
+        jpedged = compute_compressible_wind_factor(state, i, j, k - 1, W())
         w = 0.5 * (wold[i, j, k] / jpedgeu + wold[i, j, k - 1] / jpedged)
 
-        lower_gradient =
-            compute_pressure_gradient(state, pip, (i, j, k - 1), W())
-        lower_force = compute_volume_force(state, (i, j, k - 1), W())
-        upper_gradient = compute_pressure_gradient(state, pip, (i, j, k), W())
-        upper_force = compute_volume_force(state, (i, j, k), W())
+        lower_gradient = compute_pressure_gradient(state, pip, i, j, k - 1, W())
+        lower_force = compute_volume_force(state, i, j, k - 1, W())
+        upper_gradient = compute_pressure_gradient(state, pip, i, j, k, W())
+        upper_force = compute_volume_force(state, i, j, k, W())
 
         if ko + k == k0
             lower_gradient = 0.0
@@ -452,11 +451,11 @@ function update!(
         end
 
         b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
-        jpedgel = compute_compressible_wind_factor(state, (i - 1, j, k), U())
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
-        jpedgeb = compute_compressible_wind_factor(state, (i, j - 1, k), V())
-        fb = compute_buoyancy_factor(state, (i, j, k), RhoP())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
+        jpedgel = compute_compressible_wind_factor(state, i - 1, j, k, U())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
+        jpedgeb = compute_compressible_wind_factor(state, i, j - 1, k, V())
+        fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         b =
             1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
                 -fb *
@@ -583,11 +582,11 @@ function update!(
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         rhoedger += rhostratedger
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), U())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, U())
 
-        force = compute_volume_force(state, (i, j, k), U())
+        force = compute_volume_force(state, i, j, k, U())
 
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
 
         u[i, j, k] += dt * (-gradient + force / rhoedger) * jpedger
     end
@@ -617,9 +616,9 @@ function update!(
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         rhoedger += rhostratedger
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), U())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, U())
 
-        force = compute_volume_force(state, (i, j, k), U())
+        force = compute_volume_force(state, i, j, k, U())
 
         factor = 1.0
 
@@ -631,7 +630,7 @@ function update!(
                 rayleigh_factor
         end
 
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
 
         u[i, j, k] =
             1.0 / factor *
@@ -736,11 +735,11 @@ function update!(
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         rhoedgef += rhostratedgef
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), V())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, V())
 
-        force = compute_volume_force(state, (i, j, k), V())
+        force = compute_volume_force(state, i, j, k, V())
 
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
 
         v[i, j, k] += dt * (-gradient + force / rhoedgef) * jpedgef
     end
@@ -770,9 +769,9 @@ function update!(
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         rhoedgef += rhostratedgef
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), V())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, V())
 
-        force = compute_volume_force(state, (i, j, k), V())
+        force = compute_volume_force(state, i, j, k, V())
 
         factor = 1.0
 
@@ -784,7 +783,7 @@ function update!(
                 rayleigh_factor
         end
 
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
 
         v[i, j, k] =
             1.0 / factor *
@@ -987,9 +986,9 @@ function update!(
                 jac[i, j, k] * rhostrattfc[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), W())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, W())
 
-        force = compute_volume_force(state, (i, j, k), W())
+        force = compute_volume_force(state, i, j, k, W())
 
         b =
             -g_ndim * (
@@ -997,7 +996,7 @@ function update!(
                 jac[i, j, k] * rhopold[i, j, k + 1] / rhou / jac[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
+        jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
 
         w[i, j, k] += dt * (b - gradient + force / rhoedgeu) * jpedgeu
     end
@@ -1041,9 +1040,9 @@ function update!(
                 jac[i, j, k] * rhostrattfc[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), W())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, W())
 
-        force = compute_volume_force(state, (i, j, k), W())
+        force = compute_volume_force(state, i, j, k, W())
 
         bvsstratedgeu =
             (
@@ -1068,24 +1067,22 @@ function update!(
                 jac[i, j, k] * rhop[i, j, k + 1] / rhou / jac[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
-        jpedgel = compute_compressible_wind_factor(state, (i - 1, j, k), U())
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
-        jpedgeb = compute_compressible_wind_factor(state, (i, j - 1, k), V())
-        jpuedger = compute_compressible_wind_factor(state, (i, j, k + 1), U())
-        jpuedgel =
-            compute_compressible_wind_factor(state, (i - 1, j, k + 1), U())
-        jpuedgef = compute_compressible_wind_factor(state, (i, j, k + 1), V())
-        jpuedgeb =
-            compute_compressible_wind_factor(state, (i, j - 1, k + 1), V())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
+        jpedgel = compute_compressible_wind_factor(state, i - 1, j, k, U())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
+        jpedgeb = compute_compressible_wind_factor(state, i, j - 1, k, V())
+        jpuedger = compute_compressible_wind_factor(state, i, j, k + 1, U())
+        jpuedgel = compute_compressible_wind_factor(state, i - 1, j, k + 1, U())
+        jpuedgef = compute_compressible_wind_factor(state, i, j, k + 1, V())
+        jpuedgeb = compute_compressible_wind_factor(state, i, j - 1, k + 1, V())
 
         uc = 0.5 * (u[i, j, k] / jpedger + u[i - 1, j, k] / jpedgel)
         uu = 0.5 * (u[i, j, k + 1] / jpuedger + u[i - 1, j, k + 1] / jpuedgel)
         vc = 0.5 * (v[i, j, k] / jpedgef + v[i, j - 1, k] / jpedgeb)
         vu = 0.5 * (v[i, j, k + 1] / jpuedgef + v[i, j - 1, k + 1] / jpuedgeb)
 
-        jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
-        fw = compute_buoyancy_factor(state, (i, j, k), W())
+        jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
+        fw = compute_buoyancy_factor(state, i, j, k, W())
 
         w[i, j, k] =
             1.0 / (factor + fw * bvsstratedgeu * dt^2.0) * (
@@ -1146,7 +1143,7 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        heating = compute_volume_force(state, (i, j, k), P())
+        heating = compute_volume_force(state, i, j, k, P())
 
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
@@ -1202,7 +1199,7 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        heating = compute_volume_force(state, (i, j, k), P())
+        heating = compute_volume_force(state, i, j, k, P())
 
         f = -fluxdiff + heating
 

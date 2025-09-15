@@ -3,12 +3,14 @@
 compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::U,
 )::AbstractFloat
 ```
 
-Compute and return the pressure(-difference)-gradient term in the zonal-wind equation near the position specified by `indices`, using the pressure(-difference) field `pip`.
+Compute and return the pressure(-difference)-gradient term in the zonal-wind equation at ``\\left(i + 1 / 2, j, k\\right)``, using the pressure(-difference) field `pip`.
 
 The pressure-gradient component is given by
 
@@ -34,12 +36,14 @@ at ``k = k_1`` (in the last process in ``\\widehat{z}``). The corresponding pres
 compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::V,
 )::AbstractFloat
 ```
 
-Compute and return the pressure-gradient term in the meridional-wind equation near the position specified by `indices`, using the pressure(-difference) field `pip`.
+Compute and return the pressure-gradient term in the meridional-wind equation at ``\\left(i, j + 1 / 2, k\\right)``, using the pressure(-difference) field `pip`.
 
 The pressure-gradient component is given by
 
@@ -65,12 +69,14 @@ at ``k = k_1`` (in the last process in ``\\widehat{z}``). The corresponding pres
 compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
 )::AbstractFloat
 ```
 
-Compute and return the pressure(-difference)-gradient term in the transformed-vertical-wind equation near the position specified by `indices`, using the pressure(-difference) field `pip`.
+Compute and return the pressure(-difference)-gradient term in the transformed-vertical-wind equation at ``\\left(i, j, k + 1 / 2\\right)``, using the pressure(-difference) field `pip`.
 
 The pressure-gradient component is given by
 
@@ -89,7 +95,11 @@ At ``k = k_0 - 1`` (in the first process in ``\\widehat{z}``) and ``k = k_1`` (i
 
   - `pip`: Pressure field.
 
-  - `indices`: Grid-cell indices ``(i, j, k)``
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
 
   - `variable`: Equation in which the respective pressure-gradient component is needed.
 """
@@ -98,7 +108,9 @@ function compute_pressure_gradient end
 function compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::U,
 )::AbstractFloat
     (; nbz) = state.namelists.domain
@@ -107,7 +119,6 @@ function compute_pressure_gradient(
     (; dx, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
-    (i, j, k) = indices
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
@@ -156,7 +167,9 @@ end
 function compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::V,
 )::AbstractFloat
     (; nbz) = state.namelists.domain
@@ -165,7 +178,6 @@ function compute_pressure_gradient(
     (; dy, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
-    (i, j, k) = indices
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
@@ -214,14 +226,15 @@ end
 function compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
 )::AbstractFloat
     (; kappainv, mainv2) = state.constants
     (; dx, dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
-    (i, j, k) = indices
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.

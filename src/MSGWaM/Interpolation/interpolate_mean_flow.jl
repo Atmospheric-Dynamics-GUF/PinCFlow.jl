@@ -637,16 +637,16 @@ function interpolate_mean_flow(
     # Assign the values.
 
     (philbd, philbu) =
-        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DUDX())
+        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DUDX())
 
     (philfd, philfu) =
-        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DUDX())
+        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DUDX())
 
     (phirbd, phirbu) =
-        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DUDX())
+        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DUDX())
 
     (phirfd, phirfu) =
-        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDX())
+        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DUDX())
 
     # Interpolate.
     phi = interpolate(
@@ -808,16 +808,16 @@ function interpolate_mean_flow(
     # Assign the values.
 
     (philbd, philbu) =
-        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DUDY())
+        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DUDY())
 
     (philfd, philfu) =
-        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DUDY())
+        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DUDY())
 
     (phirbd, phirbu) =
-        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DUDY())
+        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DUDY())
 
     (phirfd, phirfu) =
-        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDY())
+        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DUDY())
 
     # Interpolate.
     phi = interpolate(
@@ -939,16 +939,16 @@ function interpolate_mean_flow(
     # Assign the values.
 
     (philbd, philbu) =
-        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DUDZ())
+        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DUDZ())
 
     (philfd, philfu) =
-        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DUDZ())
+        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DUDZ())
 
     (phirbd, phirbu) =
-        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DUDZ())
+        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DUDZ())
 
     (phirfd, phirfu) =
-        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDZ())
+        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DUDZ())
 
     # Interpolate.
     phi = interpolate(
@@ -1110,16 +1110,16 @@ function interpolate_mean_flow(
     # Assign the values.
 
     (philbd, philbu) =
-        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DVDX())
+        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DVDX())
 
     (philfd, philfu) =
-        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DVDX())
+        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DVDX())
 
     (phirbd, phirbu) =
-        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DVDX())
+        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DVDX())
 
     (phirfd, phirfu) =
-        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDX())
+        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DVDX())
 
     # Interpolate.
     phi = interpolate(
@@ -1237,16 +1237,16 @@ function interpolate_mean_flow(
     # Assign the values.
 
     (philbd, philbu) =
-        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DVDY())
+        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DVDY())
 
     (philfd, philfu) =
-        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DVDY())
+        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DVDY())
 
     (phirbd, phirbu) =
-        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DVDY())
+        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DVDY())
 
     (phirfd, phirfu) =
-        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDY())
+        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DVDY())
 
     # Interpolate.
     phi = interpolate(
@@ -1368,16 +1368,16 @@ function interpolate_mean_flow(
     # Assign the values.
 
     (philbd, philbu) =
-        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DVDZ())
+        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DVDZ())
 
     (philfd, philfu) =
-        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DVDZ())
+        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DVDZ())
 
     (phirbd, phirbu) =
-        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DVDZ())
+        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DVDZ())
 
     (phirfd, phirfu) =
-        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDZ())
+        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DVDZ())
 
     # Interpolate.
     phi = interpolate(

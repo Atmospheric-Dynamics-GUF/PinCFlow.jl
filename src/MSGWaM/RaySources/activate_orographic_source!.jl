@@ -335,8 +335,10 @@ function activate_orographic_source!(state::State)
                         end
                         copy_rays!(
                             rays,
-                            (iray, ix, jy, kz),
-                            (nrlc, ix, jy, kz + 1),
+                            iray => nrlc,
+                            ix => ix,
+                            jy => jy,
+                            kz => kz + 1,
                         )
                         for field in fieldnames(WKBIncrements)
                             getfield(increments, field)[nrlc, ix, jy, kz + 1] =

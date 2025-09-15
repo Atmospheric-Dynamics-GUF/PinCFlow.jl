@@ -176,7 +176,7 @@ function compute_rhs!(state::State, model::Compressible)::AbstractFloat
         jb = j - j0 + 1
         kb = k - k0 + 1
         # Compute the heating.
-        heating = compute_volume_force(state, (i, j, k), P()) * ma^2.0 * kappa
+        heating = compute_volume_force(state, i, j, k, P()) * ma^2.0 * kappa
         # Compute RHS.
         bu = (ur - ul) / dx / jac[i, j, k] * ma^2.0 * kappa
         bv = (vf - vb) / dy / jac[i, j, k] * ma^2.0 * kappa

@@ -3,7 +3,7 @@
 apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
+    scope::UnitRange{<:Integer},
     order::Val{1},
 )
 ```
@@ -22,7 +22,7 @@ where ``\\phi_i`` are the elements of `ìnput`.
 apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
+    scope::UnitRange{<:Integer},
     order::Val{2},
 )
 ```
@@ -41,7 +41,7 @@ where ``\\phi_i`` are the elements of `ìnput`.
 apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
+    scope::UnitRange{<:Integer},
     order::Val{3},
 )
 ```
@@ -60,7 +60,7 @@ where ``\\phi_i`` are the elements of `ìnput`.
 apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
+    scope::UnitRange{<:Integer},
     order::Val{4},
 )
 ```
@@ -81,7 +81,7 @@ where ``\\phi_i`` are the elements of `ìnput`.
 
   - `input`: Input vector.
 
-  - `bounds`: Index bounds.
+  - `scope`: Index range.
 
   - `order`: Order of the Shapiro filter.
 """
@@ -90,10 +90,10 @@ function apply_shapiro_filter! end
 function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
+    scope::UnitRange{<:Integer},
     order::Val{1},
 )
-    @ivy for i in bounds[1]:bounds[2]
+    @ivy for i in scope
         output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
     end
     return
@@ -102,10 +102,10 @@ end
 function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
+    scope::UnitRange{<:Integer},
     order::Val{2},
 )
-    @ivy for i in bounds[1]:bounds[2]
+    @ivy for i in scope
         output[i] =
             (
                 -input[i - 2] - input[i + 2] +
@@ -119,10 +119,10 @@ end
 function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
+    scope::UnitRange{<:Integer},
     order::Val{3},
 )
-    @ivy for i in bounds[1]:bounds[2]
+    @ivy for i in scope
         output[i] =
             (
                 input[i - 3] + input[i + 3] -
@@ -137,10 +137,10 @@ end
 function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
+    scope::UnitRange{<:Integer},
     order::Val{4},
 )
-    @ivy for i in bounds[1]:bounds[2]
+    @ivy for i in scope
         output[i] =
             (
                 -input[i - 4] - input[i + 4] +

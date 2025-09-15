@@ -2,7 +2,9 @@
 ```julia
 compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
 )::AbstractFloat
 ```
@@ -12,7 +14,9 @@ Return the volume force in the equation specified by `variable`.
 ```julia
 compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
     testcase::AbstractTestCase,
 )::AbstractFloat
@@ -23,7 +27,9 @@ Return ``0`` as the volume force in non-WKB test cases.
 ```julia
 compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::U,
     testcase::AbstractWKBTestCase,
 )::AbstractFloat
@@ -34,7 +40,9 @@ Return the gravity-wave drag on the zonal momentum, interpolated to ``\\left(i +
 ```julia
 compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::V,
     testcase::AbstractWKBTestCase,
 )::AbstractFloat
@@ -45,7 +53,9 @@ Return the gravity-wave drag on the meridional momentum, interpolated to ``\\lef
 ```julia
 compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
     testcase::AbstractWKBTestCase,
 )::AbstractFloat
@@ -60,7 +70,9 @@ Return the gravity-wave drag on the transformed vertical momentum, interpolated 
 ```julia
 compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::P,
     testcase::AbstractWKBTestCase,
 )::AbstractFloat
@@ -72,7 +84,11 @@ Return the gravity-wave impact on the mass-weighted potential temperature (diaba
 
   - `state`: Model state.
 
-  - `indices`: Grid-cell indices.
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
 
   - `variable`: Variable (equation) of choice.
 
@@ -82,17 +98,21 @@ function compute_volume_force end
 
 function compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
 )::AbstractFloat
     (; testcase) = state.namelists.setting
 
-    return compute_volume_force(state, indices, variable, testcase)
+    return compute_volume_force(state, i, j, k, variable, testcase)
 end
 
 function compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
     testcase::AbstractTestCase,
 )::AbstractFloat
@@ -101,58 +121,62 @@ end
 
 function compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::U,
     testcase::AbstractWKBTestCase,
 )::AbstractFloat
     (; dudt) = state.wkb.tendencies
-    (ix, jy, kz) = indices
 
-    @ivy return (dudt[ix, jy, kz] + dudt[ix + 1, jy, kz]) / 2
+    @ivy return (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
 end
 
 function compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::V,
     testcase::AbstractWKBTestCase,
 )::AbstractFloat
     (; dvdt) = state.wkb.tendencies
-    (ix, jy, kz) = indices
 
-    @ivy return (dvdt[ix, jy, kz] + dvdt[ix, jy + 1, kz]) / 2
+    @ivy return (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
 end
 
 function compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
     testcase::AbstractWKBTestCase,
 )::AbstractFloat
     (; jac, met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
-    (ix, jy, kz) = indices
 
     @ivy return (
-        jac[ix, jy, kz + 1] * (
-            met[ix, jy, kz, 1, 3] * dudt[ix, jy, kz] +
-            met[ix, jy, kz, 2, 3] * dvdt[ix, jy, kz]
+        jac[i, j, k + 1] * (
+            met[i, j, k, 1, 3] * dudt[i, j, k] +
+            met[i, j, k, 2, 3] * dvdt[i, j, k]
         ) +
-        jac[ix, jy, kz] * (
-            met[ix, jy, kz + 1, 1, 3] * dudt[ix, jy, kz + 1] +
-            met[ix, jy, kz + 1, 2, 3] * dvdt[ix, jy, kz + 1]
+        jac[i, j, k] * (
+            met[i, j, k + 1, 1, 3] * dudt[i, j, k + 1] +
+            met[i, j, k + 1, 2, 3] * dvdt[i, j, k + 1]
         )
-    ) / (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
+    ) / (jac[i, j, k] + jac[i, j, k + 1])
 end
 
 function compute_volume_force(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::P,
     testcase::AbstractWKBTestCase,
 )::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
-    (ix, jy, kz) = indices
 
-    @ivy return dthetadt[ix, jy, kz] + conductive_heating(state, indices)
+    @ivy return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
 end

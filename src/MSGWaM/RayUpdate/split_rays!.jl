@@ -178,7 +178,7 @@ function split_rays!(
             rays.x[iray, ix, jy, kz] = xr + (1 / factor - 1) * dxr / 2
             rays.dxray[iray, ix, jy, kz] = dxr / factor
             for jray in (nrlc + 1):(nrlc + factor - 1)
-                copy_rays!(rays, (iray, ix, jy, kz), (jray, ix, jy, kz))
+                copy_rays!(rays, iray => jray, ix => ix, jy => jy, kz => kz)
                 rays.x[jray, ix, jy, kz] += (jray - nrlc) * dxr / factor
             end
             nrlc += factor - 1
@@ -221,7 +221,7 @@ function split_rays!(
             rays.y[iray, ix, jy, kz] = yr + (1 / factor - 1) * dyr / 2
             rays.dyray[iray, ix, jy, kz] = dyr / factor
             for jray in (nrlc + 1):(nrlc + factor - 1)
-                copy_rays!(rays, (iray, ix, jy, kz), (jray, ix, jy, kz))
+                copy_rays!(rays, iray => jray, ix => ix, jy => jy, kz => kz)
                 rays.y[jray, ix, jy, kz] += (jray - nrlc) * dyr / factor
             end
             nrlc += factor - 1
@@ -279,7 +279,7 @@ function split_rays!(
             rays.z[iray, ix, jy, kz] = zr + (1 / factor - 1) * dzr / 2
             rays.dzray[iray, ix, jy, kz] = dzr / factor
             for jray in (nrlc + 1):(nrlc + factor - 1)
-                copy_rays!(rays, (iray, ix, jy, kz), (jray, ix, jy, kz))
+                copy_rays!(rays, iray => jray, ix => ix, jy => jy, kz => kz)
                 rays.z[jray, ix, jy, kz] += (jray - nrlc) * dzr / factor
             end
             nrlc += factor - 1

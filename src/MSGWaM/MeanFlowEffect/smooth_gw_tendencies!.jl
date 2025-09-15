@@ -375,7 +375,7 @@ function smooth_gw_tendencies!(
         apply_shapiro_filter!(
             output[i, j, :],
             input[i, j, :],
-            (k0, k1),
+            k0:k1,
             Val(nsmth_wkb),
         )
     end
@@ -402,7 +402,7 @@ function smooth_gw_tendencies!(
         apply_shapiro_filter!(
             output[i, :, k],
             input[i, :, k],
-            (j0, j1),
+            j0:j1,
             Val(nsmth_wkb),
         )
     end
@@ -429,7 +429,7 @@ function smooth_gw_tendencies!(
         apply_shapiro_filter!(
             output[:, j, k],
             input[:, j, k],
-            (i0, i1),
+            i0:i1,
             Val(nsmth_wkb),
         )
     end

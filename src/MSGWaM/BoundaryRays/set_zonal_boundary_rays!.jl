@@ -37,11 +37,11 @@ function set_zonal_boundary_rays!(state::State)
     else
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1)
             for iray in 1:nray[i0 - 1, jy, kz]
-                copy_rays!(rays, (iray, i1, jy, kz), (iray, i0 - 1, jy, kz))
+                copy_rays!(rays, iray => iray, i1 => i0 - 1, jy => jy, kz => kz)
             end
 
             for iray in 1:nray[i1 + 1, jy, kz]
-                copy_rays!(rays, (iray, i0, jy, kz), (iray, i1 + 1, jy, kz))
+                copy_rays!(rays, iray => iray, i0 => i1 + 1, jy => jy, kz => kz)
             end
         end
     end

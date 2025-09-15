@@ -2,12 +2,15 @@
 ```julia
 compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DUDX,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) near the two grid points specified by `indices`.
+Compute and return the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) at ``\\left(i, j, k_\\mathrm{D}\\right)`` and ``\\left(i, j, k_\\mathrm{U}\\right)``.
 
 The derivative is given by
 
@@ -18,12 +21,15 @@ The derivative is given by
 ```julia
 compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DUDY,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) near the two grid points specified by `indices`.
+Compute and return the meridional derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial y``) at ``\\left(i + 1 / 2, j + 1 / 2, k_\\mathrm{D}\\right)`` and ``\\left(i + 1 / 2, j + 1 / 2, k_\\mathrm{U}\\right)``.
 
 The derivative is given by
 
@@ -34,12 +40,15 @@ The derivative is given by
 ```julia
 compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DUDZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) near the two grid points specified by `indices`.
+Compute and return the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``) at ``\\left(i + 1 / 2, j, k_\\mathrm{D} + 1 / 2\\right)`` and ``\\left(i + 1 / 2, j, k_\\mathrm{U} + 1 / 2\\right)``.
 
 The derivative is given by
 
@@ -52,12 +61,15 @@ At grid points beyond the vertical boundaries, it is set to zero.
 ```julia
 compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DVDX,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) near the two grid points specified by `indices`.
+Compute and return the zonal derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial x``) at ``\\left(i + 1 / 2, j + 1 / 2, k_\\mathrm{D}\\right)`` and ``\\left(i + 1 / 2, j + 1 / 2, k_\\mathrm{U}\\right)``.
 
 The derivative is given by
 
@@ -68,12 +80,15 @@ The derivative is given by
 ```julia
 compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DVDY,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) near the two grid points specified by `indices`.
+Compute and return the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) at ``\\left(i, j, k_\\mathrm{D}\\right)`` and ``\\left(i, j, k_\\mathrm{U}\\right)``.
 
 The derivative is given by
 
@@ -84,12 +99,15 @@ The derivative is given by
 ```julia
 compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DVDZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) near the two grid points specified by `indices`.
+Compute and return the vertical derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial z``) at ``\\left(i, j + 1 / 2, k_\\mathrm{D} + 1 / 2\\right)`` and ``\\left(i, j + 1 / 2, k_\\mathrm{U} + 1 / 2\\right)``.
 
 The derivative is given by
 
@@ -103,7 +121,13 @@ At grid points beyond the vertical boundaries, it is set to zero.
 
   - `state`: Model state.
 
-  - `indices`: Indices `(ix, jy, kzd, kzu)` of the two grid points at which to compute the derivative.
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `kd`: Lower vertical grid-cell index.
+
+  - `ku`: Upper vertical grid-cell index.
 
   - `phitype`: Type of derivative to compute.
 """
@@ -111,29 +135,30 @@ function compute_derivatives end
 
 function compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DUDX,
 )::NTuple{2, <:AbstractFloat}
     (; dx, dz, met) = state.grid
     (; u) = state.variables.predictands
 
-    (ix, jy, kzd, kzu) = indices
-
     @ivy phid =
-        (u[ix, jy, kzd] - u[ix - 1, jy, kzd]) / dx +
-        met[ix, jy, kzd, 1, 3] *
+        (u[i, j, kd] - u[i - 1, j, kd]) / dx +
+        met[i, j, kd, 1, 3] *
         0.25 *
         (
-            u[ix, jy, kzd + 1] + u[ix - 1, jy, kzd + 1] - u[ix, jy, kzd - 1] -
-            u[ix - 1, jy, kzd - 1]
+            u[i, j, kd + 1] + u[i - 1, j, kd + 1] - u[i, j, kd - 1] -
+            u[i - 1, j, kd - 1]
         ) / dz
     @ivy phiu =
-        (u[ix, jy, kzu] - u[ix - 1, jy, kzu]) / dx +
-        met[ix, jy, kzu, 1, 3] *
+        (u[i, j, ku] - u[i - 1, j, ku]) / dx +
+        met[i, j, ku, 1, 3] *
         0.25 *
         (
-            u[ix, jy, kzu + 1] + u[ix - 1, jy, kzu + 1] - u[ix, jy, kzu - 1] -
-            u[ix - 1, jy, kzu - 1]
+            u[i, j, ku + 1] + u[i - 1, j, ku + 1] - u[i, j, ku - 1] -
+            u[i - 1, j, ku - 1]
         ) / dz
 
     return (phid, phiu)
@@ -141,41 +166,42 @@ end
 
 function compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DUDY,
 )::NTuple{2, <:AbstractFloat}
     (; dy, dz, met) = state.grid
     (; u) = state.variables.predictands
 
-    (ix, jy, kzd, kzu) = indices
-
     @ivy phid =
-        (u[ix, jy + 1, kzd] - u[ix, jy, kzd]) / dy +
+        (u[i, j + 1, kd] - u[i, j, kd]) / dy +
         0.25 *
         (
-            met[ix, jy, kzd, 2, 3] +
-            met[ix + 1, jy, kzd, 2, 3] +
-            met[ix, jy + 1, kzd, 2, 3] +
-            met[ix + 1, jy + 1, kzd, 2, 3]
+            met[i, j, kd, 2, 3] +
+            met[i + 1, j, kd, 2, 3] +
+            met[i, j + 1, kd, 2, 3] +
+            met[i + 1, j + 1, kd, 2, 3]
         ) *
         0.25 *
         (
-            u[ix, jy, kzd + 1] + u[ix, jy + 1, kzd + 1] - u[ix, jy, kzd - 1] -
-            u[ix, jy + 1, kzd - 1]
+            u[i, j, kd + 1] + u[i, j + 1, kd + 1] - u[i, j, kd - 1] -
+            u[i, j + 1, kd - 1]
         ) / dz
     @ivy phiu =
-        (u[ix, jy + 1, kzu] - u[ix, jy, kzu]) / dy +
+        (u[i, j + 1, ku] - u[i, j, ku]) / dy +
         0.25 *
         (
-            met[ix, jy, kzu, 2, 3] +
-            met[ix + 1, jy, kzu, 2, 3] +
-            met[ix, jy + 1, kzu, 2, 3] +
-            met[ix + 1, jy + 1, kzu, 2, 3]
+            met[i, j, ku, 2, 3] +
+            met[i + 1, j, ku, 2, 3] +
+            met[i, j + 1, ku, 2, 3] +
+            met[i + 1, j + 1, ku, 2, 3]
         ) *
         0.25 *
         (
-            u[ix, jy, kzu + 1] + u[ix, jy + 1, kzu + 1] - u[ix, jy, kzu - 1] -
-            u[ix, jy + 1, kzu - 1]
+            u[i, j, ku + 1] + u[i, j + 1, ku + 1] - u[i, j, ku - 1] -
+            u[i, j + 1, ku - 1]
         ) / dz
 
     return (phid, phiu)
@@ -183,49 +209,50 @@ end
 
 function compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DUDZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
     (; u) = state.variables.predictands
 
-    (ix, jy, kzd, kzu) = indices
-
-    @ivy if ztildetfc[ix, jy, kzu] < topography_surface[ix, jy]
+    @ivy if ztildetfc[i, j, ku] < topography_surface[i, j]
         phid = 0.0
         phiu = 0.0
-    elseif ztildetfc[ix, jy, kzd] < topography_surface[ix, jy]
+    elseif ztildetfc[i, j, kd] < topography_surface[i, j]
         phid = 0.0
         phiu =
-            (u[ix, jy, kzu + 1] - u[ix, jy, kzu]) / dz / (
-                jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
-                (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1]) +
-                jac[ix + 1, jy, kzu] * jac[ix + 1, jy, kzu + 1] /
-                (jac[ix + 1, jy, kzu] + jac[ix + 1, jy, kzu + 1])
+            (u[i, j, ku + 1] - u[i, j, ku]) / dz / (
+                jac[i, j, ku] * jac[i, j, ku + 1] /
+                (jac[i, j, ku] + jac[i, j, ku + 1]) +
+                jac[i + 1, j, ku] * jac[i + 1, j, ku + 1] /
+                (jac[i + 1, j, ku] + jac[i + 1, j, ku + 1])
             )
     else
-        if ztildetfc[ix, jy, kzu] < lz
+        if ztildetfc[i, j, ku] < lz
             phid =
-                (u[ix, jy, kzd + 1] - u[ix, jy, kzd]) / dz / (
-                    jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
-                    (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1]) +
-                    jac[ix + 1, jy, kzd] * jac[ix + 1, jy, kzd + 1] /
-                    (jac[ix + 1, jy, kzd] + jac[ix + 1, jy, kzd + 1])
+                (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
+                    jac[i, j, kd] * jac[i, j, kd + 1] /
+                    (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                    jac[i + 1, j, kd] * jac[i + 1, j, kd + 1] /
+                    (jac[i + 1, j, kd] + jac[i + 1, j, kd + 1])
                 )
             phiu =
-                (u[ix, jy, kzu + 1] - u[ix, jy, kzu]) / dz / (
-                    jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
-                    (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1]) +
-                    jac[ix + 1, jy, kzu] * jac[ix + 1, jy, kzu + 1] /
-                    (jac[ix + 1, jy, kzu] + jac[ix + 1, jy, kzu + 1])
+                (u[i, j, ku + 1] - u[i, j, ku]) / dz / (
+                    jac[i, j, ku] * jac[i, j, ku + 1] /
+                    (jac[i, j, ku] + jac[i, j, ku + 1]) +
+                    jac[i + 1, j, ku] * jac[i + 1, j, ku + 1] /
+                    (jac[i + 1, j, ku] + jac[i + 1, j, ku + 1])
                 )
-        elseif ztildetfc[ix, jy, kzd] < lz
+        elseif ztildetfc[i, j, kd] < lz
             phid =
-                (u[ix, jy, kzd + 1] - u[ix, jy, kzd]) / dz / (
-                    jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
-                    (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1]) +
-                    jac[ix + 1, jy, kzd] * jac[ix + 1, jy, kzd + 1] /
-                    (jac[ix + 1, jy, kzd] + jac[ix + 1, jy, kzd + 1])
+                (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
+                    jac[i, j, kd] * jac[i, j, kd + 1] /
+                    (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                    jac[i + 1, j, kd] * jac[i + 1, j, kd + 1] /
+                    (jac[i + 1, j, kd] + jac[i + 1, j, kd + 1])
                 )
             phiu = 0.0
         else
@@ -239,41 +266,42 @@ end
 
 function compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DVDX,
 )::NTuple{2, <:AbstractFloat}
     (; dx, dz, met) = state.grid
     (; v) = state.variables.predictands
 
-    (ix, jy, kzd, kzu) = indices
-
     @ivy phid =
-        (v[ix + 1, jy, kzd] - v[ix, jy, kzd]) / dx +
+        (v[i + 1, j, kd] - v[i, j, kd]) / dx +
         0.25 *
         (
-            met[ix, jy, kzd, 1, 3] +
-            met[ix + 1, jy, kzd, 1, 3] +
-            met[ix, jy + 1, kzd, 1, 3] +
-            met[ix + 1, jy + 1, kzd, 1, 3]
+            met[i, j, kd, 1, 3] +
+            met[i + 1, j, kd, 1, 3] +
+            met[i, j + 1, kd, 1, 3] +
+            met[i + 1, j + 1, kd, 1, 3]
         ) *
         0.25 *
         (
-            v[ix, jy, kzd + 1] + v[ix + 1, jy, kzd + 1] - v[ix, jy, kzd - 1] -
-            v[ix + 1, jy, kzd - 1]
+            v[i, j, kd + 1] + v[i + 1, j, kd + 1] - v[i, j, kd - 1] -
+            v[i + 1, j, kd - 1]
         ) / dz
     @ivy phiu =
-        (v[ix + 1, jy, kzu] - v[ix, jy, kzu]) / dx +
+        (v[i + 1, j, ku] - v[i, j, ku]) / dx +
         0.25 *
         (
-            met[ix, jy, kzu, 1, 3] +
-            met[ix + 1, jy, kzu, 1, 3] +
-            met[ix, jy + 1, kzu, 1, 3] +
-            met[ix + 1, jy + 1, kzu, 1, 3]
+            met[i, j, ku, 1, 3] +
+            met[i + 1, j, ku, 1, 3] +
+            met[i, j + 1, ku, 1, 3] +
+            met[i + 1, j + 1, ku, 1, 3]
         ) *
         0.25 *
         (
-            v[ix, jy, kzu + 1] + v[ix + 1, jy, kzu + 1] - v[ix, jy, kzu - 1] -
-            v[ix + 1, jy, kzu - 1]
+            v[i, j, ku + 1] + v[i + 1, j, ku + 1] - v[i, j, ku - 1] -
+            v[i + 1, j, ku - 1]
         ) / dz
 
     return (phid, phiu)
@@ -281,29 +309,30 @@ end
 
 function compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DVDY,
 )::NTuple{2, <:AbstractFloat}
     (; dy, dz, met) = state.grid
     (; v) = state.variables.predictands
 
-    (ix, jy, kzd, kzu) = indices
-
     @ivy phid =
-        (v[ix, jy, kzd] - v[ix, jy - 1, kzd]) / dy +
-        met[ix, jy, kzd, 2, 3] *
+        (v[i, j, kd] - v[i, j - 1, kd]) / dy +
+        met[i, j, kd, 2, 3] *
         0.25 *
         (
-            v[ix, jy, kzd + 1] + v[ix, jy - 1, kzd + 1] - v[ix, jy, kzd - 1] -
-            v[ix, jy - 1, kzd - 1]
+            v[i, j, kd + 1] + v[i, j - 1, kd + 1] - v[i, j, kd - 1] -
+            v[i, j - 1, kd - 1]
         ) / dz
     @ivy phiu =
-        (v[ix, jy, kzu] - v[ix, jy - 1, kzu]) / dy +
-        met[ix, jy, kzu, 2, 3] *
+        (v[i, j, ku] - v[i, j - 1, ku]) / dy +
+        met[i, j, ku, 2, 3] *
         0.25 *
         (
-            v[ix, jy, kzu + 1] + v[ix, jy - 1, kzu + 1] - v[ix, jy, kzu - 1] -
-            v[ix, jy - 1, kzu - 1]
+            v[i, j, ku + 1] + v[i, j - 1, ku + 1] - v[i, j, ku - 1] -
+            v[i, j - 1, ku - 1]
         ) / dz
 
     return (phid, phiu)
@@ -311,49 +340,50 @@ end
 
 function compute_derivatives(
     state::State,
-    indices::NTuple{4, <:Integer},
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
     phitype::DVDZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
     (; v) = state.variables.predictands
 
-    (ix, jy, kzd, kzu) = indices
-
-    @ivy if ztildetfc[ix, jy, kzu] < topography_surface[ix, jy]
+    @ivy if ztildetfc[i, j, ku] < topography_surface[i, j]
         phid = 0.0
         phiu = 0.0
-    elseif ztildetfc[ix, jy, kzd] < topography_surface[ix, jy]
+    elseif ztildetfc[i, j, kd] < topography_surface[i, j]
         phid = 0.0
         phiu =
-            (v[ix, jy, kzu + 1] - v[ix, jy, kzu]) / dz / (
-                jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
-                (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1]) +
-                jac[ix, jy + 1, kzu] * jac[ix, jy + 1, kzu + 1] /
-                (jac[ix, jy + 1, kzu] + jac[ix, jy + 1, kzu + 1])
+            (v[i, j, ku + 1] - v[i, j, ku]) / dz / (
+                jac[i, j, ku] * jac[i, j, ku + 1] /
+                (jac[i, j, ku] + jac[i, j, ku + 1]) +
+                jac[i, j + 1, ku] * jac[i, j + 1, ku + 1] /
+                (jac[i, j + 1, ku] + jac[i, j + 1, ku + 1])
             )
     else
-        if ztildetfc[ix, jy, kzu] < lz
+        if ztildetfc[i, j, ku] < lz
             phid =
-                (v[ix, jy, kzd + 1] - v[ix, jy, kzd]) / dz / (
-                    jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
-                    (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1]) +
-                    jac[ix, jy + 1, kzd] * jac[ix, jy + 1, kzd + 1] /
-                    (jac[ix, jy + 1, kzd] + jac[ix, jy + 1, kzd + 1])
+                (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
+                    jac[i, j, kd] * jac[i, j, kd + 1] /
+                    (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                    jac[i, j + 1, kd] * jac[i, j + 1, kd + 1] /
+                    (jac[i, j + 1, kd] + jac[i, j + 1, kd + 1])
                 )
             phiu =
-                (v[ix, jy, kzu + 1] - v[ix, jy, kzu]) / dz / (
-                    jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
-                    (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1]) +
-                    jac[ix, jy + 1, kzu] * jac[ix, jy + 1, kzu + 1] /
-                    (jac[ix, jy + 1, kzu] + jac[ix, jy + 1, kzu + 1])
+                (v[i, j, ku + 1] - v[i, j, ku]) / dz / (
+                    jac[i, j, ku] * jac[i, j, ku + 1] /
+                    (jac[i, j, ku] + jac[i, j, ku + 1]) +
+                    jac[i, j + 1, ku] * jac[i, j + 1, ku + 1] /
+                    (jac[i, j + 1, ku] + jac[i, j + 1, ku + 1])
                 )
-        elseif ztildetfc[ix, jy, kzd] < lz
+        elseif ztildetfc[i, j, kd] < lz
             phid =
-                (v[ix, jy, kzd + 1] - v[ix, jy, kzd]) / dz / (
-                    jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
-                    (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1]) +
-                    jac[ix, jy + 1, kzd] * jac[ix, jy + 1, kzd + 1] /
-                    (jac[ix, jy + 1, kzd] + jac[ix, jy + 1, kzd + 1])
+                (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
+                    jac[i, j, kd] * jac[i, j, kd + 1] /
+                    (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                    jac[i, j + 1, kd] * jac[i, j + 1, kd + 1] /
+                    (jac[i, j + 1, kd] + jac[i, j + 1, kd + 1])
                 )
             phiu = 0.0
         else

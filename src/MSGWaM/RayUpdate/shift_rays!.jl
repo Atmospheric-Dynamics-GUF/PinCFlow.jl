@@ -175,8 +175,10 @@ function shift_rays!(state::State, direction::X)
                     end
                     copy_rays!(
                         rays,
-                        (iray, ixrv, jyrv, kzrv),
-                        (jray, ix, jyrv, kzrv),
+                        iray => jray,
+                        ixrv => ix,
+                        jyrv => jyrv,
+                        kzrv => kzrv,
                     )
                 end
                 rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
@@ -215,8 +217,10 @@ function shift_rays!(state::State, direction::Y)
                     end
                     copy_rays!(
                         rays,
-                        (iray, ixrv, jyrv, kzrv),
-                        (jray, ixrv, jy, kzrv),
+                        iray => jray,
+                        ixrv => ixrv,
+                        jyrv => jy,
+                        kzrv => kzrv,
                     )
                 end
                 rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
@@ -255,8 +259,10 @@ function shift_rays!(state::State, direction::Z)
                     end
                     copy_rays!(
                         rays,
-                        (iray, ixrv, jyrv, kzrv),
-                        (jray, ixrv, jyrv, kz),
+                        iray => jray,
+                        ixrv => ixrv,
+                        jyrv => jyrv,
+                        kzrv => kz,
                     )
                 end
                 rays.dens[iray, ixrv, jyrv, kzrv] = 0.0

@@ -156,11 +156,11 @@ function correct!(
                 rayleigh_factor
         end
 
-        gradient = compute_pressure_gradient(state, dpip, (i, j, k), U())
+        gradient = compute_pressure_gradient(state, dpip, i, j, k, U())
 
         corx[i, j, k] = dt / factor * gradient
 
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
 
         u[i, j, k] -= jpedger * corx[i, j, k]
     end
@@ -195,11 +195,11 @@ function correct!(
                 rayleigh_factor
         end
 
-        gradient = compute_pressure_gradient(state, dpip, (i, j, k), V())
+        gradient = compute_pressure_gradient(state, dpip, i, j, k, V())
 
         cory[i, j, k] = dt / factor * gradient
 
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
 
         v[i, j, k] -= jpedgef * cory[i, j, k]
     end
@@ -242,10 +242,10 @@ function correct!(
                 jac[i, j, k] * bvsstrattfc[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        gradient = compute_pressure_gradient(state, dpip, (i, j, k), W())
+        gradient = compute_pressure_gradient(state, dpip, i, j, k, W())
 
-        jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
-        fw = compute_buoyancy_factor(state, (i, j, k), W())
+        jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
+        fw = compute_buoyancy_factor(state, i, j, k, W())
 
         w[i, j, k] +=
             -dt / (factor + fw * bvsstratedgeu * dt^2.0) * jpedgeu * gradient -
@@ -297,8 +297,8 @@ function correct!(
         end
 
         lower_gradient =
-            compute_pressure_gradient(state, dpip, (i, j, k - 1), W())
-        upper_gradient = compute_pressure_gradient(state, dpip, (i, j, k), W())
+            compute_pressure_gradient(state, dpip, i, j, k - 1, W())
+        upper_gradient = compute_pressure_gradient(state, dpip, i, j, k, W())
 
         if ko + k == k0
             lower_gradient = 0.0
@@ -308,7 +308,7 @@ function correct!(
 
         gradient = 0.5 * (lower_gradient + upper_gradient)
 
-        fb = compute_buoyancy_factor(state, (i, j, k), RhoP())
+        fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         db =
             -1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
                 -fb * bvsstrattfc[i, j, k] * dt^2.0 * jac[i, j, k] * gradient +

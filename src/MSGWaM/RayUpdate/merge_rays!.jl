@@ -132,14 +132,14 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
         # Loop over ray volumes.
         for iray in 1:nray[ix, jy, kz]
-            (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
-            (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
-            (dxr, dyr, dzr) = get_physical_extent(rays, (iray, ix, jy, kz))
-            (dkr, dlr, dmr) = get_spectral_extent(rays, (iray, ix, jy, kz))
-            (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
+            (xr, yr, zr) = get_physical_position(rays, iray, ix, jy, kz)
+            (kr, lr, mr) = get_spectral_position(rays, iray, ix, jy, kz)
+            (dxr, dyr, dzr) = get_physical_extent(rays, iray, ix, jy, kz)
+            (dkr, dlr, dmr) = get_spectral_extent(rays, iray, ix, jy, kz)
+            (axk, ayl, azm) = get_surfaces(rays, iray, ix, jy, kz)
 
             nr = rays.dens[iray, ix, jy, kz]
-            omegar = compute_intrinsic_frequency(state, (iray, ix, jy, kz))
+            omegar = compute_intrinsic_frequency(state, iray, ix, jy, kz)
 
             # Determine bin index in k.
             if sizex > 1
@@ -263,9 +263,9 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
             rays.dlray[iray, ix, jy, kz] = diff(merged_rays.lr[:, jray])[1]
             rays.dmray[iray, ix, jy, kz] = diff(merged_rays.mr[:, jray])[1]
 
-            (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
+            (axk, ayl, azm) = get_surfaces(rays, iray, ix, jy, kz)
 
-            omegar = compute_intrinsic_frequency(state, (iray, ix, jy, kz))
+            omegar = compute_intrinsic_frequency(state, iray, ix, jy, kz)
 
             if sizex > 1
                 fcpspx = axk

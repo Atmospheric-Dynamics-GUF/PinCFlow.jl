@@ -3,7 +3,7 @@
 get_next_level(i::Integer, j::Integer, z::AbstractFloat, state::State)::Integer
 ```
 
-Determine and return the index of the next level above `z` at the horizontal position `(i, j)`.
+Determine and return the index of the next level above `z` at the horizontal position ``\\left(i, j\\right)``.
 
 This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
 

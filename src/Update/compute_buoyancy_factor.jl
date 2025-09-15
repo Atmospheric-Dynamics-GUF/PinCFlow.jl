@@ -2,7 +2,9 @@
 ```julia
 compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
 )::AbstractFloat
 ```
@@ -20,7 +22,9 @@ with ``f_{\\rho'} = \\overline{\\rho} / \\rho`` in pseudo-incompressible mode an
 ```julia
 compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::RhoP,
     model::Compressible,
 )::AbstractFloat
@@ -31,7 +35,9 @@ Return ``f_{\\rho'} = P / \\left(\\rho \\overline{\\theta}\\right)`` as the fact
 ```julia
 compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::RhoP,
     model::AbstractModel,
 )::AbstractFloat
@@ -42,7 +48,9 @@ Return ``f_{\\rho'} = \\overline{\\rho} / \\rho`` as the factor by which the buo
 ```julia
 compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
     model::Compressible,
 )::AbstractFloat
@@ -53,7 +61,9 @@ Return ``f_w = \\left(P / \\overline{\\theta}\\right)_{k + 1 / 2} / \\rho_{k + 1
 ```julia
 compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
     model::AbstractModel,
 )::AbstractFloat
@@ -65,7 +75,11 @@ Return ``f_w = \\overline{\\rho}_{k + 1 / 2} / \\rho_{k + 1 / 2}`` as the factor
 
   - `state`: Model state.
 
-  - `indices`: Grid-cell indices ``\\left(i, j, k\\right)``.
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
 
   - `variable`: Variable for which the factor is needed.
 
@@ -75,75 +89,78 @@ function compute_buoyancy_factor end
 
 function compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
 )::AbstractFloat
     (; model) = state.namelists.setting
-    return compute_buoyancy_factor(state, indices, variable, model)
+    return compute_buoyancy_factor(state, i, j, k, variable, model)
 end
 
 function compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::RhoP,
     model::Compressible,
 )::AbstractFloat
     (; rhostrattfc, thetastrattfc, pstrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
-    (ix, jy, kz) = indices
-    @ivy return pstrattfc[ix, jy, kz] / thetastrattfc[ix, jy, kz] /
-                (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz])
+    @ivy return pstrattfc[i, j, k] / thetastrattfc[i, j, k] /
+                (rho[i, j, k] + rhostrattfc[i, j, k])
 end
 
 function compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::RhoP,
     model::AbstractModel,
 )::AbstractFloat
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
-    (ix, jy, kz) = indices
-    @ivy return rhostrattfc[ix, jy, kz] /
-                (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz])
+    @ivy return rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
 end
 
 function compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
     model::Compressible,
 )::AbstractFloat
     (; jac) = state.grid
     (; rhostrattfc, thetastrattfc, pstrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
-    (ix, jy, kz) = indices
     @ivy return (
-        jac[ix, jy, kz + 1] * pstrattfc[ix, jy, kz] /
-        thetastrattfc[ix, jy, kz] +
-        jac[ix, jy, kz] * pstrattfc[ix, jy, kz + 1] /
-        thetastrattfc[ix, jy, kz + 1]
+        jac[i, j, k + 1] * pstrattfc[i, j, k] / thetastrattfc[i, j, k] +
+        jac[i, j, k] * pstrattfc[i, j, k + 1] / thetastrattfc[i, j, k + 1]
     ) / (
-        jac[ix, jy, kz + 1] * (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]) +
-        jac[ix, jy, kz] * (rho[ix, jy, kz + 1] + rhostrattfc[ix, jy, kz + 1])
+        jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
+        jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
     )
 end
 
 function compute_buoyancy_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
     model::AbstractModel,
 )::AbstractFloat
     (; jac) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
-    (ix, jy, kz) = indices
     @ivy return (
-        jac[ix, jy, kz + 1] * rhostrattfc[ix, jy, kz] +
-        jac[ix, jy, kz] * rhostrattfc[ix, jy, kz + 1]
+        jac[i, j, k + 1] * rhostrattfc[i, j, k] +
+        jac[i, j, k] * rhostrattfc[i, j, k + 1]
     ) / (
-        jac[ix, jy, kz + 1] * (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]) +
-        jac[ix, jy, kz] * (rho[ix, jy, kz + 1] + rhostrattfc[ix, jy, kz + 1])
+        jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
+        jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
     )
 end

@@ -209,10 +209,10 @@ function propagate_rays!(
     @ivy for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
         nskip = 0
         for iray in 1:nray[ix, jy, kz]
-            (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
-            (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
-            (dxr, dyr, dzr) = get_physical_extent(rays, (iray, ix, jy, kz))
-            (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
+            (xr, yr, zr) = get_physical_position(rays, iray, ix, jy, kz)
+            (kr, lr, mr) = get_spectral_position(rays, iray, ix, jy, kz)
+            (dxr, dyr, dzr) = get_physical_extent(rays, iray, ix, jy, kz)
+            (axk, ayl, azm) = get_surfaces(rays, iray, ix, jy, kz)
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -446,7 +446,7 @@ function propagate_rays!(
     @ivy if spongelayer
         for kz in k0:k1, jy in j0:j1, ix in i0:i1
             for iray in 1:nray[ix, jy, kz]
-                (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
+                (xr, yr, zr) = get_physical_position(rays, iray, ix, jy, kz)
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
                 betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
                 rays.dens[iray, ix, jy, kz] *= betasponge
@@ -521,7 +521,7 @@ function propagate_rays!(
         for iray in 1:nray[ix, jy, kz]
 
             # Prepare the ray volume.
-            copy_rays!(rays, (iray, ix, jy, kz - 1), (iray, ix, jy, kz))
+            copy_rays!(rays, iray => iray, ix => ix, jy => jy, kz - 1 => kz)
 
             # Skip modes with zero wave-action density.
             if rays.dens[iray, ix, jy, kz - 1] == 0
@@ -538,7 +538,7 @@ function propagate_rays!(
                 jac[ix, jy, kz - 1]
 
             # Get the horizontal wavenumbers.
-            (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
+            (kr, lr, mr) = get_spectral_position(rays, iray, ix, jy, kz)
             khr = sqrt(kr^2 + lr^2)
 
             # Set the reference level.
@@ -585,7 +585,7 @@ function propagate_rays!(
 
             # Set the local wave action density.
             if spongelayer
-                (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
+                (xr, yr, zr) = get_physical_position(rays, iray, ix, jy, kz)
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
                 rays.dens[iray, ix, jy, kz] =
                     1 / (
@@ -606,8 +606,8 @@ function propagate_rays!(
             end
 
             # Get the ray volume extents.
-            (dxr, dyr, dzr) = get_physical_extent(rays, (iray, ix, jy, kz))
-            (dkr, dlr, dmr) = get_spectral_extent(rays, (iray, ix, jy, kz))
+            (dxr, dyr, dzr) = get_physical_extent(rays, iray, ix, jy, kz)
+            (dkr, dlr, dmr) = get_spectral_extent(rays, iray, ix, jy, kz)
 
             # Compute the phase space factor.
             dzi = min(dzr, jac[ix, jy, kz] * dz)
@@ -652,7 +652,7 @@ function propagate_rays!(
             if rays.dens[iray, ix, jy, kz] == 0
                 continue
             end
-            (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
+            (kr, lr, mr) = get_spectral_position(rays, iray, ix, jy, kz)
             khr = sqrt(kr^2 + lr^2)
             n2r = interpolate_stratification(
                 rays.z[iray, ix, jy, kz],

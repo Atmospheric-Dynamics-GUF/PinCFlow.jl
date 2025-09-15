@@ -42,11 +42,11 @@ function set_meridional_boundary_rays!(state::State)
     else
         for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
             for iray in 1:nray[ix, j0 - 1, kz]
-                copy_rays!(rays, (iray, ix, j1, kz), (iray, ix, j0 - 1, kz))
+                copy_rays!(rays, iray => iray, ix => ix, j1 => j0 - 1, kz => kz)
             end
 
             for iray in 1:nray[ix, j1 + 1, kz]
-                copy_rays!(rays, (iray, ix, j0, kz), (iray, ix, j1 + 1, kz))
+                copy_rays!(rays, iray => iray, ix => ix, j0 => j1 + 1, kz => kz)
             end
         end
     end
