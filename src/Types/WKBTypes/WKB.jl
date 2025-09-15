@@ -18,12 +18,7 @@ WKB{
 Main container for WKB ray-tracing data and parameters.
 
 ```julia
-WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-)::WKB
+WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)::WKB
 ```
 
 Construct a `WKB` instance by dispatching to a test-case-specific method.

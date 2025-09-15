@@ -1,9 +1,6 @@
 """
 ```julia
-set_tracer_zonal_boundaries!(
-    state::State,
-    variables::AbstractBoundaryVariables,
-)
+set_tracer_zonal_boundaries!(state::State, variables::AbstractBoundaryVariables)
 ```
 
 Enforce zonal boundary conditions for tracers by dispatching to a tracer-configuration-specific method.

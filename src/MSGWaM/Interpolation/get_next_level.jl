@@ -1,11 +1,6 @@
 """
 ```julia
-get_next_level(
-    i::Integer,
-    j::Integer,
-    z::AbstractFloat,
-    state::State,
-)::Integer
+get_next_level(i::Integer, j::Integer, z::AbstractFloat, state::State)::Integer
 ```
 
 Determine and return the index of the next level above `z` at the horizontal position `(i, j)`.

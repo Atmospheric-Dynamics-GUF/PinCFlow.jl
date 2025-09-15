@@ -1,9 +1,6 @@
 """
 ```julia
-apply_bicgstab!(
-    state::State,
-    tolref::AbstractFloat,
-)::Tuple{Bool, <:Integer}
+apply_bicgstab!(state::State, tolref::AbstractFloat)::Tuple{Bool, <:Integer}
 ```
 
 Solve the Poisson equation using a preconditioned BicGStab algorithm and return a tuple containing an error flag and the number of iterations.

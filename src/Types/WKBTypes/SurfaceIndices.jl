@@ -6,11 +6,7 @@ SurfaceIndices{A <: AbstractArray{<:Integer, 3}, B <: AbstractVector{<:Integer}}
 Indices that connect orographic wave modes to the corresponding ray volumes launched by [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref).
 
 ```julia
-SurfaceIndices(
-    n_sfc::Integer,
-    nxx::Integer,
-    nyy::Integer,
-)::SurfaceIndices
+SurfaceIndices(n_sfc::Integer, nxx::Integer, nyy::Integer)::SurfaceIndices
 ```
 
 Construct a `SurfaceIndices` instance, with arrays sized according to the given dimensions.

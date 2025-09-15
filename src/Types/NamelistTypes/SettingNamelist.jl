@@ -1,9 +1,6 @@
 """
 ```julia
-SettingNamelist{
-    A <: AbstractModel,
-    B <: AbstractTestCase,
-}
+SettingNamelist{A <: AbstractModel, B <: AbstractTestCase}
 ```
 
 Namelist for parameters describing the general model setting.

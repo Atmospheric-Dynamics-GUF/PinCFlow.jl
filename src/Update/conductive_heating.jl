@@ -1,9 +1,6 @@
 """
 ```julia
-conductive_heating(
-    state::State,
-    indices::NTuple{3, <:Integer},
-)::AbstractFloat
+conductive_heating(state::State, indices::NTuple{3, <:Integer})::AbstractFloat
 ```
 
 Compute and return the conductive heating by dispatching to specialized methods dependent on the model.

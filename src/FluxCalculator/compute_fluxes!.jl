@@ -88,11 +88,7 @@ Compute the tracer fluxes in all three directions.
 The computation is analogous to that of the density fluxes.
 
 ```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    variable::Theta,
-)
+compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
 ```
 
 Compute the potential temperature fluxes for molecular diffusivity as ``\\mu\\nabla\\theta``.

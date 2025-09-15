@@ -1,9 +1,6 @@
 """
 ```julia
-set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryPredictands,
-)
+set_vertical_boundaries!(state::State, variables::BoundaryPredictands)
 ```
 
 Enforce vertical boundary conditions for all predictand fields.
@@ -19,28 +16,19 @@ The symmetry conditions are as follows:
   - Exner-pressure fluctuations (`pip`): line reflection (`+`)
 
 ```julia
-set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
-)
+set_vertical_boundaries!(state::State, variables::BoundaryReconstructions)
 ```
 
 Enforce vertical boundary conditions for all reconstruction fields.
 
 ```julia
-set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-)
+set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
 ```
 
 Set the vertical fluxes at the vertical boundaries to zero.
 
 ```julia
-set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryWKBIntegrals,
-)
+set_vertical_boundaries!(state::State, variables::BoundaryWKBIntegrals)
 ```
 
 Enforce vertical boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
@@ -66,10 +54,7 @@ set_vertical_boundaries!(
 Enforce vertical boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations, using line reflection.
 
 ```julia
-set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-)
+set_vertical_boundaries!(state::State, variables::BoundaryWKBTendencies)
 ```
 
 Enforce vertical boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.

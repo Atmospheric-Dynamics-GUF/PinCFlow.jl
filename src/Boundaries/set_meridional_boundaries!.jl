@@ -12,10 +12,7 @@ set_meridional_boundaries!(state::State, variables::BoundaryReconstructions)
 Enforce meridional boundary conditions for all reconstruction fields.
 
 ```julia
-set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryWKBIntegrals,
-)
+set_meridional_boundaries!(state::State, variables::BoundaryWKBIntegrals)
 ```
 
 Enforce meridional boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
@@ -41,10 +38,7 @@ set_meridional_boundaries!(
 Enforce meridional boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
 
 ```julia
-set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-)
+set_meridional_boundaries!(state::State, variables::BoundaryWKBTendencies)
 ```
 
 Enforce meridional boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.

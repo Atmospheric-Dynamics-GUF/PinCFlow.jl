@@ -1,10 +1,6 @@
 """
 ```julia
-correct!(
-    state::State,
-    dt::AbstractFloat,
-    rayleigh_factor::AbstractFloat,
-)
+correct!(state::State, dt::AbstractFloat, rayleigh_factor::AbstractFloat)
 ```
 
 Correct the Exner-pressure, wind and buoyancy (density fluctuations) such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.

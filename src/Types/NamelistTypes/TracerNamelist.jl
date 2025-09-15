@@ -6,9 +6,7 @@ TracerNamelist{A <: AbstractTracer}
 Namelist for the inclusion of a tracer.
 
 ```julia
-TracerNamelist(;
-    tracersetup::AbstractTracer = NoTracer(),
-)::TracerNamelist
+TracerNamelist(; tracersetup::AbstractTracer = NoTracer())::TracerNamelist
 ```
 
 Construct a `TracerNamelist` instance with the given keyword arguments as properties.
