@@ -1,5 +1,4 @@
 using Documenter
-using DocumenterMermaid
 using PinCFlow
 
 # Insert example scripts.
@@ -35,8 +34,10 @@ for file in readdir("examples/results/"; join = true)
     cp(file, "docs/src/" * file; force = true)
 end
 
-# Copy README file.
+# Copy README file and SVGs.
 cp("README.md", "docs/src/index.md"; force = true)
+cp("pincflow_modules.svg", "docs/src/pincflow_modules.svg"; force = true)
+cp("pincflow_structures.svg", "docs/src/pincflow_structures.svg"; force = true)
 
 # Generate documentation.
 makedocs(;
