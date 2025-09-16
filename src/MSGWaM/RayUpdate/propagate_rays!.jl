@@ -182,12 +182,12 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    ks = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
-    ke = k1
+    kmin = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
+    kmax = k1
 
     # Initialize WKB increments at the first RK stage.
     @ivy if rkstage == 1
-        for k in ks:ke, j in j0:j1, i in i0:i1
+        for k in kmin:kmax, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
                 dyray[r, i, j, k] = 0.0
@@ -204,9 +204,9 @@ function propagate_rays!(
 
     cgx_max[] = 0.0
     cgy_max[] = 0.0
-    @ivy cgz_max[i0:i1, j0:j1, ks:ke] .= 0.0
+    @ivy cgz_max[i0:i1, j0:j1, kmin:kmax] .= 0.0
 
-    @ivy for k in ks:ke, j in j0:j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         nskip = 0
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)

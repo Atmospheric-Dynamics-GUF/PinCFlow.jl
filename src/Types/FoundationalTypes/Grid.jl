@@ -229,10 +229,11 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     met = zeros(nxx, nyy, nzz, 3, 3)
 
     # Set the start index for the computation of the Jacobian and metric tensor.
-    ks = ko == 0 ? 2 : 1
+    kmin = ko == 0 ? 2 : 1
+    kmax = nzz
 
     # Compute the Jacobian.
-    @ivy for k in ks:nzz
+    @ivy for k in kmin:kmax
         jac[:, :, k] .=
             (lz .- topography_surface) ./ lz .*
             (ztildes[ko + k] .- ztildes[ko + k - 1]) ./ dz
@@ -246,7 +247,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     @ivy met[:, :, :, 1, 1] .= 1.0
     @ivy met[:, :, :, 2, 2] .= 1.0
 
-    @ivy for k in ks:nzz, j in 1:nyy, i in i0:i1
+    @ivy for k in kmin:kmax, j in 1:nyy, i in i0:i1
         met13[i, j, k] =
             (topography_surface[i + 1, j] - topography_surface[i - 1, j]) /
             (2.0 * dx) * (zs[ko + k] - lz) / (lz - topography_surface[i, j]) *
@@ -270,7 +271,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     @ivy met[:, :, :, 2, 3] .= met23
     @ivy met[:, :, :, 3, 2] .= met23
 
-    @ivy for k in ks:nzz, j in j0:j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         met33[i, j, k] =
             (
                 (lz / (lz - topography_surface[i, j]))^2.0 +

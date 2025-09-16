@@ -370,14 +370,14 @@ function compute_fluxes!(
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
-    ks = k0
-    ke = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = k0
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in j0:j1, i in (i0 - 2):i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         ur = utilde[i + 1, j, k, 1, 1]
         ul = utilde[i, j, k, 1, 2]
 
@@ -402,7 +402,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         uf = utilde[i, j + 1, k, 2, 1]
         ub = utilde[i, j, k, 2, 2]
 
@@ -427,7 +427,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (ks - 1):ke, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         uu = utilde[i, j, k + 1, 3, 1]
         ud = utilde[i, j, k, 3, 2]
 
@@ -460,7 +460,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in j0:j1, i in (i0 - 2):i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         coef_v = 1 / re * rhostrattfc[i + 1, j, k0]
 
         frhou_visc =
@@ -475,7 +475,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -506,7 +506,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (ks - 1):ke, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         coef_v =
             1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
 
@@ -564,7 +564,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in j0:j1, i in (i0 - 2):i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         coef_d = mu_mom_diff * rhostrattfc[i + 1, j, k0]
 
         frhou_diff =
@@ -579,7 +579,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
             mu_mom_diff *
             0.25 *
@@ -617,7 +617,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (ks - 1):ke, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
 
         coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
@@ -675,14 +675,14 @@ function compute_fluxes!(
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
-    ks = k0
-    ke = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = k0
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         vr = vtilde[i + 1, j, k, 1, 1]
         vl = vtilde[i, j, k, 1, 2]
 
@@ -707,7 +707,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 2):j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         vf = vtilde[i, j + 1, k, 2, 1]
         vb = vtilde[i, j, k, 2, 2]
 
@@ -732,7 +732,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (ks - 1):ke, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         vu = vtilde[i, j, k + 1, 3, 1]
         vd = vtilde[i, j, k, 3, 2]
 
@@ -765,7 +765,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -796,7 +796,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 2):j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         coef_v = 1 / re * rhostrattfc[i, j + 1, k0]
 
         grhov_visc =
@@ -811,7 +811,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (ks - 1):ke, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         coef_v =
             1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
 
@@ -869,7 +869,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 1):j1, i in (i0 - 1):i1
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
             mu_mom_diff *
             0.25 *
@@ -907,7 +907,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in ks:ke, j in (j0 - 2):j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         coef_d = mu_mom_diff * rhostrattfc[i, j + 1, k0]
 
         grhov_diff =
@@ -922,7 +922,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (ks - 1):ke, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
 
         coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]

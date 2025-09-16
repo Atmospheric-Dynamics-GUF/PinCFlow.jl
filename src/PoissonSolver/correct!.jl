@@ -142,10 +142,10 @@ function correct!(
     (; dpip) = state.variables.increments
     (; u) = state.variables.predictands
 
-    ks = k0
-    ke = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = k0
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in ks:ke, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
 
         if spongelayer && sponge_uv
@@ -181,10 +181,10 @@ function correct!(
     (; dpip) = state.variables.increments
     (; v) = state.variables.predictands
 
-    ks = k0
-    ke = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = k0
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in ks:ke, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
 
         if spongelayer && sponge_uv
@@ -222,10 +222,10 @@ function correct!(
     (; dpip) = state.variables.increments
     (; w) = state.variables.predictands
 
-    ks = ko == 0 ? k0 : k0 - 1
-    ke = ko + nzz == sizezz ? k1 - 1 : k1
+    kmin = ko == 0 ? k0 : k0 - 1
+    kmax = ko + nzz == sizezz ? k1 - 1 : k1
 
-    @ivy for k in ks:ke, j in j0:j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
 
         if spongelayer

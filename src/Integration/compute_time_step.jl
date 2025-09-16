@@ -122,10 +122,10 @@ function compute_time_step(state::State)::AbstractFloat
         if typeof(testcase) <: AbstractWKBTestCase
             dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
-            ks = ko == 0 ? k0 - 1 : k0
-            ke = k1
+            kmin = ko == 0 ? k0 - 1 : k0
+            kmax = k1
 
-            for k in ks:ke, j in j0:j1, i in i0:i1
+            for k in kmin:kmax, j in j0:j1, i in i0:i1
                 dtwkb = min(
                     dtwkb,
                     minimum(
