@@ -2,7 +2,7 @@
 ```julia
 turbulence_computation!(
     state::State,
-    p2::Predictands,
+    p0::Predictands,
     dtstage::AbstractFloat,
     time::AbstractFloat,
     process::Dissipation,
@@ -14,7 +14,7 @@ Performs the dissipation step of the turbulence computation.
 ```julia
 turbulence_computation!(
     state::State,
-    p2::Predictands,
+    p0::Predictands,
     dtstage::AbstractFloat,
     time::AbstractFloat,
     process::Diffusion,
@@ -27,7 +27,7 @@ Performs the diffusion step of the turbulence computation.
 
   - `state`: Model state.
 
-  - `p0`: The predictands that are used to compute the transporting velocities in the computation of the fluxes.
+  - `p0`: The turbulencepredictands that are used to compute the diffusion constant.
 
   - `dtstage`: Fractional time step.
 
@@ -52,10 +52,7 @@ function turbulence_computation!(
     dis = zeros(Float64, nxx, nyy, nzz)
     
     if !(typeof(state.namelists.turbulence.turbulencesetup) <: NoTurbulence)
-        #dis .= (2 ./ sqrt.(tke)) .+ (alphaturb * dtstage)
-        dis .= (2 ./ tke) .+ (alphaturb * dtstage)
-        dis .= dis .* dis
-        tke .= 4 ./ dis
+        tke .= 4.0 ./ (alphaturb * dtstage .+ 2 ./ sqrt.(tke)) .^ 2
     end
 
     return
@@ -68,99 +65,97 @@ function turbulence_computation!(
     time::AbstractFloat,
     process::Diffusion,
 )
-    (; nzz) = state.domain
+    (; nxx, nyy, nzz) = state.domain
+    (; dz) = state.grid
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; K_ek) = state.turbulence.turbulenceconstants
+    (; k_diff) = state.turbulence.turbulenceconstants
     (; tke) = state.turbulence.turbulencepredictands
     (; dtke) = state.turbulence.turbulenceincrements
     
+    # p0_tke = p0.tke  tke old
+
     if !(typeof(state.namelists.turbulence.turbulencesetup) <: NoTurbulence)
-        
-        # Defining the Thomas Algorithm for vertical diffusion
 
-            # Define the intermediate variables used in the calculation
+        # Define the intermediate variables used in the calculation
 
-                aa = zeros(Float64, nzz)
-                bb = zeros(Float64, nzz)  
-                cc = zeros(Float64, nzz)  
-                dd = zeros(Float64, nzz)  
-                qq = zeros(Float64, nzz)
-                ss = zeros(Float64, nzz)  
+        ta = k1 - k0 + 1
+        aa = zeros(Float64, ta)
+        bb = zeros(Float64, ta)  
+        cc = zeros(Float64, ta)  
+        dd = zeros(Float64, ta)  
+        qq = zeros(Float64, ta)
+        ss = zeros(Float64, ta)
+        K_ek = zeros(Float64, nxx, nyy, nzz)
+        dr = dtstage / (2 * dz^2)
 
+        # Defining the diffusion constant
+
+        K_ek .= sqrt.(tke) .^ 3 .* k_diff
+
+        # Defining the Thomas Algorithm for vertical diffusion 
+
+        for j in j0:j1, i in i0:i1
                 
-            # Initialising the tridiagonal matrix
-        
-            for mm in 1:nzz
-                aa[mm] = -dtstage * K_ek
-                bb[mm] = 1 + 2 * dtstage * K_ek
-                cc[mm] = -dtstage * K_ek
+            for k in k0:k1, 
+
+                K_ekp = (K_ek[i, j, k] + K_ek[i, j, k+1])/2
+                K_ekm = (K_ek[i, j, k-1] + K_ek[i, j, k])/2
+                
+                # Initialising the tridiagonal matrix
+
+                aa[k-k0+1] = -dr * K_ekm
+                bb[k-k0+1] = 1 + dr * K_ekm + dr * K_ekp
+                cc[k-k0+1] = -dr * K_ekp
+
+                # Initialising the RHS of the Algorithm
+
+                dd[k-k0+1] = (1 - dr * K_ekm - dr * K_ekp) * tke[i, j, k] - (dr * K_ekp * tke[i, j, k+1]) - (dr * K_ekm * tke[i, j, k-1])
+
             end
 
-            println(nzz)
+            # Begin Thomas Algorithm
 
-            println(k0)
-
-            println(k1)
-
-            # Initialising the RHS of the Algorithm
-
-            for j in j0:j1, i in i0:i1
-                
-                for k in k0:k1, 
-
-                    dd[k] = tke[i, j, k] + (dtstage * K_ek * tke[i, j, k+1]) - (2 * dtstage * K_ek * tke[i, j, k]) + (dtstage * K_ek * tke[i, j, k-1])
-
-                end
-
-                    # Begin Thomas Algorithm
-
-                    dmx = dd[nzz]
+            dmx = dd[ta]
     
-                    # Forward Sweep
+            # Forward Sweep
 
-                    qq[1] = -cc[1]/bb[1]
-                    dd[1] = dd[1]/bb[1]
-                    ss[1] = -aa[1]/bb[1]
+            qq[1] = -cc[1]/bb[1]
+            dd[1] = dd[1]/bb[1]
+            ss[1] = -aa[1]/bb[1]
 
-                    for mm in 2:nzz
-                        qq[mm] = -cc[mm]/(bb[mm] + aa[mm]*qq[mm-1])
-                        dd[mm] = (dd[mm] - aa[mm]*dd[mm-1])/(bb[mm] + aa[mm]*qq[mm-1])
-                        ss[mm] = (-aa[mm] * ss[mm-1])/(bb[mm] + aa[mm]*qq[mm-1])
-                    end 
+            for mm in 2:ta
+                qq[mm] = -cc[mm]/(bb[mm] + aa[mm]*qq[mm-1])
+                dd[mm] = (dd[mm] - aa[mm]*dd[mm-1])/(bb[mm] + aa[mm]*qq[mm-1])
+                ss[mm] = (-aa[mm] * ss[mm-1])/(bb[mm] + aa[mm]*qq[mm-1])
+            end 
 
-                    # Backward Sweep
+            # Backward Sweep
 
-                    qq[nzz] = 0
-                    ss[nzz] = 1 
+            qq[ta] = 0
+            ss[ta] = 1 
 
-                    for mm in nzz-1:-1:1
-                        ss[mm] = ss[mm] + qq[mm]*ss[mm+1]
-                        qq[mm] = dd[mm] + qq[mm]*qq[mm+1]
-                    end
-
-                    # Final Sweep
-
-                    dd[nzz] = ( dmx - cc[nzz]*qq[1] - aa[nzz]*qq[nzz-1] )/( cc[nzz]*ss[1] + aa[nzz]*ss[nzz-1] + bb[nzz] )
-
-                    for mm in 1:nzz-1
-                        dd[mm] = dd[nzz]*ss[mm] + qq[mm]
-                    end
-
-                    # End Thomas Algorithm
-
-                    # Setting the values obtained from the Thomas Algorithm to be the output values of this step
-                    tke[i, j, :] .= dd[:]
-
-            
-
-
-
+            for mm in ta-1:-1:1
+                ss[mm] = ss[mm] + qq[mm]*ss[mm+1]
+                qq[mm] = dd[mm] + qq[mm]*qq[mm+1]
             end
+
+            # Final Sweep
+
+            dd[ta] = ( dmx - cc[ta]*qq[1] - aa[ta]*qq[ta-1] )/( cc[ta]*ss[1] + aa[ta]*ss[ta-1] + bb[ta] )
+
+            for mm in 1:ta-1
+                dd[mm] = dd[ta]*ss[mm] + qq[mm]
+            end
+
+            # End Thomas Algorithm
+
+            # Setting the values obtained from the Thomas Algorithm to be the output values of this step
+            for k in k0:k1, 
+                tke[i, j, k] = dd[k-k0+1]
+            end
+
+        end
             
-            
-
-
-
     end
 
     return

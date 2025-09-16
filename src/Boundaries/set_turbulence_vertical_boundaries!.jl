@@ -96,7 +96,7 @@ function set_turbulence_vertical_boundaries!(
             namelists,
             domain,
             zboundaries,
-            -,
+            +,
         )
     end
 

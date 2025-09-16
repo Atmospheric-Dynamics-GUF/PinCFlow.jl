@@ -31,7 +31,8 @@ Constants:
 
   - `alphaturb::A`: The dissipation constant ``\\alpha = \\frac{C_\\epsilon}{L}``.
 
-  - `K_ek::A`: The diffusion constant ``\\alpha = \\frac{C_\\epsilon}{L}``.
+  - `k_diff::A`: Pre-factor used to calculate the diffusion constant ``K = \\frac{C_{ek}}{L C_\\epsilon} <w'w'> ``, where
+  the diffusion co-efficient ``K_ek = \\frac{C_{ek}}{C_\\epsilon} <w'w'> \\frac{\\sqrt{e_K}}{L}``
 
 Exchange co-efficients:
 
@@ -59,7 +60,7 @@ struct TurbulenceConstants{
     cepsilon::A
     turbulencelengthscale::A
     alphaturb::A
-    K_ek::A
+    k_diff::A
 end
 
 function TurbulenceConstants(namelists::Namelists)::TurbulenceConstants
@@ -67,15 +68,25 @@ function TurbulenceConstants(namelists::Namelists)::TurbulenceConstants
 
     # Initialize the dissipation coefficients.
     cepsilon = 8.5E-1
-    turbulencelengthscale = 1.0
-    alphaturb = 8.5E-2
-    K_ek = 5.0E-1
+    turbulencelengthscale = 1.0E-1
+    alphaturb = cepsilon/turbulencelengthscale
+
+    # Calcualte the pre-factor for the diffusion co-efficient
+    c_ek = 1.0E-1
+    rif = 1
+    F = 6.4E-1
+    lambdaturb = 4.0E-1
+    lambda_2 = (5 * lambdaturb - 6 * sqrt(F) * lambdaturb)/25
+    lambda_3 = (5 * lambdaturb + 14 * sqrt(F) * lambdaturb)/75
+    lambda_4 = lambdaturb/4
+    wpwp = (2 * (1 - 3 * lambda_3 + lambda_2 - 4 * lambda_4 * rif))/ (3 * (1- rif))
+    k_diff = (c_ek * wpwp)/(cepsilon * turbulencelengthscale)
 
     # Return a TurbulenceConstants instance.
     return TurbulenceConstants(
         cepsilon,
         turbulencelengthscale,
         alphaturb,
-        K_ek
+        k_diff
     )
 end
