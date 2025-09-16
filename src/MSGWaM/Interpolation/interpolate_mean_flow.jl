@@ -166,81 +166,81 @@ function interpolate_mean_flow(
 
     # Locate the closest points in zonal direction.
     if sizex == 1
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     else
-        ixl = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
-        if ixl < 1
-            error("Error in interpolate_mean_flow (U): ixl = ", ixl, " < 1")
+        il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
+        if il < 1
+            error("Error in interpolate_mean_flow (U): il = ", il, " < 1")
         end
-        ixr = ixl + 1
-        if ixr + 1 > nxx
+        ir = il + 1
+        if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (U): ixr + 1 = ",
-                ixr + 1,
+                "Error in interpolate_mean_flow (U): ir + 1 = ",
+                ir + 1,
                 "> nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io] + dx / 2
-    @ivy xl = x[ixl + io] + dx / 2
+    @ivy xr = x[ir + io] + dx / 2
+    @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     else
-        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
-        if jyb < 1
-            error("Error in interpolate_mean_flow (U): jyl = ", jyl, " < 1")
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        if jb < 1
+            error("Error in interpolate_mean_flow (U): jl = ", jl, " < 1")
         end
-        jyf = jyb + 1
-        if jyf > nyy
+        jf = jb + 1
+        if jf > nyy
             error(
-                "Error in interpolate_mean_flow (U): jyr = ",
-                jyr,
+                "Error in interpolate_mean_flow (U): jr = ",
+                jr,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo]
-    @ivy yb = y[jyb + jo]
+    @ivy yf = y[jf + jo]
+    @ivy yb = y[jb + jo]
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
-    @ivy zlbd = (ztfc[ixl, jyb, kzlbd] + ztfc[ixl + 1, jyb, kzlbd]) / 2
-    @ivy zlbu = (ztfc[ixl, jyb, kzlbu] + ztfc[ixl + 1, jyb, kzlbu]) / 2
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il + 1, jb, klbd]) / 2
+    @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il + 1, jb, klbu]) / 2
 
-    kzlfu = get_next_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
-    @ivy zlfd = (ztfc[ixl, jyf, kzlfd] + ztfc[ixl + 1, jyf, kzlfd]) / 2
-    @ivy zlfu = (ztfc[ixl, jyf, kzlfu] + ztfc[ixl + 1, jyf, kzlfu]) / 2
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il + 1, jf, klfd]) / 2
+    @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il + 1, jf, klfu]) / 2
 
-    kzrbu = get_next_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
-    @ivy zrbd = (ztfc[ixr, jyb, kzrbd] + ztfc[ixr + 1, jyb, kzrbd]) / 2
-    @ivy zrbu = (ztfc[ixr, jyb, kzrbu] + ztfc[ixr + 1, jyb, kzrbu]) / 2
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir + 1, jb, krbd]) / 2
+    @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir + 1, jb, krbu]) / 2
 
-    kzrfu = get_next_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
-    @ivy zrfd = (ztfc[ixr, jyf, kzrfd] + ztfc[ixr + 1, jyf, kzrfd]) / 2
-    @ivy zrfu = (ztfc[ixr, jyf, kzrfu] + ztfc[ixr + 1, jyf, kzrfu]) / 2
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir + 1, jf, krfd]) / 2
+    @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir + 1, jf, krfu]) / 2
 
-    @ivy philbd = u[ixl, jyb, kzlbd]
-    @ivy philbu = u[ixl, jyb, kzlbu]
+    @ivy philbd = u[il, jb, klbd]
+    @ivy philbu = u[il, jb, klbu]
 
-    @ivy philfd = u[ixl, jyf, kzlfd]
-    @ivy philfu = u[ixl, jyf, kzlfu]
+    @ivy philfd = u[il, jf, klfd]
+    @ivy philfu = u[il, jf, klfu]
 
-    @ivy phirbd = u[ixr, jyb, kzrbd]
-    @ivy phirbu = u[ixr, jyb, kzrbu]
+    @ivy phirbd = u[ir, jb, krbd]
+    @ivy phirbu = u[ir, jb, krbu]
 
-    @ivy phirfd = u[ixr, jyf, kzrfd]
-    @ivy phirfu = u[ixr, jyf, kzrfu]
+    @ivy phirfd = u[ir, jf, krfd]
+    @ivy phirfu = u[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(
@@ -288,83 +288,83 @@ function interpolate_mean_flow(
 
     # Locate the closest points in zonal direction.
     if sizex == 1
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     else
-        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
-        if ixl < 1
-            error("Error in interpolate_mean_flow (V): ixl = ", ixl, " < 1")
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        if il < 1
+            error("Error in interpolate_mean_flow (V): il = ", il, " < 1")
         end
-        ixr = ixl + 1
-        if ixr > nxx
+        ir = il + 1
+        if ir > nxx
             error(
-                "Error in interpolate_mean_flow (V): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (V): ir = ",
+                ir,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io]
-    @ivy xl = x[ixl + io]
+    @ivy xr = x[ir + io]
+    @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     else
-        jyb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
-        if jyb < 1
-            error("Error in interpolate_mean_flow (V): jyb = ", jyb, " < 1")
+        jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
+        if jb < 1
+            error("Error in interpolate_mean_flow (V): jb = ", jb, " < 1")
         end
-        jyf = jyb + 1
-        if jyf + 1 > nyy
+        jf = jb + 1
+        if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (V): jyf + 1 = ",
-                jyf + 1,
+                "Error in interpolate_mean_flow (V): jf + 1 = ",
+                jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo] + dy / 2
-    @ivy yb = y[jyb + jo] + dy / 2
+    @ivy yf = y[jf + jo] + dy / 2
+    @ivy yb = y[jb + jo] + dy / 2
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
-    @ivy zlbd = (ztfc[ixl, jyb, kzlbd] + ztfc[ixl, jyb + 1, kzlbd]) / 2
-    @ivy zlbu = (ztfc[ixl, jyb, kzlbu] + ztfc[ixl, jyb + 1, kzlbu]) / 2
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il, jb + 1, klbd]) / 2
+    @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il, jb + 1, klbu]) / 2
 
-    kzlfu = get_next_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
-    @ivy zlfd = (ztfc[ixl, jyf, kzlfd] + ztfc[ixl, jyf + 1, kzlfd]) / 2
-    @ivy zlfu = (ztfc[ixl, jyf, kzlfu] + ztfc[ixl, jyf + 1, kzlfu]) / 2
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il, jf + 1, klfd]) / 2
+    @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il, jf + 1, klfu]) / 2
 
-    kzrbu = get_next_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
-    @ivy zrbd = (ztfc[ixr, jyb, kzrbd] + ztfc[ixr, jyb + 1, kzrbd]) / 2
-    @ivy zrbu = (ztfc[ixr, jyb, kzrbu] + ztfc[ixr, jyb + 1, kzrbu]) / 2
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir, jb + 1, krbd]) / 2
+    @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir, jb + 1, krbu]) / 2
 
-    kzrfu = get_next_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
-    @ivy zrfd = (ztfc[ixr, jyf, kzrfd] + ztfc[ixr, jyf + 1, kzrfd]) / 2
-    @ivy zrfu = (ztfc[ixr, jyf, kzrfu] + ztfc[ixr, jyf + 1, kzrfu]) / 2
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir, jf + 1, krfd]) / 2
+    @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir, jf + 1, krfu]) / 2
 
     # Assign the values.
 
-    @ivy philbd = v[ixl, jyb, kzlbd]
-    @ivy philbu = v[ixl, jyb, kzlbu]
+    @ivy philbd = v[il, jb, klbd]
+    @ivy philbu = v[il, jb, klbu]
 
-    @ivy philfd = v[ixl, jyf, kzlfd]
-    @ivy philfu = v[ixl, jyf, kzlfu]
+    @ivy philfd = v[il, jf, klfd]
+    @ivy philfu = v[il, jf, klfu]
 
-    @ivy phirbd = v[ixr, jyb, kzrbd]
-    @ivy phirbu = v[ixr, jyb, kzrbu]
+    @ivy phirbd = v[ir, jb, krbd]
+    @ivy phirbu = v[ir, jb, krbu]
 
-    @ivy phirfd = v[ixr, jyf, kzrfd]
-    @ivy phirfu = v[ixr, jyf, kzrfu]
+    @ivy phirfd = v[ir, jf, krfd]
+    @ivy phirfu = v[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(
@@ -412,114 +412,114 @@ function interpolate_mean_flow(
 
     # Locate the closest points in zonal direction.
     if sizex == 1
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     else
-        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
-        if ixl < 1
-            error("Error in interpolate_mean_flow (W): ixl = ", ixl, " < 1")
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        if il < 1
+            error("Error in interpolate_mean_flow (W): il = ", il, " < 1")
         end
-        ixr = ixl + 1
-        if ixr > nxx
+        ir = il + 1
+        if ir > nxx
             error(
-                "Error in interpolate_mean_flow (W): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (W): ir = ",
+                ir,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io]
-    @ivy xl = x[ixl + io]
+    @ivy xr = x[ir + io]
+    @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     else
-        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
-        if jyb < 1
-            error("Error in interpolate_mean_flow (W): jyb = ", jyb, " < 1")
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        if jb < 1
+            error("Error in interpolate_mean_flow (W): jb = ", jb, " < 1")
         end
-        jyf = jyb + 1
-        if jyf > nyy
+        jf = jb + 1
+        if jf > nyy
             error(
-                "Error in interpolate_mean_flow (W): jyf = ",
-                jyf,
+                "Error in interpolate_mean_flow (W): jf = ",
+                jf,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo]
-    @ivy yb = y[jyb + jo]
+    @ivy yf = y[jf + jo]
+    @ivy yb = y[jb + jo]
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_half_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
-    @ivy zlbd = ztildetfc[ixl, jyb, kzlbd]
-    @ivy zlbu = ztildetfc[ixl, jyb, kzlbu]
+    klbu = get_next_half_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = ztildetfc[il, jb, klbd]
+    @ivy zlbu = ztildetfc[il, jb, klbu]
 
-    kzlfu = get_next_half_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
-    @ivy zlfd = ztildetfc[ixl, jyf, kzlfd]
-    @ivy zlfu = ztildetfc[ixl, jyf, kzlfu]
+    klfu = get_next_half_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = ztildetfc[il, jf, klfd]
+    @ivy zlfu = ztildetfc[il, jf, klfu]
 
-    kzrbu = get_next_half_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
-    @ivy zrbd = ztildetfc[ixr, jyb, kzrbd]
-    @ivy zrbu = ztildetfc[ixr, jyb, kzrbu]
+    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = ztildetfc[ir, jb, krbd]
+    @ivy zrbu = ztildetfc[ir, jb, krbu]
 
-    kzrfu = get_next_half_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
-    @ivy zrfd = ztildetfc[ixr, jyf, kzrfd]
-    @ivy zrfu = ztildetfc[ixr, jyf, kzrfu]
+    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = ztildetfc[ir, jf, krfd]
+    @ivy zrfu = ztildetfc[ir, jf, krfu]
 
     # Assign the values.
 
-    @ivy if zlbu < topography_surface[ixl, jyb]
+    @ivy if zlbu < topography_surface[il, jb]
         philbd = 0.0
         philbu = 0.0
-    elseif zlbd < topography_surface[ixl, jyb]
+    elseif zlbd < topography_surface[il, jb]
         philbd = 0.0
-        philbu = compute_vertical_wind(ixl, jyb, kzlbu, state)
+        philbu = compute_vertical_wind(il, jb, klbu, state)
     else
-        philbd = compute_vertical_wind(ixl, jyb, kzlbd, state)
-        philbu = compute_vertical_wind(ixl, jyb, kzlbu, state)
+        philbd = compute_vertical_wind(il, jb, klbd, state)
+        philbu = compute_vertical_wind(il, jb, klbu, state)
     end
 
-    @ivy if zlfu < topography_surface[ixl, jyf]
+    @ivy if zlfu < topography_surface[il, jf]
         philfd = 0.0
         philfu = 0.0
-    elseif zlfd < topography_surface[ixl, jyf]
+    elseif zlfd < topography_surface[il, jf]
         philfd = 0.0
-        philfu = compute_vertical_wind(ixl, jyf, kzlfu, state)
+        philfu = compute_vertical_wind(il, jf, klfu, state)
     else
-        philfd = compute_vertical_wind(ixl, jyf, kzlfd, state)
-        philfu = compute_vertical_wind(ixl, jyf, kzlfu, state)
+        philfd = compute_vertical_wind(il, jf, klfd, state)
+        philfu = compute_vertical_wind(il, jf, klfu, state)
     end
 
-    @ivy if zrbu < topography_surface[ixr, jyb]
+    @ivy if zrbu < topography_surface[ir, jb]
         phirbd = 0.0
         phirbu = 0.0
-    elseif zrbd < topography_surface[ixr, jyb]
+    elseif zrbd < topography_surface[ir, jb]
         phirbd = 0.0
-        phirbu = compute_vertical_wind(ixr, jyb, kzrbu, state)
+        phirbu = compute_vertical_wind(ir, jb, krbu, state)
     else
-        phirbd = compute_vertical_wind(ixr, jyb, kzrbd, state)
-        phirbu = compute_vertical_wind(ixr, jyb, kzrbu, state)
+        phirbd = compute_vertical_wind(ir, jb, krbd, state)
+        phirbu = compute_vertical_wind(ir, jb, krbu, state)
     end
 
-    @ivy if zrfu < topography_surface[ixr, jyf]
+    @ivy if zrfu < topography_surface[ir, jf]
         phirfd = 0.0
         phirfu = 0.0
-    elseif zrfd < topography_surface[ixr, jyf]
+    elseif zrfd < topography_surface[ir, jf]
         phirfd = 0.0
-        phirfu = compute_vertical_wind(ixr, jyf, kzrfu, state)
+        phirfu = compute_vertical_wind(ir, jf, krfu, state)
     else
-        phirfd = compute_vertical_wind(ixr, jyf, kzrfd, state)
-        phirfu = compute_vertical_wind(ixr, jyf, kzrfu, state)
+        phirfd = compute_vertical_wind(ir, jf, krfd, state)
+        phirfu = compute_vertical_wind(ir, jf, krfu, state)
     end
 
     # Interpolate.
@@ -569,84 +569,80 @@ function interpolate_mean_flow(
         phi = 0.0
         return phi
     else
-        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
-        if ixl - 1 < 1
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        if il - 1 < 1
             error(
-                "Error in interpolate_mean_flow (DUDX): ixl - 1 = ",
-                ixl - 1,
+                "Error in interpolate_mean_flow (DUDX): il - 1 = ",
+                il - 1,
                 " < 1",
             )
         end
-        ixr = ixl + 1
-        if ixr > nxx
+        ir = il + 1
+        if ir > nxx
             error(
-                "Error in interpolate_mean_flow (DUDX): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (DUDX): ir = ",
+                ir,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io]
-    @ivy xl = x[ixl + io]
+    @ivy xr = x[ir + io]
+    @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     else
-        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
-        if jyb < 1
-            error("Error in interpolate_mean_flow (DUDX): jyb = ", jyb, " < 1")
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        if jb < 1
+            error("Error in interpolate_mean_flow (DUDX): jb = ", jb, " < 1")
         end
-        jyf = jyb + 1
-        if jyf > nyy
+        jf = jb + 1
+        if jf > nyy
             error(
-                "Error in interpolate_mean_flow (DUDX): jyf = ",
-                jyf,
+                "Error in interpolate_mean_flow (DUDX): jf = ",
+                jf,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo]
-    @ivy yb = y[jyb + jo]
+    @ivy yf = y[jf + jo]
+    @ivy yb = y[jb + jo]
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
-    @ivy zlbd = ztfc[ixl, jyb, kzlbd]
-    @ivy zlbu = ztfc[ixl, jyb, kzlbu]
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = ztfc[il, jb, klbd]
+    @ivy zlbu = ztfc[il, jb, klbu]
 
-    kzlfu = get_next_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
-    @ivy zlfd = ztfc[ixl, jyf, kzlfd]
-    @ivy zlfu = ztfc[ixl, jyf, kzlfu]
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = ztfc[il, jf, klfd]
+    @ivy zlfu = ztfc[il, jf, klfu]
 
-    kzrbu = get_next_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
-    @ivy zrbd = ztfc[ixr, jyb, kzrbd]
-    @ivy zrbu = ztfc[ixr, jyb, kzrbu]
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = ztfc[ir, jb, krbd]
+    @ivy zrbu = ztfc[ir, jb, krbu]
 
-    kzrfu = get_next_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
-    @ivy zrfd = ztfc[ixr, jyf, kzrfd]
-    @ivy zrfu = ztfc[ixr, jyf, kzrfu]
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = ztfc[ir, jf, krfd]
+    @ivy zrfu = ztfc[ir, jf, krfu]
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DUDX())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DUDX())
 
-    (philfd, philfu) =
-        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DUDX())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DUDX())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DUDX())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DUDX())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DUDX())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DUDX())
 
     # Interpolate.
     phi = interpolate(
@@ -693,131 +689,127 @@ function interpolate_mean_flow(
 
     # Locate the closest points in zonal direction.
     if sizex == 1
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     else
-        ixl = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
-        if ixl < 1
-            error("Error in interpolate_mean_flow (DUDY): ixl = ", ixl, " < 1")
+        il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
+        if il < 1
+            error("Error in interpolate_mean_flow (DUDY): il = ", il, " < 1")
         end
-        ixr = ixl + 1
-        if ixr + 1 > nxx
+        ir = il + 1
+        if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDY): ixr + 1 = ",
-                ixr + 1,
+                "Error in interpolate_mean_flow (DUDY): ir + 1 = ",
+                ir + 1,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io] + dx / 2
-    @ivy xl = x[ixl + io] + dx / 2
+    @ivy xr = x[ir + io] + dx / 2
+    @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
     if sizey == 1
         phi = 0.0
         return phi
     else
-        jyb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
-        if jyb < 1
-            error("Error in interpolate_mean_flow (DUDY): jyb = ", jyb, " < 1")
+        jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
+        if jb < 1
+            error("Error in interpolate_mean_flow (DUDY): jb = ", jb, " < 1")
         end
-        jyf = jyb + 1
-        if jyf + 1 > nyy
+        jf = jb + 1
+        if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DUDY): jyf + 1 = ",
-                jyf + 1,
+                "Error in interpolate_mean_flow (DUDY): jf + 1 = ",
+                jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo] + dy / 2
-    @ivy yb = y[jyb + jo] + dy / 2
+    @ivy yf = y[jf + jo] + dy / 2
+    @ivy yb = y[jb + jo] + dy / 2
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
     @ivy zlbd =
         (
-            ztfc[ixl, jyb, kzlbd] +
-            ztfc[ixl + 1, jyb, kzlbd] +
-            ztfc[ixl, jyb + 1, kzlbd] +
-            ztfc[ixl + 1, jyb + 1, kzlbd]
+            ztfc[il, jb, klbd] +
+            ztfc[il + 1, jb, klbd] +
+            ztfc[il, jb + 1, klbd] +
+            ztfc[il + 1, jb + 1, klbd]
         ) / 4
     @ivy zlbu =
         (
-            ztfc[ixl, jyb, kzlbu] +
-            ztfc[ixl + 1, jyb, kzlbu] +
-            ztfc[ixl, jyb + 1, kzlbu] +
-            ztfc[ixl + 1, jyb + 1, kzlbu]
+            ztfc[il, jb, klbu] +
+            ztfc[il + 1, jb, klbu] +
+            ztfc[il, jb + 1, klbu] +
+            ztfc[il + 1, jb + 1, klbu]
         ) / 4
 
-    kzlfu = get_next_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
     @ivy zlfd =
         (
-            ztfc[ixl, jyf, kzlfd] +
-            ztfc[ixl + 1, jyf, kzlfd] +
-            ztfc[ixl, jyf + 1, kzlfd] +
-            ztfc[ixl + 1, jyf + 1, kzlfd]
+            ztfc[il, jf, klfd] +
+            ztfc[il + 1, jf, klfd] +
+            ztfc[il, jf + 1, klfd] +
+            ztfc[il + 1, jf + 1, klfd]
         ) / 4
     @ivy zlfu =
         (
-            ztfc[ixl, jyf, kzlfu] +
-            ztfc[ixl + 1, jyf, kzlfu] +
-            ztfc[ixl, jyf + 1, kzlfu] +
-            ztfc[ixl + 1, jyf + 1, kzlfu]
+            ztfc[il, jf, klfu] +
+            ztfc[il + 1, jf, klfu] +
+            ztfc[il, jf + 1, klfu] +
+            ztfc[il + 1, jf + 1, klfu]
         ) / 4
 
-    kzrbu = get_next_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
     @ivy zrbd =
         (
-            ztfc[ixr, jyb, kzrbd] +
-            ztfc[ixr + 1, jyb, kzrbd] +
-            ztfc[ixr, jyb + 1, kzrbd] +
-            ztfc[ixr + 1, jyb + 1, kzrbd]
+            ztfc[ir, jb, krbd] +
+            ztfc[ir + 1, jb, krbd] +
+            ztfc[ir, jb + 1, krbd] +
+            ztfc[ir + 1, jb + 1, krbd]
         ) / 4
     @ivy zrbu =
         (
-            ztfc[ixr, jyb, kzrbu] +
-            ztfc[ixr + 1, jyb, kzrbu] +
-            ztfc[ixr, jyb + 1, kzrbu] +
-            ztfc[ixr + 1, jyb + 1, kzrbu]
+            ztfc[ir, jb, krbu] +
+            ztfc[ir + 1, jb, krbu] +
+            ztfc[ir, jb + 1, krbu] +
+            ztfc[ir + 1, jb + 1, krbu]
         ) / 4
 
-    kzrfu = get_next_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
     @ivy zrfd =
         (
-            ztfc[ixr, jyf, kzrfd] +
-            ztfc[ixr + 1, jyf, kzrfd] +
-            ztfc[ixr, jyf + 1, kzrfd] +
-            ztfc[ixr + 1, jyf + 1, kzrfd]
+            ztfc[ir, jf, krfd] +
+            ztfc[ir + 1, jf, krfd] +
+            ztfc[ir, jf + 1, krfd] +
+            ztfc[ir + 1, jf + 1, krfd]
         ) / 4
     @ivy zrfu =
         (
-            ztfc[ixr, jyf, kzrfu] +
-            ztfc[ixr + 1, jyf, kzrfu] +
-            ztfc[ixr, jyf + 1, kzrfu] +
-            ztfc[ixr + 1, jyf + 1, kzrfu]
+            ztfc[ir, jf, krfu] +
+            ztfc[ir + 1, jf, krfu] +
+            ztfc[ir, jf + 1, krfu] +
+            ztfc[ir + 1, jf + 1, krfu]
         ) / 4
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DUDY())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DUDY())
 
-    (philfd, philfu) =
-        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DUDY())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DUDY())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DUDY())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DUDY())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DUDY())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DUDY())
 
     # Interpolate.
     phi = interpolate(
@@ -864,91 +856,79 @@ function interpolate_mean_flow(
 
     # Locate the closest points in zonal direction.
     if sizex == 1
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     else
-        ixl = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
-        if ixl < 1
-            error("Error in interpolate_mean_flow (DUDZ): ixl = ", ixl, " < 1")
+        il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
+        if il < 1
+            error("Error in interpolate_mean_flow (DUDZ): il = ", il, " < 1")
         end
-        ixr = ixl + 1
-        if ixr + 1 > nxx
+        ir = il + 1
+        if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDZ): ixr + 1 = ",
-                ixr + 1,
+                "Error in interpolate_mean_flow (DUDZ): ir + 1 = ",
+                ir + 1,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io] + dx / 2
-    @ivy xl = x[ixl + io] + dx / 2
+    @ivy xr = x[ir + io] + dx / 2
+    @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     else
-        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
-        if jyb < 1
-            error("Error in interpolate_mean_flow (DUDZ): jyb = ", jyb, " < 1")
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        if jb < 1
+            error("Error in interpolate_mean_flow (DUDZ): jb = ", jb, " < 1")
         end
-        jyf = jyb + 1
-        if jyf > nyy
+        jf = jb + 1
+        if jf > nyy
             error(
-                "Error in interpolate_mean_flow (DUDZ): jyf = ",
-                jyf,
+                "Error in interpolate_mean_flow (DUDZ): jf = ",
+                jf,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo]
-    @ivy yb = y[jyb + jo]
+    @ivy yf = y[jf + jo]
+    @ivy yb = y[jb + jo]
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_half_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
-    @ivy zlbd =
-        (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl + 1, jyb, kzlbd]) / 2
-    @ivy zlbu =
-        (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl + 1, jyb, kzlbu]) / 2
+    klbu = get_next_half_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = (ztildetfc[il, jb, klbd] + ztildetfc[il + 1, jb, klbd]) / 2
+    @ivy zlbu = (ztildetfc[il, jb, klbu] + ztildetfc[il + 1, jb, klbu]) / 2
 
-    kzlfu = get_next_half_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
-    @ivy zlfd =
-        (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl + 1, jyf, kzlfd]) / 2
-    @ivy zlfu =
-        (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl + 1, jyf, kzlfu]) / 2
+    klfu = get_next_half_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = (ztildetfc[il, jf, klfd] + ztildetfc[il + 1, jf, klfd]) / 2
+    @ivy zlfu = (ztildetfc[il, jf, klfu] + ztildetfc[il + 1, jf, klfu]) / 2
 
-    kzrbu = get_next_half_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
-    @ivy zrbd =
-        (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr + 1, jyb, kzrbd]) / 2
-    @ivy zrbu =
-        (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr + 1, jyb, kzrbu]) / 2
+    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = (ztildetfc[ir, jb, krbd] + ztildetfc[ir + 1, jb, krbd]) / 2
+    @ivy zrbu = (ztildetfc[ir, jb, krbu] + ztildetfc[ir + 1, jb, krbu]) / 2
 
-    kzrfu = get_next_half_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
-    @ivy zrfd =
-        (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr + 1, jyf, kzrfd]) / 2
-    @ivy zrfu =
-        (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr + 1, jyf, kzrfu]) / 2
+    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = (ztildetfc[ir, jf, krfd] + ztildetfc[ir + 1, jf, krfd]) / 2
+    @ivy zrfu = (ztildetfc[ir, jf, krfu] + ztildetfc[ir + 1, jf, krfu]) / 2
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DUDZ())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DUDZ())
 
-    (philfd, philfu) =
-        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DUDZ())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DUDZ())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DUDZ())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DUDZ())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DUDZ())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DUDZ())
 
     # Interpolate.
     phi = interpolate(
@@ -998,128 +978,124 @@ function interpolate_mean_flow(
         phi = 0.0
         return phi
     else
-        ixl = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
-        if ixl < 1
-            error("Error in interpolate_mean_flow (DVDX): ixl = ", ixl, " < 1")
+        il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
+        if il < 1
+            error("Error in interpolate_mean_flow (DVDX): il = ", il, " < 1")
         end
-        ixr = ixl + 1
-        if ixr + 1 > nxx
+        ir = il + 1
+        if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DVDX): ixr + 1 = ",
-                ixr + 1,
+                "Error in interpolate_mean_flow (DVDX): ir + 1 = ",
+                ir + 1,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io] + dx / 2
-    @ivy xl = x[ixl + io] + dx / 2
+    @ivy xr = x[ir + io] + dx / 2
+    @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     else
-        jyb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
-        if jyb < 1
-            error("Error in interpolate_mean_flow (DVDX): jyb = ", jyb, " < 1")
+        jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
+        if jb < 1
+            error("Error in interpolate_mean_flow (DVDX): jb = ", jb, " < 1")
         end
-        jyf = jyb + 1
-        if jyf + 1 > nyy
+        jf = jb + 1
+        if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DVDX): jyf + 1 = ",
-                jyf + 1,
+                "Error in interpolate_mean_flow (DVDX): jf + 1 = ",
+                jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo] + dy / 2
-    @ivy yb = y[jyb + jo] + dy / 2
+    @ivy yf = y[jf + jo] + dy / 2
+    @ivy yb = y[jb + jo] + dy / 2
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
     @ivy zlbd =
         (
-            ztfc[ixl, jyb, kzlbd] +
-            ztfc[ixl + 1, jyb, kzlbd] +
-            ztfc[ixl, jyb + 1, kzlbd] +
-            ztfc[ixl + 1, jyb + 1, kzlbd]
+            ztfc[il, jb, klbd] +
+            ztfc[il + 1, jb, klbd] +
+            ztfc[il, jb + 1, klbd] +
+            ztfc[il + 1, jb + 1, klbd]
         ) / 4
     @ivy zlbu =
         (
-            ztfc[ixl, jyb, kzlbu] +
-            ztfc[ixl + 1, jyb, kzlbu] +
-            ztfc[ixl, jyb + 1, kzlbu] +
-            ztfc[ixl + 1, jyb + 1, kzlbu]
+            ztfc[il, jb, klbu] +
+            ztfc[il + 1, jb, klbu] +
+            ztfc[il, jb + 1, klbu] +
+            ztfc[il + 1, jb + 1, klbu]
         ) / 4
 
-    kzlfu = get_next_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
     @ivy zlfd =
         (
-            ztfc[ixl, jyf, kzlfd] +
-            ztfc[ixl + 1, jyf, kzlfd] +
-            ztfc[ixl, jyf + 1, kzlfd] +
-            ztfc[ixl + 1, jyf + 1, kzlfd]
+            ztfc[il, jf, klfd] +
+            ztfc[il + 1, jf, klfd] +
+            ztfc[il, jf + 1, klfd] +
+            ztfc[il + 1, jf + 1, klfd]
         ) / 4
     @ivy zlfu =
         (
-            ztfc[ixl, jyf, kzlfu] +
-            ztfc[ixl + 1, jyf, kzlfu] +
-            ztfc[ixl, jyf + 1, kzlfu] +
-            ztfc[ixl + 1, jyf + 1, kzlfu]
+            ztfc[il, jf, klfu] +
+            ztfc[il + 1, jf, klfu] +
+            ztfc[il, jf + 1, klfu] +
+            ztfc[il + 1, jf + 1, klfu]
         ) / 4
 
-    kzrbu = get_next_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
     @ivy zrbd =
         (
-            ztfc[ixr, jyb, kzrbd] +
-            ztfc[ixr + 1, jyb, kzrbd] +
-            ztfc[ixr, jyb + 1, kzrbd] +
-            ztfc[ixr + 1, jyb + 1, kzrbd]
+            ztfc[ir, jb, krbd] +
+            ztfc[ir + 1, jb, krbd] +
+            ztfc[ir, jb + 1, krbd] +
+            ztfc[ir + 1, jb + 1, krbd]
         ) / 4
     @ivy zrbu =
         (
-            ztfc[ixr, jyb, kzrbu] +
-            ztfc[ixr + 1, jyb, kzrbu] +
-            ztfc[ixr, jyb + 1, kzrbu] +
-            ztfc[ixr + 1, jyb + 1, kzrbu]
+            ztfc[ir, jb, krbu] +
+            ztfc[ir + 1, jb, krbu] +
+            ztfc[ir, jb + 1, krbu] +
+            ztfc[ir + 1, jb + 1, krbu]
         ) / 4
 
-    kzrfu = get_next_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
     @ivy zrfd =
         (
-            ztfc[ixr, jyf, kzrfd] +
-            ztfc[ixr + 1, jyf, kzrfd] +
-            ztfc[ixr, jyf + 1, kzrfd] +
-            ztfc[ixr + 1, jyf + 1, kzrfd]
+            ztfc[ir, jf, krfd] +
+            ztfc[ir + 1, jf, krfd] +
+            ztfc[ir, jf + 1, krfd] +
+            ztfc[ir + 1, jf + 1, krfd]
         ) / 4
     @ivy zrfu =
         (
-            ztfc[ixr, jyf, kzrfu] +
-            ztfc[ixr + 1, jyf, kzrfu] +
-            ztfc[ixr, jyf + 1, kzrfu] +
-            ztfc[ixr + 1, jyf + 1, kzrfu]
+            ztfc[ir, jf, krfu] +
+            ztfc[ir + 1, jf, krfu] +
+            ztfc[ir, jf + 1, krfu] +
+            ztfc[ir + 1, jf + 1, krfu]
         ) / 4
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DVDX())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DVDX())
 
-    (philfd, philfu) =
-        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DVDX())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DVDX())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DVDX())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DVDX())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DVDX())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DVDX())
 
     # Interpolate.
     phi = interpolate(
@@ -1166,87 +1142,83 @@ function interpolate_mean_flow(
 
     # Locate the closest points in zonal direction.
     if sizex == 1
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     else
-        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
-        if ixl < 1
-            error("Error in interpolate_mean_flow (DVDY): ixl = ", ixl, " < 1")
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        if il < 1
+            error("Error in interpolate_mean_flow (DVDY): il = ", il, " < 1")
         end
-        ixr = ixl + 1
-        if ixr > nxx
+        ir = il + 1
+        if ir > nxx
             error(
-                "Error in interpolate_mean_flow (DVDY): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (DVDY): ir = ",
+                ir,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io]
-    @ivy xl = x[ixl + io]
+    @ivy xr = x[ir + io]
+    @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
     if sizey == 1
         phi = 0.0
         return phi
     else
-        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
-        if jyb - 1 < 1
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        if jb - 1 < 1
             error(
-                "Error in interpolate_mean_flow (DVDY): jyb - 1 = ",
-                jyb - 1,
+                "Error in interpolate_mean_flow (DVDY): jb - 1 = ",
+                jb - 1,
                 " < 1",
             )
         end
-        jyf = jyb + 1
-        if jyf > nyy
+        jf = jb + 1
+        if jf > nyy
             error(
-                "Error in interpolate_mean_flow (DVDY): jyf = ",
-                jyf,
+                "Error in interpolate_mean_flow (DVDY): jf = ",
+                jf,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo]
-    @ivy yb = y[jyb + jo]
+    @ivy yf = y[jf + jo]
+    @ivy yb = y[jb + jo]
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
-    @ivy zlbd = ztfc[ixl, jyb, kzlbd]
-    @ivy zlbu = ztfc[ixl, jyb, kzlbu]
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = ztfc[il, jb, klbd]
+    @ivy zlbu = ztfc[il, jb, klbu]
 
-    kzlfu = get_next_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
-    @ivy zlfd = ztfc[ixl, jyf, kzlfd]
-    @ivy zlfu = ztfc[ixl, jyf, kzlfu]
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = ztfc[il, jf, klfd]
+    @ivy zlfu = ztfc[il, jf, klfu]
 
-    kzrbu = get_next_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
-    @ivy zrbd = ztfc[ixr, jyb, kzrbd]
-    @ivy zrbu = ztfc[ixr, jyb, kzrbu]
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = ztfc[ir, jb, krbd]
+    @ivy zrbu = ztfc[ir, jb, krbu]
 
-    kzrfu = get_next_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
-    @ivy zrfd = ztfc[ixr, jyf, kzrfd]
-    @ivy zrfu = ztfc[ixr, jyf, kzrfu]
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = ztfc[ir, jf, krfd]
+    @ivy zrfu = ztfc[ir, jf, krfu]
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DVDY())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DVDY())
 
-    (philfd, philfu) =
-        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DVDY())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DVDY())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DVDY())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DVDY())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DVDY())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DVDY())
 
     # Interpolate.
     phi = interpolate(
@@ -1293,91 +1265,79 @@ function interpolate_mean_flow(
 
     # Locate the closest points in zonal direction.
     if sizex == 1
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     else
-        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
-        if ixl < 1
-            error("Error in interpolate_mean_flow (DVDZ): ixl = ", ixl, " < 1")
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        if il < 1
+            error("Error in interpolate_mean_flow (DVDZ): il = ", il, " < 1")
         end
-        ixr = ixl + 1
-        if ixr > nxx
+        ir = il + 1
+        if ir > nxx
             error(
-                "Error in interpolate_mean_flow (DVDZ): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (DVDZ): ir = ",
+                ir,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ixr + io]
-    @ivy xl = x[ixl + io]
+    @ivy xr = x[ir + io]
+    @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     else
-        jyb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
-        if jyb < 1
-            error("Error in interpolate_mean_flow: jyb = ", jyb, " < 1")
+        jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
+        if jb < 1
+            error("Error in interpolate_mean_flow: jb = ", jb, " < 1")
         end
-        jyf = jyb + 1
-        if jyf + 1 > nyy
+        jf = jb + 1
+        if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow: jyf + 1 = ",
-                jyf + 1,
+                "Error in interpolate_mean_flow: jf + 1 = ",
+                jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jyf + jo] + dy / 2
-    @ivy yb = y[jyb + jo] + dy / 2
+    @ivy yf = y[jf + jo] + dy / 2
+    @ivy yb = y[jb + jo] + dy / 2
 
     # Locate the closest points in vertical direction.
 
-    kzlbu = get_next_half_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
-    @ivy zlbd =
-        (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl, jyb + 1, kzlbd]) / 2
-    @ivy zlbu =
-        (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl, jyb + 1, kzlbu]) / 2
+    klbu = get_next_half_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = (ztildetfc[il, jb, klbd] + ztildetfc[il, jb + 1, klbd]) / 2
+    @ivy zlbu = (ztildetfc[il, jb, klbu] + ztildetfc[il, jb + 1, klbu]) / 2
 
-    kzlfu = get_next_half_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
-    @ivy zlfd =
-        (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl, jyf + 1, kzlfd]) / 2
-    @ivy zlfu =
-        (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl, jyf + 1, kzlfu]) / 2
+    klfu = get_next_half_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = (ztildetfc[il, jf, klfd] + ztildetfc[il, jf + 1, klfd]) / 2
+    @ivy zlfu = (ztildetfc[il, jf, klfu] + ztildetfc[il, jf + 1, klfu]) / 2
 
-    kzrbu = get_next_half_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
-    @ivy zrbd =
-        (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr, jyb + 1, kzrbd]) / 2
-    @ivy zrbu =
-        (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr, jyb + 1, kzrbu]) / 2
+    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = (ztildetfc[ir, jb, krbd] + ztildetfc[ir, jb + 1, krbd]) / 2
+    @ivy zrbu = (ztildetfc[ir, jb, krbu] + ztildetfc[ir, jb + 1, krbu]) / 2
 
-    kzrfu = get_next_half_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
-    @ivy zrfd =
-        (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr, jyf + 1, kzrfd]) / 2
-    @ivy zrfu =
-        (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr, jyf + 1, kzrfu]) / 2
+    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = (ztildetfc[ir, jf, krfd] + ztildetfc[ir, jf + 1, krfd]) / 2
+    @ivy zrfu = (ztildetfc[ir, jf, krfu] + ztildetfc[ir, jf + 1, krfu]) / 2
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, ixl, jyb, kzlbd, kzlbu, DVDZ())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DVDZ())
 
-    (philfd, philfu) =
-        compute_derivatives(state, ixl, jyf, kzlfd, kzlfu, DVDZ())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DVDZ())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ixr, jyb, kzrbd, kzrbu, DVDZ())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DVDZ())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ixr, jyf, kzrfd, kzrfu, DVDZ())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DVDZ())
 
     # Interpolate.
     phi = interpolate(

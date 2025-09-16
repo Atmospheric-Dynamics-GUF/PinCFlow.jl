@@ -278,85 +278,85 @@ function compute_topography(
     k_spectrum = zeros(nwm, nxx, nyy)
     l_spectrum = zeros(nwm, nxx, nyy)
 
-    @ivy for jy in j0:j1, ix in i0:i1
+    @ivy for j in j0:j1, i in i0:i1
         if mountain_case == 1
             # 2D cosine mountains
-            topography_surface[ix, jy] = 0.5 * mountainheight
-            topography_spectrum[1, ix, jy] = 0.5 * mountainheight
-            k_spectrum[1, ix, jy] = mountainwavenumber
+            topography_surface[i, j] = 0.5 * mountainheight
+            topography_spectrum[1, i, j] = 0.5 * mountainheight
+            k_spectrum[1, i, j] = mountainwavenumber
 
         elseif mountain_case == 5
             # 2D cosine envelope and even background
-            if abs(x[io + ix]) <= mountainwidth * width_factor
-                k_spectrum[1, ix, jy] = mountainwavenumber
-                topography_spectrum[1, ix, jy] =
+            if abs(x[io + i]) <= mountainwidth * width_factor
+                k_spectrum[1, i, j] = mountainwavenumber
+                topography_spectrum[1, i, j] =
                     0.25 *
                     mountainheight *
-                    (1.0 + cos(mountainwavenumber / width_factor * x[io + ix]))
+                    (1.0 + cos(mountainwavenumber / width_factor * x[io + i]))
             end
-            topography_surface[ix, jy] = 0.5 * mountainheight
+            topography_surface[i, j] = 0.5 * mountainheight
 
         elseif mountain_case == 7
             # 2D Gaussian envelope and even background
-            k_spectrum[1, ix, jy] = mountainwavenumber
-            topography_spectrum[1, ix, jy] =
+            k_spectrum[1, i, j] = mountainwavenumber
+            topography_spectrum[1, i, j] =
                 0.5 *
                 mountainheight *
-                exp(-x[io + ix]^2.0 / (mountainwidth * width_factor)^2.0)
-            topography_surface[ix, jy] = 0.5 * mountainheight
+                exp(-x[io + i]^2.0 / (mountainwidth * width_factor)^2.0)
+            topography_surface[i, j] = 0.5 * mountainheight
 
         elseif mountain_case == 9
             # 2D cosine envelope and cosine background
-            if abs(x[io + ix]) <= mountainwidth * width_factor
-                k_spectrum[1, ix, jy] = mountainwavenumber
-                topography_spectrum[1, ix, jy] =
+            if abs(x[io + i]) <= mountainwidth * width_factor
+                k_spectrum[1, i, j] = mountainwavenumber
+                topography_spectrum[1, i, j] =
                     0.25 *
                     mountainheight *
-                    (1.0 + cos(mountainwavenumber / width_factor * x[io + ix]))
-                topography_surface[ix, jy] =
+                    (1.0 + cos(mountainwavenumber / width_factor * x[io + i]))
+                topography_surface[i, j] =
                     0.25 *
                     mountainheight *
-                    (1.0 + cos(mountainwavenumber / width_factor * x[io + ix]))
+                    (1.0 + cos(mountainwavenumber / width_factor * x[io + i]))
             end
 
         elseif mountain_case == 11
             # 2D Gaussian envelope and Gaussian background
-            k_spectrum[1, ix, jy] = mountainwavenumber
-            topography_spectrum[1, ix, jy] =
+            k_spectrum[1, i, j] = mountainwavenumber
+            topography_spectrum[1, i, j] =
                 0.5 *
                 mountainheight *
-                exp(-x[io + ix]^2.0 / (mountainwidth * width_factor)^2.0)
-            topography_surface[ix, jy] =
+                exp(-x[io + i]^2.0 / (mountainwidth * width_factor)^2.0)
+            topography_surface[i, j] =
                 0.5 *
                 mountainheight *
-                exp(-x[io + ix]^2.0 / (mountainwidth * width_factor)^2.0)
+                exp(-x[io + i]^2.0 / (mountainwidth * width_factor)^2.0)
 
         elseif mountain_case == 13
             # 3D WKB topography
-            if x[io + ix]^2.0 + y[jo + jy]^2.0 <=
+            if x[io + i]^2.0 + y[jo + j]^2.0 <=
                (mountainwidth * width_factor)^2.0
-                for iwm in 0:(spectral_modes - 1)
-                    k_spectrum[iwm + 1, ix, jy] =
-                        mountainwavenumber * cos(pi / spectral_modes * iwm)
-                    l_spectrum[iwm + 1, ix, jy] =
-                        mountainwavenumber * sin(pi / spectral_modes * iwm)
-                    topography_spectrum[iwm + 1, ix, jy] =
+                for alpha in 0:(spectral_modes - 1)
+                    k_spectrum[alpha + 1, i, j] =
+                        mountainwavenumber * cos(pi / spectral_modes * alpha)
+                    l_spectrum[alpha + 1, i, j] =
+                        mountainwavenumber * sin(pi / spectral_modes * alpha)
+                    topography_spectrum[alpha + 1, i, j] =
                         0.5 *
                         mountainheight *
                         (
                             1.0 + cos(
                                 mountainwavenumber / width_factor *
-                                sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                                sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                             )
                         ) / spectral_modes / (height_factor + 1.0)
                 end
-                topography_surface[ix, jy] =
+                topography_surface[i, j] =
                     0.5 *
                     mountainheight *
                     (
                         1.0 + cos(
                             mountainwavenumber / width_factor *
-                            sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                            sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                         )
                     ) *
                     height_factor / (height_factor + 1.0)
@@ -404,41 +404,41 @@ function compute_topography(
     k_spectrum = zeros(0, 0, 0)
     l_spectrum = zeros(0, 0, 0)
 
-    @ivy for jy in j0:j1, ix in i0:i1
+    @ivy for j in j0:j1, i in i0:i1
         if mountain_case == 1
             # 2D cosine mountains
-            topography_surface[ix, jy] =
+            topography_surface[i, j] =
                 0.5 *
                 mountainheight *
-                (1.0 + cos(mountainwavenumber * x[io + ix]))
+                (1.0 + cos(mountainwavenumber * x[io + i]))
 
         elseif mountain_case == 2
             # 3D cosine mountains
-            topography_surface[ix, jy] =
+            topography_surface[i, j] =
                 0.5 *
                 mountainheight *
                 (
                     1.0 + cos(
                         mountainwavenumber *
-                        sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                        sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                     )
                 )
 
         elseif mountain_case == 3
             # 2D isolated mountain
-            topography_surface[ix, jy] =
-                mountainheight / (1.0 + x[io + ix]^2.0 / mountainwidth^2.0)
+            topography_surface[i, j] =
+                mountainheight / (1.0 + x[io + i]^2.0 / mountainwidth^2.0)
 
         elseif mountain_case == 4
             # 3D isolated mountain
-            topography_surface[ix, jy] =
+            topography_surface[i, j] =
                 mountainheight /
-                (1.0 + (x[io + ix]^2.0 + y[jo + jy]^2.0) / mountainwidth^2.0)
+                (1.0 + (x[io + i]^2.0 + y[jo + j]^2.0) / mountainwidth^2.0)
 
         elseif mountain_case == 5
             # 2D cosine envelope and even background
-            if abs(x[io + ix]) <= mountainwidth * width_factor
-                topography_surface[ix, jy] =
+            if abs(x[io + i]) <= mountainwidth * width_factor
+                topography_surface[i, j] =
                     0.5 *
                     mountainheight *
                     (
@@ -446,19 +446,19 @@ function compute_topography(
                         0.5 *
                         (
                             1.0 +
-                            cos(mountainwavenumber / width_factor * x[io + ix])
+                            cos(mountainwavenumber / width_factor * x[io + i])
                         ) *
-                        cos(mountainwavenumber * x[io + ix])
+                        cos(mountainwavenumber * x[io + i])
                     )
             else
-                topography_surface[ix, jy] = 0.5 * mountainheight
+                topography_surface[i, j] = 0.5 * mountainheight
             end
 
         elseif mountain_case == 6
             # 3D cosine envelope and even background
-            if x[io + ix]^2.0 + y[jo + jy]^2.0 <=
+            if x[io + i]^2.0 + y[jo + j]^2.0 <=
                (mountainwidth * width_factor)^2.0
-                topography_surface[ix, jy] =
+                topography_surface[i, j] =
                     0.5 *
                     mountainheight *
                     (
@@ -467,132 +467,129 @@ function compute_topography(
                         (
                             1.0 + cos(
                                 mountainwavenumber / width_factor *
-                                sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                                sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                             )
                         ) *
                         cos(
                             mountainwavenumber *
-                            sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                            sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                         )
                     )
             else
-                topography_surface[ix, jy] = 0.5 * mountainheight
+                topography_surface[i, j] = 0.5 * mountainheight
             end
 
         elseif mountain_case == 7
             # 2D Gaussian envelope and even background
-            topography_surface[ix, jy] =
+            topography_surface[i, j] =
                 0.5 *
                 mountainheight *
                 (
                     1.0 +
-                    exp(-x[io + ix]^2.0 / (mountainwidth * width_factor)^2.0) *
-                    cos(mountainwavenumber * x[io + ix])
+                    exp(-x[io + i]^2.0 / (mountainwidth * width_factor)^2.0) *
+                    cos(mountainwavenumber * x[io + i])
                 )
 
         elseif mountain_case == 8
             # 3D Gaussian envelope and even background
-            topography_surface[ix, jy] =
+            topography_surface[i, j] =
                 0.5 *
                 mountainheight *
                 (
                     1.0 +
                     exp(
-                        -(x[io + ix]^2.0 + y[jo + jy]^2.0) /
+                        -(x[io + i]^2.0 + y[jo + j]^2.0) /
                         (mountainwidth * width_factor)^2.0,
                     ) * cos(
                         mountainwavenumber *
-                        sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                        sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                     )
                 )
 
         elseif mountain_case == 9
             # 2D cosine envelope and cosine background
-            if abs(x[io + ix]) <= mountainwidth * width_factor
-                topography_surface[ix, jy] =
+            if abs(x[io + i]) <= mountainwidth * width_factor
+                topography_surface[i, j] =
                     0.25 *
                     mountainheight *
-                    (
-                        1.0 +
-                        cos(mountainwavenumber / width_factor * x[io + ix])
-                    ) *
-                    (1.0 + cos(mountainwavenumber * x[io + ix]))
+                    (1.0 + cos(mountainwavenumber / width_factor * x[io + i])) *
+                    (1.0 + cos(mountainwavenumber * x[io + i]))
             end
 
         elseif mountain_case == 10
             # 3D cosine envelope and cosine background
-            if x[io + ix]^2.0 + y[jo + jy]^2.0 <=
+            if x[io + i]^2.0 + y[jo + j]^2.0 <=
                (mountainwidth * width_factor)^2.0
-                topography_surface[ix, jy] =
+                topography_surface[i, j] =
                     0.25 *
                     mountainheight *
                     (
                         1.0 + cos(
                             mountainwavenumber / width_factor *
-                            sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                            sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                         )
                     ) *
                     (
                         1.0 + cos(
                             mountainwavenumber *
-                            sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                            sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                         )
                     )
             end
 
         elseif mountain_case == 11
             # 2D Gaussian envelope and Gaussian background
-            topography_surface[ix, jy] =
+            topography_surface[i, j] =
                 0.5 *
                 mountainheight *
-                exp(-x[io + ix]^2.0 / (mountainwidth * width_factor)^2.0) *
-                (1.0 + cos(mountainwavenumber * x[io + ix]))
+                exp(-x[io + i]^2.0 / (mountainwidth * width_factor)^2.0) *
+                (1.0 + cos(mountainwavenumber * x[io + i]))
 
         elseif mountain_case == 12
             # 3D Gaussian envelope and Gaussian background
-            topography_surface[ix, jy] =
+            topography_surface[i, j] =
                 0.5 *
                 mountainheight *
                 exp(
-                    -(x[io + ix]^2.0 + y[jo + jy]^2.0) /
+                    -(x[io + i]^2.0 + y[jo + j]^2.0) /
                     (mountainwidth * width_factor)^2.0,
                 ) *
                 (
                     1.0 + cos(
                         mountainwavenumber *
-                        sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                        sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                     )
                 )
 
         elseif mountain_case == 13
             # 3D WKB topography
-            if x[io + ix]^2.0 + y[jo + jy]^2.0 <=
+            if x[io + i]^2.0 + y[jo + j]^2.0 <=
                (mountainwidth * width_factor)^2.0
-                topography_surface[ix, jy] =
+                topography_surface[i, j] =
                     0.5 *
                     mountainheight *
                     (
                         1.0 + cos(
                             mountainwavenumber / width_factor *
-                            sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                            sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                         )
                     ) *
                     height_factor / (height_factor + 1.0)
-                for iwm in 0:(spectral_modes - 1)
-                    kk = mountainwavenumber * cos(pi / spectral_modes * iwm)
-                    ll = mountainwavenumber * sin(pi / spectral_modes * iwm)
-                    topography_surface[ix, jy] =
-                        topography_surface[ix, jy] +
+                for alpha in 0:(spectral_modes - 1)
+                    kk = mountainwavenumber * cos(pi / spectral_modes * alpha)
+                    ll = mountainwavenumber * sin(pi / spectral_modes * alpha)
+                    topography_surface[i, j] =
+                        topography_surface[i, j] +
                         0.5 *
                         mountainheight *
                         (
                             1.0 + cos(
                                 mountainwavenumber / width_factor *
-                                sqrt(x[io + ix]^2.0 + y[jo + jy]^2.0),
+                                sqrt(x[io + i]^2.0 + y[jo + j]^2.0),
                             )
                         ) *
-                        cos(kk * x[io + ix] + ll * y[jo + jy]) /
-                        spectral_modes / (height_factor + 1.0)
+                        cos(kk * x[io + i] + ll * y[jo + j]) / spectral_modes /
+                        (height_factor + 1.0)
                 end
             end
         else

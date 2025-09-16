@@ -608,10 +608,10 @@ function update!(
     (; betar) = state.sponge
     (; rho, u, pip) = state.variables.predictands
 
-    kz0 = k0
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    ks = k0
+    ke = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in ks:ke, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         rhoedger += rhostratedger
@@ -761,10 +761,10 @@ function update!(
     (; betar) = state.sponge
     (; rho, v, pip) = state.variables.predictands
 
-    kz0 = k0
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    ks = k0
+    ke = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in ks:ke, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         rhoedgef += rhostratedgef
@@ -821,10 +821,10 @@ function update!(
         dw .= 0.0
     end
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
+    ks = ko == 0 ? k0 : k0 - 1
+    ke = ko + nzz == sizezz ? k1 - 1 : k1
 
-    @ivy for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in ks:ke, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
         fr = phiw[i, j, k, 1]
         fl = phiw[i - 1, j, k, 1]
@@ -966,10 +966,10 @@ function update!(
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
+    ks = ko == 0 ? k0 : k0 - 1
+    ke = ko + nzz == sizezz ? k1 - 1 : k1
 
-    @ivy for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in ks:ke, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1020,10 +1020,10 @@ function update!(
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
+    ks = ko == 0 ? k0 : k0 - 1
+    ke = ko + nzz == sizezz ? k1 - 1 : k1
 
-    @ivy for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in ks:ke, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =

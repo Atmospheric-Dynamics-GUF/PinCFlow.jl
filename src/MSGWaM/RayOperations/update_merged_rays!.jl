@@ -3,7 +3,7 @@
 update_merged_rays!(
     merge_mode::AbstractMergeMode,
     merged_rays::MergedRays,
-    jray::Integer,
+    bin::Integer,
     xr::AbstractFloat,
     dxr::AbstractFloat,
     yr::AbstractFloat,
@@ -24,7 +24,7 @@ update_merged_rays!(
 )
 ```
 
-Update the fields of `merged_rays` at `jray` such that they contain the outermost bounds and total wave action/energy of all contributing ray volumes.
+Update the fields of `merged_rays` at `bin` such that they contain the outermost bounds and total wave action/energy of all contributing ray volumes.
 
 This method is used to compute the properties of merged ray volumes. It is called for every old ray volume that contributes to the new, merged volume and updates the outermost bounds in physical and spectral space, as well as the total wave action/energy, accordingly.
 
@@ -34,7 +34,7 @@ This method is used to compute the properties of merged ray volumes. It is calle
 
   - `merged_rays`: Properties of merged ray volumes.
 
-  - `jray`: Index of the merged ray volume to update.
+  - `bin`: Index of the bin to update.
 
   - `xr`: Position of the old ray volume in ``x``.
 
@@ -79,7 +79,7 @@ function update_merged_rays! end
 function update_merged_rays!(
     merge_mode::AbstractMergeMode,
     merged_rays::MergedRays,
-    jray::Integer,
+    bin::Integer,
     xr::AbstractFloat,
     dxr::AbstractFloat,
     yr::AbstractFloat,
@@ -98,27 +98,27 @@ function update_merged_rays!(
     nr::AbstractFloat,
     omegar::AbstractFloat,
 )
-    @ivy if merged_rays.nr[jray] == 0
+    @ivy if merged_rays.nr[bin] == 0
         for (i, o) in ((1, -), (2, +))
-            merged_rays.xr[i, jray] = o(xr, dxr / 2)
-            merged_rays.yr[i, jray] = o(yr, dyr / 2)
-            merged_rays.zr[i, jray] = o(zr, dzr / 2)
-            merged_rays.kr[i, jray] = o(kr, dkr / 2)
-            merged_rays.lr[i, jray] = o(lr, dlr / 2)
-            merged_rays.mr[i, jray] = o(mr, dmr / 2)
+            merged_rays.xr[i, bin] = o(xr, dxr / 2)
+            merged_rays.yr[i, bin] = o(yr, dyr / 2)
+            merged_rays.zr[i, bin] = o(zr, dzr / 2)
+            merged_rays.kr[i, bin] = o(kr, dkr / 2)
+            merged_rays.lr[i, bin] = o(lr, dlr / 2)
+            merged_rays.mr[i, bin] = o(mr, dmr / 2)
         end
     else
         for (i, e, o) in ((1, min, -), (2, max, +))
-            merged_rays.xr[i, jray] = e(merged_rays.xr[i, jray], o(xr, dxr / 2))
-            merged_rays.yr[i, jray] = e(merged_rays.yr[i, jray], o(yr, dyr / 2))
-            merged_rays.zr[i, jray] = e(merged_rays.zr[i, jray], o(zr, dzr / 2))
-            merged_rays.kr[i, jray] = e(merged_rays.kr[i, jray], o(kr, dkr / 2))
-            merged_rays.lr[i, jray] = e(merged_rays.lr[i, jray], o(lr, dlr / 2))
-            merged_rays.mr[i, jray] = e(merged_rays.mr[i, jray], o(mr, dmr / 2))
+            merged_rays.xr[i, bin] = e(merged_rays.xr[i, bin], o(xr, dxr / 2))
+            merged_rays.yr[i, bin] = e(merged_rays.yr[i, bin], o(yr, dyr / 2))
+            merged_rays.zr[i, bin] = e(merged_rays.zr[i, bin], o(zr, dzr / 2))
+            merged_rays.kr[i, bin] = e(merged_rays.kr[i, bin], o(kr, dkr / 2))
+            merged_rays.lr[i, bin] = e(merged_rays.lr[i, bin], o(lr, dlr / 2))
+            merged_rays.mr[i, bin] = e(merged_rays.mr[i, bin], o(mr, dmr / 2))
         end
     end
 
-    merged_rays.nr[jray] +=
+    merged_rays.nr[bin] +=
         compute_wave_action_integral(merge_mode, nr, omegar, fxk, fyl, fzm)
 
     return

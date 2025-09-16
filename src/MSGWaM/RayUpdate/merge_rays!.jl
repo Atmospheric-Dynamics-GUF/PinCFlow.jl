@@ -94,15 +94,15 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Loop over grid cells.
-    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
-        if nray[ix, jy, kz] <= nray_max
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        if nray[i, j, k] <= nray_max
             continue
         end
 
         # Set bins in k.
         if sizex > 1
             (kr_min_p, kr_max_p, kr_min_n, kr_max_n) =
-                compute_spectral_bounds(rays.k[1:nray[ix, jy, kz], ix, jy, kz])
+                compute_spectral_bounds(rays.k[1:nray[i, j, k], i, j, k])
             dkr_mrg_n = log(kr_max_n / kr_min_n) / (nxray / 2 - 1)
             dkr_mrg_p = log(kr_max_p / kr_min_p) / (nxray / 2 - 1)
         else
@@ -113,7 +113,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         # Set bins in l.
         if sizey > 1
             (lr_min_p, lr_max_p, lr_min_n, lr_max_n) =
-                compute_spectral_bounds(rays.l[1:nray[ix, jy, kz], ix, jy, kz])
+                compute_spectral_bounds(rays.l[1:nray[i, j, k], i, j, k])
             dlr_mrg_n = log(lr_max_n / lr_min_n) / (nyray / 2 - 1)
             dlr_mrg_p = log(lr_max_p / lr_min_p) / (nyray / 2 - 1)
         else
@@ -123,7 +123,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
         # Set bins in m.
         (mr_min_p, mr_max_p, mr_min_n, mr_max_n) =
-            compute_spectral_bounds(rays.m[1:nray[ix, jy, kz], ix, jy, kz])
+            compute_spectral_bounds(rays.m[1:nray[i, j, k], i, j, k])
         dmr_mrg_n = log(mr_max_n / mr_min_n) / (nzray / 2 - 1)
         dmr_mrg_p = log(mr_max_p / mr_min_p) / (nzray / 2 - 1)
 
@@ -131,20 +131,20 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         merged_rays.nr .= 0.0
 
         # Loop over ray volumes.
-        for iray in 1:nray[ix, jy, kz]
-            (xr, yr, zr) = get_physical_position(rays, iray, ix, jy, kz)
-            (kr, lr, mr) = get_spectral_position(rays, iray, ix, jy, kz)
-            (dxr, dyr, dzr) = get_physical_extent(rays, iray, ix, jy, kz)
-            (dkr, dlr, dmr) = get_spectral_extent(rays, iray, ix, jy, kz)
-            (axk, ayl, azm) = get_surfaces(rays, iray, ix, jy, kz)
+        for r in 1:nray[i, j, k]
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+            (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
+            (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
+            (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
+            (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
-            nr = rays.dens[iray, ix, jy, kz]
-            omegar = compute_intrinsic_frequency(state, iray, ix, jy, kz)
+            nr = rays.dens[r, i, j, k]
+            omegar = compute_intrinsic_frequency(state, r, i, j, k)
 
             # Determine bin index in k.
             if sizex > 1
                 fcpspx = axk
-                ir_k = compute_merge_index(
+                rk = compute_merge_index(
                     kr,
                     kr_min_p,
                     kr_max_p,
@@ -156,13 +156,13 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
                 )
             else
                 fcpspx = 1.0
-                ir_k = 1
+                rk = 1
             end
 
             # Determine bin index in l.
             if sizey > 1
                 fcpspy = ayl
-                ir_l = compute_merge_index(
+                rl = compute_merge_index(
                     lr,
                     lr_min_p,
                     lr_max_p,
@@ -174,12 +174,12 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
                 )
             else
                 fcpspy = 1.0
-                ir_l = 1
+                rl = 1
             end
 
             # Determine bin index in m.
             fcpspz = azm
-            ir_m = compute_merge_index(
+            rm = compute_merge_index(
                 mr,
                 mr_min_p,
                 mr_max_p,
@@ -193,18 +193,18 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
             # Determine flattened bin index.
             if sizex > 1
                 if sizey > 1
-                    jray =
-                        (ir_m - 1) * (nyray - 1) * (nxray - 1) +
-                        (ir_l - 1) * (nxray - 1) +
-                        ir_k
+                    bin =
+                        (rm - 1) * (nyray - 1) * (nxray - 1) +
+                        (rl - 1) * (nxray - 1) +
+                        rk
                 else
-                    jray = (ir_m - 1) * (nxray - 1) + ir_k
+                    bin = (rm - 1) * (nxray - 1) + rk
                 end
             else
                 if sizey > 1
-                    jray = (ir_m - 1) * (nyray - 1) + ir_l
+                    bin = (rm - 1) * (nyray - 1) + rl
                 else
-                    jray = ir_m
+                    bin = rm
                 end
             end
 
@@ -212,7 +212,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
             update_merged_rays!(
                 merge_mode,
                 merged_rays,
-                jray,
+                bin,
                 xr,
                 dxr,
                 yr,
@@ -235,37 +235,37 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
         # Reset the old ray volumes.
         for field in fieldnames(Rays)
-            getfield(rays, field)[:, ix, jy, kz] .= 0.0
+            getfield(rays, field)[:, i, j, k] .= 0.0
         end
 
         # Construct the merged ray volumes.
-        iray = 0
-        for jray in 1:nray_max
-            if merged_rays.nr[jray] == 0
+        r = 0
+        for bin in 1:nray_max
+            if merged_rays.nr[bin] == 0
                 continue
             end
 
-            iray += 1
+            r += 1
 
-            rays.x[iray, ix, jy, kz] = mean(merged_rays.xr[:, jray])
-            rays.y[iray, ix, jy, kz] = mean(merged_rays.yr[:, jray])
-            rays.z[iray, ix, jy, kz] = mean(merged_rays.zr[:, jray])
+            rays.x[r, i, j, k] = mean(merged_rays.xr[:, bin])
+            rays.y[r, i, j, k] = mean(merged_rays.yr[:, bin])
+            rays.z[r, i, j, k] = mean(merged_rays.zr[:, bin])
 
-            rays.k[iray, ix, jy, kz] = mean(merged_rays.kr[:, jray])
-            rays.l[iray, ix, jy, kz] = mean(merged_rays.lr[:, jray])
-            rays.m[iray, ix, jy, kz] = mean(merged_rays.mr[:, jray])
+            rays.k[r, i, j, k] = mean(merged_rays.kr[:, bin])
+            rays.l[r, i, j, k] = mean(merged_rays.lr[:, bin])
+            rays.m[r, i, j, k] = mean(merged_rays.mr[:, bin])
 
-            rays.dxray[iray, ix, jy, kz] = diff(merged_rays.xr[:, jray])[1]
-            rays.dyray[iray, ix, jy, kz] = diff(merged_rays.yr[:, jray])[1]
-            rays.dzray[iray, ix, jy, kz] = diff(merged_rays.zr[:, jray])[1]
+            rays.dxray[r, i, j, k] = diff(merged_rays.xr[:, bin])[1]
+            rays.dyray[r, i, j, k] = diff(merged_rays.yr[:, bin])[1]
+            rays.dzray[r, i, j, k] = diff(merged_rays.zr[:, bin])[1]
 
-            rays.dkray[iray, ix, jy, kz] = diff(merged_rays.kr[:, jray])[1]
-            rays.dlray[iray, ix, jy, kz] = diff(merged_rays.lr[:, jray])[1]
-            rays.dmray[iray, ix, jy, kz] = diff(merged_rays.mr[:, jray])[1]
+            rays.dkray[r, i, j, k] = diff(merged_rays.kr[:, bin])[1]
+            rays.dlray[r, i, j, k] = diff(merged_rays.lr[:, bin])[1]
+            rays.dmray[r, i, j, k] = diff(merged_rays.mr[:, bin])[1]
 
-            (axk, ayl, azm) = get_surfaces(rays, iray, ix, jy, kz)
+            (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
-            omegar = compute_intrinsic_frequency(state, iray, ix, jy, kz)
+            omegar = compute_intrinsic_frequency(state, r, i, j, k)
 
             if sizex > 1
                 fcpspx = axk
@@ -281,16 +281,16 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
             fcpspz = azm
 
-            rays.dens[iray, ix, jy, kz] = compute_wave_action_integral(
+            rays.dens[r, i, j, k] = compute_wave_action_integral(
                 merge_mode,
-                merged_rays.nr[jray],
+                merged_rays.nr[bin],
                 1 / omegar,
                 1 / fcpspx,
                 1 / fcpspy,
                 1 / fcpspz,
             )
         end
-        nray[ix, jy, kz] = iray
+        nray[i, j, k] = r
     end
 
     # Compute ray-volume count after merging.

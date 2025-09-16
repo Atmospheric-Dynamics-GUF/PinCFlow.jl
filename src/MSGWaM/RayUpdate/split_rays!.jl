@@ -38,26 +38,26 @@ In each dimension of physical space, split ray volumes which have an extent larg
 The splitting is performed sequentially, such that a ray volume with extents that are all between once and twice as large as allowed is split into exactly eight smaller ray volumes (all of which have the same size).
 
 ```julia
-split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::X)
+split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
 ```
 
-In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta x_\\alpha > \\Delta \\widehat{x}``.
+In the grid cell specified by `i`, `j` and `k`, split ray volumes with ``\\Delta x_\\alpha > \\Delta \\widehat{x}``.
 
 The number of splits is the result of ceiling division of ``\\Delta x_\\alpha`` by ``\\Delta \\widehat{x}``. Each split is carried out by adjusting the position and extent of the ray volume, copying it and changing the position of the copy appropriately.
 
 ```julia
-split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::Y)
+split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
 ```
 
-In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta y_\\alpha > \\Delta \\widehat{y}``.
+In the grid cell specified by `i`, `j` and `k`, split ray volumes with ``\\Delta y_\\alpha > \\Delta \\widehat{y}``.
 
 The splitting is analogous to that in ``\\widehat{x}``.
 
 ```julia
-split_rays!(ix::Integer, jy::Integer, kz::Integer, state::State, axis::Z)
+split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
 ```
 
-In the grid cell specified by `ix`, `jy` and `kz`, split ray volumes with ``\\Delta z_\\alpha > J_{\\min} \\Delta \\widehat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
+In the grid cell specified by `i`, `j` and `k`, split ray volumes with ``\\Delta z_\\alpha > J_{\\min} \\Delta \\widehat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
 
 The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 
@@ -69,11 +69,11 @@ The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
-  - `ix`: Grid-cell index in ``\\widehat{x}``-direction
+  - `i`: Grid-cell index in ``\\widehat{x}``-direction
 
-  - `jy`: Grid-cell index in ``\\widehat{y}``-direction
+  - `j`: Grid-cell index in ``\\widehat{y}``-direction
 
-  - `kz`: Grid-cell index in ``\\widehat{z}``-direction
+  - `k`: Grid-cell index in ``\\widehat{z}``-direction
 
   - `axis`: Axis perpendicular to the split.
 
@@ -110,8 +110,8 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
     @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
-        split_rays!(ix, jy, kz, state, Z())
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        split_rays!(i, j, k, state, Z())
     end
 
     @ivy nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
@@ -134,16 +134,16 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
     @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         if sizex > 1
-            split_rays!(ix, jy, kz, state, X())
+            split_rays!(i, j, k, state, X())
         end
 
         if sizey > 1
-            split_rays!(ix, jy, kz, state, Y())
+            split_rays!(i, j, k, state, Y())
         end
 
-        split_rays!(ix, jy, kz, state, Z())
+        split_rays!(i, j, k, state, Z())
     end
 
     @ivy nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
@@ -158,40 +158,34 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
     return
 end
 
-function split_rays!(
-    ix::Integer,
-    jy::Integer,
-    kz::Integer,
-    state::State,
-    axis::X,
-)
+function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
     (; dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    @ivy nrlc = nray[ix, jy, kz]
-    @ivy for iray in 1:nray[ix, jy, kz]
-        xr = rays.x[iray, ix, jy, kz]
-        dxr = rays.dxray[iray, ix, jy, kz]
+    @ivy local_count = nray[i, j, k]
+    @ivy for r in 1:nray[i, j, k]
+        xr = rays.x[r, i, j, k]
+        dxr = rays.dxray[r, i, j, k]
 
         if dxr > dx
             factor = ceil(Int, dxr / dx)
-            rays.x[iray, ix, jy, kz] = xr + (1 / factor - 1) * dxr / 2
-            rays.dxray[iray, ix, jy, kz] = dxr / factor
-            for jray in (nrlc + 1):(nrlc + factor - 1)
-                copy_rays!(rays, iray => jray, ix => ix, jy => jy, kz => kz)
-                rays.x[jray, ix, jy, kz] += (jray - nrlc) * dxr / factor
+            rays.x[r, i, j, k] = xr + (1 / factor - 1) * dxr / 2
+            rays.dxray[r, i, j, k] = dxr / factor
+            for rray in (local_count + 1):(local_count + factor - 1)
+                copy_rays!(rays, r => rray, i => i, j => j, k => k)
+                rays.x[rray, i, j, k] += (rray - local_count) * dxr / factor
             end
-            nrlc += factor - 1
+            local_count += factor - 1
         end
     end
 
-    @ivy if nrlc > nray[ix, jy, kz]
-        nray[ix, jy, kz] = nrlc
+    @ivy if local_count > nray[i, j, k]
+        nray[i, j, k] = local_count
 
-        if nray[ix, jy, kz] > nray_wrk
+        if nray[i, j, k] > nray_wrk
             error(
                 "Error in split_rays!: nray",
-                [ix, jy, iz],
+                [i, j, k],
                 " > nray_wrk = ",
                 nray_wrk,
             )
@@ -201,40 +195,34 @@ function split_rays!(
     return
 end
 
-function split_rays!(
-    ix::Integer,
-    jy::Integer,
-    kz::Integer,
-    state::State,
-    axis::Y,
-)
+function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
     (; dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    @ivy nrlc = nray[ix, jy, kz]
-    @ivy for iray in 1:nray[ix, jy, kz]
-        yr = rays.y[iray, ix, jy, kz]
-        dyr = rays.dyray[iray, ix, jy, kz]
+    @ivy local_count = nray[i, j, k]
+    @ivy for r in 1:nray[i, j, k]
+        yr = rays.y[r, i, j, k]
+        dyr = rays.dyray[r, i, j, k]
 
         if dyr > dy
             factor = ceil(Int, dyr / dy)
-            rays.y[iray, ix, jy, kz] = yr + (1 / factor - 1) * dyr / 2
-            rays.dyray[iray, ix, jy, kz] = dyr / factor
-            for jray in (nrlc + 1):(nrlc + factor - 1)
-                copy_rays!(rays, iray => jray, ix => ix, jy => jy, kz => kz)
-                rays.y[jray, ix, jy, kz] += (jray - nrlc) * dyr / factor
+            rays.y[r, i, j, k] = yr + (1 / factor - 1) * dyr / 2
+            rays.dyray[r, i, j, k] = dyr / factor
+            for rray in (local_count + 1):(local_count + factor - 1)
+                copy_rays!(rays, r => rray, i => i, j => j, k => k)
+                rays.y[rray, i, j, k] += (rray - local_count) * dyr / factor
             end
-            nrlc += factor - 1
+            local_count += factor - 1
         end
     end
 
-    @ivy if nrlc > nray[ix, jy, kz]
-        nray[ix, jy, kz] = nrlc
+    @ivy if local_count > nray[i, j, k]
+        nray[i, j, k] = local_count
 
-        if nray[ix, jy, kz] > nray_wrk
+        if nray[i, j, k] > nray_wrk
             error(
                 "Error in split_rays!: nray",
-                [ix, jy, iz],
+                [i, j, k],
                 " > nray_wrk = ",
                 nray_wrk,
             )
@@ -244,55 +232,49 @@ function split_rays!(
     return
 end
 
-function split_rays!(
-    ix::Integer,
-    jy::Integer,
-    kz::Integer,
-    state::State,
-    axis::Z,
-)
+function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
     (; domain, grid) = state
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dz, jac) = grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    @ivy nrlc = nray[ix, jy, kz]
-    @ivy for iray in 1:nray[ix, jy, kz]
-        xr = rays.x[iray, ix, jy, kz]
-        yr = rays.y[iray, ix, jy, kz]
-        zr = rays.z[iray, ix, jy, kz]
+    @ivy local_count = nray[i, j, k]
+    @ivy for r in 1:nray[i, j, k]
+        xr = rays.x[r, i, j, k]
+        yr = rays.y[r, i, j, k]
+        zr = rays.z[r, i, j, k]
 
-        dzr = rays.dzray[iray, ix, jy, kz]
+        dzr = rays.dzray[r, i, j, k]
 
-        ixrv = floor(Int, (xr + lx / 2) / dx) + i0 - io
-        jyrv = floor(Int, (yr + ly / 2) / dy) + j0 - jo
-        kzrvd = get_next_half_level(ixrv, jyrv, zr - 0.5 * dzr, state)
-        kzrvu = get_next_half_level(ixrv, jyrv, zr + 0.5 * dzr, state)
+        iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
+        jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
+        kmin = get_next_half_level(iray, jray, zr - 0.5 * dzr, state)
+        kmax = get_next_half_level(iray, jray, zr + 0.5 * dzr, state)
 
         dzmin = dz
-        for kzrv in kzrvd:kzrvu
-            dzmin = min(dzmin, jac[ixrv, jyrv, kzrv] * dz)
+        for kray in kmin:kmax
+            dzmin = min(dzmin, jac[iray, jray, kray] * dz)
         end
 
         if dzr > dzmin
             factor = ceil(Int, dzr / dzmin)
-            rays.z[iray, ix, jy, kz] = zr + (1 / factor - 1) * dzr / 2
-            rays.dzray[iray, ix, jy, kz] = dzr / factor
-            for jray in (nrlc + 1):(nrlc + factor - 1)
-                copy_rays!(rays, iray => jray, ix => ix, jy => jy, kz => kz)
-                rays.z[jray, ix, jy, kz] += (jray - nrlc) * dzr / factor
+            rays.z[r, i, j, k] = zr + (1 / factor - 1) * dzr / 2
+            rays.dzray[r, i, j, k] = dzr / factor
+            for rray in (local_count + 1):(local_count + factor - 1)
+                copy_rays!(rays, r => rray, i => i, j => j, k => k)
+                rays.z[rray, i, j, k] += (rray - local_count) * dzr / factor
             end
-            nrlc += factor - 1
+            local_count += factor - 1
         end
     end
 
-    @ivy if nrlc > nray[ix, jy, kz]
-        nray[ix, jy, kz] = nrlc
+    @ivy if local_count > nray[i, j, k]
+        nray[i, j, k] = local_count
 
-        if nray[ix, jy, kz] > nray_wrk
+        if nray[i, j, k] > nray_wrk
             error(
                 "Error in split_rays!: nray",
-                [ix, jy, iz],
+                [i, j, k],
                 " > nray_wrk = ",
                 nray_wrk,
             )

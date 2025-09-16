@@ -133,25 +133,24 @@ function apply_saturation_scheme!(
         return
     end
 
-    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Compute saturation integrals for wave-action reduction.
-        (mb2, mb2k2) = compute_saturation_integrals(state, ix, jy, kz)
+        (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
 
         # Calculate the turbulent eddy diffusivity.
-        n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
+        n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
         if mb2k2 == 0 || mb2 < alpha_sat^2 * n2r^2
-            diffusion[ix, jy, kz] = 0
+            diffusion[i, j, k] = 0
         else
-            diffusion[ix, jy, kz] =
-                (mb2 - alpha_sat^2 * n2r^2) / (2 * dt * mb2k2)
+            diffusion[i, j, k] = (mb2 - alpha_sat^2 * n2r^2) / (2 * dt * mb2k2)
         end
 
         # Reduce the wave-action density.
-        for iray in 1:nray[ix, jy, kz]
-            xr = rays.x[iray, ix, jy, kz]
-            yr = rays.y[iray, ix, jy, kz]
-            zr = rays.z[iray, ix, jy, kz]
+        for r in 1:nray[i, j, k]
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
 
             if sizex > 1
                 ix = floor(Int, (xr + lx / 2) / dx) + i0 - io
@@ -167,24 +166,24 @@ function apply_saturation_scheme!(
 
             kz = get_next_half_level(ix, jy, zr, state)
 
-            wnrk = rays.k[iray, ix, jy, kz]
-            wnrl = rays.l[iray, ix, jy, kz]
-            wnrm = rays.m[iray, ix, jy, kz]
+            wnrk = rays.k[r, i, j, k]
+            wnrl = rays.l[r, i, j, k]
+            wnrm = rays.m[r, i, j, k]
 
             kappa = diffusion[ix, jy, kz]
 
-            rays.dens[iray, ix, jy, kz] *=
+            rays.dens[r, i, j, k] *=
                 max(0, 1 - dt * 2 * kappa * (wnrk^2 + wnrl^2 + wnrm^2))
         end
 
         # Compute the saturation integrals again for diagnostics.
-        (mb2, mb2k2) = compute_saturation_integrals(state, ix, jy, kz)
+        (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
 
         # Check if saturation is violated.
-        n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
+        n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
         if mb2 - alpha_sat^2 * n2r^2 > 1.0E-3 * alpha_sat^2 * n2r^2
-            println("Saturation violated at (ix, jy, kz) = ", (ix, jy, kz))
-            println("mb2[ix, jy, kz] = ", mb2)
+            println("Saturation violated at (i, j, k) = ", (i, j, k))
+            println("mb2[i, j, k] = ", mb2)
             println("alpha_sat^2 * n2r^2 = ", alpha_sat^2 * n2r^2)
             println("")
         end

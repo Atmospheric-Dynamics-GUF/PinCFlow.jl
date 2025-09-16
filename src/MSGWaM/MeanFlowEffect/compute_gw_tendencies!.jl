@@ -42,114 +42,100 @@ function compute_gw_tendencies!(state::State)
         getfield(tendencies, field) .= 0.0
     end
 
-    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
-        if ztfc[ix, jy, kz] < zmin_wkb_dim / lref
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        if ztfc[i, j, k] < zmin_wkb_dim / lref
             continue
         end
 
-        rhotot = rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]
+        rhotot = rho[i, j, k] + rhostrattfc[i, j, k]
 
         # Compute the drag on the zonal wind.
 
-        tendencies.dudt[ix, jy, kz] =
-            -rhotot / rhostrattfc[ix, jy, kz] / jac[ix, jy, kz] *
-            (integrals.uw[ix, jy, kz + 1] - integrals.uw[ix, jy, kz - 1]) /
-            (2.0 * dz)
+        tendencies.dudt[i, j, k] =
+            -rhotot / rhostrattfc[i, j, k] / jac[i, j, k] *
+            (integrals.uw[i, j, k + 1] - integrals.uw[i, j, k - 1]) / (2.0 * dz)
 
         if sizex > 1
-            tendencies.dudt[ix, jy, kz] -=
-                rhotot / rhostrattfc[ix, jy, kz] * (
-                    (
-                        integrals.uu[ix + 1, jy, kz] -
-                        integrals.uu[ix - 1, jy, kz]
-                    ) / (2.0 * dx) +
-                    met[ix, jy, kz, 1, 3] * (
-                        integrals.uu[ix, jy, kz + 1] -
-                        integrals.uu[ix, jy, kz - 1]
-                    ) / (2.0 * dz)
+            tendencies.dudt[i, j, k] -=
+                rhotot / rhostrattfc[i, j, k] * (
+                    (integrals.uu[i + 1, j, k] - integrals.uu[i - 1, j, k]) /
+                    (2.0 * dx) +
+                    met[i, j, k, 1, 3] *
+                    (integrals.uu[i, j, k + 1] - integrals.uu[i, j, k - 1]) /
+                    (2.0 * dz)
                 )
         end
 
         if sizey > 1
-            tendencies.dudt[ix, jy, kz] -=
-                rhotot / rhostrattfc[ix, jy, kz] * (
-                    (
-                        integrals.uv[ix, jy + 1, kz] -
-                        integrals.uv[ix, jy - 1, kz]
-                    ) / (2.0 * dy) +
-                    met[ix, jy, kz, 2, 3] * (
-                        integrals.uv[ix, jy, kz + 1] -
-                        integrals.uv[ix, jy, kz - 1]
-                    ) / (2.0 * dz)
+            tendencies.dudt[i, j, k] -=
+                rhotot / rhostrattfc[i, j, k] * (
+                    (integrals.uv[i, j + 1, k] - integrals.uv[i, j - 1, k]) /
+                    (2.0 * dy) +
+                    met[i, j, k, 2, 3] *
+                    (integrals.uv[i, j, k + 1] - integrals.uv[i, j, k - 1]) /
+                    (2.0 * dz)
                 )
         end
 
-        tendencies.dudt[ix, jy, kz] += rhotot * integrals.etx[ix, jy, kz]
+        tendencies.dudt[i, j, k] += rhotot * integrals.etx[i, j, k]
 
         # Compute the drag on the meridional wind.
 
-        tendencies.dvdt[ix, jy, kz] =
-            -rhotot / rhostrattfc[ix, jy, kz] / jac[ix, jy, kz] *
-            (integrals.vw[ix, jy, kz + 1] - integrals.vw[ix, jy, kz - 1]) /
-            (2.0 * dz)
+        tendencies.dvdt[i, j, k] =
+            -rhotot / rhostrattfc[i, j, k] / jac[i, j, k] *
+            (integrals.vw[i, j, k + 1] - integrals.vw[i, j, k - 1]) / (2.0 * dz)
 
         if sizex > 1
-            tendencies.dvdt[ix, jy, kz] -=
-                rhotot / rhostrattfc[ix, jy, kz] * (
-                    (
-                        integrals.uv[ix + 1, jy, kz] -
-                        integrals.uv[ix - 1, jy, kz]
-                    ) / (2.0 * dx) +
-                    met[ix, jy, kz, 1, 3] * (
-                        integrals.uv[ix, jy, kz + 1] -
-                        integrals.uv[ix, jy, kz - 1]
-                    ) / (2.0 * dz)
+            tendencies.dvdt[i, j, k] -=
+                rhotot / rhostrattfc[i, j, k] * (
+                    (integrals.uv[i + 1, j, k] - integrals.uv[i - 1, j, k]) /
+                    (2.0 * dx) +
+                    met[i, j, k, 1, 3] *
+                    (integrals.uv[i, j, k + 1] - integrals.uv[i, j, k - 1]) /
+                    (2.0 * dz)
                 )
         end
 
         if sizey > 1
-            tendencies.dvdt[ix, jy, kz] -=
-                rhotot / rhostrattfc[ix, jy, kz] * (
-                    (
-                        integrals.vv[ix, jy + 1, kz] -
-                        integrals.vv[ix, jy - 1, kz]
-                    ) / (2.0 * dy) +
-                    met[ix, jy, kz, 2, 3] * (
-                        integrals.vv[ix, jy, kz + 1] -
-                        integrals.vv[ix, jy, kz - 1]
-                    ) / (2.0 * dz)
+            tendencies.dvdt[i, j, k] -=
+                rhotot / rhostrattfc[i, j, k] * (
+                    (integrals.vv[i, j + 1, k] - integrals.vv[i, j - 1, k]) /
+                    (2.0 * dy) +
+                    met[i, j, k, 2, 3] *
+                    (integrals.vv[i, j, k + 1] - integrals.vv[i, j, k - 1]) /
+                    (2.0 * dz)
                 )
         end
 
-        tendencies.dvdt[ix, jy, kz] += rhotot * integrals.ety[ix, jy, kz]
+        tendencies.dvdt[i, j, k] += rhotot * integrals.ety[i, j, k]
 
         # Compute the heating.
 
         if fc != 0.0 && (sizex > 1 || sizey > 1)
             if sizex > 1
-                tendencies.dthetadt[ix, jy, kz] -=
+                tendencies.dthetadt[i, j, k] -=
                     rhotot * (
                         (
-                            integrals.utheta[ix + 1, jy, kz] -
-                            integrals.utheta[ix - 1, jy, kz]
+                            integrals.utheta[i + 1, j, k] -
+                            integrals.utheta[i - 1, j, k]
                         ) / (2.0 * dx) +
-                        met[ix, jy, kz, 1, 3] * (
-                            integrals.utheta[ix, jy, kz + 1] -
-                            integrals.utheta[ix, jy, kz - 1]
+                        met[i, j, k, 1, 3] * (
+                            integrals.utheta[i, j, k + 1] -
+                            integrals.utheta[i, j, k - 1]
                         ) / (2.0 * dz)
                     )
             end
 
             if sizey > 1
-                tendencies.dthetadt[ix, jy, kz] -=
+                tendencies.dthetadt[i, j, k] -=
                     rhotot * (
                         (
-                            integrals.vtheta[ix, jy + 1, kz] -
-                            integrals.vtheta[ix, jy - 1, kz]
+                            integrals.vtheta[i, j + 1, k] -
+                            integrals.vtheta[i, j - 1, k]
                         ) / (2.0 * dy) +
-                        met[ix, jy, kz, 2, 3] * (
-                            integrals.vtheta[ix, jy, kz + 1] -
-                            integrals.vtheta[ix, jy, kz - 1]
+                        met[i, j, k, 2, 3] * (
+                            integrals.vtheta[i, j, k + 1] -
+                            integrals.vtheta[i, j, k - 1]
                         ) / (2.0 * dz)
                     )
             end

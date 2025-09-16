@@ -189,10 +189,10 @@ function compute_sponges!(state::State, dt::AbstractFloat)
 
     compute_sponges!(state, dt, spongetype)
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    ks = ko == 0 ? k0 : k0 - 1
+    ke = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    @ivy for k in ks:ke, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         if ztfc[i, j, k] >= zsponge
             betar[i, j, k] =
                 betarmax / dt *
@@ -229,16 +229,16 @@ function compute_sponges!(
 
     alphar .= 0.0
 
-    ix0 = lateralsponge ? i0 : 1
-    ix1 = lateralsponge ? i1 : nxx
+    is = lateralsponge ? i0 : 1
+    ie = lateralsponge ? i1 : nxx
 
-    jy0 = lateralsponge ? j0 : 1
-    jy1 = lateralsponge ? j1 : nyy
+    js = lateralsponge ? j0 : 1
+    je = lateralsponge ? j1 : nyy
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    ks = ko == 0 ? k0 : k0 - 1
+    ke = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in kz0:kz1, j in jy0:jy1, i in ix0:ix1
+    @ivy for k in ks:ke, j in js:je, i in is:ie
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -306,16 +306,16 @@ function compute_sponges!(
 
     alphar .= 0.0
 
-    ix0 = lateralsponge ? i0 : 1
-    ix1 = lateralsponge ? i1 : nxx
+    is = lateralsponge ? i0 : 1
+    ie = lateralsponge ? i1 : nxx
 
-    jy0 = lateralsponge ? j0 : 1
-    jy1 = lateralsponge ? j1 : nyy
+    js = lateralsponge ? j0 : 1
+    je = lateralsponge ? j1 : nyy
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    ks = ko == 0 ? k0 : k0 - 1
+    ke = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in kz0:kz1, j in jy0:jy1, i in ix0:ix1
+    @ivy for k in ks:ke, j in js:je, i in is:ie
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -400,16 +400,16 @@ function compute_sponges!(
 
     alphar .= 0.0
 
-    ix0 = lateralsponge ? i0 : 1
-    ix1 = lateralsponge ? i1 : nxx
+    is = lateralsponge ? i0 : 1
+    ie = lateralsponge ? i1 : nxx
 
-    jy0 = lateralsponge ? j0 : 1
-    jy1 = lateralsponge ? j1 : nyy
+    js = lateralsponge ? j0 : 1
+    je = lateralsponge ? j1 : nyy
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    ks = ko == 0 ? k0 : k0 - 1
+    ke = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in kz0:kz1, j in jy0:jy1, i in ix0:ix1
+    @ivy for k in ks:ke, j in js:je, i in is:ie
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -493,16 +493,16 @@ function compute_sponges!(
 
     alphar .= 0.0
 
-    ix0 = lateralsponge ? i0 : 1
-    ix1 = lateralsponge ? i1 : nxx
+    is = lateralsponge ? i0 : 1
+    ie = lateralsponge ? i1 : nxx
 
-    jy0 = lateralsponge ? j0 : 1
-    jy1 = lateralsponge ? j1 : nyy
+    js = lateralsponge ? j0 : 1
+    je = lateralsponge ? j1 : nyy
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    ks = ko == 0 ? k0 : k0 - 1
+    ke = ko + nzz == sizezz ? k1 : k1 + 1
 
-    @ivy for k in kz0:kz1, j in jy0:jy1, i in ix0:ix1
+    @ivy for k in ks:ke, j in js:je, i in is:ie
         height = ztfc[i, j, k]
 
         if sizez > 1

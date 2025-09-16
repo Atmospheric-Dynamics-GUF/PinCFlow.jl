@@ -100,14 +100,14 @@ function read_input!(state::State)
 
             # Determine nray.
             for k in kkr, j in jj, i in ii
-                nrlc = 0
+                local_count = 0
                 for r in rr
                     if rays.dens[r, i, j, k] == 0
                         continue
                     end
-                    nrlc += 1
+                    local_count += 1
                 end
-                nray[i, j, k] = nrlc
+                nray[i, j, k] = local_count
             end
         end
 

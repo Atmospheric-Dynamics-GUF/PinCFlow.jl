@@ -13,21 +13,21 @@ Construct a `SurfaceIndices` instance, with arrays sized according to the given 
 
 # Fields
 
-  - `ir_sfc::A`: Ray-volume indices.
+  - `rs::A`: Ray-volume indices.
 
-  - `ix2_sfc::B`: Zonal indices within grid cells.
+  - `ixs::B`: Zonal indices within grid cells.
 
-  - `jy2_sfc::B`: Meridional indices within grid cells.
+  - `jys::B`: Meridional indices within grid cells.
 
-  - `kz2_sfc::B`: Vertical indices within grid cells.
+  - `kzs::B`: Vertical indices within grid cells.
 
-  - `ik_sfc::B`: Index in ``k``.
+  - `iks::B`: Index in ``k``.
 
-  - `jl_sfc::B`: Index in ``l``.
+  - `jls::B`: Index in ``l``.
 
-  - `km_sfc::B`: Index in ``m``.
+  - `kms::B`: Index in ``m``.
 
-  - `iwm_sfc::B`: Wave-mode index.
+  - `alphas::B`: Wave-mode index.
 
 # Arguments
 
@@ -41,14 +41,14 @@ struct SurfaceIndices{
     A <: AbstractArray{<:Integer, 3},
     B <: AbstractVector{<:Integer},
 }
-    ir_sfc::A
-    ix2_sfc::B
-    jy2_sfc::B
-    kz2_sfc::B
-    ik_sfc::B
-    jl_sfc::B
-    km_sfc::B
-    iwm_sfc::B
+    rs::A
+    ixs::B
+    jys::B
+    kzs::B
+    iks::B
+    jls::B
+    kms::B
+    alphas::B
 end
 
 function SurfaceIndices(

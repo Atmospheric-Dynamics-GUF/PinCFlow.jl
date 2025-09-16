@@ -137,16 +137,16 @@ function reconstruct!(state::State, variable::U)
     (; utilde) = state.variables.reconstructions
     (; rhostrattfc, pstrattfc) = state.atmosphere
 
-    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:(nxx - 1)
+    @ivy for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:(nxx - 1)
         rhoedge =
             0.5 * (
-                rho[ix, jy, kz] +
-                rho[ix + 1, jy, kz] +
-                rhostrattfc[ix, jy, kz] +
-                rhostrattfc[ix + 1, jy, kz]
+                rho[i, j, k] +
+                rho[i + 1, j, k] +
+                rhostrattfc[i, j, k] +
+                rhostrattfc[i + 1, j, k]
             )
-        pedge = 0.5 * (pstrattfc[ix, jy, kz] + pstrattfc[ix + 1, jy, kz])
-        phi[ix, jy, kz] = u[ix, jy, kz] * rhoedge / pedge
+        pedge = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
+        phi[i, j, k] = u[i, j, k] * rhoedge / pedge
     end
 
     apply_3d_muscl!(phi, utilde, nxx, nyy, nzz, limitertype)
@@ -162,16 +162,16 @@ function reconstruct!(state::State, variable::V)
     (; vtilde) = state.variables.reconstructions
     (; rhostrattfc, pstrattfc) = state.atmosphere
 
-    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:(nyy - 1), ix in 1:nxx
+    @ivy for k in (k0 - 1):(k1 + 1), j in 1:(nyy - 1), i in 1:nxx
         rhoedge =
             0.5 * (
-                rho[ix, jy, kz] +
-                rho[ix, jy + 1, kz] +
-                rhostrattfc[ix, jy, kz] +
-                rhostrattfc[ix, jy + 1, kz]
+                rho[i, j, k] +
+                rho[i, j + 1, k] +
+                rhostrattfc[i, j, k] +
+                rhostrattfc[i, j + 1, k]
             )
-        pedge = 0.5 * (pstrattfc[ix, jy, kz] + pstrattfc[ix, jy + 1, kz])
-        phi[ix, jy, kz] = v[ix, jy, kz] * rhoedge / pedge
+        pedge = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
+        phi[i, j, k] = v[i, j, k] * rhoedge / pedge
     end
 
     apply_3d_muscl!(phi, vtilde, nxx, nyy, nzz, limitertype)
@@ -192,27 +192,25 @@ function reconstruct!(state::State, variable::W)
 
     @ivy phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
 
-    @ivy for kz in (k0 - 1):(k1 + 1), jy in j0:j1, ix in i0:i1
-        phi[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, state)
+    @ivy for k in (k0 - 1):(k1 + 1), j in j0:j1, i in i0:i1
+        phi[i, j, k] = compute_vertical_wind(i, j, k, state)
     end
 
     set_zonal_boundaries_of_field!(phi, namelists, domain)
     set_meridional_boundaries_of_field!(phi, namelists, domain)
 
-    @ivy for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
+    @ivy for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
         rhoedgeu =
             (
-                jac[ix, jy, kz + 1] *
-                (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]) +
-                jac[ix, jy, kz] *
-                (rho[ix, jy, kz + 1] + rhostrattfc[ix, jy, kz + 1])
-            ) / (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
+                jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
+                jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
         pedgeu =
             (
-                jac[ix, jy, kz + 1] * pstrattfc[ix, jy, kz] +
-                jac[ix, jy, kz] * pstrattfc[ix, jy, kz + 1]
-            ) / (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
-        phi[ix, jy, kz] *= rhoedgeu / pedgeu
+                jac[i, j, k + 1] * pstrattfc[i, j, k] +
+                jac[i, j, k] * pstrattfc[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        phi[i, j, k] *= rhoedgeu / pedgeu
     end
 
     apply_3d_muscl!(phi, wtilde, nxx, nyy, nzz, limitertype)
@@ -232,10 +230,9 @@ function reconstruct!(state::State, tracersetup::AbstractTracer)
     (; tracerreconstructions, tracerpredictands) = state.tracer
 
     @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
-        for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
-            phi[ix, jy, kz] =
-                getfield(tracerpredictands, fd)[ix, jy, kz] /
-                pstrattfc[ix, jy, kz]
+        for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+            phi[i, j, k] =
+                getfield(tracerpredictands, fd)[i, j, k] / pstrattfc[i, j, k]
         end
         apply_3d_muscl!(
             phi,

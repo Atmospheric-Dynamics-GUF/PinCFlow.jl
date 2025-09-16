@@ -182,37 +182,37 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kz0 = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
-    kz1 = k1
+    ks = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
+    ke = k1
 
     # Initialize WKB increments at the first RK stage.
     @ivy if rkstage == 1
-        for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
-            for iray in 1:nray[ix, jy, kz]
-                dxray[iray, ix, jy, kz] = 0.0
-                dyray[iray, ix, jy, kz] = 0.0
-                dzray[iray, ix, jy, kz] = 0.0
-                dkray[iray, ix, jy, kz] = 0.0
-                dlray[iray, ix, jy, kz] = 0.0
-                dmray[iray, ix, jy, kz] = 0.0
-                ddxray[iray, ix, jy, kz] = 0.0
-                ddyray[iray, ix, jy, kz] = 0.0
-                ddzray[iray, ix, jy, kz] = 0.0
+        for k in ks:ke, j in j0:j1, i in i0:i1
+            for r in 1:nray[i, j, k]
+                dxray[r, i, j, k] = 0.0
+                dyray[r, i, j, k] = 0.0
+                dzray[r, i, j, k] = 0.0
+                dkray[r, i, j, k] = 0.0
+                dlray[r, i, j, k] = 0.0
+                dmray[r, i, j, k] = 0.0
+                ddxray[r, i, j, k] = 0.0
+                ddyray[r, i, j, k] = 0.0
+                ddzray[r, i, j, k] = 0.0
             end
         end
     end
 
     cgx_max[] = 0.0
     cgy_max[] = 0.0
-    @ivy cgz_max[i0:i1, j0:j1, kz0:kz1] .= 0.0
+    @ivy cgz_max[i0:i1, j0:j1, ks:ke] .= 0.0
 
-    @ivy for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
+    @ivy for k in ks:ke, j in j0:j1, i in i0:i1
         nskip = 0
-        for iray in 1:nray[ix, jy, kz]
-            (xr, yr, zr) = get_physical_position(rays, iray, ix, jy, kz)
-            (kr, lr, mr) = get_spectral_position(rays, iray, ix, jy, kz)
-            (dxr, dyr, dzr) = get_physical_extent(rays, iray, ix, jy, kz)
-            (axk, ayl, azm) = get_surfaces(rays, iray, ix, jy, kz)
+        for r in 1:nray[i, j, k]
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+            (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
+            (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
+            (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -225,7 +225,7 @@ function propagate_rays!(
 
             # Skip ray volumes that have left the domain.
             if testcase != WKBMountainWave()
-                if zr1 < ztildetfc[ix, jy, k0 - 2]
+                if zr1 < ztildetfc[i, j, k0 - 2]
                     nskip += 1
                     continue
                 end
@@ -276,7 +276,7 @@ function propagate_rays!(
 
             # Update zonal position.
 
-            if sizex > 1 && kz >= k0 && wkb_mode != SingleColumn()
+            if sizex > 1 && k >= k0 && wkb_mode != SingleColumn()
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -286,17 +286,16 @@ function propagate_rays!(
                 cgrx = (cgrx1 + cgrx2) / 2
 
                 f = cgrx
-                dxray[iray, ix, jy, kz] =
-                    dt * f + alphark[rkstage] * dxray[iray, ix, jy, kz]
-                rays.x[iray, ix, jy, kz] +=
-                    betark[rkstage] * dxray[iray, ix, jy, kz]
+                dxray[r, i, j, k] =
+                    dt * f + alphark[rkstage] * dxray[r, i, j, k]
+                rays.x[r, i, j, k] += betark[rkstage] * dxray[r, i, j, k]
 
                 cgx_max[] = max(cgx_max[], abs(cgrx))
             end
 
             # Update meridional position.
 
-            if sizey > 1 && kz >= k0 && wkb_mode != SingleColumn()
+            if sizey > 1 && k >= k0 && wkb_mode != SingleColumn()
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -306,10 +305,9 @@ function propagate_rays!(
                 cgry = (cgry1 + cgry2) / 2
 
                 f = cgry
-                dyray[iray, ix, jy, kz] =
-                    dt * f + alphark[rkstage] * dyray[iray, ix, jy, kz]
-                rays.y[iray, ix, jy, kz] +=
-                    betark[rkstage] * dyray[iray, ix, jy, kz]
+                dyray[r, i, j, k] =
+                    dt * f + alphark[rkstage] * dyray[r, i, j, k]
+                rays.y[r, i, j, k] += betark[rkstage] * dyray[r, i, j, k]
 
                 cgy_max[] = max(cgy_max[], abs(cgry))
             end
@@ -322,12 +320,10 @@ function propagate_rays!(
             cgrz = (cgrz1 + cgrz2) / 2
 
             f = cgrz
-            dzray[iray, ix, jy, kz] =
-                dt * f + alphark[rkstage] * dzray[iray, ix, jy, kz]
-            rays.z[iray, ix, jy, kz] +=
-                betark[rkstage] * dzray[iray, ix, jy, kz]
+            dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
+            rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-            cgz_max[ix, jy, kz] = max(cgz_max[ix, jy, kz], abs(cgrz))
+            cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(cgrz))
 
             # Refraction is only allowed above zmin_wkb_dim / lref.
 
@@ -353,19 +349,16 @@ function propagate_rays!(
                     -dudzr * kr - dvdzr * lr -
                     khr^2 * dn2dzr / (2 * omir * (khr^2 + mr^2))
 
-                dkray[iray, ix, jy, kz] =
-                    dt * dkdt + alphark[rkstage] * dkray[iray, ix, jy, kz]
-                dlray[iray, ix, jy, kz] =
-                    dt * dldt + alphark[rkstage] * dlray[iray, ix, jy, kz]
-                dmray[iray, ix, jy, kz] =
-                    dt * dmdt + alphark[rkstage] * dmray[iray, ix, jy, kz]
+                dkray[r, i, j, k] =
+                    dt * dkdt + alphark[rkstage] * dkray[r, i, j, k]
+                dlray[r, i, j, k] =
+                    dt * dldt + alphark[rkstage] * dlray[r, i, j, k]
+                dmray[r, i, j, k] =
+                    dt * dmdt + alphark[rkstage] * dmray[r, i, j, k]
 
-                rays.k[iray, ix, jy, kz] +=
-                    betark[rkstage] * dkray[iray, ix, jy, kz]
-                rays.l[iray, ix, jy, kz] +=
-                    betark[rkstage] * dlray[iray, ix, jy, kz]
-                rays.m[iray, ix, jy, kz] +=
-                    betark[rkstage] * dmray[iray, ix, jy, kz]
+                rays.k[r, i, j, k] += betark[rkstage] * dkray[r, i, j, k]
+                rays.l[r, i, j, k] += betark[rkstage] * dlray[r, i, j, k]
+                rays.m[r, i, j, k] += betark[rkstage] * dmray[r, i, j, k]
 
                 #-------------------------------
                 #      Change of extents
@@ -373,58 +366,54 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if sizex > 1 && kz >= k0 && wkb_mode != SingleColumn()
+                if sizex > 1 && k >= k0 && wkb_mode != SingleColumn()
                     ddxdt = cgrx2 - cgrx1
 
-                    ddxray[iray, ix, jy, kz] =
-                        dt * ddxdt + alphark[rkstage] * ddxray[iray, ix, jy, kz]
+                    ddxray[r, i, j, k] =
+                        dt * ddxdt + alphark[rkstage] * ddxray[r, i, j, k]
 
-                    rays.dxray[iray, ix, jy, kz] +=
-                        betark[rkstage] * ddxray[iray, ix, jy, kz]
+                    rays.dxray[r, i, j, k] +=
+                        betark[rkstage] * ddxray[r, i, j, k]
 
-                    if rays.dxray[iray, ix, jy, kz] <= 0
-                        rays.dxray[iray, ix, jy, kz] *= -1
+                    if rays.dxray[r, i, j, k] <= 0
+                        rays.dxray[r, i, j, k] *= -1
                     end
 
-                    rays.dkray[iray, ix, jy, kz] =
-                        axk / rays.dxray[iray, ix, jy, kz]
+                    rays.dkray[r, i, j, k] = axk / rays.dxray[r, i, j, k]
                 end
 
                 # Update extents in y and l.
 
-                if sizey > 1 && kz >= k0 && wkb_mode != SingleColumn()
+                if sizey > 1 && k >= k0 && wkb_mode != SingleColumn()
                     ddydt = cgry2 - cgry1
 
-                    ddyray[iray, ix, jy, kz] =
-                        dt * ddydt + alphark[rkstage] * ddyray[iray, ix, jy, kz]
+                    ddyray[r, i, j, k] =
+                        dt * ddydt + alphark[rkstage] * ddyray[r, i, j, k]
 
-                    rays.dyray[iray, ix, jy, kz] +=
-                        betark[rkstage] * ddyray[iray, ix, jy, kz]
+                    rays.dyray[r, i, j, k] +=
+                        betark[rkstage] * ddyray[r, i, j, k]
 
-                    if rays.dyray[iray, ix, jy, kz] <= 0
-                        rays.dyray[iray, ix, jy, kz] *= -1
+                    if rays.dyray[r, i, j, k] <= 0
+                        rays.dyray[r, i, j, k] *= -1
                     end
 
-                    rays.dlray[iray, ix, jy, kz] =
-                        ayl / rays.dyray[iray, ix, jy, kz]
+                    rays.dlray[r, i, j, k] = ayl / rays.dyray[r, i, j, k]
                 end
 
                 # Update extents in z and m.
 
                 ddzdt = cgrz2 - cgrz1
 
-                ddzray[iray, ix, jy, kz] =
-                    dt * ddzdt + alphark[rkstage] * ddzray[iray, ix, jy, kz]
+                ddzray[r, i, j, k] =
+                    dt * ddzdt + alphark[rkstage] * ddzray[r, i, j, k]
 
-                rays.dzray[iray, ix, jy, kz] +=
-                    betark[rkstage] * ddzray[iray, ix, jy, kz]
+                rays.dzray[r, i, j, k] += betark[rkstage] * ddzray[r, i, j, k]
 
-                if rays.dzray[iray, ix, jy, kz] <= 0
-                    rays.dzray[iray, ix, jy, kz] *= -1
+                if rays.dzray[r, i, j, k] <= 0
+                    rays.dzray[r, i, j, k] *= -1
                 end
 
-                rays.dmray[iray, ix, jy, kz] =
-                    azm / rays.dzray[iray, ix, jy, kz]
+                rays.dmray[r, i, j, k] = azm / rays.dzray[r, i, j, k]
             end
         end
 
@@ -432,7 +421,7 @@ function propagate_rays!(
             println(
                 nskip,
                 " out of ",
-                nray[ix, jy, kz],
+                nray[i, j, k],
                 " ray volumes have been skipped in propagate_rays!!",
             )
             println("")
@@ -444,12 +433,12 @@ function propagate_rays!(
     #-------------------------------
 
     @ivy if spongelayer
-        for kz in k0:k1, jy in j0:j1, ix in i0:i1
-            for iray in 1:nray[ix, jy, kz]
-                (xr, yr, zr) = get_physical_position(rays, iray, ix, jy, kz)
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            for r in 1:nray[i, j, k]
+                (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
                 betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
-                rays.dens[iray, ix, jy, kz] *= betasponge
+                rays.dens[r, i, j, k] *= betasponge
             end
         end
     end
@@ -493,23 +482,23 @@ function propagate_rays!(
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
 
-        count = maximum(nray[i0:i1, j0:j1, k0 - 1])
-        if count > 0
+        local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
+        if local_count > 0
             fields = fieldnames(Rays)
-            rays_down = zeros(length(fields), count, nx, ny)
+            rays_down = zeros(length(fields), local_count, nx, ny)
             MPI.Recv!(rays_down, comm; source = down)
             for (index, field) in enumerate(fields)
-                getfield(rays, field)[1:count, i0:i1, j0:j1, k0 - 1] .=
+                getfield(rays, field)[1:local_count, i0:i1, j0:j1, k0 - 1] .=
                     rays_down[index, :, :, :]
             end
         end
     end
 
     # Loop over grid cells.
-    @ivy for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Set the ray-volume count.
-        nray[ix, jy, kz] = nray[ix, jy, kz - 1]
+        nray[i, j, k] = nray[i, j, k - 1]
 
         # Set up the saturation integrals.
         integral1 = 0.0
@@ -518,86 +507,77 @@ function propagate_rays!(
         m2b2k2 = 0.0
 
         # Loop over ray volumes.
-        for iray in 1:nray[ix, jy, kz]
+        for r in 1:nray[i, j, k]
 
             # Prepare the ray volume.
-            copy_rays!(rays, iray => iray, ix => ix, jy => jy, kz - 1 => kz)
+            copy_rays!(rays, r => r, i => i, j => j, k - 1 => k)
 
             # Skip modes with zero wave-action density.
-            if rays.dens[iray, ix, jy, kz - 1] == 0
+            if rays.dens[r, i, j, k - 1] == 0
                 continue
             end
 
             # Set the vertical position (and extent).
-            rays.z[iray, ix, jy, kz] =
-                ztildetfc[ix, jy, kz - 1] +
-                (rays.z[iray, ix, jy, kz - 1] - ztildetfc[ix, jy, kz - 2]) /
-                jac[ix, jy, kz - 1] * jac[ix, jy, kz]
-            rays.dzray[iray, ix, jy, kz] =
-                rays.dzray[iray, ix, jy, kz - 1] * jac[ix, jy, kz] /
-                jac[ix, jy, kz - 1]
+            rays.z[r, i, j, k] =
+                ztildetfc[i, j, k - 1] +
+                (rays.z[r, i, j, k - 1] - ztildetfc[i, j, k - 2]) /
+                jac[i, j, k - 1] * jac[i, j, k]
+            rays.dzray[r, i, j, k] =
+                rays.dzray[r, i, j, k - 1] * jac[i, j, k] / jac[i, j, k - 1]
 
             # Get the horizontal wavenumbers.
-            (kr, lr, mr) = get_spectral_position(rays, iray, ix, jy, kz)
+            (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             khr = sqrt(kr^2 + lr^2)
 
             # Set the reference level.
-            kz0 = ko == 0 ? max(k0, kz - 1) : kz - 1
+            kref = ko == 0 ? max(k0, k - 1) : k - 1
 
             # Compute the vertical group velocity at the level below.
-            n2r = interpolate_stratification(
-                rays.z[iray, ix, jy, kz0],
-                state,
-                N2(),
-            )
+            n2r = interpolate_stratification(rays.z[r, i, j, kref], state, N2())
             omir =
-                -(u[ix, jy, kz0] + u[ix - 1, jy, kz0]) / 2 * kr -
-                (v[ix, jy, kz0] + v[ix, jy - 1, kz0]) / 2 * lr
+                -(u[i, j, kref] + u[i - 1, j, kref]) / 2 * kr -
+                (v[i, j, kref] + v[i, j - 1, kref]) / 2 * lr
             if fc < branchr * omir < sqrt(n2r)
-                mr = rays.m[iray, ix, jy, kz0]
+                mr = rays.m[r, i, j, kref]
                 cgirz0 = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
-                rays.dens[iray, ix, jy, kz0] = 0.0
-                rays.dens[iray, ix, jy, kz] = 0.0
+                rays.dens[r, i, j, kref] = 0.0
+                rays.dens[r, i, j, k] = 0.0
                 continue
             end
 
             # Compute the local vertical wavenumber and vertical group velocity.
-            n2r = interpolate_stratification(
-                rays.z[iray, ix, jy, kz],
-                state,
-                N2(),
-            )
+            n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
             omir =
-                -(u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * kr -
-                (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * lr
+                -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
+                (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
             if fc < branchr * omir < sqrt(n2r)
                 mr = -branchr * sqrt(khr^2 * (n2r - omir^2) / (omir^2 - fc^2))
                 cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
-                rays.dens[iray, ix, jy, kz0] = 0.0
-                rays.dens[iray, ix, jy, kz] = 0.0
+                rays.dens[r, i, j, kref] = 0.0
+                rays.dens[r, i, j, k] = 0.0
                 continue
             end
 
             # Set the local vertical wavenumber.
-            rays.m[iray, ix, jy, kz] = mr
+            rays.m[r, i, j, k] = mr
 
             # Set the local wave action density.
             if spongelayer
-                (xr, yr, zr) = get_physical_position(rays, iray, ix, jy, kz)
+                (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-                rays.dens[iray, ix, jy, kz] =
+                rays.dens[r, i, j, k] =
                     1 / (
                         1 +
                         alphasponge / cgirz *
-                        (rays.z[iray, ix, jy, kz] - rays.z[iray, ix, jy, kz0])
+                        (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
                     ) *
                     cgirz0 *
-                    rays.dens[iray, ix, jy, kz0] / cgirz
+                    rays.dens[r, i, j, kref] / cgirz
             else
-                rays.dens[iray, ix, jy, kz] =
-                    cgirz0 * rays.dens[iray, ix, jy, kz0] / cgirz
+                rays.dens[r, i, j, k] =
+                    cgirz0 * rays.dens[r, i, j, kref] / cgirz
             end
 
             # Cycle if the saturation scheme is turned off.
@@ -606,12 +586,12 @@ function propagate_rays!(
             end
 
             # Get the ray volume extents.
-            (dxr, dyr, dzr) = get_physical_extent(rays, iray, ix, jy, kz)
-            (dkr, dlr, dmr) = get_spectral_extent(rays, iray, ix, jy, kz)
+            (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
+            (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
 
             # Compute the phase space factor.
-            dzi = min(dzr, jac[ix, jy, kz] * dz)
-            facpsp = dzi / jac[ix, jy, kz] / dz * dmr
+            dzi = min(dzr, jac[i, j, k] * dz)
+            facpsp = dzi / jac[i, j, k] / dz * dmr
             if sizex > 1
                 dxi = min(dxr, dx)
                 facpsp *= dxi / dx * dkr
@@ -624,20 +604,20 @@ function propagate_rays!(
             # Compute the saturation integrals.
             integral1 = khr^2 * mr^2 / ((khr^2 + mr^2) * omir) * facpsp
             m2b2 +=
-                2 * n2r^2 / rhostrattfc[ix, jy, kz] *
+                2 * n2r^2 / rhostrattfc[i, j, k] *
                 integral1 *
-                rays.dens[iray, ix, jy, kz]
+                rays.dens[r, i, j, k]
             integral2 = khr^2 * mr^2 / omir * facpsp
             m2b2k2 +=
-                2 * n2r^2 / rhostrattfc[ix, jy, kz] *
+                2 * n2r^2 / rhostrattfc[i, j, k] *
                 integral2 *
-                rays.dens[iray, ix, jy, kz] *
-                jac[ix, jy, kz] *
+                rays.dens[r, i, j, k] *
+                jac[i, j, k] *
                 dz / cgirz
         end
 
         # Compute the diffusion coefficient
-        n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
+        n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
         if m2b2k2 == 0 || m2b2 < alpha_sat^2 * n2r^2
             diffusion = 0.0
         else
@@ -645,34 +625,29 @@ function propagate_rays!(
         end
 
         # Reduce the wave action density.
-        for iray in 1:nray[ix, jy, kz]
+        for r in 1:nray[i, j, k]
             if !lsaturation
                 continue
             end
-            if rays.dens[iray, ix, jy, kz] == 0
+            if rays.dens[r, i, j, k] == 0
                 continue
             end
-            (kr, lr, mr) = get_spectral_position(rays, iray, ix, jy, kz)
+            (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             khr = sqrt(kr^2 + lr^2)
-            n2r = interpolate_stratification(
-                rays.z[iray, ix, jy, kz],
-                state,
-                N2(),
-            )
+            n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
             omir =
-                -(u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * kr -
-                (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * lr
+                -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
+                (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
             if fc < branchr * omir < sqrt(n2r)
                 cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
-                rays.dens[iray, ix, jy, kz0] = 0.0
-                rays.dens[iray, ix, jy, kz] = 0.0
+                rays.dens[r, i, j, kref] = 0.0
+                rays.dens[r, i, j, k] = 0.0
                 continue
             end
-            rays.dens[iray, ix, jy, kz] *= max(
+            rays.dens[r, i, j, k] *= max(
                 0,
-                1 -
-                jac[ix, jy, kz] * dz / cgirz * 2 * diffusion * (khr^2 + mr^2),
+                1 - jac[i, j, k] * dz / cgirz * 2 * diffusion * (khr^2 + mr^2),
             )
         end
     end
@@ -681,13 +656,13 @@ function propagate_rays!(
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
-        count = maximum(nray[i0:i1, j0:j1, k1])
-        if count > 0
+        local_count = maximum(nray[i0:i1, j0:j1, k1])
+        if local_count > 0
             fields = fieldnames(Rays)
-            rays_up = zeros(length(fields), count, nx, ny)
+            rays_up = zeros(length(fields), local_count, nx, ny)
             for (index, field) in enumerate(fields)
                 rays_up[index, :, :, :] .=
-                    getfield(rays, field)[1:count, i0:i1, j0:j1, k1]
+                    getfield(rays, field)[1:local_count, i0:i1, j0:j1, k1]
             end
             MPI.Send(rays_up, comm; dest = up)
         end

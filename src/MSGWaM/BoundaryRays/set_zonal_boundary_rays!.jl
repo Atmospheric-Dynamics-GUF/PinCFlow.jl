@@ -35,43 +35,43 @@ function set_zonal_boundary_rays!(state::State)
     @ivy if npx > 1
         set_zonal_halo_rays!(state)
     else
-        for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1)
-            for iray in 1:nray[i0 - 1, jy, kz]
-                copy_rays!(rays, iray => iray, i1 => i0 - 1, jy => jy, kz => kz)
+        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1)
+            for r in 1:nray[i0 - 1, j, k]
+                copy_rays!(rays, r => r, i1 => i0 - 1, j => j, k => k)
             end
 
-            for iray in 1:nray[i1 + 1, jy, kz]
-                copy_rays!(rays, iray => iray, i0 => i1 + 1, jy => jy, kz => kz)
+            for r in 1:nray[i1 + 1, j, k]
+                copy_rays!(rays, r => r, i0 => i1 + 1, j => j, k => k)
             end
         end
     end
 
     @ivy if io == 0
-        for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):i0
-            for iray in 1:nray[ix, jy, kz]
-                xr = rays.x[iray, ix, jy, kz]
+        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):i0
+            for r in 1:nray[i, j, k]
+                xr = rays.x[r, i, j, k]
                 xrt = xr - lx
 
-                if abs(xrt - x[io + ix]) < abs(xr - x[io + ix])
+                if abs(xrt - x[io + i]) < abs(xr - x[io + i])
                     xr = xrt
                 end
 
-                rays.x[iray, ix, jy, kz] = xr
+                rays.x[r, i, j, k] = xr
             end
         end
     end
 
     @ivy if io + nxx == sizexx
-        for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1), ix in i1:(i1 + 1)
-            for iray in 1:nray[ix, jy, kz]
-                xr = rays.x[iray, ix, jy, kz]
+        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in i1:(i1 + 1)
+            for r in 1:nray[i, j, k]
+                xr = rays.x[r, i, j, k]
                 xrt = xr + lx
 
-                if abs(xrt - x[io + ix]) < abs(xr - x[io + ix])
+                if abs(xrt - x[io + i]) < abs(xr - x[io + i])
                     xr = xrt
                 end
 
-                rays.x[iray, ix, jy, kz] = xr
+                rays.x[r, i, j, k] = xr
             end
         end
     end

@@ -44,60 +44,60 @@ function interpolate_sponge(
 
     # Dermine closest points in horizontal direction.
     if sizex > 1
-        ixl = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
-        ixr = ixl + 1
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        ir = il + 1
     else
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     end
-    @ivy xl = x[io + ixl]
-    @ivy xr = x[io + ixr]
+    @ivy xl = x[io + il]
+    @ivy xr = x[io + ir]
 
     # Determine closest points in meridional direction.
     if sizey > 1
-        jyb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
-        jyf = jyb + 1
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        jf = jb + 1
     else
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     end
-    @ivy yb = y[jo + jyb]
-    @ivy yf = y[jo + jyf]
+    @ivy yb = y[jo + jb]
+    @ivy yf = y[jo + jf]
 
     # Determine closest points in vertical direction and set interpolation
     # values.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, state)
-    kzlbd = kzlbu - 1
-    @ivy zlbd = ztfc[ixl, jyb, kzlbd]
-    @ivy zlbu = ztfc[ixl, jyb, kzlbu]
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = ztfc[il, jb, klbd]
+    @ivy zlbu = ztfc[il, jb, klbu]
 
-    kzlfu = get_next_level(ixl, jyf, zlc, state)
-    kzlfd = kzlfu - 1
-    @ivy zlfd = ztfc[ixl, jyf, kzlfd]
-    @ivy zlfu = ztfc[ixl, jyf, kzlfu]
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = ztfc[il, jf, klfd]
+    @ivy zlfu = ztfc[il, jf, klfu]
 
-    kzrbu = get_next_level(ixr, jyb, zlc, state)
-    kzrbd = kzrbu - 1
-    @ivy zrbd = ztfc[ixr, jyb, kzrbd]
-    @ivy zrbu = ztfc[ixr, jyb, kzrbu]
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = ztfc[ir, jb, krbd]
+    @ivy zrbu = ztfc[ir, jb, krbu]
 
-    kzrfu = get_next_level(ixr, jyf, zlc, state)
-    kzrfd = kzrfu - 1
-    @ivy zrfd = ztfc[ixr, jyf, kzrfd]
-    @ivy zrfu = ztfc[ixr, jyf, kzrfu]
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = ztfc[ir, jf, krfd]
+    @ivy zrfu = ztfc[ir, jf, krfu]
 
-    @ivy philbd = alphar[ixl, jyb, kzlbd]
-    @ivy philbu = alphar[ixl, jyb, kzlbu]
+    @ivy philbd = alphar[il, jb, klbd]
+    @ivy philbu = alphar[il, jb, klbu]
 
-    @ivy philfd = alphar[ixl, jyf, kzlfd]
-    @ivy philfu = alphar[ixl, jyf, kzlfu]
+    @ivy philfd = alphar[il, jf, klfd]
+    @ivy philfu = alphar[il, jf, klfu]
 
-    @ivy phirbd = alphar[ixr, jyb, kzrbd]
-    @ivy phirbu = alphar[ixr, jyb, kzrbu]
+    @ivy phirbd = alphar[ir, jb, krbd]
+    @ivy phirbu = alphar[ir, jb, krbu]
 
-    @ivy phirfd = alphar[ixr, jyf, kzrfd]
-    @ivy phirfu = alphar[ixr, jyf, kzrfu]
+    @ivy phirfd = alphar[ir, jf, krfd]
+    @ivy phirfu = alphar[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(
