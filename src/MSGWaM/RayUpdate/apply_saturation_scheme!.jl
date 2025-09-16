@@ -148,29 +148,11 @@ function apply_saturation_scheme!(
 
         # Reduce the wave-action density.
         for r in 1:nray[i, j, k]
-            xr = rays.x[r, i, j, k]
-            yr = rays.y[r, i, j, k]
-            zr = rays.z[r, i, j, k]
-
-            if sizex > 1
-                ix = floor(Int, (xr + lx / 2) / dx) + i0 - io
-            else
-                ix = i0
-            end
-
-            if sizey > 1
-                jy = floor(Int, (yr + ly / 2) / dy) + j0 - jo
-            else
-                jy = j0
-            end
-
-            kz = get_next_half_level(ix, jy, zr, state)
-
             wnrk = rays.k[r, i, j, k]
             wnrl = rays.l[r, i, j, k]
             wnrm = rays.m[r, i, j, k]
 
-            kappa = diffusion[ix, jy, kz]
+            kappa = diffusion[i, j, k]
 
             rays.dens[r, i, j, k] *=
                 max(0, 1 - dt * 2 * kappa * (wnrk^2 + wnrl^2 + wnrm^2))
@@ -183,13 +165,13 @@ function apply_saturation_scheme!(
         n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
         if mb2 - alpha_sat^2 * n2r^2 > 1.0E-3 * alpha_sat^2 * n2r^2
             println("Saturation violated at (i, j, k) = ", (i, j, k))
-            println("mb2[i, j, k] = ", mb2)
+            println("mb2 = ", mb2)
             println("alpha_sat^2 * n2r^2 = ", alpha_sat^2 * n2r^2)
             println("")
         end
     end
 
-    # Rmove rays with zero wave-action density.
+    # Remove rays with zero wave-action density.
     remove_rays!(state)
 
     return
