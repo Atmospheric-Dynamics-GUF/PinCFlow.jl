@@ -37,7 +37,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\begin{align*}
         h_\\mathrm{b} & = \\frac{h_0}{2}, \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0\\\\
         h_\\mathrm{w} \\left(x\\right) & = \\begin{cases}
-            \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+            \\frac{h_0}{4} \\left[1 + \\cos \\left(\\frac{\\pi x}{r_l l_0}\\right)\\right] & \\mathrm{if} \\quad \\left|x\\right| \\leq r_l l_0,\\\\
             0 & \\mathrm{else}
         \\end{cases}
     \\end{align*}
@@ -50,7 +50,7 @@ The supported topography shapes are as follows, listed according to the value of
     ```math
     \\begin{align*}
         h_\\mathrm{b} & = \\frac{h_0}{2}, \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0,\\\\
-        h_\\mathrm{w} \\left(x\\right) & = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right]
+        h_\\mathrm{w} \\left(x\\right) & = \\frac{h_0}{2} \\exp \\left(- \\frac{x^2}{r_l^2 l_0^2}\\right)
     \\end{align*}
     ```
 
@@ -62,7 +62,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\begin{align*}
         h_\\mathrm{b} \\left(x\\right) & = h_\\mathrm{w} \\left(x\\right), \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0,\\\\
         h_\\mathrm{w} \\left(x\\right) & = \\begin{cases}
-            \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+            \\frac{h_0}{4} \\left[1 + \\cos \\left(\\frac{\\pi x}{r_l l_0}\\right)\\right] & \\mathrm{if} \\quad \\left|x\\right| \\leq r_l l_0,\\\\
             0 & \\mathrm{else}
         \\end{cases}
     \\end{align*}
@@ -75,7 +75,7 @@ The supported topography shapes are as follows, listed according to the value of
     ```math
     \\begin{align*}
         h_\\mathrm{b} \\left(x\\right) & = h_\\mathrm{w} \\left(x\\right), \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0,\\\\
-        h_\\mathrm{w} \\left(x\\right) & = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right]
+        h_\\mathrm{w} \\left(x\\right) & = \\frac{h_0}{2} \\exp \\left(- \\frac{x^2}{r_l^2 l_0^2}\\right)
     \\end{align*}
     ```
 
@@ -87,13 +87,13 @@ The supported topography shapes are as follows, listed according to the value of
     \\begin{align*}
         h_\\mathrm{b} \\left(x, y\\right) & = r_h n_h h_\\mathrm{w} \\left(x, y\\right), \\quad k_{h, \\alpha} = \\frac{\\pi}{l_0} \\cos \\left(\\frac{\\pi \\alpha}{n_h}\\right), \\quad l_{h, \\alpha} = \\frac{\\pi}{l_0} \\sin \\left(\\frac{\\pi \\alpha}{n_h}\\right),\\\\
         h_\\mathrm{w} \\left(x, y\\right) & = \\begin{cases}
-            \\frac{h_0}{2 n_h \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\mathrm{if} \\quad \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+            \\frac{h_0}{2 n_h \\left(r_h + 1\\right)} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{x^2 + y^2}\\right)\\right] & \\mathrm{if} \\quad x^2 + y^2 \\leq r_l^2 l_0^2,\\\\
             0 & \\mathrm{else}
         \\end{cases}
     \\end{align*}
     ```
 
-Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain.
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively.
 
 The arrays in the returned tuple represent (in order) the resolved topography, the amplitudes of the unresolved topography, the corresponding zonal wavenumbers and the corresponding meridional wavenumbers.
 
@@ -120,32 +120,32 @@ The supported topography shapes are as follows, listed according to the value of
  1. 2D cosine mountains:
 
     ```math
-    h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    h \\left(x\\right) = \\frac{h_0}{2} \\left[1 + \\cos \\left(\\frac{\\pi x}{l_0}\\right)\\right]
     ```
 
  1. 3D cosine mountains:
 
     ```math
-    h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{l_0} \\sqrt{x^2 + y^2}\\right)\\right]
     ```
 
  1. 2D isolated mountain:
 
     ```math
-    h \\left(x\\right) = \\frac{h_0}{1 + \\left(x - x_0\\right)^2 / l_0^2}
+    h \\left(x\\right) = \\frac{h_0}{1 + x^2 / l_0^2}
     ```
 
  1. 3D isolated mountain:
 
     ```math
-    h \\left(x, y\\right) = \\frac{h_0}{1 + \\left[\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2\\right] / l_0^2}
+    h \\left(x, y\\right) = \\frac{h_0}{1 + \\left(x^2 + y^2\\right) / l_0^2}
     ```
 
  1. 2D cosine envelope and even background:
 
     ```math
     h \\left(x\\right) = \\begin{cases}
-        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi x}{r_l l_0}\\right)\\right] \\cos \\left(\\frac{\\pi x}{l_0}\\right)\\right\\} & \\mathrm{if} \\quad \\left|x\\right| \\leq r_l l_0,\\\\
         \\frac{h_0}{2} & \\mathrm{else}
     \\end{cases}
     ```
@@ -154,7 +154,7 @@ The supported topography shapes are as follows, listed according to the value of
 
     ```math
     h \\left(x, y\\right) = \\begin{cases}
-        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\mathrm{if} \\quad \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{x^2 + y^2}\\right)\\right] \\cos \\left(\\frac{\\pi}{l_0} \\sqrt{x^2 + y^2}\\right)\\right\\} & \\mathrm{if} \\quad x^2 + y^2 \\leq r_l^2 l_0^2,\\\\
         \\frac{h_0}{2} & \\mathrm{else}
     \\end{cases}
     ```
@@ -162,20 +162,20 @@ The supported topography shapes are as follows, listed according to the value of
  1. 2D Gaussian envelope and even background:
 
     ```math
-    h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    h \\left(x\\right) = \\frac{h_0}{2} \\left[1 + \\exp \\left(- \\frac{x^2}{r_l^2 l_0^2}\\right) \\cos \\left(\\frac{\\pi x}{l_0}\\right)\\right]
     ```
 
  1. 3D Gaussian envelope and even background:
 
     ```math
-    h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\left[1 + \\exp \\left(- \\frac{x^2 + y^2}{r_l^2 l_0^2}\\right) \\cos \\left(\\frac{\\pi}{l_0} \\sqrt{x^2 + y^2}\\right)\\right]
     ```
 
  1. 2D cosine envelope and cosine background:
 
     ```math
     h \\left(x\\right) = \\begin{cases}
-        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+        \\frac{h_0}{4} \\left[1 + \\cos \\left(\\frac{\\pi x}{r_l l_0}\\right)\\right] \\left[1 + \\cos \\left(\\frac{\\pi x}{l_0}\\right)\\right] & \\mathrm{if} \\quad \\left|x\\right| \\leq r_l l_0,\\\\
         0 & \\mathrm{else}
     \\end{cases}
     ```
@@ -184,7 +184,7 @@ The supported topography shapes are as follows, listed according to the value of
 
     ```math
     h \\left(x, y\\right) = \\begin{cases}
-        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\mathrm{if} \\quad \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+        \\frac{h_0}{4} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{x^2 + y^2}\\right)\\right] \\left[1 + \\cos \\left(\\frac{\\pi}{l_0} \\sqrt{x^2 + y^2}\\right)\\right] & \\mathrm{if} \\quad x^2 + y^2 \\leq r_l^2 l_0^2,\\\\
         0 & \\mathrm{else}
     \\end{cases}
     ```
@@ -192,28 +192,28 @@ The supported topography shapes are as follows, listed according to the value of
  1. 2D Gaussian envelope and Gaussian background:
 
     ```math
-    h \\left(x\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    h \\left(x\\right) = \\frac{h_0}{2} \\exp \\left(- \\frac{x^2}{r_l^2 l_0^2}\\right) \\left[1 + \\cos \\left(\\frac{\\pi x}{l_0}\\right)\\right]
     ```
 
  1. 3D Gaussian envelope and Gaussian background:
 
     ```math
-    h \\left(x, y\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\exp \\left(- \\frac{x^2 + y^2}{r_l^2 l_0^2}\\right) \\left[1 + \\cos \\left(\\frac{\\pi}{l_0} \\sqrt{x^2 + y^2}\\right)\\right]
     ```
 
  1. 3D WKB topography:
 
     ```math
-    \\begin{align*}
+    {\\small\\begin{align*}
         h \\left(x, y\\right) & = \\begin{cases}
-            \\frac{h_0}{2 \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{r_h + n_h^{- 1} \\sum\\limits_{\\alpha = 0}^{n_h - 1} \\cos \\left[k_\\alpha \\left(x - x_0\\right) + l_\\alpha \\left(y - y_0\\right)\\right]\\right\\} & \\mathrm{if} \\quad \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+            \\frac{h_0}{2 \\left(r_h + 1\\right)} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{x^2 + y^2}\\right)\\right] \\left[r_h + n_h^{- 1} \\sum\\limits_{\\alpha = 0}^{n_h - 1} \\cos \\left(k_\\alpha x + l_\\alpha y\\right)\\right] & \\mathrm{if} \\quad x^2 + y^2 \\leq r_l^2 l_0^2,\\\\
             0 & \\mathrm{else},
         \\end{cases}\\\\
         k_\\alpha & = \\frac{\\pi}{l_0} \\cos \\left(\\frac{\\pi \\alpha}{n_h}\\right), \\quad l_\\alpha = \\frac{\\pi}{l_0} \\sin \\left(\\frac{\\pi \\alpha}{n_h}\\right)
-    \\end{align*}
+    \\end{align*}}
     ```
 
-Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain. The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`.
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively. The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`.
 
 The topography is represented by the first array in the returned tuple.
 

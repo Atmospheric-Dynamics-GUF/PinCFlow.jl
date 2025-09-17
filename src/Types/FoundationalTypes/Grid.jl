@@ -22,13 +22,13 @@ This constructor creates a 3D parallelized grid for a terrain-following, vertica
 
 ```math
 \\begin{align*}
-    \\widehat{x}_i & = - L_x / 2 + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\widehat{x}, & i & \\in \\left\\{1, ..., N_{\\mathrm{t}, \\widehat{x}}\\right\\},\\\\
-    \\widehat{y}_j & = - L_y / 2 + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\widehat{y}, & j & \\in \\left\\{1, ..., N_{\\mathrm{t}, \\widehat{y}}\\right\\},\\\\
-    \\widehat{z}_k & = \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\widehat{z}, & k & \\in \\left\\{1, ..., N_{\\mathrm{t}, \\widehat{z}}\\right\\},\\\\
+    \\widehat{x}_i & = - L_x / 2 + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\widehat{x},\\\\
+    \\widehat{y}_j & = - L_y / 2 + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\widehat{y},\\\\
+    \\widehat{z}_k & = \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\widehat{z},\\\\
 \\end{align*}
 ```
 
-where ``\\left(L_x, L_y\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\widehat{x}, \\Delta \\widehat{y}, \\Delta \\widehat{z}\\right)`` are the horizontal extents of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. The total number of grid points in each dimension (``N_{\\mathrm{t}, \\widehat{x}}``, ``N_{\\mathrm{t}, \\widehat{y}}`` or ``N_{\\mathrm{t}, \\widehat{z}}``) is defined as the respective number of physical grid points (``N_{\\widehat{x}}``, ``N_{\\widehat{y}}`` or ``N_{\\widehat{z}}``) plus two times the number of ghost cells beyond each boundary (``N_{\\mathrm{b}, \\widehat{x}}``, ``N_{\\mathrm{b}, \\widehat{y}}`` or ``N_{\\mathrm{b}, \\widehat{z}}``). Throughout the documentation, the position of any variable on this grid is indicated with the indices ``\\left(i, j, k\\right)`` in its subscript. Therein, unshifted indices are omitted for the sake of brevity. The grid is staggered, i.e. the wind components are defined at the midpoints of those cell surfaces that are orthogonal to their respective directions. Interpolations are therefore necessary in many places. These are indicated as in
+where ``\\left(L_x, L_y\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\widehat{x}, \\Delta \\widehat{y}, \\Delta \\widehat{z}\\right)`` are the horizontal extents of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. Throughout the documentation, the position of any variable on this grid is indicated with the indices ``\\left(i, j, k\\right)`` in its subscript. Therein, unshifted indices are omitted for the sake of brevity. The grid is staggered, i.e. the wind components are defined at the midpoints of those cell surfaces that are orthogonal to their respective directions. Interpolations are therefore necessary in many places. These are indicated as in
 
 ```math
 \\begin{align*}
