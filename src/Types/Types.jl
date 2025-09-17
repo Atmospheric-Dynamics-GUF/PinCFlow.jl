@@ -200,7 +200,7 @@ export DomainNamelist,
     TracerNamelist,
     IceNamelist,
     TurbulenceNamelist,
-    MultiWavePacketNamelist
+    MultiWavePacketNamelist,
     Namelists,
     Time,
     Constants,

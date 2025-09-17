@@ -119,35 +119,6 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         kz0 = k0
         kz1 = k1
     end
-   println("testcase = ")
-    println(testcase)
-    exit(1)
-  # Set zonal index bounds.
-    if testcase == WKBMultipleWavepackets()
-        ix0 = i0
-        ix1 = i1
-    else
-        ix0 = max(i0, floor(Int, (xrmin - lx[1]) / dx) + i0 - io)
-        ix1 = min(i1, floor(Int, (xrmax - lx[1]) / dx) + i0 - io)
-    end
-
-    # Set meridional index bounds.
-    if testcase == WKBMultipleWavepackets()
-        jy0 = j0
-        jy1 = j1
-    else
-        jy0 = max(j0, floor(Int, (yrmin - ly[1]) / dy) + j0 - jo)
-        jy1 = min(j1, floor(Int, (yrmax - ly[1]) / dy) + j0 - jo)
-    end
-
-    # Set vertical index bounds.
-    if testcase == WKBMultipleWavepackets() && ko == 0
-        kz0 = k0 - 1
-        kz1 = k0 - 1
-    else
-        kz0 = k0
-        kz1 = k1
-    end
 
     # Initialize local arrays.
     omi_ini = zeros(nwm, nxx, nyy, nzz)
@@ -173,7 +144,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         )
     end
 
-    if testcase == WKBMultipleWavepackets()
+    if testcase == WKBMultipleWavePackets()
         activate_multiplewavepackets_source!(
             state,
             omi_ini,
@@ -266,11 +237,12 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             wnl0 = wnl_ini[iwm, ix, jy, kz]
             wnm0 = wnm_ini[iwm, ix, jy, kz]
 
+        
             # Ensure correct wavenumber extents.
-            if (testcase == WKBMountainWave() || testcase == WKBMultipleWavepackets()) && sizex > 1
+            if (testcase == WKBMountainWave() || testcase == WKBMultipleWavePackets()) && sizex > 1
                 dk_ini_nd = fac_dk_init * sqrt(wnk0^2 + wnl0^2)
             end
-            if (testcase == WKBMountainWave() || testcase == WKBMultipleWavepackets()) && sizey > 1
+            if (testcase == WKBMountainWave() || testcase == WKBMultipleWavePackets()) && sizey > 1
                 dl_ini_nd = fac_dl_init * sqrt(wnk0^2 + wnl0^2)
             end
             if wnm0 == 0.0

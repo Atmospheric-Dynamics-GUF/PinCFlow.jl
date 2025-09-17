@@ -35,8 +35,9 @@ output = OutputNamelist(;
 
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
-    testcase = WKBMountainWave(),
+    #testcase = WKBMountainWave(),
     #testcase = WKBMultipleWavePackets(),
+    testcase = MultipleWavePackets(),
     zboundaries = SolidWallBoundaries(),
 )
 
@@ -65,13 +66,15 @@ atmosphere = AtmosphereNamelist(;
     background = Isothermal(),
     temp0_dim = 3.0E+2,
     press0_dim = 1.0E+5,
-    backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0),
+    backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
+#    backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0), # mountain wave
     coriolis_frequency = 0.0E+0,
     coriolis_mode = FPlane(),
 )
 
 grid = GridNamelist(;
-    mountainheight_dim = 1.0E+3,
+    #mountainheight_dim = 1.0E+3,
+    mountainheight_dim = 0.0E+3,
     mountainwidth_dim = 1.0E+3,
     mountain_case = 3,
     height_factor = 1.0E+0,
@@ -150,21 +153,21 @@ wkb = WKBNamelist(;
                     drag_coefficient = 1.0E+0,
                     nwm = 1,
                 )
-# multiwavepacket = MultiWavePacketNamelist(;
-#     nwm = 1,
-#     wavepacketdim = [1],
-#     lambdax_dim = [1.0E+4],
-#     lambday_dim = [0.0E+0],
-#     lambdaz_dim = [1.0E+3],
-#     x0_dim = [1.0E+4],
-#     y0_dim = [1.0E+4],
-#     z0_dim = [5.0E+3],
-#     sigmax_dim = [1.0E+5],
-#     sigmay_dim = [1.0E+5],
-#     sigmaz_dim = [1.0E+4],
-#     a0 = [.9E+0],
-#     branch = [-1],
-# )
+multiwavepackets = MultiWavePacketNamelist(;
+    nwm = 1,
+    wavepacketdim = [1],
+    lambdax_dim = [1.0E+4],
+    lambday_dim = [1.0E+4],
+    lambdaz_dim = [1.0E+3],
+    x0_dim = [1.0E+4],
+    y0_dim = [1.0E+4],
+    z0_dim = [5.0E+3],
+    sigmax_dim = [1.0E+3],
+    sigmay_dim = [1.0E+3],
+    sigmaz_dim = [1.0E+3],
+    a0 = [.9E+0],
+    branch = [-1],
+)
 namelists = Namelists(;
     domain = domain,
     output = output,
@@ -176,7 +179,8 @@ namelists = Namelists(;
     sponge = sponge,
     ice=ice,
     wkb=wkb,
-    #wavepacket=wavepacket,
+#    wavepacket=wavepacket,
+    multiwavepackets=multiwavepackets,
 )
 
 integrate(namelists)

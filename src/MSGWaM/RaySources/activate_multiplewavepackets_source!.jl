@@ -84,11 +84,10 @@ function activate_multiplewavepackets_source!(
     #(; branchr, nwm) = state.namelists.wkb
     (; tref, lref) = state.constants
     (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    # (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) =
-    #     state.grid
+    (; ztfc, x, y) = state.grid
     (; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
-    x0_dim, y0_dim, z0_dim, sigmax_dim, sigwpy_dim, sigwpz_dim,
-    a0_dim, branch, nwm) = state.namelists.multiwavepackets
+    x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
+    a0, branch, nwm) = state.namelists.multiwavepackets
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     #(; u, v) = state.variables.predictands
     #(; zb) = state.wkb
@@ -107,9 +106,9 @@ function activate_multiplewavepackets_source!(
 
         wnrh_init = sqrt(wnrk_init ^ 2.0 + wnrl_init ^ 2.0)
 
-        sigwpz = sigmax_dim[iwm] / lref
-        sigwpx = sigwpx_dim[iwm] / lref
-        sigwpy = sigwpy_dim[iwm] / lref
+        sigwpx = sigmax_dim[iwm] / lref
+        sigwpy = sigmay_dim[iwm] / lref
+        sigwpz = sigmaz_dim[iwm] / lref
 
         zr0 = z0_dim[iwm] / lref
         xr0 = x0_dim[iwm] / lref
@@ -125,37 +124,36 @@ function activate_multiplewavepackets_source!(
         n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
 
         # intrinsic frequency
-        omi_notop[ix, jy, kz] = branchr * sqrt((n2r * wnrh_init ^ 2
+        omi_notop = branchr * sqrt((n2r * wnrh_init ^ 2
             + fc ^ 2 * wnrm_init ^ 2) / 
             (wnrh_init ^ 2 + wnrm_init ^ 2))
 
         # wave-action density
-        fld_amp[ix, jy, kz, iwm] = (amp_wkb / wnrm_init) ^ 2 *
-             (wnrh_init ^ 2 + wnrm_init ^ 2) / (2.0 * wnrh_init ^ 2) * 
-             omi_notop[ix, jy, kz] * rhostrattfc[ix, jy, kz]
+        fld_amp = (amp_wkb / wnrm_init) ^ 2 *
+             (wnrh_init ^ 2 + wnrm_init ^ 2) / (2.0 * wnrh_init ^ 2) *
+             omi_notop * rhostrattfc[ix, jy, kz]
 
         if abs(ztfc[ix, jy, kz] - zr0) < sigwpz
-            fld_amp[ix, jy, kz, iwm] *= 0.5 * (1.0 + cos(pi * (ztfc[ix, jy, kz] - zr0) / sigwpz))
+            fld_amp *= 0.5 * (1.0 + cos(pi * (ztfc[ix, jy, kz] - zr0) / sigwpz))
 
             if sigwpx > 0.0 && abs(x[ix + io] - xr0) < sigwpx
-                fld_amp[ix, jy, kz, iwm] *= 0.5 * (1.0 + cos(pi * (x[ix + io] - xr0) / sigwpx))
+                fld_amp *= 0.5 * (1.0 + cos(pi * (x[ix + io] - xr0) / sigwpx))
             else
-                fld_amp[ix, jy, kz, iwm] = 0.0
+                fld_amp = 0.0
             end
 
             if sigwpy > 0.0 &&  abs(y[jy + jo] - yr0) < sigwpy
-                fld_amp[ix, jy, kz, iwm] *= 0.5 * (1.0 + cos(pi * (y[jy + jo] - yr0) / sigwpy))
+                fld_amp *= 0.5 * (1.0 + cos(pi * (y[jy + jo] - yr0) / sigwpy))
             else
-                fld_amp[ix, jy, kz, iwm] = 0.0
+                fld_amp = 0.0
             end
 
-
         else
-            fld_amp[ix, jy, kz, iwm] = 0.0
+            fld_amp = 0.0
         end
 
-        omi_ini[iwm, ix, jy, kz] = omi_notop[ix, jy, kz]
-        wad_ini[iwm, ix, jy, kz] = fld_amp[ix, jy, kz, iwm]
+        omi_ini[iwm, ix, jy, kz] = omi_notop
+        wad_ini[iwm, ix, jy, kz] = fld_amp
 
     end
 end # iwm
