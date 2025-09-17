@@ -21,13 +21,13 @@ Construct a `SurfaceIndices` instance, with arrays sized according to the given 
 
   - `kzs::B`: Vertical indices within grid cells.
 
-  - `iks::B`: Index in ``k``.
+  - `iks::B`: Indices in ``k``.
 
-  - `jls::B`: Index in ``l``.
+  - `jls::B`: Indices in ``l``.
 
-  - `kms::B`: Index in ``m``.
+  - `kms::B`: Indices in ``m``.
 
-  - `alphas::B`: Wave-mode index.
+  - `alphas::B`: Wave-mode indices.
 
 # Arguments
 
