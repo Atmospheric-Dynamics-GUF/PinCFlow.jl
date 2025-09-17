@@ -109,15 +109,17 @@ with `mpiexec` being your chosen system binary. For users who would like to run 
 
 PinCFlow uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5` (from the directory in which the run script is executed). This may be changed by setting the parameter `output_file` of the namelist `output` accordingly. The dimensions of most output fields are (in order) $\widehat{x}$ (zonal axis), $\widehat{y}$ (meridional axis), $\widehat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume property fields differ slightly in that they have an additional (spectral) dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the namelist `output` accordingly (more details are given in the "Reference" section of the documentation).
 
-For the visualization of simulation results, we recommend using [PythonPlot.jl](https://github.com/JuliaPy/PythonPlot.jl). A style configuration and a function that facilitates the generation of symmetric contour plots are provided in `examples/visualization/style.jl`. The script
+For the visualization of simulation results, we recommend using [PythonPlot.jl](https://github.com/JuliaPy/PythonPlot.jl). A function that configures PythonPlot.jl to use a preset style, as well as one that facilitates the generation of symmetric contour plots, are exported by `PinCFlow`. The script
 
 ```julia
 # examples/visualization/periodic_hill.jl
 
 using HDF5
+using PythonPlot
 using LaTeXStrings
+using PinCFlow
 
-include("style.jl")
+set_plot_style()
 
 # Import the data.
 @ivy if length(ARGS) == 0

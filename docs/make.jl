@@ -54,6 +54,7 @@ makedocs(;
             "Numerics" => "theory/numerics.md",
         ],
         "Reference" => [
+            "PinCFlow" => "reference/pincflow.md",
             "Types" => "reference/types.md",
             "MPIOperations" => "reference/mpi_operations.md",
             "Boundaries" => "reference/boundaries.md",

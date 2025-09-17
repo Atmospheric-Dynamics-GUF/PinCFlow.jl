@@ -1,9 +1,11 @@
 # examples/visualization/mountain_wave.jl
 
 using HDF5
+using PythonPlot
 using LaTeXStrings
+using PinCFlow
 
-include("style.jl")
+set_plot_style()
 
 # Import the data.
 @ivy if length(ARGS) == 0

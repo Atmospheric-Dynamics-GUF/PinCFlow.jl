@@ -109,7 +109,11 @@ The script
 # examples/visualization/wkb_mountain_wave.jl
 
 using HDF5
+using PythonPlot
 using LaTeXStrings
+using PinCFlow
+
+set_plot_style()
 
 include("style.jl")
 
@@ -197,7 +201,7 @@ clf()
 
 ```
 
-visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that the `symmetric_countours` function returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
+visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that `symmetric_countours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
 
 ![](results/wkb_mountain_wave.png)
 
@@ -222,3 +226,7 @@ visualizes the vertical wind at the end of the above simulation (i.e. after one 
   - [`PinCFlow.Update.apply_lhs_sponge!`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+
+  - [`PinCFlow.set_plot_style`](@ref)
+
+  - [`PinCFlow.symmetric_contours`](@ref)

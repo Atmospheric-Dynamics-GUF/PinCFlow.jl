@@ -92,9 +92,11 @@ The script
 # examples/visualization/mountain_wave.jl
 
 using HDF5
+using PythonPlot
 using LaTeXStrings
+using PinCFlow
 
-include("style.jl")
+set_plot_style()
 
 # Import the data.
 @ivy if length(ARGS) == 0
@@ -180,7 +182,7 @@ clf()
 
 ```
 
-visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that the `symmetric_countours` function returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
+visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that `symmetric_countours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
 
 ![](results/mountain_wave.png)
 
@@ -199,3 +201,7 @@ visualizes the vertical wind at the end of the above simulation (i.e. after one 
   - [`PinCFlow.Update.compute_sponges!`](@ref)
 
   - [`PinCFlow.Update.apply_lhs_sponge!`](@ref)
+
+  - [`PinCFlow.set_plot_style`](@ref)
+
+  - [`PinCFlow.symmetric_contours`](@ref)

@@ -13,9 +13,14 @@ Main module of PinCFlow.
 """
 module PinCFlow
 
+using PythonPlot
+
 include("@ivy.jl")
+include("set_plot_style.jl")
+include("symmetric_contours.jl")
 
 export @ivy
+export set_plot_style, symmetric_contours
 
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")

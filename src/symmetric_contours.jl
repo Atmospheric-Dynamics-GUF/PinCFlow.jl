@@ -1,6 +1,3 @@
-using PythonPlot
-using PinCFlow
-
 """
 ```julia
 symmetric_contours(
@@ -25,6 +22,8 @@ Compute symmetric contours levels and return them and a correspondingly cropped 
 
   - `colormap_name`: Name under which the chosen colormap is registered.
 """
+function symmetric_contours end
+
 function symmetric_contours(
     minimum::AbstractFloat,
     maximum::AbstractFloat;
@@ -89,25 +88,3 @@ function symmetric_contours(
 
     return (levels, colormap)
 end
-
-# Set style.
-matplotlib.style.use(
-    [
-        entry for entry in matplotlib.style.available if
-        occursin(r".*seaborn.*bright.*", string(entry))
-    ][1],
-)
-matplotlib.rcParams["figure.autolayout"] = true
-matplotlib.rcParams["figure.figsize"] = (4.0, 3.0)
-matplotlib.rcParams["figure.dpi"] = 500
-matplotlib.rcParams["font.family"] = "serif"
-matplotlib.rcParams["image.cmap"] = "seismic"
-matplotlib.rcParams["legend.frameon"] = false
-matplotlib.rcParams["text.usetex"] = true
-matplotlib.rcParams["text.latex.preamble"] =
-    "\\usepackage{amsmath, amstext, amssymb, amsfonts, amsthm}" *
-    "\\allowdisplaybreaks" *
-    # "\\usepackage[slantedGreek]{newtxmath}" *
-    "\\renewcommand*\\rmdefault{ptm}" *
-    "\\renewcommand*\\sfdefault{phv}" *
-    "\\renewcommand*\\ttdefault{lmtt}"
