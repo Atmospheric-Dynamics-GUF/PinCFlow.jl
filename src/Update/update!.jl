@@ -207,19 +207,6 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     tracersetup::NoTracer,
-    testcase::AbstractTestCase,
-)
-```
-
-Return for configurations without tracer transport.
-
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracersetup::NoTracer,
-    testcase::AbstractWKBTestCase,
 )
 ```
 
@@ -231,23 +218,10 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     tracersetup::AbstractTracer,
-    testcase::AbstractTestCase,
 )
 ```
 
-Update the tracers with a Runge-Kutta step on the left-hand sides of the equations.
-
-```julia 
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracersetup::AbstractTracer,
-    testcase::AbstractWKBTestCase,
-)
-```
-
-Update the tracers with a Runge-Kutta step on the left-hand sides with WKB right-hand side terms according to namelists configuration. 
+Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration. 
 
 # Arguments
 
@@ -268,8 +242,6 @@ Update the tracers with a Runge-Kutta step on the left-hand sides with WKB right
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
   - `tracersetup`: General tracer-transport configuration.
-
-  - `testcase`: Test case on which the current simulation is based.
 
 # See also
 
@@ -1258,17 +1230,6 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     tracersetup::NoTracer,
-    testcase::AbstractTestCase,
-)
-    return
-end
-
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracersetup::NoTracer,
-    testcase::AbstractWKBTestCase,
 )
     return
 end
@@ -1278,12 +1239,12 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     tracersetup::AbstractTracer,
-    testcase::AbstractTestCase,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
+    (; testcase) = state.namelists.setting
 
     for (fd, field) in enumerate(fieldnames(TracerPredictands))
         if m == 1
@@ -1301,60 +1262,14 @@ function update!(
             fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
             fluxdiff /= jac[i, j, k]
 
-            f = -fluxdiff
+            force = compute_volume_force(state, (i, j, k), Chi(), testcase)
+            f = -fluxdiff + force
 
             getfield(tracerincrements, fd)[i, j, k] =
                 dt * f + alphark[m] * getfield(tracerincrements, fd)[i, j, k]
             getfield(tracerpredictands, fd)[i, j, k] +=
                 betark[m] * getfield(tracerincrements, fd)[i, j, k]
         end
-    end
-
-    return
-end
-
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracersetup::AbstractTracer,
-    testcase::AbstractWKBTestCase,
-)
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac) = state.grid
-    (; alphark, betark) = state.time
-    (; dchi) = state.tracer.tracerincrements
-    (; chi) = state.tracer.tracerpredictands
-    (; phichi) = state.tracer.tracerfluxes
-    (; chiq0) = state.tracer.tracerforcings
-    (; leading_order_impact) = state.namelists.tracer
-    (; model) = state.namelists.setting
-
-    if m == 1
-        dchi .= 0.0
-    end
-
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        fl = phichi[i - 1, j, k, 1]
-        fr = phichi[i, j, k, 1]
-        gb = phichi[i, j - 1, k, 2]
-        gf = phichi[i, j, k, 2]
-        hd = phichi[i, j, k - 1, 3]
-        hu = phichi[i, j, k, 3]
-
-        fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
-        fluxdiff /= jac[i, j, k]
-
-        force = 0.0
-
-        if leading_order_impact && model == Compressible()
-            force = chiq0.dchidt[i, j, k]
-        end
-
-        f = -fluxdiff + force
-
-        dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]
-        chi[i, j, k] += betark[m] * dchi[i, j, k]
     end
 
     return

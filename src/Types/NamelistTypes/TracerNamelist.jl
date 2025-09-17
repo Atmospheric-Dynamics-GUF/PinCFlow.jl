@@ -8,7 +8,7 @@ Namelist for the inclusion of a tracer and the calculation of the leading-order 
 ```julia
 TracerNamelist(;
     tracersetup::AbstractTracer = NoTracer(),
-    leading_order_impact = true,
+    leading_order_impact = false,
 )::TracerNamelist
 ```
 
@@ -28,7 +28,7 @@ end
 function TracerNamelist(;
 
     tracersetup::AbstractTracer = NoTracer(),
-    leading_order_impact = true,
+    leading_order_impact = false,
 )::TracerNamelist
     return TracerNamelist(tracersetup, leading_order_impact)
 end

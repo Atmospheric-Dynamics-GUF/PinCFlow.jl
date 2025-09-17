@@ -92,7 +92,24 @@ P <: AbstractVariable
 Singleton that represents the mass-weighted potential temperature.
 """
 struct P <: AbstractVariable end
+
+"""
+```julia 
+Theta <: AbstractVarialbe
+```
+
+Singleton that represents the potential temperature.
+"""
 struct Theta <: AbstractVariable end
+
+"""
+```julia 
+Chi <: AbstractVarialbe
+```
+
+Singleton that represents the tracer mixing ratio.
+"""
+struct Chi <: AbstractVariable end 
 
 """
 ```julia
@@ -150,6 +167,7 @@ export Rho,
     PiP,
     P,
     Theta,
+    Chi,
     Explicit,
     Implicit,
     UniformBoussinesq,

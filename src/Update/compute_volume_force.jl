@@ -68,6 +68,28 @@ compute_volume_force(
 
 Return the gravity-wave impact on the mass-weighted potential temperature (diabatic heating).
 
+```julia 
+compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variables::Chi,
+    testcase::AbstractTestCase,
+)::AbstractFloat 
+```
+
+Return no volume force for non-WKB configurations.
+
+```
+compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variables::Chi,
+    testcase::AbstractWKBTestCase
+)::AbstractFloat 
+```
+
+Return tracer flux convergence for WKB configurations.
+
 # Arguments
 
   - `state`: Model state.
@@ -156,3 +178,33 @@ function compute_volume_force(
 
     return dthetadt[ix, jy, kz] + conductive_heating(state, indices)
 end
+
+function compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variables::Chi,
+    testcase::AbstractTestCase,
+)::AbstractFloat 
+
+    return 0.0
+end
+
+function compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variables::Chi,
+    testcase::AbstractWKBTestCase
+)::AbstractFloat 
+
+    (; leading_order_impact) = state.namelists.tracer
+    (; chiq0) = state.tracer.tracerforcings
+
+    (ix, jy, kz) = indices
+
+    if leading_order_impact 
+        return chiq0.dchidt[ix, jy, kz]
+    else
+        return 0.0
+    end
+end
+
