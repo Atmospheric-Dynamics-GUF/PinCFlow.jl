@@ -59,7 +59,7 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
         \mathcal{A}^{\widehat{w}, m, n} & = G^{13} \mathcal{A}^{u, m, n} + G^{23} \mathcal{A}^{v, m, n} + \frac{1}{J^2} \left[\frac{\partial J \left(\rho w\right)^m u^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho w\right)^m v^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho w\right)^m \widehat{w}^n}{\partial \widehat{z}}\right].
     \end{align*}$$
 
- 1. The right-hand sides are integrated over $\Delta t / 2$ with an implicit Euler step. The divergence constraint is then enforced by solving a Poisson equation for Exner-pressure differences $\Delta \pi'$, which are used to correct the wind, the the density fluctuations and the Exner-pressure itself. The details of these substeps are as follows.
+ 1. The right-hand sides are integrated over $\Delta t / 2$ with an implicit Euler step. The divergence constraint is then enforced by solving a Poisson equation for Exner-pressure differences $\Delta \pi'$, which are used to correct the wind, the density fluctuations and the Exner-pressure itself. The details of these substeps are as follows.
 
      1. Predictor step:
 
@@ -268,7 +268,7 @@ $$\begin{align*}
 
  1. The right-hand sides are integrated over over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
-## MSGWaM
+### MSGWaM
 
 At the beginning of each time step, the saturation scheme is applied via integration of the respective term in the phase-space wave-action density equation with an explicit Euler step. i.e.
 

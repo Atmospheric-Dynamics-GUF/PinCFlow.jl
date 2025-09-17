@@ -72,7 +72,7 @@ integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
 ```
 
-yields a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ that generates a mountain wave above a periodic hill. The vertical wind is written to the output file `pincflow_output.h5` in the directory specified by an additional argument to the script. More involved examples are given in the "Examples" section of the documentation. A description of all namelists and their parameters is provided in the "Reference" section.
+yields a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ that generates a mountain wave above a periodic hill. The vertical wind is written to the output file `pincflow_output.h5` in the directory specified by an additional argument to the script (or the current directory, if that argument is omitted). More involved examples are given in the "Examples" section of the documentation. A description of all namelists and their parameters is provided in the "Reference" section.
 
 If you want to run PinCFlow in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). You can do so by running
 
@@ -164,13 +164,13 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
  1. Make your changes on your local development branch.
 
- 1. Pull recent changes made on the remote master branch into your local master branch and merge it into your local development branch, resolving merge conflicts if necessary.
+ 1. Pull recent changes made on the remote main branch into your local main branch and merge it into your local development branch, resolving merge conflicts if necessary.
 
  1. **Ensure that the model is stable and that all canonical tests reproduce the sample results.**
 
  1. Push your changes to your remote development branch.
 
- 1. Request to merge your remote development branch into the remote master branch.
+ 1. Request to merge your remote development branch into the remote main branch.
 
 ### Writing code
 
@@ -214,11 +214,11 @@ Contributions to the code should always be accompanied by corresponding contribu
 
      1. List all keyword arguments with descriptions (but without types and default values) in a `# Keywords` section, with one bullet for each.
 
-     1. List links to constructors/functions that are called in any of the explicitly defined constructor methods in a `# See also` section, with one bullet for each.
+     1. List links to constructors/functions that are called in any of the function's methods in a `# See also` section, with one bullet for each.
 
   - Type docstrings:
 
-     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a second paragraph with more details.
+     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a additional paragraphs with more details.
 
      1. If the type is composite, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) additional paragraphs with more details, for each explicitly defined constructor method.
 

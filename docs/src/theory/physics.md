@@ -282,7 +282,7 @@ $$K = \frac{\overline{\rho}}{4} \left[\sum\limits_\alpha \frac{J \Delta \widehat
 
 ### Orographic source
 
-The orographic source is a lower boundary condition for the wave-property fields. Its formulation uses the decomposition
+The orographic source is a lower-boundary condition for the wave-property fields. Its formulation uses the decomposition
 
 $$h \left(x, y\right) = h_\mathrm{b} + \sum\limits_\alpha \Re \left\{h_{\mathrm{w}, \alpha} \exp \left[i \varphi_\alpha \left(x, y\right)\right]\right\}$$
 
