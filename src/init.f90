@@ -4789,7 +4789,7 @@ module init_module
         write(*, fmt = "(a25,a35)") "Test case  = ", "wave packet (full model)"
         write(*, fmt = "(a25,f10.1,a)") "lambda_x = ", lambdaX_dim, " m"
         write(*, fmt = "(a25,f10.1,a)") "lambda_z = ", lambdaZ_dim, " m"
-        write(*, fmt = "(a25,f10.1a7)") "c_x  = ", omi / kk * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "c_x  = ", omi / kk * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "c_z  = ", omi / mm * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "cg_x  = ", - NN * mm ** 2 / kTot &
             &** 3 * uRef, " m/s"
