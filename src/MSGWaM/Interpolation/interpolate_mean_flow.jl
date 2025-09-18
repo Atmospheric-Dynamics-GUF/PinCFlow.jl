@@ -149,7 +149,7 @@ interpolate_mean_flow(
 )::AbstractFloat
 ```
 
-Interpolate the zonal derivative of the tracer mixing ratio (``\\partial \\chi_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+Interpolate the meridional derivative of the tracer mixing ratio (``\\partial \\chi_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial \\chi_\\mathrm{b} / \\partial y`` to the location of interest, using `compute_derivatives` and `interpolate`.
 
@@ -163,9 +163,9 @@ interpolate_mean_flow(
 )::AbstractFloat
 ```
 
-Interpolate the zonal derivative of the tracer mixing ratio (``\\partial \\chi_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+Interpolate the vertical derivative of the tracer mixing ratio (``\\partial \\chi_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
-This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial \\chi_\\mathrm{b} / \\partial z`` to the location of interest, using `compute_derivatives` and `interpolate`.
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial \\chi_\\mathrm{b} / \\partial z`` to the location of interest, using `compute_derivatives` and `interpolate`.
 
 
 # Arguments
@@ -1585,17 +1585,17 @@ function interpolate_mean_flow(
         ixr = i0
     else
         ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
-        if ixl - 1 < 1
+        if ixl < 1
             error(
-                "Error in interpolate_mean_flow (DChiDY): ixl - 1 = ",
-                ixl - 1,
+                "Error in interpolate_mean_flow (DChiDY): ixl = ",
+                ixl,
                 " < 1",
             )
         end
         ixr = ixl + 1
         if ixr > nxx
             error(
-                "Error in interpolate_mean_flow (DUDX): ixr = ",
+                "Error in interpolate_mean_flow (DChiDY): ixr = ",
                 ixr,
                 " > nxx = ",
                 nxx,
@@ -1612,12 +1612,12 @@ function interpolate_mean_flow(
     else
         jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
         if jyb < 1
-            error("Error in interpolate_mean_flow (DUDY): jyb = ", jyb, " < 1")
+            error("Error in interpolate_mean_flow (DChiDY): jyb = ", jyb, " < 1")
         end
         jyf = jyb + 1
         if jyf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DUDY): jyf + 1 = ",
+                "Error in interpolate_mean_flow (DChiDY): jyf + 1 = ",
                 jyf + 1,
                 " > nyy = ",
                 nyy,
@@ -1713,12 +1713,12 @@ function interpolate_mean_flow(
     else
         ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
         if ixl < 1
-            error("Error in interpolate_mean_flow (DVDZ): ixl = ", ixl, " < 1")
+            error("Error in interpolate_mean_flow (DChiDZ): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
         if ixr > nxx
             error(
-                "Error in interpolate_mean_flow (DVDZ): ixr = ",
+                "Error in interpolate_mean_flow (DChiDZ): ixr = ",
                 ixr,
                 " > nxx = ",
                 nxx,
@@ -1735,12 +1735,12 @@ function interpolate_mean_flow(
     else
         jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
         if jyb < 1
-            error("Error in interpolate_mean_flow (DUDZ): jyb = ", jyb, " < 1")
+            error("Error in interpolate_mean_flow (DChiDZ): jyb = ", jyb, " < 1")
         end
         jyf = jyb + 1
         if jyf > nyy
             error(
-                "Error in interpolate_mean_flow (DUDZ): jyf = ",
+                "Error in interpolate_mean_flow (DChiDZ): jyf = ",
                 jyf,
                 " > nyy = ",
                 nyy,

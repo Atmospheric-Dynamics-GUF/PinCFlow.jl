@@ -120,12 +120,11 @@ function TracerPredictands(
     (; lref) = constants
     (; rhostrattfc) = atmosphere
     (; rho) = variables.predictands
-    (; testcase) = namelists.setting
     (; lref) = constants
+    (; alphatracer) = namelists.tracer
 
-    alphatracer = 1.0 * lref
     chi = zeros(nxx, nyy, nzz)
-    chi .= alphatracer .* ztfc
+    chi .= (alphatracer * lref) .* ztfc
 
     chi .= chi .* (rho .+ rhostrattfc)
 

@@ -101,36 +101,30 @@ At grid points beyond the vertical boundaries, it is set to zero.
 
 ```julia 
 compute_derivatives(
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
     state::State,
+    indices::NTuple{4, <:Integer},
     phitype::DChiDX,
-)
+)::NTuple{2, <:AbstractFloat}
 ```
 
 Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial x``) near the two grid points specified by `indices`.
 
 ```julia 
 compute_derivatives(
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
     state::State,
+    indices::NTuple{4, <:Integer},
     phitype::DChiDY,
-)
+)::NTuple{2, <:AbstractFloat}
 ```
 
 Compute and return the meridional derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial y``) near the two grid points specified by `indices`.
 
 ```julia 
 compute_derivatives(
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
     state::State,
+    indices::NTuple{4, <:Integer},
     phitype::DChiDZ,
-)
+)::NTuple{2, <:AbstractFloat}
 ```
 
 Compute and return the vertical derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial z``) near the two grid points specified by `indices`.
@@ -454,28 +448,27 @@ function compute_derivatives(
     # mass-specific tracer mixing ratio 
     c = chi ./ (rho .+ rhostrattfc)
 
-    phid = 
-        (c[ix, jy + 1, kzd] - c[ix, jy, kzd]) / dy + 
-        0.5 * 
-        (met[ix, jy, kzd, 2, 3] + met[ix, jy + 1, kzd, 2, 3]) * 
-        0.25 * 
+    phid =
+        (c[ix, jy + 1, kzd] - c[ix, jy, kzd]) / dy +
+        0.5 *
+        (met[ix, jy, kzd, 2, 3] + met[ix, jy + 1, kzd, 2, 3]) *
+        0.25 *
         (
-            c[ix, jy, kzd + 1] + c[ix, jy + 1, kzd + 1] - c[ix, jy, kzd - 1] - 
+            c[ix, jy, kzd + 1] + c[ix, jy + 1, kzd + 1] - c[ix, jy, kzd - 1] -
             c[ix, jy + 1, kzu - 1]
         ) / dz
 
-    phiu = 
-        (c[ix, jy + 1, kzu] - c[ix, jy, kzu]) / dy + 
-        0.5 * 
-        (met[ix, jy, kzu, 2, 3] + met[ix, jy + 1, kzu, 2, 3]) * 
-        0.25 * 
+    phiu =
+        (c[ix, jy + 1, kzu] - c[ix, jy, kzu]) / dy +
+        0.5 *
+        (met[ix, jy, kzu, 2, 3] + met[ix, jy + 1, kzu, 2, 3]) *
+        0.25 *
         (
-            c[ix, jy, kzu + 1] + c[ix, jy + 1, kzu + 1] - c[ix, jy, kzu - 1] - 
+            c[ix, jy, kzu + 1] + c[ix, jy + 1, kzu + 1] - c[ix, jy, kzu - 1] -
             c[ix, jy + 1, kzu - 1]
         ) / dz
 
     return (phid, phiu)
-
 end
 
 function compute_derivatives(
@@ -498,36 +491,28 @@ function compute_derivatives(
         phiu = 0.0
     elseif ztildetfc[ix, jy, kzd] < topography_surface[ix, jy]
         phid = 0.0
-        phiu = 
+        phiu =
             (c[ix, jy, kzu + 1] - c[ix, jy, kzu]) / dz / (
                 jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
-                (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1]) +
-                jac[ix, jy + 1, kzu] * jac[ix, jy + 1, kzu + 1] /
-                (jac[ix, jy + 1, kzu] + jac[ix, jy + 1, kzu + 1])
+                (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1])
             )
     else
         if ztildetfc[ix, jy, kzu] < lz[2]
             phid =
                 (c[ix, jy, kzd + 1] - c[ix, jy, kzd]) / dz / (
                     jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
-                    (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1]) +
-                    jac[ix, jy + 1, kzd] * jac[ix, jy + 1, kzd + 1] /
-                    (jac[ix, jy + 1, kzd] + jac[ix, jy + 1, kzd + 1])
+                    (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1])
                 )
             phiu =
                 (c[ix, jy, kzu + 1] - c[ix, jy, kzu]) / dz / (
                     jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
-                    (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1]) +
-                    jac[ix, jy + 1, kzu] * jac[ix, jy + 1, kzu + 1] /
-                    (jac[ix, jy + 1, kzu] + jac[ix, jy + 1, kzu + 1])
+                    (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1])
                 )
         elseif ztildetfc[ix, jy, kzd] < lz[2]
             phid =
                 (c[ix, jy, kzd + 1] - c[ix, jy, kzd]) / dz / (
                     jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
-                    (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1]) +
-                    jac[ix, jy + 1, kzd] * jac[ix, jy + 1, kzd + 1] /
-                    (jac[ix, jy + 1, kzd] + jac[ix, jy + 1, kzd + 1])
+                    (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1])
                 )
             phiu = 0.0
         else

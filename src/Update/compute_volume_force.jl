@@ -198,10 +198,11 @@ function compute_volume_force(
 
     (; leading_order_impact) = state.namelists.tracer
     (; chiq0) = state.tracer.tracerforcings
+    (; model) = state.namelist.setting
 
     (ix, jy, kz) = indices
 
-    if leading_order_impact 
+    if leading_order_impact && model == Compressible()
         return chiq0.dchidt[ix, jy, kz]
     else
         return 0.0

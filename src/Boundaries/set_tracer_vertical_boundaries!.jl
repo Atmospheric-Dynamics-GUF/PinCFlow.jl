@@ -3,11 +3,21 @@
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
+    tracersetup::NoTracer,
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
     tracersetup::AbstractTracer,
 )
 ```
 
-Return for all tracer configurations.
+Enforce vertical boundary conditions for tracers.
 
 ```julia
 set_tracer_vertical_boundaries!(
@@ -116,8 +126,30 @@ function set_tracer_vertical_boundaries! end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
+    tracersetup::NoTracer,
+)
+    return
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
     tracersetup::AbstractTracer,
 )
+    (; namelists, domain) = state
+    (; zboundaries) = namelists.setting
+    (; tracerpredictands) = state.tracer
+
+    for field in fieldnames(TracerPredictands)
+        set_vertical_boundaries_of_field!(
+            getfield(tracerpredictands, field),
+            namelists,
+            domain,
+            zboundaries,
+            -,
+        )
+    end
+
     return
 end
 

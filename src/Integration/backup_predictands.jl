@@ -12,7 +12,6 @@ Return a tuple with a copy of the predictands and tracer predictands.
   - `state`: Model state 
 
 """
-
 function backup_predictands end 
 
 function backup_predictands(

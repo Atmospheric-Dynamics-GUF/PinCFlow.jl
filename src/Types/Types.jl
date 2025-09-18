@@ -95,7 +95,7 @@ struct P <: AbstractVariable end
 
 """
 ```julia 
-Theta <: AbstractVarialbe
+Theta <: AbstractVariable
 ```
 
 Singleton that represents the potential temperature.
@@ -104,7 +104,7 @@ struct Theta <: AbstractVariable end
 
 """
 ```julia 
-Chi <: AbstractVarialbe
+Chi <: AbstractVariable
 ```
 
 Singleton that represents the tracer mixing ratio.
