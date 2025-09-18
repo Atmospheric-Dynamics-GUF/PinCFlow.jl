@@ -493,25 +493,25 @@ function compute_derivatives(
         phid = 0.0
         phiu =
             (c[ix, jy, kzu + 1] - c[ix, jy, kzu]) / dz / (
-                jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
+                2.0 * jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
                 (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1])
             )
     else
         if ztildetfc[ix, jy, kzu] < lz[2]
             phid =
                 (c[ix, jy, kzd + 1] - c[ix, jy, kzd]) / dz / (
-                    jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
+                    2.0 * jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
                     (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1])
                 )
             phiu =
                 (c[ix, jy, kzu + 1] - c[ix, jy, kzu]) / dz / (
-                    jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
+                    2.0 * jac[ix, jy, kzu] * jac[ix, jy, kzu + 1] /
                     (jac[ix, jy, kzu] + jac[ix, jy, kzu + 1])
                 )
         elseif ztildetfc[ix, jy, kzd] < lz[2]
             phid =
                 (c[ix, jy, kzd + 1] - c[ix, jy, kzd]) / dz / (
-                    jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
+                    2.0 * jac[ix, jy, kzd] * jac[ix, jy, kzd + 1] /
                     (jac[ix, jy, kzd] + jac[ix, jy, kzd + 1])
                 )
             phiu = 0.0
