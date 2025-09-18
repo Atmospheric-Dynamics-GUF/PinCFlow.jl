@@ -239,7 +239,6 @@ function set_tracer_vertical_boundaries!(
     tracersetup::AbstractTracer,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; chiq0) = state.tracer.tracerforcings
 
     for field in (:uchi, :vchi, :wchi)
@@ -247,7 +246,6 @@ function set_tracer_vertical_boundaries!(
             getfield(chiq0, field),
             namelists,
             domain,
-            zboundaries,
             +;
             layers = (1, 1, 1),
         )
@@ -272,7 +270,6 @@ function set_tracer_vertical_boundaries!(
     tracersetup::AbstractTracer,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; chiq0) = state.tracer.tracerforcings
 
     for field in (:dchidt,)
@@ -280,7 +277,6 @@ function set_tracer_vertical_boundaries!(
             getfield(chiq0, field),
             namelists,
             domain,
-            zboundaries,
             +,
         )
     end
