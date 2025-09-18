@@ -63,7 +63,7 @@ Construct a `TracerForcings` instance for configurations with tracer transport a
 
 # See also:
 
-  - [`PinCFlow.Types.TracerTypes.TracerWKBImpact.jl`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerWKBImpact`](@ref)
 
 """
 struct TracerForcings{A <: TracerWKBImpact}
