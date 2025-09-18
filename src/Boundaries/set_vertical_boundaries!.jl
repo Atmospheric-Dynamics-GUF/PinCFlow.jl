@@ -218,7 +218,16 @@ function set_vertical_boundaries!(
     zboundaries::SolidWallBoundaries,
 )
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
+
     set_vertical_boundaries!(state, variables, zboundaries, wkb_mode)
+    set_tracer_vertical_boundaries!(
+        state,
+        variables,
+        zboundaries,
+        wkb_mode,
+        tracersetup,
+    )
     return
 end
 
@@ -276,7 +285,15 @@ function set_vertical_boundaries!(
     zboundaries::SolidWallBoundaries,
 )
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
     set_vertical_boundaries!(state, variables, zboundaries, wkb_mode)
+    set_tracer_vertical_boundaries!(
+        state,
+        variables,
+        zboundaries,
+        wkb_mode,
+        tracersetup,
+    )
     return
 end
 

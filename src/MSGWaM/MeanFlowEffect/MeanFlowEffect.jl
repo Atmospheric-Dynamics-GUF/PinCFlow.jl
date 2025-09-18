@@ -25,6 +25,37 @@ using ...Boundaries
 using ..Interpolation
 using ..RayUpdate
 
+"""
+```julia 
+UChi <: AbstractVariable 
+```
+
+Singleton for dispatch to calculation of zonal gravity-wave-tracer fluxes.
+"""
+struct UChi <: AbstractVariable end
+
+"""
+```julia 
+VChi <: AbstractVariable 
+```
+
+Singleton for dispatch to calculation of meridional gravity-wave-tracer fluxes.
+"""
+struct VChi <: AbstractVariable end
+
+"""
+```julia 
+WChi <: AbstractVariable 
+```
+
+Singleton for dispatch to calculation of vertical gravity-wave-tracer fluxes.
+"""
+struct WChi <: AbstractVariable end
+
+include("compute_leading_order_tracer_fluxes!.jl")
+include("leading_order_tracer_fluxes.jl")
+include("compute_leading_order_tracer_forcing!.jl")
+include("set_tracer_fields_zero!.jl")
 include("apply_blocked_layer_scheme!.jl")
 include("apply_shapiro_filter!.jl")
 include("compute_gw_integrals!.jl")
