@@ -4,10 +4,37 @@ apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
+    limitertype::MCVariant,
 )
 ```
 
 Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in one dimension.
+
+The reconstruction to the left is given by
+
+```math
+{\\widetilde{\\phi}}^\\mathrm{L} = \\begin{cases}
+    \\phi & \\mathrm{if} \\quad \\phi = \\phi_{i - 1} \\quad \\mathrm{or} \\quad \\phi = \\phi_{i + 1},\\\\
+    \\phi - \\frac{1}{2} \\eta \\left(\\frac{\\phi_{i + 1} - \\phi}{\\phi - \\phi_{i - 1}}\\right) \\left(\\phi - \\phi_{i - 1}\\right) & \\mathrm{else}
+\\end{cases}
+```
+
+and that to the right is given by
+
+```math
+{\\widetilde{\\phi}}^\\mathrm{R} = \\begin{cases}
+    \\phi & \\mathrm{if} \\quad \\phi = \\phi_{i - 1} \\quad \\mathrm{or} \\quad \\phi = \\phi_{i + 1},\\\\
+    \\phi + \\frac{1}{2} \\eta \\left(\\frac{\\phi - \\phi_{i - 1}}{\\phi_{i + 1} - \\phi}\\right) \\left(\\phi_{i + 1} - \\phi\\right) & \\mathrm{else},
+\\end{cases}
+```
+
+where
+
+```math
+\\eta \\left(\\xi\\right) = \\max \\left[0, \\min \\left(2 \\xi, \\frac{2 + \\xi}{3}, 2\\right)\\right]
+```
+
+is the monotonized-centered variant limiter.
 
 # Arguments
 
@@ -16,6 +43,8 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
   - `phitilde`: Output matrix with reconstructed values. The two columns of `phitilde` contain the reconstructions to the left and right. No reconstruction is computed for the first and last row of `phitilde`.
 
   - `phisize`: Length of the input vector `phi`.
+
+  - `limitertype`: Type of flux limiter to use.
 """
 function apply_1d_muscl! end
 
@@ -23,6 +52,7 @@ function apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
+    limitertype::MCVariant,
 )
 
     # Initialize phitilde.

@@ -11,7 +11,29 @@ compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 
 Compute the density fluxes in all three directions.
 
-The fluxes are computed from the MUSCL reconstruction of ``\\rho / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. They are written into `state.variables.fluxes.phirho`.
+The fluxes are given by
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1}^\\mathrm{D}\\right\\},
+\\end{align*}
+```
+
+where
+
+
+```math
+\\begin{align*}
+    \\tau_{\\widehat{x}} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
+    \\tau_{\\widehat{y}} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
+    \\tau_{\\widehat{z}} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}
+\\end{align*}
+```
+
+are the transporting velocities (weighted by the Jacobian) and ``\\widetilde{\\phi}`` is the reconstruction of ``\\rho / P_\\mathrm{old}``. More specifically, the superscripts ``\\mathrm{R}``, ``\\mathrm{L}``, ``\\mathrm{F}``, ``\\mathrm{B}``, ``\\mathrm{U}`` and ``\\mathrm{D}`` indicate reconstructions at the right, left, forward, backward, upward and downward cell interfaces of the respective grid points, respectively. Quantities with the subscript ``\\mathrm{old}`` are obtained from a previous state, which is partially passed to the method via `predictands`.
+
 
 ```julia
 compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
@@ -19,7 +41,7 @@ compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 
 Compute the density-fluctuations fluxes in all three directions.
 
-The computation is analogous to that of the density fluxes. The fluxes are written into `state.variables.fluxes.phirhop`.
+The computation is analogous to that of the density fluxes.
 
 ```julia
 compute_fluxes!(
@@ -43,31 +65,123 @@ compute_fluxes!(
 
 Compute the mass-weighted potential-temperature fluxes in all three directions.
 
-The fluxes are computed by interpolating ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. They are written into `state.variables.fluxes.phip`.
+The fluxes are given by
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{P, \\widehat{x}}_{i + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
+    \\mathcal{F}^{P, \\widehat{y}}_{j + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
+    \\mathcal{F}^{P, \\widehat{z}}_{k + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}.
+\\end{align*}
+```
 
 ```julia
 compute_fluxes!(state::State, old_predictands::Predictands, variable::U)
 ```
 
-Compute the sums of advective and viscous zonal-momentum fluxes in all three directions.
+Compute the zonal-momentum fluxes in all three directions.
 
-The advective fluxes are computed from the MUSCL reconstruction of ``\\rho u / P`` and the linear interpolation of ``P \\widehat{\\boldsymbol{u}}`` at the respective cell interfaces. The viscous fluxes are computed from linear interpolations of the corresponding elements of the viscous stress tensor. The total fluxes are written into `state.variables.fluxes.phiu`.
+The fluxes are first set to the advective parts
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 3 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2, j + 1}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
+\\end{align*}
+```
+
+with
+
+```math
+\\begin{align*}
+    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1},\\\\
+    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2}
+\\end{align*}
+```
+
+and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{i + 1 / 2} u_{i + 1 / 2} / P_{\\mathrm{old}, i + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\left(J \\widehat{\\Pi}^{11}\\right)_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\left(J \\widehat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
+\\end{align*}
+```
 
 ```julia
 compute_fluxes!(state::State, old_predictands::Predictands, variable::V)
 ```
 
-Compute the sums of advective and viscous meridional-momentum fluxes in all three directions.
+Compute the meridional-momentum fluxes in all three directions.
 
-The computation is analogous to that of the zonal-momentum fluxes. The total fluxes are written into `state.variables.fluxes.phiv`.
+The fluxes are first set to the advective parts
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1, j + 1 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 3 / 2}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
+\\end{align*}
+```
+
+with
+
+```math
+\\begin{align*}
+    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1},\\\\
+    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2}
+\\end{align*}
+```
+
+and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{j + 1 / 2} v_{j + 1 / 2} / P_{\\mathrm{old}, j + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\left(J \\widehat{\\Pi}^{22}\\right)_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\left(J \\widehat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
+\\end{align*}
+```
 
 ```julia
 compute_fluxes!(state::State, old_predictands::Predictands, variable::W)
 ```
 
-Compute the sums of advective and viscous vertical-momentum fluxes in all three directions.
+Compute the vertical-momentum fluxes in all three directions.
 
-The computation is analogous to those of the zonal-momentum and meridional-momentum fluxes. The total fluxes are written into `state.variables.fluxes.phiw`.
+The fluxes are first set to the advective parts
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1, k + 1 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1, k + 1 / 2}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 3 / 2}^\\mathrm{D}\\right\\},
+\\end{align*}
+```
+
+with
+
+```math
+\\begin{align*}
+    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
+    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
+    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{k + 1}
+\\end{align*}
+```
+
+and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{k + 1 / 2} w_{k + 1 / 2} / P_{\\mathrm{old}, k + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}.
+\\end{align*}
+```
 
 ```julia
 compute_fluxes!(state::State, predictands::Predictands, tracersetup::NoTracer)
@@ -91,7 +205,23 @@ The computation is analogous to that of the density fluxes.
 compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
 ```
 
-Compute the potential temperature fluxes for molecular diffusivity as ``\\mu\\nabla\\theta``.
+Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian).
+
+The fluxes are given by
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\theta, \\widehat{x}}_{i + 1 / 2} & = - \\mu_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{13}\\right)_{i + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k - 1}\\right]\\right\\},\\\\
+    \\mathcal{F}^{\\theta, \\widehat{y}}_{j + 1 / 2} & = - \\mu_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{23}\\right)_{j + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k - 1}\\right]\\right\\},\\\\
+    \\mathcal{F}^{\\theta, \\widehat{z}}_{k + 1 / 2} & = - \\mu_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\frac{\\left(J G^{23}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{j - 1, k + 1 / 2}\\right]\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{33}\\right)_{k + 1 / 2}}{\\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{k + 1} - \\frac{P}{\\rho}\\right]\\right\\},
+\\end{align*}
+```
+
+where ``\\mu`` is the thermal conductivity (computed from `state.namelists.atmosphere.mu_conduct_dim`).
 
 # Arguments
 

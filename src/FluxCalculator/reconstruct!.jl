@@ -13,7 +13,7 @@ reconstruct!(state::State, variable::Rho)
 
 Reconstruct the density.
 
-Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhotilde`.
+Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction.
 
 ```julia
 reconstruct!(state::State, variable::RhoP)
@@ -21,7 +21,7 @@ reconstruct!(state::State, variable::RhoP)
 
 Reconstruct the density fluctuations.
 
-Similar to the density, the density fluctuations are divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhoptilde`.
+Similar to the density, the density fluctuations are divided by ``P`` before reconstruction.
 
 ```julia
 reconstruct!(state::State, variable::U)
@@ -29,7 +29,7 @@ reconstruct!(state::State, variable::U)
 
 Reconstruct the zonal momentum.
 
-Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the zonal momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.utilde`.
+Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the zonal momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
 reconstruct!(state::State, variable::V)
@@ -37,7 +37,7 @@ reconstruct!(state::State, variable::V)
 
 Reconstruct the meridional momentum.
 
-Similar to the zonal momentum, the meridional momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.vtilde`.
+Similar to the zonal momentum, the meridional momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
 reconstruct!(state::State, variable::W)
@@ -45,7 +45,7 @@ reconstruct!(state::State, variable::W)
 
 Reconstruct the vertical momentum.
 
-The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Similar to the zonal and meridional momenta, the vertical momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.wtilde`.
+The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Similar to the zonal and meridional momenta, the vertical momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
 reconstruct!(state::State, tracersetup::NoTracer)
