@@ -149,12 +149,12 @@ $$\begin{align*}
 
     $$\rho'^n = \rho^n - \frac{P^n}{\overline{\theta}}.$$
 
- 1. The left-hand sides are integrated over $\Delta t / 2$ with the low-storage RK3 scheme. Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the LHS sponge. The fact that this is performed such that $P \widehat{\boldsymbol{u}}$ is the transporting wind now becomes relevant not only for the spatial discretization but also for the temporal one, so that the updates at every RK3 stage are as follows.
+ 1. The left-hand sides are integrated over $\Delta t / 2$ with the low-storage RK3 scheme. Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the LHS sponge. The updates at every RK3 stage are as follows.
 
      1. Density update:
 
         $$\begin{align*}
-            q^{\rho, m + 1} & = - \frac{\Delta t}{2 J} \left[\frac{\partial J \left(\rho / P\right)^m \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho / P\right)^m \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho / P\right)^m \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right] + \left(\alpha_\mathrm{RK} q^\rho\right)^m,\\
+            q^{\rho, m + 1} & = - \frac{\Delta t}{2 J} \left(\frac{\partial J \rho^m u^n}{\partial \widehat{x}} + \frac{\partial J \rho^m v^n}{\partial \widehat{y}} + \frac{\partial J \rho^m \widehat{w}^n}{\partial \widehat{z}}\right) + \left(\alpha_\mathrm{RK} q^\rho\right)^m,\\
             \rho^{m + 1} & = \rho^m + \beta_\mathrm{RK}^m q^{\rho, m + 1},\\
             \rho^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\rho^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \overline{\rho}\right)
         \end{align*}$$
@@ -162,8 +162,7 @@ $$\begin{align*}
      1. Density-fluctuations update:
 
         $$\begin{align*}
-            q^{\rho', m + 1} & = - \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(\rho' / P\right)^m \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho' / P\right)^m \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho' / P\right)^m \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right]\right.\\
-            & \qquad \qquad + \left.\frac{F^{P, n + 1}}{\overline{\theta}}\right\} + \left(\alpha_\mathrm{RK} q^{\rho'}\right)^m,\\
+            q^{\rho', m + 1} & = - \frac{\Delta t}{2} \left[\frac{1}{J} \left(\frac{\partial J \rho'^m u^n}{\partial \widehat{x}} + \frac{\partial J \rho'^m v^n}{\partial \widehat{y}} + \frac{\partial J \rho'^m \widehat{w}^n}{\partial \widehat{z}}\right) + \frac{F^{P, n + 1}}{\overline{\theta}}\right] + \left(\alpha_\mathrm{RK} q^{\rho'}\right)^m,\\
             \rho'^{m + 1} & = \rho'^m + \beta_\mathrm{RK}^m q^{\rho', m + 1},\\
             \rho'^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left\{\rho'^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \overline{\rho} \left[1 - \frac{\left(P / \rho\right)^{m + 1}}{\overline{\theta}}\right]\right\}
         \end{align*}$$
@@ -188,15 +187,6 @@ $$\begin{align*}
             \widehat{w}^{m + 1} & = \left(\rho^{- 1}\right)^{m + 1} \left[\left(\rho \widehat{w}\right)^m + \beta_\mathrm{RK}^m q^{\rho \widehat{w}, m + 1}\right],\\
             \widehat{\boldsymbol{u}}^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\widehat{\boldsymbol{u}}^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \widehat{\boldsymbol{u}}_\mathrm{R}^{m + 1}\right)
         \end{align*}$$
-
-    The advective momentum-flux divergences are given by
-
-    $$\begin{align*}
-        \mathcal{A}^{u, m, n} & = \frac{1}{J} \left[\frac{\partial J \left(\rho u / P\right)^m \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho u / P\right)^m \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho u / P\right)^m \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right],\\
-        \mathcal{A}^{v, m, n} & = \frac{1}{J} \left[\frac{\partial J \left(\rho v / P\right)^m \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho v / P\right)^m \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho v / P\right)^m \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right],\\
-        \mathcal{A}^{\widehat{w}, m, n} & = G^{13} \mathcal{A}^{u, m, n} + G^{23} \mathcal{A}^{v, m, n}\\
-        & \quad + \frac{1}{J^2} \left[\frac{\partial J \left(\rho w / P\right)^m \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho w / P\right)^m \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho w / P\right)^m \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right].
-    \end{align*}$$
 
     After the last RK3 step, the Exner-pressure fluctuations are updated according to the Rayleigh damping applied to the mass-weighted potential temperature, i.e.
 
