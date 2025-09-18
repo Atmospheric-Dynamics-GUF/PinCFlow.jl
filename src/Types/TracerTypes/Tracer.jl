@@ -6,6 +6,7 @@ Tracer{
     C <: TracerAuxiliaries,
     D <: TracerReconstructions,
     E <: TracerFluxes,
+    F <: TracerForcings,
 }
 ```
 
@@ -36,6 +37,8 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
   - `tracerfluxes::E`: Fluxes of the tracers.
 
+  - `tracerforcings::F`: Forcing terms due to gravity-waves and turbulence.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -61,6 +64,8 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
   - [`PinCFlow.Types.TracerTypes.TracerReconstructions`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.TracerFluxes`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerForcings`](@ref)
 """
 struct Tracer{
     A <: TracerPredictands,
@@ -68,12 +73,14 @@ struct Tracer{
     C <: TracerAuxiliaries,
     D <: TracerReconstructions,
     E <: TracerFluxes,
+    F <: TracerForcings,
 }
     tracerpredictands::A
     tracerincrements::B
     tracerauxiliaries::C
     tracerreconstructions::D
     tracerfluxes::E
+    tracerforcings::F
 end
 
 function Tracer(
@@ -96,6 +103,7 @@ function Tracer(
     tracerauxiliaries = TracerAuxiliaries(tracerpredictands)
     tracerreconstructions = TracerReconstructions(namelists, domain)
     tracerfluxes = TracerFluxes(namelists, domain)
+    tracerforcings = TracerForcings(namelists, domain)
 
     return Tracer(
         tracerpredictands,
@@ -103,5 +111,6 @@ function Tracer(
         tracerauxiliaries,
         tracerreconstructions,
         tracerfluxes,
+        tracerforcings,
     )
 end
