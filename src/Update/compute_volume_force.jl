@@ -198,7 +198,7 @@ function compute_volume_force(
 
     (; leading_order_impact) = state.namelists.tracer
     (; chiq0) = state.tracer.tracerforcings
-    (; model) = state.namelist.setting
+    (; model) = state.namelists.setting
 
     (ix, jy, kz) = indices
 
