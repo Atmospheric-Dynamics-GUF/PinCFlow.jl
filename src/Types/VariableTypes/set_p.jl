@@ -40,7 +40,6 @@ In compressible mode, the mass-weighted potential temperature is a prognostic va
   - `pstrattfc`: Mass-weighted potential temperature.
 
 """
-
 function set_p end
 
 function set_p(
