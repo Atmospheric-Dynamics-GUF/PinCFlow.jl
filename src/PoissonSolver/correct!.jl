@@ -3,7 +3,7 @@
 correct!(state::State, dt::AbstractFloat, rayleigh_factor::AbstractFloat)
 ```
 
-Correct the Exner-pressure, wind and buoyancy (density fluctuations) such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.
+Correct the Exner-pressure, wind and density fluctuations such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.
 
 This method calls specific methods for the correction of each individual variable.
 
@@ -21,10 +21,22 @@ Correct the zonal wind to account for the pressure differences obtained from the
 The correction is given by
 
 ```math
-u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} - \\mathcal{C}_{i + 1 / 2}^u = u_{i + 1 / 2} - \\left(1 + \\alpha_{\\mathrm{R}, i + 1 / 2}^{uv} \\delta t\\right)^{- 1} \\delta t c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{D}_{i + 1 / 2}^u,
+u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} - \\mathcal{C}_{i + 1 / 2}^u
 ```
 
-where ``\\delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^u`` is computed with `compute_pressure_gradient`.
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+U_{i + 1 / 2} \\rightarrow U_{i + 1 / 2} - \\left(J P\\right)_{i + 1 / 2} \\mathcal{C}_{i + 1 / 2}^u
+```
+
+in compressible mode, with
+
+```math
+\\mathcal{C}_{i + 1 / 2}^u = \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2}^{uv} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{D}_{i + 1 / 2}^u.
+```
+
+Therein, ``U_{i + 1 / 2} = \\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\Delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^u`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -40,10 +52,22 @@ Correct the meridional wind to account for the pressure differences obtained fro
 The correction is given by
 
 ```math
-v_{j + 1 / 2} \\rightarrow v_{j + 1 / 2} - \\mathcal{C}_{j + 1 / 2}^v = v_{j + 1 / 2} - \\left(1 + \\alpha_{\\mathrm{R}, j + 1 / 2}^{uv} \\delta t\\right)^{- 1} \\delta t c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{D}_{j + 1 / 2}^v,
+v_{j + 1 / 2} \\rightarrow v_{j + 1 / 2} - \\mathcal{C}_{j + 1 / 2}^v
 ```
 
-where ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^v`` is computed with `compute_pressure_gradient`.
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+V_{j + 1 / 2} \\rightarrow V_{j + 1 / 2} - \\left(J P\\right)_{j + 1 / 2} \\mathcal{C}_{j + 1 / 2}^v
+```
+
+in compressible mode, with
+
+```math
+\\mathcal{C}_{j + 1 / 2}^v = \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2}^{uv} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{D}_{j + 1 / 2}^v,
+```
+
+where ``V_{j + 1 / 2} = \\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^v`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -60,12 +84,22 @@ The correction is given by
 
 ```math
 \\begin{align*}
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\widehat{w}_{k + 1 / 2} - \\left[1 + \\alpha_{\\mathrm{R}, k + 1 / 2}^{\\widehat{w}} \\delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}} + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^u\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^v\\right)_{k + 1 / 2}\\right]\\right\\},
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\widehat{w}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2}^{\\widehat{w}} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\Delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}} + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^u\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^v\\right)_{k + 1 / 2}\\right]\\right\\},
 \\end{align*}
 ```
 
-where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` is computed with `compute_pressure_gradient`.
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\begin{align*}
+    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\widehat{W}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2}^{\\widehat{w}} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\Delta t c_p \\left(J P\\right)_{k + 1 / 2} \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}} \\vphantom{\\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}}}\\right.\\\\
+    & \\qquad \\quad + \\left.\\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^u\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^v\\right)_{k + 1 / 2}\\right]\\right\\},
+\\end{align*}
+```
+
+in compressible mode, where ``\\widehat{W}_{k + 1 / 2} = \\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` and ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -76,19 +110,29 @@ correct!(
 )
 ```
 
-Correct the buoyancy (representative for the density fluctuations) to account for the pressure differences obtained from the solution to the Poisson problem.
+Correct the density fluctuations to account for the pressure differences obtained from the solution to the Poisson problem.
 
 The correction is given by
 
 ```math
 \\begin{align*}
-    b' & \\rightarrow b' - \\left[1 + \\alpha_\\mathrm{R}^{\\widehat{w}} \\delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left[- \\frac{\\overline{\\rho}}{\\rho} \\left(N \\delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\delta t J \\left(1 + \\alpha_\\mathrm{R}^{\\widehat{w}} \\delta t\\right) \\left(G^{1 3} \\mathcal{C}^u + G^{2 3} \\mathcal{C}^v\\right)\\right],
+    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^u + G^{2 3} \\mathcal{C}^v\\right)\\right],
 \\end{align*}
 ```
 
-where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\widehat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\begin{align*}
+    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^u + G^{2 3} \\mathcal{C}^v\\right)\\right],
+\\end{align*}
+```
+
+in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\widehat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
 
 ```julia
 correct!(state::State, variable::PiP)
