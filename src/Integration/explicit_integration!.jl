@@ -48,6 +48,7 @@ function explicit_integration!(
 )
     (; nstages, stepfrac) = state.time
     (; tracersetup) = state.namelists.tracer
+    (; testcase) = state.namelists.setting
 
     for rkstage in 1:nstages
         reconstruct!(state)

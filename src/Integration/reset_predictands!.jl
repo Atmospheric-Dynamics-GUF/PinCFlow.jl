@@ -27,10 +27,20 @@ Reset the density, density fluctuations, wind components, Exner pressure and mas
 """
 function reset_predictands! end
 
-function reset_predictands!(state::State, predictands::Predictands)
+function reset_predictands!(state::State, predictands::Predictands,
+    tracerpredictands::TracerPredictands)
     (; model) = state.namelists.setting
     reset_predictands!(state, predictands, model)
+    reset_predictands!(state, tracerpredictands)
     return
+end
+
+function reset_predictands!(state::State, tracerpredictands::TracerPredictands)
+    (; chi) = state.tracer.tracerpredictands
+
+    chi .= tracerpredictands.chi
+
+    return 
 end
 
 function reset_predictands!(
