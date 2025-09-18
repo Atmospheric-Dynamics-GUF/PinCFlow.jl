@@ -390,6 +390,44 @@ function write_output(
                         rho[i0:i1, j0:j1, k0:k1]
                     )
             end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt in output_variables
+                for field in (:dchidt,)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (sizex, sizey, sizez, iout),
+                    )
+                    @views file[string(field)][
+                        (io + 1):(io + nx),
+                        (jo + 1):(jo + ny),
+                        (ko + 1):(ko + nz),
+                        iout,
+                    ] =
+                        getfield(state.tracer.tracerforcings.chiq0, field)[
+                            i0:i1,
+                            j0:j1,
+                            k0:k1,
+                        ] ./ tref
+                end
+                for field in (:uchi, :vchi, :wchi)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (sizex, sizey, sizez, iout),
+                    )
+                    @views file[string(field)][
+                        (io + 1):(io + nx),
+                        (jo + 1):(jo + ny),
+                        (ko + 1):(ko + nz),
+                        iout,
+                    ] =
+                        getfield(state.tracer.tracerforcings.chiq0, field)[
+                            i0:i1,
+                            j0:j1,
+                            k0:k1,
+                        ] .* uref
+                end
+            end
         end
 
         # Write WKB variables.
