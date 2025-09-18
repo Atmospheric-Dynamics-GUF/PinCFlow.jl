@@ -104,6 +104,15 @@ struct Theta <: AbstractVariable end
 
 """
 ```julia
+Chi <: AbstractVariable
+```
+
+Singleton that represents the tracer mixing ratio.
+"""
+struct Chi <: AbstractVariable end
+
+"""
+```julia
 Explicit
 ```
 
@@ -157,6 +166,7 @@ export Rho,
     PiP,
     P,
     Theta,
+    Chi,
     Explicit,
     Implicit,
     UniformBoussinesq,
@@ -225,6 +235,8 @@ export DomainNamelist,
     TracerAuxiliaries,
     TracerIncrements,
     TracerReconstructions,
-    TracerFluxes
+    TracerFluxes,
+    TracerForcings,
+    TracerWKBImpact
 
 end

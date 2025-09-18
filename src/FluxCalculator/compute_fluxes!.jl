@@ -253,7 +253,6 @@ function compute_fluxes!(state::State, predictands::Predictands)
     compute_fluxes!(state, predictands, U())
     compute_fluxes!(state, predictands, V())
     compute_fluxes!(state, predictands, W())
-    compute_fluxes!(state, predictands, Theta())
 
     compute_fluxes!(state, predictands, model, P())
     compute_fluxes!(state, predictands, state.namelists.tracer.tracersetup)
@@ -1490,7 +1489,7 @@ function compute_fluxes!(
     (; phitheta) = state.variables.fluxes
     (; mu_conduct_dim) = state.namelists.atmosphere
     (; uref, lref) = state.constants
-    (; rho) = state.variables.predictands
+    (; rho) = predictands
 
     if mu_conduct_dim == 0.0
         return

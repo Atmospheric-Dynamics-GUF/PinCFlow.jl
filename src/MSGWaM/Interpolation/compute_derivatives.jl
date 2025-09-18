@@ -117,6 +117,45 @@ The derivative is given by
 
 At grid points beyond the vertical boundaries, it is set to zero.
 
+```julia
+compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    phitype::DChiDX,
+)::NTuple{2, <:AbstractFloat}
+```
+
+Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial x``) at ``\\left(i + 1 / 2, j, k_\\mathrm{D}\\right)`` and ``\\left(i + 1 / 2, j, k_\\mathrm{U}\\right)``.
+
+```julia
+compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    phitype::DChiDY,
+)::NTuple{2, <:AbstractFloat}
+```
+
+Compute and return the meridional derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial y``) at ``\\left(i, j + 1 / 2, k_\\mathrm{D}\\right)`` and ``\\left(i, j + 1 / 2, k_\\mathrm{U}\\right)``.
+
+```julia
+compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    phitype::DChiDZ,
+)::NTuple{2, <:AbstractFloat}
+```
+
+Compute and return the vertical derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial z``) at ``\\left(i, j, k_\\mathrm{D} + 1 / 2\\right)`` and ``\\left(i, j, k_\\mathrm{U} + 1 / 2\\right)``.
+
 # Arguments
 
   - `state`: Model state.
@@ -384,6 +423,138 @@ function compute_derivatives(
                     (jac[i, j, kd] + jac[i, j, kd + 1]) +
                     jac[i, j + 1, kd] * jac[i, j + 1, kd + 1] /
                     (jac[i, j + 1, kd] + jac[i, j + 1, kd + 1])
+                )
+            phiu = 0.0
+        else
+            phid = 0.0
+            phiu = 0.0
+        end
+    end
+
+    return (phid, phiu)
+end
+
+function compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    phitype::DChiDX,
+)::NTuple{2, <:AbstractFloat}
+    (; dx, dz, met) = state.grid
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
+
+    # Get mass-specific tracer mixing ratio.
+    c = chi ./ (rho .+ rhostrattfc)
+
+    @ivy phid =
+        (c[i + 1, j, kd] - c[i, j, kd]) / dx +
+        0.5 *
+        (met[i, j, kd, 1, 3] + met[i + 1, j, kd, 1, 3]) *
+        0.25 *
+        (
+            c[i, j, kd + 1] + c[i + 1, j, kd + 1] - c[i, j, kd - 1] -
+            c[i + 1, j, kd - 1]
+        ) / dz
+
+    @ivy phiu =
+        (c[i + 1, j, ku] - c[i, j, ku]) / dx +
+        0.5 *
+        (met[i, j, ku, 1, 3] + met[i + 1, j, ku, 1, 3]) *
+        0.25 *
+        (
+            c[i, j, ku + 1] + c[i + 1, j, ku + 1] - c[i, j, ku - 1] -
+            c[i + 1, j, ku - 1]
+        ) / dz
+
+    return (phid, phiu)
+end
+
+function compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    phitype::DChiDY,
+)::NTuple{2, <:AbstractFloat}
+    (; dy, dz, met) = state.grid
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
+
+    # Get mass-specific tracer mixing ratio.
+    c = chi ./ (rho .+ rhostrattfc)
+
+    @ivy phid =
+        (c[i, j + 1, kd] - c[i, j, kd]) / dy +
+        0.5 *
+        (met[i, j, kd, 2, 3] + met[i, j + 1, kd, 2, 3]) *
+        0.25 *
+        (
+            c[i, j, kd + 1] + c[i, j + 1, kd + 1] - c[i, j, kd - 1] -
+            c[i, j + 1, ku - 1]
+        ) / dz
+
+    @ivy phiu =
+        (c[i, j + 1, ku] - c[i, j, ku]) / dy +
+        0.5 *
+        (met[i, j, ku, 2, 3] + met[i, j + 1, ku, 2, 3]) *
+        0.25 *
+        (
+            c[i, j, ku + 1] + c[i, j + 1, ku + 1] - c[i, j, ku - 1] -
+            c[i, j + 1, ku - 1]
+        ) / dz
+
+    return (phid, phiu)
+end
+
+function compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    phitype::DChiDZ,
+)::NTuple{2, <:AbstractFloat}
+    (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
+
+    # Get mass-specific tracer mixing ratio.
+    c = chi ./ (rho .+ rhostrattfc)
+
+    @ivy if ztildetfc[i, j, ku] < topography_surface[i, j]
+        phid = 0.0
+        phiu = 0.0
+    elseif ztildetfc[i, j, kd] < topography_surface[i, j]
+        phid = 0.0
+        phiu =
+            (c[i, j, ku + 1] - c[i, j, ku]) / dz / (
+                2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
+                (jac[i, j, ku] + jac[i, j, ku + 1])
+            )
+    else
+        if ztildetfc[i, j, ku] < lz
+            phid =
+                (c[i, j, kd + 1] - c[i, j, kd]) / dz / (
+                    2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
+                    (jac[i, j, kd] + jac[i, j, kd + 1])
+                )
+            phiu =
+                (c[i, j, ku + 1] - c[i, j, ku]) / dz / (
+                    2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
+                    (jac[i, j, ku] + jac[i, j, ku + 1])
+                )
+        elseif ztildetfc[i, j, kd] < lz
+            phid =
+                (c[i, j, kd + 1] - c[i, j, kd]) / dz / (
+                    2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
+                    (jac[i, j, kd] + jac[i, j, kd + 1])
                 )
             phiu = 0.0
         else

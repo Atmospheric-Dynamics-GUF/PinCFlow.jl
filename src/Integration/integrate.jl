@@ -265,7 +265,9 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        p0 = deepcopy(state.variables.predictands)
+        (p0, chi0) = backup_predictands(state)
+
+        compute_fluxes!(state, p0, Theta())
 
         if master
             println("(1) Explicit integration of LHS over dt/2...")
@@ -297,7 +299,7 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        reset_predictands!(state, p0)
+        reset_predictands!(state, p0, chi0)
 
         explicit_integration!(state, p0, 0.5 * dt, time, RHS())
 

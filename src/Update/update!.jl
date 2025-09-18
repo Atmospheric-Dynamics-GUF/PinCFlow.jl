@@ -216,7 +216,7 @@ update!(
 )
 ```
 
-Update the tracers with a Runge-Kutta step on the left-hand sides of the equations (as of now, the right-hand sides are still zero).
+Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
 
 # Arguments
 
@@ -1229,6 +1229,7 @@ function update!(
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
+    (; testcase) = state.namelists.setting
 
     @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
         if m == 1
@@ -1246,7 +1247,8 @@ function update!(
             fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
             fluxdiff /= jac[i, j, k]
 
-            f = -fluxdiff
+            force = compute_volume_force(state, i, j, k, Chi(), testcase)
+            f = -fluxdiff + force
 
             getfield(tracerincrements, fd)[i, j, k] =
                 dt * f + alphark[m] * getfield(tracerincrements, fd)[i, j, k]

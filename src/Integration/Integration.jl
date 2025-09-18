@@ -46,6 +46,7 @@ include("synchronize_density_fluctuations!.jl")
 include("explicit_integration!.jl")
 include("implicit_integration!.jl")
 include("wkb_integration!.jl")
+include("backup_predictands.jl")
 
 export integrate
 

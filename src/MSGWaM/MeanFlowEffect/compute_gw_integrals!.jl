@@ -103,7 +103,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
-    (; g_ndim, tref) = state.constants
+    (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = grid
     (; rhostrattfc, thetastrattfc) = state.atmosphere
@@ -115,6 +115,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
+
+    set_tracer_field_zero!(state)
 
     @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
@@ -248,6 +250,23 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         end
 
                         integrals.e[iray, jray, kray] += wadr * omir
+
+                        compute_leading_order_tracer_fluxes!(
+                            state,
+                            state.namelists.tracer.tracersetup,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            xr,
+                            yr,
+                            zr,
+                            iray,
+                            jray,
+                            kray,
+                        )
                     end
                 end
             end
@@ -380,6 +399,23 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                         end
 
                         integrals.e[iray, jray, kray] += wadr * omir
+
+                        compute_leading_order_tracer_fluxes!(
+                            state,
+                            state.namelists.tracer.tracersetup,
+                            fc,
+                            omir,
+                            0.0,
+                            0.0,
+                            wnrm,
+                            wadr,
+                            xr,
+                            yr,
+                            zr,
+                            iray,
+                            jray,
+                            kray,
+                        )
                     end
                 end
             end
@@ -489,6 +525,23 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                         integrals.uw[iray, jray, kray] += wadr * kr * cgirz
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
+
+                        compute_leading_order_tracer_fluxes!(
+                            state,
+                            state.namelists.tracer.tracersetup,
+                            fc,
+                            omir,
+                            wnrk,
+                            wnrl,
+                            wnrm,
+                            wadr,
+                            xr,
+                            yr,
+                            zr,
+                            iray,
+                            jray,
+                            kray,
+                        )
                     end
                 end
             end

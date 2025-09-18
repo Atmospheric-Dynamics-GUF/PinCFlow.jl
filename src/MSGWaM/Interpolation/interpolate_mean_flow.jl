@@ -125,6 +125,49 @@ Interpolate the vertical derivative of the meridional wind (``\\partial v_\\math
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. The steps that follow are analogous to those in the method for the vertical derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial z``).
 
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DChiDX,
+)::AbstractFloat
+```
+
+Interpolate the zonal derivative of the tracer mixing ratio (``\\partial \\chi_\\mathrm{b} / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial \\chi_\\mathrm{b} / \\partial x`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DChiDY,
+)::AbstractFloat
+```
+
+Interpolate the meridional derivative of the tracer mixing ratio (``\\partial \\chi_\\mathrm{b} / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial \\chi_\\mathrm{b} / \\partial y`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DChiDZ,
+)::AbstractFloat
+```
+
+Interpolate the vertical derivative of the tracer mixing ratio (``\\partial \\chi_\\mathrm{b} / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial \\chi_\\mathrm{b} / \\partial z`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
+
 # Arguments
 
   - `xlc`: Zonal position of interest.
@@ -1342,6 +1385,398 @@ function interpolate_mean_flow(
     # Interpolate.
     phi = interpolate(
         state;
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
+        zlbd,
+        zlbu,
+        zlfd,
+        zlfu,
+        zrbd,
+        zrbu,
+        zrfd,
+        zrfu,
+        zlc,
+        yb,
+        yf,
+        ylc,
+        xl,
+        xr,
+        xlc,
+    )
+
+    return phi
+end
+
+function interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DChiDX,
+)::AbstractFloat
+    (; namelists, domain, grid) = state
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
+    (; lx, ly, dx, dy, x, y, ztfc) = grid
+
+    # Locate the closest points in zonal direction.
+    if sizex == 1
+        phi = 0.0
+        return phi
+    else
+        il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
+        if il < 1
+            error(
+                "Error in interpolate_mean_flow (DChiDX): il = ",
+                il,
+                " < 1",
+            )
+        end
+        ir = il + 1
+        if ir + 1 > nxx
+            error(
+                "Error in interpolate_mean_flow (DChiDX): ir + 1 = ",
+                ir + 1,
+                " > nxx = ",
+                nxx,
+            )
+        end
+    end
+    @ivy xr = x[ir + io] + dx / 2
+    @ivy xl = x[il + io] + dx / 2
+
+    # Locate the closest points in meridional direction.
+    if sizey == 1
+        jb = j0
+        jf = j0
+    else
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        if jb < 1
+            error(
+                "Error in interpolate_mean_flow (DChiDX): jb = ",
+                jb,
+                " < 1",
+            )
+        end
+        jf = jb + 1
+        if jf > nyy
+            error(
+                "Error in interpolate_mean_flow (DChiDX): jf = ",
+                jf,
+                " > nyy = ",
+                nyy,
+            )
+        end
+    end
+    @ivy yf = y[jf + jo]
+    @ivy yb = y[jb + jo]
+
+    # Locate the closest points in vertical direction.
+
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il + 1, jb, klbd]) / 2
+    @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il + 1, jb, klbu]) / 2
+
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il + 1, jf, klfd]) / 2
+    @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il + 1, jf, klfu]) / 2
+
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir + 1, jb, krbd]) / 2
+    @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir + 1, jb, krbu]) / 2
+
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir + 1, jf, krfd]) / 2
+    @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir + 1, jf, krfu]) / 2
+
+    # Assign the values.
+
+    (philbd, philbu) =
+        compute_derivatives(state, il, jb, klbd, klbu, DChiDX())
+
+    (philfd, philfu) =
+        compute_derivatives(state, il, jf, klfd, klfu, DChiDX())
+
+    (phirbd, phirbu) =
+        compute_derivatives(state, ir, jb, krbd, krbu, DChiDX())
+
+    (phirfd, phirfu) =
+        compute_derivatives(state, ir, jf, krfd, krfu, DChiDX())
+
+    # Interpolate.
+    phi = interpolate(
+        namelists;
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
+        zlbd,
+        zlbu,
+        zlfd,
+        zlfu,
+        zrbd,
+        zrbu,
+        zrfd,
+        zrfu,
+        zlc,
+        yb,
+        yf,
+        ylc,
+        xl,
+        xr,
+        xlc,
+    )
+
+    return phi
+end
+
+function interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DChiDY,
+)::AbstractFloat
+    (; namelists, domain, grid) = state
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
+    (; lx, ly, dx, dy, x, y, ztfc) = grid
+
+    if sizex == 1
+        il = i0
+        ir = i0
+    else
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        if il < 1
+            error(
+                "Error in interpolate_mean_flow (DChiDY): il = ",
+                il,
+                " < 1",
+            )
+        end
+        ir = il + 1
+        if ir > nxx
+            error(
+                "Error in interpolate_mean_flow (DChiDY): ir = ",
+                ir,
+                " > nxx = ",
+                nxx,
+            )
+        end
+    end
+    @ivy xr = x[ir + io]
+    @ivy xl = x[il + io]
+
+    # Locate the closest points in meridional direction.
+    if sizey == 1
+        phi = 0.0
+        return phi
+    else
+        jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
+        if jb < 1
+            error(
+                "Error in interpolate_mean_flow (DChiDY): jb = ",
+                jb,
+                " < 1",
+            )
+        end
+        jf = jb + 1
+        if jf + 1 > nyy
+            error(
+                "Error in interpolate_mean_flow (DChiDY): jf + 1 = ",
+                jf + 1,
+                " > nyy = ",
+                nyy,
+            )
+        end
+    end
+    @ivy yf = y[jf + jo] + dy / 2
+    @ivy yb = y[jb + jo] + dy / 2
+
+    # Locate the closest points in vertical direction.
+
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = (ztfc[il, jf, klbd] + ztfc[il, jf + 1, klbd]) / 2
+    @ivy zlbu = (ztfc[il, jf, klbu] + ztfc[il, jf + 1, klbu]) / 2
+
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il, jf + 1, klfd]) / 2
+    @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il, jf + 1, klfu]) / 2
+
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir, jb + 1, krbd]) / 2
+    @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir, jb + 1, krbu]) / 2
+
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir, jf + 1, krfd]) / 2
+    @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir, jf + 1, krfu]) / 2
+
+    # Assign the values.
+
+    (philbd, philbu) =
+        compute_derivatives(state, il, jb, klbd, klbu, DChiDY())
+
+    (philfd, philfu) =
+        compute_derivatives(state, il, jf, klfd, klfu, DChiDY())
+
+    (phirbd, phirbu) =
+        compute_derivatives(state, ir, jb, krbd, krbu, DChiDY())
+
+    (phirfd, phirfu) =
+        compute_derivatives(state, ir, jf, krfd, krfu, DChiDY())
+
+    # Interpolate.
+    phi = interpolate(
+        namelists;
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
+        zlbd,
+        zlbu,
+        zlfd,
+        zlfu,
+        zrbd,
+        zrbu,
+        zrfd,
+        zrfu,
+        zlc,
+        yb,
+        yf,
+        ylc,
+        xl,
+        xr,
+        xlc,
+    )
+
+    return phi
+end
+
+function interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DChiDZ,
+)::AbstractFloat
+    (; namelists, domain, grid) = state
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
+    (; lx, ly, dx, dy, x, y, ztildetfc) = grid
+
+    # Locate the closest points in zonal direction.
+    if sizex == 1
+        il = i0
+        ir = i0
+    else
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        if il < 1
+            error(
+                "Error in interpolate_mean_flow (DChiDZ): il = ",
+                il,
+                " < 1",
+            )
+        end
+        ir = il + 1
+        if ir > nxx
+            error(
+                "Error in interpolate_mean_flow (DChiDZ): ir = ",
+                ir,
+                " > nxx = ",
+                nxx,
+            )
+        end
+    end
+    @ivy xr = x[ir + io]
+    @ivy xl = x[il + io]
+
+    # Locate the closest points in meridional direction.
+    if sizey == 1
+        jb = j0
+        jf = j0
+    else
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        if jb < 1
+            error(
+                "Error in interpolate_mean_flow (DChiDZ): jb = ",
+                jb,
+                " < 1",
+            )
+        end
+        jf = jb + 1
+        if jf > nyy
+            error(
+                "Error in interpolate_mean_flow (DChiDZ): jf = ",
+                jf,
+                " > nyy = ",
+                nyy,
+            )
+        end
+    end
+    @ivy yf = y[jf + jo]
+    @ivy yb = y[jb + jo]
+
+    # Locate the closest points in vertical direction.
+
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = ztildetfc[il, jb, klbd]
+    @ivy zlbu = ztildetfc[il, jb, klbu]
+
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = ztildetfc[il, jf, klfd]
+    @ivy zlfu = ztildetfc[il, jf, klfu]
+
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = ztildetfc[ir, jb, krbd]
+    @ivy zrbu = ztildetfc[ir, jb, krbu]
+
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = ztildetfc[ir, jf, krfd]
+    @ivy zrfu = ztildetfc[ir, jf, krfu]
+
+    # Assign the values.
+
+    (philbd, philbu) =
+        compute_derivatives(state, il, jb, klbd, klbu, DChiDZ())
+
+    (philfd, philfu) =
+        compute_derivatives(state, il, jf, klfd, klfu, DChiDZ())
+
+    (phirbd, phirbu) =
+        compute_derivatives(state, ir, jb, krbd, krbu, DChiDZ())
+
+    (phirfd, phirfu) =
+        compute_derivatives(state, ir, jf, krfd, krfu, DChiDZ())
+
+    # Interpolate.
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,

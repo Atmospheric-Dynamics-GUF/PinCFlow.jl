@@ -165,7 +165,11 @@ end
 
 function set_vertical_boundaries!(state::State, variables::BoundaryWKBIntegrals)
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
+
     set_vertical_boundaries!(state, variables, wkb_mode)
+    set_tracer_vertical_boundaries!(state, variables, wkb_mode, tracersetup)
+
     return
 end
 
@@ -216,7 +220,11 @@ function set_vertical_boundaries!(
     variables::BoundaryWKBTendencies,
 )
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
+
     set_vertical_boundaries!(state, variables, wkb_mode)
+    set_tracer_vertical_boundaries!(state, variables, wkb_mode, tracersetup)
+
     return
 end
 

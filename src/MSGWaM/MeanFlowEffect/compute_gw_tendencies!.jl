@@ -140,5 +140,13 @@ function compute_gw_tendencies!(state::State)
                     )
             end
         end
+
+        compute_leading_order_tracer_forcing!(
+            state,
+            i,
+            j,
+            k,
+            state.namelists.tracer.tracersetup,
+        )
     end
 end

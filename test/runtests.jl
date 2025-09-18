@@ -139,8 +139,6 @@ configurations = Dict(
                         relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
                     )
 
-                    tracer = TracerNamelist(; tracersetup = LinearTracer())
-
                     wkb = WKBNamelist(;
                         xrmin_dim = -5.0E+4,
                         xrmax_dim = 5.0E+4,
@@ -171,6 +169,11 @@ configurations = Dict(
                         long_threshold = 2.5E-1,
                         drag_coefficient = 1.0E+0,
                         nwm = 1,
+                    )
+
+                    tracer = TracerNamelist(;
+                        tracersetup = LinearTracer(),
+                        leading_order_impact = true,
                     )
 
                     namelists = Namelists(;

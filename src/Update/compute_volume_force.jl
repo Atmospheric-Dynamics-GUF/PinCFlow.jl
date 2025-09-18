@@ -80,6 +80,32 @@ compute_volume_force(
 
 Return the gravity-wave impact on the mass-weighted potential temperature (diabatic heating).
 
+```julia
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::Chi,
+    testcase::AbstractTestCase,
+)::AbstractFloat
+```
+
+Return no volume force for non-WKB configurations.
+
+```
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::Chi,
+    testcase::AbstractWKBTestCase
+)::AbstractFloat
+```
+
+Return tracer flux convergence for WKB configurations.
+
 # Arguments
 
   - `state`: Model state.
@@ -179,4 +205,34 @@ function compute_volume_force(
     (; dthetadt) = state.wkb.tendencies
 
     @ivy return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
+end
+
+function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::Chi,
+    testcase::AbstractTestCase,
+)::AbstractFloat
+    return 0.0
+end
+
+function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::Chi,
+    testcase::AbstractWKBTestCase,
+)::AbstractFloat
+    (; leading_order_impact) = state.namelists.tracer
+    (; chiq0) = state.tracer.tracerforcings
+    (; model) = state.namelists.setting
+
+    @ivy if leading_order_impact && model == Compressible()
+        return chiq0.dchidt[i, j, k]
+    else
+        return 0.0
+    end
 end
