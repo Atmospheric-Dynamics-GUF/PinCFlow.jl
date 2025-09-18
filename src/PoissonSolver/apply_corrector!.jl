@@ -9,7 +9,7 @@ apply_corrector!(
 
 Perform the corrector step and return a tuple containing an error flag and the number of BicGStab iterations.
 
-The right-hand side and the linear operator of the discrete Poisson equation are calculated. The equation is then solved for Exner-pressure differences, using a preconditioned BicGStab algorithm. Finally, the Exner-pressure, wind and density fluctuations are corrected accordingly.
+The left-hand side and the linear operator of the discrete Poisson equation are calculated. The equation is then solved for Exner-pressure differences, using a preconditioned BicGStab algorithm. Finally, the Exner-pressure, wind and density fluctuations are corrected accordingly.
 
 # Arguments
 
@@ -21,7 +21,7 @@ The right-hand side and the linear operator of the discrete Poisson equation are
 
 # See also
 
-  - [`PinCFlow.PoissonSolver.compute_rhs!`](@ref)
+  - [`PinCFlow.PoissonSolver.compute_lhs!`](@ref)
 
   - [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
 
@@ -44,7 +44,7 @@ function apply_corrector!(
     (; dpip) = state.variables.increments
 
     # Calculate RHS and tolreance reference.
-    tolref = compute_rhs!(state)
+    tolref = compute_lhs!(state)
 
     # Solve Poisson equation.
     (errflagbicg, niterbicg) =

@@ -15,7 +15,7 @@ This preconditioner integrates the auxiliary equation
 \\frac{\\mathrm{d} s}{\\mathrm{d} \\eta} = \\mathcal{L}_\\mathrm{h} \\left(s\\right) + \\mathcal{L}_\\mathrm{v} \\left(s\\right) - b,
 ```
 
-where ``s`` is the iterative solution, ``\\eta`` is a pseudo-time variable, ``\\mathcal{L}_\\mathrm{v}`` contains the lower, center and upper diagonals of the linear operator, ``\\mathcal{L}_\\mathrm{h}`` contains all remaining elements, and ``b`` is the right-hand side. The integration is performed in a semi-implicit manner, following
+where ``s`` is the iterative solution, ``\\eta`` is a pseudo-time variable, ``\\mathcal{L}_\\mathrm{v}`` contains the lower, center and upper diagonals of the linear operator, ``\\mathcal{L}_\\mathrm{h}`` contains all remaining elements, and ``b`` is the left-hand side. The integration is performed in a semi-implicit manner, following
 
 ```math
 \\left(1 - \\Delta \\eta \\mathcal{L}_\\mathrm{v}\\right) \\left(s^{\\left(m + 1\\right)}\\right) = \\left(1 + \\Delta \\eta \\mathcal{L}_\\mathrm{h}\\right) \\left(s^{\\left(m\\right)}\\right) - \\Delta \\eta b,

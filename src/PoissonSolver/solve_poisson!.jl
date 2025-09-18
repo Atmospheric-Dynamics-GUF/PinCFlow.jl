@@ -10,10 +10,10 @@ solve_poisson!(
 
 Solve the Poisson equation and return a tuple containing an error flag and the number of iterations.
 
-Given a right-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BicGStab algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\overline{\\rho}} / P`` in advance (the right-hand side has already been scaled at this point), so that the equation
+Given a left-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BicGStab algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\overline{\\rho}} / P`` in advance (the left-hand side has already been scaled at this point), so that the equation
 
 ```math
-\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right) = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS}
+\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right)
 ```
 
 is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \\pi = \\left(\\sqrt{\\overline{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
