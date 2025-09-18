@@ -193,13 +193,13 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (U): jl = ", jl, " < 1")
+            error("Error in interpolate_mean_flow (U): jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
             error(
-                "Error in interpolate_mean_flow (U): jr = ",
-                jr,
+                "Error in interpolate_mean_flow (U): jf = ",
+                jf,
                 " > nyy = ",
                 nyy,
             )
