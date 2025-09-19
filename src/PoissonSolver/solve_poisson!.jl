@@ -2,19 +2,18 @@
 ```julia
 solve_poisson!(
     state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    tolref::AbstractFloat,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
+    tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
 ```
 
 Solve the Poisson equation and return a tuple containing an error flag and the number of iterations.
 
-Given a right-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BicGStab algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\overline{\\rho}} / P`` in advance (the right-hand side has already been scaled at this point), so that the equation
+Given a left-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BicGStab algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\overline{\\rho}} / P`` in advance (the left-hand side has already been scaled at this point), so that the equation
 
 ```math
-\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right) = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS}
+\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right)
 ```
 
 is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \\pi = \\left(\\sqrt{\\overline{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
@@ -23,13 +22,11 @@ is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \
 
   - `state`: Model state.
 
-  - `b`: Right-hand side.
-
-  - `tolref`: Reference tolerance for convergence criterion.
-
   - `dt`: Time step.
 
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
+
+  - `tolref`: Reference tolerance for convergence criterion.
 
 # See also
 
@@ -41,19 +38,16 @@ function solve_poisson! end
 
 function solve_poisson!(
     state::State,
-    b::AbstractArray{<:AbstractFloat, 3},
-    tolref::AbstractFloat,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
+    tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
-    (; namelists, domain, grid, poisson) = state
-    (; model) = namelists.setting
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; dpip) = state.variables.increments
+    (; solution) = state.poisson
 
-    sol = state.poisson.solution
-    sol .= 0.0
+    solution .= 0.0
 
     if dt == 0.0
         error("Error in solve_poisson!: dt = 0.0!")
@@ -62,20 +56,21 @@ function solve_poisson!(
 
     compute_operator!(state, dt, rayleigh_factor)
 
-    (errflagbicg, niterbicg) =
-        apply_bicgstab!(b, tolref, sol, namelists, domain, grid, poisson)
+    (errflagbicg, niterbicg) = apply_bicgstab!(state, tolref)
 
     if errflagbicg
         return (errflagbicg, niterbicg)
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
-        sol[i - i0 + 1, j - j0 + 1, k - k0 + 1] /= fcscal
-    end
+    ii = i0:i1
+    jj = j0:j1
+    kk = k0:k1
+
+    @ivy solution ./=
+        sqrt.(pstrattfc[ii, jj, kk] .^ 2 ./ rhostrattfc[ii, jj, kk])
 
     # Pass solution to pressure correction.
-    dpip[i0:i1, j0:j1, k0:k1] .= dtinv .* sol
+    @ivy dpip[ii, jj, kk] .= dtinv .* solution
 
     return (errflagbicg, niterbicg)
 end

@@ -34,6 +34,7 @@ using ..PoissonSolver
 using ..FluxCalculator
 using ..Output
 using ..MSGWaM
+using ..PinCFlow
 
 include("compute_time_step.jl")
 include("integrate.jl")

@@ -23,11 +23,12 @@ module RayUpdate
 
 using MPI
 using Statistics
-using ...Types
 using ..BoundaryRays
 using ..Interpolation
 using ..RayOperations
 using ..RaySources
+using ...Types
+using ...PinCFlow
 
 """
 ```julia

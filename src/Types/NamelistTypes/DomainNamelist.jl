@@ -13,9 +13,9 @@ DomainNamelist(;
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
-    lx_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
-    ly_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
-    lz_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    lx_dim::AbstractFloat = 1.0E+3,
+    ly_dim::AbstractFloat = 1.0E+3,
+    lz_dim::AbstractFloat = 1.0E+3,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -39,11 +39,11 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
   - `nbz::A`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
 
-  - `lx_dim::B`: Domain boundaries in ``\\widehat{x}``-direction.
+  - `lx_dim::B`: Domain extent in ``\\widehat{x}``-direction.
 
-  - `ly_dim::B`: Domain boundaries in ``\\widehat{y}``-direction.
+  - `ly_dim::B`: Domain extent in ``\\widehat{y}``-direction.
 
-  - `lz_dim::B`: Domain boundaries in ``\\widehat{z}``-direction.
+  - `lz_dim::B`: Domain extent in ``\\widehat{z}``-direction.
 
   - `npx::A`: Number of MPI processes in ``\\widehat{x}``-direction.
 
@@ -53,11 +53,7 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
   - `base_comm::C`: MPI base communicator.
 """
-struct DomainNamelist{
-    A <: Integer,
-    B <: NTuple{2, <:AbstractFloat},
-    C <: MPI.Comm,
-}
+struct DomainNamelist{A <: Integer, B <: AbstractFloat, C <: MPI.Comm}
     sizex::A
     sizey::A
     sizez::A
@@ -80,9 +76,9 @@ function DomainNamelist(;
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
-    lx_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
-    ly_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
-    lz_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    lx_dim::AbstractFloat = 1.0E+3,
+    ly_dim::AbstractFloat = 1.0E+3,
+    lz_dim::AbstractFloat = 1.0E+3,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,

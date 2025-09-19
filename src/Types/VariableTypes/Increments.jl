@@ -30,7 +30,7 @@ Create a `Increments` instance in compressible mode.
 
   - `drho::A`: Density update.
 
-  - `drhop::A`: Density-fluctuation update.
+  - `drhop::A`: Density-fluctuations update.
 
   - `du::A`: Zonal-momentum update.
 
@@ -75,7 +75,6 @@ function Increments(domain::Domain, model::AbstractModel)::Increments
     (drho, drhop, du, dv, dw, dpip) = (zeros(nxx, nyy, nzz) for i in 1:6)
     dp = zeros(0, 0, 0)
 
-    # Return a Variables instance.
     return Increments(drho, drhop, du, dv, dw, dpip, dp)
 end
 
@@ -85,6 +84,5 @@ function Increments(domain::Domain, model::Compressible)::Increments
     # Initialize the increments.
     (drho, drhop, du, dv, dw, dpip, dp) = (zeros(nxx, nyy, nzz) for i in 1:7)
 
-    # Return a Variables instance.
     return Increments(drho, drhop, du, dv, dw, dpip, dp)
 end

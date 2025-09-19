@@ -9,7 +9,7 @@ apply_corrector!(
 
 Perform the corrector step and return a tuple containing an error flag and the number of BicGStab iterations.
 
-The right-hand side and the linear operator of the discrete Poisson equation are calculated. The equation is then solved for Exner-pressure differences, using a preconditioned BicGStab algorithm. Finally, the Exner-pressure, wind and density fluctuations are corrected accordingly.
+The left-hand side and the linear operator of the discrete Poisson equation are calculated. The equation is then solved for Exner-pressure differences, using a preconditioned BicGStab algorithm. Finally, the Exner-pressure, wind and density fluctuations are corrected accordingly.
 
 # Arguments
 
@@ -21,7 +21,7 @@ The right-hand side and the linear operator of the discrete Poisson equation are
 
 # See also
 
-  - [`PinCFlow.PoissonSolver.compute_rhs!`](@ref)
+  - [`PinCFlow.PoissonSolver.compute_lhs!`](@ref)
 
   - [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
 
@@ -41,21 +41,15 @@ function apply_corrector!(
     rayleigh_factor::AbstractFloat,
 )::Tuple{Bool, <:Integer}
     (; namelists, domain) = state
-    (; model, zboundaries) = namelists.setting
-    (; rhs) = state.poisson
     (; dpip) = state.variables.increments
 
-    # Initialize RHS.
-    rhs .= 0.0
-
     # Calculate RHS and tolreance reference.
-    tolref = compute_rhs!(state, rhs, model)
+    tolref = compute_lhs!(state)
 
     # Solve Poisson equation.
     (errflagbicg, niterbicg) =
-        solve_poisson!(state, rhs, tolref, dt, rayleigh_factor)
+        solve_poisson!(state, dt, rayleigh_factor, tolref)
 
-    # Return if an error occurred.
     if errflagbicg
         return (errflagbicg, niterbicg)
     end
@@ -63,7 +57,7 @@ function apply_corrector!(
     # Set boundaries of pressure correction.
     set_zonal_boundaries_of_field!(dpip, namelists, domain)
     set_meridional_boundaries_of_field!(dpip, namelists, domain)
-    set_vertical_boundaries_of_field!(dpip, namelists, domain, zboundaries, +)
+    set_vertical_boundaries_of_field!(dpip, namelists, domain, +)
 
     # Correct momentum and buoyancy.
     correct!(state, dt, rayleigh_factor)

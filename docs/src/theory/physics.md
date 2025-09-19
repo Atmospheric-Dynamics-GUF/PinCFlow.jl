@@ -36,27 +36,27 @@ The atmosphere is decomposed into a hydrostatic background and deviations from i
 
 $$\begin{align*}
     \pi \left(\boldsymbol{x}, t\right) & = \overline{\pi} \left(z\right) + \pi' \left(\boldsymbol{x}, t\right),\\
-    \chi \left(\boldsymbol{x}, t\right) & = \overline{\chi} \left(z\right) + \chi' \left(\boldsymbol{x}, t\right),
+    \theta \left(\boldsymbol{x}, t\right) & = \overline{\theta} \left(z\right) + \theta' \left(\boldsymbol{x}, t\right),
 \end{align*}$$
 
-where $\pi$, $\chi$ and $t$ denote the Exner-pressure, inverse potential temperature and time, respectively, and the background satisfies
+where $\pi$, $\theta$ and $t$ denote the Exner-pressure, potential temperature and time, respectively, and the background satisfies
 
 $$\begin{align*}
-    \overline{\pi} \left(0\right) = 1, && \frac{\mathrm{d} \overline{\pi}}{\mathrm{d} z} = - \frac{g}{c_p} \overline{\chi},
+    \overline{\pi} \left(0\right) = 1, && \frac{\mathrm{d} \overline{\pi}}{\mathrm{d} z} = - \frac{g}{c_p} \overline{\theta}^{- 1},
 \end{align*}$$
 
 with $g$ and $c_p$ being the gravitational acceleration and specific heat capacity at constant presssure, respectively ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)). Using this decomposition, the model equations in pseudo-incompressible mode are written as
 
 $$\begin{align*}
     \frac{\partial \rho}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho u}{\partial \widehat{x}} + \frac{\partial J \rho v}{\partial \widehat{y}} + \frac{\partial J \rho \widehat{w}}{\partial \widehat{z}}\right) + \alpha_\mathrm{R} \left(\rho - \overline{\rho}\right) & = 0,\\
-    \frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) + \alpha_\mathrm{R} \rho' & = \frac{N^2}{g} \overline{\rho} w,\\
+    \frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) + \alpha_\mathrm{R} \rho' & = \frac{N^2 \overline{\rho} w}{g},\\
     \frac{1}{J} \left(\frac{\partial J P u}{\partial \widehat{x}} + \frac{\partial J P v}{\partial \widehat{y}} + \frac{\partial J P \widehat{w}}{\partial \widehat{z}}\right) & = 0,\\
-    \frac{\partial \rho u}{\partial t} + \mathcal{A}^u - \mathcal{V}^u - f \rho v + \alpha_\mathrm{R} \left(u - u_\mathrm{R}\right) & = - c_p P \mathcal{P}^u - \alpha_\mathrm{R}^{uv} \rho u + F^u,\\
-    \frac{\partial \rho v}{\partial t} + \mathcal{A}^v - \mathcal{V}^v + f \rho u + \alpha_\mathrm{R} \left(v - v_\mathrm{R}\right) & = - c_p P \mathcal{P}^v - \alpha_\mathrm{R}^{uv} \rho v + F^v,\\
-    \frac{\partial \rho \widehat{w}}{\partial t} + \mathcal{A}^{\widehat{w}} - \mathcal{V}^{\widehat{w}} - G^{13} f \rho v + G^{23} f \rho u + \alpha_\mathrm{R} \left(\widehat{w} - \widehat{w}_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\widehat{w}} - g \frac{\rho'}{J} - \alpha_\mathrm{R}^{\widehat{w}} \rho \widehat{w} + F^{\widehat{w}},
+    \frac{\partial \rho u}{\partial t} + \mathcal{A}^u - \mathcal{V}^u - f \rho v + \alpha_\mathrm{R} \left(u - u_\mathrm{R}\right) & = - c_p P \mathcal{P}^u - \beta_\mathrm{R}^{uv} \rho u + F^u,\\
+    \frac{\partial \rho v}{\partial t} + \mathcal{A}^v - \mathcal{V}^v + f \rho u + \alpha_\mathrm{R} \left(v - v_\mathrm{R}\right) & = - c_p P \mathcal{P}^v - \beta_\mathrm{R}^{uv} \rho v + F^v,\\
+    \frac{\partial \rho \widehat{w}}{\partial t} + \mathcal{A}^{\widehat{w}} - \mathcal{V}^{\widehat{w}} - G^{13} f \rho v + G^{23} f \rho u + \alpha_\mathrm{R} \left(\widehat{w} - \widehat{w}_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\widehat{w}} - \frac{g \rho'}{J} - \beta_\mathrm{R}^{\widehat{w}} \rho \widehat{w} + F^{\widehat{w}},
 \end{align*}$$
 
-where $\rho \left(\boldsymbol{x}, t\right) = \overline{\rho} \left(z\right) + \rho' \left(\boldsymbol{x}, t\right)$ is the density, $P = \rho / \chi = \overline{\rho} / \overline{\chi}$ is the mass-weighted potential temperature, $N^2 = - \left(g / \overline{\chi}\right) \left(\mathrm{d} \overline{\chi} / \mathrm{d} z\right)$ is the squared buoyancy frequency and $f = f_0$ is the Coriolis frequency. On the left-hand sides, $\alpha_\mathrm{R}$ and $\left(u_\mathrm{R}, v_\mathrm{R}, \widehat{w}_\mathrm{R}\right)^\mathrm{R}$ represent the Rayleigh-damping coefficient of PinCFlow's unified sponge layer and the transformed wind that is to be obtained via the relaxation in it. In contrast, the Rayleigh-damping coefficients $\alpha_\mathrm{R}^{uv}$ and $\alpha_\mathrm{R}^{\widehat{w}}$ on the right-hand side implement a preset sponge layer with an intrinsic implementation in the temporal discretization. As of now, the two sponges are exclusive, i.e. one cannot be used in combination with the other. The terms $\left(F^u, F^v, F^{\widehat{w}}\right)^\mathrm{T}$ represent volume forces in the momentum equation, e.g. drag imposed by unresolved gravity waves. The advective momentum-flux divergences are given by
+where $\rho \left(\boldsymbol{x}, t\right) = \overline{\rho} \left(z\right) + \rho' \left(\boldsymbol{x}, t\right)$ is the density, $P = \rho \theta = \overline{\rho} \overline{\theta}$ is the mass-weighted potential temperature, $N^2 = \left(g / \overline{\theta}\right) \left(\mathrm{d} \overline{\theta} / \mathrm{d} z\right)$ is the squared buoyancy frequency and $f = f_0$ is the Coriolis frequency. On the left-hand sides, $\alpha_\mathrm{R}$ and $\left(u_\mathrm{R}, v_\mathrm{R}, \widehat{w}_\mathrm{R}\right)^\mathrm{R}$ represent the Rayleigh-damping coefficient of a customizable sponge and the transformed wind that is to be obtained via the relaxation in it. In contrast, the Rayleigh-damping coefficients $\beta_\mathrm{R}^{uv}$ and $\beta_\mathrm{R}^{\widehat{w}}$ on the right-hand side implement a preset sponge. The terms $\left(F^u, F^v, F^{\widehat{w}}\right)^\mathrm{T}$ represent volume forces in the momentum equation, e.g. drag imposed by unresolved gravity waves. The advective momentum-flux divergences are given by
 
 $$\begin{align*}
     \mathcal{A}^u & = \frac{1}{J} \left(\frac{\partial J \rho u u}{\partial \widehat{x}} + \frac{\partial J \rho u v}{\partial \widehat{y}} + \frac{\partial J \rho u \widehat{w}}{\partial \widehat{z}}\right),\\
@@ -69,18 +69,18 @@ and the viscous-flux divergences are
 $$\begin{align*}
     \mathcal{V}^u & = \frac{1}{J} \left(\frac{\partial J \widehat{\Pi}^{11}}{\partial \widehat{x}} + \frac{\partial J \widehat{\Pi}^{12}}{\partial \widehat{y}} + \frac{\partial J \widehat{\Pi}^{13}}{\partial \widehat{z}}\right),\\
     \mathcal{V}^v & = \frac{1}{J} \left(\frac{\partial J \widehat{\Pi}^{21}}{\partial \widehat{x}} + \frac{\partial J \widehat{\Pi}^{22}}{\partial \widehat{y}} + \frac{\partial J \widehat{\Pi}^{23}}{\partial \widehat{z}}\right),\\
-    \mathcal{V}^{\widehat{w}} & = G^{13} \mathcal{V}^u + G^{23} \mathcal{V}^v + \frac{1}{J^2} \left[\frac{\partial J \Pi^{31}}{\partial \widehat{x}} + \frac{\partial J \Pi^{32}}{\partial \widehat{y}}\right.\notag\\
-    & \qquad \qquad \qquad \qquad \qquad \quad + \left.\frac{\partial}{\partial \widehat{z}} \left(J G^{13} \Pi^{13} + J G^{23} \Pi^{23} + \Pi^{33}\right)\right].
+    \mathcal{V}^{\widehat{w}} & = G^{13} \mathcal{V}^u + G^{23} \mathcal{V}^v + \frac{1}{J^2} \left[\frac{\partial J \Pi^{31}}{\partial \widehat{x}} + \frac{\partial J \Pi^{32}}{\partial \widehat{y}} + \frac{\partial}{\partial \widehat{z}} \left(J G^{13} \Pi^{13} + J G^{23} \Pi^{23} + \Pi^{33}\right)\right].
 \end{align*}$$
 
 Therein, the elements of the (symmetric) transformed viscous-stress tensor are
 
 $$\begin{align*}
-    \widehat{\Pi}^{11} & = \Pi^{11}, \qquad \widehat{\Pi}^{12} = \Pi^{12}, \qquad \widehat{\Pi}^{22} = \Pi^{22},\\
+    \widehat{\Pi}^{11} & = \Pi^{11},\\
+    \widehat{\Pi}^{12} & = \Pi^{12},\\
+    \widehat{\Pi}^{22} & = \Pi^{22},\\
     \widehat{\Pi}^{13} & = G^{13} \Pi^{11} + G^{23} \Pi^{12} + \frac{1}{J} \Pi^{13},\\
     \widehat{\Pi}^{23} & = G^{13} \Pi^{12} + G^{23} \Pi^{22} + \frac{1}{J} \Pi^{23},\\
-    \widehat{\Pi}^{33} & = \left(G^{13}\right)^2 \Pi^{11} + \left(G^{23}\right)^2 \Pi^{22} + \frac{1}{J^2} \Pi^{33}\notag\\
-    & \quad + 2 \left(G^{13} G^{23} \Pi^{12} + \frac{G^{13}}{J} \Pi^{13} + \frac{G^{23}}{J} \Pi^{23}\right)
+    \widehat{\Pi}^{33} & = \left(G^{13}\right)^2 \Pi^{11} + \left(G^{23}\right)^2 \Pi^{22} + \frac{1}{J^2} \Pi^{33} + 2 \left(G^{13} G^{23} \Pi^{12} + \frac{G^{13}}{J} \Pi^{13} + \frac{G^{23}}{J} \Pi^{23}\right)
 \end{align*}$$
 
 and those of its Cartesian counterpart are
@@ -106,19 +106,19 @@ $$\begin{align*}
 
 ## Boussinesq equations
 
-In Boussinesq mode, the continuity equation is removed and the density fluctuations are set to zero everywhere except in the auxiliary equation and the buoyancy term of the transformed-vertical-momentum equation. Moreover, $\overline{\rho}$, $\overline{\chi}$, $P$ and $N^2$ are replaced with the constant reference values $\rho_0$, $\chi_0$, $P_0$ and $N_0^2$.
+In Boussinesq mode, the continuity equation is removed and the density fluctuations are set to zero everywhere except in the auxiliary equation and the buoyancy term of the transformed-vertical-momentum equation. Moreover, $\overline{\rho}$, $\overline{\theta}$, $P$ and $N^2$ are replaced with the constant reference values $\rho_0$, $\theta_0$, $P_0$ and $N_0^2$.
 
 ## Compressible equations
 
-In compressible mode, the identity $P = \overline{\rho} / \overline{\chi}$ no longer holds, i.e. the mass-weighted potential temperature has a spatiotemporal dependence. The divergence constraint is thus replaced with the prognostic equation
+In compressible mode, the identity $P = \overline{\rho} \overline{\theta}$ no longer holds, i.e. the mass-weighted potential temperature has a spatiotemporal dependence. The divergence constraint is thus replaced with the prognostic equation
 
 $$\frac{\partial P}{\partial t} + \frac{1}{J} \left(\frac{\partial J P u}{\partial \widehat{x}} + \frac{\partial J P v}{\partial \widehat{y}} + \frac{\partial J P \widehat{w}}{\partial \widehat{z}}\right) - F^P + \alpha_\mathrm{R} P \left(1 - \frac{\overline{\rho}}{\rho}\right) = 0,$$
 
 where the volume force $F^P$ represents a diabatic heating (e.g. due to unresolved gravity waves) that is not allowed in pseudo-incompressible mode. This term must also be represented in the auxiliary equation, which now reads
 
-$$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) - \overline{\chi} F^P + \alpha_\mathrm{R} \rho' = \frac{N^2}{g} \rho w.$$
+$$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) + \frac{F^P}{\overline{\theta}} + \alpha_\mathrm{R} \left[\rho' - \overline{\rho} \left(1 - \frac{P}{\rho \overline{\theta}}\right)\right] = \frac{N^2 P w}{g \overline{\theta}}.$$
 
-Note that in addition to the new volume-force term on the left-hand side, the background density on the right-hand side has been replaced with the full density. This is due to the fact that the squared buoyancy frequency now has the slightly different definition $N^2 = - \left(g / \chi\right) \left(\mathrm{d} \overline{\chi} / \mathrm{d} z\right)$. Moreover, the background density $\rho - \rho' = \overline{\chi} P$ is no longer persistently equal to $\overline{\rho}$ ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
+Note that in addition to the new volume-force term, $\overline{\rho}$ has been replaced with $P / \overline{\theta}$, which is due to the density fluctuations being defined as $\rho' = \rho - P / \overline{\theta}$ ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
 
 ## MSGWaM
 
@@ -200,8 +200,8 @@ $$\begin{align*}
     M_{uw} & = \overline{\rho} \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
     M_{vv} & = \overline{\rho} \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
     M_{vw} & = \overline{\rho} \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    T_u & = \frac{f \overline{\chi}}{g} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    T_v & = - \frac{f \overline{\chi}}{g} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},
+    T_u & = \frac{f}{g \overline{\theta}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    T_v & = - \frac{f}{g \overline{\theta}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},
 \end{align*}$$
 
 with $\widehat{\omega} = \omega - \boldsymbol{k} \cdot \boldsymbol{u}_\mathrm{b}$, $\widehat{\boldsymbol{c}}_\mathrm{g} = \left(\widehat{c}_{\mathrm{g} x}, \widehat{c}_{\mathrm{g} y}, \widehat{c}_{\mathrm{g} z}\right)^\mathrm{T} = \boldsymbol{\nabla}_{\boldsymbol{k}} \widehat{\omega}$ and $\mathrm{d} V_{\boldsymbol{k}} = \mathrm{d} k \mathrm{d} l \mathrm{d} m$ being the intrinsic frequency, intrinsic group velocity and spectral volume element, respectively (see [Achatz et al., 2017](https://doi.org/10.1002/qj.2926); [Achatz et al., 2023](https://doi.org/10.1063/5.0165180); [Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
@@ -220,7 +220,7 @@ where $\alpha_\mathrm{s}$ is a saturation coefficient that accounts for uncertai
 
 ### Rayleigh damping
 
-The Rayleigh damping in the unified sponge layer introduced [above](#Pseudo-incompressible-equations) is represented by the sink
+The Rayleigh damping in the LHS sponge introduced above is represented by the sink
 
 $$\mathcal{S}_\mathrm{R} = - 2 \alpha_\mathrm{R} \mathcal{N}$$
 
@@ -256,9 +256,9 @@ $$\begin{align*}
 
 ### 1D steady-state theory
 
-In the 1D steady-state theory, the phase-space-wave-action-density equation from the [previous section](#1D-transient-theory) is integrated over spectral space, the temporal derivative is removed and the quasilinear approximation is used to express the result in terms of the physical-space wave-action densities of individual spectral modes ($\mathcal{A}_\alpha$). This yields
+In the 1D steady-state theory, the phase-space-wave-action-density equation from the previous section is integrated over spectral space, the temporal derivative is removed and the quasilinear approximation is used to express the result in terms of the physical-space wave-action densities of individual spectral modes ($\mathcal{A}_\alpha$). This yields
 
-$$J^{- 1} \frac{\partial \mathcal{A}_\alpha}{\partial \widehat{z}} = \sum\limits_s \mathcal{Q}_{s, \alpha},$$
+$$J^{- 1} \frac{\partial}{\partial \widehat{z}} \left(c_{\mathrm{g} z, \alpha} \mathcal{A}_\alpha\right) = \sum\limits_s \mathcal{Q}_{s, \alpha},$$
 
 where $\mathcal{N} = \sum_\alpha \mathcal{A}_\alpha \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right)$ and $\mathcal{S}_s = \sum_\alpha \mathcal{Q}_{s, \alpha} \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right)$. Similarly, the eikonal equations become
 
@@ -282,7 +282,7 @@ $$K = \frac{\overline{\rho}}{4} \left[\sum\limits_\alpha \frac{J \Delta \widehat
 
 ### Orographic source
 
-The orographic source is a lower boundary condition for the wave-property fields. Its formulation uses the decomposition
+The orographic source is a lower-boundary condition for the wave-property fields. Its formulation uses the decomposition
 
 $$h \left(x, y\right) = h_\mathrm{b} + \sum\limits_\alpha \Re \left\{h_{\mathrm{w}, \alpha} \exp \left[i \varphi_\alpha \left(x, y\right)\right]\right\}$$
 

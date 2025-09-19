@@ -2,6 +2,15 @@
 ```julia
 set_tracer_vertical_boundaries!(
     state::State,
+    variables::AbstractBoundaryVariables,
+)
+```
+
+Enforce vertical boundary conditions for tracers by dispatching to a tracer-configuration-specific method.
+
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
     variables::BoundaryPredictands,
     tracersetup::NoTracer,
 )
@@ -59,23 +68,21 @@ set_tracer_vertical_boundaries!(
 
 Set the vertical tracer fluxes at the vertical boundaries to zero.
 
-```julia 
+```julia
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    boundaries::AbstractBoundaries,
-    wkb_model::AbstractWKBMode,
+    wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
 ```
 
 Return for configurations without tracer transport.
 
-```julia 
+```julia
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::AbstractTracer,
 )
@@ -83,11 +90,10 @@ set_tracer_vertical_boundaries!(
 
 Enforce vertical boundary conditions for tracer-gravity-wave-integral fields.
 
-```julia 
+```julia
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
@@ -95,11 +101,10 @@ set_tracer_vertical_boundaries!(
 
 Return for configurations without tracer transport.
 
-```julia 
+```julia
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::AbstractTracer,
 )
@@ -125,6 +130,15 @@ function set_tracer_vertical_boundaries! end
 
 function set_tracer_vertical_boundaries!(
     state::State,
+    variables::AbstractBoundaryVariables,
+)
+    (; tracersetup) = state.namelists.tracer
+    set_tracer_vertical_boundaries!(state, variables, tracersetup)
+    return
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
     variables::BoundaryPredictands,
     tracersetup::NoTracer,
 )
@@ -137,7 +151,6 @@ function set_tracer_vertical_boundaries!(
     tracersetup::AbstractTracer,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; tracerpredictands) = state.tracer
 
     for field in fieldnames(TracerPredictands)
@@ -145,7 +158,6 @@ function set_tracer_vertical_boundaries!(
             getfield(tracerpredictands, field),
             namelists,
             domain,
-            zboundaries,
             -,
         )
     end
@@ -167,7 +179,6 @@ function set_tracer_vertical_boundaries!(
     tracersetup::AbstractTracer,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; tracerreconstructions) = state.tracer
 
     for field in fieldnames(TracerReconstructions)
@@ -175,7 +186,6 @@ function set_tracer_vertical_boundaries!(
             getfield(tracerreconstructions, field),
             namelists,
             domain,
-            zboundaries,
         )
     end
 
@@ -198,13 +208,13 @@ function set_tracer_vertical_boundaries!(
     (; sizezz, nzz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
 
-    if ko == 0
+    @ivy if ko == 0
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
-    if ko + nzz == sizezz
+    @ivy if ko + nzz == sizezz
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end
@@ -216,8 +226,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    boundaries::AbstractBoundaries,
-    wkb_model::AbstractWKBMode,
+    wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
     return
@@ -226,12 +235,10 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::AbstractTracer,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; chiq0) = state.tracer.tracerforcings
 
     for field in (:uchi, :vchi, :wchi)
@@ -239,7 +246,6 @@ function set_tracer_vertical_boundaries!(
             getfield(chiq0, field),
             namelists,
             domain,
-            zboundaries,
             +;
             layers = (1, 1, 1),
         )
@@ -251,7 +257,6 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
@@ -261,12 +266,10 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    boundaries::AbstractBoundaries,
     wkb_mode::AbstractWKBMode,
     tracersetup::AbstractTracer,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; chiq0) = state.tracer.tracerforcings
 
     for field in (:dchidt,)
@@ -274,7 +277,6 @@ function set_tracer_vertical_boundaries!(
             getfield(chiq0, field),
             namelists,
             domain,
-            zboundaries,
             +,
         )
     end

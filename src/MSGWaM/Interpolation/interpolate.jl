@@ -1,7 +1,7 @@
 """
 ```julia
 interpolate(
-    namelists::Namelists;
+    state::State;
     philbd::AbstractFloat = NaN,
     philbu::AbstractFloat = NaN,
     philfd::AbstractFloat = NaN,
@@ -77,7 +77,7 @@ Due to their large number, the positions and values are given as keyword argumen
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
+  - `state`: Model state.
 
 # Keywords
 
@@ -130,7 +130,7 @@ Due to their large number, the positions and values are given as keyword argumen
 function interpolate end
 
 function interpolate(
-    namelists::Namelists;
+    state::State;
     philbd::AbstractFloat = NaN,
     philbu::AbstractFloat = NaN,
     philfd::AbstractFloat = NaN,
@@ -155,7 +155,7 @@ function interpolate(
     xr::AbstractFloat = NaN,
     xlc::AbstractFloat = NaN,
 )::AbstractFloat
-    (; sizex, sizey) = namelists.domain
+    (; sizex, sizey) = state.namelists.domain
 
     # Interpolate in x.
     if sizex == 1
@@ -238,6 +238,5 @@ function interpolate(
 
     phi = factor * phid + (1.0 - factor) * phiu
 
-    # Return the result.
     return phi
 end

@@ -17,6 +17,7 @@ module Interpolation
 
 using ...Types
 using ...Update
+using ...PinCFlow
 
 """
 ```julia
@@ -91,7 +92,7 @@ Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial
 struct DVDZ <: AbstractVariable end
 
 """
-```julia 
+```julia
 DChiDX <: AbstractVariable
 ```
 
@@ -100,7 +101,7 @@ Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\par
 struct DChiDX <: AbstractVariable end
 
 """
-```julia 
+```julia
 DChiDY <: AbstractVariable
 ```
 
@@ -109,7 +110,7 @@ Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\par
 struct DChiDY <: AbstractVariable end
 
 """
-```julia 
+```julia
 DChiDZ <: AbstractVariable
 ```
 
@@ -131,7 +132,6 @@ export get_next_half_level,
     get_next_level,
     interpolate_mean_flow,
     interpolate_sponge,
-    interpolate_stratification,
-    compute_derivatives
+    interpolate_stratification
 
 end

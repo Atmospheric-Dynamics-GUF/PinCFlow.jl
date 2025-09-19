@@ -1,5 +1,5 @@
 """
-```julia 
+```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
     tracersetup::NoTracer,
@@ -12,15 +12,15 @@ compute_leading_order_tracer_fluxes!(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    ix::Integer,
-    jy::Integer,
-    kz::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
 )
 ```
 
 Return for configurations without tracer transport.
 
-```julia 
+```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
     tracersetup::AbstractTracer,
@@ -33,53 +33,53 @@ compute_leading_order_tracer_fluxes!(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    ix::Integer,
-    jy::Integer,
-    kz::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
 )
 ```
 
-Compute the leading-order gravity-wave tracer fluxes for the grid-point indices `(ix,jy,kz)`.
+Compute the leading-order gravity-wave tracer fluxes at ``(i, j, k)``.
 
-The zonal, meridional, and vertical fluxes are given by 
+The zonal, meridional, and vertical fluxes are given by
 
 ```math
-\\begin{align*} 
-\\overline{\\rho}\\langle u'\\chi'\\rangle & = \\overline{\\rho}\\sum_{\\lambda,\\nu,\\mu,\\alpha}\\left(Fu_{w}\\chi^*_{w}\\right)_{i+\\lambda,j+\\nu,k+\\mu,\\alpha}\\;, \\\\
-\\overline{\\rho}\\langle v'\\chi'\\rangle & = \\overline{\\rho}\\sum_{\\lambda,\\nu,\\mu,\\alpha}\\left(Fv_{w}\\chi^*_{w}\\right)_{i+\\lambda,j+\\nu,k+\\mu,\\alpha}\\;, \\\\
-\\overline{\\rho}\\langle w'\\chi'\\rangle & = \\overline{\\rho}\\sum_{\\lambda,\\nu,\\mu,\\alpha}\\left(Fw_{w}\\chi^*_{w}\\right)_{i+\\lambda,j+\\nu,k+\\mu,\\alpha}\\;.
+\\begin{align*}
+    \\overline{\\rho}\\left\\langle u' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r, \\lambda,\\mu,\\nu}\\left(F u_\\mathrm{w}\\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\overline{\\rho}\\left\\langle v' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r,  \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\overline{\\rho}\\left\\langle w' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r, \\lambda, \\mu, \\nu} \\left(F w_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
 \\end{align*}
 ```
 
 # Arguments:
 
-  - `state`: Model state. 
+  - `state`: Model state.
 
   - `tracersetup`:  General tracer-transport configuration.
 
-  - `fc`: Coriolis parameter. 
+  - `fc`: Coriolis parameter.
 
   - `omir`: Gravity-wave intrinsic frequency.
 
-  - `wnrk`: Zonal wavenumber. 
+  - `wnrk`: Zonal wavenumber.
 
-  - `wnrl`: Meridional wavenumber. 
+  - `wnrl`: Meridional wavenumber.
 
-  - `wnrm`: Vertical wavenumber. 
+  - `wnrm`: Vertical wavenumber.
 
-  - `wadr`: Phase-space wave-action density. 
+  - `wadr`: Phase-space wave-action density.
 
-  - `xlc`: Location of the ray-volume in `\\widehat{x}`-direction.
+  - `xlc`: Zonal location of the ray-volume.
 
-  - `ylc`: Location of the ray-volume in `\\widehat{y}`-direction.
+  - `ylc`: Meridional location of the ray-volume.
 
-  - `zlc`: Location of the ray-volume in `\\widehat{z}`-direction. 
+  - `zlc`: Vertical location of the ray-volume.
 
-  - `ix`: Array index in `\\widehat{x}`-direction.
+  - `i`: Zonal grid-cell index.
 
-  - `jy`: Array index in `\\widehat{y}`-direction.
+  - `j`: Meridional grid-cell index.
 
-  - `kz`: Array index in `\\widehat{z}`-direction.
+  - `k`: Vertical grid-cell index.
 
 # See also:
 
@@ -100,9 +100,9 @@ function compute_leading_order_tracer_fluxes!(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    ix::Integer,
-    jy::Integer,
-    kz::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
 )
     return
 end
@@ -119,9 +119,9 @@ function compute_leading_order_tracer_fluxes!(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    ix::Integer,
-    jy::Integer,
-    kz::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
 )
     (; uchi, vchi, wchi) = state.tracer.tracerforcings.chiq0
 
@@ -129,7 +129,7 @@ function compute_leading_order_tracer_fluxes!(
         return
     end
 
-    uchi[ix, jy, kz] += leading_order_tracer_fluxes(
+    @ivy uchi[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -143,7 +143,7 @@ function compute_leading_order_tracer_fluxes!(
         UChi(),
     )
 
-    vchi[ix, jy, kz] += leading_order_tracer_fluxes(
+    @ivy vchi[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -157,7 +157,7 @@ function compute_leading_order_tracer_fluxes!(
         VChi(),
     )
 
-    wchi[ix, jy, kz] += leading_order_tracer_fluxes(
+    @ivy wchi[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -170,5 +170,6 @@ function compute_leading_order_tracer_fluxes!(
         zlc,
         WChi(),
     )
+
     return
 end
