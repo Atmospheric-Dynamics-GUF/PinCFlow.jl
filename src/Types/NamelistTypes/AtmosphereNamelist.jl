@@ -5,7 +5,6 @@ AtmosphereNamelist{
     B <: AbstractFloat,
     C <: AbstractBackground,
     D <: NTuple{3, <:AbstractFloat},
-    E <: AbstractCoriolisMode,
 }
 ```
 
@@ -25,7 +24,6 @@ AtmosphereNamelist(;
     press0_dim::AbstractFloat = 1.0E+5,
     backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
-    coriolis_mode::AbstractCoriolisMode = FPlane(),
 )::AtmosphereNamelist
 ```
 
@@ -55,16 +53,13 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `backgroundflow_dim::D`: Initial wind.
 
-  - `coriolis_frequency::B`: Coriolis frequency if `coriolis_mode == FPlane()`
-
-  - `coriolis_mode::E`: Approximation used for the Coriolis frequency.
+  - `coriolis_frequency::B`: Coriolis frequency of the ``f``-plane.
 """
 struct AtmosphereNamelist{
     A <: Bool,
     B <: AbstractFloat,
     C <: AbstractBackground,
     D <: NTuple{3, <:AbstractFloat},
-    E <: AbstractCoriolisMode,
 }
     specifyreynolds::A
     reinv::B
@@ -78,7 +73,6 @@ struct AtmosphereNamelist{
     press0_dim::B
     backgroundflow_dim::D
     coriolis_frequency::B
-    coriolis_mode::E
 end
 
 function AtmosphereNamelist(;
@@ -94,7 +88,6 @@ function AtmosphereNamelist(;
     press0_dim::AbstractFloat = 1.0E+5,
     backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
-    coriolis_mode::AbstractCoriolisMode = FPlane(),
 )::AtmosphereNamelist
     return AtmosphereNamelist(
         specifyreynolds,
@@ -109,6 +102,5 @@ function AtmosphereNamelist(;
         press0_dim,
         backgroundflow_dim,
         coriolis_frequency,
-        coriolis_mode,
     )
 end

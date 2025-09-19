@@ -2,40 +2,46 @@
 ```julia
 compute_saturation_integrals(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the two spectral integrals ``S_1`` and ``S_2``, as needed by the saturation scheme (in the grid cell specified by `indices`).
+Compute and return the two spectral integrals ``S_1`` and ``S_2``, as needed by the saturation scheme (in the grid cell ``\\left(i, j, k\\right)``).
 
 Computes the sums
 
 ```math
 \\begin{align*}
-    S_1 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha,\\\\
-    S_2 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right| \\left|\\boldsymbol{k}_\\alpha\\right|\\right)^2 f_\\alpha,
+    S_1 & \\approx \\sum\\limits_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right|\\right)^2 f_r,\\\\
+    S_2 & \\approx \\sum\\limits_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right| \\left|\\boldsymbol{k}_r\\right|\\right)^2 f_r,
 \\end{align*}
 ```
 
-where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}`` is the wavevector,
+where
 
 ```math
-f_\\alpha = \\max \\left(1, \\frac{\\Delta x_\\alpha}{\\Delta \\widehat{x}}\\right) \\max \\left(1, \\frac{\\Delta y_\\alpha}{\\Delta \\widehat{y}}\\right) \\max \\left(1, \\frac{\\Delta z_\\alpha}{J \\Delta \\widehat{z}}\\right)
+f_r = \\max \\left(1, \\frac{\\Delta x_r}{\\Delta \\widehat{x}}\\right) \\max \\left(1, \\frac{\\Delta y_r}{\\Delta \\widehat{y}}\\right) \\max \\left(1, \\frac{\\Delta z_r}{J \\Delta \\widehat{z}}\\right)
 ```
 
-is the maximum grid-cell fraction that can be covered by each ray volume (with ``\\left(\\Delta x_\\alpha, \\Delta y_\\alpha, \\Delta z_\\alpha\\right)`` being the ray-volume extents in physical space) and
+is the maximum grid-cell fraction that can be covered by each ray volume (with ``\\left(\\Delta x_r, \\Delta y_r, \\Delta z_r\\right)`` being the ray-volume extents in physical space) and
 
 ```math
-\\left|b_{\\mathrm{w}, \\alpha}\\right|^2 = \\frac{2}{\\overline{\\rho}} \\frac{N_\\alpha^4 \\left(k_\\alpha^2 + l_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2} \\mathcal{N}_\\alpha \\Delta k_\\alpha \\Delta l_\\alpha \\Delta m_\\alpha
+\\left|b_{\\mathrm{w}, r}\\right|^2 = \\frac{2}{\\overline{\\rho}} \\frac{N_r^4 \\left(k_r^2 + l_r^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{N}_r \\Delta k_r \\Delta l_r \\Delta m_r
 ```
 
-is the squared gravity-wave amplitude of the buoyancy. Therein, ``\\overline{\\rho}`` is the background density, ``N_\\alpha^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`), ``\\widehat{\\omega}_\\alpha`` is the intrinsic frequency (calculated with `compute_intrinsic_frequency`), ``\\mathcal{N}_\\alpha`` is the phase-space wave-action density and ``\\left(\\Delta k_\\alpha, \\Delta l_\\alpha, \\Delta m_\\alpha\\right)`` are the ray-volume extents in spectral space.
+is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`) and ``\\left(\\Delta k_r, \\Delta l_r, \\Delta m_r\\right)`` are the ray-volume extents in spectral space.
 
 # Arguments
 
   - `state`: Model state.
 
-  - `indices`: Grid-cell indices.
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
 
 # See also
 
@@ -49,7 +55,9 @@ function compute_saturation_integrals end
 
 function compute_saturation_integrals(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
 )::NTuple{2, <:AbstractFloat}
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
@@ -58,61 +66,58 @@ function compute_saturation_integrals(
     (; rhostrattfc) = state.atmosphere
     (; nray, rays) = state.wkb
 
-    # Get indices.
-    (ixrv, jyrv, kzrv) = indices
-
     # Initialize Integrals.
     mb2 = 0.0
     mb2k2 = 0.0
 
     # Loop over ray volumes.
-    for iray in 1:nray[ixrv, jyrv, kzrv]
+    @ivy for r in 1:nray[i, j, k]
 
         # Skip ray volumes with zero wave-action density.
-        if rays.dens[iray, ixrv, jyrv, kzrv] == 0
+        if rays.dens[r, i, j, k] == 0
             continue
         end
 
-        xr = rays.x[iray, ixrv, jyrv, kzrv]
-        yr = rays.y[iray, ixrv, jyrv, kzrv]
-        zr = rays.z[iray, ixrv, jyrv, kzrv]
+        xr = rays.x[r, i, j, k]
+        yr = rays.y[r, i, j, k]
+        zr = rays.z[r, i, j, k]
 
-        dxr = rays.dxray[iray, ixrv, jyrv, kzrv]
-        dyr = rays.dyray[iray, ixrv, jyrv, kzrv]
-        dzr = rays.dzray[iray, ixrv, jyrv, kzrv]
+        dxr = rays.dxray[r, i, j, k]
+        dyr = rays.dyray[r, i, j, k]
+        dzr = rays.dzray[r, i, j, k]
 
         if sizex > 1
-            ix = floor(Int, (xr - lx[1]) / dx) + i0 - io
+            iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
         else
-            ix = i0
+            iray = i0
         end
 
         if sizey > 1
-            jy = floor(Int, (yr - ly[1]) / dy) + j0 - jo
+            jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
         else
-            jy = j0
+            jray = j0
         end
 
-        kz = get_next_half_level(ix, jy, zr, domain, grid)
+        kray = get_next_half_level(iray, jray, zr, state)
 
         n2r = interpolate_stratification(zr, state, N2())
 
-        wnrk = rays.k[iray, ixrv, jyrv, kzrv]
-        wnrl = rays.l[iray, ixrv, jyrv, kzrv]
-        wnrm = rays.m[iray, ixrv, jyrv, kzrv]
+        wnrk = rays.k[r, i, j, k]
+        wnrl = rays.l[r, i, j, k]
+        wnrm = rays.m[r, i, j, k]
 
         wnrhs = wnrk^2 + wnrl^2
 
-        dwnrk = rays.dkray[iray, ixrv, jyrv, kzrv]
-        dwnrl = rays.dlray[iray, ixrv, jyrv, kzrv]
-        dwnrm = rays.dmray[iray, ixrv, jyrv, kzrv]
+        dwnrk = rays.dkray[r, i, j, k]
+        dwnrl = rays.dlray[r, i, j, k]
+        dwnrm = rays.dmray[r, i, j, k]
 
-        omir = compute_intrinsic_frequency(state, (iray, ixrv, jyrv, kzrv))
+        omir = compute_intrinsic_frequency(state, r, i, j, k)
 
-        densr = rays.dens[iray, ixrv, jyrv, kzrv]
+        densr = rays.dens[r, i, j, k]
 
-        dzi = min(dzr, jac[ix, jy, kz] * dz)
-        facpsp = dzi / jac[ix, jy, kz] / dz * dwnrm
+        dzi = min(dzr, jac[iray, jray, kray] * dz)
+        facpsp = dzi / jac[iray, jray, kray] / dz * dwnrm
 
         if sizex > 1
             dxi = min(dxr, dx)
@@ -126,13 +131,12 @@ function compute_saturation_integrals(
 
         integral1 = wnrhs * wnrm^2 / ((wnrhs + wnrm^2) * omir) * facpsp
 
-        mb2 += 2 * n2r^2 / rhostrattfc[ix, jy, kz] * densr * integral1
+        mb2 += 2 * n2r^2 / rhostrattfc[iray, jray, kray] * densr * integral1
 
         integral2 = wnrhs * wnrm^2 / omir * facpsp
 
-        mb2k2 += 2 * n2r^2 / rhostrattfc[ix, jy, kz] * densr * integral2
+        mb2k2 += 2 * n2r^2 / rhostrattfc[iray, jray, kray] * densr * integral2
     end
 
-    # Return the results.
     return (mb2, mb2k2)
 end

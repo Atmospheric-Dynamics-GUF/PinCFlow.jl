@@ -19,10 +19,11 @@ function set_meridional_halo_rays!(state::State)
 
     fields = fieldnames(Rays)
 
-    @views nray_max_backward =
-        maximum(nray[(i0 - 1):(i1 + 1), j0, (k0 - 1):(k1 + 1)])
-    @views nray_max_forward =
-        maximum(nray[(i0 - 1):(i1 + 1), j1, (k0 - 1):(k1 + 1)])
+    ii = (i0 - 1):(i1 + 1)
+    kk = (k0 - 1):(k1 + 1)
+
+    @ivy nray_max_backward = maximum(nray[ii, j0, kk])
+    @ivy nray_max_forward = maximum(nray[ii, j1, kk])
 
     nray_max_backward = MPI.Allreduce(nray_max_backward, max, comm)
     nray_max_forward = MPI.Allreduce(nray_max_forward, max, comm)
@@ -33,19 +34,11 @@ function set_meridional_halo_rays!(state::State)
     receive_backward = zeros(length(fields), nray_max_forward, nx + 2, nz + 2)
     receive_forward = zeros(length(fields), nray_max_backward, nx + 2, nz + 2)
 
-    for (index, field) in enumerate(fields)
-        @views send_forward[index, :, :, :] .= getfield(rays, field)[
-            1:nray_max_forward,
-            (i0 - 1):(i1 + 1),
-            j1,
-            (k0 - 1):(k1 + 1),
-        ]
-        @views send_backward[index, :, :, :] .= getfield(rays, field)[
-            1:nray_max_backward,
-            (i0 - 1):(i1 + 1),
-            j0,
-            (k0 - 1):(k1 + 1),
-        ]
+    @ivy for (index, field) in enumerate(fields)
+        send_forward[index, :, :, :] .=
+            getfield(rays, field)[1:nray_max_forward, ii, j1, kk]
+        send_backward[index, :, :, :] .=
+            getfield(rays, field)[1:nray_max_backward, ii, j0, kk]
     end
 
     MPI.Sendrecv!(
@@ -64,19 +57,11 @@ function set_meridional_halo_rays!(state::State)
         source = forward,
     )
 
-    for (index, field) in enumerate(fields)
-        @views getfield(rays, field)[
-            1:nray_max_forward,
-            (i0 - 1):(i1 + 1),
-            j0 - 1,
-            (k0 - 1):(k1 + 1),
-        ] .= receive_backward[index, :, :, :]
-        @views getfield(rays, field)[
-            1:nray_max_backward,
-            (i0 - 1):(i1 + 1),
-            j1 + 1,
-            (k0 - 1):(k1 + 1),
-        ] .= receive_forward[index, :, :, :]
+    @ivy for (index, field) in enumerate(fields)
+        getfield(rays, field)[1:nray_max_forward, ii, j0 - 1, kk] .=
+            receive_backward[index, :, :, :]
+        getfield(rays, field)[1:nray_max_backward, ii, j1 + 1, kk] .=
+            receive_forward[index, :, :, :]
     end
 
     return

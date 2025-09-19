@@ -17,6 +17,7 @@ module Boundaries
 
 using ..Types
 using ..MPIOperations
+using ..PinCFlow
 
 """
 ```julia

@@ -65,7 +65,6 @@ Construct a `TracerPredictands` instance with an initialized non-dimensional tra
   - `tracersetup`: General tracer-transport configuration.
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
-
 """
 struct TracerPredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     chi::A
@@ -124,7 +123,7 @@ function TracerPredictands(
     (; alphatracer) = namelists.tracer
 
     chi = zeros(nxx, nyy, nzz)
-    chi .= (alphatracer * lref) .* ztfc
+    chi .= alphatracer .* lref .* ztfc
 
     chi .= chi .* (rho .+ rhostrattfc)
 

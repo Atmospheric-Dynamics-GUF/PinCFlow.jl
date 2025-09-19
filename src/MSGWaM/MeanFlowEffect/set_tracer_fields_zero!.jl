@@ -1,17 +1,17 @@
 """
-```julia 
+```julia
 set_tracer_field_zero!(state)
 ```
 
 Reset the gravity-wave-induced tracer fluxes to zero by dispatching over tracer configurations.
 
-```julia 
+```julia
 set_tracer_field_zero!(state::State, tracersetup::NoTracer)
 ```
 
 Return for configurations without tracer transport.
 
-```julia 
+```julia
 set_tracer_field_zero!(state::State, tracersetup::AbstractTracer)
 ```
 
@@ -22,7 +22,6 @@ Set the gravity-wave-induced tracer fluxes to zero.
   - `state`: Model state.
 
   - `tracersetup`: General tracer-transport configuration.
-
 """
 function set_tracer_field_zero! end
 
@@ -44,4 +43,6 @@ function set_tracer_field_zero!(state::State, tracersetup::AbstractTracer)
     for field in fieldnames(TracerWKBImpact)
         getfield(chiq0, field) .= 0.0
     end
+
+    return
 end

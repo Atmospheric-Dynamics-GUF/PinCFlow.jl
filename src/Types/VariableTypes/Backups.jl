@@ -41,6 +41,5 @@ function Backups(domain::Domain)::Backups
     # Initialize the backups.
     (rhoold, rhopold, uold, vold, wold) = (zeros(nxx, nyy, nzz) for i in 1:5)
 
-    # Return a Backups instance.
     return Backups(rhoold, rhopold, uold, vold, wold)
 end

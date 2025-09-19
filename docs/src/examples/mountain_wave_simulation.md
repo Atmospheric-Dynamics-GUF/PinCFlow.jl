@@ -9,7 +9,7 @@ The script
 
 using PinCFlow
 
-if length(ARGS) == 0
+@ivy if length(ARGS) == 0
     output_file = "./pincflow_output.h5"
 elseif length(ARGS) == 1
     output_file = ARGS[1] * "/pincflow_output.h5"
@@ -22,9 +22,9 @@ domain = DomainNamelist(;
     sizex = 40,
     sizey = 40,
     sizez = 40,
-    lx_dim = (-1.0E+4, 1.0E+4),
-    ly_dim = (-1.0E+4, 1.0E+4),
-    lz_dim = (0.0E+0, 2.0E+4),
+    lx_dim = 2.0E+4,
+    ly_dim = 2.0E+4,
+    lz_dim = 2.0E+4,
     npx = 8,
     npy = 8,
 )
@@ -32,8 +32,8 @@ grid = GridNamelist(; mountain_case = 4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(;
     spongelayer = true,
-    spongealphaz_dim = 1.79E-2,
-    unifiedsponge = true,
+    alpharmax = 1.79E-2,
+    betarmax = 0.0E+0,
     lateralsponge = true,
     spongetype = SinusoidalSponge(),
     relax_to_mean = false,
@@ -48,7 +48,7 @@ performs a 3D mountain-wave simulation with parallelization in the zonal and mer
 
 ```shell
 mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 64 julia --project --check-bounds=no --math-mode=fast examples/submit/mountain_wave.jl
+${mpiexec} -n 64 julia --project examples/submit/mountain_wave.jl
 ```
 
 from the root directory of the repository (provided MPI.jl and HDF5.jl are configured to use their default backends). The surface topography is given by
@@ -57,7 +57,7 @@ $$h \left(x, y\right) = \frac{h_0}{1 + \left(x^2 + y^2\right) / l_0^2},$$
 
 where the default values $h_0 = 100 \, \mathrm{m}$ and $l_0 = 1 \, \mathrm{km}$ are being used. The atmosphere is isothermal, with the default temperature $T_0 = 300 \, \mathrm{K}$ and the initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \, \mathrm{m \, s^{- 1}}$.
 
-Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge layer defined by
+Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge defined by
 
 $$\alpha_\mathrm{R} \left(x, y, z\right) = \frac{\alpha_{\mathrm{R}, x} \left(x\right) + \alpha_{\mathrm{R}, y} \left(y\right) + \alpha_{\mathrm{R}, z} \left(z\right)}{3}$$
 
@@ -92,12 +92,14 @@ The script
 # examples/visualization/mountain_wave.jl
 
 using HDF5
+using PythonPlot
 using LaTeXStrings
+using PinCFlow
 
-include("style.jl")
+set_plot_style()
 
 # Import the data.
-if length(ARGS) == 0
+@ivy if length(ARGS) == 0
     data = h5open("./pincflow_output.h5")
 elseif length(ARGS) == 1
     data = h5open(ARGS[1] * "/pincflow_output.h5")
@@ -109,8 +111,8 @@ end
 x = data["x"][:] ./ 1000
 y = data["y"][:] ./ 1000
 z = data["z"][:, :, :] ./ 1000
-x = [xi for xi in x, iy in 1:size(z)[2], iz in 1:size(z)[3]]
-y = [yi for ix in 1:size(z)[1], yi in y, iz in 1:size(z)[3]]
+x = [xi for xi in x, j in 1:size(z)[2], k in 1:size(z)[3]]
+y = [yj for i in 1:size(z)[1], yj in y, k in 1:size(z)[3]]
 
 # Get the vertical wind.
 w = data["w"][:, :, :, end]
@@ -122,14 +124,14 @@ close(data)
 figure(; figsize = (12, 3))
 
 # Plot in x-y plane.
-iz = 10
+k = 10
 subplot(131)
-(levels, colormap) =
-    symmetric_contours(minimum(w[:, :, iz]), maximum(w[:, :, iz]))
-contours = contourf(
-    x[:, :, iz],
-    y[:, :, iz],
-    w[:, :, iz];
+@ivy (levels, colormap) =
+    symmetric_contours(minimum(w[:, :, k]), maximum(w[:, :, k]))
+@ivy contours = contourf(
+    x[:, :, k],
+    y[:, :, k],
+    w[:, :, k];
     levels = levels,
     cmap = colormap,
 )
@@ -139,36 +141,36 @@ title(L"z\approx 5\,\mathrm{km}")
 colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Plot in x-z plane.
-iy = 20
+j = 20
 subplot(132)
-(levels, colormap) =
-    symmetric_contours(minimum(w[:, iy, :]), maximum(w[:, iy, :]))
-contours = contourf(
-    x[:, iy, :],
-    z[:, iy, :],
-    w[:, iy, :];
+@ivy (levels, colormap) =
+    symmetric_contours(minimum(w[:, j, :]), maximum(w[:, j, :]))
+@ivy contours = contourf(
+    x[:, j, :],
+    z[:, j, :],
+    w[:, j, :];
     levels = levels,
     cmap = colormap,
 )
-plot(x[:, iy, 1], z[:, iy, 1]; color = "black", linewidth = 0.5)
+@ivy plot(x[:, j, 1], z[:, j, 1]; color = "black", linewidth = 0.5)
 xlabel(L"x\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"y\approx 0\,\mathrm{km}")
 colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Plot in y-z plane.
-ix = 20
+i = 20
 subplot(133)
-(levels, colormap) =
-    symmetric_contours(minimum(w[ix, :, :]), maximum(w[ix, :, :]))
-contours = contourf(
-    y[ix, :, :],
-    z[ix, :, :],
-    w[ix, :, :];
+@ivy (levels, colormap) =
+    symmetric_contours(minimum(w[i, :, :]), maximum(w[i, :, :]))
+@ivy contours = contourf(
+    y[i, :, :],
+    z[i, :, :],
+    w[i, :, :];
     levels = levels,
     cmap = colormap,
 )
-plot(y[ix, :, 1], z[ix, :, 1]; color = "black", linewidth = 0.5)
+@ivy plot(y[i, :, 1], z[i, :, 1]; color = "black", linewidth = 0.5)
 xlabel(L"y\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"x\approx 0\,\mathrm{km}")
@@ -180,7 +182,7 @@ clf()
 
 ```
 
-visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that the `symmetric_countours` function returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
+visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that `symmetric_countours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
 
 ![](results/mountain_wave.png)
 
@@ -196,6 +198,10 @@ visualizes the vertical wind at the end of the above simulation (i.e. after one 
 
   - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
 
-  - [`PinCFlow.Update.compute_sponge!`](@ref)
+  - [`PinCFlow.Update.compute_sponges!`](@ref)
 
-  - [`PinCFlow.Update.apply_unified_sponge!`](@ref)
+  - [`PinCFlow.Update.apply_lhs_sponge!`](@ref)
+
+  - [`PinCFlow.set_plot_style`](@ref)
+
+  - [`PinCFlow.symmetric_contours`](@ref)

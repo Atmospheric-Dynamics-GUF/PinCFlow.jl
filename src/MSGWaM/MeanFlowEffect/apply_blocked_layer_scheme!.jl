@@ -76,41 +76,44 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
     (kavg, uperp, drag) = (zeros(2) for i in 1:3)
 
     # Adjust the drag to account for blocking.
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fraction =
-            (
-                min(zb[ix, jy], ztildetfc[ix, jy, kz]) -
-                ztildetfc[ix, jy, kz - 1]
-            ) / jac[ix, jy, kz] / dz
+            (min(zb[i, j], ztildetfc[i, j, k]) - ztildetfc[i, j, k - 1]) /
+            jac[i, j, k] / dz
         if fraction <= 0
             continue
         else
-            @views kavg[1] =
-                sum(
-                    abs.(topography_spectrum[:, ix, jy]) .*
-                    k_spectrum[:, ix, jy],
-                ) / sum(abs.(topography_spectrum[:, ix, jy]))
-            @views kavg[2] =
-                sum(
-                    abs.(topography_spectrum[:, ix, jy]) .*
-                    l_spectrum[:, ix, jy],
-                ) / sum(abs.(topography_spectrum[:, ix, jy]))
+            hsum = sum(abs, topography_spectrum[:, i, j])
+            ksum = mapreduce(
+                (a, b) -> abs(a) * b,
+                +,
+                k_spectrum[:, i, j],
+                topography_spectrum[:, i, j],
+            )
+
+            lsum = mapreduce(
+                (a, b) -> abs(a) * b,
+                +,
+                l_spectrum[:, i, j],
+                topography_spectrum[:, i, j],
+            )
+            kavg[1] = ksum / hsum
+            kavg[2] = lsum / hsum
 
             uperp .=
                 (
-                    (u[ix, jy, kz] .+ u[ix - 1, jy, kz]) .* kavg[1] .+
-                    (v[ix, jy, kz] .+ v[ix, jy - 1, kz]) .* kavg[2]
+                    (u[i, j, k] .+ u[i - 1, j, k]) .* kavg[1] .+
+                    (v[i, j, k] .+ v[i, j - 1, k]) .* kavg[2]
                 ) ./ 2 .* kavg ./ dot(kavg, kavg)
+
             drag .=
-                -drag_coefficient .*
-                (rho[ix, jy, kz] .+ rhostrattfc[ix, jy, kz]) .*
-                sqrt(dot(kavg, kavg)) ./ (2 .* pi) .* sqrt(dot(uperp, uperp)) .*
-                uperp
-            dudt[ix, jy, kz] =
-                fraction * drag[1] + (1 - fraction) * dudt[ix, jy, kz]
-            dvdt[ix, jy, kz] =
-                fraction * drag[2] + (1 - fraction) * dvdt[ix, jy, kz]
-            dthetadt[ix, jy, kz] = (1 - fraction) * dthetadt[ix, jy, kz]
+                .-drag_coefficient .* (rho[i, j, k] .+ rhostrattfc[i, j, k]) .*
+                sqrt.(dot(kavg, kavg)) ./ (2 .* pi) .*
+                sqrt.(dot(uperp, uperp)) .* uperp
+
+            dudt[i, j, k] = fraction * drag[1] + (1 - fraction) * dudt[i, j, k]
+            dvdt[i, j, k] = fraction * drag[2] + (1 - fraction) * dvdt[i, j, k]
+            dthetadt[i, j, k] = (1 - fraction) * dthetadt[i, j, k]
         end
     end
 end

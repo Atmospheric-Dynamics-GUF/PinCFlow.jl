@@ -20,15 +20,6 @@ abstract type AbstractBackground end
 
 """
 ```julia
-AbstractCoriolisMode
-```
-
-Abstract type for approximations of the Coriolis parameter.
-"""
-abstract type AbstractCoriolisMode end
-
-"""
-```julia
 AbstractLimiter
 ```
 
@@ -53,15 +44,6 @@ AbstractTestCase
 Abstract type for model test cases.
 """
 abstract type AbstractTestCase end
-
-"""
-```julia
-AbstractBoundaries
-```
-
-Abstract type for vertical boundary conditions.
-"""
-abstract type AbstractBoundaries end
 
 """
 ```julia
@@ -146,15 +128,6 @@ struct Isothermal <: AbstractBackground end
 
 """
 ```julia
-FPlane <: AbstractCoriolisMode
-```
-
-Singleton for the ``f``-plane approximation of the Coriolis parameter.
-"""
-struct FPlane <: AbstractCoriolisMode end
-
-"""
-```julia
 MCVariant <: AbstractLimiter
 ```
 
@@ -206,24 +179,6 @@ WKBMountainWave <: AbstractWKBTestCase
 Singleton for WKB-mountain-wave test cases.
 """
 struct WKBMountainWave <: AbstractWKBTestCase end
-
-"""
-```julia
-PeriodicBoundaries <: AbstractBoundaries
-```
-
-Singleton for periodic boundary conditions in the vertical.
-"""
-struct PeriodicBoundaries <: AbstractBoundaries end
-
-"""
-```julia
-SolidWallBoundaries <: AbstractBoundaries
-```
-
-Singleton for solid-wall boundary conditions in the vertical.
-"""
-struct SolidWallBoundaries <: AbstractBoundaries end
 
 """
 ```julia
@@ -343,6 +298,7 @@ Singleton for model configurations with an initially linear tracer.
 struct LinearTracer <: AbstractTracer end
 
 using MPI
+using ...PinCFlow
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
@@ -357,11 +313,9 @@ include("TracerNamelist.jl")
 include("Namelists.jl")
 
 export AbstractBackground,
-    AbstractCoriolisMode,
     AbstractLimiter,
     AbstractModel,
     AbstractTestCase,
-    AbstractBoundaries,
     AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
@@ -372,15 +326,12 @@ export AbstractBackground,
 export UniformBoussinesq,
     StratifiedBoussinesq,
     Isothermal,
-    FPlane,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,
     Compressible,
     MountainWave,
     WKBMountainWave,
-    PeriodicBoundaries,
-    SolidWallBoundaries,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,

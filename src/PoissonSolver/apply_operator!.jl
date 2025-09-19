@@ -4,9 +4,7 @@ apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Total,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
+    state::State,
 )
 ```
 
@@ -19,9 +17,7 @@ apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Horizontal,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
+    state::State,
 )
 ```
 
@@ -37,11 +33,7 @@ Before the operator is applied, the boundary/halo values of `sin` are set, in th
 
   - `hortot`: Linear-operator mode.
 
-  - `namelists`: Namelists with all model parameters.
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
+  - `state`: Model state.
 
 # See also
 
@@ -57,13 +49,11 @@ function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Total,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
+    state::State,
 )
-    (; npz) = namelists.domain
-    (; zboundaries) = namelists.setting
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
+    (; namelists, domain) = state
+    (; npz) = state.namelists.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (;
         ac_b,
         al_b,
@@ -90,11 +80,11 @@ function apply_operator!(
         afdd_b,
         abuu_b,
         abdd_b,
-    ) = poisson.tensor
-    (; s) = poisson.operator
+    ) = state.poisson.tensor
+    (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    s[i0:i1, j0:j1, k0:k1] .= sin
+    @ivy s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
     if npz > 1
@@ -105,13 +95,7 @@ function apply_operator!(
             domain;
             layers = (1, 1, 2),
         )
-        set_vertical_halos_of_field!(
-            s,
-            namelists,
-            domain,
-            zboundaries;
-            layers = (1, 1, 2),
-        )
+        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(
@@ -126,7 +110,7 @@ function apply_operator!(
     #         Loop over field
     #---------------------------------
 
-    for k in 1:nz, j in 1:ny, i in 1:nx
+    @ivy for k in 1:nz, j in 1:ny, i in 1:nx
 
         # Determine indices for s.
         is = i + i0 - 1
@@ -291,13 +275,11 @@ function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Horizontal,
-    namelists::Namelists,
-    domain::Domain,
-    poisson::Poisson,
+    state::State,
 )
-    (; npz) = namelists.domain
-    (; zboundaries) = namelists.setting
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
+    (; namelists, domain) = state
+    (; npz) = state.namelists.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (;
         al_b,
         ar_b,
@@ -321,11 +303,11 @@ function apply_operator!(
         afdd_b,
         abuu_b,
         abdd_b,
-    ) = poisson.tensor
-    (; s) = poisson.operator
+    ) = state.poisson.tensor
+    (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    s[i0:i1, j0:j1, k0:k1] .= sin
+    @ivy s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
     if npz > 1
@@ -336,13 +318,7 @@ function apply_operator!(
             domain;
             layers = (1, 1, 2),
         )
-        set_vertical_halos_of_field!(
-            s,
-            namelists,
-            domain,
-            zboundaries;
-            layers = (1, 1, 2),
-        )
+        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(
@@ -357,7 +333,7 @@ function apply_operator!(
     #         Loop over field
     #---------------------------------
 
-    for k in 1:nz, j in 1:ny, i in 1:nx
+    @ivy for k in 1:nz, j in 1:ny, i in 1:nx
 
         # Determine indices for s.
         is = i + i0 - 1

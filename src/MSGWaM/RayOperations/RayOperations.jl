@@ -13,10 +13,9 @@ Module for various ray-volume operations needed throughout MSGWaM.
 """
 module RayOperations
 
-using ...Types
 using ..Interpolation
-
-include("MergedRays.jl")
+using ...Types
+using ...PinCFlow
 
 include("check_rays.jl")
 include("compute_intrinsic_frequency.jl")
@@ -32,8 +31,6 @@ include("get_spectral_position.jl")
 include("get_surfaces.jl")
 include("remove_rays!.jl")
 include("update_merged_rays!.jl")
-
-export MergedRays
 
 export check_rays,
     compute_intrinsic_frequency,

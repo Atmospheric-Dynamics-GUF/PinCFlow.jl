@@ -202,12 +202,7 @@ update!(
 Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
 
 ```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracersetup::NoTracer,
-)
+update!(state::State, dt::AbstractFloat, m::Integer, tracersetup::NoTracer)
 ```
 
 Return for configurations without tracer transport.
@@ -221,7 +216,7 @@ update!(
 )
 ```
 
-Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration. 
+Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
 
 # Arguments
 
@@ -251,7 +246,7 @@ Update the tracers with a Runge-Kutta step on the left-hand sides of the equatio
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
+  - [`PinCFlow.Update.compute_buoyancy_factor`](@ref)
 
   - [`PinCFlow.Update.compute_pressure_gradient`](@ref)
 
@@ -295,7 +290,7 @@ function update!(
         drho .= 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirho[i - 1, j, k, 1]
         fr = phirho[i, j, k, 1]
         gb = phirho[i, j - 1, k, 2]
@@ -334,7 +329,7 @@ function update!(
         drhop .= 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirhop[i - 1, j, k, 1]
         fr = phirhop[i, j, k, 1]
         gb = phirhop[i, j - 1, k, 2]
@@ -345,9 +340,9 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        heating = compute_volume_force(state, (i, j, k), P())
+        heating = compute_volume_force(state, i, j, k, P())
 
-        f = -fluxdiff + heating / thetastrattfc[i, j, k]
+        f = -fluxdiff - heating / thetastrattfc[i, j, k]
 
         drhop[i, j, k] = dt * f + alphark[m] * drhop[i, j, k]
         rhop[i, j, k] += betark[m] * drhop[i, j, k]
@@ -364,23 +359,22 @@ function update!(
     integration::Explicit,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; grid) = state
     (; g_ndim) = state.constants
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop) = predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        jpu = compute_compressible_wind_factor(state, (i, j, k), W())
-        jpd = compute_compressible_wind_factor(state, (i, j, k - 1), W())
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        jpu = compute_compressible_wind_factor(state, i, j, k, W())
+        jpd = compute_compressible_wind_factor(state, i, j, k - 1, W())
         wvrt =
             0.5 * (
-                compute_vertical_wind(i, j, k, predictands, grid) / jpu +
-                compute_vertical_wind(i, j, k - 1, predictands, grid) / jpd
+                compute_vertical_wind(i, j, k, state) / jpu +
+                compute_vertical_wind(i, j, k - 1, state) / jpd
             )
 
         buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         buoy -= dt * fb * bvsstrattfc[i, j, k] * wvrt
 
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
@@ -399,16 +393,15 @@ function update!(
 )
     (; nbz) = state.namelists.domain
     (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; zboundaries) = state.namelists.setting
     (; jac, met) = state.grid
     (; spongelayer) = state.namelists.sponge
-    (; kr_sp_w_tfc) = state.sponge
+    (; betar) = state.sponge
     (; g_ndim) = state.constants
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; rho, rhop, u, v, pip) = state.variables.predictands
     (; wold) = state.variables.backups
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k] + rhostrattfc[i, j, k]
         rhoedgeu =
             (
@@ -431,20 +424,19 @@ function update!(
                 jac[i, j, k] * rhostrattfc[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
 
-        jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
-        jpedged = compute_compressible_wind_factor(state, (i, j, k - 1), W())
+        jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
+        jpedged = compute_compressible_wind_factor(state, i, j, k - 1, W())
         w = 0.5 * (wold[i, j, k] / jpedgeu + wold[i, j, k - 1] / jpedged)
 
-        lower_gradient =
-            compute_pressure_gradient(state, pip, (i, j, k - 1), W())
-        lower_force = compute_volume_force(state, (i, j, k - 1), W())
-        upper_gradient = compute_pressure_gradient(state, pip, (i, j, k), W())
-        upper_force = compute_volume_force(state, (i, j, k), W())
+        lower_gradient = compute_pressure_gradient(state, pip, i, j, k - 1, W())
+        lower_force = compute_volume_force(state, i, j, k - 1, W())
+        upper_gradient = compute_pressure_gradient(state, pip, i, j, k, W())
+        upper_force = compute_volume_force(state, i, j, k, W())
 
-        if ko + k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0
             lower_gradient = 0.0
             lower_force = 0.0
-        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz
             upper_gradient = 0.0
             upper_force = 0.0
         end
@@ -455,15 +447,15 @@ function update!(
         factor = 1.0
 
         if spongelayer
-            factor += dt * kr_sp_w_tfc[i, j, k] * rayleigh_factor
+            factor += dt * betar[i, j, k] * rayleigh_factor
         end
 
         b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
-        jpedgel = compute_compressible_wind_factor(state, (i - 1, j, k), U())
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
-        jpedgeb = compute_compressible_wind_factor(state, (i, j - 1, k), V())
-        fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
+        jpedgel = compute_compressible_wind_factor(state, i - 1, j, k, U())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
+        jpedgeb = compute_compressible_wind_factor(state, i, j - 1, k, V())
+        fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         b =
             1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
                 -fb *
@@ -499,20 +491,24 @@ function update!(
     variable::U,
     side::LHS,
 )
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
+    (; tref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, fc) = state.atmosphere
+    (; rhostrattfc) = state.atmosphere
     (; du) = state.variables.increments
     (; phiu) = state.variables.fluxes
     (; rhoold, uold) = state.variables.backups
     (; rho, u, v) = state.variables.predictands
 
+    fc = coriolis_frequency * tref
+
     if m == 1
         du .= 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
 
         # Compute zonal momentum flux divergence.
         fr = phiu[i, j, k, 1]
@@ -536,7 +532,7 @@ function update!(
         vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
         volforce =
             0.5 *
-            fc[j] *
+            fc *
             (
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) * vc +
                 (rhoold[i + 1, j, k] + rhostrattfc[i + 1, j, k]) * vr
@@ -567,7 +563,6 @@ function update!(
         u[i, j, k] = uast
     end
 
-    # Return.
     return
 end
 
@@ -582,16 +577,16 @@ function update!(
     (; rhostrattfc) = state.atmosphere
     (; rho, u, pip) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         rhoedger += rhostratedger
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), U())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, U())
 
-        force = compute_volume_force(state, (i, j, k), U())
+        force = compute_volume_force(state, i, j, k, U())
 
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
 
         u[i, j, k] += dt * (-gradient + force / rhoedger) * jpedger
     end
@@ -610,20 +605,20 @@ function update!(
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc) = state.atmosphere
-    (; kr_sp_tfc) = state.sponge
+    (; betar) = state.sponge
     (; rho, u, pip) = state.variables.predictands
 
-    kz0 = k0
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = k0
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         rhoedger += rhostratedger
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), U())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, U())
 
-        force = compute_volume_force(state, (i, j, k), U())
+        force = compute_volume_force(state, i, j, k, U())
 
         factor = 1.0
 
@@ -631,11 +626,11 @@ function update!(
             factor +=
                 dt *
                 0.5 *
-                (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) *
+                (betar[i, j, k] + betar[i + 1, j, k]) *
                 rayleigh_factor
         end
 
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
 
         u[i, j, k] =
             1.0 / factor *
@@ -652,20 +647,24 @@ function update!(
     variable::V,
     side::LHS,
 )
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
+    (; tref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, fc) = state.atmosphere
+    (; rhostrattfc) = state.atmosphere
     (; dv) = state.variables.increments
     (; phiv) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
     (; rho, v) = state.variables.predictands
 
+    fc = coriolis_frequency * tref
+
     if m == 1
         dv .= 0.0
     end
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
 
         # Compute meridional momentum flux divergence.
         fr = phiv[i, j, k, 1]
@@ -689,11 +688,11 @@ function update!(
         uf = 0.5 * (uold[i, j + 1, k] + uold[i - 1, j + 1, k])
 
         volforce =
-            -0.5 * (
-                fc[j] * (rhoold[i, j, k] + rhostrattfc[i, j, k]) * uc +
-                fc[j + 1] *
-                (rhoold[i, j + 1, k] + rhostrattfc[i, j + 1, k]) *
-                uf
+            -0.5 *
+            fc *
+            (
+                (rhoold[i, j, k] + rhostrattfc[i, j, k]) * uc +
+                (rhoold[i, j + 1, k] + rhostrattfc[i, j + 1, k]) * uf
             )
 
         force = -fluxdiff + volforce
@@ -717,7 +716,6 @@ function update!(
         v[i, j, k] = vast
     end
 
-    # Return.
     return
 end
 
@@ -732,16 +730,16 @@ function update!(
     (; rhostrattfc) = state.atmosphere
     (; rho, v, pip) = state.variables.predictands
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         rhoedgef += rhostratedgef
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), V())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, V())
 
-        force = compute_volume_force(state, (i, j, k), V())
+        force = compute_volume_force(state, i, j, k, V())
 
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
 
         v[i, j, k] += dt * (-gradient + force / rhoedgef) * jpedgef
     end
@@ -760,20 +758,20 @@ function update!(
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc) = state.atmosphere
-    (; kr_sp_tfc) = state.sponge
+    (; betar) = state.sponge
     (; rho, v, pip) = state.variables.predictands
 
-    kz0 = k0
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = k0
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         rhoedgef += rhostratedgef
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), V())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, V())
 
-        force = compute_volume_force(state, (i, j, k), V())
+        force = compute_volume_force(state, i, j, k, V())
 
         factor = 1.0
 
@@ -781,11 +779,11 @@ function update!(
             factor +=
                 dt *
                 0.5 *
-                (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) *
+                (betar[i, j, k] + betar[i, j + 1, k]) *
                 rayleigh_factor
         end
 
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
 
         v[i, j, k] =
             1.0 / factor *
@@ -802,16 +800,19 @@ function update!(
     variable::W,
     side::LHS,
 )
-    (; zboundaries) = state.namelists.setting
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
+    (; tref) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; dx, dy, dz, jac, met) = grid
-    (; rhostrattfc, fc) = state.atmosphere
+    (; rhostrattfc) = state.atmosphere
     (; dw) = state.variables.increments
     (; phiu, phiv, phiw) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
     (; rho, w) = state.variables.predictands
+
+    fc = coriolis_frequency * tref
 
     # Initialize fields for transformation of momentum flux divergence.
     (fluxdiffu, fluxdiffv) = (zeros(2, 2) for i in 1:2)
@@ -820,14 +821,10 @@ function update!(
         dw .= 0.0
     end
 
-    if zboundaries != SolidWallBoundaries()
-        error("Error in update!: Unknown case zBoundary!")
-    end
+    kmin = ko == 0 ? k0 : k0 - 1
+    kmax = ko + nzz == sizezz ? k1 - 1 : k1
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
-
-    for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
         fr = phiw[i, j, k, 1]
         fl = phiw[i - 1, j, k, 1]
@@ -888,7 +885,7 @@ function update!(
             fluxdiffv[2, 2],
             fluxdiff,
             Transformed(),
-            grid,
+            state,
         )
 
         # Explicit integration of Coriolis force in TFC.
@@ -898,7 +895,7 @@ function update!(
         uu = 0.5 * (uold[i, j, k + 1] + uold[i - 1, j, k + 1])
 
         volforce =
-            fc[j] * (
+            fc * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 1, 3] *
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
@@ -908,7 +905,7 @@ function update!(
                 (rhoold[i, j, k + 1] + rhostrattfc[i, j, k + 1]) *
                 vu
             ) / (jac[i, j, k] + jac[i, j, k + 1]) -
-            fc[j] * (
+            fc * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 2, 3] *
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
@@ -962,7 +959,6 @@ function update!(
     side::RHS,
     integration::Explicit,
 )
-    (; zboundaries) = state.namelists.setting
     (; g_ndim) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
@@ -970,14 +966,10 @@ function update!(
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
-    if zboundaries != SolidWallBoundaries()
-        error("Error in update!: Unknown zboundaries!")
-    end
+    kmin = ko == 0 ? k0 : k0 - 1
+    kmax = ko + nzz == sizezz ? k1 - 1 : k1
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
-
-    for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -994,9 +986,9 @@ function update!(
                 jac[i, j, k] * rhostrattfc[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), W())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, W())
 
-        force = compute_volume_force(state, (i, j, k), W())
+        force = compute_volume_force(state, i, j, k, W())
 
         b =
             -g_ndim * (
@@ -1004,7 +996,7 @@ function update!(
                 jac[i, j, k] * rhopold[i, j, k + 1] / rhou / jac[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
+        jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
 
         w[i, j, k] += dt * (b - gradient + force / rhoedgeu) * jpedgeu
     end
@@ -1021,22 +1013,17 @@ function update!(
     rayleigh_factor::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
     (; g_ndim) = state.constants
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
-    (; kr_sp_w_tfc) = state.sponge
+    (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
-    if zboundaries != SolidWallBoundaries()
-        error("Error in update!: Unknown zboundaries!")
-    end
+    kmin = ko == 0 ? k0 : k0 - 1
+    kmax = ko + nzz == sizezz ? k1 - 1 : k1
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
-
-    for k in kz0:kz1, j in j0:j1, i in i0:i1
+    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1053,9 +1040,9 @@ function update!(
                 jac[i, j, k] * rhostrattfc[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        gradient = compute_pressure_gradient(state, pip, (i, j, k), W())
+        gradient = compute_pressure_gradient(state, pip, i, j, k, W())
 
-        force = compute_volume_force(state, (i, j, k), W())
+        force = compute_volume_force(state, i, j, k, W())
 
         bvsstratedgeu =
             (
@@ -1068,8 +1055,8 @@ function update!(
         if spongelayer
             factor +=
                 dt * (
-                    jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
-                    jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]
+                    jac[i, j, k + 1] * betar[i, j, k] +
+                    jac[i, j, k] * betar[i, j, k + 1]
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
         end
 
@@ -1080,24 +1067,22 @@ function update!(
                 jac[i, j, k] * rhop[i, j, k + 1] / rhou / jac[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        jpedger = compute_compressible_wind_factor(state, (i, j, k), U())
-        jpedgel = compute_compressible_wind_factor(state, (i - 1, j, k), U())
-        jpedgef = compute_compressible_wind_factor(state, (i, j, k), V())
-        jpedgeb = compute_compressible_wind_factor(state, (i, j - 1, k), V())
-        jpuedger = compute_compressible_wind_factor(state, (i, j, k + 1), U())
-        jpuedgel =
-            compute_compressible_wind_factor(state, (i - 1, j, k + 1), U())
-        jpuedgef = compute_compressible_wind_factor(state, (i, j, k + 1), V())
-        jpuedgeb =
-            compute_compressible_wind_factor(state, (i, j - 1, k + 1), V())
+        jpedger = compute_compressible_wind_factor(state, i, j, k, U())
+        jpedgel = compute_compressible_wind_factor(state, i - 1, j, k, U())
+        jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
+        jpedgeb = compute_compressible_wind_factor(state, i, j - 1, k, V())
+        jpuedger = compute_compressible_wind_factor(state, i, j, k + 1, U())
+        jpuedgel = compute_compressible_wind_factor(state, i - 1, j, k + 1, U())
+        jpuedgef = compute_compressible_wind_factor(state, i, j, k + 1, V())
+        jpuedgeb = compute_compressible_wind_factor(state, i, j - 1, k + 1, V())
 
         uc = 0.5 * (u[i, j, k] / jpedger + u[i - 1, j, k] / jpedgel)
         uu = 0.5 * (u[i, j, k + 1] / jpuedger + u[i - 1, j, k + 1] / jpuedgel)
         vc = 0.5 * (v[i, j, k] / jpedgef + v[i, j - 1, k] / jpedgeb)
         vu = 0.5 * (v[i, j, k + 1] / jpuedgef + v[i, j - 1, k + 1] / jpuedgeb)
 
-        jpedgeu = compute_compressible_wind_factor(state, (i, j, k), W())
-        fw = compute_compressible_buoyancy_factor(state, (i, j, k), W())
+        jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
+        fw = compute_buoyancy_factor(state, i, j, k, W())
 
         w[i, j, k] =
             1.0 / (factor + fw * bvsstratedgeu * dt^2.0) * (
@@ -1147,7 +1132,7 @@ function update!(
     (; uold, vold, wold) = state.variables.backups
     (; pip, p) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fl = uold[i - 1, j, k]
         fr = uold[i, j, k]
         gb = vold[i, j - 1, k]
@@ -1158,12 +1143,12 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        heating = compute_volume_force(state, (i, j, k), P())
+        heating = compute_volume_force(state, i, j, k, P())
 
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
 
-        pip[i, j, k] -= dt * (fluxdiff + heating) / dpdpi
+        pip[i, j, k] -= dt * (fluxdiff - heating) / dpdpi
     end
 
     return
@@ -1203,7 +1188,7 @@ function update!(
         dp .= 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phip[i - 1, j, k, 1]
         fr = phip[i, j, k, 1]
         gb = phip[i, j - 1, k, 2]
@@ -1214,9 +1199,9 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        heating = compute_volume_force(state, (i, j, k), P())
+        heating = compute_volume_force(state, i, j, k, P())
 
-        f = -fluxdiff - heating
+        f = -fluxdiff + heating
 
         dp[i, j, k] = dt * f + alphark[m] * dp[i, j, k]
         p[i, j, k] += betark[m] * dp[i, j, k]
@@ -1246,7 +1231,7 @@ function update!(
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
     (; testcase) = state.namelists.setting
 
-    for (fd, field) in enumerate(fieldnames(TracerPredictands))
+    @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
         if m == 1
             getfield(tracerincrements, fd) .= 0.0
         end
@@ -1262,7 +1247,7 @@ function update!(
             fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
             fluxdiff /= jac[i, j, k]
 
-            force = compute_volume_force(state, (i, j, k), Chi(), testcase)
+            force = compute_volume_force(state, i, j, k, Chi(), testcase)
             f = -fluxdiff + force
 
             getfield(tracerincrements, fd)[i, j, k] =

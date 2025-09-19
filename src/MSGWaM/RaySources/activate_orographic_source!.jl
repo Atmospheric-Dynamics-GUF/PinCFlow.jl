@@ -46,7 +46,7 @@ The launch algorithm distinguishes between the following situations (regarding p
 
  1. There is no ray volume with nonzero wave-action density. A new ray volume is launched.
 
- 1. There is a ray volume with nonzero wave-action density that has at least partially passed through the lower boundary. The ray volume is either clipped or extended, such that its lower edge coincides with the surface, and the part below the surface is discarded. Then, it is assigned to the first model layer `k0`, i.e. its indices are changed from `(iray, ix, jy, k0 - 1)` to `(jray, ix, jy, k0)`, where `jray` is the new last ray-volume index at `(ix, jy, k0)`. Finally, a new ray volume is launched.
+ 1. There is a ray volume with nonzero wave-action density that has at least partially passed through the lower boundary. The ray volume is either clipped or extended, such that its lower edge coincides with the surface, and the part below the surface is discarded. Then, it is assigned to the first model layer `k0`, i.e. its indices are changed from `(r, i, j, k0 - 1)` to `(rray, i, j, k0)`, where `rray` is the new last ray-volume index at `(i, j, k0)`. Finally, a new ray volume is launched.
 
  1. There is a ray volume with nonzero wave-action density, which has not yet crossed the lower boundary. It is replaced with a new one.
 
@@ -98,26 +98,24 @@ function activate_orographic_source!(
     fc = coriolis_frequency * tref
 
     # Iterate over surface grid cells.
-    for jy in j0:j1, ix in i0:i1
+    @ivy for j in j0:j1, i in i0:i1
 
-        # Average mean wind, reference density and buoyancy frequency. This should
-        # be done without a vertical loop.
+        # Sum the magnitudes of the spectrum.
+        hsum = sum(abs, topography_spectrum[:, i, j])
+
+        # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
         vavg = 0.0
         rhoavg = 0.0
         bvsavg = 0.0
         dzsum = 0.0
-        for kz in k0:k1
-            uavg +=
-                (u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * jac[ix, jy, kz] * dz
-            vavg +=
-                (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * jac[ix, jy, kz] * dz
-            rhoavg += rhostrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
-            bvsavg += bvsstrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
-            dzsum += jac[ix, jy, kz] * dz
-            @views if ztildetfc[ix, jy, kz] >
-                      ztildetfc[ix, jy, k0 - 1] +
-                      sum(abs.(topography_spectrum[:, ix, jy]))
+        for k in k0:k1
+            uavg += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
+            vavg += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
+            rhoavg += rhostrattfc[i, j, k] * jac[i, j, k] * dz
+            bvsavg += bvsstrattfc[i, j, k] * jac[i, j, k] * dz
+            dzsum += jac[i, j, k] * dz
+            if ztildetfc[i, j, k] > ztildetfc[i, j, k0 - 1] + hsum
                 break
             end
         end
@@ -127,32 +125,28 @@ function activate_orographic_source!(
         bvsavg /= dzsum
 
         # Determine the blocked layer.
-        @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
-            @views long =
-                sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
-                sum(abs.(topography_spectrum[:, ix, jy]))
+        if blocking && hsum > 0
+            long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
             ratio = min(1, long_threshold / long)
-            @views zb[ix, jy] =
-                ztildetfc[ix, jy, k0 - 1] +
-                sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
+            zb[i, j] = ztildetfc[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
         elseif blocking
             ratio = 1
-            zb[ix, jy] = ztildetfc[ix, jy, k0 - 1]
+            zb[i, j] = ztildetfc[i, j, k0 - 1]
         else
             ratio = 1
         end
 
         # Set launch level.
-        kz = k0 - 1
+        k = k0 - 1
 
         # Iterate over wave modes.
-        for iwm in 1:nwm
+        for alpha in 1:nwm
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
             (omi, wnk, wnl, wnm, wad) = compute_orographic_mode(
-                ratio * topography_spectrum[iwm, ix, jy],
-                k_spectrum[iwm, ix, jy],
-                l_spectrum[iwm, ix, jy],
+                ratio * topography_spectrum[alpha, i, j],
+                k_spectrum[alpha, i, j],
+                l_spectrum[alpha, i, j],
                 uavg,
                 vavg,
                 rhoavg,
@@ -162,11 +156,11 @@ function activate_orographic_source!(
             )
 
             # Save the results.
-            omi_ini[iwm, ix, jy, kz] = omi
-            wnk_ini[iwm, ix, jy, kz] = wnk
-            wnl_ini[iwm, ix, jy, kz] = wnl
-            wnm_ini[iwm, ix, jy, kz] = wnm
-            wad_ini[iwm, ix, jy, kz] = wad
+            omi_ini[alpha, i, j, k] = omi
+            wnk_ini[alpha, i, j, k] = wnk
+            wnl_ini[alpha, i, j, k] = wnl
+            wnm_ini[alpha, i, j, k] = wnm
+            wad_ini[alpha, i, j, k] = wad
         end
     end
     return
@@ -207,8 +201,7 @@ function activate_orographic_source!(state::State)
     ) = state.grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; u, v) = state.variables.predictands
-    (; ir_sfc, ix2_sfc, jy2_sfc, kz2_sfc, ik_sfc, jl_sfc, km_sfc, iwm_sfc) =
-        state.wkb.surface_indices
+    (; rs, ixs, jys, kzs, iks, jls, kms, alphas) = state.wkb.surface_indices
     (; nray_wrk, n_sfc, nray, rays, zb, increments) = state.wkb
 
     if ko != 0
@@ -219,26 +212,24 @@ function activate_orographic_source!(state::State)
     fc = coriolis_frequency * tref
 
     # Iterate over surface grid cells.
-    for jy in j0:j1, ix in i0:i1
+    @ivy for j in j0:j1, i in i0:i1
 
-        # Average mean wind, reference density and buoyancy frequency. This
-        # should be done without a vertical loop.
+        # Sum the magnitudes of the spectrum.
+        hsum = sum(abs, topography_spectrum[:, i, j])
+
+        # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
         vavg = 0.0
         rhoavg = 0.0
         bvsavg = 0.0
         dzsum = 0.0
-        for kz in k0:k1
-            uavg +=
-                (u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * jac[ix, jy, kz] * dz
-            vavg +=
-                (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * jac[ix, jy, kz] * dz
-            rhoavg += rhostrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
-            bvsavg += bvsstrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
-            dzsum += jac[ix, jy, kz] * dz
-            @views if ztildetfc[ix, jy, kz] >
-                      ztildetfc[ix, jy, k0 - 1] +
-                      sum(abs.(topography_spectrum[:, ix, jy]))
+        for k in k0:k1
+            uavg += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
+            vavg += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
+            rhoavg += rhostrattfc[i, j, k] * jac[i, j, k] * dz
+            bvsavg += bvsstrattfc[i, j, k] * jac[i, j, k] * dz
+            dzsum += jac[i, j, k] * dz
+            if ztildetfc[i, j, k] > ztildetfc[i, j, k0 - 1] + hsum
                 break
             end
         end
@@ -248,42 +239,38 @@ function activate_orographic_source!(state::State)
         bvsavg /= dzsum
 
         # Determine the blocked layer.
-        @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
-            @views long =
-                sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
-                sum(abs.(topography_spectrum[:, ix, jy]))
+        if blocking && hsum > 0
+            long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
             ratio = min(1, long_threshold / long)
-            @views zb[ix, jy] =
-                ztildetfc[ix, jy, k0 - 1] +
-                sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
+            zb[i, j] = ztildetfc[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
         elseif blocking
             ratio = 1.0
-            zb[ix, jy] = ztildetfc[ix, jy, k0 - 1]
+            zb[i, j] = ztildetfc[i, j, k0 - 1]
         else
             ratio = 1.0
         end
 
         # Set launch level.
-        kz = k0 - 1
+        k = k0 - 1
 
         # Loop over surface ray volumes.
-        for i_sfc in 1:n_sfc
-            iray = ir_sfc[i_sfc, ix, jy]
+        for s in 1:n_sfc
+            r = rs[s, i, j]
 
             # Set surface indices.
-            ix2 = ix2_sfc[i_sfc]
-            jy2 = jy2_sfc[i_sfc]
-            kz2 = kz2_sfc[i_sfc]
-            ik = ik_sfc[i_sfc]
-            jl = jl_sfc[i_sfc]
-            km = km_sfc[i_sfc]
-            iwm = iwm_sfc[i_sfc]
+            ix = ixs[s]
+            jy = jys[s]
+            kz = kzs[s]
+            ik = iks[s]
+            jl = jls[s]
+            km = kms[s]
+            alpha = alphas[s]
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
             (omir, wnrk, wnrl, wnrm, wadr) = compute_orographic_mode(
-                ratio * topography_spectrum[iwm, ix, jy],
-                k_spectrum[iwm, ix, jy],
-                l_spectrum[iwm, ix, jy],
+                ratio * topography_spectrum[alpha, i, j],
+                k_spectrum[alpha, i, j],
+                l_spectrum[alpha, i, j],
                 uavg,
                 vavg,
                 rhoavg,
@@ -293,9 +280,9 @@ function activate_orographic_source!(state::State)
             )
 
             # Get vertical position and extent of old ray volume.
-            if iray > 0
-                zr = rays.z[iray, ix, jy, kz]
-                dzr = rays.dzray[iray, ix, jy, kz]
+            if r > 0
+                zr = rays.z[r, i, j, k]
+                dzr = rays.dzray[r, i, j, k]
             else
                 zr = 0.0
                 dzr = 0.0
@@ -313,90 +300,94 @@ function activate_orographic_source!(state::State)
             #     has not yet crossed the lower boundary. It is replaced with a
             #     new one.
             if wkb_mode == SteadyState()
-                if iray < 0
+                if r < 0
                     if wadr == 0
                         continue
                     else
-                        nray[ix, jy, kz] += 1
-                        iray = nray[ix, jy, kz]
-                        ir_sfc[i_sfc, ix, jy] = iray
+                        nray[i, j, k] += 1
+                        r = nray[i, j, k]
+                        rs[s, i, j] = r
                     end
-                elseif iray > 0
+                elseif r > 0
                     if wadr == 0
-                        rays.dens[iray, ix, jy, kz] = 0.0
-                        ir_sfc[i_sfc, ix, jy] = -1
+                        rays.dens[r, i, j, k] = 0.0
+                        rs[s, i, j] = -1
                         continue
                     end
                 end
             else
-                if iray > 0
+                if r > 0
                     # Shift and clip/extend the old ray volume.
-                    if zr + dzr / 2 > ztildetfc[ix, jy, kz]
+                    if zr + dzr / 2 > ztildetfc[i, j, k]
 
                         # Shift the old ray volume.
-                        nray[ix, jy, kz + 1] += 1
-                        nrlc = nray[ix, jy, kz + 1]
-                        if nrlc > nray_wrk
+                        nray[i, j, k + 1] += 1
+                        local_count = nray[i, j, k + 1]
+                        if local_count > nray_wrk
                             error(
-                                "Error in activate_orographic_source!: nrlc > nray_wrk!",
+                                "Error in activate_orographic_source!: local_count > nray_wrk!",
                             )
                         end
                         copy_rays!(
                             rays,
-                            (iray, ix, jy, kz),
-                            (nrlc, ix, jy, kz + 1),
+                            r => local_count,
+                            i => i,
+                            j => j,
+                            k => k + 1,
                         )
                         for field in fieldnames(WKBIncrements)
-                            getfield(increments, field)[nrlc, ix, jy, kz + 1] =
-                                getfield(increments, field)[iray, ix, jy, kz]
-                            getfield(increments, field)[iray, ix, jy, kz] = 0.0
+                            getfield(increments, field)[
+                                local_count,
+                                i,
+                                j,
+                                k + 1,
+                            ] = getfield(increments, field)[r, i, j, k]
+                            getfield(increments, field)[r, i, j, k] = 0.0
                         end
 
                         # Clip/extend the old ray volume.
-                        if zr - dzr / 2 < ztildetfc[ix, jy, kz] || kz2 == 1
-                            rays.dzray[nrlc, ix, jy, kz + 1] =
-                                zr + dzr / 2 - ztildetfc[ix, jy, kz]
-                            rays.z[nrlc, ix, jy, kz + 1] =
+                        if zr - dzr / 2 < ztildetfc[i, j, k] || kz == 1
+                            rays.dzray[local_count, i, j, k + 1] =
+                                zr + dzr / 2 - ztildetfc[i, j, k]
+                            rays.z[local_count, i, j, k + 1] =
                                 zr + dzr / 2 -
-                                rays.dzray[nrlc, ix, jy, kz + 1] / 2
+                                rays.dzray[local_count, i, j, k + 1] / 2
                         end
                     end
 
                     if wadr == 0
-                        rays.dens[iray, ix, jy, kz] = 0.0
-                        ir_sfc[i_sfc, ix, jy] = -1
+                        rays.dens[r, i, j, k] = 0.0
+                        rs[s, i, j] = -1
                         continue
                     end
-                elseif iray < 0
+                elseif r < 0
                     if wadr == 0
                         continue
                     else
-                        nray[ix, jy, kz] += 1
-                        iray = nray[ix, jy, kz]
-                        if iray > nray_wrk
+                        nray[i, j, k] += 1
+                        r = nray[i, j, k]
+                        if r > nray_wrk
                             error(
-                                "Error in activate_orographic_source!: iray > nray_wrk!",
+                                "Error in activate_orographic_source!: r > nray_wrk!",
                             )
                         end
-                        ir_sfc[i_sfc, ix, jy] = iray
+                        rs[s, i, j] = r
                     end
                 end
             end
 
             # Set physical ray-volume positions.
-            rays.x[iray, ix, jy, kz] =
-                (x[io + ix] - dx / 2 + (ix2 - 0.5) * dx / nrxl)
-            rays.y[iray, ix, jy, kz] =
-                (y[jo + jy] - dy / 2 + (jy2 - 0.5) * dy / nryl)
-            rays.z[iray, ix, jy, kz] = (
-                ztfc[ix, jy, kz] - jac[ix, jy, kz] * dz / 2 +
-                (kz2 - 0.5) * jac[ix, jy, kz] * dz / nrzl
+            rays.x[r, i, j, k] = (x[io + i] - dx / 2 + (ix - 0.5) * dx / nrxl)
+            rays.y[r, i, j, k] = (y[jo + j] - dy / 2 + (jy - 0.5) * dy / nryl)
+            rays.z[r, i, j, k] = (
+                ztfc[i, j, k] - jac[i, j, k] * dz / 2 +
+                (kz - 0.5) * jac[i, j, k] * dz / nrzl
             )
 
             # Set physical ray-volume extent.
-            rays.dxray[iray, ix, jy, kz] = dx / nrxl
-            rays.dyray[iray, ix, jy, kz] = dy / nryl
-            rays.dzray[iray, ix, jy, kz] = jac[ix, jy, kz] * dz / nrzl
+            rays.dxray[r, i, j, k] = dx / nrxl
+            rays.dyray[r, i, j, k] = dy / nryl
+            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrzl
 
             # Compute spectral ray-volume extent.
             if sizex == 1
@@ -416,17 +407,17 @@ function activate_orographic_source!(state::State)
             end
 
             # Set spectral ray-volume position.
-            rays.k[iray, ix, jy, kz] =
+            rays.k[r, i, j, k] =
                 (wnrk - dk_ini_nd / 2 + (ik - 0.5) * dk_ini_nd / nrk_init)
-            rays.l[iray, ix, jy, kz] =
+            rays.l[r, i, j, k] =
                 (wnrl - dl_ini_nd / 2 + (jl - 0.5) * dl_ini_nd / nrl_init)
-            rays.m[iray, ix, jy, kz] =
+            rays.m[r, i, j, k] =
                 (wnrm - dm_ini_nd / 2 + (km - 0.5) * dm_ini_nd / nrm_init)
 
             # Set spectral ray-voume extent.
-            rays.dkray[iray, ix, jy, kz] = dk_ini_nd / nrk_init
-            rays.dlray[iray, ix, jy, kz] = dl_ini_nd / nrl_init
-            rays.dmray[iray, ix, jy, kz] = dm_ini_nd / nrm_init
+            rays.dkray[r, i, j, k] = dk_ini_nd / nrk_init
+            rays.dlray[r, i, j, k] = dl_ini_nd / nrl_init
+            rays.dmray[r, i, j, k] = dm_ini_nd / nrm_init
 
             # Compute spectral volume.
             pspvol = dm_ini_nd
@@ -438,7 +429,7 @@ function activate_orographic_source!(state::State)
             end
 
             # Set phase-space wave-action density.
-            rays.dens[iray, ix, jy, kz] = wadr / pspvol
+            rays.dens[r, i, j, k] = wadr / pspvol
         end
     end
 end

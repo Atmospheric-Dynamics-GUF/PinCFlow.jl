@@ -49,13 +49,13 @@ function interpolate_stratification(
     (; i0, j0) = domain
     (; ztfc) = grid
 
-    kzu = get_next_level(i0, j0, zlc, domain, grid)
-    kzd = kzu - 1
+    ku = get_next_level(i0, j0, zlc, state)
+    kd = ku - 1
 
-    zd = ztfc[i0, j0, kzd]
-    zu = ztfc[i0, j0, kzu]
-    strd = bvsstrattfc[i0, j0, kzd]
-    stru = bvsstrattfc[i0, j0, kzu]
+    @ivy zd = ztfc[i0, j0, kd]
+    @ivy zu = ztfc[i0, j0, ku]
+    @ivy strd = bvsstrattfc[i0, j0, kd]
+    @ivy stru = bvsstrattfc[i0, j0, ku]
 
     if zu < zd
         error(
@@ -89,21 +89,21 @@ function interpolate_stratification(
     (; i0, j0) = domain
     (; dz, ztildetfc, jac) = grid
 
-    kzu = get_next_half_level(i0, j0, zlc, domain, grid)
-    kzd = kzu - 1
+    ku = get_next_half_level(i0, j0, zlc, state)
+    kd = ku - 1
 
-    zd = ztildetfc[i0, j0, kzd]
-    zu = ztildetfc[i0, j0, kzu]
+    @ivy zd = ztildetfc[i0, j0, kd]
+    @ivy zu = ztildetfc[i0, j0, ku]
 
-    strd =
-        (bvsstrattfc[i0, j0, kzd + 1] - bvsstrattfc[i0, j0, kzd]) / (
-            2.0 * jac[i0, j0, kzd] * jac[i0, j0, kzd + 1] /
-            (jac[i0, j0, kzd] + jac[i0, j0, kzd + 1])
+    @ivy strd =
+        (bvsstrattfc[i0, j0, kd + 1] - bvsstrattfc[i0, j0, kd]) / (
+            2.0 * jac[i0, j0, kd] * jac[i0, j0, kd + 1] /
+            (jac[i0, j0, kd] + jac[i0, j0, kd + 1])
         ) / dz
-    stru =
-        (bvsstrattfc[i0, j0, kzu + 1] - bvsstrattfc[i0, j0, kzu]) / (
-            2.0 * jac[i0, j0, kzu] * jac[i0, j0, kzu + 1] /
-            (jac[i0, j0, kzu] + jac[i0, j0, kzu + 1])
+    @ivy stru =
+        (bvsstrattfc[i0, j0, ku + 1] - bvsstrattfc[i0, j0, ku]) / (
+            2.0 * jac[i0, j0, ku] * jac[i0, j0, ku + 1] /
+            (jac[i0, j0, ku] + jac[i0, j0, ku + 1])
         ) / dz
 
     if zu < zd

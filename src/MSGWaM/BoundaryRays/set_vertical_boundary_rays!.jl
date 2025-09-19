@@ -1,6 +1,6 @@
 """
 ```julia
-set_vertical_boundary_rays!(state::State, zboundaries::SolidWallBoundaries)
+set_vertical_boundary_rays!(state::State)
 ```
 
 Enforce vertical boundary conditions for ray volumes.
@@ -10,8 +10,6 @@ If the domain is parallelized in ``\\widehat{z}``, ray-volume counts and the ray
 # Arguments
 
   - `state`: Model state.
-
-  - `zboundaries`: Vertical boundary conditions.
 
 # See also
 
@@ -23,10 +21,7 @@ If the domain is parallelized in ``\\widehat{z}``, ray-volume counts and the ray
 """
 function set_vertical_boundary_rays! end
 
-function set_vertical_boundary_rays!(
-    state::State,
-    zboundaries::SolidWallBoundaries,
-)
+function set_vertical_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; npz) = namelists.domain
     (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
@@ -38,58 +33,56 @@ function set_vertical_boundary_rays!(
         set_vertical_halos_of_field!(
             nray,
             namelists,
-            domain,
-            zboundaries;
+            domain;
             layers = (1, 1, 1),
         )
         set_vertical_halo_rays!(state)
     end
 
     # Reflect ray volumes at the lower boundary.
-    if ko == 0
-        for kz in k0:(k0 + 1), jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-            for iray in 1:nray[ix, jy, kz]
-                xr = rays.x[iray, ix, jy, kz]
-                yr = rays.y[iray, ix, jy, kz]
-                zr = rays.z[iray, ix, jy, kz]
-                dzr = rays.dzray[iray, ix, jy, kz]
-                wnrm = rays.m[iray, ix, jy, kz]
+    @ivy if ko == 0
+        for k in k0:(k0 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k]
+                xr = rays.x[r, i, j, k]
+                yr = rays.y[r, i, j, k]
+                zr = rays.z[r, i, j, k]
+                dzr = rays.dzray[r, i, j, k]
+                wnrm = rays.m[r, i, j, k]
 
-                ixrv = floor(Int, (xr - lx[1]) / dx) + i0 - io
-                jyrv = floor(Int, (yr - ly[1]) / dy) + j0 - jo
-                if topography_surface[ixrv, jyrv] - zr + 0.5 * dzr > eps()
-                    rays.z[iray, ix, jy, kz] =
-                        2.0 * topography_surface[ixrv, jyrv] - zr + dzr
-                    rays.m[iray, ix, jy, kz] = -wnrm
+                iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
+                jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
+                if topography_surface[iray, jray] - zr + 0.5 * dzr > eps()
+                    rays.z[r, i, j, k] =
+                        2.0 * topography_surface[iray, jray] - zr + dzr
+                    rays.m[r, i, j, k] = -wnrm
                 end
             end
         end
     end
 
     # Cut ray volumes at the upper boundary.
-    if ko + nzz == sizezz
-        for kz in (k1 - 1):k1, jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-            nrlc = 0
-            for iray in 1:nray[ix, jy, kz]
-                zr = rays.z[iray, ix, jy, kz]
-                dzr = rays.dzray[iray, ix, jy, kz]
+    @ivy if ko + nzz == sizezz
+        for k in (k1 - 1):k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+            local_count = 0
+            for r in 1:nray[i, j, k]
+                zr = rays.z[r, i, j, k]
+                dzr = rays.dzray[r, i, j, k]
 
-                if zr - 0.5 * dzr > lz[2]
+                if zr - 0.5 * dzr > lz
                     continue
                 end
-                if zr + 0.5 * dzr > lz[2]
-                    rays.dzray[iray, ix, jy, kz] = lz[2] - zr + 0.5 * dzr
-                    rays.z[iray, ix, jy, kz] =
-                        lz[2] - 0.5 * rays.dzray[iray, ix, jy, kz]
+                if zr + 0.5 * dzr > lz
+                    rays.dzray[r, i, j, k] = lz - zr + 0.5 * dzr
+                    rays.z[r, i, j, k] = lz - 0.5 * rays.dzray[r, i, j, k]
                 end
 
-                nrlc += 1
-                if nrlc != iray
-                    copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
-                    rays.dens[iray, ix, jy, kz] = 0.0
+                local_count += 1
+                if local_count != r
+                    copy_rays!(rays, r => local_count, i => i, j => j, k => k)
+                    rays.dens[r, i, j, k] = 0.0
                 end
             end
-            nray[ix, jy, kz] = nrlc
+            nray[i, j, k] = local_count
         end
     end
 

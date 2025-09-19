@@ -1,5 +1,6 @@
 #!/bin/bash
-#SBATCH --partition=compute
+##SBATCH --partition=compute
+#SBATCH --partition=interactive
 #SBATCH --job-name=periodic_hill
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -12,7 +13,7 @@ set -x
 
 # Define the work directory.
 user=$(whoami)
-scratch=/scratch/b/${user}/pinc/examples/periodic_hill
+scratch=/scratch/b/${user}/pincflow/examples/periodic_hill
 mkdir -p ${scratch}
 
 # Configure MPI and HDF5.
@@ -20,6 +21,6 @@ julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; lib
 julia --project -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
 
 # Run the model.
-julia --project --check-bounds=no --math-mode=fast examples/submit/periodic_hill.jl ${scratch} 1>${scratch}/run.log 2>&1
+julia --project examples/submit/periodic_hill.jl ${scratch} 1>${scratch}/run.log 2>&1
 
 exit 0

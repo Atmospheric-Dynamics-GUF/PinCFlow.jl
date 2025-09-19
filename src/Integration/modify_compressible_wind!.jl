@@ -58,29 +58,21 @@ function modify_compressible_wind!(
     (; jac) = state.grid
     (; u, v, w, p) = state.variables.predictands
 
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
-        u[ix, jy, kz] = operation(
-            u[ix, jy, kz],
-            (
-                jac[ix, jy, kz] * p[ix, jy, kz] +
-                jac[ix + 1, jy, kz] * p[ix + 1, jy, kz]
-            ) / 2,
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        u[i, j, k] = operation(
+            u[i, j, k],
+            (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k]) / 2,
         )
 
-        v[ix, jy, kz] = operation(
-            v[ix, jy, kz],
-            (
-                jac[ix, jy, kz] * p[ix, jy, kz] +
-                jac[ix, jy + 1, kz] * p[ix, jy + 1, kz]
-            ) / 2,
+        v[i, j, k] = operation(
+            v[i, j, k],
+            (jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k]) / 2,
         )
 
-        w[ix, jy, kz] = operation(
-            w[ix, jy, kz],
-            jac[ix, jy, kz] *
-            jac[ix, jy, kz + 1] *
-            (p[ix, jy, kz] + p[ix, jy, kz + 1]) /
-            (jac[ix, jy, kz] + jac[ix, jy, kz + 1]),
+        w[i, j, k] = operation(
+            w[i, j, k],
+            jac[i, j, k] * jac[i, j, k + 1] * (p[i, j, k] + p[i, j, k + 1]) /
+            (jac[i, j, k] + jac[i, j, k + 1]),
         )
     end
 
