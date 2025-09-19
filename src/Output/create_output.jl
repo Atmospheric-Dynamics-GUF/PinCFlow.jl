@@ -51,7 +51,7 @@ function create_output(state::State)
 
         # Create datasets for the background.
         if model != Boussinesq()
-            for label in ("rhobar", "thetabar")
+            for label in ("rhobar", "thetabar", "n2")
                 create_dataset(
                     file,
                     label,
@@ -62,28 +62,24 @@ function create_output(state::State)
             end
 
             if model == Compressible()
-                for label in ("n2", "p")
-                    create_dataset(
-                        file,
-                        label,
-                        datatype(Float32),
-                        dataspace(
-                            (sizex, sizey, sizez, 0),
-                            (sizex, sizey, sizez, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                end
+                create_dataset(
+                    file,
+                    "p",
+                    datatype(Float32),
+                    dataspace(
+                        (sizex, sizey, sizez, 0),
+                        (sizex, sizey, sizez, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
             else
-                for label in ("n2", "p")
-                    create_dataset(
-                        file,
-                        label,
-                        datatype(Float32),
-                        dataspace((sizex, sizey, sizez));
-                        chunk = (cx, cy, cz),
-                    )
-                end
+                create_dataset(
+                    file,
+                    "p",
+                    datatype(Float32),
+                    dataspace((sizex, sizey, sizez));
+                    chunk = (cx, cy, cz),
+                )
             end
         end
 
@@ -269,10 +265,8 @@ function create_output(state::State)
             end
         end
 
-        # Return.
         return
     end
 
-    # Return.
     return
 end

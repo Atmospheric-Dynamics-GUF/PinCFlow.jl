@@ -1,9 +1,19 @@
 """
 ```julia
-reset_predictands!(state::State, predictands::Predictands)
+reset_predictands!(
+    state::State,
+    predictands::Predictands,
+    tracerpredictands::TracerPredictands,
+)
 ```
 
-Reset fields in `state.variables.predictands` to those in `predictands` by dispatching to a model-specific method.
+Reset fields in `state` to those in `predictands` and `tracerpredictands` by dispatching to specific methods.
+
+```julia
+reset_predictands!(state::State, tracerpredictands::TracerPredictands)
+```
+
+Reset fields in `state.tracer.tracerpredictands` to those in `tracerpredictands`.
 
 ```julia
 reset_predictands!(state::State, predictands::Predictands, model::AbstractModel)
@@ -23,15 +33,22 @@ Reset the density, density fluctuations, wind components, Exner pressure and mas
 
   - `predictands`: Fields to reset to.
 
+  - `tracerpredictands`: Tracer fields to reset to.
+
   - `model`: Dynamic equations.
 """
 function reset_predictands! end
 
-function reset_predictands!(state::State, predictands::Predictands,
-    tracerpredictands::TracerPredictands)
+function reset_predictands!(
+    state::State,
+    predictands::Predictands,
+    tracerpredictands::TracerPredictands,
+)
     (; model) = state.namelists.setting
+
     reset_predictands!(state, predictands, model)
     reset_predictands!(state, tracerpredictands)
+
     return
 end
 
@@ -40,7 +57,7 @@ function reset_predictands!(state::State, tracerpredictands::TracerPredictands)
 
     chi .= tracerpredictands.chi
 
-    return 
+    return
 end
 
 function reset_predictands!(

@@ -12,10 +12,7 @@ set_meridional_boundaries!(state::State, variables::BoundaryReconstructions)
 Enforce meridional boundary conditions for all reconstruction fields.
 
 ```julia
-set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryWKBIntegrals,
-)
+set_meridional_boundaries!(state::State, variables::BoundaryWKBIntegrals)
 ```
 
 Enforce meridional boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
@@ -41,10 +38,7 @@ set_meridional_boundaries!(
 Enforce meridional boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
 
 ```julia
-set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-)
+set_meridional_boundaries!(state::State, variables::BoundaryWKBTendencies)
 ```
 
 Enforce meridional boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
@@ -93,8 +87,6 @@ function set_meridional_boundaries!(
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
-    (; model) = namelists.setting
-    (; tracersetup) = namelists.tracer
 
     for field in (:rho, :rhop, :u, :v, :w, :pip)
         set_meridional_boundaries_of_field!(
@@ -104,8 +96,8 @@ function set_meridional_boundaries!(
         )
     end
 
-    set_compressible_meridional_boundaries!(state, model)
-    set_tracer_meridional_boundaries!(state, variables, tracersetup)
+    set_compressible_meridional_boundaries!(state)
+    set_tracer_meridional_boundaries!(state, variables)
 
     return
 end
@@ -116,7 +108,6 @@ function set_meridional_boundaries!(
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables
-    (; tracersetup) = namelists.tracer
 
     for field in fieldnames(Reconstructions)
         set_meridional_boundaries_of_field!(
@@ -126,7 +117,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    set_tracer_meridional_boundaries!(state, variables, tracersetup)
+    set_tracer_meridional_boundaries!(state, variables)
 
     return
 end
@@ -140,6 +131,7 @@ function set_meridional_boundaries!(
 
     set_meridional_boundaries!(state, variables, wkb_mode)
     set_tracer_meridional_boundaries!(state, variables, wkb_mode, tracersetup)
+
     return
 end
 
@@ -192,6 +184,7 @@ function set_meridional_boundaries!(
 
     set_meridional_boundaries!(state, variables, wkb_mode)
     set_tracer_meridional_boundaries!(state, variables, wkb_mode, tracersetup)
+
     return
 end
 

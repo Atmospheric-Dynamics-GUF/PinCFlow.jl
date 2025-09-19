@@ -13,6 +13,15 @@ Main module of PinCFlow.
 """
 module PinCFlow
 
+using PythonPlot
+
+include("@ivy.jl")
+include("set_plot_style.jl")
+include("symmetric_contours.jl")
+
+export @ivy
+export set_plot_style, symmetric_contours
+
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
 include("Boundaries/Boundaries.jl")
@@ -42,10 +51,8 @@ export DomainNamelist,
 # Export singletons needed in namelists.
 export Boussinesq, PseudoIncompressible, Compressible
 export MountainWave, WKBMountainWave
-export PeriodicBoundaries, SolidWallBoundaries
 export MCVariant
 export UniformBoussinesq, StratifiedBoussinesq, Isothermal
-export FPlane
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro

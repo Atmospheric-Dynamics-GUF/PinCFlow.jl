@@ -9,7 +9,7 @@ Namelist for the inclusion of a tracer and the calculation of the leading-order 
 TracerNamelist(;
     tracersetup::AbstractTracer = NoTracer(),
     leading_order_impact::Bool = false,
-    alphatracer::AbstractFloat = 1.0E+0
+    alphatracer::AbstractFloat = 1.0E+0,
 )::TracerNamelist
 ```
 

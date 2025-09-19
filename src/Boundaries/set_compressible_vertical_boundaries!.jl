@@ -3,6 +3,15 @@
 set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
+)
+```
+
+Enforce vertical boundary conditions for the specified variables in compressible mode by dispatching to a model-specific method.
+
+```julia
+set_compressible_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
     model::AbstractModel,
 )
 ```
@@ -17,7 +26,7 @@ set_compressible_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for mass-weighted potential temperature in compressible mode (line reflection).
+Enforce vertical boundary conditions for the mass-weighted potential temperature in compressible mode (line reflection).
 
 ```julia
 set_compressible_vertical_boundaries!(
@@ -27,7 +36,7 @@ set_compressible_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for vertical mass-weighted potential-temperature flux (no flux through boundaries).
+Enforce vertical boundary conditions for the vertical mass-weighted potential-temperature flux (no flux through boundaries).
 
 # Arguments
 
@@ -46,6 +55,15 @@ function set_compressible_vertical_boundaries! end
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
+)
+    (; model) = state.namelists.setting
+    set_compressible_vertical_boundaries!(state, variables, model)
+    return
+end
+
+function set_compressible_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
     model::AbstractModel,
 )
     return
@@ -57,10 +75,9 @@ function set_compressible_vertical_boundaries!(
     model::Compressible,
 )
     (; namelists, domain) = state
-    (; zboundaries) = namelists.setting
     (; p) = state.variables.predictands
 
-    set_vertical_boundaries_of_field!(p, namelists, domain, zboundaries, +)
+    set_vertical_boundaries_of_field!(p, namelists, domain, +)
 
     return
 end
@@ -73,11 +90,11 @@ function set_compressible_vertical_boundaries!(
     (; sizezz, nzz, ko, k0, k1) = state.domain
     (; phip) = state.variables.fluxes
 
-    if ko == 0
+    @ivy if ko == 0
         phip[:, :, k0 - 1, 3] .= 0.0
     end
 
-    if ko + nzz == sizezz
+    @ivy if ko + nzz == sizezz
         phip[:, :, k1, 3] .= 0.0
     end
 

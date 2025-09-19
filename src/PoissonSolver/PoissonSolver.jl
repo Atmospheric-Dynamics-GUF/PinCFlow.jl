@@ -5,7 +5,7 @@ PoissonSolver
 
 Module for solving the Poisson equation and performing a corrector step.
 
-Provides the functions needed to solve the Poisson equation of the semi-implicit time scheme, using a preconditioned BicGStab algorithm, and correcting the Exner-pressure, momentum and buoyancy accordingly.
+Provides the functions needed to solve the Poisson equation of the semi-implicit time scheme, using a preconditioned BicGStab algorithm, and correcting the Exner-pressure, momentum and density fluctuations accordingly.
 
 # See also
 
@@ -24,6 +24,7 @@ using ..Types
 using ..MPIOperations
 using ..Boundaries
 using ..Update
+using ..PinCFlow
 
 """
 ```julia
@@ -48,7 +49,7 @@ include("apply_corrector!.jl")
 include("apply_operator!.jl")
 include("apply_preconditioner!.jl")
 include("compute_operator!.jl")
-include("compute_rhs!.jl")
+include("compute_lhs!.jl")
 include("correct!.jl")
 include("solve_poisson!.jl")
 

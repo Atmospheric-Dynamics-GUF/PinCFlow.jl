@@ -16,9 +16,8 @@ SpongeNamelist(;
     spongelayer::Bool = false,
     sponge_uv::Bool = false,
     spongeheight::AbstractFloat = 5.0E-1,
-    spongealphaz_dim::AbstractFloat = 1.0E-2,
-    spongealphaz_fac::AbstractFloat = 1.0E+0,
-    unifiedsponge::Bool = false,
+    alpharmax::AbstractFloat = 0.0E+0,
+    betarmax::AbstractFloat = 1.0E+0,
     lateralsponge::Bool = false,
     spongetype::AbstractSponge = PolynomialSponge(),
     spongeorder::Integer = 1,
@@ -34,25 +33,23 @@ Construct a `SpongeNamelist` instance with the given keyword arguments as proper
 
 # Fields/Keywords
 
-  - `spongelayer::A`: Switch for enabling Rayleigh-damping in the sponge layer.
+  - `spongelayer::A`: Switch for enabling Rayleigh-damping in the sponges.
 
-  - `sponge_uv::A`: Switch for applying the non-unified sponge to the horizontal wind.
+  - `sponge_uv::A`: Switch for applying the RHS sponge to the horizontal wind.
 
   - `spongeheight::B`: Fractional vertical extent of the sponge.
 
-  - `spongealphaz_dim::B`: Rayleigh-damping coefficient of the unified sponge.
+  - `alpharmax::B`: Rayleigh-damping coefficient of the LHS sponge.
 
-  - `spongealphaz_fac::B`: Rayleigh-damping coefficient of the non-unified sponge, multiplied by the time step.
+  - `betarmax::B`: Rayleigh-damping coefficient of the RHS sponge, multiplied by the time step.
 
-  - `unifiedsponge::A`: Switch for the unified sponge (provides several profiles and is applied to all prognostic variables).
+  - `lateralsponge::A`: Switch for the lateral LHS sponge.
 
-  - `lateralsponge::A`: Switch for the lateral unified sponge.
+  - `spongetype::C`: Profile of the LHS sponge.
 
-  - `spongetype::C`: Profile of the unified sponge.
+  - `spongeorder::D`: Order of the polynomial LHS sponge.
 
-  - `spongeorder::D`: Order of the polynomial unified sponge.
-
-  - `cosmosteps::D`: Factor by which the time step is mulitplied in the damping coefficient of the COSMO-like unified sponge.
+  - `cosmosteps::D`: Factor by which the time step is mulitplied in the damping coefficient of the COSMO-like LHS sponge.
 
   - `relax_to_mean::A`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
 
@@ -60,7 +57,7 @@ Construct a `SpongeNamelist` instance with the given keyword arguments as proper
 
   - `perturbation_amplitude::B`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
 
-  - `relaxation_wind::E`: Wind to be obtained through Rayleigh damping in the unified sponge.
+  - `relaxation_wind::E`: Wind to be obtained through Rayleigh damping in the LHS sponge.
 """
 struct SpongeNamelist{
     A <: Bool,
@@ -72,9 +69,8 @@ struct SpongeNamelist{
     spongelayer::A
     sponge_uv::A
     spongeheight::B
-    spongealphaz_dim::B
-    spongealphaz_fac::B
-    unifiedsponge::A
+    alpharmax::B
+    betarmax::B
     lateralsponge::A
     spongetype::C
     spongeorder::D
@@ -89,9 +85,8 @@ function SpongeNamelist(;
     spongelayer::Bool = false,
     sponge_uv::Bool = false,
     spongeheight::AbstractFloat = 5.0E-1,
-    spongealphaz_dim::AbstractFloat = 1.0E-2,
-    spongealphaz_fac::AbstractFloat = 1.0E+0,
-    unifiedsponge::Bool = false,
+    alpharmax::AbstractFloat = 0.0E+0,
+    betarmax::AbstractFloat = 1.0E+0,
     lateralsponge::Bool = false,
     spongetype::AbstractSponge = PolynomialSponge(),
     spongeorder::Integer = 1,
@@ -105,9 +100,8 @@ function SpongeNamelist(;
         spongelayer,
         sponge_uv,
         spongeheight,
-        spongealphaz_dim,
-        spongealphaz_fac,
-        unifiedsponge,
+        alpharmax,
+        betarmax,
         lateralsponge,
         spongetype,
         spongeorder,

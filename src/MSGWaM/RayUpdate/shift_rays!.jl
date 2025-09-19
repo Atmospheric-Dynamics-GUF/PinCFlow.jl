@@ -110,11 +110,9 @@ function shift_rays!(state::State, wkb_mode::SteadyState)
 end
 
 function shift_rays!(state::State, wkb_mode::SingleColumn)
-    (; zboundaries) = state.namelists.setting
-
-    set_vertical_boundary_rays!(state, zboundaries)
+    set_vertical_boundary_rays!(state)
     shift_rays!(state, Z())
-    set_vertical_boundary_rays!(state, zboundaries)
+    set_vertical_boundary_rays!(state)
     remove_rays!(state)
 
     check_rays(state)
@@ -124,7 +122,6 @@ end
 
 function shift_rays!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain
-    (; zboundaries) = state.namelists.setting
 
     if sizex > 1
         set_zonal_boundary_rays!(state)
@@ -140,9 +137,9 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
         remove_rays!(state)
     end
 
-    set_vertical_boundary_rays!(state, zboundaries)
+    set_vertical_boundary_rays!(state)
     shift_rays!(state, Z())
-    set_vertical_boundary_rays!(state, zboundaries)
+    set_vertical_boundary_rays!(state)
     remove_rays!(state)
 
     check_rays(state)
@@ -155,31 +152,27 @@ function shift_rays!(state::State, direction::X)
     (; lx, dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = ko == 0 ? k0 : k0 - 1
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
-        for iray in 1:nray[ixrv, jyrv, kzrv]
-            xr = rays.x[iray, ixrv, jyrv, kzrv]
-            ix = floor(Int, (xr - lx[1]) / dx) + i0 - io
+    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+        for r in 1:nray[i, j, k]
+            xr = rays.x[r, i, j, k]
+            iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
 
-            if ix != ixrv
-                if abs(ix - ixrv) > 1
-                    error("Error in shift_rays!: abs(ix - ixrv) > 1!")
+            if iray != i
+                if abs(iray - i) > 1
+                    error("Error in shift_rays!: abs(iray - i) > 1!")
                 end
-                if i0 <= ix <= i1
-                    nray[ix, jyrv, kzrv] += 1
-                    jray = nray[ix, jyrv, kzrv]
-                    if jray > nray_wrk
+                if i0 <= iray <= i1
+                    nray[iray, j, k] += 1
+                    rray = nray[iray, j, k]
+                    if rray > nray_wrk
                         error("Error in shift_rays!: nray > nray_wrk!")
                     end
-                    copy_rays!(
-                        rays,
-                        (iray, ixrv, jyrv, kzrv),
-                        (jray, ix, jyrv, kzrv),
-                    )
+                    copy_rays!(rays, r => rray, i => iray, j => j, k => k)
                 end
-                rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
+                rays.dens[r, i, j, k] = 0.0
             end
         end
     end
@@ -192,31 +185,27 @@ function shift_rays!(state::State, direction::Y)
     (; ly, dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = ko == 0 ? k0 : k0 - 1
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
-        for iray in 1:nray[ixrv, jyrv, kzrv]
-            yr = rays.y[iray, ixrv, jyrv, kzrv]
-            jy = floor(Int, (yr - ly[1]) / dy) + j0 - jo
+    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+        for r in 1:nray[i, j, k]
+            yr = rays.y[r, i, j, k]
+            jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
 
-            if jy != jyrv
-                if abs(jy - jyrv) > 1
-                    error("Error in shift_rays!: abs(jy - jyrv) > 1!")
+            if jray != j
+                if abs(jray - j) > 1
+                    error("Error in shift_rays!: abs(jray - j) > 1!")
                 end
-                if j0 <= jy <= j1
-                    nray[ixrv, jy, kzrv] += 1
-                    jray = nray[ixrv, jy, kzrv]
-                    if jray > nray_wrk
+                if j0 <= jray <= j1
+                    nray[i, jray, k] += 1
+                    rray = nray[i, jray, k]
+                    if rray > nray_wrk
                         error("Error in shift_rays!: nray > nray_wrk!")
                     end
-                    copy_rays!(
-                        rays,
-                        (iray, ixrv, jyrv, kzrv),
-                        (jray, ixrv, jy, kzrv),
-                    )
+                    copy_rays!(rays, r => rray, i => i, j => jray, k => k)
                 end
-                rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
+                rays.dens[r, i, j, k] = 0.0
             end
         end
     end
@@ -229,31 +218,27 @@ function shift_rays!(state::State, direction::Z)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; nray_wrk, nray, rays) = state.wkb
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = ko == 0 ? k0 : k0 - 1
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
-        for iray in 1:nray[ixrv, jyrv, kzrv]
-            zr = rays.z[iray, ixrv, jyrv, kzrv]
-            kz = get_next_half_level(ixrv, jyrv, zr, domain, grid)
+    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+        for r in 1:nray[i, j, k]
+            zr = rays.z[r, i, j, k]
+            kray = get_next_half_level(i, j, zr, state)
 
-            if kz != kzrv
-                if abs(kz - kzrv) > 1
-                    error("Error in shift_rays!: abs(kz - kzrv) > 1!")
+            if kray != k
+                if abs(kray - k) > 1
+                    error("Error in shift_rays!: abs(kray - k) > 1!")
                 end
-                if k0 <= kz <= k1
-                    nray[ixrv, jyrv, kz] += 1
-                    jray = nray[ixrv, jyrv, kz]
-                    if jray > nray_wrk
+                if k0 <= kray <= k1
+                    nray[i, j, kray] += 1
+                    rray = nray[i, j, kray]
+                    if rray > nray_wrk
                         error("Error in shift_rays!: nray > nray_wrk!")
                     end
-                    copy_rays!(
-                        rays,
-                        (iray, ixrv, jyrv, kzrv),
-                        (jray, ixrv, jyrv, kz),
-                    )
+                    copy_rays!(rays, r => rray, i => i, j => j, k => kray)
                 end
-                rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
+                rays.dens[r, i, j, k] = 0.0
             end
         end
     end

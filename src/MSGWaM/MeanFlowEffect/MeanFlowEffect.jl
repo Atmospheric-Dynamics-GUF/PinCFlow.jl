@@ -20,10 +20,11 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 module MeanFlowEffect
 
 using LinearAlgebra
-using ...Types
-using ...Boundaries
 using ..Interpolation
 using ..RayUpdate
+using ...Types
+using ...Boundaries
+using ...PinCFlow
 
 """
 ```julia 
