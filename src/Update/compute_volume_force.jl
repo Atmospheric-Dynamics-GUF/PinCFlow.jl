@@ -100,7 +100,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variables::Chi,
-    testcase::AbstractWKBTestCase
+    testcase::AbstractWKBTestCase,
 )::AbstractFloat
 ```
 
