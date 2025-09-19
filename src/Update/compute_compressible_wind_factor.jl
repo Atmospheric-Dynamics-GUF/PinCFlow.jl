@@ -65,12 +65,6 @@ compute_compressible_wind_factor(
 
 Return ``\\left(J P\\right)_{k + 1 / 2}`` as the factor by which the transformed vertical wind should be multiplied in compressible mode.
 
-The interpolation is given by
-
-```math
-\\left(J P\\right)_{k + 1 / 2} = \\frac{J J_{k + 1} \\left(P + P_{k + 1}\\right)}{J + J_{k + 1}}.
-```
-
 # Arguments
 
   - `state`: Model state.

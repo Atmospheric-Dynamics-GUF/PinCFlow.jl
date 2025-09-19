@@ -69,7 +69,7 @@ The discretized transformation rule for the vertical wind is given by
 
   - `uuedgel`: Zonal-wind equivalent at ``\\left(i - 1 / 2, j, k + 1\\right)``.
 
-  - `vedgef`: Meridional-wind equivalent at ``\\left(i, j + 1 / 2, k\\right)`.
+  - `vedgef`: Meridional-wind equivalent at ``\\left(i, j + 1 / 2, k\\right)``.
 
   - `vuedgef`: Meridional-wind equivalent at ``\\left(i, j + 1 / 2, k + 1\\right)``.
 

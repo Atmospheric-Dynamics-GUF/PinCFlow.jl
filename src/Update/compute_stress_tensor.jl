@@ -28,7 +28,10 @@ The discretized elements of the Cartesian viscous stress tensor are given by
 where
 
 ```math
-\\delta = \\frac{1}{J} \\left[\\frac{1}{\\Delta \\widehat{x}} \\left(J_{i + 1 / 2} u_{i + 1 / 2} - J_{i - 1 / 2} u_{i - 1 / 2}\\right) + \\frac{1}{\\Delta \\widehat{y}} \\left(J_{j + 1 / 2} v_{j + 1 / 2} - J_{j - 1 / 2} v_{j - 1 / 2}\\right) + \\frac{1}{\\Delta \\widehat{z}} \\left(J_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - J_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right)\\right].
+\\begin{align*}
+    \\delta & = \\frac{1}{J} \\left[\\frac{1}{\\Delta \\widehat{x}} \\left(J_{i + 1 / 2} u_{i + 1 / 2} - J_{i - 1 / 2} u_{i - 1 / 2}\\right) + \\frac{1}{\\Delta \\widehat{y}} \\left(J_{j + 1 / 2} v_{j + 1 / 2} - J_{j - 1 / 2} v_{j - 1 / 2}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{1}{\\Delta \\widehat{z}} \\left(J_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - J_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right)\\right].
+\\end{align*}
 ```
 
 # Arguments
