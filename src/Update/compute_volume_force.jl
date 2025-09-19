@@ -22,7 +22,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return ``0`` as the volume force in non-WKB test cases.
+Return ``0`` as the volume force in non-WKB test cases (for all variables except the mass-weighted potential temperature).
 
 ```julia
 compute_volume_force(
@@ -74,11 +74,11 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    testcase::AbstractWKBTestCase,
+    testcase::AbstractTestCase,
 )::AbstractFloat
 ```
 
-Return the gravity-wave impact on the mass-weighted potential temperature (diabatic heating).
+Return the conductive heating.
 
 ```julia
 compute_volume_force(
@@ -86,14 +86,14 @@ compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variables::Chi,
-    testcase::AbstractTestCase,
+    variable::P,
+    testcase::AbstractWKBTestCase,
 )::AbstractFloat
 ```
 
-Return no volume force for non-WKB configurations.
+Return the sum of gravity-wave impact on the mass-weighted potential temperature and conductive heating.
 
-```
+```julia
 compute_volume_force(
     state::State,
     i::Integer,
@@ -104,7 +104,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return tracer flux convergence for WKB configurations.
+Return the tracer flux convergence due to gravity waves.
 
 # Arguments
 
@@ -119,6 +119,10 @@ Return tracer flux convergence for WKB configurations.
   - `variable`: Variable (equation) of choice.
 
   - `testcase`: Test case on which the current simulation is based.
+
+# See also
+
+  - [`PinCFlow.Update.conductive_heating`](@ref)
 """
 function compute_volume_force end
 
@@ -200,11 +204,9 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    testcase::AbstractWKBTestCase,
+    testcase::AbstractTestCase,
 )::AbstractFloat
-    (; dthetadt) = state.wkb.tendencies
-
-    @ivy return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
+    return conductive_heating(state, i, j, k)
 end
 
 function compute_volume_force(
@@ -212,10 +214,12 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variables::Chi,
-    testcase::AbstractTestCase,
+    variable::P,
+    testcase::AbstractWKBTestCase,
 )::AbstractFloat
-    return 0.0
+    (; dthetadt) = state.wkb.tendencies
+
+    @ivy return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
 end
 
 function compute_volume_force(
