@@ -258,7 +258,7 @@ $$\begin{align*}
 
 In the 1D steady-state theory, the phase-space-wave-action-density equation from the previous section is integrated over spectral space, the temporal derivative is removed and the quasilinear approximation is used to express the result in terms of the physical-space wave-action densities of individual spectral modes ($\mathcal{A}_\alpha$). This yields
 
-$$J^{- 1} \frac{\partial \mathcal{A}_\alpha}{\partial \widehat{z}} = \sum\limits_s \mathcal{Q}_{s, \alpha},$$
+$$J^{- 1} \frac{\partial}{\partial \widehat{z}} \left(c_{\mathrm{g} z, \alpha} \mathcal{A}_\alpha\right) = \sum\limits_s \mathcal{Q}_{s, \alpha},$$
 
 where $\mathcal{N} = \sum_\alpha \mathcal{A}_\alpha \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right)$ and $\mathcal{S}_s = \sum_\alpha \mathcal{Q}_{s, \alpha} \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right)$. Similarly, the eikonal equations become
 
