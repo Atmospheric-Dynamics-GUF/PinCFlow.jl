@@ -68,7 +68,7 @@ makedocs(;
     ],
     pagesonly = true,
     format = Documenter.HTML(;
-        repolink = "https://gitlab.dkrz.de/atmodynamics-goethe-universitaet-frankfurt/pinc.git",
+        repolink = "https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl.git",
         size_threshold = nothing,
         size_threshold_warn = nothing,
     ),

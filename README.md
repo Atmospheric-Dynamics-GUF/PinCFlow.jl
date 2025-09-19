@@ -13,7 +13,7 @@ The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that un
 To install PinCFlow, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then clone this repository with
 
 ```shell
-git clone git@gitlab.dkrz.de:atmodynamics-goethe-universitaet-frankfurt/pinc.git
+git clone git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git
 ```
 
 and set up the project environment by running
@@ -160,7 +160,7 @@ is an example for how to visualize the vertical wind at the end of a simple moun
 
 ### Workflow
 
-The code is shared in a GitLab repository. Any contributions to the code should adhere to the following workflow.
+The code is shared in a GitHub repository. Any contributions to the code should adhere to the following workflow.
 
  1. If you are new to the project, create a remote development branch for your contributions (name it such that others can identify it as your branch) and clone the repository.
 
