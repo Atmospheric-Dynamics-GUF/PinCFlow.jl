@@ -68,6 +68,5 @@ function compute_spectral_bounds(
         krmaxp *= 2
     end
 
-    # Return.
     return (krminp, krmaxp, krminn, krmaxn)
 end

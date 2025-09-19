@@ -106,10 +106,9 @@ function Predictands(
     p = set_p(model, nxx, nyy, nzz, pstrattfc)
 
     # Set the initial winds.
-    u .= backgroundflow_dim[1] / uref
-    v .= backgroundflow_dim[2] / uref
-    w .= backgroundflow_dim[3] / uref
+    @ivy u .= backgroundflow_dim[1] ./ uref
+    @ivy v .= backgroundflow_dim[2] ./ uref
+    @ivy w .= backgroundflow_dim[3] ./ uref
 
-    # Return a Predictands instance.
     return Predictands(rho, rhop, u, v, w, pip, p)
 end

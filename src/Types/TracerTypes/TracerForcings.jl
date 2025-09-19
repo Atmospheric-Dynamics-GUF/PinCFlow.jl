@@ -1,27 +1,23 @@
 """
-```julia 
+```julia
 TracerForcings{A <: TracerWKBImpact}
 ```
 
-Container for `TracerWKBImpact` instance with all necessary terms for the right-hand side of the tracer equation. 
+Container for `TracerWKBImpact` instance with all necessary terms for the right-hand side of the tracer equation.
 
-```julia 
+```julia
 TracerForcings(namelists::Namelists, domain::Domain)
-``` 
+```
 
 Construct a `TracerForcings` instance set according to the model configuration.
 
-```julia 
-TracerForcings(
-    namelists::Namelists,
-    domain::Domain,
-    tracersetup::NoTracer,
-)
+```julia
+TracerForcings(namelists::Namelists, domain::Domain, tracersetup::NoTracer)
 ```
 
-Construct a `TracerForcings` instance for configurations without tracer transport. 
+Construct a `TracerForcings` instance for configurations without tracer transport.
 
-```julia 
+```julia
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
@@ -31,17 +27,13 @@ TracerForcings(
 
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
-```julia 
-TracerForcings(
-    namelists::Namelists,
-    domain::Domain,
-    testcase::AbstractTestCase,
-)
+```julia
+TracerForcings(namelists::Namelists, domain::Domain, testcase::AbstractTestCase)
 ```
 
-Construct a `TracerForcings` instance for configurations without WKB model. 
+Construct a `TracerForcings` instance for configurations without WKB model.
 
-```julia 
+```julia
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
@@ -51,11 +43,15 @@ TracerForcings(
 
 Construct a `TracerForcings` instance for configurations with tracer transport and WKB model.
 
+# Fields
+
+  - `chiq0::A`: Leading-order tracer forcings.
+
 # Arguments:
 
   - `namelists`: Namelists with all model parameters.
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters. 
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
   - `tracersetup`: General tracer-transport configuration.
 
@@ -64,7 +60,6 @@ Construct a `TracerForcings` instance for configurations with tracer transport a
 # See also:
 
   - [`PinCFlow.Types.TracerTypes.TracerWKBImpact`](@ref)
-
 """
 struct TracerForcings{A <: TracerWKBImpact}
     chiq0::A

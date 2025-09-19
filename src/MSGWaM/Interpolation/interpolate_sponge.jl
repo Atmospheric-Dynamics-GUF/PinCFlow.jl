@@ -8,7 +8,7 @@ interpolate_sponge(
 )::AbstractFloat
 ```
 
-Interpolate the Rayleigh-damping coefficient of the unified sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+Interpolate the Rayleigh-damping coefficient of the LHS sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\alpha_\\mathrm{R}`` to the location of interest, using `interpolate`.
 
@@ -40,68 +40,68 @@ function interpolate_sponge(
     (; sizex, sizey) = namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
-    (; alphaunifiedsponge) = state.sponge
+    (; alphar) = state.sponge
 
     # Dermine closest points in horizontal direction.
     if sizex > 1
-        ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
-        ixr = ixl + 1
+        il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
+        ir = il + 1
     else
-        ixl = i0
-        ixr = i0
+        il = i0
+        ir = i0
     end
-    xl = x[io + ixl]
-    xr = x[io + ixr]
+    @ivy xl = x[io + il]
+    @ivy xr = x[io + ir]
 
     # Determine closest points in meridional direction.
     if sizey > 1
-        jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
-        jyf = jyb + 1
+        jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
+        jf = jb + 1
     else
-        jyb = j0
-        jyf = j0
+        jb = j0
+        jf = j0
     end
-    yb = y[jo + jyb]
-    yf = y[jo + jyf]
+    @ivy yb = y[jo + jb]
+    @ivy yf = y[jo + jf]
 
     # Determine closest points in vertical direction and set interpolation
     # values.
 
-    kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
-    kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    klbu = get_next_level(il, jb, zlc, state)
+    klbd = klbu - 1
+    @ivy zlbd = ztfc[il, jb, klbd]
+    @ivy zlbu = ztfc[il, jb, klbu]
 
-    kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
-    kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    klfu = get_next_level(il, jf, zlc, state)
+    klfd = klfu - 1
+    @ivy zlfd = ztfc[il, jf, klfd]
+    @ivy zlfu = ztfc[il, jf, klfu]
 
-    kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
-    kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    krbu = get_next_level(ir, jb, zlc, state)
+    krbd = krbu - 1
+    @ivy zrbd = ztfc[ir, jb, krbd]
+    @ivy zrbu = ztfc[ir, jb, krbu]
 
-    kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
-    kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    krfu = get_next_level(ir, jf, zlc, state)
+    krfd = krfu - 1
+    @ivy zrfd = ztfc[ir, jf, krfd]
+    @ivy zrfu = ztfc[ir, jf, krfu]
 
-    philbd = alphaunifiedsponge[ixl, jyb, kzlbd]
-    philbu = alphaunifiedsponge[ixl, jyb, kzlbu]
+    @ivy philbd = alphar[il, jb, klbd]
+    @ivy philbu = alphar[il, jb, klbu]
 
-    philfd = alphaunifiedsponge[ixl, jyf, kzlfd]
-    philfu = alphaunifiedsponge[ixl, jyf, kzlfu]
+    @ivy philfd = alphar[il, jf, klfd]
+    @ivy philfu = alphar[il, jf, klfu]
 
-    phirbd = alphaunifiedsponge[ixr, jyb, kzrbd]
-    phirbu = alphaunifiedsponge[ixr, jyb, kzrbu]
+    @ivy phirbd = alphar[ir, jb, krbd]
+    @ivy phirbu = alphar[ir, jb, krbu]
 
-    phirfd = alphaunifiedsponge[ixr, jyf, kzrfd]
-    phirfu = alphaunifiedsponge[ixr, jyf, kzrfu]
+    @ivy phirfd = alphar[ir, jf, krfd]
+    @ivy phirfu = alphar[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(
-        namelists;
+        state;
         philbd,
         philbu,
         philfd,

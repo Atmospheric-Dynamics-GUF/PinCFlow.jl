@@ -5,7 +5,7 @@ remove_rays!(state::State)
 
 Remove gaps (i.e. zero-wave-action ray volumes between nonzero-wave-action ray volumes) in the ray-volume arrays.
 
-In each grid cell, this method moves all ray volumes as far to the front of the arrays possible and updates `nray` accordingly, so that every ray volume in the range `1:nray[ix, jy, kz]` has nonzero wave action.
+In each grid cell, this method moves all ray volumes as far to the front of the arrays possible and updates `nray` accordingly, so that every ray volume in the range `1:nray[i, j, k]` has nonzero wave action.
 
 # Arguments
 
@@ -21,22 +21,22 @@ function remove_rays!(state::State)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray, rays) = state.wkb
 
-    kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+    kmin = ko == 0 ? k0 : k0 - 1
+    kmax = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for kz in kz0:kz1, jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-        nrlc = 0
-        for iray in 1:nray[ix, jy, kz]
-            if rays.dens[iray, ix, jy, kz] == 0
+    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+        local_count = 0
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
                 continue
             end
-            nrlc += 1
-            if nrlc != iray
-                copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
-                rays.dens[iray, ix, jy, kz] = 0.0
+            local_count += 1
+            if local_count != r
+                copy_rays!(rays, r => local_count, i => i, j => j, k => k)
+                rays.dens[r, i, j, k] = 0.0
             end
         end
-        nray[ix, jy, kz] = nrlc
+        nray[i, j, k] = local_count
     end
 
     return

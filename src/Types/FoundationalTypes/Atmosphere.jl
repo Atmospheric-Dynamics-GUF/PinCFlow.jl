@@ -1,12 +1,9 @@
 """
 ```julia
-Atmosphere{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractVector{<:AbstractFloat},
-}
+Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Composite type for atmospheric background fields and Coriolis frequency.
+Composite type for atmospheric background fields.
 
 ```julia
 Atmosphere(
@@ -36,14 +33,11 @@ The background fields are given by
 
 ```math
 \\begin{align*}
-    \\overline{\\rho} & = \\rho_0,\\\\
-    \\overline{\\theta} & = \\theta_0,\\\\
-    P & = \\overline{\\rho} \\overline{\\theta},\\\\
-    N^2 & = 0,
+    \\overline{\\rho} & = \\rho_0, & \\overline{\\theta} & = \\theta_0, & P & = \\overline{\\rho} \\overline{\\theta}, & N^2 & = 0,
 \\end{align*}
 ```
 
-where ``\\rho_0`` and ``\\theta_0`` are given by `constants.rhoref` and `namelists.atmosphere.theta0_dim`, respectively. The Coriolis frequency is computed with `compute_coriolis_frequency`, depending on `namelists.atmosphere.coriolis_mode`.
+where ``\\rho_0`` and ``\\theta_0`` are given by `constants.rhoref` and `namelists.atmosphere.theta0_dim`, respectively.
 
 ```julia
 Atmosphere(
@@ -62,14 +56,11 @@ The background fields are given by
 
 ```math
 \\begin{align*}
-    \\overline{\\rho} & = \\rho_0,\\\\
-    \\overline{\\theta} & = \\theta_0,\\\\
-    P & = \\overline{\\rho} \\overline{\\theta},\\\\
-    N^2 & = N_0^2,
+    \\overline{\\rho} & = \\rho_0, & \\overline{\\theta} & = \\theta_0, & P & = \\overline{\\rho} \\overline{\\theta}, & N^2 & = N_0^2,
 \\end{align*}
 ```
 
-where ``\\rho_0``, ``\\theta_0`` and ``N_0`` are given by `constants.rhoref`, `namelists.atmosphere.theta0_dim` and `namelists.atmosphere.buoyancy_frequency`, respectively. The Coriolis frequency is computed with `compute_coriolis_frequency`, depending on `namelists.atmosphere.coriolis_mode`.
+where ``\\rho_0``, ``\\theta_0`` and ``N_0`` are given by `constants.rhoref`, `namelists.atmosphere.theta0_dim` and `namelists.atmosphere.buoyancy_frequency`, respectively.
 
 ```julia
 Atmosphere(
@@ -95,7 +86,7 @@ The background fields are given by
 \\end{align*}
 ```
 
-where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.press0_dim`, `namelists.atmosphere.temp0_dim`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively. The Coriolis frequency is computed with `compute_coriolis_frequency`, depending on `namelists.atmosphere.coriolis_mode`.
+where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.press0_dim`, `namelists.atmosphere.temp0_dim`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
 
 # Fields
 
@@ -106,8 +97,6 @@ where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `n
   - `rhostrattfc::A`: Background density ``\\overline{\\rho} \\left(z\\right)``.
 
   - `bvsstrattfc::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
-
-  - `fc::B`: Coriolis frequency ``f \\left(y\\right)``.
 
 # Arguments
 
@@ -125,19 +114,13 @@ where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `n
 
 # See also
 
-  - [`PinCFlow.Types.FoundationalTypes.compute_coriolis_frequency`](@ref)
-
   - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
 """
-struct Atmosphere{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractVector{<:AbstractFloat},
-}
+struct Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}}
     pstrattfc::A
     thetastrattfc::A
     rhostrattfc::A
     bvsstrattfc::A
-    fc::B
 end
 
 function Atmosphere(
@@ -159,7 +142,7 @@ function Atmosphere(
     model::Boussinesq,
     background::UniformBoussinesq,
 )::Atmosphere
-    (; theta0_dim, coriolis_mode) = namelists.atmosphere
+    (; theta0_dim) = namelists.atmosphere
     (; thetaref) = constants
     (; nxx, nyy, nzz) = domain
 
@@ -169,17 +152,7 @@ function Atmosphere(
     pstrattfc = rhostrattfc .* thetastrattfc
     bvsstrattfc = zeros(nxx, nyy, nzz)
 
-    # Set the Coriolis parameter.
-    fc = compute_coriolis_frequency(
-        namelists,
-        constants,
-        domain,
-        grid,
-        coriolis_mode,
-    )
-
-    # Return an Atmosphere instance.
-    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc, fc)
+    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
 end
 
 function Atmosphere(
@@ -190,7 +163,7 @@ function Atmosphere(
     model::Boussinesq,
     background::StratifiedBoussinesq,
 )::Atmosphere
-    (; buoyancy_frequency, theta0_dim, coriolis_mode) = namelists.atmosphere
+    (; buoyancy_frequency, theta0_dim) = namelists.atmosphere
     (; tref, thetaref) = constants
     (; nxx, nyy, nzz) = domain
 
@@ -200,17 +173,7 @@ function Atmosphere(
     pstrattfc = rhostrattfc .* thetastrattfc
     bvsstrattfc = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
 
-    # Set the Coriolis parameter.
-    fc = compute_coriolis_frequency(
-        namelists,
-        constants,
-        domain,
-        grid,
-        coriolis_mode,
-    )
-
-    # Return an Atmosphere instance.
-    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc, fc)
+    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
 end
 
 function Atmosphere(
@@ -222,8 +185,7 @@ function Atmosphere(
     background::Isothermal,
 )::Atmosphere
     (; nbz) = namelists.domain
-    (; zboundaries) = namelists.setting
-    (; temp0_dim, press0_dim, coriolis_mode) = namelists.atmosphere
+    (; temp0_dim, press0_dim) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma, g_ndim) = constants
     (; sizezz, nxx, nyy, nzz, ko, k0, k1) = domain
     (; ztfc, jac, dz) = grid
@@ -236,34 +198,28 @@ function Atmosphere(
     p0 = press0_dim / pref
 
     # Compute the background fields.
-    pstrattfc .= p0 .* exp.(-sig .* ztfc ./ gamma ./ t0)
+    pstrattfc .= p0 .* exp.(.-sig .* ztfc ./ gamma ./ t0)
     thetastrattfc .= t0 .* exp.(kappa .* sig ./ t0 .* ztfc)
     rhostrattfc .= pstrattfc ./ thetastrattfc
 
     # Compute the squared buoyancy frequency.
     bvsstrattfc .= 0.0
-    for k in k0:k1
+    @ivy for k in k0:k1
         bvsstrattfc[:, :, k] .=
             g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
             (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
     end
 
     # Compute the squared buoyancy frequency at the boundaries.
-    set_vertical_boundaries_of_field!(
-        bvsstrattfc,
-        namelists,
-        domain,
-        zboundaries,
-        +,
-    )
-    if ko == 0
+    set_vertical_boundaries_of_field!(bvsstrattfc, namelists, domain, +)
+    @ivy if ko == 0
         for k in 1:nbz
             bvsstrattfc[:, :, k] .=
                 g_ndim ./ thetastrattfc[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
                 (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
         end
     end
-    if ko + nzz == sizezz
+    @ivy if ko + nzz == sizezz
         for k in 1:nbz
             bvsstrattfc[:, :, k1 + k] .=
                 g_ndim ./ thetastrattfc[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
@@ -271,15 +227,5 @@ function Atmosphere(
         end
     end
 
-    # Set the Coriolis parameter.
-    fc = compute_coriolis_frequency(
-        namelists,
-        constants,
-        domain,
-        grid,
-        coriolis_mode,
-    )
-
-    # Return an Atmosphere instance.
-    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc, fc)
+    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
 end

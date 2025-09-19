@@ -33,7 +33,7 @@ set_zonal_boundaries_of_field!(
 )
 ```
 
-Enforce zonal boundary conditions for 5D fields.
+Enforce zonal boundary conditions for a 5D array.
 
 Halo exchange is used in the same manner as in the methods for matrices and 3D arrays. The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
@@ -63,12 +63,12 @@ function set_zonal_boundaries_of_field!(
     (; npx, nbx) = namelists.domain
     (; i0, i1) = domain
 
-    if npx > 1
+    @ivy if npx > 1
         set_zonal_halos_of_field!(field, namelists, domain)
     else
         for i in 1:nbx
-            @views field[i0 - i, :] .= field[i1 - i + 1, :]
-            @views field[i1 + i, :] .= field[i0 + i - 1, :]
+            field[i0 - i, :] .= field[i1 - i + 1, :]
+            field[i1 + i, :] .= field[i0 + i - 1, :]
         end
     end
 
@@ -84,19 +84,19 @@ function set_zonal_boundaries_of_field!(
     (; npx) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    if npx > 1
+    @ivy if npx > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
-        j = (j0 - nby):(j1 + nby)
-        k = (k0 - nbz):(k1 + nbz)
+        jj = (j0 - nby):(j1 + nby)
+        kk = (k0 - nbz):(k1 + nbz)
 
         for i in 1:nbx
-            @views field[i0 - i, j, k] .= field[i1 - i + 1, j, k]
-            @views field[i1 + i, j, k] .= field[i0 + i - 1, j, k]
+            field[i0 - i, jj, kk] .= field[i1 - i + 1, jj, kk]
+            field[i1 + i, jj, kk] .= field[i0 + i - 1, jj, kk]
         end
     end
 
@@ -112,19 +112,19 @@ function set_zonal_boundaries_of_field!(
     (; npx) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    if npx > 1
+    @ivy if npx > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
-        j = (j0 - nby):(j1 + nby)
-        k = (k0 - nbz):(k1 + nbz)
+        jj = (j0 - nby):(j1 + nby)
+        kk = (k0 - nbz):(k1 + nbz)
 
         for i in 1:nbx
-            @views field[i0 - i, j, k, :, :] .= field[i1 - i + 1, j, k, :, :]
-            @views field[i1 + i, j, k, :, :] .= field[i0 + i - 1, j, k, :, :]
+            field[i0 - i, jj, kk, :, :] .= field[i1 - i + 1, jj, kk, :, :]
+            field[i1 + i, jj, kk, :, :] .= field[i0 + i - 1, jj, kk, :, :]
         end
     end
 

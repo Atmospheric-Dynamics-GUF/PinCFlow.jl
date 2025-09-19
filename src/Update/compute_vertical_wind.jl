@@ -4,12 +4,11 @@ compute_vertical_wind(
     i::Integer,
     j::Integer,
     k::Integer,
-    predictands::Predictands,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
 ```
 
-Compute and return the Cartesian vertical wind at the grid point `(i, j, k + 1 / 2)`.
+Compute and return the Cartesian vertical wind at the grid point ``\\left(i, j, k + 1 / 2\\right)``.
 
 # Arguments
 
@@ -19,9 +18,7 @@ Compute and return the Cartesian vertical wind at the grid point `(i, j, k + 1 /
 
   - `k`: Vertical grid-cell index.
 
-  - `predictands`: Prognostic variables.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
+  - `state`: Model state.
 
 # See also
 
@@ -33,20 +30,19 @@ function compute_vertical_wind(
     i::Integer,
     j::Integer,
     k::Integer,
-    predictands::Predictands,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
-    (; u, v, w) = predictands
+    (; u, v, w) = state.variables.predictands
 
-    uedger = u[i, j, k]
-    uuedger = u[i, j, k + 1]
-    uedgel = u[i - 1, j, k]
-    uuedgel = u[i - 1, j, k + 1]
-    vedgef = v[i, j, k]
-    vuedgef = v[i, j, k + 1]
-    vedgeb = v[i, j - 1, k]
-    vuedgeb = v[i, j - 1, k + 1]
-    wedgeu = w[i, j, k]
+    @ivy uedger = u[i, j, k]
+    @ivy uuedger = u[i, j, k + 1]
+    @ivy uedgel = u[i - 1, j, k]
+    @ivy uuedgel = u[i - 1, j, k + 1]
+    @ivy vedgef = v[i, j, k]
+    @ivy vuedgef = v[i, j, k + 1]
+    @ivy vedgeb = v[i, j - 1, k]
+    @ivy vuedgeb = v[i, j - 1, k + 1]
+    @ivy wedgeu = w[i, j, k]
 
     return transform(
         i,
@@ -62,6 +58,6 @@ function compute_vertical_wind(
         vuedgeb,
         wedgeu,
         Cartesian(),
-        grid,
+        state,
     )
 end

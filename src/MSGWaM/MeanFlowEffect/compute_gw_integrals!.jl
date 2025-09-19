@@ -1,5 +1,11 @@
 """
 ```julia
+compute_gw_integrals!(state::State)
+```
+
+Compute the gravity-wave integrals needed for the computation of the mean-flow impact by dispatching to a WKB-mode-specific method.
+
+```julia
 compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 ```
 
@@ -9,41 +15,41 @@ This method computes the sums
 
 ```math
 \\begin{align*}
-    M_{u u} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} u_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    M_{u v} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} v_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    M_{u w} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} w_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    M_{v v} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} v_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    M_{v w} & = \\overline{\\rho} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} w_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    T_u & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    T_v & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    E_u & = \\frac{f}{\\overline{\\theta}} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    E_v & = \\frac{f}{\\overline{\\theta}} \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha},\\\\
-    E & = \\sum_{\\lambda, \\mu, \\nu, \\alpha} \\left(F \\mathcal{E}\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}.
+    M_{u u} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} u_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    M_{u v} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} v_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    M_{u w} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} w_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    M_{v v} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} v_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    M_{v w} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} w_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    T_u & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    T_v & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    E_u & = \\frac{f}{\\overline{\\theta}} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    E_v & = \\frac{f}{\\overline{\\theta}} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    E & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\mathcal{E}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
 \\end{align*}
 ```
 
-Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes that are at least partially within the grid cell at ``\\left(i, j, k\\right)``, ``F_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}`` are the corresponding ray volume fractions and ``\\left(u_\\mathrm{w}, v_\\mathrm{w}, w_\\mathrm{w}, \\theta_\\mathrm{w}, \\mathcal{E}\\right)_{i + \\lambda, j + \\mu, k + \\nu, \\alpha}`` are the wave amplitudes of the wind, those of the potential temperature and the wave-energy densities. The background density, Coriolis parameter and background potential temperature are denoted by ``\\overline{\\rho}``, ``f`` and ``\\overline{\\theta}``, respectively. The computation is based on the relations
+Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes that are at least partially within the grid cell at ``\\left(i, j, k\\right)``, ``F_{r, i + \\lambda, j + \\mu, k + \\nu}`` are the corresponding ray volume fractions and ``\\left(u_\\mathrm{w}, v_\\mathrm{w}, w_\\mathrm{w}, \\theta_\\mathrm{w}, \\mathcal{E}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}`` are the wave amplitudes of the wind, those of the potential temperature and the wave-energy densities. The computation is based on the relations
 
 ```math
 \\begin{align*}
-    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} u_{\\mathrm{w}, \\alpha}^* & = \\left(k_\\alpha \\widehat{c}_{\\mathrm{g} x, \\alpha} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_\\alpha \\widehat{c}_{\\mathrm{g} x, \\alpha} + l_\\alpha \\widehat{c}_{\\mathrm{g} y, \\alpha}}{1 - \\left(\\widehat{\\omega}_\\alpha / f\\right)^2}\\right) \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} v_{\\mathrm{w}, \\alpha}^* & = l_\\alpha \\widehat{c}_{\\mathrm{g} x, \\alpha} \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = \\frac{k_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha}}{1 - \\left(f / \\widehat{\\omega}_\\alpha\\right)^2} \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} v_{\\mathrm{w}, \\alpha}^* & = \\left(l_\\alpha \\widehat{c}_{\\mathrm{g} y, \\alpha} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_\\alpha \\widehat{c}_{\\mathrm{g} x, \\alpha} + l_\\alpha \\widehat{c}_{\\mathrm{g} y, \\alpha}}{1 - \\left(\\widehat{\\omega}_\\alpha / f\\right)^2}\\right) \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = \\frac{l_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha}}{1 - \\left(f / \\widehat{\\omega}_\\alpha\\right)^2} \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} \\theta_{\\mathrm{w}, \\alpha}^* & = \\frac{f}{g \\overline{\\theta}} \\frac{l_\\alpha m_\\alpha N_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
-    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} \\theta_{\\mathrm{w}, \\alpha}^* & = - \\frac{f}{g \\overline{\\theta}} \\frac{k_\\alpha m_\\alpha N_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
-    \\mathcal{E}_\\alpha & = \\widehat{\\omega}_\\alpha \\mathcal{A}_\\alpha,
+    \\overline{\\rho} u_{\\mathrm{w}, r} u_{\\mathrm{w}, r}^* & = \\left(k_r \\widehat{c}_{\\mathrm{g} x, r} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_r \\widehat{c}_{\\mathrm{g} x, r} + l_r \\widehat{c}_{\\mathrm{g} y, r}}{1 - \\left(\\widehat{\\omega}_r / f\\right)^2}\\right) \\mathcal{A}_r,\\\\
+    \\overline{\\rho} u_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = l_r \\widehat{c}_{\\mathrm{g} x, r} \\mathcal{A}_r,\\\\
+    \\overline{\\rho} u_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = \\frac{k_r \\widehat{c}_{\\mathrm{g} z, r}}{1 - \\left(f / \\widehat{\\omega}_r\\right)^2} \\mathcal{A}_r,\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = \\left(l_r \\widehat{c}_{\\mathrm{g} y, r} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_r \\widehat{c}_{\\mathrm{g} x, r} + l_r \\widehat{c}_{\\mathrm{g} y, r}}{1 - \\left(\\widehat{\\omega}_r / f\\right)^2}\\right) \\mathcal{A}_r,\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = \\frac{l_r \\widehat{c}_{\\mathrm{g} z, r}}{1 - \\left(f / \\widehat{\\omega}_r\\right)^2} \\mathcal{A}_r,\\\\
+    \\overline{\\rho} u_{\\mathrm{w}, r} \\theta_{\\mathrm{w}, r}^* & = \\frac{f}{g \\overline{\\theta}} \\frac{l_r m_r N_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, r} \\theta_{\\mathrm{w}, r}^* & = - \\frac{f}{g \\overline{\\theta}} \\frac{k_r m_r N_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,\\\\
+    \\mathcal{E}_r & = \\widehat{\\omega}_r \\mathcal{A}_r,
 \\end{align*}
 ```
 
-where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}``, ``\\widehat{\\boldsymbol{c}}_{\\mathrm{g}, \\alpha} = \\left(\\widehat{c}_{\\mathrm{g} x, \\alpha}, \\widehat{c}_{\\mathrm{g} y, \\alpha}, \\widehat{c}_{\\mathrm{g} z, \\alpha}\\right)^\\mathrm{T}``, ``\\widehat{\\omega}_\\alpha``, ``\\mathcal{A}_\\alpha``, ``g`` and ``N_\\alpha^2`` are the wavevector, intrinsic group velocity, intrinsic frequency, wave-action density, gravitational acceleration and squared buoyancy frequency interpolated to the ray-volume position, respectively. The components of the intrinsic group velocity are given by
+where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume position. The components of the intrinsic group velocity are given by
 
 ```math
 \\begin{align*}
-    \\widehat{c}_{\\mathrm{g} x, \\alpha} & = \\frac{k_\\alpha \\left(N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
-    \\widehat{c}_{\\mathrm{g} y, \\alpha} & = \\frac{l_\\alpha \\left(N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
-    \\widehat{c}_{\\mathrm{g} z, \\alpha} & = - \\frac{m_\\alpha \\left(\\widehat{\\omega}_\\alpha^2 - f^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2}.
+    \\widehat{c}_{\\mathrm{g} x, r} & = \\frac{k_r \\left(N_r^2 - \\widehat{\\omega}_r^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    \\widehat{c}_{\\mathrm{g} y, r} & = \\frac{l_r \\left(N_r^2 - \\widehat{\\omega}_r^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    \\widehat{c}_{\\mathrm{g} z, r} & = - \\frac{m_r \\left(\\widehat{\\omega}_r^2 - f^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
 \\end{align*}
 ```
 
@@ -65,8 +71,8 @@ This method computes the sums ``M_{u w}`` and ``M_{v w}`` (see above for details
 
 ```math
 \\begin{align*}
-    \\overline{\\rho} u_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = k_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha} \\mathcal{A}_\\alpha,\\\\
-    \\overline{\\rho} v_{\\mathrm{w}, \\alpha} w_{\\mathrm{w}, \\alpha}^* & = l_\\alpha \\widehat{c}_{\\mathrm{g} z, \\alpha} \\mathcal{A}_\\alpha.
+    \\overline{\\rho} u_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = k_r \\widehat{c}_{\\mathrm{g} z, r} \\mathcal{A}_r,\\\\
+    \\overline{\\rho} v_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = l_r \\widehat{c}_{\\mathrm{g} z, r} \\mathcal{A}_r.
 \\end{align*}
 ```
 
@@ -85,6 +91,12 @@ This method computes the sums ``M_{u w}`` and ``M_{v w}`` (see above for details
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function compute_gw_integrals! end
+
+function compute_gw_integrals!(state::State)
+    (; wkb_mode) = state.namelists.wkb
+    compute_gw_integrals!(state, wkb_mode)
+    return
+end
 
 function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state
@@ -106,30 +118,30 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
     set_tracer_field_zero!(state)
 
-    for kzrv in (k0 - 1):(k1 + 1),
-        jyrv in (j0 - 1):(j1 + 1),
-        ixrv in (i0 - 1):(i1 + 1)
+    @ivy for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
 
-        for iray in 1:nray[ixrv, jyrv, kzrv]
-            if rays.dens[iray, ixrv, jyrv, kzrv] == 0
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
                 continue
             end
 
-            xr = rays.x[iray, ixrv, jyrv, kzrv]
-            yr = rays.y[iray, ixrv, jyrv, kzrv]
-            zr = rays.z[iray, ixrv, jyrv, kzrv]
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
 
-            dxr = rays.dxray[iray, ixrv, jyrv, kzrv]
-            dyr = rays.dyray[iray, ixrv, jyrv, kzrv]
-            dzr = rays.dzray[iray, ixrv, jyrv, kzrv]
+            dxr = rays.dxray[r, i, j, k]
+            dyr = rays.dyray[r, i, j, k]
+            dzr = rays.dzray[r, i, j, k]
 
-            kr = rays.k[iray, ixrv, jyrv, kzrv]
-            lr = rays.l[iray, ixrv, jyrv, kzrv]
-            mr = rays.m[iray, ixrv, jyrv, kzrv]
+            kr = rays.k[r, i, j, k]
+            lr = rays.l[r, i, j, k]
+            mr = rays.m[r, i, j, k]
 
-            dkr = rays.dkray[iray, ixrv, jyrv, kzrv]
-            dlr = rays.dlray[iray, ixrv, jyrv, kzrv]
-            dmr = rays.dmray[iray, ixrv, jyrv, kzrv]
+            dkr = rays.dkray[r, i, j, k]
+            dlr = rays.dlray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
 
             khr = sqrt(kr^2 + lr^2)
 
@@ -142,14 +154,14 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
             cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
-            (ixmin, ixmax, jymin, jymax) =
+            (imin, imax, jmin, jmax) =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
-            for ix in ixmin:ixmax
+            for iray in imin:imax
                 if sizex > 1
                     dxi = (
-                        min(xr + dxr / 2, x[io + ix] + dx / 2) -
-                        max(xr - dxr / 2, x[io + ix] - dx / 2)
+                        min(xr + dxr / 2, x[io + iray] + dx / 2) -
+                        max(xr - dxr / 2, x[io + iray] - dx / 2)
                     )
 
                     fcpspx = dkr * dxi / dx
@@ -157,11 +169,11 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                     fcpspx = 1.0
                 end
 
-                for jy in jymin:jymax
+                for jray in jmin:jmax
                     if sizey > 1
                         dyi = (
-                            min(yr + dyr / 2, y[jo + jy] + dy / 2) -
-                            max(yr - dyr / 2, y[jo + jy] - dy / 2)
+                            min(yr + dyr / 2, y[jo + jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jo + jray] - dy / 2)
                         )
 
                         fcpspy = dlr * dyi / dy
@@ -169,79 +181,75 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         fcpspy = 1.0
                     end
 
-                    kzmin =
-                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
-                    kzmax =
-                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
+                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
 
-                    for kz in kzmin:kzmax
+                    for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), ztildetfc[ix, jy, kz]) -
-                            max((zr - dzr / 2), ztildetfc[ix, jy, kz - 1])
+                            min((zr + dzr / 2), ztildetfc[iray, jray, kray]) -
+                            max((zr - dzr / 2), ztildetfc[iray, jray, kray - 1])
 
-                        fcpspz = dmr * dzi / jac[ix, jy, kz] / dz
+                        fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
 
-                        wadr =
-                            fcpspx *
-                            fcpspy *
-                            fcpspz *
-                            rays.dens[iray, ixrv, jyrv, kzrv]
+                        wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
                         if sizex > 1
                             if fc != 0
-                                integrals.uu[ix, jy, kz] +=
+                                integrals.uu[iray, jray, kray] +=
                                     wadr * (
                                         kr * cgirx -
                                         (kr * cgirx + lr * cgiry) /
                                         (1 - (omir / fc)^2)
                                     )
                             else
-                                integrals.uu[ix, jy, kz] += wadr * kr * cgirx
+                                integrals.uu[iray, jray, kray] +=
+                                    wadr * kr * cgirx
                             end
                         end
 
                         if sizex > 1 || sizey > 1
-                            integrals.uv[ix, jy, kz] += wadr * cgirx * lr
+                            integrals.uv[iray, jray, kray] += wadr * cgirx * lr
                         end
 
-                        integrals.uw[ix, jy, kz] +=
+                        integrals.uw[iray, jray, kray] +=
                             wadr * kr * cgirz / (1 - (fc / omir)^2)
 
                         if sizey > 1
                             if fc != 0
-                                integrals.vv[ix, jy, kz] +=
+                                integrals.vv[iray, jray, kray] +=
                                     wadr * (
                                         lr * cgiry -
                                         (kr * cgirx + lr * cgiry) /
                                         (1 - (omir / fc)^2)
                                     )
                             else
-                                integrals.vv[ix, jy, kz] += wadr * lr * cgiry
+                                integrals.vv[iray, jray, kray] +=
+                                    wadr * lr * cgiry
                             end
                         end
 
-                        integrals.vw[ix, jy, kz] +=
+                        integrals.vw[iray, jray, kray] +=
                             wadr * lr * cgirz / (1 - (fc / omir)^2)
 
                         if fc != 0
-                            integrals.etx[ix, jy, kz] +=
+                            integrals.etx[iray, jray, kray] +=
                                 wadr * fc^2 * n2r * kr * mr / (
-                                    rhostrattfc[ix, jy, kz] *
+                                    rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
                                 )
 
-                            integrals.ety[ix, jy, kz] +=
+                            integrals.ety[iray, jray, kray] +=
                                 wadr * fc^2 * n2r * lr * mr / (
-                                    rhostrattfc[ix, jy, kz] *
+                                    rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
                                 )
                         end
 
-                        integrals.e[ix, jy, kz] += wadr * omir
+                        integrals.e[iray, jray, kray] += wadr * omir
 
                         compute_leading_order_tracer_fluxes!(
                             state,
@@ -255,9 +263,9 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             xr,
                             yr,
                             zr,
-                            ix,
-                            jy,
-                            kz,
+                            iray,
+                            jray,
+                            kray,
                         )
                     end
                 end
@@ -265,12 +273,12 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
         end
     end
 
-    if fc != 0
-        for kz in k0:k1, jy in j0:j1, ix in i0:i1
-            integrals.utheta[ix, jy, kz] =
-                thetastrattfc[ix, jy, kz] / fc * integrals.ety[ix, jy, kz]
-            integrals.vtheta[ix, jy, kz] =
-                -thetastrattfc[ix, jy, kz] / fc * integrals.etx[ix, jy, kz]
+    @ivy if fc != 0
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            integrals.utheta[i, j, k] =
+                thetastrattfc[i, j, k] / fc * integrals.ety[i, j, k]
+            integrals.vtheta[i, j, k] =
+                -thetastrattfc[i, j, k] / fc * integrals.etx[i, j, k]
         end
     end
 end
@@ -293,30 +301,30 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
         getfield(integrals, field) .= 0.0
     end
 
-    for kzrv in (k0 - 1):(k1 + 1),
-        jyrv in (j0 - 1):(j1 + 1),
-        ixrv in (i0 - 1):(i1 + 1)
+    @ivy for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
 
-        for iray in 1:nray[ixrv, jyrv, kzrv]
-            if rays.dens[iray, ixrv, jyrv, kzrv] == 0
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
                 continue
             end
 
-            xr = rays.x[iray, ixrv, jyrv, kzrv]
-            yr = rays.y[iray, ixrv, jyrv, kzrv]
-            zr = rays.z[iray, ixrv, jyrv, kzrv]
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
 
-            dxr = rays.dxray[iray, ixrv, jyrv, kzrv]
-            dyr = rays.dyray[iray, ixrv, jyrv, kzrv]
-            dzr = rays.dzray[iray, ixrv, jyrv, kzrv]
+            dxr = rays.dxray[r, i, j, k]
+            dyr = rays.dyray[r, i, j, k]
+            dzr = rays.dzray[r, i, j, k]
 
-            kr = rays.k[iray, ixrv, jyrv, kzrv]
-            lr = rays.l[iray, ixrv, jyrv, kzrv]
-            mr = rays.m[iray, ixrv, jyrv, kzrv]
+            kr = rays.k[r, i, j, k]
+            lr = rays.l[r, i, j, k]
+            mr = rays.m[r, i, j, k]
 
-            dkr = rays.dkray[iray, ixrv, jyrv, kzrv]
-            dlr = rays.dlray[iray, ixrv, jyrv, kzrv]
-            dmr = rays.dmray[iray, ixrv, jyrv, kzrv]
+            dkr = rays.dkray[r, i, j, k]
+            dlr = rays.dlray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
 
             khr = sqrt(kr^2 + lr^2)
 
@@ -327,14 +335,14 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
-            ixmin, ixmax, jymin, jymax =
+            imin, imax, jmin, jmax =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
-            for ix in ixmin:ixmax
+            for iray in imin:imax
                 if sizex > 1
                     dxi = (
-                        min(xr + dxr / 2, x[io + ix] + dx / 2) -
-                        max(xr - dxr / 2, x[io + ix] - dx / 2)
+                        min(xr + dxr / 2, x[io + iray] + dx / 2) -
+                        max(xr - dxr / 2, x[io + iray] - dx / 2)
                     )
 
                     fcpspx = dkr * dxi / dx
@@ -342,11 +350,11 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                     fcpspx = 1.0
                 end
 
-                for jy in jymin:jymax
+                for jray in jmin:jmax
                     if sizey > 1
                         dyi = (
-                            min(yr + dyr / 2, y[jo + jy] + dy / 2) -
-                            max(yr - dyr / 2, y[jo + jy] - dy / 2)
+                            min(yr + dyr / 2, y[jo + jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jo + jray] - dy / 2)
                         )
 
                         fcpspy = dlr * dyi / dy
@@ -354,49 +362,43 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                         fcpspy = 1.0
                     end
 
-                    kzmin =
-                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
-                    kzmax =
-                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
+                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
 
-                    for kz in kzmin:kzmax
+                    for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), ztildetfc[ix, jy, kz]) -
-                            max((zr - dzr / 2), ztildetfc[ix, jy, kz - 1])
+                            min((zr + dzr / 2), ztildetfc[iray, jray, kray]) -
+                            max((zr - dzr / 2), ztildetfc[iray, jray, kray - 1])
 
-                        fcpspz = dmr * dzi / jac[ix, jy, kz] / dz
+                        fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
 
-                        wadr =
-                            fcpspx *
-                            fcpspy *
-                            fcpspz *
-                            rays.dens[iray, ixrv, jyrv, kzrv]
+                        wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
-                        integrals.uw[ix, jy, kz] +=
+                        integrals.uw[iray, jray, kray] +=
                             wadr * kr * cgirz / (1 - (fc / omir)^2)
 
-                        integrals.vw[ix, jy, kz] +=
+                        integrals.vw[iray, jray, kray] +=
                             wadr * lr * cgirz / (1 - (fc / omir)^2)
 
                         if fc != 0
-                            integrals.etx[ix, jy, kz] +=
+                            integrals.etx[iray, jray, kray] +=
                                 wadr * fc^2 * n2r * kr * mr / (
-                                    rhostrattfc[ix, jy, kz] *
+                                    rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
                                 )
 
-                            integrals.ety[ix, jy, kz] +=
+                            integrals.ety[iray, jray, kray] +=
                                 wadr * fc^2 * n2r * lr * mr / (
-                                    rhostrattfc[ix, jy, kz] *
+                                    rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
                                 )
                         end
 
-                        integrals.e[ix, jy, kz] += wadr * omir
+                        integrals.e[iray, jray, kray] += wadr * omir
 
                         compute_leading_order_tracer_fluxes!(
                             state,
@@ -410,9 +412,9 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                             xr,
                             yr,
                             zr,
-                            ix,
-                            jy,
-                            kz,
+                            iray,
+                            jray,
+                            kray,
                         )
                     end
                 end
@@ -420,12 +422,12 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
         end
     end
 
-    if fc != 0
-        for kz in k0:k1, jy in j0:j1, ix in i0:i1
-            integrals.utheta[ix, jy, kz] =
-                thetastrattfc[ix, jy, kz] / fc * integrals.ety[ix, jy, kz]
-            integrals.vtheta[ix, jy, kz] =
-                -thetastrattfc[ix, jy, kz] / fc * integrals.etx[ix, jy, kz]
+    @ivy if fc != 0
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            integrals.utheta[i, j, k] =
+                thetastrattfc[i, j, k] / fc * integrals.ety[i, j, k]
+            integrals.vtheta[i, j, k] =
+                -thetastrattfc[i, j, k] / fc * integrals.etx[i, j, k]
         end
     end
 end
@@ -447,30 +449,30 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
         getfield(integrals, field) .= 0.0
     end
 
-    for kzrv in (k0 - 1):(k1 + 1),
-        jyrv in (j0 - 1):(j1 + 1),
-        ixrv in (i0 - 1):(i1 + 1)
+    @ivy for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
 
-        for iray in 1:nray[ixrv, jyrv, kzrv]
-            if rays.dens[iray, ixrv, jyrv, kzrv] == 0
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
                 continue
             end
 
-            xr = rays.x[iray, ixrv, jyrv, kzrv]
-            yr = rays.y[iray, ixrv, jyrv, kzrv]
-            zr = rays.z[iray, ixrv, jyrv, kzrv]
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
 
-            dxr = rays.dxray[iray, ixrv, jyrv, kzrv]
-            dyr = rays.dyray[iray, ixrv, jyrv, kzrv]
-            dzr = rays.dzray[iray, ixrv, jyrv, kzrv]
+            dxr = rays.dxray[r, i, j, k]
+            dyr = rays.dyray[r, i, j, k]
+            dzr = rays.dzray[r, i, j, k]
 
-            kr = rays.k[iray, ixrv, jyrv, kzrv]
-            lr = rays.l[iray, ixrv, jyrv, kzrv]
-            mr = rays.m[iray, ixrv, jyrv, kzrv]
+            kr = rays.k[r, i, j, k]
+            lr = rays.l[r, i, j, k]
+            mr = rays.m[r, i, j, k]
 
-            dkr = rays.dkray[iray, ixrv, jyrv, kzrv]
-            dlr = rays.dlray[iray, ixrv, jyrv, kzrv]
-            dmr = rays.dmray[iray, ixrv, jyrv, kzrv]
+            dkr = rays.dkray[r, i, j, k]
+            dlr = rays.dlray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
 
             khr = sqrt(kr^2 + lr^2)
 
@@ -481,14 +483,14 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
-            ixmin, ixmax, jymin, jymax =
+            imin, imax, jmin, jmax =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
-            for ix in ixmin:ixmax
+            for iray in imin:imax
                 if sizex > 1
                     dxi = (
-                        min(xr + dxr / 2, x[io + ix] + dx / 2) -
-                        max(xr - dxr / 2, x[io + ix] - dx / 2)
+                        min(xr + dxr / 2, x[io + iray] + dx / 2) -
+                        max(xr - dxr / 2, x[io + iray] - dx / 2)
                     )
 
                     fcpspx = dkr * dxi / dx
@@ -496,11 +498,11 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                     fcpspx = 1.0
                 end
 
-                for jy in jymin:jymax
+                for jray in jmin:jmax
                     if sizey > 1
                         dyi = (
-                            min(yr + dyr / 2, y[jo + jy] + dy / 2) -
-                            max(yr - dyr / 2, y[jo + jy] - dy / 2)
+                            min(yr + dyr / 2, y[jo + jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jo + jray] - dy / 2)
                         )
 
                         fcpspy = dlr * dyi / dy
@@ -508,27 +510,21 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                         fcpspy = 1.0
                     end
 
-                    kzmin =
-                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
-                    kzmax =
-                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
+                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
 
-                    for kz in kzmin:kzmax
+                    for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), ztildetfc[ix, jy, kz]) -
-                            max((zr - dzr / 2), ztildetfc[ix, jy, kz - 1])
+                            min((zr + dzr / 2), ztildetfc[iray, jray, kray]) -
+                            max((zr - dzr / 2), ztildetfc[iray, jray, kray - 1])
 
-                        fcpspz = dmr * dzi / jac[ix, jy, kz] / dz
+                        fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
 
-                        wadr =
-                            fcpspx *
-                            fcpspy *
-                            fcpspz *
-                            rays.dens[iray, ixrv, jyrv, kzrv]
+                        wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
-                        integrals.uw[ix, jy, kz] += wadr * kr * cgirz
+                        integrals.uw[iray, jray, kray] += wadr * kr * cgirz
 
-                        integrals.vw[ix, jy, kz] += wadr * lr * cgirz
+                        integrals.vw[iray, jray, kray] += wadr * lr * cgirz
 
                         compute_leading_order_tracer_fluxes!(
                             state,
@@ -542,9 +538,9 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                             xr,
                             yr,
                             zr,
-                            ix,
-                            jy,
-                            kz,
+                            iray,
+                            jray,
+                            kray,
                         )
                     end
                 end

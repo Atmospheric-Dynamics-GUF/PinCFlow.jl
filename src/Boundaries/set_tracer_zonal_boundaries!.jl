@@ -1,5 +1,11 @@
 """
 ```julia
+set_tracer_zonal_boundaries!(state::State, variables::AbstractBoundaryVariables)
+```
+
+Enforce zonal boundary conditions for tracers by dispatching to a tracer-configuration-specific method.
+
+```julia
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -39,18 +45,18 @@ set_tracer_zonal_boundaries!(
 
 Enforce zonal boundary conditions for reconstructions of tracers.
 
-```julia 
+```julia
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_model::AbstractWKBMode,
+    wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
 ```
 
 Return for configurations without tracer transport.
 
-```julia 
+```julia
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
@@ -61,7 +67,7 @@ set_tracer_zonal_boundaries!(
 
 Enforce zonal boundary conditions for tracer-gravity-wave-integral fields.
 
-```julia 
+```julia
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
@@ -70,9 +76,9 @@ set_tracer_zonal_boundaries!(
 )
 ```
 
-Return for configurations without tracer transport. 
+Return for configurations without tracer transport.
 
-```julia 
+```julia
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
@@ -98,6 +104,15 @@ Enforce zonal boundary conditions for tracer-gravity-wave-tendency fields.
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 """
 function set_tracer_zonal_boundaries! end
+
+function set_tracer_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+)
+    (; tracersetup) = state.namelists.tracer
+    set_tracer_zonal_boundaries!(state, variables, tracersetup)
+    return
+end
 
 function set_tracer_zonal_boundaries!(
     state::State,
@@ -156,7 +171,7 @@ end
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_model::AbstractWKBMode,
+    wkb_mode::AbstractWKBMode,
     tracersetup::NoTracer,
 )
     return
