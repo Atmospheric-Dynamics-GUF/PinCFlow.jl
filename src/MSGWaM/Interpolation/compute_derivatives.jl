@@ -469,19 +469,19 @@ function compute_derivatives(
     (; rho) = state.variables.predictands
     (; rhostrattfc) = state.atmosphere
 
-    @ivy cc = chi[i, j, kd] / (rho[i, j, kd] + rhostrattfc[[i, j, kd]])
+    @ivy cc = chi[i, j, kd] / (rho[i, j, kd] + rhostrattfc[i, j, kd])
     @ivy cr =
-        chi[i + 1, j, kd] / (rho[i + 1, j, kd] + rhostrattfc[[i + 1, j, kd]])
+        chi[i + 1, j, kd] / (rho[i + 1, j, kd] + rhostrattfc[i + 1, j, kd])
     @ivy cu =
-        chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhostrattfc[[i, j, kd + 1]])
+        chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhostrattfc[i, j, kd + 1])
     @ivy cd =
-        chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhostrattfc[[i, j, kd - 1]])
+        chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhostrattfc[i, j, kd - 1])
     @ivy cru =
         chi[i + 1, j, kd + 1] /
-        (rho[i + 1, j, kd + 1] + rhostrattfc[[i + 1, j, kd + 1]])
+        (rho[i + 1, j, kd + 1] + rhostrattfc[i + 1, j, kd + 1])
     @ivy crd =
         chi[i + 1, j, kd - 1] /
-        (rho[i + 1, j, kd - 1] + rhostrattfc[[i + 1, j, kd - 1]])
+        (rho[i + 1, j, kd - 1] + rhostrattfc[i + 1, j, kd - 1])
 
     @ivy phid =
         (cr - cc) / dx +
@@ -490,19 +490,19 @@ function compute_derivatives(
         0.25 *
         (cu + cru - cd - crd) / dz
 
-    @ivy cc = chi[i, j, ku] / (rho[i, j, ku] + rhostrattfc[[i, j, ku]])
+    @ivy cc = chi[i, j, ku] / (rho[i, j, ku] + rhostrattfc[i, j, ku])
     @ivy cr =
-        chi[i + 1, j, ku] / (rho[i + 1, j, ku] + rhostrattfc[[i + 1, j, ku]])
+        chi[i + 1, j, ku] / (rho[i + 1, j, ku] + rhostrattfc[i + 1, j, ku])
     @ivy cu =
-        chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhostrattfc[[i, j, ku + 1]])
+        chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhostrattfc[i, j, ku + 1])
     @ivy cd =
-        chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhostrattfc[[i, j, ku - 1]])
+        chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhostrattfc[i, j, ku - 1])
     @ivy cru =
         chi[i + 1, j, ku + 1] /
-        (rho[i + 1, j, ku + 1] + rhostrattfc[[i + 1, j, ku + 1]])
+        (rho[i + 1, j, ku + 1] + rhostrattfc[i + 1, j, ku + 1])
     @ivy crd =
         chi[i + 1, j, ku - 1] /
-        (rho[i + 1, j, ku - 1] + rhostrattfc[[i + 1, j, ku - 1]])
+        (rho[i + 1, j, ku - 1] + rhostrattfc[i + 1, j, ku - 1])
 
     @ivy phiu =
         (cr - cc) / dx +
@@ -527,19 +527,19 @@ function compute_derivatives(
     (; rho) = state.variables.predictands
     (; rhostrattfc) = state.atmosphere
 
-    @ivy cc = chi[i, j, kd] / (rho[i, j, kd] + rhostrattfc[[i, j, kd]])
+    @ivy cc = chi[i, j, kd] / (rho[i, j, kd] + rhostrattfc[i, j, kd])
     @ivy cf =
-        chi[i, j + 1, kd] / (rho[i, j + 1, kd] + rhostrattfc[[i, j + 1, kd]])
+        chi[i, j + 1, kd] / (rho[i, j + 1, kd] + rhostrattfc[i, j + 1, kd])
     @ivy cu =
-        chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhostrattfc[[i, j, kd + 1]])
+        chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhostrattfc[i, j, kd + 1])
     @ivy cd =
-        chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhostrattfc[[i, j, kd - 1]])
+        chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhostrattfc[i, j, kd - 1])
     @ivy cfu =
         chi[i, j + 1, kd + 1] /
-        (rho[i, j + 1, kd + 1] + rhostrattfc[[i, j + 1, kd + 1]])
+        (rho[i, j + 1, kd + 1] + rhostrattfc[i, j + 1, kd + 1])
     @ivy cfd =
         chi[i, j + 1, kd - 1] /
-        (rho[i, j + 1, kd - 1] + rhostrattfc[[i, j + 1, kd - 1]])
+        (rho[i, j + 1, kd - 1] + rhostrattfc[i, j + 1, kd - 1])
 
     @ivy phid =
         (cf - cc) / dy +
@@ -548,19 +548,19 @@ function compute_derivatives(
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
-    @ivy cc = chi[i, j, ku] / (rho[i, j, ku] + rhostrattfc[[i, j, ku]])
+    @ivy cc = chi[i, j, ku] / (rho[i, j, ku] + rhostrattfc[i, j, ku])
     @ivy cf =
-        chi[i, j + 1, ku] / (rho[i, j + 1, ku] + rhostrattfc[[i, j + 1, ku]])
+        chi[i, j + 1, ku] / (rho[i, j + 1, ku] + rhostrattfc[i, j + 1, ku])
     @ivy cu =
-        chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhostrattfc[[i, j, ku + 1]])
+        chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhostrattfc[i, j, ku + 1])
     @ivy cd =
-        chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhostrattfc[[i, j, ku - 1]])
+        chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhostrattfc[i, j, ku - 1])
     @ivy cfu =
         chi[i, j + 1, ku + 1] /
-        (rho[i, j + 1, ku + 1] + rhostrattfc[[i, j + 1, ku + 1]])
+        (rho[i, j + 1, ku + 1] + rhostrattfc[i, j + 1, ku + 1])
     @ivy cfd =
         chi[i, j + 1, ku - 1] /
-        (rho[i, j + 1, ku - 1] + rhostrattfc[[i, j + 1, ku - 1]])
+        (rho[i, j + 1, ku - 1] + rhostrattfc[i, j + 1, ku - 1])
 
     @ivy phiu =
         (cf - cc) / dy +
