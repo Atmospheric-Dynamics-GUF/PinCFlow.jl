@@ -6,9 +6,7 @@ TracerAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
 Initial states of the tracers.
 
 ```julia
-TracerAuxiliaries(
-    tracerpredictands::TracerPredictands,
-)::TracerAuxiliaries
+TracerAuxiliaries(tracerpredictands::TracerPredictands)::TracerAuxiliaries
 ```
 
 Construct a `TracerAuxiliaries` instance by copying the arrays in `tracerpredictands`.

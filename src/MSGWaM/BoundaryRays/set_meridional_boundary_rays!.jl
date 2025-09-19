@@ -37,46 +37,46 @@ function set_meridional_boundary_rays!(state::State)
     )
 
     # Set ray-volumes properties.
-    if npy > 1
+    @ivy if npy > 1
         set_meridional_halo_rays!(state)
     else
-        for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
-            for iray in 1:nray[ix, j0 - 1, kz]
-                copy_rays!(rays, (iray, ix, j1, kz), (iray, ix, j0 - 1, kz))
+        for k in (k0 - 1):(k1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j0 - 1, k]
+                copy_rays!(rays, r => r, i => i, j1 => j0 - 1, k => k)
             end
 
-            for iray in 1:nray[ix, j1 + 1, kz]
-                copy_rays!(rays, (iray, ix, j0, kz), (iray, ix, j1 + 1, kz))
-            end
-        end
-    end
-
-    if jo == 0
-        for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):j0, ix in (i0 - 1):(i1 + 1)
-            for iray in 1:nray[ix, jy, kz]
-                yr = rays.y[iray, ix, jy, kz]
-                yrt = yr - ly[2] + ly[1]
-
-                if abs(yrt - y[jo + jy]) < abs(yr - y[jo + jy])
-                    yr = yrt
-                end
-
-                rays.y[iray, ix, jy, kz] = yr
+            for r in 1:nray[i, j1 + 1, k]
+                copy_rays!(rays, r => r, i => i, j0 => j1 + 1, k => k)
             end
         end
     end
 
-    if jo + nyy == sizeyy
-        for kz in (k0 - 1):(k1 + 1), jy in j1:(j1 + 1), ix in (i0 - 1):(i1 + 1)
-            for iray in 1:nray[ix, jy, kz]
-                yr = rays.y[iray, ix, jy, kz]
-                yrt = yr + ly[2] - ly[1]
+    @ivy if jo == 0
+        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):j0, i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k]
+                yr = rays.y[r, i, j, k]
+                yrt = yr - ly
 
-                if abs(yrt - y[jo + jy]) < abs(yr - y[jo + jy])
+                if abs(yrt - y[jo + j]) < abs(yr - y[jo + j])
                     yr = yrt
                 end
 
-                rays.y[iray, ix, jy, kz] = yr
+                rays.y[r, i, j, k] = yr
+            end
+        end
+    end
+
+    @ivy if jo + nyy == sizeyy
+        for k in (k0 - 1):(k1 + 1), j in j1:(j1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k]
+                yr = rays.y[r, i, j, k]
+                yrt = yr + ly
+
+                if abs(yrt - y[jo + j]) < abs(yr - y[jo + j])
+                    yr = yrt
+                end
+
+                rays.y[r, i, j, k] = yr
             end
         end
     end

@@ -46,39 +46,34 @@ Enforce all boundary conditions for gravity-wave-tendency fields.
 function set_boundaries! end
 
 function set_boundaries!(state::State, variables::BoundaryPredictands)
-    (; zboundaries) = state.namelists.setting
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
-    set_vertical_boundaries!(state, variables, zboundaries)
+    set_vertical_boundaries!(state, variables)
     return
 end
 
 function set_boundaries!(state::State, variables::BoundaryReconstructions)
-    (; zboundaries) = state.namelists.setting
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
-    set_vertical_boundaries!(state, variables, zboundaries)
+    set_vertical_boundaries!(state, variables)
     return
 end
 
 function set_boundaries!(state::State, variables::BoundaryFluxes)
-    (; zboundaries) = state.namelists.setting
-    set_vertical_boundaries!(state, variables, zboundaries)
+    set_vertical_boundaries!(state, variables)
     return
 end
 
 function set_boundaries!(state::State, variables::BoundaryWKBIntegrals)
-    (; zboundaries) = state.namelists.setting
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
-    set_vertical_boundaries!(state, variables, zboundaries)
+    set_vertical_boundaries!(state, variables)
     return
 end
 
 function set_boundaries!(state::State, variables::BoundaryWKBTendencies)
-    (; zboundaries) = state.namelists.setting
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
-    set_vertical_boundaries!(state, variables, zboundaries)
+    set_vertical_boundaries!(state, variables)
     return
 end

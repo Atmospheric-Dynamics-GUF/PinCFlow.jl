@@ -6,7 +6,7 @@ apply_3d_muscl!(
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    limitertype::MCVariant,
+    limitertype::AbstractLimiter,
 )
 ```
 
@@ -38,24 +38,23 @@ function apply_3d_muscl!(
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    limitertype::MCVariant,
+    limitertype::AbstractLimiter,
 )
 
     # Reconstruct in x.
-    for kz in 2:(nzz - 1), jy in 2:(nyy - 1)
-        @views apply_1d_muscl!(phi[:, jy, kz], phitilde[:, jy, kz, 1, :], nxx)
+    @ivy for k in 2:(nzz - 1), j in 2:(nyy - 1)
+        apply_1d_muscl!(phi[:, j, k], phitilde[:, j, k, 1, :], nxx, limitertype)
     end
 
     # Reconstruct in y.
-    for kz in 2:(nzz - 1), ix in 2:(nxx - 1)
-        @views apply_1d_muscl!(phi[ix, :, kz], phitilde[ix, :, kz, 2, :], nyy)
+    @ivy for k in 2:(nzz - 1), i in 2:(nxx - 1)
+        apply_1d_muscl!(phi[i, :, k], phitilde[i, :, k, 2, :], nyy, limitertype)
     end
 
     # Reconstruct in z.
-    for jy in 2:(nyy - 1), ix in 2:(nxx - 1)
-        @views apply_1d_muscl!(phi[ix, jy, :], phitilde[ix, jy, :, 3, :], nzz)
+    @ivy for j in 2:(nyy - 1), i in 2:(nxx - 1)
+        apply_1d_muscl!(phi[i, j, :], phitilde[i, j, :, 3, :], nzz, limitertype)
     end
 
-    # Return.
     return
 end

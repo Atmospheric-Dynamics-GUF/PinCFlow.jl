@@ -3,7 +3,7 @@
 compute_global_dot_product(
     a::AbstractArray{<:AbstractFloat, 3},
     b::AbstractArray{<:AbstractFloat, 3},
-    domain::Domain,
+    state::State,
 )::AbstractFloat
 ```
 
@@ -15,39 +15,22 @@ Compute and return the dot product ``\\boldsymbol{a} \\cdot \\boldsymbol{b} = \\
 
   - `b`: Second input array (must have the same shape as `a`).
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `state`: Model state.
 """
 function compute_global_dot_product end
 
 function compute_global_dot_product(
     a::AbstractArray{<:AbstractFloat, 3},
     b::AbstractArray{<:AbstractFloat, 3},
-    domain::Domain,
+    state::State,
 )::AbstractFloat
-
-    # Get parameters.
-    (; comm) = domain
-
-    # Get shapes.
-    asize = size(a)
-    bsize = size(b)
-
-    # Check if shapes agree.
-    for i in 1:3
-        if asize[i] != bsize[i]
-            error("Error in compute_global_dot_product: Shapes disagree!")
-        end
-    end
+    (; comm) = state.domain
 
     # Compute local dot product.
-    local_dot_product = 0.0
-    for k in 1:asize[3], j in 1:asize[2]
-        @views local_dot_product += dot(a[:, j, k], b[:, j, k])
-    end
+    local_dot_product = mapreduce((a, b) -> a * b, +, a, b)
 
     # Sum over all processes.
     global_dot_product = MPI.Allreduce(local_dot_product, +, comm)
 
-    # Return the result.
     return global_dot_product
 end

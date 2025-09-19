@@ -2,7 +2,9 @@
 ```julia
 compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
 )::AbstractFloat
 ```
@@ -14,7 +16,9 @@ In compressible mode, the Euler steps that are used to integrate the right-hand 
 ```julia
 compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
     model::AbstractModel,
 )::AbstractFloat
@@ -25,7 +29,9 @@ Return ``1`` as the factor by which the wind should be multiplied in non-compres
 ```julia
 compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::U,
     model::Compressible,
 )::AbstractFloat
@@ -36,7 +42,9 @@ Return ``\\left(J P\\right)_{i + 1 / 2}`` as the factor by which the zonal wind 
 ```julia
 compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::V,
     model::Compressible,
 )::AbstractFloat
@@ -47,7 +55,9 @@ Return ``\\left(J P\\right)_{j + 1 / 2}`` as the factor by which the meridional 
 ```julia
 compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
     model::Compressible,
 )::AbstractFloat
@@ -55,17 +65,15 @@ compute_compressible_wind_factor(
 
 Return ``\\left(J P\\right)_{k + 1 / 2}`` as the factor by which the transformed vertical wind should be multiplied in compressible mode.
 
-The interpolation is given by
-
-```math
-\\left(J P\\right)_{k + 1 / 2} = \\frac{J J_{k + 1} \\left(P + P_{k + 1}\\right)}{J + J_{k + 1}}.
-```
-
 # Arguments
 
   - `state`: Model state.
 
-  - `indices`: Grid-cell indices.
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
 
   - `variable`: Variable for which the factor is needed.
 
@@ -75,16 +83,20 @@ function compute_compressible_wind_factor end
 
 function compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
 )::AbstractFloat
     (; model) = state.namelists.setting
-    return compute_compressible_wind_factor(state, indices, variable, model)
+    return compute_compressible_wind_factor(state, i, j, k, variable, model)
 end
 
 function compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::AbstractVariable,
     model::AbstractModel,
 )::AbstractFloat
@@ -93,45 +105,46 @@ end
 
 function compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::U,
     model::Compressible,
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    (ix, jy, kz) = indices
-    return (
-        jac[ix, jy, kz] * p[ix, jy, kz] +
-        jac[ix + 1, jy, kz] * p[ix + 1, jy, kz]
+    @ivy return (
+        jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k]
     ) / 2
 end
 
 function compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::V,
     model::Compressible,
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    (ix, jy, kz) = indices
-    return (
-        jac[ix, jy, kz] * p[ix, jy, kz] +
-        jac[ix, jy + 1, kz] * p[ix, jy + 1, kz]
+    @ivy return (
+        jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k]
     ) / 2
 end
 
 function compute_compressible_wind_factor(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     variable::W,
     model::Compressible,
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    (ix, jy, kz) = indices
-    return jac[ix, jy, kz] *
-           jac[ix, jy, kz + 1] *
-           (p[ix, jy, kz] + p[ix, jy, kz + 1]) /
-           (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
+    @ivy return jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (p[i, j, k] + p[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
 end

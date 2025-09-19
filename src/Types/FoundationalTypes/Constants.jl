@@ -106,8 +106,6 @@ struct Constants{A <: AbstractFloat}
 end
 
 function Constants(namelists::Namelists)::Constants
-
-    # Get parameters.
     (; specifyreynolds, reinv, mu_viscous_dim) = namelists.atmosphere
 
     # Set natural constants.
@@ -155,7 +153,6 @@ function Constants(namelists::Namelists)::Constants
     fr2 = fr^2
     sig = ma^2 / fr^2
 
-    # Return a Constants instance.
     return Constants(
         gamma,
         gammainv,

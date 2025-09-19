@@ -2,7 +2,7 @@
 
 using PinCFlow
 
-if length(ARGS) == 0
+@ivy if length(ARGS) == 0
     output_file = "./pincflow_output.h5"
 elseif length(ARGS) == 1
     output_file = ARGS[1] * "/pincflow_output.h5"
@@ -15,9 +15,9 @@ domain = DomainNamelist(;
     sizex = 40,
     sizey = 40,
     sizez = 40,
-    lx_dim = (-1.0E+4, 1.0E+4),
-    ly_dim = (-1.0E+4, 1.0E+4),
-    lz_dim = (0.0E+0, 2.0E+4),
+    lx_dim = 2.0E+4,
+    ly_dim = 2.0E+4,
+    lz_dim = 2.0E+4,
     npx = 8,
     npy = 8,
 )
@@ -25,8 +25,8 @@ grid = GridNamelist(; mountain_case = 4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(;
     spongelayer = true,
-    spongealphaz_dim = 1.79E-2,
-    unifiedsponge = true,
+    alpharmax = 1.79E-2,
+    betarmax = 0.0E+0,
     lateralsponge = true,
     spongetype = SinusoidalSponge(),
     relax_to_mean = false,

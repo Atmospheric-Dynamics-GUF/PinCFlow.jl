@@ -94,7 +94,7 @@ Singleton that represents the mass-weighted potential temperature.
 struct P <: AbstractVariable end
 
 """
-```julia 
+```julia
 Theta <: AbstractVariable
 ```
 
@@ -103,13 +103,13 @@ Singleton that represents the potential temperature.
 struct Theta <: AbstractVariable end
 
 """
-```julia 
+```julia
 Chi <: AbstractVariable
 ```
 
 Singleton that represents the tracer mixing ratio.
 """
-struct Chi <: AbstractVariable end 
+struct Chi <: AbstractVariable end
 
 """
 ```julia
@@ -142,16 +142,15 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
+using ..PinCFlow
 
 include("State.jl")
 
 export AbstractBackground,
-    AbstractCoriolisMode,
     AbstractLimiter,
     AbstractVariable,
     AbstractModel,
     AbstractTestCase,
-    AbstractBoundaries,
     AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
@@ -173,15 +172,12 @@ export Rho,
     UniformBoussinesq,
     StratifiedBoussinesq,
     Isothermal,
-    FPlane,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,
     Compressible,
     MountainWave,
     WKBMountainWave,
-    PeriodicBoundaries,
-    SolidWallBoundaries,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,
@@ -227,6 +223,7 @@ export DomainNamelist,
     WKBIntegrals,
     WKBTendencies,
     Rays,
+    MergedRays,
     WKBIncrements,
     SurfaceIndices,
     WKB,

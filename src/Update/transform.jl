@@ -14,11 +14,11 @@ transform(
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
     coordinate::Cartesian,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
 ```
 
-Perform the transformation of a vertical-wind-like variable from the transformed system to the Cartesian one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`, and return the result.
+Perform the transformation of a vertical-wind-like variable from the transformed system to the Cartesian one, given the wind-like components at the grid points surrounding ``\\left(i, j, k + 1 / 2\\right)``, and return the result.
 
 The discretized transformation rule for the vertical wind is given by
 
@@ -41,11 +41,11 @@ transform(
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
     coordinate::Transformed,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
 ```
 
-Perform the transformation of a vertical-wind-like variable from the Cartesian system to the transformed one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`, and return the result.
+Perform the transformation of a vertical-wind-like variable from the Cartesian system to the transformed one, given the wind-like components at the grid points surrounding ``\\left(i, j, k + 1 / 2\\right)``, and return the result.
 
 The discretized transformation rule for the vertical wind is given by
 
@@ -61,27 +61,27 @@ The discretized transformation rule for the vertical wind is given by
 
   - `k`: Vertical grid-cell index.
 
-  - `uedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k)`.
+  - `uedger`: Zonal-wind equivalent at ``\\left(i + 1 / 2, j, k\\right)``.
 
-  - `uuedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k + 1)`.
+  - `uuedger`: Zonal-wind equivalent at ``\\left(i + 1 / 2, j, k + 1\\right)``.
 
-  - `uedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k)`.
+  - `uedgel`: Zonal-wind equivalent at ``\\left(i - 1 / 2, j, k\\right)``.
 
-  - `uuedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k + 1)`.
+  - `uuedgel`: Zonal-wind equivalent at ``\\left(i - 1 / 2, j, k + 1\\right)``.
 
-  - `vedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k)`.
+  - `vedgef`: Meridional-wind equivalent at ``\\left(i, j + 1 / 2, k\\right)``.
 
-  - `vuedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k + 1)`.
+  - `vuedgef`: Meridional-wind equivalent at ``\\left(i, j + 1 / 2, k + 1\\right)``.
 
-  - `vedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k)`.
+  - `vedgeb`: Meridional-wind equivalent at ``\\left(i, j - 1 / 2, k\\right)``.
 
-  - `vuedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k + 1)`.
+  - `vuedgeb`: Meridional-wind equivalent at ``\\left(i, j - 1 / 2, k + 1\\right)``.
 
-  - `wedgeu`: Transformed-vertical-wind equivalent at `(i, j, k + 1 / 2)`
+  - `wedgeu`: Transformed-vertical-wind equivalent at ``\\left(i, j, k + 1 / 2\\right)``
 
   - `coordinate`: Coordinate system to transform to.
 
-  - `grid`: Collection of parameters and fields that describe the grid.
+  - `state`: Model state.
 """
 function transform end
 
@@ -99,20 +99,20 @@ function transform(
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
     coordinate::Cartesian,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
-    (; jac, met) = grid
+    (; jac, met) = state.grid
 
-    jacedgeu =
+    @ivy jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
         (jac[i, j, k] + jac[i, j, k + 1])
 
-    uc = 0.5 * (uedger + uedgel)
-    uu = 0.5 * (uuedger + uuedgel)
-    vc = 0.5 * (vedgef + vedgeb)
-    vu = 0.5 * (vuedgef + vuedgeb)
+    @ivy uc = 0.5 * (uedger + uedgel)
+    @ivy uu = 0.5 * (uuedger + uuedgel)
+    @ivy vc = 0.5 * (vedgef + vedgeb)
+    @ivy vu = 0.5 * (vuedgef + vuedgeb)
 
-    return jacedgeu * (
+    @ivy return jacedgeu * (
         -(
             jac[i, j, k + 1] *
             (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
@@ -136,20 +136,20 @@ function transform(
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
     coordinate::Transformed,
-    grid::Grid,
+    state::State,
 )::AbstractFloat
-    (; jac, met) = grid
+    (; jac, met) = state.grid
 
-    jacedgeu =
+    @ivy jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
         (jac[i, j, k] + jac[i, j, k + 1])
 
-    uc = 0.5 * (uedger + uedgel)
-    uu = 0.5 * (uuedger + uuedgel)
-    vc = 0.5 * (vedgef + vedgeb)
-    vu = 0.5 * (vuedgef + vuedgeb)
+    @ivy uc = 0.5 * (uedger + uedgel)
+    @ivy uu = 0.5 * (uuedger + uuedgel)
+    @ivy vc = 0.5 * (vedgef + vedgeb)
+    @ivy vu = 0.5 * (vuedgef + vuedgeb)
 
-    return (
+    @ivy return (
         jac[i, j, k + 1] * (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
         jac[i, j, k] *
         (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)

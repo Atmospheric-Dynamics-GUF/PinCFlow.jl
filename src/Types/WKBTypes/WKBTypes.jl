@@ -18,14 +18,17 @@ module WKBTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ...PinCFlow
 
 include("WKBIntegrals.jl")
 include("WKBTendencies.jl")
 include("Rays.jl")
+include("MergedRays.jl")
 include("WKBIncrements.jl")
 include("SurfaceIndices.jl")
 include("WKB.jl")
 
-export WKBIntegrals, WKBTendencies, Rays, WKBIncrements, SurfaceIndices, WKB
+export WKBIntegrals,
+    WKBTendencies, Rays, MergedRays, WKBIncrements, SurfaceIndices, WKB
 
 end

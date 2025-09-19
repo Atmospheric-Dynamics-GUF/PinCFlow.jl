@@ -2,38 +2,46 @@
 ```julia
 conductive_heating(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
 )::AbstractFloat
 ```
 
 Compute and return the conductive heating by dispatching to specialized methods dependent on the model.
 
-```julia 
+```julia
 conductive_heating(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     model::Boussinesq,
 )::AbstractFloat
 ```
 
-Return 0 as conductive heating in Boussinesq mode.
+Return ``0`` as conductive heating in Boussinesq mode.
 
-```julia 
+```julia
 conductive_heating(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     model::PseudoIncompressible,
-)::AbstractFloat 
+)::AbstractFloat
 ```
 
-Return 0 as conductive heating in PseudoIncompressible mode.
+Return ``0`` as conductive heating in PseudoIncompressible mode.
 
-```julia 
+```julia
 conductive_heating(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     model::Compressible,
-)::AbstractFloat 
+)::AbstractFloat
 ```
 
 Compute and return the conductive heating as the divergence of potential temperature fluxes.
@@ -42,7 +50,11 @@ Compute and return the conductive heating as the divergence of potential tempera
 
   - `state`: Model state.
 
-  - `indices`: Grid-cell indices.
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
 
   - `model`: Dynamic equations.
 """
@@ -50,16 +62,20 @@ function conductive_heating end
 
 function conductive_heating(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
 )::AbstractFloat
     (; model) = state.namelists.setting
 
-    return conductive_heating(state, indices, model)
+    return conductive_heating(state, i, j, k, model)
 end
 
 function conductive_heating(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     model::Boussinesq,
 )::AbstractFloat
     return 0.0
@@ -67,7 +83,9 @@ end
 
 function conductive_heating(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     model::PseudoIncompressible,
 )::AbstractFloat
     return 0.0
@@ -75,18 +93,19 @@ end
 
 function conductive_heating(
     state::State,
-    indices::NTuple{3, <:Integer},
+    i::Integer,
+    j::Integer,
+    k::Integer,
     model::Compressible,
 )::AbstractFloat
     (; phitheta) = state.variables.fluxes
     (; rho) = state.variables.predictands
     (; jac, dx, dy, dz) = state.grid
     (; rhostrattfc) = state.atmosphere
-    (i, j, k) = indices
 
-    rhotot = (rho[i, j, k] + rhostrattfc[i, j, k]) / jac[i, j, k]
+    @ivy rhotot = (rho[i, j, k] + rhostrattfc[i, j, k]) / jac[i, j, k]
 
-    heating =
+    @ivy heating =
         rhotot * (
             (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
             (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +
