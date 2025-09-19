@@ -43,6 +43,10 @@ TracerForcings(
 
 Construct a `TracerForcings` instance for configurations with tracer transport and WKB model.
 
+# Fields
+
+  - `chiq0::A`: Leading-order tracer forcings.
+
 # Arguments:
 
   - `namelists`: Namelists with all model parameters.

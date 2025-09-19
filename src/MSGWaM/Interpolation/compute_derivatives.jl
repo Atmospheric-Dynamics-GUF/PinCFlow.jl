@@ -469,28 +469,47 @@ function compute_derivatives(
     (; rho) = state.variables.predictands
     (; rhostrattfc) = state.atmosphere
 
-    # Get mass-specific tracer mixing ratio.
-    c = chi ./ (rho .+ rhostrattfc)
+    @ivy cc = chi[i, j, kd] / (rho[i, j, kd] + rhostrattfc[[i, j, kd]])
+    @ivy cr =
+        chi[i + 1, j, kd] / (rho[i + 1, j, kd] + rhostrattfc[[i + 1, j, kd]])
+    @ivy cu =
+        chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhostrattfc[[i, j, kd + 1]])
+    @ivy cd =
+        chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhostrattfc[[i, j, kd - 1]])
+    @ivy cru =
+        chi[i + 1, j, kd + 1] /
+        (rho[i + 1, j, kd + 1] + rhostrattfc[[i + 1, j, kd + 1]])
+    @ivy crd =
+        chi[i + 1, j, kd - 1] /
+        (rho[i + 1, j, kd - 1] + rhostrattfc[[i + 1, j, kd - 1]])
 
     @ivy phid =
-        (c[i + 1, j, kd] - c[i, j, kd]) / dx +
+        (cr - cc) / dx +
         0.5 *
         (met[i, j, kd, 1, 3] + met[i + 1, j, kd, 1, 3]) *
         0.25 *
-        (
-            c[i, j, kd + 1] + c[i + 1, j, kd + 1] - c[i, j, kd - 1] -
-            c[i + 1, j, kd - 1]
-        ) / dz
+        (cu + cru - cd - crd) / dz
+
+    @ivy cc = chi[i, j, ku] / (rho[i, j, ku] + rhostrattfc[[i, j, ku]])
+    @ivy cr =
+        chi[i + 1, j, ku] / (rho[i + 1, j, ku] + rhostrattfc[[i + 1, j, ku]])
+    @ivy cu =
+        chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhostrattfc[[i, j, ku + 1]])
+    @ivy cd =
+        chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhostrattfc[[i, j, ku - 1]])
+    @ivy cru =
+        chi[i + 1, j, ku + 1] /
+        (rho[i + 1, j, ku + 1] + rhostrattfc[[i + 1, j, ku + 1]])
+    @ivy crd =
+        chi[i + 1, j, ku - 1] /
+        (rho[i + 1, j, ku - 1] + rhostrattfc[[i + 1, j, ku - 1]])
 
     @ivy phiu =
-        (c[i + 1, j, ku] - c[i, j, ku]) / dx +
+        (cr - cc) / dx +
         0.5 *
         (met[i, j, ku, 1, 3] + met[i + 1, j, ku, 1, 3]) *
         0.25 *
-        (
-            c[i, j, ku + 1] + c[i + 1, j, ku + 1] - c[i, j, ku - 1] -
-            c[i + 1, j, ku - 1]
-        ) / dz
+        (cu + cru - cd - crd) / dz
 
     return (phid, phiu)
 end
@@ -508,28 +527,47 @@ function compute_derivatives(
     (; rho) = state.variables.predictands
     (; rhostrattfc) = state.atmosphere
 
-    # Get mass-specific tracer mixing ratio.
-    c = chi ./ (rho .+ rhostrattfc)
+    @ivy cc = chi[i, j, kd] / (rho[i, j, kd] + rhostrattfc[[i, j, kd]])
+    @ivy cf =
+        chi[i, j + 1, kd] / (rho[i, j + 1, kd] + rhostrattfc[[i, j + 1, kd]])
+    @ivy cu =
+        chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhostrattfc[[i, j, kd + 1]])
+    @ivy cd =
+        chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhostrattfc[[i, j, kd - 1]])
+    @ivy cfu =
+        chi[i, j + 1, kd + 1] /
+        (rho[i, j + 1, kd + 1] + rhostrattfc[[i, j + 1, kd + 1]])
+    @ivy cfd =
+        chi[i, j + 1, kd - 1] /
+        (rho[i, j + 1, kd - 1] + rhostrattfc[[i, j + 1, kd - 1]])
 
     @ivy phid =
-        (c[i, j + 1, kd] - c[i, j, kd]) / dy +
+        (cf - cc) / dy +
         0.5 *
         (met[i, j, kd, 2, 3] + met[i, j + 1, kd, 2, 3]) *
         0.25 *
-        (
-            c[i, j, kd + 1] + c[i, j + 1, kd + 1] - c[i, j, kd - 1] -
-            c[i, j + 1, ku - 1]
-        ) / dz
+        (cu + cfu - cd - cfd) / dz
+
+    @ivy cc = chi[i, j, ku] / (rho[i, j, ku] + rhostrattfc[[i, j, ku]])
+    @ivy cf =
+        chi[i, j + 1, ku] / (rho[i, j + 1, ku] + rhostrattfc[[i, j + 1, ku]])
+    @ivy cu =
+        chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhostrattfc[[i, j, ku + 1]])
+    @ivy cd =
+        chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhostrattfc[[i, j, ku - 1]])
+    @ivy cfu =
+        chi[i, j + 1, ku + 1] /
+        (rho[i, j + 1, ku + 1] + rhostrattfc[[i, j + 1, ku + 1]])
+    @ivy cfd =
+        chi[i, j + 1, ku - 1] /
+        (rho[i, j + 1, ku - 1] + rhostrattfc[[i, j + 1, ku - 1]])
 
     @ivy phiu =
-        (c[i, j + 1, ku] - c[i, j, ku]) / dy +
+        (cf - cc) / dy +
         0.5 *
         (met[i, j, ku, 2, 3] + met[i, j + 1, ku, 2, 3]) *
         0.25 *
-        (
-            c[i, j, ku + 1] + c[i, j + 1, ku + 1] - c[i, j, ku - 1] -
-            c[i, j + 1, ku - 1]
-        ) / dz
+        (cu + cfu - cd - cfd) / dz
 
     return (phid, phiu)
 end
@@ -547,8 +585,12 @@ function compute_derivatives(
     (; rho) = state.variables.predictands
     (; rhostrattfc) = state.atmosphere
 
-    # Get mass-specific tracer mixing ratio.
-    c = chi ./ (rho .+ rhostrattfc)
+    @ivy cuc = chi[i, j, ku] / (rho[i, j, ku] + rhostrattfc[i, j, ku])
+    @ivy cdc = chi[i, j, kd] / (rho[i, j, kd] + rhostrattfc[i, j, kd])
+    @ivy cuu =
+        chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhostrattfc[i, j, ku + 1])
+    @ivy cdu =
+        chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhostrattfc[i, j, kd + 1])
 
     @ivy if ztildetfc[i, j, ku] < topography_surface[i, j]
         phid = 0.0
@@ -556,25 +598,25 @@ function compute_derivatives(
     elseif ztildetfc[i, j, kd] < topography_surface[i, j]
         phid = 0.0
         phiu =
-            (c[i, j, ku + 1] - c[i, j, ku]) / dz / (
+            (cuu - cuc) / dz / (
                 2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
                 (jac[i, j, ku] + jac[i, j, ku + 1])
             )
     else
         if ztildetfc[i, j, ku] < lz
             phid =
-                (c[i, j, kd + 1] - c[i, j, kd]) / dz / (
+                (cdu - cdc) / dz / (
                     2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
                     (jac[i, j, kd] + jac[i, j, kd + 1])
                 )
             phiu =
-                (c[i, j, ku + 1] - c[i, j, ku]) / dz / (
+                (cuu - cuc) / dz / (
                     2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
                     (jac[i, j, ku] + jac[i, j, ku + 1])
                 )
         elseif ztildetfc[i, j, kd] < lz
             phid =
-                (c[i, j, kd + 1] - c[i, j, kd]) / dz / (
+                (cdu - cdc) / dz / (
                     2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
                     (jac[i, j, kd] + jac[i, j, kd + 1])
                 )
