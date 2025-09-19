@@ -46,6 +46,15 @@ struct Dissipation end
 
 """
 ```julia
+Advection
+```
+
+Singleton for the advection step of the turbulence computation.
+"""
+struct Advection end
+
+"""
+```julia
 Diffusion
 ```
 
@@ -63,9 +72,9 @@ include("synchronize_density_fluctuations!.jl")
 include("explicit_integration!.jl")
 include("implicit_integration!.jl")
 include("wkb_integration!.jl")
-include("turbulence_computation!.jl")
+include("turbulence_integration!.jl")
 
-export Dissipation, Diffusion
+export Dissipation, Diffusion, Advection
 
 export integrate
 

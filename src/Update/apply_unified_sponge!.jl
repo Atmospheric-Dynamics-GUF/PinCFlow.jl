@@ -259,7 +259,6 @@ Return for configurations without turbulence physics.
 apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
-    time::AbstractFloat,
     turbulencesetup::AbstractTurbulence,
 )
 ```
@@ -745,7 +744,6 @@ end
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
-    time::AbstractFloat,
     turbulencesetup::AbstractTurbulence,
 )
     (; spongelayer, unifiedsponge) = state.namelists.sponge

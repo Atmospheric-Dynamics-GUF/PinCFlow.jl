@@ -86,13 +86,13 @@ function explicit_integration!(
             icesetup,
         )
 
-        update!(state, dtstage, rkstage, turbulencesetup)
-        apply_unified_sponge!(
-            state,
-            stepfrac[rkstage] * dtstage,
-            time,
-            turbulencesetup,
-        )
+        #update!(state, dtstage, rkstage, turbulencesetup)
+        #apply_unified_sponge!(
+            #state,
+            #stepfrac[rkstage] * dtstage,
+            #time,
+            #turbulencesetup,
+        #)
 
         set_boundaries!(state, BoundaryPredictands())
 

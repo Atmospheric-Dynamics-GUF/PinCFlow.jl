@@ -73,7 +73,7 @@ function TurbulenceConstants(namelists::Namelists)::TurbulenceConstants
 
     # Calcualte the pre-factor for the diffusion co-efficient
     c_ek = 1.0E-1
-    rif = 1
+    rif = 1.0E-1
     F = 6.4E-1
     lambdaturb = 4.0E-1
     lambda_2 = (5 * lambdaturb - 6 * sqrt(F) * lambdaturb)/25
