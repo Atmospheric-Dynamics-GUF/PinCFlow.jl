@@ -12,11 +12,7 @@ TracerForcings(namelists::Namelists, domain::Domain)
 Construct a `TracerForcings` instance set according to the model configuration.
 
 ```julia
-TracerForcings(
-    namelists::Namelists,
-    domain::Domain,
-    tracersetup::NoTracer,
-)
+TracerForcings(namelists::Namelists, domain::Domain, tracersetup::NoTracer)
 ```
 
 Construct a `TracerForcings` instance for configurations without tracer transport.
@@ -32,11 +28,7 @@ TracerForcings(
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(
-    namelists::Namelists,
-    domain::Domain,
-    testcase::AbstractTestCase,
-)
+TracerForcings(namelists::Namelists, domain::Domain, testcase::AbstractTestCase)
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.

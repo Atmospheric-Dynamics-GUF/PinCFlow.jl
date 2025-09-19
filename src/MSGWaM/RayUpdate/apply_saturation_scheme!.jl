@@ -46,19 +46,19 @@ Apply the saturation scheme.
 Saturation is assumed to occur when the static-instability criterion
 
 ```math
-\\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha \\geq \\alpha_\\mathrm{S}^2 N^4
+\\sum\\limits_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right|\\right)^2 f_r \\geq \\alpha_\\mathrm{s}^2 N^4
 ```
 
-is locally fulfilled (i.e. within a grid cell). Therein, ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}`` is the wavevector, ``\\left|b_{\\mathrm{w}, \\alpha}\\right|^2`` is the squared gravity-wave amplitude of the buoyancy, ``f_\\alpha`` is the maximum grid-cell fraction each ray volume can cover, ``N`` is the buoyancy frequency and ``\\alpha_\\mathrm{S}`` is a saturation coefficient that represents the uncertainties of the criterion. The phase-space wave-action density is then reduced in accordance with
+is locally fulfilled (i.e. within a grid cell). Therein, ``\\left|b_{\\mathrm{w}, r}\\right|^2`` is the squared gravity-wave amplitude of the buoyancy, ``f_r`` is the maximum grid-cell fraction each ray volume can cover and ``\\alpha_\\mathrm{s}`` is a saturation coefficient that represents the uncertainties of the criterion. The phase-space wave-action density is then reduced in accordance with
 
 ```math
-\\frac{\\Delta \\left|b_{\\mathrm{w}, \\alpha}\\right|^2}{\\Delta t} = - 2 K \\left|\\boldsymbol{k}_\\alpha\\right|^2 \\left|b_{\\mathrm{w}, \\alpha}\\right|^2,
+\\frac{\\Delta \\left|b_{\\mathrm{w}, r}\\right|^2}{\\Delta t} = - 2 K \\left|\\boldsymbol{k}_r\\right|^2 \\left|b_{\\mathrm{w}, r}\\right|^2,
 ```
 
 which is based on the assumption that wave breaking leads to turbulent fluxes that may be parameterized with a flux-gradient ansatz. The turbulent viscosity and diffusivity
 
 ```math
-K = \\left[2 \\Delta t\\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right| \\left|\\boldsymbol{k}_\\alpha\\right|\\right)^2 f_\\alpha\\right]^{- 1} \\max \\left[0, \\sum_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha - \\alpha_\\mathrm{S}^2 N^4\\right]
+K = \\left[2 \\Delta t\\sum\\limits_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right| \\left|\\boldsymbol{k}_r\\right|\\right)^2 f_r\\right]^{- 1} \\max \\left[0, \\sum_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right|\\right)^2 f_r - \\alpha_\\mathrm{s}^2 N^4\\right]
 ```
 
 is such that wave action is reduced exactly to the saturation threshold. The two sums involved in this scheme (discretizations of spectral integrals) are computed with `compute_spectral_integrals`.

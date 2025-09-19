@@ -20,7 +20,7 @@ Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` t
 The flux-contributions are given by
 
 ```math
-\\overline{\\rho} u_{w,\\alpha}\\chi^*_{w,\\alpha} = \\frac{f}{\\widehat{\\omega}_{\\alpha}}\\frac{m_{\\alpha}}{|\\mathbf{k}_{\\alpha}|^2}\\mathcal{A}_{\\alpha}\\left(l_{\\alpha}\\partial_{z}\\chi_b - m_{\\alpha}\\partial_y\\chi_b \\right).
+\\overline{\\rho} u_{\\mathrm{w}, r}\\chi^*_{\\mathrm{w}, r} = \\frac{f}{\\widehat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r - m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r\\right].
 ```
 
 ```julia
@@ -44,7 +44,7 @@ Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` t
 The fluxes are given by
 
 ```math
-\\overline{\\rho} v_{w,\\alpha}\\chi^*_{w,\\alpha} = \\frac{f}{\\widehat{\\omega}_{\\alpha}}\\frac{m_{\\alpha}}{|\\mathbf{k}_{\\alpha}|^2}\\mathcal{A}_{\\alpha}\\left(m_{\\alpha}\\partial_{x}\\chi_b - k_{\\alpha}\\partial_z\\chi_b \\right).
+\\overline{\\rho} v_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r} = \\frac{f}{\\widehat{\\omega}_{r}} \\frac{m_r}{\\left|\\boldsymbol{k}_{r}\\right|^2} \\mathcal{A}_r \\left[m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r - k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r\\right].
 ```
 
 ```julia
@@ -68,7 +68,7 @@ Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` t
 The fluxes are given by
 
 ```math
-\\overline{\\rho} w_{w,\\alpha}\\chi^*_{w,\\alpha} = \\frac{f}{\\widehat{\\omega}_{\\alpha}}\\frac{m_{\\alpha}}{|\\mathbf{k}_{\\alpha}|^2}\\mathcal{A}_{\\alpha}\\left(k_{\\alpha}\\partial_{y}\\chi_b - l_{\\alpha}\\partial_x\\chi_b \\right).
+\\overline{\\rho} w_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r} = \\frac{f}{\\widehat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r\\right].
 ```
 """
 function leading_order_tracer_fluxes end

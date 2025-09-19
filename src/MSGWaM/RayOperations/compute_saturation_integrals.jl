@@ -14,24 +14,24 @@ Computes the sums
 
 ```math
 \\begin{align*}
-    S_1 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha,\\\\
-    S_2 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right| \\left|\\boldsymbol{k}_\\alpha\\right|\\right)^2 f_\\alpha,
+    S_1 & \\approx \\sum\\limits_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right|\\right)^2 f_r,\\\\
+    S_2 & \\approx \\sum\\limits_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right| \\left|\\boldsymbol{k}_r\\right|\\right)^2 f_r,
 \\end{align*}
 ```
 
-where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}`` is the wavevector,
+where
 
 ```math
-f_\\alpha = \\max \\left(1, \\frac{\\Delta x_\\alpha}{\\Delta \\widehat{x}}\\right) \\max \\left(1, \\frac{\\Delta y_\\alpha}{\\Delta \\widehat{y}}\\right) \\max \\left(1, \\frac{\\Delta z_\\alpha}{J \\Delta \\widehat{z}}\\right)
+f_r = \\max \\left(1, \\frac{\\Delta x_r}{\\Delta \\widehat{x}}\\right) \\max \\left(1, \\frac{\\Delta y_r}{\\Delta \\widehat{y}}\\right) \\max \\left(1, \\frac{\\Delta z_r}{J \\Delta \\widehat{z}}\\right)
 ```
 
-is the maximum grid-cell fraction that can be covered by each ray volume (with ``\\left(\\Delta x_\\alpha, \\Delta y_\\alpha, \\Delta z_\\alpha\\right)`` being the ray-volume extents in physical space) and
+is the maximum grid-cell fraction that can be covered by each ray volume (with ``\\left(\\Delta x_r, \\Delta y_r, \\Delta z_r\\right)`` being the ray-volume extents in physical space) and
 
 ```math
-\\left|b_{\\mathrm{w}, \\alpha}\\right|^2 = \\frac{2}{\\overline{\\rho}} \\frac{N_\\alpha^4 \\left(k_\\alpha^2 + l_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2} \\mathcal{N}_\\alpha \\Delta k_\\alpha \\Delta l_\\alpha \\Delta m_\\alpha
+\\left|b_{\\mathrm{w}, r}\\right|^2 = \\frac{2}{\\overline{\\rho}} \\frac{N_r^4 \\left(k_r^2 + l_r^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{N}_r \\Delta k_r \\Delta l_r \\Delta m_r
 ```
 
-is the squared gravity-wave amplitude of the buoyancy. Therein, ``\\overline{\\rho}`` is the background density, ``N_\\alpha^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`), ``\\widehat{\\omega}_\\alpha`` is the intrinsic frequency (calculated with `compute_intrinsic_frequency`), ``\\mathcal{N}_\\alpha`` is the phase-space wave-action density and ``\\left(\\Delta k_\\alpha, \\Delta l_\\alpha, \\Delta m_\\alpha\\right)`` are the ray-volume extents in spectral space.
+is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`) and ``\\left(\\Delta k_r, \\Delta l_r, \\Delta m_r\\right)`` are the ray-volume extents in spectral space.
 
 # Arguments
 

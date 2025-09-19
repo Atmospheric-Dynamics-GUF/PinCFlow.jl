@@ -1432,11 +1432,7 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error(
-                "Error in interpolate_mean_flow (DChiDX): il = ",
-                il,
-                " < 1",
-            )
+            error("Error in interpolate_mean_flow (DChiDX): il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
@@ -1458,11 +1454,7 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error(
-                "Error in interpolate_mean_flow (DChiDX): jb = ",
-                jb,
-                " < 1",
-            )
+            error("Error in interpolate_mean_flow (DChiDX): jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
@@ -1501,17 +1493,13 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, il, jb, klbd, klbu, DChiDX())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DChiDX())
 
-    (philfd, philfu) =
-        compute_derivatives(state, il, jf, klfd, klfu, DChiDX())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DChiDX())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ir, jb, krbd, krbu, DChiDX())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DChiDX())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ir, jf, krfd, krfu, DChiDX())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DChiDX())
 
     # Interpolate.
     phi = interpolate(
@@ -1562,11 +1550,7 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error(
-                "Error in interpolate_mean_flow (DChiDY): il = ",
-                il,
-                " < 1",
-            )
+            error("Error in interpolate_mean_flow (DChiDY): il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
@@ -1588,11 +1572,7 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error(
-                "Error in interpolate_mean_flow (DChiDY): jb = ",
-                jb,
-                " < 1",
-            )
+            error("Error in interpolate_mean_flow (DChiDY): jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
@@ -1631,17 +1611,13 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, il, jb, klbd, klbu, DChiDY())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DChiDY())
 
-    (philfd, philfu) =
-        compute_derivatives(state, il, jf, klfd, klfu, DChiDY())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DChiDY())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ir, jb, krbd, krbu, DChiDY())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DChiDY())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ir, jf, krfd, krfu, DChiDY())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DChiDY())
 
     # Interpolate.
     phi = interpolate(
@@ -1693,11 +1669,7 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error(
-                "Error in interpolate_mean_flow (DChiDZ): il = ",
-                il,
-                " < 1",
-            )
+            error("Error in interpolate_mean_flow (DChiDZ): il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
@@ -1719,11 +1691,7 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error(
-                "Error in interpolate_mean_flow (DChiDZ): jb = ",
-                jb,
-                " < 1",
-            )
+            error("Error in interpolate_mean_flow (DChiDZ): jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
@@ -1762,17 +1730,13 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    (philbd, philbu) =
-        compute_derivatives(state, il, jb, klbd, klbu, DChiDZ())
+    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DChiDZ())
 
-    (philfd, philfu) =
-        compute_derivatives(state, il, jf, klfd, klfu, DChiDZ())
+    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DChiDZ())
 
-    (phirbd, phirbu) =
-        compute_derivatives(state, ir, jb, krbd, krbu, DChiDZ())
+    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DChiDZ())
 
-    (phirfd, phirfu) =
-        compute_derivatives(state, ir, jf, krfd, krfu, DChiDZ())
+    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DChiDZ())
 
     # Interpolate.
     phi = interpolate(

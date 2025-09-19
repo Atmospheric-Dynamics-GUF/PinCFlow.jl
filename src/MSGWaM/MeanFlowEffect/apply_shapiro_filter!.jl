@@ -16,7 +16,7 @@ The elements of `output` are given by
 \\widetilde{\\phi}_i = \\frac{1}{4} \\left(\\phi_{i - 1} + 2 \\phi_i + \\phi_{i + 1}\\right),
 ```
 
-where ``\\phi_i`` are the elements of `ìnput`.
+where ``\\phi_i`` are the elements of `input`.
 
 ```julia
 apply_shapiro_filter!(
@@ -35,7 +35,7 @@ The elements of `output` are given by
 \\widetilde{\\phi}_i = \\frac{1}{16} \\left(- \\phi_{i - 2} + 4 \\phi_{i - 1} + 10 \\phi_i + 4 \\phi_{i + 1} - \\phi_{i + 2}\\right),
 ```
 
-where ``\\phi_i`` are the elements of `ìnput`.
+where ``\\phi_i`` are the elements of `input`.
 
 ```julia
 apply_shapiro_filter!(
@@ -54,7 +54,7 @@ The elements of `output` are given by
 \\widetilde{\\phi}_i = \\frac{1}{64} \\left(\\phi_{i - 3} - 6 \\phi_{i - 2} + 15 \\phi_{i - 1} + 44 \\phi_i + 15 \\phi_{i + 1} - 6 \\phi_{i + 2} + \\phi_{i + 3}\\right),
 ```
 
-where ``\\phi_i`` are the elements of `ìnput`.
+where ``\\phi_i`` are the elements of `input`.
 
 ```julia
 apply_shapiro_filter!(
@@ -73,7 +73,7 @@ The elements of `output` are given by
 \\widetilde{\\phi}_i = \\frac{1}{256} \\left(- \\phi_{i - 4} + 8 \\phi_{i - 3} - 28 \\phi_{i - 2} + 56 \\phi_{i - 1} + 186 \\phi_i + 56 \\phi_{i + 1} - 28 \\phi_{i + 2} + 8 \\phi_{i + 3} - \\phi_{i + 4}\\right),
 ```
 
-where ``\\phi_i`` are the elements of `ìnput`.
+where ``\\phi_i`` are the elements of `input`.
 
 # Arguments
 

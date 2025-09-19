@@ -14,10 +14,10 @@ Return the intrinsic frequency of the ray volume specified by ``\\left(r, i, j, 
 The intrinsic frequency is calculated from the dispersion relation
 
 ```math
-\\widehat{\\omega}_\\alpha = \\sigma \\sqrt{\\frac{N^2 \\left(k_\\alpha^2 + l_\\alpha^2\\right) + f^2 m_\\alpha^2}{\\left|\\boldsymbol{k}_\\alpha\\right|^2}},
+\\widehat{\\omega}_r = \\sigma \\sqrt{\\frac{N_r^2 \\left(k_r^2 + l_r^2\\right) + f^2 m_r^2}{\\left|\\boldsymbol{k}_r\\right|^2}},
 ```
 
-where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}`` is the ray volume's wavevector, ``N^2`` is the squared buoyancy frequency interpolated to the ray volume's vertical position, ``f`` is the Coriolis parameter and ``\\sigma`` is the frequency branch.
+where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray volume's vertical position and ``\\sigma`` is the frequency branch.
 
 # Arguments
 

@@ -45,9 +45,9 @@ The zonal, meridional, and vertical fluxes are given by
 
 ```math
 \\begin{align*}
-\\overline{\\rho}\\langle u'\\chi'\\rangle & = \\overline{\\rho}\\sum_{\\lambda,\\nu,\\mu,\\alpha}\\left(Fu_{w}\\chi^*_{w}\\right)_{i+\\lambda,j+\\nu,k+\\mu,\\alpha}\\;, \\\\
-\\overline{\\rho}\\langle v'\\chi'\\rangle & = \\overline{\\rho}\\sum_{\\lambda,\\nu,\\mu,\\alpha}\\left(Fv_{w}\\chi^*_{w}\\right)_{i+\\lambda,j+\\nu,k+\\mu,\\alpha}\\;, \\\\
-\\overline{\\rho}\\langle w'\\chi'\\rangle & = \\overline{\\rho}\\sum_{\\lambda,\\nu,\\mu,\\alpha}\\left(Fw_{w}\\chi^*_{w}\\right)_{i+\\lambda,j+\\nu,k+\\mu,\\alpha}\\;.
+    \\overline{\\rho}\\left\\langle u' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r, \\lambda,\\mu,\\nu}\\left(F u_\\mathrm{w}\\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\overline{\\rho}\\left\\langle v' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r,  \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\overline{\\rho}\\left\\langle w' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r, \\lambda, \\mu, \\nu} \\left(F w_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
 \\end{align*}
 ```
 
@@ -69,17 +69,17 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `wadr`: Phase-space wave-action density.
 
-  - `xlc`: Location of the ray-volume in `\\widehat{x}`-direction.
+  - `xlc`: Zonal location of the ray-volume.
 
-  - `ylc`: Location of the ray-volume in `\\widehat{y}`-direction.
+  - `ylc`: Meridional location of the ray-volume.
 
-  - `zlc`: Location of the ray-volume in `\\widehat{z}`-direction.
+  - `zlc`: Vertical location of the ray-volume.
 
-  - `i`: Array index in `\\widehat{x}`-direction.
+  - `i`: Zonal grid-cell index.
 
-  - `j`: Array index in `\\widehat{y}`-direction.
+  - `j`: Meridional grid-cell index.
 
-  - `k`: Array index in `\\widehat{z}`-direction.
+  - `k`: Vertical grid-cell index.
 
 # See also:
 

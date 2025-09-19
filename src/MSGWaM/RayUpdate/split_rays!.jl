@@ -41,15 +41,15 @@ The splitting is performed sequentially, such that a ray volume with extents tha
 split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
 ```
 
-In the grid cell specified by `i`, `j` and `k`, split ray volumes with ``\\Delta x_\\alpha > \\Delta \\widehat{x}``.
+In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta x_r > \\Delta \\widehat{x}``.
 
-The number of splits is the result of ceiling division of ``\\Delta x_\\alpha`` by ``\\Delta \\widehat{x}``. Each split is carried out by adjusting the position and extent of the ray volume, copying it and changing the position of the copy appropriately.
+The number of splits is the result of ceiling division of ``\\Delta x_r`` by ``\\Delta \\widehat{x}``. Each split is carried out by adjusting the position and extent of the ray volume, copying it and changing the position of the copy appropriately.
 
 ```julia
 split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
 ```
 
-In the grid cell specified by `i`, `j` and `k`, split ray volumes with ``\\Delta y_\\alpha > \\Delta \\widehat{y}``.
+In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta y_r > \\Delta \\widehat{y}``.
 
 The splitting is analogous to that in ``\\widehat{x}``.
 
@@ -57,7 +57,7 @@ The splitting is analogous to that in ``\\widehat{x}``.
 split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
 ```
 
-In the grid cell specified by `i`, `j` and `k`, split ray volumes with ``\\Delta z_\\alpha > J_{\\min} \\Delta \\widehat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
+In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta z_r > J_{\\min} \\Delta \\widehat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
 
 The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 

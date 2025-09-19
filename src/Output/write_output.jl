@@ -42,6 +42,14 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:dthetadt`: Mass-weighted potential-temperature tendency due to unresolved gravity waves.
 
+  - `:dchidt`: Leading-order tracer impact of unresolved gravity waves.
+
+  - `:uchi`: Zonal tracer fluxes due to unresolved gravity waves.
+
+  - `:vchi`: Meridional tracer fluxes due to unresolved gravity waves.
+
+  - `:wchi`: Vertical tracer fluxes due to unresolved gravity waves.
+
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
 All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.
@@ -284,11 +292,11 @@ function write_output(
                         file[string(field)],
                         (sizex, sizey, sizez, iout),
                     )
-                    @views file[string(field)][
-                        iid, jjd, kkd, iout,
-                    ] =
+                    @views file[string(field)][iid, jjd, kkd, iout] =
                         getfield(state.tracer.tracerforcings.chiq0, field)[
-                            ii, jj, kk,
+                            ii,
+                            jj,
+                            kk,
                         ] ./ tref
                 end
                 for field in (:uchi, :vchi, :wchi)
@@ -296,11 +304,11 @@ function write_output(
                         file[string(field)],
                         (sizex, sizey, sizez, iout),
                     )
-                    @views file[string(field)][
-                        iid, jjd, kkd, iout,
-                    ] =
+                    @views file[string(field)][iid, jjd, kkd, iout] =
                         getfield(state.tracer.tracerforcings.chiq0, field)[
-                            ii, jj, kk,
+                            ii,
+                            jj,
+                            kk,
                         ] .* uref
                 end
             end
