@@ -17,8 +17,6 @@ end
 
 function compute_source_ice!(state::State, icesetup::IceOn)
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac) = state.grid
-    (; alphark, betark) = state.time
     
     (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
@@ -49,11 +47,13 @@ function compute_source_ice!(state::State, icesetup::IceOn)
 
         sice = sat_ratio(rqv, pres, psi, rhoMean, iceconstants)
 
+        
+        
         if sice >= iceconstants.S_c  
             
             sice = iceconstants.S_c #set to critical value
-
-            icesource.nsource[i, j, k] = dot_n(sice, rho_full, iceconstants)
+            #CHANGES 
+            icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants)
         else
             icesource.nsource[i, j, k] = 0.0       
         end 
@@ -63,7 +63,6 @@ function compute_source_ice!(state::State, icesetup::IceOn)
         icesource.qvsource[i, j, k] = dqv
         icesource.qsource[i, j, k] = -dqv
 
-        #CHANGES
         iceauxiliaries.iaux1[i, j, k] = sice
         iceauxiliaries.iaux2[i, j, k] = icesource.nsource[i, j, k]
         iceauxiliaries.iaux3[i, j, k] = dqv 

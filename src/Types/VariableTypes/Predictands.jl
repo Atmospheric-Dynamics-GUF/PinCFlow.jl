@@ -360,11 +360,11 @@ function Predictands(
 	testcase::MultipleWavePackets,
 )::Predictands
 	(; backgroundflow_dim, theta0_dim) = namelists.atmosphere
-	(; nbx, nby, nbz) = namelists.domain
+	(; nbx, nby, nbz, npz) = namelists.domain
 	
 	(; uref, lref, tref, kappa, ma, thetaref, fr2) = constants
-	(; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1, io, jo) = domain
-	(; bvsstrattfc, fc, rhostrattfc, pstrattfc) = atmosphere
+	(; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1, io, jo, ko, nz) = domain
+	(; bvsstrattfc, fc, rhostrattfc, thetastrattfc, pstrattfc) = atmosphere
 	(; x, y, ztfc, jac, met) = grid
 	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
 		x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
@@ -411,7 +411,10 @@ function Predictands(
 			jy in (j0-nby):(j1+nby),
 			ix in (i0-nbx):(i1+nbx)
 
-			n2 = bvsstrattfc[ix, jy, kz]
+			#changes !!!
+			#n2 = bvsstrattfc[ix, jy, kz]
+			n2 = 0.28572434787685907 
+
 			f = fc[jy]
 			f2 = f^2.0
 			omega = branchr * sqrt((n2 * kh^2.0 + f2 * mm^2.0) / (kh^2.0 + mm^2.0))
@@ -431,7 +434,7 @@ function Predictands(
 
 			deltaz = ztfc[ix, jy, kz] - z0
 
-			# Gaussian in z, Cosine in x and y.
+			# Cosine in x, y and z.
 
 			if sigmax == 0.0
 				envel = 1.0
@@ -449,16 +452,24 @@ function Predictands(
 				envel = 0.0
 			end
 
-			envel = envel * 0.5 * (1.0 + cos(pi * deltaz / sigmaz))
+			if abs(deltaz) < sigmaz
+				envel = envel * 0.5 * (1.0 + cos(pi * deltaz / sigmaz))
+			else
+				envel = 0.0
+			end
 
 			# fix for wavepacket structure:
 			# in raytracer cos-wavepacket in waveaction density A
 			# here cos-wavepacket in buoyancy b with A \sim b^2
 			envel = sqrt(envel)
 
-			theta0 = theta0_dim / thetaref
+			 # changes
+			#envel = 1.0
 
+			theta0 = theta0_dim / thetaref
+            
 			bhat = a0[iwm] * n2 / mm * envel
+
 			uhat =
 				1im / (mm * n2) * (omega2 - n2) / (omega2 - f2) *
 				(kk * omega + 1im * ll * f) *
@@ -468,6 +479,7 @@ function Predictands(
 				(ll * omega - 1im * kk * f) *
 				bhat
 			what = 1im * omega / n2 * bhat
+
 			piphat = 1im * kappa * ma^2.0 * (omega2 - n2) / n2 / mm / theta0 * bhat
 
 			phi = kk * x[io+ix] + ll * y[jo+jy] + mm * ztfc[ix, jy, kz]
@@ -476,7 +488,7 @@ function Predictands(
 			uprime = real(uhat * exp(1im * phi))
 			vprime = real(vhat * exp(1im * phi))
 			wprime = real(what * exp(1im * phi))
-			pipprime = real(piphat * exp(1im * phi))
+			pipprime = real(piphat * exp(1im * phi))	
 
 			u[ix, jy, kz] = u[ix, jy, kz] + uprime
 			v[ix, jy, kz] = v[ix, jy, kz] + vprime
@@ -525,8 +537,16 @@ function Predictands(
 			) / (jac[ix, jy, kz] + jac[ix, jy, kz+1])
 	end
 
-	w[:, :, k0] .= 0.0
-	w[:, :, k1] .= 0.0
+#    println(ko, "***", nz*(npz-1))
+#	println(" **** ")
+    
+    # solid wall BC	
+	if ko == 0
+	 w[:, :, k0] .= 0.0
+	end
+    if ko == nz*(npz-1)
+	  w[:, :, k1] .= 0.0
+	end
 
 	rhop .= rho
 

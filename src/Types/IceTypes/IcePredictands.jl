@@ -144,7 +144,7 @@ function IcePredictands(
 	# vertical width ISSR (standard deviation of gaussian dist.)
 	sig_issr = 4.e3 # [m]
 	# max value S in ISSR
-	S_issr = iceconstants.S_c # CHANGES 1.49
+	S_issr = 1.45 #iceconstants.S_c 
 
 	# **********************
 
@@ -194,7 +194,7 @@ function IcePredictands(
 		#  !S_i = q_v(0)* p/p_si
 
 		if ((ztfc[i, j, k] >= zMin_issr) && (ztfc[i, j, k] <= zMax_issr))
-			S0 = S_issr * exp(- (ztfc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr ^ 2)
+			S0 = S_issr * exp(- (ztfc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2)
 		else
 			S0 = S0_ini
 		end
