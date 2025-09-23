@@ -21,22 +21,22 @@ Correct the zonal wind to account for the pressure differences obtained from the
 The correction is given by
 
 ```math
-u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} - \\mathcal{C}_{i + 1 / 2}^u
+u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} - \\mathcal{C}_{i + 1 / 2}^{\\rho u}
 ```
 
 in Boussinesq/pseudo-incompressible mode and
 
 ```math
-U_{i + 1 / 2} \\rightarrow U_{i + 1 / 2} - \\left(J P\\right)_{i + 1 / 2} \\mathcal{C}_{i + 1 / 2}^u
+U_{i + 1 / 2} \\rightarrow U_{i + 1 / 2} - \\left(J P\\right)_{i + 1 / 2} \\mathcal{C}_{i + 1 / 2}^{\\rho u}
 ```
 
 in compressible mode, with
 
 ```math
-\\mathcal{C}_{i + 1 / 2}^u = \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2}^{uv} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{D}_{i + 1 / 2}^u.
+\\mathcal{C}_{i + 1 / 2}^{\\rho u} = \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{D}_{i + 1 / 2}^{\\rho u}.
 ```
 
-Therein, ``U_{i + 1 / 2} = \\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\Delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^u`` is computed with `compute_pressure_gradient`.
+Therein, ``U_{i + 1 / 2} = \\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\Delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^{\\rho u}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -52,22 +52,22 @@ Correct the meridional wind to account for the pressure differences obtained fro
 The correction is given by
 
 ```math
-v_{j + 1 / 2} \\rightarrow v_{j + 1 / 2} - \\mathcal{C}_{j + 1 / 2}^v
+v_{j + 1 / 2} \\rightarrow v_{j + 1 / 2} - \\mathcal{C}_{j + 1 / 2}^{\\rho v}
 ```
 
 in Boussinesq/pseudo-incompressible mode and
 
 ```math
-V_{j + 1 / 2} \\rightarrow V_{j + 1 / 2} - \\left(J P\\right)_{j + 1 / 2} \\mathcal{C}_{j + 1 / 2}^v
+V_{j + 1 / 2} \\rightarrow V_{j + 1 / 2} - \\left(J P\\right)_{j + 1 / 2} \\mathcal{C}_{j + 1 / 2}^{\\rho v}
 ```
 
 in compressible mode, with
 
 ```math
-\\mathcal{C}_{j + 1 / 2}^v = \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2}^{uv} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{D}_{j + 1 / 2}^v,
+\\mathcal{C}_{j + 1 / 2}^{\\rho v} = \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{D}_{j + 1 / 2}^{\\rho v},
 ```
 
-where ``V_{j + 1 / 2} = \\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^v`` is computed with `compute_pressure_gradient`.
+where ``V_{j + 1 / 2} = \\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^{\\rho v}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -84,8 +84,8 @@ The correction is given by
 
 ```math
 \\begin{align*}
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\widehat{w}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2}^{\\widehat{w}} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\Delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}} + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^u\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^v\\right)_{k + 1 / 2}\\right]\\right\\},
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\widehat{w}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\Delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^{\\rho u}\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^{\\rho v}\\right)_{k + 1 / 2}\\right]\\right\\},
 \\end{align*}
 ```
 
@@ -93,13 +93,13 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\widehat{W}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2}^{\\widehat{w}} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\Delta t c_p \\left(J P\\right)_{k + 1 / 2} \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}} \\vphantom{\\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}}}\\right.\\\\
-    & \\qquad \\quad + \\left.\\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^u\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^v\\right)_{k + 1 / 2}\\right]\\right\\},
+    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\widehat{W}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\Delta t c_p \\left(J P\\right)_{k + 1 / 2} \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}} \\vphantom{\\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}}}\\right.\\\\
+    & \\qquad \\quad + \\left.\\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^{\\rho u}\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^{\\rho v}\\right)_{k + 1 / 2}\\right]\\right\\},
 \\end{align*}
 ```
 
-in compressible mode, where ``\\widehat{W}_{k + 1 / 2} = \\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` and ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` is computed with `compute_pressure_gradient`.
+in compressible mode, where ``\\widehat{W}_{k + 1 / 2} = \\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` and ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -116,9 +116,9 @@ The correction is given by
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left[- \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^u + G^{2 3} \\mathcal{C}^v\\right)\\right],
+    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^{\\rho u} + G^{2 3} \\mathcal{C}^{\\rho v}\\right)\\right],
 \\end{align*}
 ```
 
@@ -126,13 +126,13 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left[- \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^u + G^{2 3} \\mathcal{C}^v\\right)\\right],
+    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^{\\rho u} + G^{2 3} \\mathcal{C}^{\\rho v}\\right)\\right],
 \\end{align*}
 ```
 
-in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\widehat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
+in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\rho \\widehat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
 
 ```julia
 correct!(state::State, variable::PiP)
