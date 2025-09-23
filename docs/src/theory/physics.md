@@ -168,40 +168,30 @@ $$\begin{align*}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \begin{pmatrix}
-        M_{uu}\\
-        M_{uv}\\
-        M_{uw}\\
-    \end{pmatrix} + E_u,\\
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle u' \boldsymbol{u}' \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{\overline{\rho}} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \begin{pmatrix}
-        M_{uv}\\
-        M_{vv}\\
-        M_{vw}\\
-    \end{pmatrix} + E_v,\\
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle v' \boldsymbol{u}' \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
     \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \rho_\mathrm{b} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
-    \end{pmatrix} \cdot \begin{pmatrix}
-        T_u\\
-        T_v\\
-    \end{pmatrix},
+        0
+    \end{pmatrix} \cdot \left\langle \theta' \boldsymbol{u}' \right\rangle,
 \end{align*}$$
 
 where $\rho_\mathrm{b}$, $\widehat{\boldsymbol{u}}_\mathrm{b} = \left(u_\mathrm{b}, v_\mathrm{b}, \widehat{w}_\mathrm{b}\right)^\mathrm{T}$ and $P_\mathrm{b}$ are the resolved density, transformed wind and mass-weighted potential temperature, respectively, and
 
 $$\begin{align*}
-    M_{uu} & = \overline{\rho} \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    M_{uv} & = \overline{\rho} \int l \widehat{c}_{\mathrm{g} x} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    M_{uw} & = \overline{\rho} \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    M_{vv} & = \overline{\rho} \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    M_{vw} & = \overline{\rho} \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    T_u & = \frac{f}{g \overline{\theta}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    T_v & = - \frac{f}{g \overline{\theta}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},
+    \overline{\rho} \left\langle u' u' \right\rangle & = \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle u' v' \right\rangle & = \int l \widehat{c}_{\mathrm{g} x} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle u' w' \right\rangle & = \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle v' v' \right\rangle & = \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle v' w' \right\rangle & = \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \left\langle \theta' u' \right\rangle & = \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \left\langle \theta' v' \right\rangle & = - \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},
 \end{align*}$$
 
 with $\widehat{\omega} = \omega - \boldsymbol{k} \cdot \boldsymbol{u}_\mathrm{b}$, $\widehat{\boldsymbol{c}}_\mathrm{g} = \left(\widehat{c}_{\mathrm{g} x}, \widehat{c}_{\mathrm{g} y}, \widehat{c}_{\mathrm{g} z}\right)^\mathrm{T} = \boldsymbol{\nabla}_{\boldsymbol{k}} \widehat{\omega}$ and $\mathrm{d} V_{\boldsymbol{k}} = \mathrm{d} k \mathrm{d} l \mathrm{d} m$ being the intrinsic frequency, intrinsic group velocity and spectral volume element, respectively (see [Achatz et al., 2017](https://doi.org/10.1002/qj.2926); [Achatz et al., 2023](https://doi.org/10.1063/5.0165180); [Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
@@ -246,8 +236,8 @@ $$\dot{\mathcal{N}} = \left(\frac{\partial}{\partial t} + \frac{c_{\mathrm{g} z}
 and integrated along rays defined by $\left(\dot{z}, \dot{m}\right)^\mathrm{T}$. Finally, the impact on the resolved flow becomes
 
 $$\begin{align*}
-    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial M_{uw}}{\partial \widehat{z}} + E_u,\\
-    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial M_{vw}}{\partial \widehat{z}} + E_v,\\
+    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle u' w' \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
+    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle v' w' \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
     \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = 0
 \end{align*}$$
@@ -263,7 +253,7 @@ $$J^{- 1} \frac{\partial}{\partial \widehat{z}} \left(c_{\mathrm{g} z, \alpha} \
 where $\mathcal{N} = \sum_\alpha \mathcal{A}_\alpha \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right)$ and $\mathcal{S}_s = \sum_\alpha \mathcal{Q}_{s, \alpha} \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right)$. Similarly, the eikonal equations become
 
 $$\begin{align*}
-    \frac{c_{\mathrm{g} z, \alpha}}{J} \frac{\partial \omega}{\partial \widehat{z}} & = 0,\\
+    \frac{c_{\mathrm{g} z, \alpha}}{J} \frac{\partial \omega_\alpha}{\partial \widehat{z}} & = 0,\\
     \frac{c_{\mathrm{g} z, \alpha}}{J} \frac{\partial m_\alpha}{\partial \widehat{z}} & = J^{- 1} \frac{\partial \Omega}{\partial \widehat{z}}.
 \end{align*}$$
 
