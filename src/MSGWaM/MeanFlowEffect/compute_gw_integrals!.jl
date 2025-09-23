@@ -229,16 +229,26 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             wadr * lr * cgirz / (1 - (fc / omir)^2)
 
                         if fc != 0
-                            integrals.etx[iray, jray, kray] +=
-                                wadr * fc^2 * n2r * kr * mr / (
+                            integrals.vtheta[iray, jray, kray] -=
+                                wadr *
+                                fc *
+                                n2r *
+                                kr *
+                                mr *
+                                thetastrattfc[iray, jray, kray] / (
                                     rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
                                 )
 
-                            integrals.ety[iray, jray, kray] +=
-                                wadr * fc^2 * n2r * lr * mr / (
+                            integrals.utheta[iray, jray, kray] +=
+                                wadr *
+                                fc *
+                                n2r *
+                                lr *
+                                mr *
+                                thetastrattfc[iray, jray, kray] / (
                                     rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
@@ -267,15 +277,6 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                     end
                 end
             end
-        end
-    end
-
-    @ivy if fc != 0
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            integrals.utheta[i, j, k] =
-                thetastrattfc[i, j, k] / fc * integrals.ety[i, j, k]
-            integrals.vtheta[i, j, k] =
-                -thetastrattfc[i, j, k] / fc * integrals.etx[i, j, k]
         end
     end
 end
@@ -378,16 +379,26 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                             wadr * lr * cgirz / (1 - (fc / omir)^2)
 
                         if fc != 0
-                            integrals.etx[iray, jray, kray] +=
-                                wadr * fc^2 * n2r * kr * mr / (
+                            integrals.vtheta[iray, jray, kray] -=
+                                wadr *
+                                fc *
+                                n2r *
+                                kr *
+                                mr *
+                                thetastrattfc[iray, jray, kray] / (
                                     rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
                                 )
 
-                            integrals.ety[iray, jray, kray] +=
-                                wadr * fc^2 * n2r * lr * mr / (
+                            integrals.utheta[iray, jray, kray] +=
+                                wadr *
+                                fc *
+                                n2r *
+                                lr *
+                                mr *
+                                thetastrattfc[iray, jray, kray] / (
                                     rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
@@ -416,15 +427,6 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                     end
                 end
             end
-        end
-    end
-
-    @ivy if fc != 0
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            integrals.utheta[i, j, k] =
-                thetastrattfc[i, j, k] / fc * integrals.ety[i, j, k]
-            integrals.vtheta[i, j, k] =
-                -thetastrattfc[i, j, k] / fc * integrals.etx[i, j, k]
         end
     end
 end

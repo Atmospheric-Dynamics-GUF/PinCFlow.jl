@@ -36,7 +36,7 @@ function compute_gw_tendencies!(state::State)
     (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, ztfc, jac, met) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhostrattfc, thetastrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (; integrals, tendencies) = state.wkb
 
@@ -82,7 +82,8 @@ function compute_gw_tendencies!(state::State)
                 )
         end
 
-        tendencies.dudt[i, j, k] += rhotot * integrals.etx[i, j, k]
+        tendencies.dudt[i, j, k] -=
+            rhotot * fc / thetastrattfc[i, j, k] * integrals.vtheta[i, j, k]
 
         # Compute the drag on the meridional wind.
 
@@ -112,7 +113,8 @@ function compute_gw_tendencies!(state::State)
                 )
         end
 
-        tendencies.dvdt[i, j, k] += rhotot * integrals.ety[i, j, k]
+        tendencies.dvdt[i, j, k] +=
+            rhotot * fc / thetastrattfc[i, j, k] * integrals.utheta[i, j, k]
 
         # Compute the heating.
 
