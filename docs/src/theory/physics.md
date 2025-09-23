@@ -120,6 +120,14 @@ $$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u
 
 Note that in addition to the new volume-force term, $\overline{\rho}$ has been replaced with $P / \overline{\theta}$, which is due to the density fluctuations being defined as $\rho' = \rho - P / \overline{\theta}$ ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
 
+## Tracer transport
+
+PinCFlow transports a passive tracer $\chi$ governed by
+
+$$\frac{\partial \rho \chi}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho \chi u}{\partial \widehat{x}} + \frac{\partial J \rho \chi v}{\partial \widehat{y}} + \frac{\partial J \rho \chi \widehat{w}}{\partial \widehat{z}}\right) - F^{\rho \chi} + \alpha_\mathrm{R} \left[\rho \chi - \left(\rho \chi\right)^{\left(0\right)}\right] = 0,$$
+
+where $F^{\rho \chi}$ represents another volume force, e.g. a tracer-flux divergence due to unresolved gravity waves, and $\left(\rho \chi\right)^{\left(0\right)}$ is the initial mass-weighted tracer.
+
 ## MSGWaM
 
 ### 3D transient theory
@@ -289,3 +297,25 @@ The vertical wavenumber at the source is
 $$m_\alpha = - \mathrm{sgn} \left(\widehat{\omega}_\alpha\right) \sqrt{\frac{\left(k_\alpha^2 + l_\alpha^2\right) \left(N^2 - \widehat{\omega}_\alpha^2\right)}{\widehat{\omega}_\alpha^2 - f^2}}$$
 
 (see [Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
+
+### Tracer fluxes
+
+The leading-order tracer fluxes due to unresolved gravity waves are given by
+
+$$\begin{align*}
+    \overline{\rho} \left\langle \chi' \boldsymbol{u}' \right\rangle & = f \int \frac{m}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \boldsymbol{k} \times \begin{pmatrix}
+        \partial_{\widehat{x}} \chi_\mathrm{b} + G^{13} \partial_{\widehat{z}} \chi_\mathrm{b}\\
+        \partial_{\widehat{y}} \chi_\mathrm{b} + G^{23} \partial_{\widehat{z}} \chi_\mathrm{b}\\
+        J^{- 1} \partial_{\widehat{z}} \chi_\mathrm{b}
+    \end{pmatrix} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}}
+\end{align*}$$
+
+and the corresponding impact on the large-scale tracer is
+
+$$\begin{align*}
+    \left(\frac{\partial \rho_\mathrm{b} \chi_\mathrm{b}}{\partial t}\right)_\mathrm{w} = - \frac{\rho_\mathrm{b}}{\overline{\rho}} \begin{pmatrix}
+        \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
+        \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
+        J^{- 1} \partial_{\widehat{z}}
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle \chi' \boldsymbol{u}' \right\rangle\right).
+\end{align*}$$

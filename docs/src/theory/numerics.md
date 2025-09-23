@@ -258,6 +258,16 @@ $$\begin{align*}
 
  1. The right-hand sides are integrated over over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
+### Tracer transport
+
+Since its equation does not have a right-hand side, the tracer is only updated in the second and fifth step of the time scheme, analogous to the update of the mass-weighted potential temperature in compressible mode. At each RK-stage of the second step, one has
+
+$$\begin{align*}
+    q^{\rho \chi, m + 1} & = - \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(\rho \chi\right)^m u^n}{\partial \widehat{x}} + \frac{\partial J \left(\rho \chi\right)^m v^n}{\partial \widehat{y}} + \frac{\partial J \left(\rho \chi\right)^m \widehat{w}^n}{\partial \widehat{z}}\right] - F^{\rho \chi, n + 1}\right\} + \left(\alpha_\mathrm{RK} q^{\rho \chi}\right)^m,\\
+    \left(\rho \chi\right)^{m + 1} & = \left(\rho \chi\right)^m + \beta_\mathrm{RK}^m q^{\rho \chi, m + 1},\\
+    \left(\rho \chi\right)^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left[\left(\rho \chi\right)^{m + 1} + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2} \left(\rho \chi\right)^{\left(0\right)}\right].
+\end{align*}$$
+
 ### MSGWaM
 
 At the beginning of each time step, the saturation scheme is applied via integration of the respective term in the phase-space wave-action density equation with an explicit Euler step. i.e.
