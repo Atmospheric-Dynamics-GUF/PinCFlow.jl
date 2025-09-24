@@ -105,12 +105,9 @@ function conductive_heating(
 
     @ivy rhotot = (rho[i, j, k] + rhostrattfc[i, j, k]) / jac[i, j, k]
 
-    @ivy heating =
-        rhotot * (
-            (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
-            (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +
-            (phitheta[i, j, k, 3] - phitheta[i, j, k - 1, 3]) / dz
-        )
-
-    return heating
+    @ivy return -rhotot * (
+        (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
+        (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +
+        (phitheta[i, j, k, 3] - phitheta[i, j, k - 1, 3]) / dz
+    )
 end
