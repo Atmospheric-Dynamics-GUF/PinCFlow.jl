@@ -51,6 +51,6 @@ include("explicit_integration_rhs_ice!.jl")
 
 export integrate
 export psat_ice, sat_ratio, dot_qv, dot_n 
-export compute_source_ice!
+export compute_source_ice!, compute_msgwam_ice!
 
 end

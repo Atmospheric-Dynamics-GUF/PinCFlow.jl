@@ -31,5 +31,7 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
 
     compute_mean_flow_effect!(state)
 
+    compute_msgwam_ice!(state)
+
     return
 end

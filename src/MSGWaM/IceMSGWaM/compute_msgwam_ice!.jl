@@ -1,3 +1,21 @@
+function compute_msgwam_ice! end
+
+function compute_msgwam_ice!(state::State)
+    icesetup = state.namelists.ice.icesetup
+	compute_msgwam_ice!(state, icesetup)
+	return
+end
+
+function compute_msgwam_ice!(state::State, icesetup::NoIce)
+	return
+end
+
+function compute_msgwam_ice!(state::State, icesetup::IceOn)
+	(; wkb_mode) = state.namelists.wkb
+	compute_msgwam_ice!(state, wkb_mode)
+	return
+end
+
 function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 	(; domain, grid) = state
 	(; sizex, sizey) = state.namelists.domain
@@ -8,12 +26,16 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 	(; dx, dy, dz, x, y, ztildetfc, jac) = grid
 	(; rhostrattfc, thetastrattfc) = state.atmosphere
 	(; nray, rays, integrals) = state.wkb
-
-	# Set Coriolis parameter.
+    (; sgs) = state.ice
+	(; nscx, nscy, nscz, compute_cloudcover) = state.namelists.ice
+	(; dxsc, dysc, dzsc) = state.ice.subgrid
+	(; kappa, ma2) = state.constants
+	
+ 	# Set Coriolis parameter.
 	fc = coriolis_frequency * tref
 
-	for field in fieldnames(GWIntegrals)
-		getfield(integrals, field) .= 0.0
+	for field in fieldnames(SgsGW)
+		getfield(sgs, field) .= 0.0
 	end
 
 	for kzrv in (k0-1):(k1+1),

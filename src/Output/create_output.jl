@@ -318,6 +318,21 @@ function create_output(state::State)
                     )
                 end
             end
+
+            if !(typeof(state.namelists.ice.icesetup) <: NoIce && compute_cloudcover == 2 )
+                for field in fieldnames(SgsGW)
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (sizex2, sizey2, sizez2, 0),
+                            (sizex2, sizey2, sizez2, -1),
+                            );
+                        chunk = (cx2, cy2, cz2, ct),
+                    )
+                end
+            end
         end
 
         # Return.

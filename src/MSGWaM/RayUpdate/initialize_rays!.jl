@@ -152,7 +152,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             wnl_ini,
             wnm_ini,
             wad_ini,
-        )
+        )        
     end
 
     dk_ini_nd = 0.0

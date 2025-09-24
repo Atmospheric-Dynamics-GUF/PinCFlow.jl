@@ -185,9 +185,9 @@ function split_rays!(
             rays.x[nrlc, ix, jy, kz] = xr + 0.25 * dxr
 
             if icesetup isa AbstractIce
-                  dphi = rays.dphi[iRay, ix, jy, kz]
-                  deltaPhi = 0.25 * dxr * rays.k[iRay, ix, jy, kz]
-                  rays.dphi[iRay, ix, jy, kz] = dphi - deltaPhi
+                  dphi = rays.dphi[iray, ix, jy, kz]
+                  deltaPhi = 0.25 * dxr * rays.k[iray, ix, jy, kz]
+                  rays.dphi[iray, ix, jy, kz] = dphi - deltaPhi
                   rays.dphi[nrlc, ix, jy, kz] = dphi + deltaPhi
             end
         end
@@ -236,9 +236,9 @@ function split_rays!(
             rays.y[nrlc, ix, jy, kz] = yr + 0.25 * dyr
 
             if icesetup isa AbstractIce
-                  dphi = rays.dphi[iRay, ix, jy, kz]
-                  deltaPhi = 0.25 * dyr * rays.l[iRay, ix, jy, kz]
-                  rays.dphi[iRay, ix, jy, kz] = dphi - deltaPhi
+                  dphi = rays.dphi[iray, ix, jy, kz]
+                  deltaPhi = 0.25 * dyr * rays.l[iray, ix, jy, kz]
+                  rays.dphi[iray, ix, jy, kz] = dphi - deltaPhi
                   rays.dphi[nrlc, ix, jy, kz] = dphi + deltaPhi
             end
         end
@@ -297,9 +297,9 @@ function split_rays!(
             rays.dzray[iray, ix, jy, kz] = dzr / factor
 
             if icesetup isa AbstractIce
-                dphi = rays.dphi[iRay, ix, jy, kz] - rays.m[iRay, ix, jy, kz] * zr
-                deltaPhi = rays.z[iRay, ix, jy, kz] * rays.m[iRay, ix, jy, kz]
-                rays.dphi[iRay, ix, jy, kz] = dphi + deltaPhi
+                dphi = rays.dphi[iray, ix, jy, kz] - rays.m[iray, ix, jy, kz] * zr
+                deltaPhi = rays.z[iray, ix, jy, kz] * rays.m[iray, ix, jy, kz]
+                rays.dphi[iray, ix, jy, kz] = dphi + deltaPhi
             end
 
             for jray in (nrlc + 1):(nrlc + factor - 1)

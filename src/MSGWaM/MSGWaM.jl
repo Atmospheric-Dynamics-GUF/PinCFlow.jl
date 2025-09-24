@@ -33,10 +33,12 @@ include("RaySources/RaySources.jl")
 include("BoundaryRays/BoundaryRays.jl")
 include("RayUpdate/RayUpdate.jl")
 include("MeanFlowEffect/MeanFlowEffect.jl")
+include("IceMSGWaM/IceMSGWaM.jl")
 
 using .BoundaryRays
 using .RayUpdate
 using .MeanFlowEffect
+using .IceMSGWaM
 
 export apply_saturation_scheme!,
     compute_mean_flow_effect!,
@@ -45,6 +47,7 @@ export apply_saturation_scheme!,
     propagate_rays!,
     set_boundary_rays!,
     shift_rays!,
-    split_rays!
+    split_rays!,
+    compute_msgwam_ice!
 
 end

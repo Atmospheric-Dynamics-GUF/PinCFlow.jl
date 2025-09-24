@@ -100,8 +100,18 @@ function activate_multiplewavepackets_source!(
         branchr = branch[iwm]
         amp_wkb = a0[iwm]
 
+        if lambdax_dim[iwm] == 0.0
+            wnrk_init = 0.0
+		else
         wnrk_init = 2.0 * pi / lambdax_dim[iwm] * lref
-        wnrl_init = 2.0 * pi / lambday_dim[iwm] * lref
+        end
+
+        if lambday_dim[iwm] == 0.0
+            wnrl_init = 0.0
+        else
+            wnrl_init = 2.0 * pi / lambday_dim[iwm] * lref
+        end
+
         wnrm_init = 2.0 * pi / lambdaz_dim[iwm] * lref
 
         wnrh_init = sqrt(wnrk_init ^ 2.0 + wnrl_init ^ 2.0)
@@ -138,13 +148,13 @@ function activate_multiplewavepackets_source!(
 
             if sigwpx > 0.0 && abs(x[ix + io] - xr0) < sigwpx
                 fld_amp *= 0.5 * (1.0 + cos(pi * (x[ix + io] - xr0) / sigwpx))
-            else
+            elseif sigwpx > 0.0
                 fld_amp = 0.0
             end
 
             if sigwpy > 0.0 &&  abs(y[jy + jo] - yr0) < sigwpy
                 fld_amp *= 0.5 * (1.0 + cos(pi * (y[jy + jo] - yr0) / sigwpy))
-            else
+            elseif sigwpy > 0.0
                 fld_amp = 0.0
             end
 
