@@ -611,7 +611,7 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps()
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
         return
     end
 
@@ -916,7 +916,7 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps()
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
         return
     end
 
@@ -1240,7 +1240,7 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps()
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
         return
     end
 
