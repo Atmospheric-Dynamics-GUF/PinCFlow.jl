@@ -42,11 +42,11 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
      1. Wind update:
 
         $$\begin{align*}
-            q^{\rho u, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho u, m, n} + \mathcal{V}^{\rho u, m} + f \left(\rho v\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho u}\right)^m,\\
+            q^{\rho u, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho u, m, n} + \mathcal{V}^{\rho u, m} + \mathcal{X}^{\rho u, m} + f \left(\rho v\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho u}\right)^m,\\
             u^{m + 1} & = \left(\rho^{- 1}\right)^{m + 1} \left[\left(\rho u\right)^m + \beta_\mathrm{RK}^m q^{\rho u, m + 1}\right],\\
-            q^{\rho v, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho v, m, n} + \mathcal{V}^{\rho v, m} - f \left(\rho u\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho v}\right)^m,\\
+            q^{\rho v, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho v, m, n} + \mathcal{V}^{\rho v, m} + \mathcal{X}^{\rho v, m} - f \left(\rho u\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho v}\right)^m,\\
             v^{m + 1} & = \left(\rho^{- 1}\right)^{m + 1} \left[\left(\rho v\right)^m + \beta_\mathrm{RK}^m q^{\rho v, m + 1}\right],\\
-            q^{\rho \widehat{w}, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho \widehat{w}, m, n} + \mathcal{V}^{\rho \widehat{w}, m} + G^{13} f \left(\rho v\right)^m - G^{23} f \left(\rho u\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho \widehat{w}}\right)^m\\
+            q^{\rho \widehat{w}, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho \widehat{w}, m, n} + \mathcal{V}^{\rho \widehat{w}, m} + \mathcal{X}^{\rho \widehat{w}, m} + G^{13} f \left(\rho v\right)^m - G^{23} f \left(\rho u\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho \widehat{w}}\right)^m\\
             \widehat{w}^{m + 1} & = \left(\rho^{- 1}\right)^{m + 1} \left[\left(\rho \widehat{w}\right)^m + \beta_\mathrm{RK}^m q^{\rho \widehat{w}, m + 1}\right],\\
             \widehat{\boldsymbol{u}}^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\widehat{\boldsymbol{u}}^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \widehat{\boldsymbol{u}}_\mathrm{R}^{m + 1}\right)
         \end{align*}$$
@@ -179,11 +179,11 @@ $$\begin{align*}
      1. Wind update:
 
         $$\begin{align*}
-            q^{\rho u, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho u, m, n} + \mathcal{V}^{\rho u, m} + f \left(\rho v\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho u}\right)^m,\\
+            q^{\rho u, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho u, m, n} + \mathcal{V}^{\rho u, m} + \mathcal{X}^{\rho u, m} + f \left(\rho v\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho u}\right)^m,\\
             u^{m + 1} & = \left(\rho^{- 1}\right)^{m + 1} \left[\left(\rho u\right)^m + \beta_\mathrm{RK}^m q^{\rho u, m + 1}\right],\\
-            q^{\rho v, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho v, m, n} + \mathcal{V}^{\rho v, m} - f \left(\rho u\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho v}\right)^m,\\
+            q^{\rho v, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho v, m, n} + \mathcal{V}^{\rho v, m} + \mathcal{X}^{\rho v, m} - f \left(\rho u\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho v}\right)^m,\\
             v^{m + 1} & = \left(\rho^{- 1}\right)^{m + 1} \left[\left(\rho v\right)^m + \beta_\mathrm{RK}^m q^{\rho v, m + 1}\right],\\
-            q^{\rho \widehat{w}, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho \widehat{w}, m, n} + \mathcal{V}^{\rho \widehat{w}, m} + G^{13} f \left(\rho v\right)^m - G^{23} f \left(\rho u\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho \widehat{w}}\right)^m,\\
+            q^{\rho \widehat{w}, m + 1} & = \frac{\Delta t}{2} \left[- \mathcal{A}^{\rho \widehat{w}, m, n} + \mathcal{V}^{\rho \widehat{w}, m} + \mathcal{X}^{\rho \widehat{w}, m} + G^{13} f \left(\rho v\right)^m - G^{23} f \left(\rho u\right)^m\right] + \left(\alpha_\mathrm{RK} q^{\rho \widehat{w}}\right)^m,\\
             \widehat{w}^{m + 1} & = \left(\rho^{- 1}\right)^{m + 1} \left[\left(\rho \widehat{w}\right)^m + \beta_\mathrm{RK}^m q^{\rho \widehat{w}, m + 1}\right],\\
             \widehat{\boldsymbol{u}}^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\widehat{\boldsymbol{u}}^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \widehat{\boldsymbol{u}}_\mathrm{R}^{m + 1}\right)
         \end{align*}$$

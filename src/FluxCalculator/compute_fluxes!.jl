@@ -105,9 +105,19 @@ and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{i + 1 / 2} u_{i 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\left(J \\widehat{\\Pi}^{11}\\right)_{i + 1},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\left(J \\widehat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\eta_{i + 1} \\left(J \\widehat{\\Pi}^{11}\\right)_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\widehat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
+\\end{align*}
+```
+
+Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted by the Jacobian) are added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mu_{i + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{x}}\\right]_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{y}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{z}}\\right]_{i + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -141,9 +151,19 @@ and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{j + 1 / 2} v_{j 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\left(J \\widehat{\\Pi}^{22}\\right)_{j + 1},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\left(J \\widehat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\eta_{j + 1} \\left(J \\widehat{\\Pi}^{22}\\right)_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\widehat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
+\\end{align*}
+```
+
+Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted by the Jacobian) are added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{x}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mu_{j + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{y}}\\right]_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{z}}\\right]_{j + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -177,9 +197,19 @@ and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{k + 1 / 2} w_{k 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}.
+    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\eta_{k + 1} \\left[\\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}\\right].
+\\end{align*}
+```
+
+Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted by the Jacobian) are added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{x}}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{y}}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mu_{k + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{z}}\\right]_{k + 1}.
 \\end{align*}
 ```
 
@@ -211,17 +241,17 @@ The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\theta, \\widehat{x}}_{i + 1 / 2} & = - \\mu_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    \\mathcal{F}^{\\theta, \\widehat{x}}_{i + 1 / 2} & = - \\lambda_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
     & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{13}\\right)_{i + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k - 1}\\right]\\right\\},\\\\
-    \\mathcal{F}^{\\theta, \\widehat{y}}_{j + 1 / 2} & = - \\mu_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    \\mathcal{F}^{\\theta, \\widehat{y}}_{j + 1 / 2} & = - \\lambda_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
     & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{23}\\right)_{j + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k - 1}\\right]\\right\\},\\\\
-    \\mathcal{F}^{\\theta, \\widehat{z}}_{k + 1 / 2} & = - \\mu_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
+    \\mathcal{F}^{\\theta, \\widehat{z}}_{k + 1 / 2} & = - \\lambda_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
     & \\qquad \\qquad \\qquad + \\frac{\\left(J G^{23}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{j - 1, k + 1 / 2}\\right]\\\\
     & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{33}\\right)_{k + 1 / 2}}{\\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{k + 1} - \\frac{P}{\\rho}\\right]\\right\\},
 \\end{align*}
 ```
 
-where ``\\mu`` is the thermal conductivity (computed from `state.namelists.atmosphere.mu_conduct_dim`).
+where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.atmosphere.thermal_conductivity`).
 
 # Arguments
 
@@ -495,7 +525,7 @@ function compute_fluxes!(
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; predictands) = state.variables
-    (; mu_mom_diff_dim) = state.namelists.atmosphere
+    (; kinematic_diffusivity) = state.namelists.atmosphere
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -683,11 +713,11 @@ function compute_fluxes!(
     #             Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_mom_diff_dim == 0.0
+    if kinematic_diffusivity == 0.0
         return
     end
 
-    mu_mom_diff = mu_mom_diff_dim / uref / lref
+    mu_mom_diff = kinematic_diffusivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -800,7 +830,7 @@ function compute_fluxes!(
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; predictands) = state.variables
-    (; mu_mom_diff_dim) = state.namelists.atmosphere
+    (; kinematic_diffusivity) = state.namelists.atmosphere
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -988,11 +1018,11 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_mom_diff_dim == 0.0
+    if kinematic_diffusivity == 0.0
         return
     end
 
-    mu_mom_diff = mu_mom_diff_dim / uref / lref
+    mu_mom_diff = kinematic_diffusivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1105,7 +1135,7 @@ function compute_fluxes!(
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; predictands) = state.variables
-    (; mu_mom_diff_dim) = state.namelists.atmosphere
+    (; kinematic_diffusivity) = state.namelists.atmosphere
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1297,11 +1327,11 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_mom_diff_dim == 0.0
+    if kinematic_diffusivity == 0.0
         return
     end
 
-    mu_mom_diff = mu_mom_diff_dim / uref / lref
+    mu_mom_diff = kinematic_diffusivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1487,15 +1517,15 @@ function compute_fluxes!(
     (; jac, dx, dy, dz, met) = state.grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; phitheta) = state.variables.fluxes
-    (; mu_conduct_dim) = state.namelists.atmosphere
+    (; thermal_conductivity) = state.namelists.atmosphere
     (; uref, lref) = state.constants
     (; rho) = predictands
 
-    if mu_conduct_dim == 0.0
+    if thermal_conductivity == 0.0
         return
     end
 
-    mu_conduct = mu_conduct_dim / uref / lref
+    mu_conduct = thermal_conductivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
