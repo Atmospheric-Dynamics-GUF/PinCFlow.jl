@@ -18,7 +18,7 @@ jobs:
     # We could also include the Julia version as in
     # name: ${{ matrix.os }} - Julia ${{ matrix.version }} - ${{ matrix.arch }}
     # to be more specific. However, that requires us updating the required CI tests whenever we update Julia.
-    name: ${{ matrix.os }} - ${{ matrix.arch }}
+    name: ${{ matrix.os }} - Julia ${{ matrix.version }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
