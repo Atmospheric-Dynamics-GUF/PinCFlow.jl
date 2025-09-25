@@ -9,7 +9,10 @@ provided substantial additions or modifications. Together, these two groups form
 
 ## Principal Developers
 
-- TODO: Decide who should be listed here
+- Ulrich Achatz, Goethe University Frankfurt
+- Stamen Dolaptchiev, Goethe University Frankfurt
+- Felix Jochum, Goethe University Frankfurt
+- Irmgard Knop, Goethe University Frankfurt
 
 
 ## Contributors
