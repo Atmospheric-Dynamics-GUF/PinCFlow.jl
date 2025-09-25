@@ -73,3 +73,7 @@ makedocs(;
         size_threshold_warn = nothing,
     ),
 )
+
+deploydocs(repo = "github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl",
+           devbranch = "main",
+           push_preview = true)
