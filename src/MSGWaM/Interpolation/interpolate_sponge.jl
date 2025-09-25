@@ -42,7 +42,7 @@ function interpolate_sponge(
     (; lx, ly, dx, dy, x, y, ztfc) = grid
     (; alphar) = state.sponge
 
-    # Dermine closest points in horizontal direction.
+    # Determine closest points in horizontal direction.
     if sizex > 1
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         ir = il + 1

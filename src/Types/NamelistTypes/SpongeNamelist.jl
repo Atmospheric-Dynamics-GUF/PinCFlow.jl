@@ -49,7 +49,7 @@ Construct a `SpongeNamelist` instance with the given keyword arguments as proper
 
   - `spongeorder::D`: Order of the polynomial LHS sponge.
 
-  - `cosmosteps::D`: Factor by which the time step is mulitplied in the damping coefficient of the COSMO-like LHS sponge.
+  - `cosmosteps::D`: Factor by which the time step is multiplied in the damping coefficient of the COSMO-like LHS sponge.
 
   - `relax_to_mean::A`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
 
