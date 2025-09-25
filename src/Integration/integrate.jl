@@ -393,5 +393,5 @@ function integrate(namelists::Namelists)
         println(repeat("-", 80))
     end
 
-    return
+    return state
 end

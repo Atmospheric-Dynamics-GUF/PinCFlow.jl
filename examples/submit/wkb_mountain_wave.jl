@@ -52,4 +52,4 @@ wkb = WKBNamelist(;
     zrmax_dim = 2.0E+4,
 )
 
-integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb))
+state = integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb))

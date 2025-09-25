@@ -33,4 +33,4 @@ sponge = SpongeNamelist(;
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+state = integrate(Namelists(; atmosphere, domain, grid, output, sponge))
