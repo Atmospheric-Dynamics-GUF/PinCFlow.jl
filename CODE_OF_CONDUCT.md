@@ -61,7 +61,7 @@ representative at an online or offline event.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to
 [Ulrich Achatz](mailto:achatz@iau.uni-frankfurt.de),
-[Felix Jochum](mailto:jochum@iau.uni-frankfurt.de),
+[Stamen Dolaptchiev](mailto:dolaptchiev@iau.uni-frankfurt.de),
 or any other of the principal developers responsible for enforcement listed in
 [AUTHORS.md](AUTHORS.md).
 All complaints will be reviewed and investigated promptly and fairly.
