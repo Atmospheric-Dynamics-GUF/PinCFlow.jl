@@ -1,11 +1,8 @@
 # examples/visualization/wkb_mountain_wave.jl
 
 using HDF5
-using PythonPlot
 using LaTeXStrings
 using PinCFlow
-
-set_plot_style()
 
 include("style.jl")
 

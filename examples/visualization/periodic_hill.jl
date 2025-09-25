@@ -1,11 +1,8 @@
 # examples/visualization/periodic_hill.jl
 
 using HDF5
-using PythonPlot
 using LaTeXStrings
 using PinCFlow
-
-set_plot_style()
 
 # Import the data.
 @ivy if length(ARGS) == 0
