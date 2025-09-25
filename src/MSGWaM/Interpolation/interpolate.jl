@@ -196,7 +196,7 @@ function interpolate(
         zfu = factor * zlfu + (1.0 - factor) * zrfu
     end
 
-    # Intepolate in y.
+    # Interpolate in y.
     if sizey == 1
         phid = phibd
         phiu = phibu
