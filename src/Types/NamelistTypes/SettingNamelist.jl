@@ -18,7 +18,7 @@ Construct a `SettingNamelist` instance with the given keyword arguments as prope
 
   - `model::A`: Dynamic equations.
 
-  - `testcase::B`: Test case on wich the current simulation is based.
+  - `testcase::B`: Test case on which the current simulation is based.
 """
 struct SettingNamelist{A <: AbstractModel, B <: AbstractTestCase}
     model::A
