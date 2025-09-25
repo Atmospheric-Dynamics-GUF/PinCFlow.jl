@@ -94,7 +94,7 @@ $$\begin{align*}
     \Pi^{33} & = \eta \left[\frac{2}{J} \frac{\partial w}{\partial \widehat{z}} - \frac{2}{3 J} \left(\frac{\partial J u}{\partial \widehat{x}} + \frac{\partial J v}{\partial \widehat{y}} + \frac{\partial J \widehat{w}}{\partial \widehat{z}}\right)\right],
 \end{align*}$$
 
-where $\eta$ is the dynamic shear viscosity. Finallly, the components of the pressure gradient are given by
+where $\eta$ is the dynamic shear viscosity. Finally, the components of the pressure gradient are given by
 
 $$\begin{align*}
     \mathcal{P}^u & = \left(\frac{\partial \pi'}{\partial \widehat{x}} + G^{13} \frac{\partial \pi'}{\partial \widehat{z}}\right),\\
