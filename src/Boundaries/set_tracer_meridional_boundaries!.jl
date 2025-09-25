@@ -57,7 +57,7 @@ set_tracer_meridional_boundaries!(
 )
 ```
 
-Return for configuations without tracer transport.
+Return for configurations without tracer transport.
 
 ```julia 
 set_tracer_meridional_boundaries!(
