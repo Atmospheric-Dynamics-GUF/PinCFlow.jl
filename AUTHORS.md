@@ -18,12 +18,14 @@ The following people contributed major additions or modifications to PinCFlow.jl
 are listed in alphabetical order:
 
 - Ulrich Achatz
+- Marco Artiano
 - Arpit Babbar
 - Gergely Bölöni
 - Stamen Dolaptchiev
 - Niklas Ehlert
 - Felix Jochum
 - Young-Ha Kim
+- Sandra Klewinghaus
 - Irmgard Knop
 - Hendrik Ranocha
 - Jonas Rothermel
