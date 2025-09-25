@@ -1,7 +1,8 @@
-.CondaPkg
-LocalPreferences.toml
-Manifest.toml
+**/.CondaPkg
+**/LocalPreferences.toml
+**/Manifest.toml
 .aider*
 /build
 /docs/build
 .vscode
+**/*.code-workspace
