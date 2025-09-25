@@ -162,17 +162,17 @@ is an example for how to visualize the vertical wind at the end of a simple moun
 
 The code is shared in a GitHub repository. Any contributions to the code should adhere to the following workflow.
 
- 1. If you are new to the project, create a remote development branch for your contributions (name it such that others can identify it as your branch) and clone the repository.
+ 1. If you are new to the repository, clone it.
 
- 1. Make your changes on your local development branch.
+ 1. Create a local branch for your contributions and commit your changes.
 
- 1. Pull recent changes made on the remote main branch into your local main branch and merge it into your local development branch, resolving merge conflicts if necessary.
+ 1. Pull recent changes made on the remote main branch into your local main branch and merge it into the branch with your contributions, resolving merge conflicts if necessary.
 
  1. **Ensure that the model is stable and that all canonical tests reproduce the sample results.**
 
- 1. Push your changes to your remote development branch.
+ 1. Push your branch to remote repository.
 
- 1. Request to merge your remote development branch into the remote main branch.
+ 1. Create a pull request for merging your commits into the remote main branch.
 
 ### Writing code
 
