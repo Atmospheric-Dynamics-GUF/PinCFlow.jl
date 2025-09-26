@@ -36,7 +36,7 @@ in compressible mode, with
 \\mathcal{C}_{i + 1 / 2}^{\\rho u} = \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{D}_{i + 1 / 2}^{\\rho u}.
 ```
 
-Therein, ``U_{i + 1 / 2} = \\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\Delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^{\\rho u}`` is computed with `compute_pressure_gradient`.
+Therein, ``\\Delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^{\\rho u}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -67,7 +67,7 @@ in compressible mode, with
 \\mathcal{C}_{j + 1 / 2}^{\\rho v} = \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{D}_{j + 1 / 2}^{\\rho v},
 ```
 
-where ``V_{j + 1 / 2} = \\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^{\\rho v}`` is computed with `compute_pressure_gradient`.
+where ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^{\\rho v}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -99,7 +99,7 @@ in Boussinesq/pseudo-incompressible mode and
 \\end{align*}
 ```
 
-in compressible mode, where ``\\widehat{W}_{k + 1 / 2} = \\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` and ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}`` is computed with `compute_pressure_gradient`.
+in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
