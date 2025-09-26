@@ -12,17 +12,17 @@ end
 
 atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
-    sizex = 40,
-    sizey = 40,
-    sizez = 40,
+    sizex = 12,
+    sizey = 12,
+    sizez = 12,
     nbx = 3,
     nby = 3,
     nbz = 3,
     lx_dim = 4.0E+5,
     ly_dim = 4.0E+5,
     lz_dim = 2.0E+4,
-    npx = 8,
-    npy = 8,
+    npx = 1,
+    npy = 1,
 )
 grid = GridNamelist(;
     mountainheight_dim = 1.5E+2,
@@ -52,6 +52,6 @@ wkb = WKBNamelist(;
     zrmax_dim = 2.0E+4,
 )
 
-sol = integrate(
+integrate(
     Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb),
 )

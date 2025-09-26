@@ -15,7 +15,7 @@ module PinCFlow
 
 using PythonPlot
 
-include("Utilities/utilities.jl")
+include("@ivy.jl")
 include("set_plot_style.jl")
 include("symmetric_contours.jl")
 
