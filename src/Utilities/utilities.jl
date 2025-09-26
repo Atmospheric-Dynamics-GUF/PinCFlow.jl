@@ -17,6 +17,7 @@ end
 function examples_dir()
     return pkgdir(PinCFlow, "examples/submit")
 end
+
 export examples_dir
 
 function compute_norms(state)

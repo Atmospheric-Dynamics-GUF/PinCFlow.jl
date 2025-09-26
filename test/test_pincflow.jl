@@ -2,16 +2,13 @@
 
 using Test
 using PinCFlow: examples_dir, analysis_callback
-using TrixiTest
+using TrixiTest: @test_trixi_include_base, append_to_kwargs
 
 EXAMPLES_DIR = examples_dir()
 
 macro test_pinc_include(expr, args...)
     local add_to_additional_ignore_content = [
-        # TODO: this is not needed, since we do not overwrite anything
         r"WARNING: Method definition .* overwritten .*.\n",
-
-        #TODO: these are needed
         r"Precompiling PinCFlow\.\.\.\n",
         r"   \d+\.\d+ ms  ✓ PinCFlow\n",
         r"  \d+ dependenc(y|ies) successfully precompiled in \d+ seconds\. \d+ already precompiled\.\n",
