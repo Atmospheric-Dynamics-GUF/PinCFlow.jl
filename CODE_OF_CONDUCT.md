@@ -18,10 +18,10 @@ Examples of behavior that contributes to a positive environment for our communit
 
   - Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
 
-  - Focusing on what is best not just for us as individuals, but for the
-  overall community
+  - Focusing on what is best not just for us as individuals, but for the overall community
 
 Examples of unacceptable behavior include:
+
 
   - The use of sexualized language or imagery, and sexual attention or advances of any kind
 
@@ -31,8 +31,7 @@ Examples of unacceptable behavior include:
 
   - Publishing others' private information, such as a physical or email address, without their explicit permission
 
-  - Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+  - Other conduct which could reasonably be considered inappropriate in a professional setting
 
 ## Enforcement Responsibilities
 
