@@ -24,7 +24,6 @@ function test_example(
         var_name = strip(var_name)
         new_value = strip(new_value)
 
-        # Usa regex per trovare e sostituire la variabile
         pattern = Regex("\\b" * var_name * "\\s*=\\s*[^,\\)\\n]+")
         replacement = var_name * " = " * new_value
         script = replace(script, pattern => replacement)
