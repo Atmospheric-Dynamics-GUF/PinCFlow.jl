@@ -1,5 +1,4 @@
 
-
 function compute_norms(state)
     (; rho, u, v, w, pip, rhop) = state.variables.predictands
     (; jac) = state.grid
