@@ -116,7 +116,7 @@ function Constants(namelists::Namelists)::Constants
     rsp = 287.0
     g = 9.81
 
-    # Set reference quantites.
+    # Set reference quantities.
     rhoref = 1.184 # in kg/m^3
     pref = 101325.0 # in Pa = kg/m/s^2
     aref = sqrt(pref / rhoref) # in m/s
