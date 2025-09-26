@@ -50,8 +50,10 @@ function test_example(file::AbstractString, args...)
     )
     eval(Meta.parseall(modified_script))
 
-    l2_measured, linf_measured = invokelatest((@__MODULE__).PinCFlow.analysis_callback,
-                                                      (@__MODULE__).sol)
+    #TODO: eventually change state to sol in all the examples	
+    state = sol
+    l2_measured, linf_measured = invokelatest((@__MODULE__).PinCFlow.compute_norms,
+                                                      (@__MODULE__).state)
 	 @test length($l2) == length(l2_measured)
                 for (l2_expected, l2_actual) in zip($l2, l2_measured)
                     @test isapprox(l2_expected, l2_actual, atol = $atol, rtol = $rtol)
@@ -61,6 +63,5 @@ function test_example(file::AbstractString, args...)
                 for (linf_expected, linf_actual) in zip($linf, linf_measured)
                     @test isapprox(linf_expected, linf_actual, atol = $atol, rtol = $rtol)
                 end
-
 end
 
