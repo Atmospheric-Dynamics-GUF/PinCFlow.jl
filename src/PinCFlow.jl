@@ -65,4 +65,11 @@ export State
 # Export integration function.
 export integrate
 
+# Used for testing
+function examples_dir()
+    return pkgdir(PinCFlow, "examples/submit")
+end
+
+export examples_dir
+
 end

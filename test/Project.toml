@@ -1,4 +1,7 @@
 [deps]
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 PinCFlow = "230a4047-f24c-41d9-8d93-b3b8a5ef3847"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TrixiBase = "9a0f1c46-06d5-4909-a5a3-ce25d3fa3284"
+TrixiTest = "0a316866-cbd0-4425-8bcb-08103b2c1f26"
