@@ -2,11 +2,11 @@
 using Test
 using LinearAlgebra: norm
 using TrixiTest: trixi_include, get_kwarg
-using PinCFlow
+using PinCFlow #TODO: to be removed
 using HDF5
 submit_dir = examples_dir()
 
-macro test_example(file, args...)
+macro test_example(file::AbstractString, args...)
     local l2 = get_kwarg(args, :l2, nothing)
     local linf = get_kwarg(args, :linf, nothing)
     local RealT_symbol = get_kwarg(args, :RealT, :Float64)
@@ -50,7 +50,7 @@ macro test_example(file, args...)
         end
     end
 end
-
+#TODO: filepath is not used
 function compute_norms(filepath::String)
     h5open("./pincflow_output.h5", "r") do data
         vars = [k for k in keys(data) if !(k in ["x", "y", "z"])]
