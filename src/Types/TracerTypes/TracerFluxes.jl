@@ -48,15 +48,15 @@ function TracerFluxes(namelists::Namelists, domain::Domain)::TracerFluxes
 end
 
 function TracerFluxes(domain::Domain, tracersetup::NoTracer)::TracerFluxes
-    phichi = zeros(0, 0, 0, 0)
-
-    return TracerFluxes(phichi)
+    return TracerFluxes(
+        [zeros(0, 0, 0, 0) for field in fieldnames(TracerFluxes)]...,
+    )
 end
 
 function TracerFluxes(domain::Domain, tracersetup::AbstractTracer)::TracerFluxes
     (; nxx, nyy, nzz) = domain
 
-    phichi = zeros(nxx, nyy, nzz, 3)
-
-    return TracerFluxes(phichi)
+    return TracerFluxes(
+        [zeros(nxx, nyy, nzz, 3) for field in fieldnames(TracerFluxes)]...,
+    )
 end

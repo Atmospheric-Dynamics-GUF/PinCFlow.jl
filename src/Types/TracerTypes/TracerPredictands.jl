@@ -100,9 +100,9 @@ function TracerPredictands(
     tracersetup::AbstractTracer,
     variables::Variables,
 )::TracerPredictands
-    chi = zeros(0, 0, 0)
-
-    return TracerPredictands(chi)
+    return TracerPredictands(
+        [zeros(0, 0, 0) for field in fieldnames(TracerPredictands)]...,
+    )
 end
 
 function TracerPredictands(

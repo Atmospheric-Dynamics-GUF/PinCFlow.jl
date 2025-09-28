@@ -63,9 +63,11 @@ function TracerReconstructions(
     domain::Domain,
     tracersetup::NoTracer,
 )::TracerReconstructions
-    chitilde = zeros(0, 0, 0, 0, 0)
-
-    return TracerReconstructions(chitilde)
+    return TracerReconstructions(
+        [
+            zeros(0, 0, 0, 0, 0) for field in fieldnames(TracerReconstructions)
+        ]...,
+    )
 end
 
 function TracerReconstructions(
@@ -74,7 +76,10 @@ function TracerReconstructions(
 )::TracerReconstructions
     (; nxx, nyy, nzz) = domain
 
-    chitilde = zeros(nxx, nyy, nzz, 3, 2)
-
-    return TracerReconstructions(chitilde)
+    return TracerReconstructions(
+        [
+            zeros(nxx, nyy, nzz, 3, 2) for
+            field in fieldnames(TracerReconstructions)
+        ]...,
+    )
 end

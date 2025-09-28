@@ -26,7 +26,10 @@ end
 function TracerAuxiliaries(
     tracerpredictands::TracerPredictands,
 )::TracerAuxiliaries
-    initialtracer = copy(getfield(tracerpredictands, 1))
-
-    return TracerAuxiliaries(initialtracer)
+    return TracerAuxiliaries(
+        [
+            copy(getfield(tracerpredictands, field)) for
+            field in 1:fieldcount(TracerAuxiliaries)
+        ]...,
+    )
 end
