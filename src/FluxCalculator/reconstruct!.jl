@@ -229,14 +229,14 @@ function reconstruct!(state::State, tracersetup::AbstractTracer)
     (; pstrattfc) = state.atmosphere
     (; tracerreconstructions, tracerpredictands) = state.tracer
 
-    @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
+    @ivy for field in 1:fieldcount(TracerPredictands)
+        chi = getfield(tracerpredictands, field)[:, :, :]
         for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
-            phi[i, j, k] =
-                getfield(tracerpredictands, fd)[i, j, k] / pstrattfc[i, j, k]
+            phi[i, j, k] = chi[i, j, k] / pstrattfc[i, j, k]
         end
         apply_3d_muscl!(
             phi,
-            getfield(tracerreconstructions, fd),
+            getfield(tracerreconstructions, field),
             nxx,
             nyy,
             nzz,

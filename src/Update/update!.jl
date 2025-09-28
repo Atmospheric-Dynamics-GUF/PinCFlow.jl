@@ -1231,18 +1231,23 @@ function update!(
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
     (; testcase) = state.namelists.setting
 
-    @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
+    @ivy for field in 1:fieldcount(TracerPredictands)
         if m == 1
-            getfield(tracerincrements, fd) .= 0.0
+            getfield(tracerincrements, field) .= 0.0
         end
 
+        flr = getfield(tracerfluxes, field)[:, :, :, 1]
+        gbf = getfield(tracerfluxes, field)[:, :, :, 2]
+        hdu = getfield(tracerfluxes, field)[:, :, :, 3]
+        chi = getfield(tracerpredictands, field)[:, :, :]
+        dchi = getfield(tracerincrements, field)[:, :, :]
         for k in k0:k1, j in j0:j1, i in i0:i1
-            fl = getfield(tracerfluxes, fd)[i - 1, j, k, 1]
-            fr = getfield(tracerfluxes, fd)[i, j, k, 1]
-            gb = getfield(tracerfluxes, fd)[i, j - 1, k, 2]
-            gf = getfield(tracerfluxes, fd)[i, j, k, 2]
-            hd = getfield(tracerfluxes, fd)[i, j, k - 1, 3]
-            hu = getfield(tracerfluxes, fd)[i, j, k, 3]
+            fl = flr[i - 1, j, k]
+            fr = flr[i, j, k]
+            gb = gbf[i, j - 1, k]
+            gf = gbf[i, j, k]
+            hd = hdu[i, j, k - 1]
+            hu = hdu[i, j, k]
 
             fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
             fluxdiff /= jac[i, j, k]
@@ -1250,10 +1255,8 @@ function update!(
             force = compute_volume_force(state, i, j, k, Chi(), testcase)
             f = -fluxdiff + force
 
-            getfield(tracerincrements, fd)[i, j, k] =
-                dt * f + alphark[m] * getfield(tracerincrements, fd)[i, j, k]
-            getfield(tracerpredictands, fd)[i, j, k] +=
-                betark[m] * getfield(tracerincrements, fd)[i, j, k]
+            dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]
+            chi[i, j, k] += betark[m] * dchi[i, j, k]
         end
     end
 

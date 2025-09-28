@@ -1425,11 +1425,11 @@ function compute_fluxes!(
 
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
-    @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
+    @ivy for field in 1:fieldcount(TracerPredictands)
+        chir = getfield(tracerreconstructions, field)[2:end, :, :, 1, 1]
+        chil = getfield(tracerreconstructions, field)[:, :, :, 1, 2]
+        fchi = getfield(tracerfluxes, field)[:, :, :, 1]
         for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
-            chir = getfield(tracerreconstructions, fd)[i + 1, j, k, 1, 1]
-            chil = getfield(tracerreconstructions, fd)[i, j, k, 1, 2]
-
             pedger =
                 0.5 * (
                     jac[i, j, k] * pstrattfc[i, j, k] +
@@ -1437,15 +1437,13 @@ function compute_fluxes!(
                 )
             usurf = pedger * u0[i, j, k]
 
-            fchi = compute_flux(usurf, chil, chir)
-
-            getfield(tracerfluxes, fd)[i, j, k, 1] = fchi
+            fchi[i, j, k] = compute_flux(usurf, chil[i, j, k], chir[i, j, k])
         end
 
+        chif = getfield(tracerreconstructions, field)[:, 2:end, :, 2, 1]
+        chib = getfield(tracerreconstructions, field)[:, :, :, 2, 2]
+        gchi = getfield(tracerfluxes, field)[:, :, :, 2]
         for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
-            chif = getfield(tracerreconstructions, fd)[i, j + 1, k, 2, 1]
-            chib = getfield(tracerreconstructions, fd)[i, j, k, 2, 2]
-
             pedgef =
                 0.5 * (
                     jac[i, j, k] * pstrattfc[i, j, k] +
@@ -1453,15 +1451,13 @@ function compute_fluxes!(
                 )
             vsurf = pedgef * v0[i, j, k]
 
-            gchi = compute_flux(vsurf, chib, chif)
-
-            getfield(tracerfluxes, fd)[i, j, k, 2] = gchi
+            gchi[i, j, k] = compute_flux(vsurf, chib[i, j, k], chif[i, j, k])
         end
 
+        chiu = getfield(tracerreconstructions, field)[:, :, 2:end, 3, 1]
+        chid = getfield(tracerreconstructions, field)[:, :, :, 3, 2]
+        hchi = getfield(tracerfluxes, field)[:, :, :, 3]
         for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
-            chiu = getfield(tracerreconstructions, fd)[i, j, k + 1, 3, 1]
-            chid = getfield(tracerreconstructions, fd)[i, j, k, 3, 2]
-
             pedgeu =
                 jac[i, j, k] *
                 jac[i, j, k + 1] *
@@ -1469,9 +1465,7 @@ function compute_fluxes!(
                 (jac[i, j, k] + jac[i, j, k + 1])
             wsurf = pedgeu * w0[i, j, k]
 
-            hchi = compute_flux(wsurf, chid, chiu)
-
-            getfield(tracerfluxes, fd)[i, j, k, 3] = hchi
+            hchi[i, j, k] = compute_flux(wsurf, chid[i, j, k], chiu[i, j, k])
         end
     end
 
