@@ -31,19 +31,21 @@ end
 
 function SubGrid(namelists::Namelists, domain::Domain, grid::Grid)
 
-	(; icesetup) = namelists.ice
-	return SubGrid(namelists, domain, grid, icesetup)
+	(; cloudcover) = namelists.ice
+	return SubGrid(namelists, domain, grid, cloudcover)
 end
 
 function SubGrid(namelists::Namelists,
 	domain::Domain,
 	grid::Grid,
-	icesetup::NoIce,
+	cloudcover::CloudCoverOff,
 )
 
 	(; nbx, nby, nbz) = namelists.domain
+	(; nscx, nscy, nscz) = namelists.ice
 	(; sizex, sizey, sizez) = namelists.domain
-	(; nx, ny, nz,i0, j0, k0, i1, j1, k1) = domain
+	(; nx, ny, nz, i0, j0, k0, i1, j1, k1) = domain
+	(; sizexx, sizeyy, sizezz) = domain
 	(; dx, dy, dz) = grid
 
 	sizex2 = sizex
@@ -69,9 +71,12 @@ function SubGrid(namelists::Namelists,
 	j12 = j1
 	k12 = k1
 
-	x2 = zeros(0)
-	y2 = zeros(0)
-	z2tfc = zeros(0, 0, 0)
+	sizexx2 = sizexx * nscx
+	sizeyy2 = sizeyy * nscy
+
+	x2 = zeros(sizexx2)
+	y2 = zeros(sizeyy2)
+	z2tfc = zeros(nxnscxx, nynscyy, nznsczz)
 
 	return SubGrid(sizex2, sizey2, sizez2,
 		dxsc, dysc, dzsc,
@@ -86,10 +91,10 @@ end
 function SubGrid(namelists::Namelists,
 	domain::Domain,
 	grid::Grid,
-	icesetup::AbstractIce,
+	cloudcover::CloudCoverOn,
 )
 
-	(; compute_cloudcover, nscx, nscy, nscz) = namelists.ice
+	(; nscx, nscy, nscz) = namelists.ice
 	(; nbx, nby, nbz) = namelists.domain
 	(; sizex, sizey, sizez) = namelists.domain
 	(; lx, ly, dx, dy, dz) = grid
@@ -97,8 +102,6 @@ function SubGrid(namelists::Namelists,
 	(; sizexx, sizeyy, sizezz, 
 	nx, ny, nz,
 	i0, j0, k0, i1, j1, k1) = domain
-
-	if compute_cloudcover == 2
 
 		dxsc = dx / nscx
 		dysc = dy / nscy
@@ -167,29 +170,6 @@ function SubGrid(namelists::Namelists,
 				end
 			end
 		end
-
-	else
-		sizex2 = sizex
-		sizey2 = sizey
-		sizez2 = sizez
-
-		dxsc = dx
-		dysc = dy
-		dzsc = dz
-
-		nxnscx = nx
-		nynscy = ny
-		nznscz = nz
-
-		nxnscxx = nxnscx + 2 * nbx
-		nynscyy = nynscy + 2 * nby
-		nznsczz = nznscz + 2 * nbz
-	
-		x2 = zeros(0)
-		y2 = zeros(0)
-		z2tfc = zeros(0, 0, 0)
-
-	end
 
 	return SubGrid(sizex2, sizey2, sizez2,
 		dxsc, dysc, dzsc,

@@ -1381,11 +1381,10 @@ function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn, u
     return
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUpdatePhy)
+function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUpdatePhy, cloudcover::CloudCoverOff)
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; iceincrements, icepredictands, icesource) = state.ice
+    (; iceincrements, icepredictands, icesource, icefluxes) = state.ice
 
     for (fd, field) in enumerate(fieldnames(IcePredictands))
         if m == 1
@@ -1400,6 +1399,52 @@ function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUp
                 dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
             getfield(icepredictands, fd)[i, j, k] +=
                 betark[m] * getfield(iceincrements, fd)[i, j, k]
+        end
+    end
+
+    return
+end
+
+function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUpdatePhy, cloudcover::CloudCoverOn)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    #(; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; iceincrements, icepredictands, icesource) = state.ice
+    (; sgsincrements, sgspredictands, sgstendencies) = state.ice 
+    (; 
+		i02, j02, k02,
+		i12, j12, k12,
+		) = state.ice.subgrid
+
+    for (fd, field) in enumerate(fieldnames(IcePredictands))
+        if m == 1
+            getfield(iceincrements, fd) .= 0.0
+        end
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            
+            f = getfield(icesource, fd)[i, j, k]
+
+            getfield(iceincrements, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
+            getfield(icepredictands, fd)[i, j, k] +=
+                betark[m] * getfield(iceincrements, fd)[i, j, k]
+        end
+    end
+
+    for (fd, field) in enumerate(fieldnames(SgsPredictands))
+        if m == 1
+            getfield(sgsincrements, fd) .= 0.0
+        end
+
+        for k in k02:k12, j in j02:j12, i in i02:i12
+
+            f = getfield(sgstendencies, fd)[i, j, k]
+
+            getfield(sgsincrements, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(sgsincrements, fd)[i, j, k]
+            getfield(sgspredictands, fd)[i, j, k] +=
+                betark[m] * getfield(sgsincrements, fd)[i, j, k]
         end
     end
 

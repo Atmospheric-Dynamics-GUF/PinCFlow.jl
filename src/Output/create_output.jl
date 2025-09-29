@@ -20,7 +20,6 @@ function create_output(state::State)
     (; model, testcase) = state.namelists.setting
     (; comm) = state.domain
     (; nray_max) = state.wkb
-    (; compute_cloudcover) = state.namelists.ice
     (; nxnscxx, nynscyy, nznsczz) = state.ice.subgrid
 
     # Set the chunk dimensions.
@@ -44,7 +43,8 @@ function create_output(state::State)
             chunk = (cx, cy, cz),
         )
         #changes for cloudcover
-        if !(typeof(state.namelists.ice.icesetup) <: NoIce) &&compute_cloudcover == 2
+        if !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
+            
             (; sizex2, sizey2, sizez2) = state.ice.subgrid
             
             cx2 = div(sizex2, npx)
@@ -319,7 +319,9 @@ function create_output(state::State)
                 end
             end
 
-            if !(typeof(state.namelists.ice.icesetup) <: NoIce && compute_cloudcover == 2 )
+            if !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
+
+                # Create datasets for SgsGW variables.
                 for field in fieldnames(SgsGW)
                     create_dataset(
                         file,
@@ -332,6 +334,35 @@ function create_output(state::State)
                         chunk = (cx2, cy2, cz2, ct),
                     )
                 end
+
+                # Create datasets for SgsPredictands
+                for field in ("sn", "sq", "sqv")
+                    create_dataset(
+                        file,
+                        field,
+                        datatype(Float32),
+                        dataspace(
+                            (sizex2, sizey2, sizez2, 0),
+                            (sizex2, sizey2, sizez2, -1),
+                            );
+                        chunk = (cx2, cy2, cz2, ct),
+                    )
+                end
+
+                # Create datasets for SgsAuxiliaries
+                for field in fieldnames(SgsAuxiliaries)
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (sizex2, sizey2, sizez2, 0),
+                            (sizex2, sizey2, sizez2, -1),
+                            );
+                        chunk = (cx2, cy2, cz2, ct),
+                    )
+                end
+
             end
         end
 

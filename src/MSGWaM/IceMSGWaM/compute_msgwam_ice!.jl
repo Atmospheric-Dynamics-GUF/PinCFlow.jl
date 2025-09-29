@@ -1,7 +1,7 @@
 function compute_msgwam_ice! end
 
 function compute_msgwam_ice!(state::State)
-    icesetup = state.namelists.ice.icesetup
+	icesetup = state.namelists.ice.icesetup
 	compute_msgwam_ice!(state, icesetup)
 	return
 end
@@ -26,15 +26,16 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 	(; dx, dy, dz, x, y, ztildetfc, jac) = grid
 	(; rhostrattfc, thetastrattfc) = state.atmosphere
 	(; nray, rays, integrals) = state.wkb
-    (; sgs) = state.ice
-	(; nscx, nscy, nscz, compute_cloudcover) = state.namelists.ice
+	(; sgs) = state.ice
+	(; nscx, nscy, nscz) = state.namelists.ice
 	(; dxsc, dysc, dzsc) = state.ice.subgrid
 	(; kappa, ma2) = state.constants
-	
- 	# Set Coriolis parameter.
+
+	# Set Coriolis parameter.
 	fc = coriolis_frequency * tref
 
-	for field in fieldnames(SgsGW)
+	# set sgs fields to zero
+	for field in fieldnames(SgsGW)		
 		getfield(sgs, field) .= 0.0
 	end
 
@@ -70,9 +71,9 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 			omir =
 				branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-			cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-			cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-			cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
+			#cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+			#cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+			#cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
 			(ixmin, ixmax, jymin, jymax) =
 				compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
@@ -85,6 +86,7 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 						get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
 					kzmax =
 						get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+
 
 					for kz in kzmin:kzmax
 
@@ -109,9 +111,9 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 									dyy = ysc - yr
 									dzz = zsc - zr
 
-									if abs(dxx) < (dxr + dxsc) / 2 &&
-									   abs(dyy) < (dyr + dysc) / 2 &&
-									   abs(dzz) < (dzr + dzsc*jac[ix, jy, kz]) / 2
+									if abs(dxx) <= (dxr + dxsc) / 2 &&
+									   abs(dyy) <= (dyr + dysc) / 2 &&
+									   abs(dzz) <= (dzr + dzsc*jac[ix, jy, kz]) / 2
 
 										if sizex > 1
 											dxi = (
@@ -131,6 +133,8 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 										else
 											fcpspy = 1.0
 										end
+										#changes
+										#fcpspy = 1.0
 
 										dzi = (min((zr + dzr * 0.5),
 											zsc + dzsc * jac[ix, jy, kz] * 0.5) -
@@ -141,11 +145,20 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 
 										fcpswn = fcpspz * fcpspy * fcpspx
 
+
 										amprw = sqrt(
 											abs(omir) * 2.0 * khr^2 /
 											(khr^2 + mr^2) /
 											rhostrattfc[ix, jy, kz] * fcpswn *
 											rays.dens[iray, ixrv, jyrv, kzrv])
+
+										#changes
+										#if ix == 7 && ii == 8 && jj == 1 && kk #== 8
+										#	print("kz ", kz, " , ", amprw, " , ", rays.dens[iray, ixrv, jyrv, kzrv], "\n")
+										#end
+
+										#changes
+										#amprw = 1.0
 
 										#to be consisten with LES wavepacket simulation
 										#there amplitude of b11 is real with sign from vert. wavenumber
@@ -160,9 +173,8 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 															thetastrattfc[ix, jy, kz]) * b11
 
 										# phase at cell center
-										dphi = (rays.dphi[iray, ixrv, jyrv, kzrv] + kr
-																					*
-																					dxx + lr * dyy + mr * dzz)
+										dphi = (rays.dphi[iray, ixrv, jyrv, kzrv] + kr * dxx + lr * dyy + mr * dzz)
+
 
 										thetaPrime = real(theta11 * exp(dphi * 1.0im))
 										expPrime = real(pi12 * exp(dphi * 1.0im))

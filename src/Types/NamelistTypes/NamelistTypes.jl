@@ -409,6 +409,12 @@ struct WKBMultipleWavePackets <: AbstractWKBTestCase end
 
 struct MultipleWavePackets <: AbstractTestCase end
 
+abstract type AbstractCloudCover end
+
+struct CloudCoverOn <: AbstractCloudCover end
+
+struct CloudCoverOff <: AbstractCloudCover end
+
 using MPI
 
 include("DomainNamelist.jl")
@@ -440,6 +446,7 @@ export AbstractBackground,
     AbstractWKBFilter,
     AbstractTracer,
     AbstractIce,
+    AbstractCloudCover,
     AbstractTurbulence
 
 export UniformBoussinesq,
@@ -470,6 +477,8 @@ export UniformBoussinesq,
     LinearTracer,
     NoIce,
     IceOn,
+    CloudCoverOff,
+    CloudCoverOn,  
     NoTurbulence,
     TurbulenceOn, 
     MultipleWavePackets,
@@ -488,7 +497,7 @@ export DomainNamelist,
     TracerNamelist,
     IceNamelist,
     TurbulenceNamelist,
-    MultiWavePacketNamelist,
+    MultiWavePacketNamelist, 
     Namelists
 
 end

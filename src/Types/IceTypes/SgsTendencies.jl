@@ -4,12 +4,13 @@ struct SgsTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dqv::A
 end
 
-function SgsTendencies(namelists::Namelists, domain::Domain)
-    (; icesetup) = namelists.ice
-    return SgsTendencies(domain, icesetup)
+function SgsTendencies(namelists::Namelists, subgrid::SubGrid)
+    (; cloudcover) = namelists.ice
+    return SgsTendencies(namelists, subgrid, cloudcover)
 end
 
-function SgsTendencies(domain::Domain, icesetup::NoIce)
+function SgsTendencies(namelists::Namelists, subgrid::SubGrid, cloudcover::CloudCoverOff)
+
     dn = zeros(0, 0, 0)
     dq = zeros(0, 0, 0)
     dqv = zeros(0, 0, 0)
@@ -17,12 +18,13 @@ function SgsTendencies(domain::Domain, icesetup::NoIce)
     return SgsTendencies(dn, dq, dqv)
 end
 
-function SgsTendencies(domain::Domain, icesetup::AbstractIce)
-    (; nxx, nyy, nzz) = domain
+function SgsTendencies(namelists::Namelists, subgrid::SubGrid, cloudcover::CloudCoverOn)
 
-    dn = zeros(nxx, nyy, nzz)
-    dq = zeros(nxx, nyy, nzz)
-    dqv = zeros(nxx, nyy, nzz)
+    (; nxnscxx, nynscyy, nznsczz) = subgrid
+
+    dn = zeros(nxnscxx, nynscyy, nznsczz)
+    dq = zeros(nxnscxx, nynscyy, nznsczz)
+    dqv = zeros(nxnscxx, nynscyy, nznsczz)
 
     return SgsTendencies(dn, dq, dqv)
 end

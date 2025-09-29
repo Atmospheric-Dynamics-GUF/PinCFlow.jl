@@ -56,6 +56,7 @@ export Box, Shapiro
 export SteadyState, SingleColumn, MultiColumn
 export NoTracer, LinearTracer
 export NoIce, IceOn
+export CloudCoverOff, CloudCoverOn
 export WKBMultipleWavePackets, MultipleWavePackets
 export NoTurbulence, TurbulenceOn
 

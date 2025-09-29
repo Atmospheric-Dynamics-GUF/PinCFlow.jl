@@ -2027,6 +2027,12 @@ module wkb_module
               end do ! iwm
             end do ! ix
           end do ! jy
+          !changes
+                #if (ix == 1, jy == 1) then
+                #  print*, z(ix, jy, kz)-zr0, sigwpz, fld_amp(ix, jy, kz, iwm)
+                #end if
+                !changes
+                  print*, abs(z(kz)-zr0), sigwpz, fld_amp(1, 1, kz, 2), z(kz)
         end do ! kz
       end if !no topography
     else ! case_wkb /= 3, 5

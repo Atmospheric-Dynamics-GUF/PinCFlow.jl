@@ -6,9 +6,9 @@ using .PinCFlow
 using HDF5
 
 domain = DomainNamelist(;
-    sizex = 40,
+    sizex = 8,
     sizey = 1,
-    sizez = 40,
+    sizez = 8,
     nbx = 3,
     nby = 3,
     nbz = 3,
@@ -17,7 +17,7 @@ domain = DomainNamelist(;
     lz_dim = (0.0, 1.5E+4),
     npx = 1,    
     npy = 1,
-    npz = 1
+    npz = 1,
 )
 
 output = OutputNamelist(;
@@ -29,7 +29,7 @@ output = OutputNamelist(;
     noutput = 1,
     maxiter = 1,
     outputtimediff = 1.0, # 3.6E+1, #E+3
-    maxtime = 1.0, #3.6E+1, #E+3
+    maxtime = 12.0, #3.6E+1, #E+3
     input_file = "./test/pincflow_input.h5",
     output_file = "./test/pincflow_output.h5",
 )
@@ -102,12 +102,14 @@ sponge = SpongeNamelist(;
 )
 ice = IceNamelist(;
     icesetup = IceOn(),
-#    icesetup = NoIce(),
     dt_ice = 1.,
-    nscx = 1,
+    nscx = 16,
     nscy = 1,
-    nscz = 1,
-    compute_cloudcover = 2,
+    nscz = 40,
+    # nscx = 1,
+    # nscy = 1,
+    # nscz = 1,
+    cloudcover = CloudCoverOn(),
  ) 
 wkb = WKBNamelist(;
                     xrmin_dim = 0.0E+4,
@@ -126,7 +128,7 @@ wkb = WKBNamelist(;
                     fac_dk_init = 1.0E-1,
                     fac_dl_init = 1.0E-1,
                     fac_dm_init = 1.0E-1,
-                    branchr = -1,
+                    branchr = 1,
                     merge_mode = ConstantWaveAction(),
                     nsmth_wkb = 2,
                     #lsmth_wkb = true,
@@ -155,8 +157,7 @@ multiwavepackets = MultiWavePacketNamelist(;
     sigmax_dim = [0.0E+3, 0.0E+3],
     sigmay_dim = [0.0E+3, 0.0E+3],
     sigmaz_dim = [6.0E+3, 6.0E+3],
-    a0 = [1.12E+0, 1.12E+0],
-    branch = [1, 1],
+    a0 = [0.12E+0, 0.12E+0],
 )
 namelists = Namelists(;
     domain = domain,
@@ -175,12 +176,4 @@ namelists = Namelists(;
 
 integrate(namelists)
 
-#rm("./test/pincflow_output.h5")
-
-# Plot
-#data = h5open("/home/dolaptch/PF/pinc/test/pincflow_output.h5")
-#w = data["w"][:, :, :, end]
-#contourf(fld[:,1,:]')
-#plot(fld[end//2,1,:])
-#plot(fld[Int(length(fld[:,1,1])//2),1,:])
-#savefig("mountain_wave.png")
+include("../examples/visualization/fast_plot_tjl04.jl")

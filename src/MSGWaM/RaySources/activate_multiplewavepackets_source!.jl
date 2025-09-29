@@ -1,12 +1,12 @@
 """
 ```julia
 activate_orographic_source!(
-    state::State,
-    omi_ini::AbstractArray{<:AbstractFloat, 4},
-    wnk_ini::AbstractArray{<:AbstractFloat, 4},
-    wnl_ini::AbstractArray{<:AbstractFloat, 4},
-    wnm_ini::AbstractArray{<:AbstractFloat, 4},
-    wad_ini::AbstractArray{<:AbstractFloat, 4},
+	state::State,
+	omi_ini::AbstractArray{<:AbstractFloat, 4},
+	wnk_ini::AbstractArray{<:AbstractFloat, 4},
+	wnl_ini::AbstractArray{<:AbstractFloat, 4},
+	wnm_ini::AbstractArray{<:AbstractFloat, 4},
+	wad_ini::AbstractArray{<:AbstractFloat, 4},
 )
 ```
 
@@ -73,99 +73,100 @@ The launch algorithm distinguishes between the following situations (regarding p
 function activate_multiplewavepackets_source! end
 
 function activate_multiplewavepackets_source!(
-    state::State,
-    omi_ini::AbstractArray{<:AbstractFloat, 4},
-    wnk_ini::AbstractArray{<:AbstractFloat, 4},
-    wnl_ini::AbstractArray{<:AbstractFloat, 4},
-    wnm_ini::AbstractArray{<:AbstractFloat, 4},
-    wad_ini::AbstractArray{<:AbstractFloat, 4},
+	state::State,
+	omi_ini::AbstractArray{<:AbstractFloat, 4},
+	wnk_ini::AbstractArray{<:AbstractFloat, 4},
+	wnl_ini::AbstractArray{<:AbstractFloat, 4},
+	wnm_ini::AbstractArray{<:AbstractFloat, 4},
+	wad_ini::AbstractArray{<:AbstractFloat, 4},
 )
-    (; coriolis_frequency) = state.namelists.atmosphere
-    #(; branchr, nwm) = state.namelists.wkb
-    (; tref, lref) = state.constants
-    (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; ztfc, x, y) = state.grid
-    (; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
-    x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
-    a0, branch, nwm) = state.namelists.multiwavepackets
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
-    #(; u, v) = state.variables.predictands
-    #(; zb) = state.wkb
+	(; coriolis_frequency) = state.namelists.atmosphere
+	(; branchr) = state.namelists.wkb
+	(; tref, lref) = state.constants
+	(; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+	(; ztfc, x, y) = state.grid
+	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
+		x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
+		a0, nwm) = state.namelists.multiwavepackets
+	(; rhostrattfc, bvsstrattfc) = state.atmosphere
+	#(; u, v) = state.variables.predictands
+	#(; zb) = state.wkb
 
-    # Set Coriolis parameter.
-    fc = coriolis_frequency * tref
+	# Set Coriolis parameter.
+	fc = coriolis_frequency * tref
 
-    for iwm in 1:nwm
+	for iwm in 1:nwm
 
-        branchr = branch[iwm]
-        amp_wkb = a0[iwm]
+		amp_wkb = a0[iwm]
 
-        if lambdax_dim[iwm] == 0.0
-            wnrk_init = 0.0
+		if lambdax_dim[iwm] == 0.0
+			wnrk_init = 0.0
 		else
-        wnrk_init = 2.0 * pi / lambdax_dim[iwm] * lref
-        end
+			wnrk_init = 2.0 * pi / lambdax_dim[iwm] * lref
+		end
 
-        if lambday_dim[iwm] == 0.0
-            wnrl_init = 0.0
-        else
-            wnrl_init = 2.0 * pi / lambday_dim[iwm] * lref
-        end
+		if lambday_dim[iwm] == 0.0
+			wnrl_init = 0.0
+		else
+			wnrl_init = 2.0 * pi / lambday_dim[iwm] * lref
+		end
 
-        wnrm_init = 2.0 * pi / lambdaz_dim[iwm] * lref
+		wnrm_init = 2.0 * pi / lambdaz_dim[iwm] * lref
 
-        wnrh_init = sqrt(wnrk_init ^ 2.0 + wnrl_init ^ 2.0)
+		wnrh_init = sqrt(wnrk_init ^ 2.0 + wnrl_init ^ 2.0)
 
-        sigwpx = sigmax_dim[iwm] / lref
-        sigwpy = sigmay_dim[iwm] / lref
-        sigwpz = sigmaz_dim[iwm] / lref
+		sigwpx = sigmax_dim[iwm] / lref
+		sigwpy = sigmay_dim[iwm] / lref
+		sigwpz = sigmaz_dim[iwm] / lref
 
-        zr0 = z0_dim[iwm] / lref
-        xr0 = x0_dim[iwm] / lref
-        yr0 = y0_dim[iwm] / lref
+		zr0 = z0_dim[iwm] / lref
+		xr0 = x0_dim[iwm] / lref
+		yr0 = y0_dim[iwm] / lref
 
-    for kz in k0:k1, jy in j0:j1, ix in i0:i1
-        
-        wnk_ini[iwm, ix, jy, kz] = wnrk_init
-        wnl_ini[iwm, ix, jy, kz] = wnrl_init
-        wnm_ini[iwm, ix, jy, kz] = wnrm_init
+		for kz in k0:k1, jy in j0:j1, ix in i0:i1
 
-        # Compute local stratification.
-        n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
+			wnk_ini[iwm, ix, jy, kz] = wnrk_init
+			wnl_ini[iwm, ix, jy, kz] = wnrl_init
+			wnm_ini[iwm, ix, jy, kz] = wnrm_init
 
-        # intrinsic frequency
-        omi_notop = branchr * sqrt((n2r * wnrh_init ^ 2
-            + fc ^ 2 * wnrm_init ^ 2) / 
-            (wnrh_init ^ 2 + wnrm_init ^ 2))
+			# Compute local stratification.
+			n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
 
-        # wave-action density
-        fld_amp = (amp_wkb / wnrm_init) ^ 2 *
-             (wnrh_init ^ 2 + wnrm_init ^ 2) / (2.0 * wnrh_init ^ 2) *
-             omi_notop * rhostrattfc[ix, jy, kz]
+			# intrinsic frequency
+			omi_notop = branchr * sqrt((n2r * wnrh_init ^ 2
+										+
+										fc ^ 2 * wnrm_init ^ 2) /
+									   (wnrh_init ^ 2 + wnrm_init ^ 2))
 
-        if abs(ztfc[ix, jy, kz] - zr0) < sigwpz
-            fld_amp *= 0.5 * (1.0 + cos(pi * (ztfc[ix, jy, kz] - zr0) / sigwpz))
+			# wave-action density
+			fld_amp = (amp_wkb / wnrm_init) ^ 2 *
+					  (wnrh_init ^ 2 + wnrm_init ^ 2) / (2.0 * wnrh_init ^ 2) *
+					  omi_notop * rhostrattfc[ix, jy, kz]
 
-            if sigwpx > 0.0 && abs(x[ix + io] - xr0) < sigwpx
-                fld_amp *= 0.5 * (1.0 + cos(pi * (x[ix + io] - xr0) / sigwpx))
-            elseif sigwpx > 0.0
-                fld_amp = 0.0
-            end
+			if abs(ztfc[ix, jy, kz] - zr0) < sigwpz
+				fld_amp *= 0.5 * (1.0 + cos(pi * (ztfc[ix, jy, kz] - zr0) / sigwpz))
 
-            if sigwpy > 0.0 &&  abs(y[jy + jo] - yr0) < sigwpy
-                fld_amp *= 0.5 * (1.0 + cos(pi * (y[jy + jo] - yr0) / sigwpy))
-            elseif sigwpy > 0.0
-                fld_amp = 0.0
-            end
+				if sigwpx > 0.0 && abs(x[ix+io] - xr0) < sigwpx
+					fld_amp *= 0.5 * (1.0 + cos(pi * (x[ix+io] - xr0) / sigwpx))
+				elseif sigwpx > 0.0
+					fld_amp = 0.0
+				end
 
-        else
-            fld_amp = 0.0
-        end
+				if sigwpy > 0.0 && abs(y[jy+jo] - yr0) < sigwpy
+					fld_amp *= 0.5 * (1.0 + cos(pi * (y[jy+jo] - yr0) / sigwpy))
+				elseif sigwpy > 0.0
+					fld_amp = 0.0
+				end
 
-        omi_ini[iwm, ix, jy, kz] = omi_notop
-        wad_ini[iwm, ix, jy, kz] = fld_amp
+			else
+				fld_amp = 0.0
+			end
 
-    end
-end # iwm
-    return
+			omi_ini[iwm, ix, jy, kz] = omi_notop
+			wad_ini[iwm, ix, jy, kz] = fld_amp
+
+		end
+	end # iwm
+
+	return
 end

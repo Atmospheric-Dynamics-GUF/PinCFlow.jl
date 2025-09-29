@@ -62,7 +62,6 @@ struct MultiWavePacketNamelist{A <: AbstractArray{<:AbstractFloat, 1}, B <: Abst
     sigmay_dim::A
     sigmaz_dim::A
     a0::A
-    branch::B
     nwm::C
 end
 
@@ -79,7 +78,6 @@ function MultiWavePacketNamelist(;
     sigmay_dim = [0.0E+0],
     sigmaz_dim = [2.0E+3],
     a0 = [9.0E-1],
-    branch = [-1],
 )::MultiWavePacketNamelist
     return MultiWavePacketNamelist(
         wavepacketdim,
@@ -93,7 +91,6 @@ function MultiWavePacketNamelist(;
         sigmay_dim,
         sigmaz_dim,
         a0,
-        branch,
         nwm,
     )
 end

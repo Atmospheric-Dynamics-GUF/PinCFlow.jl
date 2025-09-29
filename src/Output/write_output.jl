@@ -99,9 +99,7 @@ function write_output(
 	(; predictands) = state.variables
 	(; rho, rhop, u, v, w, pip, p) = predictands
 	(; nray_max, rays, tendencies) = state.wkb
-	(; compute_cloudcover) = state.namelists.ice
 
-	#compute_cloudcover
 	(; nscx, nscy, nscz) = state.namelists.ice
 	(; sizex2, sizey2, sizez2,
 		i02, j02, k02,
@@ -153,12 +151,7 @@ function write_output(
 		end
 
 		# Write sub grid. 
-		if iout == 1 && !(typeof(state.namelists.ice.icesetup) <: NoIce) && compute_cloudcover == 2
-			# (; nscx, nscy, nscz) = state.namelists.ice
-			# (; sizex2, sizey2, sizez2,
-			# 	i02, j02, k02,
-			# 	i12, j12, k12,
-			# 	x2, y2, z2tfc) = state.ice.subgrid
+		if iout == 1 && !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
 
 			@views file["x2"][:] = x2[i02:(i02+sizex2-1)] .* lref
 			@views file["y2"][:] = y2[j02:(j02+sizey2-1)] .* lref
@@ -574,9 +567,9 @@ function write_output(
 				end
 			end
 
-			# write sgs fields
-			if !(typeof(state.namelists.ice.icesetup) <: NoIce) && compute_cloudcover == 2
+			if !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
 
+				# Write SgsGW variables.
 				for (field, scaling) in zip(fieldnames(SgsGW), 
 					(uref, 1.0, thetaref))
 					HDF5.set_extent_dims(
@@ -596,6 +589,49 @@ function write_output(
 						] .* scaling
 				end
 
+				# Write SgsPredictands variables.
+				for (field, field_name) in zip(fieldnames(SgsPredictands), 
+					("sn", "sq", "sqv"))
+					HDF5.set_extent_dims(
+						file[field_name],
+						(sizex2, sizey2, sizez2, iout),
+					)
+					@views file[field_name][
+						(io*nscx+1):((io+nx)*nscx),
+						(jo*nscy+1):((jo+ny)*nscy),
+						(ko*nscz+1):((ko+nz)*nscz),
+						iout,
+					] =
+						getfield(state.ice.sgspredictands, field)[
+						i02:i12,
+						j02:j12,
+						k02:k12,
+					] ./ repeat(
+						rhostrattfc[i0:i1, j0:j1, k0:k1] .+
+						rho[i0:i1, j0:j1, k0:k1], 
+						inner=(nscx, nscy, nscz)
+					) * getfield(state.ice.iceconstants, field)
+					
+				end
+
+				# Write SgsAuxiliaries variables.
+				for field in fieldnames(SgsAuxiliaries)
+					HDF5.set_extent_dims(
+						file[string(field)],
+						(sizex2, sizey2, sizez2, iout),
+					)
+					@views file[string(field)][
+						(io*nscx+1):((io+nx)*nscx),
+						(jo*nscy+1):((jo+ny)*nscy),
+						(ko*nscz+1):((ko+nz)*nscz),
+						iout,
+					] =
+						getfield(state.ice.sgsauxiliaries, field)[
+						i02:i12,
+						j02:j12,
+						k02:k12,
+					]
+				end
 			end
 		end
 

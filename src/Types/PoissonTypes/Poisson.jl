@@ -58,7 +58,7 @@ struct Poisson{
     E <: BicGStab,
     F <: Correction,
 }
-    rhs::A
+    rhs::A  
     solution::A
     tensor::B
     operator::C

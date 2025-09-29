@@ -22,6 +22,7 @@ function explicit_integration_rhs_ice!(
     (; tracersetup) = state.namelists.tracer
     (; icesetup, dt_ice) = state.namelists.ice
     (; tref) = state.constants
+    (; cloudcover) = state.namelists.ice
 
     n_step_ice = ceil(Int, dtstage * tref / dt_ice)
     dtt_ice = dtstage / n_step_ice   
@@ -38,7 +39,7 @@ function explicit_integration_rhs_ice!(
 
         #save_backups!(state, :rho)
         compute_source_ice!(state) 
-        update!(state, dtt_ice, rkstage, IceUpdatePhy())
+        update!(state, dtt_ice, rkstage, IceUpdatePhy(), cloudcover)
 
         #apply_unified_sponge!(
         #    state,

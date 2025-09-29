@@ -28,15 +28,18 @@ include("IceReconstructions.jl")
 include("IceFluxes.jl")
 include("IceSource.jl")
 include("SubGrid.jl")
-include("GW.jl")
+#include("GW.jl")
 include("SgsGW.jl")
 include("SgsPredictands.jl")
+include("SgsIncrements.jl")
+include("SgsTendencies.jl")
+include("SgsAuxiliaries.jl")
 include("Ice.jl")
 
 export IcePredictands,
     IceIncrements, IceAuxiliaries, IceReconstructions, IceFluxes,
-    IceSource, IceConstants, Ice, GW,
-    SgsGW, SgsPredictands, SubGrid
+    IceSource, IceConstants, Ice,
+    SgsGW, SgsPredictands, SgsIncrements, SgsTendencies, SgsAuxiliaries, SubGrid
 
 export psat_ice, sat_ratio, dot_qv, dot_n 
 

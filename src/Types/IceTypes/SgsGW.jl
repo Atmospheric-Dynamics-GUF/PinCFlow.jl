@@ -5,20 +5,21 @@ struct SgsGW{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function SgsGW(namelists::Namelists, 
-    domain::Domain, 
+    domain :: Domain,
     subgrid::SubGrid
     )
 
-    (; icesetup) = namelists.ice
+    (; icesetup, cloudcover) = namelists.ice
 
-    return SgsGW(namelists, domain, subgrid, icesetup)
+    return SgsGW(namelists, domain, subgrid, icesetup, cloudcover)
 
 end
 
 function SgsGW(namelists :: Namelists, 
-    domain::Domain, 
-    subgrid::SubGrid,
-    icesetup ::NoIce
+    domain :: Domain,
+    subgrid ::SubGrid,
+    icesetup :: NoIce,
+    cloudcover::AbstractCloudCover
     )
 
     wwp = zeros(0, 0, 0)
@@ -29,26 +30,33 @@ function SgsGW(namelists :: Namelists,
 end
 
 function SgsGW( namelists::Namelists, 
-    domain::Domain, 
+    domain :: Domain,
     subgrid::SubGrid,
-    icesetup::AbstractIce
+    icesetup :: AbstractIce,
+    cloudcover :: CloudCoverOff
     )
 
-    (; compute_cloudcover) = namelists.ice
+    (;  nxx, nyy, nzz) = domain
+
+    wwp = zeros(nxx, nyy, nzz)
+    epp = zeros(nxx, nyy, nzz)
+    thp = zeros(nxx, nyy, nzz)
+
+    return SgsGW(wwp, epp, thp)
+end
+
+function SgsGW( namelists::Namelists, 
+    domain :: Domain,
+    subgrid::SubGrid,
+    icesetup :: AbstractIce,
+    cloudcover :: CloudCoverOn
+    )
+
     (;  nxnscxx, nynscyy, nznsczz) = subgrid
     
-    if compute_cloudcover == 2
-
-        wwp = zeros(nxnscxx, nynscyy, nznsczz)
-        epp = zeros(nxnscxx, nynscyy, nznsczz)
-        thp = zeros(nxnscxx, nynscyy, nznsczz)
-
-    else 
-
-        wwp = zeros(0, 0, 0)
-        epp = zeros(0, 0, 0)
-        thp = zeros(0, 0, 0)
-    end
+    wwp = zeros(nxnscxx, nynscyy, nznsczz)
+    epp = zeros(nxnscxx, nynscyy, nznsczz)
+    thp = zeros(nxnscxx, nynscyy, nznsczz)
 
     return SgsGW(wwp, epp, thp)
 end
