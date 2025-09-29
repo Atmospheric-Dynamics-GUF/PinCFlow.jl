@@ -127,4 +127,6 @@ function symmetric_contours(
     return (levels, colormap)
 end
 
+export set_plot_style, symmetric_contours
+
 end
