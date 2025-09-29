@@ -15,22 +15,22 @@ Compute and return the pressure(-difference)-gradient term in the zonal-wind equ
 The pressure-gradient component is given by
 
 ```math
-\\mathcal{P}^u_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{\\pi'_{i + 1 / 2, k + 1} - \\pi'_{i + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
+\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{\\pi'_{i + 1 / 2, k + 1} - \\pi'_{i + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
 ```
 
 Since the Exner-pressure is not known in the vertical ghost cells, a different discretization is needed at the vertical boundaries. At ``k = k_0`` (in the first process in ``\\widehat{z}``), the alternative second-order-accurate approximation
 
 ```math
-\\mathcal{P}^u_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{- \\pi'_{i + 1 / 2, k + 2} + 4 \\pi'_{i + 1 / 2, k + 1} - 3 \\pi'_{i + 1 / 2}}{2 \\Delta \\widehat{z}}
+\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{- \\pi'_{i + 1 / 2, k + 2} + 4 \\pi'_{i + 1 / 2, k + 1} - 3 \\pi'_{i + 1 / 2}}{2 \\Delta \\widehat{z}}
 ```
 
 is used and, in a similar manner, one has
 
 ```math
-\\mathcal{P}^u_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{\\pi'_{i + 1 / 2, k - 2} - 4 \\pi'_{i + 1 / 2, k - 1} + 3 \\pi'_{i + 1 / 2}}{2 \\Delta \\widehat{z}}
+\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{\\pi'_{i + 1 / 2, k - 2} - 4 \\pi'_{i + 1 / 2, k - 1} + 3 \\pi'_{i + 1 / 2}}{2 \\Delta \\widehat{z}}
 ```
 
-at ``k = k_1`` (in the last process in ``\\widehat{z}``). The corresponding pressure-difference-gradient component ``\\mathcal{D}^u_{i + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right)``.
+at ``k = k_1`` (in the last process in ``\\widehat{z}``). The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho u}_{i + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right)``.
 
 ```julia
 compute_pressure_gradient(
@@ -48,22 +48,22 @@ Compute and return the pressure-gradient term in the meridional-wind equation at
 The pressure-gradient component is given by
 
 ```math
-\\mathcal{P}^v_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{\\pi'_{j + 1 / 2, k + 1} - \\pi'_{j + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
+\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{\\pi'_{j + 1 / 2, k + 1} - \\pi'_{j + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
 ```
 
 Analogous to the component in the zonal-wind equation, one has
 
 ```math
-\\mathcal{P}^v_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{- \\pi'_{j + 1 / 2, k + 2} + 4 \\pi'_{j + 1 / 2, k + 1} - 3 \\pi'_{j + 1 / 2}}{2 \\Delta \\widehat{z}}
+\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{- \\pi'_{j + 1 / 2, k + 2} + 4 \\pi'_{j + 1 / 2, k + 1} - 3 \\pi'_{j + 1 / 2}}{2 \\Delta \\widehat{z}}
 ```
 
 at ``k = k_0`` (in the first process in ``\\widehat{z}``) and
 
 ```math
-\\mathcal{P}^v_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{\\pi'_{j + 1 / 2, k - 2} - 4 \\pi'_{j + 1 / 2, k - 1} + 3 \\pi'_{j + 1 / 2}}{2 \\Delta \\widehat{z}}
+\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{\\pi'_{j + 1 / 2, k - 2} - 4 \\pi'_{j + 1 / 2, k - 1} + 3 \\pi'_{j + 1 / 2}}{2 \\Delta \\widehat{z}}
 ```
 
-at ``k = k_1`` (in the last process in ``\\widehat{z}``). The corresponding pressure-difference-gradient component ``\\mathcal{D}^v_{j + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right)``.
+at ``k = k_1`` (in the last process in ``\\widehat{z}``). The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho v}_{j + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right)``.
 
 ```julia
 compute_pressure_gradient(
@@ -82,12 +82,12 @@ The pressure-gradient component is given by
 
 ```math
 \\begin{align*}
-    \\mathcal{P}^{\\widehat{w}}_{k + 1 / 2} & = G^{13}_{k + 1 / 2} \\frac{\\pi'_{i + 1, k + 1 / 2} - \\pi'_{i - 1, k + 1 / 2}}{2 \\Delta \\widehat{x}} + G^{23}_{k + 1 / 2} \\frac{\\pi'_{j + 1, k + 1 / 2} - \\pi'_{j - 1, k + 1 / 2}}{2 \\Delta \\widehat{y}}\\\\
+    \\mathcal{P}^{\\rho \\widehat{w}}_{k + 1 / 2} & = G^{13}_{k + 1 / 2} \\frac{\\pi'_{i + 1, k + 1 / 2} - \\pi'_{i - 1, k + 1 / 2}}{2 \\Delta \\widehat{x}} + G^{23}_{k + 1 / 2} \\frac{\\pi'_{j + 1, k + 1 / 2} - \\pi'_{j - 1, k + 1 / 2}}{2 \\Delta \\widehat{y}}\\\\
     & \\quad + G^{33}_{k + 1 / 2} \\frac{\\pi'_{k + 1} - \\pi'}{\\Delta \\widehat{z}}.
  \\end{align*}
 ```
 
-At ``k = k_0 - 1`` (in the first process in ``\\widehat{z}``) and ``k = k_1`` (in the last process in ``\\widehat{z}``), it is set to zero. The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\widehat{w}}_{k + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right)``.
+At ``k = k_0 - 1`` (in the first process in ``\\widehat{z}``) and ``k = k_1`` (in the last process in ``\\widehat{z}``), it is set to zero. The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho \\widehat{w}}_{k + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right)``.
 
 # Arguments
 

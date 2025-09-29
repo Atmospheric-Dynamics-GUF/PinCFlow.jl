@@ -23,10 +23,6 @@ Construct a `WKBIntegrals` instance, with arrays sized according to the given di
 
   - `vw::A`: Vertical meridional-momentum flux.
 
-  - `etx::A`: Elastic term in the zonal-momentum equation.
-
-  - `ety::A`: Elastic term in the meridional momentum equation.
-
   - `utheta::A`: Zonal mass-weighted potential-temperature flux.
 
   - `vtheta::A`: Meridional mass-weighted potential-temperature flux.
@@ -47,13 +43,11 @@ struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     uw::A
     vv::A
     vw::A
-    etx::A
-    ety::A
     utheta::A
     vtheta::A
     e::A
 end
 
 function WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
-    return WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:10]...)
+    return WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:8]...)
 end

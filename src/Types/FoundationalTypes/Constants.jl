@@ -11,7 +11,7 @@ Constants(namelists::Namelists)::Constants
 
 Create a `Constants` instance.
 
-The Reynolds number is the only constant that depends on the model parameters in `namelists`. If `namelists.atmosphere.specifyreynolds` is `false`, the Reynolds number is ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu``, with ``\\mu`` being the kinematic viscosity at the surface, given by `namelists.atmosphere.mu_viscous_dim`. Otherwise, it is set to the inverse of `namelists.atmosphere.reinv`.
+The Reynolds number is the only constant that depends on the model parameters in `namelists`. If `namelists.atmosphere.specifyreynolds` is `false`, the Reynolds number is ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu``, with ``\\mu`` being the kinematic viscosity at the surface, given by `namelists.atmosphere.kinematic_viscosity`. Otherwise, it is set to the inverse of `namelists.atmosphere.reinv`.
 
 # Fields
 
@@ -106,7 +106,7 @@ struct Constants{A <: AbstractFloat}
 end
 
 function Constants(namelists::Namelists)::Constants
-    (; specifyreynolds, reinv, mu_viscous_dim) = namelists.atmosphere
+    (; specifyreynolds, reinv, kinematic_viscosity) = namelists.atmosphere
 
     # Set natural constants.
     gamma = 1.4
@@ -137,10 +137,10 @@ function Constants(namelists::Namelists)::Constants
             re = 1.0 / reinv
         end
     else
-        if mu_viscous_dim / uref / lref < eps()
+        if kinematic_viscosity / uref / lref < eps()
             re = 1 / eps()
         else
-            re = uref * lref / mu_viscous_dim
+            re = uref * lref / kinematic_viscosity
         end
     end
 

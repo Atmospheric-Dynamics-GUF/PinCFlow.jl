@@ -205,10 +205,8 @@ Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer
 In each tracer equation, the update is given by
 
 ```math
-\\chi \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\chi + \\alpha_\\mathrm{R} \\Delta t \\chi_0\\right),
+\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
 ```
-
-where ``\\chi_0`` is the initial distribution of the tracer.
 
 # Arguments
 

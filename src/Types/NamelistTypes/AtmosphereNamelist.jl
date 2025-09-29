@@ -14,9 +14,9 @@ Namelist for parameters describing the atmospheric background.
 AtmosphereNamelist(;
     specifyreynolds::Bool = false,
     reinv::AbstractFloat = 0.0E+0,
-    mu_viscous_dim::AbstractFloat = 0.0E+0,
-    mu_conduct_dim::AbstractFloat = 0.0E+0,
-    mu_mom_diff_dim::AbstractFloat = 0.0E+0,
+    kinematic_viscosity::AbstractFloat = 0.0E+0,
+    thermal_conductivity::AbstractFloat = 0.0E+0,
+    kinematic_diffusivity::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
     theta0_dim::AbstractFloat = 3.0E+2,
@@ -35,11 +35,11 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `reinv::B`: Inverse Reynolds number.
 
-  - `mu_viscous_dim::B`: Kinematic viscosity at the surface.
+  - `kinematic_viscosity::B`: Kinematic viscosity at the surface.
 
-  - `mu_conduct_dim::B`: Molecular diffusivity in the potential temperature.
+  - `thermal_conductivity::B`: Thermal conductivity at the surface.
 
-  - `mu_mom_diff_dim::B`: Turbulent diffusivity in the momentum.
+  - `kinematic_diffusivity::B`: Kinematic diffusivity at the surface.
 
   - `background::C`: Atmospheric background.
 
@@ -63,9 +63,9 @@ struct AtmosphereNamelist{
 }
     specifyreynolds::A
     reinv::B
-    mu_viscous_dim::B
-    mu_conduct_dim::B
-    mu_mom_diff_dim::B
+    kinematic_viscosity::B
+    thermal_conductivity::B
+    kinematic_diffusivity::B
     background::C
     buoyancy_frequency::B
     theta0_dim::B
@@ -78,9 +78,9 @@ end
 function AtmosphereNamelist(;
     specifyreynolds::Bool = false,
     reinv::AbstractFloat = 0.0E+0,
-    mu_viscous_dim::AbstractFloat = 0.0E+0,
-    mu_conduct_dim::AbstractFloat = 0.0E+0,
-    mu_mom_diff_dim::AbstractFloat = 0.0E+0,
+    kinematic_viscosity::AbstractFloat = 0.0E+0,
+    thermal_conductivity::AbstractFloat = 0.0E+0,
+    kinematic_diffusivity::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
     theta0_dim::AbstractFloat = 3.0E+2,
@@ -92,9 +92,9 @@ function AtmosphereNamelist(;
     return AtmosphereNamelist(
         specifyreynolds,
         reinv,
-        mu_viscous_dim,
-        mu_conduct_dim,
-        mu_mom_diff_dim,
+        kinematic_viscosity,
+        thermal_conductivity,
+        kinematic_diffusivity,
         background,
         buoyancy_frequency,
         theta0_dim,

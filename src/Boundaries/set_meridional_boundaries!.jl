@@ -163,7 +163,7 @@ function set_meridional_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uu, :uv, :uw, :vv, :vw, :etx, :ety, :utheta, :vtheta, :e)
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
         set_meridional_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
