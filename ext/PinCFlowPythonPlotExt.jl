@@ -3,6 +3,9 @@ module PinCFlowPythonPlotExt
 
 using PythonPlot
 
+using PinCFlow: @ivy
+import PinCFlow: set_plot_style, symmetric_contours
+
 function set_plot_style()
     matplotlib.style.use(
         [

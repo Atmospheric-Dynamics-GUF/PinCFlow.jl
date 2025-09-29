@@ -17,3 +17,9 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Dates = "1.10.0"
 LinearAlgebra = "1.10.0"
 Statistics = "1.10.0"
+
+[weakdeps]
+PythonPlot = "274fc56d-3b97-40fa-a1cd-1b4a50311bf9"
+
+[extensions]
+PinCFlowPythonPlotExt = "PythonPlot"

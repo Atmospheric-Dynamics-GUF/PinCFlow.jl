@@ -27,7 +27,7 @@ include("PoissonSolver/PoissonSolver.jl")
 include("FluxCalculator/FluxCalculator.jl")
 include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
-include("Integration/Integration.jl"))
+include("Integration/Integration.jl")
 
 using .Types
 using .Integration
