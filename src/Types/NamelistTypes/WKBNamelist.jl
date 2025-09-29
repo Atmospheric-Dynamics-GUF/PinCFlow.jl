@@ -76,11 +76,11 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `nray_fac::B`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
 
-  - `fac_dk_init::A`: Relative inital ray-volume extent in ``k``.
+  - `fac_dk_init::A`: Relative initial ray-volume extent in ``k``.
 
-  - `fac_dl_init::A`: Relative inital ray-volume extent in ``l``.
+  - `fac_dl_init::A`: Relative initial ray-volume extent in ``l``.
 
-  - `fac_dm_init::A`: Relative inital ray-volume extent in ``m``.
+  - `fac_dm_init::A`: Relative initial ray-volume extent in ``m``.
 
   - `branchr::B`: Frequency branch.
 

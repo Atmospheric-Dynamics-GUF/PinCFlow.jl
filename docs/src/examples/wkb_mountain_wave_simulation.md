@@ -198,7 +198,7 @@ clf()
 
 ```
 
-visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that `symmetric_countours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
+visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that `symmetric_contours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
 
 ![](results/wkb_mountain_wave.png)
 

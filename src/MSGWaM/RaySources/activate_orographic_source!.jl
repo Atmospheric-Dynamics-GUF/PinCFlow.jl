@@ -414,7 +414,7 @@ function activate_orographic_source!(state::State)
             rays.m[r, i, j, k] =
                 (wnrm - dm_ini_nd / 2 + (km - 0.5) * dm_ini_nd / nrm_init)
 
-            # Set spectral ray-voume extent.
+            # Set spectral ray-volume extent.
             rays.dkray[r, i, j, k] = dk_ini_nd / nrk_init
             rays.dlray[r, i, j, k] = dl_ini_nd / nrl_init
             rays.dmray[r, i, j, k] = dm_ini_nd / nrm_init

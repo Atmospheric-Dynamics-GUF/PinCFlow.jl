@@ -1,0 +1,8 @@
+[default.extend-words]
+sizex = "sizex"
+sizey = "sizey"
+sizez = "sizez"
+iin = "iin"
+abd = "abd" # used in the Poisson solver
+wrk = "wrk"
+nd = "nd"
