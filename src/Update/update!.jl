@@ -29,11 +29,42 @@ update!(
 
 Update the density with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
 
+The update is given by
+
+```math
+\\begin{align*}
+    q^\\rho & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\alpha_\\mathrm{RK} q^\\rho,\\\\
+    \\rho & \\rightarrow \\rho + \\beta_\\mathrm{RK} q^\\rho,
+\\end{align*}
+```
+
+where ``\\Delta t`` is the time step given as input to this method.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)
 ```
 
 Update the density fluctuations with a Runge-Kutta step on the left-hand-side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho'} & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
+\\end{align*}
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\begin{align*}
+    q^{\\rho'} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\frac{F^P}{\\overline{\\theta}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
+\\end{align*}
+```
+
+in compressible mode.
 
 ```julia
 update!(
@@ -46,6 +77,20 @@ update!(
 ```
 
 Update the density fluctuations with an explicit Euler step the on right-hand side of the equation, without the Rayleigh-damping term.
+
+The update is given by
+
+```math
+\\rho' \\rightarrow - \\frac{\\rho}{g} \\left(b' - \\Delta t N^2 \\frac{\\overline{\\rho}}{\\rho} w\\right)
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\rho' \\rightarrow - \\frac{\\rho}{g} \\left[b' - \\Delta t N^2 \\frac{P / \\overline{\\theta}}{\\rho} \\left(\\frac{W_{k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right)\\right]
+```
+
+in compressible mode, where ``b' = - g \\rho' / \\rho``.
 
 ```julia
 update!(
@@ -60,11 +105,46 @@ update!(
 
 Update the density fluctuations with an implicit Euler step on the right-hand side of the equation.
 
+The update is given by
+
+```math
+\\begin{align*}
+    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{- \\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left[\\widehat{w}_\\mathrm{old} + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right] + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b'\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{13} u + G^{23} v\\right)\\vphantom{\\left[\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right]}\\right\\},
+\\end{align*}
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\begin{align*}
+    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{- \\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left[\\left(\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right) + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right]\\right.\\\\
+    & \\qquad \\quad + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b' + \\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right)\\\\
+    & \\qquad \\quad \\times \\left.\\left[G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right) + G^{23} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right]\\right\\},
+\\end{align*}
+```
+
+in compressible mode, where ``\\widehat{w}_\\mathrm{old}`` is the transformed vertical wind stored in `state.variables.backups`.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
 ```
 
 Update the zonal momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho u}_{i + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + f \\left(\\rho_\\mathrm{old} v\\right)_{i + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2},\\\\
+    u_{i + 1 / 2} & \\rightarrow \\rho_{i + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, i + 1 / 2} u_{i + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2}\\right),
+\\end{align*}
+```
+
+where ``\\rho_\\mathrm{old}`` is the density stored in `state.variables.backups`.
 
 ```julia
 update!(
@@ -77,6 +157,20 @@ update!(
 ```
 
 Update the zonal wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
+
+The update is given by
+
+```math
+u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{P}_{i + 1 / 2}^{\\rho u} + \\frac{F_{i + 1 / 2}^{\\rho u}}{\\rho_{i + 1 / 2}}\\right)
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+U_{i + 1 / 2} \\rightarrow U_{i + 1 / 2} + \\Delta t \\left(J P\\right)_{i + 1 / 2} \\left(- c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{P}_{i + 1 / 2}^{\\rho u} + \\frac{F_{i + 1 / 2}^{\\rho u}}{\\rho_{i + 1 / 2}}\\right)
+```
+
+in compressible mode.
 
 ```julia
 update!(
@@ -91,11 +185,37 @@ update!(
 
 Update the zonal wind with an implicit Euler step on the right-hand side of the equation.
 
+The update is given by
+
+```math
+u_{i + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\left[u_{i + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{P}_{i + 1 / 2}^{\\rho u} + \\frac{F_{i + 1 / 2}^{\\rho u}}{\\rho_{i + 1 / 2}}\\right)\\right]
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+U_{i + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\left[U_{i + 1 / 2} + \\Delta t \\left(J P\\right)_{i + 1 / 2} \\left(- c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{P}_{i + 1 / 2}^{\\rho u} + \\frac{F_{i + 1 / 2}^{\\rho u}}{\\rho_{i + 1 / 2}}\\right)\\right]
+```
+
+in compressible mode.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)
 ```
 
 Update the meridional momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho v}_{j + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\widehat{y}}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) - f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{j + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2},\\\\
+    v_{j + 1 / 2} & \\rightarrow \\rho_{j + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, j + 1 / 2} v_{j + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2}\\right),
+\\end{align*}
+```
+
+where ``\\rho_\\mathrm{old}`` and ``u_{\\mathrm{old}, i + 1 / 2}`` are the density and zonal wind stored in `state.variables.backups`.
 
 ```julia
 update!(
@@ -108,6 +228,20 @@ update!(
 ```
 
 Update the meridional wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
+
+The update is given by
+
+```math
+v_{i + 1 / 2} \\rightarrow v_{j + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{P}_{j + 1 / 2}^{\\rho v} + \\frac{F_{j + 1 / 2}^{\\rho v}}{\\rho_{j + 1 / 2}}\\right)
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+V_{j + 1 / 2} \\rightarrow V_{j + 1 / 2} + \\Delta t \\left(J P\\right)_{j + 1 / 2} \\left(- c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{P}_{j + 1 / 2}^{\\rho v} + \\frac{F_{j + 1 / 2}^{\\rho v}}{\\rho_{j + 1 / 2}}\\right)
+```
+
+in compressible mode.
 
 ```julia
 update!(
@@ -122,11 +256,42 @@ update!(
 
 Update the meridional wind with an implicit Euler step on the right-hand side of the equation.
 
+The update is given by
+
+```math
+v_{j + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\left[v_{j + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{P}_{j + 1 / 2}^{\\rho v} + \\frac{F_{j + 1 / 2}^{\\rho v}}{\\rho_{j + 1 / 2}}\\right)\\right]
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+V_{j + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\left[V_{j + 1 / 2} + \\Delta t \\left(J P\\right)_{j + 1 / 2} \\left(- c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{P}_{j + 1 / 2}^{\\rho v} + \\frac{F_{j + 1 / 2}^{\\rho v}}{\\rho_{j + 1 / 2}}\\right)\\right]
+```
+
+in compressible mode.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::W, side::LHS)
 ```
 
 Update the transformed vertical momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho \\widehat{w}}_{k + 1 / 2} & \\rightarrow \\Delta t \\left\\{- \\left[G^{13} \\left(\\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
+    & \\qquad \\qquad - \\left[G^{23} \\left(\\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\widehat{y}}}{\\Delta \\widehat{y}}\\right.\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
+    & \\qquad \\qquad - \\frac{1}{J_{k + 1 / 2}^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\widehat{x}}_{i - 1 / 2, k + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\widehat{y}}_{j - 1 / 2, k + 1 / 2}}{\\Delta \\widehat{y}}\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\quad + \\left.\\frac{\\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\widehat{z}}}{\\Delta \\widehat{z}}\\right)\\\\
+    & \\qquad \\qquad + \\left.G^{13} f \\left(\\rho_\\mathrm{old} v_\\mathrm{old}\\right)_{k + 1 / 2} - G^{23} f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{k + 1 / 2}\\vphantom{- \\frac{1}{J^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\widehat{z}}}{\\Delta \\widehat{z}}\\right)}\\right\\} + \\alpha_\\mathrm{RK} q^{\\rho \\widehat{w}}_{k + 1 / 2},\\\\
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\rho_{k + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, k + 1 / 2} \\widehat{w}_{k + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho \\widehat{w}}_{k + 1 / 2}\\right),
+\\end{align*}
+```
+
+where ``\\rho_\\mathrm{old}``, ``u_{\\mathrm{old}, i + 1 / 2}`` and ``v_{\\mathrm{old}, j + 1 / 2}`` are the density, zonal wind and meridional wind stored in `state.variables.backups`.
 
 ```julia
 update!(
@@ -140,6 +305,20 @@ update!(
 
 Update the transformed vertical wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
 
+The update is given by
+
+```math
+\\widehat{w}_{k + 1 / 2} \\rightarrow \\widehat{w}_{k + 1 / 2} + \\Delta t \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right]
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\widehat{W}_{k + 1 / 2} \\rightarrow \\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right]
+```
+
+in compressible mode, where ``b'_\\mathrm{old} = - g \\rho'_\\mathrm{old} / \\rho``, with ``\\rho'_\\mathrm{old}`` being the density fluctuations stored in `state.variables.backups`.
+
 ```julia
 update!(
     state::State,
@@ -152,6 +331,29 @@ update!(
 ```
 
 Update the transformed vertical wind with an implicit Euler step on the right-hand side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\widehat{w}_{k + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2 \\left[\\left(G^{13} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+\\end{align*}
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\begin{align*}
+    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\\\
+    & \\qquad \\quad \\times \\left.\\left[\\left(G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right)\\right)_{k + 1 / 2} + \\left(G^{2 3} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+\\end{align*}
+```
+
+in compressible mode.
 
 ```julia
 update!(state::State, dt::AbstractFloat, variable::PiP)
@@ -170,6 +372,17 @@ update!(state::State, dt::AbstractFloat, variable::PiP, model::Compressible)
 ```
 
 Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.
+
+The update is given by
+
+```math
+\\begin{align*}
+    \\pi' & \\rightarrow \\pi' + \\Delta t \\left(\\frac{\\partial \\pi'}{\\partial P}\\right) \\left[- \\frac{1}{J} \\left(\\frac{U_{\\mathrm{old}, i + 1 / 2} - U_{\\mathrm{old}, i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{V_{\\mathrm{old}, j + 1 / 2} - V_{\\mathrm{old}, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2} - \\widehat{W}_{\\mathrm{old}, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^P\\right],
+\\end{align*}
+```
+
+where ``U_{\\mathrm{old}, i + 1 / 2}``, ``V_{\\mathrm{old}, j + 1 / 2}`` and ``\\widehat{W}_{\\mathrm{old}, k + 1 / 2}`` are the transformed wind components (including the factor ``J P``) stored in `state.variables.backups`.
 
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
@@ -201,6 +414,15 @@ update!(
 
 Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
 
+The update is given by
+
+```math
+\\begin{align*}
+    q^P & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{P, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{P, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{P, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{P, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{P, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{P, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^P\\right] + \\alpha_\\mathrm{RK} q^P,\\\\
+    P & \\rightarrow P + \\beta_\\mathrm{RK} q^P.
+\\end{align*}
+```
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, tracersetup::NoTracer)
 ```
@@ -217,6 +439,15 @@ update!(
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho \\chi} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^{\\rho \\chi}\\right] + \\alpha_\\mathrm{RK} q^{\\rho \\chi},\\\\
+    \\left(\\rho \\chi\\right) & \\rightarrow \\left(\\rho \\chi\\right) + \\beta_\\mathrm{RK} q^{\\rho \\chi}.
+\\end{align*}
+```
 
 # Arguments
 

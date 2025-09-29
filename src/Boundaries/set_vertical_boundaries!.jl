@@ -202,7 +202,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uu, :uv, :uw, :vv, :vw, :etx, :ety, :utheta, :vtheta, :e)
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
         set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,

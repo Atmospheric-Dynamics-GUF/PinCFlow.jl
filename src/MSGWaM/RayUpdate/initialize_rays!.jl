@@ -259,11 +259,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             end
 
             # Set phase-space wave-action density.
-            if k == sizez
-                rays.dens[r, i, j, k] = 0.0
-            else
-                rays.dens[r, i, j, k] = wad_ini[alpha, i, j, k] / pspvol
-            end
+            rays.dens[r, i, j, k] = wad_ini[alpha, i, j, k] / pspvol
 
             # Interpolate winds to ray-volume position.
             uxr = interpolate_mean_flow(xr, yr, zr, state, U())

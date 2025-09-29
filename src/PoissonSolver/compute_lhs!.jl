@@ -39,9 +39,7 @@ The scaled left-hand side is given by
 
 ```math
 \\begin{align*}
-    b & = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left\\{\\frac{1}{\\Delta \\widehat{x}} \\left[\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2} - \\left(J P\\right)_{i - 1 / 2} u_{i - 1 / 2}\\right]\\right.\\\\
-    & \\qquad \\qquad \\quad + \\frac{1}{\\Delta \\widehat{y}} \\left[\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2} - \\left(J P\\right)_{j - 1 / 2} v_{j - 1 / 2}\\right]\\\\
-    & \\qquad \\qquad \\quad + \\left.\\frac{1}{\\Delta \\widehat{z}} \\left[\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - \\left(J P\\right)_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right]\\right\\} - \\frac{\\sqrt{\\overline{\\rho}}}{P} F^P,
+    b & = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left(\\frac{U_{i + 1 / 2} - U_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{V_{j + 1 / 2} - V_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\widehat{W}_{k + 1 / 2} - \\widehat{W}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) - \\frac{\\sqrt{\\overline{\\rho}}}{P} F^P,
 \\end{align*}
 ```
 

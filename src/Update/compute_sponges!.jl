@@ -5,16 +5,16 @@ compute_sponges!(state::State, dt::AbstractFloat)
 
 Compute the Rayleigh-damping coefficients of the two sponges.
 
-This method directly computes the Rayleigh-damping coefficients
+This method directly computes the Rayleigh-damping coefficient
 
 ```math
-\\beta_\\mathrm{R}^{uv} = \\beta_\\mathrm{R}^{\\widehat{w}} \\left(z\\right) = \\begin{cases}
+\\beta_\\mathrm{R} \\left(z\\right) = \\begin{cases}
     \\frac{\\beta_{\\mathrm{R}, \\max}}{\\Delta t} \\sin^2 \\left[\\frac{\\pi \\left(z - z_\\mathrm{R}\\right)}{2 \\left(L_z - z_\\mathrm{R}\\right)}\\right] & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
     0 & \\mathrm{else},
 \\end{cases}
 ```
 
-where ``\\beta_{\\mathrm{R}, \\max}`` and ``z_\\mathrm{R}`` are given by `state.namelists.sponge.betarmax` and `state.sponge.zsponge`, respectively. These coefficients are only used in the prognostic equations for the horizontal wind (``\\beta_\\mathrm{R}^{uv}``, only if `state.namelists.sponge.sponge_uv` is `true`) and the transformed vertical wind (``\\beta_\\mathrm{R}^{\\widehat{w}}``). The corresponding damping terms are integrated on the right-hand sides.
+where ``\\beta_{\\mathrm{R}, \\max}`` and ``z_\\mathrm{R}`` are given by `state.namelists.sponge.betarmax` and `state.sponge.zsponge`, respectively. This coefficient is only used in the prognostic equations for the horizontal wind (if `state.namelists.sponge.sponge_uv` is `true`) and the transformed vertical wind. The corresponding damping terms are integrated on the right-hand sides.
 
 This method also dispatches to a specific method that computes the Rayleigh damping coefficient of the RHS sponge defined for `state.namelists.sponge.spongetype`.
 

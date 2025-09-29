@@ -38,36 +38,47 @@ propagate_rays!(
 
 Integrate the wave-action-density and ray equations derived from 1D or 3D transient WKB theory.
 
-The ray equations are given by
+The updates of the RK tendencies for the phase-space position of each ray volume are given by
 
 ```math
 \\begin{align*}
-    \\frac{\\mathrm{d} x_r}{\\mathrm{d} t} & = c_{\\mathrm{g}, x, r} = u_{\\mathrm{b}, r} + k_r \\frac{N_r^2 - \\widehat{\\omega}_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
-    \\frac{\\mathrm{d} y_r}{\\mathrm{d} t} & = c_{\\mathrm{g}, y, r} = v_{\\mathrm{b}, r} + l_r \\frac{N_r^2 - \\widehat{\\omega}_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
-    \\frac{\\mathrm{d} z_r}{\\mathrm{d} t} & = c_{\\mathrm{g}, z, r} = - \\frac{m_r \\left(\\widehat{\\omega}_r^2 - f^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
-    \\frac{\\mathrm{d} k_r}{\\mathrm{d} t} & = \\dot{k}_r = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_r,\\\\
-    \\frac{\\mathrm{d} l_r}{\\mathrm{d} t} & = \\dot{l}_r = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_r,\\\\
-    \\frac{\\mathrm{d} m_r}{\\mathrm{d} t} & = \\dot{m}_r = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_r - \\frac{k_r^2 + l_r^2}{2 \\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_r,
+    q_r^x & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r} + k_r \\frac{N_r^2 - \\widehat{\\omega}_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^x,\\\\
+    q_r^y & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r} + l_r \\frac{N_r^2 - \\widehat{\\omega}_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^y,\\\\
+    q_r^z & \\rightarrow - \\Delta t \\frac{m_r \\left(\\widehat{\\omega}_r^2 - f^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} + \\alpha_\\mathrm{RK} q_r^z,\\\\
+    q_r^k & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^k,\\\\
+    q_r^l & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^l,\\\\
+    q_r^m & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_r - \\frac{k_r^2 + l_r^2}{2 \\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^m
 \\end{align*}
 ```
 
-where the subscript ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition to these, MSGWaM integrates prognostic equations for the ray-volume extents, given by
+and the position update is
 
 ```math
 \\begin{align*}
-    \\frac{\\mathrm{d} \\Delta x_r}{\\mathrm{d} t} & = \\frac{\\mathrm{d} x_{r, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} x_{r, -}}{\\mathrm{d} t} = u_{\\mathrm{b}, r, +} - u_{\\mathrm{b}, r, -},\\\\
-    \\frac{\\mathrm{d} \\Delta y_r}{\\mathrm{d} t} & = \\frac{\\mathrm{d} y_{r, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} y_{r, -}}{\\mathrm{d} t} = v_{\\mathrm{b}, r, +} - v_{\\mathrm{b}, r, -},\\\\
-    \\frac{\\mathrm{d} \\Delta z_r}{\\mathrm{d} t} & = \\frac{\\mathrm{d} z_{r, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} z_{r, -}}{\\mathrm{d} t} = c_{\\mathrm{g} z, r, +} - c_{\\mathrm{g} z, r, -},
+    x_r & = x_r + \\beta_\\mathrm{RK} q_r^x, & y_r & \\rightarrow y_r + \\beta_\\mathrm{RK} q_r^y, & z_r & \\rightarrow z_r + \\beta_\\mathrm{RK} q_r^z,\\\\
+    k_r & \\rightarrow k_r + \\beta_\\mathrm{RK} q_r^k, & l_r & \\rightarrow l_r + \\beta_\\mathrm{RK} q_r^l, & m_r & \\rightarrow m_r + \\beta_\\mathrm{RK} q_r^m,
 \\end{align*}
 ```
 
-where ``u_{\\mathrm{b}, r, \\pm}`` is the interpolation of ``u_\\mathrm{b}`` to ``x_{r, \\pm} = x_r \\pm \\Delta x_r / 2`` and ``v_{\\mathrm{b}, r, \\pm}`` is the equivalent for ``v_\\mathrm{b}`` in ``y``-direction. In the computation of ``c_{\\mathrm{g} z, r, \\pm}``, the intrinsic frequency and squared buoyancy frequency are interpolated to ``z_{r, \\pm} = z_r \\pm \\Delta z_r / 2``. The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the prognostic equation for the phase-space wave-action density reads
+where the subscript ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition, MSGWaM updates the ray-volume extents, following
 
 ```math
-\\frac{\\mathrm{d} \\mathcal{N}_r}{\\mathrm{d} t} = - 2 \\alpha_{\\mathrm{R}, r} \\mathcal{N}_r,
+\\begin{align*}
+    q_r^{\\Delta x} & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r, +} - u_{\\mathrm{b}, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta x}, & \\Delta x_r & \\rightarrow \\Delta x_r + \\beta_\\mathrm{RK} q_r^{\\Delta x},\\\\
+    q_r^{\\Delta y} & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r, +} - v_{\\mathrm{b}, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta y}, & \\Delta y_r & \\rightarrow \\Delta y_r + \\beta_\\mathrm{RK} q_r^{\\Delta y},\\\\
+    q_r^{\\Delta z} & \\rightarrow \\Delta t \\left(c_{\\mathrm{g} z, r, +} - c_{\\mathrm{g} z, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta z}, & \\Delta z_r & \\rightarrow \\Delta z_r + \\beta_\\mathrm{RK} q_r^{\\Delta z},
+\\end{align*}
 ```
 
-where ``\\alpha_{\\mathrm{R}, r}`` is the interpolation of the Rayleigh-damping coefficient to the ray-volume position, obtained from `interpolate_sponge`. While the ray equations are integrated with the low-storage third-order Runge-Kutta scheme, the phase-space wave-action density is updated with an implicit substep at the end of each Runge-Kutta stage. The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation.
+where ``u_{\\mathrm{b}, r, \\pm}`` is the interpolation of ``u_\\mathrm{b}`` to ``x_{r, \\pm} = x_r \\pm \\Delta x_r / 2`` (from before the position update) and ``v_{\\mathrm{b}, r, \\pm}`` is the equivalent for ``v_\\mathrm{b}`` in ``y``-direction. In the computation of ``c_{\\mathrm{g} z, r, \\pm}``, the intrinsic frequency and squared buoyancy frequency are interpolated to ``z_{r, \\pm} = z_r \\pm \\Delta z_r / 2`` (also from before the position update). The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the update of the phase-space wave-action density reads
+
+```math
+\\mathcal{N}_r \\rightarrow \\left(1 + 2 \\alpha_{\\mathrm{R}, r} f_\\mathrm{RK} \\Delta t\\right)^{- 1} \\mathcal{N}_r,
+```
+
+where ``\\alpha_{\\mathrm{R}, r}`` is the interpolation of the Rayleigh-damping coefficient to the updated ray-volume position, obtained from `interpolate_sponge`.
+
+The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation.
 
 ```julia
 propagate_rays!(
@@ -104,7 +115,9 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 \\mathcal{A}_r = \\left[1 + \\frac{2 \\alpha_{\\mathrm{R}, r}}{c_{\\mathrm{g} z, r}} \\left(z_r - z_{r, k - 1}\\right)\\right]^{- 1} \\frac{c_{\\mathrm{g} z, r, k - 1}}{c_{\\mathrm{g} z, r}} \\mathcal{A}_{r, k - 1},
 ```
 
-the second term is integrated with the pseudo-time step ``J \\Delta \\widehat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\widehat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``. If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
+the second term is integrated with the pseudo-time step ``J \\Delta \\widehat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\widehat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
+
+If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
 
 # Arguments
 
