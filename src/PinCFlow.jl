@@ -14,8 +14,10 @@ Main module of PinCFlow.
 module PinCFlow
 
 include("@ivy.jl")
+include("plotting.jl")
 
 export @ivy
+export set_plot_style, symmetric_contours
 
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
@@ -25,7 +27,7 @@ include("PoissonSolver/PoissonSolver.jl")
 include("FluxCalculator/FluxCalculator.jl")
 include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
-include("Integration/Integration.jl")
+include("Integration/Integration.jl"))
 
 using .Types
 using .Integration
