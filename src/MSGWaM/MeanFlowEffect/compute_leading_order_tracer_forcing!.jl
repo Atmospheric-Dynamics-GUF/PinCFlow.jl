@@ -45,6 +45,8 @@ function compute_leading_order_tracer_forcing!(
     (; sizex, sizey) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; uchi, vchi, wchi, dchidt) = state.tracer.tracerforcings.chiq0
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
 
     @ivy dchidt[i, j, k] = 0.0
 
@@ -69,7 +71,9 @@ function compute_leading_order_tracer_forcing!(
     @ivy dchiw =
         (wchi[i, j, k + 1] - wchi[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
 
-    @ivy dchidt[i, j, k] = -(dchiu + dchiv + dchiw)
+    @ivy dchidt[i, j, k] =
+        -(rho[i, j, k] + rhostrattfc[i, j, k]) / rhostrattfc[i, j, k] *
+        (dchiu + dchiv + dchiw)
 
     return
 end
