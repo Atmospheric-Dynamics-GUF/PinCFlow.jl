@@ -9,7 +9,7 @@ Apply the saturation scheme by dispatching to a test-case-specific method.
 apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )
 ```
 
@@ -19,7 +19,7 @@ Return for non-WKB test cases.
 apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
 ```
 
@@ -69,7 +69,7 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - `dt`: Time step.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -86,15 +86,15 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 function apply_saturation_scheme! end
 
 function apply_saturation_scheme!(state::State, dt::AbstractFloat)
-    (; testcase) = state.namelists.setting
-    apply_saturation_scheme!(state, dt, testcase)
+    (; test_case) = state.namelists.setting
+    apply_saturation_scheme!(state, dt, test_case)
     return
 end
 
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )
     return
 end
@@ -102,7 +102,7 @@ end
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
     (; wkb_mode) = state.namelists.wkb
     apply_saturation_scheme!(state, dt, wkb_mode)

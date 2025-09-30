@@ -6,7 +6,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -104,7 +104,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -229,7 +229,7 @@ The topography is represented by the first array in the returned tuple.
 
   - `y`: ``\\widehat{y}``-coordinate grid points.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
 # See also
 
@@ -245,14 +245,13 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
 }
-    (; testcase) = namelists.setting
     (; nwm) = namelists.wkb
     (;
         mountain_height,
@@ -376,14 +375,13 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
 }
-    (; testcase) = namelists.setting
     (;
         mountain_height,
         mountain_half_width,

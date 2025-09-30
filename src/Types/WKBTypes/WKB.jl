@@ -29,7 +29,7 @@ WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::WKB
 ```
 
@@ -41,7 +41,7 @@ WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::WKB
 ```
 
@@ -103,7 +103,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `grid`: Collection of parameters and fields that describe the grid.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
 # See also
 
@@ -159,8 +159,8 @@ function WKB(
     domain::Domain,
     grid::Grid,
 )::WKB
-    (; testcase) = namelists.setting
-    return WKB(namelists, constants, domain, grid, testcase)
+    (; test_case) = namelists.setting
+    return WKB(namelists, constants, domain, grid, test_case)
 end
 
 function WKB(
@@ -168,7 +168,7 @@ function WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::WKB
     return WKB(
         [0 for i in 1:9]...,
@@ -191,7 +191,7 @@ function WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::WKB
     (;
         xrmin_dim,

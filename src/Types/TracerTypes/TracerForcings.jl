@@ -28,7 +28,11 @@ TracerForcings(
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain, testcase::AbstractTestCase)
+TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    test_case::AbstractTestCase,
+)
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.
@@ -37,7 +41,7 @@ Construct a `TracerForcings` instance for configurations without WKB model.
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
 ```
 
@@ -55,7 +59,7 @@ Construct a `TracerForcings` instance for configurations with tracer transport a
 
   - `tracersetup`: General tracer-transport configuration.
 
-  - `testcase`: Teset case on which the current simulation is based.
+  - `test_case`: Teset case on which the current simulation is based.
 
 # See also:
 
@@ -84,15 +88,15 @@ function TracerForcings(
     domain::Domain,
     tracersetup::AbstractTracer,
 )::TracerForcings
-    (; testcase) = namelists.setting
+    (; test_case) = namelists.setting
 
-    return TracerForcings(namelists, domain, testcase)
+    return TracerForcings(namelists, domain, test_case)
 end
 
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::TracerForcings
     return TracerForcings(TracerWKBImpact(0, 0, 0))
 end
@@ -100,7 +104,7 @@ end
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::TracerForcings
     (; nxx, nyy, nzz) = domain
 

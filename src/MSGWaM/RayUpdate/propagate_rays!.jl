@@ -10,7 +10,7 @@ propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )
 ```
 
@@ -21,7 +21,7 @@ propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
 ```
 
@@ -127,7 +127,7 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 
   - `rkstage`: Runge-Kutta-stage index.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -154,8 +154,8 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 function propagate_rays! end
 
 function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
-    (; testcase) = state.namelists.setting
-    propagate_rays!(state, dt, rkstage, testcase)
+    (; test_case) = state.namelists.setting
+    propagate_rays!(state, dt, rkstage, test_case)
     return
 end
 
@@ -163,7 +163,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )
     return
 end
@@ -172,7 +172,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
     (; wkb_mode) = state.namelists.wkb
     propagate_rays!(state, dt, rkstage, wkb_mode)
@@ -185,7 +185,7 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::AbstractWKBMode,
 )
-    (; testcase) = state.namelists.setting
+    (; test_case) = state.namelists.setting
     (; branchr, zmin_wkb_dim) = state.namelists.wkb
     (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -201,7 +201,7 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kmin = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
+    kmin = test_case == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
     kmax = k1
 
     # Initialize WKB increments at the first RK stage.
@@ -243,7 +243,7 @@ function propagate_rays!(
             khr = sqrt(kr^2 + lr^2)
 
             # Skip ray volumes that have left the domain.
-            if testcase != WKBMountainWave()
+            if test_case != WKBMountainWave()
                 if zr1 < ztildetfc[i, j, k0 - 2]
                     nskip += 1
                     continue
@@ -462,7 +462,7 @@ function propagate_rays!(
         end
     end
 
-    if testcase == WKBMountainWave()
+    if test_case == WKBMountainWave()
         activate_orographic_source!(state)
     end
 
@@ -476,7 +476,7 @@ function propagate_rays!(
     wkb_mode::SteadyState,
 )
     (; ndx, ndy) = state.namelists.domain
-    (; testcase) = state.namelists.setting
+    (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
     (; spongelayer) = state.namelists.sponge
     (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
@@ -492,7 +492,7 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    if testcase == WKBMountainWave()
+    if test_case == WKBMountainWave()
         activate_orographic_source!(state)
     end
 

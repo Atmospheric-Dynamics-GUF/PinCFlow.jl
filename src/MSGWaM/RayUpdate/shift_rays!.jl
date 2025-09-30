@@ -6,13 +6,13 @@ shift_rays!(state::State)
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a test-case-specific method.
 
 ```julia
-shift_rays!(state::State, testcase::AbstractTestCase)
+shift_rays!(state::State, test_case::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
 ```julia
-shift_rays!(state::State, testcase::AbstractWKBTestCase)
+shift_rays!(state::State, test_case::AbstractWKBTestCase)
 ```
 
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a WKB-mode-specific method.
@@ -67,7 +67,7 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 
   - `state`: Model state.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -90,16 +90,16 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 function shift_rays! end
 
 function shift_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    shift_rays!(state, testcase)
+    (; test_case) = state.namelists.setting
+    shift_rays!(state, test_case)
     return
 end
 
-function shift_rays!(state::State, testcase::AbstractTestCase)
+function shift_rays!(state::State, test_case::AbstractTestCase)
     return
 end
 
-function shift_rays!(state::State, testcase::AbstractWKBTestCase)
+function shift_rays!(state::State, test_case::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     shift_rays!(state, wkb_mode)
     return

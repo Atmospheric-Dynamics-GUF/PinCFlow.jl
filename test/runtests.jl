@@ -35,11 +35,11 @@ configurations = Dict(
 @testset "PinCFlow tests" begin
     for model in keys(configurations)
         for background in keys(configurations[model])
-            for testcase in keys(configurations[model][background])
+            for test_case in keys(configurations[model][background])
                 title =
                     uppercasefirst(
                         replace(
-                            configurations[model][background][testcase],
+                            configurations[model][background][test_case],
                             "_" => "-",
                             "wkb" => "WKB",
                         ),
@@ -105,7 +105,7 @@ configurations = Dict(
                         output_interval = 3.6E+3,
                         tmax = 3.6E+3,
                         input_file = "test/" *
-                                     configurations[model][background][testcase] *
+                                     configurations[model][background][test_case] *
                                      ".h5",
                         output_file = "test/pincflow_output.h5",
                     )
@@ -121,7 +121,7 @@ configurations = Dict(
                     )
 
                     setting =
-                        SettingNamelist(; model = model, testcase = testcase)
+                        SettingNamelist(; model = model, test_case = test_case)
 
                     sponge = SpongeNamelist(;
                         spongelayer = true,
@@ -194,7 +194,7 @@ configurations = Dict(
                     data = h5open("test/pincflow_output.h5")
                     reference = h5open(
                         "test/" *
-                        configurations[model][background][testcase] *
+                        configurations[model][background][test_case] *
                         ".h5",
                     )
 

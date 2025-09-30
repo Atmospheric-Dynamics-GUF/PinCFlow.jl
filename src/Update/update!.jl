@@ -1460,7 +1460,7 @@ function update!(
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
-    (; testcase) = state.namelists.setting
+    (; test_case) = state.namelists.setting
 
     @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
         if m == 1
@@ -1478,7 +1478,7 @@ function update!(
             fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
             fluxdiff /= jac[i, j, k]
 
-            force = compute_volume_force(state, i, j, k, Chi(), testcase)
+            force = compute_volume_force(state, i, j, k, Chi(), test_case)
             f = -fluxdiff + force
 
             getfield(tracerincrements, fd)[i, j, k] =

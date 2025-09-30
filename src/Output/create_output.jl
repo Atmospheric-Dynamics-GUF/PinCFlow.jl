@@ -17,7 +17,7 @@ function create_output(state::State)
     (; ndx, ndy, ndz, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; model, testcase) = state.namelists.setting
+    (; model, test_case) = state.namelists.setting
     (; comm) = state.domain
     (; nray_max) = state.wkb
 
@@ -207,7 +207,7 @@ function create_output(state::State)
         end
 
         # Create datasets for WKB variables.
-        if typeof(testcase) <: AbstractWKBTestCase
+        if typeof(test_case) <: AbstractWKBTestCase
 
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes

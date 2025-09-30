@@ -80,7 +80,7 @@ function write_output(
     (; ndx, ndy, ndz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; model, testcase) = state.namelists.setting
+    (; model, test_case) = state.namelists.setting
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, ztfc) = grid
@@ -312,7 +312,7 @@ function write_output(
         end
 
         # Write WKB variables.
-        if typeof(testcase) <: AbstractWKBTestCase
+        if typeof(test_case) <: AbstractWKBTestCase
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes

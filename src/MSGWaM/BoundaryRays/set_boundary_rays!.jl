@@ -6,13 +6,13 @@ set_boundary_rays!(state::State)
 Enforce boundary conditions for ray volumes by dispatching to a test-case-specific method.
 
 ```julia
-set_boundary_rays!(state::State, testcase::AbstractTestCase)
+set_boundary_rays!(state::State, test_case::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
 ```julia
-set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
+set_boundary_rays!(state::State, test_case::AbstractWKBTestCase)
 ```
 
 Enforce boundary conditions for ray volumes by dispatching to a WKB-mode-specific method.
@@ -37,7 +37,7 @@ Zonal (meridional) boundary conditions are only enforced if `state.namelists.dom
 
   - `state`: Model state.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -52,16 +52,16 @@ Zonal (meridional) boundary conditions are only enforced if `state.namelists.dom
 function set_boundary_rays! end
 
 function set_boundary_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    set_boundary_rays!(state, testcase)
+    (; test_case) = state.namelists.setting
+    set_boundary_rays!(state, test_case)
     return
 end
 
-function set_boundary_rays!(state::State, testcase::AbstractTestCase)
+function set_boundary_rays!(state::State, test_case::AbstractTestCase)
     return
 end
 
-function set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
+function set_boundary_rays!(state::State, test_case::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     set_boundary_rays!(state, wkb_mode)
     return

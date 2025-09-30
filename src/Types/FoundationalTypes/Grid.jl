@@ -167,7 +167,7 @@ end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; ndx, ndy, ndz, nbz) = namelists.domain
-    (; testcase) = namelists.setting
+    (; test_case) = namelists.setting
     (; stretch_exponent,) = namelists.grid
     (; nxx, nyy, nzz, ndxx, ndyy, ndzz, ko, i0, i1, j0, j1, k0) = domain
     (; lref) = constants
@@ -221,7 +221,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
 
     # Compute the topography.
     (topography_surface, topography_spectrum, k_spectrum, l_spectrum) =
-        compute_topography(namelists, constants, domain, x, y, testcase)
+        compute_topography(namelists, constants, domain, x, y, test_case)
 
     # Initialize Jacobian and metric tensor.
     jac = zeros(nxx, nyy, nzz)

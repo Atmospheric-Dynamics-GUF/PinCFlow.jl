@@ -6,13 +6,13 @@ merge_rays!(state::State)
 Merge ray volumes by dispatching to a test-case-specific method.
 
 ```julia
-merge_rays!(state::State, testcase::AbstractTestCase)
+merge_rays!(state::State, test_case::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
 ```julia
-merge_rays!(state::State, testcase::AbstractWKBTestCase)
+merge_rays!(state::State, test_case::AbstractWKBTestCase)
 ```
 
 Merge ray volumes by dispatching to a WKB-mode-specific method.
@@ -35,7 +35,7 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 
   - `state`: Model state.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -64,16 +64,16 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 function merge_rays! end
 
 function merge_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    merge_rays!(state, testcase)
+    (; test_case) = state.namelists.setting
+    merge_rays!(state, test_case)
     return
 end
 
-function merge_rays!(state::State, testcase::AbstractTestCase)
+function merge_rays!(state::State, test_case::AbstractTestCase)
     return
 end
 
-function merge_rays!(state::State, testcase::AbstractWKBTestCase)
+function merge_rays!(state::State, test_case::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     merge_rays!(state, wkb_mode)
     return

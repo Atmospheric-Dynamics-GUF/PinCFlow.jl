@@ -39,7 +39,7 @@ grid = GridNamelist(;
     width_factor = 1.0E+1,
 )
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
-setting = SettingNamelist(; testcase = WKBMountainWave())
+setting = SettingNamelist(; test_case = WKBMountainWave())
 sponge = SpongeNamelist(;
     spongelayer = true,
     spongeheight = 1.0E-1,

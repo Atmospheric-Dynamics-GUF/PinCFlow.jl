@@ -6,13 +6,13 @@ initialize_rays!(state::State)
 Complete the initialization of MSGWaM by dispatching to a test-case-specific method.
 
 ```julia
-initialize_rays!(state::State, testcase::AbstractTestCase)
+initialize_rays!(state::State, test_case::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
 ```julia
-initialize_rays!(state::State, testcase::AbstractWKBTestCase)
+initialize_rays!(state::State, test_case::AbstractWKBTestCase)
 ```
 
 Complete the initialization of MSGWaM for WKB test cases.
@@ -23,7 +23,7 @@ In each grid cell, `nwm` wave modes are computed, using e.g. `activate_orographi
 
   - `state`: Model state.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
 # See also
 
@@ -36,18 +36,18 @@ In each grid cell, `nwm` wave modes are computed, using e.g. `activate_orographi
 function initialize_rays! end
 
 function initialize_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    initialize_rays!(state, testcase)
+    (; test_case) = state.namelists.setting
+    initialize_rays!(state, test_case)
     return
 end
 
-function initialize_rays!(state::State, testcase::AbstractTestCase)
+function initialize_rays!(state::State, test_case::AbstractTestCase)
     return
 end
 
-function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
+function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
     (; ndx, ndy, ndz) = state.namelists.domain
-    (; testcase) = state.namelists.setting
+    (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
         xrmin_dim,
@@ -93,7 +93,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     yrmax = yrmax_dim / lref
 
     # Set zonal index bounds.
-    if testcase == WKBMountainWave()
+    if test_case == WKBMountainWave()
         imin = i0
         imax = i1
     else
@@ -102,7 +102,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     end
 
     # Set meridional index bounds.
-    if testcase == WKBMountainWave()
+    if test_case == WKBMountainWave()
         jmin = j0
         jmax = j1
     else
@@ -111,7 +111,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     end
 
     # Set vertical index bounds.
-    if testcase == WKBMountainWave() && ko == 0
+    if test_case == WKBMountainWave() && ko == 0
         kmin = k0 - 1
         kmax = k0 - 1
     else
@@ -126,13 +126,13 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     wnm_ini = zeros(nwm, nxx, nyy, nzz)
     wad_ini = zeros(nwm, nxx, nyy, nzz)
 
-    if wkb_mode == SteadyState() && testcase != WKBMountainWave()
+    if wkb_mode == SteadyState() && test_case != WKBMountainWave()
         error(
             "Error in initialize_rays!: SteadyState is implemented for WKBMountainWave only!",
         )
     end
 
-    if testcase == WKBMountainWave()
+    if test_case == WKBMountainWave()
         activate_orographic_source!(
             state,
             omi_ini,
@@ -162,7 +162,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             alpha in 1:nwm
 
             # Set ray-volume indices.
-            if testcase == WKBMountainWave()
+            if test_case == WKBMountainWave()
                 s += 1
 
                 # Set surface indices.
@@ -224,10 +224,10 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             wnm0 = wnm_ini[alpha, i, j, k]
 
             # Ensure correct wavenumber extents.
-            if testcase == WKBMountainWave() && ndx > 1
+            if test_case == WKBMountainWave() && ndx > 1
                 dk_ini_nd = fac_dk_init * sqrt(wnk0^2 + wnl0^2)
             end
-            if testcase == WKBMountainWave() && ndy > 1
+            if test_case == WKBMountainWave() && ndy > 1
                 dl_ini_nd = fac_dl_init * sqrt(wnk0^2 + wnl0^2)
             end
             if wnm0 == 0.0
@@ -299,7 +299,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         end
 
         # Check if surface ray-volume count is correct.
-        if testcase == WKBMountainWave()
+        if test_case == WKBMountainWave()
             if s != n_sfc
                 error(
                     "Error in initialize_rays!: s =",
