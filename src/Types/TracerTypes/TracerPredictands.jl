@@ -115,17 +115,17 @@ function TracerPredictands(
     variables::Variables,
 )::TracerPredictands
     (; nxx, nyy, nzz) = domain
-    (; ztfc) = grid
+    (; zc) = grid
     (; lref) = constants
-    (; rhostrattfc) = atmosphere
+    (; rhobar) = atmosphere
     (; rho) = variables.predictands
     (; lref) = constants
     (; alphatracer) = namelists.tracer
 
     chi = zeros(nxx, nyy, nzz)
-    chi .= alphatracer .* lref .* ztfc
+    chi .= alphatracer .* lref .* zc
 
-    chi .= chi .* (rho .+ rhostrattfc)
+    chi .= chi .* (rho .+ rhobar)
 
     return TracerPredictands(chi)
 end

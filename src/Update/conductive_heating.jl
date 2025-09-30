@@ -105,9 +105,9 @@ function conductive_heating(
     (; phitheta) = state.variables.fluxes
     (; rho) = state.variables.predictands
     (; jac, dx, dy, dz) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
 
-    @ivy rhotot = (rho[i, j, k] + rhostrattfc[i, j, k]) / jac[i, j, k]
+    @ivy rhotot = (rho[i, j, k] + rhobar[i, j, k]) / jac[i, j, k]
 
     @ivy return -rhotot * (
         (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +

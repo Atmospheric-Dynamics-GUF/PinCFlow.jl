@@ -45,17 +45,17 @@ function interpolate_stratification(
     strtype::N2,
 )::AbstractFloat
     (; domain, grid) = state
-    (; bvsstrattfc) = state.atmosphere
+    (; n2) = state.atmosphere
     (; i0, j0) = domain
-    (; ztfc) = grid
+    (; zc) = grid
 
     ku = get_next_level(i0, j0, zlc, state)
     kd = ku - 1
 
-    @ivy zd = ztfc[i0, j0, kd]
-    @ivy zu = ztfc[i0, j0, ku]
-    @ivy strd = bvsstrattfc[i0, j0, kd]
-    @ivy stru = bvsstrattfc[i0, j0, ku]
+    @ivy zd = zc[i0, j0, kd]
+    @ivy zu = zc[i0, j0, ku]
+    @ivy strd = n2[i0, j0, kd]
+    @ivy stru = n2[i0, j0, ku]
 
     if zu < zd
         error(
@@ -85,23 +85,23 @@ function interpolate_stratification(
     strtype::DN2DZ,
 )::AbstractFloat
     (; domain, grid) = state
-    (; bvsstrattfc) = state.atmosphere
+    (; n2) = state.atmosphere
     (; i0, j0) = domain
-    (; dz, ztildetfc, jac) = grid
+    (; dz, zctilde, jac) = grid
 
     ku = get_next_half_level(i0, j0, zlc, state)
     kd = ku - 1
 
-    @ivy zd = ztildetfc[i0, j0, kd]
-    @ivy zu = ztildetfc[i0, j0, ku]
+    @ivy zd = zctilde[i0, j0, kd]
+    @ivy zu = zctilde[i0, j0, ku]
 
     @ivy strd =
-        (bvsstrattfc[i0, j0, kd + 1] - bvsstrattfc[i0, j0, kd]) / (
+        (n2[i0, j0, kd + 1] - n2[i0, j0, kd]) / (
             2.0 * jac[i0, j0, kd] * jac[i0, j0, kd + 1] /
             (jac[i0, j0, kd] + jac[i0, j0, kd + 1])
         ) / dz
     @ivy stru =
-        (bvsstrattfc[i0, j0, ku + 1] - bvsstrattfc[i0, j0, ku]) / (
+        (n2[i0, j0, ku + 1] - n2[i0, j0, ku]) / (
             2.0 * jac[i0, j0, ku] * jac[i0, j0, ku + 1] /
             (jac[i0, j0, ku] + jac[i0, j0, ku + 1])
         ) / dz

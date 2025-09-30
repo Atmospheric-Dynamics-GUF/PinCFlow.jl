@@ -84,9 +84,8 @@ function activate_orographic_source!(
     (; branchr, blocking, long_threshold, nwm) = state.namelists.wkb
     (; tref) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) =
-        state.grid
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; dz, jac, zctilde, kh, lh, hw) = state.grid
+    (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; zb) = state.wkb
 
@@ -101,7 +100,7 @@ function activate_orographic_source!(
     @ivy for j in j0:j1, i in i0:i1
 
         # Sum the magnitudes of the spectrum.
-        hsum = sum(abs, topography_spectrum[:, i, j])
+        hsum = sum(abs, hw[:, i, j])
 
         # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
@@ -112,10 +111,10 @@ function activate_orographic_source!(
         for k in k0:k1
             uavg += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
             vavg += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
-            rhoavg += rhostrattfc[i, j, k] * jac[i, j, k] * dz
-            bvsavg += bvsstrattfc[i, j, k] * jac[i, j, k] * dz
+            rhoavg += rhobar[i, j, k] * jac[i, j, k] * dz
+            bvsavg += n2[i, j, k] * jac[i, j, k] * dz
             dzsum += jac[i, j, k] * dz
-            if ztildetfc[i, j, k] > ztildetfc[i, j, k0 - 1] + hsum
+            if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + hsum
                 break
             end
         end
@@ -128,10 +127,10 @@ function activate_orographic_source!(
         if blocking && hsum > 0
             long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
             ratio = min(1, long_threshold / long)
-            zb[i, j] = ztildetfc[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
+            zb[i, j] = zctilde[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
         elseif blocking
             ratio = 1
-            zb[i, j] = ztildetfc[i, j, k0 - 1]
+            zb[i, j] = zctilde[i, j, k0 - 1]
         else
             ratio = 1
         end
@@ -144,9 +143,9 @@ function activate_orographic_source!(
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
             (omi, wnk, wnl, wnm, wad) = compute_orographic_mode(
-                ratio * topography_spectrum[alpha, i, j],
-                k_spectrum[alpha, i, j],
-                l_spectrum[alpha, i, j],
+                ratio * hw[alpha, i, j],
+                kh[alpha, i, j],
+                lh[alpha, i, j],
                 uavg,
                 vavg,
                 rhoavg,
@@ -186,20 +185,8 @@ function activate_orographic_source!(state::State)
     ) = state.namelists.wkb
     (; tref) = state.constants
     (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (;
-        dx,
-        dy,
-        dz,
-        x,
-        y,
-        ztfc,
-        jac,
-        ztildetfc,
-        k_spectrum,
-        l_spectrum,
-        topography_spectrum,
-    ) = state.grid
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; dx, dy, dz, x, y, zc, jac, zctilde, kh, lh, hw) = state.grid
+    (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; rs, ixs, jys, kzs, iks, jls, kms, alphas) = state.wkb.surface_indices
     (; nray_wrk, n_sfc, nray, rays, zb, increments) = state.wkb
@@ -215,7 +202,7 @@ function activate_orographic_source!(state::State)
     @ivy for j in j0:j1, i in i0:i1
 
         # Sum the magnitudes of the spectrum.
-        hsum = sum(abs, topography_spectrum[:, i, j])
+        hsum = sum(abs, hw[:, i, j])
 
         # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
@@ -226,10 +213,10 @@ function activate_orographic_source!(state::State)
         for k in k0:k1
             uavg += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
             vavg += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
-            rhoavg += rhostrattfc[i, j, k] * jac[i, j, k] * dz
-            bvsavg += bvsstrattfc[i, j, k] * jac[i, j, k] * dz
+            rhoavg += rhobar[i, j, k] * jac[i, j, k] * dz
+            bvsavg += n2[i, j, k] * jac[i, j, k] * dz
             dzsum += jac[i, j, k] * dz
-            if ztildetfc[i, j, k] > ztildetfc[i, j, k0 - 1] + hsum
+            if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + hsum
                 break
             end
         end
@@ -242,10 +229,10 @@ function activate_orographic_source!(state::State)
         if blocking && hsum > 0
             long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
             ratio = min(1, long_threshold / long)
-            zb[i, j] = ztildetfc[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
+            zb[i, j] = zctilde[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
         elseif blocking
             ratio = 1.0
-            zb[i, j] = ztildetfc[i, j, k0 - 1]
+            zb[i, j] = zctilde[i, j, k0 - 1]
         else
             ratio = 1.0
         end
@@ -268,9 +255,9 @@ function activate_orographic_source!(state::State)
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
             (omir, wnrk, wnrl, wnrm, wadr) = compute_orographic_mode(
-                ratio * topography_spectrum[alpha, i, j],
-                k_spectrum[alpha, i, j],
-                l_spectrum[alpha, i, j],
+                ratio * hw[alpha, i, j],
+                kh[alpha, i, j],
+                lh[alpha, i, j],
                 uavg,
                 vavg,
                 rhoavg,
@@ -318,7 +305,7 @@ function activate_orographic_source!(state::State)
             else
                 if r > 0
                     # Shift and clip/extend the old ray volume.
-                    if zr + dzr / 2 > ztildetfc[i, j, k]
+                    if zr + dzr / 2 > zctilde[i, j, k]
 
                         # Shift the old ray volume.
                         nray[i, j, k + 1] += 1
@@ -346,9 +333,9 @@ function activate_orographic_source!(state::State)
                         end
 
                         # Clip/extend the old ray volume.
-                        if zr - dzr / 2 < ztildetfc[i, j, k] || kz == 1
+                        if zr - dzr / 2 < zctilde[i, j, k] || kz == 1
                             rays.dzray[local_count, i, j, k + 1] =
-                                zr + dzr / 2 - ztildetfc[i, j, k]
+                                zr + dzr / 2 - zctilde[i, j, k]
                             rays.z[local_count, i, j, k + 1] =
                                 zr + dzr / 2 -
                                 rays.dzray[local_count, i, j, k + 1] / 2
@@ -380,7 +367,7 @@ function activate_orographic_source!(state::State)
             rays.x[r, i, j, k] = (x[io + i] - dx / 2 + (ix - 0.5) * dx / nrxl)
             rays.y[r, i, j, k] = (y[jo + j] - dy / 2 + (jy - 0.5) * dy / nryl)
             rays.z[r, i, j, k] = (
-                ztfc[i, j, k] - jac[i, j, k] * dz / 2 +
+                zc[i, j, k] - jac[i, j, k] * dz / 2 +
                 (kz - 0.5) * jac[i, j, k] * dz / nrzl
             )
 

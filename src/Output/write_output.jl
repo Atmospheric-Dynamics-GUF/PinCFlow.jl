@@ -10,7 +10,7 @@ write_output(
 
 Write the current simulation state to a previously created HDF5 output file and return the advanced output counter `iout`.
 
-The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `ztfc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
+The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
 
 The list of available output variables (as specified in `state.namelists.output.output_variables`) is as follows.
 
@@ -28,9 +28,9 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:ws`: Staggered vertical wind (computed with `compute_vertical_wind`).
 
-  - `:wtfc`: Transformed vertical wind.
+  - `:wt`: Transformed vertical wind.
 
-  - `:wstfc`: Staggered transformed vertical wind (restart variable).
+  - `:wts`: Staggered transformed vertical wind (restart variable).
 
   - `:thetap`: Potential-temperature fluctuations.
 
@@ -83,8 +83,8 @@ function write_output(
     (; model, testcase) = state.namelists.setting
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
-    (; x, y, ztfc) = grid
-    (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
+    (; x, y, zc) = grid
+    (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
     (; nray_max, rays, tendencies) = state.wkb
@@ -136,23 +136,22 @@ function write_output(
 
         # Write the vertical grid.
         if iout == 1
-            file["z"][iid, jjd, kkd] = ztfc[ii, jj, kk] .* lref
+            file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
         end
 
         # Write the background density.
         if model != Boussinesq() && iout == 1
-            file["rhobar"][iid, jjd, kkd] = rhostrattfc[ii, jj, kk] .* rhoref
+            file["rhobar"][iid, jjd, kkd] = rhobar[ii, jj, kk] .* rhoref
         end
 
         # Write the background potential temperature.
         if model != Boussinesq() && iout == 1
-            file["thetabar"][iid, jjd, kkd] =
-                thetastrattfc[ii, jj, kk] .* thetaref
+            file["thetabar"][iid, jjd, kkd] = thetabar[ii, jj, kk] .* thetaref
         end
 
         # Write the squared buoyancy frequency.
         if model != Boussinesq() && iout == 1
-            file["n2"][iid, jjd, kkd] = bvsstrattfc[ii, jj, kk] ./ tref .^ 2
+            file["n2"][iid, jjd, kkd] = n2[ii, jj, kk] ./ tref .^ 2
         end
 
         # Write the mass-weighted potential temperature.
@@ -160,8 +159,7 @@ function write_output(
             HDF5.set_extent_dims(file["p"], (sizex, sizey, sizez, iout))
             file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
         elseif model != Boussinesq() && iout == 1
-            file["p"][iid, jjd, kkd] =
-                pstrattfc[ii, jj, kk] .* rhoref .* thetaref
+            file["p"][iid, jjd, kkd] = pbar[ii, jj, kk] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.
@@ -230,9 +228,9 @@ function write_output(
         end
 
         # Write the transformed vertical winds.
-        if :wtfc in output_variables
-            HDF5.set_extent_dims(file["wtfc"], (sizex, sizey, sizez, iout))
-            file["wtfc"][iid, jjd, kkd, iout] =
+        if :wt in output_variables
+            HDF5.set_extent_dims(file["wt"], (sizex, sizey, sizez, iout))
+            file["wt"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
                     return (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
@@ -240,9 +238,9 @@ function write_output(
         end
 
         # Write the staggered transformed vertical winds.
-        if prepare_restart || :wstfc in output_variables
-            HDF5.set_extent_dims(file["wstfc"], (sizex, sizey, sizez, iout))
-            file["wstfc"][iid, jjd, kkd, iout] = w[ii, jj, kk] .* uref
+        if prepare_restart || :wts in output_variables
+            HDF5.set_extent_dims(file["wts"], (sizex, sizey, sizez, iout))
+            file["wts"][iid, jjd, kkd, iout] = w[ii, jj, kk] .* uref
         end
 
         # Write the potential-temperature fluctuations.
@@ -251,16 +249,16 @@ function write_output(
             if model == Boussinesq()
                 file["thetap"][iid, jjd, kkd, iout] =
                     (
-                        pstrattfc[ii, jj, kk] ./
-                        (rhostrattfc[ii, jj, kk] .+ rhop[ii, jj, kk]) .-
-                        thetastrattfc[ii, jj, kk]
+                        pbar[ii, jj, kk] ./
+                        (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .-
+                        thetabar[ii, jj, kk]
                     ) .* thetaref
             else
                 file["thetap"][iid, jjd, kkd, iout] =
                     (
-                        pstrattfc[ii, jj, kk] ./
-                        (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk]) .-
-                        thetastrattfc[ii, jj, kk]
+                        pbar[ii, jj, kk] ./
+                        (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .-
+                        thetabar[ii, jj, kk]
                     ) .* thetaref
             end
         end
@@ -282,7 +280,7 @@ function write_output(
                         ii,
                         jj,
                         kk,
-                    ] ./ (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk])
+                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
             if state.namelists.tracer.leading_order_impact &&

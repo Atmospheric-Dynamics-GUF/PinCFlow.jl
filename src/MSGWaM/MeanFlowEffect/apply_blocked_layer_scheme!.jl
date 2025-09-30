@@ -61,9 +61,8 @@ end
 function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dz, jac, ztildetfc, topography_spectrum, k_spectrum, l_spectrum) =
-        state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; dz, jac, zctilde, hw, kh, lh) = state.grid
+    (; rhobar) = state.atmosphere
     (; rho, u, v) = state.variables.predictands
     (; zb) = state.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
@@ -78,25 +77,15 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
     # Adjust the drag to account for blocking.
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         fraction =
-            (min(zb[i, j], ztildetfc[i, j, k]) - ztildetfc[i, j, k - 1]) /
+            (min(zb[i, j], zctilde[i, j, k]) - zctilde[i, j, k - 1]) /
             jac[i, j, k] / dz
         if fraction <= 0
             continue
         else
-            hsum = sum(abs, topography_spectrum[:, i, j])
-            ksum = mapreduce(
-                (a, b) -> abs(a) * b,
-                +,
-                k_spectrum[:, i, j],
-                topography_spectrum[:, i, j],
-            )
+            hsum = sum(abs, hw[:, i, j])
+            ksum = mapreduce((a, b) -> abs(a) * b, +, kh[:, i, j], hw[:, i, j])
 
-            lsum = mapreduce(
-                (a, b) -> abs(a) * b,
-                +,
-                l_spectrum[:, i, j],
-                topography_spectrum[:, i, j],
-            )
+            lsum = mapreduce((a, b) -> abs(a) * b, +, lh[:, i, j], hw[:, i, j])
             kavg[1] = ksum / hsum
             kavg[2] = lsum / hsum
 
@@ -107,7 +96,7 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
                 ) ./ 2 .* kavg ./ dot(kavg, kavg)
 
             drag .=
-                .-drag_coefficient .* (rho[i, j, k] .+ rhostrattfc[i, j, k]) .*
+                .-drag_coefficient .* (rho[i, j, k] .+ rhobar[i, j, k]) .*
                 sqrt.(dot(kavg, kavg)) ./ (2 .* pi) .*
                 sqrt.(dot(uperp, uperp)) .* uperp
 
