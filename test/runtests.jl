@@ -111,13 +111,13 @@ configurations = Dict(
                     )
 
                     poisson = PoissonNamelist(;
-                        tolpoisson = 1.0E-8,
-                        maxiterpoisson = 1000,
+                        tolerance = 1.0E-8,
+                        poisson_iterations = 1000,
                         preconditioner = true,
                         dtau = 1.0E+0,
-                        maxiteradi = 2,
-                        initialcleaning = true,
-                        relative_tolerance = false,
+                        preconditioner_iterations = 2,
+                        initial_cleaning = true,
+                        tolerance_is_relative = false,
                     )
 
                     setting =

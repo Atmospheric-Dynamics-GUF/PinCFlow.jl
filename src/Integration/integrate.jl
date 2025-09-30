@@ -95,7 +95,7 @@ function integrate(namelists::Namelists)
     machine_start_time = now()
 
     (; npx, npy, npz) = state.namelists.domain
-    (; initialcleaning) = state.namelists.poisson
+    (; initial_cleaning) = state.namelists.poisson
     (; dtmin) = state.namelists.discretization
     (; restart, tmax, output_interval, output_steps, iterations, nout) =
         state.namelists.output
@@ -130,7 +130,7 @@ function integrate(namelists::Namelists)
     #        Initial divergence cleaning
     #---------------------------------------------
 
-    if initialcleaning
+    if initial_cleaning
         modify_compressible_wind!(state, *)
 
         set_boundaries!(state, BoundaryPredictands())

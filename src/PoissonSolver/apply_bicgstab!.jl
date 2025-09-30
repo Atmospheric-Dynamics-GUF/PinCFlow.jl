@@ -26,7 +26,7 @@ function apply_bicgstab!(
     tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
     (; ndx, ndy, ndz) = state.namelists.domain
-    (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
+    (; tolerance, poisson_iterations, preconditioner, tolerance_is_relative) =
         state.namelists.poisson
     (; master, comm, column_comm, layer_comm) = state.domain
     (; rhs, solution) = state.poisson
@@ -44,12 +44,12 @@ function apply_bicgstab!(
     solution .= 0.0
 
     # Set parameters.
-    maxit = maxiterpoisson
+    maxit = poisson_iterations
 
-    if relative_tolerance
-        tol = tolpoisson
+    if tolerance_is_relative
+        tol = tolerance
     else
-        tol = tolpoisson / tolref
+        tol = tolerance / tolref
     end
 
     # Set error flag.
