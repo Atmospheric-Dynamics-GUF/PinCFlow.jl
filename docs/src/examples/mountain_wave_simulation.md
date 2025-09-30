@@ -17,7 +17,7 @@ else
     error("Too many arguments to the script!")
 end
 
-atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
+atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
     sizex = 40,
     sizey = 40,

@@ -46,15 +46,15 @@ configurations = Dict(
                     ) * " tests"
                 @testset "$title" begin
                     atmosphere = AtmosphereNamelist(;
-                        specifyreynolds = false,
-                        reinv = 0.0E+0,
+                        specify_reynolds_number = false,
+                        inverse_reynolds_number = 0.0E+0,
                         kinematic_viscosity = 1.5E-5,
                         background = background,
                         buoyancy_frequency = 1.0E-2,
-                        theta0_dim = 3.0E+2,
-                        temp0_dim = 3.0E+2,
-                        press0_dim = 1.0E+5,
-                        backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0),
+                        potential_temperature = 3.0E+2,
+                        temperature = 3.0E+2,
+                        ground_pressure = 1.0E+5,
+                        initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
                         coriolis_frequency = 1.0E-4,
                     )
 

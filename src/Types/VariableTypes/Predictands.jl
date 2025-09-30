@@ -31,7 +31,7 @@ Predictands(
 
 Construct a `Predictands` instance. The mass-weighted potential temperature `p` is constructed depending on the dynamic equations (see `set_p`).
 
-The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The array for the mass-weighted potential temperature is constructed with size `(0, 0, 0)`.
+The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.initial_wind`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The array for the mass-weighted potential temperature is constructed with size `(0, 0, 0)`.
 
 # Fields
 
@@ -95,7 +95,7 @@ function Predictands(
     grid::Grid,
     testcase::AbstractTestCase,
 )::Predictands
-    (; backgroundflow_dim) = namelists.atmosphere
+    (; initial_wind) = namelists.atmosphere
     (; model) = namelists.setting
     (; uref) = constants
     (; nxx, nyy, nzz) = domain
@@ -106,9 +106,9 @@ function Predictands(
     p = set_p(model, nxx, nyy, nzz, pstrattfc)
 
     # Set the initial winds.
-    @ivy u .= backgroundflow_dim[1] ./ uref
-    @ivy v .= backgroundflow_dim[2] ./ uref
-    @ivy w .= backgroundflow_dim[3] ./ uref
+    @ivy u .= initial_wind[1] ./ uref
+    @ivy v .= initial_wind[2] ./ uref
+    @ivy w .= initial_wind[3] ./ uref
 
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
