@@ -185,7 +185,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
 ```
 
@@ -196,7 +196,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
@@ -220,7 +220,7 @@ In each tracer equation, the update is given by
 
   - `model`: Dynamic equations.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 """
 function apply_lhs_sponge! end
 
@@ -614,7 +614,7 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
     return
 end
@@ -623,7 +623,7 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
     (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain

@@ -181,7 +181,7 @@ function create_output(state::State)
             )
         end
 
-        if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
+        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
                 create_dataset(
                     file,

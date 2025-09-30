@@ -48,13 +48,13 @@ Reconstruct the vertical momentum.
 The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Similar to the zonal and meridional momenta, the vertical momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
-reconstruct!(state::State, tracersetup::NoTracer)
+reconstruct!(state::State, tracer_setup::NoTracer)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-reconstruct!(state::State, tracersetup::AbstractTracer)
+reconstruct!(state::State, tracer_setup::AbstractTracer)
 ```
 
 Reconstruct the tracers.
@@ -67,7 +67,7 @@ Similar to the density, the tracers are divided by ``P`` before reconstruction.
 
   - `variable`: The reconstructed variable.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
 # See also
 
@@ -82,7 +82,7 @@ Similar to the density, the tracers are divided by ``P`` before reconstruction.
 function reconstruct! end
 
 function reconstruct!(state::State)
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
 
     reconstruct!(state, Rho())
     reconstruct!(state, RhoP())
@@ -90,7 +90,7 @@ function reconstruct!(state::State)
     reconstruct!(state, V())
     reconstruct!(state, W())
 
-    reconstruct!(state, tracersetup)
+    reconstruct!(state, tracer_setup)
 
     return
 end
@@ -218,11 +218,11 @@ function reconstruct!(state::State, variable::W)
     return
 end
 
-function reconstruct!(state::State, tracersetup::NoTracer)
+function reconstruct!(state::State, tracer_setup::NoTracer)
     return
 end
 
-function reconstruct!(state::State, tracersetup::AbstractTracer)
+function reconstruct!(state::State, tracer_setup::AbstractTracer)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries

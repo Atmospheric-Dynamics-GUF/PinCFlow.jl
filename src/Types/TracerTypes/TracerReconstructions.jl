@@ -19,7 +19,7 @@ Construct a `TracerReconstructions` instance with dimensions depending on the ge
 ```julia
 TracerReconstructions(
     domain::Domain,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )::TracerReconstructions
 ```
 
@@ -28,7 +28,7 @@ Construct a `TracerReconstructions` instance with zero-size arrays for configura
 ```julia
 TracerReconstructions(
     domain::Domain,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )::TracerReconstructions
 ```
 
@@ -44,7 +44,7 @@ Construct a `TracerReconstructions` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 """
 struct TracerReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     chitilde::A
@@ -54,14 +54,14 @@ function TracerReconstructions(
     namelists::Namelists,
     domain::Domain,
 )::TracerReconstructions
-    (; tracersetup) = namelists.tracer
+    (; tracer_setup) = namelists.tracer
 
-    return TracerReconstructions(domain, tracersetup)
+    return TracerReconstructions(domain, tracer_setup)
 end
 
 function TracerReconstructions(
     domain::Domain,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )::TracerReconstructions
     chitilde = zeros(0, 0, 0, 0, 0)
 
@@ -70,7 +70,7 @@ end
 
 function TracerReconstructions(
     domain::Domain,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )::TracerReconstructions
     (; nxx, nyy, nzz) = domain
 

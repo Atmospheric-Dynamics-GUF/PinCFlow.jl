@@ -260,7 +260,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracersetup,
+                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             kr,
@@ -410,7 +410,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracersetup,
+                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             0.0,
@@ -527,7 +527,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracersetup,
+                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             wnrk,

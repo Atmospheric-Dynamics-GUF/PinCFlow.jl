@@ -69,7 +69,7 @@ function read_input!(state::State)
             p[ii, jj, kk] = file["p"][iid, jjd, kkd, iin] ./ rhoref ./ thetaref
         end
 
-        if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
+        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
                 getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
                     file[string(field)][iid, jjd, kkd, iin] .*

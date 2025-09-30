@@ -5,7 +5,7 @@ compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
@@ -17,7 +17,7 @@ compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
 ```
 
@@ -33,14 +33,14 @@ Return for configurations without tracer transport.
 
   - `k`: Vertical grid-cell index.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 """
 function compute_leading_order_tracer_forcing!(
     state::State,
     i::Integer,
     j::Integer,
     k::Integer,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
     (; ndx, ndy) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
@@ -79,7 +79,7 @@ function compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
     return
 end

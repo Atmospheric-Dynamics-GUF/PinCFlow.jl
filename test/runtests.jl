@@ -172,7 +172,7 @@ configurations = Dict(
                     )
 
                     tracer = TracerNamelist(;
-                        tracersetup = LinearTracer(),
+                        tracer_setup = LinearTracer(),
                         leading_order_impact = true,
                     )
 

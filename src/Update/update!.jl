@@ -424,7 +424,7 @@ The update is given by
 ```
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracersetup::NoTracer)
+update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::NoTracer)
 ```
 
 Return for configurations without tracer transport.
@@ -434,7 +434,7 @@ update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
@@ -467,7 +467,7 @@ The update is given by
 
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
 # See also
 
@@ -1445,7 +1445,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
     return
 end
@@ -1454,7 +1454,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid

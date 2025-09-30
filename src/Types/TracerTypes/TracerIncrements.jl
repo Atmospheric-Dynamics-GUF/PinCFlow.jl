@@ -12,13 +12,13 @@ TracerIncrements(namelists::Namelists, domain::Domain)::TracerIncrements
 Construct a `TracerIncrements` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
 
 ```julia
-TracerIncrements(domain::Domain, tracersetup::NoTracer)::TracerIncrements
+TracerIncrements(domain::Domain, tracer_setup::NoTracer)::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerIncrements(domain::Domain, tracersetup::AbstractTracer)::TracerIncrements
+TracerIncrements(domain::Domain, tracer_setup::AbstractTracer)::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-initialized arrays.
@@ -33,7 +33,7 @@ Construct a `TracerIncrements` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 """
 struct TracerIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dchi::A
@@ -43,13 +43,13 @@ function TracerIncrements(
     namelists::Namelists,
     domain::Domain,
 )::TracerIncrements
-    (; tracersetup) = namelists.tracer
-    return TracerIncrements(domain, tracersetup)
+    (; tracer_setup) = namelists.tracer
+    return TracerIncrements(domain, tracer_setup)
 end
 
 function TracerIncrements(
     domain::Domain,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )::TracerIncrements
     dchi = zeros(0, 0, 0)
 
@@ -58,7 +58,7 @@ end
 
 function TracerIncrements(
     domain::Domain,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )::TracerIncrements
     (; nxx, nyy, nzz) = domain
 
