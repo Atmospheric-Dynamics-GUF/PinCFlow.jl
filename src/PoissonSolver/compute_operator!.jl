@@ -44,7 +44,7 @@ function compute_operator!(
 )
     (; nbz) = state.namelists.domain
     (; preconditioner) = state.namelists.poisson
-    (; spongelayer, sponge_uv) = state.namelists.sponge
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; model) = state.namelists.setting
     (; gamma, rsp, pref, kappa) = state.constants
     (; ndzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -353,8 +353,8 @@ function compute_operator!(
         facdedgeb = 1.0
         facedgeu = 1.0
         facedged = 1.0
-        if spongelayer
-            if sponge_uv
+        if use_sponge
+            if damp_horizontal_wind_on_rhs
                 facedger =
                     facedger +
                     dt *

@@ -66,7 +66,7 @@ domain = DomainNamelist(;
 )
 grid = GridNamelist(; mountain_height = 1.0E+1, mountain_half_width = 1.0E+4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
-sponge = SpongeNamelist(; spongelayer = true)
+sponge = SpongeNamelist(; use_sponge = true)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 

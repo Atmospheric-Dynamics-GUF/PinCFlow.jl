@@ -34,12 +34,12 @@ grid = GridNamelist(;
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 setting = SettingNamelist(; test_case = WKBMountainWave())
 sponge = SpongeNamelist(;
-    spongelayer = true,
-    spongeheight = 1.0E-1,
+    use_sponge = true,
+    sponge_extent = 1.0E-1,
     alpharmax = 1.79E-2,
     betarmax = 0.0E+0,
-    lateralsponge = true,
-    spongetype = ExponentialSponge(),
+    lateral_sponge = true,
+    sponge_type = ExponentialSponge(),
     relax_to_mean = false,
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )

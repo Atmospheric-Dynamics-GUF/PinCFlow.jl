@@ -189,7 +189,7 @@ function propagate_rays!(
     (; branchr, zmin_wkb_dim) = state.namelists.wkb
     (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; lref, tref) = state.constants
     (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
@@ -451,7 +451,7 @@ function propagate_rays!(
     #     Change of wave action
     #-------------------------------
 
-    @ivy if spongelayer
+    @ivy if use_sponge
         for k in k0:k1, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
                 (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
@@ -478,7 +478,7 @@ function propagate_rays!(
     (; ndx, ndy) = state.namelists.domain
     (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
@@ -583,7 +583,7 @@ function propagate_rays!(
             rays.m[r, i, j, k] = mr
 
             # Set the local wave action density.
-            if spongelayer
+            if use_sponge
                 (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
                 rays.dens[r, i, j, k] =

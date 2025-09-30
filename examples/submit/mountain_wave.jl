@@ -24,11 +24,11 @@ domain = DomainNamelist(;
 grid = GridNamelist(; mountain_case = 4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(;
-    spongelayer = true,
+    use_sponge = true,
     alpharmax = 1.79E-2,
     betarmax = 0.0E+0,
-    lateralsponge = true,
-    spongetype = SinusoidalSponge(),
+    lateral_sponge = true,
+    sponge_type = SinusoidalSponge(),
     relax_to_mean = false,
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )

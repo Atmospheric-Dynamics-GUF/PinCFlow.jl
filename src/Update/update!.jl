@@ -625,7 +625,7 @@ function update!(
     (; nbz) = state.namelists.domain
     (; ndzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; betar) = state.sponge
     (; g_ndim) = state.constants
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
@@ -677,7 +677,7 @@ function update!(
 
         factor = 1.0
 
-        if spongelayer
+        if use_sponge
             factor += dt * betar[i, j, k] * rayleigh_factor
         end
 
@@ -833,7 +833,7 @@ function update!(
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; ndzz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc) = state.atmosphere
     (; betar) = state.sponge
@@ -853,7 +853,7 @@ function update!(
 
         factor = 1.0
 
-        if spongelayer && sponge_uv
+        if use_sponge && damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -986,7 +986,7 @@ function update!(
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; ndzz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhostrattfc) = state.atmosphere
     (; betar) = state.sponge
@@ -1006,7 +1006,7 @@ function update!(
 
         factor = 1.0
 
-        if spongelayer && sponge_uv
+        if use_sponge && damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -1243,7 +1243,7 @@ function update!(
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; g_ndim) = state.constants
     (; ndzz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -1283,7 +1283,7 @@ function update!(
 
         factor = 1.0
 
-        if spongelayer
+        if use_sponge
             factor +=
                 dt * (
                     jac[i, j, k + 1] * betar[i, j, k] +

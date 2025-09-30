@@ -15,7 +15,7 @@ Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
 
 Construct a `Sponge` instance, using the model parameters in `namelists`.
 
-The vertical extent of the sponge is set to the fraction `namelists.sponge.spongeheight` of the vertical extent of the domain. The horizontal extents of the LHS sponge are computed similarly, using the same parameter multiplied by `0.5` (since the sponge is centered at the horizontal boundaries).
+The vertical extent of the sponge is set to the fraction `namelists.sponge.sponge_extent` of the vertical extent of the domain. The horizontal extents of the LHS sponge are computed similarly, using the same parameter multiplied by `0.5` (since the sponge is centered at the horizontal boundaries).
 
 # Fields
 
@@ -84,7 +84,7 @@ struct Sponge{
 end
 
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
-    (; spongeheight) = namelists.sponge
+    (; sponge_extent) = namelists.sponge
     (; nxx, nyy, nzz, nz) = domain
     (; lx, ly, lz) = grid
 
@@ -92,10 +92,10 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
     (betar, alphar) = (zeros(nxx, nyy, nzz) for i in 1:3)
 
     # Set up the sponges.
-    dzsponge = spongeheight * lz
+    dzsponge = sponge_extent * lz
     zsponge = lz - dzsponge
-    dxsponge = spongeheight * lx / 2
-    dysponge = spongeheight * ly / 2
+    dxsponge = sponge_extent * lx / 2
+    dysponge = sponge_extent * ly / 2
     xsponge0 = -lx / 2 + dxsponge
     ysponge0 = -ly / 2 + dysponge
     xsponge1 = lx / 2 - dxsponge

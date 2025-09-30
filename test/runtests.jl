@@ -124,15 +124,15 @@ configurations = Dict(
                         SettingNamelist(; model = model, test_case = test_case)
 
                     sponge = SpongeNamelist(;
-                        spongelayer = true,
-                        sponge_uv = false,
-                        spongeheight = 1.0E-1,
+                        use_sponge = true,
+                        damp_horizontal_wind_on_rhs = false,
+                        sponge_extent = 1.0E-1,
                         alpharmax = 1.0E-2,
                         betarmax = 0.0E+0,
-                        lateralsponge = true,
-                        spongetype = ExponentialSponge(),
-                        spongeorder = 1,
-                        cosmosteps = 1,
+                        lateral_sponge = true,
+                        sponge_type = ExponentialSponge(),
+                        sponge_order = 1,
+                        cosmo_steps = 1,
                         relax_to_mean = false,
                         perturbation_period = 3.6E+3,
                         perturbation_amplitude = 1.0E-1,
