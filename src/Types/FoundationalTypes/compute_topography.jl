@@ -93,7 +93,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{align*}
     ```
 
-Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively.
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountain_height`, `mountain_half_width`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively.
 
 The arrays in the returned tuple represent (in order) the resolved topography, the amplitudes of the unresolved topography, the corresponding zonal wavenumbers and the corresponding meridional wavenumbers.
 
@@ -213,7 +213,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{align*}}
     ```
 
-Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively. The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`.
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountain_height`, `mountain_half_width`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively. The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`.
 
 The topography is represented by the first array in the returned tuple.
 
@@ -255,8 +255,8 @@ function compute_topography(
     (; testcase) = namelists.setting
     (; nwm) = namelists.wkb
     (;
-        mountainheight_dim,
-        mountainwidth_dim,
+        mountain_height,
+        mountain_half_width,
         mountain_case,
         height_factor,
         width_factor,
@@ -269,8 +269,8 @@ function compute_topography(
         error("Error in compute_topography: nwm is too small!")
     end
 
-    mountainheight = mountainheight_dim / lref
-    mountainwidth = mountainwidth_dim / lref
+    mountainheight = mountain_height / lref
+    mountainwidth = mountain_half_width / lref
     mountainwavenumber = pi / mountainwidth
 
     topography_surface = zeros(nxx, nyy)
@@ -385,8 +385,8 @@ function compute_topography(
 }
     (; testcase) = namelists.setting
     (;
-        mountainheight_dim,
-        mountainwidth_dim,
+        mountain_height,
+        mountain_half_width,
         mountain_case,
         height_factor,
         width_factor,
@@ -395,8 +395,8 @@ function compute_topography(
     (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
     (; lref) = constants
 
-    mountainheight = mountainheight_dim / lref
-    mountainwidth = mountainwidth_dim / lref
+    mountainheight = mountain_height / lref
+    mountainwidth = mountain_half_width / lref
     mountainwavenumber = pi / mountainwidth
 
     topography_surface = zeros(nxx, nyy)

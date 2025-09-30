@@ -84,8 +84,8 @@ configurations = Dict(
                     )
 
                     grid = GridNamelist(;
-                        mountainheight_dim = 1.2E+3,
-                        mountainwidth_dim = 5.0E+3,
+                        mountain_height = 1.2E+3,
+                        mountain_half_width = 5.0E+3,
                         mountain_case = 13,
                         height_factor = 2.0E+0,
                         width_factor = 1.0E+1,

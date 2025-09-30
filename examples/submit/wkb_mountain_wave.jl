@@ -25,8 +25,8 @@ domain = DomainNamelist(;
     npy = 8,
 )
 grid = GridNamelist(;
-    mountainheight_dim = 1.5E+2,
-    mountainwidth_dim = 5.0E+3,
+    mountain_height = 1.5E+2,
+    mountain_half_width = 5.0E+3,
     mountain_case = 13,
     height_factor = 2.0E+0,
     width_factor = 1.0E+1,

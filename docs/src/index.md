@@ -64,7 +64,7 @@ domain = DomainNamelist(;
     ly = 2.0E+4,
     lz = 2.0E+4,
 )
-grid = GridNamelist(; mountainheight_dim = 1.0E+1, mountainwidth_dim = 1.0E+4)
+grid = GridNamelist(; mountain_height = 1.0E+1, mountain_half_width = 1.0E+4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(; spongelayer = true)
 
