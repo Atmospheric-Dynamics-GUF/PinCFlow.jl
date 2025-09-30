@@ -100,10 +100,10 @@ configurations = Dict(
                         restart = true,
                         iin = 1,
                         output_steps = false,
-                        noutput = 1,
-                        maxiter = 1,
-                        outputtimediff = 3.6E+3,
-                        maxtime = 3.6E+3,
+                        nout = 1,
+                        iterations = 1,
+                        output_interval = 3.6E+3,
+                        tmax = 3.6E+3,
                         input_file = "test/" *
                                      configurations[model][background][testcase] *
                                      ".h5",
