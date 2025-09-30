@@ -96,7 +96,7 @@ function integrate(namelists::Namelists)
 
     (; npx, npy, npz) = state.namelists.domain
     (; initialcleaning) = state.namelists.poisson
-    (; dtmin_dim) = state.namelists.discretization
+    (; dtmin) = state.namelists.discretization
     (; restart, maxtime, outputtimediff, output_steps, maxiter, noutput) =
         state.namelists.output
     (; tref) = state.constants
@@ -224,7 +224,7 @@ function integrate(namelists::Namelists)
 
         # Correct dt to hit desired output time.
         if !output_steps
-            if (time + dt) * tref + dtmin_dim > nextoutputtime
+            if (time + dt) * tref + dtmin > nextoutputtime
                 dt = nextoutputtime / tref - time
                 output = true
                 if master

@@ -59,10 +59,10 @@ configurations = Dict(
                     )
 
                     discretization = DiscretizationNamelist(;
-                        cfl = 5.0E-1,
-                        cfl_wave = 5.0E-1,
-                        dtmin_dim = 1.0E-6,
-                        dtmax_dim = 1.0E+3,
+                        cfl_number = 5.0E-1,
+                        wkb_cfl_number = 5.0E-1,
+                        dtmin = 1.0E-6,
+                        dtmax = 1.0E+3,
                         adaptive_time_step = true,
                         limitertype = MCVariant(),
                     )
