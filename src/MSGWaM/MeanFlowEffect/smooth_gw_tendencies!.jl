@@ -153,13 +153,13 @@ smooth_gw_tendencies!(
 
 Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
 
-```julia 
+```julia
 smooth_gw_tendencies!(state::State, tracersetup::AbstractTracer)
 ```
 
 Apply smoothing to tracer tendencies.
 
-```julia 
+```julia
 smooth_gw_tendencies!(state::State, tracersetup::NoTracer)
 ```
 
@@ -184,7 +184,7 @@ Return for configurations without tracer transport.
 function smooth_gw_tendencies! end
 
 function smooth_gw_tendencies!(state::State)
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; lsmth_wkb, sm_filter) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracersetup) = state.namelists.tracer
@@ -193,15 +193,15 @@ function smooth_gw_tendencies!(state::State)
         return
     end
 
-    if sizex == sizey == 1
+    if ndx == ndy == 1
         smooth_gw_tendencies!(dudt, state, sm_filter, Z())
         smooth_gw_tendencies!(dvdt, state, sm_filter, Z())
         smooth_gw_tendencies!(dthetadt, state, sm_filter, Z())
-    elseif sizex == 1
+    elseif ndx == 1
         smooth_gw_tendencies!(dudt, state, sm_filter, YZ())
         smooth_gw_tendencies!(dvdt, state, sm_filter, YZ())
         smooth_gw_tendencies!(dthetadt, state, sm_filter, YZ())
-    elseif sizey == 1
+    elseif ndy == 1
         smooth_gw_tendencies!(dudt, state, sm_filter, XZ())
         smooth_gw_tendencies!(dvdt, state, sm_filter, XZ())
         smooth_gw_tendencies!(dthetadt, state, sm_filter, XZ())
@@ -455,7 +455,7 @@ function smooth_gw_tendencies!(
 end
 
 function smooth_gw_tendencies!(state::State, tracersetup::AbstractTracer)
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; lsmth_wkb, sm_filter) = state.namelists.wkb
     (; dchidt) = state.tracer.tracerforcings.chiq0
 
@@ -463,11 +463,11 @@ function smooth_gw_tendencies!(state::State, tracersetup::AbstractTracer)
         return
     end
 
-    if sizex == sizey == 1
+    if ndx == ndy == 1
         smooth_gw_tendencies!(dchidt, state, sm_filter, Z())
-    elseif sizex == 1
+    elseif ndx == 1
         smooth_gw_tendencies!(dchidt, state, sm_filter, YZ())
-    elseif sizey == 1
+    elseif ndy == 1
         smooth_gw_tendencies!(dchidt, state, sm_filter, XZ())
     else
         smooth_gw_tendencies!(dchidt, state, sm_filter, XYZ())

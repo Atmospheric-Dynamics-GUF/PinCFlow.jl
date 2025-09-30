@@ -187,7 +187,7 @@ function propagate_rays!(
 )
     (; testcase) = state.namelists.setting
     (; branchr, zmin_wkb_dim) = state.namelists.wkb
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; spongelayer) = state.namelists.sponge
     (; lref, tref) = state.constants
@@ -276,12 +276,12 @@ function propagate_rays!(
             end
 
             # Compute intrinsic zonal group velocity.
-            if sizex > 1
+            if ndx > 1
                 cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             end
 
             # Compute intrinsic meridional group velocity.
-            if sizey > 1
+            if ndy > 1
                 cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             end
 
@@ -295,7 +295,7 @@ function propagate_rays!(
 
             # Update zonal position.
 
-            if sizex > 1 && k >= k0 && wkb_mode != SingleColumn()
+            if ndx > 1 && k >= k0 && wkb_mode != SingleColumn()
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -314,7 +314,7 @@ function propagate_rays!(
 
             # Update meridional position.
 
-            if sizey > 1 && k >= k0 && wkb_mode != SingleColumn()
+            if ndy > 1 && k >= k0 && wkb_mode != SingleColumn()
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -385,7 +385,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if sizex > 1 && k >= k0 && wkb_mode != SingleColumn()
+                if ndx > 1 && k >= k0 && wkb_mode != SingleColumn()
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[r, i, j, k] =
@@ -403,7 +403,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if sizey > 1 && k >= k0 && wkb_mode != SingleColumn()
+                if ndy > 1 && k >= k0 && wkb_mode != SingleColumn()
                     ddydt = cgry2 - cgry1
 
                     ddyray[r, i, j, k] =
@@ -475,14 +475,14 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::SteadyState,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; testcase) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
     (; spongelayer) = state.namelists.sponge
     (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
-    (; comm, sizezz, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
+    (; comm, ndzz, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
         state.domain
     (; dx, dy, dz, ztildetfc, ztfc, jac) = state.grid
     (; rhostrattfc) = state.atmosphere
@@ -611,11 +611,11 @@ function propagate_rays!(
             # Compute the phase space factor.
             dzi = min(dzr, jac[i, j, k] * dz)
             facpsp = dzi / jac[i, j, k] / dz * dmr
-            if sizex > 1
+            if ndx > 1
                 dxi = min(dxr, dx)
                 facpsp *= dxi / dx * dkr
             end
-            if sizey > 1
+            if ndy > 1
                 dyi = min(dyr, dy)
                 facpsp *= dyi / dy * dlr
             end
@@ -671,7 +671,7 @@ function propagate_rays!(
         end
     end
 
-    @ivy if ko + nzz != sizezz
+    @ivy if ko + nzz != ndzz
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

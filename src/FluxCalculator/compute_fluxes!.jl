@@ -519,7 +519,7 @@ function compute_fluxes!(
 )
     (; grid) = state
     (; re, uref, lref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ndzz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; utilde) = state.variables.reconstructions
@@ -530,7 +530,7 @@ function compute_fluxes!(
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == ndzz ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -824,7 +824,7 @@ function compute_fluxes!(
 )
     (; grid) = state
     (; re, uref, lref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ndzz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
@@ -835,7 +835,7 @@ function compute_fluxes!(
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == ndzz ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes

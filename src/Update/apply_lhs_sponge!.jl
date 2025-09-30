@@ -342,7 +342,7 @@ function apply_lhs_sponge!(
     variable::U,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (;
         spongelayer,
         relax_to_mean,
@@ -366,7 +366,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     @ivy if relax_to_mean
         horizontal_mean .=
-            sum(a -> a / sizex / sizey, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
+            sum(a -> a / ndx / ndy, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         ubg = relaxation_wind[1] / uref
@@ -404,7 +404,7 @@ function apply_lhs_sponge!(
     variable::V,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (;
         spongelayer,
         relax_to_mean,
@@ -428,7 +428,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     @ivy if relax_to_mean
         horizontal_mean .=
-            sum(a -> a / sizex / sizey, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
+            sum(a -> a / ndx / ndy, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         vbg = relaxation_wind[2] / uref
@@ -466,7 +466,7 @@ function apply_lhs_sponge!(
     variable::W,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (;
         spongelayer,
         relax_to_mean,
@@ -491,7 +491,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     @ivy if relax_to_mean
         horizontal_mean .=
-            sum(a -> a / sizex / sizey, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
+            sum(a -> a / ndx / ndy, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         wbg = relaxation_wind[3] / uref

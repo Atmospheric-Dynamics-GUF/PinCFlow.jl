@@ -213,7 +213,7 @@ function WKB(
         fac_dm_init,
     ) = namelists.wkb
     (; lref) = constants
-    (; sizex, sizey, sizez) = namelists.domain
+    (; ndx, ndy, ndz) = namelists.domain
     (; nxx, nyy, nzz) = domain
     (; lx, ly, lz) = grid
 
@@ -237,25 +237,25 @@ function WKB(
     end
 
     # Check if spectral-extent factors are set correctly.
-    if sizex > 1 && fac_dk_init == 0.0
-        error("Error in WKB: sizex > 1 && fac_dk_init == 0!")
+    if ndx > 1 && fac_dk_init == 0.0
+        error("Error in WKB: ndx > 1 && fac_dk_init == 0!")
     end
-    if sizey > 1 && fac_dl_init == 0.0
-        error("Error in WKB: sizey > 1 && fac_dl_init == 0!")
+    if ndy > 1 && fac_dl_init == 0.0
+        error("Error in WKB: ndy > 1 && fac_dl_init == 0!")
     end
-    if sizez == 1 || fac_dm_init == 0.0
-        error("Error in WKB: sizez == 1 || fac_dm_init == 0!")
+    if ndz == 1 || fac_dm_init == 0.0
+        error("Error in WKB: ndz == 1 || fac_dm_init == 0!")
     end
 
     # Set zonal ray-volume count.
-    if sizex == 1
+    if ndx == 1
         nxray = 1
     else
         nxray = nray_fac * nrxl * nrk_init
     end
 
     # Set meridional ray-volume count.
-    if sizey == 1
+    if ndy == 1
         nyray = 1
     else
         nyray = nray_fac * nryl * nrl_init

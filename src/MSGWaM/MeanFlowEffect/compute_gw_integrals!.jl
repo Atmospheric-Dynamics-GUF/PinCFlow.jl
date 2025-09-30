@@ -97,7 +97,7 @@ end
 
 function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
@@ -155,7 +155,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
             for iray in imin:imax
-                if sizex > 1
+                if ndx > 1
                     dxi = (
                         min(xr + dxr / 2, x[io + iray] + dx / 2) -
                         max(xr - dxr / 2, x[io + iray] - dx / 2)
@@ -167,7 +167,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                 end
 
                 for jray in jmin:jmax
-                    if sizey > 1
+                    if ndy > 1
                         dyi = (
                             min(yr + dyr / 2, y[jo + jray] + dy / 2) -
                             max(yr - dyr / 2, y[jo + jray] - dy / 2)
@@ -190,7 +190,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
-                        if sizex > 1
+                        if ndx > 1
                             if fc != 0
                                 integrals.uu[iray, jray, kray] +=
                                     wadr * (
@@ -204,14 +204,14 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             end
                         end
 
-                        if sizex > 1 || sizey > 1
+                        if ndx > 1 || ndy > 1
                             integrals.uv[iray, jray, kray] += wadr * cgirx * lr
                         end
 
                         integrals.uw[iray, jray, kray] +=
                             wadr * kr * cgirz / (1 - (fc / omir)^2)
 
-                        if sizey > 1
+                        if ndy > 1
                             if fc != 0
                                 integrals.vv[iray, jray, kray] +=
                                     wadr * (
@@ -283,7 +283,7 @@ end
 
 function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; domain, grid) = state
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
@@ -337,7 +337,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
             for iray in imin:imax
-                if sizex > 1
+                if ndx > 1
                     dxi = (
                         min(xr + dxr / 2, x[io + iray] + dx / 2) -
                         max(xr - dxr / 2, x[io + iray] - dx / 2)
@@ -349,7 +349,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                 end
 
                 for jray in jmin:jmax
-                    if sizey > 1
+                    if ndy > 1
                         dyi = (
                             min(yr + dyr / 2, y[jo + jray] + dy / 2) -
                             max(yr - dyr / 2, y[jo + jray] - dy / 2)
@@ -437,7 +437,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = state.domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = state.grid
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; branchr) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
 
@@ -486,7 +486,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
             for iray in imin:imax
-                if sizex > 1
+                if ndx > 1
                     dxi = (
                         min(xr + dxr / 2, x[io + iray] + dx / 2) -
                         max(xr - dxr / 2, x[io + iray] - dx / 2)
@@ -498,7 +498,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                 end
 
                 for jray in jmin:jmax
-                    if sizey > 1
+                    if ndy > 1
                         dyi = (
                             min(yr + dyr / 2, y[jo + jray] + dy / 2) -
                             max(yr - dyr / 2, y[jo + jray] - dy / 2)

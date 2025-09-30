@@ -34,7 +34,7 @@ function get_next_half_level(
     z::AbstractFloat,
     state::State,
 )::Integer
-    (; sizezz, nzz, ko, k0, k1) = state.domain
+    (; ndzz, nzz, ko, k0, k1) = state.domain
     (; ztildetfc) = state.grid
 
     @ivy k = argmin(abs.(ztildetfc[i, j, :] .- z))
@@ -50,7 +50,7 @@ function get_next_half_level(
         end
     end
 
-    if ko + nzz == sizezz
+    if ko + nzz == ndzz
         k = min(k, k1)
     else
         if k > nzz - 1

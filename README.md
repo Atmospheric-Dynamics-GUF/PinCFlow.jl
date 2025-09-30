@@ -57,12 +57,12 @@ end
 
 atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
-    sizex = 40,
-    sizey = 1,
-    sizez = 40,
-    lx_dim = 2.0E+4,
-    ly_dim = 2.0E+4,
-    lz_dim = 2.0E+4,
+    ndx = 40,
+    ndy = 1,
+    ndz = 40,
+    lx = 2.0E+4,
+    ly = 2.0E+4,
+    lz = 2.0E+4,
 )
 grid = GridNamelist(; mountainheight_dim = 1.0E+1, mountainwidth_dim = 1.0E+4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)

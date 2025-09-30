@@ -202,13 +202,13 @@ function interpolate_mean_flow(
     phitype::U,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; u) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -230,7 +230,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else
@@ -324,13 +324,13 @@ function interpolate_mean_flow(
     phitype::V,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -352,7 +352,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else
@@ -449,12 +449,12 @@ function interpolate_mean_flow(
 )::AbstractFloat
     (; namelists, domain, grid) = state
     (; predictands) = state.variables
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc, topography_surface) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -476,7 +476,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else
@@ -604,11 +604,11 @@ function interpolate_mean_flow(
     phitype::DUDX,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
-    if sizex == 1
+    if ndx == 1
         phi = 0.0
         return phi
     else
@@ -634,7 +634,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else
@@ -726,12 +726,12 @@ function interpolate_mean_flow(
     phitype::DUDY,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -753,7 +753,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         phi = 0.0
         return phi
     else
@@ -893,12 +893,12 @@ function interpolate_mean_flow(
     phitype::DUDZ,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -920,7 +920,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else
@@ -1012,12 +1012,12 @@ function interpolate_mean_flow(
     phitype::DVDX,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         phi = 0.0
         return phi
     else
@@ -1039,7 +1039,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else
@@ -1179,12 +1179,12 @@ function interpolate_mean_flow(
     phitype::DVDY,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -1206,7 +1206,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         phi = 0.0
         return phi
     else
@@ -1302,12 +1302,12 @@ function interpolate_mean_flow(
     phitype::DVDZ,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -1329,7 +1329,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else
@@ -1421,12 +1421,12 @@ function interpolate_mean_flow(
     phitype::DChiDX,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         phi = 0.0
         return phi
     else
@@ -1448,7 +1448,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else
@@ -1540,11 +1540,11 @@ function interpolate_mean_flow(
     phitype::DChiDY,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -1566,7 +1566,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         phi = 0.0
         return phi
     else
@@ -1658,12 +1658,12 @@ function interpolate_mean_flow(
     phitype::DChiDZ,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if ndx == 1
         il = i0
         ir = i0
     else
@@ -1685,7 +1685,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if ndy == 1
         jb = j0
         jf = j0
     else

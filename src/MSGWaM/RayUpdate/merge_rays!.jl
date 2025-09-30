@@ -84,7 +84,7 @@ function merge_rays!(state::State, wkb_mode::SteadyState)
 end
 
 function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; merge_mode) = state.namelists.wkb
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nxray, nyray, nzray, nray_max, nray, rays, merged_rays) = state.wkb
@@ -100,7 +100,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         end
 
         # Set bins in k.
-        if sizex > 1
+        if ndx > 1
             (kr_min_p, kr_max_p, kr_min_n, kr_max_n) =
                 compute_spectral_bounds(rays.k[1:nray[i, j, k], i, j, k])
             dkr_mrg_n = log(kr_max_n / kr_min_n) / (nxray / 2 - 1)
@@ -111,7 +111,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
         end
 
         # Set bins in l.
-        if sizey > 1
+        if ndy > 1
             (lr_min_p, lr_max_p, lr_min_n, lr_max_n) =
                 compute_spectral_bounds(rays.l[1:nray[i, j, k], i, j, k])
             dlr_mrg_n = log(lr_max_n / lr_min_n) / (nyray / 2 - 1)
@@ -142,7 +142,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
             omegar = compute_intrinsic_frequency(state, r, i, j, k)
 
             # Determine bin index in k.
-            if sizex > 1
+            if ndx > 1
                 fcpspx = axk
                 rk = compute_merge_index(
                     kr,
@@ -160,7 +160,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
             end
 
             # Determine bin index in l.
-            if sizey > 1
+            if ndy > 1
                 fcpspy = ayl
                 rl = compute_merge_index(
                     lr,
@@ -191,8 +191,8 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
             )
 
             # Determine flattened bin index.
-            if sizex > 1
-                if sizey > 1
+            if ndx > 1
+                if ndy > 1
                     bin =
                         (rm - 1) * (nyray - 1) * (nxray - 1) +
                         (rl - 1) * (nxray - 1) +
@@ -201,7 +201,7 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
                     bin = (rm - 1) * (nxray - 1) + rk
                 end
             else
-                if sizey > 1
+                if ndy > 1
                     bin = (rm - 1) * (nyray - 1) + rl
                 else
                     bin = rm
@@ -267,13 +267,13 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
             omegar = compute_intrinsic_frequency(state, r, i, j, k)
 
-            if sizex > 1
+            if ndx > 1
                 fcpspx = axk
             else
                 fcpspx = 1.0
             end
 
-            if sizey > 1
+            if ndy > 1
                 fcpspy = ayl
             else
                 fcpspy = 1.0

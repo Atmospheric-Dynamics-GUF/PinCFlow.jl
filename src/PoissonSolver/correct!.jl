@@ -180,14 +180,14 @@ function correct!(
     rayleigh_factor::AbstractFloat,
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ndzz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; corx) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; u) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == ndzz ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
@@ -219,14 +219,14 @@ function correct!(
     rayleigh_factor::AbstractFloat,
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ndzz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; v) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == ndzz ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
@@ -258,7 +258,7 @@ function correct!(
     rayleigh_factor::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ndzz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; bvsstrattfc) = state.atmosphere
     (; betar) = state.sponge
@@ -267,7 +267,7 @@ function correct!(
     (; w) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 - 1 : k1
+    kmax = ko + nzz == ndzz ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
@@ -325,7 +325,7 @@ function correct!(
     (; nbz) = state.namelists.domain
     (; spongelayer) = state.namelists.sponge
     (; g_ndim) = state.constants
-    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ndzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; betar) = state.sponge
@@ -346,7 +346,7 @@ function correct!(
 
         if ko + k == k0
             lower_gradient = 0.0
-        elseif ko + k == sizezz - nbz
+        elseif ko + k == ndzz - nbz
             upper_gradient = 0.0
         end
 

@@ -19,12 +19,12 @@ end
 
 atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
-    sizex = 40,
-    sizey = 40,
-    sizez = 40,
-    lx_dim = 2.0E+4,
-    ly_dim = 2.0E+4,
-    lz_dim = 2.0E+4,
+    ndx = 40,
+    ndy = 40,
+    ndz = 40,
+    lx = 2.0E+4,
+    ly = 2.0E+4,
+    lz = 2.0E+4,
     npx = 8,
     npy = 8,
 )

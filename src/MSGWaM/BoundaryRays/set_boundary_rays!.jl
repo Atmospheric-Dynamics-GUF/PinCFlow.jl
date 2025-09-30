@@ -23,7 +23,7 @@ set_boundary_rays!(state::State, wkb_mode::SteadyState)
 
 Enforce horizontal boundary conditions for "ray volumes" in steady-state mode.
 
-Zonal (meridional) boundary conditions are only enforced if `state.namelists.domain.sizex > 1` (`state.namelists.domain.sizey > 1`).
+Zonal (meridional) boundary conditions are only enforced if `state.namelists.domain.ndx > 1` (`state.namelists.domain.ndy > 1`).
 
 ```julia
 set_boundary_rays!(state::State, wkb_mode::AbstractWKBMode)
@@ -31,7 +31,7 @@ set_boundary_rays!(state::State, wkb_mode::AbstractWKBMode)
 
 Enforce horizontal and vertical boundary conditions for ray volumes in single-column or multi-column mode.
 
-Zonal (meridional) boundary conditions are only enforced if `state.namelists.domain.sizex > 1` (`state.namelists.domain.sizey > 1`).
+Zonal (meridional) boundary conditions are only enforced if `state.namelists.domain.ndx > 1` (`state.namelists.domain.ndy > 1`).
 
 # Arguments
 
@@ -68,12 +68,12 @@ function set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
 end
 
 function set_boundary_rays!(state::State, wkb_mode::SteadyState)
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
 
-    if sizex > 1
+    if ndx > 1
         set_zonal_boundary_rays!(state)
     end
-    if sizey > 1
+    if ndy > 1
         set_meridional_boundary_rays!(state)
     end
 
@@ -81,12 +81,12 @@ function set_boundary_rays!(state::State, wkb_mode::SteadyState)
 end
 
 function set_boundary_rays!(state::State, wkb_mode::AbstractWKBMode)
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
 
-    if sizex > 1
+    if ndx > 1
         set_zonal_boundary_rays!(state)
     end
-    if sizey > 1
+    if ndy > 1
         set_meridional_boundary_rays!(state)
     end
     set_vertical_boundary_rays!(state)

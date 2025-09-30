@@ -37,13 +37,13 @@ function interpolate_sponge(
     state::State,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; ndx, ndy) = namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
     (; alphar) = state.sponge
 
     # Determine closest points in horizontal direction.
-    if sizex > 1
+    if ndx > 1
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         ir = il + 1
     else
@@ -54,7 +54,7 @@ function interpolate_sponge(
     @ivy xr = x[io + ir]
 
     # Determine closest points in meridional direction.
-    if sizey > 1
+    if ndy > 1
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         jf = jb + 1
     else

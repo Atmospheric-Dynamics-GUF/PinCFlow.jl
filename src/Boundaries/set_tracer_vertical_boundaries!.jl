@@ -205,7 +205,7 @@ function set_tracer_vertical_boundaries!(
     variables::BoundaryFluxes,
     tracersetup::AbstractTracer,
 )
-    (; sizezz, nzz, ko, k0, k1) = state.domain
+    (; ndzz, nzz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
 
     @ivy if ko == 0
@@ -214,7 +214,7 @@ function set_tracer_vertical_boundaries!(
         end
     end
 
-    @ivy if ko + nzz == sizezz
+    @ivy if ko + nzz == ndzz
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end

@@ -127,7 +127,7 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
 end
 
 function split_rays!(state::State, wkb_mode::MultiColumn)
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
@@ -135,11 +135,11 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        if sizex > 1
+        if ndx > 1
             split_rays!(i, j, k, state, X())
         end
 
-        if sizey > 1
+        if ndy > 1
             split_rays!(i, j, k, state, Y())
         end
 

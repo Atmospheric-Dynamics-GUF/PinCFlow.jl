@@ -48,7 +48,7 @@ The vertical layer centers and edges of the stretched and physical grids are giv
 \\end{align*}
 ```
 
-where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz_dim`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
+where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
 
 ```math
 J = \\frac{L_z - h}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
@@ -166,45 +166,45 @@ struct Grid{
 end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
-    (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain
+    (; ndx, ndy, ndz, nbz) = namelists.domain
     (; testcase) = namelists.setting
     (; stretch_exponent,) = namelists.grid
-    (; nxx, nyy, nzz, sizexx, sizeyy, sizezz, ko, i0, i1, j0, j1, k0) = domain
+    (; nxx, nyy, nzz, ndxx, ndyy, ndzz, ko, i0, i1, j0, j1, k0) = domain
     (; lref) = constants
 
     # Non-dimensionalize domain boundaries.
-    lx = lx_dim / lref
-    ly = ly_dim / lref
-    lz = lz_dim / lref
+    lx = namelists.domain.lx / lref
+    ly = namelists.domain.ly / lref
+    lz = namelists.domain.lz / lref
 
     # Compute grid spacings.
-    dx = lx / sizex
-    dy = ly / sizey
-    dz = lz / sizez
+    dx = lx / ndx
+    dy = ly / ndy
+    dz = lz / ndz
 
     # Compute x-coordinate.
-    x = zeros(sizexx)
-    @ivy for i in 1:sizexx
+    x = zeros(ndxx)
+    @ivy for i in 1:ndxx
         x[i] = -lx / 2 + (i - i0) * dx + dx / 2
     end
 
     # Compute y-coordinate.
-    y = zeros(sizeyy)
-    @ivy for j in 1:sizeyy
+    y = zeros(ndyy)
+    @ivy for j in 1:ndyy
         y[j] = -ly / 2 + (j - j0) * dy + dy / 2
     end
 
     # Compute z-coordinate.
-    z = zeros(sizezz)
-    @ivy for k in 1:sizezz
+    z = zeros(ndzz)
+    @ivy for k in 1:ndzz
         z[k] = (k - k0) * dz + dz / 2
     end
 
     # Initialize the stretched vertical grid.
-    (ztildes, zs) = (zeros(sizezz) for i in 1:2)
+    (ztildes, zs) = (zeros(ndzz) for i in 1:2)
 
     # Compute the stretched vertical grid.
-    @ivy for k in 1:sizezz
+    @ivy for k in 1:ndzz
         level = z[k] + 0.5 * dz
         if level < 0
             ztildes[k] = -lz * (-level / lz)^stretch_exponent
@@ -214,7 +214,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
             ztildes[k] = lz * (level / lz)^stretch_exponent
         end
     end
-    @ivy for k in 2:sizezz
+    @ivy for k in 2:ndzz
         zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
     end
     @ivy zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])

@@ -124,7 +124,7 @@ function apply_saturation_scheme!(
 )
     (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb
-    (; sizex, sizey) = state.namelists.domain
+    (; ndx, ndy) = state.namelists.domain
     (; lsaturation, alpha_sat) = state.namelists.wkb
     (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, ly, dx, dy, ztfc) = state.grid

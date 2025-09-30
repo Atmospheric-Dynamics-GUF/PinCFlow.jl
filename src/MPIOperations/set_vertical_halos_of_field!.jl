@@ -46,7 +46,7 @@ function set_vertical_halos_of_field!(
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; nbz) = namelists.domain
-    (; comm, sizezz, nzz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
+    (; comm, ndzz, nzz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 
     @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
@@ -63,7 +63,7 @@ function set_vertical_halos_of_field!(
             dest = up,
             source = up,
         )
-    elseif ko + nzz == sizezz
+    elseif ko + nzz == ndzz
         MPI.Sendrecv!(
             field[ii, jj, k0:(k0 + nbz - 1)],
             field[ii, jj, (k0 - nbz):(k0 - 1)],
@@ -99,7 +99,7 @@ function set_vertical_halos_of_field!(
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; nbz) = namelists.domain
-    (; comm, sizezz, nzz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
+    (; comm, ndzz, nzz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 
     @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
@@ -116,7 +116,7 @@ function set_vertical_halos_of_field!(
             dest = up,
             source = up,
         )
-    elseif ko + nzz == sizezz
+    elseif ko + nzz == ndzz
         MPI.Sendrecv!(
             field[ii, jj, k0:(k0 + nbz - 1), :, :],
             field[ii, jj, (k0 - nbz):(k0 - 1), :, :],
