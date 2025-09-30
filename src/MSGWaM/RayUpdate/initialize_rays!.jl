@@ -17,7 +17,7 @@ initialize_rays!(state::State, test_case::AbstractWKBTestCase)
 
 Complete the initialization of MSGWaM for WKB test cases.
 
-In each grid cell, `nwm` wave modes are computed, using e.g. `activate_orographic_source!` for mountain waves. For each of these modes, `nrxl * nryl * nrzl * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrxl = nryl = nrzl = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
+In each grid cell, `nalpha` wave modes are computed, using e.g. `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
 
 # Arguments
 
@@ -50,22 +50,22 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
     (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
-        xrmin_dim,
-        xrmax_dim,
-        yrmin_dim,
-        yrmax_dim,
-        nrxl,
-        nryl,
-        nrzl,
-        nrk_init,
-        nrl_init,
-        nrm_init,
-        nwm,
-        fac_dk_init,
-        fac_dl_init,
-        fac_dm_init,
+        xrmin,
+        xrmax,
+        yrmin,
+        yrmax,
+        nrx,
+        nry,
+        nrz,
+        nrk,
+        nrl,
+        nrm,
+        nalpha,
+        fdk,
+        fdl,
+        fdm,
         wkb_mode,
-        nwm,
+        nalpha,
     ) = state.namelists.wkb
     (; lref, tref) = state.constants
     (; comm, master, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
@@ -86,19 +86,13 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    # Non-dimensionalize boundaries for ray-volume propagation.
-    xrmin = xrmin_dim / lref
-    xrmax = xrmax_dim / lref
-    yrmin = yrmin_dim / lref
-    yrmax = yrmax_dim / lref
-
     # Set zonal index bounds.
     if test_case == WKBMountainWave()
         imin = i0
         imax = i1
     else
-        imin = max(i0, floor(Int, (xrmin + lx / 2) / dx) + i0 - io)
-        imax = min(i1, floor(Int, (xrmax + lx / 2) / dx) + i0 - io)
+        imin = max(i0, floor(Int, (xrmin / lref + lx / 2) / dx) + i0 - io)
+        imax = min(i1, floor(Int, (xrmax / lref + lx / 2) / dx) + i0 - io)
     end
 
     # Set meridional index bounds.
@@ -106,8 +100,8 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
         jmin = j0
         jmax = j1
     else
-        jmin = max(j0, floor(Int, (yrmin + ly / 2) / dy) + j0 - jo)
-        jmax = min(j1, floor(Int, (yrmax + ly / 2) / dy) + j0 - jo)
+        jmin = max(j0, floor(Int, (yrmin / lref + ly / 2) / dy) + j0 - jo)
+        jmax = min(j1, floor(Int, (yrmax / lref + ly / 2) / dy) + j0 - jo)
     end
 
     # Set vertical index bounds.
@@ -120,11 +114,11 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
     end
 
     # Initialize local arrays.
-    omi_ini = zeros(nwm, nxx, nyy, nzz)
-    wnk_ini = zeros(nwm, nxx, nyy, nzz)
-    wnl_ini = zeros(nwm, nxx, nyy, nzz)
-    wnm_ini = zeros(nwm, nxx, nyy, nzz)
-    wad_ini = zeros(nwm, nxx, nyy, nzz)
+    omi_ini = zeros(nalpha, nxx, nyy, nzz)
+    wnk_ini = zeros(nalpha, nxx, nyy, nzz)
+    wnl_ini = zeros(nalpha, nxx, nyy, nzz)
+    wnm_ini = zeros(nalpha, nxx, nyy, nzz)
+    wad_ini = zeros(nalpha, nxx, nyy, nzz)
 
     if wkb_mode == SteadyState() && test_case != WKBMountainWave()
         error(
@@ -153,13 +147,13 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
         s = 0
 
         # Loop over all ray volumes within a spatial cell.
-        for ix in 1:nrxl,
-            ik in 1:nrk_init,
-            jy in 1:nryl,
-            jl in 1:nrl_init,
-            kz in 1:nrzl,
-            km in 1:nrm_init,
-            alpha in 1:nwm
+        for ix in 1:nrx,
+            ik in 1:nrk,
+            jy in 1:nry,
+            jl in 1:nrl,
+            kz in 1:nrz,
+            km in 1:nrm,
+            alpha in 1:nalpha
 
             # Set ray-volume indices.
             if test_case == WKBMountainWave()
@@ -187,11 +181,11 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
             end
 
             # Set ray-volume positions.
-            rays.x[r, i, j, k] = (x[io + i] - 0.5 * dx + (ix - 0.5) * dx / nrxl)
-            rays.y[r, i, j, k] = (y[jo + j] - 0.5 * dy + (jy - 0.5) * dy / nryl)
+            rays.x[r, i, j, k] = (x[io + i] - 0.5 * dx + (ix - 0.5) * dx / nrx)
+            rays.y[r, i, j, k] = (y[jo + j] - 0.5 * dy + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
                 ztfc[i, j, k] - 0.5 * jac[i, j, k] * dz +
-                (kz - 0.5) * jac[i, j, k] * dz / nrzl
+                (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 
             xr = rays.x[r, i, j, k]
@@ -215,9 +209,9 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
             n2r = interpolate_stratification(zr, state, N2())
 
             # Set spatial extents.
-            rays.dxray[r, i, j, k] = dx / nrxl
-            rays.dyray[r, i, j, k] = dy / nryl
-            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrzl
+            rays.dxray[r, i, j, k] = dx / nrx
+            rays.dyray[r, i, j, k] = dy / nry
+            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrz
 
             wnk0 = wnk_ini[alpha, i, j, k]
             wnl0 = wnl_ini[alpha, i, j, k]
@@ -225,29 +219,29 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
 
             # Ensure correct wavenumber extents.
             if test_case == WKBMountainWave() && ndx > 1
-                dk_ini_nd = fac_dk_init * sqrt(wnk0^2 + wnl0^2)
+                dk_ini_nd = fdk * sqrt(wnk0^2 + wnl0^2)
             end
             if test_case == WKBMountainWave() && ndy > 1
-                dl_ini_nd = fac_dl_init * sqrt(wnk0^2 + wnl0^2)
+                dl_ini_nd = fdl * sqrt(wnk0^2 + wnl0^2)
             end
             if wnm0 == 0.0
                 error("Error in WKB: wnm0 = 0!")
             else
-                dm_ini_nd = fac_dm_init * abs(wnm0)
+                dm_ini_nd = fdm * abs(wnm0)
             end
 
             # Set ray-volume wavenumbers.
             rays.k[r, i, j, k] =
-                (wnk0 - 0.5 * dk_ini_nd + (ik - 0.5) * dk_ini_nd / nrk_init)
+                (wnk0 - 0.5 * dk_ini_nd + (ik - 0.5) * dk_ini_nd / nrk)
             rays.l[r, i, j, k] =
-                (wnl0 - 0.5 * dl_ini_nd + (jl - 0.5) * dl_ini_nd / nrl_init)
+                (wnl0 - 0.5 * dl_ini_nd + (jl - 0.5) * dl_ini_nd / nrl)
             rays.m[r, i, j, k] =
-                (wnm0 - 0.5 * dm_ini_nd + (km - 0.5) * dm_ini_nd / nrm_init)
+                (wnm0 - 0.5 * dm_ini_nd + (km - 0.5) * dm_ini_nd / nrm)
 
             # Set spectral extents.
-            rays.dkray[r, i, j, k] = dk_ini_nd / nrk_init
-            rays.dlray[r, i, j, k] = dl_ini_nd / nrl_init
-            rays.dmray[r, i, j, k] = dm_ini_nd / nrm_init
+            rays.dkray[r, i, j, k] = dk_ini_nd / nrk
+            rays.dlray[r, i, j, k] = dl_ini_nd / nrl
+            rays.dmray[r, i, j, k] = dm_ini_nd / nrm
 
             # Set spectral volume.
             pspvol = dm_ini_nd

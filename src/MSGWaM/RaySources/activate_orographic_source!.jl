@@ -81,7 +81,7 @@ function activate_orographic_source!(
     wad_ini::AbstractArray{<:AbstractFloat, 4},
 )
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branchr, blocking, long_threshold, nwm) = state.namelists.wkb
+    (; branch, blocking, long_threshold, nalpha) = state.namelists.wkb
     (; tref) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) =
@@ -140,7 +140,7 @@ function activate_orographic_source!(
         k = k0 - 1
 
         # Iterate over wave modes.
-        for alpha in 1:nwm
+        for alpha in 1:nalpha
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
             (omi, wnk, wnl, wnm, wad) = compute_orographic_mode(
@@ -152,7 +152,7 @@ function activate_orographic_source!(
                 rhoavg,
                 bvsavg,
                 fc,
-                branchr,
+                branch,
             )
 
             # Save the results.
@@ -170,16 +170,16 @@ function activate_orographic_source!(state::State)
     (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
-        nrxl,
-        nryl,
-        nrzl,
-        nrk_init,
-        nrl_init,
-        nrm_init,
-        fac_dk_init,
-        fac_dl_init,
-        fac_dm_init,
-        branchr,
+        nrx,
+        nry,
+        nrz,
+        nrk,
+        nrl,
+        nrm,
+        fdk,
+        fdl,
+        fdm,
+        branch,
         blocking,
         long_threshold,
         wkb_mode,
@@ -276,7 +276,7 @@ function activate_orographic_source!(state::State)
                 rhoavg,
                 bvsavg,
                 fc,
-                branchr,
+                branch,
             )
 
             # Get vertical position and extent of old ray volume.
@@ -377,47 +377,47 @@ function activate_orographic_source!(state::State)
             end
 
             # Set physical ray-volume positions.
-            rays.x[r, i, j, k] = (x[io + i] - dx / 2 + (ix - 0.5) * dx / nrxl)
-            rays.y[r, i, j, k] = (y[jo + j] - dy / 2 + (jy - 0.5) * dy / nryl)
+            rays.x[r, i, j, k] = (x[io + i] - dx / 2 + (ix - 0.5) * dx / nrx)
+            rays.y[r, i, j, k] = (y[jo + j] - dy / 2 + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
                 ztfc[i, j, k] - jac[i, j, k] * dz / 2 +
-                (kz - 0.5) * jac[i, j, k] * dz / nrzl
+                (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 
             # Set physical ray-volume extent.
-            rays.dxray[r, i, j, k] = dx / nrxl
-            rays.dyray[r, i, j, k] = dy / nryl
-            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrzl
+            rays.dxray[r, i, j, k] = dx / nrx
+            rays.dyray[r, i, j, k] = dy / nry
+            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrz
 
             # Compute spectral ray-volume extent.
             if ndx == 1
                 dk_ini_nd = 0.0
             else
-                dk_ini_nd = fac_dk_init * sqrt(wnrk^2 + wnrl^2)
+                dk_ini_nd = fdk * sqrt(wnrk^2 + wnrl^2)
             end
             if ndy == 1
                 dl_ini_nd = 0.0
             else
-                dl_ini_nd = fac_dl_init * sqrt(wnrk^2 + wnrl^2)
+                dl_ini_nd = fdl * sqrt(wnrk^2 + wnrl^2)
             end
             if wnrm == 0.0
                 error("Error in orographic_source: wnrm = 0!")
             else
-                dm_ini_nd = fac_dm_init * abs(wnrm)
+                dm_ini_nd = fdm * abs(wnrm)
             end
 
             # Set spectral ray-volume position.
             rays.k[r, i, j, k] =
-                (wnrk - dk_ini_nd / 2 + (ik - 0.5) * dk_ini_nd / nrk_init)
+                (wnrk - dk_ini_nd / 2 + (ik - 0.5) * dk_ini_nd / nrk)
             rays.l[r, i, j, k] =
-                (wnrl - dl_ini_nd / 2 + (jl - 0.5) * dl_ini_nd / nrl_init)
+                (wnrl - dl_ini_nd / 2 + (jl - 0.5) * dl_ini_nd / nrl)
             rays.m[r, i, j, k] =
-                (wnrm - dm_ini_nd / 2 + (km - 0.5) * dm_ini_nd / nrm_init)
+                (wnrm - dm_ini_nd / 2 + (km - 0.5) * dm_ini_nd / nrm)
 
             # Set spectral ray-volume extent.
-            rays.dkray[r, i, j, k] = dk_ini_nd / nrk_init
-            rays.dlray[r, i, j, k] = dl_ini_nd / nrl_init
-            rays.dmray[r, i, j, k] = dm_ini_nd / nrm_init
+            rays.dkray[r, i, j, k] = dk_ini_nd / nrk
+            rays.dlray[r, i, j, k] = dl_ini_nd / nrl
+            rays.dmray[r, i, j, k] = dm_ini_nd / nrm
 
             # Compute spectral volume.
             pspvol = dm_ini_nd

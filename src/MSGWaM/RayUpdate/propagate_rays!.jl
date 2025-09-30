@@ -186,7 +186,7 @@ function propagate_rays!(
     wkb_mode::AbstractWKBMode,
 )
     (; test_case) = state.namelists.setting
-    (; branchr, zmin_wkb_dim) = state.namelists.wkb
+    (; branch, impact_altitude) = state.namelists.wkb
     (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; use_sponge) = state.namelists.sponge
@@ -255,13 +255,12 @@ function propagate_rays!(
             n2r2 = interpolate_stratification(zr2, state, N2())
 
             omir1 =
-                branchr * sqrt(n2r1 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+                branch * sqrt(n2r1 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             omir2 =
-                branchr * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+                branch * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             if any((n2r1, n2r, n2r2) .<= 0)
                 error(
@@ -344,9 +343,9 @@ function propagate_rays!(
 
             cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(cgrz))
 
-            # Refraction is only allowed above zmin_wkb_dim / lref.
+            # Refraction is only allowed above impact_altitude / lref.
 
-            if zr > zmin_wkb_dim / lref
+            if zr > impact_altitude / lref
 
                 #-------------------------------
                 #      Change of wavenumber
@@ -479,7 +478,7 @@ function propagate_rays!(
     (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
     (; use_sponge) = state.namelists.sponge
-    (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
+    (; branch, use_saturation, alphas) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
     (; comm, ndzz, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
@@ -556,7 +555,7 @@ function propagate_rays!(
             omir =
                 -(u[i, j, kref] + u[i - 1, j, kref]) / 2 * kr -
                 (v[i, j, kref] + v[i, j - 1, kref]) / 2 * lr
-            if fc < branchr * omir < sqrt(n2r)
+            if fc < branch * omir < sqrt(n2r)
                 mr = rays.m[r, i, j, kref]
                 cgirz0 = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
@@ -570,8 +569,8 @@ function propagate_rays!(
             omir =
                 -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
                 (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
-            if fc < branchr * omir < sqrt(n2r)
-                mr = -branchr * sqrt(khr^2 * (n2r - omir^2) / (omir^2 - fc^2))
+            if fc < branch * omir < sqrt(n2r)
+                mr = -branch * sqrt(khr^2 * (n2r - omir^2) / (omir^2 - fc^2))
                 cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
                 rays.dens[r, i, j, kref] = 0.0
@@ -600,7 +599,7 @@ function propagate_rays!(
             end
 
             # Cycle if the saturation scheme is turned off.
-            if !lsaturation
+            if !use_saturation
                 continue
             end
 
@@ -637,15 +636,15 @@ function propagate_rays!(
 
         # Compute the diffusion coefficient
         n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
-        if m2b2k2 == 0 || m2b2 < alpha_sat^2 * n2r^2
+        if m2b2k2 == 0 || m2b2 < alphas^2 * n2r^2
             diffusion = 0.0
         else
-            diffusion = (m2b2 - alpha_sat^2 * n2r^2) / (2 * m2b2k2)
+            diffusion = (m2b2 - alphas^2 * n2r^2) / (2 * m2b2k2)
         end
 
         # Reduce the wave action density.
         for r in 1:nray[i, j, k]
-            if !lsaturation
+            if !use_saturation
                 continue
             end
             if rays.dens[r, i, j, k] == 0
@@ -657,7 +656,7 @@ function propagate_rays!(
             omir =
                 -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
                 (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
-            if fc < branchr * omir < sqrt(n2r)
+            if fc < branch * omir < sqrt(n2r)
                 cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
                 rays.dens[r, i, j, kref] = 0.0

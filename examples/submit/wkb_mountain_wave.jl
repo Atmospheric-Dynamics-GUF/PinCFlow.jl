@@ -44,12 +44,12 @@ sponge = SpongeNamelist(;
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )
 wkb = WKBNamelist(;
-    xrmin_dim = -2.0E+5,
-    xrmax_dim = 2.0E+5,
-    yrmin_dim = -2.0E+5,
-    yrmax_dim = 2.0E+5,
-    zrmin_dim = 0.0,
-    zrmax_dim = 2.0E+4,
+    xrmin = -2.0E+5,
+    xrmax = 2.0E+5,
+    yrmin = -2.0E+5,
+    yrmax = 2.0E+5,
+    zrmin = 0.0,
+    zrmax = 2.0E+4,
 )
 
 integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb))

@@ -99,7 +99,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state
     (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branchr) = state.namelists.wkb
+    (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = grid
@@ -144,8 +144,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
             n2r = interpolate_stratification(zr, state, N2())
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
@@ -285,7 +284,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; domain, grid) = state
     (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branchr) = state.namelists.wkb
+    (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = grid
@@ -328,8 +327,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
             n2r = interpolate_stratification(zr, state, N2())
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
@@ -438,7 +436,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; i0, i1, j0, j1, k0, k1, io, jo) = state.domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = state.grid
     (; ndx, ndy) = state.namelists.domain
-    (; branchr) = state.namelists.wkb
+    (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -477,8 +475,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
             n2r = interpolate_stratification(zr, state, N2())
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 

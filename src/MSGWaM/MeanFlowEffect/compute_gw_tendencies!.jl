@@ -21,7 +21,7 @@ Calculates the tendencies that are to be added to the equations for momentum and
 \\end{align*}
 ```
 
-where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\overline{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.zmin_wkb_dim`, all tendencies are set to zero.
+where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\overline{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
 
 # Arguments
 
@@ -32,7 +32,7 @@ function compute_gw_tendencies! end
 function compute_gw_tendencies!(state::State)
     (; ndx, ndy) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; zmin_wkb_dim) = state.namelists.wkb
+    (; impact_altitude) = state.namelists.wkb
     (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, ztfc, jac, met) = state.grid
@@ -48,7 +48,7 @@ function compute_gw_tendencies!(state::State)
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        if ztfc[i, j, k] < zmin_wkb_dim / lref
+        if ztfc[i, j, k] < impact_altitude / lref
             continue
         end
 

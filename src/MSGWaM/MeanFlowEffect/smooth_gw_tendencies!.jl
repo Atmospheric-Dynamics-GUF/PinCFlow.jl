@@ -3,13 +3,13 @@
 smooth_gw_tendencies!(state::State)
 ```
 
-Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.sm_filter`) and dimensionality of the domain.
+Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.filter_type`) and dimensionality of the domain.
 
 ```julia
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Box,
+    filter_type::Box,
     direction::XYZ,
 )
 ```
@@ -22,13 +22,13 @@ Applies the moving average
 \\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 3} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{\\lambda, \\mu, \\nu},
 ```
 
-where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
+where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_order`).
 
 ```julia
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Box,
+    filter_type::Box,
     direction::XZ,
 )
 ```
@@ -41,13 +41,13 @@ Applies the moving average
 \\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 2} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{\\lambda, j, \\nu},
 ```
 
-where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
+where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_order`).
 
 ```julia
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Box,
+    filter_type::Box,
     direction::YZ,
 )
 ```
@@ -60,13 +60,13 @@ Applies the moving average
 \\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 2} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{i, \\mu, \\nu},
 ```
 
-where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
+where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_order`).
 
 ```julia
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Box,
+    filter_type::Box,
     direction::Z,
 )
 ```
@@ -79,13 +79,13 @@ Applies the moving average
 \\widetilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 1} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{i, j, \\nu},
 ```
 
-where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.nsmth_wkb`).
+where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_order`).
 
 ```julia
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::XYZ,
 )
 ```
@@ -98,7 +98,7 @@ A 1D Shapiro filter is applied sequentially in ``\\widehat{x}``, ``\\widehat{y}`
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::XZ,
 )
 ```
@@ -111,7 +111,7 @@ A 1D Shapiro filter is applied sequentially in ``\\widehat{x}`` and ``\\widehat{
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::YZ,
 )
 ```
@@ -124,7 +124,7 @@ A 1D Shapiro filter is applied sequentially in ``\\widehat{y}`` and ``\\widehat{
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::Z,
 )
 ```
@@ -135,7 +135,7 @@ Apply a 1D Shapiro filter to smooth in ``\\widehat{z}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::Y,
 )
 ```
@@ -146,7 +146,7 @@ Apply a 1D Shapiro filter to smooth in ``\\widehat{y}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::X,
 )
 ```
@@ -171,7 +171,7 @@ Return for configurations without tracer transport.
 
   - `output`: Field to smooth.
 
-  - `sm_filter`: Filter type.
+  - `filter_type`: Filter type.
 
   - `direction`: Directions to smooth in.
 
@@ -185,30 +185,30 @@ function smooth_gw_tendencies! end
 
 function smooth_gw_tendencies!(state::State)
     (; ndx, ndy) = state.namelists.domain
-    (; lsmth_wkb, sm_filter) = state.namelists.wkb
+    (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
 
-    if !lsmth_wkb
+    if !smooth_tendencies
         return
     end
 
     if ndx == ndy == 1
-        smooth_gw_tendencies!(dudt, state, sm_filter, Z())
-        smooth_gw_tendencies!(dvdt, state, sm_filter, Z())
-        smooth_gw_tendencies!(dthetadt, state, sm_filter, Z())
+        smooth_gw_tendencies!(dudt, state, filter_type, Z())
+        smooth_gw_tendencies!(dvdt, state, filter_type, Z())
+        smooth_gw_tendencies!(dthetadt, state, filter_type, Z())
     elseif ndx == 1
-        smooth_gw_tendencies!(dudt, state, sm_filter, YZ())
-        smooth_gw_tendencies!(dvdt, state, sm_filter, YZ())
-        smooth_gw_tendencies!(dthetadt, state, sm_filter, YZ())
+        smooth_gw_tendencies!(dudt, state, filter_type, YZ())
+        smooth_gw_tendencies!(dvdt, state, filter_type, YZ())
+        smooth_gw_tendencies!(dthetadt, state, filter_type, YZ())
     elseif ndy == 1
-        smooth_gw_tendencies!(dudt, state, sm_filter, XZ())
-        smooth_gw_tendencies!(dvdt, state, sm_filter, XZ())
-        smooth_gw_tendencies!(dthetadt, state, sm_filter, XZ())
+        smooth_gw_tendencies!(dudt, state, filter_type, XZ())
+        smooth_gw_tendencies!(dvdt, state, filter_type, XZ())
+        smooth_gw_tendencies!(dthetadt, state, filter_type, XZ())
     else
-        smooth_gw_tendencies!(dudt, state, sm_filter, XYZ())
-        smooth_gw_tendencies!(dvdt, state, sm_filter, XYZ())
-        smooth_gw_tendencies!(dthetadt, state, sm_filter, XYZ())
+        smooth_gw_tendencies!(dudt, state, filter_type, XYZ())
+        smooth_gw_tendencies!(dvdt, state, filter_type, XYZ())
+        smooth_gw_tendencies!(dthetadt, state, filter_type, XYZ())
     end
 
     smooth_gw_tendencies!(state, tracer_setup)
@@ -219,21 +219,21 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Box,
+    filter_type::Box,
     direction::XYZ,
 )
     (; nbx, nby, nbz) = state.namelists.domain
-    (; nsmth_wkb) = state.namelists.wkb
+    (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
-    if nbx < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nbx < nsmth_wkb!")
+    if nbx < filter_order
+        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
     end
-    if nby < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nby < nsmth_wkb!")
+    if nby < filter_order
+        error("Error in smooth_gw_tendencies!: nby < filter_order!")
     end
-    if nbz < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
+    if nbz < filter_order
+        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -241,11 +241,11 @@ function smooth_gw_tendencies!(
         output[i, j, k] =
             sum(
                 input[
-                    (i - nsmth_wkb):(i + nsmth_wkb),
-                    (j - nsmth_wkb):(j + nsmth_wkb),
-                    (k - nsmth_wkb):(k + nsmth_wkb),
+                    (i - filter_order):(i + filter_order),
+                    (j - filter_order):(j + filter_order),
+                    (k - filter_order):(k + filter_order),
                 ],
-            ) / (2 * nsmth_wkb + 1)^3
+            ) / (2 * filter_order + 1)^3
     end
 
     return
@@ -254,18 +254,18 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Box,
+    filter_type::Box,
     direction::XZ,
 )
     (; nbx, nbz) = state.namelists.domain
-    (; nsmth_wkb) = state.namelists.wkb
+    (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
-    if nbx < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nbx < nsmth_wkb!")
+    if nbx < filter_order
+        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
     end
-    if nbz < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
+    if nbz < filter_order
+        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -273,11 +273,11 @@ function smooth_gw_tendencies!(
         output[i, j, k] =
             sum(
                 input[
-                    (i - nsmth_wkb):(i + nsmth_wkb),
+                    (i - filter_order):(i + filter_order),
                     j,
-                    (k - nsmth_wkb):(k + nsmth_wkb),
+                    (k - filter_order):(k + filter_order),
                 ],
-            ) / (2 * nsmth_wkb + 1)^2
+            ) / (2 * filter_order + 1)^2
     end
 
     return
@@ -286,18 +286,18 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Box,
+    filter_type::Box,
     direction::YZ,
 )
     (; nby, nbz) = state.namelists.domain
-    (; nsmth_wkb) = state.namelists.wkb
+    (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
-    if nby < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nby < nsmth_wkb!")
+    if nby < filter_order
+        error("Error in smooth_gw_tendencies!: nby < filter_order!")
     end
-    if nbz < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
+    if nbz < filter_order
+        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -306,10 +306,10 @@ function smooth_gw_tendencies!(
             sum(
                 input[
                     i,
-                    (j - nsmth_wkb):(j + nsmth_wkb),
-                    (k - nsmth_wkb):(k + nsmth_wkb),
+                    (j - filter_order):(j + filter_order),
+                    (k - filter_order):(k + filter_order),
                 ],
-            ) / (2 * nsmth_wkb + 1)^2
+            ) / (2 * filter_order + 1)^2
     end
 
     return
@@ -318,22 +318,22 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Box,
+    filter_type::Box,
     direction::Z,
 )
     (; nbz) = state.namelists.domain
-    (; nsmth_wkb) = state.namelists.wkb
+    (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
-    if nbz < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
+    if nbz < filter_order
+        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
     end
 
     input = copy(output)
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
-            sum(input[i, j, (k - nsmth_wkb):(k + nsmth_wkb)]) /
-            (2 * nsmth_wkb + 1)
+            sum(input[i, j, (k - filter_order):(k + filter_order)]) /
+            (2 * filter_order + 1)
     end
 
     return
@@ -342,49 +342,49 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::XYZ,
 )
-    smooth_gw_tendencies!(output, state, sm_filter, X())
-    smooth_gw_tendencies!(output, state, sm_filter, Y())
-    smooth_gw_tendencies!(output, state, sm_filter, Z())
+    smooth_gw_tendencies!(output, state, filter_type, X())
+    smooth_gw_tendencies!(output, state, filter_type, Y())
+    smooth_gw_tendencies!(output, state, filter_type, Z())
     return
 end
 
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::XZ,
 )
-    smooth_gw_tendencies!(output, state, sm_filter, X())
-    smooth_gw_tendencies!(output, state, sm_filter, Z())
+    smooth_gw_tendencies!(output, state, filter_type, X())
+    smooth_gw_tendencies!(output, state, filter_type, Z())
     return
 end
 
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::YZ,
 )
-    smooth_gw_tendencies!(output, state, sm_filter, Y())
-    smooth_gw_tendencies!(output, state, sm_filter, Z())
+    smooth_gw_tendencies!(output, state, filter_type, Y())
+    smooth_gw_tendencies!(output, state, filter_type, Z())
     return
 end
 
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::Z,
 )
     (; nbz) = state.namelists.domain
-    (; nsmth_wkb) = state.namelists.wkb
+    (; filter_order) = state.namelists.wkb
     (; nxx, nyy, k0, k1) = state.domain
 
-    if nbz < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
+    if nbz < filter_order
+        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -393,7 +393,7 @@ function smooth_gw_tendencies!(
             output[i, j, :],
             input[i, j, :],
             k0:k1,
-            Val(nsmth_wkb),
+            Val(filter_order),
         )
     end
 
@@ -403,15 +403,15 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::Y,
 )
     (; nby) = state.namelists.domain
-    (; nsmth_wkb) = state.namelists.wkb
+    (; filter_order) = state.namelists.wkb
     (; nxx, nzz, j0, j1) = state.domain
 
-    if nby < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nby < nsmth_wkb!")
+    if nby < filter_order
+        error("Error in smooth_gw_tendencies!: nby < filter_order!")
     end
 
     input = copy(output)
@@ -420,7 +420,7 @@ function smooth_gw_tendencies!(
             output[i, :, k],
             input[i, :, k],
             j0:j1,
-            Val(nsmth_wkb),
+            Val(filter_order),
         )
     end
 
@@ -430,15 +430,15 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    sm_filter::Shapiro,
+    filter_type::Shapiro,
     direction::X,
 )
     (; nbx) = state.namelists.domain
-    (; nsmth_wkb) = state.namelists.wkb
+    (; filter_order) = state.namelists.wkb
     (; nyy, nzz, i0, i1) = state.domain
 
-    if nbx < nsmth_wkb
-        error("Error in smooth_gw_tendencies!: nbx < nsmth_wkb!")
+    if nbx < filter_order
+        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
     end
 
     input = copy(output)
@@ -447,7 +447,7 @@ function smooth_gw_tendencies!(
             output[:, j, k],
             input[:, j, k],
             i0:i1,
-            Val(nsmth_wkb),
+            Val(filter_order),
         )
     end
 
@@ -456,21 +456,21 @@ end
 
 function smooth_gw_tendencies!(state::State, tracer_setup::AbstractTracer)
     (; ndx, ndy) = state.namelists.domain
-    (; lsmth_wkb, sm_filter) = state.namelists.wkb
+    (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dchidt) = state.tracer.tracerforcings.chiq0
 
-    if !lsmth_wkb
+    if !smooth_tendencies
         return
     end
 
     if ndx == ndy == 1
-        smooth_gw_tendencies!(dchidt, state, sm_filter, Z())
+        smooth_gw_tendencies!(dchidt, state, filter_type, Z())
     elseif ndx == 1
-        smooth_gw_tendencies!(dchidt, state, sm_filter, YZ())
+        smooth_gw_tendencies!(dchidt, state, filter_type, YZ())
     elseif ndy == 1
-        smooth_gw_tendencies!(dchidt, state, sm_filter, XZ())
+        smooth_gw_tendencies!(dchidt, state, filter_type, XZ())
     else
-        smooth_gw_tendencies!(dchidt, state, sm_filter, XYZ())
+        smooth_gw_tendencies!(dchidt, state, filter_type, XYZ())
     end
 
     return

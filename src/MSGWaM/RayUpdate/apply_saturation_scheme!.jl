@@ -125,11 +125,11 @@ function apply_saturation_scheme!(
     (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb
     (; ndx, ndy) = state.namelists.domain
-    (; lsaturation, alpha_sat) = state.namelists.wkb
+    (; use_saturation, alphas) = state.namelists.wkb
     (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, ly, dx, dy, ztfc) = state.grid
 
-    if !lsaturation
+    if !use_saturation
         return
     end
 
@@ -140,10 +140,10 @@ function apply_saturation_scheme!(
 
         # Calculate the turbulent eddy diffusivity.
         n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
-        if mb2k2 == 0 || mb2 < alpha_sat^2 * n2r^2
+        if mb2k2 == 0 || mb2 < alphas^2 * n2r^2
             diffusion[i, j, k] = 0
         else
-            diffusion[i, j, k] = (mb2 - alpha_sat^2 * n2r^2) / (2 * dt * mb2k2)
+            diffusion[i, j, k] = (mb2 - alphas^2 * n2r^2) / (2 * dt * mb2k2)
         end
 
         # Reduce the wave-action density.
@@ -163,10 +163,10 @@ function apply_saturation_scheme!(
 
         # Check if saturation is violated.
         n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
-        if mb2 - alpha_sat^2 * n2r^2 > 1.0E-3 * alpha_sat^2 * n2r^2
+        if mb2 - alphas^2 * n2r^2 > 1.0E-3 * alphas^2 * n2r^2
             println("Saturation violated at (i, j, k) = ", (i, j, k))
             println("mb2 = ", mb2)
-            println("alpha_sat^2 * n2r^2 = ", alpha_sat^2 * n2r^2)
+            println("alphas^2 * n2r^2 = ", alphas^2 * n2r^2)
             println("")
         end
     end
