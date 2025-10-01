@@ -178,8 +178,20 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
-                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
+                    kmin = get_next_half_level(
+                        iray,
+                        jray,
+                        zr - dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
+                    kmax = get_next_half_level(
+                        iray,
+                        jray,
+                        zr + dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
 
                     for kray in kmin:kmax
                         dzi =
@@ -360,8 +372,20 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
-                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
+                    kmin = get_next_half_level(
+                        iray,
+                        jray,
+                        zr - dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
+                    kmax = get_next_half_level(
+                        iray,
+                        jray,
+                        zr + dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
 
                     for kray in kmin:kmax
                         dzi =
@@ -509,8 +533,20 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
-                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
+                    kmin = get_next_half_level(
+                        iray,
+                        jray,
+                        zr - dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
+                    kmax = get_next_half_level(
+                        iray,
+                        jray,
+                        zr + dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
 
                     for kray in kmin:kmax
                         dzi =

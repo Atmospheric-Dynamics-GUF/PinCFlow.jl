@@ -79,8 +79,6 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
-
   - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
 """
 function apply_saturation_scheme! end

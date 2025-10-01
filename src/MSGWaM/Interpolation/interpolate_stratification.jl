@@ -49,7 +49,7 @@ function interpolate_stratification(
     (; i0, j0) = domain
     (; zc) = grid
 
-    ku = get_next_level(i0, j0, zlc, state)
+    ku = get_next_level(i0, j0, zlc, state; dkd = 1)
     kd = ku - 1
 
     @ivy zd = zc[i0, j0, kd]
@@ -89,7 +89,7 @@ function interpolate_stratification(
     (; i0, j0) = domain
     (; dz, zctilde, jac) = grid
 
-    ku = get_next_half_level(i0, j0, zlc, state)
+    ku = get_next_half_level(i0, j0, zlc, state; dkd = 1, dku = 1)
     kd = ku - 1
 
     @ivy zd = zctilde[i0, j0, kd]
