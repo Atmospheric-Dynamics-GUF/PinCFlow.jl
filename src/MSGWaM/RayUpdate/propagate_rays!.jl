@@ -173,7 +173,7 @@ function propagate_rays!(
     (; spongelayer, unifiedsponge) = state.namelists.sponge
     (; lref, tref) = state.constants
     (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
-    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
+    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray, dpray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
     (; lz, ztildetfc) = state.grid
@@ -196,6 +196,7 @@ function propagate_rays!(
         ddxray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
         ddyray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
         ddzray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        dpray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
     end
 
     cgx_max[] = 0.0
@@ -421,6 +422,13 @@ function propagate_rays!(
 
                 rays.dmray[iray, ix, jy, kz] =
                     azm / rays.dzray[iray, ix, jy, kz]
+
+                    # Update phase
+                dpray[iray, ix, jy, kz] =
+                    - dt * omir + alphark[rkstage] * dpray[iray, ix, jy, kz]
+                rays.dphi[iray, ix, jy, kz] +=
+                    betark[rkstage] * dpray[iray, ix, jy, kz]
+
             end
         end
 

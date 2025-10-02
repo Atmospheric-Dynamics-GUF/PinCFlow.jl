@@ -89,7 +89,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
                     if sice >= iceconstants.S_c
 
         			sice = iceconstants.S_c #set to critical value
-		        	#CHANGES 
+		        	
 			        sgstendencies.dn[ii2, jj2, kk2] = dot_n(sice, rhoMean, iceconstants)
 		            else
 		               sgstendencies.dn[ii2, jj2, kk2] = 0.0
@@ -99,7 +99,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
                     sgstendencies.dqv[ii2, jj2, kk2] = dqv
                     sgstendencies.dq[ii2, jj2, kk2] = -dqv
 
-                   #sgsauxiliaries[ii2, jj2, kk2] = sice #full SIce in RT
+                    #sgsauxiliaries[ii2, jj2, kk2] = sice #full SIce in RT
 
 				end
 			end
@@ -156,7 +156,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 		if sice >= iceconstants.S_c
 
 			sice = iceconstants.S_c #set to critical value
-			#CHANGES 
+			
 			icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants)
 		else
 			icesource.nsource[i, j, k] = 0.0

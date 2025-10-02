@@ -306,7 +306,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 				cgz_max[ix, jy, kz] = max(cgz_max[ix, jy, kz], abs(wzr + cgirz))
 			end
 
-			if icesetup isa AbstractIce
+			if !(icesetup isa NoIce)
 				rays.dphi[iray, ix, jy, kz] = wnrk * xr + wnrl * yr + wnrm * zr
 			end
 		end

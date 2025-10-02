@@ -85,13 +85,13 @@ grid = GridNamelist(;
 )
 
 sponge = SpongeNamelist(;
-    spongelayer = true,
+    spongelayer = false,
     sponge_uv = false,
     spongeheight = 5.0E-1,
     spongealphaz_dim = 1.79E-2,
     spongealphaz_fac = 1.0E+0,
-    unifiedsponge = true,
-    lateralsponge = true,
+    unifiedsponge = false,
+    lateralsponge = false,
     spongetype = SinusoidalSponge(),
     spongeorder = 1,
     cosmosteps = 1,

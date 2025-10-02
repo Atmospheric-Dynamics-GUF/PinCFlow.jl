@@ -43,7 +43,7 @@ function create_output(state::State)
             chunk = (cx, cy, cz),
         )
         #changes for cloudcover
-        if !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
+        if !(typeof(state.namelists.ice.icesetup) <: NoIce) && state.namelists.ice.cloudcover isa CloudCoverOn
             
             (; sizex2, sizey2, sizez2) = state.ice.subgrid
             

@@ -19,7 +19,7 @@ function SgsGW(namelists :: Namelists,
     domain :: Domain,
     subgrid ::SubGrid,
     icesetup :: NoIce,
-    cloudcover::AbstractCloudCover
+    cloudcover:: AbstractCloudCover
     )
 
     wwp = zeros(0, 0, 0)
@@ -32,7 +32,7 @@ end
 function SgsGW( namelists::Namelists, 
     domain :: Domain,
     subgrid::SubGrid,
-    icesetup :: AbstractIce,
+    icesetup :: IceOn,
     cloudcover :: CloudCoverOff
     )
 

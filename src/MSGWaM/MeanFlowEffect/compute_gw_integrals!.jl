@@ -168,9 +168,9 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                     end
 
                     kzmin =
-                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
+                        get_next_half_level(ix, jy, zr - dzr / 2, domain, grid; dkd = 1, dku = 1)
                     kzmax =
-                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+                        get_next_half_level(ix, jy, zr + dzr / 2, domain, grid; dkd = 1, dku = 1)
 
                     for kz in kzmin:kzmax
                         dzi =

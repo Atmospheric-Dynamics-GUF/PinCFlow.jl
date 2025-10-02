@@ -111,9 +111,9 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 									dyy = ysc - yr
 									dzz = zsc - zr
 
-									if abs(dxx) <= (dxr + dxsc) / 2 &&
-									   abs(dyy) <= (dyr + dysc) / 2 &&
-									   abs(dzz) <= (dzr + dzsc*jac[ix, jy, kz]) / 2
+									if abs(dxx) <= dxr / 2 &&
+									   abs(dyy) <= dyr / 2 &&
+									   abs(dzz) <= dzr / 2
 
 										if sizex > 1
 											dxi = (
@@ -133,8 +133,6 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 										else
 											fcpspy = 1.0
 										end
-										#changes
-										#fcpspy = 1.0
 
 										dzi = (min((zr + dzr * 0.5),
 											zsc + dzsc * jac[ix, jy, kz] * 0.5) -
@@ -152,13 +150,6 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 											rhostrattfc[ix, jy, kz] * fcpswn *
 											rays.dens[iray, ixrv, jyrv, kzrv])
 
-										#changes
-										#if ix == 7 && ii == 8 && jj == 1 && kk #== 8
-										#	print("kz ", kz, " , ", amprw, " , ", rays.dens[iray, ixrv, jyrv, kzrv], "\n")
-										#end
-
-										#changes
-										#amprw = 1.0
 
 										#to be consisten with LES wavepacket simulation
 										#there amplitude of b11 is real with sign from vert. wavenumber

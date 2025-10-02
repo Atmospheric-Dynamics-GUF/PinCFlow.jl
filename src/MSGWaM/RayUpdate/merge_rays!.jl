@@ -271,6 +271,10 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
             rays.dlray[iray, ix, jy, kz] = diff(merged_rays[jray].lr)[1]
             rays.dmray[iray, ix, jy, kz] = diff(merged_rays[jray].mr)[1]
 
+            #CHANGES
+            # set phase to zero after merging
+            rays.dphi[iray, ix, jy, kz] = 0.0
+
             (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
 
             omegar = compute_intrinsic_frequency(state, (iray, ix, jy, kz))

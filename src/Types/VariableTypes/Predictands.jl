@@ -462,10 +462,7 @@ function Predictands(
 			# in raytracer cos-wavepacket in waveaction density A
 			# here cos-wavepacket in buoyancy b with A \sim b^2
 			envel = sqrt(envel)
-
-			 # changes
-			#envel = 1.0
-
+			
 			theta0 = theta0_dim / thetaref
             
 			bhat = a0[iwm] * n2 / mm * envel
