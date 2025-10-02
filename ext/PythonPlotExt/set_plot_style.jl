@@ -1,11 +1,3 @@
-import PinCFlow: set_plot_style
-"""
-```julia
-set_plot_style()
-```
-
-Configure PythonPlot.jl to use a preset plot style.
-"""
 function set_plot_style()
     matplotlib.style.use(
         [

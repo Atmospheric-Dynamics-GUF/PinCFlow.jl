@@ -115,11 +115,8 @@ For the visualization of simulation results, we recommend using [PythonPlot.jl](
 # examples/visualization/periodic_hill.jl
 
 using HDF5
-using PythonPlot
 using LaTeXStrings
 using PinCFlow
-
-set_plot_style()
 
 # Import the data.
 @ivy if length(ARGS) == 0
@@ -142,6 +139,7 @@ w = data["w"][:, 1, :, end]
 close(data)
 
 # Create the plot.
+# TODO - Only works if PythonPlot is installed.
 (levels, colormap) = symmetric_contours(minimum(w), maximum(w))
 # TODO - Only works if PythonPlot is installed.
 contours = contourf(x, z, w; levels = levels, cmap = colormap)

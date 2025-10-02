@@ -5,6 +5,8 @@ using PythonPlot
 
 using PinCFlow: @ivy
 
+import PinCFlow: set_plot_style, symmetric_contours
+
 include("PythonPlotExt/set_plot_style.jl")
 include("PythonPlotExt/symmetric_contours.jl")
 
