@@ -61,9 +61,9 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
         nrl,
         nrm,
         wave_modes,
-        fdk,
-        fdl,
-        fdm,
+        dkr_factor,
+        dlr_factor,
+        dmr_factor,
         wkb_mode,
         wave_modes,
     ) = state.namelists.wkb
@@ -219,15 +219,15 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
 
             # Ensure correct wavenumber extents.
             if test_case == WKBMountainWave() && x_size > 1
-                dk_ini_nd = fdk * sqrt(wnk0^2 + wnl0^2)
+                dk_ini_nd = dkr_factor * sqrt(wnk0^2 + wnl0^2)
             end
             if test_case == WKBMountainWave() && y_size > 1
-                dl_ini_nd = fdl * sqrt(wnk0^2 + wnl0^2)
+                dl_ini_nd = dlr_factor * sqrt(wnk0^2 + wnl0^2)
             end
             if wnm0 == 0.0
                 error("Error in WKB: wnm0 = 0!")
             else
-                dm_ini_nd = fdm * abs(wnm0)
+                dm_ini_nd = dmr_factor * abs(wnm0)
             end
 
             # Set ray-volume wavenumbers.

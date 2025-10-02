@@ -208,9 +208,9 @@ function WKB(
         nrm,
         multiplication_factor,
         wave_modes,
-        fdk,
-        fdl,
-        fdm,
+        dkr_factor,
+        dlr_factor,
+        dmr_factor,
     ) = namelists.wkb
     (; lref) = constants
     (; x_size, y_size, z_size) = namelists.domain
@@ -229,14 +229,14 @@ function WKB(
     end
 
     # Check if spectral-extent factors are set correctly.
-    if x_size > 1 && fdk == 0.0
-        error("Error in WKB: x_size > 1 && fdk == 0!")
+    if x_size > 1 && dkr_factor == 0.0
+        error("Error in WKB: x_size > 1 && dkr_factor == 0!")
     end
-    if y_size > 1 && fdl == 0.0
-        error("Error in WKB: y_size > 1 && fdl == 0!")
+    if y_size > 1 && dlr_factor == 0.0
+        error("Error in WKB: y_size > 1 && dlr_factor == 0!")
     end
-    if z_size == 1 || fdm == 0.0
-        error("Error in WKB: z_size == 1 || fdm == 0!")
+    if z_size == 1 || dmr_factor == 0.0
+        error("Error in WKB: z_size == 1 || dmr_factor == 0!")
     end
 
     # Set zonal ray-volume count.

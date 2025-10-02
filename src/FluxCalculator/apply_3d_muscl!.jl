@@ -43,17 +43,32 @@ function apply_3d_muscl!(
 
     # Reconstruct in x.
     @ivy for k in 2:(nzz - 1), j in 2:(nyy - 1)
-        apply_1d_muscl!(phi[:, j, k], phitilde[:, j, k, 1, :], nxx, limiter_type)
+        apply_1d_muscl!(
+            phi[:, j, k],
+            phitilde[:, j, k, 1, :],
+            nxx,
+            limiter_type,
+        )
     end
 
     # Reconstruct in y.
     @ivy for k in 2:(nzz - 1), i in 2:(nxx - 1)
-        apply_1d_muscl!(phi[i, :, k], phitilde[i, :, k, 2, :], nyy, limiter_type)
+        apply_1d_muscl!(
+            phi[i, :, k],
+            phitilde[i, :, k, 2, :],
+            nyy,
+            limiter_type,
+        )
     end
 
     # Reconstruct in z.
     @ivy for j in 2:(nyy - 1), i in 2:(nxx - 1)
-        apply_1d_muscl!(phi[i, j, :], phitilde[i, j, :, 3, :], nzz, limiter_type)
+        apply_1d_muscl!(
+            phi[i, j, :],
+            phitilde[i, j, :, 3, :],
+            nzz,
+            limiter_type,
+        )
     end
 
     return

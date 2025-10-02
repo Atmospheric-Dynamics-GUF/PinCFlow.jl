@@ -27,9 +27,9 @@ WKBNamelist(;
     nrl::Integer = 1,
     nrm::Integer = 1,
     multiplication_factor::Integer = 4,
-    fdk::AbstractFloat = 1.0E-1,
-    fdl::AbstractFloat = 1.0E-1,
-    fdm::AbstractFloat = 1.0E-1,
+    dkr_factor::AbstractFloat = 1.0E-1,
+    dlr_factor::AbstractFloat = 1.0E-1,
+    dmr_factor::AbstractFloat = 1.0E-1,
     branch::Integer = -1,
     merge_mode::AbstractMergeMode = ConstantWaveAction(),
     filter_order::Integer = 2,
@@ -76,11 +76,11 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `multiplication_factor::B`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
 
-  - `fdk::A`: Relative initial ray-volume extent in ``k``.
+  - `dkr_factor::A`: Relative initial ray-volume extent in ``k``.
 
-  - `fdl::A`: Relative initial ray-volume extent in ``l``.
+  - `dlr_factor::A`: Relative initial ray-volume extent in ``l``.
 
-  - `fdm::A`: Relative initial ray-volume extent in ``m``.
+  - `dmr_factor::A`: Relative initial ray-volume extent in ``m``.
 
   - `branch::B`: Frequency branch.
 
@@ -129,9 +129,9 @@ struct WKBNamelist{
     nrl::B
     nrm::B
     multiplication_factor::B
-    fdk::A
-    fdl::A
-    fdm::A
+    dkr_factor::A
+    dlr_factor::A
+    dmr_factor::A
     branch::B
     merge_mode::C
     filter_order::B
@@ -161,9 +161,9 @@ function WKBNamelist(;
     nrl::Integer = 1,
     nrm::Integer = 1,
     multiplication_factor::Integer = 4,
-    fdk::AbstractFloat = 1.0E-1,
-    fdl::AbstractFloat = 1.0E-1,
-    fdm::AbstractFloat = 1.0E-1,
+    dkr_factor::AbstractFloat = 1.0E-1,
+    dlr_factor::AbstractFloat = 1.0E-1,
+    dmr_factor::AbstractFloat = 1.0E-1,
     branch::Integer = -1,
     merge_mode::AbstractMergeMode = ConstantWaveAction(),
     filter_order::Integer = 2,
@@ -192,9 +192,9 @@ function WKBNamelist(;
         nrl,
         nrm,
         multiplication_factor,
-        fdk,
-        fdl,
-        fdm,
+        dkr_factor,
+        dlr_factor,
+        dmr_factor,
         branch,
         merge_mode,
         filter_order,

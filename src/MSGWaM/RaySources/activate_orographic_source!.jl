@@ -176,9 +176,9 @@ function activate_orographic_source!(state::State)
         nrk,
         nrl,
         nrm,
-        fdk,
-        fdl,
-        fdm,
+        dkr_factor,
+        dlr_factor,
+        dmr_factor,
         branch,
         blocking,
         long_threshold,
@@ -393,17 +393,17 @@ function activate_orographic_source!(state::State)
             if x_size == 1
                 dk_ini_nd = 0.0
             else
-                dk_ini_nd = fdk * sqrt(wnrk^2 + wnrl^2)
+                dk_ini_nd = dkr_factor * sqrt(wnrk^2 + wnrl^2)
             end
             if y_size == 1
                 dl_ini_nd = 0.0
             else
-                dl_ini_nd = fdl * sqrt(wnrk^2 + wnrl^2)
+                dl_ini_nd = dlr_factor * sqrt(wnrk^2 + wnrl^2)
             end
             if wnrm == 0.0
                 error("Error in orographic_source: wnrm = 0!")
             else
-                dm_ini_nd = fdm * abs(wnrm)
+                dm_ini_nd = dmr_factor * abs(wnrm)
             end
 
             # Set spectral ray-volume position.
