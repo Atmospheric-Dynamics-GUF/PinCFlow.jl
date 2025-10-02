@@ -96,7 +96,7 @@ function reconstruct!(state::State)
 end
 
 function reconstruct!(state::State, variable::Rho)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho) = state.variables.predictands
     (; phi) = state.variables.auxiliaries
@@ -107,13 +107,13 @@ function reconstruct!(state::State, variable::Rho)
 
     @ivy phi[:, :, kk] .= rho[:, :, kk] ./ pstrattfc[:, :, kk]
 
-    apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
 function reconstruct!(state::State, variable::RhoP)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rhop) = state.variables.predictands
     (; phi) = state.variables.auxiliaries
@@ -124,13 +124,13 @@ function reconstruct!(state::State, variable::RhoP)
 
     @ivy phi[:, :, kk] .= rhop[:, :, kk] ./ pstrattfc[:, :, kk]
 
-    apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
 function reconstruct!(state::State, variable::U)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho, u) = state.variables.predictands
     (; phi) = state.variables.auxiliaries
@@ -149,13 +149,13 @@ function reconstruct!(state::State, variable::U)
         phi[i, j, k] = u[i, j, k] * rhoedge / pedge
     end
 
-    apply_3d_muscl!(phi, utilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, utilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
 function reconstruct!(state::State, variable::V)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho, v) = state.variables.predictands
     (; phi) = state.variables.auxiliaries
@@ -174,14 +174,14 @@ function reconstruct!(state::State, variable::V)
         phi[i, j, k] = v[i, j, k] * rhoedge / pedge
     end
 
-    apply_3d_muscl!(phi, vtilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, vtilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
 function reconstruct!(state::State, variable::W)
     (; namelists, domain, grid) = state
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; jac) = grid
     (; predictands) = state.variables
@@ -213,7 +213,7 @@ function reconstruct!(state::State, variable::W)
         phi[i, j, k] *= rhoedgeu / pedgeu
     end
 
-    apply_3d_muscl!(phi, wtilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, wtilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
@@ -223,7 +223,7 @@ function reconstruct!(state::State, tracer_setup::NoTracer)
 end
 
 function reconstruct!(state::State, tracer_setup::AbstractTracer)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries
     (; pstrattfc) = state.atmosphere
@@ -240,7 +240,7 @@ function reconstruct!(state::State, tracer_setup::AbstractTracer)
             nxx,
             nyy,
             nzz,
-            limitertype,
+            limiter_type,
         )
     end
 

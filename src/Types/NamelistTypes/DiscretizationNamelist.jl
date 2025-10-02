@@ -12,7 +12,7 @@ DiscretizationNamelist(;
     dtmin::AbstractFloat = 1.0E-6,
     dtmax::AbstractFloat = 1.0E+3,
     adaptive_time_step::Bool = true,
-    limitertype::AbstractLimiter = MCVariant(),
+    limiter_type::AbstractLimiter = MCVariant(),
 )::DiscretizationNamelist
 ```
 
@@ -30,7 +30,7 @@ Construct a `DiscretizationNamelist` instance with the given keyword arguments a
 
   - `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
 
-  - `limitertype::C`: Flux limiter used by the MUSCL scheme.
+  - `limiter_type::C`: Flux limiter used by the MUSCL scheme.
 """
 struct DiscretizationNamelist{
     A <: AbstractFloat,
@@ -42,7 +42,7 @@ struct DiscretizationNamelist{
     dtmin::A
     dtmax::A
     adaptive_time_step::B
-    limitertype::C
+    limiter_type::C
 end
 
 function DiscretizationNamelist(;
@@ -51,7 +51,7 @@ function DiscretizationNamelist(;
     dtmin::AbstractFloat = 1.0E-6,
     dtmax::AbstractFloat = 1.0E+3,
     adaptive_time_step::Bool = true,
-    limitertype::AbstractLimiter = MCVariant(),
+    limiter_type::AbstractLimiter = MCVariant(),
 )::DiscretizationNamelist
     return DiscretizationNamelist(
         cfl_number,
@@ -59,6 +59,6 @@ function DiscretizationNamelist(;
         dtmin,
         dtmax,
         adaptive_time_step,
-        limitertype,
+        limiter_type,
     )
 end

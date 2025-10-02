@@ -64,7 +64,7 @@ configurations = Dict(
                         dtmin = 1.0E-6,
                         dtmax = 1.0E+3,
                         adaptive_time_step = true,
-                        limitertype = MCVariant(),
+                        limiter_type = MCVariant(),
                     )
 
                     domain = DomainNamelist(;
