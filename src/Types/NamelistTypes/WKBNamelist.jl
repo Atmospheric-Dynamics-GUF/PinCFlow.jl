@@ -42,7 +42,7 @@ WKBNamelist(;
     blocking::Bool = false,
     long_threshold::AbstractFloat = 2.5E-1,
     drag_coefficient::AbstractFloat = 1.0E+0,
-    nalpha::Integer = 1,
+    wave_modes::Integer = 1,
 )::WKBNamelist
 ```
 
@@ -106,7 +106,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `drag_coefficient::A`: Dimensionless (relative) drag coefficient used by the blocked layer scheme.
 
-  - `nalpha::B`: Number of wave modes per grid cell.
+  - `wave_modes::B`: Number of wave modes per grid cell.
 """
 struct WKBNamelist{
     A <: AbstractFloat,
@@ -144,7 +144,7 @@ struct WKBNamelist{
     blocking::D
     long_threshold::A
     drag_coefficient::A
-    nalpha::B
+    wave_modes::B
 end
 
 function WKBNamelist(;
@@ -176,7 +176,7 @@ function WKBNamelist(;
     blocking::Bool = false,
     long_threshold::AbstractFloat = 2.5E-1,
     drag_coefficient::AbstractFloat = 1.0E+0,
-    nalpha::Integer = 1,
+    wave_modes::Integer = 1,
 )::WKBNamelist
     return WKBNamelist(
         xrmin,
@@ -207,6 +207,6 @@ function WKBNamelist(;
         blocking,
         long_threshold,
         drag_coefficient,
-        nalpha,
+        wave_modes,
     )
 end

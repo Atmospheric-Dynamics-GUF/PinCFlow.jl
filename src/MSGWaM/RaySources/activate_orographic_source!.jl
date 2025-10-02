@@ -81,7 +81,7 @@ function activate_orographic_source!(
     wad_ini::AbstractArray{<:AbstractFloat, 4},
 )
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branch, blocking, long_threshold, nalpha) = state.namelists.wkb
+    (; branch, blocking, long_threshold, wave_modes) = state.namelists.wkb
     (; tref) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) =
@@ -140,7 +140,7 @@ function activate_orographic_source!(
         k = k0 - 1
 
         # Iterate over wave modes.
-        for alpha in 1:nalpha
+        for alpha in 1:wave_modes
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
             (omi, wnk, wnl, wnm, wad) = compute_orographic_mode(

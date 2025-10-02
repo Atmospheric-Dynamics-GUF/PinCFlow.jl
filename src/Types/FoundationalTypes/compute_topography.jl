@@ -252,7 +252,7 @@ function compute_topography(
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
 }
-    (; nalpha) = namelists.wkb
+    (; wave_modes) = namelists.wkb
     (;
         mountain_height,
         mountain_half_width,
@@ -264,8 +264,8 @@ function compute_topography(
     (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
     (; lref) = constants
 
-    if nalpha < 1 || (mountain_case == 13 && nalpha < spectral_modes)
-        error("Error in compute_topography: nalpha is too small!")
+    if wave_modes < 1 || (mountain_case == 13 && wave_modes < spectral_modes)
+        error("Error in compute_topography: wave_modes is too small!")
     end
 
     mountainheight = mountain_height / lref
@@ -273,9 +273,9 @@ function compute_topography(
     mountainwavenumber = pi / mountainwidth
 
     topography_surface = zeros(nxx, nyy)
-    topography_spectrum = zeros(nalpha, nxx, nyy)
-    k_spectrum = zeros(nalpha, nxx, nyy)
-    l_spectrum = zeros(nalpha, nxx, nyy)
+    topography_spectrum = zeros(wave_modes, nxx, nyy)
+    k_spectrum = zeros(wave_modes, nxx, nyy)
+    l_spectrum = zeros(wave_modes, nxx, nyy)
 
     @ivy for j in j0:j1, i in i0:i1
         if mountain_case == 1

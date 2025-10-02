@@ -17,7 +17,7 @@ initialize_rays!(state::State, test_case::AbstractWKBTestCase)
 
 Complete the initialization of MSGWaM for WKB test cases.
 
-In each grid cell, `nalpha` wave modes are computed, using e.g. `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
+In each grid cell, `wave_modes` wave modes are computed, using e.g. `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
 
 # Arguments
 
@@ -60,12 +60,12 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
         nrk,
         nrl,
         nrm,
-        nalpha,
+        wave_modes,
         fdk,
         fdl,
         fdm,
         wkb_mode,
-        nalpha,
+        wave_modes,
     ) = state.namelists.wkb
     (; lref, tref) = state.constants
     (; comm, master, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
@@ -114,11 +114,11 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
     end
 
     # Initialize local arrays.
-    omi_ini = zeros(nalpha, nxx, nyy, nzz)
-    wnk_ini = zeros(nalpha, nxx, nyy, nzz)
-    wnl_ini = zeros(nalpha, nxx, nyy, nzz)
-    wnm_ini = zeros(nalpha, nxx, nyy, nzz)
-    wad_ini = zeros(nalpha, nxx, nyy, nzz)
+    omi_ini = zeros(wave_modes, nxx, nyy, nzz)
+    wnk_ini = zeros(wave_modes, nxx, nyy, nzz)
+    wnl_ini = zeros(wave_modes, nxx, nyy, nzz)
+    wnm_ini = zeros(wave_modes, nxx, nyy, nzz)
+    wad_ini = zeros(wave_modes, nxx, nyy, nzz)
 
     if wkb_mode == SteadyState() && test_case != WKBMountainWave()
         error(
@@ -153,7 +153,7 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
             jl in 1:nrl,
             kz in 1:nrz,
             km in 1:nrm,
-            alpha in 1:nalpha
+            alpha in 1:wave_modes
 
             # Set ray-volume indices.
             if test_case == WKBMountainWave()

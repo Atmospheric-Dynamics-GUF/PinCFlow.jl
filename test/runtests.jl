@@ -168,7 +168,7 @@ configurations = Dict(
                         blocking = true,
                         long_threshold = 2.5E-1,
                         drag_coefficient = 1.0E+0,
-                        nalpha = 1,
+                        wave_modes = 1,
                     )
 
                     tracer = TracerNamelist(;
