@@ -53,7 +53,7 @@ function compute_horizontal_cell_indices(
 
         if imax < i0 - 1
             error(
-                "Error in meanflow_effec: imax =",
+                "Error in meanflow_effect: imax =",
                 imax,
                 "< i0 - 1 = ",
                 i0 - 1,
@@ -84,7 +84,7 @@ function compute_horizontal_cell_indices(
 
         if jmax < j0 - 1
             error(
-                "Error in meanflow_effec: jmax =",
+                "Error in meanflow_effect: jmax =",
                 jmax,
                 "< j0 - 1 = ",
                 j0 - 1,
