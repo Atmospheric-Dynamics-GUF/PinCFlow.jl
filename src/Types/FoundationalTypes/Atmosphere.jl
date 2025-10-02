@@ -187,7 +187,7 @@ function Atmosphere(
     (; nbz) = namelists.domain
     (; temperature, ground_pressure) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma, g_ndim) = constants
-    (; ndzz, nxx, nyy, nzz, ko, k0, k1) = domain
+    (; zz_size, nxx, nyy, nzz, ko, k0, k1) = domain
     (; ztfc, jac, dz) = grid
 
     # Initialize the background fields.
@@ -219,7 +219,7 @@ function Atmosphere(
                 (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
         end
     end
-    @ivy if ko + nzz == ndzz
+    @ivy if ko + nzz == zz_size
         for k in 1:nbz
             bvsstrattfc[:, :, k1 + k] .=
                 g_ndim ./ thetastrattfc[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*

@@ -68,9 +68,9 @@ configurations = Dict(
                     )
 
                     domain = DomainNamelist(;
-                        ndx = 5,
-                        ndy = 5,
-                        ndz = 5,
+                        x_size = 5,
+                        y_size = 5,
+                        z_size = 5,
                         nbx = 3,
                         nby = 3,
                         nbz = 3,

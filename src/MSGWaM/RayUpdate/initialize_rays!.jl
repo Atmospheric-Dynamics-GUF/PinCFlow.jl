@@ -46,7 +46,7 @@ function initialize_rays!(state::State, test_case::AbstractTestCase)
 end
 
 function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
-    (; ndx, ndy, ndz) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
@@ -218,10 +218,10 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
             wnm0 = wnm_ini[alpha, i, j, k]
 
             # Ensure correct wavenumber extents.
-            if test_case == WKBMountainWave() && ndx > 1
+            if test_case == WKBMountainWave() && x_size > 1
                 dk_ini_nd = fdk * sqrt(wnk0^2 + wnl0^2)
             end
-            if test_case == WKBMountainWave() && ndy > 1
+            if test_case == WKBMountainWave() && y_size > 1
                 dl_ini_nd = fdl * sqrt(wnk0^2 + wnl0^2)
             end
             if wnm0 == 0.0
@@ -245,10 +245,10 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
 
             # Set spectral volume.
             pspvol = dm_ini_nd
-            if ndx > 1
+            if x_size > 1
                 pspvol = pspvol * dk_ini_nd
             end
-            if ndy > 1
+            if y_size > 1
                 pspvol = pspvol * dl_ini_nd
             end
 

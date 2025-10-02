@@ -29,7 +29,7 @@ function get_next_level(
     z::AbstractFloat,
     state::State,
 )::Integer
-    (; ndzz, nzz, ko, k0, k1) = state.domain
+    (; zz_size, nzz, ko, k0, k1) = state.domain
     (; ztfc) = state.grid
 
     @ivy k = argmin(abs.(ztfc[i, j, :] .- z))
@@ -45,7 +45,7 @@ function get_next_level(
         end
     end
 
-    if ko + nzz == ndzz
+    if ko + nzz == zz_size
         k = min(k, k1 + 1)
     else
         if k > nzz - 1

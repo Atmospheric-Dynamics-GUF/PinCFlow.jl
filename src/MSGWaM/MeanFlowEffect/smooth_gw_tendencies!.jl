@@ -184,7 +184,7 @@ Return for configurations without tracer transport.
 function smooth_gw_tendencies! end
 
 function smooth_gw_tendencies!(state::State)
-    (; ndx, ndy) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
@@ -193,15 +193,15 @@ function smooth_gw_tendencies!(state::State)
         return
     end
 
-    if ndx == ndy == 1
+    if x_size == y_size == 1
         smooth_gw_tendencies!(dudt, state, filter_type, Z())
         smooth_gw_tendencies!(dvdt, state, filter_type, Z())
         smooth_gw_tendencies!(dthetadt, state, filter_type, Z())
-    elseif ndx == 1
+    elseif x_size == 1
         smooth_gw_tendencies!(dudt, state, filter_type, YZ())
         smooth_gw_tendencies!(dvdt, state, filter_type, YZ())
         smooth_gw_tendencies!(dthetadt, state, filter_type, YZ())
-    elseif ndy == 1
+    elseif y_size == 1
         smooth_gw_tendencies!(dudt, state, filter_type, XZ())
         smooth_gw_tendencies!(dvdt, state, filter_type, XZ())
         smooth_gw_tendencies!(dthetadt, state, filter_type, XZ())
@@ -455,7 +455,7 @@ function smooth_gw_tendencies!(
 end
 
 function smooth_gw_tendencies!(state::State, tracer_setup::AbstractTracer)
-    (; ndx, ndy) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dchidt) = state.tracer.tracerforcings.chiq0
 
@@ -463,11 +463,11 @@ function smooth_gw_tendencies!(state::State, tracer_setup::AbstractTracer)
         return
     end
 
-    if ndx == ndy == 1
+    if x_size == y_size == 1
         smooth_gw_tendencies!(dchidt, state, filter_type, Z())
-    elseif ndx == 1
+    elseif x_size == 1
         smooth_gw_tendencies!(dchidt, state, filter_type, YZ())
-    elseif ndy == 1
+    elseif y_size == 1
         smooth_gw_tendencies!(dchidt, state, filter_type, XZ())
     else
         smooth_gw_tendencies!(dchidt, state, filter_type, XYZ())

@@ -7,9 +7,9 @@ Namelist for parameters describing the model domain.
 
 ```julia
 DomainNamelist(;
-    ndx::Integer = 3,
-    ndy::Integer = 3,
-    ndz::Integer = 3,
+    x_size::Integer = 3,
+    y_size::Integer = 3,
+    z_size::Integer = 3,
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
@@ -27,11 +27,11 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
 # Fields/Keywords
 
-  - `ndx::A`: Number of grid cells in ``\\widehat{x}``-direction.
+  - `x_size::A`: Number of grid cells in ``\\widehat{x}``-direction.
 
-  - `ndy::A`: Number of grid cells in ``\\widehat{y}``-direction.
+  - `y_size::A`: Number of grid cells in ``\\widehat{y}``-direction.
 
-  - `ndz::A`: Number of grid cells in ``\\widehat{z}``-direction.
+  - `z_size::A`: Number of grid cells in ``\\widehat{z}``-direction.
 
   - `nbx::A`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
 
@@ -54,9 +54,9 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
   - `base_comm::C`: MPI base communicator.
 """
 struct DomainNamelist{A <: Integer, B <: AbstractFloat, C <: MPI.Comm}
-    ndx::A
-    ndy::A
-    ndz::A
+    x_size::A
+    y_size::A
+    z_size::A
     nbx::A
     nby::A
     nbz::A
@@ -70,9 +70,9 @@ struct DomainNamelist{A <: Integer, B <: AbstractFloat, C <: MPI.Comm}
 end
 
 function DomainNamelist(;
-    ndx::Integer = 3,
-    ndy::Integer = 3,
-    ndz::Integer = 3,
+    x_size::Integer = 3,
+    y_size::Integer = 3,
+    z_size::Integer = 3,
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
@@ -85,9 +85,9 @@ function DomainNamelist(;
     base_comm::MPI.Comm = MPI.COMM_WORLD,
 )::DomainNamelist
     return DomainNamelist(
-        ndx,
-        ndy,
-        ndz,
+        x_size,
+        y_size,
+        z_size,
         nbx,
         nby,
         nbz,

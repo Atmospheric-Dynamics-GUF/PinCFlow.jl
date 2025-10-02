@@ -60,7 +60,7 @@ function compute_saturation_integrals(
     k::Integer,
 )::NTuple{2, <:AbstractFloat}
     (; domain, grid) = state
-    (; ndx, ndy) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dz, jac) = grid
     (; rhostrattfc) = state.atmosphere
@@ -86,13 +86,13 @@ function compute_saturation_integrals(
         dyr = rays.dyray[r, i, j, k]
         dzr = rays.dzray[r, i, j, k]
 
-        if ndx > 1
+        if x_size > 1
             iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
         else
             iray = i0
         end
 
-        if ndy > 1
+        if y_size > 1
             jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
         else
             jray = j0
@@ -119,12 +119,12 @@ function compute_saturation_integrals(
         dzi = min(dzr, jac[iray, jray, kray] * dz)
         facpsp = dzi / jac[iray, jray, kray] / dz * dwnrm
 
-        if ndx > 1
+        if x_size > 1
             dxi = min(dxr, dx)
             facpsp = facpsp * dxi / dx * dwnrk
         end
 
-        if ndy > 1
+        if y_size > 1
             dyi = min(dyr, dy)
             facpsp = facpsp * dyi / dy * dwnrl
         end

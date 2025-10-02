@@ -115,7 +115,7 @@ function compute_pressure_gradient(
 )::AbstractFloat
     (; nbz) = state.namelists.domain
     (; kappainv, mainv2) = state.constants
-    (; ndzz, ko, k0) = state.domain
+    (; zz_size, ko, k0) = state.domain
     (; dx, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
@@ -140,7 +140,7 @@ function compute_pressure_gradient(
                 (-pipuuedger + 4.0 * pipuedger - 3.0 * pipedger) *
                 0.5 / dz
             )
-    elseif ko + k == ndzz - nbz
+    elseif ko + k == zz_size - nbz
         pipddedger = 0.5 * (pip[i, j, k - 2] + pip[i + 1, j, k - 2])
         pipdedger = 0.5 * (pip[i, j, k - 1] + pip[i + 1, j, k - 1])
         pipedger = 0.5 * (pip[i, j, k] + pip[i + 1, j, k])
@@ -174,7 +174,7 @@ function compute_pressure_gradient(
 )::AbstractFloat
     (; nbz) = state.namelists.domain
     (; kappainv, mainv2) = state.constants
-    (; ndzz, ko, k0) = state.domain
+    (; zz_size, ko, k0) = state.domain
     (; dy, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
@@ -199,7 +199,7 @@ function compute_pressure_gradient(
                 (-pipuuedgef + 4.0 * pipuedgef - 3.0 * pipedgef) *
                 0.5 / dz
             )
-    elseif ko + k == ndzz - nbz
+    elseif ko + k == zz_size - nbz
         pipddedgef = 0.5 * (pip[i, j, k - 2] + pip[i, j + 1, k - 2])
         pipdedgef = 0.5 * (pip[i, j, k - 1] + pip[i, j + 1, k - 1])
         pipedgef = 0.5 * (pip[i, j, k] + pip[i, j + 1, k])

@@ -43,7 +43,7 @@ function apply_preconditioner!(
     state::State,
 )
     (; dtau, preconditioner_iterations) = state.namelists.poisson
-    (; comm, ndzz, nz, nzz, ko, down, up) = state.domain
+    (; comm, zz_size, nz, nzz, ko, down, up) = state.domain
     (; dx, dy) = state.grid
     (; au_b, ac_b, ad_b) = state.poisson.tensor
     (; s_pc, q_pc, p_pc, s_pc_bc, q_pc_bc) = state.poisson.preconditioner
@@ -92,7 +92,7 @@ function apply_preconditioner!(
         end
 
         # Communicate the upper boundary and set it for the downward sweep.
-        if ko + nzz != ndzz
+        if ko + nzz != zz_size
             q_pc_bc .= q_pc[:, :, nz]
             s_pc_bc .= s_pc[:, :, nz]
 

@@ -12,7 +12,7 @@ Read initial values for all prognostic variables from an HDF5 input file.
 function read_input! end
 
 function read_input!(state::State)
-    (; ndx, ndy) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model, test_case) = state.namelists.setting
     (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -23,10 +23,10 @@ function read_input!(state::State)
 
     # Determine dimensionality.
     dim = 1
-    if ndx > 1
+    if x_size > 1
         dim += 1
     end
-    if ndy > 1
+    if y_size > 1
         dim += 1
     end
 

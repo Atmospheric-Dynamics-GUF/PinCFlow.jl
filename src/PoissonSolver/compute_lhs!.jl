@@ -63,7 +63,7 @@ function compute_lhs!(state::State)::AbstractFloat
 end
 
 function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
-    (; ndx, ndy, ndz) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -135,10 +135,10 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
     end
 
     divl2 = MPI.Allreduce(divl2, +, comm)
-    divl2 = sqrt(divl2 / ndx / ndy / ndz)
+    divl2 = sqrt(divl2 / x_size / y_size / z_size)
 
     divl2_norm = MPI.Allreduce(divl2_norm, +, comm)
-    divl2_norm = sqrt(divl2_norm / ndx / ndy / ndz)
+    divl2_norm = sqrt(divl2_norm / x_size / y_size / z_size)
 
     if divl2_norm != 0.0
         tolref = divl2 / divl2_norm
@@ -154,7 +154,7 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
 end
 
 function compute_lhs!(state::State, model::Compressible)::AbstractFloat
-    (; ndx, ndy, ndz) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -198,10 +198,10 @@ function compute_lhs!(state::State, model::Compressible)::AbstractFloat
     end
 
     divl2 = MPI.Allreduce(divl2, +, comm)
-    divl2 = sqrt(divl2 / ndx / ndy / ndz)
+    divl2 = sqrt(divl2 / x_size / y_size / z_size)
 
     divl2_norm = MPI.Allreduce(divl2_norm, +, comm)
-    divl2_norm = sqrt(divl2_norm / ndx / ndy / ndz)
+    divl2_norm = sqrt(divl2_norm / x_size / y_size / z_size)
 
     if divl2_norm != 0.0
         tolref = divl2 / divl2_norm

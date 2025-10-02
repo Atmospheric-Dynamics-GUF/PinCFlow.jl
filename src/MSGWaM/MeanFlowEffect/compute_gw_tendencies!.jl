@@ -30,7 +30,7 @@ where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` 
 function compute_gw_tendencies! end
 
 function compute_gw_tendencies!(state::State)
-    (; ndx, ndy) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; impact_altitude) = state.namelists.wkb
     (; tref, lref) = state.constants
@@ -60,7 +60,7 @@ function compute_gw_tendencies!(state::State)
             -rhotot / rhostrattfc[i, j, k] / jac[i, j, k] *
             (integrals.uw[i, j, k + 1] - integrals.uw[i, j, k - 1]) / (2.0 * dz)
 
-        if ndx > 1
+        if x_size > 1
             tendencies.dudt[i, j, k] -=
                 rhotot / rhostrattfc[i, j, k] * (
                     (integrals.uu[i + 1, j, k] - integrals.uu[i - 1, j, k]) /
@@ -71,7 +71,7 @@ function compute_gw_tendencies!(state::State)
                 )
         end
 
-        if ndy > 1
+        if y_size > 1
             tendencies.dudt[i, j, k] -=
                 rhotot / rhostrattfc[i, j, k] * (
                     (integrals.uv[i, j + 1, k] - integrals.uv[i, j - 1, k]) /
@@ -91,7 +91,7 @@ function compute_gw_tendencies!(state::State)
             -rhotot / rhostrattfc[i, j, k] / jac[i, j, k] *
             (integrals.vw[i, j, k + 1] - integrals.vw[i, j, k - 1]) / (2.0 * dz)
 
-        if ndx > 1
+        if x_size > 1
             tendencies.dvdt[i, j, k] -=
                 rhotot / rhostrattfc[i, j, k] * (
                     (integrals.uv[i + 1, j, k] - integrals.uv[i - 1, j, k]) /
@@ -102,7 +102,7 @@ function compute_gw_tendencies!(state::State)
                 )
         end
 
-        if ndy > 1
+        if y_size > 1
             tendencies.dvdt[i, j, k] -=
                 rhotot / rhostrattfc[i, j, k] * (
                     (integrals.vv[i, j + 1, k] - integrals.vv[i, j - 1, k]) /
@@ -118,8 +118,8 @@ function compute_gw_tendencies!(state::State)
 
         # Compute the heating.
 
-        if fc != 0.0 && (ndx > 1 || ndy > 1)
-            if ndx > 1
+        if fc != 0.0 && (x_size > 1 || y_size > 1)
+            if x_size > 1
                 tendencies.dthetadt[i, j, k] -=
                     rhotot * (
                         (
@@ -133,7 +133,7 @@ function compute_gw_tendencies!(state::State)
                     )
             end
 
-            if ndy > 1
+            if y_size > 1
                 tendencies.dthetadt[i, j, k] -=
                     rhotot * (
                         (

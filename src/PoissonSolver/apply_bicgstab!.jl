@@ -25,7 +25,7 @@ function apply_bicgstab!(
     state::State,
     tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
-    (; ndx, ndy, ndz) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; tolerance, poisson_iterations, preconditioner, tolerance_is_relative) =
         state.namelists.poisson
     (; master, comm, column_comm, layer_comm) = state.domain
@@ -62,16 +62,16 @@ function apply_bicgstab!(
 
     res = sum(a -> a^2, r)
     res = MPI.Allreduce(res, +, comm)
-    res = sqrt(res / ndx / ndy / ndz)
+    res = sqrt(res / x_size / y_size / z_size)
 
     b_norm = res
 
-    r_vm .= sum(a -> a / ndz, r; dims = 3)
+    r_vm .= sum(a -> a / z_size, r; dims = 3)
     MPI.Allreduce!(r_vm, +, column_comm)
 
     res_vm = sum(a -> a^2, r_vm)
     res_vm = MPI.Allreduce(res_vm, +, layer_comm)
-    res_vm = sqrt(res_vm / ndx / ndy)
+    res_vm = sqrt(res_vm / x_size / y_size)
 
     b_vm_norm = res_vm
 
@@ -127,14 +127,14 @@ function apply_bicgstab!(
 
         res = sum(a -> a^2, r)
         res = MPI.Allreduce(res, +, comm)
-        res = sqrt(res / ndx / ndy / ndz)
+        res = sqrt(res / x_size / y_size / z_size)
 
-        r_vm .= sum(a -> a / ndz, r; dims = 3)
+        r_vm .= sum(a -> a / z_size, r; dims = 3)
         MPI.Allreduce!(r_vm, +, column_comm)
 
         res_vm = sum(a -> a^2, r_vm)
         res_vm = MPI.Allreduce(res_vm, +, layer_comm)
-        res_vm = sqrt(res_vm / ndx / ndy)
+        res_vm = sqrt(res_vm / x_size / y_size)
 
         if max(res / b_norm, res_vm / b_vm_norm) <= tol
             if master

@@ -53,7 +53,7 @@ function compute_time_step(state::State)::AbstractFloat
     (; predictands) = state.variables
     (; u, v, w) = predictands
     (; test_case) = state.namelists.setting
-    (; ndx, ndy) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; cgx_max, cgy_max, cgz_max) = state.wkb
 
     @ivy if !adaptive_time_step
@@ -119,10 +119,10 @@ function compute_time_step(state::State)::AbstractFloat
                 )
             end
 
-            if ndx > 1
+            if x_size > 1
                 dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))
             end
-            if ndy > 1
+            if y_size > 1
                 dtwkb = min(dtwkb, dy / (cgy_max[] + eps()))
             end
 

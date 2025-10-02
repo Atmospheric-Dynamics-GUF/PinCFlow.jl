@@ -42,13 +42,13 @@ function compute_leading_order_tracer_forcing!(
     k::Integer,
     tracer_setup::AbstractTracer,
 )
-    (; ndx, ndy) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; uchi, vchi, wchi, dchidt) = state.tracer.tracerforcings.chiq0
 
     @ivy dchidt[i, j, k] = 0.0
 
-    @ivy if ndx > 1
+    @ivy if x_size > 1
         dchiu =
             (uchi[i + 1, j, k] - uchi[i - 1, j, k]) / (2.0 * dx) +
             met[i, j, k, 1, 3] * (uchi[i, j, k + 1] - uchi[i, j, k - 1]) /
@@ -57,7 +57,7 @@ function compute_leading_order_tracer_forcing!(
         dchiu = 0.0
     end
 
-    @ivy if ndy > 1
+    @ivy if y_size > 1
         dchiv =
             (vchi[i, j + 1, k] - vchi[i, j - 1, k]) / (2.0 * dy) +
             met[i, j, k, 2, 3] * (vchi[i, j, k + 1] - vchi[i, j, k - 1]) /

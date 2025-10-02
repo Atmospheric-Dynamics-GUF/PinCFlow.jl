@@ -167,7 +167,7 @@ function activate_orographic_source!(
 end
 
 function activate_orographic_source!(state::State)
-    (; ndx, ndy) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
         nrx,
@@ -390,12 +390,12 @@ function activate_orographic_source!(state::State)
             rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrz
 
             # Compute spectral ray-volume extent.
-            if ndx == 1
+            if x_size == 1
                 dk_ini_nd = 0.0
             else
                 dk_ini_nd = fdk * sqrt(wnrk^2 + wnrl^2)
             end
-            if ndy == 1
+            if y_size == 1
                 dl_ini_nd = 0.0
             else
                 dl_ini_nd = fdl * sqrt(wnrk^2 + wnrl^2)
@@ -421,10 +421,10 @@ function activate_orographic_source!(state::State)
 
             # Compute spectral volume.
             pspvol = dm_ini_nd
-            if ndx > 1
+            if x_size > 1
                 pspvol *= dk_ini_nd
             end
-            if ndy > 1
+            if y_size > 1
                 pspvol *= dl_ini_nd
             end
 
