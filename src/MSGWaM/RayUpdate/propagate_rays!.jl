@@ -478,7 +478,7 @@ function propagate_rays!(
     (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
     (; use_sponge) = state.namelists.sponge
-    (; branch, use_saturation, alphas) = state.namelists.wkb
+    (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
     (; comm, ndzz, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
@@ -636,10 +636,10 @@ function propagate_rays!(
 
         # Compute the diffusion coefficient
         n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
-        if m2b2k2 == 0 || m2b2 < alphas^2 * n2r^2
+        if m2b2k2 == 0 || m2b2 < saturation_threshold^2 * n2r^2
             diffusion = 0.0
         else
-            diffusion = (m2b2 - alphas^2 * n2r^2) / (2 * m2b2k2)
+            diffusion = (m2b2 - saturation_threshold^2 * n2r^2) / (2 * m2b2k2)
         end
 
         # Reduce the wave action density.

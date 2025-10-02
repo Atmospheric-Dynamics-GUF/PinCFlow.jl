@@ -37,7 +37,7 @@ WKBNamelist(;
     filter_type::AbstractWKBFilter = Shapiro(),
     impact_altitude::AbstractFloat = 0.0E+0,
     use_saturation::Bool = true,
-    alphas::AbstractFloat = 1.0E+0,
+    saturation_threshold::AbstractFloat = 1.0E+0,
     wkb_mode::AbstractWKBMode = MultiColumn(),
     blocking::Bool = false,
     long_threshold::AbstractFloat = 2.5E-1,
@@ -96,7 +96,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `use_saturation::D`: Switch for the saturation scheme.
 
-  - `alphas::A`: Relative saturation threshold.
+  - `saturation_threshold::A`: Relative saturation threshold.
 
   - `wkb_mode::F`: Approximations used by MSGWaM.
 
@@ -139,7 +139,7 @@ struct WKBNamelist{
     filter_type::E
     impact_altitude::A
     use_saturation::D
-    alphas::A
+    saturation_threshold::A
     wkb_mode::F
     blocking::D
     long_threshold::A
@@ -171,7 +171,7 @@ function WKBNamelist(;
     filter_type::AbstractWKBFilter = Shapiro(),
     impact_altitude::AbstractFloat = 0.0E+0,
     use_saturation::Bool = true,
-    alphas::AbstractFloat = 1.0E+0,
+    saturation_threshold::AbstractFloat = 1.0E+0,
     wkb_mode::AbstractWKBMode = MultiColumn(),
     blocking::Bool = false,
     long_threshold::AbstractFloat = 2.5E-1,
@@ -202,7 +202,7 @@ function WKBNamelist(;
         filter_type,
         impact_altitude,
         use_saturation,
-        alphas,
+        saturation_threshold,
         wkb_mode,
         blocking,
         long_threshold,
