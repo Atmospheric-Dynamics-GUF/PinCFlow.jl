@@ -7,8 +7,6 @@ using PinCFlow
 
 set_plot_style()
 
-include("style.jl")
-
 # Import the data.
 @ivy if length(ARGS) == 0
     data = h5open("./pincflow_output.h5")
