@@ -82,7 +82,7 @@ $$\begin{align*}
 
 where the maximum of the damping coefficient is $\alpha_{\mathrm{R}, \max} = 0.0179 \, \mathrm{s^{- 1}}$, which corresponds to the buoyancy frequency. Since the simulation uses the default setting `spongeheight = 0.5`, the parameter $\Delta z_\mathrm{R}$ is given by half of the domain's vertical extent, whereas $\Delta x_\mathrm{R}$ and $\Delta y_\mathrm{R}$ are each given by a quarter of the domain's extent in the respective dimension. The edges of the sponge are such that it is horizontally centered at $\left(- 10, - 10\right)^\mathrm{T} \, \mathrm{km}$ and has an extent of $\left(\Delta x_\mathrm{R}, \Delta y_\mathrm{R}\right)^\mathrm{T}$ below $z_\mathrm{R} = 10 \, \mathrm{km}$, whereas it covers the entire horizontal plane above that altitude (see below for plots of $\alpha_\mathrm{R}$ in three cross sections of the domain). This means that the sponge not only prevents wave reflections at the model top but also provides a damping at the horizontal boundaries. Moreover, it is configured such that the wind is relaxed towards its initial state, so that (in the ideal case) the periodicity in $x$ and $y$ is effectively eliminated by enforcing a constant wind at the domain edges.
 
-![](sinusoidal_sponge.png)
+![](sinusoidal_sponge.svg)
 
 ## Visualization
 
@@ -92,11 +92,11 @@ The script
 # examples/visualization/mountain_wave.jl
 
 using HDF5
-using PythonPlot
+using CairoMakie
 using LaTeXStrings
 using PinCFlow
 
-set_plot_style()
+set_visualization_theme!()
 
 # Import the data.
 @ivy if length(ARGS) == 0
@@ -121,70 +121,80 @@ w = data["w"][:, :, :, end]
 close(data)
 
 # Create the figure.
-figure(; figsize = (12, 3))
+figure = Figure()
 
 # Plot in x-y plane.
 k = 10
-subplot(131)
+axis = Axis(
+    figure[1, 1];
+    title = L"z\approx 5\,\mathrm{km}",
+    xlabel = L"x\,[\mathrm{km}]",
+    ylabel = L"y\,[\mathrm{km}]",
+)
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[:, :, k]), maximum(w[:, :, k]))
-@ivy contours = contourf(
-    x[:, :, k],
-    y[:, :, k],
-    w[:, :, k];
-    levels = levels,
-    cmap = colormap,
+@ivy contours =
+    contourf!(axis, x[:, :, k], y[:, :, k], w[:, :, k]; levels, colormap)
+tightlimits!(axis)
+Colorbar(
+    figure[1, 2],
+    contours;
+    ticks = trunc.(levels; digits = 4),
+    label = L"w\,[\mathrm{m\,s^{-1}}]",
 )
-xlabel(L"x\,\left[\mathrm{km}\right]")
-ylabel(L"y\,\left[\mathrm{km}\right]")
-title(L"z\approx 5\,\mathrm{km}")
-colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Plot in x-z plane.
 j = 20
-subplot(132)
+axis = Axis(
+    figure[1, 3];
+    title = L"y\approx 0\,\mathrm{km}",
+    xlabel = L"x\,[\mathrm{km}]",
+    ylabel = L"z\,[\mathrm{km}]",
+)
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[:, j, :]), maximum(w[:, j, :]))
-@ivy contours = contourf(
-    x[:, j, :],
-    z[:, j, :],
-    w[:, j, :];
-    levels = levels,
-    cmap = colormap,
+@ivy contours =
+    contourf!(axis, x[:, j, :], z[:, j, :], w[:, j, :]; levels, colormap)
+tightlimits!(axis)
+@ivy lines(x[:, j, 1], z[:, j, 1]; color = :black, linewidth = 0.5)
+Colorbar(
+    figure[1, 4],
+    contours;
+    ticks = trunc.(levels; digits = 4),
+    label = L"w\,[\mathrm{m\,s^{-1}}]",
 )
-@ivy plot(x[:, j, 1], z[:, j, 1]; color = "black", linewidth = 0.5)
-xlabel(L"x\,\left[\mathrm{km}\right]")
-ylabel(L"z\,\left[\mathrm{km}\right]")
-title(L"y\approx 0\,\mathrm{km}")
-colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Plot in y-z plane.
 i = 20
-subplot(133)
+axis = Axis(
+    figure[1, 5];
+    title = L"x\approx 0\,\mathrm{km}",
+    xlabel = L"y\,[\mathrm{km}]",
+    ylabel = L"z\,[\mathrm{km}]",
+)
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[i, :, :]), maximum(w[i, :, :]))
-@ivy contours = contourf(
-    y[i, :, :],
-    z[i, :, :],
-    w[i, :, :];
-    levels = levels,
-    cmap = colormap,
+@ivy contours =
+    contourf!(axis, y[i, :, :], z[i, :, :], w[i, :, :]; levels, colormap)
+tightlimits!(axis)
+@ivy lines(y[i, :, 1], z[i, :, 1]; color = :black, linewidth = 0.5)
+Colorbar(
+    figure[1, 6],
+    contours;
+    ticks = trunc.(levels; digits = 4),
+    label = L"w\,[\mathrm{m\,s^{-1}}]",
 )
-@ivy plot(y[i, :, 1], z[i, :, 1]; color = "black", linewidth = 0.5)
-xlabel(L"y\,\left[\mathrm{km}\right]")
-ylabel(L"z\,\left[\mathrm{km}\right]")
-title(L"x\approx 0\,\mathrm{km}")
-colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
-# Save the figure.
-savefig("examples/results/mountain_wave.png")
-clf()
+# Resize, display and save the figure.
+resize_to_layout!(figure)
+display(figure)
+save("examples/results/mountain_wave.svg", figure)
 
 ```
 
 visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that `symmetric_contours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
 
-![](results/mountain_wave.png)
+![](results/mountain_wave.svg)
 
 ## See also
 
@@ -202,6 +212,6 @@ visualizes the vertical wind at the end of the above simulation (i.e. after one 
 
   - [`PinCFlow.Update.apply_lhs_sponge!`](@ref)
 
-  - [`PinCFlow.set_plot_style`](@ref)
+  - [`PinCFlow.set_visualization_theme!`](@ref)
 
   - [`PinCFlow.symmetric_contours`](@ref)

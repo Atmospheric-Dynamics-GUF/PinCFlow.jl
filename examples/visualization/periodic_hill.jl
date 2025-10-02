@@ -1,11 +1,11 @@
 # examples/visualization/periodic_hill.jl
 
 using HDF5
-using PythonPlot
+using CairoMakie
 using LaTeXStrings
 using PinCFlow
 
-set_plot_style()
+set_visualization_theme!()
 
 # Import the data.
 @ivy if length(ARGS) == 0
@@ -29,9 +29,20 @@ close(data)
 
 # Create the plot.
 (levels, colormap) = symmetric_contours(minimum(w), maximum(w))
-contours = contourf(x, z, w; levels = levels, cmap = colormap)
-xlabel(L"x\,\left[\mathrm{km}\right]")
-ylabel(L"z\,\left[\mathrm{km}\right]")
-colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
-savefig("examples/results/periodic_hill.png")
-clf()
+figure = Figure()
+axis = Axis(
+    figure[1, 1];
+    xlabel = L"x\,[\mathrm{km}]",
+    ylabel = L"z\,[\mathrm{km}]",
+)
+contours = contourf!(axis, x, z, w; levels, colormap)
+tightlimits!(axis)
+Colorbar(
+    figure[1, 2],
+    contours;
+    ticks = trunc.(levels; digits = 4),
+    label = L"w\,[\mathrm{m\,s^{-1}}]",
+)
+resize_to_layout!(figure)
+display(figure)
+save("examples/results/periodic_hill.svg", figure)

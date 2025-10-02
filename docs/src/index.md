@@ -109,17 +109,17 @@ with `mpiexec` being your chosen system binary. For users who would like to run 
 
 PinCFlow uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5` (from the directory in which the run script is executed). This may be changed by setting the parameter `output_file` of the namelist `output` accordingly. The dimensions of most output fields are (in order) $\widehat{x}$ (zonal axis), $\widehat{y}$ (meridional axis), $\widehat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume property fields differ slightly in that they have an additional (spectral) dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the namelist `output` accordingly (more details are given in the "Reference" section of the documentation).
 
-For the visualization of simulation results, we recommend using [PythonPlot.jl](https://github.com/JuliaPy/PythonPlot.jl). PythonPlot.jl is a weak dependency of PincFlow.jl and thus needs to be installed separately by the user (e.g., `import Pkg; Pkg.add("PythonPlot.jl")`) A function that configures PythonPlot.jl to use a preset style, as well as one that facilitates the generation of symmetric contour plots, are exported by `PinCFlow` if PythonPlot.jl is installed by the user. The script
+For the visualization of simulation results, we recommend using [Makie.jl](https://docs.makie.org/stable/) with the CairoMakie backend. CairoMakie is a weak dependency of PincFlow and thus needs to be installed separately by the user (e.g., `import Pkg; Pkg.add("CairoMakie")`) A function that configures Makie to use a customized theme, as well as one that facilitates the generation of symmetric contour plots, are exported by `PinCFlow` if CairoMakie is loaded by the user. The script
 
 ```julia
 # examples/visualization/periodic_hill.jl
 
 using HDF5
-using PythonPlot
+using CairoMakie
 using LaTeXStrings
 using PinCFlow
 
-set_plot_style()
+set_visualization_theme!()
 
 # Import the data.
 @ivy if length(ARGS) == 0
@@ -143,12 +143,23 @@ close(data)
 
 # Create the plot.
 (levels, colormap) = symmetric_contours(minimum(w), maximum(w))
-contours = contourf(x, z, w; levels = levels, cmap = colormap)
-xlabel(L"x\,\left[\mathrm{km}\right]")
-ylabel(L"z\,\left[\mathrm{km}\right]")
-colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
-savefig("examples/results/periodic_hill.png")
-clf()
+figure = Figure()
+axis = Axis(
+    figure[1, 1];
+    xlabel = L"x\,[\mathrm{km}]",
+    ylabel = L"z\,[\mathrm{km}]",
+)
+contours = contourf!(axis, x, z, w; levels, colormap)
+tightlimits!(axis)
+Colorbar(
+    figure[1, 2],
+    contours;
+    ticks = trunc.(levels; digits = 4),
+    label = L"w\,[\mathrm{m\,s^{-1}}]",
+)
+resize_to_layout!(figure)
+display(figure)
+save("examples/results/periodic_hill.svg", figure)
 
 ```
 
