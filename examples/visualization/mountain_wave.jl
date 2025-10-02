@@ -1,8 +1,11 @@
 # examples/visualization/mountain_wave.jl
 
 using HDF5
+using PythonPlot
 using LaTeXStrings
 using PinCFlow
+
+set_plot_style()
 
 # Import the data.
 @ivy if length(ARGS) == 0
@@ -34,7 +37,6 @@ k = 10
 subplot(131)
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[:, :, k]), maximum(w[:, :, k]))
-# TODO - Only works if PythonPlot is installed.
 @ivy contours = contourf(
     x[:, :, k],
     y[:, :, k],
@@ -52,7 +54,6 @@ j = 20
 subplot(132)
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[:, j, :]), maximum(w[:, j, :]))
-# TODO - Only works if PythonPlot is installed.
 @ivy contours = contourf(
     x[:, j, :],
     z[:, j, :],
@@ -71,7 +72,6 @@ i = 20
 subplot(133)
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[i, :, :]), maximum(w[i, :, :]))
-# TODO - Only works if PythonPlot is installed.
 @ivy contours = contourf(
     y[i, :, :],
     z[i, :, :],

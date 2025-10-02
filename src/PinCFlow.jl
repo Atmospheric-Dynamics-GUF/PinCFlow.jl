@@ -14,7 +14,8 @@ Main module of PinCFlow.
 module PinCFlow
 
 include("@ivy.jl")
-include("plotting.jl")
+include("set_plot_style.jl")
+include("symmetric_contours.jl")
 
 export @ivy
 export set_plot_style, symmetric_contours
