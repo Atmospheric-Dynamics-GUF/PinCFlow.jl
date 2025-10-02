@@ -21,7 +21,7 @@ where ``s`` is the iterative solution, ``\\eta`` is a pseudo-time variable, ``\\
 \\left(1 - \\Delta \\eta \\mathcal{L}_\\mathrm{v}\\right) \\left(s^{\\left(m + 1\\right)}\\right) = \\left(1 + \\Delta \\eta \\mathcal{L}_\\mathrm{h}\\right) \\left(s^{\\left(m\\right)}\\right) - \\Delta \\eta b,
 ```
 
-where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\right)^{- 2} + \\left(\\Delta \\widehat{y}\\right)^{- 2}\\right]^{- 1}``, with ``\\Delta \\tau`` being a namelist parameter (`state.namelist.poisson.dtau`). Therein, the implicit problem is solved with the Thomas algorithm for tridiagonal matrices. The number of iterations is given by `state.namelist.poisson.preconditioner_iterations`. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is paralellized in the vertical.
+where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\right)^{- 2} + \\left(\\Delta \\widehat{y}\\right)^{- 2}\\right]^{- 1}``, with ``\\Delta \\tau`` being a namelist parameter (`state.namelist.poisson.dtau`). Therein, the implicit problem is solved with the Thomas algorithm for tridiagonal matrices. The number of iterations is given by `state.namelist.poisson.preconditioner_iterations`. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
 
 # Arguments
 

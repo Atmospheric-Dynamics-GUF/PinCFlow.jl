@@ -32,7 +32,7 @@ Contributions to the code should respect the following rules.
 
   - Do not use Unicode.
 
-  - Use `CamelCase` for the names of modules and types. Use single captial letters for type parameters. For all other objects, use `snake_case` (in case the name only contains (preferrably whole) words, e.g. `vertical_wind`) and `squashedcase` (in case the name is mathematical, e.g. `what` for $\widehat{w}$).
+  - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters. For all other objects, use `snake_case` (in case the name only contains (preferably whole) words, e.g. `vertical_wind`) and `squashedcase` (in case the name is mathematical, e.g. `what` for $\widehat{w}$).
 
 ![](pincflow_modules.svg)
 

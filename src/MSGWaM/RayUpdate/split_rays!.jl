@@ -80,6 +80,8 @@ The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 # See also
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function split_rays! end
 

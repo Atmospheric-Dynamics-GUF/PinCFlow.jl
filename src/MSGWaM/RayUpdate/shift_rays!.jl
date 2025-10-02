@@ -86,6 +86,8 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
   - [`PinCFlow.MSGWaM.RayOperations.check_rays`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function shift_rays! end
 
