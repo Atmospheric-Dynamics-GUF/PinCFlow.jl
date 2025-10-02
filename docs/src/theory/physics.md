@@ -45,7 +45,7 @@ $$\begin{align*}
     \overline{\pi} \left(0\right) = 1, && \frac{\mathrm{d} \overline{\pi}}{\mathrm{d} z} = - \frac{g}{c_p} \overline{\theta}^{- 1},
 \end{align*}$$
 
-with $g$ and $c_p$ being the gravitational acceleration and specific heat capacity at constant presssure, respectively ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)). Using this decomposition, the model equations in pseudo-incompressible mode are written as
+with $g$ and $c_p$ being the gravitational acceleration and specific heat capacity at constant pressure, respectively ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)). Using this decomposition, the model equations in pseudo-incompressible mode are written as
 
 $${\small\begin{align*}
     \frac{\partial \rho}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho u}{\partial \widehat{x}} + \frac{\partial J \rho v}{\partial \widehat{y}} + \frac{\partial J \rho \widehat{w}}{\partial \widehat{z}}\right) + \alpha_\mathrm{R} \left(\rho - \overline{\rho}\right) & = 0,\\
