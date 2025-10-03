@@ -1,4 +1,9 @@
+using Pkg
+
+Pkg.activate("docs")
+
 using Documenter
+using Revise
 using PinCFlow
 
 # Insert example scripts.

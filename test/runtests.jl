@@ -1,8 +1,8 @@
-using JuliaFormatter
-using PinCFlow
 using Test
 using HDF5
 using MPI
+using Revise
+using PinCFlow
 
 Base.Experimental.@optlevel 1
 
@@ -209,12 +209,6 @@ configurations = Dict(
                     rm("test/pincflow_output.h5")
                 end
             end
-        end
-    end
-
-    @testset "Code-format tests" begin
-        for target in ("docs/make.jl", "examples/", "src/", "test/")
-            @test format(target)
         end
     end
 end

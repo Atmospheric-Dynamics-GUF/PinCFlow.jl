@@ -1,6 +1,10 @@
+using Pkg
+
+Pkg.activate("format")
+
 using JuliaFormatter
 
-for target in ("docs/", "examples/", "src/", "test/")
+for target in ("docs/", "examples/", "ext/", "format/", "src/", "test/")
     format(target)
 
     for (root, directories, files) in walkdir(target)

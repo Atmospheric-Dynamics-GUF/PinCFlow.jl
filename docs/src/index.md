@@ -45,6 +45,11 @@ in the root directory of the repository. This simulation will finish comparative
 ```julia
 # examples/submit/periodic_hill.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
+using Revise
 using PinCFlow
 
 @ivy if length(ARGS) == 0
@@ -114,8 +119,13 @@ For the visualization of simulation results, we recommend using [Makie.jl](https
 ```julia
 # examples/visualization/periodic_hill.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
 using HDF5
 using CairoMakie
+using Revise
 using PinCFlow
 
 set_visualization_theme!()

@@ -7,6 +7,11 @@ The script
 ```julia
 # examples/submit/mountain_wave.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
+using Revise
 using PinCFlow
 
 @ivy if length(ARGS) == 0
@@ -91,8 +96,13 @@ The script
 ```julia
 # examples/visualization/mountain_wave.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
 using HDF5
 using CairoMakie
+using Revise
 using PinCFlow
 
 set_visualization_theme!()

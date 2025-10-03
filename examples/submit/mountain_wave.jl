@@ -1,5 +1,10 @@
 # examples/submit/mountain_wave.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
+using Revise
 using PinCFlow
 
 @ivy if length(ARGS) == 0

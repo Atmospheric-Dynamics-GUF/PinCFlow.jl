@@ -1,7 +1,12 @@
 # examples/visualization/wkb_mountain_wave.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
 using HDF5
 using CairoMakie
+using Revise
 using PinCFlow
 
 set_visualization_theme!()
