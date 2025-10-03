@@ -214,7 +214,7 @@ Markdown code should use the following syntax.
   - Images:
 
     ```markdown
-    ![](image.png)
+    ![](image.svg)
     ```
 
   - Backslash escapes:
