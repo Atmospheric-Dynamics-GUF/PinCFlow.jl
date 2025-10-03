@@ -116,7 +116,6 @@ For the visualization of simulation results, we recommend using [Makie.jl](https
 
 using HDF5
 using CairoMakie
-using LaTeXStrings
 using PinCFlow
 
 set_visualization_theme!()

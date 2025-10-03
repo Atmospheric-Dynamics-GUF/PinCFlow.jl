@@ -110,7 +110,6 @@ The script
 
 using HDF5
 using CairoMakie
-using LaTeXStrings
 using PinCFlow
 
 set_visualization_theme!()
