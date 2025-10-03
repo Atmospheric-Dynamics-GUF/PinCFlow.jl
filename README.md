@@ -93,7 +93,7 @@ julia --project -e 'using HDF5; HDF5.API.set_libraries!("/path/to/libhdf5.so", "
 with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `LocalPreferences.toml`, so that the new backends will be used by all future scripts run in the project. By running
 
 ```shell
-julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
+julia --project -e 'using MPIPreferences; MPIPreferences.use_jll_binary()'
 julia --project -e 'using HDF5; HDF5.API.set_libraries!()'
 ```
 
