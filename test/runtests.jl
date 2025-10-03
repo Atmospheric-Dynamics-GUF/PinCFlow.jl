@@ -1,6 +1,5 @@
 using JuliaFormatter
 using PinCFlow
-using Statistics
 using Test
 using HDF5
 using MPI
