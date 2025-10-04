@@ -12,13 +12,7 @@ using PinCFlow
 set_visualization_theme!()
 
 # Import the data.
-@ivy if length(ARGS) == 0
-    data = h5open("./pincflow_output.h5")
-elseif length(ARGS) == 1
-    data = h5open(ARGS[1] * "/pincflow_output.h5")
-else
-    error("Too many arguments to the script!")
-end
+data = h5open("wkb_mountain_wave.h5")
 
 # Set the grid.
 x = data["x"][:] ./ 1000

@@ -7,14 +7,6 @@ Pkg.activate("examples")
 using Revise
 using PinCFlow
 
-@ivy if length(ARGS) == 0
-    output_file = "./pincflow_output.h5"
-elseif length(ARGS) == 1
-    output_file = ARGS[1] * "/pincflow_output.h5"
-else
-    error("Too many arguments to the script!")
-end
-
 atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
     sizex = 40,
@@ -36,7 +28,10 @@ grid = GridNamelist(;
     height_factor = 2.0E+0,
     width_factor = 1.0E+1,
 )
-output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
+output = OutputNamelist(;
+    output_variables = (:w,),
+    output_file = "wkb_mountain_wave.h5",
+)
 setting = SettingNamelist(; testcase = WKBMountainWave())
 sponge = SpongeNamelist(;
     spongelayer = true,
