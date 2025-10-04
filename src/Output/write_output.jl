@@ -92,7 +92,7 @@ function write_output(
     # Print information.
     if master
         println(repeat("-", 80))
-        println("Output into file pincflow_output.h5")
+        println("Output into file ", output_file)
         println("Physical time: ", time * tref, " s")
         println("Machine time: ", canonicalize(now() - machine_start_time))
         println(repeat("-", 80))
