@@ -63,10 +63,10 @@ integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb))
 
 ```
 
-performs a 3D WKB mountain-wave simulation with parallelization in the zonal and meridional dimensions, and writes the vertical wind to `pincflow_output.h5`, if executed with
+performs a 3D WKB mountain-wave simulation with parallelization in the zonal and meridional dimensions, and writes the vertical wind to `wkb_mountain_wave.h5`, if executed with
 
 ```shell
-mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
+mpiexec=$(julia --project=examples -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
 ${mpiexec} -n 64 julia --project examples/submit/wkb_mountain_wave.jl
 ```
 
@@ -207,7 +207,7 @@ save("examples/results/wkb_mountain_wave.svg", figure)
 
 ```
 
-visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to a PNG file that is included below. Note that `symmetric_contours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
+visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to an SVG file that is included below. Note that `symmetric_contours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
 
 ![](results/wkb_mountain_wave.svg)
 

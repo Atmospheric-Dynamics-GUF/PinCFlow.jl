@@ -32,7 +32,7 @@ Contributions to the code should respect the following rules.
 
   - Do not use Unicode.
 
-  - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters. For all other objects, use `snake_case` (in case the name only contains (preferably whole) words, e.g. `vertical_wind`) and `squashedcase` (in case the name is mathematical, e.g. `what` for $\widehat{w}$).
+  - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters (in alphabetical order). For all other objects, use `snake_case`.
 
 ![](pincflow_modules.svg)
 
@@ -267,7 +267,7 @@ The code uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To buil
 
 ```shell
 julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
-julia --project=docs docs/make.jl
+julia --project docs/make.jl
 ```
 
 in the root directory of the repository. The documentation will be generated in the `docs/build` directory. To view it, open `docs/build/index.html` in a web browser or preview the file in Visual Studio Code with [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server).
