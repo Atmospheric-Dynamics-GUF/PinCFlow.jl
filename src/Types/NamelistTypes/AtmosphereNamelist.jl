@@ -14,8 +14,8 @@ Namelist for parameters describing the atmospheric background.
 AtmosphereNamelist(;
     specify_reynolds_number::Bool = false,
     inverse_reynolds_number::AbstractFloat = 0.0E+0,
-    kinematic_viscosity::AbstractFloat = 0.0E+0,
-    thermal_conductivity::AbstractFloat = 0.0E+0,
+    kinematic_viscosity::AbstractFloat = 1.5E-5,
+    thermal_conductivity::AbstractFloat = 3.0E-5,
     kinematic_diffusivity::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
@@ -23,7 +23,7 @@ AtmosphereNamelist(;
     temperature::AbstractFloat = 3.0E+2,
     ground_pressure::AbstractFloat = 1.0E+5,
     initial_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
-    coriolis_frequency::AbstractFloat = 0.0E+0,
+    coriolis_frequency::AbstractFloat = 1.0E-4,
 )::AtmosphereNamelist
 ```
 
@@ -78,8 +78,8 @@ end
 function AtmosphereNamelist(;
     specify_reynolds_number::Bool = false,
     inverse_reynolds_number::AbstractFloat = 0.0E+0,
-    kinematic_viscosity::AbstractFloat = 0.0E+0,
-    thermal_conductivity::AbstractFloat = 0.0E+0,
+    kinematic_viscosity::AbstractFloat = 1.5E-5,
+    thermal_conductivity::AbstractFloat = 3.0E-5,
     kinematic_diffusivity::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
@@ -87,7 +87,7 @@ function AtmosphereNamelist(;
     temperature::AbstractFloat = 3.0E+2,
     ground_pressure::AbstractFloat = 1.0E+5,
     initial_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
-    coriolis_frequency::AbstractFloat = 0.0E+0,
+    coriolis_frequency::AbstractFloat = 1.0E-4,
 )::AtmosphereNamelist
     return AtmosphereNamelist(
         specify_reynolds_number,

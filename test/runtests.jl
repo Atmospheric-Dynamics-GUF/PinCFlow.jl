@@ -48,6 +48,7 @@ configurations = Dict(
                         specify_reynolds_number = false,
                         inverse_reynolds_number = 0.0E+0,
                         kinematic_viscosity = 1.5E-5,
+                        thermal_conductivity = 0.0E+0,
                         background = background,
                         buoyancy_frequency = 1.0E-2,
                         potential_temperature = 3.0E+2,
