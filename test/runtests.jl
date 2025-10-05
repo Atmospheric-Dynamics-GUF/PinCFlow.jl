@@ -1,6 +1,6 @@
 using Test
-using HDF5
 using MPI
+using HDF5
 using Revise
 using PinCFlow
 
@@ -103,10 +103,9 @@ configurations = Dict(
                         iterations = 1,
                         output_interval = 3.6E+3,
                         tmax = 3.6E+3,
-                        input_file = "test/" *
-                                     configurations[model][background][test_case] *
+                        input_file = configurations[model][background][test_case] *
                                      ".h5",
-                        output_file = "test/pincflow_output.h5",
+                        output_file = "pincflow_output.h5",
                     )
 
                     poisson = PoissonNamelist(;
@@ -189,11 +188,9 @@ configurations = Dict(
 
                     integrate(namelists)
 
-                    data = h5open("test/pincflow_output.h5")
+                    data = h5open("pincflow_output.h5")
                     reference = h5open(
-                        "test/" *
-                        configurations[model][background][test_case] *
-                        ".h5",
+                        configurations[model][background][test_case] * ".h5",
                     )
 
                     for key in keys(reference)
@@ -205,7 +202,7 @@ configurations = Dict(
                     close(data)
                     close(reference)
 
-                    rm("test/pincflow_output.h5")
+                    rm("pincflow_output.h5")
                 end
             end
         end
