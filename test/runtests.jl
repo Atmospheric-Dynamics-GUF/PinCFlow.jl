@@ -34,48 +34,48 @@ configurations = Dict(
 @testset "PinCFlow tests" begin
     for model in keys(configurations)
         for background in keys(configurations[model])
-            for testcase in keys(configurations[model][background])
+            for test_case in keys(configurations[model][background])
                 title =
                     uppercasefirst(
                         replace(
-                            configurations[model][background][testcase],
+                            configurations[model][background][test_case],
                             "_" => "-",
                             "wkb" => "WKB",
                         ),
                     ) * " tests"
                 @testset "$title" begin
                     atmosphere = AtmosphereNamelist(;
-                        specifyreynolds = false,
-                        reinv = 0.0E+0,
+                        specify_reynolds_number = false,
+                        inverse_reynolds_number = 0.0E+0,
                         kinematic_viscosity = 1.5E-5,
                         background = background,
                         buoyancy_frequency = 1.0E-2,
-                        theta0_dim = 3.0E+2,
-                        temp0_dim = 3.0E+2,
-                        press0_dim = 1.0E+5,
-                        backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0),
+                        potential_temperature = 3.0E+2,
+                        temperature = 3.0E+2,
+                        ground_pressure = 1.0E+5,
+                        initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
                         coriolis_frequency = 1.0E-4,
                     )
 
                     discretization = DiscretizationNamelist(;
-                        cfl = 5.0E-1,
-                        cfl_wave = 5.0E-1,
-                        dtmin_dim = 1.0E-6,
-                        dtmax_dim = 1.0E+3,
+                        cfl_number = 5.0E-1,
+                        wkb_cfl_number = 5.0E-1,
+                        dtmin = 1.0E-6,
+                        dtmax = 1.0E+3,
                         adaptive_time_step = true,
-                        limitertype = MCVariant(),
+                        limiter_type = MCVariant(),
                     )
 
                     domain = DomainNamelist(;
-                        sizex = 5,
-                        sizey = 5,
-                        sizez = 5,
+                        x_size = 5,
+                        y_size = 5,
+                        z_size = 5,
                         nbx = 3,
                         nby = 3,
                         nbz = 3,
-                        lx_dim = 1.0E+5,
-                        ly_dim = 1.0E+5,
-                        lz_dim = 1.0E+4,
+                        lx = 1.0E+5,
+                        ly = 1.0E+5,
+                        lz = 1.0E+4,
                         npx = 1,
                         npy = 1,
                         npz = 1,
@@ -83,8 +83,8 @@ configurations = Dict(
                     )
 
                     grid = GridNamelist(;
-                        mountainheight_dim = 1.2E+3,
-                        mountainwidth_dim = 5.0E+3,
+                        mountain_height = 1.2E+3,
+                        mountain_half_width = 5.0E+3,
                         mountain_case = 13,
                         height_factor = 2.0E+0,
                         width_factor = 1.0E+1,
@@ -99,39 +99,39 @@ configurations = Dict(
                         restart = true,
                         iin = 1,
                         output_steps = false,
-                        noutput = 1,
-                        maxiter = 1,
-                        outputtimediff = 3.6E+3,
-                        maxtime = 3.6E+3,
+                        nout = 1,
+                        iterations = 1,
+                        output_interval = 3.6E+3,
+                        tmax = 3.6E+3,
                         input_file = "test/" *
-                                     configurations[model][background][testcase] *
+                                     configurations[model][background][test_case] *
                                      ".h5",
                         output_file = "test/pincflow_output.h5",
                     )
 
                     poisson = PoissonNamelist(;
-                        tolpoisson = 1.0E-8,
-                        maxiterpoisson = 1000,
+                        tolerance = 1.0E-8,
+                        poisson_iterations = 1000,
                         preconditioner = true,
                         dtau = 1.0E+0,
-                        maxiteradi = 2,
-                        initialcleaning = true,
-                        relative_tolerance = false,
+                        preconditioner_iterations = 2,
+                        initial_cleaning = true,
+                        tolerance_is_relative = false,
                     )
 
                     setting =
-                        SettingNamelist(; model = model, testcase = testcase)
+                        SettingNamelist(; model = model, test_case = test_case)
 
                     sponge = SpongeNamelist(;
-                        spongelayer = true,
-                        sponge_uv = false,
-                        spongeheight = 1.0E-1,
+                        use_sponge = true,
+                        damp_horizontal_wind_on_rhs = false,
+                        sponge_extent = 1.0E-1,
                         alpharmax = 1.0E-2,
                         betarmax = 0.0E+0,
-                        lateralsponge = true,
-                        spongetype = ExponentialSponge(),
-                        spongeorder = 1,
-                        cosmosteps = 1,
+                        lateral_sponge = true,
+                        sponge_type = ExponentialSponge(),
+                        sponge_order = 1,
+                        cosmo_steps = 1,
                         relax_to_mean = false,
                         perturbation_period = 3.6E+3,
                         perturbation_amplitude = 1.0E-1,
@@ -139,39 +139,39 @@ configurations = Dict(
                     )
 
                     wkb = WKBNamelist(;
-                        xrmin_dim = -5.0E+4,
-                        xrmax_dim = 5.0E+4,
-                        yrmin_dim = -5.0E+4,
-                        yrmax_dim = 5.0E+4,
-                        zrmin_dim = 0.0E+0,
-                        zrmax_dim = 1.0E+4,
-                        nrxl = 1,
-                        nryl = 1,
-                        nrzl = 1,
-                        nrk_init = 1,
-                        nrl_init = 1,
-                        nrm_init = 1,
-                        nray_fac = 4,
-                        fac_dk_init = 1.0E-1,
-                        fac_dl_init = 1.0E-1,
-                        fac_dm_init = 1.0E-1,
-                        branchr = -1,
+                        xrmin = -5.0E+4,
+                        xrmax = 5.0E+4,
+                        yrmin = -5.0E+4,
+                        yrmax = 5.0E+4,
+                        zrmin = 0.0E+0,
+                        zrmax = 1.0E+4,
+                        nrx = 1,
+                        nry = 1,
+                        nrz = 1,
+                        nrk = 1,
+                        nrl = 1,
+                        nrm = 1,
+                        multiplication_factor = 4,
+                        dkr_factor = 1.0E-1,
+                        dlr_factor = 1.0E-1,
+                        dmr_factor = 1.0E-1,
+                        branch = -1,
                         merge_mode = ConstantWaveAction(),
-                        nsmth_wkb = 2,
-                        lsmth_wkb = true,
-                        sm_filter = Shapiro(),
-                        zmin_wkb_dim = 0.0,
-                        lsaturation = true,
-                        alpha_sat = 1.0E+0,
+                        filter_order = 2,
+                        smooth_tendencies = true,
+                        filter_type = Shapiro(),
+                        impact_altitude = 0.0,
+                        use_saturation = true,
+                        saturation_threshold = 1.0E+0,
                         wkb_mode = MultiColumn(),
                         blocking = true,
                         long_threshold = 2.5E-1,
                         drag_coefficient = 1.0E+0,
-                        nwm = 1,
+                        wave_modes = 1,
                     )
 
                     tracer = TracerNamelist(;
-                        tracersetup = LinearTracer(),
+                        tracer_setup = LinearTracer(),
                         leading_order_impact = true,
                     )
 
@@ -193,7 +193,7 @@ configurations = Dict(
                     data = h5open("test/pincflow_output.h5")
                     reference = h5open(
                         "test/" *
-                        configurations[model][background][testcase] *
+                        configurations[model][background][test_case] *
                         ".h5",
                     )
 

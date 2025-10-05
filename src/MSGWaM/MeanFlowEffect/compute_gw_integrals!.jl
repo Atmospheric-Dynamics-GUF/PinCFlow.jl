@@ -97,9 +97,9 @@ end
 
 function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branchr) = state.namelists.wkb
+    (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
@@ -144,8 +144,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
             n2r = interpolate_stratification(zr, state, N2())
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
@@ -155,7 +154,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
             for iray in imin:imax
-                if sizex > 1
+                if x_size > 1
                     dxi = (
                         min(xr + dxr / 2, x[io + iray] + dx / 2) -
                         max(xr - dxr / 2, x[io + iray] - dx / 2)
@@ -167,7 +166,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                 end
 
                 for jray in jmin:jmax
-                    if sizey > 1
+                    if y_size > 1
                         dyi = (
                             min(yr + dyr / 2, y[jo + jray] + dy / 2) -
                             max(yr - dyr / 2, y[jo + jray] - dy / 2)
@@ -202,7 +201,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
-                        if sizex > 1
+                        if x_size > 1
                             if fc != 0
                                 integrals.uu[iray, jray, kray] +=
                                     wadr * (
@@ -216,14 +215,14 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             end
                         end
 
-                        if sizex > 1 || sizey > 1
+                        if x_size > 1 || y_size > 1
                             integrals.uv[iray, jray, kray] += wadr * cgirx * lr
                         end
 
                         integrals.uw[iray, jray, kray] +=
                             wadr * kr * cgirz / (1 - (fc / omir)^2)
 
-                        if sizey > 1
+                        if y_size > 1
                             if fc != 0
                                 integrals.vv[iray, jray, kray] +=
                                     wadr * (
@@ -272,7 +271,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracersetup,
+                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             kr,
@@ -295,9 +294,9 @@ end
 
 function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; domain, grid) = state
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branchr) = state.namelists.wkb
+    (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
@@ -340,8 +339,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
             n2r = interpolate_stratification(zr, state, N2())
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
@@ -349,7 +347,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
             for iray in imin:imax
-                if sizex > 1
+                if x_size > 1
                     dxi = (
                         min(xr + dxr / 2, x[io + iray] + dx / 2) -
                         max(xr - dxr / 2, x[io + iray] - dx / 2)
@@ -361,7 +359,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                 end
 
                 for jray in jmin:jmax
-                    if sizey > 1
+                    if y_size > 1
                         dyi = (
                             min(yr + dyr / 2, y[jo + jray] + dy / 2) -
                             max(yr - dyr / 2, y[jo + jray] - dy / 2)
@@ -434,7 +432,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracersetup,
+                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             0.0,
@@ -461,8 +459,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = state.domain
     (; dx, dy, dz, x, y, zctilde, jac) = state.grid
-    (; sizex, sizey) = state.namelists.domain
-    (; branchr) = state.namelists.wkb
+    (; x_size, y_size) = state.namelists.domain
+    (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -501,8 +499,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
             n2r = interpolate_stratification(zr, state, N2())
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
@@ -510,7 +507,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
             for iray in imin:imax
-                if sizex > 1
+                if x_size > 1
                     dxi = (
                         min(xr + dxr / 2, x[io + iray] + dx / 2) -
                         max(xr - dxr / 2, x[io + iray] - dx / 2)
@@ -522,7 +519,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                 end
 
                 for jray in jmin:jmax
-                    if sizey > 1
+                    if y_size > 1
                         dyi = (
                             min(yr + dyr / 2, y[jo + jray] + dy / 2) -
                             max(yr - dyr / 2, y[jo + jray] - dy / 2)
@@ -563,7 +560,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracersetup,
+                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             wnrk,

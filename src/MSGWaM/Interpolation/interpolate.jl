@@ -155,10 +155,10 @@ function interpolate(
     xr::AbstractFloat = NaN,
     xlc::AbstractFloat = NaN,
 )::AbstractFloat
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
 
     # Interpolate in x.
-    if sizex == 1
+    if x_size == 1
         phibd = philbd
         phibu = philbu
 
@@ -197,7 +197,7 @@ function interpolate(
     end
 
     # Interpolate in y.
-    if sizey == 1
+    if y_size == 1
         phid = phibd
         phiu = phibu
 

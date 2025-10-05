@@ -18,7 +18,7 @@ This method is heavily used for interpolation to ray-volume positions. To ensure
 
   - In MPI processes at the upper boundary of the domain, the computed index has the upper bound `state.domain.k1`. In other processes, an error is thrown if it is above `state.domain.nzz - dku`.
 
-In case an error is thrown, the parameter `cfl_wave` of the discretization namelist should be set to a smaller value.
+In case an error is thrown, the parameter `wkb_cfl_number` of the discretization namelist should be set to a smaller value.
 
 # Arguments
 
@@ -46,7 +46,7 @@ function get_next_half_level(
     dkd::Integer = 0,
     dku::Integer = 0,
 )::Integer
-    (; sizezz, nzz, ko, k0, k1) = state.domain
+    (; zz_size, nzz, ko, k0, k1) = state.domain
     (; zctilde) = state.grid
 
     @ivy k = argmin(abs.(zctilde[i, j, :] .- z))
@@ -69,7 +69,7 @@ function get_next_half_level(
         end
     end
 
-    if ko + nzz == sizezz
+    if ko + nzz == zz_size
         k = min(k, k1)
     else
         if k > nzz - dku

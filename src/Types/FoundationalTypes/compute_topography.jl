@@ -6,7 +6,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -93,7 +93,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{align*}
     ```
 
-Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively.
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountain_height`, `mountain_half_width`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively.
 
 The arrays in the returned tuple represent (in order) the resolved topography, the amplitudes of the unresolved topography, the corresponding zonal wavenumbers and the corresponding meridional wavenumbers.
 
@@ -104,7 +104,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -213,7 +213,7 @@ The supported topography shapes are as follows, listed according to the value of
     \\end{align*}}
     ```
 
-Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively. The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`.
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountain_height`, `mountain_half_width`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively. The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`.
 
 The topography is represented by the first array in the returned tuple.
 
@@ -229,7 +229,7 @@ The topography is represented by the first array in the returned tuple.
 
   - `y`: ``\\widehat{y}``-coordinate grid points.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
 # See also
 
@@ -245,18 +245,17 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
 }
-    (; testcase) = namelists.setting
-    (; nwm) = namelists.wkb
+    (; wave_modes) = namelists.wkb
     (;
-        mountainheight_dim,
-        mountainwidth_dim,
+        mountain_height,
+        mountain_half_width,
         mountain_case,
         height_factor,
         width_factor,
@@ -265,18 +264,18 @@ function compute_topography(
     (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
     (; lref) = constants
 
-    if nwm < 1 || (mountain_case == 13 && nwm < spectral_modes)
-        error("Error in compute_topography: nwm is too small!")
+    if wave_modes < 1 || (mountain_case == 13 && wave_modes < spectral_modes)
+        error("Error in compute_topography: wave_modes is too small!")
     end
 
-    mountainheight = mountainheight_dim / lref
-    mountainwidth = mountainwidth_dim / lref
+    mountainheight = mountain_height / lref
+    mountainwidth = mountain_half_width / lref
     mountainwavenumber = pi / mountainwidth
 
     hb = zeros(nxx, nyy)
-    hw = zeros(nwm, nxx, nyy)
-    kh = zeros(nwm, nxx, nyy)
-    lh = zeros(nwm, nxx, nyy)
+    hw = zeros(wave_modes, nxx, nyy)
+    kh = zeros(wave_modes, nxx, nyy)
+    lh = zeros(wave_modes, nxx, nyy)
 
     @ivy for j in j0:j1, i in i0:i1
         if mountain_case == 1
@@ -376,17 +375,16 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
 }
-    (; testcase) = namelists.setting
     (;
-        mountainheight_dim,
-        mountainwidth_dim,
+        mountain_height,
+        mountain_half_width,
         mountain_case,
         height_factor,
         width_factor,
@@ -395,8 +393,8 @@ function compute_topography(
     (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
     (; lref) = constants
 
-    mountainheight = mountainheight_dim / lref
-    mountainwidth = mountainwidth_dim / lref
+    mountainheight = mountain_height / lref
+    mountainwidth = mountain_half_width / lref
     mountainwavenumber = pi / mountainwidth
 
     hb = zeros(nxx, nyy)

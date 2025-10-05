@@ -18,11 +18,11 @@ In each grid cell, this method moves all ray volumes as far to the front of the 
 function remove_rays! end
 
 function remove_rays!(state::State)
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         local_count = 0

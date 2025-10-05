@@ -7,18 +7,18 @@ Pkg.activate("examples")
 using Revise
 using PinCFlow
 
-atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
+atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
-    sizex = 40,
-    sizey = 1,
-    sizez = 40,
-    lx_dim = 2.0E+4,
-    ly_dim = 2.0E+4,
-    lz_dim = 2.0E+4,
+    x_size = 40,
+    y_size = 1,
+    z_size = 40,
+    lx = 2.0E+4,
+    ly = 2.0E+4,
+    lz = 2.0E+4,
 )
-grid = GridNamelist(; mountainheight_dim = 1.0E+1, mountainwidth_dim = 1.0E+4)
+grid = GridNamelist(; mountain_height = 1.0E+1, mountain_half_width = 1.0E+4)
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
-sponge = SpongeNamelist(; spongelayer = true)
+sponge = SpongeNamelist(; use_sponge = true)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))

@@ -10,7 +10,7 @@ propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )
 ```
 
@@ -21,7 +21,7 @@ propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
 ```
 
@@ -127,7 +127,7 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 
   - `rkstage`: Runge-Kutta-stage index.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -154,8 +154,8 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 function propagate_rays! end
 
 function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
-    (; testcase) = state.namelists.setting
-    propagate_rays!(state, dt, rkstage, testcase)
+    (; test_case) = state.namelists.setting
+    propagate_rays!(state, dt, rkstage, test_case)
     return
 end
 
@@ -163,7 +163,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )
     return
 end
@@ -172,7 +172,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
     (; wkb_mode) = state.namelists.wkb
     propagate_rays!(state, dt, rkstage, wkb_mode)
@@ -185,11 +185,11 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::AbstractWKBMode,
 )
-    (; testcase) = state.namelists.setting
-    (; branchr, zmin_wkb_dim) = state.namelists.wkb
-    (; sizex, sizey) = state.namelists.domain
+    (; test_case) = state.namelists.setting
+    (; branch, impact_altitude) = state.namelists.wkb
+    (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; lref, tref) = state.constants
     (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
@@ -201,7 +201,7 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kmin = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
+    kmin = test_case == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
     kmax = k1
 
     # Initialize WKB increments at the first RK stage.
@@ -243,7 +243,7 @@ function propagate_rays!(
             khr = sqrt(kr^2 + lr^2)
 
             # Skip ray volumes that have left the domain.
-            if testcase != WKBMountainWave()
+            if test_case != WKBMountainWave()
                 if zr1 < zctilde[i, j, k0 - 2]
                     nskip += 1
                     continue
@@ -255,13 +255,12 @@ function propagate_rays!(
             n2r2 = interpolate_stratification(zr2, state, N2())
 
             omir1 =
-                branchr * sqrt(n2r1 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+                branch * sqrt(n2r1 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            omir =
-                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             omir2 =
-                branchr * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+                branch * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             if any((n2r1, n2r, n2r2) .<= 0)
                 error(
@@ -276,12 +275,12 @@ function propagate_rays!(
             end
 
             # Compute intrinsic zonal group velocity.
-            if sizex > 1
+            if x_size > 1
                 cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             end
 
             # Compute intrinsic meridional group velocity.
-            if sizey > 1
+            if y_size > 1
                 cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             end
 
@@ -295,7 +294,7 @@ function propagate_rays!(
 
             # Update zonal position.
 
-            if sizex > 1 && k >= k0 && wkb_mode != SingleColumn()
+            if x_size > 1 && k >= k0 && wkb_mode != SingleColumn()
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -314,7 +313,7 @@ function propagate_rays!(
 
             # Update meridional position.
 
-            if sizey > 1 && k >= k0 && wkb_mode != SingleColumn()
+            if y_size > 1 && k >= k0 && wkb_mode != SingleColumn()
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -344,9 +343,9 @@ function propagate_rays!(
 
             cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(cgrz))
 
-            # Refraction is only allowed above zmin_wkb_dim / lref.
+            # Refraction is only allowed above impact_altitude / lref.
 
-            if zr > zmin_wkb_dim / lref
+            if zr > impact_altitude / lref
 
                 #-------------------------------
                 #      Change of wavenumber
@@ -385,7 +384,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if sizex > 1 && k >= k0 && wkb_mode != SingleColumn()
+                if x_size > 1 && k >= k0 && wkb_mode != SingleColumn()
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[r, i, j, k] =
@@ -403,7 +402,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if sizey > 1 && k >= k0 && wkb_mode != SingleColumn()
+                if y_size > 1 && k >= k0 && wkb_mode != SingleColumn()
                     ddydt = cgry2 - cgry1
 
                     ddyray[r, i, j, k] =
@@ -451,7 +450,7 @@ function propagate_rays!(
     #     Change of wave action
     #-------------------------------
 
-    @ivy if spongelayer
+    @ivy if use_sponge
         for k in k0:k1, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
                 (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
@@ -462,7 +461,7 @@ function propagate_rays!(
         end
     end
 
-    if testcase == WKBMountainWave()
+    if test_case == WKBMountainWave()
         activate_orographic_source!(state)
     end
 
@@ -475,14 +474,14 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::SteadyState,
 )
-    (; sizex, sizey) = state.namelists.domain
-    (; testcase) = state.namelists.setting
+    (; x_size, y_size) = state.namelists.domain
+    (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; spongelayer) = state.namelists.sponge
-    (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
+    (; use_sponge) = state.namelists.sponge
+    (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
-    (; comm, sizezz, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
+    (; comm, zz_size, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
         state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
     (; rhobar) = state.atmosphere
@@ -492,7 +491,7 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    if testcase == WKBMountainWave()
+    if test_case == WKBMountainWave()
         activate_orographic_source!(state)
     end
 
@@ -556,7 +555,7 @@ function propagate_rays!(
             omir =
                 -(u[i, j, kref] + u[i - 1, j, kref]) / 2 * kr -
                 (v[i, j, kref] + v[i, j - 1, kref]) / 2 * lr
-            if fc < branchr * omir < sqrt(n2r)
+            if fc < branch * omir < sqrt(n2r)
                 mr = rays.m[r, i, j, kref]
                 cgirz0 = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
@@ -570,8 +569,8 @@ function propagate_rays!(
             omir =
                 -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
                 (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
-            if fc < branchr * omir < sqrt(n2r)
-                mr = -branchr * sqrt(khr^2 * (n2r - omir^2) / (omir^2 - fc^2))
+            if fc < branch * omir < sqrt(n2r)
+                mr = -branch * sqrt(khr^2 * (n2r - omir^2) / (omir^2 - fc^2))
                 cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
                 rays.dens[r, i, j, kref] = 0.0
@@ -583,7 +582,7 @@ function propagate_rays!(
             rays.m[r, i, j, k] = mr
 
             # Set the local wave action density.
-            if spongelayer
+            if use_sponge
                 (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
                 rays.dens[r, i, j, k] =
@@ -600,7 +599,7 @@ function propagate_rays!(
             end
 
             # Cycle if the saturation scheme is turned off.
-            if !lsaturation
+            if !use_saturation
                 continue
             end
 
@@ -611,11 +610,11 @@ function propagate_rays!(
             # Compute the phase space factor.
             dzi = min(dzr, jac[i, j, k] * dz)
             facpsp = dzi / jac[i, j, k] / dz * dmr
-            if sizex > 1
+            if x_size > 1
                 dxi = min(dxr, dx)
                 facpsp *= dxi / dx * dkr
             end
-            if sizey > 1
+            if y_size > 1
                 dyi = min(dyr, dy)
                 facpsp *= dyi / dy * dlr
             end
@@ -635,15 +634,15 @@ function propagate_rays!(
 
         # Compute the diffusion coefficient
         n2r = interpolate_stratification(zc[i, j, k], state, N2())
-        if m2b2k2 == 0 || m2b2 < alpha_sat^2 * n2r^2
+        if m2b2k2 == 0 || m2b2 < saturation_threshold^2 * n2r^2
             diffusion = 0.0
         else
-            diffusion = (m2b2 - alpha_sat^2 * n2r^2) / (2 * m2b2k2)
+            diffusion = (m2b2 - saturation_threshold^2 * n2r^2) / (2 * m2b2k2)
         end
 
         # Reduce the wave action density.
         for r in 1:nray[i, j, k]
-            if !lsaturation
+            if !use_saturation
                 continue
             end
             if rays.dens[r, i, j, k] == 0
@@ -655,7 +654,7 @@ function propagate_rays!(
             omir =
                 -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
                 (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
-            if fc < branchr * omir < sqrt(n2r)
+            if fc < branch * omir < sqrt(n2r)
                 cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
                 rays.dens[r, i, j, kref] = 0.0
@@ -669,7 +668,7 @@ function propagate_rays!(
         end
     end
 
-    @ivy if ko + nzz != sizezz
+    @ivy if ko + nzz != zz_size
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

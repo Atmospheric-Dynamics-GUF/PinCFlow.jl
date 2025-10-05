@@ -6,13 +6,13 @@ apply_blocked_layer_scheme!(state::State)
 Compute the blocked-flow drag and adjust the mean-flow impact accordingly by dispatching to a test-case-specific method.
 
 ```julia
-apply_blocked_layer_scheme!(state::State, testcase::AbstractWKBTestCase)
+apply_blocked_layer_scheme!(state::State, test_case::AbstractWKBTestCase)
 ```
 
 Return for non-mountain-wave test cases.
 
 ```julia
-apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
+apply_blocked_layer_scheme!(state::State, test_case::WKBMountainWave)
 ```
 
 Compute the blocked-flow drag and adjust the mean-flow impact accordingly.
@@ -41,24 +41,24 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 
   - `state`: Model state.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 """
 function apply_blocked_layer_scheme! end
 
 function apply_blocked_layer_scheme!(state::State)
-    (; testcase) = state.namelists.setting
-    apply_blocked_layer_scheme!(state, testcase)
+    (; test_case) = state.namelists.setting
+    apply_blocked_layer_scheme!(state, test_case)
     return
 end
 
 function apply_blocked_layer_scheme!(
     state::State,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
     return
 end
 
-function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
+function apply_blocked_layer_scheme!(state::State, test_case::WKBMountainWave)
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dz, jac, zctilde, hw, kh, lh) = state.grid

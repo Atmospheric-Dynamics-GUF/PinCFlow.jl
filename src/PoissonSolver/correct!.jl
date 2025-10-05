@@ -179,20 +179,20 @@ function correct!(
     variable::U,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; corx) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; u) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
 
-        if spongelayer && sponge_uv
+        if use_sponge && damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -218,20 +218,20 @@ function correct!(
     variable::V,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; v) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
 
-        if spongelayer && sponge_uv
+        if use_sponge && damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -257,8 +257,8 @@ function correct!(
     variable::W,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; use_sponge) = state.namelists.sponge
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; n2) = state.atmosphere
     (; betar) = state.sponge
@@ -267,12 +267,12 @@ function correct!(
     (; w) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 - 1 : k1
+    kmax = ko + nzz == zz_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
 
-        if spongelayer
+        if use_sponge
             factor +=
                 dt * (
                     jac[i, j, k + 1] * betar[i, j, k] +
@@ -321,9 +321,9 @@ function correct!(
     rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; g_ndim) = state.constants
-    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
@@ -334,7 +334,7 @@ function correct!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         factor = 1.0
 
-        if spongelayer
+        if use_sponge
             factor += dt * betar[i, j, k] * rayleigh_factor
         end
 
@@ -344,7 +344,7 @@ function correct!(
 
         if ko + k == k0
             lower_gradient = 0.0
-        elseif ko + k == sizezz - nbz
+        elseif ko + k == zz_size - nbz
             upper_gradient = 0.0
         end
 
