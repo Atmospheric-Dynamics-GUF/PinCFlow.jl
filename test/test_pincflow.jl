@@ -2,9 +2,13 @@
 using Test
 using LinearAlgebra: norm
 using TrixiTest: trixi_include, get_kwarg
-using PinCFlow #TODO: to be removed
 using HDF5
-submit_dir = examples_dir()
+
+function examples_dir()
+    return pkgdir(PinCFlow, "examples/submit")
+end
+
+submit = examples_dir()
 
 macro test_example(file::AbstractString, args...)
     local l2 = get_kwarg(args, :l2, nothing)
