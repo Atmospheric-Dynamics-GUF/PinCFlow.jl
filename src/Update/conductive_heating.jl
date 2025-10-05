@@ -44,7 +44,11 @@ conductive_heating(
 )::AbstractFloat
 ```
 
-Compute and return the conductive heating as the divergence of potential temperature fluxes.
+Compute and return the conductive heating as the convergence of potential temperature fluxes (weighted by the density), i.e.
+
+```math
+\\left(\\frac{\\partial P}{\\partial t}\\right)_\\lambda = - \\frac{\\rho}{J} \\left(\\frac{\\mathcal{F}_{i + 1 / 2}^{\\theta, \\widehat{x}} - \\mathcal{F}_{i - 1 / 2}^{\\theta, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}_{j + 1 / 2}^{\\theta, \\widehat{y}} - \\mathcal{F}_{j - 1 / 2}^{\\theta, \\widehat{y}}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}_{k + 1 / 2}^{\\theta, \\widehat{z}} - \\mathcal{F}_{k - 1 / 2}^{\\theta, \\widehat{z}}}{\\Delta \\widehat{z}}\\right).
+```
 
 # Arguments
 
@@ -105,12 +109,9 @@ function conductive_heating(
 
     @ivy rhotot = (rho[i, j, k] + rhostrattfc[i, j, k]) / jac[i, j, k]
 
-    @ivy heating =
-        rhotot * (
-            (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
-            (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +
-            (phitheta[i, j, k, 3] - phitheta[i, j, k - 1, 3]) / dz
-        )
-
-    return heating
+    @ivy return -rhotot * (
+        (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
+        (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +
+        (phitheta[i, j, k, 3] - phitheta[i, j, k - 1, 3]) / dz
+    )
 end

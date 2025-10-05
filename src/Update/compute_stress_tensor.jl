@@ -10,18 +10,18 @@ compute_stress_tensor(
 )::AbstractFloat
 ```
 
-Compute and return the element ``\\left(\\mu, \\nu\\right)`` of the Cartesian viscous stress tensor at the grid point ``\\left(i, j, k\\right)``, divided by the dynamic viscosity.
+Compute and return the element ``\\left(\\mu, \\nu\\right)`` of the Cartesian stress tensor at the grid point ``\\left(i, j, k\\right)``.
 
-The discretized elements of the Cartesian viscous stress tensor are given by
+The discretized elements of the Cartesian stress tensor are given by
 
 ```math
 \\begin{align*}
-    \\Pi^{1 1} & = \\eta \\left[\\frac{2}{\\Delta \\widehat{x}} \\left(u_{i + 1 / 2} - u_{i - 1 / 2}\\right) + \\frac{G^{1 3}}{\\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) - \\frac{2}{3} \\delta\\right],\\\\
-    \\Pi^{1 2} & = \\eta \\left[\\frac{1}{2 \\Delta \\widehat{y}} \\left(u_{j + 1} - u_{j - 1}\\right) + \\frac{G^{2 3}}{2 \\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{x}} \\left(v_{i + 1} - v_{i - 1}\\right) + \\frac{G^{1 3}}{2 \\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right)\\right],\\\\
-    \\Pi^{1 3} & = \\eta \\left[\\frac{1}{2 J \\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{x}} \\left(w_{i + 1} - w_{i - 1}\\right) + \\frac{G^{1 3}}{\\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right)\\right],\\\\
-    \\Pi^{2 2} & = \\eta \\left[\\frac{2}{\\Delta \\widehat{y}} \\left(v_{j + 1 / 2} - v_{j - 1 / 2}\\right) + \\frac{G^{2 3}}{\\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right) - \\frac{2}{3} \\delta\\right],\\\\
-    \\Pi^{2 3} & = \\eta \\left[\\frac{1}{2 J \\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{y}} \\left(w_{j + 1} - w_{j - 1}\\right) + \\frac{G^{2 3}}{\\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right)\\right],\\\\
-    \\Pi^{3 3} & = \\eta \\left[\\frac{2}{J \\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right) - \\frac{2}{3} \\delta\\right],
+    \\Pi^{1 1} & = \\frac{2}{\\Delta \\widehat{x}} \\left(u_{i + 1 / 2} - u_{i - 1 / 2}\\right) + \\frac{G^{1 3}}{\\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) - \\frac{2}{3} \\delta,\\\\
+    \\Pi^{1 2} & = \\frac{1}{2 \\Delta \\widehat{y}} \\left(u_{j + 1} - u_{j - 1}\\right) + \\frac{G^{2 3}}{2 \\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{x}} \\left(v_{i + 1} - v_{i - 1}\\right) + \\frac{G^{1 3}}{2 \\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right),\\\\
+    \\Pi^{1 3} & = \\frac{1}{2 J \\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{x}} \\left(w_{i + 1} - w_{i - 1}\\right) + \\frac{G^{1 3}}{\\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right),\\\\
+    \\Pi^{2 2} & = \\frac{2}{\\Delta \\widehat{y}} \\left(v_{j + 1 / 2} - v_{j - 1 / 2}\\right) + \\frac{G^{2 3}}{\\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right) - \\frac{2}{3} \\delta,\\\\
+    \\Pi^{2 3} & = \\frac{1}{2 J \\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{y}} \\left(w_{j + 1} - w_{j - 1}\\right) + \\frac{G^{2 3}}{\\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right),\\\\
+    \\Pi^{3 3} & = \\frac{2}{J \\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right) - \\frac{2}{3} \\delta,
 \\end{align*}
 ```
 

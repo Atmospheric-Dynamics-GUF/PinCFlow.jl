@@ -15,20 +15,18 @@ This method computes the sums
 
 ```math
 \\begin{align*}
-    M_{u u} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} u_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    M_{u v} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} v_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    M_{u w} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} w_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    M_{v v} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} v_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    M_{v w} & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} w_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    T_u & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    T_v & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    E_u & = \\frac{f}{\\overline{\\theta}} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    E_v & = \\frac{f}{\\overline{\\theta}} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} \\theta_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    E & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\mathcal{E}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
+    \\overline{\\rho} \\left\\langle u' u' \\right\\rangle & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} u_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\overline{\\rho} \\left\\langle u' v' \\right\\rangle & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} v_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\overline{\\rho} \\left\\langle u' w' \\right\\rangle & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F u_\\mathrm{w} w_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\overline{\\rho} \\left\\langle v' v' \\right\\rangle & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} v_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\overline{\\rho} \\left\\langle v' w' \\right\\rangle & = \\overline{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} w_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\left\\langle \\theta' u' \\right\\rangle & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\theta_\\mathrm{w} u_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\left\\langle \\theta' v' \\right\\rangle & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\theta_\\mathrm{w} v_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\mathcal{E} & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\mathcal{A} \\widehat{\\omega}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
 \\end{align*}
 ```
 
-Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes that are at least partially within the grid cell at ``\\left(i, j, k\\right)``, ``F_{r, i + \\lambda, j + \\mu, k + \\nu}`` are the corresponding ray volume fractions and ``\\left(u_\\mathrm{w}, v_\\mathrm{w}, w_\\mathrm{w}, \\theta_\\mathrm{w}, \\mathcal{E}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}`` are the wave amplitudes of the wind, those of the potential temperature and the wave-energy densities. The computation is based on the relations
+Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes that are at least partially within the grid cell at ``\\left(i, j, k\\right)``, ``F_{r, i + \\lambda, j + \\mu, k + \\nu}`` are the corresponding ray volume fractions and ``\\left(u_\\mathrm{w}, v_\\mathrm{w}, w_\\mathrm{w}, \\theta_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}`` are the wave amplitudes of the wind and the potential temperature. The computation is based on the relations
 
 ```math
 \\begin{align*}
@@ -37,9 +35,8 @@ Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes
     \\overline{\\rho} u_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = \\frac{k_r \\widehat{c}_{\\mathrm{g} z, r}}{1 - \\left(f / \\widehat{\\omega}_r\\right)^2} \\mathcal{A}_r,\\\\
     \\overline{\\rho} v_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = \\left(l_r \\widehat{c}_{\\mathrm{g} y, r} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_r \\widehat{c}_{\\mathrm{g} x, r} + l_r \\widehat{c}_{\\mathrm{g} y, r}}{1 - \\left(\\widehat{\\omega}_r / f\\right)^2}\\right) \\mathcal{A}_r,\\\\
     \\overline{\\rho} v_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = \\frac{l_r \\widehat{c}_{\\mathrm{g} z, r}}{1 - \\left(f / \\widehat{\\omega}_r\\right)^2} \\mathcal{A}_r,\\\\
-    \\overline{\\rho} u_{\\mathrm{w}, r} \\theta_{\\mathrm{w}, r}^* & = \\frac{f}{g \\overline{\\theta}} \\frac{l_r m_r N_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,\\\\
-    \\overline{\\rho} v_{\\mathrm{w}, r} \\theta_{\\mathrm{w}, r}^* & = - \\frac{f}{g \\overline{\\theta}} \\frac{k_r m_r N_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,\\\\
-    \\mathcal{E}_r & = \\widehat{\\omega}_r \\mathcal{A}_r,
+    \\theta_{\\mathrm{w}, r} u_{\\mathrm{w}, r}^* & = \\frac{f \\overline{\\theta}}{g \\overline{\\rho}} \\frac{l_r m_r N_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,\\\\
+    \\theta_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = - \\frac{f \\overline{\\theta}}{g \\overline{\\rho}} \\frac{k_r m_r N_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,
 \\end{align*}
 ```
 
@@ -59,7 +56,7 @@ compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
 
-This method computes the sums ``M_{u w}``, ``M_{v w}``, ``T_u``, ``T_v``, ``E_u``, ``E_v`` and ``E`` (see above for details).
+This method computes ``\\overline{\\rho} \\left\\langle u' w' \\right\\rangle``, ``\\overline{\\rho} \\left\\langle v' w' \\right\\rangle``, ``\\left\\langle \\theta' u' \\right\\rangle``, ``\\left\\langle \\theta' v' \\right\\rangle`` and ``\\mathcal{E}`` (see above for details).
 
 ```julia
 compute_gw_integrals!(state::State, wkb_mode::SteadyState)
@@ -67,7 +64,7 @@ compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
 
-This method computes the sums ``M_{u w}`` and ``M_{v w}`` (see above for details). In contrast to the multi-column and single-column modes, the steady-state mode uses the pseudo-momentum approximation
+This method computes the sums ``\\overline{\\rho} \\left\\langle u' w' \\right\\rangle`` and ``\\overline{\\rho} \\left\\langle v' w' \\right\\rangle`` (see above for details). In contrast to the multi-column and single-column modes, the steady-state mode uses the pseudo-momentum approximation
 
 ```math
 \\begin{align*}
@@ -181,8 +178,20 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
-                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
+                    kmin = get_next_half_level(
+                        iray,
+                        jray,
+                        zr - dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
+                    kmax = get_next_half_level(
+                        iray,
+                        jray,
+                        zr + dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
 
                     for kray in kmin:kmax
                         dzi =
@@ -232,16 +241,26 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             wadr * lr * cgirz / (1 - (fc / omir)^2)
 
                         if fc != 0
-                            integrals.etx[iray, jray, kray] +=
-                                wadr * fc^2 * n2r * kr * mr / (
+                            integrals.vtheta[iray, jray, kray] -=
+                                wadr *
+                                fc *
+                                n2r *
+                                kr *
+                                mr *
+                                thetastrattfc[iray, jray, kray] / (
                                     rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
                                 )
 
-                            integrals.ety[iray, jray, kray] +=
-                                wadr * fc^2 * n2r * lr * mr / (
+                            integrals.utheta[iray, jray, kray] +=
+                                wadr *
+                                fc *
+                                n2r *
+                                lr *
+                                mr *
+                                thetastrattfc[iray, jray, kray] / (
                                     rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
@@ -270,15 +289,6 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                     end
                 end
             end
-        end
-    end
-
-    @ivy if fc != 0
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            integrals.utheta[i, j, k] =
-                thetastrattfc[i, j, k] / fc * integrals.ety[i, j, k]
-            integrals.vtheta[i, j, k] =
-                -thetastrattfc[i, j, k] / fc * integrals.etx[i, j, k]
         end
     end
 end
@@ -362,8 +372,20 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
-                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
+                    kmin = get_next_half_level(
+                        iray,
+                        jray,
+                        zr - dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
+                    kmax = get_next_half_level(
+                        iray,
+                        jray,
+                        zr + dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
 
                     for kray in kmin:kmax
                         dzi =
@@ -381,16 +403,26 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                             wadr * lr * cgirz / (1 - (fc / omir)^2)
 
                         if fc != 0
-                            integrals.etx[iray, jray, kray] +=
-                                wadr * fc^2 * n2r * kr * mr / (
+                            integrals.vtheta[iray, jray, kray] -=
+                                wadr *
+                                fc *
+                                n2r *
+                                kr *
+                                mr *
+                                thetastrattfc[iray, jray, kray] / (
                                     rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
                                 )
 
-                            integrals.ety[iray, jray, kray] +=
-                                wadr * fc^2 * n2r * lr * mr / (
+                            integrals.utheta[iray, jray, kray] +=
+                                wadr *
+                                fc *
+                                n2r *
+                                lr *
+                                mr *
+                                thetastrattfc[iray, jray, kray] / (
                                     rhostrattfc[iray, jray, kray] *
                                     g_ndim *
                                     omir *
@@ -419,15 +451,6 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                     end
                 end
             end
-        end
-    end
-
-    @ivy if fc != 0
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            integrals.utheta[i, j, k] =
-                thetastrattfc[i, j, k] / fc * integrals.ety[i, j, k]
-            integrals.vtheta[i, j, k] =
-                -thetastrattfc[i, j, k] / fc * integrals.etx[i, j, k]
         end
     end
 end
@@ -510,8 +533,20 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state)
-                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state)
+                    kmin = get_next_half_level(
+                        iray,
+                        jray,
+                        zr - dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
+                    kmax = get_next_half_level(
+                        iray,
+                        jray,
+                        zr + dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
 
                     for kray in kmin:kmax
                         dzi =

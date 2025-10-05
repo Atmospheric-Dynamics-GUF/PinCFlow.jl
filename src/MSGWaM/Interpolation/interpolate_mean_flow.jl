@@ -253,22 +253,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
     @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il + 1, jb, klbd]) / 2
     @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il + 1, jb, klbu]) / 2
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
     @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il + 1, jf, klfd]) / 2
     @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il + 1, jf, klfu]) / 2
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
     @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir + 1, jb, krbd]) / 2
     @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir + 1, jb, krbu]) / 2
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
     @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir + 1, jf, krfd]) / 2
     @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir + 1, jf, krfu]) / 2
@@ -375,22 +375,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
     @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il, jb + 1, klbd]) / 2
     @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il, jb + 1, klbu]) / 2
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
     @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il, jf + 1, klfd]) / 2
     @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il, jf + 1, klfu]) / 2
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
     @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir, jb + 1, krbd]) / 2
     @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir, jb + 1, krbu]) / 2
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
     @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir, jf + 1, krfd]) / 2
     @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir, jf + 1, krfu]) / 2
@@ -499,22 +499,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_half_level(il, jb, zlc, state)
+    klbu = get_next_half_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
     @ivy zlbd = ztildetfc[il, jb, klbd]
     @ivy zlbu = ztildetfc[il, jb, klbu]
 
-    klfu = get_next_half_level(il, jf, zlc, state)
+    klfu = get_next_half_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
     @ivy zlfd = ztildetfc[il, jf, klfd]
     @ivy zlfu = ztildetfc[il, jf, klfu]
 
-    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbu = get_next_half_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
     @ivy zrbd = ztildetfc[ir, jb, krbd]
     @ivy zrbu = ztildetfc[ir, jb, krbu]
 
-    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfu = get_next_half_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
     @ivy zrfd = ztildetfc[ir, jf, krfd]
     @ivy zrfu = ztildetfc[ir, jf, krfu]
@@ -657,22 +657,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
     @ivy zlbd = ztfc[il, jb, klbd]
     @ivy zlbu = ztfc[il, jb, klbu]
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
     @ivy zlfd = ztfc[il, jf, klfd]
     @ivy zlfu = ztfc[il, jf, klfu]
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
     @ivy zrbd = ztfc[ir, jb, krbd]
     @ivy zrbu = ztfc[ir, jb, krbu]
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
     @ivy zrfd = ztfc[ir, jf, krfd]
     @ivy zrfu = ztfc[ir, jf, krfu]
@@ -776,7 +776,7 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
     @ivy zlbd =
         (
@@ -793,7 +793,7 @@ function interpolate_mean_flow(
             ztfc[il + 1, jb + 1, klbu]
         ) / 4
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
     @ivy zlfd =
         (
@@ -810,7 +810,7 @@ function interpolate_mean_flow(
             ztfc[il + 1, jf + 1, klfu]
         ) / 4
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
     @ivy zrbd =
         (
@@ -827,7 +827,7 @@ function interpolate_mean_flow(
             ztfc[ir + 1, jb + 1, krbu]
         ) / 4
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
     @ivy zrfd =
         (
@@ -943,22 +943,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_half_level(il, jb, zlc, state)
+    klbu = get_next_half_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
     @ivy zlbd = (ztildetfc[il, jb, klbd] + ztildetfc[il + 1, jb, klbd]) / 2
     @ivy zlbu = (ztildetfc[il, jb, klbu] + ztildetfc[il + 1, jb, klbu]) / 2
 
-    klfu = get_next_half_level(il, jf, zlc, state)
+    klfu = get_next_half_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
     @ivy zlfd = (ztildetfc[il, jf, klfd] + ztildetfc[il + 1, jf, klfd]) / 2
     @ivy zlfu = (ztildetfc[il, jf, klfu] + ztildetfc[il + 1, jf, klfu]) / 2
 
-    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbu = get_next_half_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
     @ivy zrbd = (ztildetfc[ir, jb, krbd] + ztildetfc[ir + 1, jb, krbd]) / 2
     @ivy zrbu = (ztildetfc[ir, jb, krbu] + ztildetfc[ir + 1, jb, krbu]) / 2
 
-    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfu = get_next_half_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
     @ivy zrfd = (ztildetfc[ir, jf, krfd] + ztildetfc[ir + 1, jf, krfd]) / 2
     @ivy zrfu = (ztildetfc[ir, jf, krfu] + ztildetfc[ir + 1, jf, krfu]) / 2
@@ -1062,7 +1062,7 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
     @ivy zlbd =
         (
@@ -1079,7 +1079,7 @@ function interpolate_mean_flow(
             ztfc[il + 1, jb + 1, klbu]
         ) / 4
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
     @ivy zlfd =
         (
@@ -1096,7 +1096,7 @@ function interpolate_mean_flow(
             ztfc[il + 1, jf + 1, klfu]
         ) / 4
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
     @ivy zrbd =
         (
@@ -1113,7 +1113,7 @@ function interpolate_mean_flow(
             ztfc[ir + 1, jb + 1, krbu]
         ) / 4
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
     @ivy zrfd =
         (
@@ -1233,22 +1233,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
     @ivy zlbd = ztfc[il, jb, klbd]
     @ivy zlbu = ztfc[il, jb, klbu]
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
     @ivy zlfd = ztfc[il, jf, klfd]
     @ivy zlfu = ztfc[il, jf, klfu]
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
     @ivy zrbd = ztfc[ir, jb, krbd]
     @ivy zrbu = ztfc[ir, jb, krbu]
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
     @ivy zrfd = ztfc[ir, jf, krfd]
     @ivy zrfu = ztfc[ir, jf, krfu]
@@ -1352,22 +1352,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_half_level(il, jb, zlc, state)
+    klbu = get_next_half_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
     @ivy zlbd = (ztildetfc[il, jb, klbd] + ztildetfc[il, jb + 1, klbd]) / 2
     @ivy zlbu = (ztildetfc[il, jb, klbu] + ztildetfc[il, jb + 1, klbu]) / 2
 
-    klfu = get_next_half_level(il, jf, zlc, state)
+    klfu = get_next_half_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
     @ivy zlfd = (ztildetfc[il, jf, klfd] + ztildetfc[il, jf + 1, klfd]) / 2
     @ivy zlfu = (ztildetfc[il, jf, klfu] + ztildetfc[il, jf + 1, klfu]) / 2
 
-    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbu = get_next_half_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
     @ivy zrbd = (ztildetfc[ir, jb, krbd] + ztildetfc[ir, jb + 1, krbd]) / 2
     @ivy zrbu = (ztildetfc[ir, jb, krbu] + ztildetfc[ir, jb + 1, krbu]) / 2
 
-    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfu = get_next_half_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
     @ivy zrfd = (ztildetfc[ir, jf, krfd] + ztildetfc[ir, jf + 1, krfd]) / 2
     @ivy zrfu = (ztildetfc[ir, jf, krfu] + ztildetfc[ir, jf + 1, krfu]) / 2
@@ -1471,22 +1471,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
     @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il + 1, jb, klbd]) / 2
     @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il + 1, jb, klbu]) / 2
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
     @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il + 1, jf, klfd]) / 2
     @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il + 1, jf, klfu]) / 2
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
     @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir + 1, jb, krbd]) / 2
     @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir + 1, jb, krbu]) / 2
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
     @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir + 1, jf, krfd]) / 2
     @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir + 1, jf, krfu]) / 2
@@ -1589,22 +1589,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
     @ivy zlbd = (ztfc[il, jf, klbd] + ztfc[il, jf + 1, klbd]) / 2
     @ivy zlbu = (ztfc[il, jf, klbu] + ztfc[il, jf + 1, klbu]) / 2
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
     @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il, jf + 1, klfd]) / 2
     @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il, jf + 1, klfu]) / 2
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
     @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir, jb + 1, krbd]) / 2
     @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir, jb + 1, krbu]) / 2
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
     @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir, jf + 1, krfd]) / 2
     @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir, jf + 1, krfu]) / 2
@@ -1708,22 +1708,22 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
     @ivy zlbd = ztildetfc[il, jb, klbd]
     @ivy zlbu = ztildetfc[il, jb, klbu]
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
     @ivy zlfd = ztildetfc[il, jf, klfd]
     @ivy zlfu = ztildetfc[il, jf, klfu]
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
     @ivy zrbd = ztildetfc[ir, jb, krbd]
     @ivy zrbu = ztildetfc[ir, jb, krbu]
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
     @ivy zrfd = ztildetfc[ir, jf, krfd]
     @ivy zrfu = ztildetfc[ir, jf, krfu]

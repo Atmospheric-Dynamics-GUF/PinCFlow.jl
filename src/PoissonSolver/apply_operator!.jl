@@ -10,7 +10,7 @@ apply_operator!(
 
 Apply the total linear operator to the solution array `sin`.
 
-Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is paralellized in that direction), due to the solid-wall boundaries.
+Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is parallelized in that direction), due to the solid-wall boundaries.
 
 ```julia
 apply_operator!(
