@@ -70,7 +70,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     (; lref, tref) = state.constants
     (; comm, master, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
         state.domain
-    (; lx, ly, lz, dx, dy, dz, x, y, ztfc, jac) = state.grid
+    (; lx, ly, lz, dx, dy, dz, x, y, zc, jac) = state.grid
     (;
         nray_max,
         nray_wrk,
@@ -190,7 +190,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             rays.x[r, i, j, k] = (x[io + i] - 0.5 * dx + (ix - 0.5) * dx / nrxl)
             rays.y[r, i, j, k] = (y[jo + j] - 0.5 * dy + (jy - 0.5) * dy / nryl)
             rays.z[r, i, j, k] = (
-                ztfc[i, j, k] - 0.5 * jac[i, j, k] * dz +
+                zc[i, j, k] - 0.5 * jac[i, j, k] * dz +
                 (kz - 0.5) * jac[i, j, k] * dz / nrzl
             )
 

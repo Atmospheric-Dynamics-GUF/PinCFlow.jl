@@ -3,7 +3,7 @@
 synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
 ```
 
-Synchronize `state.atmosphere.pstrattfc` with `predictands.p` if the atmosphere is compressible by dispatching to the appropriate method.
+Synchronize `state.atmosphere.pbar` with `predictands.p` if the atmosphere is compressible by dispatching to the appropriate method.
 
 ```julia
 synchronize_compressible_atmosphere!(
@@ -23,7 +23,7 @@ synchronize_compressible_atmosphere!(
 )
 ```
 
-Synchronize `state.atmosphere.pstrattfc` with `predictands.p`.
+Synchronize `state.atmosphere.pbar` with `predictands.p`.
 
 In compressible mode, ``P`` is time-dependent. In the update of ``P``, only `state.variables.predictands.p` is changed, so that the old values of ``P`` are retained in the respective field of `state.atmosphere`. When these are no longer needed, this method is used to update the field accordingly.
 
@@ -59,10 +59,10 @@ function synchronize_compressible_atmosphere!(
     predictands::Predictands,
     model::Compressible,
 )
-    (; pstrattfc) = state.atmosphere
+    (; pbar) = state.atmosphere
     (; p) = predictands
 
-    pstrattfc .= p
+    pbar .= p
 
     return
 end

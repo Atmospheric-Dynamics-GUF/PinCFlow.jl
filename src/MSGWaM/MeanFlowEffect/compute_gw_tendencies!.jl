@@ -35,8 +35,8 @@ function compute_gw_tendencies!(state::State)
     (; zmin_wkb_dim) = state.namelists.wkb
     (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, ztfc, jac, met) = state.grid
-    (; rhostrattfc, thetastrattfc) = state.atmosphere
+    (; dx, dy, dz, zc, jac, met) = state.grid
+    (; rhobar, thetabar) = state.atmosphere
     (; rho) = state.variables.predictands
     (; integrals, tendencies) = state.wkb
 
@@ -48,21 +48,21 @@ function compute_gw_tendencies!(state::State)
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        if ztfc[i, j, k] < zmin_wkb_dim / lref
+        if zc[i, j, k] < zmin_wkb_dim / lref
             continue
         end
 
-        rhotot = rho[i, j, k] + rhostrattfc[i, j, k]
+        rhotot = rho[i, j, k] + rhobar[i, j, k]
 
         # Compute the drag on the zonal wind.
 
         tendencies.dudt[i, j, k] =
-            -rhotot / rhostrattfc[i, j, k] / jac[i, j, k] *
+            -rhotot / rhobar[i, j, k] / jac[i, j, k] *
             (integrals.uw[i, j, k + 1] - integrals.uw[i, j, k - 1]) / (2.0 * dz)
 
         if sizex > 1
             tendencies.dudt[i, j, k] -=
-                rhotot / rhostrattfc[i, j, k] * (
+                rhotot / rhobar[i, j, k] * (
                     (integrals.uu[i + 1, j, k] - integrals.uu[i - 1, j, k]) /
                     (2.0 * dx) +
                     met[i, j, k, 1, 3] *
@@ -73,7 +73,7 @@ function compute_gw_tendencies!(state::State)
 
         if sizey > 1
             tendencies.dudt[i, j, k] -=
-                rhotot / rhostrattfc[i, j, k] * (
+                rhotot / rhobar[i, j, k] * (
                     (integrals.uv[i, j + 1, k] - integrals.uv[i, j - 1, k]) /
                     (2.0 * dy) +
                     met[i, j, k, 2, 3] *
@@ -83,17 +83,17 @@ function compute_gw_tendencies!(state::State)
         end
 
         tendencies.dudt[i, j, k] -=
-            rhotot * fc / thetastrattfc[i, j, k] * integrals.vtheta[i, j, k]
+            rhotot * fc / thetabar[i, j, k] * integrals.vtheta[i, j, k]
 
         # Compute the drag on the meridional wind.
 
         tendencies.dvdt[i, j, k] =
-            -rhotot / rhostrattfc[i, j, k] / jac[i, j, k] *
+            -rhotot / rhobar[i, j, k] / jac[i, j, k] *
             (integrals.vw[i, j, k + 1] - integrals.vw[i, j, k - 1]) / (2.0 * dz)
 
         if sizex > 1
             tendencies.dvdt[i, j, k] -=
-                rhotot / rhostrattfc[i, j, k] * (
+                rhotot / rhobar[i, j, k] * (
                     (integrals.uv[i + 1, j, k] - integrals.uv[i - 1, j, k]) /
                     (2.0 * dx) +
                     met[i, j, k, 1, 3] *
@@ -104,7 +104,7 @@ function compute_gw_tendencies!(state::State)
 
         if sizey > 1
             tendencies.dvdt[i, j, k] -=
-                rhotot / rhostrattfc[i, j, k] * (
+                rhotot / rhobar[i, j, k] * (
                     (integrals.vv[i, j + 1, k] - integrals.vv[i, j - 1, k]) /
                     (2.0 * dy) +
                     met[i, j, k, 2, 3] *
@@ -114,7 +114,7 @@ function compute_gw_tendencies!(state::State)
         end
 
         tendencies.dvdt[i, j, k] +=
-            rhotot * fc / thetastrattfc[i, j, k] * integrals.utheta[i, j, k]
+            rhotot * fc / thetabar[i, j, k] * integrals.utheta[i, j, k]
 
         # Compute the heating.
 

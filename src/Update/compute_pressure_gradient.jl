@@ -117,15 +117,15 @@ function compute_pressure_gradient(
     (; kappainv, mainv2) = state.constants
     (; sizezz, ko, k0) = state.domain
     (; dx, dz, met) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
     @ivy rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-    @ivy rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-    @ivy rhoedger += rhostratedger
-    @ivy pedger = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
+    @ivy rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+    @ivy rhoedger += rhobaredger
+    @ivy pedger = 0.5 * (pbar[i, j, k] + pbar[i + 1, j, k])
     @ivy met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
 
     # Compute the pressure gradient component.
@@ -176,15 +176,15 @@ function compute_pressure_gradient(
     (; kappainv, mainv2) = state.constants
     (; sizezz, ko, k0) = state.domain
     (; dy, dz, met) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
     @ivy rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-    @ivy rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-    @ivy rhoedgef += rhostratedgef
-    @ivy pedgef = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
+    @ivy rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+    @ivy rhoedgef += rhobaredgef
+    @ivy pedgef = 0.5 * (pbar[i, j, k] + pbar[i, j + 1, k])
     @ivy met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
     # Compute the pressure gradient component.
@@ -233,7 +233,7 @@ function compute_pressure_gradient(
 )::AbstractFloat
     (; kappainv, mainv2) = state.constants
     (; dx, dy, dz, jac, met) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
 
     # Interpolate the density, mass-weighted potential temperature and metric
@@ -243,14 +243,12 @@ function compute_pressure_gradient(
         (jac[i, j, k] + jac[i, j, k + 1])
     @ivy rhoedgeu +=
         (
-            jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-            jac[i, j, k] * rhostrattfc[i, j, k + 1]
+            jac[i, j, k + 1] * rhobar[i, j, k] +
+            jac[i, j, k] * rhobar[i, j, k + 1]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
     @ivy pedgeu =
-        (
-            jac[i, j, k + 1] * pstrattfc[i, j, k] +
-            jac[i, j, k] * pstrattfc[i, j, k + 1]
-        ) / (jac[i, j, k] + jac[i, j, k + 1])
+        (jac[i, j, k + 1] * pbar[i, j, k] + jac[i, j, k] * pbar[i, j, k + 1]) /
+        (jac[i, j, k] + jac[i, j, k + 1])
     @ivy met13edgeu =
         (
             jac[i, j, k + 1] * met[i, j, k, 1, 3] +
