@@ -22,9 +22,7 @@ grid = GridNamelist(; mountain_case = 4)
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "mountain_wave.h5")
 sponge = SpongeNamelist(;
-    use_sponge = true,
     alpharmax = 1.79E-2,
-    betarmax = 0.0E+0,
     lateral_sponge = true,
     sponge_type = SinusoidalSponge(),
     relax_to_mean = false,

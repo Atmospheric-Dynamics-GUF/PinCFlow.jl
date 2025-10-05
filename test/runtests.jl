@@ -123,7 +123,6 @@ configurations = Dict(
                         SettingNamelist(; model = model, test_case = test_case)
 
                     sponge = SpongeNamelist(;
-                        use_sponge = true,
                         damp_horizontal_wind_on_rhs = false,
                         sponge_extent = 1.0E-1,
                         alpharmax = 1.0E-2,

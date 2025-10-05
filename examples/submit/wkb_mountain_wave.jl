@@ -34,10 +34,8 @@ output = OutputNamelist(;
 )
 setting = SettingNamelist(; test_case = WKBMountainWave())
 sponge = SpongeNamelist(;
-    use_sponge = true,
     sponge_extent = 1.0E-1,
     alpharmax = 1.79E-2,
-    betarmax = 0.0E+0,
     lateral_sponge = true,
     sponge_type = ExponentialSponge(),
     relax_to_mean = false,

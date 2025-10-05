@@ -185,11 +185,7 @@ function compute_sponges!(state::State, dt::AbstractFloat)
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; zc, lz) = state.grid
     (; betar, zsponge) = state.sponge
-    (; use_sponge, sponge_type, betarmax) = state.namelists.sponge
-
-    if !use_sponge
-        return
-    end
+    (; sponge_type, betarmax) = state.namelists.sponge
 
     compute_sponges!(state, dt, sponge_type)
 

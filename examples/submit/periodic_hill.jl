@@ -19,6 +19,6 @@ domain = DomainNamelist(;
 grid = GridNamelist(; mountain_height = 1.0E+1, mountain_half_width = 1.0E+4)
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
-sponge = SpongeNamelist(; use_sponge = true)
+sponge = SpongeNamelist(; betarmax = 1.0E+0)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
