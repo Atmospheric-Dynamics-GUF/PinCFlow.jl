@@ -19,7 +19,7 @@ function read_input!(state::State)
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; nray_max, nray, rays) = state.wkb
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
 
     # Determine dimensionality.
     dim = 1
@@ -59,7 +59,7 @@ function read_input!(state::State)
         v[ii, jj, kk] = file["vs"][iid, jjd, kkd, iin] ./ uref
 
         # Read the staggered transformed vertical wind.
-        w[ii, jj, kk] = file["wstfc"][iid, jjd, kkd, iin] ./ uref
+        w[ii, jj, kk] = file["wts"][iid, jjd, kkd, iin] ./ uref
 
         # Read the Exner-pressure fluctuations.
         pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin]
@@ -73,7 +73,7 @@ function read_input!(state::State)
             for field in fieldnames(TracerPredictands)
                 getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
                     file[string(field)][iid, jjd, kkd, iin] .*
-                    (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk])
+                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
         end
 

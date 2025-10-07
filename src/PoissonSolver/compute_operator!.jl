@@ -43,13 +43,12 @@ function compute_operator!(
     rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
-    (; preconditioner) = state.namelists.poisson
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; model) = state.namelists.setting
     (; gamma, rsp, pref, kappa) = state.constants
     (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
-    (; pstrattfc, rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; pbar, rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (;
         ac_b,
@@ -83,47 +82,31 @@ function compute_operator!(
     # Compute tensor elements for TFC.
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         # Compute scaling factors.
-        fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
-        fcscal_r = sqrt(pstrattfc[i + 1, j, k]^2.0 / rhostrattfc[i + 1, j, k])
-        fcscal_l = sqrt(pstrattfc[i - 1, j, k]^2.0 / rhostrattfc[i - 1, j, k])
-        fcscal_f = sqrt(pstrattfc[i, j + 1, k]^2.0 / rhostrattfc[i, j + 1, k])
-        fcscal_b = sqrt(pstrattfc[i, j - 1, k]^2.0 / rhostrattfc[i, j - 1, k])
-        fcscal_u = sqrt(pstrattfc[i, j, k + 1]^2.0 / rhostrattfc[i, j, k + 1])
-        fcscal_d = sqrt(pstrattfc[i, j, k - 1]^2.0 / rhostrattfc[i, j, k - 1])
-        fcscal_ru =
-            sqrt(pstrattfc[i + 1, j, k + 1]^2.0 / rhostrattfc[i + 1, j, k + 1])
-        fcscal_rd =
-            sqrt(pstrattfc[i + 1, j, k - 1]^2.0 / rhostrattfc[i + 1, j, k - 1])
-        fcscal_lu =
-            sqrt(pstrattfc[i - 1, j, k + 1]^2.0 / rhostrattfc[i - 1, j, k + 1])
-        fcscal_ld =
-            sqrt(pstrattfc[i - 1, j, k - 1]^2.0 / rhostrattfc[i - 1, j, k - 1])
-        fcscal_fu =
-            sqrt(pstrattfc[i, j + 1, k + 1]^2.0 / rhostrattfc[i, j + 1, k + 1])
-        fcscal_fd =
-            sqrt(pstrattfc[i, j + 1, k - 1]^2.0 / rhostrattfc[i, j + 1, k - 1])
-        fcscal_bu =
-            sqrt(pstrattfc[i, j - 1, k + 1]^2.0 / rhostrattfc[i, j - 1, k + 1])
-        fcscal_bd =
-            sqrt(pstrattfc[i, j - 1, k - 1]^2.0 / rhostrattfc[i, j - 1, k - 1])
-        fcscal_uu = sqrt(pstrattfc[i, j, k + 2]^2.0 / rhostrattfc[i, j, k + 2])
-        fcscal_dd = sqrt(pstrattfc[i, j, k - 2]^2.0 / rhostrattfc[i, j, k - 2])
-        fcscal_ruu =
-            sqrt(pstrattfc[i + 1, j, k + 2]^2.0 / rhostrattfc[i + 1, j, k + 2])
-        fcscal_rdd =
-            sqrt(pstrattfc[i + 1, j, k - 2]^2.0 / rhostrattfc[i + 1, j, k - 2])
-        fcscal_luu =
-            sqrt(pstrattfc[i - 1, j, k + 2]^2.0 / rhostrattfc[i - 1, j, k + 2])
-        fcscal_ldd =
-            sqrt(pstrattfc[i - 1, j, k - 2]^2.0 / rhostrattfc[i - 1, j, k - 2])
-        fcscal_fuu =
-            sqrt(pstrattfc[i, j + 1, k + 2]^2.0 / rhostrattfc[i, j + 1, k + 2])
-        fcscal_fdd =
-            sqrt(pstrattfc[i, j + 1, k - 2]^2.0 / rhostrattfc[i, j + 1, k - 2])
-        fcscal_buu =
-            sqrt(pstrattfc[i, j - 1, k + 2]^2.0 / rhostrattfc[i, j - 1, k + 2])
-        fcscal_bdd =
-            sqrt(pstrattfc[i, j - 1, k - 2]^2.0 / rhostrattfc[i, j - 1, k - 2])
+        fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
+        fcscal_r = sqrt(pbar[i + 1, j, k]^2.0 / rhobar[i + 1, j, k])
+        fcscal_l = sqrt(pbar[i - 1, j, k]^2.0 / rhobar[i - 1, j, k])
+        fcscal_f = sqrt(pbar[i, j + 1, k]^2.0 / rhobar[i, j + 1, k])
+        fcscal_b = sqrt(pbar[i, j - 1, k]^2.0 / rhobar[i, j - 1, k])
+        fcscal_u = sqrt(pbar[i, j, k + 1]^2.0 / rhobar[i, j, k + 1])
+        fcscal_d = sqrt(pbar[i, j, k - 1]^2.0 / rhobar[i, j, k - 1])
+        fcscal_ru = sqrt(pbar[i + 1, j, k + 1]^2.0 / rhobar[i + 1, j, k + 1])
+        fcscal_rd = sqrt(pbar[i + 1, j, k - 1]^2.0 / rhobar[i + 1, j, k - 1])
+        fcscal_lu = sqrt(pbar[i - 1, j, k + 1]^2.0 / rhobar[i - 1, j, k + 1])
+        fcscal_ld = sqrt(pbar[i - 1, j, k - 1]^2.0 / rhobar[i - 1, j, k - 1])
+        fcscal_fu = sqrt(pbar[i, j + 1, k + 1]^2.0 / rhobar[i, j + 1, k + 1])
+        fcscal_fd = sqrt(pbar[i, j + 1, k - 1]^2.0 / rhobar[i, j + 1, k - 1])
+        fcscal_bu = sqrt(pbar[i, j - 1, k + 1]^2.0 / rhobar[i, j - 1, k + 1])
+        fcscal_bd = sqrt(pbar[i, j - 1, k - 1]^2.0 / rhobar[i, j - 1, k - 1])
+        fcscal_uu = sqrt(pbar[i, j, k + 2]^2.0 / rhobar[i, j, k + 2])
+        fcscal_dd = sqrt(pbar[i, j, k - 2]^2.0 / rhobar[i, j, k - 2])
+        fcscal_ruu = sqrt(pbar[i + 1, j, k + 2]^2.0 / rhobar[i + 1, j, k + 2])
+        fcscal_rdd = sqrt(pbar[i + 1, j, k - 2]^2.0 / rhobar[i + 1, j, k - 2])
+        fcscal_luu = sqrt(pbar[i - 1, j, k + 2]^2.0 / rhobar[i - 1, j, k + 2])
+        fcscal_ldd = sqrt(pbar[i - 1, j, k - 2]^2.0 / rhobar[i - 1, j, k - 2])
+        fcscal_fuu = sqrt(pbar[i, j + 1, k + 2]^2.0 / rhobar[i, j + 1, k + 2])
+        fcscal_fdd = sqrt(pbar[i, j + 1, k - 2]^2.0 / rhobar[i, j + 1, k - 2])
+        fcscal_buu = sqrt(pbar[i, j - 1, k + 2]^2.0 / rhobar[i, j - 1, k + 2])
+        fcscal_bdd = sqrt(pbar[i, j - 1, k - 2]^2.0 / rhobar[i, j - 1, k - 2])
 
         # Compute inverse Jacobian.
         jacinv = 1.0 / jac[i, j, k]
@@ -131,88 +114,88 @@ function compute_operator!(
         # Compute P coefficients (divergence).
         pedgerdiv =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             )
         pedgeldiv =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i - 1, j, k] * pstrattfc[i - 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i - 1, j, k] * pbar[i - 1, j, k]
             )
         pedgefdiv =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             )
         pedgebdiv =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j - 1, k] * pstrattfc[i, j - 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j - 1, k] * pbar[i, j - 1, k]
             )
         pedgeudiv =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1])
         pedgeddiv =
             jac[i, j, k] *
             jac[i, j, k - 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k - 1]) /
+            (pbar[i, j, k] + pbar[i, j, k - 1]) /
             (jac[i, j, k] + jac[i, j, k - 1])
 
         # Compute P coefficients (pressure gradient).
-        pedgergra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
-        pedgelgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i - 1, j, k])
-        pedgefgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
-        pedgebgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j - 1, k])
+        pedgergra = 0.5 * (pbar[i, j, k] + pbar[i + 1, j, k])
+        pedgelgra = 0.5 * (pbar[i, j, k] + pbar[i - 1, j, k])
+        pedgefgra = 0.5 * (pbar[i, j, k] + pbar[i, j + 1, k])
+        pedgebgra = 0.5 * (pbar[i, j, k] + pbar[i, j - 1, k])
         pedgeugra =
             (
-                jac[i, j, k + 1] * pstrattfc[i, j, k] +
-                jac[i, j, k] * pstrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * pbar[i, j, k] +
+                jac[i, j, k] * pbar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         pedgedgra =
             (
-                jac[i, j, k - 1] * pstrattfc[i, j, k] +
-                jac[i, j, k] * pstrattfc[i, j, k - 1]
+                jac[i, j, k - 1] * pbar[i, j, k] +
+                jac[i, j, k] * pbar[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
-        puedgergra = 0.5 * (pstrattfc[i, j, k + 1] + pstrattfc[i + 1, j, k + 1])
-        puedgelgra = 0.5 * (pstrattfc[i, j, k + 1] + pstrattfc[i - 1, j, k + 1])
-        puedgefgra = 0.5 * (pstrattfc[i, j, k + 1] + pstrattfc[i, j + 1, k + 1])
-        puedgebgra = 0.5 * (pstrattfc[i, j, k + 1] + pstrattfc[i, j - 1, k + 1])
-        pdedgergra = 0.5 * (pstrattfc[i, j, k - 1] + pstrattfc[i + 1, j, k - 1])
-        pdedgelgra = 0.5 * (pstrattfc[i, j, k - 1] + pstrattfc[i - 1, j, k - 1])
-        pdedgefgra = 0.5 * (pstrattfc[i, j, k - 1] + pstrattfc[i, j + 1, k - 1])
-        pdedgebgra = 0.5 * (pstrattfc[i, j, k - 1] + pstrattfc[i, j - 1, k - 1])
+        puedgergra = 0.5 * (pbar[i, j, k + 1] + pbar[i + 1, j, k + 1])
+        puedgelgra = 0.5 * (pbar[i, j, k + 1] + pbar[i - 1, j, k + 1])
+        puedgefgra = 0.5 * (pbar[i, j, k + 1] + pbar[i, j + 1, k + 1])
+        puedgebgra = 0.5 * (pbar[i, j, k + 1] + pbar[i, j - 1, k + 1])
+        pdedgergra = 0.5 * (pbar[i, j, k - 1] + pbar[i + 1, j, k - 1])
+        pdedgelgra = 0.5 * (pbar[i, j, k - 1] + pbar[i - 1, j, k - 1])
+        pdedgefgra = 0.5 * (pbar[i, j, k - 1] + pbar[i, j + 1, k - 1])
+        pdedgebgra = 0.5 * (pbar[i, j, k - 1] + pbar[i, j - 1, k - 1])
 
         # Compute density coefficients.
-        rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-        rhostratedgel = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i - 1, j, k])
-        rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-        rhostratedgeb = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j - 1, k])
-        rhostratedgeu =
+        rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+        rhobaredgel = 0.5 * (rhobar[i, j, k] + rhobar[i - 1, j, k])
+        rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+        rhobaredgeb = 0.5 * (rhobar[i, j, k] + rhobar[i, j - 1, k])
+        rhobaredgeu =
             (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
-        rhostratedged =
+        rhobaredged =
             (
-                jac[i, j, k - 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k - 1]
+                jac[i, j, k - 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
-        rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k]) + rhostratedger
-        rhoedgel = 0.5 * (rho[i, j, k] + rho[i - 1, j, k]) + rhostratedgel
-        rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k]) + rhostratedgef
-        rhoedgeb = 0.5 * (rho[i, j, k] + rho[i, j - 1, k]) + rhostratedgeb
+        rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k]) + rhobaredger
+        rhoedgel = 0.5 * (rho[i, j, k] + rho[i - 1, j, k]) + rhobaredgel
+        rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k]) + rhobaredgef
+        rhoedgeb = 0.5 * (rho[i, j, k] + rho[i, j - 1, k]) + rhobaredgeb
         rhoedgeu =
             (
                 jac[i, j, k + 1] * rho[i, j, k] +
                 jac[i, j, k] * rho[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1]) + rhostratedgeu
+            ) / (jac[i, j, k] + jac[i, j, k + 1]) + rhobaredgeu
         rhoedged =
             (
                 jac[i, j, k - 1] * rho[i, j, k] +
                 jac[i, j, k] * rho[i, j, k - 1]
-            ) / (jac[i, j, k] + jac[i, j, k - 1]) + rhostratedged
+            ) / (jac[i, j, k] + jac[i, j, k - 1]) + rhobaredged
 
         fwu = compute_buoyancy_factor(state, i, j, k, W())
         fwd = compute_buoyancy_factor(state, i, j, k - 1, W())
@@ -221,70 +204,66 @@ function compute_operator!(
             0.5 * (
                 rho[i, j, k + 1] +
                 rho[i + 1, j, k + 1] +
-                rhostrattfc[i, j, k + 1] +
-                rhostrattfc[i + 1, j, k + 1]
+                rhobar[i, j, k + 1] +
+                rhobar[i + 1, j, k + 1]
             )
         rhouedgel =
             0.5 * (
                 rho[i, j, k + 1] +
                 rho[i - 1, j, k + 1] +
-                rhostrattfc[i, j, k + 1] +
-                rhostrattfc[i - 1, j, k + 1]
+                rhobar[i, j, k + 1] +
+                rhobar[i - 1, j, k + 1]
             )
         rhouedgef =
             0.5 * (
                 rho[i, j, k + 1] +
                 rho[i, j + 1, k + 1] +
-                rhostrattfc[i, j, k + 1] +
-                rhostrattfc[i, j + 1, k + 1]
+                rhobar[i, j, k + 1] +
+                rhobar[i, j + 1, k + 1]
             )
         rhouedgeb =
             0.5 * (
                 rho[i, j, k + 1] +
                 rho[i, j - 1, k + 1] +
-                rhostrattfc[i, j, k + 1] +
-                rhostrattfc[i, j - 1, k + 1]
+                rhobar[i, j, k + 1] +
+                rhobar[i, j - 1, k + 1]
             )
         rhodedger =
             0.5 * (
                 rho[i, j, k - 1] +
                 rho[i + 1, j, k - 1] +
-                rhostrattfc[i, j, k - 1] +
-                rhostrattfc[i + 1, j, k - 1]
+                rhobar[i, j, k - 1] +
+                rhobar[i + 1, j, k - 1]
             )
         rhodedgel =
             0.5 * (
                 rho[i, j, k - 1] +
                 rho[i - 1, j, k - 1] +
-                rhostrattfc[i, j, k - 1] +
-                rhostrattfc[i - 1, j, k - 1]
+                rhobar[i, j, k - 1] +
+                rhobar[i - 1, j, k - 1]
             )
         rhodedgef =
             0.5 * (
                 rho[i, j, k - 1] +
                 rho[i, j + 1, k - 1] +
-                rhostrattfc[i, j, k - 1] +
-                rhostrattfc[i, j + 1, k - 1]
+                rhobar[i, j, k - 1] +
+                rhobar[i, j + 1, k - 1]
             )
         rhodedgeb =
             0.5 * (
                 rho[i, j, k - 1] +
                 rho[i, j - 1, k - 1] +
-                rhostrattfc[i, j, k - 1] +
-                rhostrattfc[i, j - 1, k - 1]
+                rhobar[i, j, k - 1] +
+                rhobar[i, j - 1, k - 1]
             )
 
         # Compute squared buoyancy frequency at edges.
-        bvsstratedgeu =
-            (
-                jac[i, j, k + 1] * bvsstrattfc[i, j, k] +
-                jac[i, j, k] * bvsstrattfc[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        bvsstratedged =
-            (
-                jac[i, j, k - 1] * bvsstrattfc[i, j, k] +
-                jac[i, j, k] * bvsstrattfc[i, j, k - 1]
-            ) / (jac[i, j, k] + jac[i, j, k - 1])
+        n2edgeu =
+            (jac[i, j, k + 1] * n2[i, j, k] + jac[i, j, k] * n2[i, j, k + 1]) /
+            (jac[i, j, k] + jac[i, j, k + 1])
+        n2edged =
+            (jac[i, j, k - 1] * n2[i, j, k] + jac[i, j, k] * n2[i, j, k - 1]) /
+            (jac[i, j, k] + jac[i, j, k - 1])
 
         # Interpolate metric-tensor elements.
         met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
@@ -455,8 +434,8 @@ function compute_operator!(
         imphordedgel = 1.0 / facdedgel
         imphordedgef = 1.0 / facdedgef
         imphordedgeb = 1.0 / facdedgeb
-        impveredgeu = 1.0 / (facedgeu + fwu * bvsstratedgeu * dt^2.0)
-        impveredged = 1.0 / (facedged + fwd * bvsstratedged * dt^2.0)
+        impveredgeu = 1.0 / (facedgeu + fwu * n2edgeu * dt^2.0)
+        impveredged = 1.0 / (facedged + fwd * n2edged * dt^2.0)
 
         # Compute gradient coefficients
 
@@ -468,7 +447,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 1, 3] *
@@ -481,7 +460,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 1, 3] *
@@ -494,7 +473,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 1, 3] *
@@ -504,7 +483,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 1, 3] *
@@ -520,7 +499,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 1, 3] *
@@ -533,7 +512,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 1, 3] *
@@ -546,7 +525,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 1, 3] *
@@ -556,7 +535,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 1, 3] *
@@ -572,7 +551,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 2, 3] *
@@ -585,7 +564,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 2, 3] *
@@ -598,7 +577,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 2, 3] *
@@ -608,7 +587,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 2, 3] *
@@ -624,7 +603,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 2, 3] *
@@ -637,7 +616,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 2, 3] *
@@ -650,7 +629,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 2, 3] *
@@ -660,7 +639,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k, 2, 3] *
@@ -691,7 +670,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k + 1, 1, 3] *
@@ -708,7 +687,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k + 1, 1, 3] *
@@ -725,7 +704,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k + 1, 2, 3] *
@@ -742,7 +721,7 @@ function compute_operator!(
                 pedgeudiv *
                 impveredgeu *
                 fwu *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k + 1, 2, 3] *
@@ -759,7 +738,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k - 1, 1, 3] *
@@ -776,7 +755,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k - 1, 1, 3] *
@@ -793,7 +772,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k - 1, 2, 3] *
@@ -810,7 +789,7 @@ function compute_operator!(
                 pedgeddiv *
                 impveredged *
                 fwd *
-                bvsstratedged *
+                n2edged *
                 dt^2.0 *
                 0.5 *
                 met[i, j, k - 1, 2, 3] *
