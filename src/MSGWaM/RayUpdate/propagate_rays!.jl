@@ -195,7 +195,7 @@ function propagate_rays!(
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, ztildetfc) = state.grid
+    (; lz, zctilde) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
@@ -244,7 +244,7 @@ function propagate_rays!(
 
             # Skip ray volumes that have left the domain.
             if test_case != WKBMountainWave()
-                if zr1 < ztildetfc[i, j, k0 - 2]
+                if zr1 < zctilde[i, j, k0 - 2]
                     nskip += 1
                     continue
                 end
@@ -483,8 +483,8 @@ function propagate_rays!(
     (; tref) = state.constants
     (; comm, zz_size, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
         state.domain
-    (; dx, dy, dz, ztildetfc, ztfc, jac) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; dx, dy, dz, zctilde, zc, jac) = state.grid
+    (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; nray, rays) = state.wkb
 
@@ -537,8 +537,8 @@ function propagate_rays!(
 
             # Set the vertical position (and extent).
             rays.z[r, i, j, k] =
-                ztildetfc[i, j, k - 1] +
-                (rays.z[r, i, j, k - 1] - ztildetfc[i, j, k - 2]) /
+                zctilde[i, j, k - 1] +
+                (rays.z[r, i, j, k - 1] - zctilde[i, j, k - 2]) /
                 jac[i, j, k - 1] * jac[i, j, k]
             rays.dzray[r, i, j, k] =
                 rays.dzray[r, i, j, k - 1] * jac[i, j, k] / jac[i, j, k - 1]
@@ -622,12 +622,10 @@ function propagate_rays!(
             # Compute the saturation integrals.
             integral1 = khr^2 * mr^2 / ((khr^2 + mr^2) * omir) * facpsp
             m2b2 +=
-                2 * n2r^2 / rhostrattfc[i, j, k] *
-                integral1 *
-                rays.dens[r, i, j, k]
+                2 * n2r^2 / rhobar[i, j, k] * integral1 * rays.dens[r, i, j, k]
             integral2 = khr^2 * mr^2 / omir * facpsp
             m2b2k2 +=
-                2 * n2r^2 / rhostrattfc[i, j, k] *
+                2 * n2r^2 / rhobar[i, j, k] *
                 integral2 *
                 rays.dens[r, i, j, k] *
                 jac[i, j, k] *
@@ -635,7 +633,7 @@ function propagate_rays!(
         end
 
         # Compute the diffusion coefficient
-        n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
+        n2r = interpolate_stratification(zc[i, j, k], state, N2())
         if m2b2k2 == 0 || m2b2 < saturation_threshold^2 * n2r^2
             diffusion = 0.0
         else

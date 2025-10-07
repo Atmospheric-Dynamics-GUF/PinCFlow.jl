@@ -102,8 +102,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
-    (; dx, dy, dz, x, y, ztildetfc, jac) = grid
-    (; rhostrattfc, thetastrattfc) = state.atmosphere
+    (; dx, dy, dz, x, y, zctilde, jac) = grid
+    (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -194,8 +194,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                     for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), ztildetfc[iray, jray, kray]) -
-                            max((zr - dzr / 2), ztildetfc[iray, jray, kray - 1])
+                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
+                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
 
@@ -246,8 +246,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                                 n2r *
                                 kr *
                                 mr *
-                                thetastrattfc[iray, jray, kray] / (
-                                    rhostrattfc[iray, jray, kray] *
+                                thetabar[iray, jray, kray] / (
+                                    rhobar[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
@@ -259,8 +259,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                                 n2r *
                                 lr *
                                 mr *
-                                thetastrattfc[iray, jray, kray] / (
-                                    rhostrattfc[iray, jray, kray] *
+                                thetabar[iray, jray, kray] / (
+                                    rhobar[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
@@ -299,8 +299,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
-    (; dx, dy, dz, x, y, ztildetfc, jac) = grid
-    (; rhostrattfc, thetastrattfc) = state.atmosphere
+    (; dx, dy, dz, x, y, zctilde, jac) = grid
+    (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -387,8 +387,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
                     for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), ztildetfc[iray, jray, kray]) -
-                            max((zr - dzr / 2), ztildetfc[iray, jray, kray - 1])
+                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
+                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
 
@@ -407,8 +407,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                                 n2r *
                                 kr *
                                 mr *
-                                thetastrattfc[iray, jray, kray] / (
-                                    rhostrattfc[iray, jray, kray] *
+                                thetabar[iray, jray, kray] / (
+                                    rhobar[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
@@ -420,8 +420,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                                 n2r *
                                 lr *
                                 mr *
-                                thetastrattfc[iray, jray, kray] / (
-                                    rhostrattfc[iray, jray, kray] *
+                                thetabar[iray, jray, kray] / (
+                                    rhobar[iray, jray, kray] *
                                     g_ndim *
                                     omir *
                                     (khr^2 + mr^2)
@@ -458,7 +458,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = state.domain
-    (; dx, dy, dz, x, y, ztildetfc, jac) = state.grid
+    (; dx, dy, dz, x, y, zctilde, jac) = state.grid
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
@@ -547,8 +547,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
                     for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), ztildetfc[iray, jray, kray]) -
-                            max((zr - dzr / 2), ztildetfc[iray, jray, kray - 1])
+                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
+                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
 

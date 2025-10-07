@@ -106,10 +106,10 @@ function compute_buoyancy_factor(
     variable::RhoP,
     model::Compressible,
 )::AbstractFloat
-    (; rhostrattfc, thetastrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
-    @ivy return pstrattfc[i, j, k] / thetastrattfc[i, j, k] /
-                (rho[i, j, k] + rhostrattfc[i, j, k])
+    @ivy return pbar[i, j, k] / thetabar[i, j, k] /
+                (rho[i, j, k] + rhobar[i, j, k])
 end
 
 function compute_buoyancy_factor(
@@ -120,9 +120,9 @@ function compute_buoyancy_factor(
     variable::RhoP,
     model::AbstractModel,
 )::AbstractFloat
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
-    @ivy return rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
+    @ivy return rhobar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
 end
 
 function compute_buoyancy_factor(
@@ -134,14 +134,14 @@ function compute_buoyancy_factor(
     model::Compressible,
 )::AbstractFloat
     (; jac) = state.grid
-    (; rhostrattfc, thetastrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
     @ivy return (
-        jac[i, j, k + 1] * pstrattfc[i, j, k] / thetastrattfc[i, j, k] +
-        jac[i, j, k] * pstrattfc[i, j, k + 1] / thetastrattfc[i, j, k + 1]
+        jac[i, j, k + 1] * pbar[i, j, k] / thetabar[i, j, k] +
+        jac[i, j, k] * pbar[i, j, k + 1] / thetabar[i, j, k + 1]
     ) / (
-        jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
-        jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
+        jac[i, j, k + 1] * (rho[i, j, k] + rhobar[i, j, k]) +
+        jac[i, j, k] * (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     )
 end
 
@@ -154,13 +154,12 @@ function compute_buoyancy_factor(
     model::AbstractModel,
 )::AbstractFloat
     (; jac) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
     @ivy return (
-        jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-        jac[i, j, k] * rhostrattfc[i, j, k + 1]
+        jac[i, j, k + 1] * rhobar[i, j, k] + jac[i, j, k] * rhobar[i, j, k + 1]
     ) / (
-        jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
-        jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
+        jac[i, j, k + 1] * (rho[i, j, k] + rhobar[i, j, k]) +
+        jac[i, j, k] * (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     )
 end

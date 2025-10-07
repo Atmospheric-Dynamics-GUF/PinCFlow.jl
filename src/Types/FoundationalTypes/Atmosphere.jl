@@ -90,13 +90,13 @@ where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `n
 
 # Fields
 
-  - `pstrattfc::A`: Mass-weighted potential temperature ``P \\left(z\\right)`` (``P \\left(x, y, z, t\\right)`` in compressible mode).
+  - `pbar::A`: Mass-weighted potential temperature ``P \\left(z\\right)`` (``P \\left(x, y, z, t\\right)`` in compressible mode).
 
-  - `thetastrattfc::A`: Background potential temperature ``\\overline{\\theta} \\left(z\\right)``.
+  - `thetabar::A`: Background potential temperature ``\\overline{\\theta} \\left(z\\right)``.
 
-  - `rhostrattfc::A`: Background density ``\\overline{\\rho} \\left(z\\right)``.
+  - `rhobar::A`: Background density ``\\overline{\\rho} \\left(z\\right)``.
 
-  - `bvsstrattfc::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
+  - `n2::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
 
 # Arguments
 
@@ -117,10 +117,10 @@ where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `n
   - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
 """
 struct Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}}
-    pstrattfc::A
-    thetastrattfc::A
-    rhostrattfc::A
-    bvsstrattfc::A
+    pbar::A
+    thetabar::A
+    rhobar::A
+    n2::A
 end
 
 function Atmosphere(
@@ -147,12 +147,12 @@ function Atmosphere(
     (; nxx, nyy, nzz) = domain
 
     # Set the background fields.
-    rhostrattfc = ones(nxx, nyy, nzz)
-    thetastrattfc = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
-    pstrattfc = rhostrattfc .* thetastrattfc
-    bvsstrattfc = zeros(nxx, nyy, nzz)
+    rhobar = ones(nxx, nyy, nzz)
+    thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
+    pbar = rhobar .* thetabar
+    n2 = zeros(nxx, nyy, nzz)
 
-    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
+    return Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
 function Atmosphere(
@@ -168,12 +168,12 @@ function Atmosphere(
     (; nxx, nyy, nzz) = domain
 
     # Set the background fields.
-    rhostrattfc = ones(nxx, nyy, nzz)
-    thetastrattfc = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
-    pstrattfc = rhostrattfc .* thetastrattfc
-    bvsstrattfc = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
+    rhobar = ones(nxx, nyy, nzz)
+    thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
+    pbar = rhobar .* thetabar
+    n2 = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
 
-    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
+    return Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
 function Atmosphere(
@@ -188,44 +188,43 @@ function Atmosphere(
     (; temperature, ground_pressure) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma, g_ndim) = constants
     (; zz_size, nxx, nyy, nzz, ko, k0, k1) = domain
-    (; ztfc, jac, dz) = grid
+    (; zc, jac, dz) = grid
 
     # Initialize the background fields.
-    (pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc) =
-        (zeros(nxx, nyy, nzz) for i in 1:4)
+    (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
 
     t0 = temperature / thetaref
     p0 = ground_pressure / pref
 
     # Compute the background fields.
-    pstrattfc .= p0 .* exp.(.-sig .* ztfc ./ gamma ./ t0)
-    thetastrattfc .= t0 .* exp.(kappa .* sig ./ t0 .* ztfc)
-    rhostrattfc .= pstrattfc ./ thetastrattfc
+    pbar .= p0 .* exp.(.-sig .* zc ./ gamma ./ t0)
+    thetabar .= t0 .* exp.(kappa .* sig ./ t0 .* zc)
+    rhobar .= pbar ./ thetabar
 
     # Compute the squared buoyancy frequency.
-    bvsstrattfc .= 0.0
+    n2 .= 0.0
     @ivy for k in k0:k1
-        bvsstrattfc[:, :, k] .=
-            g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
-            (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
+        n2[:, :, k] .=
+            g_ndim ./ thetabar[:, :, k] ./ jac[:, :, k] .* 0.5 .*
+            (thetabar[:, :, k + 1] .- thetabar[:, :, k - 1]) ./ dz
     end
 
     # Compute the squared buoyancy frequency at the boundaries.
-    set_vertical_boundaries_of_field!(bvsstrattfc, namelists, domain, +)
+    set_vertical_boundaries_of_field!(n2, namelists, domain, +)
     @ivy if ko == 0
         for k in 1:nbz
-            bvsstrattfc[:, :, k] .=
-                g_ndim ./ thetastrattfc[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
-                (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
+            n2[:, :, k] .=
+                g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
+                (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
         end
     end
     @ivy if ko + nzz == zz_size
         for k in 1:nbz
-            bvsstrattfc[:, :, k1 + k] .=
-                g_ndim ./ thetastrattfc[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
-                (thetastrattfc[:, :, k1 + 1] .- thetastrattfc[:, :, k1]) ./ dz
+            n2[:, :, k1 + k] .=
+                g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
+                (thetabar[:, :, k1 + 1] .- thetabar[:, :, k1]) ./ dz
         end
     end
 
-    return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc)
+    return Atmosphere(pbar, thetabar, rhobar, n2)
 end

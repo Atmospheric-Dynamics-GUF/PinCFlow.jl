@@ -13,8 +13,6 @@ Main module of PinCFlow.
 """
 module PinCFlow
 
-using PythonPlot
-
 include("@ivy.jl")
 include("set_plot_style.jl")
 include("symmetric_contours.jl")

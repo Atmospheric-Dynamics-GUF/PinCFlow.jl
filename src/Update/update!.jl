@@ -550,7 +550,7 @@ function update!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; thetastrattfc) = state.atmosphere
+    (; thetabar) = state.atmosphere
     (; alphark, betark) = state.time
     (; drhop) = state.variables.increments
     (; phirhop) = state.variables.fluxes
@@ -573,7 +573,7 @@ function update!(
 
         heating = compute_volume_force(state, i, j, k, P())
 
-        f = -fluxdiff - heating / thetastrattfc[i, j, k]
+        f = -fluxdiff - heating / thetabar[i, j, k]
 
         drhop[i, j, k] = dt * f + alphark[m] * drhop[i, j, k]
         rhop[i, j, k] += betark[m] * drhop[i, j, k]
@@ -591,7 +591,7 @@ function update!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; g_ndim) = state.constants
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; rhobar, n2) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop) = predictands
 
@@ -604,11 +604,11 @@ function update!(
                 compute_vertical_wind(i, j, k - 1, state) / jpd
             )
 
-        buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
+        buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         fb = compute_buoyancy_factor(state, i, j, k, RhoP())
-        buoy -= dt * fb * bvsstrattfc[i, j, k] * wvrt
+        buoy -= dt * fb * n2[i, j, k] * wvrt
 
-        rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
+        rhop[i, j, k] = -buoy * (rho[i, j, k] + rhobar[i, j, k]) / g_ndim
     end
 
     return
@@ -628,12 +628,12 @@ function update!(
     (; use_sponge) = state.namelists.sponge
     (; betar) = state.sponge
     (; g_ndim) = state.constants
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; rhobar, n2) = state.atmosphere
     (; rho, rhop, u, v, pip) = state.variables.predictands
     (; wold) = state.variables.backups
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        rhoc = rho[i, j, k] + rhostrattfc[i, j, k]
+        rhoc = rho[i, j, k] + rhobar[i, j, k]
         rhoedgeu =
             (
                 jac[i, j, k + 1] * rho[i, j, k] +
@@ -641,8 +641,8 @@ function update!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         rhoedgeu +=
             (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         rhoedged =
             (
@@ -651,8 +651,8 @@ function update!(
             ) / (jac[i, j, k] + jac[i, j, k - 1])
         rhoedged +=
             (
-                jac[i, j, k - 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k - 1]
+                jac[i, j, k - 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
 
         jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
@@ -681,22 +681,22 @@ function update!(
             factor += dt * betar[i, j, k] * rayleigh_factor
         end
 
-        b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
+        b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         jpedger = compute_compressible_wind_factor(state, i, j, k, U())
         jpedgel = compute_compressible_wind_factor(state, i - 1, j, k, U())
         jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
         jpedgeb = compute_compressible_wind_factor(state, i, j - 1, k, V())
         fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         b =
-            1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
+            1.0 / (factor + fb * n2[i, j, k] * dt^2.0) * (
                 -fb *
-                bvsstrattfc[i, j, k] *
+                n2[i, j, k] *
                 dt *
                 jac[i, j, k] *
                 (w + dt * (-gradient + force / rhoc)) +
                 factor * b +
                 fb *
-                bvsstrattfc[i, j, k] *
+                n2[i, j, k] *
                 dt *
                 jac[i, j, k] *
                 factor *
@@ -709,7 +709,7 @@ function update!(
                 )
             )
 
-        rhop[i, j, k] = -b * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
+        rhop[i, j, k] = -b * (rho[i, j, k] + rhobar[i, j, k]) / g_ndim
     end
 
     return
@@ -727,7 +727,7 @@ function update!(
     (; tref) = state.constants
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; du) = state.variables.increments
     (; phiu) = state.variables.fluxes
     (; rhoold, uold) = state.variables.backups
@@ -765,8 +765,8 @@ function update!(
             0.5 *
             fc *
             (
-                (rhoold[i, j, k] + rhostrattfc[i, j, k]) * vc +
-                (rhoold[i + 1, j, k] + rhostrattfc[i + 1, j, k]) * vr
+                (rhoold[i, j, k] + rhobar[i, j, k]) * vc +
+                (rhoold[i + 1, j, k] + rhobar[i + 1, j, k]) * vr
             )
 
         # Compute force.
@@ -775,9 +775,9 @@ function update!(
         # Interpolate density.
         rhom_1 = 0.5 * (rhoold[i, j, k] + rhoold[i + 1, j, k])
         rhom = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-        rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-        rhom_1 += rhostratedger
-        rhom += rhostratedger
+        rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+        rhom_1 += rhobaredger
+        rhom += rhobaredger
 
         # Set velocity and momentum at previous time.
         um_1 = u[i, j, k]
@@ -805,13 +805,13 @@ function update!(
     integration::Explicit,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rho, u, pip) = state.variables.predictands
 
     @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-        rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-        rhoedger += rhostratedger
+        rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+        rhoedger += rhobaredger
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, U())
 
@@ -835,7 +835,7 @@ function update!(
 )
     (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; betar) = state.sponge
     (; rho, u, pip) = state.variables.predictands
 
@@ -844,8 +844,8 @@ function update!(
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-        rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-        rhoedger += rhostratedger
+        rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+        rhoedger += rhobaredger
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, U())
 
@@ -883,7 +883,7 @@ function update!(
     (; tref) = state.constants
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; dv) = state.variables.increments
     (; phiv) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
@@ -922,8 +922,8 @@ function update!(
             -0.5 *
             fc *
             (
-                (rhoold[i, j, k] + rhostrattfc[i, j, k]) * uc +
-                (rhoold[i, j + 1, k] + rhostrattfc[i, j + 1, k]) * uf
+                (rhoold[i, j, k] + rhobar[i, j, k]) * uc +
+                (rhoold[i, j + 1, k] + rhobar[i, j + 1, k]) * uf
             )
 
         force = -fluxdiff + volforce
@@ -931,9 +931,9 @@ function update!(
         # Interpolate density.
         rhom_1 = 0.5 * (rhoold[i, j, k] + rhoold[i, j + 1, k])
         rhom = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-        rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-        rhom_1 += rhostratedgef
-        rhom += rhostratedgef
+        rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+        rhom_1 += rhobaredgef
+        rhom += rhobaredgef
 
         vm_1 = v[i, j, k]
         momm_1 = rhom_1 * vm_1
@@ -958,13 +958,13 @@ function update!(
     integration::Explicit,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rho, v, pip) = state.variables.predictands
 
     @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-        rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-        rhoedgef += rhostratedgef
+        rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+        rhoedgef += rhobaredgef
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, V())
 
@@ -988,7 +988,7 @@ function update!(
 )
     (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; betar) = state.sponge
     (; rho, v, pip) = state.variables.predictands
 
@@ -997,8 +997,8 @@ function update!(
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-        rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-        rhoedgef += rhostratedgef
+        rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+        rhoedgef += rhobaredgef
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, V())
 
@@ -1037,7 +1037,7 @@ function update!(
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; dx, dy, dz, jac, met) = grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; dw) = state.variables.increments
     (; phiu, phiv, phiw) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
@@ -1129,21 +1129,21 @@ function update!(
             fc * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 1, 3] *
-                (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
+                (rhoold[i, j, k] + rhobar[i, j, k]) *
                 vc +
                 jac[i, j, k] *
                 met[i, j, k + 1, 1, 3] *
-                (rhoold[i, j, k + 1] + rhostrattfc[i, j, k + 1]) *
+                (rhoold[i, j, k + 1] + rhobar[i, j, k + 1]) *
                 vu
             ) / (jac[i, j, k] + jac[i, j, k + 1]) -
             fc * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 2, 3] *
-                (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
+                (rhoold[i, j, k] + rhobar[i, j, k]) *
                 uc +
                 jac[i, j, k] *
                 met[i, j, k + 1, 2, 3] *
-                (rhoold[i, j, k + 1] + rhostrattfc[i, j, k + 1]) *
+                (rhoold[i, j, k + 1] + rhobar[i, j, k + 1]) *
                 uu
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
@@ -1160,13 +1160,13 @@ function update!(
                 jac[i, j, k + 1] * rho[i, j, k] +
                 jac[i, j, k] * rho[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
-        rhostratedgeu =
+        rhobaredgeu =
             (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
-        rhom_1 += rhostratedgeu
-        rhom += rhostratedgeu
+        rhom_1 += rhobaredgeu
+        rhom += rhobaredgeu
 
         wm_1 = w[i, j, k]
         momm_1 = rhom_1 * wm_1
@@ -1193,7 +1193,7 @@ function update!(
     (; g_ndim) = state.constants
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
@@ -1209,12 +1209,12 @@ function update!(
                 jac[i, j, k] * rho[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        rhoc += rhostrattfc[i, j, k]
-        rhou += rhostrattfc[i, j, k + 1]
+        rhoc += rhobar[i, j, k]
+        rhou += rhobar[i, j, k + 1]
         rhoedgeu +=
             (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, W())
@@ -1247,7 +1247,7 @@ function update!(
     (; g_ndim) = state.constants
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
@@ -1263,23 +1263,21 @@ function update!(
                 jac[i, j, k] * rho[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        rhoc += rhostrattfc[i, j, k]
-        rhou += rhostrattfc[i, j, k + 1]
+        rhoc += rhobar[i, j, k]
+        rhou += rhobar[i, j, k + 1]
         rhoedgeu +=
             (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, W())
 
         force = compute_volume_force(state, i, j, k, W())
 
-        bvsstratedgeu =
-            (
-                jac[i, j, k + 1] * bvsstrattfc[i, j, k] +
-                jac[i, j, k] * bvsstrattfc[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        n2edgeu =
+            (jac[i, j, k + 1] * n2[i, j, k] + jac[i, j, k] * n2[i, j, k + 1]) /
+            (jac[i, j, k] + jac[i, j, k + 1])
 
         factor = 1.0
 
@@ -1316,13 +1314,13 @@ function update!(
         fw = compute_buoyancy_factor(state, i, j, k, W())
 
         w[i, j, k] =
-            1.0 / (factor + fw * bvsstratedgeu * dt^2.0) * (
+            1.0 / (factor + fw * n2edgeu * dt^2.0) * (
                 w[i, j, k] - dt * gradient * jpedgeu +
                 dt * b * jpedgeu +
                 dt * force / rhoedgeu * jpedgeu +
                 jpedgeu *
                 fw *
-                bvsstratedgeu *
+                n2edgeu *
                 dt^2.0 *
                 (
                     jac[i, j, k + 1] *

@@ -282,7 +282,7 @@ function apply_lhs_sponge!(
 )
     (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc, thetastrattfc) = state.atmosphere
+    (; rhobar, thetabar) = state.atmosphere
     (; alphar) = state.sponge
     (; rho, rhop, p) = state.variables.predictands
 
@@ -292,10 +292,10 @@ function apply_lhs_sponge!(
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         rhopbg =
-            rhostrattfc[i, j, k] * (
+            rhobar[i, j, k] * (
                 1.0 -
-                p[i, j, k] / thetastrattfc[i, j, k] /
-                (rho[i, j, k] + rhostrattfc[i, j, k])
+                p[i, j, k] / thetabar[i, j, k] /
+                (rho[i, j, k] + rhobar[i, j, k])
             )
         alpha = alphar[i, j, k]
         rhopold = rhop[i, j, k]
@@ -547,7 +547,7 @@ function apply_lhs_sponge!(
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
     if !use_sponge
@@ -558,8 +558,8 @@ function apply_lhs_sponge!(
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
         pib =
-            rhostrattfc[i, j, k] * p[i, j, k] /
-            (rho[i, j, k] + rhostrattfc[i, j, k]) / dpdpi
+            rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) /
+            dpdpi
         alpha = alphar[i, j, k]
         pipold = pip[i, j, k]
         pipnew = pipold - alpha * dt * (p[i, j, k] / dpdpi - pib)
@@ -589,7 +589,7 @@ function apply_lhs_sponge!(
     (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
     if !use_sponge
@@ -597,9 +597,7 @@ function apply_lhs_sponge!(
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        pb =
-            rhostrattfc[i, j, k] * p[i, j, k] /
-            (rho[i, j, k] + rhostrattfc[i, j, k])
+        pb = rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         alpha = alphar[i, j, k]
         pold = p[i, j, k]
         beta = 1 / (1 + alpha * dt)

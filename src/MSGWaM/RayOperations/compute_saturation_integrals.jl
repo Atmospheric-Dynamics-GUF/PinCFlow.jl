@@ -63,7 +63,7 @@ function compute_saturation_integrals(
     (; x_size, y_size) = state.namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dz, jac) = grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; nray, rays) = state.wkb
 
     # Initialize Integrals.
@@ -131,11 +131,11 @@ function compute_saturation_integrals(
 
         integral1 = wnrhs * wnrm^2 / ((wnrhs + wnrm^2) * omir) * facpsp
 
-        mb2 += 2 * n2r^2 / rhostrattfc[iray, jray, kray] * densr * integral1
+        mb2 += 2 * n2r^2 / rhobar[iray, jray, kray] * densr * integral1
 
         integral2 = wnrhs * wnrm^2 / omir * facpsp
 
-        mb2k2 += 2 * n2r^2 / rhostrattfc[iray, jray, kray] * densr * integral2
+        mb2k2 += 2 * n2r^2 / rhobar[iray, jray, kray] * densr * integral2
     end
 
     return (mb2, mb2k2)

@@ -67,7 +67,7 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
     (; rhs) = state.poisson
 
@@ -78,7 +78,7 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
     # Calculate RHS for TFC.
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
-        fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
+        fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
         ur = u[i, j, k]
         ul = u[i - 1, j, k]
@@ -89,33 +89,33 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
         # Calculate P at cell edges.
         pedger =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             )
         pedgel =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i - 1, j, k] * pstrattfc[i - 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i - 1, j, k] * pbar[i - 1, j, k]
             )
         pedgef =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             )
         pedgeb =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j - 1, k] * pstrattfc[i, j - 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j - 1, k] * pbar[i, j - 1, k]
             )
         pedgeu =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1])
         pedged =
             jac[i, j, k] *
             jac[i, j, k - 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k - 1]) /
+            (pbar[i, j, k] + pbar[i, j, k - 1]) /
             (jac[i, j, k] + jac[i, j, k - 1])
         # Determine indices for RHS.
         ib = i - i0 + 1
@@ -158,7 +158,7 @@ function compute_lhs!(state::State, model::Compressible)::AbstractFloat
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
     (; rhs) = state.poisson
 
@@ -169,7 +169,7 @@ function compute_lhs!(state::State, model::Compressible)::AbstractFloat
     # Calculate RHS for TFC.
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
-        fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
+        fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
         ur = u[i, j, k]
         ul = u[i - 1, j, k]

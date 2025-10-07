@@ -106,11 +106,11 @@ function Predictands(
     (; model) = namelists.setting
     (; uref) = constants
     (; nxx, nyy, nzz) = domain
-    (; pstrattfc) = atmosphere
+    (; pbar) = atmosphere
 
     # Initialize the predictands.
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
-    p = set_p(model, nxx, nyy, nzz, pstrattfc)
+    p = set_p(model, nxx, nyy, nzz, pbar)
 
     # Set the initial winds.
     @ivy u .= initial_wind[1] ./ uref

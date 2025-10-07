@@ -47,10 +47,10 @@ function get_next_half_level(
     dku::Integer = 0,
 )::Integer
     (; zz_size, nzz, ko, k0, k1) = state.domain
-    (; ztildetfc) = state.grid
+    (; zctilde) = state.grid
 
-    @ivy k = argmin(abs.(ztildetfc[i, j, :] .- z))
-    @ivy if ztildetfc[i, j, k] < z
+    @ivy k = argmin(abs.(zctilde[i, j, :] .- z))
+    @ivy if zctilde[i, j, k] < z
         k += 1
     end
 

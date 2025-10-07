@@ -260,7 +260,7 @@ function correct!(
     (; use_sponge) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; bvsstrattfc) = state.atmosphere
+    (; n2) = state.atmosphere
     (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.increments
@@ -280,11 +280,9 @@ function correct!(
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
         end
 
-        bvsstratedgeu =
-            (
-                jac[i, j, k + 1] * bvsstrattfc[i, j, k] +
-                jac[i, j, k] * bvsstrattfc[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        n2edgeu =
+            (jac[i, j, k + 1] * n2[i, j, k] + jac[i, j, k] * n2[i, j, k + 1]) /
+            (jac[i, j, k] + jac[i, j, k + 1])
 
         gradient = compute_pressure_gradient(state, dpip, i, j, k, W())
 
@@ -292,10 +290,10 @@ function correct!(
         fw = compute_buoyancy_factor(state, i, j, k, W())
 
         w[i, j, k] +=
-            -dt / (factor + fw * bvsstratedgeu * dt^2.0) * jpedgeu * gradient -
-            1.0 / (factor + fw * bvsstratedgeu * dt^2.0) *
+            -dt / (factor + fw * n2edgeu * dt^2.0) * jpedgeu * gradient -
+            1.0 / (factor + fw * n2edgeu * dt^2.0) *
             fw *
-            bvsstratedgeu *
+            n2edgeu *
             dt^2.0 *
             jpedgeu *
             0.5 *
@@ -327,7 +325,7 @@ function correct!(
     (; g_ndim) = state.constants
     (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.increments
@@ -354,10 +352,10 @@ function correct!(
 
         fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         db =
-            -1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
-                -fb * bvsstrattfc[i, j, k] * dt^2.0 * jac[i, j, k] * gradient +
+            -1.0 / (factor + fb * n2[i, j, k] * dt^2.0) * (
+                -fb * n2[i, j, k] * dt^2.0 * jac[i, j, k] * gradient +
                 fb *
-                bvsstrattfc[i, j, k] *
+                n2[i, j, k] *
                 dt *
                 jac[i, j, k] *
                 factor *
@@ -368,7 +366,7 @@ function correct!(
                 )
             )
 
-        rhop[i, j, k] -= (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
+        rhop[i, j, k] -= (rho[i, j, k] + rhobar[i, j, k]) / g_ndim * db
     end
 
     return

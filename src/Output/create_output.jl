@@ -5,7 +5,7 @@ create_output(state::State)
 
 Create an HDF5 output file with one dataset for each variable.
 
-The dimensions of the datasets are set to those of the domain, whereas the chunks are set to the dimensions of the MPI subdomains, in preparation for parallel output. Datasets for the grid, i.e. the fields `x`, `y` and `ztfc` of `state.grid`, the time and the fields of `state.atmosphere` are always created, regardless of the specifications in `state.namelists.output`. The one exception to this is the Boussinesq mode, in which no datasets are created for the fields of `state.atmosphere`, since they do not have a spatial dependence.
+The dimensions of the datasets are set to those of the domain, whereas the chunks are set to the dimensions of the MPI subdomains, in preparation for parallel output. Datasets for the grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, the time and the fields of `state.atmosphere` are always created, regardless of the specifications in `state.namelists.output`. The one exception to this is the Boussinesq mode, in which no datasets are created for the fields of `state.atmosphere`, since they do not have a spatial dependence.
 
 # Arguments
 
@@ -168,10 +168,10 @@ function create_output(state::State)
                 chunk = (cx, cy, cz, ct),
             )
         end
-        if :wtfc in output_variables
+        if :wt in output_variables
             create_dataset(
                 file,
-                "wtfc",
+                "wt",
                 datatype(Float32),
                 dataspace(
                     (x_size, y_size, z_size, 0),
@@ -180,10 +180,10 @@ function create_output(state::State)
                 chunk = (cx, cy, cz, ct),
             )
         end
-        if prepare_restart || :wstfc in output_variables
+        if prepare_restart || :wts in output_variables
             create_dataset(
                 file,
-                "wstfc",
+                "wts",
                 datatype(Float32),
                 dataspace(
                     (x_size, y_size, z_size, 0),
