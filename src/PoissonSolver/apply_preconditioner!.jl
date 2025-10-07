@@ -21,7 +21,7 @@ where ``s`` is the iterative solution, ``\\eta`` is a pseudo-time variable, ``\\
 \\left(1 - \\Delta \\eta \\mathcal{L}_\\mathrm{v}\\right) \\left(s^{\\left(m + 1\\right)}\\right) = \\left(1 + \\Delta \\eta \\mathcal{L}_\\mathrm{h}\\right) \\left(s^{\\left(m\\right)}\\right) - \\Delta \\eta b,
 ```
 
-where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\right)^{- 2} + \\left(\\Delta \\widehat{y}\\right)^{- 2}\\right]^{- 1}``, with ``\\Delta \\tau`` being a namelist parameter (`state.namelist.poisson.dtau`). Therein, the implicit problem is solved with the Thomas algorithm for tridiagonal matrices. The number of iterations is given by `state.namelist.poisson.maxiteradi`. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
+where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\right)^{- 2} + \\left(\\Delta \\widehat{y}\\right)^{- 2}\\right]^{- 1}``, with ``\\Delta \\tau`` being a namelist parameter (`state.namelist.poisson.dtau`). Therein, the implicit problem is solved with the Thomas algorithm for tridiagonal matrices. The number of iterations is given by `state.namelist.poisson.preconditioner_iterations`. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
 
 # Arguments
 
@@ -42,8 +42,8 @@ function apply_preconditioner!(
     sout::AbstractArray{<:AbstractFloat, 3},
     state::State,
 )
-    (; dtau, maxiteradi) = state.namelists.poisson
-    (; comm, sizezz, nz, nzz, ko, down, up) = state.domain
+    (; dtau, preconditioner_iterations) = state.namelists.poisson
+    (; comm, zz_size, nz, nzz, ko, down, up) = state.domain
     (; dx, dy) = state.grid
     (; au_b, ac_b, ad_b) = state.poisson.tensor
     (; s_pc, q_pc, p_pc, s_pc_bc, q_pc_bc) = state.poisson.preconditioner
@@ -57,7 +57,7 @@ function apply_preconditioner!(
     deta = dtau / (2 * (1 / dx^2 + 1 / dy^2))
 
     # Iterate.
-    @ivy for niter in 1:maxiteradi
+    @ivy for niter in 1:preconditioner_iterations
         apply_operator!(s_pc, q_pc, Horizontal(), state)
         s_pc .+= deta .* (q_pc .- sin)
 
@@ -92,7 +92,7 @@ function apply_preconditioner!(
         end
 
         # Communicate the upper boundary and set it for the downward sweep.
-        if ko + nzz != sizezz
+        if ko + nzz != zz_size
             q_pc_bc .= q_pc[:, :, nz]
             s_pc_bc .= s_pc[:, :, nz]
 

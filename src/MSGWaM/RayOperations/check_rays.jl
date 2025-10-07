@@ -12,7 +12,7 @@ Check if all ray volumes are assigned to the correct grid cells.
 function check_rays end
 
 function check_rays(state::State)
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, x, y, zctilde) = state.grid
     (; nray, rays) = state.wkb
@@ -28,7 +28,7 @@ function check_rays(state::State)
             end
 
             # Check zonal position.
-            if sizex > 1
+            if x_size > 1
                 xr = rays.x[r, i, j, k]
 
                 if xr < x[io + i] - dx / 2
@@ -59,7 +59,7 @@ function check_rays(state::State)
             end
 
             # Check meridional position.
-            if sizey > 1
+            if y_size > 1
                 yr = rays.y[r, i, j, k]
 
                 if yr < y[jo + j] - dy / 2

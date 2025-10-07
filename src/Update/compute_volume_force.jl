@@ -18,7 +18,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::AbstractVariable,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::AbstractFloat
 ```
 
@@ -31,7 +31,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::U,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
 ```
 
@@ -44,7 +44,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::V,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
 ```
 
@@ -57,7 +57,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::W,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
 ```
 
@@ -74,7 +74,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::AbstractFloat
 ```
 
@@ -87,7 +87,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
 ```
 
@@ -100,7 +100,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variables::Chi,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
 ```
 
@@ -118,7 +118,7 @@ Return the tracer flux convergence due to gravity waves.
 
   - `variable`: Variable (equation) of choice.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
 # See also
 
@@ -133,9 +133,9 @@ function compute_volume_force(
     k::Integer,
     variable::AbstractVariable,
 )::AbstractFloat
-    (; testcase) = state.namelists.setting
+    (; test_case) = state.namelists.setting
 
-    return compute_volume_force(state, i, j, k, variable, testcase)
+    return compute_volume_force(state, i, j, k, variable, test_case)
 end
 
 function compute_volume_force(
@@ -144,7 +144,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::AbstractVariable,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::AbstractFloat
     return 0.0
 end
@@ -155,7 +155,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::U,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
     (; dudt) = state.wkb.tendencies
 
@@ -168,7 +168,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::V,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
     (; dvdt) = state.wkb.tendencies
 
@@ -181,7 +181,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::W,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
     (; jac, met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
@@ -204,7 +204,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::AbstractFloat
     return conductive_heating(state, i, j, k)
 end
@@ -215,7 +215,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
 
@@ -228,7 +228,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variables::Chi,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::AbstractFloat
     (; leading_order_impact) = state.namelists.tracer
     (; chiq0) = state.tracer.tracerforcings

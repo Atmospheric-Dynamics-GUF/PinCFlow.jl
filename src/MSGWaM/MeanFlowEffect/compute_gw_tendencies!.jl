@@ -21,7 +21,7 @@ Calculates the tendencies that are to be added to the equations for momentum and
 \\end{align*}
 ```
 
-where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\overline{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.zmin_wkb_dim`, all tendencies are set to zero.
+where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\overline{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
 
 # Arguments
 
@@ -30,9 +30,9 @@ where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` 
 function compute_gw_tendencies! end
 
 function compute_gw_tendencies!(state::State)
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; zmin_wkb_dim) = state.namelists.wkb
+    (; impact_altitude) = state.namelists.wkb
     (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, zc, jac, met) = state.grid
@@ -48,7 +48,7 @@ function compute_gw_tendencies!(state::State)
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        if zc[i, j, k] < zmin_wkb_dim / lref
+        if zc[i, j, k] < impact_altitude / lref
             continue
         end
 
@@ -60,7 +60,7 @@ function compute_gw_tendencies!(state::State)
             -rhotot / rhobar[i, j, k] / jac[i, j, k] *
             (integrals.uw[i, j, k + 1] - integrals.uw[i, j, k - 1]) / (2.0 * dz)
 
-        if sizex > 1
+        if x_size > 1
             tendencies.dudt[i, j, k] -=
                 rhotot / rhobar[i, j, k] * (
                     (integrals.uu[i + 1, j, k] - integrals.uu[i - 1, j, k]) /
@@ -71,7 +71,7 @@ function compute_gw_tendencies!(state::State)
                 )
         end
 
-        if sizey > 1
+        if y_size > 1
             tendencies.dudt[i, j, k] -=
                 rhotot / rhobar[i, j, k] * (
                     (integrals.uv[i, j + 1, k] - integrals.uv[i, j - 1, k]) /
@@ -91,7 +91,7 @@ function compute_gw_tendencies!(state::State)
             -rhotot / rhobar[i, j, k] / jac[i, j, k] *
             (integrals.vw[i, j, k + 1] - integrals.vw[i, j, k - 1]) / (2.0 * dz)
 
-        if sizex > 1
+        if x_size > 1
             tendencies.dvdt[i, j, k] -=
                 rhotot / rhobar[i, j, k] * (
                     (integrals.uv[i + 1, j, k] - integrals.uv[i - 1, j, k]) /
@@ -102,7 +102,7 @@ function compute_gw_tendencies!(state::State)
                 )
         end
 
-        if sizey > 1
+        if y_size > 1
             tendencies.dvdt[i, j, k] -=
                 rhotot / rhobar[i, j, k] * (
                     (integrals.vv[i, j + 1, k] - integrals.vv[i, j - 1, k]) /
@@ -118,8 +118,8 @@ function compute_gw_tendencies!(state::State)
 
         # Compute the heating.
 
-        if fc != 0.0 && (sizex > 1 || sizey > 1)
-            if sizex > 1
+        if fc != 0.0 && (x_size > 1 || y_size > 1)
+            if x_size > 1
                 tendencies.dthetadt[i, j, k] -=
                     rhotot * (
                         (
@@ -133,7 +133,7 @@ function compute_gw_tendencies!(state::State)
                     )
             end
 
-            if sizey > 1
+            if y_size > 1
                 tendencies.dthetadt[i, j, k] -=
                     rhotot * (
                         (
@@ -153,7 +153,7 @@ function compute_gw_tendencies!(state::State)
             i,
             j,
             k,
-            state.namelists.tracer.tracersetup,
+            state.namelists.tracer.tracer_setup,
         )
     end
 end

@@ -214,7 +214,7 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, tracersetup::NoTracer)
+compute_fluxes!(state::State, predictands::Predictands, tracer_setup::NoTracer)
 ```
 
 Return for configurations without tracer transport.
@@ -223,7 +223,7 @@ Return for configurations without tracer transport.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
@@ -263,7 +263,7 @@ where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.a
 
   - `variable`: Flux variable.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
 # See also
 
@@ -285,7 +285,7 @@ function compute_fluxes!(state::State, predictands::Predictands)
     compute_fluxes!(state, predictands, W())
 
     compute_fluxes!(state, predictands, model, P())
-    compute_fluxes!(state, predictands, state.namelists.tracer.tracersetup)
+    compute_fluxes!(state, predictands, state.namelists.tracer.tracer_setup)
     return
 end
 
@@ -519,7 +519,7 @@ function compute_fluxes!(
 )
     (; grid) = state
     (; re, uref, lref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pbar, rhobar) = state.atmosphere
     (; utilde) = state.variables.reconstructions
@@ -529,7 +529,7 @@ function compute_fluxes!(
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -822,7 +822,7 @@ function compute_fluxes!(
 )
     (; grid) = state
     (; re, uref, lref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pbar, rhobar) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
@@ -832,7 +832,7 @@ function compute_fluxes!(
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1431,7 +1431,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
     return
 end
@@ -1439,7 +1439,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid

@@ -32,11 +32,11 @@ function compute_horizontal_cell_indices(
     dxr::AbstractFloat,
     dyr::AbstractFloat,
 )::NTuple{4, <:Integer}
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; i0, i1, j0, j1, io, jo) = state.domain
     (; lx, ly, dx, dy) = state.grid
 
-    if sizex > 1
+    if x_size > 1
         imin = floor(Int, (xr + lx / 2 - dxr / 2) / dx) + i0 - io
         imax = floor(Int, (xr + lx / 2 + dxr / 2) / dx) + i0 - io
 
@@ -67,7 +67,7 @@ function compute_horizontal_cell_indices(
         imax = i0
     end
 
-    if sizey > 1
+    if y_size > 1
         jmin = floor(Int, (yr + ly / 2 - dyr / 2) / dy) + j0 - jo
         jmax = floor(Int, (yr + ly / 2 + dyr / 2) / dy) + j0 - jo
 

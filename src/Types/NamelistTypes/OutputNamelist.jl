@@ -19,10 +19,10 @@ OutputNamelist(;
     restart::Bool = false,
     iin::Integer = -1,
     output_steps::Bool = false,
-    noutput::Integer = 1,
-    maxiter::Integer = 1,
-    outputtimediff::AbstractFloat = 3.6E+3,
-    maxtime::AbstractFloat = 3.6E+3,
+    nout::Integer = 1,
+    iterations::Integer = 1,
+    output_interval::AbstractFloat = 3.6E+3,
+    tmax::AbstractFloat = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
 )::OutputNamelist
@@ -42,15 +42,15 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
 
   - `iin::C`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations.
 
-  - `output_steps::B`: If set to `true`, write output every `noutput` time steps.
+  - `output_steps::B`: If set to `true`, write output every `nout` time steps.
 
-  - `noutput::C`: Output interval (in indices) if `output_steps == true`.
+  - `nout::C`: Output interval (in indices) if `output_steps == true`.
 
-  - `maxiter::C`: Maximum number of iterations if `output_steps == true`.
+  - `iterations::C`: Maximum number of iterations if `output_steps == true`.
 
-  - `outputtimediff::D`: Output interval (in physical time) if `output_steps == false`.
+  - `output_interval::D`: Output interval (in physical time) if `output_steps == false`.
 
-  - `maxtime::D`: Simulation time if `output_steps == false`.
+  - `tmax::D`: Simulation time if `output_steps == false`.
 
   - `input_file::E`: File from which to read input data in restart simulations.
 
@@ -69,10 +69,10 @@ struct OutputNamelist{
     restart::B
     iin::C
     output_steps::B
-    noutput::C
-    maxiter::C
-    outputtimediff::D
-    maxtime::D
+    nout::C
+    iterations::C
+    output_interval::D
+    tmax::D
     input_file::E
     output_file::E
 end
@@ -84,10 +84,10 @@ function OutputNamelist(;
     restart::Bool = false,
     iin::Integer = -1,
     output_steps::Bool = false,
-    noutput::Integer = 1,
-    maxiter::Integer = 1,
-    outputtimediff::AbstractFloat = 3.6E+3,
-    maxtime::AbstractFloat = 3.6E+3,
+    nout::Integer = 1,
+    iterations::Integer = 1,
+    output_interval::AbstractFloat = 3.6E+3,
+    tmax::AbstractFloat = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
 )::OutputNamelist
@@ -98,10 +98,10 @@ function OutputNamelist(;
         restart,
         iin,
         output_steps,
-        noutput,
-        maxiter,
-        outputtimediff,
-        maxtime,
+        nout,
+        iterations,
+        output_interval,
+        tmax,
         input_file,
         output_file,
     )

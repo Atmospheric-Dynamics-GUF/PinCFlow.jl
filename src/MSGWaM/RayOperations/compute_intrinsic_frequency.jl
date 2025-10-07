@@ -45,7 +45,7 @@ function compute_intrinsic_frequency(
     k::Integer,
 )::AbstractFloat
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branchr) = state.namelists.wkb
+    (; branch) = state.namelists.wkb
     (; tref) = state.constants
     (; rays) = state.wkb
 
@@ -58,5 +58,5 @@ function compute_intrinsic_frequency(
     n2r = interpolate_stratification(zr, state, N2())
     fc = coriolis_frequency * tref
 
-    return branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+    return branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 end

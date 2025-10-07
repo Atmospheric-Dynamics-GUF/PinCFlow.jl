@@ -4,7 +4,7 @@ apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
-    limitertype::MCVariant,
+    limiter_type::MCVariant,
 )
 ```
 
@@ -44,7 +44,7 @@ is the monotonized-centered variant limiter.
 
   - `phisize`: Length of the input vector `phi`.
 
-  - `limitertype`: Type of flux limiter to use.
+  - `limiter_type`: Type of flux limiter to use.
 """
 function apply_1d_muscl! end
 
@@ -52,7 +52,7 @@ function apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
-    limitertype::MCVariant,
+    limiter_type::MCVariant,
 )
 
     # Initialize phitilde.

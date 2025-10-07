@@ -11,7 +11,7 @@ Domain(namelists::Namelists)::Domain
 
 Construct a `Domain` instance from the model parameters in `namelists`.
 
-If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\widehat{x}`` and ``\\widehat{y}``) but not in the last (``\\widehat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.sizex`, `namelists.domain.sizey` and `namelists.domain.sizez`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
+If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\widehat{x}`` and ``\\widehat{y}``) but not in the last (``\\widehat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
 
 # Fields
 
@@ -41,11 +41,11 @@ Dimensions of the MPI subdomain:
 
 Dimensions of the entire domain:
 
-  - `sizexx::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+  - `xx_size::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
 
-  - `sizeyy::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+  - `yy_size::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
 
-  - `sizezz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
+  - `zz_size::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
 
 Index offsets and bounds:
 
@@ -110,9 +110,9 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     nzz::C
 
     # Global grid size with boundary cells.
-    sizexx::C
-    sizeyy::C
-    sizezz::C
+    xx_size::C
+    yy_size::C
+    zz_size::C
 
     # Index offsets.
     io::C
@@ -141,7 +141,7 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 end
 
 function Domain(namelists::Namelists)::Domain
-    (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz, base_comm) =
+    (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz, base_comm) =
         namelists.domain
 
     # Initialize MPI.
@@ -161,14 +161,14 @@ function Domain(namelists::Namelists)::Domain
     if master && npx * npy * npz != np
         error("Error in Domain: npx * npy * npz != np!")
     end
-    if master && npx > 1 && nbx > div(sizex, npx)
-        error("Error in Domain: npx > 1 && nbx > div(sizex, npx)!")
+    if master && npx > 1 && nbx > div(x_size, npx)
+        error("Error in Domain: npx > 1 && nbx > div(x_size, npx)!")
     end
-    if master && npy > 1 && nby > div(sizey, npy)
-        error("Error in Domain: npy > 1 && nby > div(sizey, npy)!")
+    if master && npy > 1 && nby > div(y_size, npy)
+        error("Error in Domain: npy > 1 && nby > div(y_size, npy)!")
     end
-    if master && npz > 1 && nbz > div(sizez, npz)
-        error("Error in Domain: npz > 1 && nbz > div(sizez, npz)!")
+    if master && npz > 1 && nbz > div(z_size, npz)
+        error("Error in Domain: npz > 1 && nbz > div(z_size, npz)!")
     end
 
     # Set dimensions and periodicity.
@@ -182,33 +182,33 @@ function Domain(namelists::Namelists)::Domain
 
     # Set local grid size.
     @ivy if coords[1] == npx - 1
-        nx = div(sizex, npx) + sizex % npx
+        nx = div(x_size, npx) + x_size % npx
     else
-        nx = div(sizex, npx)
+        nx = div(x_size, npx)
     end
     @ivy if coords[2] == npy - 1
-        ny = div(sizey, npy) + sizey % npy
+        ny = div(y_size, npy) + y_size % npy
     else
-        ny = div(sizey, npy)
+        ny = div(y_size, npy)
     end
     @ivy if coords[3] == npz - 1
-        nz = div(sizez, npz) + sizez % npz
+        nz = div(z_size, npz) + z_size % npz
     else
-        nz = div(sizez, npz)
+        nz = div(z_size, npz)
     end
 
     # Set grid sizes with boundary cells.
     nxx = nx + 2 * nbx
     nyy = ny + 2 * nby
     nzz = nz + 2 * nbz
-    sizexx = sizex + 2 * nbx
-    sizeyy = sizey + 2 * nby
-    sizezz = sizez + 2 * nbz
+    xx_size = x_size + 2 * nbx
+    yy_size = y_size + 2 * nby
+    zz_size = z_size + 2 * nbz
 
     # Set index offsets.
-    @ivy io = coords[1] * div(sizex, npx)
-    @ivy jo = coords[2] * div(sizey, npy)
-    @ivy ko = coords[3] * div(sizez, npz)
+    @ivy io = coords[1] * div(x_size, npx)
+    @ivy jo = coords[2] * div(y_size, npy)
+    @ivy ko = coords[3] * div(z_size, npz)
 
     # Set index bounds.
     i0 = nbx + 1
@@ -238,9 +238,9 @@ function Domain(namelists::Namelists)::Domain
         nxx,
         nyy,
         nzz,
-        sizexx,
-        sizeyy,
-        sizezz,
+        xx_size,
+        yy_size,
+        zz_size,
         io,
         jo,
         ko,
