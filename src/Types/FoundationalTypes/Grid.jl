@@ -253,8 +253,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
             (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
     end
     set_zonal_boundaries_of_field!(met13, namelists, domain)
-    @ivy ko == 0 && (met13[:, :, 1] .=
-        met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz))
+    @ivy ko == 0 && (
+        met13[:, :, 1] .=
+            met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
+    )
     @ivy met[:, :, :, 1, 3] .= met13
     @ivy met[:, :, :, 3, 1] .= met13
 
@@ -264,8 +266,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
             (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
     end
     set_meridional_boundaries_of_field!(met23, namelists, domain)
-    @ivy ko == 0 && (met23[:, :, 1] .=
-        met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz))
+    @ivy ko == 0 && (
+        met23[:, :, 1] .=
+            met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
+    )
     @ivy met[:, :, :, 2, 3] .= met23
     @ivy met[:, :, :, 3, 2] .= met23
 
