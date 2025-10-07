@@ -1,16 +1,19 @@
-# Testing 
-using Test
-using LinearAlgebra: norm
-using TrixiTest: trixi_include, get_kwarg
-using HDF5
+"""
+```julia
+@test_example(file::AbstractString, args::Vararg{Any})
+```
 
-function examples_dir()
-    return pkgdir(PinCFlow, "examples/submit")
-end
+Test the example defined in the run script `file`, using TrixiTest.
 
-submit = examples_dir()
+# Arguments
 
-macro test_example(file::AbstractString, args...)
+  - `file`: Example run script.
+
+  - `args`: Keyword arguments that configure the test.
+"""
+macro test_example end
+
+macro test_example(file::AbstractString, args::Vararg{Any})
     local l2 = get_kwarg(args, :l2, nothing)
     local linf = get_kwarg(args, :linf, nothing)
     local RealT_symbol = get_kwarg(args, :RealT, :Float64)
@@ -35,9 +38,7 @@ macro test_example(file::AbstractString, args...)
     quote
         trixi_include(@__MODULE__, $(esc(file)); $kwargs...)
 
-        l2_measured, linf_measured =
-            invokelatest((@__MODULE__).compute_norms, "./pincflow_output.h5")
-        #        l2_measured, linf_measured = compute_norms("./pincflow_output.h5")        
+        l2_measured, linf_measured = invokelatest((@__MODULE__).compute_norms)
         @test length($l2) == length(l2_measured)
         for (l2_expected, l2_actual) in zip($l2, l2_measured)
             @test isapprox(l2_expected, l2_actual, atol = $atol, rtol = $rtol)
@@ -52,14 +53,5 @@ macro test_example(file::AbstractString, args...)
                 rtol = $rtol,
             )
         end
-    end
-end
-#TODO: filepath is not used
-function compute_norms(filepath::String)
-    h5open("./pincflow_output.h5", "r") do data
-        vars = [k for k in keys(data) if !(k in ["x", "y", "z"])]
-        l2 = [norm(read(data[v]), 2) for v in vars]
-        linf = [norm(read(data[v]), Inf) for v in vars]
-        return l2, linf
     end
 end

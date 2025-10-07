@@ -7,19 +7,24 @@ Pkg.activate("examples")
 using Revise
 using PinCFlow
 
-atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
+npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
+npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
+
+atmosphere = AtmosphereNamelist(;
+    initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
+    coriolis_frequency = 0.0E+0,
+)
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 40,
     z_size = 40,
-    nbx = 3,
-    nby = 3,
-    nbz = 3,
     lx = 4.0E+5,
     ly = 4.0E+5,
     lz = 2.0E+4,
-    npx = 8,
-    npy = 8,
+    npx,
+    npy,
+    npz,
 )
 grid = GridNamelist(;
     mountain_height = 1.5E+2,
@@ -30,6 +35,7 @@ grid = GridNamelist(;
 )
 output = OutputNamelist(;
     output_variables = (:w,),
+    prepare_restart = false,
     output_file = "wkb_mountain_wave.h5",
 )
 setting = SettingNamelist(; test_case = WKBMountainWave())
