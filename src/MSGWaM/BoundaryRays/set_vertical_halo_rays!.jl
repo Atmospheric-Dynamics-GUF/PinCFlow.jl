@@ -24,7 +24,7 @@ function set_vertical_halo_rays!(state::State)
     jj = (j0 - 1):(j1 + 1)
 
     @ivy nray_max_down = maximum(nray[ii, jj, k0])
-    @ivy nray_max_up = maximum(nray[ii, j, k1])
+    @ivy nray_max_up = maximum(nray[ii, jj, k1])
 
     nray_max_down = MPI.Allreduce(nray_max_down, max, comm)
     nray_max_up = MPI.Allreduce(nray_max_up, max, comm)
