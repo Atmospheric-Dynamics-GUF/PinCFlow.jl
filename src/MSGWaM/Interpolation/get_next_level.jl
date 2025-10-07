@@ -47,10 +47,10 @@ function get_next_level(
     dku::Integer = 0,
 )::Integer
     (; sizezz, nzz, ko, k0, k1) = state.domain
-    (; ztfc) = state.grid
+    (; zc) = state.grid
 
-    @ivy k = argmin(abs.(ztfc[i, j, :] .- z))
-    @ivy if ztfc[i, j, k] < z
+    @ivy k = argmin(abs.(zc[i, j, :] .- z))
+    @ivy if zc[i, j, k] < z
         k += 1
     end
 

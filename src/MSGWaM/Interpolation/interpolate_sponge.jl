@@ -39,7 +39,7 @@ function interpolate_sponge(
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
     (; alphar) = state.sponge
 
     # Determine closest points in horizontal direction.
@@ -69,23 +69,23 @@ function interpolate_sponge(
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
-    @ivy zlbd = ztfc[il, jb, klbd]
-    @ivy zlbu = ztfc[il, jb, klbu]
+    @ivy zlbd = zc[il, jb, klbd]
+    @ivy zlbu = zc[il, jb, klbu]
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
-    @ivy zlfd = ztfc[il, jf, klfd]
-    @ivy zlfu = ztfc[il, jf, klfu]
+    @ivy zlfd = zc[il, jf, klfd]
+    @ivy zlfu = zc[il, jf, klfu]
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
-    @ivy zrbd = ztfc[ir, jb, krbd]
-    @ivy zrbu = ztfc[ir, jb, krbu]
+    @ivy zrbd = zc[ir, jb, krbd]
+    @ivy zrbu = zc[ir, jb, krbu]
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
-    @ivy zrfd = ztfc[ir, jf, krfd]
-    @ivy zrfu = ztfc[ir, jf, krfu]
+    @ivy zrfd = zc[ir, jf, krfd]
+    @ivy zrfu = zc[ir, jf, krfu]
 
     @ivy philbd = alphar[il, jb, klbd]
     @ivy philbu = alphar[il, jb, klbu]
