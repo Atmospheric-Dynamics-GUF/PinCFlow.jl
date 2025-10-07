@@ -12,9 +12,9 @@ Read initial values for all prognostic variables from an HDF5 input file.
 function read_input! end
 
 function read_input!(state::State)
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
-    (; model, testcase) = state.namelists.setting
+    (; model, test_case) = state.namelists.setting
     (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
@@ -23,10 +23,10 @@ function read_input!(state::State)
 
     # Determine dimensionality.
     dim = 1
-    if sizex > 1
+    if x_size > 1
         dim += 1
     end
-    if sizey > 1
+    if y_size > 1
         dim += 1
     end
 
@@ -69,7 +69,7 @@ function read_input!(state::State)
             p[ii, jj, kk] = file["p"][iid, jjd, kkd, iin] ./ rhoref ./ thetaref
         end
 
-        if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
+        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
                 getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
                     file[string(field)][iid, jjd, kkd, iin] .*
@@ -78,7 +78,7 @@ function read_input!(state::State)
         end
 
         # Read ray-volume properties.
-        if typeof(testcase) <: AbstractWKBTestCase
+        if typeof(test_case) <: AbstractWKBTestCase
             for (output_name, field_name) in zip(
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),

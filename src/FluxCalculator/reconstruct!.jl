@@ -48,13 +48,13 @@ Reconstruct the vertical momentum.
 The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Similar to the zonal and meridional momenta, the vertical momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
-reconstruct!(state::State, tracersetup::NoTracer)
+reconstruct!(state::State, tracer_setup::NoTracer)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-reconstruct!(state::State, tracersetup::AbstractTracer)
+reconstruct!(state::State, tracer_setup::AbstractTracer)
 ```
 
 Reconstruct the tracers.
@@ -67,7 +67,7 @@ Similar to the density, the tracers are divided by ``P`` before reconstruction.
 
   - `variable`: The reconstructed variable.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
 # See also
 
@@ -82,7 +82,7 @@ Similar to the density, the tracers are divided by ``P`` before reconstruction.
 function reconstruct! end
 
 function reconstruct!(state::State)
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
 
     reconstruct!(state, Rho())
     reconstruct!(state, RhoP())
@@ -90,13 +90,13 @@ function reconstruct!(state::State)
     reconstruct!(state, V())
     reconstruct!(state, W())
 
-    reconstruct!(state, tracersetup)
+    reconstruct!(state, tracer_setup)
 
     return
 end
 
 function reconstruct!(state::State, variable::Rho)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho) = state.variables.predictands
     (; phi) = state.variables.auxiliaries
@@ -107,13 +107,13 @@ function reconstruct!(state::State, variable::Rho)
 
     @ivy phi[:, :, kk] .= rho[:, :, kk] ./ pbar[:, :, kk]
 
-    apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
 function reconstruct!(state::State, variable::RhoP)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rhop) = state.variables.predictands
     (; phi) = state.variables.auxiliaries
@@ -124,13 +124,13 @@ function reconstruct!(state::State, variable::RhoP)
 
     @ivy phi[:, :, kk] .= rhop[:, :, kk] ./ pbar[:, :, kk]
 
-    apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
 function reconstruct!(state::State, variable::U)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho, u) = state.variables.predictands
     (; phi) = state.variables.auxiliaries
@@ -149,13 +149,13 @@ function reconstruct!(state::State, variable::U)
         phi[i, j, k] = u[i, j, k] * rhoedge / pedge
     end
 
-    apply_3d_muscl!(phi, utilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, utilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
 function reconstruct!(state::State, variable::V)
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho, v) = state.variables.predictands
     (; phi) = state.variables.auxiliaries
@@ -174,14 +174,14 @@ function reconstruct!(state::State, variable::V)
         phi[i, j, k] = v[i, j, k] * rhoedge / pedge
     end
 
-    apply_3d_muscl!(phi, vtilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, vtilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
 function reconstruct!(state::State, variable::W)
     (; namelists, domain, grid) = state
-    (; limitertype) = state.namelists.discretization
+    (; limiter_type) = state.namelists.discretization
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; jac) = grid
     (; predictands) = state.variables
@@ -213,17 +213,17 @@ function reconstruct!(state::State, variable::W)
         phi[i, j, k] *= rhoedgeu / pedgeu
     end
 
-    apply_3d_muscl!(phi, wtilde, nxx, nyy, nzz, limitertype)
+    apply_3d_muscl!(phi, wtilde, nxx, nyy, nzz, limiter_type)
 
     return
 end
 
-function reconstruct!(state::State, tracersetup::NoTracer)
+function reconstruct!(state::State, tracer_setup::NoTracer)
     return
 end
 
-function reconstruct!(state::State, tracersetup::AbstractTracer)
-    (; limitertype) = state.namelists.discretization
+function reconstruct!(state::State, tracer_setup::AbstractTracer)
+    (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries
     (; pbar) = state.atmosphere
@@ -240,7 +240,7 @@ function reconstruct!(state::State, tracersetup::AbstractTracer)
             nxx,
             nyy,
             nzz,
-            limitertype,
+            limiter_type,
         )
     end
 

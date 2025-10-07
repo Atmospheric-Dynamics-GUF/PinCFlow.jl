@@ -12,17 +12,17 @@ Namelist for parameters describing the atmospheric background.
 
 ```julia
 AtmosphereNamelist(;
-    specifyreynolds::Bool = false,
-    reinv::AbstractFloat = 0.0E+0,
+    specify_reynolds_number::Bool = false,
+    inverse_reynolds_number::AbstractFloat = 0.0E+0,
     kinematic_viscosity::AbstractFloat = 0.0E+0,
     thermal_conductivity::AbstractFloat = 0.0E+0,
     kinematic_diffusivity::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
-    theta0_dim::AbstractFloat = 3.0E+2,
-    temp0_dim::AbstractFloat = 3.0E+2,
-    press0_dim::AbstractFloat = 1.0E+5,
-    backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    potential_temperature::AbstractFloat = 3.0E+2,
+    temperature::AbstractFloat = 3.0E+2,
+    ground_pressure::AbstractFloat = 1.0E+5,
+    initial_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
 )::AtmosphereNamelist
 ```
@@ -31,9 +31,9 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
 # Fields/Keywords
 
-  - `specifyreynolds::A`: Flag to specify inverse Reynolds number instead of viscosity.
+  - `specify_reynolds_number::A`: Flag to specify inverse Reynolds number instead of viscosity.
 
-  - `reinv::B`: Inverse Reynolds number.
+  - `inverse_reynolds_number::B`: Inverse Reynolds number.
 
   - `kinematic_viscosity::B`: Kinematic viscosity at the surface.
 
@@ -45,13 +45,13 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `buoyancy_frequency::B`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
 
-  - `theta0_dim::B`: Reference potential temperature.
+  - `potential_temperature::B`: Reference potential temperature.
 
-  - `temp0_dim::B`: Reference temperature.
+  - `temperature::B`: Reference temperature.
 
-  - `press0_dim::B`: Reference pressure.
+  - `ground_pressure::B`: Reference pressure.
 
-  - `backgroundflow_dim::D`: Initial wind.
+  - `initial_wind::D`: Initial wind.
 
   - `coriolis_frequency::B`: Coriolis frequency of the ``f``-plane.
 """
@@ -61,46 +61,46 @@ struct AtmosphereNamelist{
     C <: AbstractBackground,
     D <: NTuple{3, <:AbstractFloat},
 }
-    specifyreynolds::A
-    reinv::B
+    specify_reynolds_number::A
+    inverse_reynolds_number::B
     kinematic_viscosity::B
     thermal_conductivity::B
     kinematic_diffusivity::B
     background::C
     buoyancy_frequency::B
-    theta0_dim::B
-    temp0_dim::B
-    press0_dim::B
-    backgroundflow_dim::D
+    potential_temperature::B
+    temperature::B
+    ground_pressure::B
+    initial_wind::D
     coriolis_frequency::B
 end
 
 function AtmosphereNamelist(;
-    specifyreynolds::Bool = false,
-    reinv::AbstractFloat = 0.0E+0,
+    specify_reynolds_number::Bool = false,
+    inverse_reynolds_number::AbstractFloat = 0.0E+0,
     kinematic_viscosity::AbstractFloat = 0.0E+0,
     thermal_conductivity::AbstractFloat = 0.0E+0,
     kinematic_diffusivity::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
-    theta0_dim::AbstractFloat = 3.0E+2,
-    temp0_dim::AbstractFloat = 3.0E+2,
-    press0_dim::AbstractFloat = 1.0E+5,
-    backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    potential_temperature::AbstractFloat = 3.0E+2,
+    temperature::AbstractFloat = 3.0E+2,
+    ground_pressure::AbstractFloat = 1.0E+5,
+    initial_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
 )::AtmosphereNamelist
     return AtmosphereNamelist(
-        specifyreynolds,
-        reinv,
+        specify_reynolds_number,
+        inverse_reynolds_number,
         kinematic_viscosity,
         thermal_conductivity,
         kinematic_diffusivity,
         background,
         buoyancy_frequency,
-        theta0_dim,
-        temp0_dim,
-        press0_dim,
-        backgroundflow_dim,
+        potential_temperature,
+        temperature,
+        ground_pressure,
+        initial_wind,
         coriolis_frequency,
     )
 end

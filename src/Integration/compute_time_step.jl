@@ -45,34 +45,25 @@ function compute_time_step end
 
 function compute_time_step(state::State)::AbstractFloat
     (; grid) = state
-    (; cfl, cfl_wave, dtmin_dim, dtmax_dim, adaptive_time_step) =
+    (; cfl_number, wkb_cfl_number, dtmin, dtmax, adaptive_time_step) =
         state.namelists.discretization
     (; tref, re) = state.constants
     (; master, comm, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = grid
     (; predictands) = state.variables
     (; u, v, w) = predictands
-    (; testcase) = state.namelists.setting
-    (; sizex, sizey) = state.namelists.domain
+    (; test_case) = state.namelists.setting
+    (; x_size, y_size) = state.namelists.domain
     (; cgx_max, cgy_max, cgz_max) = state.wkb
 
-    #-------------------------------------------
-    #              Fixed time step
-    #-------------------------------------------
-
     @ivy if !adaptive_time_step
-        dt = dtmax_dim / tref
+        dt = dtmax / tref
 
         if master
             println("dt = dtfix = ", dt * tref, " seconds")
             println("")
         end
     else
-
-        #-------------------------------------------
-        #           Variable time step
-        #-------------------------------------------
-
         #----------------------
         #     CFL condition
         #----------------------
@@ -81,12 +72,12 @@ function compute_time_step(state::State)::AbstractFloat
         vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps()
         wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps()
 
-        dtconv = cfl * min(dx / umax, dy / vmax, dz / wmax)
+        dtconv = cfl_number * min(dx / umax, dy / vmax, dz / wmax)
 
         for k in k0:k1, j in j0:j1, i in i0:i1
             dtconv = min(
                 dtconv,
-                cfl * jac[i, j, k] * dz / (
+                cfl_number * jac[i, j, k] * dz / (
                     abs(
                         0.5 * (
                             compute_vertical_wind(i, j, k, state) +
@@ -109,17 +100,11 @@ function compute_time_step(state::State)::AbstractFloat
         end
         dtvisc = MPI.Allreduce(dtvisc, min, comm)
 
-        #----------------------------
-        #    Maximal time step
-        #----------------------------
-
-        dtmax = dtmax_dim / tref
-
         #----------------------------------
         #         WKB-CFL criterion
         #----------------------------------
 
-        if typeof(testcase) <: AbstractWKBTestCase
+        if typeof(test_case) <: AbstractWKBTestCase
             dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
             kmin = ko == 0 ? k0 - 1 : k0
@@ -134,14 +119,14 @@ function compute_time_step(state::State)::AbstractFloat
                 )
             end
 
-            if sizex > 1
+            if x_size > 1
                 dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))
             end
-            if sizey > 1
+            if y_size > 1
                 dtwkb = min(dtwkb, dy / (cgy_max[] + eps()))
             end
 
-            dtwkb *= cfl_wave
+            dtwkb *= wkb_cfl_number
 
             # find global minimum
 
@@ -151,10 +136,10 @@ function compute_time_step(state::State)::AbstractFloat
         #        Make your choice
         #-------------------------------
 
-        if typeof(testcase) <: AbstractWKBTestCase
-            dt = min(dtvisc, dtconv, dtmax, dtwkb)
+        if typeof(test_case) <: AbstractWKBTestCase
+            dt = min(dtvisc, dtconv, dtmax / tref, dtwkb)
         else
-            dt = min(dtvisc, dtconv, dtmax)
+            dt = min(dtvisc, dtconv, dtmax / tref)
         end
 
         #-----------------------------------------
@@ -164,13 +149,13 @@ function compute_time_step(state::State)::AbstractFloat
         if master
             println("dtvisc = ", dtvisc * tref, " seconds")
             println("dtconv = ", dtconv * tref, " seconds")
-            println("dtmax = ", dtmax * tref, " seconds")
-            if typeof(testcase) <: AbstractWKBTestCase
+            println("dtmax = ", dtmax, " seconds")
+            if typeof(test_case) <: AbstractWKBTestCase
                 println("dtwkb = ", dtwkb * tref, " seconds")
             end
             println("")
 
-            if dt == dtmax
+            if dt == dtmax / tref
                 println("=> dt = dtmax = ", dt * tref, " seconds")
             elseif dt == dtconv
                 println("=> dt = dtconv = ", dt * tref, " seconds")
@@ -185,12 +170,12 @@ function compute_time_step(state::State)::AbstractFloat
         end
     end
 
-    if dt * tref < dtmin_dim
+    if dt * tref < dtmin
         error(
             "Error in compute_time_step: dt = ",
             dt * tref,
             " < ",
-            dtmin_dim,
+            dtmin,
             " = dtmin",
         )
     end

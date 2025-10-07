@@ -7,15 +7,15 @@ Namelist for parameters describing the model domain.
 
 ```julia
 DomainNamelist(;
-    sizex::Integer = 3,
-    sizey::Integer = 3,
-    sizez::Integer = 3,
+    x_size::Integer = 3,
+    y_size::Integer = 3,
+    z_size::Integer = 3,
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
-    lx_dim::AbstractFloat = 1.0E+3,
-    ly_dim::AbstractFloat = 1.0E+3,
-    lz_dim::AbstractFloat = 1.0E+3,
+    lx::AbstractFloat = 1.0E+3,
+    ly::AbstractFloat = 1.0E+3,
+    lz::AbstractFloat = 1.0E+3,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -27,11 +27,11 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
 # Fields/Keywords
 
-  - `sizex::A`: Number of grid cells in ``\\widehat{x}``-direction.
+  - `x_size::A`: Number of grid cells in ``\\widehat{x}``-direction.
 
-  - `sizey::A`: Number of grid cells in ``\\widehat{y}``-direction.
+  - `y_size::A`: Number of grid cells in ``\\widehat{y}``-direction.
 
-  - `sizez::A`: Number of grid cells in ``\\widehat{z}``-direction.
+  - `z_size::A`: Number of grid cells in ``\\widehat{z}``-direction.
 
   - `nbx::A`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
 
@@ -39,11 +39,11 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
   - `nbz::A`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
 
-  - `lx_dim::B`: Domain extent in ``\\widehat{x}``-direction.
+  - `lx::B`: Domain extent in ``\\widehat{x}``-direction.
 
-  - `ly_dim::B`: Domain extent in ``\\widehat{y}``-direction.
+  - `ly::B`: Domain extent in ``\\widehat{y}``-direction.
 
-  - `lz_dim::B`: Domain extent in ``\\widehat{z}``-direction.
+  - `lz::B`: Domain extent in ``\\widehat{z}``-direction.
 
   - `npx::A`: Number of MPI processes in ``\\widehat{x}``-direction.
 
@@ -54,15 +54,15 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
   - `base_comm::C`: MPI base communicator.
 """
 struct DomainNamelist{A <: Integer, B <: AbstractFloat, C <: MPI.Comm}
-    sizex::A
-    sizey::A
-    sizez::A
+    x_size::A
+    y_size::A
+    z_size::A
     nbx::A
     nby::A
     nbz::A
-    lx_dim::B
-    ly_dim::B
-    lz_dim::B
+    lx::B
+    ly::B
+    lz::B
     npx::A
     npy::A
     npz::A
@@ -70,30 +70,30 @@ struct DomainNamelist{A <: Integer, B <: AbstractFloat, C <: MPI.Comm}
 end
 
 function DomainNamelist(;
-    sizex::Integer = 3,
-    sizey::Integer = 3,
-    sizez::Integer = 3,
+    x_size::Integer = 3,
+    y_size::Integer = 3,
+    z_size::Integer = 3,
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
-    lx_dim::AbstractFloat = 1.0E+3,
-    ly_dim::AbstractFloat = 1.0E+3,
-    lz_dim::AbstractFloat = 1.0E+3,
+    lx::AbstractFloat = 1.0E+3,
+    ly::AbstractFloat = 1.0E+3,
+    lz::AbstractFloat = 1.0E+3,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
 )::DomainNamelist
     return DomainNamelist(
-        sizex,
-        sizey,
-        sizez,
+        x_size,
+        y_size,
+        z_size,
         nbx,
         nby,
         nbz,
-        lx_dim,
-        ly_dim,
-        lz_dim,
+        lx,
+        ly,
+        lz,
         npx,
         npy,
         npz,

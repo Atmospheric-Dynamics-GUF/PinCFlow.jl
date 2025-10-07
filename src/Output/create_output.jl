@@ -14,31 +14,31 @@ The dimensions of the datasets are set to those of the domain, whereas the chunk
 function create_output end
 
 function create_output(state::State)
-    (; sizex, sizey, sizez, npx, npy, npz) = state.namelists.domain
+    (; x_size, y_size, z_size, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; model, testcase) = state.namelists.setting
+    (; model, test_case) = state.namelists.setting
     (; comm) = state.domain
     (; nray_max) = state.wkb
 
     # Set the chunk dimensions.
     cr = nray_max
-    cx = div(sizex, npx)
-    cy = div(sizey, npy)
-    cz = div(sizez, npz)
+    cx = div(x_size, npx)
+    cy = div(y_size, npy)
+    cz = div(z_size, npz)
     ct = 1
 
     # Prepare the output.
     h5open(output_file, "w", comm) do file
 
         # Create datasets for the dimensions.
-        create_dataset(file, "x", datatype(Float32), dataspace((sizex,)))
-        create_dataset(file, "y", datatype(Float32), dataspace((sizey,)))
+        create_dataset(file, "x", datatype(Float32), dataspace((x_size,)))
+        create_dataset(file, "y", datatype(Float32), dataspace((y_size,)))
         create_dataset(
             file,
             "z",
             datatype(Float32),
-            dataspace((sizex, sizey, sizez));
+            dataspace((x_size, y_size, z_size));
             chunk = (cx, cy, cz),
         )
         create_dataset(
@@ -56,7 +56,7 @@ function create_output(state::State)
                     file,
                     label,
                     datatype(Float32),
-                    dataspace((sizex, sizey, sizez));
+                    dataspace((x_size, y_size, z_size));
                     chunk = (cx, cy, cz),
                 )
             end
@@ -67,8 +67,8 @@ function create_output(state::State)
                     "p",
                     datatype(Float32),
                     dataspace(
-                        (sizex, sizey, sizez, 0),
-                        (sizex, sizey, sizez, -1),
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
                     );
                     chunk = (cx, cy, cz, ct),
                 )
@@ -77,7 +77,7 @@ function create_output(state::State)
                     file,
                     "p",
                     datatype(Float32),
-                    dataspace((sizex, sizey, sizez));
+                    dataspace((x_size, y_size, z_size));
                     chunk = (cx, cy, cz),
                 )
             end
@@ -89,7 +89,10 @@ function create_output(state::State)
                 file,
                 "rhop",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -98,7 +101,10 @@ function create_output(state::State)
                 file,
                 "u",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -107,7 +113,10 @@ function create_output(state::State)
                 file,
                 "us",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -116,7 +125,10 @@ function create_output(state::State)
                 file,
                 "v",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -125,7 +137,10 @@ function create_output(state::State)
                 file,
                 "vs",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -134,7 +149,10 @@ function create_output(state::State)
                 file,
                 "w",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -143,7 +161,10 @@ function create_output(state::State)
                 file,
                 "ws",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -152,7 +173,10 @@ function create_output(state::State)
                 file,
                 "wt",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -161,7 +185,10 @@ function create_output(state::State)
                 file,
                 "wts",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -170,7 +197,10 @@ function create_output(state::State)
                 file,
                 "thetap",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
@@ -179,20 +209,23 @@ function create_output(state::State)
                 file,
                 "pip",
                 datatype(Float32),
-                dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
                 chunk = (cx, cy, cz, ct),
             )
         end
 
-        if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
+        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
                 create_dataset(
                     file,
                     string(field),
                     datatype(Float32),
                     dataspace(
-                        (sizex, sizey, sizez, 0),
-                        (sizex, sizey, sizez, -1),
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
                     );
                     chunk = (cx, cy, cz, ct),
                 )
@@ -206,8 +239,8 @@ function create_output(state::State)
                         string(field),
                         datatype(Float32),
                         dataspace(
-                            (sizex, sizey, sizez, 0),
-                            (sizex, sizey, sizez, -1),
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
                         );
                         chunk = (cx, cy, cz, ct),
                     )
@@ -216,7 +249,7 @@ function create_output(state::State)
         end
 
         # Create datasets for WKB variables.
-        if typeof(testcase) <: AbstractWKBTestCase
+        if typeof(test_case) <: AbstractWKBTestCase
 
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
@@ -240,8 +273,8 @@ function create_output(state::State)
                         field,
                         datatype(Float32),
                         dataspace(
-                            (nray_max, sizex, sizey, sizez + 1, 0),
-                            (nray_max, sizex, sizey, sizez + 1, -1),
+                            (nray_max, x_size, y_size, z_size + 1, 0),
+                            (nray_max, x_size, y_size, z_size + 1, -1),
                         );
                         chunk = (cr, cx, cy, cz, ct),
                     )
@@ -256,8 +289,8 @@ function create_output(state::State)
                         string(field),
                         datatype(Float32),
                         dataspace(
-                            (sizex, sizey, sizez, 0),
-                            (sizex, sizey, sizez, -1),
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
                         );
                         chunk = (cx, cy, cz, ct),
                     )
