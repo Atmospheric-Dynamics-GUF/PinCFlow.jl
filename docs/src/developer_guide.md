@@ -10,11 +10,15 @@ The code is shared in a GitHub repository. Any contributions to the code should 
 
  1. Pull recent changes made on the remote main branch into your local main branch and merge it into the branch with your contributions, resolving merge conflicts if necessary.
 
- 1. **Ensure that the model is stable and that all canonical tests reproduce the sample results.**
+ 1. **Ensure that the model is stable and that all tests pass.**
 
  1. Push your branch to remote repository.
 
  1. Create a pull request for merging your commits into the remote main branch.
+
+ 1. Request a review from a main developer.
+
+ 1. Implement changes requested by the reviewer until they approve the pull request.
 
 ## Writing code
 
@@ -263,11 +267,11 @@ Moreover, every backslash used for LaTeX commands in equations has to be doubled
 
 ## Building and accessing the documentation
 
-The code uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
+PinCFlow uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
 
 ```shell
 julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
-julia --project docs/make.jl
+julia docs/make.jl
 ```
 
 in the root directory of the repository. The documentation will be generated in the `docs/build` directory. To view it, open `docs/build/index.html` in a web browser or preview the file in Visual Studio Code with [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server).
