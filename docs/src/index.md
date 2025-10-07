@@ -10,19 +10,13 @@ The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that un
 
 ### Installation
 
-To install PinCFlow, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then clone this repository with
+To install PinCFlow, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then run
 
 ```shell
-git clone git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git
+julia --project -e 'using Pkg; Pkg.add(; url = "git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git")'
 ```
 
-and set up the project environment by running
-
-```shell
-julia --project -e 'using Pkg; Pkg.instantiate()'
-```
-
-in the root directory of your clone.
+to add PinCFlow to your current project environment.
 
 ### Running the model
 
@@ -40,7 +34,14 @@ runs PinCFlow in its default configuration, if executed with
 julia --project script.jl
 ```
 
-in the root directory of the repository. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the governing equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. For instance, running the script
+in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow's example scripts. To run them, we recommended setting up an examples project by executing
+
+```shell
+julia --project=examples -e 'using Pkg; Pkg.add("CairoMakie", "HDF5", "HDF5_jll", "MPICH_jll", "MPIPreferences", "Revise")'
+julia --project=examples -e 'using Pkg; Pkg.add(; url = "git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git")'
+```
+
+Having done this, you can easily run any of the example scripts without needing to worry about extra packages that you may need. For instance, running the script
 
 ```julia
 # examples/submit/periodic_hill.jl
@@ -52,7 +53,13 @@ Pkg.activate("examples")
 using Revise
 using PinCFlow
 
-atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
+npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
+npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
+
+atmosphere = AtmosphereNamelist(;
+    initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
+    coriolis_frequency = 0.0E+0,
+)
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 1,
@@ -60,6 +67,8 @@ domain = DomainNamelist(;
     lx = 2.0E+4,
     ly = 2.0E+4,
     lz = 2.0E+4,
+    npx,
+    npz,
 )
 grid = GridNamelist(; mountain_height = 1.0E+1, mountain_half_width = 1.0E+4)
 output =
@@ -70,16 +79,16 @@ integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
 ```
 
-yields a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ that generates a mountain wave above a periodic hill. The vertical wind is written to the output file `periodic_hill.h5`. More involved examples are given in the "Examples" section of the documentation. A description of all namelists and their parameters is provided in the "Reference" section.
+yields a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ that generates a mountain wave above a periodic hill. The vertical wind is written to the output file `periodic_hill.h5`. You can find the other examples in the "Examples" section of the documentation. A description of all namelists and their parameters is provided in the "Reference" section.
 
-If you want to run PinCFlow in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). You can do so by running
+If you want to run PinCFlow in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). For example, with
 
 ```shell
 mpiexec=$(julia --project=examples -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n ${tasks} julia --project script.jl
+${mpiexec} -n 16 julia examples/submit/periodic_hill.jl 4 4
 ```
 
-with `tasks` set to the number of MPI processes. Note that in `script.jl`, the parameters `npx`, `npy` and `npz` of the namelist `domain`, which represent the number of MPI processes in the three dimensions of physical space, need to be set such that their product is equal to `tasks`.
+you can run the above simulation in 16 MPI processes. Note that by passing extra arguments to the script, you set the parameters `npx` and `npz` of the namelist `domain`, which represent the number of MPI processes in $\widehat{x}$ and $\widehat{z}$. Their product must be equal to the total number of processes, otherwise PinCFlow will throw an error.
 
 However, if you plan to run PinCFlow on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 
@@ -88,7 +97,7 @@ julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_bin
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/path/to/libhdf5.so", "/path/to/libhdf5_hl.so")'
 ```
 
-with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `LocalPreferences.toml`, so that the new backends will be used by all future scripts run in the project. By running
+with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `examples/LocalPreferences.toml`, so that the new backends will be used by all future scripts run in the examples project. By running
 
 ```shell
 julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_jll_binary()'
@@ -98,16 +107,16 @@ julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!()'
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```shell
-mpiexec -n ${tasks} julia --project script.jl
+mpiexec -n 16 julia examples/submit/periodic_hill.jl 4 4
 ```
 
 with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow on [Goethe](https://csc.uni-frankfurt.de/wiki/doku.php?id=public:usage:goethe) or [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in `examples/submit`.
 
 ### Visualizing the results
 
-PinCFlow uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5`. This may be changed by setting the parameter `output_file` of the namelist `output` accordingly. The dimensions of most output fields are (in order) $\widehat{x}$ (zonal axis), $\widehat{y}$ (meridional axis), $\widehat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume property fields differ slightly in that they have an additional (spectral) dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the namelist `output` accordingly (more details are given in the "Reference" section of the documentation).
+PinCFlow uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5`. This may be changed by setting the parameter `output_file` of the namelist `output` accordingly (as illustrated above). The dimensions of most output fields are (in order) $\widehat{x}$ (zonal axis), $\widehat{y}$ (meridional axis), $\widehat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume-property fields differ slightly in that they have an additional (spectral) dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the namelist `output` accordingly (more details are given in the "Reference" section of the documentation).
 
-For the visualization of simulation results, we recommend using [Makie.jl](https://docs.makie.org/stable/) with the CairoMakie backend. CairoMakie is a weak dependency of PinCFlow and thus needs to be installed separately (`using Pkg; Pkg.add("CairoMakie")`). A function that configures Makie to use a customized theme, as well as one that facilitates the generation of symmetric contour plots, are exported by `PinCFlow` if CairoMakie is loaded. The script
+For the visualization of simulation results, we recommend using [Makie.jl](https://docs.makie.org/stable/) with the CairoMakie backend. PinCFlow has an extension which exports a few convenience functions if CairoMakie is loaded. The script
 
 ```julia
 # examples/visualization/periodic_hill.jl
@@ -121,45 +130,20 @@ using CairoMakie
 using Revise
 using PinCFlow
 
-set_visualization_theme!()
-
-# Import the data.
-data = h5open("periodic_hill.h5")
-
-# Set the grid.
-x = data["x"][:] ./ 1000
-z = data["z"][:, 1, :] ./ 1000
-x = x .* ones(size(z))
-
-# Get the vertical wind.
-w = data["w"][:, 1, :, end]
-
-# Close the file.
-close(data)
-
-# Create the plot.
-(levels, colormap) = symmetric_contours(minimum(w), maximum(w))
-figure = Figure()
-axis = Axis(
-    figure[1, 1];
-    xlabel = L"x\,[\mathrm{km}]",
-    ylabel = L"z\,[\mathrm{km}]",
-)
-contours = contourf!(axis, x, z, w; levels, colormap)
-tightlimits!(axis)
-Colorbar(
-    figure[1, 2],
-    contours;
-    ticks = trunc.(levels; digits = 4),
-    label = L"w\,[\mathrm{m\,s^{-1}}]",
-)
-resize_to_layout!(figure)
-display(figure)
-save("examples/results/periodic_hill.svg", figure)
+h5open("periodic_hill.h5") do data
+    plot_contours(
+        "examples/results/periodic_hill.svg",
+        data,
+        "w",
+        L"w\,[\mathrm{m\,s^{-1}}]",
+        (1, 1, 1, 2),
+    )
+    return
+end
 
 ```
 
-is an example for how to visualize the vertical wind at the end of a simple mountain-wave simulation performed with the script introduced above. The resulting plot is displayed below.
+is an example for how to visualize the vertical wind at the end of the above simulation, using PinCFlow's `plot_contours`. The resulting plot is displayed below.
 
 ![](examples/results/periodic_hill.svg)
 

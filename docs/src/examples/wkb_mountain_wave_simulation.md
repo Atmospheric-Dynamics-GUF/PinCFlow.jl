@@ -14,19 +14,24 @@ Pkg.activate("examples")
 using Revise
 using PinCFlow
 
-atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
+npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
+npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
+
+atmosphere = AtmosphereNamelist(;
+    initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
+    coriolis_frequency = 0.0E+0,
+)
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 40,
     z_size = 40,
-    nbx = 3,
-    nby = 3,
-    nbz = 3,
     lx = 4.0E+5,
     ly = 4.0E+5,
     lz = 2.0E+4,
-    npx = 8,
-    npy = 8,
+    npx,
+    npy,
+    npz,
 )
 grid = GridNamelist(;
     mountain_height = 1.5E+2,
@@ -37,6 +42,7 @@ grid = GridNamelist(;
 )
 output = OutputNamelist(;
     output_variables = (:w,),
+    prepare_restart = false,
     output_file = "wkb_mountain_wave.h5",
 )
 setting = SettingNamelist(; test_case = WKBMountainWave())
@@ -61,14 +67,14 @@ integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb))
 
 ```
 
-performs a 3D WKB mountain-wave simulation with parallelization in the zonal and meridional dimensions, and writes the vertical wind to `wkb_mountain_wave.h5`, if executed with
+performs a 3D WKB mountain-wave simulation in 64 processes (4 for each dimension of physical space) and writes the vertical wind to `wkb_mountain_wave.h5`, if executed with
 
 ```shell
 mpiexec=$(julia --project=examples -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 64 julia --project examples/submit/wkb_mountain_wave.jl
+${mpiexec} -n 64 julia examples/submit/wkb_mountain_wave.jl 4 4 4
 ```
 
-from the root directory of the repository (provided MPI.jl and HDF5.jl are configured to use their default backends). The full surface topography is given by
+(provided the examples project has been set up as illustrated in the user guide and MPI.jl and HDF5.jl are configured to use their default backends). The full surface topography is given by
 
 $$\begin{align*}
     h \left(x, y\right) & = \begin{cases}
@@ -115,122 +121,19 @@ using CairoMakie
 using Revise
 using PinCFlow
 
-set_visualization_theme!()
-
-# Import the data.
-data = h5open("wkb_mountain_wave.h5")
-
-# Set the grid.
-x = data["x"][:] ./ 1000
-y = data["y"][:] ./ 1000
-z = data["z"][:, :, :] ./ 1000
-x = [xi for xi in x, j in 1:size(z)[2], k in 1:size(z)[3]]
-y = [yj for i in 1:size(z)[1], yj in y, k in 1:size(z)[3]]
-
-# Get the vertical wind.
-w = data["w"][:, :, :, end]
-
-# Close the file.
-close(data)
-
-# Create the figure.
-figure = Figure()
-
-# Plot in x-y plane.
-k = 10
-axis = Axis(
-    figure[1, 1];
-    title = L"z\approx 5\,\mathrm{km}",
-    xlabel = L"x\,[\mathrm{km}]",
-    ylabel = L"y\,[\mathrm{km}]",
-)
-@ivy (levels, colormap) =
-    symmetric_contours(minimum(w[:, :, k]), maximum(w[:, :, k]))
-@ivy contours =
-    contourf!(axis, x[:, :, k], y[:, :, k], w[:, :, k]; levels, colormap)
-tightlimits!(axis)
-Colorbar(
-    figure[1, 2],
-    contours;
-    ticks = trunc.(levels; digits = 4),
-    label = L"w\,[\mathrm{m\,s^{-1}}]",
-)
-
-# Plot in x-z plane.
-j = 20
-axis = Axis(
-    figure[1, 3];
-    title = L"y\approx 0\,\mathrm{km}",
-    xlabel = L"x\,[\mathrm{km}]",
-    ylabel = L"z\,[\mathrm{km}]",
-)
-@ivy (levels, colormap) =
-    symmetric_contours(minimum(w[:, j, :]), maximum(w[:, j, :]))
-@ivy contours =
-    contourf!(axis, x[:, j, :], z[:, j, :], w[:, j, :]; levels, colormap)
-tightlimits!(axis)
-@ivy lines(x[:, j, 1], z[:, j, 1]; color = :black, linewidth = 0.5)
-Colorbar(
-    figure[1, 4],
-    contours;
-    ticks = trunc.(levels; digits = 4),
-    label = L"w\,[\mathrm{m\,s^{-1}}]",
-)
-
-# Plot in y-z plane.
-i = 20
-axis = Axis(
-    figure[1, 5];
-    title = L"x\approx 0\,\mathrm{km}",
-    xlabel = L"y\,[\mathrm{km}]",
-    ylabel = L"z\,[\mathrm{km}]",
-)
-@ivy (levels, colormap) =
-    symmetric_contours(minimum(w[i, :, :]), maximum(w[i, :, :]))
-@ivy contours =
-    contourf!(axis, y[i, :, :], z[i, :, :], w[i, :, :]; levels, colormap)
-tightlimits!(axis)
-@ivy lines(y[i, :, 1], z[i, :, 1]; color = :black, linewidth = 0.5)
-Colorbar(
-    figure[1, 6],
-    contours;
-    ticks = trunc.(levels; digits = 4),
-    label = L"w\,[\mathrm{m\,s^{-1}}]",
-)
-
-# Resize, display and save the figure.
-resize_to_layout!(figure)
-display(figure)
-save("examples/results/wkb_mountain_wave.svg", figure)
+h5open("wkb_mountain_wave.h5") do data
+    plot_contours(
+        "examples/results/wkb_mountain_wave.svg",
+        data,
+        "w",
+        L"w\,[\mathrm{m\,s^{-1}}]",
+        (20, 20, 10, 2),
+    )
+    return
+end
 
 ```
 
-visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to an SVG file that is included below. Note that `symmetric_contours` returns a cropped colormap that is centered at $w = 0 \, \mathrm{m \, s^{- 1}}$.
+visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to an SVG file that is included below.
 
 ![](results/wkb_mountain_wave.svg)
-
-## See also
-
-  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
-
-  - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
-
-  - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
-
-  - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
-
-  - [`PinCFlow.Update.compute_sponges!`](@ref)
-
-  - [`PinCFlow.Update.apply_lhs_sponge!`](@ref)
-
-  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
-
-  - [`PinCFlow.set_visualization_theme!`](@ref)
-
-  - [`PinCFlow.symmetric_contours`](@ref)

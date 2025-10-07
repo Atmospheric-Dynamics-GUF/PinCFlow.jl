@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --partition=general1
-#SBATCH --job-name=mountain_wave
-#SBATCH --nodes=4
+#SBATCH --job-name=periodic_hill
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-00:10:00
@@ -14,6 +14,6 @@ julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_bin
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/home/atmodynamics/public/hdf5-1.14.4-3/src/.libs/libhdf5.so", "/home/atmodynamics/public/hdf5-1.14.4-3/hl/src/.libs/libhdf5_hl.so")'
 
 # Run the model.
-mpiexec -n 64 julia examples/submit/mountain_wave.jl 4 4 4 1>mountain_wave.log 2>&1
+mpiexec -n 16 julia examples/submit/periodic_hill.jl 4 4 1>periodic_hill.log 2>&1
 
 exit 0
