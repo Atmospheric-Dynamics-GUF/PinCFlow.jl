@@ -41,8 +41,8 @@ function test_example(
     # Read the example script and replace assignments.
     script = replace(
         read(file, String),
-        r" *using +Pkg *\n" => "",
-        r" *Pkg.activate\( *\"examples\" *\) *\n" => "",
+        r" *using +Pkg *\n+" => "",
+        r" *Pkg.activate\( *\"examples\" *\) *\n+" => "",
     )
     for assignment in assignments
         (name, value) = split(assignment, r" *= *"; limit = 2)
