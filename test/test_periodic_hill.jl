@@ -21,9 +21,9 @@ include("test_pincflow.jl")
             552.3491,
             0.012468175,
         ],
-        sizex = 8,
-        sizey = 1,
-        sizez = 8,
+        x_size = 8,
+        y_size = 1,
+        z_size = 8
     )
 end
 
