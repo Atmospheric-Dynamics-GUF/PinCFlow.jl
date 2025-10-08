@@ -14,8 +14,8 @@ h5open("mountain_wave.h5") do data
         "examples/results/mountain_wave.svg",
         data,
         "w",
-        L"w\,[\mathrm{m\,s^{-1}}]",
-        (20, 20, 10, 2),
+        (20, 20, 10, 2);
+        label = L"w\,[\mathrm{m\,s^{-1}}]",
     )
     return
 end

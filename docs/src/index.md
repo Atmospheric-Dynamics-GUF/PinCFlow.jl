@@ -138,8 +138,8 @@ h5open("periodic_hill.h5") do data
         "examples/results/periodic_hill.svg",
         data,
         "w",
-        L"w\,[\mathrm{m\,s^{-1}}]",
-        (1, 1, 1, 2),
+        (1, 1, 1, 2);
+        label = L"w\,[\mathrm{m\,s^{-1}}]",
     )
     return
 end
