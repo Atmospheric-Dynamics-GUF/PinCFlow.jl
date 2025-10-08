@@ -83,7 +83,7 @@ function write_output(
     (; model, test_case) = state.namelists.setting
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
-    (; x, y, zc) = grid
+    (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
@@ -137,6 +137,7 @@ function write_output(
         # Write the vertical grid.
         if iout == 1
             file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
+            file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
         end
 
         # Write the background density.
