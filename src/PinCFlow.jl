@@ -50,7 +50,8 @@ export DomainNamelist,
 export Boussinesq, PseudoIncompressible, Compressible
 export MountainWave, WKBMountainWave
 export MCVariant
-export UniformBoussinesq, StratifiedBoussinesq, Isothermal
+export UniformBoussinesq,
+    StratifiedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro

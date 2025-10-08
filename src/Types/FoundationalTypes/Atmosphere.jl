@@ -228,3 +228,226 @@ function Atmosphere(
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
+
+function Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    model::AbstractModel,
+    background::Isentropic,
+)::Atmosphere
+    (; lz) = namelists.domain
+    (; potential_temperature, ground_pressure) = namelists.atmosphere
+    (; thetaref, pref, kappa, sig, rsp, kappainv, gammainv, g) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
+
+    # Initialize the background fields.
+    (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
+
+    min_potential_temperature = kappa * g / rsp * lz
+    if potential_temperature < min_potential_temperature
+        error(
+            "Potential temperature too low for given configuration: potential_temperature = ",
+            potential_temperature,
+            "K",
+            " < minimum potential_temperature = ",
+            min_potential_temperature,
+            "K",
+        )
+    end
+
+    pt0 = potential_temperature / thetaref
+    p0 = ground_pressure / pref
+
+    # Compute the background fields.
+    n2 .= 0.0
+    thetabar .= pt0
+    pbar .= p0 .* (1.0 .- kappa .* sig ./ pt0 .* zc) .^ (gammainv .* kappainv)
+    rhobar .= pbar ./ thetabar
+
+    return Atmosphere(pbar, thetabar, rhobar, n2)
+end
+
+function Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    model::AbstractModel,
+    background::Realistic,
+)::Atmosphere
+    (; nbx, nby, nbz) = namelists.domain
+    (; potential_temperature, ground_pressure, tropopause_height) =
+        namelists.atmosphere
+    (; thetaref, lref, pref, kappa, sig, rsp, kappainv, gammainv, g, g_ndim) =
+        constants
+    (; zz_size, nxx, nyy, nzz, ko, k0, k1, j0, j1, i0, i1) = domain
+    (; zc, jac, dz) = grid
+
+    # Initialize the background fields.
+    (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
+
+    p0 = ground_pressure / pref
+    ztrop = tropopause_height / lref
+    pt0 = potential_temperature / thetaref
+    ptrop = p0 * (1.0 - kappa * sig / pt0 * ztrop)^(gammainv * kappainv)
+    ttrop = pt0 * (ptrop / p0)^kappa
+
+    min_potential_temperature = kappa * g / rsp * tropopause_height
+    if potential_temperature < min_potential_temperature
+        error(
+            "Potential temperature in isentropic troposphere too low for given configuration: potential_temperature = ",
+            potenential_temperature,
+            "K",
+            " < minimum potenential_temperature = ",
+            min_potential_temperature,
+            "K",
+        )
+    end
+
+    @ivy for k in (k0 - nbz):(k1 + nbz),
+        j in (j0 - nby):(j1 + nby),
+        i in (i0 - nbx):(i1 + nbx)
+
+        if zc[i, j, k] <= ztrop
+            thetabar[i, j, k] = pt0
+            pbar[i, j, k] =
+                p0 *
+                (1.0 - kappa * sig / pt0 * zc[i, j, k])^(gammainv * kappainv)
+        else
+            thetabar[i, j, k] =
+                pt0 * exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop))
+            pbar[i, j, k] =
+                p0^kappa *
+                ptrop^gammainv *
+                exp(-sig * gammainv / ttrop * (zc[i, j, k] - ztrop))
+        end
+    end
+    rhobar .= pbar ./ thetabar
+
+    @ivy for k in k0:k1
+        n2[:, :, k] .=
+            g_ndim ./ thetabar[:, :, k] ./ jac[:, :, k] .* 0.5 .*
+            (thetabar[:, :, k + 1] .- thetabar[:, :, k - 1]) ./ dz
+    end
+
+    # Compute the squared buoyancy frequency at the boundaries.
+    set_vertical_boundaries_of_field!(n2, namelists, domain, +)
+    @ivy if ko == 0
+        for k in 1:nbz
+            n2[:, :, k] .=
+                g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
+                (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
+        end
+    end
+    @ivy if ko + nzz == zz_size
+        for k in 1:nbz
+            n2[:, :, k1 + k] .=
+                g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
+                (thetabar[:, :, k1 + 1] .- thetabar[:, :, k1]) ./ dz
+        end
+    end
+
+    return Atmosphere(pbar, thetabar, rhobar, n2)
+end
+
+function Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    model::AbstractModel,
+    background::LapseRates,
+)::Atmosphere
+    (; nbx, nby, nbz) = namelists.domain
+    (;
+        ground_pressure,
+        lapse_rate_troposphere,
+        lapse_rate_stratosphere,
+        tropopause_height,
+        temperature,
+    ) = namelists.atmosphere
+    (; thetaref, lref, pref, kappa, sig, rsp, g, g_ndim) = constants
+    (; zz_size, nxx, nyy, nzz, ko, k0, k1, j0, j1, i0, i1) = domain
+    (; zc, jac, dz) = grid
+
+    # Initialize the background fields.
+    (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
+
+    gamma_t = lapse_rate_troposphere / thetaref * lref
+    gamma_s = lapse_rate_stratosphere / thetaref * lref
+
+    p0 = ground_pressure / pref
+    t0 = temperature / thetaref
+    ztrop = tropopause_height / lref
+
+    if gamma_t != 0.0
+        power_t = g / (rsp * lapse_rate_troposphere)
+        ptrop = p0 * (1.0 - gamma_t * ztrop / t0)^power_t
+    else
+        ptrop = p0 * exp(-ztrop * kappa * sig / t0)
+    end
+    if gamma_s != 0.0
+        power_s = g / (rsp * lapse_rate_stratosphere)
+    end
+
+    ttrop = t0 - gamma_t * ztrop
+
+    @ivy for k in (k0 - nbz):(k1 + nbz),
+        j in (j0 - nby):(j1 + nby),
+        i in (i0 - nbx):(i1 + nbx)
+
+        if zc[i, j, k] <= ztrop
+            tbar = t0 - gamma_t * zc[i, j, k]
+
+            if gamma_t != 0.0
+                pbar[i, j, k] = p0 * (1.0 - gamma_t * zc[i, j, k] / t0)^power_t
+            else
+                pbar[i, j, k] = p0 * exp(-zc[i, j, k] * kappa * sig / t0)
+            end
+
+        else
+            tbar = ttrop - gamma_s * (zc[i, j, k] - ztrop)
+
+            if gamma_s != 0.0
+                pbar[i, j, k] =
+                    ptrop *
+                    (1.0 - gamma_s * (zc[i, j, k] - ztrop) / ttrop)^power_s
+            else
+                pbar[i, j, k] =
+                    ptrop * exp(-(zc[i, j, k] - ztrop) * kappa * sig / ttrop)
+            end
+        end
+
+        thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^kappa
+    end
+
+    rhobar .= pbar ./ thetabar
+
+    @ivy for k in k0:k1
+        n2[:, :, k] .=
+            g_ndim ./ thetabar[:, :, k] ./ jac[:, :, k] .* 0.5 .*
+            (thetabar[:, :, k + 1] .- thetabar[:, :, k - 1]) ./ dz
+    end
+
+    # Compute the squared buoyancy frequency at the boundaries.
+    set_vertical_boundaries_of_field!(n2, namelists, domain, +)
+    @ivy if ko == 0
+        for k in 1:nbz
+            n2[:, :, k] .=
+                g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
+                (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
+        end
+    end
+    @ivy if ko + nzz == zz_size
+        for k in 1:nbz
+            n2[:, :, k1 + k] .=
+                g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
+                (thetabar[:, :, k1 + 1] .- thetabar[:, :, k1]) ./ dz
+        end
+    end
+
+    return Atmosphere(pbar, thetabar, rhobar, n2)
+end

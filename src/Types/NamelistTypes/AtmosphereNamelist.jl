@@ -73,6 +73,9 @@ struct AtmosphereNamelist{
     ground_pressure::B
     initial_wind::D
     coriolis_frequency::B
+    tropopause_height::B
+    lapse_rate_troposphere::B
+    lapse_rate_stratosphere::B
 end
 
 function AtmosphereNamelist(;
@@ -88,6 +91,9 @@ function AtmosphereNamelist(;
     ground_pressure::AbstractFloat = 1.0E+5,
     initial_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
+    tropopause_height = 1.0E+4,
+    lapse_rate_troposphere = 6.5E-3,
+    lapse_rate_stratosphere = -5.0E-3,
 )::AtmosphereNamelist
     return AtmosphereNamelist(
         specify_reynolds_number,
@@ -102,5 +108,8 @@ function AtmosphereNamelist(;
         ground_pressure,
         initial_wind,
         coriolis_frequency,
+        tropopause_height,
+        lapse_rate_troposphere,
+        lapse_rate_stratosphere,
     )
 end
