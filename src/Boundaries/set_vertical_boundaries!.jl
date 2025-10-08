@@ -139,7 +139,7 @@ function set_vertical_boundaries!(
 end
 
 function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
-    (; sizezz, nzz, ko, k0, k1) = state.domain
+    (; zz_size, nzz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
     # Set all vertical boundary fluxes to zero.
@@ -151,7 +151,7 @@ function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nzz == sizezz
+    @ivy if ko + nzz == zz_size
         for field in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
@@ -165,10 +165,10 @@ end
 
 function set_vertical_boundaries!(state::State, variables::BoundaryWKBIntegrals)
     (; wkb_mode) = state.namelists.wkb
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
 
     set_vertical_boundaries!(state, variables, wkb_mode)
-    set_tracer_vertical_boundaries!(state, variables, wkb_mode, tracersetup)
+    set_tracer_vertical_boundaries!(state, variables, wkb_mode, tracer_setup)
 
     return
 end
@@ -202,7 +202,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uu, :uv, :uw, :vv, :vw, :etx, :ety, :utheta, :vtheta, :e)
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
         set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -220,10 +220,10 @@ function set_vertical_boundaries!(
     variables::BoundaryWKBTendencies,
 )
     (; wkb_mode) = state.namelists.wkb
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
 
     set_vertical_boundaries!(state, variables, wkb_mode)
-    set_tracer_vertical_boundaries!(state, variables, wkb_mode, tracersetup)
+    set_tracer_vertical_boundaries!(state, variables, wkb_mode, tracer_setup)
 
     return
 end

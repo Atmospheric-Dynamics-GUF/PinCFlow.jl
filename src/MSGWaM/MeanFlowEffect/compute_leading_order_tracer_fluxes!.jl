@@ -2,7 +2,7 @@
 ```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -23,7 +23,7 @@ Return for configurations without tracer transport.
 ```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -55,7 +55,7 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `state`: Model state.
 
-  - `tracersetup`:  General tracer-transport configuration.
+  - `tracer_setup`:  General tracer-transport configuration.
 
   - `fc`: Coriolis parameter.
 
@@ -90,7 +90,7 @@ function compute_leading_order_tracer_fluxes! end
 
 function compute_leading_order_tracer_fluxes!(
     state::State,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -109,7 +109,7 @@ end
 
 function compute_leading_order_tracer_fluxes!(
     state::State,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,

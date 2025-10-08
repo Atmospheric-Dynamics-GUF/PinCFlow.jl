@@ -127,10 +127,10 @@ function set_meridional_boundaries!(
     variables::BoundaryWKBIntegrals,
 )
     (; wkb_mode) = state.namelists.wkb
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
 
     set_meridional_boundaries!(state, variables, wkb_mode)
-    set_tracer_meridional_boundaries!(state, variables, wkb_mode, tracersetup)
+    set_tracer_meridional_boundaries!(state, variables, wkb_mode, tracer_setup)
 
     return
 end
@@ -163,7 +163,7 @@ function set_meridional_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uu, :uv, :uw, :vv, :vw, :etx, :ety, :utheta, :vtheta, :e)
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
         set_meridional_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -180,10 +180,10 @@ function set_meridional_boundaries!(
     variables::BoundaryWKBTendencies,
 )
     (; wkb_mode) = state.namelists.wkb
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
 
     set_meridional_boundaries!(state, variables, wkb_mode)
-    set_tracer_meridional_boundaries!(state, variables, wkb_mode, tracersetup)
+    set_tracer_meridional_boundaries!(state, variables, wkb_mode, tracer_setup)
 
     return
 end

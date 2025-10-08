@@ -7,8 +7,8 @@ Namelist for parameters describing the grid.
 
 ```julia
 GridNamelist(;
-    mountainheight_dim::AbstractFloat = 1.0E+2,
-    mountainwidth_dim::AbstractFloat = 1.0E+3,
+    mountain_height::AbstractFloat = 1.0E+2,
+    mountain_half_width::AbstractFloat = 1.0E+3,
     mountain_case::Integer = 1,
     height_factor::AbstractFloat = 1.0E+0,
     width_factor::AbstractFloat = 1.0E+0,
@@ -21,9 +21,9 @@ Construct a `GridNamelist` instance with the given keyword arguments as properti
 
 # Fields/Keywords
 
-  - `mountainheight_dim::A`: Mountain height (summit).
+  - `mountain_height::A`: Mountain height (summit).
 
-  - `mountainwidth_dim::A`: Mountain half-width.
+  - `mountain_half_width::A`: Mountain half-width.
 
   - `mountain_case::B`: Mountain shape. See [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref) for available options.
 
@@ -36,8 +36,8 @@ Construct a `GridNamelist` instance with the given keyword arguments as properti
   - `stretch_exponent::A`: Vertical-grid-stretching parameter.
 """
 struct GridNamelist{A <: AbstractFloat, B <: Integer}
-    mountainheight_dim::A
-    mountainwidth_dim::A
+    mountain_height::A
+    mountain_half_width::A
     mountain_case::B
     height_factor::A
     width_factor::A
@@ -46,8 +46,8 @@ struct GridNamelist{A <: AbstractFloat, B <: Integer}
 end
 
 function GridNamelist(;
-    mountainheight_dim::AbstractFloat = 1.0E+2,
-    mountainwidth_dim::AbstractFloat = 1.0E+3,
+    mountain_height::AbstractFloat = 1.0E+2,
+    mountain_half_width::AbstractFloat = 1.0E+3,
     mountain_case::Integer = 1,
     height_factor::AbstractFloat = 1.0E+0,
     width_factor::AbstractFloat = 1.0E+0,
@@ -55,8 +55,8 @@ function GridNamelist(;
     stretch_exponent::AbstractFloat = 1.0E+0,
 )::GridNamelist
     return GridNamelist(
-        mountainheight_dim,
-        mountainwidth_dim,
+        mountain_height,
+        mountain_half_width,
         mountain_case,
         height_factor,
         width_factor,

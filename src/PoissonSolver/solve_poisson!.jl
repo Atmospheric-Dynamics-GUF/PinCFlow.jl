@@ -43,7 +43,7 @@ function solve_poisson!(
     tolref::AbstractFloat,
 )::Tuple{Bool, <:Integer}
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, pbar) = state.atmosphere
     (; dpip) = state.variables.increments
     (; solution) = state.poisson
 
@@ -66,8 +66,7 @@ function solve_poisson!(
     jj = j0:j1
     kk = k0:k1
 
-    @ivy solution ./=
-        sqrt.(pstrattfc[ii, jj, kk] .^ 2 ./ rhostrattfc[ii, jj, kk])
+    @ivy solution ./= sqrt.(pbar[ii, jj, kk] .^ 2 ./ rhobar[ii, jj, kk])
 
     # Pass solution to pressure correction.
     @ivy dpip[ii, jj, kk] .= dtinv .* solution

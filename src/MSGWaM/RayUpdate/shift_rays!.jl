@@ -6,13 +6,13 @@ shift_rays!(state::State)
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a test-case-specific method.
 
 ```julia
-shift_rays!(state::State, testcase::AbstractTestCase)
+shift_rays!(state::State, test_case::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
 ```julia
-shift_rays!(state::State, testcase::AbstractWKBTestCase)
+shift_rays!(state::State, test_case::AbstractWKBTestCase)
 ```
 
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a WKB-mode-specific method.
@@ -67,7 +67,7 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 
   - `state`: Model state.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -86,20 +86,22 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
   - [`PinCFlow.MSGWaM.RayOperations.check_rays`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function shift_rays! end
 
 function shift_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    shift_rays!(state, testcase)
+    (; test_case) = state.namelists.setting
+    shift_rays!(state, test_case)
     return
 end
 
-function shift_rays!(state::State, testcase::AbstractTestCase)
+function shift_rays!(state::State, test_case::AbstractTestCase)
     return
 end
 
-function shift_rays!(state::State, testcase::AbstractWKBTestCase)
+function shift_rays!(state::State, test_case::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     shift_rays!(state, wkb_mode)
     return
@@ -121,16 +123,16 @@ function shift_rays!(state::State, wkb_mode::SingleColumn)
 end
 
 function shift_rays!(state::State, wkb_mode::MultiColumn)
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
 
-    if sizex > 1
+    if x_size > 1
         set_zonal_boundary_rays!(state)
         shift_rays!(state, X())
         set_zonal_boundary_rays!(state)
         remove_rays!(state)
     end
 
-    if sizey > 1
+    if y_size > 1
         set_meridional_boundary_rays!(state)
         shift_rays!(state, Y())
         set_meridional_boundary_rays!(state)
@@ -148,12 +150,12 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
 end
 
 function shift_rays!(state::State, direction::X)
-    (; sizezz, nzz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -181,12 +183,12 @@ function shift_rays!(state::State, direction::X)
 end
 
 function shift_rays!(state::State, direction::Y)
-    (; sizezz, nzz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -215,11 +217,11 @@ end
 
 function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]

@@ -105,9 +105,19 @@ and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{i + 1 / 2} u_{i 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\left(J \\widehat{\\Pi}^{11}\\right)_{i + 1},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\left(J \\widehat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\eta_{i + 1} \\left(J \\widehat{\\Pi}^{11}\\right)_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\widehat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
+\\end{align*}
+```
+
+Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted by the Jacobian) are added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mu_{i + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{x}}\\right]_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{y}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{z}}\\right]_{i + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -141,9 +151,19 @@ and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{j + 1 / 2} v_{j 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\left(J \\widehat{\\Pi}^{22}\\right)_{j + 1},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\left(J \\widehat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\eta_{j + 1} \\left(J \\widehat{\\Pi}^{22}\\right)_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\widehat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
+\\end{align*}
+```
+
+Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted by the Jacobian) are added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{x}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mu_{j + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{y}}\\right]_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{z}}\\right]_{j + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -177,14 +197,24 @@ and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{k + 1 / 2} w_{k 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}.
+    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\eta_{k + 1} \\left[\\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}\\right].
+\\end{align*}
+```
+
+Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted by the Jacobian) are added, i.e.
+
+```math
+\\begin{align*}
+    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{x}}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{y}}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mu_{k + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{z}}\\right]_{k + 1}.
 \\end{align*}
 ```
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, tracersetup::NoTracer)
+compute_fluxes!(state::State, predictands::Predictands, tracer_setup::NoTracer)
 ```
 
 Return for configurations without tracer transport.
@@ -193,7 +223,7 @@ Return for configurations without tracer transport.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
@@ -211,17 +241,17 @@ The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\theta, \\widehat{x}}_{i + 1 / 2} & = - \\mu_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    \\mathcal{F}^{\\theta, \\widehat{x}}_{i + 1 / 2} & = - \\lambda_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
     & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{13}\\right)_{i + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k - 1}\\right]\\right\\},\\\\
-    \\mathcal{F}^{\\theta, \\widehat{y}}_{j + 1 / 2} & = - \\mu_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    \\mathcal{F}^{\\theta, \\widehat{y}}_{j + 1 / 2} & = - \\lambda_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
     & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{23}\\right)_{j + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k - 1}\\right]\\right\\},\\\\
-    \\mathcal{F}^{\\theta, \\widehat{z}}_{k + 1 / 2} & = - \\mu_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
+    \\mathcal{F}^{\\theta, \\widehat{z}}_{k + 1 / 2} & = - \\lambda_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
     & \\qquad \\qquad \\qquad + \\frac{\\left(J G^{23}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{j - 1, k + 1 / 2}\\right]\\\\
     & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{33}\\right)_{k + 1 / 2}}{\\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{k + 1} - \\frac{P}{\\rho}\\right]\\right\\},
 \\end{align*}
 ```
 
-where ``\\mu`` is the thermal conductivity (computed from `state.namelists.atmosphere.mu_conduct_dim`).
+where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.atmosphere.thermal_conductivity`).
 
 # Arguments
 
@@ -233,7 +263,7 @@ where ``\\mu`` is the thermal conductivity (computed from `state.namelists.atmos
 
   - `variable`: Flux variable.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
 # See also
 
@@ -255,14 +285,14 @@ function compute_fluxes!(state::State, predictands::Predictands)
     compute_fluxes!(state, predictands, W())
 
     compute_fluxes!(state, predictands, model, P())
-    compute_fluxes!(state, predictands, state.namelists.tracer.tracersetup)
+    compute_fluxes!(state, predictands, state.namelists.tracer.tracer_setup)
     return
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
-    (; pstrattfc, rhostrattfc) = state.atmosphere
+    (; pbar, rhobar) = state.atmosphere
     (; rhotilde) = state.variables.reconstructions
     (; phirho) = state.variables.fluxes
 
@@ -273,15 +303,15 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     #-----------------------------------------
 
     @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
-        rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-        pedger = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
-        rhor = rhotilde[i + 1, j, k, 1, 1] + rhostratedger / pedger
-        rhol = rhotilde[i, j, k, 1, 2] + rhostratedger / pedger
+        rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+        pedger = 0.5 * (pbar[i, j, k] + pbar[i + 1, j, k])
+        rhor = rhotilde[i + 1, j, k, 1, 1] + rhobaredger / pedger
+        rhol = rhotilde[i, j, k, 1, 2] + rhobaredger / pedger
 
         pedger =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             )
         usurf = pedger * u0[i, j, k]
 
@@ -295,15 +325,15 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     #-----------------------------------------
 
     @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
-        rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-        pedgef = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
-        rhof = rhotilde[i, j + 1, k, 2, 1] + rhostratedgef / pedgef
-        rhob = rhotilde[i, j, k, 2, 2] + rhostratedgef / pedgef
+        rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+        pedgef = 0.5 * (pbar[i, j, k] + pbar[i, j + 1, k])
+        rhof = rhotilde[i, j + 1, k, 2, 1] + rhobaredgef / pedgef
+        rhob = rhotilde[i, j, k, 2, 2] + rhobaredgef / pedgef
 
         pedgef =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             )
         vsurf = pedgef * v0[i, j, k]
 
@@ -317,23 +347,23 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
-        rhostratedgeu =
+        rhobaredgeu =
             (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         pedgeu =
             (
-                jac[i, j, k + 1] * pstrattfc[i, j, k] +
-                jac[i, j, k] * pstrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * pbar[i, j, k] +
+                jac[i, j, k] * pbar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
-        rhou = rhotilde[i, j, k + 1, 3, 1] + rhostratedgeu / pedgeu
-        rhod = rhotilde[i, j, k, 3, 2] + rhostratedgeu / pedgeu
+        rhou = rhotilde[i, j, k + 1, 3, 1] + rhobaredgeu / pedgeu
+        rhod = rhotilde[i, j, k, 3, 2] + rhobaredgeu / pedgeu
 
         pedgeu =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1])
         wsurf = pedgeu * w0[i, j, k]
 
@@ -348,7 +378,7 @@ end
 function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
-    (; pstrattfc) = state.atmosphere
+    (; pbar) = state.atmosphere
     (; rhoptilde) = state.variables.reconstructions
     (; phirhop) = state.variables.fluxes
 
@@ -364,8 +394,8 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 
         pedger =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             )
         usurf = pedger * u0[i, j, k]
 
@@ -384,8 +414,8 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 
         pedgef =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             )
         vsurf = pedgef * v0[i, j, k]
 
@@ -405,7 +435,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
         pedgeu =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1])
         wsurf = pedgeu * w0[i, j, k]
 
@@ -434,7 +464,7 @@ function compute_fluxes!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
-    (; pstrattfc) = state.atmosphere
+    (; pbar) = state.atmosphere
     (; phip) = state.variables.fluxes
 
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
@@ -447,8 +477,8 @@ function compute_fluxes!(
         phip[i, j, k, 1] =
             0.5 *
             (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             ) *
             u0[i, j, k]
     end
@@ -461,8 +491,8 @@ function compute_fluxes!(
         phip[i, j, k, 2] =
             0.5 *
             (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             ) *
             v0[i, j, k]
     end
@@ -475,7 +505,7 @@ function compute_fluxes!(
         phip[i, j, k, 3] =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1]) * w0[i, j, k]
     end
 
@@ -489,18 +519,17 @@ function compute_fluxes!(
 )
     (; grid) = state
     (; re, uref, lref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
-    (; pstrattfc, rhostrattfc) = state.atmosphere
+    (; pbar, rhobar) = state.atmosphere
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
-    (; predictands) = state.variables
-    (; mu_mom_diff_dim) = state.namelists.atmosphere
+    (; kinematic_diffusivity) = state.namelists.atmosphere
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -512,13 +541,13 @@ function compute_fluxes!(
 
         pedger =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             )
         predger =
             0.5 * (
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k] +
-                jac[i + 2, j, k] * pstrattfc[i + 2, j, k]
+                jac[i + 1, j, k] * pbar[i + 1, j, k] +
+                jac[i + 2, j, k] * pbar[i + 2, j, k]
             )
         usurf = 0.5 * (pedger * u0[i, j, k] + predger * u0[i + 1, j, k])
 
@@ -537,13 +566,13 @@ function compute_fluxes!(
 
         pedgef =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             )
         predgef =
             0.5 * (
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k] +
-                jac[i + 1, j + 1, k] * pstrattfc[i + 1, j + 1, k]
+                jac[i + 1, j, k] * pbar[i + 1, j, k] +
+                jac[i + 1, j + 1, k] * pbar[i + 1, j + 1, k]
             )
         vsurf = 0.5 * (pedgef * v0[i, j, k] + predgef * v0[i + 1, j, k])
 
@@ -563,12 +592,12 @@ function compute_fluxes!(
         pedgeu =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1])
         predgeu =
             jac[i + 1, j, k] *
             jac[i + 1, j, k + 1] *
-            (pstrattfc[i + 1, j, k] + pstrattfc[i + 1, j, k + 1]) /
+            (pbar[i + 1, j, k] + pbar[i + 1, j, k + 1]) /
             (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
         wsurf = 0.5 * (pedgeu * w0[i, j, k] + predgeu * w0[i + 1, j, k])
 
@@ -581,7 +610,7 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps()
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
         return
     end
 
@@ -590,7 +619,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
-        coef_v = 1 / re * rhostrattfc[i + 1, j, k0]
+        coef_v = 1 / re * rhobar[i + 1, j, k0]
 
         frhou_visc =
             coef_v *
@@ -609,10 +638,10 @@ function compute_fluxes!(
             1 / re *
             0.25 *
             (
-                rhostrattfc[i, j, k0] +
-                rhostrattfc[i + 1, j, k0] +
-                rhostrattfc[i, j + 1, k0] +
-                rhostrattfc[i + 1, j + 1, k0]
+                rhobar[i, j, k0] +
+                rhobar[i + 1, j, k0] +
+                rhobar[i, j + 1, k0] +
+                rhobar[i + 1, j + 1, k0]
             )
 
         grhou_visc =
@@ -636,8 +665,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
-        coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
+        coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
         stresstens13 =
             met[i, j, k, 1, 3] * compute_stress_tensor(i, j, k, 1, 1, state) +
@@ -683,18 +711,18 @@ function compute_fluxes!(
     #             Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_mom_diff_dim == 0.0
+    if kinematic_diffusivity == 0.0
         return
     end
 
-    mu_mom_diff = mu_mom_diff_dim / uref / lref
+    mu_mom_diff = kinematic_diffusivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
-        coef_d = mu_mom_diff * rhostrattfc[i + 1, j, k0]
+        coef_d = mu_mom_diff * rhobar[i + 1, j, k0]
 
         frhou_diff =
             coef_d *
@@ -713,10 +741,10 @@ function compute_fluxes!(
             mu_mom_diff *
             0.25 *
             (
-                rhostrattfc[i, j, k0] +
-                rhostrattfc[i + 1, j, k0] +
-                rhostrattfc[i, j + 1, k0] +
-                rhostrattfc[i + 1, j + 1, k0]
+                rhobar[i, j, k0] +
+                rhobar[i + 1, j, k0] +
+                rhobar[i, j + 1, k0] +
+                rhobar[i + 1, j + 1, k0]
             )
 
         grhou_diff =
@@ -747,9 +775,9 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
-        coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
+        coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
 
-        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
+        coef_dl = mu_mom_diff * rhobar[i, j, k0]
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -794,18 +822,17 @@ function compute_fluxes!(
 )
     (; grid) = state
     (; re, uref, lref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
-    (; pstrattfc, rhostrattfc) = state.atmosphere
+    (; pbar, rhobar) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
-    (; predictands) = state.variables
-    (; mu_mom_diff_dim) = state.namelists.atmosphere
+    (; kinematic_diffusivity) = state.namelists.atmosphere
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -817,13 +844,13 @@ function compute_fluxes!(
 
         pedger =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             )
         pfedger =
             0.5 * (
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k] +
-                jac[i + 1, j + 1, k] * pstrattfc[i + 1, j + 1, k]
+                jac[i, j + 1, k] * pbar[i, j + 1, k] +
+                jac[i + 1, j + 1, k] * pbar[i + 1, j + 1, k]
             )
         usurf = 0.5 * (pedger * u0[i, j, k] + pfedger * u0[i, j + 1, k])
 
@@ -842,13 +869,13 @@ function compute_fluxes!(
 
         pedgef =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             )
         pfedgef =
             0.5 * (
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k] +
-                jac[i, j + 2, k] * pstrattfc[i, j + 2, k]
+                jac[i, j + 1, k] * pbar[i, j + 1, k] +
+                jac[i, j + 2, k] * pbar[i, j + 2, k]
             )
         vsurf = 0.5 * (pedgef * v0[i, j, k] + pfedgef * v0[i, j + 1, k])
 
@@ -868,12 +895,12 @@ function compute_fluxes!(
         pedgeu =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1])
         pfedgeu =
             jac[i, j + 1, k] *
             jac[i, j + 1, k + 1] *
-            (pstrattfc[i, j + 1, k] + pstrattfc[i, j + 1, k + 1]) /
+            (pbar[i, j + 1, k] + pbar[i, j + 1, k + 1]) /
             (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
         wsurf = 0.5 * (pedgeu * w0[i, j, k] + pfedgeu * w0[i, j + 1, k])
 
@@ -886,7 +913,7 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps()
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
         return
     end
 
@@ -899,10 +926,10 @@ function compute_fluxes!(
             1 / re *
             0.25 *
             (
-                rhostrattfc[i, j, k0] +
-                rhostrattfc[i + 1, j, k0] +
-                rhostrattfc[i, j + 1, k0] +
-                rhostrattfc[i + 1, j + 1, k0]
+                rhobar[i, j, k0] +
+                rhobar[i + 1, j, k0] +
+                rhobar[i, j + 1, k0] +
+                rhobar[i + 1, j + 1, k0]
             )
 
         frhov_visc =
@@ -926,7 +953,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
-        coef_v = 1 / re * rhostrattfc[i, j + 1, k0]
+        coef_v = 1 / re * rhobar[i, j + 1, k0]
 
         grhov_visc =
             coef_v *
@@ -941,8 +968,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
-        coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
+        coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
         stresstens23 =
             met[i, j, k, 1, 3] * compute_stress_tensor(i, j, k, 2, 1, state) +
@@ -988,11 +1014,11 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_mom_diff_dim == 0.0
+    if kinematic_diffusivity == 0.0
         return
     end
 
-    mu_mom_diff = mu_mom_diff_dim / uref / lref
+    mu_mom_diff = kinematic_diffusivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1003,10 +1029,10 @@ function compute_fluxes!(
             mu_mom_diff *
             0.25 *
             (
-                rhostrattfc[i, j, k0] +
-                rhostrattfc[i + 1, j, k0] +
-                rhostrattfc[i, j + 1, k0] +
-                rhostrattfc[i + 1, j + 1, k0]
+                rhobar[i, j, k0] +
+                rhobar[i + 1, j, k0] +
+                rhobar[i, j + 1, k0] +
+                rhobar[i + 1, j + 1, k0]
             )
 
         frhov_diff =
@@ -1037,7 +1063,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
-        coef_d = mu_mom_diff * rhostrattfc[i, j + 1, k0]
+        coef_d = mu_mom_diff * rhobar[i, j + 1, k0]
 
         grhov_diff =
             coef_d *
@@ -1052,9 +1078,9 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
-        coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
+        coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
 
-        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
+        coef_dl = mu_mom_diff * rhobar[i, j, k0]
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1101,11 +1127,10 @@ function compute_fluxes!(
     (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
-    (; pstrattfc, rhostrattfc) = state.atmosphere
+    (; pbar, rhobar) = state.atmosphere
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
-    (; predictands) = state.variables
-    (; mu_mom_diff_dim) = state.namelists.atmosphere
+    (; kinematic_diffusivity) = state.namelists.atmosphere
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1119,13 +1144,13 @@ function compute_fluxes!(
 
         pedger =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             )
         puedger =
             0.5 * (
-                jac[i, j, k + 1] * pstrattfc[i, j, k + 1] +
-                jac[i + 1, j, k + 1] * pstrattfc[i + 1, j, k + 1]
+                jac[i, j, k + 1] * pbar[i, j, k + 1] +
+                jac[i + 1, j, k + 1] * pbar[i + 1, j, k + 1]
             )
         usurf =
             (
@@ -1155,13 +1180,13 @@ function compute_fluxes!(
 
         pedgef =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             )
         puedgef =
             0.5 * (
-                jac[i, j, k + 1] * pstrattfc[i, j, k + 1] +
-                jac[i, j + 1, k + 1] * pstrattfc[i, j + 1, k + 1]
+                jac[i, j, k + 1] * pbar[i, j, k + 1] +
+                jac[i, j + 1, k + 1] * pbar[i, j + 1, k + 1]
             )
         vsurf =
             (
@@ -1192,12 +1217,12 @@ function compute_fluxes!(
         pedgeu =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1])
         puedgeu =
             jac[i, j, k + 1] *
             jac[i, j, k + 2] *
-            (pstrattfc[i, j, k + 1] + pstrattfc[i, j, k + 2]) /
+            (pbar[i, j, k + 1] + pbar[i, j, k + 2]) /
             (jac[i, j, k + 1] + jac[i, j, k + 2])
         wsurf = 0.5 * (pedgeu * w0[i, j, k] + puedgeu * w0[i, j, k + 1])
 
@@ -1210,7 +1235,7 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps()
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
         return
     end
 
@@ -1219,8 +1244,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
-        coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
+        coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
         frhow_visc =
             coef_v *
@@ -1248,8 +1272,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
-        coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
+        coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
         grhow_visc =
             coef_v *
@@ -1277,7 +1300,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        coef_v = 1 / re * rhostrattfc[i, j, k0]
+        coef_v = 1 / re * rhobar[i, j, k0]
 
         hrhow_visc =
             coef_v * (
@@ -1297,20 +1320,20 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_mom_diff_dim == 0.0
+    if kinematic_diffusivity == 0.0
         return
     end
 
-    mu_mom_diff = mu_mom_diff_dim / uref / lref
+    mu_mom_diff = kinematic_diffusivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
-        coef_dr = mu_mom_diff * rhostrattfc[i + 1, j, k0]
+        coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
 
-        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
+        coef_dl = mu_mom_diff * rhobar[i, j, k0]
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1350,9 +1373,9 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
-        coef_dr = mu_mom_diff * rhostrattfc[i, j + 1, k0]
+        coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
 
-        coef_dl = mu_mom_diff * rhostrattfc[i, j, k0]
+        coef_dl = mu_mom_diff * rhobar[i, j, k0]
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1392,7 +1415,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        coef_d = mu_mom_diff * rhostrattfc[i, j, k0]
+        coef_d = mu_mom_diff * rhobar[i, j, k0]
 
         hrhow_visc =
             coef_d *
@@ -1408,7 +1431,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
     return
 end
@@ -1416,11 +1439,11 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
-    (; pstrattfc) = state.atmosphere
+    (; pbar) = state.atmosphere
     (; tracerreconstructions, tracerfluxes) = state.tracer
 
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
@@ -1432,8 +1455,8 @@ function compute_fluxes!(
         for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
             pedger =
                 0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                    jac[i, j, k] * pbar[i, j, k] +
+                    jac[i + 1, j, k] * pbar[i + 1, j, k]
                 )
             usurf = pedger * u0[i, j, k]
 
@@ -1446,8 +1469,8 @@ function compute_fluxes!(
         for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
             pedgef =
                 0.5 * (
-                    jac[i, j, k] * pstrattfc[i, j, k] +
-                    jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                    jac[i, j, k] * pbar[i, j, k] +
+                    jac[i, j + 1, k] * pbar[i, j + 1, k]
                 )
             vsurf = pedgef * v0[i, j, k]
 
@@ -1461,7 +1484,7 @@ function compute_fluxes!(
             pedgeu =
                 jac[i, j, k] *
                 jac[i, j, k + 1] *
-                (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+                (pbar[i, j, k] + pbar[i, j, k + 1]) /
                 (jac[i, j, k] + jac[i, j, k + 1])
             wsurf = pedgeu * w0[i, j, k]
 
@@ -1479,17 +1502,17 @@ function compute_fluxes!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dx, dy, dz, met) = state.grid
-    (; pstrattfc, rhostrattfc) = state.atmosphere
+    (; pbar, rhobar) = state.atmosphere
     (; phitheta) = state.variables.fluxes
-    (; mu_conduct_dim) = state.namelists.atmosphere
+    (; thermal_conductivity) = state.namelists.atmosphere
     (; uref, lref) = state.constants
     (; rho) = predictands
 
-    if mu_conduct_dim == 0.0
+    if thermal_conductivity == 0.0
         return
     end
 
-    mu_conduct = mu_conduct_dim / uref / lref
+    mu_conduct = thermal_conductivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1500,28 +1523,24 @@ function compute_fluxes!(
             mu_conduct *
             0.5 *
             (
-                rhostrattfc[i, j, k0] / rhostrattfc[i, j, k] +
-                rhostrattfc[i + 1, j, k0] / rhostrattfc[i + 1, j, k]
+                rhobar[i, j, k0] / rhobar[i, j, k] +
+                rhobar[i + 1, j, k0] / rhobar[i + 1, j, k]
             )
 
-        thetal = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        thetar =
-            pstrattfc[i + 1, j, k] /
-            (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k])
+        thetal = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+        thetar = pbar[i + 1, j, k] / (rho[i + 1, j, k] + rhobar[i + 1, j, k])
 
         thetad =
             0.5 * (
-                pstrattfc[i, j, k - 1] /
-                (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1]) +
-                pstrattfc[i + 1, j, k - 1] /
-                (rho[i + 1, j, k - 1] + rhostrattfc[i + 1, j, k - 1])
+                pbar[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1]) +
+                pbar[i + 1, j, k - 1] /
+                (rho[i + 1, j, k - 1] + rhobar[i + 1, j, k - 1])
             )
         thetau =
             0.5 * (
-                pstrattfc[i, j, k + 1] /
-                (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) +
-                pstrattfc[i + 1, j, k + 1] /
-                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1])
+                pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+                pbar[i + 1, j, k + 1] /
+                (rho[i + 1, j, k + 1] + rhobar[i + 1, j, k + 1])
             )
 
         dtht_dxi =
@@ -1545,28 +1564,24 @@ function compute_fluxes!(
             mu_conduct *
             0.5 *
             (
-                rhostrattfc[i, j, k0] / rhostrattfc[i, j, k] +
-                rhostrattfc[i, j + 1, k0] / rhostrattfc[i, j + 1, k]
+                rhobar[i, j, k0] / rhobar[i, j, k] +
+                rhobar[i, j + 1, k0] / rhobar[i, j + 1, k]
             )
 
-        thetab = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        thetaf =
-            pstrattfc[i, j + 1, k] /
-            (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k])
+        thetab = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+        thetaf = pbar[i, j + 1, k] / (rho[i, j + 1, k] + rhobar[i, j + 1, k])
 
         thetad =
             0.5 * (
-                pstrattfc[i, j, k - 1] /
-                (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1]) +
-                pstrattfc[i, j + 1, k - 1] /
-                (rho[i, j + 1, k - 1] + rhostrattfc[i, j + 1, k - 1])
+                pbar[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1]) +
+                pbar[i, j + 1, k - 1] /
+                (rho[i, j + 1, k - 1] + rhobar[i, j + 1, k - 1])
             )
         thetau =
             0.5 * (
-                pstrattfc[i, j, k + 1] /
-                (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]) +
-                pstrattfc[i, j + 1, k + 1] /
-                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1])
+                pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+                pbar[i, j + 1, k + 1] /
+                (rho[i, j + 1, k + 1] + rhobar[i, j + 1, k + 1])
             )
 
         dtht_dyi =
@@ -1588,46 +1603,44 @@ function compute_fluxes!(
     @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         coef_t =
             mu_conduct * (
-                jac[i, j, k + 1] * rhostrattfc[i, j, 1] / rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, 1] / rhostrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, 1] / rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, 1] / rhobar[i, j, k + 1]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         thetal =
             (
-                jac[i - 1, j, k + 1] * pstrattfc[i - 1, j, k] /
-                (rho[i - 1, j, k] + rhostrattfc[i - 1, j, k]) +
-                jac[i - 1, j, k] * pstrattfc[i - 1, j, k + 1] /
-                (rho[i - 1, j, k + 1] + rhostrattfc[i - 1, j, k + 1])
+                jac[i - 1, j, k + 1] * pbar[i - 1, j, k] /
+                (rho[i - 1, j, k] + rhobar[i - 1, j, k]) +
+                jac[i - 1, j, k] * pbar[i - 1, j, k + 1] /
+                (rho[i - 1, j, k + 1] + rhobar[i - 1, j, k + 1])
             ) / (jac[i - 1, j, k + 1] + jac[i - 1, j, k])
 
         thetar =
             (
-                jac[i + 1, j, k + 1] * pstrattfc[i + 1, j, k] /
-                (rho[i + 1, j, k] + rhostrattfc[i + 1, j, k]) +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k + 1] /
-                (rho[i + 1, j, k + 1] + rhostrattfc[i + 1, j, k + 1])
+                jac[i + 1, j, k + 1] * pbar[i + 1, j, k] /
+                (rho[i + 1, j, k] + rhobar[i + 1, j, k]) +
+                jac[i + 1, j, k] * pbar[i + 1, j, k + 1] /
+                (rho[i + 1, j, k + 1] + rhobar[i + 1, j, k + 1])
             ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
 
         thetab =
             (
-                jac[i, j - 1, k + 1] * pstrattfc[i, j - 1, k] /
-                (rho[i, j - 1, k] + rhostrattfc[i, j - 1, k]) +
-                jac[i, j - 1, k] * pstrattfc[i, j - 1, k + 1] /
-                (rho[i, j - 1, k + 1] + rhostrattfc[i, j - 1, k + 1])
+                jac[i, j - 1, k + 1] * pbar[i, j - 1, k] /
+                (rho[i, j - 1, k] + rhobar[i, j - 1, k]) +
+                jac[i, j - 1, k] * pbar[i, j - 1, k + 1] /
+                (rho[i, j - 1, k + 1] + rhobar[i, j - 1, k + 1])
             ) / (jac[i, j - 1, k + 1] + jac[i, j - 1, k])
 
         thetaf =
             (
-                jac[i, j + 1, k + 1] * pstrattfc[i, j + 1, k] /
-                (rho[i, j + 1, k] + rhostrattfc[i, j + 1, k]) +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k + 1] /
-                (rho[i, j + 1, k + 1] + rhostrattfc[i, j + 1, k + 1])
+                jac[i, j + 1, k + 1] * pbar[i, j + 1, k] /
+                (rho[i, j + 1, k] + rhobar[i, j + 1, k]) +
+                jac[i, j + 1, k] * pbar[i, j + 1, k + 1] /
+                (rho[i, j + 1, k + 1] + rhobar[i, j + 1, k + 1])
             ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
 
-        thetad = pstrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        thetau =
-            pstrattfc[i, j, k + 1] /
-            (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
+        thetad = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+        thetau = pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
 
         dtht_dzi =
             jac[i, j, k] *

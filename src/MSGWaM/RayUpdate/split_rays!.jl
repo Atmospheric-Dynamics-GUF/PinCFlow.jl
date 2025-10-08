@@ -6,13 +6,13 @@ split_rays!(state::State)
 Split ray volumes that have become larger than the local grid cell by dispatching to a test-case-specific method.
 
 ```julia
-split_rays!(state::State, testcase::AbstractTestCase)
+split_rays!(state::State, test_case::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
 ```julia
-split_rays!(state::State, testcase::AbstractWKBTestCase)
+split_rays!(state::State, test_case::AbstractWKBTestCase)
 ```
 
 Split ray volumes that have become larger than the local grid cell by dispatching to a WKB-mode-specific method.
@@ -65,7 +65,7 @@ The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 
   - `state`: Model state.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -80,20 +80,22 @@ The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 # See also
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function split_rays! end
 
 function split_rays!(state::State)
-    (; testcase) = state.namelists.setting
-    split_rays!(state, testcase)
+    (; test_case) = state.namelists.setting
+    split_rays!(state, test_case)
     return
 end
 
-function split_rays!(state::State, testcase::AbstractTestCase)
+function split_rays!(state::State, test_case::AbstractTestCase)
     return
 end
 
-function split_rays!(state::State, testcase::AbstractWKBTestCase)
+function split_rays!(state::State, test_case::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     split_rays!(state, wkb_mode)
     return
@@ -127,7 +129,7 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
 end
 
 function split_rays!(state::State, wkb_mode::MultiColumn)
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
@@ -135,11 +137,11 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        if sizex > 1
+        if x_size > 1
             split_rays!(i, j, k, state, X())
         end
 
-        if sizey > 1
+        if y_size > 1
             split_rays!(i, j, k, state, Y())
         end
 

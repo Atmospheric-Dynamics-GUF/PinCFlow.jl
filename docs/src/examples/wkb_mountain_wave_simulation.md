@@ -17,46 +17,46 @@ else
     error("Too many arguments to the script!")
 end
 
-atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
+atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
-    sizex = 40,
-    sizey = 40,
-    sizez = 40,
+    x_size = 40,
+    y_size = 40,
+    z_size = 40,
     nbx = 3,
     nby = 3,
     nbz = 3,
-    lx_dim = 4.0E+5,
-    ly_dim = 4.0E+5,
-    lz_dim = 2.0E+4,
+    lx = 4.0E+5,
+    ly = 4.0E+5,
+    lz = 2.0E+4,
     npx = 8,
     npy = 8,
 )
 grid = GridNamelist(;
-    mountainheight_dim = 1.5E+2,
-    mountainwidth_dim = 5.0E+3,
+    mountain_height = 1.5E+2,
+    mountain_half_width = 5.0E+3,
     mountain_case = 13,
     height_factor = 2.0E+0,
     width_factor = 1.0E+1,
 )
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
-setting = SettingNamelist(; testcase = WKBMountainWave())
+setting = SettingNamelist(; test_case = WKBMountainWave())
 sponge = SpongeNamelist(;
-    spongelayer = true,
-    spongeheight = 1.0E-1,
+    use_sponge = true,
+    sponge_extent = 1.0E-1,
     alpharmax = 1.79E-2,
     betarmax = 0.0E+0,
-    lateralsponge = true,
-    spongetype = ExponentialSponge(),
+    lateral_sponge = true,
+    sponge_type = ExponentialSponge(),
     relax_to_mean = false,
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )
 wkb = WKBNamelist(;
-    xrmin_dim = -2.0E+5,
-    xrmax_dim = 2.0E+5,
-    yrmin_dim = -2.0E+5,
-    yrmax_dim = 2.0E+5,
-    zrmin_dim = 0.0,
-    zrmax_dim = 2.0E+4,
+    xrmin = -2.0E+5,
+    xrmax = 2.0E+5,
+    yrmin = -2.0E+5,
+    yrmax = 2.0E+5,
+    zrmin = 0.0,
+    zrmax = 2.0E+4,
 )
 
 integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb))
@@ -99,7 +99,7 @@ $$\alpha_\mathrm{R} \left(x, y, z\right) = \frac{\alpha_{\mathrm{R}, \max}}{3} \
 
 where $\alpha_{\mathrm{R}, \max} = 0.0179 \, \mathrm{s^{- 1}}$, $\Delta x_\mathrm{R} = L_x / 20$, $\Delta y_\mathrm{R} = L_y / 20$ and $\Delta z_\mathrm{R} = L_z / 10$. In contrast to the sinusoidal sponge discussed in the first example, this sponge applies a damping everywhere in the domain (weakest at the center of the surface, strongest in the upper corners). Once again, the sponge relaxes the wind to its initial state.
 
-MSGWaM is used with most of its parameters set to their default values. This means that the orographic source launches exactly one ray volume in each surface grid cell with a nonzero $h_\mathrm{w}$. Thus, the number of ray volumes allowed per grid cell (before merging is triggered) is `nray_fac` (a parameter of the WKB namelist) cubed, which is $4^3 = 64$.
+MSGWaM is used with most of its parameters set to their default values. This means that the orographic source launches exactly one ray volume in each surface grid cell with a nonzero $h_\mathrm{w}$. Thus, the number of ray volumes allowed per grid cell (before merging is triggered) is `multiplication_factor` (a parameter of the WKB namelist) cubed, which is $4^3 = 64$.
 
 ## Visualization
 

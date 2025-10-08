@@ -9,7 +9,7 @@ Apply the saturation scheme by dispatching to a test-case-specific method.
 apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )
 ```
 
@@ -19,7 +19,7 @@ Return for non-WKB test cases.
 apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
 ```
 
@@ -69,7 +69,7 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - `dt`: Time step.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -79,22 +79,20 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
-
   - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
 """
 function apply_saturation_scheme! end
 
 function apply_saturation_scheme!(state::State, dt::AbstractFloat)
-    (; testcase) = state.namelists.setting
-    apply_saturation_scheme!(state, dt, testcase)
+    (; test_case) = state.namelists.setting
+    apply_saturation_scheme!(state, dt, test_case)
     return
 end
 
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )
     return
 end
@@ -102,7 +100,7 @@ end
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
     (; wkb_mode) = state.namelists.wkb
     apply_saturation_scheme!(state, dt, wkb_mode)
@@ -124,12 +122,12 @@ function apply_saturation_scheme!(
 )
     (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb
-    (; sizex, sizey) = state.namelists.domain
-    (; lsaturation, alpha_sat) = state.namelists.wkb
+    (; x_size, y_size) = state.namelists.domain
+    (; use_saturation, saturation_threshold) = state.namelists.wkb
     (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
-    (; lx, ly, dx, dy, ztfc) = state.grid
+    (; lx, ly, dx, dy, zc) = state.grid
 
-    if !lsaturation
+    if !use_saturation
         return
     end
 
@@ -139,11 +137,12 @@ function apply_saturation_scheme!(
         (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
 
         # Calculate the turbulent eddy diffusivity.
-        n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
-        if mb2k2 == 0 || mb2 < alpha_sat^2 * n2r^2
+        n2r = interpolate_stratification(zc[i, j, k], state, N2())
+        if mb2k2 == 0 || mb2 < saturation_threshold^2 * n2r^2
             diffusion[i, j, k] = 0
         else
-            diffusion[i, j, k] = (mb2 - alpha_sat^2 * n2r^2) / (2 * dt * mb2k2)
+            diffusion[i, j, k] =
+                (mb2 - saturation_threshold^2 * n2r^2) / (2 * dt * mb2k2)
         end
 
         # Reduce the wave-action density.
@@ -162,11 +161,15 @@ function apply_saturation_scheme!(
         (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
 
         # Check if saturation is violated.
-        n2r = interpolate_stratification(ztfc[i, j, k], state, N2())
-        if mb2 - alpha_sat^2 * n2r^2 > 1.0E-3 * alpha_sat^2 * n2r^2
+        n2r = interpolate_stratification(zc[i, j, k], state, N2())
+        if mb2 - saturation_threshold^2 * n2r^2 >
+           1.0E-3 * saturation_threshold^2 * n2r^2
             println("Saturation violated at (i, j, k) = ", (i, j, k))
             println("mb2 = ", mb2)
-            println("alpha_sat^2 * n2r^2 = ", alpha_sat^2 * n2r^2)
+            println(
+                "saturation_threshold^2 * n2r^2 = ",
+                saturation_threshold^2 * n2r^2,
+            )
             println("")
         end
     end

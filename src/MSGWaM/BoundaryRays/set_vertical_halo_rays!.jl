@@ -14,7 +14,7 @@ Performs MPI communication between downward and upward neighbor processes. The n
 function set_vertical_halo_rays! end
 
 function set_vertical_halo_rays!(state::State)
-    (; comm, sizezz, nzz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) =
+    (; comm, zz_size, nzz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) =
         state.domain
     (; nray, rays) = state.wkb
 
@@ -47,7 +47,7 @@ function set_vertical_halo_rays!(state::State)
             getfield(rays, field)[1:nray_max_down, ii, jj, k1 + 1] .=
                 receive_up[field, :, :, :]
         end
-    elseif ko + nzz == sizezz
+    elseif ko + nzz == zz_size
         for field in 1:fields
             send_down[field, :, :, :] .=
                 getfield(rays, field)[1:nray_max_down, ii, jj, k0]

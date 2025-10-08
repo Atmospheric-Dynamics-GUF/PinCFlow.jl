@@ -81,12 +81,11 @@ function activate_orographic_source!(
     wad_ini::AbstractArray{<:AbstractFloat, 4},
 )
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branchr, blocking, long_threshold, nwm) = state.namelists.wkb
+    (; branch, blocking, long_threshold, wave_modes) = state.namelists.wkb
     (; tref) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) =
-        state.grid
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; dz, jac, zctilde, kh, lh, hw) = state.grid
+    (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; zb) = state.wkb
 
@@ -101,7 +100,7 @@ function activate_orographic_source!(
     @ivy for j in j0:j1, i in i0:i1
 
         # Sum the magnitudes of the spectrum.
-        hsum = sum(abs, topography_spectrum[:, i, j])
+        hsum = sum(abs, hw[:, i, j])
 
         # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
@@ -112,10 +111,10 @@ function activate_orographic_source!(
         for k in k0:k1
             uavg += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
             vavg += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
-            rhoavg += rhostrattfc[i, j, k] * jac[i, j, k] * dz
-            bvsavg += bvsstrattfc[i, j, k] * jac[i, j, k] * dz
+            rhoavg += rhobar[i, j, k] * jac[i, j, k] * dz
+            bvsavg += n2[i, j, k] * jac[i, j, k] * dz
             dzsum += jac[i, j, k] * dz
-            if ztildetfc[i, j, k] > ztildetfc[i, j, k0 - 1] + hsum
+            if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + hsum
                 break
             end
         end
@@ -128,10 +127,10 @@ function activate_orographic_source!(
         if blocking && hsum > 0
             long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
             ratio = min(1, long_threshold / long)
-            zb[i, j] = ztildetfc[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
+            zb[i, j] = zctilde[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
         elseif blocking
             ratio = 1
-            zb[i, j] = ztildetfc[i, j, k0 - 1]
+            zb[i, j] = zctilde[i, j, k0 - 1]
         else
             ratio = 1
         end
@@ -140,19 +139,19 @@ function activate_orographic_source!(
         k = k0 - 1
 
         # Iterate over wave modes.
-        for alpha in 1:nwm
+        for alpha in 1:wave_modes
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
             (omi, wnk, wnl, wnm, wad) = compute_orographic_mode(
-                ratio * topography_spectrum[alpha, i, j],
-                k_spectrum[alpha, i, j],
-                l_spectrum[alpha, i, j],
+                ratio * hw[alpha, i, j],
+                kh[alpha, i, j],
+                lh[alpha, i, j],
                 uavg,
                 vavg,
                 rhoavg,
                 bvsavg,
                 fc,
-                branchr,
+                branch,
             )
 
             # Save the results.
@@ -167,39 +166,27 @@ function activate_orographic_source!(
 end
 
 function activate_orographic_source!(state::State)
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
-        nrxl,
-        nryl,
-        nrzl,
-        nrk_init,
-        nrl_init,
-        nrm_init,
-        fac_dk_init,
-        fac_dl_init,
-        fac_dm_init,
-        branchr,
+        nrx,
+        nry,
+        nrz,
+        nrk,
+        nrl,
+        nrm,
+        dkr_factor,
+        dlr_factor,
+        dmr_factor,
+        branch,
         blocking,
         long_threshold,
         wkb_mode,
     ) = state.namelists.wkb
     (; tref) = state.constants
     (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (;
-        dx,
-        dy,
-        dz,
-        x,
-        y,
-        ztfc,
-        jac,
-        ztildetfc,
-        k_spectrum,
-        l_spectrum,
-        topography_spectrum,
-    ) = state.grid
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; dx, dy, dz, x, y, zc, jac, zctilde, kh, lh, hw) = state.grid
+    (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; rs, ixs, jys, kzs, iks, jls, kms, alphas) = state.wkb.surface_indices
     (; nray_wrk, n_sfc, nray, rays, zb, increments) = state.wkb
@@ -215,7 +202,7 @@ function activate_orographic_source!(state::State)
     @ivy for j in j0:j1, i in i0:i1
 
         # Sum the magnitudes of the spectrum.
-        hsum = sum(abs, topography_spectrum[:, i, j])
+        hsum = sum(abs, hw[:, i, j])
 
         # Average mean wind, reference density and buoyancy frequency.
         uavg = 0.0
@@ -226,10 +213,10 @@ function activate_orographic_source!(state::State)
         for k in k0:k1
             uavg += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
             vavg += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
-            rhoavg += rhostrattfc[i, j, k] * jac[i, j, k] * dz
-            bvsavg += bvsstrattfc[i, j, k] * jac[i, j, k] * dz
+            rhoavg += rhobar[i, j, k] * jac[i, j, k] * dz
+            bvsavg += n2[i, j, k] * jac[i, j, k] * dz
             dzsum += jac[i, j, k] * dz
-            if ztildetfc[i, j, k] > ztildetfc[i, j, k0 - 1] + hsum
+            if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + hsum
                 break
             end
         end
@@ -242,10 +229,10 @@ function activate_orographic_source!(state::State)
         if blocking && hsum > 0
             long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
             ratio = min(1, long_threshold / long)
-            zb[i, j] = ztildetfc[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
+            zb[i, j] = zctilde[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
         elseif blocking
             ratio = 1.0
-            zb[i, j] = ztildetfc[i, j, k0 - 1]
+            zb[i, j] = zctilde[i, j, k0 - 1]
         else
             ratio = 1.0
         end
@@ -268,15 +255,15 @@ function activate_orographic_source!(state::State)
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
             (omir, wnrk, wnrl, wnrm, wadr) = compute_orographic_mode(
-                ratio * topography_spectrum[alpha, i, j],
-                k_spectrum[alpha, i, j],
-                l_spectrum[alpha, i, j],
+                ratio * hw[alpha, i, j],
+                kh[alpha, i, j],
+                lh[alpha, i, j],
                 uavg,
                 vavg,
                 rhoavg,
                 bvsavg,
                 fc,
-                branchr,
+                branch,
             )
 
             # Get vertical position and extent of old ray volume.
@@ -318,7 +305,7 @@ function activate_orographic_source!(state::State)
             else
                 if r > 0
                     # Shift and clip/extend the old ray volume.
-                    if zr + dzr / 2 > ztildetfc[i, j, k]
+                    if zr + dzr / 2 > zctilde[i, j, k]
 
                         # Shift the old ray volume.
                         nray[i, j, k + 1] += 1
@@ -346,9 +333,9 @@ function activate_orographic_source!(state::State)
                         end
 
                         # Clip/extend the old ray volume.
-                        if zr - dzr / 2 < ztildetfc[i, j, k] || kz == 1
+                        if zr - dzr / 2 < zctilde[i, j, k] || kz == 1
                             rays.dzray[local_count, i, j, k + 1] =
-                                zr + dzr / 2 - ztildetfc[i, j, k]
+                                zr + dzr / 2 - zctilde[i, j, k]
                             rays.z[local_count, i, j, k + 1] =
                                 zr + dzr / 2 -
                                 rays.dzray[local_count, i, j, k + 1] / 2
@@ -377,54 +364,54 @@ function activate_orographic_source!(state::State)
             end
 
             # Set physical ray-volume positions.
-            rays.x[r, i, j, k] = (x[io + i] - dx / 2 + (ix - 0.5) * dx / nrxl)
-            rays.y[r, i, j, k] = (y[jo + j] - dy / 2 + (jy - 0.5) * dy / nryl)
+            rays.x[r, i, j, k] = (x[io + i] - dx / 2 + (ix - 0.5) * dx / nrx)
+            rays.y[r, i, j, k] = (y[jo + j] - dy / 2 + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
-                ztfc[i, j, k] - jac[i, j, k] * dz / 2 +
-                (kz - 0.5) * jac[i, j, k] * dz / nrzl
+                zc[i, j, k] - jac[i, j, k] * dz / 2 +
+                (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 
             # Set physical ray-volume extent.
-            rays.dxray[r, i, j, k] = dx / nrxl
-            rays.dyray[r, i, j, k] = dy / nryl
-            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrzl
+            rays.dxray[r, i, j, k] = dx / nrx
+            rays.dyray[r, i, j, k] = dy / nry
+            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrz
 
             # Compute spectral ray-volume extent.
-            if sizex == 1
+            if x_size == 1
                 dk_ini_nd = 0.0
             else
-                dk_ini_nd = fac_dk_init * sqrt(wnrk^2 + wnrl^2)
+                dk_ini_nd = dkr_factor * sqrt(wnrk^2 + wnrl^2)
             end
-            if sizey == 1
+            if y_size == 1
                 dl_ini_nd = 0.0
             else
-                dl_ini_nd = fac_dl_init * sqrt(wnrk^2 + wnrl^2)
+                dl_ini_nd = dlr_factor * sqrt(wnrk^2 + wnrl^2)
             end
             if wnrm == 0.0
                 error("Error in orographic_source: wnrm = 0!")
             else
-                dm_ini_nd = fac_dm_init * abs(wnrm)
+                dm_ini_nd = dmr_factor * abs(wnrm)
             end
 
             # Set spectral ray-volume position.
             rays.k[r, i, j, k] =
-                (wnrk - dk_ini_nd / 2 + (ik - 0.5) * dk_ini_nd / nrk_init)
+                (wnrk - dk_ini_nd / 2 + (ik - 0.5) * dk_ini_nd / nrk)
             rays.l[r, i, j, k] =
-                (wnrl - dl_ini_nd / 2 + (jl - 0.5) * dl_ini_nd / nrl_init)
+                (wnrl - dl_ini_nd / 2 + (jl - 0.5) * dl_ini_nd / nrl)
             rays.m[r, i, j, k] =
-                (wnrm - dm_ini_nd / 2 + (km - 0.5) * dm_ini_nd / nrm_init)
+                (wnrm - dm_ini_nd / 2 + (km - 0.5) * dm_ini_nd / nrm)
 
             # Set spectral ray-volume extent.
-            rays.dkray[r, i, j, k] = dk_ini_nd / nrk_init
-            rays.dlray[r, i, j, k] = dl_ini_nd / nrl_init
-            rays.dmray[r, i, j, k] = dm_ini_nd / nrm_init
+            rays.dkray[r, i, j, k] = dk_ini_nd / nrk
+            rays.dlray[r, i, j, k] = dl_ini_nd / nrl
+            rays.dmray[r, i, j, k] = dm_ini_nd / nrm
 
             # Compute spectral volume.
             pspvol = dm_ini_nd
-            if sizex > 1
+            if x_size > 1
                 pspvol *= dk_ini_nd
             end
-            if sizey > 1
+            if y_size > 1
                 pspvol *= dl_ini_nd
             end
 
