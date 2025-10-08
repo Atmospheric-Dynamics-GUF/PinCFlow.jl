@@ -26,7 +26,10 @@ domain = DomainNamelist(;
     npy,
     npz,
 )
-grid = GridNamelist(; mountain_case = 4)
+grid = GridNamelist(;
+    resolved_topography = (namelists, x, y) ->
+        100 / (1 + (x^2 + y^2) / 1000^2),
+)
 output = OutputNamelist(;
     output_variables = (:w,),
     prepare_restart = false,

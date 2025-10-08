@@ -24,7 +24,10 @@ domain = DomainNamelist(;
     npx,
     npz,
 )
-grid = GridNamelist(; mountain_height = 1.0E+1, mountain_half_width = 1.0E+4)
+grid = GridNamelist(;
+    resolved_topography = (namelists, x, y) ->
+        5 * (1 + cos(pi / 10000 * x)),
+)
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
 sponge = SpongeNamelist(; betarmax = 1.0E+0)
