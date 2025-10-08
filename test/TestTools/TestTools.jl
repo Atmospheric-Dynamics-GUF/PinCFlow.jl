@@ -3,7 +3,7 @@
 TestTools
 ```
 
-Extension that provides convenience functions for testing.
+Module that provides convenience functions for testing.
 """
 module TestTools
 
