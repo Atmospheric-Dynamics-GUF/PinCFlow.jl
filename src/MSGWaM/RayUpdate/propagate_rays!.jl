@@ -502,12 +502,12 @@ function propagate_rays!(
 
         local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if local_count > 0
-            fields = fieldnames(Rays)
-            rays_down = zeros(length(fields), local_count, nx, ny)
+            fields = fieldcount(Rays)
+            rays_down = zeros(fields, local_count, nx, ny)
             MPI.Recv!(rays_down, comm; source = down)
-            for (index, field) in enumerate(fields)
+            for field in 1:fields
                 getfield(rays, field)[1:local_count, i0:i1, j0:j1, k0 - 1] .=
-                    rays_down[index, :, :, :]
+                    rays_down[field, :, :, :]
             end
         end
     end
@@ -674,10 +674,10 @@ function propagate_rays!(
 
         local_count = maximum(nray[i0:i1, j0:j1, k1])
         if local_count > 0
-            fields = fieldnames(Rays)
-            rays_up = zeros(length(fields), local_count, nx, ny)
-            for (index, field) in enumerate(fields)
-                rays_up[index, :, :, :] .=
+            fields = fieldcount(Rays)
+            rays_up = zeros(fields, local_count, nx, ny)
+            for field in 1:fields
+                rays_up[field, :, :, :] .=
                     getfield(rays, field)[1:local_count, i0:i1, j0:j1, k1]
             end
             MPI.Send(rays_up, comm; dest = up)

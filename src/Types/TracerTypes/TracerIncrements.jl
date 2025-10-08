@@ -51,9 +51,9 @@ function TracerIncrements(
     domain::Domain,
     tracer_setup::NoTracer,
 )::TracerIncrements
-    dchi = zeros(0, 0, 0)
-
-    return TracerIncrements(dchi)
+    return TracerIncrements(
+        [zeros(0, 0, 0) for field in fieldnames(TracerIncrements)]...,
+    )
 end
 
 function TracerIncrements(
@@ -62,7 +62,7 @@ function TracerIncrements(
 )::TracerIncrements
     (; nxx, nyy, nzz) = domain
 
-    dchi = zeros(nxx, nyy, nzz)
-
-    return TracerIncrements(dchi)
+    return TracerIncrements(
+        [zeros(nxx, nyy, nzz) for field in fieldnames(TracerIncrements)]...,
+    )
 end
