@@ -589,12 +589,13 @@ function apply_lhs_sponge!(
     (; initialtracer) = state.tracer.tracerauxiliaries
 
     @ivy for field in fieldnames(TracerPredictands)
+        chi = getfield(tracerpredictands, field)[:, :, :]
         for k in k0:k1, j in j0:j1, i in i0:i1
             alpha = alphar[i, j, k]
-            chi_old = getfield(tracerpredictands, field)[i, j, k]
+            chi_old = chi[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
             chi_new = (1.0 - beta) * initialtracer[i, j, k] + beta * chi_old
-            getfield(tracerpredictands, field)[i, j, k] = chi_new
+            chi[i, j, k] = chi_new
         end
     end
 
