@@ -27,8 +27,7 @@ domain = DomainNamelist(;
     npz,
 )
 grid = GridNamelist(;
-    resolved_topography = (namelists, x, y) ->
-        100 / (1 + (x^2 + y^2) / 1000^2),
+    resolved_topography = (x, y) -> 100 / (1 + (x^2 + y^2) / 1000^2),
 )
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "mountain_wave.h5")

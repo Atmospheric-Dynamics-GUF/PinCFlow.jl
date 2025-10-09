@@ -11,6 +11,11 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
+h0 = 150
+l0 = 5000
+rl = 10
+rh = 2
+
 atmosphere = AtmosphereNamelist(;
     initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
     coriolis_frequency = 0.0E+0,
@@ -27,10 +32,16 @@ domain = DomainNamelist(;
     npz,
 )
 grid = GridNamelist(;
-    mountain_height = 1.5E+2,
-    mountain_half_width = 5.0E+3,
-    height_factor = 2.0E+0,
-    width_factor = 1.0E+1,
+    resolved_topography = (x, y) ->
+        x^2 + y^2 <= (rl * l0)^2 ?
+        h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) * rh / (rh + 1) : 0.0,
+    unresolved_topography = (alpha, x, y) ->
+        alpha == 1 && x^2 + y^2 <= (rl * l0)^2 ?
+        (
+            pi / l0,
+            0.0,
+            h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) / (rh + 1),
+        ) : (0.0, 0.0, 0.0),
 )
 output = OutputNamelist(;
     output_variables = (:w,),

@@ -71,8 +71,7 @@ domain = DomainNamelist(;
     npz,
 )
 grid = GridNamelist(;
-    resolved_topography = (namelists, x, y) ->
-        5 * (1 + cos(pi / 10000 * x)),
+    resolved_topography = (x, y) -> 5 * (1 + cos(pi / 10000 * x)),
 )
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")

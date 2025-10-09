@@ -34,8 +34,7 @@ domain = DomainNamelist(;
     npz,
 )
 grid = GridNamelist(;
-    resolved_topography = (namelists, x, y) ->
-        100 / (1 + (x^2 + y^2) / 1000^2),
+    resolved_topography = (x, y) -> 100 / (1 + (x^2 + y^2) / 1000^2),
 )
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "mountain_wave.h5")
@@ -62,7 +61,7 @@ ${mpiexec} -n 64 julia examples/submit/mountain_wave.jl 4 4 4
 
 $$h \left(x, y\right) = \frac{h_0}{1 + \left(x^2 + y^2\right) / l_0^2},$$
 
-where the default values $h_0 = 100 \, \mathrm{m}$ and $l_0 = 1 \, \mathrm{km}$ are being used. The atmosphere is isothermal, with the default temperature $T_0 = 300 \, \mathrm{K}$ and the initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \, \mathrm{m \, s^{- 1}}$.
+with $h_0 = 100 \, \mathrm{m}$ and $l_0 = 1 \, \mathrm{km}$. The atmosphere is isothermal, with the default temperature $T_0 = 300 \, \mathrm{K}$ and the initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \, \mathrm{m \, s^{- 1}}$.
 
 Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge defined by
 
