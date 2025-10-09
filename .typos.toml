@@ -6,3 +6,6 @@ iin = "iin"
 abd = "abd" # used in the Poisson solver
 wrk = "wrk"
 nd = "nd"
+
+[files]
+extend-exclude = ["*.svg"]
