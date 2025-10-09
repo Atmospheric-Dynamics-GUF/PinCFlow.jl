@@ -24,6 +24,9 @@ AtmosphereNamelist(;
     ground_pressure::AbstractFloat = 1.0E+5,
     initial_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
+    tropopause_height = 1.0E+4,
+    lapse_rate_troposphere = 6.5E-3,
+    lapse_rate_stratosphere = -5.0E-3,
 )::AtmosphereNamelist
 ```
 
@@ -54,6 +57,12 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
   - `initial_wind::D`: Initial wind.
 
   - `coriolis_frequency::B`: Coriolis frequency of the ``f``-plane.
+
+  - `tropopause_height::B`: Height of the tropopause for `background == Realistic()` or `background == LapseRates()`. 
+
+  - `lapse_rate_troposphere::B`: Lapse rate in the troposphere for `background == LapseRates()`.
+    
+  - `lapse_rate_stratosphere::B`: Lapse rate in the stratosphere for `background == LapseRates()`.
 """
 struct AtmosphereNamelist{
     A <: Bool,
