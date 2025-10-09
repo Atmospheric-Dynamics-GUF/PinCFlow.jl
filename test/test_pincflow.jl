@@ -1,7 +1,7 @@
 # Testing 
 using Test
 using LinearAlgebra: norm
-using TrixiTest: trixi_include, get_kwarg
+using TrixiTest: trixi_include, get_kwarg, append_to_kwargs
 using HDF5
 import PinCFlow: PinCFlow
 
@@ -22,6 +22,7 @@ macro test_example(file, args...)
     local rtol = get_kwarg(args, :rtol, rtol_default)
 
     local kwargs = Pair{Symbol, Any}[]
+
     for arg in args
         if (
             arg.head == :(=) && !(
@@ -34,7 +35,14 @@ macro test_example(file, args...)
     end
 
     quote
-        trixi_include(@__MODULE__, $(esc(file)); $kwargs...)
+        local file_to_include = $(esc(file))
+        local content = read(file_to_include, String)
+        content = replace(content, r"Pkg\.activate\(.*?\)\n?" => "")
+        local temp_file = tempname() * ".jl"
+        write(temp_file, content)
+
+        trixi_include(@__MODULE__, temp_file; $kwargs...)
+        rm(temp_file; force = true)
 
         l2_measured, linf_measured =
             invokelatest((@__MODULE__).compute_norms, "./pincflow_output.h5")

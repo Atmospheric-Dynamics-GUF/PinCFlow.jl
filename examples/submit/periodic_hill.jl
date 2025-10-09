@@ -1,5 +1,9 @@
 # examples/submit/periodic_hill.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
 using PinCFlow
 
 @ivy if length(ARGS) == 0
