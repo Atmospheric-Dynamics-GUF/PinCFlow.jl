@@ -28,8 +28,11 @@ grid = GridNamelist(;
     resolved_topography = (namelists, x, y) ->
         5 * (1 + cos(pi / 10000 * x)),
 )
-output =
-    OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
+output = OutputNamelist(;
+    output_variables = (:w,),
+    prepare_restart = false,
+    output_file = "periodic_hill.h5",
+)
 sponge = SpongeNamelist(; betarmax = 1.0E+0)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
