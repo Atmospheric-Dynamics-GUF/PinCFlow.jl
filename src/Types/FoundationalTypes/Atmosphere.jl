@@ -94,7 +94,7 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
     background::Isentropic,
 )::Atmosphere
 ```
@@ -120,12 +120,12 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
     background::Realistic,
 )::Atmosphere
 ```
 
-Create an `Atmosphere` instance with background fields describing a realistic atmosphere with an isentropic troposphere, an isothermal stratosphere, and a tropopause located at the altitude ``z_{\\text{trop.}}``.
+Create an `Atmosphere` instance with background fields describing a realistic atmosphere with an isentropic troposphere, an isothermal stratosphere, and a tropopause located at the altitude ``z_{\\text{trop}}``.
 
 The background fields are given by 
 
@@ -133,22 +133,27 @@ The background fields are given by
 \\begin{align*}
     P \\left(z \\right) & = 
     \\begin{cases} 
-        p_0 \\left( 1 - \\frac{\\kappa\\sigma z}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} & z \\leq z_{\\text{trop.}}\\;, \\\\
-        p_0^{\\kappa} p_{\\text{trop.}}^{1/\\gamma}\\exp\\left(-\\frac{\\sigma(z-z_{\\text{trop.}})}{\\gamma T_{\\text{trop.}}}\\right) & z > z_{\\text{trop.}} \\;,
+        p_0 \\left( 1 - \\frac{\\kappa\\sigma z}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} & z \\leq z_{\\text{trop}}\\;, \\\\
+        p_0^{\\kappa} p_{\\text{trop}}^{1/\\gamma}\\exp\\left(-\\frac{\\sigma(z-z_{\\text{trop}})}{\\gamma T_{\\text{trop}}}\\right) & z > z_{\\text{trop}} \\;,
     \\end{cases} \\\\
     \\overline{\\theta}\\left(z\\right) & = 
     \\begin{cases}
-        \\theta_0 & z \\leq z_{\\text{trop.}} \\;, \\\\
-        \\theta_0 \\exp\\left(\\frac{\\kappa\\sigma(z-z_{\\text{trop.}})}{T_{\\text{trop.}}}\\right) & z > z_{\\text{trop.}} \\;,
+        \\theta_0 & z \\leq z_{\\text{trop}} \\;, \\\\
+        \\theta_0 \\exp\\left(\\frac{\\kappa\\sigma(z-z_{\\text{trop}})}{T_{\\text{trop}}}\\right) & z > z_{\\text{trop}} \\;,
     \\end{cases} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
-    N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, \\\\
-    p_{\\text{trop.}} & = p_0 \\left(1 - \\frac{\\kappa\\sigma z_{\\text{trop.}}}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
-    T_{\\text{trop.}} & = \\theta_0 \\left(\\frac{p_{\\text{trop.}}}{p_0}\\right)^{\\kappa}
+    N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
+\\end{align*}
+```
+where
+```math
+\\begin{align*}
+    p_{\\text{trop}} & = p_0 \\left(1 - \\frac{\\kappa\\sigma z_{\\text{trop}}}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
+    T_{\\text{trop}} & = \\theta_0 \\left(\\frac{p_{\\text{trop}}}{p_0}\\right)^{\\kappa}
 \\end{align*}
 ```
 
-where ``p_0``, ``\\theta_0``, ``z_{\\text{trop.}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.potential_temperature`, `namelists.atmosphere.tropopause_height`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
+where ``p_0``, ``\\theta_0``, ``z_{\\text{trop}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.potential_temperature`, `namelists.atmosphere.tropopause_height`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
 
 ```julia 
 Atmosphere(
@@ -156,47 +161,52 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
     background::LapseRates,
 )::Atmosphere
 ```
 
-Create an `Atmosphere` instance with background fields describing a troposphere and a stratosphere with lapse rates ``\\Gamma_t`` and ``\\Gamma_s``, respectively, and a tropopause located at the altitude ``z_{\\text{trop.}}``.
+Create an `Atmosphere` instance with background fields describing a troposphere and a stratosphere with lapse rates ``\\Gamma_{\\mathrm{t}}`` and ``\\Gamma_{\\mathrm{t}}``, respectively, and a tropopause located at the altitude ``z_{\\text{trop}}``.
 
 The background fields are given by 
 ```math 
 \\begin{align*}
-    T\\left(z)\\right) & = 
+    T\\left(z\\right) & = 
     \\begin{cases}
-        T_0 - \\Gamma_t z & z \\leq z_{\\text{trop.}} \\;, \\\\
-        T_0 - \\Gamma_t z_{\\text{trop.}} - \\Gamma_s \\left(z - z_{\\text{trop.}}\\right) & z > z_{\\text{trop.}} \\;,
+        T_0 - \\Gamma_{\\mathrm{t}} z & z \\leq z_{\\text{trop}} \\;, \\\\
+        T_0 - \\Gamma_{\\mathrm{t}} z_{\\text{trop}} - \\Gamma_{\\mathrm{s}} \\left(z - z_{\\text{trop}}\\right) & z > z_{\\text{trop}} \\;,
     \\end{cases} \\\\
     P\\left(z\\right) & = 
     \\begin{cases}
-        p_0 \\left(1 - \\frac{\\Gamma_t z}{T_0}\\right)^{\\frac{g}{R \\Gamma_t}} & z \\leq z_{\\text{trop.}} \\; \\& \\; \\Gamma_t \\neq 0 \\;, \\\\
-        p_0 \\exp\\left(- \\frac{z \\sigma}{\\gamma T_0} \\right) & z \\leq z_{\\text{trop.}} \\; \\& \\; \\Gamma_t = 0 \\;, \\\\
-        p_{\\text{trop.}}\\left(1 - \\frac{\\Gamma_s \\left(z - z_{\\text{trop.}} \\right)}{T_{\\text{trop.}}} \\right)^{\\frac{g}{R\\Gamma_s}} & z > z_{\\text{trop.}} \\; \\& \\; \\Gamma_s \\neq 0 \\;, \\\\
-        p_{\\text{trop.}}\\exp\\left(- \\frac{\\left(z - z_{\\text{trop.}} \\right)\\sigma}{\\gamma T_{\\text{trop.}}} \\right) & z > z_{\\text{trop.}} \\; \\& \\; \\Gamma_s = 0 \\;,
+        p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{t}} z}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{t}}}} & z \\leq z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{t}} \\neq 0 \\;, \\\\
+        p_0 \\exp\\left(- \\frac{z \\sigma}{\\gamma T_0} \\right) & z \\leq z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{t}} = 0 \\;, \\\\
+        p_{\\text{trop}}\\left(1 - \\frac{\\Gamma_{\\mathrm{s}} \\left(z - z_{\\text{trop}} \\right)}{T_{\\text{trop}}} \\right)^{\\frac{g}{R\\Gamma_{\\mathrm{s}}}} & z > z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{s}} \\neq 0 \\;, \\\\
+        p_{\\text{trop}}\\exp\\left(- \\frac{\\left(z - z_{\\text{trop}} \\right)\\sigma}{\\gamma T_{\\text{trop}}} \\right) & z > z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{s}} = 0 \\;,
     \\end{cases} \\\\
-    \\overline{\\Theta}\\left(z\\right) & =
+    \\overline{\\theta}\\left(z\\right) & =
     \\begin{cases}
-        \\overline{T}\\left(z)\\right) \\left(\\frac{p_0}{P\\left(z)\\right)}\\right)^{\\frac{R\\Gamma_t}{g}} & z \\leq z_{\\text{trop.}} \\; \\& \\; \\Gamma_t \\neq 0 \\;, \\\\
-        T_0 \\exp\\left(\\frac{\\kappa\\sigma z}{T_0}\\right) & z \\leq z_{\\text{trop.}} \\;\\&\\; \\Gamma_t = 0 \\;, \\\\
-        \\overline{T}\\left(z)\\right)\\left(\\frac{p_{\\text{trop.}}}{P\\left(z)\\right)}\\right)^{\\frac{R\\Gamma_s}{g}} & z > z_{\\text{trop.}} \\; \\& \\; \\Gamma_s \\neq 0 \\;, \\\\
-        \\theta_{\\text{trop.}}\\exp\\left(\\frac{\\kappa\\sigma \\left(z-z_{\\text{trop.}}\\right)}{T\\left(z_{\\text{trop.}}\\right)}\\right) & z > z_{\\text{trop.}} \\;\\&\\; \\Gamma_s = 0 \\;, 
+        T\\left(z\\right) \\left(\\frac{p_0}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{t}}}{g}} & z \\leq z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{t}} \\neq 0 \\;, \\\\
+        T_0 \\exp\\left(\\frac{\\kappa\\sigma z}{T_0}\\right) & z \\leq z_{\\text{trop}} \\;\\&\\; \\Gamma_{\\mathrm{t}} = 0 \\;, \\\\
+        T\\left(z\\right)\\left(\\frac{p_{\\text{trop}}}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{s}}}{g}} & z > z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{s}} \\neq 0 \\;, \\\\
+        \\theta_{\\text{trop}}\\exp\\left(\\frac{\\kappa\\sigma \\left(z-z_{\\text{trop}}\\right)}{T\\left(z_{\\text{trop}}\\right)}\\right) & z > z_{\\text{trop}} \\;\\&\\; \\Gamma_{\\mathrm{s}} = 0 \\;, 
     \\end{cases} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
-    N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, \\\\
-    p_{\\text{trop.}} & = 
+    N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
+\\end{align*}
+```
+where
+```math
+\\begin{align*}
+    p_{\\text{trop}} & = 
     \\begin{cases}
-        p_0 \\left(1 - \\frac{\\Gamma_t z_{\\text{trop.}}}{T_0}\\right)^{\\frac{g}{R \\Gamma_t}} & \\Gamma_t \\neq 0 \\;, \\\\
-        p_0 \\exp\\left(- \\frac{z_{\\text{trop.}}\\sigma}{\\gamma T_0} \\right) & \\Gamma_t = 0 \\;, 
+        p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{t}} z_{\\text{trop}}}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{t}}}} & \\Gamma_{\\mathrm{t}} \\neq 0 \\;, \\\\
+        p_0 \\exp\\left(- \\frac{z_{\\text{trop}}\\sigma}{\\gamma T_0} \\right) & \\Gamma_{\\mathrm{t}} = 0 \\;, 
     \\end{cases} \\\\
-    \\theta_{\\text{trop.}} &= T_0 \\exp\\left(\\frac{\\kappa\\sigma z_{\\text{trop.}}}{T_0} \\right)
+    \\theta_{\\text{trop}} &= T_0 \\exp\\left(\\frac{\\kappa\\sigma z_{\\text{trop}}}{T_0} \\right)
 \\end{align*}
 ```
 
-where ``p_0``, ``T_0``, ``z_{\\text{trop.}}``, ``\\Gamma_t``, ``\\Gamma_s``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.temperature`, `namelists.atmosphere.tropopause_height`, `namelists.atmosphere.lapse_rate_troposphere`, `namelists.atmosphere.lapse_rate_stratosphere`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
+where ``p_0``, ``T_0``, ``z_{\\text{trop}}``, ``\\Gamma_{\\mathrm{t}}``, ``\\Gamma_{\\mathrm{s}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.temperature`, `namelists.atmosphere.tropopause_height`, `namelists.atmosphere.troposphere_lapse_rate`, `namelists.atmosphere.stratosphere_lapse_rate`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
 
 # Fields
 
@@ -311,30 +321,7 @@ function Atmosphere(
     thetabar .= t0 .* exp.(kappa .* sig ./ t0 .* zc)
     rhobar .= pbar ./ thetabar
 
-    # Compute the squared buoyancy frequency.
-    n2 .= 0.0
-    @ivy for k in k0:k1
-        n2[:, :, k] .=
-            g_ndim ./ thetabar[:, :, k] ./ jac[:, :, k] .* 0.5 .*
-            (thetabar[:, :, k + 1] .- thetabar[:, :, k - 1]) ./ dz
-    end
-
-    # Compute the squared buoyancy frequency at the boundaries.
-    set_vertical_boundaries_of_field!(n2, namelists, domain, +)
-    @ivy if ko == 0
-        for k in 1:nbz
-            n2[:, :, k] .=
-                g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
-                (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
-        end
-    end
-    @ivy if ko + nzz == zz_size
-        for k in 1:nbz
-            n2[:, :, k1 + k] .=
-                g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
-                (thetabar[:, :, k1 + 1] .- thetabar[:, :, k1]) ./ dz
-        end
-    end
+    compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
@@ -344,7 +331,7 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
     background::Isentropic,
 )::Atmosphere
     (; lz) = namelists.domain
@@ -368,13 +355,13 @@ function Atmosphere(
         )
     end
 
-    pt0 = potential_temperature / thetaref
+    theta0 = potential_temperature / thetaref
     p0 = ground_pressure / pref
 
     # Compute the background fields.
     n2 .= 0.0
-    thetabar .= pt0
-    pbar .= p0 .* (1.0 .- kappa .* sig ./ pt0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
+    thetabar .= theta0
+    pbar .= p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
     rhobar .= pbar ./ thetabar
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
@@ -385,7 +372,7 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
     background::Realistic,
 )::Atmosphere
     (; nbx, nby, nbz) = namelists.domain
@@ -400,9 +387,9 @@ function Atmosphere(
 
     p0 = ground_pressure / pref
     ztrop = tropopause_height / lref
-    pt0 = potential_temperature / thetaref
-    ptrop = p0 * (1.0 - kappa * sig / pt0 * ztrop)^(1.0 / (gamma - 1.0))
-    ttrop = pt0 * (ptrop / p0)^kappa
+    theta0 = potential_temperature / thetaref
+    ptrop = p0 * (1.0 - kappa * sig / theta0 * ztrop)^(1.0 / (gamma - 1.0))
+    ttrop = theta0 * (ptrop / p0)^kappa
 
     min_potential_temperature = kappa * g / rsp * tropopause_height
     if potential_temperature < min_potential_temperature
@@ -416,18 +403,15 @@ function Atmosphere(
         )
     end
 
-    @ivy for k in (k0 - nbz):(k1 + nbz),
-        j in (j0 - nby):(j1 + nby),
-        i in (i0 - nbx):(i1 + nbx)
-
+    @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
         if zc[i, j, k] <= ztrop
-            thetabar[i, j, k] = pt0
+            thetabar[i, j, k] = theta0
             pbar[i, j, k] =
                 p0 *
-                (1.0 - kappa * sig / pt0 * zc[i, j, k])^(1.0 / (gamma - 1.0))
+                (1.0 - kappa * sig / theta0 * zc[i, j, k])^(1.0 / (gamma - 1.0))
         else
             thetabar[i, j, k] =
-                pt0 * exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop))
+                theta0 * exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop))
             pbar[i, j, k] =
                 p0^kappa *
                 ptrop^gammainv *
@@ -436,28 +420,7 @@ function Atmosphere(
     end
     rhobar .= pbar ./ thetabar
 
-    @ivy for k in k0:k1
-        n2[:, :, k] .=
-            g_ndim ./ thetabar[:, :, k] ./ jac[:, :, k] .* 0.5 .*
-            (thetabar[:, :, k + 1] .- thetabar[:, :, k - 1]) ./ dz
-    end
-
-    # Compute the squared buoyancy frequency at the boundaries.
-    set_vertical_boundaries_of_field!(n2, namelists, domain, +)
-    @ivy if ko == 0
-        for k in 1:nbz
-            n2[:, :, k] .=
-                g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
-                (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
-        end
-    end
-    @ivy if ko + nzz == zz_size
-        for k in 1:nbz
-            n2[:, :, k1 + k] .=
-                g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
-                (thetabar[:, :, k1 + 1] .- thetabar[:, :, k1]) ./ dz
-        end
-    end
+    compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
@@ -467,14 +430,14 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
     background::LapseRates,
 )::Atmosphere
     (; nbx, nby, nbz) = namelists.domain
     (;
         ground_pressure,
-        lapse_rate_troposphere,
-        lapse_rate_stratosphere,
+        troposphere_lapse_rate,
+        stratosphere_lapse_rate,
         tropopause_height,
         temperature,
     ) = namelists.atmosphere
@@ -485,31 +448,27 @@ function Atmosphere(
     # Initialize the background fields.
     (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
 
-    gamma_t = lapse_rate_troposphere / thetaref * lref
-    gamma_s = lapse_rate_stratosphere / thetaref * lref
+    gamma_t = troposphere_lapse_rate / thetaref * lref
+    gamma_s = stratosphere_lapse_rate / thetaref * lref
 
     p0 = ground_pressure / pref
     t0 = temperature / thetaref
     ztrop = tropopause_height / lref
 
     if gamma_t != 0.0
-        power_t = g / (rsp * lapse_rate_troposphere)
+        power_t = g / (rsp * troposphere_lapse_rate)
         ptrop = p0 * (1.0 - gamma_t * ztrop / t0)^power_t
-        pttrop = (t0 - gamma_t * ztrop) * (p0 / ptrop)^(1 / power_t)
     else
         ptrop = p0 * exp(-ztrop * sig / gamma / t0)
         pttrop = t0 * exp(kappa * sig / t0 * ztrop)
     end
     if gamma_s != 0.0
-        power_s = g / (rsp * lapse_rate_stratosphere)
+        power_s = g / (rsp * stratosphere_lapse_rate)
     end
 
     ttrop = t0 - gamma_t * ztrop
 
-    @ivy for k in (k0 - nbz):(k1 + nbz),
-        j in (j0 - nby):(j1 + nby),
-        i in (i0 - nbx):(i1 + nbx)
-
+    @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
         if zc[i, j, k] <= ztrop
             tbar = t0 - gamma_t * zc[i, j, k]
 
@@ -540,28 +499,7 @@ function Atmosphere(
 
     rhobar .= pbar ./ thetabar
 
-    @ivy for k in k0:k1
-        n2[:, :, k] .=
-            g_ndim ./ thetabar[:, :, k] ./ jac[:, :, k] .* 0.5 .*
-            (thetabar[:, :, k + 1] .- thetabar[:, :, k - 1]) ./ dz
-    end
-
-    # Compute the squared buoyancy frequency at the boundaries.
-    set_vertical_boundaries_of_field!(n2, namelists, domain, +)
-    @ivy if ko == 0
-        for k in 1:nbz
-            n2[:, :, k] .=
-                g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
-                (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
-        end
-    end
-    @ivy if ko + nzz == zz_size
-        for k in 1:nbz
-            n2[:, :, k1 + k] .=
-                g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
-                (thetabar[:, :, k1 + 1] .- thetabar[:, :, k1]) ./ dz
-        end
-    end
+    compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
