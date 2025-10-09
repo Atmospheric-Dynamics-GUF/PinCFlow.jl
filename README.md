@@ -34,7 +34,7 @@ runs PinCFlow in its default configuration, if executed with
 julia --project script.jl
 ```
 
-in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow's example scripts. To run them, we recommended setting up an examples project by executing
+in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow's example scripts. To run them, we recommend setting up an examples project by executing
 
 ```shell
 julia --project=examples -e 'using Pkg; Pkg.add("CairoMakie", "HDF5", "HDF5_jll", "MPICH_jll", "MPIPreferences", "Revise")'
@@ -112,7 +112,7 @@ you can restore the default backends. Having configured MPI.jl and HDF5.jl to us
 mpiexec -n 16 julia examples/submit/periodic_hill.jl 4 4
 ```
 
-with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow on [Goethe](https://csc.uni-frankfurt.de/wiki/doku.php?id=public:usage:goethe) or [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in `examples/submit`.
+with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow on [Goethe](https://csc.uni-frankfurt.de/wiki/doku.php?id=public:usage:goethe) or [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/submit` of the repository.
 
 ### Visualizing the results
 
