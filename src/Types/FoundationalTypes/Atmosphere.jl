@@ -187,7 +187,11 @@ The background fields are given by
     \\end{cases} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, \\\\
-    p_{\\text{trop.}} & = p_0 \\exp\\left(- \\frac{z_{\\text{trop.}}\\sigma}{\\gamma T_0} \\right) \\\\
+    p_{\\text{trop.}} & = 
+    \\begin{cases}
+        p_0 \\left(1 - \\frac{\\Gamma_t z_{\\text{trop.}}}{T_0}\\right)^{\\frac{g}{R \\Gamma_t}} & \\Gamma_t \\neq 0 \\;, \\\\
+        p_0 \\exp\\left(- \\frac{z_{\\text{trop.}}\\sigma}{\\gamma T_0} \\right) & \\Gamma_t = 0 \\;, 
+    \\end{cases} \\\\
     \\theta_{\\text{trop.}} &= T_0 \\exp\\left(\\frac{\\kappa\\sigma z_{\\text{trop.}}}{T_0} \\right)
 \\end{align*}
 ```
