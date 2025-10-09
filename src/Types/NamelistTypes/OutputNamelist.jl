@@ -15,7 +15,7 @@ Namelist for I/O parameters.
 OutputNamelist(;
     output_variables::Tuple{Vararg{Symbol}} = (),
     save_ray_volumes::Bool = false,
-    prepare_restart::Bool = true,
+    prepare_restart::Bool = false,
     restart::Bool = false,
     iin::Integer = -1,
     output_steps::Bool = false,
@@ -80,7 +80,7 @@ end
 function OutputNamelist(;
     output_variables::Tuple{Vararg{Symbol}} = (),
     save_ray_volumes::Bool = false,
-    prepare_restart::Bool = true,
+    prepare_restart::Bool = false,
     restart::Bool = false,
     iin::Integer = -1,
     output_steps::Bool = false,

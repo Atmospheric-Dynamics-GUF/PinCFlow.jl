@@ -34,7 +34,6 @@ grid = GridNamelist(;
 )
 output = OutputNamelist(;
     output_variables = (:w,),
-    prepare_restart = false,
     output_file = "wkb_mountain_wave.h5",
 )
 setting = SettingNamelist(; test_case = WKBMountainWave())

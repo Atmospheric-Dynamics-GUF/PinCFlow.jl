@@ -39,7 +39,6 @@ reference = (l2, linf)
         "x_size = 10",
         "y_size = 10",
         "z_size = 10",
-        "output_variables = ()",
-        "prepare_restart = true",
+        "output = OutputNamelist(; prepare_restart = true)",
     )
 end
