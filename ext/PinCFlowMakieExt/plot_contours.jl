@@ -2,7 +2,7 @@ function plot_contours(
     file::AbstractString,
     data::HDF5.File,
     variable::AbstractString,
-    indices::Vararg{<:NTuple{4, <:Integer}};
+    indices::Vararg{NTuple{4, <:Integer}};
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
     label::AbstractString = "",

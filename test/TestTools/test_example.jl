@@ -2,8 +2,8 @@
 ```julia
 test_example(
     file::AbstractString,
-    reference::NTuple{2, NamedTuple},
-    assignments::Vararg{AbstractString};
+    reference::NTuple{2, <:NamedTuple},
+    assignments::Vararg{Pair{Symbol, <:Any}};
     test::Bool = true,
     atol::Real = 0,
     rtol::Real = 0,
@@ -32,8 +32,8 @@ function test_example end
 
 function test_example(
     file::AbstractString,
-    reference::NTuple{2, NamedTuple},
-    assignments::Vararg{AbstractString};
+    reference::NTuple{2, <:NamedTuple},
+    assignments::Vararg{Pair{Symbol, <:Any}};
     test::Bool = true,
     atol::Real = 0,
     rtol::Real = 0,
@@ -41,26 +41,27 @@ function test_example(
     # Read the example script and replace assignments.
     script = replace(
         read(file, String),
-        r" *using +Pkg *\n+" => "",
-        r" *Pkg.activate\( *\"examples\" *\) *\n+" => "",
+        r"(?m)^ *using +Pkg *\n+" => "",
+        r"(?m)^ *Pkg.activate\( *\"examples\" *\) *\n+" => "",
     )
     for assignment in assignments
-        (name, value) = split(assignment, r" *= *"; limit = 2)
-        range = findfirst(Regex(name * " *= *"), script)
+        (name, value) = assignment
+        range = findfirst(Regex("$name *= *"), script)
         if range !== nothing
             (start, stop) = extrema(range)
+            suffix = ""
             stop += 1
             try
                 stop = Meta.parse(script, stop)[2]
-                assignment *= ";"
+                suffix = "\n"
             catch
-                stop = stop
                 while !(script[stop] in (',', ')'))
                     stop = Meta.parse(script, stop; greedy = false)[2]
                 end
             end
             stop -= 1
-            script = replace(script, script[start:stop] => assignment)
+            script =
+                replace(script, script[start:stop] => "$name = $value" * suffix)
         end
     end
 

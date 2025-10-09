@@ -36,8 +36,8 @@ reference = (l2, linf)
     test_example(
         joinpath(submit_directory, "periodic_hill.jl"),
         reference,
-        "x_size = 10",
-        "z_size = 10",
-        "output = OutputNamelist(; prepare_restart = true)",
+        :x_size => 10,
+        :z_size => 10,
+        :output => OutputNamelist(; prepare_restart = true),
     )
 end

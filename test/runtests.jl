@@ -1,6 +1,7 @@
 include("TestTools/TestTools.jl")
 
 using Test
+using PinCFlow
 using .TestTools
 
 submit_directory = "../examples/submit/"
