@@ -19,7 +19,7 @@ Construct a `TurbulenceReconstructions` instance with dimensions depending on th
 ```julia
 TurbulenceReconstructions(
     domain::Domain,
-    turbulencesetup::NoTurbulence,
+    turbulence_scheme::NoTurbulence,
 )::TurbulenceReconstructions
 ```
 
@@ -28,7 +28,7 @@ Construct a `TurbulenceReconstructions` instance with zero-size arrays for confi
 ```julia
 TurbulenceReconstructions(
     domain::Domain,
-    turbulencesetup::AbstractTurbulence,
+    turbulence_scheme::AbstractTurbulence,
 )::TurbulenceReconstructions
 ```
 
@@ -46,7 +46,7 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulencesetup`: General turbulence-physics configuration.
+  - `turbulence_scheme`: General turbulence-physics configuration.
 """
 struct TurbulenceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     tketilde::A
@@ -57,14 +57,14 @@ function TurbulenceReconstructions(
     namelists::Namelists,
     domain::Domain,
 )::TurbulenceReconstructions
-    (; turbulencesetup) = namelists.turbulence
+    (; turbulence_scheme) = namelists.turbulence
 
-    return TurbulenceReconstructions(domain, turbulencesetup)
+    return TurbulenceReconstructions(domain, turbulence_scheme)
 end
 
 function TurbulenceReconstructions(
     domain::Domain,
-    turbulencesetup::NoTurbulence,
+    turbulence_scheme::NoTurbulence,
 )::TurbulenceReconstructions
     tketilde = zeros(0, 0, 0, 0, 0)
     ttetilde = zeros(0, 0, 0, 0, 0)
@@ -74,7 +74,7 @@ end
 
 function TurbulenceReconstructions(
     domain::Domain,
-    turbulencesetup::AbstractTurbulence,
+    turbulence_scheme::AbstractTurbulence,
 )::TurbulenceReconstructions
     (; nxx, nyy, nzz) = domain
 

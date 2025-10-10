@@ -36,6 +36,33 @@ using ..Output
 using ..MSGWaM
 using ..PinCFlow
 
+"""
+```julia
+Dissipation
+```
+
+Singleton for the dissipation step of the turbulence computation.
+"""
+struct Dissipation end
+
+"""
+```julia
+Advection
+```
+
+Singleton for the advection step of the turbulence computation.
+"""
+struct Advection end
+
+"""
+```julia
+Diffusion
+```
+
+Singleton for the diffusion step of the turbulence computation.
+"""
+struct Diffusion end
+
 include("compute_time_step.jl")
 include("integrate.jl")
 include("modify_compressible_wind!.jl")
@@ -47,6 +74,7 @@ include("explicit_integration!.jl")
 include("implicit_integration!.jl")
 include("wkb_integration!.jl")
 include("backup_predictands.jl")
+include("turbulence_integration!.jl")
 
 export integrate
 

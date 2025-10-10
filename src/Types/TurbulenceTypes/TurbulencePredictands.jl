@@ -25,7 +25,7 @@ TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulencesetup::NoTurbulence,
+    turbulence_scheme::NoTurbulence,
     variables::Variables,
 )::TurbulencePredictands
 ```
@@ -39,7 +39,7 @@ TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulencesetup::AbstractTurbulence,
+    turbulence_scheme::AbstractTurbulence,
     variables::Variables,
 )::TurbulencePredictands
 ```
@@ -64,7 +64,7 @@ Construct a `TurbulencePredictands` instance with both arrays initialized as ``t
 
   - `grid`: Collection of parameters and fields describing the grid.
 
-  - `turbulencesetup`: General turbulence-physics configuration.
+  - `turbulence_scheme`: General turbulence-physics configuration.
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 """
@@ -81,7 +81,7 @@ function TurbulencePredictands(
     grid::Grid,
     variables::Variables,
 )::TurbulencePredictands
-    (; turbulencesetup) = namelists.turbulence
+    (; turbulence_scheme) = namelists.turbulence
 
     return TurbulencePredictands(
         namelists,
@@ -89,7 +89,7 @@ function TurbulencePredictands(
         domain,
         atmosphere,
         grid,
-        turbulencesetup,
+        turbulence_scheme,
         variables,
     )
 end
@@ -100,7 +100,7 @@ function TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulencesetup::NoTurbulence,
+    turbulence_scheme::NoTurbulence,
     variables::Variables,
 )::TurbulencePredictands
     tke = zeros(0, 0, 0)
@@ -115,20 +115,20 @@ function TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulencesetup::AbstractTurbulence,
+    turbulence_scheme::AbstractTurbulence,
     variables::Variables,
 )::TurbulencePredictands
     (; nxx, nyy, nzz) = domain
-    (; rhostrattfc) = atmosphere
+    (; rhobar) = atmosphere
     (; rho) = variables.predictands
     (; lref, tref) = constants
 
     tke =
         ones(nxx, nyy, nzz) .* 0.1 .* (tref .^ 2.0) ./ (lref .^ 2.0) .*
-        (rho .+ rhostrattfc)
+        (rho .+ rhobar)
     tte =
         ones(nxx, nyy, nzz) .* 0.1 .* (tref .^ 2.0) ./ (lref .^ 2.0) .*
-        (rho .+ rhostrattfc)
+        (rho .+ rhobar)
 
     return TurbulencePredictands(tke, tte)
 end

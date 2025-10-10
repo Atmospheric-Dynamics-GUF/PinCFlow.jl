@@ -248,6 +248,21 @@ function create_output(state::State)
             end
         end
 
+        if !(typeof(state.namelists.turbulence.turbulence_scheme) <: NoTurbulence)
+            for field in fieldnames(TurbulencePredictands)
+                create_dataset(
+                    file,
+                    string(field),
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+        end
+
         # Create datasets for WKB variables.
         if typeof(test_case) <: AbstractWKBTestCase
 

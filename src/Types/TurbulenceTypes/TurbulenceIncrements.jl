@@ -17,7 +17,7 @@ Construct a `TurbulenceIncrements` instance with dimensions depending on the gen
 ```julia
 TurbulenceIncrements(
     domain::Domain,
-    turbulencesetup::NoTurbulence,
+    turbulence_scheme::NoTurbulence,
 )::TurbulenceIncrements
 ```
 
@@ -26,7 +26,7 @@ Construct a `TurbulenceIncrements` instance with zero-size arrays for configurat
 ```julia
 TurbulenceIncrements(
     domain::Domain,
-    turbulencesetup::AbstractTurbulence,
+    turbulence_scheme::AbstractTurbulence,
 )::TurbulenceIncrements
 ```
 
@@ -44,7 +44,7 @@ Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulencesetup`: General turbulence-physics configuration.
+  - `turbulence_scheme`: General turbulence-physics configuration.
 """
 struct TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dtke::A
@@ -55,14 +55,14 @@ function TurbulenceIncrements(
     namelists::Namelists,
     domain::Domain,
 )::TurbulenceIncrements
-    (; turbulencesetup) = namelists.turbulence
+    (; turbulence_scheme) = namelists.turbulence
 
-    return TurbulenceIncrements(domain, turbulencesetup)
+    return TurbulenceIncrements(domain, turbulence_scheme)
 end
 
 function TurbulenceIncrements(
     domain::Domain,
-    turbulencesetup::NoTurbulence,
+    turbulence_scheme::NoTurbulence,
 )::TurbulenceIncrements
     dtke = zeros(0, 0, 0)
     dtte = zeros(0, 0, 0)
@@ -72,7 +72,7 @@ end
 
 function TurbulenceIncrements(
     domain::Domain,
-    turbulencesetup::AbstractTurbulence,
+    turbulence_scheme::AbstractTurbulence,
 )::TurbulenceIncrements
     (; nxx, nyy, nzz) = domain
 

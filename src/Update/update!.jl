@@ -1491,3 +1491,54 @@ function update!(
 
     return
 end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulence_scheme::NoTurbulence,
+)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulence_scheme::AbstractTurbulence,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; turbulenceincrements, turbulencepredictands, turbulencefluxes) = state.turbulence
+
+    @ivy for field in 1:fieldcount(TurbulencePredictands)
+        if m == 1
+            getfield(turbulenceincrements, field) .= 0.0
+        end
+
+        flr = getfield(turbulencefluxes, field)[:, :, :, 1]
+        gbf = getfield(turbulencefluxes, field)[:, :, :, 2]
+        hdu = getfield(turbulencefluxes, field)[:, :, :, 3]
+        chi = getfield(turbulencepredictands, field)[:, :, :]
+        dchi = getfield(turbulenceincrements, field)[:, :, :]
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = flr[i - 1, j, k]
+            fr = flr[i, j, k]
+            gb = gbf[i, j - 1, k]
+            gf = gbf[i, j, k]
+            hd = hdu[i, j, k - 1]
+            hu = hdu[i, j, k]
+
+            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+            fluxdiff /= jac[i, j, k]
+
+            f = -fluxdiff
+
+            dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]
+            chi[i, j, k] += betark[m] * dchi[i, j, k]
+        end
+    end
+
+    return
+end

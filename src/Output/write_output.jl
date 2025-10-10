@@ -312,6 +312,25 @@ function write_output(
             end
         end
 
+        if !(
+            typeof(state.namelists.turbulence.turbulence_scheme) <:
+            NoTurbulence
+        )
+            for field in fieldnames(TurbulencePredictands)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (x_size, y_size, z_size, iout),
+                )
+                file[string(field)][iid, jjd, kkd, iout] =
+                    getfield(state.turbulence.turbulencepredictands, field)[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
+                    (lref .^ 2.0) ./ (tref .^ 2.0)
+            end
+        end
+
         # Write WKB variables.
         if typeof(test_case) <: AbstractWKBTestCase
 

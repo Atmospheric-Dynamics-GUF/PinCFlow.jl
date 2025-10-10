@@ -78,6 +78,8 @@ Enforce meridional boundary conditions for gravity-wave-tendency fields needed i
   - [`PinCFlow.Boundaries.set_compressible_meridional_boundaries!`](@ref)
 
   - [`PinCFlow.Boundaries.set_tracer_meridional_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_turbulence_meridional_boundaries!`](@ref)
 """
 function set_meridional_boundaries! end
 
@@ -98,6 +100,7 @@ function set_meridional_boundaries!(
 
     set_compressible_meridional_boundaries!(state)
     set_tracer_meridional_boundaries!(state, variables)
+    set_turbulence_meridional_boundaries!(state, variables)
 
     return
 end
@@ -118,6 +121,7 @@ function set_meridional_boundaries!(
     end
 
     set_tracer_meridional_boundaries!(state, variables)
+    set_turbulence_meridional_boundaries!(state, variables)
 
     return
 end

@@ -137,5 +137,6 @@ function State(namelists::Namelists)::State
         variables,
         wkb,
         tracer,
+        turbulence
     )
 end

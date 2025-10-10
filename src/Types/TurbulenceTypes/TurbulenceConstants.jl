@@ -32,10 +32,12 @@ struct TurbulenceConstants{A <: AbstractFloat}
 
     # Dissipation constant
     cepsilon::A
+    lturb::A
 end
 
 function TurbulenceConstants(namelists::Namelists)::TurbulenceConstants
     cepsilon = 8.71E-1
+    lturb = 1.0E+2
 
-    return TurbulenceConstants(cepsilon)
+    return TurbulenceConstants(cepsilon, lturb)
 end

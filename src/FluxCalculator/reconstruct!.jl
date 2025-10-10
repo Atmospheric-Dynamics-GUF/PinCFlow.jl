@@ -83,6 +83,7 @@ function reconstruct! end
 
 function reconstruct!(state::State)
     (; tracer_setup) = state.namelists.tracer
+    (; turbulence_scheme) = state.namelists.turbulence
 
     reconstruct!(state, Rho())
     reconstruct!(state, RhoP())
@@ -91,6 +92,7 @@ function reconstruct!(state::State)
     reconstruct!(state, W())
 
     reconstruct!(state, tracer_setup)
+    reconstruct!(state, turbulence_scheme)
 
     return
 end
@@ -237,6 +239,35 @@ function reconstruct!(state::State, tracer_setup::AbstractTracer)
         apply_3d_muscl!(
             phi,
             getfield(tracerreconstructions, field),
+            nxx,
+            nyy,
+            nzz,
+            limiter_type,
+        )
+    end
+
+    return
+end
+
+function reconstruct!(state::State, turbulence_scheme::NoTurbulence)
+    return
+end
+
+function reconstruct!(state::State, turbulence_scheme::AbstractTurbulence)
+    (; limiter_type) = state.namelists.discretization
+    (; k0, k1, nxx, nyy, nzz) = state.domain
+    (; phi) = state.variables.auxiliaries
+    (; pbar) = state.atmosphere
+    (; turbulencereconstructions, turbulencepredictands) = state.turbulence
+
+    @ivy for field in 1:fieldcount(TurbulencePredictands)
+        chi = getfield(turbulencepredictands, field)[:, :, :]
+        for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+            phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
+        end
+        apply_3d_muscl!(
+            phi,
+            getfield(turbulencereconstructions, field),
             nxx,
             nyy,
             nzz,

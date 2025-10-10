@@ -77,6 +77,14 @@ function read_input!(state::State)
             end
         end
 
+        if !(typeof(state.namelists.turbulence.turbulence_scheme) <: NoTurbulence)
+            for field in fieldnames(TurbulencePredictands)
+                getfield(state.turbulence.turbulencepredictands, field)[ii, jj, kk] =
+                    file[string(field)][iid, jjd, kkd, iin] .*
+                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+        end
+
         # Read ray-volume properties.
         if typeof(test_case) <: AbstractWKBTestCase
             for (output_name, field_name) in zip(

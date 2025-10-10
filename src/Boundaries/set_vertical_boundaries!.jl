@@ -114,6 +114,7 @@ function set_vertical_boundaries!(state::State, variables::BoundaryPredictands)
     set_compressible_vertical_boundaries!(state, variables)
 
     set_tracer_vertical_boundaries!(state, variables)
+    set_turbulence_vertical_boundaries!(state, variables)
 
     return
 end
@@ -134,6 +135,7 @@ function set_vertical_boundaries!(
     end
 
     set_tracer_vertical_boundaries!(state, variables)
+    set_turbulence_vertical_boundaries!(state, variables)
 
     return
 end
@@ -159,6 +161,7 @@ function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
 
     set_compressible_vertical_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
+    set_turbulence_vertical_boundaries!(state, variables)
 
     return
 end

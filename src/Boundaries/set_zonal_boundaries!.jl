@@ -96,6 +96,7 @@ function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     set_compressible_zonal_boundaries!(state)
 
     set_tracer_zonal_boundaries!(state, variables)
+    set_turbulence_zonal_boundaries!(state, variables)
 
     return
 end
@@ -114,6 +115,7 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
     end
 
     set_tracer_zonal_boundaries!(state, variables)
+    set_turbulence_zonal_boundaries!(state, variables)
 
     return
 end

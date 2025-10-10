@@ -135,6 +135,7 @@ include("PoissonTypes/PoissonTypes.jl")
 include("VariableTypes/VariableTypes.jl")
 include("WKBTypes/WKBTypes.jl")
 include("TracerTypes/TracerTypes.jl")
+include("TurbulenceTypes/TurbulenceTypes.jl")
 
 using .NamelistTypes
 using .FoundationalTypes
@@ -142,6 +143,7 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
+using .TurbulenceTypes
 using ..PinCFlow
 
 include("State.jl")

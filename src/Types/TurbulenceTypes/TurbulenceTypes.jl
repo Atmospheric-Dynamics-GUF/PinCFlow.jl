@@ -18,6 +18,7 @@ module TurbulenceTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ...PinCFlow
 
 include("TurbulencePredictands.jl")
 include("TurbulenceIncrements.jl")

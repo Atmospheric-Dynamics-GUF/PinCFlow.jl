@@ -312,6 +312,8 @@ function integrate(namelists::Namelists)
 
         synchronize_compressible_atmosphere!(state, p0)
 
+        turbulence_integration!(state, p0, dt)
+
         explicit_integration!(state, p0, dt, time, LHS())
 
         if master

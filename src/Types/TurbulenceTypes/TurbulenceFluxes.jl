@@ -19,7 +19,7 @@ Construct a `TurbulenceFluxes` instance with dimensions depending on the general
 ```julia
 TurbulenceFluxes(
     domain::Domain,
-    turbulencesetup::NoTurbulence,
+    turbulence_scheme::NoTurbulence,
 )::TurbulenceFluxes
 ```
 
@@ -28,7 +28,7 @@ Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations
 ```julia
 TurbulenceFluxes(
     domain::Domain,
-    turbulencesetup::AbstractTurbulence,
+    turbulence_scheme::AbstractTurbulence,
 )::TurbulenceFluxes
 ```
 
@@ -46,7 +46,7 @@ Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulencesetup`: General turbulence-physics configuration.
+  - `turbulence_scheme`: General turbulence-physics configuration.
 """
 struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitke::A
@@ -57,14 +57,14 @@ function TurbulenceFluxes(
     namelists::Namelists,
     domain::Domain,
 )::TurbulenceFluxes
-    (; turbulencesetup) = namelists.turbulence
+    (; turbulence_scheme) = namelists.turbulence
 
-    return TurbulenceFluxes(domain, turbulencesetup)
+    return TurbulenceFluxes(domain, turbulence_scheme)
 end
 
 function TurbulenceFluxes(
     domain::Domain,
-    turbulencesetup::NoTurbulence,
+    turbulence_scheme::NoTurbulence,
 )::TurbulenceFluxes
     phitke = zeros(0, 0, 0, 0)
     phitte = zeros(0, 0, 0, 0)
@@ -74,7 +74,7 @@ end
 
 function TurbulenceFluxes(
     domain::Domain,
-    turbulencesetup::AbstractTurbulence,
+    turbulence_scheme::AbstractTurbulence,
 )::TurbulenceFluxes
     (; nxx, nyy, nzz) = domain
 

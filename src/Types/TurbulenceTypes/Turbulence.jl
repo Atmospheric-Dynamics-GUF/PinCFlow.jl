@@ -6,10 +6,11 @@ Turbulence{
     C <: TurbulenceAuxiliaries,
     D <: TurbulenceReconstructions,
     E <: TurbulenceFluxes,
+    F <: TurbulenceConstants,
 }
 ```
 
-Container for arrays needed for turbulence transport.
+Container for arrays and constants needed by the turbulence scheme.
 
 ```julia
 Turbulence(
@@ -22,19 +23,21 @@ Turbulence(
 )::Turbulence
 ```
 
-Construct a `Turbulence` instance, with array dimensions and initial values set according to the model configuration.
+Construct a `Turbulence` instance, with array dimensions, initial values and constants set according to the model configuration.
 
 # Fields
 
-  - `turbulencepredictands::A`: Turbulence energies.
+  - `turbulencepredictands::A`: Prognostic variables of the turbulence scheme.
 
-  - `turbulenceincrements::B`: Runge-Kutta updates of the turbulence energies.
+  - `turbulenceincrements::B`: Runge-Kutta updates of the turbulence variables.
 
-  - `turbulenceauxiliaries::C`: Initial states of the turbulence energies.
+  - `turbulenceauxiliaries::C`: Background values.
 
-  - `turbulencereconstructions::D`: Reconstructions of the turbulence energies.
+  - `turbulencereconstructions::D`: Reconstructions of the turbulence variables.
 
-  - `turbulencefluxes::E`: Fluxes of the turbulence energies.
+  - `turbulencefluxes::E`: Fluxes of the turbulence variables.
+
+  - `turbulenceconstants::F`: Constants used in the turbulence calculation
 
 # Arguments
 
@@ -62,7 +65,7 @@ Construct a `Turbulence` instance, with array dimensions and initial values set 
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceFluxes`](@ref)
 
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceForcings`](@ref)
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceConstants`](@ref)
 """
 struct Turbulence{
     A <: TurbulencePredictands,
@@ -70,14 +73,14 @@ struct Turbulence{
     C <: TurbulenceAuxiliaries,
     D <: TurbulenceReconstructions,
     E <: TurbulenceFluxes,
-    F <: TurbulenceForcings,
+    F <: TurbulenceConstants,
 }
     turbulencepredictands::A
     turbulenceincrements::B
     turbulenceauxiliaries::C
     turbulencereconstructions::D
     turbulencefluxes::E
-    turbulenceforcings::F
+    turbulenceconstants::F
 end
 
 function Turbulence(
@@ -97,10 +100,11 @@ function Turbulence(
         variables,
     )
     turbulenceincrements = TurbulenceIncrements(namelists, domain)
-    turbulenceauxiliaries = TurbulenceAuxiliaries(turbulencepredictands)
+    turbulenceauxiliaries =
+        TurbulenceAuxiliaries(turbulencepredictands, constants)
     turbulencereconstructions = TurbulenceReconstructions(namelists, domain)
     turbulencefluxes = TurbulenceFluxes(namelists, domain)
-    turbulenceforcings = TurbulenceForcings(namelists, domain)
+    turbulenceconstants = TurbulenceConstants(namelists)
 
     return Turbulence(
         turbulencepredictands,
@@ -108,6 +112,6 @@ function Turbulence(
         turbulenceauxiliaries,
         turbulencereconstructions,
         turbulencefluxes,
-        turbulenceforcings,
+        turbulenceconstants,
     )
 end

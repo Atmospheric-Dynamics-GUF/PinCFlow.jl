@@ -10,21 +10,23 @@ else
     error("Too many arguments to the script!")
 end
 
-atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
+atmosphere = AtmosphereNamelist(; background = UniformBoussinesq())
 domain = DomainNamelist(;
-    x_size = 40,
+    x_size = 20,
     y_size = 1,
-    z_size = 40,
+    z_size = 20,
     lx = 2.0E+4,
     ly = 2.0E+4,
     lz = 2.0E+4,
 )
-grid = GridNamelist(; mountain_height = 1.0E+1, mountain_half_width = 1.0E+4)
-output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
-sponge = SpongeNamelist(; use_sponge = true)
-turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme(),)
+setting = SettingNamelist(; model = Boussinesq())
+grid = GridNamelist(; mountain_height = 0.0E+1, mountain_half_width = 1.0E+4)
+output = OutputNamelist(;
+    output_variables = (:w,),
+    output_file = output_file,
+    output_steps = true,
+)
+sponge = SpongeNamelist(; use_sponge = false)
+turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
 
-namelists = Namelists(; atmosphere, domain, grid, output, sponge, turbulence)
-state = State(namelists)
-println("Complete")
-#integrate(Namelists(; atmosphere, domain, grid, output, sponge, turbulence))
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, turbulence, setting))

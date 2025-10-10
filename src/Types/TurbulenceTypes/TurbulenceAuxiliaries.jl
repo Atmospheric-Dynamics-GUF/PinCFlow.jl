@@ -1,116 +1,45 @@
 """
 ```julia
-Turbulence{
-    A <: TurbulencePredictands,
-    B <: TurbulenceIncrements,
-    C <: TurbulenceAuxiliaries,
-    D <: TurbulenceReconstructions,
-    E <: TurbulenceFluxes,
-    F <: TurbulenceConstants,
-}
+TurbulenceAuxiliaries{A <: AbstractFloat}
 ```
 
-Container for arrays and constants needed by the turbulence scheme.
+Background values for turbulence variables.
 
 ```julia
-Turbulence(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    variables::Variables,
-)::Turbulence
+TurbulenceAuxiliaries(constants::Constants)::TurbulenceAuxiliaries
 ```
 
-Construct a `Turbulence` instance, with array dimensions, initial values and constants set according to the model configuration.
+Construct a `TurbulenceAuxiliaries` instance with both fields set to ``t_\\mathrm{ref}^2 / \\left(10 L_\\mathrm{ref}^2\\right)``, where ``t_\\mathrm{ref}`` and ``L_\\mathrm{ref}`` are given by the properties `tref` and `lref` of `constants`, respectively.
 
 # Fields
 
-  - `turbulencepredictands::A`: Prognostic variables of the turbulence scheme.
+  - `tkebg::A`: Background value of the turbulent kinetic energy.
 
-  - `turbulenceincrements::B`: Runge-Kutta updates of the turbulence variables.
-
-  - `turbulenceauxiliaries::C`: Background values.
-
-  - `turbulencereconstructions::D`: Reconstructions of the turbulence variables.
-
-  - `turbulencefluxes::E`: Fluxes of the turbulence variables.
-
-  - `turbulenceconstants::F`: Constants used in the turbulence calculation
+  - `ttebg::A`: Background value of the total turbulent energy.
 
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-
   - `constants`: Physical constants and reference values.
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `atmosphere`: Atmospheric-background fields.
-
-  - `grid`: Collection of parameters and fields describing the grid.
-
-  - `variables`: Container for arrays needed for the prediction of the prognostic variables.
-
-# See also
-
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulencePredictands`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceIncrements`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceAuxiliaries`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceReconstructions`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceFluxes`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceConstants`](@ref)
 """
-struct Turbulence{
-    A <: TurbulencePredictands,
-    B <: TurbulenceIncrements,
-    C <: TurbulenceAuxiliaries,
-    D <: TurbulenceReconstructions,
-    E <: TurbulenceFluxes,
-    F <: TurbulenceConstants,
+struct TurbulenceAuxiliaries{
+    A <: AbstractFloat,
+    B <: AbstractArray{<:AbstractFloat, 3},
 }
-    turbulencepredictands::A
-    turbulenceincrements::B
-    turbulenceauxiliaries::C
-    turbulencereconstructions::D
-    turbulencefluxes::E
-    turbulenceconstants::F
+    tkebg::A
+    ttebg::A
+    tkebackup::B
 end
 
-function Turbulence(
-    namelists::Namelists,
+function TurbulenceAuxiliaries(
+    turbulencepredictands::TurbulencePredictands,
     constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    variables::Variables,
-)::Turbulence
-    turbulencepredictands = TurbulencePredictands(
-        namelists,
-        constants,
-        domain,
-        atmosphere,
-        grid,
-        variables,
-    )
-    turbulenceincrements = TurbulenceIncrements(namelists, domain)
-    turbulenceauxiliaries = TurbulenceAuxiliaries(constants)
-    turbulencereconstructions = TurbulenceReconstructions(namelists, domain)
-    turbulencefluxes = TurbulenceFluxes(namelists, domain)
-    turbulenceconstants = TurbulenceConstants(namelists)
+)::TurbulenceAuxiliaries
+    (; lref, tref) = constants
+    (; tke) = turbulencepredictands
 
-    return Turbulence(
-        turbulencepredictands,
-        turbulenceincrements,
-        turbulenceauxiliaries,
-        turbulencereconstructions,
-        turbulencefluxes,
-        turbulenceconstants,
-    )
+    tkebg = 0.1 * tref^2.0 / lref^2.0
+    ttebg = 0.1 * tref^2.0 / lref^2.0
+    tkebackup = deepcopy(tke)
+
+    return TurbulenceAuxiliaries(tkebg, ttebg, tkebackup)
 end
