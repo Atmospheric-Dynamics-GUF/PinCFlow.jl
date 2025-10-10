@@ -43,7 +43,7 @@ grid = GridNamelist(;
         x^2 + y^2 <= (rl * l0)^2 ?
         h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) * rh / (rh + 1) : 0.0,
     unresolved_topography = (alpha, x, y) ->
-        alpha == 1 && x^2 + y^2 <= (rl * l0)^2 ?
+        x^2 + y^2 <= (rl * l0)^2 ?
         (
             pi / l0,
             0.0,
