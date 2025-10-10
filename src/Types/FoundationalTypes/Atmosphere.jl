@@ -149,7 +149,7 @@ and
 ```math
 \\begin{align*}
     p_{\\mathrm{TP}} & = p_0 \\left(1 - \\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
-    T_{\\mathrm{TP}} & = \\theta_0 \\left(\\frac{p_{\\mathrm{TP}}}{p_0}\\right)^{\\kappa}
+    T_{\\mathrm{TP}} & = \\theta_0 \\left(\\frac{p_{\\mathrm{TP}}}{p_0}\\right)^{\\kappa}\\;,
 \\end{align*}
 ```
 
@@ -202,7 +202,7 @@ and
         p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{TS}} z_{\\mathrm{TP}}}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{TS}}}} & \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
         p_0 \\exp\\left(- \\frac{z_{\\mathrm{TP}}\\sigma}{\\gamma T_0} \\right) & \\Gamma_{\\mathrm{TS}} = 0 \\;, 
     \\end{cases} \\\\
-    \\theta_{\\mathrm{TP}} &= T_0 \\exp\\left(\\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{T_0} \\right)
+    \\theta_{\\mathrm{TP}} &= T_0 \\exp\\left(\\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{T_0} \\right)\\;,
 \\end{align*}
 ```
 
