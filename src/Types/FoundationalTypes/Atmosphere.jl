@@ -185,9 +185,9 @@ The background fields are given by
     \\end{cases} \\\\
     \\overline{\\theta}\\left(z\\right) & =
     \\begin{cases}
-        T\\left(z\\right) \\left(\\frac{p_0}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{TS}}}{g}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        T\\left(z\\right) \\left[\\frac{p_0}{P\\left(z\\right)}\\right]^{\\frac{R\\Gamma_{\\mathrm{TS}}}{g}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
         T_0 \\exp\\left(\\frac{\\kappa\\sigma z}{T_0}\\right) & z \\leq z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
-        T\\left(z\\right)\\left(\\frac{p_{\\mathrm{TP}}}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{SS}}}{g}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
+        T\\left(z\\right)\\left[\\frac{p_{\\mathrm{TP}}}{P\\left(z\\right)}\\right]^{\\frac{R\\Gamma_{\\mathrm{SS}}}{g}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
         \\theta_{\\mathrm{TP}}\\exp\\left[\\frac{\\kappa\\sigma \\left(z-z_{\\mathrm{TP}}\\right)}{T\\left(z_{\\mathrm{TP}}\\right)}\\right] & z > z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{SS}} = 0 \\;, 
     \\end{cases} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
