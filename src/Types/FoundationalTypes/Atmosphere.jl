@@ -145,7 +145,7 @@ The background fields are given by
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
 \\end{align*}
 ```
-and
+where
 ```math
 \\begin{align*}
     p_{\\mathrm{TP}} & = p_0 \\left(1 - \\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
@@ -153,7 +153,7 @@ and
 \\end{align*}
 ```
 
-where ``p_0``, ``\\theta_0``, ``z_{\\mathrm{TP}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.potential_temperature`, `namelists.atmosphere.tropopause_height`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
+and ``p_0``, ``\\theta_0``, ``z_{\\mathrm{TP}}``, ``\\sigma``, ``\\gamma``, and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.potential_temperature`, `namelists.atmosphere.tropopause_height`, `constants.sig`, `constants.gamma`, and `constants.kappa`, respectively.
 
 ```julia 
 Atmosphere(
@@ -194,7 +194,7 @@ The background fields are given by
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
 \\end{align*}
 ```
-and
+where
 ```math
 \\begin{align*}
     p_{\\mathrm{TP}} & = 
@@ -206,7 +206,7 @@ and
 \\end{align*}
 ```
 
-where ``p_0``, ``T_0``, ``z_{\\mathrm{TP}}``, ``\\Gamma_{\\mathrm{TS}}``, ``\\Gamma_{\\mathrm{SS}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.temperature`, `namelists.atmosphere.tropopause_height`, `namelists.atmosphere.troposphere_lapse_rate`, `namelists.atmosphere.stratosphere_lapse_rate`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
+and ``p_0``, ``T_0``, ``z_{\\mathrm{TP}}``, ``\\Gamma_{\\mathrm{TS}}``, ``\\Gamma_{\\mathrm{SS}}``, ``\\sigma``, ``\\gamma``, and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.temperature`, `namelists.atmosphere.tropopause_height`, `namelists.atmosphere.troposphere_lapse_rate`, `namelists.atmosphere.stratosphere_lapse_rate`, `constants.sig`, `constants.gamma`, and `constants.kappa`, respectively.
 
 # Fields
 
