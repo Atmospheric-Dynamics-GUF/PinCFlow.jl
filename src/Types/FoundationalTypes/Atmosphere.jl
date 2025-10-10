@@ -145,7 +145,7 @@ The background fields are given by
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
 \\end{align*}
 ```
-where
+and
 ```math
 \\begin{align*}
     p_{\\mathrm{TP}} & = p_0 \\left(1 - \\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
@@ -194,7 +194,7 @@ The background fields are given by
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
 \\end{align*}
 ```
-where
+and
 ```math
 \\begin{align*}
     p_{\\mathrm{TP}} & = 
