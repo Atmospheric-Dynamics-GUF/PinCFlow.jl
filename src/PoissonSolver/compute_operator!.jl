@@ -43,7 +43,7 @@ function compute_operator!(
     rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
-    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; model) = state.namelists.setting
     (; gamma, rsp, pref, kappa) = state.constants
     (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -332,94 +332,78 @@ function compute_operator!(
         facdedgeb = 1.0
         facedgeu = 1.0
         facedged = 1.0
-        if use_sponge
-            if damp_horizontal_wind_on_rhs
-                facedger =
-                    facedger +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k] + betar[i + 1, j, k]) *
-                    rayleigh_factor
-                facedgel =
-                    facedgel +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k] + betar[i - 1, j, k]) *
-                    rayleigh_factor
-                facedgef =
-                    facedgef +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k] + betar[i, j + 1, k]) *
-                    rayleigh_factor
-                facedgeb =
-                    facedgeb +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k] + betar[i, j - 1, k]) *
-                    rayleigh_factor
-                facuedger =
-                    facuedger +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k + 1] + betar[i + 1, j, k + 1]) *
-                    rayleigh_factor
-                facuedgel =
-                    facuedgel +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k + 1] + betar[i - 1, j, k + 1]) *
-                    rayleigh_factor
-                facuedgef =
-                    facuedgef +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k + 1] + betar[i, j + 1, k + 1]) *
-                    rayleigh_factor
-                facuedgeb =
-                    facuedgeb +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k + 1] + betar[i, j - 1, k + 1]) *
-                    rayleigh_factor
-                facdedger =
-                    facdedger +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k - 1] + betar[i + 1, j, k - 1]) *
-                    rayleigh_factor
-                facdedgel =
-                    facdedgel +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k - 1] + betar[i - 1, j, k - 1]) *
-                    rayleigh_factor
-                facdedgef =
-                    facdedgef +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k - 1] + betar[i, j + 1, k - 1]) *
-                    rayleigh_factor
-                facdedgeb =
-                    facdedgeb +
-                    dt *
-                    0.5 *
-                    (betar[i, j, k - 1] + betar[i, j - 1, k - 1]) *
-                    rayleigh_factor
-            end
-            facedgeu =
-                facedgeu +
-                dt * (
-                    jac[i, j, k + 1] * betar[i, j, k] +
-                    jac[i, j, k] * betar[i, j, k + 1]
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
-            facedged =
-                facedged +
-                dt * (
-                    jac[i, j, k - 1] * betar[i, j, k] +
-                    jac[i, j, k] * betar[i, j, k - 1]
-                ) / (jac[i, j, k] + jac[i, j, k - 1]) * rayleigh_factor
+        if damp_horizontal_wind_on_rhs
+            facedger +=
+                dt *
+                0.5 *
+                (betar[i, j, k] + betar[i + 1, j, k]) *
+                rayleigh_factor
+            facedgel +=
+                dt *
+                0.5 *
+                (betar[i, j, k] + betar[i - 1, j, k]) *
+                rayleigh_factor
+            facedgef +=
+                dt *
+                0.5 *
+                (betar[i, j, k] + betar[i, j + 1, k]) *
+                rayleigh_factor
+            facedgeb +=
+                dt *
+                0.5 *
+                (betar[i, j, k] + betar[i, j - 1, k]) *
+                rayleigh_factor
+            facuedger +=
+                dt *
+                0.5 *
+                (betar[i, j, k + 1] + betar[i + 1, j, k + 1]) *
+                rayleigh_factor
+            facuedgel +=
+                dt *
+                0.5 *
+                (betar[i, j, k + 1] + betar[i - 1, j, k + 1]) *
+                rayleigh_factor
+            facuedgef +=
+                dt *
+                0.5 *
+                (betar[i, j, k + 1] + betar[i, j + 1, k + 1]) *
+                rayleigh_factor
+            facuedgeb +=
+                dt *
+                0.5 *
+                (betar[i, j, k + 1] + betar[i, j - 1, k + 1]) *
+                rayleigh_factor
+            facdedger +=
+                dt *
+                0.5 *
+                (betar[i, j, k - 1] + betar[i + 1, j, k - 1]) *
+                rayleigh_factor
+            facdedgel +=
+                dt *
+                0.5 *
+                (betar[i, j, k - 1] + betar[i - 1, j, k - 1]) *
+                rayleigh_factor
+            facdedgef +=
+                dt *
+                0.5 *
+                (betar[i, j, k - 1] + betar[i, j + 1, k - 1]) *
+                rayleigh_factor
+            facdedgeb +=
+                dt *
+                0.5 *
+                (betar[i, j, k - 1] + betar[i, j - 1, k - 1]) *
+                rayleigh_factor
         end
+        facedgeu +=
+            dt * (
+                jac[i, j, k + 1] * betar[i, j, k] +
+                jac[i, j, k] * betar[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
+        facedged +=
+            dt * (
+                jac[i, j, k - 1] * betar[i, j, k] +
+                jac[i, j, k] * betar[i, j, k - 1]
+            ) / (jac[i, j, k] + jac[i, j, k - 1]) * rayleigh_factor
 
         # Compute implicit coefficients.
         imphoredger = 1.0 / facedger

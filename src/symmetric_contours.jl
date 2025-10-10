@@ -1,17 +1,14 @@
-# Empty function that will be extended in the ext/PinCFlowPythonPlotExt.jl file
-# when `PythonPlot.jl` is loaded.
-
 """
 ```julia
 symmetric_contours(
     minimum::AbstractFloat,
     maximum::AbstractFloat;
     number::Integer = 10,
-    colormap_name::String = "seismic",
+    colormap_name::Symbol = :seismic,
 )::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
 ```
 
-Compute symmetric contours levels and return them and a correspondingly cropped colormap.
+Compute symmetric contours levels and return them and a correspondingly indexed colormap.
 
 # Arguments
 
