@@ -125,7 +125,7 @@ Atmosphere(
 )::Atmosphere
 ```
 
-Create an `Atmosphere` instance with background fields describing a realistic atmosphere with an isentropic troposphere, an isothermal stratosphere, and a tropopause located at the altitude ``z_{\\text{trop}}``.
+Create an `Atmosphere` instance with background fields describing a realistic atmosphere with an isentropic troposphere, an isothermal stratosphere, and a tropopause located at the altitude ``z_{\\mathrm{TP}}``.
 
 The background fields are given by 
 
@@ -133,13 +133,13 @@ The background fields are given by
 \\begin{align*}
     P \\left(z \\right) & = 
     \\begin{cases} 
-        p_0 \\left( 1 - \\frac{\\kappa\\sigma z}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} & z \\leq z_{\\text{trop}}\\;, \\\\
-        p_0^{\\kappa} p_{\\text{trop}}^{1/\\gamma}\\exp\\left(-\\frac{\\sigma(z-z_{\\text{trop}})}{\\gamma T_{\\text{trop}}}\\right) & z > z_{\\text{trop}} \\;,
+        p_0 \\left( 1 - \\frac{\\kappa\\sigma z}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} & z \\leq z_{\\mathrm{TP}}\\;, \\\\
+        p_0^{\\kappa} p_{\\mathrm{TP}}^{1/\\gamma}\\exp\\left(-\\frac{\\sigma(z-z_{\\mathrm{TP}})}{\\gamma T_{\\mathrm{TP}}}\\right) & z > z_{\\mathrm{TP}} \\;,
     \\end{cases} \\\\
     \\overline{\\theta}\\left(z\\right) & = 
     \\begin{cases}
-        \\theta_0 & z \\leq z_{\\text{trop}} \\;, \\\\
-        \\theta_0 \\exp\\left(\\frac{\\kappa\\sigma(z-z_{\\text{trop}})}{T_{\\text{trop}}}\\right) & z > z_{\\text{trop}} \\;,
+        \\theta_0 & z \\leq z_{\\mathrm{TP}} \\;, \\\\
+        \\theta_0 \\exp\\left(\\frac{\\kappa\\sigma(z-z_{\\mathrm{TP}})}{T_{\\mathrm{TP}}}\\right) & z > z_{\\mathrm{TP}} \\;,
     \\end{cases} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
@@ -148,12 +148,12 @@ The background fields are given by
 where
 ```math
 \\begin{align*}
-    p_{\\text{trop}} & = p_0 \\left(1 - \\frac{\\kappa\\sigma z_{\\text{trop}}}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
-    T_{\\text{trop}} & = \\theta_0 \\left(\\frac{p_{\\text{trop}}}{p_0}\\right)^{\\kappa}
+    p_{\\mathrm{TP}} & = p_0 \\left(1 - \\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
+    T_{\\mathrm{TP}} & = \\theta_0 \\left(\\frac{p_{\\mathrm{TP}}}{p_0}\\right)^{\\kappa}
 \\end{align*}
 ```
 
-where ``p_0``, ``\\theta_0``, ``z_{\\text{trop}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.potential_temperature`, `namelists.atmosphere.tropopause_height`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
+where ``p_0``, ``\\theta_0``, ``z_{\\mathrm{TP}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.potential_temperature`, `namelists.atmosphere.tropopause_height`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
 
 ```julia 
 Atmosphere(
@@ -166,29 +166,29 @@ Atmosphere(
 )::Atmosphere
 ```
 
-Create an `Atmosphere` instance with background fields describing a troposphere and a stratosphere with lapse rates ``\\Gamma_{\\mathrm{t}}`` and ``\\Gamma_{\\mathrm{t}}``, respectively, and a tropopause located at the altitude ``z_{\\text{trop}}``.
+Create an `Atmosphere` instance with background fields describing a troposphere and a stratosphere with lapse rates ``\\Gamma_{\\mathrm{TS}}`` and ``\\Gamma_{\\mathrm{TS}}``, respectively, and a tropopause located at the altitude ``z_{\\mathrm{TP}}``.
 
 The background fields are given by 
 ```math 
 \\begin{align*}
     T\\left(z\\right) & = 
     \\begin{cases}
-        T_0 - \\Gamma_{\\mathrm{t}} z & z \\leq z_{\\text{trop}} \\;, \\\\
-        T_0 - \\Gamma_{\\mathrm{t}} z_{\\text{trop}} - \\Gamma_{\\mathrm{s}} \\left(z - z_{\\text{trop}}\\right) & z > z_{\\text{trop}} \\;,
+        T_0 - \\Gamma_{\\mathrm{TS}} z & z \\leq z_{\\mathrm{TP}} \\;, \\\\
+        T_0 - \\Gamma_{\\mathrm{TS}} z_{\\mathrm{TP}} - \\Gamma_{\\mathrm{SS}} \\left(z - z_{\\mathrm{TP}}\\right) & z > z_{\\mathrm{TP}} \\;,
     \\end{cases} \\\\
     P\\left(z\\right) & = 
     \\begin{cases}
-        p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{t}} z}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{t}}}} & z \\leq z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{t}} \\neq 0 \\;, \\\\
-        p_0 \\exp\\left(- \\frac{z \\sigma}{\\gamma T_0} \\right) & z \\leq z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{t}} = 0 \\;, \\\\
-        p_{\\text{trop}}\\left(1 - \\frac{\\Gamma_{\\mathrm{s}} \\left(z - z_{\\text{trop}} \\right)}{T_{\\text{trop}}} \\right)^{\\frac{g}{R\\Gamma_{\\mathrm{s}}}} & z > z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{s}} \\neq 0 \\;, \\\\
-        p_{\\text{trop}}\\exp\\left(- \\frac{\\left(z - z_{\\text{trop}} \\right)\\sigma}{\\gamma T_{\\text{trop}}} \\right) & z > z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{s}} = 0 \\;,
+        p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{TS}} z}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{TS}}}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        p_0 \\exp\\left(- \\frac{z \\sigma}{\\gamma T_0} \\right) & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
+        p_{\\mathrm{TP}}\\left(1 - \\frac{\\Gamma_{\\mathrm{SS}} \\left(z - z_{\\mathrm{TP}} \\right)}{T_{\\mathrm{TP}}} \\right)^{\\frac{g}{R\\Gamma_{\\mathrm{SS}}}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
+        p_{\\mathrm{TP}}\\exp\\left(- \\frac{\\left(z - z_{\\mathrm{TP}} \\right)\\sigma}{\\gamma T_{\\mathrm{TP}}} \\right) & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
     \\end{cases} \\\\
     \\overline{\\theta}\\left(z\\right) & =
     \\begin{cases}
-        T\\left(z\\right) \\left(\\frac{p_0}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{t}}}{g}} & z \\leq z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{t}} \\neq 0 \\;, \\\\
-        T_0 \\exp\\left(\\frac{\\kappa\\sigma z}{T_0}\\right) & z \\leq z_{\\text{trop}} \\;\\&\\; \\Gamma_{\\mathrm{t}} = 0 \\;, \\\\
-        T\\left(z\\right)\\left(\\frac{p_{\\text{trop}}}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{s}}}{g}} & z > z_{\\text{trop}} \\; \\& \\; \\Gamma_{\\mathrm{s}} \\neq 0 \\;, \\\\
-        \\theta_{\\text{trop}}\\exp\\left(\\frac{\\kappa\\sigma \\left(z-z_{\\text{trop}}\\right)}{T\\left(z_{\\text{trop}}\\right)}\\right) & z > z_{\\text{trop}} \\;\\&\\; \\Gamma_{\\mathrm{s}} = 0 \\;, 
+        T\\left(z\\right) \\left(\\frac{p_0}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{TS}}}{g}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        T_0 \\exp\\left(\\frac{\\kappa\\sigma z}{T_0}\\right) & z \\leq z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
+        T\\left(z\\right)\\left(\\frac{p_{\\mathrm{TP}}}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{SS}}}{g}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
+        \\theta_{\\mathrm{TP}}\\exp\\left(\\frac{\\kappa\\sigma \\left(z-z_{\\mathrm{TP}}\\right)}{T\\left(z_{\\mathrm{TP}}\\right)}\\right) & z > z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{SS}} = 0 \\;, 
     \\end{cases} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
@@ -197,16 +197,16 @@ The background fields are given by
 where
 ```math
 \\begin{align*}
-    p_{\\text{trop}} & = 
+    p_{\\mathrm{TP}} & = 
     \\begin{cases}
-        p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{t}} z_{\\text{trop}}}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{t}}}} & \\Gamma_{\\mathrm{t}} \\neq 0 \\;, \\\\
-        p_0 \\exp\\left(- \\frac{z_{\\text{trop}}\\sigma}{\\gamma T_0} \\right) & \\Gamma_{\\mathrm{t}} = 0 \\;, 
+        p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{TS}} z_{\\mathrm{TP}}}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{TS}}}} & \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        p_0 \\exp\\left(- \\frac{z_{\\mathrm{TP}}\\sigma}{\\gamma T_0} \\right) & \\Gamma_{\\mathrm{TS}} = 0 \\;, 
     \\end{cases} \\\\
-    \\theta_{\\text{trop}} &= T_0 \\exp\\left(\\frac{\\kappa\\sigma z_{\\text{trop}}}{T_0} \\right)
+    \\theta_{\\mathrm{TP}} &= T_0 \\exp\\left(\\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{T_0} \\right)
 \\end{align*}
 ```
 
-where ``p_0``, ``T_0``, ``z_{\\text{trop}}``, ``\\Gamma_{\\mathrm{t}}``, ``\\Gamma_{\\mathrm{s}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.temperature`, `namelists.atmosphere.tropopause_height`, `namelists.atmosphere.troposphere_lapse_rate`, `namelists.atmosphere.stratosphere_lapse_rate`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
+where ``p_0``, ``T_0``, ``z_{\\mathrm{TP}}``, ``\\Gamma_{\\mathrm{TS}}``, ``\\Gamma_{\\mathrm{SS}}``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.temperature`, `namelists.atmosphere.tropopause_height`, `namelists.atmosphere.troposphere_lapse_rate`, `namelists.atmosphere.stratosphere_lapse_rate`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
 
 # Fields
 
