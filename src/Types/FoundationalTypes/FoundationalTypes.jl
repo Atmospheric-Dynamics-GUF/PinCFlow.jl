@@ -23,6 +23,7 @@ include("Atmosphere.jl")
 include("Sponge.jl")
 
 include("compute_topography.jl")
+include("compute_n2!.jl")
 
 include("../../Boundaries/set_zonal_boundaries_of_field!.jl")
 include("../../Boundaries/set_meridional_boundaries_of_field!.jl")
