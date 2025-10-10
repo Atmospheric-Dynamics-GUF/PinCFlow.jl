@@ -128,6 +128,33 @@ struct Isothermal <: AbstractBackground end
 
 """
 ```julia
+Isentropic <: AbstractBackground
+```
+
+Singleton for an isentropic atmosphere in pseudo-incompressible or compressible mode.
+"""
+struct Isentropic <: AbstractBackground end
+
+"""
+```julia
+Realistic <: AbstractBackground
+```
+
+Singleton for a realistic atmosphere in pseudo-incompressible or compressible mode (isentropic troposphere and isothermal stratosphere).
+"""
+struct Realistic <: AbstractBackground end
+
+"""
+```julia
+LapseRates <: AbstractBackground
+```
+
+Singleton for an atmosphere with different lapse rates in the troposphere and stratosphere in pseudo-incompressible or compressible mode.
+"""
+struct LapseRates <: AbstractBackground end
+
+"""
+```julia
 MCVariant <: AbstractLimiter
 ```
 
@@ -326,6 +353,9 @@ export AbstractBackground,
 export UniformBoussinesq,
     StratifiedBoussinesq,
     Isothermal,
+    Isentropic,
+    Realistic,
+    LapseRates,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,
