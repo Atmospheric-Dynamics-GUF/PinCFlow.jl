@@ -27,16 +27,11 @@ function turbulence_integration!(
     dt::AbstractFloat,
     turbulence_scheme::AbstractTurbulence,
 )
-    (; tkebackup) = state.turbulence.turbulenceauxiliaries
-    (; tke) = state.turbulence.turbulencepredictands
 
-    # tkebackup is used for the calculation of the eddy diffusion coefficients
-    tkebackup = deepcopy(tke)
-
-    turbulence_integration!(state, p0, dt * 0.5, Dissipation())
-    #turbulence_integration!(state, p0, dt, Advection())
+    #turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+    turbulence_integration!(state, p0, dt, Advection())
     #turbulence_integration!(state, p0, dt, Diffusion())
-    turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+    #turbulence_integration!(state, p0, dt * 0.5, Dissipation())
 
     return
 end
