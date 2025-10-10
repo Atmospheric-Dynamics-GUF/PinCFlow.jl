@@ -134,12 +134,12 @@ The background fields are given by
     P \\left(z \\right) & = 
     \\begin{cases} 
         p_0 \\left( 1 - \\frac{\\kappa\\sigma z}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} & z \\leq z_{\\mathrm{TP}}\\;, \\\\
-        p_0^{\\kappa} p_{\\mathrm{TP}}^{1/\\gamma}\\exp\\left(-\\frac{\\sigma(z-z_{\\mathrm{TP}})}{\\gamma T_{\\mathrm{TP}}}\\right) & z > z_{\\mathrm{TP}} \\;,
+        p_0^{\\kappa} p_{\\mathrm{TP}}^{1/\\gamma}\\exp\\left[-\\frac{\\sigma(z-z_{\\mathrm{TP}})}{\\gamma T_{\\mathrm{TP}}}\\right] & z > z_{\\mathrm{TP}} \\;,
     \\end{cases} \\\\
     \\overline{\\theta}\\left(z\\right) & = 
     \\begin{cases}
         \\theta_0 & z \\leq z_{\\mathrm{TP}} \\;, \\\\
-        \\theta_0 \\exp\\left(\\frac{\\kappa\\sigma(z-z_{\\mathrm{TP}})}{T_{\\mathrm{TP}}}\\right) & z > z_{\\mathrm{TP}} \\;,
+        \\theta_0 \\exp\\left[\\frac{\\kappa\\sigma(z-z_{\\mathrm{TP}})}{T_{\\mathrm{TP}}}\\right] & z > z_{\\mathrm{TP}} \\;,
     \\end{cases} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
@@ -180,15 +180,15 @@ The background fields are given by
     \\begin{cases}
         p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{TS}} z}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{TS}}}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
         p_0 \\exp\\left(- \\frac{z \\sigma}{\\gamma T_0} \\right) & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
-        p_{\\mathrm{TP}}\\left(1 - \\frac{\\Gamma_{\\mathrm{SS}} \\left(z - z_{\\mathrm{TP}} \\right)}{T_{\\mathrm{TP}}} \\right)^{\\frac{g}{R\\Gamma_{\\mathrm{SS}}}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
-        p_{\\mathrm{TP}}\\exp\\left(- \\frac{\\left(z - z_{\\mathrm{TP}} \\right)\\sigma}{\\gamma T_{\\mathrm{TP}}} \\right) & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
+        p_{\\mathrm{TP}}\\left[1 - \\frac{\\Gamma_{\\mathrm{SS}} \\left(z - z_{\\mathrm{TP}} \\right)}{T_{\\mathrm{TP}}} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{SS}}}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
+        p_{\\mathrm{TP}}\\exp\\left[- \\frac{\\left(z - z_{\\mathrm{TP}} \\right)\\sigma}{\\gamma T_{\\mathrm{TP}}} \\right] & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
     \\end{cases} \\\\
     \\overline{\\theta}\\left(z\\right) & =
     \\begin{cases}
         T\\left(z\\right) \\left(\\frac{p_0}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{TS}}}{g}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
         T_0 \\exp\\left(\\frac{\\kappa\\sigma z}{T_0}\\right) & z \\leq z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
         T\\left(z\\right)\\left(\\frac{p_{\\mathrm{TP}}}{P\\left(z\\right)}\\right)^{\\frac{R\\Gamma_{\\mathrm{SS}}}{g}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
-        \\theta_{\\mathrm{TP}}\\exp\\left(\\frac{\\kappa\\sigma \\left(z-z_{\\mathrm{TP}}\\right)}{T\\left(z_{\\mathrm{TP}}\\right)}\\right) & z > z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{SS}} = 0 \\;, 
+        \\theta_{\\mathrm{TP}}\\exp\\left[\\frac{\\kappa\\sigma \\left(z-z_{\\mathrm{TP}}\\right)}{T\\left(z_{\\mathrm{TP}}\\right)}\\right] & z > z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{SS}} = 0 \\;, 
     \\end{cases} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;, 
