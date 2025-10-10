@@ -234,7 +234,7 @@ where ``p_0``, ``T_0``, ``z_{\\mathrm{TP}}``, ``\\Gamma_{\\mathrm{TS}}``, ``\\Ga
 
 # See also
 
-  - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.compute_n2!`](@ref)
 """
 struct Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}}
     pbar::A

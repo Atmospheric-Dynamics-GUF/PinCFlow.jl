@@ -23,6 +23,10 @@ N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\ov
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
   - `grid`: Collection of parameters and fields that describe the grid.
+  
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
 """
 function compute_n2! end
 
