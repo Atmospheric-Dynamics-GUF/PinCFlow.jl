@@ -625,7 +625,6 @@ function update!(
     (; nbz) = state.namelists.domain
     (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; use_sponge) = state.namelists.sponge
     (; betar) = state.sponge
     (; g_ndim) = state.constants
     (; rhobar, n2) = state.atmosphere
@@ -677,9 +676,7 @@ function update!(
 
         factor = 1.0
 
-        if use_sponge
-            factor += dt * betar[i, j, k] * rayleigh_factor
-        end
+        factor += dt * betar[i, j, k] * rayleigh_factor
 
         b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         jpedger = compute_compressible_wind_factor(state, i, j, k, U())
@@ -833,7 +830,7 @@ function update!(
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; betar) = state.sponge
@@ -853,7 +850,7 @@ function update!(
 
         factor = 1.0
 
-        if use_sponge && damp_horizontal_wind_on_rhs
+        if damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -986,7 +983,7 @@ function update!(
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; betar) = state.sponge
@@ -1006,7 +1003,7 @@ function update!(
 
         factor = 1.0
 
-        if use_sponge && damp_horizontal_wind_on_rhs
+        if damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -1243,7 +1240,6 @@ function update!(
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge) = state.namelists.sponge
     (; g_ndim) = state.constants
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -1281,13 +1277,11 @@ function update!(
 
         factor = 1.0
 
-        if use_sponge
-            factor +=
-                dt * (
-                    jac[i, j, k + 1] * betar[i, j, k] +
-                    jac[i, j, k] * betar[i, j, k + 1]
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
-        end
+        factor +=
+            dt * (
+                jac[i, j, k + 1] * betar[i, j, k] +
+                jac[i, j, k] * betar[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
 
         # Buoyancy is predicted after momentum in implicit steps.
         b =

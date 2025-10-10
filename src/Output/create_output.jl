@@ -43,6 +43,13 @@ function create_output(state::State)
         )
         create_dataset(
             file,
+            "ztilde",
+            datatype(Float32),
+            dataspace((x_size, y_size, z_size + 1));
+            chunk = (cx, cy, cz),
+        )
+        create_dataset(
+            file,
             "t",
             datatype(Float32),
             dataspace((0,), (-1,));

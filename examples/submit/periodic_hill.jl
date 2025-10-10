@@ -1,16 +1,19 @@
 # examples/submit/periodic_hill.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
+using Revise
 using PinCFlow
 
-@ivy if length(ARGS) == 0
-    output_file = "./pincflow_output.h5"
-elseif length(ARGS) == 1
-    output_file = ARGS[1] * "/pincflow_output.h5"
-else
-    error("Too many arguments to the script!")
-end
+npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
+npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
-atmosphere = AtmosphereNamelist(; background = UniformBoussinesq())
+atmosphere = AtmosphereNamelist(;
+    initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
+    coriolis_frequency = 0.0E+0,
+)
 domain = DomainNamelist(;
     x_size = 20,
     y_size = 1,
@@ -18,15 +21,14 @@ domain = DomainNamelist(;
     lx = 2.0E+4,
     ly = 2.0E+4,
     lz = 2.0E+4,
+    npx,
+    npz,
 )
-setting = SettingNamelist(; model = Boussinesq())
-grid = GridNamelist(; mountain_height = 0.0E+1, mountain_half_width = 1.0E+4)
-output = OutputNamelist(;
-    output_variables = (:w,),
-    output_file = output_file,
-    output_steps = true,
+grid = GridNamelist(;
+    resolved_topography = (x, y) -> 5 * (1 + cos(pi / 10000 * x)),
 )
-sponge = SpongeNamelist(; use_sponge = false)
-turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
+output =
+    OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
+sponge = SpongeNamelist(; betarmax = 1.0E+0)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge, turbulence, setting))

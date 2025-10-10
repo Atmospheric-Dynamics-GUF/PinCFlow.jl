@@ -1,14 +1,19 @@
+using Pkg
+
+Pkg.activate("docs")
+
 using Documenter
+using Revise
 using PinCFlow
 
-# Insert example scripts.
+# Insert the example scripts.
 @ivy for folder in ("examples/submit/", "examples/visualization/"),
     script_file in readdir(folder)
 
-    if endswith(script_file, ".jl") && script_file != "style.jl"
+    if endswith(script_file, ".jl")
         script = read(folder * script_file, String)
         code = Regex(
-            "(?s)(?<=`{3}julia\\n)# " *
+            "(?s)(?<=\\n`{3}julia\\n)# " *
             folder *
             script_file[1:(end - 3)] *
             "\\.jl\\n(.(?!\\n`{3}))*.",
@@ -29,12 +34,12 @@ using PinCFlow
     end
 end
 
-# Copy example plots.
+# Copy the example plots.
 for file in readdir("examples/results/"; join = true)
     cp(file, "docs/src/" * file; force = true)
 end
 
-# Copy README file.
+# Copy the README file.
 cp("README.md", "docs/src/index.md"; force = true)
 
 # Generate documentation.

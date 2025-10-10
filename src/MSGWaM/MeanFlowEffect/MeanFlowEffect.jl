@@ -19,7 +19,6 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 """
 module MeanFlowEffect
 
-using LinearAlgebra
 using ..Interpolation
 using ..RayUpdate
 using ...Types
@@ -27,8 +26,8 @@ using ...Boundaries
 using ...PinCFlow
 
 """
-```julia 
-UChi <: AbstractVariable 
+```julia
+UChi <: AbstractVariable
 ```
 
 Singleton for dispatch to calculation of zonal gravity-wave-tracer fluxes.
@@ -36,8 +35,8 @@ Singleton for dispatch to calculation of zonal gravity-wave-tracer fluxes.
 struct UChi <: AbstractVariable end
 
 """
-```julia 
-VChi <: AbstractVariable 
+```julia
+VChi <: AbstractVariable
 ```
 
 Singleton for dispatch to calculation of meridional gravity-wave-tracer fluxes.
@@ -45,8 +44,8 @@ Singleton for dispatch to calculation of meridional gravity-wave-tracer fluxes.
 struct VChi <: AbstractVariable end
 
 """
-```julia 
-WChi <: AbstractVariable 
+```julia
+WChi <: AbstractVariable
 ```
 
 Singleton for dispatch to calculation of vertical gravity-wave-tracer fluxes.
