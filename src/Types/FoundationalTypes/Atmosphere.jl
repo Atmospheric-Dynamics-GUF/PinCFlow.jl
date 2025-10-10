@@ -68,7 +68,7 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
     background::Isothermal,
 )::Atmosphere
 ```
@@ -301,7 +301,7 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
     background::Isothermal,
 )::Atmosphere
     (; nbz) = namelists.domain
