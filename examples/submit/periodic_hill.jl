@@ -22,5 +22,9 @@ domain = DomainNamelist(;
 grid = GridNamelist(; mountain_height = 1.0E+1, mountain_half_width = 1.0E+4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(; use_sponge = true)
+turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme(),)
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+namelists = Namelists(; atmosphere, domain, grid, output, sponge, turbulence)
+state = State(namelists)
+println("Complete")
+#integrate(Namelists(; atmosphere, domain, grid, output, sponge, turbulence))
