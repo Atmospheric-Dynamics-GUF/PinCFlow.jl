@@ -3,9 +3,9 @@
 TurbulenceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
 ```
 
-Arrays for the reconstruction of turbulence energies.
+Arrays for the reconstruction of turbulence variables.
 
-The first three dimensions represent physical space, the fourth represents the physical-space dimension of the reconstruction and the fifth the two directions in which it is computed.
+The first three dimensions represent physical space, the fourth dimension represents the direction in which the reconstruction was performed and the fifth dimension represents the two cell edges of the reconstruction.
 
 ```julia
 TurbulenceReconstructions(
@@ -14,21 +14,21 @@ TurbulenceReconstructions(
 )::TurbulenceReconstructions
 ```
 
-Construct a `TurbulenceReconstructions` instance with dimensions depending on the general turbulence-transport configuration, by dispatching to the appropriate method.
+Construct a `TurbulenceReconstructions` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
 
 ```julia
 TurbulenceReconstructions(
     domain::Domain,
-    turbulence_setup::NoTurbulence,
+    turbulencesetup::NoTurbulence,
 )::TurbulenceReconstructions
 ```
 
-Construct a `TurbulenceReconstructions` instance with zero-size arrays for configurations without turbulence transport.
+Construct a `TurbulenceReconstructions` instance with zero-size arrays for configurations without turbulence physics.
 
 ```julia
 TurbulenceReconstructions(
     domain::Domain,
-    turbulence_setup::AbstractTurbulence,
+    turbulencesetup::AbstractTurbulence,
 )::TurbulenceReconstructions
 ```
 
@@ -36,7 +36,9 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 
 # Fields
 
-  - `chitilde::A`: Reconstructions of a non-dimensional turbulence.
+  - `tketilde::A`: Reconstructions of the turbulent kinetic energy.
+
+  - `ttetilde::A`: Reconstructions of the total turbulent energy.
 
 # Arguments
 
@@ -44,42 +46,40 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulence_setup`: General turbulence-transport configuration.
+  - `turbulencesetup`: General turbulence-physics configuration.
 """
 struct TurbulenceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
-    chitilde::A
+    tketilde::A
+    ttetilde::A
 end
 
 function TurbulenceReconstructions(
     namelists::Namelists,
     domain::Domain,
 )::TurbulenceReconstructions
-    (; turbulence_setup) = namelists.turbulence
+    (; turbulencesetup) = namelists.turbulence
 
-    return TurbulenceReconstructions(domain, turbulence_setup)
+    return TurbulenceReconstructions(domain, turbulencesetup)
 end
 
 function TurbulenceReconstructions(
     domain::Domain,
-    turbulence_setup::NoTurbulence,
+    turbulencesetup::NoTurbulence,
 )::TurbulenceReconstructions
-    return TurbulenceReconstructions(
-        [
-            zeros(0, 0, 0, 0, 0) for field in fieldnames(TurbulenceReconstructions)
-        ]...,
-    )
+    tketilde = zeros(0, 0, 0, 0, 0)
+    ttetilde = zeros(0, 0, 0, 0, 0)
+
+    return TurbulenceReconstructions(tketilde, ttetilde)
 end
 
 function TurbulenceReconstructions(
     domain::Domain,
-    turbulence_setup::AbstractTurbulence,
+    turbulencesetup::AbstractTurbulence,
 )::TurbulenceReconstructions
     (; nxx, nyy, nzz) = domain
 
-    return TurbulenceReconstructions(
-        [
-            zeros(nxx, nyy, nzz, 3, 2) for
-            field in fieldnames(TurbulenceReconstructions)
-        ]...,
-    )
+    tketilde = zeros(nxx, nyy, nzz, 3, 2)
+    ttetilde = zeros(nxx, nyy, nzz, 3, 2)
+
+    return TurbulenceReconstructions(tketilde, ttetilde)
 end

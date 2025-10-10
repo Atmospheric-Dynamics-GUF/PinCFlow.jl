@@ -3,7 +3,7 @@
 TurbulenceTypes
 ```
 
-Module for composite types needed for turbulence transport.
+Module for composite types needed by the turbulence scheme.
 
 # See also
 
@@ -18,13 +18,13 @@ module TurbulenceTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
-using ...PinCFlow
 
 include("TurbulencePredictands.jl")
 include("TurbulenceIncrements.jl")
 include("TurbulenceAuxiliaries.jl")
 include("TurbulenceReconstructions.jl")
 include("TurbulenceFluxes.jl")
+include("TurbulenceConstants.jl")
 include("Turbulence.jl")
 
 export TurbulencePredictands,
@@ -32,5 +32,6 @@ export TurbulencePredictands,
     TurbulenceAuxiliaries,
     TurbulenceReconstructions,
     TurbulenceFluxes,
+    TurbulenceConstants,
     Turbulence
 end

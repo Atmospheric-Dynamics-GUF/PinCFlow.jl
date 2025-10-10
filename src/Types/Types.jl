@@ -156,7 +156,8 @@ export AbstractBackground,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter,
-    AbstractTracer
+    AbstractTracer,
+    AbstractTurbulence
 
 export Rho,
     RhoP,
@@ -200,6 +201,7 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    TurbulenceNamelist,
     Namelists,
     Time,
     Constants,
@@ -237,6 +239,14 @@ export DomainNamelist,
     TracerReconstructions,
     TracerFluxes,
     TracerForcings,
-    TracerWKBImpact
+    TracerWKBImpact,
+    NoTurbulence,
+    TKEScheme,
+    TTEScheme,
+    TurbulencePredictands,
+    TurbulenceAuxiliaries,
+    TurbulenceIncrements,
+    TurbulenceReconstructions,
+    TurbulenceFluxes
 
 end

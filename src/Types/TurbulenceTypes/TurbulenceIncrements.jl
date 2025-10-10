@@ -3,29 +3,40 @@
 TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Arrays for the Runge-Kutta updates of turbulence energies.
+Arrays for the Runge-Kutta updates of turbulence variables.
 
 ```julia
-TurbulenceIncrements(namelists::Namelists, domain::Domain)::TurbulenceIncrements
+TurbulenceIncrements(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceIncrements
 ```
 
-Construct a `TurbulenceIncrements` instance with dimensions depending on the general turbulence-transport configuration, by dispatching to the appropriate method.
+Construct a `TurbulenceIncrements` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-TurbulenceIncrements(domain::Domain, turbulence_setup::NoTurbulence)::TurbulenceIncrements
+TurbulenceIncrements(
+    domain::Domain,
+    turbulencesetup::NoTurbulence,
+)::TurbulenceIncrements
 ```
 
-Construct a `TurbulenceIncrements` instance with zero-size arrays for configurations without turbulence transport.
+Construct a `TurbulenceIncrements` instance with zero-size arrays for configurations without turbulence physics.
 
 ```julia
-TurbulenceIncrements(domain::Domain, turbulence_setup::AbstractTurbulence)::TurbulenceIncrements
+TurbulenceIncrements(
+    domain::Domain,
+    turbulencesetup::AbstractTurbulence,
+)::TurbulenceIncrements
 ```
 
 Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 
 # Fields
 
-  - `dchi::A`: Runge-Kutta update of a non-dimensional turbulence.
+  - `dtke::A`: Runge-Kutta update of the turbulent kinetic energy.
+
+  - `dtte::A`: Runge-Kutta update of the total turbulent energy.
 
 # Arguments
 
@@ -33,36 +44,40 @@ Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulence_setup`: General turbulence-transport configuration.
+  - `turbulencesetup`: General turbulence-physics configuration.
 """
 struct TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
-    dchi::A
+    dtke::A
+    dtte::A
 end
 
 function TurbulenceIncrements(
     namelists::Namelists,
     domain::Domain,
 )::TurbulenceIncrements
-    (; turbulence_setup) = namelists.turbulence
-    return TurbulenceIncrements(domain, turbulence_setup)
+    (; turbulencesetup) = namelists.turbulence
+
+    return TurbulenceIncrements(domain, turbulencesetup)
 end
 
 function TurbulenceIncrements(
     domain::Domain,
-    turbulence_setup::NoTurbulence,
+    turbulencesetup::NoTurbulence,
 )::TurbulenceIncrements
-    return TurbulenceIncrements(
-        [zeros(0, 0, 0) for field in fieldnames(TurbulenceIncrements)]...,
-    )
+    dtke = zeros(0, 0, 0)
+    dtte = zeros(0, 0, 0)
+
+    return TurbulenceIncrements(dtke, dtte)
 end
 
 function TurbulenceIncrements(
     domain::Domain,
-    turbulence_setup::AbstractTurbulence,
+    turbulencesetup::AbstractTurbulence,
 )::TurbulenceIncrements
     (; nxx, nyy, nzz) = domain
 
-    return TurbulenceIncrements(
-        [zeros(nxx, nyy, nzz) for field in fieldnames(TurbulenceIncrements)]...,
-    )
+    dtke = zeros(nxx, nyy, nzz)
+    dtte = zeros(nxx, nyy, nzz)
+
+    return TurbulenceIncrements(dtke, dtte)
 end

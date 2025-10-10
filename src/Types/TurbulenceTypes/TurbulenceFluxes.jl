@@ -3,31 +3,42 @@
 TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
 ```
 
-Arrays for fluxes of turbulence energies.
+Arrays for fluxes of turbulence variables.
 
 The first three dimensions represent physical space and the fourth dimension represents the flux direction.
 
 ```julia
-TurbulenceFluxes(namelists::Namelists, domain::Domain)::TurbulenceFluxes
+TurbulenceFluxes(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceFluxes
 ```
 
-Construct a `TurbulenceFluxes` instance with dimensions depending on the general turbulence-transport configuration, by dispatching to the appropriate method.
+Construct a `TurbulenceFluxes` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-TurbulenceFluxes(domain::Domain, turbulence_setup::NoTurbulence)::TurbulenceFluxes
+TurbulenceFluxes(
+    domain::Domain,
+    turbulencesetup::NoTurbulence,
+)::TurbulenceFluxes
 ```
 
-Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations without turbulence transport.
+Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations without turbulence physics.
 
 ```julia
-TurbulenceFluxes(domain::Domain, turbulence_setup::AbstractTurbulence)::TurbulenceFluxes
+TurbulenceFluxes(
+    domain::Domain,
+    turbulencesetup::AbstractTurbulence,
+)::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 
 # Fields
 
-  - `phichi::A`: Fluxes of a non-dimensional turbulence.
+  - `phitke::A`: Fluxes of the turbulent kinetic energy.
+
+  - `phitte::A`: Fluxes of the total turbulent energy.
 
 # Arguments
 
@@ -35,31 +46,40 @@ Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulence_setup`: General turbulence-transport configuration.
+  - `turbulencesetup`: General turbulence-physics configuration.
 """
 struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
-    phichi::A
+    phitke::A
+    phitte::A
 end
 
-function TurbulenceFluxes(namelists::Namelists, domain::Domain)::TurbulenceFluxes
-    (; turbulence_setup) = namelists.turbulence
+function TurbulenceFluxes(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceFluxes
+    (; turbulencesetup) = namelists.turbulence
 
-    return TurbulenceFluxes(domain, turbulence_setup)
-end
-
-function TurbulenceFluxes(domain::Domain, turbulence_setup::NoTurbulence)::TurbulenceFluxes
-    return TurbulenceFluxes(
-        [zeros(0, 0, 0, 0) for field in fieldnames(TurbulenceFluxes)]...,
-    )
+    return TurbulenceFluxes(domain, turbulencesetup)
 end
 
 function TurbulenceFluxes(
     domain::Domain,
-    turbulence_setup::AbstractTurbulence,
+    turbulencesetup::NoTurbulence,
+)::TurbulenceFluxes
+    phitke = zeros(0, 0, 0, 0)
+    phitte = zeros(0, 0, 0, 0)
+
+    return TurbulenceFluxes(phitke, phitte)
+end
+
+function TurbulenceFluxes(
+    domain::Domain,
+    turbulencesetup::AbstractTurbulence,
 )::TurbulenceFluxes
     (; nxx, nyy, nzz) = domain
 
-    return TurbulenceFluxes(
-        [zeros(nxx, nyy, nzz, 3) for field in fieldnames(TurbulenceFluxes)]...,
-    )
+    phitke = zeros(nxx, nyy, nzz, 3)
+    phitte = zeros(nxx, nyy, nzz, 3)
+
+    return TurbulenceFluxes(phitke, phitte)
 end

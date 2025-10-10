@@ -3,7 +3,7 @@
 TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Arrays for turbulence energies.
+Arrays for prognostic turbulence variables.
 
 ```julia
 TurbulencePredictands(
@@ -16,7 +16,7 @@ TurbulencePredictands(
 )::TurbulencePredictands
 ```
 
-Construct a `TurbulencePredictands` instance with dimensions and initial values depending on the general configuration of turbulence transport, by dispatching to the appropriate method.
+Construct a `TurbulencePredictands` instance with dimensions and initial values depending on the general configuration of turbulence physics, by dispatching to the appropriate method.
 
 ```julia
 TurbulencePredictands(
@@ -25,12 +25,12 @@ TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_setup::AbstractTurbulence,
+    turbulencesetup::NoTurbulence,
     variables::Variables,
 )::TurbulencePredictands
 ```
 
-Construct a `TurbulencePredictands` instance with zero-size arrays for configurations without turbulence transport.
+Construct a `TurbulencePredictands` instance with zero-size arrays for configurations without turbulence physics.
 
 ```julia
 TurbulencePredictands(
@@ -39,16 +39,18 @@ TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_setup::LinearTurbulence,
+    turbulencesetup::AbstractTurbulence,
     variables::Variables,
 )::TurbulencePredictands
 ```
 
-Construct a `TurbulencePredictands` instance with an initialized non-dimensional turbulence linearly increasing with altitude. The turbulence field is multiplied by the density.
+Construct a `TurbulencePredictands` instance with both arrays initialized as ``t_\\mathrm{ref}^2 / \\left(10 L_\\mathrm{ref}^2\\right) \\rho`` (non-dimensionalized), where ``t_\\mathrm{ref}`` and ``L_\\mathrm{ref}`` are given by the properties `tref` and `lref` of `constants`, respectively.
 
 # Fields
 
-  - `chi::A`: Non-dimensional turbulence.
+  - `tke::A`: Turbulent kinetic energy.
+
+  - `tte::A`: Total turbulent energy.
 
 # Arguments
 
@@ -62,12 +64,13 @@ Construct a `TurbulencePredictands` instance with an initialized non-dimensional
 
   - `grid`: Collection of parameters and fields describing the grid.
 
-  - `turbulence_setup`: General turbulence-transport configuration.
+  - `turbulencesetup`: General turbulence-physics configuration.
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 """
 struct TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
-    chi::A
+    tke::A
+    tte::A
 end
 
 function TurbulencePredictands(
@@ -78,7 +81,7 @@ function TurbulencePredictands(
     grid::Grid,
     variables::Variables,
 )::TurbulencePredictands
-    (; turbulence_setup) = namelists.turbulence
+    (; turbulencesetup) = namelists.turbulence
 
     return TurbulencePredictands(
         namelists,
@@ -86,7 +89,7 @@ function TurbulencePredictands(
         domain,
         atmosphere,
         grid,
-        turbulence_setup,
+        turbulencesetup,
         variables,
     )
 end
@@ -97,12 +100,13 @@ function TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_setup::AbstractTurbulence,
+    turbulencesetup::NoTurbulence,
     variables::Variables,
 )::TurbulencePredictands
-    return TurbulencePredictands(
-        [zeros(0, 0, 0) for field in fieldnames(TurbulencePredictands)]...,
-    )
+    tke = zeros(0, 0, 0)
+    tte = zeros(0, 0, 0)
+
+    return TurbulencePredictands(tke, tte)
 end
 
 function TurbulencePredictands(
@@ -111,21 +115,20 @@ function TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_setup::LinearTurbulence,
+    turbulencesetup::AbstractTurbulence,
     variables::Variables,
 )::TurbulencePredictands
     (; nxx, nyy, nzz) = domain
-    (; zc) = grid
-    (; lref) = constants
-    (; rhobar) = atmosphere
+    (; rhostrattfc) = atmosphere
     (; rho) = variables.predictands
-    (; lref) = constants
-    (; alphaturbulence) = namelists.turbulence
+    (; lref, tref) = constants
 
-    chi = zeros(nxx, nyy, nzz)
-    chi .= alphaturbulence .* lref .* zc
+    tke =
+        ones(nxx, nyy, nzz) .* 0.1 .* (tref .^ 2.0) ./ (lref .^ 2.0) .*
+        (rho .+ rhostrattfc)
+    tte =
+        ones(nxx, nyy, nzz) .* 0.1 .* (tref .^ 2.0) ./ (lref .^ 2.0) .*
+        (rho .+ rhostrattfc)
 
-    chi .= chi .* (rho .+ rhobar)
-
-    return TurbulencePredictands(chi)
+    return TurbulencePredictands(tke, tte)
 end

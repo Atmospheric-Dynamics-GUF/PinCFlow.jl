@@ -11,6 +11,7 @@ Namelists{
     H <: SpongeNamelist,
     I <: WKBNamelist,
     J <: TracerNamelist,
+    K <: TurbulenceNamelist,
 }
 ```
 
@@ -28,6 +29,7 @@ Namelists(;
     sponge::SpongeNamelist = SpongeNamelist(),
     wkb::WKBNamelist = WKBNamelist(),
     tracer::TracerNamelist = TracerNamelist(),
+    turbulence::TurbulenceNamelist = TurbulenceNamelist(),
 )::Namelists
 ```
 
@@ -55,6 +57,8 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
 
   - `tracer::J`: Namelist for parameters configuring tracer transport.
 
+  - `turbulence::K`: Namelist for parameters configuring turbulence parameterization.
+
 # See also
 
   - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
@@ -76,6 +80,8 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
   - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
 """
 struct Namelists{
     A <: DomainNamelist,
@@ -88,6 +94,7 @@ struct Namelists{
     H <: SpongeNamelist,
     I <: WKBNamelist,
     J <: TracerNamelist,
+    K <: TurbulenceNamelist,
 }
     domain::A
     output::B
@@ -99,6 +106,7 @@ struct Namelists{
     sponge::H
     wkb::I
     tracer::J
+    turbulence::K
 end
 
 function Namelists(;
@@ -112,6 +120,7 @@ function Namelists(;
     sponge::SpongeNamelist = SpongeNamelist(),
     wkb::WKBNamelist = WKBNamelist(),
     tracer::TracerNamelist = TracerNamelist(),
+    turbulence::TurbulenceNamelist = TurbulenceNamelist(),
 )::Namelists
     return Namelists(
         domain,
@@ -124,5 +133,6 @@ function Namelists(;
         sponge,
         wkb,
         tracer,
+        turbulence,
     )
 end
