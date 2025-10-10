@@ -101,6 +101,15 @@ abstract type AbstractTracer end
 
 """
 ```julia
+AbstractTurbulence
+```
+
+Abstract type for the inclusion of a turbulence parameterization.
+"""
+abstract type AbstractTurbulence end
+
+"""
+```julia
 UniformBoussinesq <: AbstractBackground
 ```
 
@@ -297,6 +306,33 @@ Singleton for model configurations with an initially linear tracer.
 """
 struct LinearTracer <: AbstractTracer end
 
+"""
+```julia 
+NoTurbulence <: AbstractTurbulence
+```
+
+Singleton for model configurations without turbulence parameterization.
+"""
+struct NoTurbulence <: AbstractTurbulence end 
+
+"""
+```julia 
+TKEScheme <: AbstractTurbulence
+```
+
+Singleton for model configurations with turbulence parameterization using a TKE-Scheme.
+"""
+struct TKEScheme <: AbstractTurbulence end 
+
+"""
+```julia 
+TTEScheme <: AbstractTurbulence
+```
+
+Singleton for model configurations with turbulence parameterization using a (2TE) TTE-Scheme.
+"""
+struct TTEScheme <: AbstractTurbulence end 
+
 using MPI
 using ...PinCFlow
 
@@ -310,6 +346,7 @@ include("GridNamelist.jl")
 include("SpongeNamelist.jl")
 include("WKBNamelist.jl")
 include("TracerNamelist.jl")
+include("TurbulenceNamelist.jl")
 include("Namelists.jl")
 
 export AbstractBackground,
@@ -321,7 +358,8 @@ export AbstractBackground,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter,
-    AbstractTracer
+    AbstractTracer,
+    AbstractTurbulence
 
 export UniformBoussinesq,
     StratifiedBoussinesq,
@@ -344,7 +382,10 @@ export UniformBoussinesq,
     Box,
     Shapiro,
     NoTracer,
-    LinearTracer
+    LinearTracer,
+    NoTurbulence,
+    TKEScheme,
+    TTEScheme
 
 export DomainNamelist,
     OutputNamelist,
@@ -356,6 +397,7 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    TurbulenceNamelist,
     Namelists
 
 end
