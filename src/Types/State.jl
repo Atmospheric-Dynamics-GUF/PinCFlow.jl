@@ -104,8 +104,6 @@ struct State{
 end
 
 function State(namelists::Namelists)::State
-
-    # Initialize everything.
     constants = Constants(namelists)
     time = Time()
     domain = Domain(namelists)
