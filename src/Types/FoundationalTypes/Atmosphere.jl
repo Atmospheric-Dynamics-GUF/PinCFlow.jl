@@ -363,7 +363,8 @@ function Atmosphere(
     # Compute the background fields.
     n2 .= 0.0
     thetabar .= theta0
-    pbar .= p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
+    pbar .=
+        p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
     rhobar .= pbar ./ thetabar
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
