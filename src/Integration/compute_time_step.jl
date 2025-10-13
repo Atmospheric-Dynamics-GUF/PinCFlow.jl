@@ -52,8 +52,8 @@ function compute_time_step(state::State)::AbstractFloat
     (; dx, dy, dz, jac) = grid
     (; predictands) = state.variables
     (; u, v, w) = predictands
-    (; test_case) = state.namelists.setting
     (; x_size, y_size) = state.namelists.domain
+    (; wkb_mode) = state.namelists.wkb
     (; cgx_max, cgy_max, cgz_max) = state.wkb
 
     @ivy if !adaptive_time_step
@@ -104,7 +104,7 @@ function compute_time_step(state::State)::AbstractFloat
         #         WKB-CFL criterion
         #----------------------------------
 
-        if typeof(test_case) <: AbstractWKBTestCase
+        if wkb_mode != NoWKB()
             dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
             kmin = ko == 0 ? k0 - 1 : k0
@@ -136,7 +136,7 @@ function compute_time_step(state::State)::AbstractFloat
         #        Make your choice
         #-------------------------------
 
-        if typeof(test_case) <: AbstractWKBTestCase
+        if wkb_mode != NoWKB()
             dt = min(dtvisc, dtconv, dtmax / tref, dtwkb)
         else
             dt = min(dtvisc, dtconv, dtmax / tref)
@@ -150,7 +150,7 @@ function compute_time_step(state::State)::AbstractFloat
             println("dtvisc = ", dtvisc * tref, " seconds")
             println("dtconv = ", dtconv * tref, " seconds")
             println("dtmax = ", dtmax, " seconds")
-            if typeof(test_case) <: AbstractWKBTestCase
+            if wkb_mode != NoWKB()
                 println("dtwkb = ", dtwkb * tref, " seconds")
             end
             println("")

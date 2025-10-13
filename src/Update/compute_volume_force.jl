@@ -5,11 +5,11 @@ compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{U, V, W, P, Chi},
 )::AbstractFloat
 ```
 
-Return the volume force in the equation specified by `variable`.
+Return the volume force in the equation specified by `variable`, by dispatching to an equation-and-WKB-mode specific method.
 
 ```julia
 compute_volume_force(
@@ -17,12 +17,12 @@ compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
-    test_case::AbstractTestCase,
+    variable::Union{U, V, W, Chi},
+    wkb_mode::NoWKB,
 )::AbstractFloat
 ```
 
-Return ``0`` as the volume force in non-WKB test cases (for all variables except the mass-weighted potential temperature).
+Return ``0`` as the volume force in non-WKB configurations (for all variables except the mass-weighted potential temperature).
 
 ```julia
 compute_volume_force(
@@ -31,7 +31,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::U,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
 ```
 
@@ -44,7 +44,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::V,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
 ```
 
@@ -57,7 +57,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::W,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
 ```
 
@@ -74,7 +74,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    test_case::AbstractTestCase,
+    wkb_mode::NoWKB,
 )::AbstractFloat
 ```
 
@@ -87,7 +87,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
 ```
 
@@ -100,7 +100,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variables::Chi,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
 ```
 
@@ -118,7 +118,7 @@ Return the tracer flux convergence due to gravity waves.
 
   - `variable`: Variable (equation) of choice.
 
-  - `test_case`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
@@ -131,11 +131,11 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{U, V, W, P, Chi},
 )::AbstractFloat
-    (; test_case) = state.namelists.setting
+    (; wkb_mode) = state.namelists.wkb
 
-    return compute_volume_force(state, i, j, k, variable, test_case)
+    return compute_volume_force(state, i, j, k, variable, wkb_mode)
 end
 
 function compute_volume_force(
@@ -143,8 +143,8 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
-    test_case::AbstractTestCase,
+    variable::Union{U, V, W, Chi},
+    wkb_mode::NoWKB,
 )::AbstractFloat
     return 0.0
 end
@@ -155,7 +155,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::U,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
     (; dudt) = state.wkb.tendencies
 
@@ -168,7 +168,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::V,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
     (; dvdt) = state.wkb.tendencies
 
@@ -181,7 +181,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::W,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
     (; jac, met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
@@ -204,7 +204,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    test_case::AbstractTestCase,
+    wkb_mode::NoWKB,
 )::AbstractFloat
     return conductive_heating(state, i, j, k)
 end
@@ -215,7 +215,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
 
@@ -228,7 +228,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variables::Chi,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
     (; leading_order_impact) = state.namelists.tracer
     (; chiq0) = state.tracer.tracerforcings

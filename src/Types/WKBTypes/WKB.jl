@@ -29,11 +29,11 @@ WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    test_case::AbstractTestCase,
+    wkb_mode::NoWKB,
 )::WKB
 ```
 
-Construct a `WKB` instance with zero-size arrays for non-WKB test cases.
+Construct a `WKB` instance with zero-size arrays for non-WKB configurations.
 
 ```julia
 WKB(
@@ -41,7 +41,7 @@ WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::WKB
 ```
 
@@ -103,7 +103,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `grid`: Collection of parameters and fields that describe the grid.
 
-  - `test_case`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
@@ -159,8 +159,8 @@ function WKB(
     domain::Domain,
     grid::Grid,
 )::WKB
-    (; test_case) = namelists.setting
-    return WKB(namelists, constants, domain, grid, test_case)
+    (; wkb_mode) = namelists.wkb
+    return WKB(namelists, constants, domain, grid, wkb_mode)
 end
 
 function WKB(
@@ -168,7 +168,7 @@ function WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    test_case::AbstractTestCase,
+    wkb_mode::NoWKB,
 )::WKB
     return WKB(
         [0 for i in 1:9]...,
@@ -191,7 +191,7 @@ function WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::WKB
     (;
         xrmin,

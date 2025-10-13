@@ -14,7 +14,8 @@ function read_input! end
 function read_input!(state::State)
     (; x_size, y_size) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
-    (; model, test_case) = state.namelists.setting
+    (; model) = state.namelists.setting
+    (; wkb_mode) = state.namelists.wkb
     (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
@@ -78,7 +79,7 @@ function read_input!(state::State)
         end
 
         # Read ray-volume properties.
-        if typeof(test_case) <: AbstractWKBTestCase
+        if wkb_mode != NoWKB()
             for (output_name, field_name) in zip(
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),

@@ -14,18 +14,7 @@ Predictands(
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
-)::Predictands
-```
-
-Construct a `Predictands` instance with dimensions and initial values depending on which test case is initialized, by dispatching to the appropriate method.
-
-```julia
-Predictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    test_case::AbstractTestCase,
+    grid::Grid,
 )::Predictands
 ```
 
@@ -59,9 +48,7 @@ The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphe
 
   - `atmosphere`: Atmospheric-background fields.
 
-  - `model`: Dynamic equations.
-
-  - `test_case`: Test case on which the current simulation is based.
+  - `grid`: Collection of parameters and fields describing the grid.
 """
 struct Predictands{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -82,25 +69,6 @@ function Predictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-)::Predictands
-    (; test_case) = namelists.setting
-    return Predictands(
-        namelists,
-        constants,
-        domain,
-        atmosphere,
-        grid,
-        test_case,
-    )
-end
-
-function Predictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    test_case::AbstractTestCase,
 )::Predictands
     (; initial_wind) = namelists.atmosphere
     (; model) = namelists.setting
