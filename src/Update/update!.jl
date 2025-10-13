@@ -23,7 +23,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
 )
 ```
 
@@ -362,7 +362,12 @@ update!(state::State, dt::AbstractFloat, variable::PiP)
 Update the Exner-pressure if the atmosphere is compressible by dispatching to the appropriate method.
 
 ```julia
-update!(state::State, dt::AbstractFloat, variable::PiP, model::AbstractModel)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::PiP,
+    model::Union{Boussinesq, PseudoIncompressible},
+)
 ```
 
 Return in non-compressible modes.
@@ -396,7 +401,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -430,12 +435,7 @@ update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::NoTracer)
 Return for configurations without tracer transport.
 
 ```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracer_setup::AbstractTracer,
-)
+update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::LinearTracer)
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
@@ -508,7 +508,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1338,7 +1338,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     variable::PiP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end
@@ -1388,7 +1388,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end
@@ -1446,13 +1446,12 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
-    (; test_case) = state.namelists.setting
 
     @ivy for field in 1:fieldcount(TracerPredictands)
         if m == 1
@@ -1475,7 +1474,7 @@ function update!(
             fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
             fluxdiff /= jac[i, j, k]
 
-            force = compute_volume_force(state, i, j, k, Chi(), test_case)
+            force = compute_volume_force(state, i, j, k, Chi())
             f = -fluxdiff + force
 
             dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]

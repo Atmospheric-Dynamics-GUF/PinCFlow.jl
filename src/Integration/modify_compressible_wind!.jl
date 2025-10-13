@@ -9,7 +9,7 @@ Modify the wind with ``J P`` if the atmosphere is compressible by dispatching to
 modify_compressible_wind!(
     state::State,
     operation::Function,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -44,7 +44,7 @@ end
 function modify_compressible_wind!(
     state::State,
     operation::Function,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end

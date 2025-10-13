@@ -25,7 +25,7 @@ TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::AbstractTracer,
+    tracer_setup::NoTracer,
     variables::Variables,
 )::TracerPredictands
 ```
@@ -97,7 +97,7 @@ function TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::AbstractTracer,
+    tracer_setup::NoTracer,
     variables::Variables,
 )::TracerPredictands
     return TracerPredictands(

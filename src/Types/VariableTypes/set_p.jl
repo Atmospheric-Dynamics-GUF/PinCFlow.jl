@@ -1,7 +1,7 @@
 """
 ```julia
 set_p(
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
@@ -43,7 +43,7 @@ In compressible mode, the mass-weighted potential temperature is a prognostic va
 function set_p end
 
 function set_p(
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,

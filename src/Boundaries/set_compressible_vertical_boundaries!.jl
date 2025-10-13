@@ -12,7 +12,7 @@ Enforce vertical boundary conditions for the specified variables in compressible
 set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -64,7 +64,7 @@ end
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end

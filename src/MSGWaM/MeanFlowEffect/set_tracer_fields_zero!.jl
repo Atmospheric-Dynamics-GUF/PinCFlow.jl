@@ -12,7 +12,7 @@ set_tracer_field_zero!(state::State, tracer_setup::NoTracer)
 Return for configurations without tracer transport.
 
 ```julia
-set_tracer_field_zero!(state::State, tracer_setup::AbstractTracer)
+set_tracer_field_zero!(state::State, tracer_setup::LinearTracer)
 ```
 
 Set the gravity-wave-induced tracer fluxes to zero.
@@ -37,7 +37,7 @@ function set_tracer_field_zero!(state::State, tracer_setup::NoTracer)
     return
 end
 
-function set_tracer_field_zero!(state::State, tracer_setup::AbstractTracer)
+function set_tracer_field_zero!(state::State, tracer_setup::LinearTracer)
     (; chiq0) = state.tracer.tracerforcings
 
     for field in fieldnames(TracerWKBImpact)

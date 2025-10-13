@@ -54,7 +54,7 @@ reconstruct!(state::State, tracer_setup::NoTracer)
 Return for configurations without tracer transport.
 
 ```julia
-reconstruct!(state::State, tracer_setup::AbstractTracer)
+reconstruct!(state::State, tracer_setup::LinearTracer)
 ```
 
 Reconstruct the tracers.
@@ -222,7 +222,7 @@ function reconstruct!(state::State, tracer_setup::NoTracer)
     return
 end
 
-function reconstruct!(state::State, tracer_setup::AbstractTracer)
+function reconstruct!(state::State, tracer_setup::LinearTracer)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries

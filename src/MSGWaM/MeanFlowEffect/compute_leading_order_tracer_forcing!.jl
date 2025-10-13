@@ -5,7 +5,7 @@ compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )
 ```
 
@@ -40,7 +40,7 @@ function compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid

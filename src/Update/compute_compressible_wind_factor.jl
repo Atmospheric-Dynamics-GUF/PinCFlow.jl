@@ -20,7 +20,7 @@ compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::AbstractVariable,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
 ```
 
@@ -98,7 +98,7 @@ function compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::AbstractVariable,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
     return 1.0
 end

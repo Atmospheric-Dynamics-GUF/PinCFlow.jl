@@ -15,7 +15,10 @@ Increments(namelists::Namelists, domain::Domain)::Increments
 Create a `Increments` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
 
 ```julia
-Increments(domain::Domain, model::AbstractModel)::Increments
+Increments(
+    domain::Domain,
+    model::Union{Boussinesq, PseudoIncompressible},
+)::Increments
 ```
 
 Create a `Increments` instance in non-compressible modes, with a zero-size array for the mass-weighted potential-temperature update.
@@ -68,7 +71,10 @@ function Increments(namelists::Namelists, domain::Domain)::Increments
     return Increments(domain, model)
 end
 
-function Increments(domain::Domain, model::AbstractModel)::Increments
+function Increments(
+    domain::Domain,
+    model::Union{Boussinesq, PseudoIncompressible},
+)::Increments
     (; nxx, nyy, nzz) = domain
 
     # Initialize the increments.

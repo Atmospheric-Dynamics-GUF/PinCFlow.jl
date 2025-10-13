@@ -47,7 +47,7 @@ The computation is analogous to that of the density fluxes.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
     variable::P,
 )
 ```
@@ -223,7 +223,7 @@ Return for configurations without tracer transport.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )
 ```
 
@@ -450,7 +450,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
     variable::P,
 )
     return
@@ -1439,7 +1439,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid

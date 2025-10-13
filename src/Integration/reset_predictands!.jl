@@ -16,7 +16,11 @@ reset_predictands!(state::State, tracerpredictands::TracerPredictands)
 Reset fields in `state.tracer.tracerpredictands` to those in `tracerpredictands`.
 
 ```julia
-reset_predictands!(state::State, predictands::Predictands, model::AbstractModel)
+reset_predictands!(
+    state::State,
+    predictands::Predictands,
+    model::Union{Boussinesq, PseudoIncompressible},
+)
 ```
 
 Reset the density, density fluctuations and wind components in `state.variables.predictands` to those in `predictands`.
@@ -63,7 +67,7 @@ end
 function reset_predictands!(
     state::State,
     predictands::Predictands,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     (; rho, rhop, u, v, w) = state.variables.predictands
 

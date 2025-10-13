@@ -6,7 +6,10 @@ compute_lhs!(state::State)::AbstractFloat
 Compute the scaled left-hand side of the Poisson equation and return a reference tolerance for the convergence criterion by dispatching to a model-specific method.
 
 ```julia
-compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
+compute_lhs!(
+    state::State,
+    model::Union{Boussinesq, PseudoIncompressible},
+)::AbstractFloat
 ```
 
 Compute the scaled left-hand side of the Poisson equation in pseudo-incompressible/Boussinesq mode and return a reference tolerance for the convergence criterion.
@@ -62,7 +65,10 @@ function compute_lhs!(state::State)::AbstractFloat
     return compute_lhs!(state, model)
 end
 
-function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
+function compute_lhs!(
+    state::State,
+    model::Union{Boussinesq, PseudoIncompressible},
+)::AbstractFloat
     (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain

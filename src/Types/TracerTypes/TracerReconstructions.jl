@@ -28,7 +28,7 @@ Construct a `TracerReconstructions` instance with zero-size arrays for configura
 ```julia
 TracerReconstructions(
     domain::Domain,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )::TracerReconstructions
 ```
 
@@ -72,7 +72,7 @@ end
 
 function TracerReconstructions(
     domain::Domain,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )::TracerReconstructions
     (; nxx, nyy, nzz) = domain
 

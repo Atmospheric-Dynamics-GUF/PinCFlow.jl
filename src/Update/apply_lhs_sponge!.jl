@@ -28,7 +28,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
 )
 ```
 
@@ -48,16 +48,34 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::AbstractModel,
+    model::Compressible,
 )
 ```
 
-Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation.
+Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation in compressible mode.
 
 The update is given by
 
 ```math
 \\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho} \\left(1 - \\frac{P}{\\rho \\overline{\\theta}}\\right)\\right].
+```
+
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::RhoP,
+    model::Union{Boussinesq, PseudoIncompressible},
+)
+```
+
+Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation in non-compressible modes.
+
+The update is given by
+
+```math
+\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\rho'.
 ```
 
 ```julia
@@ -126,7 +144,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -156,7 +174,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -196,7 +214,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )
 ```
 
@@ -250,7 +268,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
@@ -302,7 +320,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
@@ -501,7 +519,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end
@@ -539,7 +557,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end
@@ -581,7 +599,7 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::AbstractTracer,
+    tracer_setup::LinearTracer,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
