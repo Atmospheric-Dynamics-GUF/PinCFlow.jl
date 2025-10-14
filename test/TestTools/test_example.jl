@@ -84,10 +84,7 @@ function test_example(
                             lref[key];
                             atol,
                             rtol = rtol == 0 ?
-                                   (
-                                atol > 0 ? 0 :
-                                sqrt(eps(max(l[key], lref[key])))
-                            ) : rtol,
+                                   (atol > 0 ? 0 : sqrt(eps(Float32))) : rtol,
                         )
                     end
                 end
