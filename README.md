@@ -1,5 +1,13 @@
 # PinCFlow.jl
 
+[![Docs-stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Atmospheric-Dynamics-GUF.github.io/PinCFlow.jl/stable)
+[![Docs-dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Atmospheric-Dynamics-GUF.github.io/PinCFlow.jl/dev)
+[![Build Status](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/actions?query=workflow%3ACI)
+[![Codecov](https://codecov.io/gh/Atmospheric-Dynamics-GUF/PinCFlow.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/Atmospheric-Dynamics-GUF/PinCFlow.jl)
+[![Coveralls](https://coveralls.io/repos/github/Atmospheric-Dynamics-GUF/PinCFlow.jl/badge.svg?branch=main)](https://coveralls.io/github/Atmospheric-Dynamics-GUF/PinCFlow.jl?branch=main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/DOI/TODO.svg)](https://doi.org/TODO)
+
 ## Introduction
 
 PinCFlow is an atmospheric flow solver that was designed for performing idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form ([Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)), using a a semi-implicit method that combines explicit and implicit time-stepping schemes ([Benacchio & Klein, 2019](https://doi.org/10.1175/MWR-D-19-0073.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1)). Spatially, the equations are discretized with a finite-volume method, such that all quantities are represented by averages over grid cells and fluxes are computed on the respective cell interfaces. The grid is staggered so that the velocity components are defined at the same points as the corresponding fluxes of scalar quantities. PinCFlow operates in a vertically stretched terrain-following coordinate system based on [Gal-Chen and Somerville (1975a)](https://doi.org/10.1016/0021-9991(75)90037-6), [Gal-Chen and Somerville (1975b)](https://doi.org/10.1016/0021-9991(75)90054-6) and [Clark (1977)](https://doi.org/10.1016/0021-9991(77)90057-2).
