@@ -5,3 +5,5 @@ Manifest.toml
 /build
 /docs/build
 .vscode
+# Julia's code coverage report files
+**/*.cov
