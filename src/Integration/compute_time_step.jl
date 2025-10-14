@@ -51,10 +51,13 @@ function compute_time_step(state::State)::AbstractFloat
     (; master, comm, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = grid
     (; predictands) = state.variables
-    (; u, v, w) = predictands
+    (; u, v, w, rho) = predictands
     (; test_case) = state.namelists.setting
     (; x_size, y_size) = state.namelists.domain
     (; cgx_max, cgy_max, cgz_max) = state.wkb
+    (; tke) = state.turbulence.turbulencepredictands
+    (; rhobar) = state.atmosphere
+    (; turbulence_scheme) = state.namelists.turbulence
 
     @ivy if !adaptive_time_step
         dt = dtmax / tref
@@ -132,6 +135,27 @@ function compute_time_step(state::State)::AbstractFloat
 
             dtwkb = MPI.Allreduce(dtwkb, min, comm)
         end
+
+        #-------------------------------
+        #     Turbulence criterion 
+        #-------------------------------
+
+        if typeof(turbulence_scheme) != NoTurbulence()
+            uturb =
+                maximum(
+                    abs,
+                    sqrt.(
+                        tke[i0:i1, j0:j1, k0:k1] ./ (
+                            rho[i0:i1, j0:j1, k0:k1] .+
+                            rhobar[i0:i1, j0:j1, k0:k1]
+                        )
+                    ),
+                ) + eps()
+            
+            dtturb = cfl_number * min(dx / uturb, dy / uturb, dz / uturb)
+
+            dtturb = MPI.Allreduce(dtturb, min, comm)
+        end
         #-------------------------------
         #        Make your choice
         #-------------------------------
@@ -140,6 +164,10 @@ function compute_time_step(state::State)::AbstractFloat
             dt = min(dtvisc, dtconv, dtmax / tref, dtwkb)
         else
             dt = min(dtvisc, dtconv, dtmax / tref)
+        end
+
+        if typeof(turbulence_scheme) != NoTurbulence()
+            dt = min(dt, dtturb)
         end
 
         #-----------------------------------------
@@ -153,6 +181,9 @@ function compute_time_step(state::State)::AbstractFloat
             if typeof(test_case) <: AbstractWKBTestCase
                 println("dtwkb = ", dtwkb * tref, " seconds")
             end
+            if typeof(turbulence_scheme) != NoTurbulence()
+                println("dtturb = ", dtturb * tref, " seconds")
+            end
             println("")
 
             if dt == dtmax / tref
@@ -163,6 +194,8 @@ function compute_time_step(state::State)::AbstractFloat
                 println("=> dt = dtvisc = ", dt * tref, " seconds")
             elseif dt == dtwkb
                 println("=> dt = dtwkb = ", dt * tref, " seconds")
+            elseif dt == dtturb 
+                println("=> dt = dtturb = ", dt * tref, " seconds")
             else
                 println("=> dt = ??? = ", dt * tref, " seconds")
             end

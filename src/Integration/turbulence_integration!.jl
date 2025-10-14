@@ -30,11 +30,8 @@ function turbulence_integration!(
     set_boundaries!(state, BoundaryPredictands())
 
     turbulence_integration!(state, p0, dt * 0.5, Dissipation())
-
     turbulence_integration!(state, p0, dt, Advection())
-
     turbulence_integration!(state, p0, dt, Diffusion())
-
     turbulence_integration!(state, p0, dt * 0.5, Dissipation())
 
     set_boundaries!(state, BoundaryPredictands())
