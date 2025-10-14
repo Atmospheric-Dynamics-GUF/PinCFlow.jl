@@ -8,3 +8,6 @@ Documenter = "1.14.1"
 PinCFlow = "0.1.0"
 Revise = "3.9.0"
 julia = "1.10.10"
+
+[sources.PinCFlow]
+path = ".."
