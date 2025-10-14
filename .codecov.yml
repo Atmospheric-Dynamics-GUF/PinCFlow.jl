@@ -3,9 +3,9 @@
 codecov:
   branch: main
   notify:
-    after_n_builds: 3
+    after_n_builds: 2
 comment:
-  after_n_builds: 3
+  after_n_builds: 2
 
 coverage:
   range: 80..95 # set 95% and above as solid green, everything below 80% as red

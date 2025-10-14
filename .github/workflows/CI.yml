@@ -33,9 +33,11 @@ jobs:
           - version: '1.10'
             os: macos-latest
             arch: aarch64
-          - version: '1.10'
-            os: windows-latest
-            arch: x64
+          # Windows CI disabled due to HDF5 MPi errors, see
+          # https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/issues/111
+          #- version: '1.10'
+          #  os: windows-latest
+          #  arch: x64
     steps:
       - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
