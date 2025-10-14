@@ -26,8 +26,5 @@ end
 function Auxiliaries(domain::Domain)::Auxiliaries
     (; nxx, nyy, nzz) = domain
 
-    # Initialize the auxiliaries.
-    phi = zeros(nxx, nyy, nzz)
-
-    return Auxiliaries(phi)
+    return Auxiliaries(zeros(nxx, nyy, nzz))
 end
