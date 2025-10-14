@@ -6,3 +6,5 @@
 /docs/build
 .vscode
 **/*.code-workspace
+# Julia's code coverage report files
+**/*.cov
