@@ -4,6 +4,7 @@
 .aider*
 /build
 /docs/build
+/docs/src/examples/results
 .vscode
 **/*.code-workspace
 # Julia's code coverage report files

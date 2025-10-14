@@ -36,6 +36,7 @@ using PinCFlow
 end
 
 # Copy the example plots.
+mkpath("docs/src/examples/results/")
 for file in readdir("examples/results/"; join = true)
     cp(file, "docs/src/" * file; force = true)
 end
