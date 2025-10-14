@@ -73,6 +73,15 @@ Boundary-variable category for gravity-wave-tendency fields.
 """
 struct BoundaryWKBTendencies <: AbstractBoundaryVariables end
 
+"""
+```julia
+BoundaryDiffusionCoefficients <: AbstractBoundaryVariables
+```
+
+Boundary-variable category for eddy diffusion coefficients.
+"""
+struct BoundaryDiffusionCoefficients <: AbstractBoundaryVariables end
+
 include("set_boundaries!.jl")
 include("set_compressible_meridional_boundaries!.jl")
 include("set_compressible_vertical_boundaries!.jl")
@@ -94,7 +103,8 @@ export BoundaryPredictands,
     BoundaryReconstructions,
     BoundaryFluxes,
     BoundaryWKBIntegrals,
-    BoundaryWKBTendencies
+    BoundaryWKBTendencies,
+    BoundaryDiffusionCoefficients
 
 export set_boundaries!,
     set_meridional_boundaries_of_field!,

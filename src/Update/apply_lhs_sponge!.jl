@@ -601,3 +601,25 @@ function apply_lhs_sponge!(
 
     return
 end
+
+function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulence_scheme::TKEScheme,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphar) = state.sponge
+    (; tke) = state.turbulence.turbulencepredictands
+    (; tkebg) = state.turbulence.turbulenceauxiliaries
+
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        alpha = alphar[i, j, k]
+        tke_old = tke[i, j, k]
+        beta = 1.0 / (1.0 + alpha * dt)
+        tke_new = (1.0 - beta) * tkebg[i, j, k] + beta * tke_old
+        tke[i, j, k] = tke_new
+    end
+
+    return
+end

@@ -79,8 +79,6 @@ This method first uses the parameters specified in `namelists` to construct inst
   - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.Tracer`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
 """
 struct State{
     A <: Namelists,

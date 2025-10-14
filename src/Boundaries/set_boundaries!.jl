@@ -77,3 +77,10 @@ function set_boundaries!(state::State, variables::BoundaryWKBTendencies)
     set_vertical_boundaries!(state, variables)
     return
 end
+
+function set_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
+    set_zonal_boundaries!(state, variables)
+    set_meridional_boundaries!(state, variables)
+    set_vertical_boundaries!(state, variables)
+    return
+end

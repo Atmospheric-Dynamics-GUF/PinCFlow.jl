@@ -113,6 +113,24 @@ struct Chi <: AbstractVariable end
 
 """
 ```julia
+TKE <: AbstractVariable
+```
+
+Singleton that represents the turbulence kinetic energy.
+"""
+struct TKE <: AbstractVariable end
+
+"""
+```julia
+TTE <: AbstractVariable
+```
+
+Singleton that represents the total turbulence energy.
+"""
+struct TTE <: AbstractVariable end
+
+"""
+```julia
 Explicit
 ```
 
@@ -170,6 +188,8 @@ export Rho,
     P,
     Theta,
     Chi,
+    TKE,
+    TTE,
     Explicit,
     Implicit,
     UniformBoussinesq,

@@ -240,3 +240,38 @@ function compute_volume_force(
         return 0.0
     end
 end
+
+function compute_volume_force(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+)::AbstractFloat
+    (; km, kh, shearproduction, buoyancyproduction) =
+        state.turbulence.turbulenceauxiliaries
+    (; rho) = p0
+    (; rhobar, n2) = state.atmosphere
+    (; jac, dz) = state.grid
+    (; g_ndim, lref, tref) = state.constants
+    (; ko, k0)
+
+    shear =
+        km[i, j, k] * (
+            compute_momentum_diffusion_terms(state, p0, i, j, k, U(), Z())^2.0 +
+            compute_momentum_diffusion_terms(state, p0, i, j, k, V(), Z())^2.0
+        )
+
+    shearproduction[i, j, k] = shear
+
+    bu = g_ndim * rho[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
+    bd = g_ndim * rho[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
+
+    buoyancy =
+        -kh[i, j, k] * (n2[i, j, k]  + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+
+    buoyancyproduction[i, j, k] = buoyancy
+
+    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
+end

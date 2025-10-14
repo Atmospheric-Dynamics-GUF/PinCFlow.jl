@@ -330,6 +330,28 @@ function write_output(
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
                     (lref .^ 2.0) ./ (tref .^ 2.0)
             end
+
+            HDF5.set_extent_dims(
+                file["shear"],
+                (x_size, y_size, z_size, iout),
+            )
+            file["shear"][iid, jjd, kkd, iout] =
+                state.turbulence.turbulenceauxiliaries.shearproduction[
+                    ii,
+                    jj,
+                    kk,
+                ] .* lref .^ 2 ./ tref .^ 3
+
+            HDF5.set_extent_dims(
+                file["buoyancy"],
+                (x_size, y_size, z_size, iout),
+            )
+            file["buoyancy"][iid, jjd, kkd, iout] =
+                state.turbulence.turbulenceauxiliaries.buoyancyproduction[
+                    ii,
+                    jj,
+                    kk,
+                ] .* lref .^ 2 ./ tref .^ 3
         end
 
         # Write WKB variables.

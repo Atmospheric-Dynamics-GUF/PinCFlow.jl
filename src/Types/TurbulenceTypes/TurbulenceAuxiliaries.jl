@@ -27,19 +27,51 @@ struct TurbulenceAuxiliaries{
 }
     tkebg::A
     ttebg::A
-    tkebackup::B
+    km::B
+    kh::B
+    kek::B
+    athomas::B
+    bthomas::B
+    cthomas::B
+    fthomas::B
+    qthomas::B 
+    shearproduction::B 
+    buoyancyproduction::B
 end
 
 function TurbulenceAuxiliaries(
     turbulencepredictands::TurbulencePredictands,
     constants::Constants,
+    domain::Domain,
 )::TurbulenceAuxiliaries
     (; lref, tref) = constants
     (; tke) = turbulencepredictands
 
     tkebg = 0.1 * tref^2.0 / lref^2.0
     ttebg = 0.1 * tref^2.0 / lref^2.0
-    tkebackup = deepcopy(tke)
+    km = zeros(size(tke))
+    kh = zeros(size(tke))
+    kek = zeros(size(tke))
+    athomas = zeros(size(tke))
+    bthomas = zeros(size(tke))
+    cthomas = zeros(size(tke))
+    fthomas = zeros(size(tke))
+    qthomas = zeros(size(tke))
+    shearproduction = zeros(size(tke))
+    buoyancyproduction = zeros(size(tke))
 
-    return TurbulenceAuxiliaries(tkebg, ttebg, tkebackup)
+    return TurbulenceAuxiliaries(
+        tkebg,
+        ttebg,
+        km,
+        kh,
+        kek,
+        athomas,
+        bthomas,
+        cthomas,
+        fthomas,
+        qthomas,
+        shearproduction,
+        buoyancyproduction,
+    )
 end

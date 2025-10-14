@@ -412,3 +412,53 @@ function compute_momentum_diffusion_terms(
 
     return diffwz
 end
+
+function compute_momentum_diffusion_terms(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    direction::Z,
+)::AbstractFloat
+    (; u) = p0
+    (; dx, dy, dz, met) = state.grid
+
+    @ivy uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
+    @ivy ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
+    @ivy uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
+    @ivy ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
+
+    @ivy diffuz =
+        met[i, j, k, 1, 3] * (u[i, j, k] - u[i - 1, j, k]) / dx +
+        met[i, j, k, 2, 3] * (uf - ub) / (2.0 * dy) +
+        met[i, j, k, 3, 3] * (uu - ud) / (2.0 * dz)
+
+    return diffuz
+end
+
+function compute_momentum_diffusion_terms(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    direction::Z,
+)::AbstractFloat
+    (; v) = p0
+    (; dx, dy, dz, met) = state.grid
+
+    @ivy vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
+    @ivy vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
+    @ivy vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
+    @ivy vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
+
+    @ivy diffvz =
+        met[i, j, k, 1, 3] * (vr - vl) / (2 * dx) +
+        met[i, j, k, 2, 3] * (v[i, j, k] - v[i, j - 1, k]) / dy +
+        met[i, j, k, 3, 3] * (vu - vd) / (2.0 * dz)
+
+    return diffvz
+end

@@ -27,11 +27,17 @@ function turbulence_integration!(
     dt::AbstractFloat,
     turbulence_scheme::AbstractTurbulence,
 )
+    set_boundaries!(state, BoundaryPredictands())
 
-    #turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+    turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+
     turbulence_integration!(state, p0, dt, Advection())
-    #turbulence_integration!(state, p0, dt, Diffusion())
-    #turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+
+    turbulence_integration!(state, p0, dt, Diffusion())
+
+    turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+
+    set_boundaries!(state, BoundaryPredictands())
 
     return
 end
@@ -75,18 +81,16 @@ function turbulence_integration!(
 
         save_backups!(state, :rho)
 
-        update!(state, dt, rkstage, turbulence_scheme)
-        # apply_unified_sponge!(
-        #     state,
-        #     stepfrac[rkstage] * dt,
-        #     turbulence_scheme,
-        # )
+        update!(state, p0, dt, rkstage, turbulence_scheme)
+        apply_lhs_sponge!(
+            state,
+            dt,
+            stepfrac[rkstage] * dt,
+            turbulence_scheme,
+        )
         set_boundaries!(state, BoundaryPredictands())
     end
 
-    return
-
-    # Advection and S+B-terms using RK3
     return
 end
 
@@ -96,94 +100,64 @@ function turbulence_integration!(
     dt::AbstractFloat,
     process::Diffusion,
 )
-    (; nxx, nyy, nzz) = state.domain
-    (; dz) = state.grid
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; k_diff) = state.turbulence.turbulenceconstants
     (; tke) = state.turbulence.turbulencepredictands
-    (; dtke) = state.turbulence.turbulenceincrements
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac, dz) = state.grid
+    (; kek, athomas, bthomas, cthomas, fthomas, qthomas, fthomas) =
+        state.turbulence.turbulenceauxiliaries
 
-    # Define the intermediate variables used in the calculation
+    dtdz2 = dt / (2.0 * dz^2.0)
 
-    ta = k1 - k0 + 1
-    aa = zeros(Float64, ta)
-    bb = zeros(Float64, ta)
-    cc = zeros(Float64, ta)
-    dd = zeros(Float64, ta)
-    qq = zeros(Float64, ta)
-    ss = zeros(Float64, ta)
-    K_ek = zeros(Float64, nxx, nyy, nzz)
-    dr = dt / (2 * dz^2)
-
-    # Defining the diffusion constant
-
-    K_ek .= sqrt.(tke) .^ 3 .* k_diff
-
-    # Defining the Thomas Algorithm for vertical diffusion 
+    athomas .= 0.0
+    bthomas .= 0.0
+    cthomas .= 0.0
+    fthomas .= 0.0
+    qthomas .= 0.0
 
     for j in j0:j1, i in i0:i1
-        for k in k0:k1,
+        for k in k0:k1
+            kekd =
+                (
+                    jac[i, j, k - 1] * kek[i, j, k] +
+                    jac[i, j, k] * kek[i, j, k - 1]
+                ) / (jac[i, j, k - 1] + jac[i, j, k])
+            keku =
+                (
+                    jac[i, j, k + 1] * kek[i, j, k] +
+                    jac[i, j, k] * kek[i, j, k + 1]
+                ) / (jac[i, j, k + 1] + jac[i, j, k])
+            athomas[i, j, k] = -dtdz2 * kekd
+            bthomas[i, j, k] = 1 + dtdz2 * keku + dtdz2 * kekd
+            cthomas[i, j, k] = -dtdz2 * keku
 
-            K_ekp in (K_ek[i, j, k] + K_ek[i, j, k + 1]) / 2
+            fthomas[i, j, k] =
+                (1 - dtdz2 * keku - dtdz2 * kekd) * tke[i, j, k] +
+                dtdz2 * keku * tke[i, j, k + 1] +
+                dtdz2 * kekd * tke[i, j, k - 1]
 
-            K_ekm = (K_ek[i, j, k - 1] + K_ek[i, j, k]) / 2
-
-            # Initialising the tridiagonal matrix
-
-            aa[k - k0 + 1] = -dr * K_ekm
-            bb[k - k0 + 1] = 1 + dr * K_ekm + dr * K_ekp
-            cc[k - k0 + 1] = -dr * K_ekp
-
-            # Initialising the RHS of the Algorithm
-
-            dd[k - k0 + 1] =
-                (1 - dr * K_ekm - dr * K_ekp) * tke[i, j, k] -
-                (dr * K_ekp * tke[i, j, k + 1]) -
-                (dr * K_ekm * tke[i, j, k - 1])
         end
 
-        # Begin Thomas Algorithm
+        athomas[i, j, k0] = 0.0
+        cthomas[i, j, k1] = 0.0
 
-        dmx = dd[ta]
+        qthomas[i, j, k0] = -cthomas[i, j, k0] / bthomas[i, j, k0]
+        fthomas[i, j, k0] = fthomas[i, j, k0] / bthomas[i, j, k0]
 
-        # Forward Sweep
-
-        qq[1] = -cc[1] / bb[1]
-        dd[1] = dd[1] / bb[1]
-        ss[1] = -aa[1] / bb[1]
-
-        for mm in 2:ta
-            qq[mm] = -cc[mm] / (bb[mm] + aa[mm] * qq[mm - 1])
-            dd[mm] =
-                (dd[mm] - aa[mm] * dd[mm - 1]) / (bb[mm] + aa[mm] * qq[mm - 1])
-            ss[mm] = (-aa[mm] * ss[mm - 1]) / (bb[mm] + aa[mm] * qq[mm - 1])
+        for k in (k0 + 1):k1
+            p =
+                1.0 /
+                (bthomas[i, j, k] + athomas[i, j, k] * qthomas[i, j, k - 1])
+            qthomas[i, j, k] = -cthomas[i, j, k] * p
+            fthomas[i, j, k] =
+                (fthomas[i, j, k] - athomas[i, j, k] * fthomas[i, j, k - 1]) * p
         end
 
-        # Backward Sweep
-
-        qq[ta] = 0
-        ss[ta] = 1
-
-        for mm in (ta - 1):-1:1
-            ss[mm] = ss[mm] + qq[mm] * ss[mm + 1]
-            qq[mm] = dd[mm] + qq[mm] * qq[mm + 1]
+        for k in (k1 - 1):-1:k0
+            fthomas[i, j, k] =
+                fthomas[i, j, k] + qthomas[i, j, k] * fthomas[i, j, k + 1]
         end
 
-        # Final Sweep
-
-        dd[ta] =
-            (dmx - cc[ta] * qq[1] - aa[ta] * qq[ta - 1]) /
-            (cc[ta] * ss[1] + aa[ta] * ss[ta - 1] + bb[ta])
-
-        for mm in 1:(ta - 1)
-            dd[mm] = dd[ta] * ss[mm] + qq[mm]
-        end
-
-        # End Thomas Algorithm
-
-        # Setting the values obtained from the Thomas Algorithm to be the output values of this step
-        for k in k0:k1, tke[i, j, k] in dd[k - k0 + 1]
-        end
+        tke[i, j, :] .= fthomas[i, j, :]
     end
 
     return

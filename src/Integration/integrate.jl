@@ -252,6 +252,12 @@ function integrate(namelists::Namelists)
 
         wkb_integration!(state, dt)
 
+        #-----------------------------------------------------------------
+        #                         Turbulence 
+        #-----------------------------------------------------------------
+
+        compute_turbulence_diffusion!(state)
+
         #---------------------------------------------------------------
         #                   Semi-implicit time scheme
         #---------------------------------------------------------------
@@ -265,8 +271,7 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        (p0, chi0, state.turbulence.turbulenceauxiliaries.tkebackup) =
-            backup_predictands(state)
+        (p0, chi0) = backup_predictands(state)
 
         compute_fluxes!(state, p0, Theta())
 

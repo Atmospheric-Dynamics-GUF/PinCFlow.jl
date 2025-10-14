@@ -1488,6 +1488,7 @@ end
 
 function update!(
     state::State,
+    p0::Predictands,
     dt::AbstractFloat,
     m::Integer,
     turbulence_scheme::NoTurbulence,
@@ -1497,42 +1498,38 @@ end
 
 function update!(
     state::State,
+    p0::Predictands,
     dt::AbstractFloat,
     m::Integer,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; turbulenceincrements, turbulencepredictands, turbulencefluxes) = state.turbulence
+    (; dtke) = state.turbulence.turbulenceincrements
+    (; phitke) = state.turbulence.turbulencefluxes
+    (; tke) = state.turbulence.turbulencepredictands
 
-    @ivy for field in 1:fieldcount(TurbulencePredictands)
-        if m == 1
-            getfield(turbulenceincrements, field) .= 0.0
-        end
-
-        flr = getfield(turbulencefluxes, field)[:, :, :, 1]
-        gbf = getfield(turbulencefluxes, field)[:, :, :, 2]
-        hdu = getfield(turbulencefluxes, field)[:, :, :, 3]
-        chi = getfield(turbulencepredictands, field)[:, :, :]
-        dchi = getfield(turbulenceincrements, field)[:, :, :]
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            fl = flr[i - 1, j, k]
-            fr = flr[i, j, k]
-            gb = gbf[i, j - 1, k]
-            gf = gbf[i, j, k]
-            hd = hdu[i, j, k - 1]
-            hu = hdu[i, j, k]
-
-            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
-            fluxdiff /= jac[i, j, k]
-
-            f = -fluxdiff
-
-            dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]
-            chi[i, j, k] += betark[m] * dchi[i, j, k]
-        end
+    if m == 1
+        dtke .= 0.0
     end
 
-    return
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        fl = phitke[i - 1, j, k, 1]
+        fr = phitke[i, j, k, 1]
+        gb = phitke[i, j - 1, k, 2]
+        gf = phitke[i, j, k, 2]
+        hd = phitke[i, j, k - 1, 3]
+        hu = phitke[i, j, k, 3]
+
+        fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+        fluxdiff /= jac[i, j, k]
+
+        f = -fluxdiff + compute_volume_force(state, p0, i, j, k, TKE())
+
+        dtke[i, j, k] = dt * f + alphark[m] * dtke[i, j, k]
+        tke[i, j, k] += betark[m] * dtke[i, j, k]
+    end
+
+    return 
 end
