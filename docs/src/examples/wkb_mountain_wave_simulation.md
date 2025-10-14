@@ -24,8 +24,8 @@ rl = 10
 rh = 2
 
 atmosphere = AtmosphereNamelist(;
-    initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
     coriolis_frequency = 0.0E+0,
+    initial_u = (x, y, z) -> 1.0E+1,
 )
 domain = DomainNamelist(;
     x_size = 40,
@@ -63,16 +63,8 @@ sponge = SpongeNamelist(;
     relax_to_mean = false,
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )
-wkb = WKBNamelist(;
-    xrmin = -2.0E+5,
-    xrmax = 2.0E+5,
-    yrmin = -2.0E+5,
-    yrmax = 2.0E+5,
-    zrmin = 0.0,
-    zrmax = 2.0E+4,
-)
 
-integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb))
+integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge))
 
 ```
 
