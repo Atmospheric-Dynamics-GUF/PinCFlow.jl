@@ -38,6 +38,9 @@ function test_example(
     atol::Real = 0,
     rtol::Real = 0,
 )
+    # Print script file name to simplify debugging failing tests
+    @info "Testing example" file
+
     # Read the example script and replace assignments.
     script = replace(
         read(file, String),
