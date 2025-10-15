@@ -46,20 +46,24 @@ cp(joinpath(dirname(@__DIR__), "README.md"), "docs/src/index.md"; force = true)
 
 # Copy list of authors to not need to synchronize it manually.
 authors_text = read(joinpath(dirname(@__DIR__), "AUTHORS.md"), String)
-authors_text = replace(authors_text,
-                       "in the [LICENSE.md](LICENSE.md) file" => "under [License](@ref)")
+authors_text = replace(
+    authors_text,
+    "in the [LICENSE.md](LICENSE.md) file" => "under [License](@ref)",
+)
 write(joinpath(@__DIR__, "src", "authors.md"), authors_text)
 
 # Copy some files from the repository root directory to the docs and modify them
 # as necessary
 open(joinpath(@__DIR__, "src", "code_of_conduct.md"), "w") do io
     # Point to source license file
-    println(io,
-            """
-            ```@meta
-            EditURL = "https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/blob/main/CODE_OF_CONDUCT.md"
-            ```
-            """)
+    println(
+        io,
+        """
+        ```@meta
+        EditURL = "https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/blob/main/CODE_OF_CONDUCT.md"
+        ```
+        """,
+    )
     # Write the modified contents
     println(io, "# [Code of Conduct](@id code-of-conduct)")
     println(io, "")
@@ -71,12 +75,14 @@ end
 
 open(joinpath(@__DIR__, "src", "contributing.md"), "w") do io
     # Point to source license file
-    println(io,
-            """
-            ```@meta
-            EditURL = "https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/blob/main/CONTRIBUTING.md"
-            ```
-            """)
+    println(
+        io,
+        """
+        ```@meta
+        EditURL = "https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/blob/main/CONTRIBUTING.md"
+        ```
+        """,
+    )
     # Write the modified contents
     for line in eachline(joinpath(dirname(@__DIR__), "CONTRIBUTING.md"))
         line = replace(line, "[LICENSE.md](LICENSE.md)" => "[License](@ref)")
@@ -86,11 +92,13 @@ open(joinpath(@__DIR__, "src", "contributing.md"), "w") do io
 end
 
 # Create changelog
-Changelog.generate(Changelog.Documenter(),                        # output type
-                   joinpath(@__DIR__, "..", "NEWS.md"),           # input file
-                   joinpath(@__DIR__, "src", "changelog_tmp.md"); # output file
-                   repo = "Atmospheric-Dynamics-GUF/PinCFlow.jl", # default repository for links
-                   branch = "main",)
+Changelog.generate(
+    Changelog.Documenter(),                        # output type
+    joinpath(@__DIR__, "..", "NEWS.md"),           # input file
+    joinpath(@__DIR__, "src", "changelog_tmp.md"); # output file
+    repo = "Atmospheric-Dynamics-GUF/PinCFlow.jl", # default repository for links
+    branch = "main",
+)
 # Fix edit URL of changelog
 open(joinpath(@__DIR__, "src", "changelog.md"), "w") do io
     for line in eachline(joinpath(@__DIR__, "src", "changelog_tmp.md"))
@@ -134,7 +142,7 @@ makedocs(;
         "Authors" => "authors.md",
         "Contributing" => "contributing.md",
         "Code of Conduct" => "code_of_conduct.md",
-        "License" => "license.md"
+        "License" => "license.md",
     ],
     pagesonly = true,
     format = Documenter.HTML(;
@@ -144,6 +152,8 @@ makedocs(;
     ),
 )
 
-deploydocs(repo = "github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl",
-           devbranch = "main",
-           push_preview = true)
+deploydocs(;
+    repo = "github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl",
+    devbranch = "main",
+    push_preview = true,
+)
