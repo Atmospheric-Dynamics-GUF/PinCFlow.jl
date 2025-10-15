@@ -51,13 +51,18 @@ function turbulence_integration!(
     (; lref) = state.constants
     (; lturb, cepsilon) = state.turbulence.turbulenceconstants
     (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
 
     lturb_ndim = lturb / lref
 
-    tke[i0:i1, j0:j1, k0:k1] .=
-        4.0 ./
-        (cepsilon / lturb_ndim * dt .+ 2 ./ sqrt.(tke[i0:i1, j0:j1, k0:k1])) .^
-        2
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        tauk =
+            2.0 * lturb_ndim /
+            sqrt(tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
+        tke[i, j, k] = tke[i, j, k] * exp(-2.0 * dt / tauk)
+    end
+
     return
 end
 
@@ -81,12 +86,7 @@ function turbulence_integration!(
         save_backups!(state, :rho)
 
         update!(state, p0, dt, rkstage, turbulence_scheme)
-        apply_lhs_sponge!(
-            state,
-            dt,
-            stepfrac[rkstage] * dt,
-            turbulence_scheme,
-        )
+        apply_lhs_sponge!(state, dt, stepfrac[rkstage] * dt, turbulence_scheme)
         set_boundaries!(state, BoundaryPredictands())
     end
 
@@ -133,7 +133,6 @@ function turbulence_integration!(
                 (1 - dtdz2 * keku - dtdz2 * kekd) * tke[i, j, k] +
                 dtdz2 * keku * tke[i, j, k + 1] +
                 dtdz2 * kekd * tke[i, j, k - 1]
-
         end
 
         athomas[i, j, k0] = 0.0

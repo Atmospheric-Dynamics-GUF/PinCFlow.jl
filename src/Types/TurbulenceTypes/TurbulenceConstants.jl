@@ -34,6 +34,7 @@ struct TurbulenceConstants{A <: AbstractFloat}
     cepsilon::A
     ck::A
     c3::A
+    cek::A
     lturb::A
     tkemin::A
 end
@@ -47,8 +48,9 @@ function TurbulenceConstants(
     cepsilon = 8.71E-1
     ck = 0.084
     c3 = 1.185
+    cek = 0.1
     lturb = 1.0E+2
     tkemin = 1.0E-8
 
-    return TurbulenceConstants(cepsilon, ck, c3, lturb, tkemin)
+    return TurbulenceConstants(cepsilon, ck, c3, cek, lturb, tkemin)
 end

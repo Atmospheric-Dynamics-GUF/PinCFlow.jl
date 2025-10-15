@@ -1801,10 +1801,14 @@ function compute_fluxes!(
     (; thermal_conductivity) = state.namelists.atmosphere
     (; uref, lref) = state.constants
     (; rho) = predictands
+    (; turbulence_scheme) = state.namelists.turbulence
+    (; kh) = state.turbulence.turbulenceauxiliaries
 
-    if thermal_conductivity == 0.0
+    if thermal_conductivity == 0.0 && turbulence_scheme == NoTurbulence()
         return
     end
+
+    phitheta .= 0.0
 
     mu_conduct = thermal_conductivity / uref / lref
 
@@ -1949,6 +1953,139 @@ function compute_fluxes!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
+    end
+
+    if turbulence_scheme == NoTurbulence()
+        return
+    end
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+        coef_t = 0.5 * (kh[i, j, k] + kh[i + 1, j, k])
+
+        thetal = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+        thetar = pbar[i + 1, j, k] / (rho[i + 1, j, k] + rhobar[i + 1, j, k])
+
+        thetad =
+            0.5 * (
+                pbar[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1]) +
+                pbar[i + 1, j, k - 1] /
+                (rho[i + 1, j, k - 1] + rhobar[i + 1, j, k - 1])
+            )
+        thetau =
+            0.5 * (
+                pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+                pbar[i + 1, j, k + 1] /
+                (rho[i + 1, j, k + 1] + rhobar[i + 1, j, k + 1])
+            )
+
+        dtht_dxi =
+            0.5 * (jac[i, j, k] + jac[i + 1, j, k]) * (thetar - thetal) / dx +
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 1, 3] +
+                jac[i + 1, j, k] * met[i + 1, j, k, 1, 3]
+            ) *
+            (thetau - thetad) / (2.0 * dz)
+
+        phitheta[i, j, k, 1] -= coef_t * dtht_dxi
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+        coef_t = 0.5 * (kh[i, j, k] + kh[i, j + 1, k])
+
+        thetab = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+        thetaf = pbar[i, j + 1, k] / (rho[i, j + 1, k] + rhobar[i, j + 1, k])
+
+        thetad =
+            0.5 * (
+                pbar[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1]) +
+                pbar[i, j + 1, k - 1] /
+                (rho[i, j + 1, k - 1] + rhobar[i, j + 1, k - 1])
+            )
+        thetau =
+            0.5 * (
+                pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+                pbar[i, j + 1, k + 1] /
+                (rho[i, j + 1, k + 1] + rhobar[i, j + 1, k + 1])
+            )
+
+        dtht_dyi =
+            0.5 * (jac[i, j, k] + jac[i, j + 1, k]) * (thetaf - thetab) / dy +
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 2, 3] +
+                jac[i, j + 1, k] * met[i, j + 1, k, 2, 3]
+            ) *
+            (thetau - thetad) / (2.0 * dz)
+
+        phitheta[i, j, k, 2] -= coef_t * dtht_dyi
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+        coef_t =
+            (jac[i, j, k + 1] * kh[i, j, k] + jac[i, j, k] * kh[i, j, k + 1]) /
+            (jac[i, j, k + 1] + jac[i, j, k])
+
+        thetal =
+            (
+                jac[i - 1, j, k + 1] * pbar[i - 1, j, k] /
+                (rho[i - 1, j, k] + rhobar[i - 1, j, k]) +
+                jac[i - 1, j, k] * pbar[i - 1, j, k + 1] /
+                (rho[i - 1, j, k + 1] + rhobar[i - 1, j, k + 1])
+            ) / (jac[i - 1, j, k + 1] + jac[i - 1, j, k])
+
+        thetar =
+            (
+                jac[i + 1, j, k + 1] * pbar[i + 1, j, k] /
+                (rho[i + 1, j, k] + rhobar[i + 1, j, k]) +
+                jac[i + 1, j, k] * pbar[i + 1, j, k + 1] /
+                (rho[i + 1, j, k + 1] + rhobar[i + 1, j, k + 1])
+            ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
+
+        thetab =
+            (
+                jac[i, j - 1, k + 1] * pbar[i, j - 1, k] /
+                (rho[i, j - 1, k] + rhobar[i, j - 1, k]) +
+                jac[i, j - 1, k] * pbar[i, j - 1, k + 1] /
+                (rho[i, j - 1, k + 1] + rhobar[i, j - 1, k + 1])
+            ) / (jac[i, j - 1, k + 1] + jac[i, j - 1, k])
+
+        thetaf =
+            (
+                jac[i, j + 1, k + 1] * pbar[i, j + 1, k] /
+                (rho[i, j + 1, k] + rhobar[i, j + 1, k]) +
+                jac[i, j + 1, k] * pbar[i, j + 1, k + 1] /
+                (rho[i, j + 1, k + 1] + rhobar[i, j + 1, k + 1])
+            ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
+
+        thetad = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+        thetau = pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
+
+        dtht_dzi =
+            jac[i, j, k] *
+            jac[i, j, k + 1] *
+            (
+                (met[i, j, k, 1, 3] + met[i, j, k + 1, 1, 3]) *
+                (thetar - thetal) / (2.0 * dx) +
+                (met[i, j, k, 2, 3] + met[i, j, k + 1, 2, 3]) *
+                (thetaf - thetab) / (2.0 * dy) +
+                (met[i, j, k, 3, 3] + met[i, j, k + 1, 3, 3]) *
+                (thetau - thetad) / dz
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+
+        phitheta[i, j, k, 3] -= coef_t * dtht_dzi
     end
 
     return
