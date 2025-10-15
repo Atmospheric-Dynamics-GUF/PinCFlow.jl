@@ -272,12 +272,12 @@ struct NoTracer <: AbstractTracer end
 
 """
 ```julia
-LinearTracer <: AbstractTracer
+TracerOn <: AbstractTracer
 ```
 
 Singleton for model configurations with an initially linear tracer.
 """
-struct LinearTracer <: AbstractTracer end
+struct TracerOn <: AbstractTracer end
 
 using MPI
 using ...PinCFlow
@@ -324,7 +324,7 @@ export UniformBoussinesq,
     Box,
     Shapiro,
     NoTracer,
-    LinearTracer
+    TracerOn
 
 export DomainNamelist,
     OutputNamelist,

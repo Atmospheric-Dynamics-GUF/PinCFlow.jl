@@ -40,9 +40,5 @@ end
 function Reconstructions(domain::Domain)::Reconstructions
     (; nxx, nyy, nzz) = domain
 
-    # Initialize the reconstructed variables.
-    (rhotilde, rhoptilde, utilde, vtilde, wtilde) =
-        (zeros(nxx, nyy, nzz, 3, 2) for i in 1:5)
-
-    return Reconstructions(rhotilde, rhoptilde, utilde, vtilde, wtilde)
+    return Reconstructions([zeros(nxx, nyy, nzz, 3, 2) for i in 1:5]...)
 end

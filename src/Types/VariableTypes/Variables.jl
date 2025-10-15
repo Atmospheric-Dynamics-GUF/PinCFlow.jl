@@ -84,8 +84,6 @@ function Variables(
     atmosphere::Atmosphere,
     grid::Grid,
 )::Variables
-
-    # Initialize all fields.
     predictands = Predictands(namelists, constants, domain, atmosphere, grid)
     increments = Increments(namelists, domain)
     backups = Backups(domain)
