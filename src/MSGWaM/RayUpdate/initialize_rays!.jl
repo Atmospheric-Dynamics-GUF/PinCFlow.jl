@@ -88,18 +88,6 @@ function initialize_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    # Set zonal index bounds.
-    imin = i0
-    imax = i1
-
-    # Set meridional index bounds.
-    jmin = j0
-    jmax = j1
-
-    # Set vertical index bounds.
-    kmin = ko == 0 ? k0 - 1 : k0
-    kmax = k1
-
     # Initialize local arrays.
     omi_ini = zeros(wave_modes, nxx, nyy, nzz)
     wnk_ini = zeros(wave_modes, nxx, nyy, nzz)
@@ -107,6 +95,8 @@ function initialize_rays!(
     wnm_ini = zeros(wave_modes, nxx, nyy, nzz)
     wad_ini = zeros(wave_modes, nxx, nyy, nzz)
 
+    # Compute initial wavenumbers, intrinsic frequencies and wave-action
+    # densities with initial_wave_field.
     if wkb_mode != SteadyState()
         for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
@@ -128,6 +118,7 @@ function initialize_rays!(
         println("")
     end
 
+    # Add orographic wave modes.
     activate_orographic_source!(
         state,
         omi_ini,
@@ -137,12 +128,17 @@ function initialize_rays!(
         wad_ini,
     )
 
+    # Set initial spectral extents (these will be overwritten in the loop).
     dk_ini_nd = 0.0
     dl_ini_nd = 0.0
     dm_ini_nd = 0.0
 
+    # Set vertical index bounds.
+    kmin = ko == 0 ? k0 - 1 : k0
+    kmax = k1
+
     # Loop over all grid cells with ray volumes.
-    @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
+    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         r = 0
         s = 0
 
@@ -311,7 +307,7 @@ function initialize_rays!(
     end
 
     # Compute global ray-volume count.
-    @ivy local_sum = sum(nray[imin:imax, jmin:jmax, kmin:kmax])
+    @ivy local_sum = sum(nray[i0:i1, j0:j1, kmin:kmax])
     global_sum = MPI.Allreduce(local_sum, +, comm)
 
     # Print information.
