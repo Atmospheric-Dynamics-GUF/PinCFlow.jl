@@ -1,6 +1,6 @@
 # Authors
 
-PinCFlow's development is coordinated by a group of **principal developers**, who are also its main contributors and who can be contacted in case of questions about PinCFlow. In addition, there are **contributors** who have provided substantial additions or modifications. Together, these two groups form "The PinCFlow Authors" as mentioned in the [LICENSE.md](LICENSE.md) file.
+PinCFlow.jl's development is coordinated by a group of **principal developers**, who are also its main contributors and who can be contacted in case of questions about PinCFlow. In addition, there are **contributors** who have provided substantial additions or modifications. Together, these two groups form "The PinCFlow.jl Authors" as mentioned in the [LICENSE.md](LICENSE.md) file.
 
 ## Principal Developers
 
@@ -14,7 +14,7 @@ PinCFlow's development is coordinated by a group of **principal developers**, wh
 
 ## Contributors
 
-The following people contributed major additions or modifications to PinCFlow and are listed in alphabetical order:
+The following people contributed major additions or modifications to PinCFlow.jl and are listed in alphabetical order:
 
   - Ulrich Achatz
 
