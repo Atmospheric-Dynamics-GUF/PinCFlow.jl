@@ -53,9 +53,9 @@ authors_text = replace(
 write(joinpath(@__DIR__, "src", "authors.md"), authors_text)
 
 # Copy some files from the repository root directory to the docs and modify them
-# as necessary
+# as necessary.
+
 open(joinpath(@__DIR__, "src", "code_of_conduct.md"), "w") do io
-    # Point to source license file
     println(
         io,
         """
@@ -64,17 +64,15 @@ open(joinpath(@__DIR__, "src", "code_of_conduct.md"), "w") do io
         ```
         """,
     )
-    # Write the modified contents
-    println(io, "# [Code of Conduct](@id code-of-conduct)")
+    println(io, "# Code of Conduct")
     println(io, "")
     for line in eachline(joinpath(dirname(@__DIR__), "CODE_OF_CONDUCT.md"))
         line = replace(line, "[AUTHORS.md](AUTHORS.md)" => "[Authors](@ref)")
-        println(io, "> ", line)
+        println(io, "  > ", line)
     end
 end
 
 open(joinpath(@__DIR__, "src", "contributing.md"), "w") do io
-    # Point to source license file
     println(
         io,
         """
@@ -83,7 +81,6 @@ open(joinpath(@__DIR__, "src", "contributing.md"), "w") do io
         ```
         """,
     )
-    # Write the modified contents
     for line in eachline(joinpath(dirname(@__DIR__), "CONTRIBUTING.md"))
         line = replace(line, "[LICENSE.md](LICENSE.md)" => "[License](@ref)")
         line = replace(line, "[AUTHORS.md](AUTHORS.md)" => "[Authors](@ref)")
@@ -91,15 +88,33 @@ open(joinpath(@__DIR__, "src", "contributing.md"), "w") do io
     end
 end
 
-# Create changelog
+open(joinpath(@__DIR__, "src", "license.md"), "w") do io
+    println(
+        io,
+        """
+        ```@meta
+        EditURL = "https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/blob/main/LICENSE.md"
+        ```
+        """,
+    )
+    println(io, "# License")
+    println(io, "")
+    for line in eachline(joinpath(dirname(@__DIR__), "LICENSE.md"))
+        line = replace(line, "[AUTHORS.md](AUTHORS.md)" => "[Authors](@ref)")
+        println(io, "  > ", line)
+    end
+end
+
+# Create a changelog.
 Changelog.generate(
     Changelog.Documenter(),                        # output type
     joinpath(@__DIR__, "..", "NEWS.md"),           # input file
     joinpath(@__DIR__, "src", "changelog_tmp.md"); # output file
-    repo = "Atmospheric-Dynamics-GUF/PinCFlow.jl", # default repository for links
+    repo = "Atmospheric-Dynamics-GUF/PinCFlow.jl",
     branch = "main",
 )
-# Fix edit URL of changelog
+
+# Fix the edit URL of the changelog.
 open(joinpath(@__DIR__, "src", "changelog.md"), "w") do io
     for line in eachline(joinpath(@__DIR__, "src", "changelog_tmp.md"))
         if startswith(line, "EditURL")
@@ -108,10 +123,11 @@ open(joinpath(@__DIR__, "src", "changelog.md"), "w") do io
         println(io, line)
     end
 end
-# Remove temporary file
+
+# Remove the temporary file.
 rm(joinpath(@__DIR__, "src", "changelog_tmp.md"))
 
-# Generate documentation.
+# Generate the documentation.
 makedocs(;
     sitename = "PinCFlow.jl",
     remotes = nothing,
