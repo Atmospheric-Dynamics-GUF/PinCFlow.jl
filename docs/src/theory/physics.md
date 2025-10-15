@@ -2,7 +2,7 @@
 
 ## Coordinate system
 
-PinCFlow uses a height-based terrain-following coordinate system ([Gal-Chen & Somerville, 1975](https://doi.org/10.1016/0021-9991(75)90037-6)) with vertical stretching. The transformation from the Cartesian system $\boldsymbol{x} = \left(x, y, z\right)^\mathrm{T}$ to the model's system $\widehat{\boldsymbol{x}} = \left(\widehat{x}, \widehat{y}, \widehat{z}\right)^\mathrm{T}$ is given by
+PinCFlow.jl uses a height-based terrain-following coordinate system ([Gal-Chen & Somerville, 1975](https://doi.org/10.1016/0021-9991(75)90037-6)) with vertical stretching. The transformation from the Cartesian system $\boldsymbol{x} = \left(x, y, z\right)^\mathrm{T}$ to the model's system $\widehat{\boldsymbol{x}} = \left(\widehat{x}, \widehat{y}, \widehat{z}\right)^\mathrm{T}$ is given by
 
 $$\begin{align*}
     \widehat{z} & = \widehat{z} \left(\widetilde{z}\right), & \left(\widehat{x}, \widehat{y}, \widetilde{z}\right) & = \left(x, y, L_z \frac{z - h}{L_z - h}\right), &  \left(x, y, z\right) & = \left(\widehat{x}, \widehat{y}, \frac{L_z - h}{L_z}{\widetilde{z}} + h\right),
@@ -138,7 +138,7 @@ Note that in addition to the new volume-force term, $\overline{\rho}$ has been r
 
 ## Tracer transport
 
-PinCFlow transports a passive tracer $\chi$ governed by
+PinCFlow.jl transports a passive tracer $\chi$ governed by
 
 $$\frac{\partial \rho \chi}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho \chi u}{\partial \widehat{x}} + \frac{\partial J \rho \chi v}{\partial \widehat{y}} + \frac{\partial J \rho \chi \widehat{w}}{\partial \widehat{z}}\right) - F^{\rho \chi} + \alpha_\mathrm{R} \left[\rho \chi - \left(\rho \chi\right)^{\left(0\right)}\right] = 0,$$
 

@@ -1,6 +1,6 @@
 # Security Policy
 
-The PinCFlow development team takes security issues seriously. We appreciate all efforts to responsibly disclose any security issues and will make every effort to acknowledge contributions.
+The PinCFlow.jl development team takes security issues seriously. We appreciate all efforts to responsibly disclose any security issues and will make every effort to acknowledge contributions.
 
 ## Supported Versions
 
