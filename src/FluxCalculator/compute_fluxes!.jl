@@ -286,7 +286,11 @@ function compute_fluxes!(state::State, predictands::Predictands)
 
     compute_fluxes!(state, predictands, model, P())
     compute_fluxes!(state, predictands, state.namelists.tracer.tracer_setup)
-    compute_fluxes!(state, predictands, state.namelists.turbulence.turbulence_scheme)
+    compute_fluxes!(
+        state,
+        predictands,
+        state.namelists.turbulence.turbulence_scheme,
+    )
     return
 end
 
@@ -526,6 +530,8 @@ function compute_fluxes!(
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
+    (; turbulence_scheme) = state.namelists.turbulence
+    (; km) = state.turbulence.turbulenceauxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -611,7 +617,9 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+    if 1 / re <= eps() &&
+       kinematic_diffusivity == 0.0 &&
+       turbulence_scheme == NoTurbulence()
         return
     end
 
@@ -712,7 +720,7 @@ function compute_fluxes!(
     #             Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if kinematic_diffusivity == 0.0
+    if kinematic_diffusivity == 0.0 && turbulence_scheme == NoTurbulence()
         return
     end
 
@@ -813,6 +821,96 @@ function compute_fluxes!(
         phiu[i, j, k, 3] -= hrhou_diff
     end
 
+    #-------------------------------------------------------------------
+    #             Turbulence fluxes
+    #-------------------------------------------------------------------
+
+    if turbulence_scheme == NoTurbulence()
+        return
+    end
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+        frhou_diff =
+            km[i + 1, j, k] *
+            jac[i + 1, j, k] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k, U(), X())
+
+        phiu[i, j, k, 1] -= frhou_diff
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+        grhou_diff =
+            0.25 * (
+                km[i, j, k] *
+                jac[i, j, k] *
+                compute_momentum_diffusion_terms(state, i, j, k, U(), Y()) +
+                km[i + 1, j, k] *
+                jac[i + 1, j, k] *
+                compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Y()) +
+                km[i, j + 1, k] *
+                jac[i, j + 1, k] *
+                compute_momentum_diffusion_terms(state, i, j + 1, k, U(), Y()) +
+                km[i + 1, j + 1, k] *
+                jac[i + 1, j + 1, k] *
+                compute_momentum_diffusion_terms(
+                    state,
+                    i + 1,
+                    j + 1,
+                    k,
+                    U(),
+                    Y(),
+                )
+            )
+
+        phiu[i, j, k, 2] -= grhou_diff
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+        mom_diff =
+            km[i, j, k] *
+            jac[i, j, k] *
+            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())
+
+        mom_diff_r =
+            km[i + 1, j, k] *
+            jac[i + 1, j, k] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Z())
+
+        mom_diff_u =
+            km[i, j, k + 1] *
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, U(), Z())
+
+        mom_diff_ru =
+            km[i + 1, j, k + 1] *
+            jac[i + 1, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k + 1, U(), Z())
+
+        hrhou_diff =
+            0.5 * (
+                jac[i, j, k] * jac[i, j, k + 1] * (mom_diff + mom_diff_u) /
+                (jac[i, j, k] + jac[i, j, k + 1]) +
+                jac[i + 1, j, k] *
+                jac[i + 1, j, k + 1] *
+                (mom_diff_r + mom_diff_ru) /
+                (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+            )
+
+        phiu[i, j, k, 3] -= hrhou_diff
+    end
+
     return
 end
 
@@ -829,6 +927,8 @@ function compute_fluxes!(
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
+    (; turbulence_scheme) = state.namelists.turbulence
+    (; km) = state.turbulence.turbulenceauxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -914,7 +1014,9 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+    if 1 / re <= eps() &&
+       kinematic_diffusivity == 0.0 &&
+       turbulence_scheme == NoTurbulence()
         return
     end
 
@@ -1015,7 +1117,7 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if kinematic_diffusivity == 0.0
+    if kinematic_diffusivity == 0.0 && turbulence_scheme == NoTurbulence()
         return
     end
 
@@ -1116,6 +1218,96 @@ function compute_fluxes!(
         phiv[i, j, k, 3] -= hrhov_diff
     end
 
+    #-------------------------------------------------------------------
+    #             Turbulence fluxes
+    #-------------------------------------------------------------------
+
+    if turbulence_scheme == NoTurbulence()
+        return
+    end
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+        frhov_diff =
+            0.25 * (
+                km[i, j, k] *
+                jac[i, j, k] *
+                compute_momentum_diffusion_terms(state, i, j, k, V(), X()) +
+                km[i + 1, j, k] *
+                jac[i + 1, j, k] *
+                compute_momentum_diffusion_terms(state, i + 1, j, k, V(), X()) +
+                kmin[i, j + 1, k] *
+                jac[i, j + 1, k] *
+                compute_momentum_diffusion_terms(state, i, j + 1, k, V(), X()) +
+                km[i + 1, j + 1, k] *
+                jac[i + 1, j + 1, k] *
+                compute_momentum_diffusion_terms(
+                    state,
+                    i + 1,
+                    j + 1,
+                    k,
+                    V(),
+                    X(),
+                )
+            )
+
+        phiv[i, j, k, 1] -= frhov_diff
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+        grhov_diff =
+            km[i, j + 1, k] *
+            jac[i, j + 1, k] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Y())
+
+        phiv[i, j, k, 2] -= grhov_diff
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+        u_diff =
+            km[i, j, k] *
+            jac[i, j, k] *
+            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())
+
+        u_diff_f =
+            km[i, j + 1, k] *
+            jac[i, j + 1, k] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Z())
+
+        u_diff_u =
+            km[i, j, k + 1] *
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, V(), Z())
+
+        u_diff_fu =
+            km[i, j, k + 1] *
+            jac[i, j + 1, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k + 1, V(), Z())
+
+        hrhov_diff =
+            0.5 * (
+                jac[i, j, k] * jac[i, j, k + 1] * (u_diff + u_diff_u) /
+                (jac[i, j, k] + jac[i, j, k + 1]) +
+                jac[i, j + 1, k] *
+                jac[i, j + 1, k + 1] *
+                (u_diff_f + u_diff_fu) /
+                (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+            )
+
+        phiv[i, j, k, 3] -= hrhov_diff
+    end
+
     return
 end
 
@@ -1132,6 +1324,8 @@ function compute_fluxes!(
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
+    (; turbulence_scheme) = state.namelists.turbulence
+    (; km) = state.turbulence.turbulenceauxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1236,7 +1430,9 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+    if 1 / re <= eps() &&
+       kinematic_diffusivity == 0.0 &&
+       turbulence_scheme == NoTurbulence()
         return
     end
 
@@ -1321,7 +1517,7 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if kinematic_diffusivity == 0.0
+    if kinematic_diffusivity == 0.0 && turbulence_scheme == NoTurbulence()
         return
     end
 
@@ -1420,6 +1616,103 @@ function compute_fluxes!(
 
         hrhow_visc =
             coef_d *
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Z())
+
+        phiw[i, j, k, 3] -= hrhow_visc
+    end
+
+    #-------------------------------------------------------------------
+    #                          Turbulence fluxes
+    #-------------------------------------------------------------------
+
+    if turbulence_scheme == NoTurbulence()
+        return
+    end
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+        w_diff =
+            km[i, j, k] *
+            jac[i, j, k] *
+            compute_momentum_diffusion_terms(state, i, j, k, W(), X())
+
+        w_diff_r =
+            km[i + 1, j, k] *
+            jac[i + 1, j, k] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k, W(), X())
+
+        w_diff_u =
+            km[i, j, k + 1] *
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), X())
+
+        w_diff_ru =
+            km[i + 1, j, k + 1] *
+            jac[i + 1, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i + 1, j, k + 1, W(), X())
+
+        frhow_diff =
+            0.5 * (
+                jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
+                (jac[i, j, k] + jac[i, j, k + 1]) +
+                jac[i + 1, j, k] *
+                jac[i + 1, j, k + 1] *
+                (w_diff_r + w_diff_ru) /
+                (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+            )
+
+        phiw[i, j, k, 1] -= frhow_diff
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+        w_diff =
+            km[i, j, k] *
+            jac[i, j, k] *
+            compute_momentum_diffusion_terms(state, i, j, k, W(), Y())
+
+        w_diff_f =
+            km[i, j + 1, k] *
+            jac[i, j + 1, k] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k, W(), Y())
+
+        w_diff_u =
+            km[i, j, k + 1] *
+            jac[i, j, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Y())
+
+        w_diff_fu =
+            km[i, j + 1, k + 1] *
+            jac[i, j + 1, k + 1] *
+            compute_momentum_diffusion_terms(state, i, j + 1, k + 1, W(), Y())
+
+        grhow_diff =
+            0.5 * (
+                jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
+                (jac[i, j, k] + jac[i, j, k + 1]) +
+                jac[i, j + 1, k] *
+                jac[i, j + 1, k + 1] *
+                (w_diff_f + w_diff_fu) /
+                (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+            )
+
+        phiw[i, j, k, 2] -= grhow_diff
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+        hrhow_visc =
+            km[i, j, k + 1] *
             jac[i, j, k + 1] *
             compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Z())
 

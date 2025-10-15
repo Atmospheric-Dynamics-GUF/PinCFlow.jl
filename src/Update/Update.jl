@@ -96,7 +96,7 @@ include("update!.jl")
 include("conductive_heating.jl")
 include("compute_momentum_diffusion_terms.jl")
 
-export LHS, RHS
+export LHS, RHS, X, Y, Z
 
 export apply_lhs_sponge!,
     compute_buoyancy_factor,

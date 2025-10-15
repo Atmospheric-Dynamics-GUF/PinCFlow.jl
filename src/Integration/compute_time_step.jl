@@ -107,8 +107,6 @@ function compute_time_step(state::State)::AbstractFloat
         #         WKB-CFL criterion
         #----------------------------------
 
-        dtwkb = 1.0 / eps()
-
         if typeof(test_case) <: AbstractWKBTestCase
             dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
@@ -140,11 +138,9 @@ function compute_time_step(state::State)::AbstractFloat
 
         #-------------------------------
         #     Turbulence criterion 
-        #-------------------------------
+        #---------------------
 
-        dtturb = 1.0 / eps()
-
-        if typeof(turbulence_scheme) != NoTurbulence()
+        if turbulence_scheme != NoTurbulence()
             uturb =
                 maximum(
                     abs,
@@ -170,7 +166,7 @@ function compute_time_step(state::State)::AbstractFloat
             dt = min(dtvisc, dtconv, dtmax / tref)
         end
 
-        if typeof(turbulence_scheme) != NoTurbulence()
+        if turbulence_scheme != NoTurbulence()
             dt = min(dt, dtturb)
         end
 
@@ -185,7 +181,7 @@ function compute_time_step(state::State)::AbstractFloat
             if typeof(test_case) <: AbstractWKBTestCase
                 println("dtwkb = ", dtwkb * tref, " seconds")
             end
-            if typeof(turbulence_scheme) != NoTurbulence()
+            if turbulence_scheme != NoTurbulence()
                 println("dtturb = ", dtturb * tref, " seconds")
             end
             println("")
