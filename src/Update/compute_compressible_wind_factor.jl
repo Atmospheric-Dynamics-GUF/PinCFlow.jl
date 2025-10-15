@@ -5,7 +5,7 @@ compute_compressible_wind_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{U, V, W},
 )::AbstractFloat
 ```
 
@@ -19,7 +19,7 @@ compute_compressible_wind_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{U, V, W},
     model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
 ```
@@ -86,7 +86,7 @@ function compute_compressible_wind_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{U, V, W},
 )::AbstractFloat
     (; model) = state.namelists.setting
     return compute_compressible_wind_factor(state, i, j, k, variable, model)
@@ -97,7 +97,7 @@ function compute_compressible_wind_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{U, V, W},
     model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
     return 1.0

@@ -5,7 +5,7 @@ compute_buoyancy_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{RhoP, W},
 )::AbstractFloat
 ```
 
@@ -92,7 +92,7 @@ function compute_buoyancy_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{RhoP, W},
 )::AbstractFloat
     (; model) = state.namelists.setting
     return compute_buoyancy_factor(state, i, j, k, variable, model)

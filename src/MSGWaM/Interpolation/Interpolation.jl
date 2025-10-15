@@ -21,102 +21,102 @@ using ...PinCFlow
 
 """
 ```julia
-N2 <: AbstractVariable
+N2
 ```
 
 Singleton for dispatch to interpolation of ``N^2``.
 """
-struct N2 <: AbstractVariable end
+struct N2 end
 
 """
 ```julia
-DN2DZ <: AbstractVariable
+DN2DZ
 ```
 
 Singleton for dispatch to interpolation of ``\\partial N^2 / \\partial z``.
 """
-struct DN2DZ <: AbstractVariable end
+struct DN2DZ end
 
 """
 ```julia
-DUDX <: AbstractVariable
+DUDX
 ```
 
 Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial x``.
 """
-struct DUDX <: AbstractVariable end
+struct DUDX end
 
 """
 ```julia
-DUDY <: AbstractVariable
+DUDY
 ```
 
 Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial y``.
 """
-struct DUDY <: AbstractVariable end
+struct DUDY end
 
 """
 ```julia
-DUDZ <: AbstractVariable
+DUDZ
 ```
 
 Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial z``.
 """
-struct DUDZ <: AbstractVariable end
+struct DUDZ end
 
 """
 ```julia
-DVDX <: AbstractVariable
+DVDX
 ```
 
 Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial x``.
 """
-struct DVDX <: AbstractVariable end
+struct DVDX end
 
 """
 ```julia
-DVDY <: AbstractVariable
+DVDY
 ```
 
 Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial y``.
 """
-struct DVDY <: AbstractVariable end
+struct DVDY end
 
 """
 ```julia
-DVDZ <: AbstractVariable
+DVDZ
 ```
 
 Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial z``.
 """
-struct DVDZ <: AbstractVariable end
+struct DVDZ end
 
 """
 ```julia
-DChiDX <: AbstractVariable
+DChiDX
 ```
 
 Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial x``.
 """
-struct DChiDX <: AbstractVariable end
+struct DChiDX end
 
 """
 ```julia
-DChiDY <: AbstractVariable
+DChiDY
 ```
 
 Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial y``.
 """
-struct DChiDY <: AbstractVariable end
+struct DChiDY end
 
 """
 ```julia
-DChiDZ <: AbstractVariable
+DChiDZ
 ```
 
 Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial z``.
 """
-struct DChiDZ <: AbstractVariable end
+struct DChiDZ end
 
 include("compute_derivatives.jl")
 include("get_next_half_level.jl")

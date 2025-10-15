@@ -4,7 +4,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    variable::AbstractVariable,
+    variable::AbstractPredictand,
 )
 ```
 
@@ -246,7 +246,7 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    variable::AbstractVariable,
+    variable::AbstractPredictand,
 )
     (; model) = state.namelists.setting
     apply_lhs_sponge!(state, dt, time, variable, model)
