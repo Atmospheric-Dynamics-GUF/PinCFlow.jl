@@ -109,8 +109,6 @@ struct State{
 end
 
 function State(namelists::Namelists)::State
-
-    # Initialize everything.
     constants = Constants(namelists)
     time = Time()
     domain = Domain(namelists)
@@ -119,7 +117,7 @@ function State(namelists::Namelists)::State
     sponge = Sponge(namelists, domain, grid)
     poisson = Poisson(domain)
     variables = Variables(namelists, constants, domain, atmosphere, grid)
-    wkb = WKB(namelists, constants, domain, grid)
+    wkb = WKB(namelists, domain)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
     turbulence = Turbulence(namelists, constants, domain, atmosphere, grid, variables)
 

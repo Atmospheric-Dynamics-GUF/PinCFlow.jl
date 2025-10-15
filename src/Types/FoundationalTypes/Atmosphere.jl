@@ -268,7 +268,6 @@ function Atmosphere(
     (; thetaref) = constants
     (; nxx, nyy, nzz) = domain
 
-    # Set the background fields.
     rhobar = ones(nxx, nyy, nzz)
     thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
     pbar = rhobar .* thetabar
@@ -289,7 +288,6 @@ function Atmosphere(
     (; tref, thetaref) = constants
     (; nxx, nyy, nzz) = domain
 
-    # Set the background fields.
     rhobar = ones(nxx, nyy, nzz)
     thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
     pbar = rhobar .* thetabar
@@ -306,19 +304,16 @@ function Atmosphere(
     model::Union{PseudoIncompressible, Compressible},
     background::Isothermal,
 )::Atmosphere
-    (; nbz) = namelists.domain
     (; temperature, ground_pressure) = namelists.atmosphere
-    (; thetaref, pref, kappa, sig, gamma, g_ndim) = constants
-    (; zz_size, nxx, nyy, nzz, ko, k0, k1) = domain
-    (; zc, jac, dz) = grid
+    (; thetaref, pref, kappa, sig, gamma) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
 
-    # Initialize the background fields.
     (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
 
     t0 = temperature / thetaref
     p0 = ground_pressure / pref
 
-    # Compute the background fields.
     pbar .= p0 .* exp.(.-sig .* zc ./ gamma ./ t0)
     thetabar .= t0 .* exp.(kappa .* sig ./ t0 .* zc)
     rhobar .= pbar ./ thetabar
@@ -342,7 +337,6 @@ function Atmosphere(
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
 
-    # Initialize the background fields.
     (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
 
     min_potential_temperature = kappa * g / rsp * lz
@@ -360,10 +354,10 @@ function Atmosphere(
     theta0 = potential_temperature / thetaref
     p0 = ground_pressure / pref
 
-    # Compute the background fields.
     n2 .= 0.0
     thetabar .= theta0
-    pbar .= p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
+    pbar .=
+        p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
     rhobar .= pbar ./ thetabar
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
@@ -377,14 +371,12 @@ function Atmosphere(
     model::Union{PseudoIncompressible, Compressible},
     background::Realistic,
 )::Atmosphere
-    (; nbx, nby, nbz) = namelists.domain
     (; potential_temperature, ground_pressure, tropopause_height) =
         namelists.atmosphere
-    (; thetaref, lref, pref, kappa, sig, rsp, gamma, g, g_ndim) = constants
-    (; zz_size, nxx, nyy, nzz, ko, k0, k1, j0, j1, i0, i1) = domain
-    (; zc, jac, dz) = grid
+    (; thetaref, lref, pref, kappa, sig, rsp, gamma, g) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
 
-    # Initialize the background fields.
     (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
 
     p0 = ground_pressure / pref
@@ -435,7 +427,6 @@ function Atmosphere(
     model::Union{PseudoIncompressible, Compressible},
     background::LapseRates,
 )::Atmosphere
-    (; nbx, nby, nbz) = namelists.domain
     (;
         ground_pressure,
         troposphere_lapse_rate,
@@ -443,11 +434,10 @@ function Atmosphere(
         tropopause_height,
         temperature,
     ) = namelists.atmosphere
-    (; thetaref, lref, pref, kappa, sig, rsp, g, g_ndim, gamma) = constants
-    (; zz_size, nxx, nyy, nzz, ko, k0, k1, j0, j1, i0, i1) = domain
-    (; zc, jac, dz) = grid
+    (; thetaref, lref, pref, kappa, sig, rsp, g, gamma) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
 
-    # Initialize the background fields.
     (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
 
     gamma_t = troposphere_lapse_rate / thetaref * lref

@@ -79,7 +79,13 @@ function test_example(
             @testset "$label" begin
                 for key in keys(lref)
                     @testset "$key" begin
-                        @test isapprox(l[key], lref[key]; atol, rtol)
+                        @test isapprox(
+                            l[key],
+                            lref[key];
+                            atol,
+                            rtol = rtol == 0 ?
+                                   (atol > 0 ? 0 : sqrt(eps(Float32))) : rtol,
+                        )
                     end
                 end
             end

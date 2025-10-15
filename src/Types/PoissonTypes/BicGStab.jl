@@ -58,5 +58,6 @@ end
 
 function BicGStab(domain::Domain)::BicGStab
     (; nx, ny, nz) = domain
+
     return BicGStab(zeros(nx, ny), [zeros(nx, ny, nz) for i in 1:9]...)
 end

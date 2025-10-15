@@ -326,12 +326,12 @@ struct NoTracer <: AbstractTracer end
 
 """
 ```julia
-LinearTracer <: AbstractTracer
+TracerOn <: AbstractTracer
 ```
 
 Singleton for model configurations with an initially linear tracer.
 """
-struct LinearTracer <: AbstractTracer end
+struct TracerOn <: AbstractTracer end
 
 """
 ```julia 
@@ -412,7 +412,7 @@ export UniformBoussinesq,
     Box,
     Shapiro,
     NoTracer,
-    LinearTracer,
+    TracerOn,
     NoTurbulence,
     TKEScheme,
     TTEScheme

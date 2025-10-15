@@ -11,8 +11,8 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
 atmosphere = AtmosphereNamelist(;
-    initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
     coriolis_frequency = 0.0E+0,
+    initial_u = (x, y, z) -> 1.0E+1,
 )
 domain = DomainNamelist(;
     x_size = 20,
