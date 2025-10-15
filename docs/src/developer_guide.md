@@ -24,15 +24,15 @@ The code is shared in a GitHub repository. Any contributions to the code should 
 
 Contributions to the code should respect the following rules.
 
-  - Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module (see below for a diagram of PinCFlow's modular structure).
+  - Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module (see below for a diagram of PinCFlow.jl's modular structure).
 
-  - Variables that are communicated between functions should be stored at an appropriate level of the `State` instance (see below for a diagram of PinCFlow's model-state structure).
+  - Variables that are communicated between functions should be stored at an appropriate level of the `State` instance (see below for a diagram of PinCFlow.jl's model-state structure).
 
   - Use type parameters to declare the types of all composite-type fields.
 
   - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
-  - Use PinCFlow's `@ivy` in front of expressions that access elements of arrays/tuples. Always apply this macro to the outermost expression possible but do not create new blocks for this purpose.
+  - Use PinCFlow.jl's `@ivy` in front of expressions that access elements of arrays/tuples. Always apply this macro to the outermost expression possible but do not create new blocks for this purpose.
 
   - Do not use Unicode.
 
@@ -267,7 +267,7 @@ Moreover, every backslash used for LaTeX commands in equations has to be doubled
 
 ## Building and accessing the documentation
 
-PinCFlow uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
+PinCFlow.jl uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
 
 ```shell
 julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
