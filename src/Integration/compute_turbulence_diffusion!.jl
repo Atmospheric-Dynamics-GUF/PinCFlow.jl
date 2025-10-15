@@ -26,6 +26,7 @@ function compute_turbulence_diffusion!(
 
     lturb_ndim = lturb / lref
 
+    check_tke!(state)
     kh[i0:i1, j0:j1, k0:k1] .=
         c3 .* ck .* lturb_ndim .*
         sqrt.(

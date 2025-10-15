@@ -107,6 +107,8 @@ function compute_time_step(state::State)::AbstractFloat
         #         WKB-CFL criterion
         #----------------------------------
 
+        dtwkb = 1.0 / eps()
+
         if typeof(test_case) <: AbstractWKBTestCase
             dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
@@ -140,6 +142,8 @@ function compute_time_step(state::State)::AbstractFloat
         #     Turbulence criterion 
         #-------------------------------
 
+        dtturb = 1.0 / eps()
+
         if typeof(turbulence_scheme) != NoTurbulence()
             uturb =
                 maximum(
@@ -151,7 +155,7 @@ function compute_time_step(state::State)::AbstractFloat
                         )
                     ),
                 ) + eps()
-            
+
             dtturb = cfl_number * min(dx / uturb, dy / uturb, dz / uturb)
 
             dtturb = MPI.Allreduce(dtturb, min, comm)
@@ -194,7 +198,7 @@ function compute_time_step(state::State)::AbstractFloat
                 println("=> dt = dtvisc = ", dt * tref, " seconds")
             elseif dt == dtwkb
                 println("=> dt = dtwkb = ", dt * tref, " seconds")
-            elseif dt == dtturb 
+            elseif dt == dtturb
                 println("=> dt = dtturb = ", dt * tref, " seconds")
             else
                 println("=> dt = ??? = ", dt * tref, " seconds")
