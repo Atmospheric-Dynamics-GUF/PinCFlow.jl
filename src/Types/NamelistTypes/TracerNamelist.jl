@@ -1,6 +1,6 @@
 """
 ```julia
-TracerNamelist{A <: AbstractTracer, B <: Bool, C <: AbstractFloat}
+TracerNamelist{A <: AbstractTracer, B <: Bool, C <: Function}
 ```
 
 Namelist for the inclusion of a tracer and the calculation of the leading-order gravity-wave impact.
@@ -9,7 +9,7 @@ Namelist for the inclusion of a tracer and the calculation of the leading-order 
 TracerNamelist(;
     tracer_setup::AbstractTracer = NoTracer(),
     leading_order_impact::Bool = false,
-    alphatracer::AbstractFloat = 1.0E+0,
+    initial_tracer::Function = (x, y, z) -> 0.0,
 )::TracerNamelist
 ```
 
@@ -21,18 +21,18 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 
   - `leading_order_impact::B`: Flag to include the leading-order impact of gravity waves when parameterizing waves with the WKB model.
 
-  - `alphatracer::C`: Scaling parameter for the initial tracer distribution.
+  - `initial_tracer::C`: Function used to initialize the tracer.
 """
-struct TracerNamelist{A <: AbstractTracer, B <: Bool, C <: AbstractFloat}
+struct TracerNamelist{A <: AbstractTracer, B <: Bool, C <: Function}
     tracer_setup::A
     leading_order_impact::B
-    alphatracer::C
+    initial_tracer::C
 end
 
 function TracerNamelist(;
     tracer_setup::AbstractTracer = NoTracer(),
     leading_order_impact::Bool = false,
-    alphatracer::AbstractFloat = 1.0E+0,
+    initial_tracer::Function = (x, y, z) -> 0.0,
 )::TracerNamelist
-    return TracerNamelist(tracer_setup, leading_order_impact, alphatracer)
+    return TracerNamelist(tracer_setup, leading_order_impact, initial_tracer)
 end

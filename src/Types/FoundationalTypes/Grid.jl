@@ -201,7 +201,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
         z[k] = (k - k0) * dz + dz / 2
     end
 
-    # Initialize the stretched vertical grid.
+    # Allocate the stretched vertical grid.
     (ztildes, zs) = (zeros(zz_size) for i in 1:2)
 
     # Compute the stretched vertical grid.
@@ -224,7 +224,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (hb, hw, kh, lh) =
         compute_topography(namelists, constants, domain, x, y, test_case)
 
-    # Initialize Jacobian and metric tensor.
+    # Allocate Jacobian and metric tensor.
     jac = zeros(nxx, nyy, nzz)
     (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
     met = zeros(nxx, nyy, nzz, 3, 3)
@@ -297,7 +297,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     set_meridional_boundaries_of_field!(met33, namelists, domain)
     @ivy met[:, :, :, 3, 3] .= met33
 
-    # Initialize the physical layers.
+    # Allocate the physical layers.
     (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
 
     # Compute the physical layers.

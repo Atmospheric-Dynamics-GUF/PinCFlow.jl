@@ -57,7 +57,7 @@ export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export SteadyState, SingleColumn, MultiColumn
-export NoTracer, LinearTracer
+export NoTracer, TracerOn
 
 # Export model-state constructor.
 export State
