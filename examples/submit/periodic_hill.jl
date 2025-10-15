@@ -10,25 +10,34 @@ using PinCFlow
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
+h0 = 10.0
+l0 = 10000.0
+
+lz = 20000.0
+zr = 10000.0
+
 atmosphere = AtmosphereNamelist(;
-    initial_wind = (1.0E+1, 0.0E+0, 0.0E+0),
-    coriolis_frequency = 0.0E+0,
+    initial_wind = (10.0, 0.0, 0.0),
+    coriolis_frequency = 0.0,
 )
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 1,
     z_size = 40,
-    lx = 2.0E+4,
-    ly = 2.0E+4,
-    lz = 2.0E+4,
+    lx = 20000.0,
+    ly = 20000.0,
+    lz,
     npx,
     npz,
 )
 grid = GridNamelist(;
-    resolved_topography = (x, y) -> 5 * (1 + cos(pi / 10000 * x)),
+    resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
 )
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
-sponge = SpongeNamelist(; betarmax = 1.0E+0)
+sponge = SpongeNamelist(;
+    rhs_sponge = (x, y, z, t, dt) ->
+        z >= zr ? sin(pi / 2 * (z - zr) / (lz - zr))^2 / dt : 0.0,
+)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
