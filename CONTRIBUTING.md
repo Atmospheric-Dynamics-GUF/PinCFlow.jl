@@ -1,6 +1,6 @@
 # Contributing
 
-PinCFlow is an open-source project and we are very happy to accept contributions from the community. Please feel free to [open issues](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/issues/new/choose) or submit patches (preferably as [pull requests](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pulls)) any time. For planned larger contributions, it is often beneficial to get in contact with one of the principal developers first (see [AUTHORS.md](AUTHORS.md)).
+PinCFlow.jl is an open-source project and we are very happy to accept contributions from the community. Please feel free to [open issues](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/issues/new/choose) or submit patches (preferably as [pull requests](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pulls)) any time. For planned larger contributions, it is often beneficial to get in contact with one of the principal developers first (see [AUTHORS.md](AUTHORS.md)).
 
 PinCFlow.jl and its contributions are licensed under the MIT license (see [LICENSE.md](LICENSE.md)). As a contributor, you certify that all your contributions are in conformance with the **Developer Certificate of Origin (Version 1.1)**, which is reproduced below.
 
