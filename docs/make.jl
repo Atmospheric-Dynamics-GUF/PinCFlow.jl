@@ -44,16 +44,26 @@ end
 # Copy the README file and use it as landing page of the docs.
 cp(joinpath(dirname(@__DIR__), "README.md"), "docs/src/index.md"; force = true)
 
-# Copy list of authors to not need to synchronize it manually.
-authors_text = read(joinpath(dirname(@__DIR__), "AUTHORS.md"), String)
-authors_text = replace(
-    authors_text,
-    "in the [LICENSE.md](LICENSE.md) file" => "under [License](@ref)",
-)
-write(joinpath(@__DIR__, "src", "authors.md"), authors_text)
-
 # Copy some files from the repository root directory to the docs and modify them
 # as necessary.
+
+open(joinpath(@__DIR__, "src", "authors.md"), "w") do io
+    println(
+        io,
+        """
+        ```@meta
+        EditURL = "https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/blob/main/AUTHORS.md"
+        ```
+        """,
+    )
+    for line in eachline(joinpath(dirname(@__DIR__), "AUTHORS.md"))
+        line = replace(
+            line,
+            "in the [LICENSE.md](LICENSE.md) file" => "under [License](@ref)",
+        )
+        println(io, line)
+    end
+end
 
 open(joinpath(@__DIR__, "src", "code_of_conduct.md"), "w") do io
     println(
