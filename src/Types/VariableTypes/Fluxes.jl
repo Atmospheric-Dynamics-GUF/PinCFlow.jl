@@ -74,20 +74,11 @@ function Fluxes(
 )::Fluxes
     (; nxx, nyy, nzz) = domain
 
-    # Initialize the fluxes.
-    (phirho, phirhop, phiu, phiv, phiw, phitheta) =
-        (zeros(nxx, nyy, nzz, 3) for i in 1:6)
-    phip = zeros(0, 0, 0, 0)
-
-    return Fluxes(phirho, phirhop, phiu, phiv, phiw, phitheta, phip)
+    return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:6]..., zeros(0, 0, 0, 0))
 end
 
 function Fluxes(domain::Domain, model::Compressible)::Fluxes
     (; nxx, nyy, nzz) = domain
 
-    # Initialize the fluxes.
-    (phirho, phirhop, phiu, phiv, phiw, phitheta, phip) =
-        (zeros(nxx, nyy, nzz, 3) for i in 1:7)
-
-    return Fluxes(phirho, phirhop, phiu, phiv, phiw, phitheta, phip)
+    return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:7]...)
 end

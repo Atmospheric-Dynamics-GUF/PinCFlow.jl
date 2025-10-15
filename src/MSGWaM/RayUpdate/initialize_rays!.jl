@@ -20,7 +20,7 @@ initialize_rays!(
 
 Complete the initialization of MSGWaM.
 
-In each grid cell, `wave_modes` wave modes are computed, using e.g. `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
+In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.wkb.initial_wave_field`, as well as `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
 
 # Arguments
 
@@ -67,8 +67,9 @@ function initialize_rays!(
         dmr_factor,
         wkb_mode,
         wave_modes,
+        initial_wave_field,
     ) = state.namelists.wkb
-    (; tref) = state.constants
+    (; lref, tref, rhoref, uref) = state.constants
     (; comm, master, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
         state.domain
     (; dx, dy, dz, x, y, zc, jac) = state.grid
@@ -105,6 +106,27 @@ function initialize_rays!(
     wnl_ini = zeros(wave_modes, nxx, nyy, nzz)
     wnm_ini = zeros(wave_modes, nxx, nyy, nzz)
     wad_ini = zeros(wave_modes, nxx, nyy, nzz)
+
+    if wkb_mode != SteadyState()
+        for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
+            (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
+                alpha,
+                x[io + i] * lref,
+                y[jo + j] * lref,
+                zc[i, j, k] * lref,
+            )
+            wnk_ini[alpha, i, j, k] = kdim * lref
+            wnl_ini[alpha, i, j, k] = ldim * lref
+            wnm_ini[alpha, i, j, k] = mdim * lref
+            omi_ini[alpha, i, j, k] = omegadim * tref
+            wad_ini[alpha, i, j, k] = adim / rhoref / uref^2 / tref
+        end
+    else
+        println(
+            "Warning: MSGWaM's steady-state mode currently ignores non-orographic initializations!",
+        )
+        println("")
+    end
 
     activate_orographic_source!(
         state,

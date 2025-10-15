@@ -3,6 +3,7 @@
 Increments{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
 }
 ```
 
@@ -12,38 +13,41 @@ Container for the Runge-Kutta updates of the prognostic variables, as well as th
 Increments(namelists::Namelists, domain::Domain)::Increments
 ```
 
-Create a `Increments` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
+Create an `Increments` instance with dimensions depending on the model configuration, by dispatching to the appropriate method.
 
 ```julia
-Increments(
-    domain::Domain,
-    model::Union{Boussinesq, PseudoIncompressible},
-)::Increments
+Increments(domain::Domain, model::Boussinesq)::Increments
 ```
 
-Create a `Increments` instance in non-compressible modes, with a zero-size array for the mass-weighted potential-temperature update.
+Create an `Increments` instance in Boussinesq mode, with zero-size arrays for the density and mass-weighted potential-temperature update.
+
+```julia
+Increments(domain::Domain, model::PseudoIncompressible)::Increments
+```
+
+Create an `Increments` instance in pseudo-incompressible mode, with a zero-size array for the mass-weighted potential-temperature update.
 
 ```julia
 Increments(domain::Domain, model::Compressible)::Increments
 ```
 
-Create a `Increments` instance in compressible mode.
+Create an `Increments` instance in compressible mode.
 
 # Fields
 
   - `drho::A`: Density update.
 
-  - `drhop::A`: Density-fluctuations update.
+  - `drhop::B`: Density-fluctuations update.
 
-  - `du::A`: Zonal-momentum update.
+  - `du::B`: Zonal-momentum update.
 
-  - `dv::A`: Meridional-momentum update.
+  - `dv::B`: Meridional-momentum update.
 
-  - `dw::A`: Transformed-vertical-momentum update.
+  - `dw::B`: Transformed-vertical-momentum update.
 
-  - `dpip::A`: Exner-pressure update.
+  - `dpip::B`: Exner-pressure update.
 
-  - `dp::B`: Mass-weighted potential-temperature update.
+  - `dp::C`: Mass-weighted potential-temperature update.
 
 # Arguments
 
@@ -56,39 +60,41 @@ Create a `Increments` instance in compressible mode.
 struct Increments{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
 }
     drho::A
-    drhop::A
-    du::A
-    dv::A
-    dw::A
-    dpip::A
-    dp::B
+    drhop::B
+    du::B
+    dv::B
+    dw::B
+    dpip::B
+    dp::C
 end
 
 function Increments(namelists::Namelists, domain::Domain)::Increments
     (; model) = namelists.setting
+
     return Increments(domain, model)
 end
 
-function Increments(
-    domain::Domain,
-    model::Union{Boussinesq, PseudoIncompressible},
-)::Increments
+function Increments(domain::Domain, model::Boussinesq)::Increments
     (; nxx, nyy, nzz) = domain
 
-    # Initialize the increments.
-    (drho, drhop, du, dv, dw, dpip) = (zeros(nxx, nyy, nzz) for i in 1:6)
-    dp = zeros(0, 0, 0)
+    return Increments(
+        zeros(0, 0, 0),
+        [zeros(nxx, nyy, nzz) for i in 1:5]...,
+        zeros(0, 0, 0),
+    )
+end
 
-    return Increments(drho, drhop, du, dv, dw, dpip, dp)
+function Increments(domain::Domain, model::PseudoIncompressible)::Increments
+    (; nxx, nyy, nzz) = domain
+
+    return Increments([zeros(nxx, nyy, nzz) for i in 1:6]..., zeros(0, 0, 0))
 end
 
 function Increments(domain::Domain, model::Compressible)::Increments
     (; nxx, nyy, nzz) = domain
 
-    # Initialize the increments.
-    (drho, drhop, du, dv, dw, dpip, dp) = (zeros(nxx, nyy, nzz) for i in 1:7)
-
-    return Increments(drho, drhop, du, dv, dw, dpip, dp)
+    return Increments([zeros(nxx, nyy, nzz) for i in 1:7]...)
 end

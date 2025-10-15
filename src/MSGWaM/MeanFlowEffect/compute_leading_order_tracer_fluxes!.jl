@@ -23,7 +23,7 @@ Return for configurations without tracer transport.
 ```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -109,7 +109,7 @@ end
 
 function compute_leading_order_tracer_fluxes!(
     state::State,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,

@@ -435,7 +435,7 @@ update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::NoTracer)
 Return for configurations without tracer transport.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::LinearTracer)
+update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::TracerOn)
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
@@ -1446,7 +1446,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid

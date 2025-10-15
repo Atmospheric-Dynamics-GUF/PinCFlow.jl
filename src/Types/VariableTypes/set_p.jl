@@ -2,10 +2,10 @@
 ```julia
 set_p(
     model::Union{Boussinesq, PseudoIncompressible},
-    nxx::Integer,
-    nyy::Integer,
-    nzz::Integer,
-    pbar::AbstractArray{<:AbstractFloat, 3},
+    rhobar::AbstractArray{<:AbstractFloat, 3},
+    thetabar::AbstractArray{<:AbstractFloat, 3},
+    rhop::AbstractArray{<:AbstractFloat, 3},
+    thetap::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
 ```
 
@@ -16,14 +16,14 @@ In these cases, the mass-weighted potential temperature is a background field: c
 ```julia
 set_p(
     model::Compressible,
-    nxx::Integer,
-    nyy::Integer,
-    nzz::Integer,
-    pbar::AbstractArray{<:AbstractFloat, 3},
+    rhobar::AbstractArray{<:AbstractFloat, 3},
+    thetabar::AbstractArray{<:AbstractFloat, 3},
+    rhop::AbstractArray{<:AbstractFloat, 3},
+    thetap::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
 ```
 
-Return a copy of `pbar` in compressible mode.
+Return ``P = \\rho \\theta = \\left(\\overline{\\rho} + \\rho'\\right) \\left(\\overline{\\theta} + \\theta'\\right)`` in compressible mode.
 
 In compressible mode, the mass-weighted potential temperature is a prognostic variable.
 
@@ -31,33 +31,32 @@ In compressible mode, the mass-weighted potential temperature is a prognostic va
 
   - `mode`: Dynamic equations.
 
-  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `rhobar`: Density background.
 
-  - `nyy`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `thetabar`: Potential-temperature background.
 
-  - `nzz`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `rhop`: Density fluctuations.
 
-  - `pbar`: Mass-weighted potential temperature.
-
+  - `thetap`: Potential-temperature fluctuations.
 """
 function set_p end
 
 function set_p(
     model::Union{Boussinesq, PseudoIncompressible},
-    nxx::Integer,
-    nyy::Integer,
-    nzz::Integer,
-    pbar::AbstractArray{<:AbstractFloat, 3},
+    rhobar::AbstractArray{<:AbstractFloat, 3},
+    thetabar::AbstractArray{<:AbstractFloat, 3},
+    rhop::AbstractArray{<:AbstractFloat, 3},
+    thetap::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
     return zeros(0, 0, 0)
 end
 
 function set_p(
     model::Compressible,
-    nxx::Integer,
-    nyy::Integer,
-    nzz::Integer,
-    pbar::AbstractArray{<:AbstractFloat, 3},
+    rhobar::AbstractArray{<:AbstractFloat, 3},
+    thetabar::AbstractArray{<:AbstractFloat, 3},
+    rhop::AbstractArray{<:AbstractFloat, 3},
+    thetap::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
-    return copy(pbar)
+    return (rhobar .+ rhop) .* (thetabar .+ thetap)
 end

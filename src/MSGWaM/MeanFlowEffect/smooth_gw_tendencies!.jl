@@ -154,7 +154,7 @@ smooth_gw_tendencies!(
 Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
 
 ```julia
-smooth_gw_tendencies!(state::State, tracer_setup::LinearTracer)
+smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)
 ```
 
 Apply smoothing to tracer tendencies.
@@ -454,7 +454,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(state::State, tracer_setup::LinearTracer)
+function smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)
     (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dchidt) = state.tracer.tracerforcings.chiq0

@@ -6,36 +6,39 @@ TracerForcings{A <: TracerWKBImpact}
 Container for `TracerWKBImpact` instance with all necessary terms for the right-hand side of the tracer equation.
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain)
+TracerForcings(namelists::Namelists, domain::Domain)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance set according to the model configuration.
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain, tracer_setup::NoTracer)
+TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    tracer_setup::NoTracer,
+)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations without tracer transport.
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain, tracer_setup::LinearTracer)
+TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    tracer_setup::TracerOn,
+)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(
-    namelists::Namelists,
-    domain::Domain,
-    wkb_mode::NoWKB,
-)::TracerForcings
+TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.
 
 ```julia
 TracerForcings(
-    namelists::Namelists,
     domain::Domain,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::TracerForcings
@@ -84,25 +87,20 @@ end
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )::TracerForcings
     (; wkb_mode) = namelists.wkb
 
-    return TracerForcings(namelists, domain, wkb_mode)
+    return TracerForcings(domain, wkb_mode)
 end
 
-function TracerForcings(
-    namelists::Namelists,
-    domain::Domain,
-    wkb_mode::NoWKB,
-)::TracerForcings
+function TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
     return TracerForcings(
         [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
     )
 end
 
 function TracerForcings(
-    namelists::Namelists,
     domain::Domain,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::TracerForcings

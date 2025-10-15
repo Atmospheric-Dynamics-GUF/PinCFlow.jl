@@ -22,7 +22,7 @@ Return for configurations without tracer transport.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -42,7 +42,7 @@ Return for configurations without tracer transport.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -62,7 +62,7 @@ Return for configurations without tracer transport.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -84,7 +84,7 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -106,7 +106,7 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -148,7 +148,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
@@ -176,7 +176,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
@@ -203,7 +203,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
     (; zz_size, nzz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
@@ -236,7 +236,7 @@ function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; chiq0) = state.tracer.tracerforcings
@@ -267,7 +267,7 @@ function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; chiq0) = state.tracer.tracerforcings

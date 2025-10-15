@@ -18,7 +18,7 @@ TracerIncrements(domain::Domain, tracer_setup::NoTracer)::TracerIncrements
 Construct a `TracerIncrements` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerIncrements(domain::Domain, tracer_setup::LinearTracer)::TracerIncrements
+TracerIncrements(domain::Domain, tracer_setup::TracerOn)::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-initialized arrays.
@@ -44,6 +44,7 @@ function TracerIncrements(
     domain::Domain,
 )::TracerIncrements
     (; tracer_setup) = namelists.tracer
+
     return TracerIncrements(domain, tracer_setup)
 end
 
@@ -58,7 +59,7 @@ end
 
 function TracerIncrements(
     domain::Domain,
-    tracer_setup::LinearTracer,
+    tracer_setup::TracerOn,
 )::TracerIncrements
     (; nxx, nyy, nzz) = domain
 

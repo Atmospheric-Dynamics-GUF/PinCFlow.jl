@@ -38,8 +38,5 @@ end
 function Backups(domain::Domain)::Backups
     (; nxx, nyy, nzz) = domain
 
-    # Initialize the backups.
-    (rhoold, rhopold, uold, vold, wold) = (zeros(nxx, nyy, nzz) for i in 1:5)
-
-    return Backups(rhoold, rhopold, uold, vold, wold)
+    return Backups([zeros(nxx, nyy, nzz) for i in 1:5]...)
 end

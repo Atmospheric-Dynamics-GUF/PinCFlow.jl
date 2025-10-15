@@ -88,10 +88,8 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
     (; nxx, nyy, nzz, nz) = domain
     (; lx, ly, lz) = grid
 
-    # Initialize the sponge coefficients.
     (betar, alphar) = (zeros(nxx, nyy, nzz) for i in 1:3)
 
-    # Set up the sponges.
     dzsponge = sponge_extent * lz
     zsponge = lz - dzsponge
     dxsponge = sponge_extent * lx / 2
@@ -101,7 +99,6 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge
     xsponge1 = lx / 2 - dxsponge
     ysponge1 = ly / 2 - dysponge
 
-    # Initialize the auxiliary array for horizontal means.
     horizontal_mean = zeros(nz)
 
     return Sponge(

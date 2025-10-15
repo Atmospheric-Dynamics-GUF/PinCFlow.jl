@@ -220,11 +220,7 @@ compute_fluxes!(state::State, predictands::Predictands, tracer_setup::NoTracer)
 Return for configurations without tracer transport.
 
 ```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    tracer_setup::LinearTracer,
-)
+compute_fluxes!(state::State, predictands::Predictands, tracer_setup::TracerOn)
 ```
 
 Compute the tracer fluxes in all three directions.
@@ -1436,11 +1432,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    tracer_setup::LinearTracer,
-)
+function compute_fluxes!(state::State, predictands::Predictands, tracer_setup::TracerOn)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
