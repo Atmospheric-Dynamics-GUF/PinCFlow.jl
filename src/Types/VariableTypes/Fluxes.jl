@@ -64,7 +64,7 @@ struct Fluxes{
 end
 
 function Fluxes(namelists::Namelists, domain::Domain)::Fluxes
-    (; model) = namelists.setting
+    (; model) = namelists.atmosphere
     return Fluxes(domain, model)
 end
 

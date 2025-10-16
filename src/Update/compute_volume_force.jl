@@ -232,7 +232,7 @@ function compute_volume_force(
 )::AbstractFloat
     (; leading_order_impact) = state.namelists.tracer
     (; chiq0) = state.tracer.tracerforcings
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
 
     @ivy if leading_order_impact && model == Compressible()
         return chiq0.dchidt[i, j, k]

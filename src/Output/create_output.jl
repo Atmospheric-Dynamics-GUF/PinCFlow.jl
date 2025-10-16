@@ -17,7 +17,7 @@ function create_output(state::State)
     (; x_size, y_size, z_size, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     (; wkb_mode) = state.namelists.wkb
     (; comm) = state.domain
     (; nray_max) = state.wkb

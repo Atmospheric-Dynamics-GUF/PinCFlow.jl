@@ -302,7 +302,6 @@ using ...PinCFlow
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
-include("SettingNamelist.jl")
 include("DiscretizationNamelist.jl")
 include("PoissonNamelist.jl")
 include("AtmosphereNamelist.jl")
@@ -348,7 +347,6 @@ export UniformBoussinesq,
 
 export DomainNamelist,
     OutputNamelist,
-    SettingNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,

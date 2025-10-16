@@ -44,7 +44,7 @@ function compute_operator!(
 )
     (; nbz) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     (; gamma, rsp, pref, kappa) = state.constants
     (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid

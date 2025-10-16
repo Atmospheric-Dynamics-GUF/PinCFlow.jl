@@ -48,7 +48,7 @@ function reset_predictands!(
     predictands::Predictands,
     tracerpredictands::TracerPredictands,
 )
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
 
     reset_predictands!(state, predictands, model)
     reset_predictands!(state, tracerpredictands)

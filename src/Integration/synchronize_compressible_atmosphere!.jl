@@ -41,7 +41,7 @@ function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
 )
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     synchronize_compressible_atmosphere!(state, predictands, model)
     return
 end

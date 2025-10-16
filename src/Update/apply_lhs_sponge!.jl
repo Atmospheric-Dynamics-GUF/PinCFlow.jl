@@ -248,7 +248,7 @@ function apply_lhs_sponge!(
     time::AbstractFloat,
     variable::AbstractPredictand,
 )
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     apply_lhs_sponge!(state, dt, time, variable, model)
     return
 end

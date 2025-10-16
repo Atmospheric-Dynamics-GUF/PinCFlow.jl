@@ -56,7 +56,7 @@ function set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
 )
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     set_compressible_vertical_boundaries!(state, variables, model)
     return
 end

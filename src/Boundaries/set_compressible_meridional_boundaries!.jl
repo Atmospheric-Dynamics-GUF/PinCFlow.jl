@@ -33,7 +33,7 @@ Enforce meridional boundary conditions for the mass-weighted potential temperatu
 function set_compressible_meridional_boundaries! end
 
 function set_compressible_meridional_boundaries!(state::State)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     set_compressible_meridional_boundaries!(state, model)
     return
 end

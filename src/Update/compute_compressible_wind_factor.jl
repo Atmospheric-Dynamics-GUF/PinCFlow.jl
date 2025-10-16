@@ -88,7 +88,7 @@ function compute_compressible_wind_factor(
     k::Integer,
     variable::Union{U, V, W},
 )::AbstractFloat
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     return compute_compressible_wind_factor(state, i, j, k, variable, model)
 end
 

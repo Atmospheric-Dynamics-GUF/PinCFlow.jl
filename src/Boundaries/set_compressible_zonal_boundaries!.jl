@@ -33,7 +33,7 @@ Enforce zonal boundary conditions for the mass-weighted potential temperature in
 function set_compressible_zonal_boundaries! end
 
 function set_compressible_zonal_boundaries!(state::State)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     set_compressible_zonal_boundaries!(state, model)
     return
 end

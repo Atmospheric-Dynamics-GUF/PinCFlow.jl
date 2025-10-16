@@ -272,7 +272,7 @@ where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.a
 function compute_fluxes! end
 
 function compute_fluxes!(state::State, predictands::Predictands)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
 
     compute_fluxes!(state, predictands, Rho())
     compute_fluxes!(state, predictands, RhoP())
@@ -1432,7 +1432,11 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(state::State, predictands::Predictands, tracer_setup::TracerOn)
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracer_setup::TracerOn,
+)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere

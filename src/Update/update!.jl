@@ -488,7 +488,7 @@ The update is given by
 function update! end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     update!(state, dt, m, variable, model)
     return
 end
@@ -1329,7 +1329,7 @@ function update!(
 end
 
 function update!(state::State, dt::AbstractFloat, variable::PiP)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     update!(state, dt, variable, model)
     return
 end
@@ -1378,7 +1378,7 @@ function update!(
 end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     update!(state, dt, m, variable, model)
     return
 end

@@ -192,7 +192,6 @@ export Rho,
 
 export DomainNamelist,
     OutputNamelist,
-    SettingNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,

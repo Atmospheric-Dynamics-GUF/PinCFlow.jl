@@ -61,7 +61,7 @@ where ``F^P`` is the diabatic heating, as computed by `compute_volume_force`, an
 function compute_lhs! end
 
 function compute_lhs!(state::State)::AbstractFloat
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     return compute_lhs!(state, model)
 end
 

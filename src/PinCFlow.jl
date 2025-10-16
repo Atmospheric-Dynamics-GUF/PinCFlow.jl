@@ -37,7 +37,6 @@ using .Integration
 # Export namelists.
 export DomainNamelist,
     OutputNamelist,
-    SettingNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
