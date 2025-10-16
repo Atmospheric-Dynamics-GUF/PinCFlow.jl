@@ -44,6 +44,7 @@ function TracerIncrements(
     domain::Domain,
 )::TracerIncrements
     (; tracer_setup) = namelists.tracer
+
     return TracerIncrements(domain, tracer_setup)
 end
 

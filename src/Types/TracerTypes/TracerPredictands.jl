@@ -25,7 +25,7 @@ TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::AbstractTracer,
+    tracer_setup::NoTracer,
     variables::Variables,
 )::TracerPredictands
 ```
@@ -39,12 +39,12 @@ TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::LinearTracer,
+    tracer_setup::AbstractTracer,
     variables::Variables,
 )::TracerPredictands
 ```
 
-Construct a `TracerPredictands` instance with an initialized non-dimensional tracer linearly increasing with altitude. The tracer field is multiplied by the density.
+Construct a `TracerPredictands` instance with a tracer initialized by the function `initial_tracer` in `namelists.tracer`. The tracer field is multiplied by the density.
 
 # Fields
 
@@ -65,6 +65,12 @@ Construct a `TracerPredictands` instance with an initialized non-dimensional tra
   - `tracer_setup`: General tracer-transport configuration.
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
 struct TracerPredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     chi::A
@@ -97,7 +103,7 @@ function TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::AbstractTracer,
+    tracer_setup::NoTracer,
     variables::Variables,
 )::TracerPredictands
     return TracerPredictands(
@@ -111,21 +117,29 @@ function TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::LinearTracer,
+    tracer_setup::AbstractTracer,
     variables::Variables,
 )::TracerPredictands
-    (; nxx, nyy, nzz) = domain
-    (; zc) = grid
+    (; nxx, nyy, nzz, i0, i1, j0, j1, io, jo) = domain
+    (; x, y, zc) = grid
     (; lref) = constants
     (; rhobar) = atmosphere
     (; rho) = variables.predictands
     (; lref) = constants
-    (; alphatracer) = namelists.tracer
+    (; initial_tracer) = namelists.tracer
 
     chi = zeros(nxx, nyy, nzz)
-    chi .= alphatracer .* lref .* zc
+    @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
+        chi[i, j, k] = initial_tracer(
+            x[io + i] * lref,
+            y[jo + j] * lref,
+            zc[i, j, k] * lref,
+        )
+    end
+    set_zonal_boundaries_of_field!(chi, namelists, domain)
+    set_meridional_boundaries_of_field!(chi, namelists, domain)
 
-    chi .= chi .* (rho .+ rhobar)
+    chi .*= rho .+ rhobar
 
     return TracerPredictands(chi)
 end

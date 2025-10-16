@@ -17,7 +17,7 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `file`: File to save the plots to.
 
-  - `data`: PinCFlow output data.
+  - `data`: PinCFlow.jl output data.
 
   - `variable`: Output variable to plot.
 
