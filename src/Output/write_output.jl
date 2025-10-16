@@ -80,7 +80,8 @@ function write_output(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; model, test_case) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
+    (; wkb_mode) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, zc, zctilde) = grid
@@ -355,7 +356,7 @@ function write_output(
         end
 
         # Write WKB variables.
-        if typeof(test_case) <: AbstractWKBTestCase
+        if wkb_mode != NoWKB()
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes

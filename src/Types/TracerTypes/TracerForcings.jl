@@ -25,20 +25,23 @@ Construct a `TracerForcings` instance for configurations without tracer transpor
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(domain::Domain, test_case::AbstractTestCase)::TracerForcings
+TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.
 
 ```julia
-TracerForcings(domain::Domain, test_case::AbstractWKBTestCase)::TracerForcings
+TracerForcings(
+    domain::Domain,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations with tracer transport and WKB model.
@@ -55,7 +58,7 @@ Construct a `TracerForcings` instance for configurations with tracer transport a
 
   - `tracer_setup`: General tracer-transport configuration.
 
-  - `test_case`: Teset case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also:
 
@@ -84,17 +87,14 @@ end
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )::TracerForcings
-    (; test_case) = namelists.setting
+    (; wkb_mode) = namelists.wkb
 
-    return TracerForcings(domain, test_case)
+    return TracerForcings(domain, wkb_mode)
 end
 
-function TracerForcings(
-    domain::Domain,
-    test_case::AbstractTestCase,
-)::TracerForcings
+function TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
     return TracerForcings(
         [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
     )
@@ -102,7 +102,7 @@ end
 
 function TracerForcings(
     domain::Domain,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::TracerForcings
     (; nxx, nyy, nzz) = domain
 

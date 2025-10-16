@@ -22,7 +22,7 @@ Return for configurations without tracer transport.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -42,7 +42,7 @@ Return for configurations without tracer transport.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -52,7 +52,7 @@ Enforce meridional boundary conditions for reconstructions of tracers.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_model::AbstractWKBMode,
+    wkb_model::Union{SteadyState, SingleColumn, MultiColumn},
     tracer_setup::NoTracer,
 )
 ```
@@ -63,8 +63,8 @@ Return for configurations without tracer transport.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::AbstractTracer,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -74,7 +74,7 @@ Enforce meridional boundary conditions for tracer-gravity-wave-integral fields.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
     tracer_setup::NoTracer,
 )
 ```
@@ -85,8 +85,8 @@ Return for configurations without tracer transport.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::AbstractTracer,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -128,7 +128,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
@@ -155,7 +155,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
@@ -174,7 +174,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_model::AbstractWKBMode,
+    wkb_model::Union{SteadyState, SingleColumn, MultiColumn},
     tracer_setup::NoTracer,
 )
     return
@@ -183,8 +183,8 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::AbstractTracer,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; chiq0) = state.tracer.tracerforcings
@@ -204,7 +204,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
     tracer_setup::NoTracer,
 )
     return
@@ -213,8 +213,8 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::AbstractTracer,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; chiq0) = state.tracer.tracerforcings

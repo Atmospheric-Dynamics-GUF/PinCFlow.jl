@@ -37,7 +37,7 @@ Enforce vertical boundary conditions for gravity-wave-integral fields by dispatc
 set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
 ```
 
@@ -63,7 +63,7 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields by dispatc
 set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
 ```
 
@@ -179,7 +179,7 @@ end
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
     (; namelists, domain) = state
     (; integrals) = state.wkb
@@ -234,7 +234,7 @@ end
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
     (; namelists, domain) = state
     (; tendencies) = state.wkb

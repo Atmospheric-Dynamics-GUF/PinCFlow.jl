@@ -23,93 +23,93 @@ module Types
 
 """
 ```julia
-AbstractVariable
+AbstractPredictand
 ```
 
 Abstract type for prognostic variables.
 """
-abstract type AbstractVariable end
+abstract type AbstractPredictand end
 
 """
 ```julia
-Rho <: AbstractVariable
+Rho <: AbstractPredictand
 ```
 
 Singleton that represents density fluctuations predicted with the continuity equation.
 """
-struct Rho <: AbstractVariable end
+struct Rho <: AbstractPredictand end
 
 """
 ```julia
-RhoP <: AbstractVariable
+RhoP <: AbstractPredictand
 ```
 
 Singleton that represents density fluctuations predicted with the auxiliary equation.
 """
-struct RhoP <: AbstractVariable end
+struct RhoP <: AbstractPredictand end
 
 """
 ```julia
-U <: AbstractVariable
+U <: AbstractPredictand
 ```
 
 Singleton that represents the zonal wind.
 """
-struct U <: AbstractVariable end
+struct U <: AbstractPredictand end
 
 """
 ```julia
-V <: AbstractVariable
+V <: AbstractPredictand
 ```
 
 Singleton that represents the meridional wind.
 """
-struct V <: AbstractVariable end
+struct V <: AbstractPredictand end
 
 """
 ```julia
-W <: AbstractVariable
+W <: AbstractPredictand
 ```
 
 Singleton that represents the (transformed) vertical wind.
 """
-struct W <: AbstractVariable end
+struct W <: AbstractPredictand end
 
 """
 ```julia
-PiP <: AbstractVariable
+PiP <: AbstractPredictand
 ```
 
 Singleton that represents the Exner-pressure fluctuations.
 """
-struct PiP <: AbstractVariable end
+struct PiP <: AbstractPredictand end
 
 """
 ```julia
-P <: AbstractVariable
+P <: AbstractPredictand
 ```
 
 Singleton that represents the mass-weighted potential temperature.
 """
-struct P <: AbstractVariable end
+struct P <: AbstractPredictand end
 
 """
 ```julia
-Theta <: AbstractVariable
+Theta
 ```
 
 Singleton that represents the potential temperature.
 """
-struct Theta <: AbstractVariable end
+struct Theta end
 
 """
 ```julia
-Chi <: AbstractVariable
+Chi
 ```
 
 Singleton that represents the tracer mixing ratio.
 """
-struct Chi <: AbstractVariable end
+struct Chi end
 
 """
 ```julia
@@ -168,13 +168,11 @@ include("State.jl")
 
 export AbstractBackground,
     AbstractLimiter,
-    AbstractVariable,
+    AbstractPredictand,
     AbstractModel,
-    AbstractTestCase,
     AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
-    AbstractWKBTestCase,
     AbstractWKBFilter,
     AbstractTracer,
     AbstractTurbulence
@@ -202,14 +200,13 @@ export Rho,
     Boussinesq,
     PseudoIncompressible,
     Compressible,
-    MountainWave,
-    WKBMountainWave,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,
     SinusoidalSponge,
     ConstantWaveAction,
     ConstantWaveEnergy,
+    NoWKB,
     SteadyState,
     SingleColumn,
     MultiColumn,
@@ -218,7 +215,6 @@ export Rho,
 
 export DomainNamelist,
     OutputNamelist,
-    SettingNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,

@@ -3,14 +3,13 @@
 Namelists{
     A <: DomainNamelist,
     B <: OutputNamelist,
-    C <: SettingNamelist,
-    D <: DiscretizationNamelist,
-    E <: PoissonNamelist,
-    F <: AtmosphereNamelist,
-    G <: GridNamelist,
-    H <: SpongeNamelist,
-    I <: WKBNamelist,
-    J <: TracerNamelist,
+    C <: DiscretizationNamelist,
+    D <: PoissonNamelist,
+    E <: AtmosphereNamelist,
+    F <: GridNamelist,
+    G <: SpongeNamelist,
+    H <: WKBNamelist,
+    I <: TracerNamelist,
     K <: TurbulenceNamelist,
 }
 ```
@@ -21,7 +20,6 @@ Collection of all configurable model parameters.
 Namelists(;
     domain::DomainNamelist = DomainNamelist(),
     output::OutputNamelist = OutputNamelist(),
-    setting::SettingNamelist = SettingNamelist(),
     discretization::DiscretizationNamelist = DiscretizationNamelist(),
     poisson::PoissonNamelist = PoissonNamelist(),
     atmosphere::AtmosphereNamelist = AtmosphereNamelist(),
@@ -41,21 +39,19 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
 
   - `output::B`: Namelist for I/O parameters.
 
-  - `setting::C`: Namelist for parameters describing the general model setting.
+  - `discretization::C`: Namelist for parameters describing discretization.
 
-  - `discretization::D`: Namelist for parameters describing discretization.
+  - `poisson::D`: Namelist for parameters used by the Poisson solver.
 
-  - `poisson::E`: Namelist for parameters used by the Poisson solver.
+  - `atmosphere::E`: Namelist for parameters describing the atmospheric background.
 
-  - `atmosphere::F`: Namelist for parameters describing the atmospheric background.
+  - `grid::F`: Namelist for parameters describing the grid.
 
-  - `grid::G`: Namelist for parameters describing the grid.
+  - `sponge::G`: Namelist for parameters describing the sponge.
 
-  - `sponge::H`: Namelist for parameters describing the sponge.
+  - `wkb::H`: Namelist for parameters used by MSGWaM.
 
-  - `wkb::I`: Namelist for parameters used by MSGWaM.
-
-  - `tracer::J`: Namelist for parameters configuring tracer transport.
+  - `tracer::I`: Namelist for parameters configuring tracer transport.
 
   - `turbulence::K`: Namelist for parameters configuring turbulence parameterization.
 
@@ -64,8 +60,6 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
   - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.SettingNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
 
@@ -86,33 +80,30 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
 struct Namelists{
     A <: DomainNamelist,
     B <: OutputNamelist,
-    C <: SettingNamelist,
-    D <: DiscretizationNamelist,
-    E <: PoissonNamelist,
-    F <: AtmosphereNamelist,
-    G <: GridNamelist,
-    H <: SpongeNamelist,
-    I <: WKBNamelist,
-    J <: TracerNamelist,
+    C <: DiscretizationNamelist,
+    D <: PoissonNamelist,
+    E <: AtmosphereNamelist,
+    F <: GridNamelist,
+    G <: SpongeNamelist,
+    H <: WKBNamelist,
+    I <: TracerNamelist,
     K <: TurbulenceNamelist,
 }
     domain::A
     output::B
-    setting::C
-    discretization::D
-    poisson::E
-    atmosphere::F
-    grid::G
-    sponge::H
-    wkb::I
-    tracer::J
+    discretization::C
+    poisson::D
+    atmosphere::E
+    grid::F
+    sponge::G
+    wkb::H
+    tracer::I
     turbulence::K
 end
 
 function Namelists(;
     domain::DomainNamelist = DomainNamelist(),
     output::OutputNamelist = OutputNamelist(),
-    setting::SettingNamelist = SettingNamelist(),
     discretization::DiscretizationNamelist = DiscretizationNamelist(),
     poisson::PoissonNamelist = PoissonNamelist(),
     atmosphere::AtmosphereNamelist = AtmosphereNamelist(),
@@ -125,7 +116,6 @@ function Namelists(;
     return Namelists(
         domain,
         output,
-        setting,
         discretization,
         poisson,
         atmosphere,
