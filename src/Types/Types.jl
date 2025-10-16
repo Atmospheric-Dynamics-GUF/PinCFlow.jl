@@ -113,21 +113,21 @@ struct Chi end
 
 """
 ```julia
-TKE <: AbstractVariable
+TKE
 ```
 
 Singleton that represents the turbulence kinetic energy.
 """
-struct TKE <: AbstractVariable end
+struct TKE end
 
 """
 ```julia
-TTE <: AbstractVariable
+TTE
 ```
 
 Singleton that represents the total turbulence energy.
 """
-struct TTE <: AbstractVariable end
+struct TTE end
 
 """
 ```julia
