@@ -76,14 +76,12 @@ function turbulence_integration!(
     (; turbulence_scheme) = state.namelists.turbulence
 
     for rkstage in 1:nstages
-        reconstruct!(state)
+        reconstruct!(state, turbulence_scheme)
         set_boundaries!(state, BoundaryReconstructions())
 
-        compute_fluxes!(state, p0)
+        compute_fluxes!(state, p0, turbulence_scheme)
 
         set_boundaries!(state, BoundaryFluxes())
-
-        save_backups!(state, :rho)
 
         update!(state, p0, dt, rkstage, turbulence_scheme)
         apply_lhs_sponge!(state, dt, stepfrac[rkstage] * dt, turbulence_scheme)

@@ -286,11 +286,6 @@ function compute_fluxes!(state::State, predictands::Predictands)
 
     compute_fluxes!(state, predictands, model, P())
     compute_fluxes!(state, predictands, state.namelists.tracer.tracer_setup)
-    compute_fluxes!(
-        state,
-        predictands,
-        state.namelists.turbulence.turbulence_scheme,
-    )
     return
 end
 

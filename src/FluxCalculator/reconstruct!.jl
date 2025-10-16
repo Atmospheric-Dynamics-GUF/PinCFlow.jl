@@ -83,7 +83,6 @@ function reconstruct! end
 
 function reconstruct!(state::State)
     (; tracer_setup) = state.namelists.tracer
-    (; turbulence_scheme) = state.namelists.turbulence
 
     reconstruct!(state, Rho())
     reconstruct!(state, RhoP())
@@ -92,7 +91,6 @@ function reconstruct!(state::State)
     reconstruct!(state, W())
 
     reconstruct!(state, tracer_setup)
-    reconstruct!(state, turbulence_scheme)
 
     return
 end

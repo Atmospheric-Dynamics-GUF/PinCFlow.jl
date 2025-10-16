@@ -30,5 +30,6 @@ grid = GridNamelist(;
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
 sponge = SpongeNamelist(; betarmax = 1.0E+0)
+turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge, turbulence, setting))
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, turbulence))
