@@ -20,7 +20,7 @@ TracerFluxes(domain::Domain, tracer_setup::NoTracer)::TracerFluxes
 Construct a `TracerFluxes` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerFluxes(domain::Domain, tracer_setup::AbstractTracer)::TracerFluxes
+TracerFluxes(domain::Domain, tracer_setup::TracerOn)::TracerFluxes
 ```
 
 Construct a `TracerFluxes` instance with zero-initialized arrays.
@@ -53,10 +53,7 @@ function TracerFluxes(domain::Domain, tracer_setup::NoTracer)::TracerFluxes
     )
 end
 
-function TracerFluxes(
-    domain::Domain,
-    tracer_setup::AbstractTracer,
-)::TracerFluxes
+function TracerFluxes(domain::Domain, tracer_setup::TracerOn)::TracerFluxes
     (; nxx, nyy, nzz) = domain
 
     return TracerFluxes(

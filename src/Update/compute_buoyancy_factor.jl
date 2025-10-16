@@ -5,7 +5,7 @@ compute_buoyancy_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{RhoP, W},
 )::AbstractFloat
 ```
 
@@ -39,7 +39,7 @@ compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::RhoP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
 ```
 
@@ -65,7 +65,7 @@ compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::W,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
 ```
 
@@ -92,9 +92,9 @@ function compute_buoyancy_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{RhoP, W},
 )::AbstractFloat
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     return compute_buoyancy_factor(state, i, j, k, variable, model)
 end
 
@@ -118,7 +118,7 @@ function compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::RhoP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
@@ -151,7 +151,7 @@ function compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::W,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
     (; jac) = state.grid
     (; rhobar) = state.atmosphere
