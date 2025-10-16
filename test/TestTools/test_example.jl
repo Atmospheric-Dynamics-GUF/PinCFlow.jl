@@ -56,15 +56,17 @@ function test_example(
 
     # Update the references or test against them.
     if update_references
+        test_file = splitpath(file)[end]
         script = replace_assignments(
-            read(splitpath(file)[end], String),
+            read(test_file, String),
             :l2 => l2,
             :linf => linf,
         )
-        open(splitpath(file)[end], "w") do io
+        open(test_file, "w") do io
             write(io, script)
             return
         end
+        format(test_file)
     else
         for (l, lref, label) in
             ((l2, l2ref, "L2 norms"), (linf, linfref, "LInf norms"))
