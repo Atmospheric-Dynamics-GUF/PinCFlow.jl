@@ -47,15 +47,6 @@ abstract type AbstractTestCase end
 
 """
 ```julia
-AbstractSponge
-```
-
-Abstract type for sponge configurations.
-"""
-abstract type AbstractSponge end
-
-"""
-```julia
 AbstractMergeMode
 ```
 
@@ -209,42 +200,6 @@ struct WKBMountainWave <: AbstractWKBTestCase end
 
 """
 ```julia
-ExponentialSponge <: AbstractSponge
-```
-
-Singleton for an exponentially increasing Rayleigh damping in the entire Domain.
-"""
-struct ExponentialSponge <: AbstractSponge end
-
-"""
-```julia
-COSMOSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration similar to that used in the COSMO model (squared cosine with time-step-dependent maximum).
-"""
-struct COSMOSponge <: AbstractSponge end
-
-"""
-```julia
-PolynomialSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration with polynomial profiles.
-"""
-struct PolynomialSponge <: AbstractSponge end
-
-"""
-```julia
-SinusoidalSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration with sinusoidal profiles.
-"""
-struct SinusoidalSponge <: AbstractSponge end
-
-"""
-```julia
 ConstantWaveAction <: AbstractMergeMode
 ```
 
@@ -343,7 +298,6 @@ export AbstractBackground,
     AbstractLimiter,
     AbstractModel,
     AbstractTestCase,
-    AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
     AbstractWKBTestCase,
@@ -362,10 +316,6 @@ export UniformBoussinesq,
     Compressible,
     MountainWave,
     WKBMountainWave,
-    ExponentialSponge,
-    COSMOSponge,
-    PolynomialSponge,
-    SinusoidalSponge,
     ConstantWaveAction,
     ConstantWaveEnergy,
     SteadyState,

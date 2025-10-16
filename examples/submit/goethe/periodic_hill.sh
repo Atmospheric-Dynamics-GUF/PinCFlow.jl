@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --hint=nomultithread
-#SBATCH --time=0-00:10:00
+#SBATCH --time=0-00:15:00
 #SBATCH --mail-type=FAIL
 
 set -x
