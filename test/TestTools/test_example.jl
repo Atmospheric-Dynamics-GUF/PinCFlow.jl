@@ -4,7 +4,7 @@ test_example(
     file::AbstractString,
     reference::NTuple{2, <:NamedTuple},
     assignments::Vararg{Pair{Symbol, <:Any}};
-    test::Bool = true,
+    update_references::Bool = false,
     atol::Real = 0,
     rtol::Real = 0,
 )
@@ -22,7 +22,7 @@ Run an example simulation with modified `assignments`, compute the ``L_2`` and `
 
 # Keywords
 
-  - `test`: Test the ``L_2`` and ``L_\\infty`` norms against the reference if set to `true`, print them otherwise.
+  - `update_references`: Switch for updating the references in the test scripts instead of testing against them.
 
   - `atol`: Absolute tolerance that is passed as keyword argument to `isapprox`.
 
@@ -34,36 +34,18 @@ function test_example(
     file::AbstractString,
     reference::NTuple{2, <:NamedTuple},
     assignments::Vararg{Pair{Symbol, <:Any}};
-    test::Bool = true,
+    update_references::Bool = false,
     atol::Real = 0,
     rtol::Real = 0,
 )
-    # Read the example script and replace assignments.
+    # Read the example script and modify it.
+    script = read(file, String)
     script = replace(
-        read(file, String),
+        script,
         r"(?m)^ *using +Pkg *\n+" => "",
         r"(?m)^ *Pkg.activate\( *\"examples\" *\) *\n+" => "",
     )
-    for assignment in assignments
-        (name, value) = assignment
-        range = findfirst(Regex("$name *= *"), script)
-        if range !== nothing
-            (start, stop) = extrema(range)
-            suffix = ""
-            stop += 1
-            try
-                stop = Meta.parse(script, stop)[2]
-                suffix = "\n"
-            catch
-                while !(script[stop] in (',', ')'))
-                    stop = Meta.parse(script, stop; greedy = false)[2]
-                end
-            end
-            stop -= 1
-            script =
-                replace(script, script[start:stop] => "$name = $value" * suffix)
-        end
-    end
+    script = replace_assignments(script, assignments...)
 
     # Run the modified script.
     eval(Meta.parseall(script))
@@ -72,8 +54,18 @@ function test_example(
     (l2ref, linfref) = reference
     (l2, linf) = compute_norms()
 
-    # Test or print the norms.
-    if test
+    # Update the references or test against them.
+    if update_references
+        script = replace_assignments(
+            read(splitpath(file)[end], String),
+            :l2 => l2,
+            :linf => linf,
+        )
+        open(splitpath(file)[end], "w") do io
+            write(io, script)
+            return
+        end
+    else
         for (l, lref, label) in
             ((l2, l2ref, "L2 norms"), (linf, linfref, "LInf norms"))
             @testset "$label" begin
@@ -90,9 +82,6 @@ function test_example(
                 end
             end
         end
-    else
-        println("l2 = ", l2)
-        println("linf = ", linf)
     end
 
     return
