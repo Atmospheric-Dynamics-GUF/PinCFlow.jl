@@ -105,7 +105,7 @@ function integrate(namelists::Namelists)
     # Print information.
     if master
         println(repeat("-", 80))
-        println(repeat(" ", 36), "PinCFlow.jl")
+        println(repeat(" ", 34), "PinCFlow.jl")
         println("")
         println(repeat(" ", 34), "developed by")
         println(repeat(" ", 30), "Rieper et al. (2013)")
@@ -389,7 +389,7 @@ function integrate(namelists::Namelists)
 
     if master
         println(repeat("-", 80))
-        println(repeat(" ", 31), "PinCFlow.jl finished")
+        println(repeat(" ", 30), "PinCFlow.jl finished")
         println(repeat("-", 80))
     end
 

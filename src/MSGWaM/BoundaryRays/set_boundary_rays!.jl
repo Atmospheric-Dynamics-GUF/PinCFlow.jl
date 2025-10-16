@@ -6,7 +6,7 @@ set_boundary_rays!(state::State)
 Enforce boundary conditions for ray volumes by dispatching to a WKB-mode-specific method.
 
 ```julia
-set_boundary_rays(state::State, wkb_mode::NoWKB)
+set_boundary_rays!(state::State, wkb_mode::NoWKB)
 ```
 
 Return for non-WKB configurations.
