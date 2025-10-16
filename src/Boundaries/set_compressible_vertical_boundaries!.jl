@@ -12,7 +12,7 @@ Enforce vertical boundary conditions for the specified variables in compressible
 set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -56,7 +56,7 @@ function set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
 )
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     set_compressible_vertical_boundaries!(state, variables, model)
     return
 end
@@ -64,7 +64,7 @@ end
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end

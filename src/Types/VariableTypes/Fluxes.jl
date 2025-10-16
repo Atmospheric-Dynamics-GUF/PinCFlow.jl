@@ -17,7 +17,7 @@ Fluxes(namelists::Namelists, domain::Domain)::Fluxes
 Construct a `Fluxes` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
 
 ```julia
-Fluxes(domain::Domain, model::AbstractModel)::Fluxes
+Fluxes(domain::Domain, model::Union{Boussinesq, PseudoIncompressible})::Fluxes
 ```
 
 Construct a `Fluxes` instance in non-compressible modes, with a zero-size array for mass-weighted potential-temperature fluxes.
@@ -64,11 +64,14 @@ struct Fluxes{
 end
 
 function Fluxes(namelists::Namelists, domain::Domain)::Fluxes
-    (; model) = namelists.setting
+    (; model) = namelists.atmosphere
     return Fluxes(domain, model)
 end
 
-function Fluxes(domain::Domain, model::AbstractModel)::Fluxes
+function Fluxes(
+    domain::Domain,
+    model::Union{Boussinesq, PseudoIncompressible},
+)::Fluxes
     (; nxx, nyy, nzz) = domain
 
     return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:6]..., zeros(0, 0, 0, 0))

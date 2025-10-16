@@ -21,7 +21,7 @@ Enforce zonal boundary conditions for gravity-wave-integral fields by dispatchin
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
 ```
 
@@ -47,7 +47,7 @@ Enforce zonal boundary conditions for gravity-wave-tendency fields by dispatchin
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
 ```
 
@@ -131,7 +131,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
     (; namelists, domain) = state
     (; integrals) = state.wkb
@@ -181,7 +181,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
     (; namelists, domain) = state
     (; tendencies) = state.wkb

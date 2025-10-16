@@ -88,7 +88,7 @@ function Predictands(
         initial_w,
         initial_pip,
     ) = namelists.atmosphere
-    (; model) = namelists.setting
+    (; model) = namelists.atmosphere
     (; lref, rhoref, thetaref, uref) = constants
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz, io, jo) = domain
     (; x, y, zc, met, jac) = grid

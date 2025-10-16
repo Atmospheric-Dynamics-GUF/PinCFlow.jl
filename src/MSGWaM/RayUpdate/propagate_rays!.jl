@@ -3,28 +3,6 @@
 propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
 ```
 
-Integrate the wave-action-density and ray equations by dispatching to a test-case-specific method.
-
-```julia
-propagate_rays!(
-    state::State,
-    dt::AbstractFloat,
-    rkstage::Integer,
-    test_case::AbstractTestCase,
-)
-```
-
-Return for non-WKB test cases.
-
-```julia
-propagate_rays!(
-    state::State,
-    dt::AbstractFloat,
-    rkstage::Integer,
-    test_case::AbstractWKBTestCase,
-)
-```
-
 Integrate the wave-action-density and ray equations by dispatching to a WKB-mode-specific method.
 
 ```julia
@@ -32,7 +10,18 @@ propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::NoWKB,
+)
+```
+
+Return for non-WKB configurations.
+
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    wkb_mode::Union{SingleColumn, MultiColumn},
 )
 ```
 
@@ -127,8 +116,6 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 
   - `rkstage`: Runge-Kutta-stage index.
 
-  - `test_case`: Test case on which the current simulation is based.
-
   - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
@@ -154,26 +141,6 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 function propagate_rays! end
 
 function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
-    (; test_case) = state.namelists.setting
-    propagate_rays!(state, dt, rkstage, test_case)
-    return
-end
-
-function propagate_rays!(
-    state::State,
-    dt::AbstractFloat,
-    rkstage::Integer,
-    test_case::AbstractTestCase,
-)
-    return
-end
-
-function propagate_rays!(
-    state::State,
-    dt::AbstractFloat,
-    rkstage::Integer,
-    test_case::AbstractWKBTestCase,
-)
     (; wkb_mode) = state.namelists.wkb
     propagate_rays!(state, dt, rkstage, wkb_mode)
     return
@@ -183,9 +150,17 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::NoWKB,
 )
-    (; test_case) = state.namelists.setting
+    return
+end
+
+function propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    wkb_mode::Union{SingleColumn, MultiColumn},
+)
     (; branch, impact_altitude) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -200,7 +175,7 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kmin = test_case == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
+    kmin = ko == 0 ? k0 - 1 : k0
     kmax = k1
 
     # Initialize WKB increments at the first RK stage.
@@ -240,14 +215,6 @@ function propagate_rays!(
             zr2 = zr + dzr / 2
 
             khr = sqrt(kr^2 + lr^2)
-
-            # Skip ray volumes that have left the domain.
-            if test_case != WKBMountainWave()
-                if zr1 < zctilde[i, j, k0 - 2]
-                    nskip += 1
-                    continue
-                end
-            end
 
             n2r1 = interpolate_stratification(zr1, state, N2())
             n2r = interpolate_stratification(zr, state, N2())
@@ -458,9 +425,7 @@ function propagate_rays!(
         end
     end
 
-    if test_case == WKBMountainWave()
-        activate_orographic_source!(state)
-    end
+    activate_orographic_source!(state)
 
     return
 end
@@ -472,7 +437,6 @@ function propagate_rays!(
     wkb_mode::SteadyState,
 )
     (; x_size, y_size) = state.namelists.domain
-    (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; stepfrac) = state.time
@@ -487,9 +451,7 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    if test_case == WKBMountainWave()
-        activate_orographic_source!(state)
-    end
+    activate_orographic_source!(state)
 
     @ivy if ko != 0
         nray_down = zeros(Int, nx, ny)
