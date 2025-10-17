@@ -120,7 +120,7 @@ function TracerPredictands(
     tracer_setup::TracerOn,
     variables::Variables,
 )::TracerPredictands
-    (; nxx, nyy, nzz, i0, i1, j0, j1, io, jo) = domain
+    (; nxx, nyy, nzz, i0, i1, j0, j1) = domain
     (; x, y, zc) = grid
     (; lref) = constants
     (; rhobar) = atmosphere
@@ -130,11 +130,8 @@ function TracerPredictands(
 
     chi = zeros(nxx, nyy, nzz)
     @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
-        chi[i, j, k] = initial_tracer(
-            x[io + i] * lref,
-            y[jo + j] * lref,
-            zc[i, j, k] * lref,
-        )
+        chi[i, j, k] =
+            initial_tracer(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
     end
     set_zonal_boundaries_of_field!(chi, namelists, domain)
     set_meridional_boundaries_of_field!(chi, namelists, domain)

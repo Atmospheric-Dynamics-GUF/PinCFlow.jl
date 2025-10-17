@@ -57,8 +57,8 @@ function set_vertical_boundaries_of_field!(
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
 )
-    (; npz) = namelists.domain
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; z_size, npz) = namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
 
     @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
@@ -84,7 +84,7 @@ function set_vertical_boundaries_of_field!(
         end
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         if staggered
             field[ii, jj, k1] .= 0.0
             for k in 1:nbz

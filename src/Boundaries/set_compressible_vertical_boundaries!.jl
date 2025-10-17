@@ -87,14 +87,15 @@ function set_compressible_vertical_boundaries!(
     variables::BoundaryFluxes,
     model::Compressible,
 )
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
     (; phip) = state.variables.fluxes
 
     @ivy if ko == 0
         phip[:, :, k0 - 1, 3] .= 0.0
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         phip[:, :, k1, 3] .= 0.0
     end
 

@@ -48,9 +48,9 @@ function compute_n2!(
     thetabar::AbstractArray{<:AbstractFloat, 3},
     n2::AbstractArray{<:AbstractFloat, 3},
 )
-    (; nbz) = namelists.domain
+    (; z_size, nbz) = namelists.domain
     (; g_ndim) = constants
-    (; zz_size, nzz, ko, k0, k1) = domain
+    (; nz, ko, k0, k1) = domain
     (; jac, dz) = grid
 
     # Compute the squared buoyancy frequency.
@@ -70,7 +70,7 @@ function compute_n2!(
                 (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
         end
     end
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for k in 1:nbz
             n2[:, :, k1 + k] .=
                 g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*

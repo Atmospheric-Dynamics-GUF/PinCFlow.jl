@@ -179,15 +179,16 @@ function correct!(
     variable::U,
     rayleigh_factor::AbstractFloat,
 )
+    (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; corx) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; u) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
@@ -218,15 +219,16 @@ function correct!(
     variable::V,
     rayleigh_factor::AbstractFloat,
 )
+    (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; v) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
@@ -257,7 +259,8 @@ function correct!(
     variable::W,
     rayleigh_factor::AbstractFloat,
 )
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; n2) = state.atmosphere
     (; betar) = state.sponge
@@ -266,7 +269,7 @@ function correct!(
     (; w) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 - 1 : k1
+    kmax = ko + nz == z_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
@@ -317,9 +320,9 @@ function correct!(
     variable::RhoP,
     rayleigh_factor::AbstractFloat,
 )
-    (; nbz) = state.namelists.domain
+    (; z_size, nbz) = state.namelists.domain
     (; g_ndim) = state.constants
-    (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
@@ -338,7 +341,7 @@ function correct!(
 
         if ko + k == k0
             lower_gradient = 0.0
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             upper_gradient = 0.0
         end
 
