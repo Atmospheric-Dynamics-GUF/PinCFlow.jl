@@ -182,7 +182,8 @@ If the grid size in a horizontal direction is one, the contribution from that di
 function compute_sponges! end
 
 function compute_sponges!(state::State, dt::AbstractFloat)
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; zc, lz) = state.grid
     (; betar, zsponge) = state.sponge
     (; sponge_type, betarmax) = state.namelists.sponge
@@ -190,7 +191,7 @@ function compute_sponges!(state::State, dt::AbstractFloat)
     compute_sponges!(state, dt, sponge_type)
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         if zc[i, j, k] >= zsponge
@@ -201,7 +202,7 @@ function compute_sponges!(state::State, dt::AbstractFloat)
     end
 
     @ivy ko == 0 && (betar[:, :, k0 - 1] .= betar[:, :, k0])
-    @ivy ko + nzz == zz_size && (betar[:, :, k1 + 1] .= betar[:, :, k1])
+    @ivy ko + nz == z_size && (betar[:, :, k1 + 1] .= betar[:, :, k1])
 
     return
 end
@@ -213,7 +214,7 @@ function compute_sponges!(
 )
     (; namelists, domain) = state
     (; x_size, y_size, z_size) = namelists.domain
-    (; zz_size, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; nxx, nyy, nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc, lx, ly, lz) = state.grid
     (; tref) = state.constants
     (; lateral_sponge, alpharmax) = namelists.sponge
@@ -236,7 +237,7 @@ function compute_sponges!(
     jmax = lateral_sponge ? j1 : nyy
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
         height = zc[i, j, k]
@@ -277,7 +278,7 @@ function compute_sponges!(
     end
 
     @ivy ko == 0 && (alphar[:, :, k0 - 1] .= alphar[:, :, k0])
-    @ivy ko + nzz == zz_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
+    @ivy ko + nz == z_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
 
     return
 end
@@ -289,7 +290,7 @@ function compute_sponges!(
 )
     (; namelists, domain) = state
     (; x_size, y_size, z_size) = namelists.domain
-    (; zz_size, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; nxx, nyy, nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc) = state.grid
     (; lateral_sponge, cosmo_steps) = namelists.sponge
     (;
@@ -313,7 +314,7 @@ function compute_sponges!(
     jmax = lateral_sponge ? j1 : nyy
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
         height = zc[i, j, k]
@@ -362,7 +363,7 @@ function compute_sponges!(
     end
 
     @ivy ko == 0 && (alphar[:, :, k0 - 1] .= alphar[:, :, k0])
-    @ivy ko + nzz == zz_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
+    @ivy ko + nz == z_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
 
     return
 end
@@ -374,7 +375,7 @@ function compute_sponges!(
 )
     (; namelists, domain) = state
     (; x_size, y_size, z_size) = namelists.domain
-    (; zz_size, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; nxx, nyy, nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc) = state.grid
     (; tref) = state.constants
     (; lateral_sponge, alpharmax, sponge_order) = namelists.sponge
@@ -407,7 +408,7 @@ function compute_sponges!(
     jmax = lateral_sponge ? j1 : nyy
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
         height = zc[i, j, k]
@@ -451,7 +452,7 @@ function compute_sponges!(
     end
 
     @ivy ko == 0 && (alphar[:, :, k0 - 1] .= alphar[:, :, k0])
-    @ivy ko + nzz == zz_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
+    @ivy ko + nz == z_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
 
     return
 end
@@ -463,7 +464,7 @@ function compute_sponges!(
 )
     (; namelists, domain) = state
     (; x_size, y_size, z_size) = namelists.domain
-    (; zz_size, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; nxx, nyy, nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc) = state.grid
     (; tref) = state.constants
     (; lateral_sponge, alpharmax) = namelists.sponge
@@ -496,7 +497,7 @@ function compute_sponges!(
     jmax = lateral_sponge ? j1 : nyy
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
         height = zc[i, j, k]
@@ -545,7 +546,7 @@ function compute_sponges!(
     end
 
     @ivy ko == 0 && (alphar[:, :, k0 - 1] .= alphar[:, :, k0])
-    @ivy ko + nzz == zz_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
+    @ivy ko + nz == z_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
 
     return
 end

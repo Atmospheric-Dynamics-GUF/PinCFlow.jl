@@ -39,14 +39,6 @@ Dimensions of the MPI subdomain:
 
   - `nzz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
 
-Dimensions of the entire domain:
-
-  - `xx_size::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
-
-  - `yy_size::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
-
-  - `zz_size::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
-
 Index offsets and bounds:
 
   - `io::C`: MPI offset in ``\\widehat{x}``-direction.
@@ -108,11 +100,6 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     nxx::C
     nyy::C
     nzz::C
-
-    # Global grid size with boundary cells.
-    xx_size::C
-    yy_size::C
-    zz_size::C
 
     # Index offsets.
     io::C
@@ -201,9 +188,6 @@ function Domain(namelists::Namelists)::Domain
     nxx = nx + 2 * nbx
     nyy = ny + 2 * nby
     nzz = nz + 2 * nbz
-    xx_size = x_size + 2 * nbx
-    yy_size = y_size + 2 * nby
-    zz_size = z_size + 2 * nbz
 
     # Set index offsets.
     @ivy io = coords[1] * div(x_size, npx)
@@ -238,9 +222,6 @@ function Domain(namelists::Namelists)::Domain
         nxx,
         nyy,
         nzz,
-        xx_size,
-        yy_size,
-        zz_size,
         io,
         jo,
         ko,

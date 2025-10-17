@@ -139,7 +139,8 @@ function set_vertical_boundaries!(
 end
 
 function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
     # Set all vertical boundary fluxes to zero.
@@ -151,7 +152,7 @@ function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for field in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
