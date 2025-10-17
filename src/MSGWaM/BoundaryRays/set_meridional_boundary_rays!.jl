@@ -57,7 +57,7 @@ function set_meridional_boundary_rays!(state::State)
                 yr = rays.y[r, i, j, k]
                 yrt = yr - ly
 
-                if abs(yrt - y[jo + j]) < abs(yr - y[jo + j])
+                if abs(yrt - y[j]) < abs(yr - y[j])
                     yr = yrt
                 end
 
@@ -72,7 +72,7 @@ function set_meridional_boundary_rays!(state::State)
                 yr = rays.y[r, i, j, k]
                 yrt = yr + ly
 
-                if abs(yrt - y[jo + j]) < abs(yr - y[jo + j])
+                if abs(yrt - y[j]) < abs(yr - y[j])
                     yr = yrt
                 end
 

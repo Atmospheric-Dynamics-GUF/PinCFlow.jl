@@ -213,7 +213,7 @@ function compute_sponges!(
 )
     (; namelists, domain) = state
     (; x_size, y_size, z_size) = namelists.domain
-    (; zz_size, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; zz_size, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc, lx, ly, lz) = state.grid
     (; tref) = state.constants
     (; lateral_sponge, alpharmax) = namelists.sponge
@@ -247,25 +247,25 @@ function compute_sponges!(
         end
         if lateral_sponge
             if x_size > 1
-                if x[io + i] <= 0
+                if x[i] <= 0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        alpharxmax * exp((-lx / 2 - x[io + i]) / dxsponge)
+                        alpharxmax * exp((-lx / 2 - x[i]) / dxsponge)
                 else
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        alpharxmax * exp((x[io + i] - lx / 2) / dxsponge)
+                        alpharxmax * exp((x[i] - lx / 2) / dxsponge)
                 end
             end
             if y_size > 1
-                if y[jo + j] <= 0
+                if y[j] <= 0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        alpharymax * exp((-ly / 2 - y[jo + j]) / dysponge)
+                        alpharymax * exp((-ly / 2 - y[j]) / dysponge)
                 else
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        alpharymax * exp((y[jo + j] - ly / 2) / dysponge)
+                        alpharymax * exp((y[j] - ly / 2) / dysponge)
                 end
             end
         end
@@ -289,7 +289,7 @@ function compute_sponges!(
 )
     (; namelists, domain) = state
     (; x_size, y_size, z_size) = namelists.domain
-    (; zz_size, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; zz_size, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc) = state.grid
     (; lateral_sponge, cosmo_steps) = namelists.sponge
     (;
@@ -328,29 +328,29 @@ function compute_sponges!(
         end
         if lateral_sponge
             if x_size > 1
-                if x[io + i] <= xsponge0
+                if x[i] <= xsponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         0.5 / cosmo_steps / dt *
-                        (1.0 - cos(pi * (xsponge0 - x[io + i]) / dxsponge))
-                elseif x[io + i] >= xsponge1
+                        (1.0 - cos(pi * (xsponge0 - x[i]) / dxsponge))
+                elseif x[i] >= xsponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         0.5 / cosmo_steps / dt *
-                        (1.0 - cos(pi * (x[io + i] - xsponge1) / dxsponge))
+                        (1.0 - cos(pi * (x[i] - xsponge1) / dxsponge))
                 end
             end
             if y_size > 1
-                if y[jo + j] <= ysponge0
+                if y[j] <= ysponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         0.5 / cosmo_steps / dt *
-                        (1.0 - cos(pi * (ysponge0 - y[jo + j]) / dysponge))
-                elseif y[jo + j] >= ysponge1
+                        (1.0 - cos(pi * (ysponge0 - y[j]) / dysponge))
+                elseif y[j] >= ysponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         0.5 / cosmo_steps / dt *
-                        (1.0 - cos(pi * (y[jo + j] - ysponge1) / dysponge))
+                        (1.0 - cos(pi * (y[j] - ysponge1) / dysponge))
                 end
             end
         end
@@ -374,7 +374,7 @@ function compute_sponges!(
 )
     (; namelists, domain) = state
     (; x_size, y_size, z_size) = namelists.domain
-    (; zz_size, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; zz_size, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc) = state.grid
     (; tref) = state.constants
     (; lateral_sponge, alpharmax, sponge_order) = namelists.sponge
@@ -421,29 +421,25 @@ function compute_sponges!(
         end
         if lateral_sponge
             if x_size > 1
-                if x[io + i] <= xsponge0
+                if x[i] <= xsponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        alpharxmax *
-                        ((xsponge0 - x[io + i]) / dxsponge)^sponge_order
-                elseif x[io + i] >= xsponge1
+                        alpharxmax * ((xsponge0 - x[i]) / dxsponge)^sponge_order
+                elseif x[i] >= xsponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        alpharxmax *
-                        ((x[io + i] - xsponge1) / dxsponge)^sponge_order
+                        alpharxmax * ((x[i] - xsponge1) / dxsponge)^sponge_order
                 end
             end
             if y_size > 1
-                if y[jo + j] <= ysponge0
+                if y[j] <= ysponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        alpharymax *
-                        ((ysponge0 - y[jo + j]) / dysponge)^sponge_order
-                elseif y[jo + j] >= ysponge1
+                        alpharymax * ((ysponge0 - y[j]) / dysponge)^sponge_order
+                elseif y[j] >= ysponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        alpharymax *
-                        ((y[jo + j] - ysponge1) / dysponge)^sponge_order
+                        alpharymax * ((y[j] - ysponge1) / dysponge)^sponge_order
                 end
             end
         end
@@ -467,7 +463,7 @@ function compute_sponges!(
 )
     (; namelists, domain) = state
     (; x_size, y_size, z_size) = namelists.domain
-    (; zz_size, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; zz_size, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc) = state.grid
     (; tref) = state.constants
     (; lateral_sponge, alpharmax) = namelists.sponge
@@ -515,29 +511,29 @@ function compute_sponges!(
         end
         if lateral_sponge
             if x_size > 1
-                if x[io + i] <= xsponge0
+                if x[i] <= xsponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         alpharxmax *
-                        sin(0.5 * pi * (xsponge0 - x[io + i]) / dxsponge)^2.0
-                elseif x[io + i] >= xsponge1
+                        sin(0.5 * pi * (xsponge0 - x[i]) / dxsponge)^2.0
+                elseif x[i] >= xsponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         alpharxmax *
-                        sin(0.5 * pi * (x[io + i] - xsponge1) / dxsponge)^2.0
+                        sin(0.5 * pi * (x[i] - xsponge1) / dxsponge)^2.0
                 end
             end
             if y_size > 1
-                if y[jo + j] <= ysponge0
+                if y[j] <= ysponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         alpharymax *
-                        sin(0.5 * pi * (ysponge0 - y[jo + j]) / dysponge)^2.0
-                elseif y[jo + j] >= ysponge1
+                        sin(0.5 * pi * (ysponge0 - y[j]) / dysponge)^2.0
+                elseif y[j] >= ysponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         alpharymax *
-                        sin(0.5 * pi * (y[jo + j] - ysponge1) / dysponge)^2.0
+                        sin(0.5 * pi * (y[j] - ysponge1) / dysponge)^2.0
                 end
             end
         end

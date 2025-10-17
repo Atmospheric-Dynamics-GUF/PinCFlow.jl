@@ -52,7 +52,7 @@ function set_zonal_boundary_rays!(state::State)
                 xr = rays.x[r, i, j, k]
                 xrt = xr - lx
 
-                if abs(xrt - x[io + i]) < abs(xr - x[io + i])
+                if abs(xrt - x[i]) < abs(xr - x[i])
                     xr = xrt
                 end
 
@@ -67,7 +67,7 @@ function set_zonal_boundary_rays!(state::State)
                 xr = rays.x[r, i, j, k]
                 xrt = xr + lx
 
-                if abs(xrt - x[io + i]) < abs(xr - x[io + i])
+                if abs(xrt - x[i]) < abs(xr - x[i])
                     xr = xrt
                 end
 

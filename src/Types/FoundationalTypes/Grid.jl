@@ -168,8 +168,7 @@ end
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; x_size, y_size, z_size, nbz) = namelists.domain
     (; stretch_exponent) = namelists.grid
-    (; nxx, nyy, nzz, xx_size, yy_size, zz_size, ko, i0, i1, j0, j1, k0) =
-        domain
+    (; nxx, nyy, nzz, zz_size, io, jo, ko, i0, i1, j0, j1, k0) = domain
     (; lref) = constants
 
     # Non-dimensionalize domain boundaries.
@@ -183,15 +182,15 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     dz = lz / z_size
 
     # Compute x-coordinate.
-    x = zeros(xx_size)
-    @ivy for i in 1:xx_size
-        x[i] = -lx / 2 + (i - i0) * dx + dx / 2
+    x = zeros(nxx)
+    @ivy for i in 1:nxx
+        x[i] = -lx / 2 + (i + io - i0) * dx + dx / 2
     end
 
     # Compute y-coordinate.
-    y = zeros(yy_size)
-    @ivy for j in 1:yy_size
-        y[j] = -ly / 2 + (j - j0) * dy + dy / 2
+    y = zeros(nyy)
+    @ivy for j in 1:nyy
+        y[j] = -ly / 2 + (j + jo - j0) * dy + dy / 2
     end
 
     # Compute z-coordinate.
