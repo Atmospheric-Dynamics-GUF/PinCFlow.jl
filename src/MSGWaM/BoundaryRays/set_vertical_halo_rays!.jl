@@ -15,8 +15,7 @@ function set_vertical_halo_rays! end
 
 function set_vertical_halo_rays!(state::State)
     (; z_size) = state.namelists.domain
-    (; comm, nz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) =
-        state.domain
+    (; comm, nz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) = state.domain
     (; nray, rays) = state.wkb
 
     fields = fieldcount(Rays)

@@ -441,8 +441,7 @@ function propagate_rays!(
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
-    (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
-        state.domain
+    (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
     (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
