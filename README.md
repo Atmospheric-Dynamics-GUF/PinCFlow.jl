@@ -6,7 +6,7 @@
 [![Codecov](https://codecov.io/gh/Atmospheric-Dynamics-GUF/PinCFlow.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/Atmospheric-Dynamics-GUF/PinCFlow.jl)
 [![Coveralls](https://coveralls.io/repos/github/Atmospheric-Dynamics-GUF/PinCFlow.jl/badge.svg?branch=main)](https://coveralls.io/github/Atmospheric-Dynamics-GUF/PinCFlow.jl?branch=main)
 [![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
-[![DOI](https://zenodo.org/badge/DOI/TODO.svg)](https://doi.org/TODO)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17391579.svg)](https://doi.org/10.5281/zenodo.17391579)
 
 ## Introduction
 
