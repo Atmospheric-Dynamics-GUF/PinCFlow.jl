@@ -47,7 +47,7 @@ In compressible mode, ``P`` is time-dependent, so that the density fluctuations 
 function synchronize_density_fluctuations! end
 
 function synchronize_density_fluctuations!(state::State)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     synchronize_density_fluctuations!(state, model)
     return
 end

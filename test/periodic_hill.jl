@@ -32,12 +32,13 @@ linf = (
 )
 reference = (l2, linf)
 
-@testset "periodic_hill" begin
+@testset "Periodic hill" begin
     test_example(
         joinpath(submit_directory, "periodic_hill.jl"),
         reference,
         :x_size => 10,
         :z_size => 10,
-        :output => OutputNamelist(; prepare_restart = true),
+        :output => OutputNamelist(; prepare_restart = true);
+        update_references,
     )
 end

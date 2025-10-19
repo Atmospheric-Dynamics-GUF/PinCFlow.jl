@@ -6,7 +6,6 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    test_case::AbstractWKBTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -15,7 +14,25 @@ compute_topography(
 }
 ```
 
-Compute and return the topography for WKB test cases.
+Compute and return the topography by dispatching to a WKB-mode-specific method.
+
+```julia
+compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)::Tuple{
+    <:AbstractMatrix{<:AbstractFloat},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+}
+```
+
+Compute and return the topography for WKB configurations.
 
 The arrays in the returned tuple represent (in order) the resolved topography, the amplitudes of the unresolved topography, the corresponding zonal wavenumbers and the corresponding meridional wavenumbers.
 
@@ -26,7 +43,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    test_case::AbstractTestCase,
+    wkb_mode::NoWKB,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -35,7 +52,7 @@ compute_topography(
 }
 ```
 
-Compute and return the topography for non-WKB test cases.
+Compute and return the topography for non-WKB configurations.
 
 The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`. The topography is represented by the first array in the returned tuple.
 
@@ -51,7 +68,7 @@ The arrays representing the unresolved spectrum are set to have the size `(0, 0,
 
   - `y`: ``\\widehat{y}``-coordinate grid points.
 
-  - `test_case`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
@@ -67,7 +84,23 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    test_case::AbstractWKBTestCase,
+)::Tuple{
+    <:AbstractMatrix{<:AbstractFloat},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+}
+    (; wkb_mode) = namelists.wkb
+    return compute_topography(namelists, constants, domain, x, y, wkb_mode)
+end
+
+function compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -108,7 +141,7 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    test_case::AbstractTestCase,
+    wkb_mode::NoWKB,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},

@@ -39,7 +39,7 @@ TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
     variables::Variables,
 )::TracerPredictands
 ```
@@ -117,7 +117,7 @@ function TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
     variables::Variables,
 )::TracerPredictands
     (; nxx, nyy, nzz, i0, i1, j0, j1, io, jo) = domain
