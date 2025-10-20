@@ -3,28 +3,16 @@
 merge_rays!(state::State)
 ```
 
-Merge ray volumes by dispatching to a test-case-specific method.
-
-```julia
-merge_rays!(state::State, test_case::AbstractTestCase)
-```
-
-Return for non-WKB test cases.
-
-```julia
-merge_rays!(state::State, test_case::AbstractWKBTestCase)
-```
-
 Merge ray volumes by dispatching to a WKB-mode-specific method.
 
 ```julia
-merge_rays!(state::State, wkb_mode::SteadyState)
+merge_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
 ```
 
-Return for steady-state WKB mode.
+Return for configurations without WKB / with steady-state WKB.
 
 ```julia
-merge_rays!(state::State, wkb_mode::AbstractWKBMode)
+merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
 ```
 
 Merge ray volumes in grid cells in which their count exceeds a threshold.
@@ -34,8 +22,6 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 # Arguments
 
   - `state`: Model state.
-
-  - `test_case`: Test case on which the current simulation is based.
 
   - `wkb_mode`: Approximations used by MSGWaM.
 
@@ -64,26 +50,16 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 function merge_rays! end
 
 function merge_rays!(state::State)
-    (; test_case) = state.namelists.setting
-    merge_rays!(state, test_case)
-    return
-end
-
-function merge_rays!(state::State, test_case::AbstractTestCase)
-    return
-end
-
-function merge_rays!(state::State, test_case::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     merge_rays!(state, wkb_mode)
     return
 end
 
-function merge_rays!(state::State, wkb_mode::SteadyState)
+function merge_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
     return
 end
 
-function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
+function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
     (; x_size, y_size) = state.namelists.domain
     (; merge_mode) = state.namelists.wkb
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
@@ -247,13 +223,13 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
             r += 1
 
-            rays.x[r, i, j, k] = mean(merged_rays.xr[:, bin])
-            rays.y[r, i, j, k] = mean(merged_rays.yr[:, bin])
-            rays.z[r, i, j, k] = mean(merged_rays.zr[:, bin])
+            rays.x[r, i, j, k] = sum(merged_rays.xr[:, bin]) / 2
+            rays.y[r, i, j, k] = sum(merged_rays.yr[:, bin]) / 2
+            rays.z[r, i, j, k] = sum(merged_rays.zr[:, bin]) / 2
 
-            rays.k[r, i, j, k] = mean(merged_rays.kr[:, bin])
-            rays.l[r, i, j, k] = mean(merged_rays.lr[:, bin])
-            rays.m[r, i, j, k] = mean(merged_rays.mr[:, bin])
+            rays.k[r, i, j, k] = sum(merged_rays.kr[:, bin]) / 2
+            rays.l[r, i, j, k] = sum(merged_rays.lr[:, bin]) / 2
+            rays.m[r, i, j, k] = sum(merged_rays.mr[:, bin]) / 2
 
             rays.dxray[r, i, j, k] = diff(merged_rays.xr[:, bin])[1]
             rays.dyray[r, i, j, k] = diff(merged_rays.yr[:, bin])[1]

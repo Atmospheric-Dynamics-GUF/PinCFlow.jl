@@ -4,7 +4,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    variable::AbstractVariable,
+    variable::AbstractPredictand,
 )
 ```
 
@@ -28,7 +28,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
 )
 ```
 
@@ -48,16 +48,34 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::AbstractModel,
+    model::Compressible,
 )
 ```
 
-Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation.
+Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation in compressible mode.
 
 The update is given by
 
 ```math
 \\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho} \\left(1 - \\frac{P}{\\rho \\overline{\\theta}}\\right)\\right].
+```
+
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::RhoP,
+    model::Union{Boussinesq, PseudoIncompressible},
+)
+```
+
+Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation in non-compressible modes.
+
+The update is given by
+
+```math
+\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\rho'.
 ```
 
 ```julia
@@ -126,7 +144,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -156,7 +174,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -196,7 +214,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
@@ -228,9 +246,9 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    variable::AbstractVariable,
+    variable::AbstractPredictand,
 )
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     apply_lhs_sponge!(state, dt, time, variable, model)
     return
 end
@@ -250,16 +268,11 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::AbstractModel,
+    model::Union{PseudoIncompressible, Compressible},
 )
-    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rho) = state.variables.predictands
-
-    if !use_sponge
-        return
-    end
 
     rhobg = 0.0
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
@@ -280,15 +293,10 @@ function apply_lhs_sponge!(
     variable::RhoP,
     model::Compressible,
 )
-    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar, thetabar) = state.atmosphere
     (; alphar) = state.sponge
     (; rho, rhop, p) = state.variables.predictands
-
-    if !use_sponge
-        return
-    end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         rhopbg =
@@ -312,16 +320,11 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
-    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rhop) = state.variables.predictands
-
-    if !use_sponge
-        return
-    end
 
     rhobg = 0.0
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
@@ -344,7 +347,6 @@ function apply_lhs_sponge!(
 )
     (; x_size, y_size) = state.namelists.domain
     (;
-        use_sponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -354,10 +356,6 @@ function apply_lhs_sponge!(
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar, horizontal_mean) = state.sponge
     (; u) = state.variables.predictands
-
-    if !use_sponge
-        return
-    end
 
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
@@ -406,7 +404,6 @@ function apply_lhs_sponge!(
 )
     (; x_size, y_size) = state.namelists.domain
     (;
-        use_sponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -416,10 +413,6 @@ function apply_lhs_sponge!(
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar, horizontal_mean) = state.sponge
     (; v) = state.variables.predictands
-
-    if !use_sponge
-        return
-    end
 
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
@@ -468,7 +461,6 @@ function apply_lhs_sponge!(
 )
     (; x_size, y_size) = state.namelists.domain
     (;
-        use_sponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -479,10 +471,6 @@ function apply_lhs_sponge!(
     (; alphar, horizontal_mean) = state.sponge
     (; w) = state.variables.predictands
     (; jac) = state.grid
-
-    if !use_sponge
-        return
-    end
 
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
@@ -531,7 +519,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end
@@ -543,16 +531,11 @@ function apply_lhs_sponge!(
     variable::PiP,
     model::Compressible,
 )
-    (; use_sponge) = state.namelists.sponge
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rhobar) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
-
-    if !use_sponge
-        return
-    end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         dpdpi =
@@ -574,7 +557,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end
@@ -586,15 +569,10 @@ function apply_lhs_sponge!(
     variable::P,
     model::Compressible,
 )
-    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rhobar) = state.atmosphere
     (; rho, p) = state.variables.predictands
-
-    if !use_sponge
-        return
-    end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         pb = rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
@@ -621,17 +599,12 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
-    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; tracerpredictands) = state.tracer
     (; initialtracer) = state.tracer.tracerauxiliaries
-
-    if !use_sponge
-        return
-    end
 
     @ivy for field in fieldnames(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]

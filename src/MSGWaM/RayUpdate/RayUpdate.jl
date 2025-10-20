@@ -22,7 +22,6 @@ In addition to ray-volume initialization and propagation, functions for tracking
 module RayUpdate
 
 using MPI
-using Statistics
 using ..BoundaryRays
 using ..Interpolation
 using ..RayOperations

@@ -179,7 +179,7 @@ function correct!(
     variable::U,
     rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; corx) = state.poisson.correction
@@ -192,7 +192,7 @@ function correct!(
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
 
-        if use_sponge && damp_horizontal_wind_on_rhs
+        if damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -218,7 +218,7 @@ function correct!(
     variable::V,
     rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; cory) = state.poisson.correction
@@ -231,7 +231,7 @@ function correct!(
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
 
-        if use_sponge && damp_horizontal_wind_on_rhs
+        if damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -257,7 +257,6 @@ function correct!(
     variable::W,
     rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; n2) = state.atmosphere
@@ -272,13 +271,11 @@ function correct!(
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
 
-        if use_sponge
-            factor +=
-                dt * (
-                    jac[i, j, k + 1] * betar[i, j, k] +
-                    jac[i, j, k] * betar[i, j, k + 1]
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
-        end
+        factor +=
+            dt * (
+                jac[i, j, k + 1] * betar[i, j, k] +
+                jac[i, j, k] * betar[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
 
         n2edgeu =
             (jac[i, j, k + 1] * n2[i, j, k] + jac[i, j, k] * n2[i, j, k + 1]) /
@@ -321,7 +318,6 @@ function correct!(
     rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
-    (; use_sponge) = state.namelists.sponge
     (; g_ndim) = state.constants
     (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -334,9 +330,7 @@ function correct!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         factor = 1.0
 
-        if use_sponge
-            factor += dt * betar[i, j, k] * rayleigh_factor
-        end
+        factor += dt * betar[i, j, k] * rayleigh_factor
 
         lower_gradient =
             compute_pressure_gradient(state, dpip, i, j, k - 1, W())

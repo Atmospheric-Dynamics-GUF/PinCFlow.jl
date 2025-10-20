@@ -97,5 +97,6 @@ end
 
 function Tensor(domain::Domain)::Tensor
     (; nx, ny, nz) = domain
+
     return Tensor([zeros(nx, ny, nz) for i in 1:25]...)
 end

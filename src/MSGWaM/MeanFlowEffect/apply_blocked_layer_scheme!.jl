@@ -3,18 +3,6 @@
 apply_blocked_layer_scheme!(state::State)
 ```
 
-Compute the blocked-flow drag and adjust the mean-flow impact accordingly by dispatching to a test-case-specific method.
-
-```julia
-apply_blocked_layer_scheme!(state::State, test_case::AbstractWKBTestCase)
-```
-
-Return for non-mountain-wave test cases.
-
-```julia
-apply_blocked_layer_scheme!(state::State, test_case::WKBMountainWave)
-```
-
 Compute the blocked-flow drag and adjust the mean-flow impact accordingly.
 
 The blocked-flow drag is given by
@@ -40,25 +28,10 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 # Arguments
 
   - `state`: Model state.
-
-  - `test_case`: Test case on which the current simulation is based.
 """
 function apply_blocked_layer_scheme! end
 
 function apply_blocked_layer_scheme!(state::State)
-    (; test_case) = state.namelists.setting
-    apply_blocked_layer_scheme!(state, test_case)
-    return
-end
-
-function apply_blocked_layer_scheme!(
-    state::State,
-    test_case::AbstractWKBTestCase,
-)
-    return
-end
-
-function apply_blocked_layer_scheme!(state::State, test_case::WKBMountainWave)
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dz, jac, zctilde, hw, kh, lh) = state.grid
@@ -89,16 +62,17 @@ function apply_blocked_layer_scheme!(state::State, test_case::WKBMountainWave)
             kavg[1] = ksum / hsum
             kavg[2] = lsum / hsum
 
+            kavg2 = sum(a -> a^2, kavg)
             uperp .=
                 (
                     (u[i, j, k] .+ u[i - 1, j, k]) .* kavg[1] .+
                     (v[i, j, k] .+ v[i, j - 1, k]) .* kavg[2]
-                ) ./ 2 .* kavg ./ dot(kavg, kavg)
+                ) ./ 2 .* kavg ./ kavg2
 
+            uperp2 = sum(a -> a^2, uperp)
             drag .=
                 .-drag_coefficient .* (rho[i, j, k] .+ rhobar[i, j, k]) .*
-                sqrt.(dot(kavg, kavg)) ./ (2 .* pi) .*
-                sqrt.(dot(uperp, uperp)) .* uperp
+                sqrt.(kavg2) ./ (2 .* pi) .* sqrt.(uperp2) .* uperp
 
             dudt[i, j, k] = fraction * drag[1] + (1 - fraction) * dudt[i, j, k]
             dvdt[i, j, k] = fraction * drag[2] + (1 - fraction) * dvdt[i, j, k]

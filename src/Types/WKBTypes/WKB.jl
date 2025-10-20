@@ -18,30 +18,22 @@ WKB{
 Main container for WKB ray-tracing data and parameters.
 
 ```julia
-WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)::WKB
+WKB(namelists::Namelists, domain::Domain)::WKB
 ```
 
 Construct a `WKB` instance by dispatching to a test-case-specific method.
 
 ```julia
-WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    test_case::AbstractTestCase,
-)::WKB
+WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
 ```
 
-Construct a `WKB` instance with zero-size arrays for non-WKB test cases.
+Construct a `WKB` instance with zero-size arrays for non-WKB configurations.
 
 ```julia
 WKB(
     namelists::Namelists,
-    constants::Constants,
     domain::Domain,
-    grid::Grid,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::WKB
 ```
 
@@ -103,7 +95,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `grid`: Collection of parameters and fields that describe the grid.
 
-  - `test_case`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
@@ -153,23 +145,13 @@ struct WKB{
     diffusion::J
 end
 
-function WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-)::WKB
-    (; test_case) = namelists.setting
-    return WKB(namelists, constants, domain, grid, test_case)
+function WKB(namelists::Namelists, domain::Domain)::WKB
+    (; wkb_mode) = namelists.wkb
+
+    return WKB(namelists, domain, wkb_mode)
 end
 
-function WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    test_case::AbstractTestCase,
-)::WKB
+function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
@@ -188,18 +170,10 @@ end
 
 function WKB(
     namelists::Namelists,
-    constants::Constants,
     domain::Domain,
-    grid::Grid,
-    test_case::AbstractWKBTestCase,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::WKB
     (;
-        xrmin,
-        xrmax,
-        yrmin,
-        yrmax,
-        zrmin,
-        zrmax,
         nrx,
         nry,
         nrz,
@@ -212,21 +186,8 @@ function WKB(
         dlr_factor,
         dmr_factor,
     ) = namelists.wkb
-    (; lref) = constants
     (; x_size, y_size, z_size) = namelists.domain
     (; nxx, nyy, nzz) = domain
-    (; lx, ly, lz) = grid
-
-    # Check if the boundaries for ray-volume propagation are within the domain.
-    if xrmin / lref < -lx / 2 || xrmax / lref > lx / 2
-        error("Error in WKB: xrmin too small or xrmax too large!")
-    end
-    if yrmin / lref < -ly / 2 || yrmax / lref > ly / 2
-        error("Error in WKB: yrmin too small or yrmax too large!")
-    end
-    if zrmin / lref < 0 || zrmax / lref > lz
-        error("Error in WKB: zrmin too small or zrmax too large!")
-    end
 
     # Check if spectral-extent factors are set correctly.
     if x_size > 1 && dkr_factor == 0.0
@@ -289,7 +250,7 @@ function WKB(
         n_sfc *= div(nzray, multiplication_factor)
     end
 
-    # Initialize ray-volume arrays.
+    # Allocate ray-volume arrays.
     nray = zeros(Int, nxx, nyy, nzz)
     rays = Rays(nray_wrk, nxx, nyy, nzz)
     merged_rays = MergedRays(2, nray_max)

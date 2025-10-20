@@ -1,5 +1,14 @@
-using Test
+include("TestTools/TestTools.jl")
 
-@time @testset verbose = true showtiming = true "PinCFlow.jl tests" begin
-    include("test_periodic_hill.jl")
-end #end tests
+using Test
+using PinCFlow
+using .TestTools
+
+submit_directory = "../examples/submit/"
+update_references = false
+
+@testset verbose = true "PinCFlow tests" begin
+    include("mountain_wave.jl")
+    include("periodic_hill.jl")
+    include("wkb_mountain_wave.jl")
+end

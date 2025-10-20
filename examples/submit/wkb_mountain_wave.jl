@@ -1,55 +1,60 @@
 # examples/submit/wkb_mountain_wave.jl
 
+using Pkg
+
+Pkg.activate("examples")
+
+using Revise
 using PinCFlow
 
-@ivy if length(ARGS) == 0
-    output_file = "./pincflow_output.h5"
-elseif length(ARGS) == 1
-    output_file = ARGS[1] * "/pincflow_output.h5"
-else
-    error("Too many arguments to the script!")
-end
+npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
+npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
+h0 = 150
+l0 = 5000
+rl = 10
+rh = 2
+
+atmosphere = AtmosphereNamelist(;
+    coriolis_frequency = 0.0E+0,
+    initial_u = (x, y, z) -> 1.0E+1,
+)
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 40,
     z_size = 40,
-    nbx = 3,
-    nby = 3,
-    nbz = 3,
     lx = 4.0E+5,
     ly = 4.0E+5,
     lz = 2.0E+4,
-    npx = 8,
-    npy = 8,
+    npx,
+    npy,
+    npz,
 )
 grid = GridNamelist(;
-    mountain_height = 1.5E+2,
-    mountain_half_width = 5.0E+3,
-    mountain_case = 13,
-    height_factor = 2.0E+0,
-    width_factor = 1.0E+1,
+    resolved_topography = (x, y) ->
+        x^2 + y^2 <= (rl * l0)^2 ?
+        h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) * rh / (rh + 1) : 0.0,
+    unresolved_topography = (alpha, x, y) ->
+        x^2 + y^2 <= (rl * l0)^2 ?
+        (
+            pi / l0,
+            0.0,
+            h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) / (rh + 1),
+        ) : (0.0, 0.0, 0.0),
 )
-output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
-setting = SettingNamelist(; test_case = WKBMountainWave())
+output = OutputNamelist(;
+    output_variables = (:w,),
+    output_file = "wkb_mountain_wave.h5",
+)
 sponge = SpongeNamelist(;
-    use_sponge = true,
     sponge_extent = 1.0E-1,
     alpharmax = 1.79E-2,
-    betarmax = 0.0E+0,
     lateral_sponge = true,
     sponge_type = ExponentialSponge(),
     relax_to_mean = false,
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )
-wkb = WKBNamelist(;
-    xrmin = -2.0E+5,
-    xrmax = 2.0E+5,
-    yrmin = -2.0E+5,
-    yrmax = 2.0E+5,
-    zrmin = 0.0,
-    zrmax = 2.0E+4,
-)
+wkb = WKBNamelist(; wkb_mode = MultiColumn())
 
-integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge, wkb))
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))

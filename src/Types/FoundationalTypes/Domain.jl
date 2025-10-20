@@ -145,7 +145,7 @@ function Domain(namelists::Namelists)::Domain
         namelists.domain
 
     # Initialize MPI.
-    if base_comm == MPI.COMM_WORLD
+    if !MPI.Initialized()
         MPI.Init()
     end
     rank = MPI.Comm_rank(base_comm)

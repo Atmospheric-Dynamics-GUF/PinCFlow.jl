@@ -38,15 +38,6 @@ abstract type AbstractModel end
 
 """
 ```julia
-AbstractTestCase
-```
-
-Abstract type for model test cases.
-"""
-abstract type AbstractTestCase end
-
-"""
-```julia
 AbstractSponge
 ```
 
@@ -71,15 +62,6 @@ AbstractWKBMode
 Abstract type for approximations in WKB theory.
 """
 abstract type AbstractWKBMode end
-
-"""
-```julia
-AbstractWKBTestCase <: AbstractTestCase
-```
-
-Abstract type for WKB test cases.
-"""
-abstract type AbstractWKBTestCase <: AbstractTestCase end
 
 """
 ```julia
@@ -191,24 +173,6 @@ struct Compressible <: AbstractModel end
 
 """
 ```julia
-MountainWave <: AbstractTestCase
-```
-
-Singleton for mountain-wave test cases.
-"""
-struct MountainWave <: AbstractTestCase end
-
-"""
-```julia
-WKBMountainWave <: AbstractWKBTestCase
-```
-
-Singleton for WKB-mountain-wave test cases.
-"""
-struct WKBMountainWave <: AbstractWKBTestCase end
-
-"""
-```julia
 ExponentialSponge <: AbstractSponge
 ```
 
@@ -260,6 +224,15 @@ ConstantWaveEnergy <: AbstractMergeMode
 Singleton for the constant-wave-energy ray-volume merging algorithm.
 """
 struct ConstantWaveEnergy <: AbstractMergeMode end
+
+"""
+```julia
+NoWKB <: AbstractWKBMode
+```
+
+Singleton for switching off MSGWaM.
+"""
+struct NoWKB <: AbstractWKBMode end
 
 """
 ```julia
@@ -317,19 +290,18 @@ struct NoTracer <: AbstractTracer end
 
 """
 ```julia
-LinearTracer <: AbstractTracer
+TracerOn <: AbstractTracer
 ```
 
 Singleton for model configurations with an initially linear tracer.
 """
-struct LinearTracer <: AbstractTracer end
+struct TracerOn <: AbstractTracer end
 
 using MPI
 using ...PinCFlow
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
-include("SettingNamelist.jl")
 include("DiscretizationNamelist.jl")
 include("PoissonNamelist.jl")
 include("AtmosphereNamelist.jl")
@@ -342,11 +314,9 @@ include("Namelists.jl")
 export AbstractBackground,
     AbstractLimiter,
     AbstractModel,
-    AbstractTestCase,
     AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
-    AbstractWKBTestCase,
     AbstractWKBFilter,
     AbstractTracer
 
@@ -360,25 +330,23 @@ export UniformBoussinesq,
     Boussinesq,
     PseudoIncompressible,
     Compressible,
-    MountainWave,
-    WKBMountainWave,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,
     SinusoidalSponge,
     ConstantWaveAction,
     ConstantWaveEnergy,
+    NoWKB,
     SteadyState,
     SingleColumn,
     MultiColumn,
     Box,
     Shapiro,
     NoTracer,
-    LinearTracer
+    TracerOn
 
 export DomainNamelist,
     OutputNamelist,
-    SettingNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,

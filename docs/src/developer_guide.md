@@ -10,29 +10,33 @@ The code is shared in a GitHub repository. Any contributions to the code should 
 
  1. Pull recent changes made on the remote main branch into your local main branch and merge it into the branch with your contributions, resolving merge conflicts if necessary.
 
- 1. **Ensure that the model is stable and that all canonical tests reproduce the sample results.**
+ 1. **Ensure that the model is stable and that all tests pass.**
 
  1. Push your branch to remote repository.
 
  1. Create a pull request for merging your commits into the remote main branch.
 
+ 1. Request a review from a main developer.
+
+ 1. Implement changes requested by the reviewer until they approve the pull request.
+
 ## Writing code
 
 Contributions to the code should respect the following rules.
 
-  - Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module (see below for a diagram of PinCFlow's modular structure).
+  - Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module (see below for a diagram of PinCFlow.jl's modular structure).
 
-  - Variables that are communicated between functions should be stored at an appropriate level of the `State` instance (see below for a diagram of PinCFlow's model-state structure).
+  - Variables that are communicated between functions should be stored at an appropriate level of the `State` instance (see below for a diagram of PinCFlow.jl's model-state structure).
 
   - Use type parameters to declare the types of all composite-type fields.
 
   - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
-  - Use PinCFlow's `@ivy` in front of expressions that access elements of arrays/tuples. Always apply this macro to the outermost expression possible but do not create new blocks for this purpose.
+  - Use PinCFlow.jl's `@ivy` in front of expressions that access elements of arrays/tuples. Always apply this macro to the outermost expression possible but do not create new blocks for this purpose.
 
   - Do not use Unicode.
 
-  - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters. For all other objects, use `snake_case` (in case the name only contains (preferably whole) words, e.g. `vertical_wind`) and `squashedcase` (in case the name is mathematical, e.g. `what` for $\widehat{w}$).
+  - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters (in alphabetical order). For all other objects, use `snake_case`.
 
 ![](pincflow_modules.svg)
 
@@ -214,7 +218,7 @@ Markdown code should use the following syntax.
   - Images:
 
     ```markdown
-    ![](image.png)
+    ![](image.svg)
     ```
 
   - Backslash escapes:
@@ -263,11 +267,11 @@ Moreover, every backslash used for LaTeX commands in equations has to be doubled
 
 ## Building and accessing the documentation
 
-The code uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
+PinCFlow.jl uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
 
 ```shell
 julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
-julia --project=docs docs/make.jl
+julia docs/make.jl
 ```
 
 in the root directory of the repository. The documentation will be generated in the `docs/build` directory. To view it, open `docs/build/index.html` in a web browser or preview the file in Visual Studio Code with [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server).

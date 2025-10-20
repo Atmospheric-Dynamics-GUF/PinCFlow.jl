@@ -15,7 +15,6 @@ process boundaries, as well as global reduction operations.
 module MPIOperations
 
 using MPI
-using LinearAlgebra
 using ..Types
 using ..PinCFlow
 

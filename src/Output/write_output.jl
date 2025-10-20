@@ -80,10 +80,11 @@ function write_output(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; model, test_case) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
+    (; wkb_mode) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
-    (; x, y, zc) = grid
+    (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
@@ -92,7 +93,7 @@ function write_output(
     # Print information.
     if master
         println(repeat("-", 80))
-        println("Output into file pincflow_output.h5")
+        println("Output into file ", output_file)
         println("Physical time: ", time * tref, " s")
         println("Machine time: ", canonicalize(now() - machine_start_time))
         println(repeat("-", 80))
@@ -137,6 +138,7 @@ function write_output(
         # Write the vertical grid.
         if iout == 1
             file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
+            file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
         end
 
         # Write the background density.
@@ -313,7 +315,7 @@ function write_output(
         end
 
         # Write WKB variables.
-        if typeof(test_case) <: AbstractWKBTestCase
+        if wkb_mode != NoWKB()
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes
