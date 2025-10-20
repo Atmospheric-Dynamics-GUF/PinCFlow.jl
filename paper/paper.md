@@ -17,8 +17,6 @@ tags:
 authors:
 
   - Felix Jochum
-    orcid: ...
-    equal-contrib: true
     corresponding: true
     affiliation: 1
 
@@ -29,12 +27,15 @@ authors:
     affiliation: 1
 
   - Marco Artiano
+    orcid: 0009-0009-5872-702X
     affiliation: 2
 
   - Arpit Babbar
+    orcid: 0000-0002-9453-370X
     affiliation: 2
 
   - Hendrik Ranocha
+    orcid: 0000-0002-3456-2277
     affiliation: 2
 
   - Stamen Dolapchiev
@@ -48,10 +49,10 @@ authors:
 
 affiliations:
 
-  - name: Goethe University Frankfurt, Germany
+  - name: Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany
     index: 1
 
-  - name: Gutenberg University Mainz, Germany
+  - name: Numerical Mathematics, Johannes Gutenberg University Mainz, Germany
     index: 2
 
 date: ...
