@@ -1,64 +1,41 @@
 ---
-
 title: 'PinCFlow.jl: A pseudo-incompressible flow solver coupled to the 3D transient gravity-wave model MSGWaM'
-
 tags:
-
   - Julia
-
   - Gravity waves
-
   - Mountain waves
-
   - Parameterization
-
   - High-resolution simulations
-
 authors:
-
   - Felix Jochum
     corresponding: true
     affiliation: 1
-
   - Irmgard Knop
     affiliation: 1
-
   - Jonas Rothermel
     affiliation: 1
-
   - Marco Artiano
     orcid: 0009-0009-5872-702X
     affiliation: 2
-
   - Arpit Babbar
     orcid: 0000-0002-9453-370X
     affiliation: 2
-
   - Hendrik Ranocha
     orcid: 0000-0002-3456-2277
     affiliation: 2
-
   - Stamen Dolapchiev
     affiliation: 1
-
   - Sandra Klewinghaus
     affiliation: 1
-
   - Ulrich Achatz
     affiliation: 1
-
 affiliations:
-
   - name: Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany
     index: 1
-
   - name: Numerical Mathematics, Johannes Gutenberg University Mainz, Germany
     index: 2
-
 date: ...
-
 bibliography: paper.bib
-
 ---
 
 # Summary
