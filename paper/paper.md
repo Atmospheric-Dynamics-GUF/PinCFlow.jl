@@ -7,27 +7,27 @@ tags:
   - Parameterization
   - High-resolution simulations
 authors:
-  - Felix Jochum
+  - name: Felix Jochum
     corresponding: true
     affiliation: 1
-  - Irmgard Knop
+  - name: Irmgard Knop
     affiliation: 1
-  - Jonas Rothermel
+  - name: Jonas Rothermel
     affiliation: 1
-  - Marco Artiano
+  - name: Marco Artiano
     orcid: 0009-0009-5872-702X
     affiliation: 2
-  - Arpit Babbar
+  - name: Arpit Babbar
     orcid: 0000-0002-9453-370X
     affiliation: 2
-  - Hendrik Ranocha
+  - name: Hendrik Ranocha
     orcid: 0000-0002-3456-2277
     affiliation: 2
-  - Stamen Dolapchiev
+  - name: Stamen Dolapchiev
     affiliation: 1
-  - Sandra Klewinghaus
+  - name: Sandra Klewinghaus
     affiliation: 1
-  - Ulrich Achatz
+  - name: Ulrich Achatz
     affiliation: 1
 affiliations:
   - name: Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany
