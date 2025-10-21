@@ -1,7 +1,7 @@
 \documentclass[tikz]{standalone}
 \usetikzlibrary{mindmap}
 \begin{document}
-    \begin{tikzpicture}[mindmap, grow cyclic, every node/.style = {concept, execute at begin node = ~\textsf, concept color = black, fill = white, line width = 2pt}, level 1/.append style = {sibling angle = 75}, level 2/.append style = {sibling angle = 45}, level 3/.append style = {sibling angle = 45}]
+    \begin{tikzpicture}[mindmap, grow cyclic, line width = 2pt, execute at begin node = ~\textsf, every node/.style = {concept, fill = white}, level 1/.append style = {sibling angle = 75}, level 2/.append style = {sibling angle = 45}, level 3/.append style = {sibling angle = 45}]
         \node {PinCFlow.jl}
             child {node {Gravity-wave scheme (MSGWaM)}
                 child {node {Arbitrary initial state}}
