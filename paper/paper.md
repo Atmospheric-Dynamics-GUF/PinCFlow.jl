@@ -58,7 +58,7 @@ In addition to its main mode, in which it integrates the pseudo-incompressible e
 
 MSGWaM can be run in 1D steady-state mode (which represents classic gravity-wave parameterizations), 1D transient mode (so that the impact of transience may be investigated separately, i.e. without horizontal propagation) and 3D transient mode (the full implementation of the theory).
 
-![Overview of PinCFlow.jl's features.\label{features}](features.png)
+![Overview of PinCFlow.jl's features.\label{features}](features.pdf)
 
 # Acknowledgements
 
