@@ -1,16 +1,16 @@
 \documentclass[tikz]{standalone}
 \usetikzlibrary{mindmap}
 \begin{document}
-    \begin{tikzpicture}[mindmap, grow cyclic, line width = 2pt, execute at begin node = ~\textsf, every node/.style = {concept, fill = white}, level 1/.append style = {sibling angle = 75}, level 2/.append style = {sibling angle = 45}, level 3/.append style = {sibling angle = 45}]
+    \begin{tikzpicture}[mindmap, grow cyclic, line width = 2pt, execute at begin node = ~\textsf, every node/.style = {concept, fill = white}, level 1/.append style = {sibling angle = 72, level distance = 4.5cm}, level 2/.append style = {sibling angle = 45, level distance = 3.1cm}, level 3/.append style = {sibling angle = 45, level distance = 2.1cm}]
         \node {PinCFlow.jl}
             child {node {Gravity-wave scheme (MSGWaM)}
                 child {node {Arbitrary initial state}}
                 child {node {Coupling with resolved dynamics}}
-                child {node {Orographic source}}
                 child {node {Approximations}
                     child {node {1D steady-state}}
                     child {node {1D transient}}
-                    child {node {3D transient}}}}
+                    child {node {3D transient}}}
+                child {node {Orographic source}}}
             child {node {Parallelization}
                 child {node {MPI base comunicator for ensemble simulations}}
                 child {node {MPI parallelization in all grid dimensions}}}
