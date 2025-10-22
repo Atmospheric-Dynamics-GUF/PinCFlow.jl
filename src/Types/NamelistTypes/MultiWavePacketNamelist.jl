@@ -94,3 +94,62 @@ function MultiWavePacketNamelist(;
         nwm,
     )
 end
+
+function MultiWavePacketNamelist(;random_wavepackets::RandomWavePackets, number_wavepackets::Integer, domain::DomainNamelist)
+
+    nwm = number_wavepackets
+     wavepacketdim = ones(Int, nwm)
+
+    # define range for random wavelengths x-direction
+    int_b_lambdax_dim = 1.e4
+    int_e_lambdax_dim = 1.e5
+
+    # define range for random wavelengths z-direction
+    int_b_lambdaz_dim = 1.e3
+    int_e_lambdaz_dim = 2.e3
+
+    int_b_x0_dim = domain.lx_dim[2]/2.
+    int_e_x0_dim = domain.lx_dim[2]/2.
+
+    z0_issr = 8.e3 # [m] to be consistent with the value in IcePredictands.jl
+    int_b_z0_dim = z0_issr - 2.e+3
+    int_e_z0_dim = z0_issr + 2.e+3
+    
+    # random width envelope
+    int_b_sigmaz_dim = 1.0E+4
+    int_e_sigmaz_dim = 2.0E+4
+
+    # random amplitude
+    int_b_a0 = 0.1E+0
+    int_e_a0 = 1.0E+0
+
+    a0 = int_b_a0 .+ (int_e_a0 - int_b_a0) .* rand(Float64, nwm)
+
+    x0_dim = int_b_x0_dim .+ (int_e_x0_dim - int_b_x0_dim) .* rand(Float64, nwm)
+    y0_dim = 1.e+3 .* ones(Float64, nwm)
+    z0_dim = int_b_z0_dim .+ (int_e_z0_dim - int_b_z0_dim) .* rand(Float64, nwm)
+
+    lambdax_dim = int_b_lambdax_dim .+ (int_e_lambdax_dim - int_b_lambdax_dim) .* rand(Float64, nwm)
+    lambday_dim = zeros(Float64, nwm)
+    lambdaz_dim = int_b_lambdaz_dim .+ (int_e_lambdaz_dim - int_b_lambdaz_dim) .* rand(Float64, nwm)
+
+     sigmax_dim = zeros(Float64, nwm)
+     sigmay_dim = zeros(Float64, nwm)
+     sigmaz_dim = int_b_sigmaz_dim .+ (int_e_sigmaz_dim - int_b_sigmaz_dim) .* rand(Float64, nwm)
+
+    return MultiWavePacketNamelist(
+        wavepacketdim,
+        lambdax_dim,
+        lambday_dim,
+        lambdaz_dim,
+        x0_dim,
+        y0_dim,
+        z0_dim,
+        sigmax_dim,
+        sigmay_dim,
+        sigmaz_dim,
+        a0,
+        nwm,
+    )
+end    
+

@@ -415,6 +415,10 @@ struct CloudCoverOn <: AbstractCloudCover end
 
 struct CloudCoverOff <: AbstractCloudCover end
 
+abstract type AbstractRandomWavePackets end
+
+struct RandomWavePackets <: AbstractRandomWavePackets end
+
 using MPI
 
 include("DomainNamelist.jl")
@@ -447,6 +451,7 @@ export AbstractBackground,
     AbstractTracer,
     AbstractIce,
     AbstractCloudCover,
+    AbstractRandomWavePackets,
     AbstractTurbulence
 
 export UniformBoussinesq,
@@ -479,6 +484,7 @@ export UniformBoussinesq,
     IceOn,
     CloudCoverOff,
     CloudCoverOn,  
+    RandomWavePackets,
     NoTurbulence,
     TurbulenceOn, 
     MultipleWavePackets,

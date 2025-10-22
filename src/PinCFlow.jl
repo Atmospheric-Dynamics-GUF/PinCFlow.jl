@@ -58,6 +58,7 @@ export NoTracer, LinearTracer
 export NoIce, IceOn
 export CloudCoverOff, CloudCoverOn
 export WKBMultipleWavePackets, MultipleWavePackets
+export RandomWavePackets
 export NoTurbulence, TurbulenceOn
 
 # Export model-state constructor.
