@@ -35,7 +35,7 @@ affiliations:
     index: 1
   - name: Numerical Mathematics, Johannes Gutenberg University Mainz, Germany
     index: 2
-date: ...
+date: 23 October 2025
 bibliography: paper.bib
 ---
 
