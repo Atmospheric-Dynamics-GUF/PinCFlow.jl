@@ -12,11 +12,10 @@
   abstract = {Relative to the full compressible flow equations, sound-proof models filter acoustic waves while maintaining advection and internal waves. Two well-known sound-proof models, an anelastic model by Bannon and Durran’s pseudo-incompressible model, are shown here to be structurally very close to the full compressible flow equations. Essentially, the anelastic model is obtained by suppressing ∂tρ in the mass continuity equation and slightly modifying the gravity term, whereas the pseudo-incompressible model results from dropping ∂tp from the pressure equation. For length scales small compared to the density and pressure scale heights, the anelastic model reduces to the Boussinesq approximation, while the pseudo-incompressible model approaches the zero Mach number, variable density flow equations. Thus, for small scales, both models are asymptotically consistent with the full compressible flow equations, yet the pseudo-incompressible model is more general in that it remains valid in the presence of large density variations. For the relatively small density variations found in typical atmosphere-ocean flows, both models are found to yield very similar results, with deviations between models much smaller than deviations obtained when using different numerical schemes for the same model. This in agreement with Smolarkiewicz and Dörnbrack (Int J Numer Meth Fluids 56:1513-1519, 2007). Despite these useful properties, neither model can be derived by a low-Mach number asymptotic expansion for length scales comparable to the pressure scale height, i.e., for the regime they were originally designed for. Derivations of these models via scale analysis ignore an asymptotic time scale separation between advection and internal waves. In fact, only the classical Ogura and Phillips model, which assumes weak stratification of the order of the Mach number squared, can be obtained as a leading-order model from systematic low Mach number asymptotic analysis. Issues of formal asymptotics notwithstanding, the close structural similarity of the anelastic and pseudo-incompressible models to the full compressible flow equations makes them useful limit systems in building computational models for atmospheric flows. In the second part of the paper, we propose a second-order finite-volume projection method for the anelastic and pseudo-incompressible models that observes these structural similarities. The method is applied to test problems involving free convection in a neutral atmosphere, the breaking of orographic waves at high altitudes, and the descent of a cold air bubble in the small-scale limit. The scheme is meant to serve as a starting point for the development of a robust compressible atmospheric flow solver in future work.},
   doi      = {10.1007/s00162-009-0104-y},
   refid    = {Klein2009},
-  url      = {https://doi.org/10.1007/s00162-009-0104-y},
 }
 
 @Article{Rieper2013,
-  author    = {Felix Rieper and Stefan Hickel and Ulrich Achatz},
+  author    = {Rieper, Felix and Hickel, Stefan and Achatz, Ulrich},
   journal   = {Monthly Weather Review},
   title     = {A Conservative Integration of the Pseudo-Incompressible Equations with Implicit Turbulence Parameterization},
   year      = {2013},
@@ -30,7 +29,7 @@
 }
 
 @Article{Benacchio2019,
-  author    = {Tommaso Benacchio and Rupert Klein},
+  author    = {Benacchio, Tommaso and Klein, Rupert},
   journal   = {Monthly Weather Review},
   title     = {A Semi-Implicit Compressible Model for Atmospheric Flows with Seamless Access to Soundproof and Hydrostatic Dynamics},
   year      = {2019},
@@ -44,7 +43,7 @@
 }
 
 @Article{Schmid2021,
-  author    = {Fabienne Schmid and Elena Gagarina and Rupert Klein and Ulrich Achatz},
+  author    = {Schmid, Fabienne and Gagarina, Elena and Klein, Rupert and Achatz, Ulrich},
   journal   = {Monthly Weather Review},
   title     = {Toward a Numerical Laboratory for Investigations of Gravity Wave–Mean Flow Interactions in the Atmosphere},
   year      = {2021},
@@ -58,7 +57,7 @@
 }
 
 @Article{GalChen1975a,
-  author   = {Tzvi Gal-Chen and Richard C.J. Somerville},
+  author   = {Gal-Chen, Tzvi and Somerville, Richard C. J.},
   journal  = {Journal of Computational Physics},
   title    = {Numerical solution of the navier-stokes equations with topography},
   year     = {1975},
@@ -67,12 +66,12 @@
   pages    = {276-310},
   volume   = {17},
   abstract = {A finite difference scheme for solving the equations of fluid motion in a generalized coordinate system has been constructed. The scheme conserves mass and all the first integral moments of the motion. The scheme also advectively “almost conserves” second moments, in that the magnitude of implicit numerical smoothing is typically about an order smaller than explicit viscosity and diffusion. Calculations with the model support the theoretical conjecture that the difference scheme is stable whenever the analogous Cartesian scheme is stable. The scheme has been used to calculate dry atmospheric convection due to differential heating between top and bottom of mountainous terrain. The general small-scale characteristics of mountain up-slope winds have been simulated. In addition, the results have demonstrated the crucial role played by the eddy diffusivities and the environmental stability, in determining both the quantitative and the qualitative features of the circulation.},
-  doi      = {https://doi.org/10.1016/0021-9991(75)90054-6},
+  doi      = {10.1016/0021-9991(75)90054-6},
   url      = {https://www.sciencedirect.com/science/article/pii/0021999175900546},
 }
 
 @Article{GalChen1975b,
-  author   = {Tzvi Gal-Chen and Richard C.J Somerville},
+  author   = {Gal-Chen, Tzvi and Somerville, Richard C. J.},
   journal  = {Journal of Computational Physics},
   title    = {On the use of a coordinate transformation for the solution of the Navier-Stokes equations},
   year     = {1975},
@@ -81,12 +80,12 @@
   pages    = {209-228},
   volume   = {17},
   abstract = {The equations of fluid motion have been formulated in a generalized noncartesian, non-orthogonal coordinate system. A particular coordinate transformation, which transforms a domain with an irregular lower boundary into a cube, has been constructed. The transformed system, unlike the original one, has flat boundaries and homogeneous boundary conditions. Where the topography is flat, the original and transformed systems are identical, and extra terms do not appear. A finite difference scheme for solving the transformed equations has been constructed and will be described in a subsequent issue of this journal.},
-  doi      = {https://doi.org/10.1016/0021-9991(75)90037-6},
+  doi      = {10.1016/0021-9991(75)90037-6},
   url      = {https://www.sciencedirect.com/science/article/pii/0021999175900376},
 }
 
 @Article{Clark1977,
-  author   = {Terry L. Clark},
+  author   = {Clark, Terry L.},
   journal  = {Journal of Computational Physics},
   title    = {A small-scale dynamic model using a terrain-following coordinate transformation},
   year     = {1977},
@@ -95,12 +94,12 @@
   pages    = {186-215},
   volume   = {24},
   abstract = {This paper describes a three-dimensional finite-difference model of air flow over an irregular lower surface. The model is nonhydrostatic and the anelastic approximation has been used to filter sound waves. Second-order difference equations are employed which provide excellent momentum and energy budgets. An outflow radiation boundary condition using a generalized Kreiss extrapolation scheme has been designed and implemented. Some two-dimensional applications of the model to air flow over a “Witch of Agnesi” mountain barrier are described. Comparison with the linear theory of Queney indicates, for the cases treated, that the nonlinearity of the boundary condition has a first-order effect on the resulting flow.},
-  doi      = {https://doi.org/10.1016/0021-9991(77)90057-2},
+  doi      = {10.1016/0021-9991(77)90057-2},
   url      = {https://www.sciencedirect.com/science/article/pii/0021999177900572},
 }
 
 @Article{Wilhelm2018,
-  author    = {Jannik Wilhelm and T. R. Akylas and Gergely Bölöni and Junhong Wei and Bruno Ribstein and Rupert Klein and Ulrich Achatz},
+  author    = {Wilhelm, Jannik and Akylas, T. R. and Bölöni, Gergely and Wei, Junhong and Ribstein, Bruno and Klein, Rupert and Achatz, Ulrich},
   journal   = {Journal of the Atmospheric Sciences},
   title     = {Interactions between Mesoscale and Submesoscale Gravity Waves and Their Efficient Representation in Mesoscale-Resolving Models},
   year      = {2018},
@@ -114,7 +113,7 @@
 }
 
 @Article{Wei2019,
-  author    = {Junhong Wei and Gergely Bölöni and Ulrich Achatz},
+  author    = {Wei, Junhong and Bölöni, Gergely and Achatz, Ulrich},
   journal   = {Journal of the Atmospheric Sciences},
   title     = {Efficient Modeling of the Interaction of Mesoscale Gravity Waves with Unbalanced Large-Scale Flows: Pseudomomentum-Flux Convergence versus Direct Approach},
   year      = {2019},
@@ -128,7 +127,7 @@
 }
 
 @Article{Jochum2025,
-  author    = {Felix Jochum and Ray Chew and François Lott and Georg S. Voelker and Jan Weinkaemmerer and Ulrich Achatz},
+  author    = {Jochum, Felix and Chew, Ray and Lott, François and Voelker, Georg S. and Weinkaemmerer, Jan and Achatz, Ulrich},
   journal   = {Journal of the Atmospheric Sciences},
   title     = {The Impact of Transience in the Interaction between Orographic Gravity Waves and Mean Flow},
   year      = {2025},
@@ -149,10 +148,9 @@
   number   = {1},
   volume   = {41},
   abstract = {Atmospheric gravity waves have been a subject of intense research activity in recent years because of their myriad effects and their major contributions to atmospheric circulation, structure, and variability. Apart from occasionally strong lower-atmospheric effects, the major wave influences occur in the middle atmosphere, between ∼ 10 and 110 km altitudes because of decreasing density and increasing wave amplitudes with altitude. Theoretical, numerical, and observational studies have advanced our understanding of gravity waves on many fronts since the review by Fritts [1984a]; the present review will focus on these more recent contributions. Progress includes a better appreciation of gravity wave sources and characteristics, the evolution of the gravity wave spectrum with altitude and with variations of wind and stability, the character and implications of observed climatologies, and the wave interaction and instability processes that constrain wave amplitudes and spectral shape. Recent studies have also expanded dramatically our understanding of gravity wave influences on the large-scale circulation and the thermal and constituent structures of the middle atmosphere. These advances have led to a number of parameterizations of gravity wave effects which are enabling ever more realistic descriptions of gravity wave forcing in large-scale models. There remain, nevertheless, a number of areas in which further progress is needed in refining our understanding of and our ability to describe and predict gravity wave influences in the middle atmosphere. Our view of these unknowns and needs is also offered.},
-  doi      = {https://doi.org/10.1029/2001RG000106},
+  doi      = {10.1029/2001RG000106},
   eprint   = {https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2001RG000106},
   keywords = {gravity waves, middle atmosphere dynamics, wave-mean flow interactions, wave-wave interactions, gravity wave instability, turbulence},
-  url      = {https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2001RG000106},
 }
 
 @Article{Alexander2010,
@@ -164,14 +162,13 @@
   pages    = {1103-1124},
   volume   = {136},
   abstract = {Abstract Recent observational and theoretical studies of the global properties of small-scale atmospheric gravity waves have highlighted the global effects of these waves on the circulation from the surface to the middle atmosphere. The effects of gravity waves on the large-scale circulation have long been treated via parametrizations in both climate and weather-forecasting applications. In these parametrizations, key parameters describe the global distributions of gravity-wave momentum flux, wavelengths and frequencies. Until recently, global observations could not define the required parameters because the waves are small in scale and intermittent in occurrence. Recent satellite and other global datasets with improved resolution, along with innovative analysis methods, are now providing constraints for the parametrizations that can improve the treatment of these waves in climate-prediction models. Research using very-high-resolution global models has also recently demonstrated the capability to resolve gravity waves and their circulation effects, and when tested against observations these models show some very realistic properties. Here we review recent studies on gravity-wave effects in stratosphere-resolving climate models, recent observations and analysis methods that reveal global patterns in gravity-wave momentum fluxes and results of very-high-resolution model studies, and we outline some future research requirements to improve the treatment of these waves in climate simulations. Copyright © 2010 Royal Meteorological Society and Crown in the right of Canada},
-  doi      = {https://doi.org/10.1002/qj.637},
+  doi      = {10.1002/qj.637},
   eprint   = {https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.637},
   keywords = {atmosphere, gravity wave, momentum flux, drag, force, wind tendency, climate, global model},
-  url      = {https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.637},
 }
 
 @Article{Achatz2024,
-  author    = {Ulrich Achatz and M. Joan Alexander and Erich Becker and Hye-Yeong Chun and Andreas Dörnbrack and Laura Holt and Riwal Plougonven and Inna Polichtchouk and Kaoru Sato and Aditi Sheshadri and Claudia Christine Stephan and Annelize van Niekerk and Corwin J. Wright},
+  author    = {Achatz, U. and Alexander, M. Joan and Becker, Erich and Chun, Hye-Yeong and Dörnbrack, Andreas and Holt, Laura and Plougonven, Riwal and Polichtchouk, Inna and Sato, Kaoru and Sheshadri, Aditi and Stephan, Claudia Christine and van Niekerk, Annelize and Wright, Corwin J.},
   journal   = {Journal of the Atmospheric Sciences},
   title     = {Atmospheric Gravity Waves: Processes and Parameterization},
   year      = {2024},
@@ -192,10 +189,9 @@
   number   = {19},
   volume   = {36},
   abstract = {Using hourly data from a three-year simulation based on a gravity-wave resolving general circulation model, we have first inferred a global view of gravity wave sources and propagation affecting significantly the momentum balance in the mesosphere. The meridional cross section of momentum fluxes suggests that there are a few dominant propagation paths originating from the subtropics in summer and the middle to high latitudes in winter. These gravity waves are focused into the mesospheric jets in their respective seasons, acting effectively to decelerate the jets. The difference in the source latitudes likely contributes to the hemispheric asymmetries of the jets. The horizontal distribution of the momentum fluxes indicates that the dominant sources are steep mountains and tropospheric westerly jets in winter and vigorous monsoon convection in summer. The monsoon regions are the most important window to the middle atmosphere in summer because of the easterlies associated with the monsoon circulation.},
-  doi      = {https://doi.org/10.1029/2009GL039908},
+  doi      = {10.1029/2009GL039908},
   eprint   = {https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2009GL039908},
   keywords = {gravity waves, sources, middle atmosphere},
-  url      = {https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2009GL039908},
 }
 
 @Article{Senf2011,
@@ -206,10 +202,9 @@
   number   = {D24},
   volume   = {116},
   abstract = {In the middle atmosphere, solar thermal tides cause large variations in the background conditions for gravity-wave propagation. The induced modulation of gravity-wave pseudo-momentum fluxes is responsible for a diurnal force. In past studies, this forcing was derived from gravity-wave parameterizations which neglect time-dependence and horizontal inhomogeneities of the background flow. In our study, we evaluate these assumptions using a highly simplified gravity-wave ensemble. With the help of a global ray-tracing model, a small number of different gravity-wave fields is transported through a time-changing background which is composed of a climatological mean and tidal fields from a general circulation model. Within three off-line experiments, assumptions on horizontal and temporal dependence of the background conditions have been successively omitted. Time-dependence leads to a modulation of gravity-wave observed frequencies and its phase velocities. Transient critical layers disappear. The amplitude of the diurnal forcing is reduced. Horizontal inhomogeneities induce a refraction of the gravity waves into the jet stream cores. Horizontal propagation can lead to large meridional displacements and an inter-hemispheric exchange of gravity-wave energy. With equivalent Rayleigh friction coefficients, it is shown that for the gravity-wave ensemble in use the damping of tidal amplitudes is reduced when horizontal and time dependence of tidal background conditions are taken into account.},
-  doi      = {https://doi.org/10.1029/2011JD015794},
+  doi      = {10.1029/2011JD015794},
   eprint   = {https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2011JD015794},
   keywords = {gravity waves, middle atmosphere, ray tracing, thermal tides, wave-wave interaction},
-  url      = {https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2011JD015794},
 }
 
 @Article{Ehard2017,
@@ -221,10 +216,9 @@
   pages    = {1423-1436},
   volume   = {122},
   abstract = {Abstract We analyze a large-amplitude mountain wave event, which was observed by a ground-based lidar above New Zealand between 31 July and 1 August 2014. Besides the lidar observations, European Centre for Medium-Range Weather Forecasts (ECMWF) data, satellite observations, and ray tracing simulations are utilized in this study. It is found that the propagation of mountain waves into the middle atmosphere is influenced by two different processes at different stages of the event. At the beginning of the event, instabilities in a weak wind layer cause wave breaking in the lower stratosphere. During the course of the event the mountain waves propagate to higher altitudes and are refracted southward toward the polar night jet due to the strong meridional shear of the zonal wind. As the waves propagate out of the observational volume, the ground-based lidar observes no mountain waves in the mesosphere. Ray tracing simulations indicate that the mountain waves propagated to mesospheric altitudes south of New Zealand where the polar night jet advected the waves eastward. These results underline the importance of considering horizontal propagation of gravity waves, e.g., when analyzing locally confined observations of gravity waves.},
-  doi      = {https://doi.org/10.1002/2016JD025621},
+  doi      = {10.1002/2016JD025621},
   eprint   = {https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1002/2016JD025621},
   keywords = {gravity waves, middle atmosphere, lidar, polar vortex, mountain wave, DEEPWAVE},
-  url      = {https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1002/2016JD025621},
 }
 
 @Article{Muraschko2015,
@@ -236,14 +230,13 @@
   pages    = {676-697},
   volume   = {141},
   abstract = {The dynamics of internal gravity waves is modelled using Wentzel–Kramer–Brillouin (WKB) theory in position–wave number phase space. A transport equation for the phase-space wave-action density is derived for describing one-dimensional wave fields in a background with height-dependent stratification and height- and time-dependent horizontal-mean horizontal wind, where the mean wind is coupled to the waves through the divergence of the mean vertical flux of horizontal momentum associated with the waves. The phase-space approach bypasses the caustics problem that occurs in WKB ray-tracing models when the wave number becomes a multivalued function of position, such as in the case of a wave packet encountering a reflecting jet or in the presence of a time-dependent background flow. Two numerical models were developed to solve the coupled equations for the wave-action density and horizontal mean wind: an Eulerian model using a finite-volume method and a Lagrangian ‘phase-space ray tracer’ that transports wave-action density along phase-space paths determined by the classical WKB ray equations for position and wave number. The models are used to simulate the upward propagation of a Gaussian wave packet through a variable stratification, a wind jet and the mean flow induced by the waves. Results from the WKB models are in good agreement with simulations using a weakly nonlinear wave-resolving model, as well as with a fully nonlinear large-eddy-simulation model. The work is a step toward more realistic parametrizations of atmospheric gravity waves in weather and climate models.},
-  doi      = {https://doi.org/10.1002/qj.2381},
+  doi      = {10.1002/qj.2381},
   eprint   = {https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.2381},
   keywords = {gravity waves, WKB theory},
-  url      = {https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.2381},
 }
 
 @Article{Boeloeni2016,
-  author    = {Gergely Bölöni and Bruno Ribstein and Jewgenija Muraschko and Christine Sgoff and Junhong Wei and Ulrich Achatz},
+  author    = {Bölöni, Gergely and Ribstein, Bruno and Muraschko, Jewgenija and Sgoff, Christine and Wei, Junhong and Achatz, Ulrich},
   journal   = {Journal of the Atmospheric Sciences},
   title     = {The Interaction between Atmospheric Gravity Waves and Large-Scale Flows: An Efficient Description beyond the Nonacceleration Paradigm},
   year      = {2016},
@@ -265,10 +258,9 @@
   pages    = {342-361},
   volume   = {143},
   abstract = {The interaction between locally monochromatic finite-amplitude mesoscale waves, their nonlinearly induced higher harmonics, and a synoptic-scale flow is reconsidered, both in the tropospheric regime of weak stratification and in the stratospheric regime of moderately strong stratification. A review of the basic assumptions of quasi-geostrophic theory on an f-plane yields all synoptic scales in terms of a minimal number of natural variables, i.e. two out of the speed of sound, gravitational acceleration and Coriolis parameter. The wave scaling is defined so that all spatial and temporal scales are shorter by one order in the Rossby number, and by assuming their buoyancy field to be close to static instability. WKB theory is applied, with the Rossby number as scale separation parameter, combined with a systematic Rossby-number expansion of all fields. Classic results for synoptic-scale-flow balances and inertia-gravity-wave (IGW) dynamics are recovered. These are supplemented by explicit expressions for the interaction between mesoscale geostrophic modes (GMs), a possibly somewhat overlooked agent of horizontal coupling in the atmosphere, and the synoptic-scale flow. It is shown that IGW higher harmonics are slaved to the basic IGW, and that their amplitude is one order of magnitude smaller than the basic-wave amplitude. GM higher harmonics are not that weak and they are in intense nonlinear interaction between themselves and the basic GM. Compressible dynamics plays a significant role in the stratospheric stratification regime, where anelastic theory would yield insufficient results. Supplementing classic derivations, it is moreover shown that, in the absence of mesoscale waves, quasi-geostrophic theory holds also in the stratospheric stratification regime.},
-  doi      = {https://doi.org/10.1002/qj.2926},
+  doi      = {10.1002/qj.2926},
   eprint   = {https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.2926},
   keywords = {gravity waves, geostrophic flow, mesoscale, wave–mean flow interaction, parametrization, wave action, enstrophy},
-  url      = {https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.2926},
 }
 
 @Article{Achatz2023,
@@ -284,7 +276,6 @@
   abstract = {The interaction between small-scale waves and a larger-scale flow can be described by a multi-scale theory that forms the basis for a new class of parameterizations of subgrid-scale gravity waves (GW) in weather and climate models. The development of this theory is reviewed here. It applies to all interesting regimes of atmospheric stratification, i.e., also to moderately strong stratification as occurring in the middle atmosphere, and thereby extends classic assumption for the derivation of quasi-geostrophic theory. At strong wave amplitudes a fully nonlinear theory arises that is complemented by a quasilinear theory for weak GW amplitude. The latter allows the extension to a spectral description that forms the basis of numerical implementations that avoid instabilities due to caustics, e.g., from GW reflection. Conservation properties are discussed, for energy and potential vorticity, as well as conditions under which a GW impact on the larger-scale flow is possible. The numerical implementation of the theory for GW parameterizations in atmospheric models is described, and the consequences of the approach are discussed, as compared to classic GW parameterizations. Although more costly than the latter, it exhibits significantly enhanced realism, while being considerably more efficient than an approach where all relevant GWs are to be resolved. The reported theory and its implementation might be of interest also for the efficient and conceptually insightful description of other wave-mean interactions, including those where the formation of caustics presents a special challenge.},
   doi      = {10.1063/5.0165180},
   eprint   = {https://pubs.aip.org/aip/jmp/article-pdf/doi/10.1063/5.0165180/18194166/111101_1_5.0165180.pdf},
-  url      = {https://doi.org/10.1063/5.0165180},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}
