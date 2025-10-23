@@ -192,9 +192,9 @@ function compute_time_step(state::State)::AbstractFloat
                 println("=> dt = dtconv = ", dt * tref, " seconds")
             elseif dt == dtvisc
                 println("=> dt = dtvisc = ", dt * tref, " seconds")
-            elseif dt == dtwkb
+            elseif wkb_mode != NoWKB() && dt == dtwkb
                 println("=> dt = dtwkb = ", dt * tref, " seconds")
-            elseif dt == dtturb
+            elseif turbulence_scheme != NoTurbulence() && dt == dtturb
                 println("=> dt = dtturb = ", dt * tref, " seconds")
             else
                 println("=> dt = ??? = ", dt * tref, " seconds")
