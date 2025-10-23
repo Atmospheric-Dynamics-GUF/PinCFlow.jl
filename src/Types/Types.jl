@@ -253,6 +253,7 @@ export DomainNamelist,
     CloudCover,
     CloudCoverOn,
     CloudCoverOff,
+    CloudCoverOnLargeScaleOn
     RandomWavePackets,
     TurbulenceOn,
     NoTurbulence,

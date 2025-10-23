@@ -25,4 +25,17 @@ function psat_ice(T::AbstractFloat, iceconstants::IceConstants)
 
   end
 
- 
+ function NIce_param_nuc(N::AbstractFloat, S::AbstractFloat, dotS::AbstractFloat, T::AbstractFloat, p::AbstractFloat, p_si::AbstractFloat, cons::IceConstants)
+    # compute nucleated number of ice crystals
+    # using the asymptotic solution
+    (; S_c, DepS) = cons
+
+    NIce_param_nuc = 2. * dotS / (DepS * (S_c - 1.) * T) - N
+
+    if NIce_param_nuc > N
+      NIce_param_nuc = NIce_param_nuc - N
+    else
+      NIce_param_nuc = N
+    end
+
+  end 

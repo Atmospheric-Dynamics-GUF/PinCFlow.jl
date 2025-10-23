@@ -110,6 +110,7 @@ ice = IceNamelist(;
     # nscy = 1,
     # nscz = 1,
     cloudcover = CloudCoverOn(),
+    parameterized_nucleation = true,
  ) 
 wkb = WKBNamelist(;
                     xrmin_dim = 0.0E+4,
@@ -146,7 +147,7 @@ wkb = WKBNamelist(;
                     nwm = 2,
                 )
 
-multiwavepackets = MultiWavePacketNamelist(;random_wavepackets=RandomWavePackets(), number_wavepackets=2, domain = domain)
+multiwavepackets = MultiWavePacketNamelist(;random_wavepackets=RandomWavePackets(), number_wavepackets=2, domain = domain, testcase=setting.testcase)
 
 namelists = Namelists(;
     domain = domain,
@@ -165,4 +166,4 @@ namelists = Namelists(;
 
 integrate(namelists)
 
-include("../examples/visualization/fast_plot_tjl04.jl")
+#include("../examples/visualization/fast_plot_tjl04.jl")

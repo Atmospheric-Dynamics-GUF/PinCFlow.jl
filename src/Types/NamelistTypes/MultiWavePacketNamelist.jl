@@ -95,7 +95,7 @@ function MultiWavePacketNamelist(;
     )
 end
 
-function MultiWavePacketNamelist(;random_wavepackets::RandomWavePackets, number_wavepackets::Integer, domain::DomainNamelist)
+function MultiWavePacketNamelist(;random_wavepackets::RandomWavePackets, number_wavepackets::Integer, domain::DomainNamelist, testcase::AbstractTestCase)
 
     nwm = number_wavepackets
      wavepacketdim = ones(Int, nwm)
@@ -103,6 +103,23 @@ function MultiWavePacketNamelist(;random_wavepackets::RandomWavePackets, number_
     # define range for random wavelengths x-direction
     int_b_lambdax_dim = 1.e4
     int_e_lambdax_dim = 1.e5
+
+    if testcase isa MultipleWavePackets
+        #check if resolution is sufficient
+        if ((lx_dim[2]-lx_dim[1])/sizex > int_b_lambdax_dim/10.)
+            println("Resolution in x-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
+            exit(1)
+        end
+        if ((lz_dim[2]-lz_dim[1])/sizez > int_b_lambdaz_dim/10.)
+            println("Resolution in z-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
+            exit(1)
+        end    
+
+    elseif !(testcase isa WKBMultipleWavePackets)
+        println("only testcase=MultipleWavePackets or WKBMultipleWavePacket for  random wavepackets !!! ")
+        exit(1)    
+
+    end
 
     # define range for random wavelengths z-direction
     int_b_lambdaz_dim = 1.e3
