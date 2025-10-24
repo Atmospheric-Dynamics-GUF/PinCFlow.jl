@@ -21,7 +21,7 @@ The Lagrangian WKB model MSGWaM is interactively coupled to the dynamical core o
 To install PinCFlow.jl, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then run
 
 ```shell
-julia --project -e 'using Pkg; Pkg.add(; url = "git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git")'
+julia --project -e 'using Pkg; Pkg.add("PinCFlow")'
 ```
 
 to add PinCFlow.jl to your current project environment.
@@ -45,8 +45,7 @@ julia --project script.jl
 in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow.jl's example scripts. To run them, we recommend setting up an examples project by executing
 
 ```shell
-julia --project=examples -e 'using Pkg; Pkg.add("CairoMakie", "HDF5", "HDF5_jll", "MPICH_jll", "MPIPreferences", "Revise")'
-julia --project=examples -e 'using Pkg; Pkg.add(; url = "git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git")'
+julia --project=examples -e 'using Pkg; Pkg.add("CairoMakie", "HDF5", "HDF5_jll", "MPICH_jll", "MPIPreferences", "PinCFlow", "Revise")'
 ```
 
 Having done this, you can easily run any of the example scripts without needing to worry about extra packages that you may need. For instance, running the script
