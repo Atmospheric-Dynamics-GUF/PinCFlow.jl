@@ -42,7 +42,7 @@ function TurbulenceConstants(
 )::TurbulenceConstants
     (; lref, tref, rhoref) = constants
 
-    ck = 0.5 # according to Therry and Lacarrere (1983)
+    ck = 0.1
     lturb = 1.0E+2
     tkemin = 5.E-5 * tref^2.0 / lref^2.0
 

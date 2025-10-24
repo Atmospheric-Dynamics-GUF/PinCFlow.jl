@@ -36,11 +36,8 @@ domain = DomainNamelist(;
 output = OutputNamelist(;
     output_variables = (:u, :w,),
     output_file = "STIH_tke_with-coupling.h5",
-    output_interval = 100.0,
-    tmax = 1026.766,
-    #output_steps = true,
-    #nout = 1,
-    #iterations = 20,
+    output_interval = 3600.,
+    tmax = 3600.,
 )
 sponge = SpongeNamelist(;
     alpharmax = 1.0,

@@ -27,16 +27,18 @@ function turbulence_integration!(
     dt::AbstractFloat,
     turbulence_scheme::AbstractTurbulence,
 )
-    set_boundaries!(state, BoundaryPredictands())
-
     check_tke!(state)
+    set_boundaries!(state, BoundaryPredictands())
     turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
     turbulence_integration!(state, p0, dt, Advection())
+
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
     turbulence_integration!(state, p0, dt, Diffusion())
+
     set_boundaries!(state, BoundaryPredictands())
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
@@ -64,10 +66,12 @@ function turbulence_integration!(
     lturb_ndim = lturb / lref
 
     for k in k0:k1, j in j0:j1, i in i0:i1
-        tauk =
-            2.0 * lturb_ndim /
-            sqrt(tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
-        tke[i, j, k] = tke[i, j, k] * exp(-2.0 * dt / tauk)
+        tke[i, j, k] =
+            4.0 /
+            (
+                2.0 * dt / (lturb_ndim * sqrt(rhobar[i, j, k])) +
+                2.0 / sqrt(tke[i, j, k])
+            )^2.0
     end
 
     return
@@ -130,37 +134,37 @@ function turbulence_integration!(
                     jac[i, j, k + 1] * kek[i, j, k] +
                     jac[i, j, k] * kek[i, j, k + 1]
                 ) / (jac[i, j, k + 1] + jac[i, j, k])
-            athomas[i, j, k] = -dtdz2 * kekd
-            bthomas[i, j, k] = 1 + dtdz2 * keku + dtdz2 * kekd
-            cthomas[i, j, k] = -dtdz2 * keku
+            athomas[k] = -dtdz2 * kekd
+            bthomas[k] = 1 + dtdz2 * keku + dtdz2 * kekd
+            cthomas[k] = -dtdz2 * keku
 
-            fthomas[i, j, k] =
+            fthomas[k] =
                 (1 - dtdz2 * keku - dtdz2 * kekd) * tke[i, j, k] +
                 dtdz2 * keku * tke[i, j, k + 1] +
                 dtdz2 * kekd * tke[i, j, k - 1]
         end
 
-        athomas[i, j, k0] = 0.0
-        cthomas[i, j, k1] = 0.0
+        athomas[k0] = 0.0
+        cthomas[k1] = 0.0
 
-        qthomas[i, j, k0] = -cthomas[i, j, k0] / bthomas[i, j, k0]
-        fthomas[i, j, k0] = fthomas[i, j, k0] / bthomas[i, j, k0]
+        qthomas[k0] = -cthomas[k0] / bthomas[k0]
+        fthomas[k0] = fthomas[k0] / bthomas[k0]
 
         for k in (k0 + 1):k1
             p =
                 1.0 /
-                (bthomas[i, j, k] + athomas[i, j, k] * qthomas[i, j, k - 1])
-            qthomas[i, j, k] = -cthomas[i, j, k] * p
-            fthomas[i, j, k] =
-                (fthomas[i, j, k] - athomas[i, j, k] * fthomas[i, j, k - 1]) * p
+                (bthomas[k] + athomas[k] * qthomas[k - 1])
+            qthomas[k] = -cthomas[k] * p
+            fthomas[k] =
+                (fthomas[k] - athomas[k] * fthomas[k - 1]) * p
         end
 
         for k in (k1 - 1):-1:k0
-            fthomas[i, j, k] =
-                fthomas[i, j, k] + qthomas[i, j, k] * fthomas[i, j, k + 1]
+            fthomas[k] =
+                fthomas[k] + qthomas[k] * fthomas[k + 1]
         end
 
-        tke[i, j, :] .= fthomas[i, j, :]
+        tke[i, j, :] .= fthomas[:]
     end
 
     return

@@ -22,16 +22,17 @@ Construct a `TurbulenceAuxiliaries` instance with both fields set to ``t_\\mathr
 struct TurbulenceAuxiliaries{
     A <: AbstractFloat,
     B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 1},
 }
     tkebg::A
     km::B
     kh::B
     kek::B
-    athomas::B
-    bthomas::B
-    cthomas::B
-    fthomas::B
-    qthomas::B 
+    athomas::C
+    bthomas::C
+    cthomas::C
+    fthomas::C
+    qthomas::C 
     shearproduction::B 
     buoyancyproduction::B
 end
@@ -48,11 +49,11 @@ function TurbulenceAuxiliaries(
     km = zeros(size(tke))
     kh = zeros(size(tke))
     kek = zeros(size(tke))
-    athomas = zeros(size(tke))
-    bthomas = zeros(size(tke))
-    cthomas = zeros(size(tke))
-    fthomas = zeros(size(tke))
-    qthomas = zeros(size(tke))
+    athomas = zeros(size(tke)[3])
+    bthomas = zeros(size(tke)[3])
+    cthomas = zeros(size(tke)[3])
+    fthomas = zeros(size(tke)[3])
+    qthomas = zeros(size(tke)[3])
     shearproduction = zeros(size(tke))
     buoyancyproduction = zeros(size(tke))
 
