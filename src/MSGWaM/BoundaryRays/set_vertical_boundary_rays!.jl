@@ -23,8 +23,8 @@ function set_vertical_boundary_rays! end
 
 function set_vertical_boundary_rays!(state::State)
     (; namelists, domain) = state
-    (; npz) = namelists.domain
-    (; zz_size, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; z_size, npz) = namelists.domain
+    (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lx, ly, lz, dx, dy, hb) = state.grid
     (; nray, rays) = state.wkb
 
@@ -60,7 +60,7 @@ function set_vertical_boundary_rays!(state::State)
     end
 
     # Cut ray volumes at the upper boundary.
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for k in (k1 - 1):k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
             local_count = 0
             for r in 1:nray[i, j, k]

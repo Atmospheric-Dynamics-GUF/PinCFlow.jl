@@ -50,8 +50,8 @@ function interpolate_sponge(
         il = i0
         ir = i0
     end
-    @ivy xl = x[io + il]
-    @ivy xr = x[io + ir]
+    @ivy xl = x[il]
+    @ivy xr = x[ir]
 
     # Determine closest points in meridional direction.
     if y_size > 1
@@ -61,8 +61,8 @@ function interpolate_sponge(
         jb = j0
         jf = j0
     end
-    @ivy yb = y[jo + jb]
-    @ivy yf = y[jo + jf]
+    @ivy yb = y[jb]
+    @ivy yf = y[jf]
 
     # Determine closest points in vertical direction and set interpolation
     # values.

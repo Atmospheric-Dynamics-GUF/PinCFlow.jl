@@ -31,27 +31,17 @@ function check_rays(state::State)
             if x_size > 1
                 xr = rays.x[r, i, j, k]
 
-                if xr < x[io + i] - dx / 2
+                if xr < x[i] - dx / 2
                     println("Error in check_rays:")
-                    println(
-                        "xr = ",
-                        xr,
-                        " < x[io + i] - dx / 2 = ",
-                        x[io + i] - dx / 2,
-                    )
+                    println("xr = ", xr, " < x[i] - dx / 2 = ", x[i] - dx / 2)
                     println("io = ", io)
                     println("(r, i, j, k) = ", (r, i, j, k))
                     exit()
                 end
 
-                if xr > x[io + i] + dx / 2
+                if xr > x[i] + dx / 2
                     println("Error in check_rays:")
-                    println(
-                        "xr = ",
-                        xr,
-                        " > x[io + i] + dx / 2 = ",
-                        x[io + i] + dx / 2,
-                    )
+                    println("xr = ", xr, " > x[i] + dx / 2 = ", x[i] + dx / 2)
                     println("io = ", io)
                     println("(r, i, j, k) = ", (r, i, j, k))
                     exit()
@@ -62,27 +52,17 @@ function check_rays(state::State)
             if y_size > 1
                 yr = rays.y[r, i, j, k]
 
-                if yr < y[jo + j] - dy / 2
+                if yr < y[j] - dy / 2
                     println("Error in check_rays:")
-                    println(
-                        "yr = ",
-                        yr,
-                        " < y[jo + j] - dy / 2 = ",
-                        y[jo + j] - dy / 2,
-                    )
+                    println("yr = ", yr, " < y[j] - dy / 2 = ", y[j] - dy / 2)
                     println("jo = ", jo)
                     println("(r, i, j, k) = ", (r, i, j, k))
                     exit()
                 end
 
-                if yr > y[jo + j] + dy / 2
+                if yr > y[j] + dy / 2
                     println("Error in check_rays:")
-                    println(
-                        "yr = ",
-                        yr,
-                        " > y[jo + j] + dy / 2 = ",
-                        y[jo + j] + dy / 2,
-                    )
+                    println("yr = ", yr, " > y[j] + dy / 2 = ", y[j] + dy / 2)
                     println("jo = ", jo)
                     println("(r, i, j, k) = ", (r, i, j, k))
                     exit()

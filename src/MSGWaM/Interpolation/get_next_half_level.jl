@@ -46,7 +46,8 @@ function get_next_half_level(
     dkd::Integer = 0,
     dku::Integer = 0,
 )::Integer
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, nzz, ko, k0, k1) = state.domain
     (; zctilde) = state.grid
 
     @ivy k = argmin(abs.(zctilde[i, j, :] .- z))
@@ -69,7 +70,7 @@ function get_next_half_level(
         end
     end
 
-    if ko + nzz == zz_size
+    if ko + nz == z_size
         k = min(k, k1)
     else
         if k > nzz - dku
