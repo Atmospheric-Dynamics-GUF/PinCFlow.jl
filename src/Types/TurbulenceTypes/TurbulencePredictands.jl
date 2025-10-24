@@ -50,8 +50,6 @@ Construct a `TurbulencePredictands` instance with both arrays initialized as ``t
 
   - `tke::A`: Turbulent kinetic energy.
 
-  - `tte::A`: Total turbulent energy.
-
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -70,7 +68,6 @@ Construct a `TurbulencePredictands` instance with both arrays initialized as ``t
 """
 struct TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     tke::A
-    tte::A
 end
 
 function TurbulencePredictands(
@@ -104,9 +101,8 @@ function TurbulencePredictands(
     variables::Variables,
 )::TurbulencePredictands
     tke = zeros(0, 0, 0)
-    tte = zeros(0, 0, 0)
 
-    return TurbulencePredictands(tke, tte)
+    return TurbulencePredictands(tke)
 end
 
 function TurbulencePredictands(
@@ -124,11 +120,8 @@ function TurbulencePredictands(
     (; lref, tref) = constants
 
     tke =
-        ones(nxx, nyy, nzz) .* 0.1 .* (tref .^ 2.0) ./ (lref .^ 2.0) .*
-        (rho .+ rhobar)
-    tte =
-        ones(nxx, nyy, nzz) .* 0.1 .* (tref .^ 2.0) ./ (lref .^ 2.0) .*
+        ones(nxx, nyy, nzz) .* 5.0E-5 .* (tref .^ 2.0) ./ (lref .^ 2.0) .*
         (rho .+ rhobar)
 
-    return TurbulencePredictands(tke, tte)
+    return TurbulencePredictands(tke)
 end

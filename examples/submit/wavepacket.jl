@@ -24,23 +24,31 @@ atmosphere = AtmosphereNamelist(;
     initial_thetap = thetaprime,
 )
 domain = DomainNamelist(;
-    x_size = 16,
+    x_size = 32,
     y_size = 1,
-    z_size = 430,
-    lx = 1.0E+3,
+    z_size = 854,
+    lx = 30.0E+3,
     ly = 1.0E+3,
-    lz = 30.E+3,
+    lz = 80.E+3,
     npx,
     npz,
 )
 output = OutputNamelist(;
-    output_variables = (:u, :v, :w, :rhop),
-    output_file = "wavepacket.h5",
-    output_interval = 1.0,
-    tmax = 1.0,
+    output_variables = (:u, :w,),
+    output_file = "STIH_tke_with-coupling.h5",
+    output_interval = 100.0,
+    tmax = 1026.766,
+    #output_steps = true,
+    #nout = 1,
+    #iterations = 20,
 )
-sponge = SpongeNamelist(; betarmax = 1.0E+0)
-turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
+sponge = SpongeNamelist(;
+    alpharmax = 1.0,
+    damp_horizontal_wind_on_rhs = true,
+    relax_to_mean = false,
+)
+turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme(),
+momentum_coupling = true)
 
 namelists = Namelists(; atmosphere, domain, output, sponge, turbulence)
 

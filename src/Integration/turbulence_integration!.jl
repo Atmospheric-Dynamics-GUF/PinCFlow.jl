@@ -31,11 +31,18 @@ function turbulence_integration!(
 
     check_tke!(state)
     turbulence_integration!(state, p0, dt * 0.5, Dissipation())
-    turbulence_integration!(state, p0, dt, Advection())
-    turbulence_integration!(state, p0, dt, Diffusion())
     check_tke!(state)
+    set_boundaries!(state, BoundaryPredictands())
+    turbulence_integration!(state, p0, dt, Advection())
+    check_tke!(state)
+    set_boundaries!(state, BoundaryPredictands())
+    turbulence_integration!(state, p0, dt, Diffusion())
+    set_boundaries!(state, BoundaryPredictands())
+    check_tke!(state)
+    set_boundaries!(state, BoundaryPredictands())
     turbulence_integration!(state, p0, dt * 0.5, Dissipation())
 
+    check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
 
     return
@@ -49,7 +56,7 @@ function turbulence_integration!(
 )
     (; tke) = state.turbulence.turbulencepredictands
     (; lref) = state.constants
-    (; lturb, cepsilon) = state.turbulence.turbulenceconstants
+    (; lturb) = state.turbulence.turbulenceconstants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere

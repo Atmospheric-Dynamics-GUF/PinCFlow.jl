@@ -36,8 +36,6 @@ Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 
   - `dtke::A`: Runge-Kutta update of the turbulent kinetic energy.
 
-  - `dtte::A`: Runge-Kutta update of the total turbulent energy.
-
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -48,7 +46,6 @@ Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 """
 struct TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dtke::A
-    dtte::A
 end
 
 function TurbulenceIncrements(
@@ -65,9 +62,8 @@ function TurbulenceIncrements(
     turbulence_scheme::NoTurbulence,
 )::TurbulenceIncrements
     dtke = zeros(0, 0, 0)
-    dtte = zeros(0, 0, 0)
 
-    return TurbulenceIncrements(dtke, dtte)
+    return TurbulenceIncrements(dtke)
 end
 
 function TurbulenceIncrements(
@@ -77,7 +73,6 @@ function TurbulenceIncrements(
     (; nxx, nyy, nzz) = domain
 
     dtke = zeros(nxx, nyy, nzz)
-    dtte = zeros(nxx, nyy, nzz)
 
-    return TurbulenceIncrements(dtke, dtte)
+    return TurbulenceIncrements(dtke)
 end

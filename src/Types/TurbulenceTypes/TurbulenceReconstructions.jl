@@ -38,8 +38,6 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 
   - `tketilde::A`: Reconstructions of the turbulent kinetic energy.
 
-  - `ttetilde::A`: Reconstructions of the total turbulent energy.
-
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -50,7 +48,6 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 """
 struct TurbulenceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     tketilde::A
-    ttetilde::A
 end
 
 function TurbulenceReconstructions(
@@ -67,9 +64,8 @@ function TurbulenceReconstructions(
     turbulence_scheme::NoTurbulence,
 )::TurbulenceReconstructions
     tketilde = zeros(0, 0, 0, 0, 0)
-    ttetilde = zeros(0, 0, 0, 0, 0)
 
-    return TurbulenceReconstructions(tketilde, ttetilde)
+    return TurbulenceReconstructions(tketilde)
 end
 
 function TurbulenceReconstructions(
@@ -79,7 +75,6 @@ function TurbulenceReconstructions(
     (; nxx, nyy, nzz) = domain
 
     tketilde = zeros(nxx, nyy, nzz, 3, 2)
-    ttetilde = zeros(nxx, nyy, nzz, 3, 2)
 
-    return TurbulenceReconstructions(tketilde, ttetilde)
+    return TurbulenceReconstructions(tketilde)
 end

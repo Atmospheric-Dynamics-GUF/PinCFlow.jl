@@ -333,21 +333,20 @@ function write_output(
             end
 
             HDF5.set_extent_dims(
-                file["shear"],
+                file["shear-production"],
                 (x_size, y_size, z_size, iout),
             )
-            file["shear"][iid, jjd, kkd, iout] =
+            file["shear-production"][iid, jjd, kkd, iout] =
                 state.turbulence.turbulenceauxiliaries.shearproduction[
                     ii,
                     jj,
                     kk,
                 ] .* lref .^ 2 ./ tref .^ 3
-
             HDF5.set_extent_dims(
-                file["buoyancy"],
+                file["buoyancy-production"],
                 (x_size, y_size, z_size, iout),
             )
-            file["buoyancy"][iid, jjd, kkd, iout] =
+            file["buoyancy-production"][iid, jjd, kkd, iout] =
                 state.turbulence.turbulenceauxiliaries.buoyancyproduction[
                     ii,
                     jj,

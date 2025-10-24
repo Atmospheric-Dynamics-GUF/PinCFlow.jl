@@ -38,8 +38,6 @@ Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 
   - `phitke::A`: Fluxes of the turbulent kinetic energy.
 
-  - `phitte::A`: Fluxes of the total turbulent energy.
-
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -50,7 +48,6 @@ Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 """
 struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitke::A
-    phitte::A
 end
 
 function TurbulenceFluxes(
@@ -67,9 +64,8 @@ function TurbulenceFluxes(
     turbulence_scheme::NoTurbulence,
 )::TurbulenceFluxes
     phitke = zeros(0, 0, 0, 0)
-    phitte = zeros(0, 0, 0, 0)
 
-    return TurbulenceFluxes(phitke, phitte)
+    return TurbulenceFluxes(phitke)
 end
 
 function TurbulenceFluxes(
@@ -79,7 +75,6 @@ function TurbulenceFluxes(
     (; nxx, nyy, nzz) = domain
 
     phitke = zeros(nxx, nyy, nzz, 3)
-    phitte = zeros(nxx, nyy, nzz, 3)
 
-    return TurbulenceFluxes(phitke, phitte)
+    return TurbulenceFluxes(phitke)
 end

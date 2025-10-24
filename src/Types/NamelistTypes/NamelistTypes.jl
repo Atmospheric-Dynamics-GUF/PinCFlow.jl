@@ -324,15 +324,6 @@ Singleton for model configurations with turbulence parameterization using a TKE-
 """
 struct TKEScheme <: AbstractTurbulence end 
 
-"""
-```julia 
-TTEScheme <: AbstractTurbulence
-```
-
-Singleton for model configurations with turbulence parameterization using a (2TE) TTE-Scheme.
-"""
-struct TTEScheme <: AbstractTurbulence end 
-
 using MPI
 using ...PinCFlow
 
@@ -383,8 +374,7 @@ export UniformBoussinesq,
     NoTracer,
     TracerOn,
     NoTurbulence,
-    TKEScheme,
-    TTEScheme
+    TKEScheme
 
 export DomainNamelist,
     OutputNamelist,

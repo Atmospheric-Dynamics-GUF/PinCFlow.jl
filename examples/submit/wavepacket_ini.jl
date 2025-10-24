@@ -7,19 +7,19 @@ r = 287
 href = r * t0 / g
 kappa = 2.0 / 7.0 # R/c_p
 
-a0 = 0.1
+a0 = 0.5
 
-sigmax = 0.0 # wave packet width in x-direction [m]
-sigmay = 0.0 # wave packet width in y-direction [m]
-sigmaz = 2000.0 # wave packet width in z-direction [m]
+sigmax = 0.0
+sigmay = 0.0
+sigmaz = 5000.0
 
-lambdax = 1000.0 # wavelength in x-direction [m]
-lambday = 0.0    # wavelength in y-direction [m]
-lambdaz = 1000.0 # wavelength in z-direction [m]
+lambdax = 30.0E+3
+lambday = 0.0
+lambdaz = 3000.0
 
-x0 = 0.0 # center of wave packet in x-direction [m]
-y0 = 0.0 # center of wave packet in y-direction [m]
-z0 = 10.E+3 # center of wave packet in z-direction [m]
+x0 = 0.0
+y0 = 0.0
+z0 = 10.E+3
 
 n2 = g^2.0 * kappa / t0 / r
 
@@ -87,55 +87,49 @@ function bhat(x, y, z)
     return a0 * n2 / mm * envelope(x, y, z)
 end
 
-function uhat(x, y, z)
-    return 1im / (mm * n2) * (omega2 - n2) / (omega2 - f2) *
-           (kk * omega + 1im * ll * f) *
-           bhat(x, y, z)
-end
-
-function vhat(x, y, z)
-    return 1im / (mm * n2) * (omega2 - n2) / (omega2 - f2) *
-           (ll * omega - 1im * kk * f) *
-           bhat(x, y, z)
-end
-
-function what(x, y, z)
-    return 1im * omega / n2 * bhat(x, y, z)
-end
-
-function pihat(x, y, z)
-    return kappa / r / thetabar(z) * 1im / mm * (omega2 - n2) / n2 *
-           bhat(x, y, z)
-end
-
 function phi(x, y, z)
     return kk * x + ll * y + mm * z
 end
 
-function bprime(x, y, z)
+function bprime(x, y, z)::AbstractFloat
     return real(bhat(x, y, z) * exp(1im * phi(x, y, z)))
 end
 
-function uprime(x, y, z)
-    return real(uhat(x, y, z) * exp(1im * phi(x, y, z)))
+function uprime(x, y, z)::AbstractFloat
+    uhat =
+        1im / (mm * n2) * (omega2 - n2) / (omega2 - f2) *
+        (kk * omega + 1im * ll * f) *
+        bhat(x, y, z)
+
+    return real(uhat * exp(1im * phi(x, y, z)))
 end
 
-function vprime(x, y, z)
-    return real(vhat(x, y, z) * exp(1im * phi(x, y, z)))
+function vprime(x, y, z)::AbstractFloat
+    vhat =
+        1im / (mm * n2) * (omega2 - n2) / (omega2 - f2) *
+        (ll * omega - 1im * kk * f) *
+        bhat(x, y, z)
+
+    return real(vhat * exp(1im * phi(x, y, z)))
 end
 
-function wprime(x, y, z)
-    return real(what(x, y, z) * exp(1im * phi(x, y, z)))
+function wprime(x, y, z)::AbstractFloat
+    what = 1im * omega / n2 * bhat(x, y, z)
+
+    return real(what * exp(1im * phi(x, y, z)))
 end
 
-function piprime(x, y, z)
-    return real(pihat(x, y, z) * exp(1im * phi(x, y, z)))
+function piprime(x, y, z)::AbstractFloat
+    pihat =
+        kappa / r / thetabar(z) * 1im / mm * (omega2 - n2) / n2 * bhat(x, y, z)
+
+    return real(pihat * exp(1im * phi(x, y, z)))
 end
 
-function rhoprime(x, y, z)
+function rhoprime(x, y, z)::AbstractFloat
     return rhobar(z) / (1 + bprime(x, y, z) / g) - rhobar(z)
 end
 
-function thetaprime(x, y, z)
+function thetaprime(x, y, z)::AbstractFloat
     return bprime(x, y, z) * thetabar(z) / g
 end

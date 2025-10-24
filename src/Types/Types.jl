@@ -122,15 +122,6 @@ struct TKE end
 
 """
 ```julia
-TTE
-```
-
-Singleton that represents the total turbulence energy.
-"""
-struct TTE end
-
-"""
-```julia
 Explicit
 ```
 
@@ -187,7 +178,6 @@ export Rho,
     Theta,
     Chi,
     TKE,
-    TTE,
     Explicit,
     Implicit,
     UniformBoussinesq,
@@ -264,7 +254,6 @@ export DomainNamelist,
     TracerWKBImpact,
     NoTurbulence,
     TKEScheme,
-    TTEScheme,
     TurbulencePredictands,
     TurbulenceAuxiliaries,
     TurbulenceIncrements,

@@ -521,7 +521,7 @@ function compute_fluxes!(
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; turbulence_scheme) = state.namelists.turbulence
+    (; turbulence_scheme, momentum_coupling) = state.namelists.turbulence
     (; km) = state.turbulence.turbulenceauxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -816,7 +816,7 @@ function compute_fluxes!(
     #             Turbulence fluxes
     #-------------------------------------------------------------------
 
-    if turbulence_scheme == NoTurbulence()
+    if turbulence_scheme == NoTurbulence() || momentum_coupling == false
         return
     end
 
@@ -918,7 +918,7 @@ function compute_fluxes!(
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; turbulence_scheme) = state.namelists.turbulence
+    (; turbulence_scheme, momentum_coupling) = state.namelists.turbulence
     (; km) = state.turbulence.turbulenceauxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -1213,7 +1213,7 @@ function compute_fluxes!(
     #             Turbulence fluxes
     #-------------------------------------------------------------------
 
-    if turbulence_scheme == NoTurbulence()
+    if turbulence_scheme == NoTurbulence() || momentum_coupling == false
         return
     end
 
@@ -1315,7 +1315,7 @@ function compute_fluxes!(
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; turbulence_scheme) = state.namelists.turbulence
+    (; turbulence_scheme, momentum_coupling) = state.namelists.turbulence
     (; km) = state.turbulence.turbulenceauxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -1617,7 +1617,7 @@ function compute_fluxes!(
     #                          Turbulence fluxes
     #-------------------------------------------------------------------
 
-    if turbulence_scheme == NoTurbulence()
+    if turbulence_scheme == NoTurbulence() || momentum_coupling == false
         return
     end
 
@@ -1702,12 +1702,12 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        hrhow_visc =
+        hrhow_diff =
             km[i, j, k + 1] *
             jac[i, j, k + 1] *
             compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Z())
-
-        phiw[i, j, k, 3] -= hrhow_visc
+        
+        phiw[i, j, k, 3] -= hrhow_diff
     end
 
     return
@@ -1792,7 +1792,7 @@ function compute_fluxes!(
     (; thermal_conductivity) = state.namelists.atmosphere
     (; uref, lref) = state.constants
     (; rho) = predictands
-    (; turbulence_scheme) = state.namelists.turbulence
+    (; turbulence_scheme, momentum_coupling) = state.namelists.turbulence
     (; kh) = state.turbulence.turbulenceauxiliaries
 
     if thermal_conductivity == 0.0 && turbulence_scheme == NoTurbulence()
@@ -1946,7 +1946,7 @@ function compute_fluxes!(
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
     end
 
-    if turbulence_scheme == NoTurbulence()
+    if turbulence_scheme == NoTurbulence() || momentum_coupling == false
         return
     end
 

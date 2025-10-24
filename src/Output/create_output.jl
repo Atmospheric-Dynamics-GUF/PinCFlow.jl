@@ -272,7 +272,7 @@ function create_output(state::State)
 
             create_dataset(
                     file,
-                    "shear",
+                    "shear-production",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),
@@ -283,7 +283,7 @@ function create_output(state::State)
 
             create_dataset(
                     file,
-                    "buoyancy",
+                    "buoyancy-production",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),

@@ -31,10 +31,7 @@ Free parameters:
 struct TurbulenceConstants{A <: AbstractFloat}
 
     # Dissipation constant
-    cepsilon::A
     ck::A
-    c3::A
-    cek::A
     lturb::A
     tkemin::A
 end
@@ -45,12 +42,9 @@ function TurbulenceConstants(
 )::TurbulenceConstants
     (; lref, tref, rhoref) = constants
 
-    cepsilon = 8.71E-1
-    ck = 0.084
-    c3 = 1.185
-    cek = 0.1
+    ck = 0.5 # according to Therry and Lacarrere (1983)
     lturb = 1.0E+2
-    tkemin = 1.0E-8
+    tkemin = 5.E-5 * tref^2.0 / lref^2.0
 
-    return TurbulenceConstants(cepsilon, ck, c3, cek, lturb, tkemin)
+    return TurbulenceConstants(ck, lturb, tkemin)
 end
