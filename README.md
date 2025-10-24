@@ -1,4 +1,4 @@
-# PinCFlow.jl
+# PinCFlow.jl: An idealized-atmospheric-flow solver coupled to the 3D transient gravity-wave model MSGWaM
 
 [![Docs-stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Atmospheric-Dynamics-GUF.github.io/PinCFlow.jl/stable)
 [![Docs-dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Atmospheric-Dynamics-GUF.github.io/PinCFlow.jl/dev)
