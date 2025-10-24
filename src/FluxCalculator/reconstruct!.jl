@@ -11,7 +11,23 @@ This method calls specialized methods for each prognostic variable.
 reconstruct!(state::State, variable::Rho)
 ```
 
-Reconstruct the density.
+Reconstruct the density by dispatching to a model-specific method.
+
+```julia
+reconstruct!(state::State, variable::Rho, model::Boussinesq)
+```
+
+Return in Boussinesq mode.
+
+```julia
+reconstruct!(
+    state::State,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
+```
+
+Reconstruct the density in non-Boussinesq modes.
 
 Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction.
 
@@ -67,6 +83,8 @@ Similar to the density, the tracers are divided by ``P`` before reconstruction.
 
   - `variable`: The reconstructed variable.
 
+  - `model`: Dynamic equations.
+
   - `tracer_setup`: General tracer-transport configuration.
 
 # See also
@@ -96,6 +114,20 @@ function reconstruct!(state::State)
 end
 
 function reconstruct!(state::State, variable::Rho)
+    (; model) = state.namelists.atmosphere
+    reconstruct!(state, variable, model)
+    return
+end
+
+function reconstruct!(state::State, variable::Rho, model::Boussinesq)
+    return
+end
+
+function reconstruct!(
+    state::State,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho) = state.variables.predictands
