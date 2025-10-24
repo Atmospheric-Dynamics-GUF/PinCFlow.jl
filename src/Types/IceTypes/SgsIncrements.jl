@@ -36,6 +36,7 @@ function SgsIncrements(
 	namelists::Namelists,
 	domain::Domain,
 	subgrid::SubGrid,
+	icesetup::IceOn,
 )
 	(; cloudcover) = namelists.ice
 

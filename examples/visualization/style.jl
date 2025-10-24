@@ -1,5 +1,5 @@
 using PythonCall
-using PythonPlot
+using PyPlot
 
 """
 ```julia
