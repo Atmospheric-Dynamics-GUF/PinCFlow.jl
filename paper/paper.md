@@ -67,6 +67,7 @@ MPI parallelization is supported in all grid dimensions. The number of MPI tasks
 
 # Acknowledgements
 
-F. J. and U. A. are grateful for the support of Eric and Wendy Schmidt through the Schmidt Sciences VESRI "DataWave" project.
+F. J. and U. A. are grateful for the support of Eric and Wendy Schmidt through the Schmidt Sciences VESRI "DataWave" project. M. A., A. B., and H. R. were supported by the German Research Foundation (Deutsche Forschungsgemeinschaft DFG, project number 528753982).
+
 
 # References
