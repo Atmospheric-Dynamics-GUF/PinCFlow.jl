@@ -4,7 +4,7 @@
 #
 using HDF5
 #using LaTeXStrings
-using PyPlot
+using PythonPlot
 using Statistics
 using NCDatasets
 

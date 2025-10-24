@@ -110,7 +110,8 @@ ice = IceNamelist(;
     # nscy = 1,
     # nscz = 1,
     cloudcover = CloudCoverOn(),
-    parameterized_nucleation = true,
+#    large_scale_ice = true,
+#    parameterized_nucleation = false,
  ) 
 wkb = WKBNamelist(;
                     xrmin_dim = 0.0E+4,
@@ -147,7 +148,21 @@ wkb = WKBNamelist(;
                     nwm = 2,
                 )
 
-multiwavepackets = MultiWavePacketNamelist(;random_wavepackets=RandomWavePackets(), number_wavepackets=2, domain = domain, testcase=setting.testcase)
+#multiwavepackets = MultiWavePacketNamelist(RandomWavePackets(), 2, domain, setting.testcase)
+multiwavepackets = MultiWavePacketNamelist(;
+    nwm = 2,
+    wavepacketdim = [1, 1],
+    lambdax_dim = [1.0E+4, 1.0E+4],
+    lambday_dim = [0.0E+0   , 0.0E+0   ],
+    lambdaz_dim = [-2.0E+3, 2.0E+3],
+    x0_dim = [5.0E+3, 5.0E+3],
+    y0_dim = [5.0E+3, 5.0E+3],
+    z0_dim = [7.0E+3, 9.0E+3],
+    sigmax_dim = [0.0E+3, 0.0E+3],
+    sigmay_dim = [0.0E+3, 0.0E+3],
+    sigmaz_dim = [6.0E+3, 6.0E+3],
+    a0 = [0.12E+0, 0.12E+0],
+)
 
 namelists = Namelists(;
     domain = domain,

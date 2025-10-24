@@ -415,8 +415,6 @@ struct CloudCoverOn <: AbstractCloudCover end
 
 struct CloudCoverOff <: AbstractCloudCover end
 
-struct CloudCoverOnLargeScaleOn <: AbstractCloudCover end
-
 abstract type AbstractRandomWavePackets end
 
 struct RandomWavePackets <: AbstractRandomWavePackets end
@@ -486,7 +484,6 @@ export UniformBoussinesq,
     IceOn,
     CloudCoverOff,
     CloudCoverOn,  
-    CloudCoverOnLargeScaleOn
     RandomWavePackets,
     NoTurbulence,
     TurbulenceOn, 

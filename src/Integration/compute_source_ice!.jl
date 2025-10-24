@@ -119,7 +119,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 	return
 end
 
-function compute_source_ice!(state::State, cloudcover::CloudCoverOnLargeScaleOn)
+function compute_source_ice!(state::State, cloudcover::CloudCoverOn, large_scale_ice::Bool)
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; nscx, nscy, nscz) = state.namelists.ice
 	#(; dxsc, dysc, dzsc) = state.ice.subgrid
