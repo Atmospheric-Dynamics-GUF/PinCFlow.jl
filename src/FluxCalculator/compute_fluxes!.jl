@@ -1706,7 +1706,7 @@ function compute_fluxes!(
             km[i, j, k + 1] *
             jac[i, j, k + 1] *
             compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Z())
-        
+
         phiw[i, j, k, 3] -= hrhow_diff
     end
 
@@ -1727,9 +1727,12 @@ function compute_fluxes!(
     tracer_setup::TracerOn,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac) = state.grid
-    (; pbar) = state.atmosphere
-    (; tracerreconstructions, tracerfluxes) = state.tracer
+    (; jac, dx, dy, dz, met) = state.grid
+    (; pbar, rhobar) = state.atmosphere
+    (; tracerpredictands, tracerreconstructions, tracerfluxes) = state.tracer
+    (; turbulence_scheme) = state.namelists.turbulence
+    (; kh) = state.turbulence.turbulencediffusioncoefficients
+    (; rho) = state.variables.predictands
 
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
@@ -1774,6 +1777,115 @@ function compute_fluxes!(
             wsurf = pedgeu * w0[i, j, k]
 
             hchi[i, j, k] = compute_flux(wsurf, chid[i, j, k], chiu[i, j, k])
+        end
+
+        #--------------------------------------
+        # Turbulent fluxes 
+        #--------------------------------------
+        if turbulence_scheme != NoTurbulence()
+            #----------------------------------
+            # Zonal fluxes 
+            #----------------------------------
+            chi = getfield(tracerpredictands, field)
+            @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+                coef_t = 0.5 * (kh[i, j, k] + kh[i + 1, j, k])
+
+                chil = chi[i, j, k]
+                chir = chi[i + 1, j, k]
+
+                chid = 0.5 * (chi[i, j, k - 1] + chi[i + 1, j, k - 1])
+
+                chiu = 0.5 * (chi[i, j, k + 1] + chi[i + 1, j, k + 1])
+
+                dchi_dxi =
+                    0.5 * (jac[i, j, k] + jac[i + 1, j, k]) * (chir - chil) /
+                    dx +
+                    0.5 *
+                    (
+                        jac[i, j, k] * met[i, j, k, 1, 3] +
+                        jac[i + 1, j, k] * met[i + 1, j, k, 1, 3]
+                    ) *
+                    (chiu - chid) / (2.0 * dz)
+
+                fchi[i, j, k] -= coef_t * dchi_dxi
+            end
+
+            #----------------------------------
+            # Meridional fluxes 
+            #----------------------------------
+            @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+                coef_t = 0.5 * (kh[i, j, k] + kh[i, j + 1, k])
+
+                chib = chi[i, j, k]
+                chif = chi[i, j + 1, k]
+
+                chid = 0.5 * (chi[i, j, k - 1] + chi[i, j + 1, k - 1])
+                chiu = 0.5 * (chi[i, j, k + 1] + chi[i, j + 1, k + 1])
+
+                dchi_dyi =
+                    0.5 * (jac[i, j, k] + jac[i, j + 1, k]) * (chif - chib) /
+                    dy +
+                    0.5 *
+                    (
+                        jac[i, j, k] * met[i, j, k, 2, 3] +
+                        jac[i, j + 1, k] * met[i, j + 1, k, 2, 3]
+                    ) *
+                    (chiu - chid) / (2.0 * dz)
+
+                gchi[i, j, k] -= coef_t * dchi_dyi
+            end
+
+            #----------------------------------
+            # Vertical fluxes 
+            #----------------------------------
+            @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+                coef_t =
+                    (
+                        jac[i, j, k + 1] * kh[i, j, k] +
+                        jac[i, j, k] * kh[i, j, k + 1]
+                    ) / (jac[i, j, k + 1] + jac[i, j, k])
+
+                chil =
+                    (
+                        jac[i - 1, j, k + 1] * chi[i - 1, j, k] +
+                        jac[i - 1, j, k] * chi[i - 1, j, k + 1]
+                    ) / (jac[i - 1, j, k + 1] + jac[i - 1, j, k])
+
+                chir =
+                    (
+                        jac[i + 1, j, k + 1] * chi[i + 1, j, k] +
+                        jac[i + 1, j, k] * chi[i + 1, j, k + 1]
+                    ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
+
+                chib =
+                    (
+                        jac[i, j - 1, k + 1] * chi[i, j - 1, k] +
+                        jac[i, j - 1, k] * chi[i, j - 1, k + 1]
+                    ) / (jac[i, j - 1, k + 1] + jac[i, j - 1, k])
+
+                chif =
+                    (
+                        jac[i, j + 1, k + 1] * chi[i, j + 1, k] +
+                        jac[i, j + 1, k] * chi[i, j + 1, k + 1]
+                    ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
+
+                chid = chi[i, j, k]
+                chiu = chi[i, j, k + 1]
+
+                dchi_dzi =
+                    jac[i, j, k] *
+                    jac[i, j, k + 1] *
+                    (
+                        (met[i, j, k, 1, 3] + met[i, j, k + 1, 1, 3]) *
+                        (chir - chil) / (2.0 * dx) +
+                        (met[i, j, k, 2, 3] + met[i, j, k + 1, 2, 3]) *
+                        (chif - chib) / (2.0 * dy) +
+                        (met[i, j, k, 3, 3] + met[i, j, k + 1, 3, 3]) *
+                        (chiu - chid) / dz
+                    ) / (jac[i, j, k] + jac[i, j, k + 1])
+
+                hchi[i, j, k] -= coef_t * dchi_dzi
+            end
         end
     end
 
