@@ -13,28 +13,21 @@ Construct a `TurbulenceAuxiliaries` instance with both fields set to ``t_\\mathr
 
 # Fields
 
-  - `tkebg::A`: Background value of the turbulent kinetic energy.
-
 # Arguments
 
   - `constants`: Physical constants and reference values.
 """
 struct TurbulenceAuxiliaries{
-    A <: AbstractFloat,
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 1},
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 1},
 }
-    tkebg::A
-    km::B
-    kh::B
-    kek::B
-    athomas::C
-    bthomas::C
-    cthomas::C
-    fthomas::C
-    qthomas::C 
-    shearproduction::B 
-    buoyancyproduction::B
+    athomas::B
+    bthomas::B
+    cthomas::B
+    fthomas::B
+    qthomas::B 
+    shearproduction::A 
+    buoyancyproduction::A
 end
 
 function TurbulenceAuxiliaries(
@@ -45,10 +38,6 @@ function TurbulenceAuxiliaries(
     (; lref, tref) = constants
     (; tke) = turbulencepredictands
 
-    tkebg = 1.0E-8
-    km = zeros(size(tke))
-    kh = zeros(size(tke))
-    kek = zeros(size(tke))
     athomas = zeros(size(tke)[3])
     bthomas = zeros(size(tke)[3])
     cthomas = zeros(size(tke)[3])
@@ -58,10 +47,6 @@ function TurbulenceAuxiliaries(
     buoyancyproduction = zeros(size(tke))
 
     return TurbulenceAuxiliaries(
-        tkebg,
-        km,
-        kh,
-        kek,
         athomas,
         bthomas,
         cthomas,

@@ -57,13 +57,9 @@ function turbulence_integration!(
     process::Dissipation,
 )
     (; tke) = state.turbulence.turbulencepredictands
-    (; lref) = state.constants
-    (; lturb) = state.turbulence.turbulenceconstants
+    (; lturb_ndim) = state.turbulence.turbulenceconstants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
-
-    lturb_ndim = lturb / lref
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         tke[i, j, k] =
@@ -111,8 +107,9 @@ function turbulence_integration!(
     (; tke) = state.turbulence.turbulencepredictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
-    (; kek, athomas, bthomas, cthomas, fthomas, qthomas, fthomas) =
+    (; athomas, bthomas, cthomas, fthomas, qthomas, fthomas) =
         state.turbulence.turbulenceauxiliaries
+    (; kek) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 

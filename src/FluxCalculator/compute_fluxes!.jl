@@ -522,7 +522,7 @@ function compute_fluxes!(
     (; phiu) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
     (; turbulence_scheme, momentum_coupling) = state.namelists.turbulence
-    (; km) = state.turbulence.turbulenceauxiliaries
+    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -919,7 +919,7 @@ function compute_fluxes!(
     (; phiv) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
     (; turbulence_scheme, momentum_coupling) = state.namelists.turbulence
-    (; km) = state.turbulence.turbulenceauxiliaries
+    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1316,7 +1316,7 @@ function compute_fluxes!(
     (; phiw) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
     (; turbulence_scheme, momentum_coupling) = state.namelists.turbulence
-    (; km) = state.turbulence.turbulenceauxiliaries
+    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1792,8 +1792,8 @@ function compute_fluxes!(
     (; thermal_conductivity) = state.namelists.atmosphere
     (; uref, lref) = state.constants
     (; rho) = predictands
-    (; turbulence_scheme, momentum_coupling) = state.namelists.turbulence
-    (; kh) = state.turbulence.turbulenceauxiliaries
+    (; turbulence_scheme, entropy_coupling) = state.namelists.turbulence
+    (; kh) = state.turbulence.turbulencediffusioncoefficients
 
     if thermal_conductivity == 0.0 && turbulence_scheme == NoTurbulence()
         return
@@ -1946,7 +1946,7 @@ function compute_fluxes!(
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
     end
 
-    if turbulence_scheme == NoTurbulence() || momentum_coupling == false
+    if turbulence_scheme == NoTurbulence() || entropy_coupling == false
         return
     end
 

@@ -629,7 +629,6 @@ function apply_lhs_sponge!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; tke) = state.turbulence.turbulencepredictands
-    (; tkebg) = state.turbulence.turbulenceauxiliaries
     (; tkemin) = state.turbulence.turbulenceconstants
     (; rhobar) = state.atmosphere
 

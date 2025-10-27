@@ -249,8 +249,9 @@ function compute_volume_force(
     k::Integer,
     variables::TKE,
 )::AbstractFloat
-    (; km, kh, shearproduction, buoyancyproduction) =
+    (; shearproduction, buoyancyproduction) =
         state.turbulence.turbulenceauxiliaries
+    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
     (; rho) = p0
     (; rhobar, n2, pbar, thetabar) = state.atmosphere
     (; jac, dz) = state.grid

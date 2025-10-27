@@ -54,31 +54,28 @@ function compute_turbulence_diffusion!(
     state::State,
     turbulence_scheme::TKEScheme,
 )
-    (; lturb, ck) = state.turbulence.turbulenceconstants
-    (; kh, km, kek) = state.turbulence.turbulenceauxiliaries
+    (; lturb_ndim, prandtlinv) = state.turbulence.turbulenceconstants
+    (; kh, km, kek) = state.turbulence.turbulencediffusioncoefficients
     (; tke) = state.turbulence.turbulencepredictands
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; k0, k1, j0, j1, i0, i1) = state.domain
-    (; lref, tref) = state.constants
-
-    lturb_ndim = lturb / lref
 
     check_tke!(state)
     kh[i0:i1, j0:j1, k0:k1] .=
-        ck .* lturb_ndim .*
+        prandtlinv .* lturb_ndim .*
         sqrt.(
             tke[i0:i1, j0:j1, k0:k1] ./
             (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
     km[i0:i1, j0:j1, k0:k1] .=
-        ck .* lturb_ndim .*
+        lturb_ndim .*
         sqrt.(
             tke[i0:i1, j0:j1, k0:k1] ./
             (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
     kek[i0:i1, j0:j1, k0:k1] .=
-        ck .* lturb_ndim .*
+        lturb_ndim .*
         sqrt.(
             tke[i0:i1, j0:j1, k0:k1] ./
             (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])

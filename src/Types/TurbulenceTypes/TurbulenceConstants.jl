@@ -31,20 +31,24 @@ Free parameters:
 struct TurbulenceConstants{A <: AbstractFloat}
 
     # Dissipation constant
-    ck::A
     lturb::A
+    lturb_ndim::A
     tkemin::A
+    prandtl::A
+    prandtlinv::A
 end
 
 function TurbulenceConstants(
     namelists::Namelists,
     constants::Constants,
 )::TurbulenceConstants
-    (; lref, tref, rhoref) = constants
+    (; lref, tref) = constants
 
-    ck = 0.1
-    lturb = 1.0E+2
+    lturb = 30.0
+    lturb_ndim = lturb / lref
     tkemin = 5.E-5 * tref^2.0 / lref^2.0
+    prandtl = 0.85
+    prandtlinv = 1.0 / prandtl
 
-    return TurbulenceConstants(ck, lturb, tkemin)
+    return TurbulenceConstants(lturb, lturb_ndim, tkemin, prandtl, prandtlinv)
 end

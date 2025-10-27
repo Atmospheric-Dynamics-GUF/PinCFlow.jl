@@ -223,10 +223,10 @@ function set_zonal_boundaries!(
     variables::BoundaryDiffusionCoefficients,
 )
     (; namelists, domain) = state
-    (; turbulenceauxiliaries) = state.turbulence
+    (; turbulencediffusioncoefficients) = state.turbulence
     for field in (:kh, :km, :kek)
         set_zonal_boundaries_of_field!(
-            getfield(turbulenceauxiliaries, field),
+            getfield(turbulencediffusioncoefficients, field),
             namelists,
             domain,
         )

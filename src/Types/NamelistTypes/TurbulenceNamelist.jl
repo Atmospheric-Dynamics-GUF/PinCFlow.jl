@@ -20,11 +20,17 @@ Construct a `TurbulenceNamelist` instance with the given keyword arguments as pr
 struct TurbulenceNamelist{A <: AbstractTurbulence, B <: Bool}
     turbulence_scheme::A
     momentum_coupling::B
+    entropy_coupling::B
 end
 
 function TurbulenceNamelist(;
     turbulence_scheme::AbstractTurbulence = NoTurbulence(),
-    momentum_coupling=true
+    momentum_coupling::Bool = true,
+    entropy_coupling::Bool = true,
 )::TurbulenceNamelist
-    return TurbulenceNamelist(turbulence_scheme, momentum_coupling)
+    return TurbulenceNamelist(
+        turbulence_scheme,
+        momentum_coupling,
+        entropy_coupling,
+    )
 end
