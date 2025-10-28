@@ -131,7 +131,8 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn, large_scale
 	(; iceconstants) = state.ice
 	(; icesource, icepredictands, sgstendencies, sgs, sgspredictands, sgsauxiliaries) = state.ice
 	#(; iceauxiliaries) = state.ice
-	(; kappainv, pref, Li_hat, gamma) = state.constants
+	(; kappainv, pref, gamma) = state.constants
+	(;Li_hat)= iceconstants
 	(; press0_dim) = state.namelists.atmosphere
 
 	p0 = press0_dim / pref
@@ -251,7 +252,8 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 	(; iceconstants) = state.ice
 	(; icesource) = state.ice
 	(; iceauxiliaries) = state.ice
-	(; kappainv, pref, gamma, Li_hat) = state.constants
+	(; kappainv, pref, gamma) = state.constants
+	(; Li_hat) = iceconstants
 	(; press0_dim) = state.namelists.atmosphere
 
 	p0 = press0_dim / pref
@@ -286,7 +288,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 
 				dotPiPrime = w[i, j, k] * dPdz
 
-				#CHANGES***if state.setting.testcase isa WKBMultipleWavePackets
+				if state.setting.testcase isa WKBMultipleWavePackets
 
 					wPrime = state.ice.sgs.wwp[i, j, k]
 
@@ -299,7 +301,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 
 					dotPiPrime = dotPiPrime + wPrime * dPdz
 
-				##**end
+				end
 
 				FORgw = dotPiPrime * S_c
 

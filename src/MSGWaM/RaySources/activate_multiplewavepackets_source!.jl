@@ -92,7 +92,7 @@ function activate_multiplewavepackets_source!(
 	#(; u, v) = state.variables.predictands
 	#(; zb) = state.wkb
 
-    if random_wavepackets
+	if random_wavepackets
 		construct_random_wavepackets!(state.namelists.multiwavepackets, state.namelists.domain, state.namelists.setting.testcase)
 	end
 

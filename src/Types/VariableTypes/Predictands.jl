@@ -368,7 +368,7 @@ function Predictands(
 	(; x, y, ztfc, jac, met) = grid
 	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
 		x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
-		a0, branch, nwm) = namelists.multiwavepackets
+		a0, branch, nwm, random_wavepackets) = namelists.multiwavepackets
 
 	# Initialize the predictands.
 	(rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
@@ -378,6 +378,10 @@ function Predictands(
 	u .= backgroundflow_dim[1] / uref
 	v .= backgroundflow_dim[2] / uref
 	w .= backgroundflow_dim[3] / uref
+
+	if random_wavepackets
+		construct_random_wavepackets!(namelists.multiwavepackets, namelists.domain, testcase)
+	end
 
 	for iwm in 1:nwm
 

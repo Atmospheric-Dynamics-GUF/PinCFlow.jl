@@ -72,7 +72,8 @@ function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 
 			n2r = interpolate_stratification(zr, state, N2())
 
-			omir = branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+			omir = 
+					branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
 			#cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
 			#cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
@@ -142,7 +143,7 @@ function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 											   max((zr - dzr * 0.5),
 											zsc - dzsc * jac[ix, jy, kz] * 0.5))
 
-										fcpspz = dmr * dzi / jac[ix, jy, kz] / dzc
+										fcpspz = dmr * dzi / jac[ix, jy, kz] / dzsc
 
 										fcpswn = fcpspz * fcpspy * fcpspx
 

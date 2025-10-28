@@ -16,7 +16,7 @@ Module for composite types needed by the ice-physics scheme.
 module IceTypes
 
 using ..NamelistTypes
-using ..FoundationalTypes
+using ..FoundationalTypes  
 using ..VariableTypes
 
 include("IceConstants.jl")

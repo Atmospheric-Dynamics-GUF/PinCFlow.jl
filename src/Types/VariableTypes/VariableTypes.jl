@@ -16,6 +16,7 @@ module VariableTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 
+include("../../MSGWaM/RaySources/construct_random_wavepackets!.jl")
 include("Predictands.jl")
 include("Increments.jl")
 include("Backups.jl")

@@ -23,11 +23,11 @@ domain::DomainNamelist, testcase::AbstractTestCase)
     if testcase isa MultipleWavePackets
 
         #check if resolution is sufficient for resolving the waves
-        if ((lx_dim[2]-lx_dim[1])/sizex > int_b_lambdax_dim/10.)
+        if ((lx_dim[2]-lx_dim[1])/sizex < int_b_lambdax_dim/10.)
             println("Resolution in x-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
             exit(1)
         end
-        if ((lz_dim[2]-lz_dim[1])/sizez > int_b_lambdaz_dim/10.)
+        if ((lz_dim[2]-lz_dim[1])/sizez < int_b_lambdaz_dim/10.)
             println("Resolution in z-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
             exit(1)
         end    
