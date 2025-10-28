@@ -1,6 +1,20 @@
 """
 ```julia
-DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}, C <: MPI.Comm}
+DomainNamelist{
+    A <: Integer,
+    B <: Integer,
+    C <: Integer,
+    D <: Integer,
+    E <: Integer,
+    F <: Integer,
+    G <: AbstractFloat,
+    H <: AbstractFloat,
+    I <: AbstractFloat,
+    J <: Integer,
+    K <: Integer,
+    L <: Integer,
+    M <: MPI.Comm,
+}
 ```
 
 Namelist for parameters describing the model domain.
@@ -29,44 +43,58 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
   - `x_size::A`: Number of grid cells in ``\\widehat{x}``-direction.
 
-  - `y_size::A`: Number of grid cells in ``\\widehat{y}``-direction.
+  - `y_size::B`: Number of grid cells in ``\\widehat{y}``-direction.
 
-  - `z_size::A`: Number of grid cells in ``\\widehat{z}``-direction.
+  - `z_size::C`: Number of grid cells in ``\\widehat{z}``-direction.
 
-  - `nbx::A`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
+  - `nbx::D`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
 
-  - `nby::A`: Number of boundary/halo cells in ``\\widehat{y}``-direction.
+  - `nby::E`: Number of boundary/halo cells in ``\\widehat{y}``-direction.
 
-  - `nbz::A`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
+  - `nbz::F`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
 
-  - `lx::B`: Domain extent in ``\\widehat{x}``-direction.
+  - `lx::G`: Domain extent in ``\\widehat{x}``-direction.
 
-  - `ly::B`: Domain extent in ``\\widehat{y}``-direction.
+  - `ly::H`: Domain extent in ``\\widehat{y}``-direction.
 
-  - `lz::B`: Domain extent in ``\\widehat{z}``-direction.
+  - `lz::I`: Domain extent in ``\\widehat{z}``-direction.
 
-  - `npx::A`: Number of MPI processes in ``\\widehat{x}``-direction.
+  - `npx::J`: Number of MPI processes in ``\\widehat{x}``-direction.
 
-  - `npy::A`: Number of MPI processes in ``\\widehat{y}``-direction.
+  - `npy::K`: Number of MPI processes in ``\\widehat{y}``-direction.
 
-  - `npz::A`: Number of MPI processes in ``\\widehat{z}``-direction.
+  - `npz::L`: Number of MPI processes in ``\\widehat{z}``-direction.
 
-  - `base_comm::C`: MPI base communicator.
+  - `base_comm::M`: MPI base communicator.
 """
-struct DomainNamelist{A <: Integer, B <: AbstractFloat, C <: MPI.Comm}
+struct DomainNamelist{
+    A <: Integer,
+    B <: Integer,
+    C <: Integer,
+    D <: Integer,
+    E <: Integer,
+    F <: Integer,
+    G <: AbstractFloat,
+    H <: AbstractFloat,
+    I <: AbstractFloat,
+    J <: Integer,
+    K <: Integer,
+    L <: Integer,
+    M <: MPI.Comm,
+}
     x_size::A
-    y_size::A
-    z_size::A
-    nbx::A
-    nby::A
-    nbz::A
-    lx::B
-    ly::B
-    lz::B
-    npx::A
-    npy::A
-    npz::A
-    base_comm::C
+    y_size::B
+    z_size::C
+    nbx::D
+    nby::E
+    nbz::F
+    lx::G
+    ly::H
+    lz::I
+    npx::J
+    npy::K
+    npz::L
+    base_comm::M
 end
 
 function DomainNamelist(;

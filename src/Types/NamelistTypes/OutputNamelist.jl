@@ -3,9 +3,16 @@
 OutputNamelist{
     A <: Tuple{Vararg{Symbol}},
     B <: Bool,
-    C <: Integer,
-    D <: AbstractFloat,
-    E <: AbstractString,
+    C <: Bool,
+    D <: Bool,
+    E <: Integer,
+    F <: Bool,
+    G <: Integer,
+    H <: Integer,
+    I <: AbstractFloat,
+    J <: AbstractFloat,
+    K <: AbstractString,
+    L <: AbstractString,
 }
 ```
 
@@ -36,45 +43,52 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
 
   - `save_ray_volumes::B`: A boolean indicating whether to write ray-volume data.
 
-  - `prepare_restart::B`: A boolean indicating whether to write all variables needed for restart simulations.
+  - `prepare_restart::C`: A boolean indicating whether to write all variables needed for restart simulations.
 
-  - `restart::B`: A boolean indicating whether to initialize with data from a previous state (as written in `input_file`).
+  - `restart::D`: A boolean indicating whether to initialize with data from a previous state (as written in `input_file`).
 
-  - `iin::C`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations.
+  - `iin::E`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations.
 
-  - `output_steps::B`: If set to `true`, write output every `nout` time steps.
+  - `output_steps::F`: If set to `true`, write output every `nout` time steps.
 
-  - `nout::C`: Output interval (in indices) if `output_steps == true`.
+  - `nout::G`: Output interval (in indices) if `output_steps == true`.
 
-  - `iterations::C`: Maximum number of iterations if `output_steps == true`.
+  - `iterations::H`: Maximum number of iterations if `output_steps == true`.
 
-  - `output_interval::D`: Output interval (in physical time) if `output_steps == false`.
+  - `output_interval::I`: Output interval (in physical time) if `output_steps == false`.
 
-  - `tmax::D`: Simulation time if `output_steps == false`.
+  - `tmax::J`: Simulation time if `output_steps == false`.
 
-  - `input_file::E`: File from which to read input data in restart simulations.
+  - `input_file::K`: File from which to read input data in restart simulations.
 
-  - `output_file::E`: File to which output data is written.
+  - `output_file::L`: File to which output data is written.
 """
 struct OutputNamelist{
     A <: Tuple{Vararg{Symbol}},
     B <: Bool,
-    C <: Integer,
-    D <: AbstractFloat,
-    E <: AbstractString,
+    C <: Bool,
+    D <: Bool,
+    E <: Integer,
+    F <: Bool,
+    G <: Integer,
+    H <: Integer,
+    I <: AbstractFloat,
+    J <: AbstractFloat,
+    K <: AbstractString,
+    L <: AbstractString,
 }
     output_variables::A
     save_ray_volumes::B
-    prepare_restart::B
-    restart::B
-    iin::C
-    output_steps::B
-    nout::C
-    iterations::C
-    output_interval::D
-    tmax::D
-    input_file::E
-    output_file::E
+    prepare_restart::C
+    restart::D
+    iin::E
+    output_steps::F
+    nout::G
+    iterations::H
+    output_interval::I
+    tmax::J
+    input_file::K
+    output_file::L
 end
 
 function OutputNamelist(;
