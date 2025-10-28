@@ -85,12 +85,16 @@ function activate_multiplewavepackets_source!(
 	(; tref, lref) = state.constants
 	(; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
 	(; ztfc, x, y) = state.grid
-	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
+	(; random_wavepackets, wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
 		x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
 		a0, nwm) = state.namelists.multiwavepackets
 	(; rhostrattfc, bvsstrattfc) = state.atmosphere
 	#(; u, v) = state.variables.predictands
 	#(; zb) = state.wkb
+
+    if random_wavepackets
+		construct_random_wavepackets!(state.namelists.multiwavepackets, state.namelists.domain, state.namelists.setting.testcase)
+	end
 
 	# Set Coriolis parameter.
 	fc = coriolis_frequency * tref

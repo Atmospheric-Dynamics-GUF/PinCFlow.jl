@@ -50,7 +50,7 @@ Construct a `WavePacketNamelist` instance with the given keyword arguments as pr
 
   - `branch::B`: Frequency branch.
 """
-struct MultiWavePacketNamelist{A <: AbstractArray{<:AbstractFloat, 1}, B <: AbstractArray{<:Integer, 1}, C <: Integer } 
+struct MultiWavePacketNamelist{A <: AbstractArray{<:AbstractFloat, 1}, B <: AbstractArray{<:Integer, 1}, C <: Integer, E <: Bool} 
     wavepacketdim::B
     lambdax_dim::A
     lambday_dim::A
@@ -63,21 +63,24 @@ struct MultiWavePacketNamelist{A <: AbstractArray{<:AbstractFloat, 1}, B <: Abst
     sigmaz_dim::A
     a0::A
     nwm::C
+    branch::B
+    random_wavepackets:: E
 end
-
 function MultiWavePacketNamelist(;
     nwm = 1,
-    wavepacketdim = [1],
-    lambdax_dim = [1.0E+3],
-    lambday_dim = [0.0E+0],
-    lambdaz_dim = [1.0E+3],
-    x0_dim = [5.0E+3],
-    y0_dim = [1.0E+3],
-    z0_dim = [1.0E+4],
-    sigmax_dim = [0.0E+0],
-    sigmay_dim = [0.0E+0],
-    sigmaz_dim = [2.0E+3],
-    a0 = [9.0E-1],
+    wavepacketdim = ones(Int, nwm),
+    lambdax_dim = ones(Float64, nwm) * 1.0E+3,
+    lambday_dim = ones(Float64, nwm) * 0.0E+0,
+    lambdaz_dim = ones(Float64, nwm) * 1.0E+3,
+    x0_dim = ones(Float64, nwm) * 5.0E+3,
+    y0_dim = ones(Float64, nwm) * 1.0E+3,
+    z0_dim = ones(Float64, nwm) * 1.0E+4,
+    sigmax_dim = ones(Float64, nwm) * 0.0E+0,
+    sigmay_dim = ones(Float64, nwm) * 0.0E+0,
+    sigmaz_dim = ones(Float64, nwm) * 2.0E+3,
+    a0 = ones(Float64, nwm) * 9.0E-1,
+    branch = ones(Int, nwm),
+    random_wavepackets = false,
 )::MultiWavePacketNamelist
     return MultiWavePacketNamelist(
         wavepacketdim,
@@ -92,81 +95,8 @@ function MultiWavePacketNamelist(;
         sigmaz_dim,
         a0,
         nwm,
+        branch,
+        random_wavepackets,
     )
 end
-
-# function MultiWavePacketNamelist(random_wavepackets::RandomWavePackets, number_wavepackets::Integer, domain::DomainNamelist, testcase::AbstractTestCase)
-
-#     nwm = number_wavepackets
-#      wavepacketdim = ones(Int, nwm)
-
-#     # define range for random wavelengths x-direction
-#     int_b_lambdax_dim = 1.e4
-#     int_e_lambdax_dim = 1.e5
-
-#     if testcase isa MultipleWavePackets
-#         #check if resolution is sufficient
-#         if ((lx_dim[2]-lx_dim[1])/sizex > int_b_lambdax_dim/10.)
-#             println("Resolution in x-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
-#             exit(1)
-#         end
-#         if ((lz_dim[2]-lz_dim[1])/sizez > int_b_lambdaz_dim/10.)
-#             println("Resolution in z-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
-#             exit(1)
-#         end    
-
-#     elseif !(testcase isa WKBMultipleWavePackets)
-#         println("only testcase=MultipleWavePackets or WKBMultipleWavePacket for  random wavepackets !!! ")
-#         exit(1)    
-
-#     end
-
-#     # define range for random wavelengths z-direction
-#     int_b_lambdaz_dim = 1.e3
-#     int_e_lambdaz_dim = 2.e3
-
-#     int_b_x0_dim = domain.lx_dim[2]/2.
-#     int_e_x0_dim = domain.lx_dim[2]/2.
-
-#     z0_issr = 8.e3 # [m] to be consistent with the value in IcePredictands.jl
-#     int_b_z0_dim = z0_issr - 2.e+3
-#     int_e_z0_dim = z0_issr + 2.e+3
-    
-#     # random width envelope
-#     int_b_sigmaz_dim = 1.0E+4
-#     int_e_sigmaz_dim = 2.0E+4
-
-#     # random amplitude
-#     int_b_a0 = 0.1E+0
-#     int_e_a0 = 1.0E+0
-
-#     a0 = int_b_a0 .+ (int_e_a0 - int_b_a0) .* rand(Float64, nwm)
-
-#     x0_dim = int_b_x0_dim .+ (int_e_x0_dim - int_b_x0_dim) .* rand(Float64, nwm)
-#     y0_dim = 1.e+3 .* ones(Float64, nwm)
-#     z0_dim = int_b_z0_dim .+ (int_e_z0_dim - int_b_z0_dim) .* rand(Float64, nwm)
-
-#     lambdax_dim = int_b_lambdax_dim .+ (int_e_lambdax_dim - int_b_lambdax_dim) .* rand(Float64, nwm)
-#     lambday_dim = zeros(Float64, nwm)
-#     lambdaz_dim = int_b_lambdaz_dim .+ (int_e_lambdaz_dim - int_b_lambdaz_dim) .* rand(Float64, nwm)
-
-#      sigmax_dim = zeros(Float64, nwm)
-#      sigmay_dim = zeros(Float64, nwm)
-#      sigmaz_dim = int_b_sigmaz_dim .+ (int_e_sigmaz_dim - int_b_sigmaz_dim) .* rand(Float64, nwm)
-
-#     return MultiWavePacketNamelist(
-#         wavepacketdim,
-#         lambdax_dim,
-#         lambday_dim,
-#         lambdaz_dim,
-#         x0_dim,
-#         y0_dim,
-#         z0_dim,
-#         sigmax_dim,
-#         sigmay_dim,
-#         sigmaz_dim,
-#         a0,
-#         nwm,
-#     )
-# end    
 

@@ -11,12 +11,16 @@ function compute_msgwam_ice!(state::State, icesetup::NoIce)
 end
 
 function compute_msgwam_ice!(state::State, icesetup::IceOn)
-	(; wkb_mode) = state.namelists.wkb
-	compute_msgwam_ice!(state, wkb_mode)
+	(; testcase) = state.namelists.setting
+	compute_msgwam_ice!(state, testcase)
 	return
 end
 
-function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
+function compute_msgwam_ice!(state::State, testcase::AbstractTestCase)
+	return
+end
+
+function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 	(; domain, grid) = state
 	(; sizex, sizey) = state.namelists.domain
 	(; coriolis_frequency) = state.namelists.atmosphere
@@ -68,8 +72,7 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 
 			n2r = interpolate_stratification(zr, state, N2())
 
-			omir =
-				branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+			omir = branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
 			#cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
 			#cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
@@ -139,7 +142,7 @@ function compute_msgwam_ice!(state::State, wkb_mode::MultiColumn)
 											   max((zr - dzr * 0.5),
 											zsc - dzsc * jac[ix, jy, kz] * 0.5))
 
-										fcpspz = dmr * dzi / jac[ix, jy, kz] / dzsc
+										fcpspz = dmr * dzi / jac[ix, jy, kz] / dzc
 
 										fcpswn = fcpspz * fcpspy * fcpspx
 
