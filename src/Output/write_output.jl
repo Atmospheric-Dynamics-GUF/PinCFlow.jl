@@ -342,6 +342,7 @@ function write_output(
                     jj,
                     kk,
                 ] .* lref .^ 2 ./ tref .^ 3
+
             HDF5.set_extent_dims(
                 file["buoyancy-production"],
                 (x_size, y_size, z_size, iout),

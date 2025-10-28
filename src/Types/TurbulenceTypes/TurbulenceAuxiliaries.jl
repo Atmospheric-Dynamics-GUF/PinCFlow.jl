@@ -25,8 +25,8 @@ struct TurbulenceAuxiliaries{
     bthomas::B
     cthomas::B
     fthomas::B
-    qthomas::B 
-    shearproduction::A 
+    qthomas::B
+    shearproduction::A
     buoyancyproduction::A
 end
 

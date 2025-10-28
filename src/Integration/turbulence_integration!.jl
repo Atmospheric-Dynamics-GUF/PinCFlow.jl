@@ -148,17 +148,13 @@ function turbulence_integration!(
         fthomas[k0] = fthomas[k0] / bthomas[k0]
 
         for k in (k0 + 1):k1
-            p =
-                1.0 /
-                (bthomas[k] + athomas[k] * qthomas[k - 1])
+            p = 1.0 / (bthomas[k] + athomas[k] * qthomas[k - 1])
             qthomas[k] = -cthomas[k] * p
-            fthomas[k] =
-                (fthomas[k] - athomas[k] * fthomas[k - 1]) * p
+            fthomas[k] = (fthomas[k] - athomas[k] * fthomas[k - 1]) * p
         end
 
         for k in (k1 - 1):-1:k0
-            fthomas[k] =
-                fthomas[k] + qthomas[k] * fthomas[k + 1]
+            fthomas[k] = fthomas[k] + qthomas[k] * fthomas[k + 1]
         end
 
         tke[i, j, :] .= fthomas[:]

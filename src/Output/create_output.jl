@@ -256,7 +256,10 @@ function create_output(state::State)
             end
         end
 
-        if !(typeof(state.namelists.turbulence.turbulence_scheme) <: NoTurbulence)
+        if !(
+            typeof(state.namelists.turbulence.turbulence_scheme) <:
+            NoTurbulence
+        )
             for field in fieldnames(TurbulencePredictands)
                 create_dataset(
                     file,
@@ -271,25 +274,36 @@ function create_output(state::State)
             end
 
             create_dataset(
-                    file,
-                    "shear-production",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
+                file,
+                "shear-production",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
             )
 
             create_dataset(
-                    file,
-                    "buoyancy-production",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
+                file,
+                "buoyancy-production",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
+            )
+
+            create_dataset(
+                file,
+                "phiu1",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
             )
         end
 

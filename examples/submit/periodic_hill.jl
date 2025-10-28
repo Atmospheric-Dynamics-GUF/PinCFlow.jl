@@ -28,11 +28,17 @@ domain = DomainNamelist(;
 grid = GridNamelist(;
     resolved_topography = (x, y) -> 5 * (1 + cos(pi / 10000 * x)),
 )
-output =
-    OutputNamelist(; output_variables = (:w, :chi), output_file = "periodic_hill.h5",
-    tmax = 3600., output_interval = 3600.)
+output = OutputNamelist(;
+    output_variables = (:w, :chi),
+    output_file = "periodic_hill.h5",
+    tmax = 3600.0,
+    output_interval = 3600.0,
+)
 sponge = SpongeNamelist(; betarmax = 0.0E+0)
 turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
-tracer = TracerNamelist(; tracer_setup = TracerOn(), initial_tracer = (x, y, z) -> z)
+tracer =
+    TracerNamelist(; tracer_setup = TracerOn(), initial_tracer = (x, y, z) -> z)
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge, turbulence, tracer))
+integrate(
+    Namelists(; atmosphere, domain, grid, output, sponge, turbulence, tracer),
+)

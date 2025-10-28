@@ -1,6 +1,9 @@
 """
 ```julia
-set_turbulence_zonal_boundaries!(state::State, variables::AbstractBoundaryVariables)
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+)
 ```
 
 Enforce zonal boundary conditions for turbulences by dispatching to a turbulence-configuration-specific method.

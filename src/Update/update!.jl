@@ -1530,5 +1530,5 @@ function update!(
         tke[i, j, k] += betark[m] * dtke[i, j, k]
     end
 
-    return 
+    return
 end

@@ -119,7 +119,8 @@ function State(namelists::Namelists)::State
     variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, domain)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
-    turbulence = Turbulence(namelists, constants, domain, atmosphere, grid, variables)
+    turbulence =
+        Turbulence(namelists, constants, domain, atmosphere, grid, variables)
 
     return State(
         namelists,
@@ -133,6 +134,6 @@ function State(namelists::Namelists)::State
         variables,
         wkb,
         tracer,
-        turbulence
+        turbulence,
     )
 end

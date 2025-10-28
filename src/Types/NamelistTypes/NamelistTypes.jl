@@ -313,7 +313,7 @@ NoTurbulence <: AbstractTurbulence
 
 Singleton for model configurations without turbulence parameterization.
 """
-struct NoTurbulence <: AbstractTurbulence end 
+struct NoTurbulence <: AbstractTurbulence end
 
 """
 ```julia 
@@ -322,7 +322,7 @@ TKEScheme <: AbstractTurbulence
 
 Singleton for model configurations with turbulence parameterization using a TKE-Scheme.
 """
-struct TKEScheme <: AbstractTurbulence end 
+struct TKEScheme <: AbstractTurbulence end
 
 using MPI
 using ...PinCFlow

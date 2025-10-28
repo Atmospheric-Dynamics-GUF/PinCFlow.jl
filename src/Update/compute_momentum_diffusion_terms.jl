@@ -186,7 +186,7 @@ function compute_momentum_diffusion_terms(
     @ivy diffux =
         (u[i, j, k] - u[i - 1, j, k]) / dx +
         met[i, j, k, 1, 3] * (uu - ud) / (2.0 * dz)
-    
+
     return diffux
 end
 

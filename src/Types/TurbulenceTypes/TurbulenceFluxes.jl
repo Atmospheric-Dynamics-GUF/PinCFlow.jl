@@ -8,10 +8,7 @@ Arrays for fluxes of turbulence variables.
 The first three dimensions represent physical space and the fourth dimension represents the flux direction.
 
 ```julia
-TurbulenceFluxes(
-    namelists::Namelists,
-    domain::Domain,
-)::TurbulenceFluxes
+TurbulenceFluxes(namelists::Namelists, domain::Domain)::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
@@ -50,10 +47,7 @@ struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitke::A
 end
 
-function TurbulenceFluxes(
-    namelists::Namelists,
-    domain::Domain,
-)::TurbulenceFluxes
+function TurbulenceFluxes(namelists::Namelists, domain::Domain)::TurbulenceFluxes
     (; turbulence_scheme) = namelists.turbulence
 
     return TurbulenceFluxes(domain, turbulence_scheme)

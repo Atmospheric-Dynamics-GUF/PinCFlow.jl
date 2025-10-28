@@ -1,8 +1,6 @@
 """
 ```julia
-TurbulenceConstants{
-    A <: AbstractFloat,
-}
+TurbulenceConstants{A <: AbstractFloat}
 ```
 
 Composite type for the turbulence constants like the dissipation and diffusion co-efficients, closure and calibration constants, and the stability functions.

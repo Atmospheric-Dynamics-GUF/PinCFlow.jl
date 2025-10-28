@@ -34,18 +34,20 @@ domain = DomainNamelist(;
     npz,
 )
 output = OutputNamelist(;
-    output_variables = (:u, :w,),
+    output_variables = (:u, :w),
     output_file = "STIH_tke_with-coupling.h5",
-    output_interval = 3600.,
-    tmax = 3600.,
+    output_interval = 3600.0,
+    tmax = 3600.0,
 )
 sponge = SpongeNamelist(;
     alpharmax = 1.0,
     damp_horizontal_wind_on_rhs = true,
     relax_to_mean = false,
 )
-turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme(),
-momentum_coupling = true)
+turbulence = TurbulenceNamelist(;
+    turbulence_scheme = TKEScheme(),
+    momentum_coupling = true,
+)
 
 namelists = Namelists(; atmosphere, domain, output, sponge, turbulence)
 
