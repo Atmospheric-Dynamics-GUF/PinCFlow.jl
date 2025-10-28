@@ -58,6 +58,7 @@ function compute_time_step(state::State)::AbstractFloat
     (; tke) = state.turbulence.turbulencepredictands
     (; rhobar) = state.atmosphere
     (; turbulence_scheme) = state.namelists.turbulence
+    (; km, kh, kek) = state.turbulence.turbulencediffusioncoefficients
 
     @ivy if !adaptive_time_step
         dt = dtmax / tref
@@ -153,6 +154,21 @@ function compute_time_step(state::State)::AbstractFloat
                 ) + eps()
 
             dtturb = cfl_number * min(dx / uturb, dy / uturb, dz / uturb)
+
+            #dtturb = MPI.Allreduce(dtturb, min, comm)
+            for k in k0:k1, j in j0:j1, i in i0:i1
+                dtturbkm = 0.5 * min(dx^2, dy^2, dz^2) / km[i, j, k]
+                dtturbkm =
+                    min(dtturbkm, 0.5 * (jac[i, j, k] * dz)^2.0 / km[i, j, k])
+                dtturbkh = 0.5 * min(dx^2, dy^2, dz^2) / kh[i, j, k]
+                dtturbkh =
+                    min(dtturbkh, 0.5 * (jac[i, j, k] * dz)^2.0 / km[i, j, k])
+                dtturbkek = 0.5 * min(dx^2, dy^2, dz^2) / kek[i, j, k]
+                dtturbkek =
+                    min(dtturbkek, 0.5 * (jac[i, j, k] * dz)^2.0 / km[i, j, k])
+
+                dtturb = min(dtturb, dtturbkm, dtturbkh, dtturbkek)
+            end
 
             dtturb = MPI.Allreduce(dtturb, min, comm)
         end
