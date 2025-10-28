@@ -1,6 +1,37 @@
 """
 ```julia
-Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
+Domain{
+    AA <: MPI.Comm,
+    AB <: Bool,
+    AC <: Integer,
+    AD <: Integer,
+    AE <: Integer,
+    AF <: Integer,
+    AG <: Integer,
+    AH <: Integer,
+    AI <: Integer,
+    AJ <: Integer,
+    AK <: Integer,
+    AL <: Integer,
+    AM <: Integer,
+    AN <: Integer,
+    AO <: Integer,
+    AP <: Integer,
+    AQ <: Integer,
+    AR <: Integer,
+    AS <: Integer,
+    AT <: Integer,
+    AU <: Integer,
+    AV <: Integer,
+    AW <: Integer,
+    AX <: Integer,
+    AY <: Integer,
+    AZ <: Integer,
+    BA <: Integer,
+    BB <: Integer,
+    BC <: MPI.Comm,
+    BD <: MPI.Comm,
+}
 ```
 
 Collection of domain-decomposition and MPI-communication parameters.
@@ -17,127 +48,158 @@ If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first 
 
 General MPI communication:
 
-  - `comm::A`: MPI communicator with Cartesian topology for the computational domain.
+  - `comm::AA`: MPI communicator with Cartesian topology for the computational domain.
 
-  - `master::B`: Boolean flag indicating if this process is the master process (rank 0).
+  - `master::AB`: Boolean flag indicating if this process is the master process (rank 0).
 
-  - `rank::C`: MPI rank of this process within the communicator `comm`.
+  - `rank::AC`: MPI rank of this process within the communicator `comm`.
 
-  - `root::C`: Root process rank (0).
+  - `root::AD`: Root process rank (0).
 
 Dimensions of the MPI subdomain:
 
-  - `nx::C`: Number of physical grid points in ``\\widehat{x}``-direction.
+  - `nx::AE`: Number of physical grid points in ``\\widehat{x}``-direction.
 
-  - `ny::C`: Number of physical grid points in ``\\widehat{y}``-direction.
+  - `ny::AF`: Number of physical grid points in ``\\widehat{y}``-direction.
 
-  - `nz::C`: Number of physical grid points in ``\\widehat{z}``-direction.
+  - `nz::AG`: Number of physical grid points in ``\\widehat{z}``-direction.
 
-  - `nxx::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+  - `nxx::AH`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
 
-  - `nyy::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+  - `nyy::AI`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
 
-  - `nzz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
+  - `nzz::AJ`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
 
 Dimensions of the entire domain:
 
-  - `xx_size::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+  - `xx_size::AK`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
 
-  - `yy_size::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+  - `yy_size::AL`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
 
-  - `zz_size::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
+  - `zz_size::AM`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
 
 Index offsets and bounds:
 
-  - `io::C`: MPI offset in ``\\widehat{x}``-direction.
+  - `io::AN`: MPI offset in ``\\widehat{x}``-direction.
 
-  - `jo::C`: MPI offset in ``\\widehat{y}``-direction.
+  - `jo::AO`: MPI offset in ``\\widehat{y}``-direction.
 
-  - `ko::C`: MPI offset in ``\\widehat{z}``-direction.
+  - `ko::AP`: MPI offset in ``\\widehat{z}``-direction.
 
-  - `i0::C`: First physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+  - `i0::AQ`: First physical grid cell of the subdomain in ``\\widehat{x}``-direction.
 
-  - `i1::C`: Last physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+  - `i1::AR`: Last physical grid cell of the subdomain in ``\\widehat{x}``-direction.
 
-  - `j0::C`: First physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+  - `j0::AS`: First physical grid cell of the subdomain in ``\\widehat{y}``-direction.
 
-  - `j1::C`: Last physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+  - `j1::AT`: Last physical grid cell of the subdomain in ``\\widehat{y}``-direction.
 
-  - `k0::C`: First physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+  - `k0::AU`: First physical grid cell of the subdomain in ``\\widehat{z}``-direction.
 
-  - `k1::C`: Last physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+  - `k1::AV`: Last physical grid cell of the subdomain in ``\\widehat{z}``-direction.
 
 Neighbor-process ranks:
 
-  - `left::C`: Rank of the next process to the left (negative ``x``-direction).
+  - `left::AW`: Rank of the next process to the left (negative ``x``-direction).
 
-  - `right::C`: Rank of the next process to the right (positive ``x``-direction).
+  - `right::AX`: Rank of the next process to the right (positive ``x``-direction).
 
-  - `backward::C`: Rank of the next process to the back (negative ``y``-direction).
+  - `backward::AY`: Rank of the next process to the back (negative ``y``-direction).
 
-  - `forward::C`: Rank of the next process to the front (positive ``y``-direction).
+  - `forward::AZ`: Rank of the next process to the front (positive ``y``-direction).
 
-  - `down::C`: Rank of the next process to the bottom (negative ``z``-direction).
+  - `down::BA`: Rank of the next process to the bottom (negative ``z``-direction).
 
-  - `up::C`: Rank of the next process to the top (positive ``z``-direction).
+  - `up::BB`: Rank of the next process to the top (positive ``z``-direction).
 
 Horizontal and vertical communication:
 
-  - `layer_comm::A`: MPI communicator for processes in the same layer (i.e. with the same vertical index).
+  - `layer_comm::BC`: MPI communicator for processes in the same layer (i.e. with the same vertical index).
 
-  - `column_comm::A`: MPI communicator for processes in the same column (i.e. with the same horizontal indices).
+  - `column_comm::BD`: MPI communicator for processes in the same column (i.e. with the same horizontal indices).
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
 """
-struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
+struct Domain{
+    AA <: MPI.Comm,
+    AB <: Bool,
+    AC <: Integer,
+    AD <: Integer,
+    AE <: Integer,
+    AF <: Integer,
+    AG <: Integer,
+    AH <: Integer,
+    AI <: Integer,
+    AJ <: Integer,
+    AK <: Integer,
+    AL <: Integer,
+    AM <: Integer,
+    AN <: Integer,
+    AO <: Integer,
+    AP <: Integer,
+    AQ <: Integer,
+    AR <: Integer,
+    AS <: Integer,
+    AT <: Integer,
+    AU <: Integer,
+    AV <: Integer,
+    AW <: Integer,
+    AX <: Integer,
+    AY <: Integer,
+    AZ <: Integer,
+    BA <: Integer,
+    BB <: Integer,
+    BC <: MPI.Comm,
+    BD <: MPI.Comm,
+}
 
     # MPI variables.
-    comm::A
-    master::B
-    rank::C
-    root::C
+    comm::AA
+    master::AB
+    rank::AC
+    root::AD
 
     # Local grid size.
-    nx::C
-    ny::C
-    nz::C
+    nx::AE
+    ny::AF
+    nz::AG
 
     # Local grid size with boundary cells
-    nxx::C
-    nyy::C
-    nzz::C
+    nxx::AH
+    nyy::AI
+    nzz::AJ
 
     # Global grid size with boundary cells.
-    xx_size::C
-    yy_size::C
-    zz_size::C
+    xx_size::AK
+    yy_size::AL
+    zz_size::AM
 
     # Index offsets.
-    io::C
-    jo::C
-    ko::C
+    io::AN
+    jo::AO
+    ko::AP
 
     # Index bounds.
-    i0::C
-    i1::C
-    j0::C
-    j1::C
-    k0::C
-    k1::C
+    i0::AQ
+    i1::AR
+    j0::AS
+    j1::AT
+    k0::AU
+    k1::AV
 
     # Source and destination ranks for halos.
-    left::C
-    right::C
-    backward::C
-    forward::C
-    down::C
-    up::C
+    left::AW
+    right::AX
+    backward::AY
+    forward::AZ
+    down::BA
+    up::BB
 
     # Communicators for horizontal and vertical averages.
-    layer_comm::A
-    column_comm::A
+    layer_comm::BC
+    column_comm::BD
 end
 
 function Domain(namelists::Namelists)::Domain

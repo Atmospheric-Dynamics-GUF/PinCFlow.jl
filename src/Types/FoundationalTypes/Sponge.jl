@@ -2,8 +2,16 @@
 ```julia
 Sponge{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractFloat,
-    C <: AbstractVector{<:AbstractFloat},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractFloat,
+    D <: AbstractFloat,
+    E <: AbstractFloat,
+    F <: AbstractFloat,
+    G <: AbstractFloat,
+    H <: AbstractFloat,
+    I <: AbstractFloat,
+    J <: AbstractFloat,
+    K <: AbstractVector{<:AbstractFloat},
 }
 ```
 
@@ -23,31 +31,31 @@ Rayleigh-damping coefficients:
 
   - `alphar::A`: Coefficient of the LHS sponge (used in all prognostic equations).
 
-  - `betar::A`: Coefficient of the RHS sponge (used in the momentum equation).
+  - `betar::B`: Coefficient of the RHS sponge (used in the momentum equation).
 
 Vertical sponge extent:
 
-  - `zsponge::B`: Lower edge of both sponges.
+  - `zsponge::C`: Lower edge of both sponges.
 
-  - `dzsponge::B`: Vertical extent of both sponges.
+  - `dzsponge::D`: Vertical extent of both sponges.
 
 Horizontal sponge extent:
 
-  - `xsponge0::B`: Right edge of the LHS sponge.
+  - `xsponge0::E`: Right edge of the LHS sponge.
 
-  - `xsponge1::B`: Left edge of the LHS sponge.
+  - `xsponge1::F`: Left edge of the LHS sponge.
 
-  - `ysponge0::B`: Forward edge of the LHS sponge.
+  - `ysponge0::G`: Forward edge of the LHS sponge.
 
-  - `ysponge1::B`: Backward edge of the LHS sponge.
+  - `ysponge1::H`: Backward edge of the LHS sponge.
 
-  - `dxsponge::B`: Halved zonal extent of the LHS sponge.
+  - `dxsponge::I`: Halved zonal extent of the LHS sponge.
 
-  - `dysponge::B`: Halved meridional extent of the LHS sponge.
+  - `dysponge::J`: Halved meridional extent of the LHS sponge.
 
 Auxiliary array:
 
-  - `horizontal_mean::C`: Auxiliary array for the computation of horizontal means.
+  - `horizontal_mean::K`: Auxiliary array for the computation of horizontal means.
 
 # Arguments
 
@@ -59,28 +67,36 @@ Auxiliary array:
 """
 struct Sponge{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractFloat,
-    C <: AbstractVector{<:AbstractFloat},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractFloat,
+    D <: AbstractFloat,
+    E <: AbstractFloat,
+    F <: AbstractFloat,
+    G <: AbstractFloat,
+    H <: AbstractFloat,
+    I <: AbstractFloat,
+    J <: AbstractFloat,
+    K <: AbstractVector{<:AbstractFloat},
 }
 
     # Damping coefficients.
     alphar::A
-    betar::A
+    betar::B
 
     # Vertical sponge extent.
-    zsponge::B
-    dzsponge::B
+    zsponge::C
+    dzsponge::D
 
     # Lateral sponge extent.
-    xsponge0::B
-    xsponge1::B
-    ysponge0::B
-    ysponge1::B
-    dxsponge::B
-    dysponge::B
+    xsponge0::E
+    xsponge1::F
+    ysponge0::G
+    ysponge1::H
+    dxsponge::I
+    dysponge::J
 
     # Auxiliary array for horizontal means.
-    horizontal_mean::C
+    horizontal_mean::K
 end
 
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)::Sponge

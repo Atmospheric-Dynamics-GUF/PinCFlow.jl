@@ -1,6 +1,11 @@
 """
 ```julia
-Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}}
+Atmosphere{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
+    D <: AbstractArray{<:AbstractFloat, 3},
+}
 ```
 
 Composite type for atmospheric background fields.
@@ -214,11 +219,11 @@ and ``p_0``, ``T_0``, ``z_{\\mathrm{TP}}``, ``\\Gamma_{\\mathrm{TS}}``, ``\\Gamm
 
   - `pbar::A`: Mass-weighted potential temperature ``P \\left(z\\right)`` (``P \\left(x, y, z, t\\right)`` in compressible mode).
 
-  - `thetabar::A`: Background potential temperature ``\\overline{\\theta} \\left(z\\right)``.
+  - `thetabar::B`: Background potential temperature ``\\overline{\\theta} \\left(z\\right)``.
 
-  - `rhobar::A`: Background density ``\\overline{\\rho} \\left(z\\right)``.
+  - `rhobar::C`: Background density ``\\overline{\\rho} \\left(z\\right)``.
 
-  - `n2::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
+  - `n2::D`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
 
 # Arguments
 
@@ -238,11 +243,16 @@ and ``p_0``, ``T_0``, ``z_{\\mathrm{TP}}``, ``\\Gamma_{\\mathrm{TS}}``, ``\\Gamm
 
   - [`PinCFlow.Types.FoundationalTypes.compute_n2!`](@ref)
 """
-struct Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}}
+struct Atmosphere{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
+    D <: AbstractArray{<:AbstractFloat, 3},
+}
     pbar::A
-    thetabar::A
-    rhobar::A
-    n2::A
+    thetabar::B
+    rhobar::C
+    n2::D
 end
 
 function Atmosphere(
