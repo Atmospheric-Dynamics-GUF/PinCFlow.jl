@@ -61,7 +61,7 @@ Enforce meridional boundary conditions for reconstructions in non-Boussinesq mod
 ```julia
 set_meridional_boundaries!(
     state::State,
-    variables::AbstractWKBBoundaryVariables,
+    variables::AbstractBoundaryWKBVariables,
 )
 ```
 
@@ -227,7 +227,7 @@ end
 
 function set_meridional_boundaries!(
     state::State,
-    variables::AbstractWKBBoundaryVariables,
+    variables::AbstractBoundaryWKBVariables,
 )
     (; wkb_mode) = state.namelists.wkb
     set_meridional_boundaries!(state, variables, wkb_mode)

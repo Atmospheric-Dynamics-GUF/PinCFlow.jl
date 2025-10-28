@@ -5,7 +5,7 @@ set_boundaries!(
     variables::Union{
         BoundaryPredictands,
         BoundaryReconstructions,
-        AbstractWKBBoundaryVariables,
+        AbstractBoundaryWKBVariables,
     },
 )
 ```
@@ -45,7 +45,7 @@ function set_boundaries!(
     variables::Union{
         BoundaryPredictands,
         BoundaryReconstructions,
-        AbstractWKBBoundaryVariables,
+        AbstractBoundaryWKBVariables,
     },
 )
     set_zonal_boundaries!(state, variables)

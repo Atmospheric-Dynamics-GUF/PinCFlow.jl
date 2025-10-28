@@ -107,7 +107,7 @@ set_vertical_boundaries!(
 Enforce vertical boundary conditions for vertical fluxes in compressible mode.
 
 ```julia
-set_vertical_boundaries!(state::State, variables::AbstractWKBBoundaryVariables)
+set_vertical_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)
 ```
 
 Enforce vertical boundary conditions for WKB variables by dispatching to the appropriate method.
@@ -345,7 +345,7 @@ end
 
 function set_vertical_boundaries!(
     state::State,
-    variables::AbstractWKBBoundaryVariables,
+    variables::AbstractBoundaryWKBVariables,
 )
     (; wkb_mode) = state.namelists.wkb
     set_vertical_boundaries!(state, variables, wkb_mode)

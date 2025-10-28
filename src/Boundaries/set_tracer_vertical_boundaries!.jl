@@ -51,7 +51,7 @@ Enforce vertical boundary conditions for vertical tracer fluxes.
 ```julia
 set_tracer_vertical_boundaries!(
     state::State,
-    variables::AbstractWKBBoundaryVariables,
+    variables::AbstractBoundaryWKBVariables,
     tracer_setup::TracerOn,
 )
 ```
@@ -175,7 +175,7 @@ end
 
 function set_tracer_vertical_boundaries!(
     state::State,
-    variables::AbstractWKBBoundaryVariables,
+    variables::AbstractBoundaryWKBVariables,
     tracer_setup::TracerOn,
 )
     (; wkb_mode) = state.namelists.wkb

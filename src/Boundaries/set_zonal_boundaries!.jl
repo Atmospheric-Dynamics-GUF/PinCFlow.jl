@@ -59,7 +59,7 @@ set_zonal_boundaries!(
 Enforce zonal boundary conditions for reconstructions in non-Boussinesq modes.
 
 ```julia
-set_zonal_boundaries!(state::State, variables::AbstractWKBBoundaryVariables)
+set_zonal_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)
 ```
 
 Enforce zonal boundary conditions for WKB variables by dispatching to the appropriate method.
@@ -224,7 +224,7 @@ end
 
 function set_zonal_boundaries!(
     state::State,
-    variables::AbstractWKBBoundaryVariables,
+    variables::AbstractBoundaryWKBVariables,
 )
     (; wkb_mode) = state.namelists.wkb
     set_zonal_boundaries!(state, variables, wkb_mode)

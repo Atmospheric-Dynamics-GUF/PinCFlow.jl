@@ -38,7 +38,7 @@ Enforce zonal boundary conditions for tracer reconstructions.
 ```julia
 set_tracer_zonal_boundaries!(
     state::State,
-    variables::AbstractWKBBoundaryVariables,
+    variables::AbstractBoundaryWKBVariables,
     tracer_setup::TracerOn,
 )
 ```
@@ -138,7 +138,7 @@ end
 
 function set_tracer_zonal_boundaries!(
     state::State,
-    variables::AbstractWKBBoundaryVariables,
+    variables::AbstractBoundaryWKBVariables,
     tracer_setup::TracerOn,
 )
     (; wkb_mode) = state.namelists.wkb
