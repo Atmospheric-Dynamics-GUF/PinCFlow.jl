@@ -58,13 +58,14 @@ linf = (
 )
 reference = (l2, linf)
 
-@testset "wkb_mountain_wave" begin
+@testset "WKB mountain wave" begin
     test_example(
         joinpath(submit_directory, "wkb_mountain_wave.jl"),
         reference,
         :x_size => 10,
         :y_size => 10,
         :z_size => 10,
-        :output => OutputNamelist(; prepare_restart = true),
+        :output => OutputNamelist(; prepare_restart = true);
+        update_references,
     )
 end

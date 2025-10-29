@@ -3,33 +3,17 @@
 apply_saturation_scheme!(state::State, dt::AbstractFloat)
 ```
 
-Apply the saturation scheme by dispatching to a test-case-specific method.
-
-```julia
-apply_saturation_scheme!(
-    state::State,
-    dt::AbstractFloat,
-    test_case::AbstractTestCase,
-)
-```
-
-Return for non-WKB test cases.
-
-```julia
-apply_saturation_scheme!(
-    state::State,
-    dt::AbstractFloat,
-    test_case::AbstractWKBTestCase,
-)
-```
-
 Apply the saturation scheme by dispatching to a WKB-mode-specific method.
 
 ```julia
-apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::SteadyState)
+apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    wkb_mode::Union{NoWKB, SteadyState},
+)
 ```
 
-Return for steady-state configurations.
+Return for configurations without WKB / with steady-state WKB.
 
 In steady-state mode, saturation is handled by [`PinCFlow.MSGWaM.RayUpdate.propagate_rays!`](@ref).
 
@@ -37,7 +21,7 @@ In steady-state mode, saturation is handled by [`PinCFlow.MSGWaM.RayUpdate.propa
 apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SingleColumn, MultiColumn},
 )
 ```
 
@@ -69,8 +53,6 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - `dt`: Time step.
 
-  - `test_case`: Test case on which the current simulation is based.
-
   - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
@@ -84,24 +66,6 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 function apply_saturation_scheme! end
 
 function apply_saturation_scheme!(state::State, dt::AbstractFloat)
-    (; test_case) = state.namelists.setting
-    apply_saturation_scheme!(state, dt, test_case)
-    return
-end
-
-function apply_saturation_scheme!(
-    state::State,
-    dt::AbstractFloat,
-    test_case::AbstractTestCase,
-)
-    return
-end
-
-function apply_saturation_scheme!(
-    state::State,
-    dt::AbstractFloat,
-    test_case::AbstractWKBTestCase,
-)
     (; wkb_mode) = state.namelists.wkb
     apply_saturation_scheme!(state, dt, wkb_mode)
     return
@@ -110,7 +74,7 @@ end
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    wkb_mode::SteadyState,
+    wkb_mode::Union{NoWKB, SteadyState},
 )
     return
 end
@@ -118,7 +82,7 @@ end
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    wkb_mode::AbstractWKBMode,
+    wkb_mode::Union{SingleColumn, MultiColumn},
 )
     (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb

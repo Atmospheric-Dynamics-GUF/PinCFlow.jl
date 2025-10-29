@@ -9,7 +9,7 @@ Modify the wind with ``J P`` if the atmosphere is compressible by dispatching to
 modify_compressible_wind!(
     state::State,
     operation::Function,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -36,7 +36,7 @@ Interpolate ``J P`` to the wind grids and replace the wind components with the r
 function modify_compressible_wind! end
 
 function modify_compressible_wind!(state::State, operation::Function)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     modify_compressible_wind!(state, operation, model)
     return
 end
@@ -44,7 +44,7 @@ end
 function modify_compressible_wind!(
     state::State,
     operation::Function,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
     return
 end

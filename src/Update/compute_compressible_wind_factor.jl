@@ -5,7 +5,7 @@ compute_compressible_wind_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{U, V, W},
 )::AbstractFloat
 ```
 
@@ -19,8 +19,8 @@ compute_compressible_wind_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
-    model::AbstractModel,
+    variable::Union{U, V, W},
+    model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
 ```
 
@@ -86,9 +86,9 @@ function compute_compressible_wind_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
+    variable::Union{U, V, W},
 )::AbstractFloat
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     return compute_compressible_wind_factor(state, i, j, k, variable, model)
 end
 
@@ -97,8 +97,8 @@ function compute_compressible_wind_factor(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::AbstractVariable,
-    model::AbstractModel,
+    variable::Union{U, V, W},
+    model::Union{Boussinesq, PseudoIncompressible},
 )::AbstractFloat
     return 1.0
 end

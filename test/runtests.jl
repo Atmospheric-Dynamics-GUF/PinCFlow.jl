@@ -5,9 +5,10 @@ using PinCFlow
 using .TestTools
 
 submit_directory = "../examples/submit/"
+update_references = false
 
-@time @testset verbose = true showtiming = true "PinCFlow.jl tests" begin
-    include("test_mountain_wave.jl")
-    include("test_periodic_hill.jl")
-    include("test_wkb_mountain_wave.jl")
+@testset verbose = true "PinCFlow tests" begin
+    include("mountain_wave.jl")
+    include("periodic_hill.jl")
+    include("wkb_mountain_wave.jl")
 end

@@ -1,7 +1,7 @@
 """
 ```julia
 set_p(
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
     rhobar::AbstractArray{<:AbstractFloat, 3},
     thetabar::AbstractArray{<:AbstractFloat, 3},
     rhop::AbstractArray{<:AbstractFloat, 3},
@@ -42,7 +42,7 @@ In compressible mode, the mass-weighted potential temperature is a prognostic va
 function set_p end
 
 function set_p(
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
     rhobar::AbstractArray{<:AbstractFloat, 3},
     thetabar::AbstractArray{<:AbstractFloat, 3},
     rhop::AbstractArray{<:AbstractFloat, 3},

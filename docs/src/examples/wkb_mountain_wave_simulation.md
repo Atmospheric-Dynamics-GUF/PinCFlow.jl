@@ -62,7 +62,6 @@ output = OutputNamelist(;
     output_variables = (:w,),
     output_file = "wkb_mountain_wave.h5",
 )
-setting = SettingNamelist(; test_case = WKBMountainWave())
 sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) ->
         alpharmax / 3 * (
@@ -72,8 +71,9 @@ sponge = SpongeNamelist(;
         ),
     relaxed_u = (x, y, z, t, dt) -> 10.0,
 )
+wkb = WKBNamelist(; wkb_mode = MultiColumn())
 
-integrate(Namelists(; atmosphere, domain, grid, output, setting, sponge))
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
 ```
 

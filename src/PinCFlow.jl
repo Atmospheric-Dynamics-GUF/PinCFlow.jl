@@ -37,7 +37,6 @@ using .Integration
 # Export namelists.
 export DomainNamelist,
     OutputNamelist,
-    SettingNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
@@ -49,13 +48,12 @@ export DomainNamelist,
 
 # Export singletons needed in namelists.
 export Boussinesq, PseudoIncompressible, Compressible
-export MountainWave, WKBMountainWave
 export MCVariant
 export UniformBoussinesq,
     StratifiedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
-export SteadyState, SingleColumn, MultiColumn
+export NoWKB, SteadyState, SingleColumn, MultiColumn
 export NoTracer, TracerOn
 
 # Export model-state constructor.

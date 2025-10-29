@@ -70,7 +70,7 @@ function conductive_heating(
     j::Integer,
     k::Integer,
 )::AbstractFloat
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
 
     return conductive_heating(state, i, j, k, model)
 end

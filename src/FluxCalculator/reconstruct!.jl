@@ -11,7 +11,23 @@ This method calls specialized methods for each prognostic variable.
 reconstruct!(state::State, variable::Rho)
 ```
 
-Reconstruct the density.
+Reconstruct the density by dispatching to a model-specific method.
+
+```julia
+reconstruct!(state::State, variable::Rho, model::Boussinesq)
+```
+
+Return in Boussinesq mode.
+
+```julia
+reconstruct!(
+    state::State,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
+```
+
+Reconstruct the density in non-Boussinesq modes.
 
 Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction.
 
@@ -54,7 +70,7 @@ reconstruct!(state::State, tracer_setup::NoTracer)
 Return for configurations without tracer transport.
 
 ```julia
-reconstruct!(state::State, tracer_setup::AbstractTracer)
+reconstruct!(state::State, tracer_setup::TracerOn)
 ```
 
 Reconstruct the tracers.
@@ -66,6 +82,8 @@ Similar to the density, the tracers are divided by ``P`` before reconstruction.
   - `state`: Model state.
 
   - `variable`: The reconstructed variable.
+
+  - `model`: Dynamic equations.
 
   - `tracer_setup`: General tracer-transport configuration.
 
@@ -96,6 +114,20 @@ function reconstruct!(state::State)
 end
 
 function reconstruct!(state::State, variable::Rho)
+    (; model) = state.namelists.atmosphere
+    reconstruct!(state, variable, model)
+    return
+end
+
+function reconstruct!(state::State, variable::Rho, model::Boussinesq)
+    return
+end
+
+function reconstruct!(
+    state::State,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho) = state.variables.predictands
@@ -222,7 +254,7 @@ function reconstruct!(state::State, tracer_setup::NoTracer)
     return
 end
 
-function reconstruct!(state::State, tracer_setup::AbstractTracer)
+function reconstruct!(state::State, tracer_setup::TracerOn)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries

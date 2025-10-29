@@ -27,30 +27,30 @@ using ...PinCFlow
 
 """
 ```julia
-UChi <: AbstractVariable
+UChi
 ```
 
 Singleton for dispatch to calculation of zonal gravity-wave-tracer fluxes.
 """
-struct UChi <: AbstractVariable end
+struct UChi end
 
 """
 ```julia
-VChi <: AbstractVariable
+VChi
 ```
 
 Singleton for dispatch to calculation of meridional gravity-wave-tracer fluxes.
 """
-struct VChi <: AbstractVariable end
+struct VChi end
 
 """
 ```julia
-WChi <: AbstractVariable
+WChi
 ```
 
 Singleton for dispatch to calculation of vertical gravity-wave-tracer fluxes.
 """
-struct WChi <: AbstractVariable end
+struct WChi end
 
 include("compute_leading_order_tracer_fluxes!.jl")
 include("leading_order_tracer_fluxes.jl")

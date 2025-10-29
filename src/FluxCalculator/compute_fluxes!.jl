@@ -9,6 +9,28 @@ Compute fluxes by dispatching to specialized methods for each prognostic variabl
 compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 ```
 
+Compute the density fluxes in all three directions, by dispatching to a model-specific method.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Boussinesq,
+)
+```
+
+Return in Boussinesq mode.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
+```
+
 Compute the density fluxes in all three directions.
 
 The fluxes are given by
@@ -47,7 +69,7 @@ The computation is analogous to that of the density fluxes.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
     variable::P,
 )
 ```
@@ -220,11 +242,7 @@ compute_fluxes!(state::State, predictands::Predictands, tracer_setup::NoTracer)
 Return for configurations without tracer transport.
 
 ```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    tracer_setup::AbstractTracer,
-)
+compute_fluxes!(state::State, predictands::Predictands, tracer_setup::TracerOn)
 ```
 
 Compute the tracer fluxes in all three directions.
@@ -276,7 +294,7 @@ where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.a
 function compute_fluxes! end
 
 function compute_fluxes!(state::State, predictands::Predictands)
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
 
     compute_fluxes!(state, predictands, Rho())
     compute_fluxes!(state, predictands, RhoP())
@@ -290,6 +308,26 @@ function compute_fluxes!(state::State, predictands::Predictands)
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+    (; model) = state.namelists.atmosphere
+    compute_fluxes!(state, predictands, variable, model)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Boussinesq,
+)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -450,7 +488,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::AbstractModel,
+    model::Union{Boussinesq, PseudoIncompressible},
     variable::P,
 )
     return
@@ -1439,7 +1477,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
