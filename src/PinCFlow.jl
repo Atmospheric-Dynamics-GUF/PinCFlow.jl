@@ -51,7 +51,6 @@ export Boussinesq, PseudoIncompressible, Compressible
 export MCVariant
 export UniformBoussinesq,
     StratifiedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
-export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn

@@ -9,6 +9,28 @@ Compute fluxes by dispatching to specialized methods for each prognostic variabl
 compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 ```
 
+Compute the density fluxes in all three directions, by dispatching to a model-specific method.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Boussinesq,
+)
+```
+
+Return in Boussinesq mode.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
+```
+
 Compute the density fluxes in all three directions.
 
 The fluxes are given by
@@ -286,6 +308,26 @@ function compute_fluxes!(state::State, predictands::Predictands)
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+    (; model) = state.namelists.atmosphere
+    compute_fluxes!(state, predictands, variable, model)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Boussinesq,
+)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar, rhobar) = state.atmosphere

@@ -1,12 +1,13 @@
 {
-    "title": "PinCFlow.jl: A pseudo-incompressible flow solver coupled to the 3D transient gravity-wave model MSGWaM",
-    "description": "PinCFlow.jl is an atmospheric flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form, using a a semi-implicit method that combines explicit and implicit time-stepping schemes. The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that unresolved gravity waves may be parameterized in a manner that accounts for transience and horizontal propagation.",
+    "title": "PinCFlow.jl: An idealized-atmospheric-flow solver coupled to the 3D transient gravity-wave model MSGWaM",
+    "description": "PinCFlow.jl is an atmospheric-flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form, using a semi-implicit method that combines explicit and implicit time-stepping schemes. The Lagrangian WKB model MSGWaM is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transience and horizontal propagation.",
     "license": "MIT",
     "upload_type": "software",
     "creators": [
         {
             "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
-            "name": "Jochum, Felix"
+            "name": "Jochum, Felix",
+            "orcid": "0009-0006-9267-5006"
         },
         {
             "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
@@ -33,11 +34,12 @@
         },
         {
             "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
-            "name": "Dolapchiev, Stamen"
+            "name": "Dolaptchiev, Stamen"
         },
         {
             "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
-            "name": "Klewinghaus, Sandra"
+            "name": "Klewinghaus, Sandra",
+            "orcid": "0009-0009-0858-9845"
         },
         {
             "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",

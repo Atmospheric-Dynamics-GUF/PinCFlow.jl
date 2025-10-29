@@ -244,7 +244,7 @@ function integrate(namelists::Namelists)
         #                           Sponges
         #-----------------------------------------------------------------
 
-        compute_sponges!(state, dt)
+        compute_sponges!(state, dt, time)
 
         #-----------------------------------------------------------------
         #                           MSGWaM
