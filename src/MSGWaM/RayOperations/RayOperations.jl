@@ -3,7 +3,7 @@
 RayOperations
 ```
 
-Module for various ray-volume operations needed throughout MSGWaM.
+Module for various ray-volume operations needed throughout `PinCFlow.MSGWaM`.
 
 # See also
 

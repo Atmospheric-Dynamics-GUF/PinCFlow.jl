@@ -3,7 +3,7 @@
 initialize_rays!(state::State)
 ```
 
-Complete the initialization of MSGWaM by dispatching to a WKB-mode-specific method.
+Complete the initialization of MS-GWaM by dispatching to a WKB-mode-specific method.
 
 ```julia
 initialize_rays!(state::State, wkb_mode::NoWKB)
@@ -18,7 +18,7 @@ initialize_rays!(
 )
 ```
 
-Complete the initialization of MSGWaM.
+Complete the initialization of MS-GWaM.
 
 In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.wkb.initial_wave_field`, as well as `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
 
@@ -26,7 +26,7 @@ In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.
 
   - `state`: Model state.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 
@@ -112,7 +112,7 @@ function initialize_rays!(
         end
     else
         println(
-            "Warning: MSGWaM's steady-state mode currently ignores non-orographic initializations!",
+            "Warning: MS-GWaM's steady-state mode currently ignores non-orographic initializations!",
         )
         println("")
     end
@@ -311,7 +311,7 @@ function initialize_rays!(
 
     # Print information.
     if master
-        println("MSGWaM:")
+        println("MS-GWaM:")
         println("Global ray-volume count: ", global_sum)
         println("Maximum number of ray volumes per cell: ", nray_max)
         println("")

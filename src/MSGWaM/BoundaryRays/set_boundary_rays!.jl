@@ -31,7 +31,7 @@ Zonal (meridional) boundary conditions are only enforced if `state.namelists.dom
 
   - `state`: Model state.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

@@ -49,7 +49,7 @@ and the position update is
 \\end{align*}
 ```
 
-where the subscript ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition, MSGWaM updates the ray-volume extents, following
+where the subscript ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition, MS-GWaM updates the ray-volume extents, following
 
 ```math
 \\begin{align*}
@@ -116,7 +116,7 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 
   - `rkstage`: Runge-Kutta-stage index.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

@@ -110,7 +110,7 @@ Enforce zonal boundary conditions for WKB tendencies needed in `MultiColumn` con
 
   - `variables`: Boundary-variable category.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

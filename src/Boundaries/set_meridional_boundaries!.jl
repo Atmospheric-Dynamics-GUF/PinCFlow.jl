@@ -113,7 +113,7 @@ Enforce meridional boundary conditions for WKB tendencies needed in `MultiColumn
 
   - `variables`: Boundary-variable category.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

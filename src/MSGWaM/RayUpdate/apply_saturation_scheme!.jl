@@ -53,7 +53,7 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - `dt`: Time step.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

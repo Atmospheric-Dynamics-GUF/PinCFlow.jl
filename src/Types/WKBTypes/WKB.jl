@@ -95,7 +95,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `grid`: Collection of parameters and fields that describe the grid.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

@@ -185,7 +185,7 @@ struct ConstantWaveEnergy <: AbstractMergeMode end
 NoWKB <: AbstractWKBMode
 ```
 
-Singleton for switching off MSGWaM.
+Singleton for switching off MS-GWaM.
 """
 struct NoWKB <: AbstractWKBMode end
 
@@ -194,7 +194,7 @@ struct NoWKB <: AbstractWKBMode end
 SteadyState <: AbstractWKBMode
 ```
 
-Singleton for the steady-state approximation in MSGWaM.
+Singleton for the steady-state approximation in MS-GWaM.
 """
 struct SteadyState <: AbstractWKBMode end
 
@@ -203,7 +203,7 @@ struct SteadyState <: AbstractWKBMode end
 SingleColumn <: AbstractWKBMode
 ```
 
-Singleton for the single-column approximation in MSGWaM.
+Singleton for the single-column approximation in MS-GWaM.
 """
 struct SingleColumn <: AbstractWKBMode end
 
@@ -212,7 +212,7 @@ struct SingleColumn <: AbstractWKBMode end
 MultiColumn <: AbstractWKBMode
 ```
 
-Singleton for the multi-column approximation in MSGWaM.
+Singleton for the multi-column approximation in MS-GWaM.
 """
 struct MultiColumn <: AbstractWKBMode end
 

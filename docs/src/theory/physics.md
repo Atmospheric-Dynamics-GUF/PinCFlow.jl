@@ -144,7 +144,7 @@ $$\frac{\partial \rho \chi}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rh
 
 where $F^{\rho \chi}$ represents another volume force, e.g. a tracer-flux divergence due to unresolved gravity waves, and $\left(\rho \chi\right)^{\left(0\right)}$ is the initial mass-weighted tracer.
 
-## MSGWaM
+## MS-GWaM
 
 ### 3D transient theory
 
