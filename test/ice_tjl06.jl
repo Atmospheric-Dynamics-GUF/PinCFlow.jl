@@ -6,9 +6,9 @@ using .PinCFlow
 using HDF5
 
 domain = DomainNamelist(;
-    sizex = 8,
+    sizex = 80,
     sizey = 1,
-    sizez = 8,
+    sizez = 150,
     nbx = 3,
     nby = 3,
     nbz = 3,
@@ -29,7 +29,7 @@ output = OutputNamelist(;
     noutput = 1,
     maxiter = 1,
     outputtimediff = 1.0, # 3.6E+1, #E+3
-    maxtime = 12.0, #3.6E+1, #E+3
+    maxtime = 2.0, #3.6E+1, #E+3
     input_file = "./test/pincflow_input.h5",
     output_file = "./test/pincflow_output.h5",
 )
@@ -103,15 +103,12 @@ sponge = SpongeNamelist(;
 ice = IceNamelist(;
     icesetup = IceOn(),
     dt_ice = 1.,
-    nscx = 16,
+    nscx = 4,
     nscy = 1,
-    nscz = 40,
-    # nscx = 1,
-    # nscy = 1,
-    # nscz = 1,
+    nscz = 4,
     cloudcover = CloudCoverOn(),
 #    large_scale_ice = true,
-#    parameterized_nucleation = false,
+    parameterized_nucleation = false,
  ) 
 wkb = WKBNamelist(;
                     xrmin_dim = 0.0E+4,

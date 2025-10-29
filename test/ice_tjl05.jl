@@ -6,9 +6,9 @@ using .PinCFlow
 using HDF5
 
 domain = DomainNamelist(;
-    sizex = 8,
+    sizex = 80,
     sizey = 1,
-    sizez = 8,
+    sizez = 150,
     nbx = 3,
     nby = 3,
     nbz = 3,
@@ -29,7 +29,7 @@ output = OutputNamelist(;
     noutput = 1,
     maxiter = 1,
     outputtimediff = 1.0, # 3.6E+1, #E+3
-    maxtime = 12.0, #3.6E+1, #E+3
+    maxtime = 3.0, #3.6E+1, #E+3
     input_file = "./test/pincflow_input.h5",
     output_file = "./test/pincflow_output.h5",
 )
@@ -158,3 +158,6 @@ namelists = Namelists(;
 )
 
 integrate(namelists)
+
+#dirname=tjl05
+#dolaptch@iau61:~/PF/pinc$ mkdir ../runs/$dirname & mv test/pincflow_output.h5 ../runs/$dirname & cp -pr src ../runs/$dirname/.

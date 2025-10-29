@@ -16,6 +16,7 @@ module RaySources
 using ...Types
 using ..RayOperations
 using ..Interpolation # required for activate_multiplewavepackets_source
+using Random
 
 include("activate_orographic_source!.jl")
 include("compute_orographic_mode.jl")
