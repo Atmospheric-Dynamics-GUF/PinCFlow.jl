@@ -1,4 +1,4 @@
-# PinCFlow.jl
+# PinCFlow.jl: An idealized-atmospheric-flow solver coupled to the 3D transient gravity-wave model MSGWaM
 
 [![Docs-stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Atmospheric-Dynamics-GUF.github.io/PinCFlow.jl/stable)
 [![Docs-dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Atmospheric-Dynamics-GUF.github.io/PinCFlow.jl/dev)
@@ -21,7 +21,7 @@ The Lagrangian WKB model MSGWaM is interactively coupled to the dynamical core o
 To install PinCFlow.jl, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then run
 
 ```shell
-julia --project -e 'using Pkg; Pkg.add(; url = "git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git")'
+julia --project -e 'using Pkg; Pkg.add("PinCFlow")'
 ```
 
 to add PinCFlow.jl to your current project environment.
@@ -45,8 +45,7 @@ julia --project script.jl
 in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow.jl's example scripts. To run them, we recommend setting up an examples project by executing
 
 ```shell
-julia --project=examples -e 'using Pkg; Pkg.add("CairoMakie", "HDF5", "HDF5_jll", "MPICH_jll", "MPIPreferences", "Revise")'
-julia --project=examples -e 'using Pkg; Pkg.add(; url = "git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git")'
+julia --project=examples -e 'using Pkg; Pkg.add("CairoMakie", "HDF5", "HDF5_jll", "MPICH_jll", "MPIPreferences", "PinCFlow", "Revise")'
 ```
 
 Having done this, you can easily run any of the example scripts without needing to worry about extra packages that you may need. For instance, running the script
@@ -64,26 +63,35 @@ using PinCFlow
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
+h0 = 10.0
+l0 = 10000.0
+
+lz = 20000.0
+zr = 10000.0
+
 atmosphere = AtmosphereNamelist(;
-    coriolis_frequency = 0.0E+0,
-    initial_u = (x, y, z) -> 1.0E+1,
+    coriolis_frequency = 0.0,
+    initial_u = (x, y, z) -> 10.0,
 )
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 1,
     z_size = 40,
-    lx = 2.0E+4,
-    ly = 2.0E+4,
-    lz = 2.0E+4,
+    lx = 20000.0,
+    ly = 20000.0,
+    lz,
     npx,
     npz,
 )
 grid = GridNamelist(;
-    resolved_topography = (x, y) -> 5 * (1 + cos(pi / 10000 * x)),
+    resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
 )
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
-sponge = SpongeNamelist(; betarmax = 1.0E+0)
+sponge = SpongeNamelist(;
+    rhs_sponge = (x, y, z, t, dt) ->
+        z >= zr ? sin(pi / 2 * (z - zr) / (lz - zr))^2 / dt : 0.0,
+)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 

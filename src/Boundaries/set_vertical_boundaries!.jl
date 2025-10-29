@@ -1,13 +1,30 @@
 """
 ```julia
-set_vertical_boundaries!(state::State, variables::BoundaryPredictands)
+set_vertical_boundaries!(
+    state::State,
+    variables::Union{
+        BoundaryPredictands,
+        BoundaryReconstructions,
+        BoundaryFluxes,
+    },
+)
 ```
 
-Enforce vertical boundary conditions for all predictand fields.
+Enforce vertical boundary conditions for predictands, reconstructions or fluxes, by dispatching to the appropriate method.
+
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Boussinesq,
+)
+```
+
+Enforce vertical boundary conditions for predictands in Boussinesq mode.
 
 The symmetry conditions are as follows:
 
-  - Density-fluctuations fields (`rho`, `rhop`): point reflection (`-`)
+  - Density fluctuations (`rhop`): point reflection (`-`)
 
   - Vertical velocity (`w`): point reflection (`-`) on the staggered grid
 
@@ -16,22 +33,84 @@ The symmetry conditions are as follows:
   - Exner-pressure fluctuations (`pip`): line reflection (`+`)
 
 ```julia
-set_vertical_boundaries!(state::State, variables::BoundaryReconstructions)
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::PseudoIncompressible,
+)
 ```
 
-Enforce vertical boundary conditions for all reconstruction fields.
+Enforce vertical boundary conditions for predictands in pseudo-incompressible mode.
+
+In contrast to Boussinesq mode, this includes the density (`rho`). Since it is offset by the background, it is point-reflected, like the density fluctuations.
 
 ```julia
-set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Compressible,
+)
 ```
 
-Set the vertical fluxes at the vertical boundaries to zero.
+Enforce vertical boundary conditions for predictands in compressible mode.
+
+In contrast to pseudo-incompressible modes, this includes the mass-weighted potential temperature (`p`), which is line-reflected.
 
 ```julia
-set_vertical_boundaries!(state::State, variables::BoundaryWKBIntegrals)
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Boussinesq,
+)
 ```
 
-Enforce vertical boundary conditions for gravity-wave-integral fields by dispatching to a WKB-mode-specific method.
+Enforce vertical boundary conditions for reconstructions in Boussinesq mode.
+
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Union{PseudoIncompressible, Compressible},
+)
+```
+
+Enforce vertical boundary conditions for reconstructions in non-Boussinesq modes.
+
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Boussinesq,
+)
+```
+
+Enforce vertical boundary conditions for vertical fluxes in Boussinesq mode.
+
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::PseudoIncompressible,
+)
+```
+
+Enforce vertical boundary conditions for vertical fluxes in pseudo-incompressible mode.
+
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Compressible,
+)
+```
+
+Enforce vertical boundary conditions for vertical fluxes in compressible mode.
+
+```julia
+set_vertical_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)
+```
+
+Enforce vertical boundary conditions for WKB variables by dispatching to the appropriate method.
 
 ```julia
 set_vertical_boundaries!(
@@ -41,7 +120,7 @@ set_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
+Enforce vertical boundary conditions for WKB integrals needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
 
 ```julia
 set_vertical_boundaries!(
@@ -51,13 +130,7 @@ set_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations, using line reflection.
-
-```julia
-set_vertical_boundaries!(state::State, variables::BoundaryWKBTendencies)
-```
-
-Enforce vertical boundary conditions for gravity-wave-tendency fields by dispatching to a WKB-mode-specific method.
+Enforce vertical boundary conditions for WKB integrals needed in `MultiColumn` configurations, using line reflection.
 
 ```julia
 set_vertical_boundaries!(
@@ -67,7 +140,7 @@ set_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
+Enforce vertical boundary conditions for WKB tendencies needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
 
 ```julia
 set_vertical_boundaries!(
@@ -77,7 +150,7 @@ set_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations, using line reflection.
+Enforce vertical boundary conditions for WKB tendencies needed in `MultiColumn` configurations, using line reflection.
 
 # Arguments
 
@@ -90,30 +163,72 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields needed in 
 # See also
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_compressible_vertical_boundaries!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_tracer_vertical_boundaries!`](@ref)
 """
 function set_vertical_boundaries! end
 
-function set_vertical_boundaries!(state::State, variables::BoundaryPredictands)
+function set_vertical_boundaries!(
+    state::State,
+    variables::Union{
+        BoundaryPredictands,
+        BoundaryReconstructions,
+        BoundaryFluxes,
+    },
+)
+    (; model) = state.namelists.atmosphere
+    set_vertical_boundaries!(state, variables, model)
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Boussinesq,
+)
+    (; namelists, domain) = state
+    (; rhop, u, v, w, pip) = state.variables.predictands
+
+    set_vertical_boundaries_of_field!(rhop, namelists, domain, -)
+    set_vertical_boundaries_of_field!(u, namelists, domain, +)
+    set_vertical_boundaries_of_field!(v, namelists, domain, +)
+    set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
+    set_vertical_boundaries_of_field!(pip, namelists, domain, +)
+
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::PseudoIncompressible,
+)
     (; namelists, domain) = state
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
     set_vertical_boundaries_of_field!(rho, namelists, domain, -)
     set_vertical_boundaries_of_field!(rhop, namelists, domain, -)
-
-    set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
-
     set_vertical_boundaries_of_field!(u, namelists, domain, +)
     set_vertical_boundaries_of_field!(v, namelists, domain, +)
-
+    set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
 
-    set_compressible_vertical_boundaries!(state, variables)
+    return
+end
 
-    set_tracer_vertical_boundaries!(state, variables)
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Compressible,
+)
+    (; namelists, domain) = state
+    (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
+
+    set_vertical_boundaries_of_field!(rho, namelists, domain, -)
+    set_vertical_boundaries_of_field!(rhop, namelists, domain, -)
+    set_vertical_boundaries_of_field!(u, namelists, domain, +)
+    set_vertical_boundaries_of_field!(v, namelists, domain, +)
+    set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
+    set_vertical_boundaries_of_field!(pip, namelists, domain, +)
+    set_vertical_boundaries_of_field!(p, namelists, domain, +)
 
     return
 end
@@ -121,6 +236,26 @@ end
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
+    model::Boussinesq,
+)
+    (; namelists, domain) = state
+    (; reconstructions) = state.variables
+
+    for field in (:rhoptilde, :utilde, :vtilde, :wtilde)
+        set_vertical_boundaries_of_field!(
+            getfield(reconstructions, field),
+            namelists,
+            domain,
+        )
+    end
+
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Union{PseudoIncompressible, Compressible},
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables
@@ -133,16 +268,42 @@ function set_vertical_boundaries!(
         )
     end
 
-    set_tracer_vertical_boundaries!(state, variables)
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Boussinesq,
+)
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
+    (; fluxes) = state.variables
+
+    @ivy if ko == 0
+        for field in (:phirhop, :phiu, :phiv, :phitheta)
+            getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
+        end
+        fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
+    end
+
+    @ivy if ko + nz == z_size
+        for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
+            getfield(fluxes, field)[:, :, k1, 3] .= 0.0
+        end
+    end
 
     return
 end
 
-function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::PseudoIncompressible,
+)
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
-
-    # Set all vertical boundary fluxes to zero.
 
     @ivy if ko == 0
         for field in (:phirho, :phirhop, :phiu, :phiv, :phitheta)
@@ -151,25 +312,46 @@ function set_vertical_boundaries!(state::State, variables::BoundaryFluxes)
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for field in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
     end
 
-    set_compressible_vertical_boundaries!(state, variables)
-    set_tracer_vertical_boundaries!(state, variables)
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Compressible,
+)
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
+    (; fluxes) = state.variables
+
+    @ivy if ko == 0
+        for field in (:phirho, :phirhop, :phiu, :phiv, :phitheta, :phip)
+            getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
+        end
+        fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
+    end
+
+    @ivy if ko + nz == z_size
+        for field in fieldnames(Fluxes)
+            getfield(fluxes, field)[:, :, k1, 3] .= 0.0
+        end
+    end
 
     return
 end
 
-function set_vertical_boundaries!(state::State, variables::BoundaryWKBIntegrals)
+function set_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)
     (; wkb_mode) = state.namelists.wkb
-    (; tracer_setup) = state.namelists.tracer
-
     set_vertical_boundaries!(state, variables, wkb_mode)
-    set_tracer_vertical_boundaries!(state, variables, wkb_mode, tracer_setup)
-
     return
 end
 
@@ -211,19 +393,6 @@ function set_vertical_boundaries!(
             layers = (1, 1, 1),
         )
     end
-
-    return
-end
-
-function set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-)
-    (; wkb_mode) = state.namelists.wkb
-    (; tracer_setup) = state.namelists.tracer
-
-    set_vertical_boundaries!(state, variables, wkb_mode)
-    set_tracer_vertical_boundaries!(state, variables, wkb_mode, tracer_setup)
 
     return
 end

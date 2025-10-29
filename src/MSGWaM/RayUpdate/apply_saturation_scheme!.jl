@@ -88,7 +88,7 @@ function apply_saturation_scheme!(
     (; nray, rays, diffusion) = state.wkb
     (; x_size, y_size) = state.namelists.domain
     (; use_saturation, saturation_threshold) = state.namelists.wkb
-    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, ly, dx, dy, zc) = state.grid
 
     if !use_saturation

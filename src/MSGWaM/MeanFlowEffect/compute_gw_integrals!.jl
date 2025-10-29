@@ -101,7 +101,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
-    (; i0, i1, j0, j1, k0, k1, io, jo) = domain
+    (; i0, i1, j0, j1, k0, k1) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
@@ -156,8 +156,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
             for iray in imin:imax
                 if x_size > 1
                     dxi = (
-                        min(xr + dxr / 2, x[io + iray] + dx / 2) -
-                        max(xr - dxr / 2, x[io + iray] - dx / 2)
+                        min(xr + dxr / 2, x[iray] + dx / 2) -
+                        max(xr - dxr / 2, x[iray] - dx / 2)
                     )
 
                     fcpspx = dkr * dxi / dx
@@ -168,8 +168,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                 for jray in jmin:jmax
                     if y_size > 1
                         dyi = (
-                            min(yr + dyr / 2, y[jo + jray] + dy / 2) -
-                            max(yr - dyr / 2, y[jo + jray] - dy / 2)
+                            min(yr + dyr / 2, y[jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jray] - dy / 2)
                         )
 
                         fcpspy = dlr * dyi / dy
@@ -298,7 +298,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
-    (; i0, i1, j0, j1, k0, k1, io, jo) = domain
+    (; i0, i1, j0, j1, k0, k1) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
@@ -349,8 +349,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
             for iray in imin:imax
                 if x_size > 1
                     dxi = (
-                        min(xr + dxr / 2, x[io + iray] + dx / 2) -
-                        max(xr - dxr / 2, x[io + iray] - dx / 2)
+                        min(xr + dxr / 2, x[iray] + dx / 2) -
+                        max(xr - dxr / 2, x[iray] - dx / 2)
                     )
 
                     fcpspx = dkr * dxi / dx
@@ -361,8 +361,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                 for jray in jmin:jmax
                     if y_size > 1
                         dyi = (
-                            min(yr + dyr / 2, y[jo + jray] + dy / 2) -
-                            max(yr - dyr / 2, y[jo + jray] - dy / 2)
+                            min(yr + dyr / 2, y[jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jray] - dy / 2)
                         )
 
                         fcpspy = dlr * dyi / dy
@@ -457,7 +457,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
-    (; i0, i1, j0, j1, k0, k1, io, jo) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, x, y, zctilde, jac) = state.grid
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
@@ -509,8 +509,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
             for iray in imin:imax
                 if x_size > 1
                     dxi = (
-                        min(xr + dxr / 2, x[io + iray] + dx / 2) -
-                        max(xr - dxr / 2, x[io + iray] - dx / 2)
+                        min(xr + dxr / 2, x[iray] + dx / 2) -
+                        max(xr - dxr / 2, x[iray] - dx / 2)
                     )
 
                     fcpspx = dkr * dxi / dx
@@ -521,8 +521,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
                 for jray in jmin:jmax
                     if y_size > 1
                         dyi = (
-                            min(yr + dyr / 2, y[jo + jray] + dy / 2) -
-                            max(yr - dyr / 2, y[jo + jray] - dy / 2)
+                            min(yr + dyr / 2, y[jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jray] - dy / 2)
                         )
 
                         fcpspy = dlr * dyi / dy
