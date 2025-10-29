@@ -1,6 +1,9 @@
 """
 ```julia
-Correction{A <: AbstractArray{<:AbstractFloat, 3}}
+Correction{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+}
 ```
 
 Correction terms used to update the horizontal wind in the corrector step.
@@ -15,15 +18,18 @@ Create a `Correction` instance with zero-initialized arrays sized according to t
 
   - `corx::A`: Correction term for the zonal wind.
 
-  - `cory::A`: Correction term for the meridional wind.
+  - `cory::B`: Correction term for the meridional wind.
 
 # Arguments
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
-struct Correction{A <: AbstractArray{<:AbstractFloat, 3}}
+struct Correction{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+}
     corx::A
-    cory::A
+    cory::B
 end
 
 function Correction(domain::Domain)::Correction

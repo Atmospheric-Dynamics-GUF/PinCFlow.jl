@@ -2,7 +2,10 @@
 ```julia
 Preconditioner{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractMatrix{<:AbstractFloat},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractMatrix{<:AbstractFloat},
+    D <: AbstractMatrix{<:AbstractFloat},
+    E <: AbstractMatrix{<:AbstractFloat},
 }
 ```
 
@@ -18,13 +21,13 @@ Create a `Preconditioner` instance with zero-initialized arrays sized according 
 
   - `s_pc::A`: Solution computed by the preconditioner.
 
-  - `q_pc::A`: Auxiliary array used for the upward sweep.
+  - `q_pc::B`: Auxiliary array used for the upward sweep.
 
-  - `p_pc::B`: Auxiliary array used for the upward sweep and downward pass.
+  - `p_pc::C`: Auxiliary array used for the upward sweep and downward pass.
 
-  - `s_pc_bc::B`: MPI communication buffer for `s_pc`.
+  - `s_pc_bc::D`: MPI communication buffer for `s_pc`.
 
-  - `q_pc_bc::B`: MPI communication buffer for `q_pc`.
+  - `q_pc_bc::E`: MPI communication buffer for `q_pc`.
 
 # Arguments
 
@@ -32,13 +35,16 @@ Create a `Preconditioner` instance with zero-initialized arrays sized according 
 """
 struct Preconditioner{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractMatrix{<:AbstractFloat},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractMatrix{<:AbstractFloat},
+    D <: AbstractMatrix{<:AbstractFloat},
+    E <: AbstractMatrix{<:AbstractFloat},
 }
     s_pc::A
-    q_pc::A
-    p_pc::B
-    s_pc_bc::B
-    q_pc_bc::B
+    q_pc::B
+    p_pc::C
+    s_pc_bc::D
+    q_pc_bc::E
 end
 
 function Preconditioner(domain::Domain)::Preconditioner
