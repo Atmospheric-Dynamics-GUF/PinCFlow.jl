@@ -14,6 +14,7 @@ authors:
   - name: Irmgard Knop
     affiliation: 1
   - name: Sandra Klewinghaus
+    orcid: 0009-0009-0858-9845
     affiliation: 1
   - name: Jonas Rothermel
     affiliation: 1
