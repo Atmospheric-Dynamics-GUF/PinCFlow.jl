@@ -23,8 +23,8 @@ function set_meridional_boundary_rays! end
 
 function set_meridional_boundary_rays!(state::State)
     (; namelists, domain) = state
-    (; npy) = namelists.domain
-    (; nyy, yy_size, jo, i0, i1, j0, j1, k0, k1) = domain
+    (; y_size, npy) = namelists.domain
+    (; ny, jo, i0, i1, j0, j1, k0, k1) = domain
     (; ly, y) = state.grid
     (; nray, rays) = state.wkb
 
@@ -57,7 +57,7 @@ function set_meridional_boundary_rays!(state::State)
                 yr = rays.y[r, i, j, k]
                 yrt = yr - ly
 
-                if abs(yrt - y[jo + j]) < abs(yr - y[jo + j])
+                if abs(yrt - y[j]) < abs(yr - y[j])
                     yr = yrt
                 end
 
@@ -66,13 +66,13 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    @ivy if jo + nyy == yy_size
+    @ivy if jo + ny == y_size
         for k in (k0 - 1):(k1 + 1), j in j1:(j1 + 1), i in (i0 - 1):(i1 + 1)
             for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]
                 yrt = yr + ly
 
-                if abs(yrt - y[jo + j]) < abs(yr - y[jo + j])
+                if abs(yrt - y[j]) < abs(yr - y[j])
                     yr = yrt
                 end
 

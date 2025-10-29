@@ -276,7 +276,8 @@ function set_vertical_boundaries!(
     variables::BoundaryFluxes,
     model::Boussinesq,
 )
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
     @ivy if ko == 0
@@ -286,7 +287,7 @@ function set_vertical_boundaries!(
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
@@ -300,7 +301,8 @@ function set_vertical_boundaries!(
     variables::BoundaryFluxes,
     model::PseudoIncompressible,
 )
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
     @ivy if ko == 0
@@ -310,7 +312,7 @@ function set_vertical_boundaries!(
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for field in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
@@ -324,7 +326,8 @@ function set_vertical_boundaries!(
     variables::BoundaryFluxes,
     model::Compressible,
 )
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
     @ivy if ko == 0
@@ -334,7 +337,7 @@ function set_vertical_boundaries!(
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for field in fieldnames(Fluxes)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end

@@ -348,7 +348,7 @@ function apply_lhs_sponge!(
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_u) = state.namelists.sponge
     (; lref, tref, uref) = state.constants
-    (; layer_comm, i0, i1, j0, j1, k0, k1, io, jo) = state.domain
+    (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; x, y, zc) = state.grid
     (; alphar, horizontal_mean) = state.sponge
     (; u) = state.variables.predictands
@@ -364,9 +364,9 @@ function apply_lhs_sponge!(
 
     # Update the zonal wind.
     @ivy for k in kk, j in jj, i in ii
-        xldim = x[io + i] * lref
-        xrdim = x[io + i + 1] * lref
-        ydim = y[jo + j] * lref
+        xldim = x[i] * lref
+        xrdim = x[i + 1] * lref
+        ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
         tdim = time * tref
         dtdim = dt * tref
@@ -398,7 +398,7 @@ function apply_lhs_sponge!(
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_v) = state.namelists.sponge
     (; lref, tref, uref) = state.constants
-    (; layer_comm, i0, i1, j0, j1, k0, k1, io, jo) = state.domain
+    (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; x, y, zc) = state.grid
     (; alphar, horizontal_mean) = state.sponge
     (; v) = state.variables.predictands
@@ -414,9 +414,9 @@ function apply_lhs_sponge!(
 
     # Update the meridional wind.
     @ivy for k in kk, j in jj, i in ii
-        xdim = x[io + i] * lref
-        ybdim = y[jo + j] * lref
-        yfdim = y[jo + j + 1] * lref
+        xdim = x[i] * lref
+        ybdim = y[j] * lref
+        yfdim = y[j + 1] * lref
         zcdim = zc[i, j, k] * lref
         tdim = time * tref
         dtdim = dt * tref
@@ -448,7 +448,7 @@ function apply_lhs_sponge!(
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_u, relaxed_v, relaxed_w) = state.namelists.sponge
     (; lref, tref, uref) = state.constants
-    (; layer_comm, i0, i1, j0, j1, k0, k1, io, jo) = state.domain
+    (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar, horizontal_mean) = state.sponge
     (; w) = state.variables.predictands
     (; x, y, zc, jac, met) = state.grid
@@ -464,8 +464,8 @@ function apply_lhs_sponge!(
 
     # Update the vertical wind.
     @ivy for k in kk, j in jj, i in ii
-        xdim = x[io + i] * lref
-        ydim = y[jo + j] * lref
+        xdim = x[i] * lref
+        ydim = y[j] * lref
         zcddim = zc[i, j, k] * lref
         zcudim = zc[i, j, k + 1] * lref
         tdim = time * tref

@@ -436,13 +436,12 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::SteadyState,
 )
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
-    (; comm, zz_size, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
-        state.domain
+    (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
     (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
@@ -621,7 +620,7 @@ function propagate_rays!(
         end
     end
 
-    @ivy if ko + nzz != zz_size
+    @ivy if ko + nz != z_size
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
