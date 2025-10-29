@@ -1,6 +1,12 @@
 """
 ```julia
-Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
+Reconstructions{
+    A <: AbstractArray{<:AbstractFloat, 5},
+    B <: AbstractArray{<:AbstractFloat, 5},
+    C <: AbstractArray{<:AbstractFloat, 5},
+    D <: AbstractArray{<:AbstractFloat, 5},
+    E <: AbstractArray{<:AbstractFloat, 5},
+}
 ```
 
 Arrays for the reconstructions of prognostic variables.
@@ -32,13 +38,13 @@ Construct a `Reconstructions` instance in non-Boussinesq modes.
 
   - `rhotilde::A`: Reconstructed density.
 
-  - `rhoptilde::A`: Reconstructed density fluctuations.
+  - `rhoptilde::B`: Reconstructed density fluctuations.
 
-  - `utilde::A`: Reconstructed zonal momentum.
+  - `utilde::C`: Reconstructed zonal momentum.
 
-  - `vtilde::A`: Reconstructed meridional momentum.
+  - `vtilde::D`: Reconstructed meridional momentum.
 
-  - `wtilde::A`: Reconstructed vertical momentum.
+  - `wtilde::E`: Reconstructed vertical momentum.
 
 # Arguments
 
@@ -48,12 +54,18 @@ Construct a `Reconstructions` instance in non-Boussinesq modes.
 
   - `model`: Dynamic equations.
 """
-struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
+struct Reconstructions{
+    A <: AbstractArray{<:AbstractFloat, 5},
+    B <: AbstractArray{<:AbstractFloat, 5},
+    C <: AbstractArray{<:AbstractFloat, 5},
+    D <: AbstractArray{<:AbstractFloat, 5},
+    E <: AbstractArray{<:AbstractFloat, 5},
+}
     rhotilde::A
-    rhoptilde::A
-    utilde::A
-    vtilde::A
-    wtilde::A
+    rhoptilde::B
+    utilde::C
+    vtilde::D
+    wtilde::E
 end
 
 function Reconstructions(namelists::Namelists, domain::Domain)::Reconstructions

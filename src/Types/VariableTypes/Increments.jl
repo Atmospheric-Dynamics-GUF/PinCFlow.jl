@@ -4,6 +4,10 @@ Increments{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractArray{<:AbstractFloat, 3},
     C <: AbstractArray{<:AbstractFloat, 3},
+    D <: AbstractArray{<:AbstractFloat, 3},
+    E <: AbstractArray{<:AbstractFloat, 3},
+    F <: AbstractArray{<:AbstractFloat, 3},
+    G <: AbstractArray{<:AbstractFloat, 3},
 }
 ```
 
@@ -39,15 +43,15 @@ Create an `Increments` instance in compressible mode.
 
   - `drhop::B`: Density-fluctuations update.
 
-  - `du::B`: Zonal-momentum update.
+  - `du::C`: Zonal-momentum update.
 
-  - `dv::B`: Meridional-momentum update.
+  - `dv::D`: Meridional-momentum update.
 
-  - `dw::B`: Transformed-vertical-momentum update.
+  - `dw::E`: Transformed-vertical-momentum update.
 
-  - `dpip::B`: Exner-pressure update.
+  - `dpip::F`: Exner-pressure update.
 
-  - `dp::C`: Mass-weighted potential-temperature update.
+  - `dp::G`: Mass-weighted potential-temperature update.
 
 # Arguments
 
@@ -61,14 +65,18 @@ struct Increments{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractArray{<:AbstractFloat, 3},
     C <: AbstractArray{<:AbstractFloat, 3},
+    D <: AbstractArray{<:AbstractFloat, 3},
+    E <: AbstractArray{<:AbstractFloat, 3},
+    F <: AbstractArray{<:AbstractFloat, 3},
+    G <: AbstractArray{<:AbstractFloat, 3},
 }
     drho::A
     drhop::B
-    du::B
-    dv::B
-    dw::B
-    dpip::B
-    dp::C
+    du::C
+    dv::D
+    dw::E
+    dpip::F
+    dp::G
 end
 
 function Increments(namelists::Namelists, domain::Domain)::Increments

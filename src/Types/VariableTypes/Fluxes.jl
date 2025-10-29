@@ -3,6 +3,11 @@
 Fluxes{
     A <: AbstractArray{<:AbstractFloat, 4},
     B <: AbstractArray{<:AbstractFloat, 4},
+    C <: AbstractArray{<:AbstractFloat, 4},
+    D <: AbstractArray{<:AbstractFloat, 4},
+    E <: AbstractArray{<:AbstractFloat, 4},
+    F <: AbstractArray{<:AbstractFloat, 4},
+    G <: AbstractArray{<:AbstractFloat, 4},
 }
 ```
 
@@ -38,15 +43,17 @@ Construct a `Fluxes` instance in compressible mode.
 
   - `phirho::A`: Density fluxes.
 
-  - `phirhop::A`: Density-fluctuations fluxes.
+  - `phirhop::B`: Density-fluctuations fluxes.
 
-  - `phiu::A`: Zonal-momentum fluxes.
+  - `phiu::C`: Zonal-momentum fluxes.
 
-  - `phiv::A`: Meridional-momentum fluxes.
+  - `phiv::D`: Meridional-momentum fluxes.
 
-  - `phiw::A`: Transformed-vertical-momentum fluxes.
+  - `phiw::E`: Transformed-vertical-momentum fluxes.
 
-  - `phip::B`: Mass-weighted potential-temperature fluxes.
+  - `phitheta::F`: Potential temperature fluxes.
+
+  - `phip::G`: Mass-weighted potential-temperature fluxes.
 
 # Arguments
 
@@ -59,14 +66,19 @@ Construct a `Fluxes` instance in compressible mode.
 struct Fluxes{
     A <: AbstractArray{<:AbstractFloat, 4},
     B <: AbstractArray{<:AbstractFloat, 4},
+    C <: AbstractArray{<:AbstractFloat, 4},
+    D <: AbstractArray{<:AbstractFloat, 4},
+    E <: AbstractArray{<:AbstractFloat, 4},
+    F <: AbstractArray{<:AbstractFloat, 4},
+    G <: AbstractArray{<:AbstractFloat, 4},
 }
     phirho::A
-    phirhop::A
-    phiu::A
-    phiv::A
-    phiw::A
-    phitheta::A
-    phip::B
+    phirhop::B
+    phiu::C
+    phiv::D
+    phiw::E
+    phitheta::F
+    phip::G
 end
 
 function Fluxes(namelists::Namelists, domain::Domain)::Fluxes

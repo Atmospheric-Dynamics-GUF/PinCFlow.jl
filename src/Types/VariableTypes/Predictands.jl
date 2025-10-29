@@ -3,6 +3,11 @@
 Predictands{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
+    D <: AbstractArray{<:AbstractFloat, 3},
+    E <: AbstractArray{<:AbstractFloat, 3},
+    F <: AbstractArray{<:AbstractFloat, 3},
+    G <: AbstractArray{<:AbstractFloat, 3},
 }
 ```
 
@@ -26,17 +31,17 @@ The predictands are initialized with the corresponding functions in `namelists.a
 
   - `rho::A`: Density.
 
-  - `rhop::A`: Density-fluctuations.
+  - `rhop::B`: Density-fluctuations.
 
-  - `u::A`: Zonal wind.
+  - `u::C`: Zonal wind.
 
-  - `v::A`: Meridional wind.
+  - `v::D`: Meridional wind.
 
-  - `w::A`: Transformed vertical wind.
+  - `w::E`: Transformed vertical wind.
 
-  - `pip::A`: Exner-pressure fluctuations.
+  - `pip::F`: Exner-pressure fluctuations.
 
-  - `p::B`: Mass-weighted potential temperature.
+  - `p::G`: Mass-weighted potential temperature.
 
 # Arguments
 
@@ -63,14 +68,19 @@ The predictands are initialized with the corresponding functions in `namelists.a
 struct Predictands{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
+    D <: AbstractArray{<:AbstractFloat, 3},
+    E <: AbstractArray{<:AbstractFloat, 3},
+    F <: AbstractArray{<:AbstractFloat, 3},
+    G <: AbstractArray{<:AbstractFloat, 3},
 }
     rho::A
-    rhop::A
-    u::A
-    v::A
-    w::A
-    pip::A
-    p::B
+    rhop::B
+    u::C
+    v::D
+    w::E
+    pip::F
+    p::G
 end
 
 function Predictands(
