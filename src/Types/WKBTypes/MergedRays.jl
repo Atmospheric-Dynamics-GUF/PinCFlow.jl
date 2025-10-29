@@ -2,7 +2,12 @@
 ```julia
 MergedRays{
     A <: AbstractMatrix{<:AbstractFloat},
-    B <: AbstractVector{<:AbstractFloat},
+    B <: AbstractMatrix{<:AbstractFloat},
+    C <: AbstractMatrix{<:AbstractFloat},
+    D <: AbstractMatrix{<:AbstractFloat},
+    E <: AbstractMatrix{<:AbstractFloat},
+    F <: AbstractMatrix{<:AbstractFloat},
+    G <: AbstractVector{<:AbstractFloat},
 }
 ```
 
@@ -18,17 +23,17 @@ Construct a `MergedRays` instance, with arrays sized according to the given dime
 
   - `xr::A`: Outermost ray-volume bounds in ``x``.
 
-  - `yr::A`: Outermost ray-volume bounds in ``y``.
+  - `yr::B`: Outermost ray-volume bounds in ``y``.
 
-  - `zr::A`: Outermost ray-volume bounds in ``z``.
+  - `zr::C`: Outermost ray-volume bounds in ``z``.
 
-  - `kr::A`: Outermost ray-volume bounds in ``k``.
+  - `kr::D`: Outermost ray-volume bounds in ``k``.
 
-  - `lr::A`: Outermost ray-volume bounds in ``l``.
+  - `lr::E`: Outermost ray-volume bounds in ``l``.
 
-  - `mr::A`: Outermost ray-volume bounds in ``m``.
+  - `mr::F`: Outermost ray-volume bounds in ``m``.
 
-  - `nr::B`: Wave-action integral.
+  - `nr::G`: Wave-action integral.
 
 # Arguments
 
@@ -38,15 +43,20 @@ Construct a `MergedRays` instance, with arrays sized according to the given dime
 """
 struct MergedRays{
     A <: AbstractMatrix{<:AbstractFloat},
-    B <: AbstractVector{<:AbstractFloat},
+    B <: AbstractMatrix{<:AbstractFloat},
+    C <: AbstractMatrix{<:AbstractFloat},
+    D <: AbstractMatrix{<:AbstractFloat},
+    E <: AbstractMatrix{<:AbstractFloat},
+    F <: AbstractMatrix{<:AbstractFloat},
+    G <: AbstractVector{<:AbstractFloat},
 }
     xr::A
-    yr::A
-    zr::A
-    kr::A
-    lr::A
-    mr::A
-    nr::B
+    yr::B
+    zr::C
+    kr::D
+    lr::E
+    mr::F
+    nr::G
 end
 
 function MergedRays(bounds::Integer, count::Integer)::MergedRays
