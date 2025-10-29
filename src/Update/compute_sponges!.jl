@@ -27,7 +27,7 @@ function compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)
     (; namelists, domain) = state
     (; z_size) = namelists.domain
     (; lhs_sponge, rhs_sponge) = namelists.sponge
-    (; ko, i0, i1, j0, j1, k0, k1) = domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lref, tref) = state.constants
     (; x, y, zc) = state.grid
     (; alphar, betar) = state.sponge
