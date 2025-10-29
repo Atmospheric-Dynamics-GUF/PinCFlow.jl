@@ -126,12 +126,13 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
 end
 
 function shift_rays!(state::State, direction::X)
-    (; zz_size, nzz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -159,12 +160,13 @@ function shift_rays!(state::State, direction::X)
 end
 
 function shift_rays!(state::State, direction::Y)
-    (; zz_size, nzz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -193,11 +195,12 @@ end
 
 function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]

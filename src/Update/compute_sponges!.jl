@@ -25,18 +25,19 @@ function compute_sponges! end
 
 function compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)
     (; namelists, domain) = state
+    (; z_size) = namelists.domain
     (; lhs_sponge, rhs_sponge) = namelists.sponge
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1, io, jo) = domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lref, tref) = state.constants
     (; x, y, zc) = state.grid
     (; alphar, betar) = state.sponge
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
-        xdim = x[io + i] * lref
-        ydim = y[jo + j] * lref
+        xdim = x[i] * lref
+        ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
         tdim = time * tref
         dtdim = dt * tref
@@ -55,7 +56,7 @@ function compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)
         alphar[:, :, k0 - 1] .= alphar[:, :, k0]
         betar[:, :, k0 - 1] .= betar[:, :, k0]
     end
-    if ko + nzz == zz_size
+    if ko + nz == z_size
         alphar[:, :, k1 + 1] .= alphar[:, :, k1]
         betar[:, :, k1 + 1] .= betar[:, :, k1]
     end
