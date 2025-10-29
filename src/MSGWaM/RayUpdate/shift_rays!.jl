@@ -55,7 +55,7 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 
   - `state`: Model state.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
   - `direction`: Shift direction.
 

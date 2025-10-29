@@ -73,7 +73,7 @@ Enforce zonal boundary conditions for tracer WKB tendencies.
 
   - `tracer_setup`: General tracer-transport configuration.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 
