@@ -108,12 +108,12 @@ function turbulence_integration!(
     process::Diffusion,
 )
     (; tke) = state.turbulence.turbulencepredictands
-    (; comm, zz_size, nz, nzz, ko, down, up, i0, i1, j0, j1, k0, k1) =
+    (; nz, i0, i1, j0, j1, k0, k1) =
         state.domain
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
-    (; ath, bth, cth, fth, qth, fth, qth_bc, fth_bc) =
-        state.turbulence.turbulenceauxiliaries
+    (; ath, bth, cth, fth, qth, fth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
     (; kek) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
@@ -123,6 +123,7 @@ function turbulence_integration!(
     cth .= 0.0
     fth .= 0.0
     qth .= 0.0
+    pth .= 0.0
     qth_bc .= 0.0
     fth_bc .= 0.0
 
@@ -148,45 +149,7 @@ function turbulence_integration!(
             dtdz2 .* kekd .* tke[i0:i1, j0:j1, k + nbz - 1]
     end
 
-    if ko == 0
-        qth[:, :, 1] .= .-cth[:, :, 1] ./ bth[:, :, 1]
-        fth[:, :, 1] .= fth[:, :, 1] ./ bth[:, :, 1]
-    else
-        MPI.Recv!(qth_bc, comm; source = down, tag = 1)
-        MPI.Recv!(fth_bc, comm; source = down, tag = 2)
-
-        p = 1.0 ./ (bth[:, :, 1] .+ ath[:, :, 1] .* qth_bc)
-        qth[:, :, 1] .= -cth[:, :, 1] .* p
-        fth[:, :, 1] .= (fth[:, :, 1] .- ath[:, :, 1] .* fth_bc) .* p
-    end
-
-    for k in 2:nz
-        p = 1.0 ./ (bth[:, :, k] .+ ath[:, :, k] .* qth[:, :, k - 1])
-        qth[:, :, k] .= -cth[:, :, k] .* p
-        fth[:, :, k] .= (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* p
-    end
-
-    if ko + nzz != zz_size
-        qth_bc .= qth[:, :, nz]
-        fth_bc .= fth[:, :, nz]
-
-        MPI.Send(qth_bc, comm; dest = up, tag = 1)
-        MPI.Send(fth_bc, comm; dest = up, tag = 2)
-
-        MPI.Recv!(fth_bc, comm; source = up)
-
-        fth[:, :, nz] .+= qth[:, :, nz] .* fth_bc
-    end
-
-    for k in (nz - 1):-1:1
-        fth[:, :, k] .+= qth[:, :, k] .* fth[:, :, k + 1]
-    end
-
-    if ko != 0
-        fth_bc .= fth[:, :, 1]
-
-        MPI.Send(fth_bc, comm; dest = down)
-    end
+    thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
     tke[i0:i1, j0:j1, k0:k1] .= fth
 

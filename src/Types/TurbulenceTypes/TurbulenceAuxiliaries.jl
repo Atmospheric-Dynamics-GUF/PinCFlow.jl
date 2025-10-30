@@ -19,18 +19,9 @@ Construct a `TurbulenceAuxiliaries` instance with both fields set to ``t_\\mathr
 """
 struct TurbulenceAuxiliaries{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractMatrix{<:AbstractFloat},
 }
     shearproduction::A
     buoyancyproduction::A
-    ath::B
-    bth::B
-    cth::B
-    fth::B
-    qth::B
-    fth_bc::C
-    qth_bc::C
 end
 
 function TurbulenceAuxiliaries(
@@ -48,8 +39,6 @@ function TurbulenceAuxiliaries(
 )::TurbulenceAuxiliaries
     return TurbulenceAuxiliaries(
         [zeros(0, 0, 0) for i in 1:2]...,
-        [zeros(0, 0, 0) for i in 1:5]...,
-        [zeros(0, 0) for i in 1:2]...,
     )
 end
 
@@ -60,7 +49,5 @@ function TurbulenceAuxiliaries(
     (; nxx, nyy, nzz, nx, ny, nz) = domain
     return TurbulenceAuxiliaries(
         [zeros(nxx, nyy, nzz) for i in 1:2]...,
-        [zeros(nx, ny, nz) for i in 1:5]...,
-        [zeros(nx, ny) for i in 1:2]...,
     )
 end

@@ -77,6 +77,7 @@ include("backup_predictands.jl")
 include("turbulence_integration!.jl")
 include("compute_turbulence_diffusion!.jl")
 include("check_tke!.jl")
+include("thomas_algorithm!.jl")
 
 export integrate
 

@@ -19,12 +19,28 @@ Construct an `Auxiliaries` instance with a zero-initialized auxiliary array size
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
-struct Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
+struct Auxiliaries{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractMatrix{<:AbstractFloat},
+}
     phi::A
+    ath::B
+    bth::B
+    cth::B
+    fth::B
+    qth::B
+    pth::C
+    fth_bc::C
+    qth_bc::C
 end
 
 function Auxiliaries(domain::Domain)::Auxiliaries
-    (; nxx, nyy, nzz) = domain
+    (; nx, ny, nz, nxx, nyy, nzz) = domain
 
-    return Auxiliaries(zeros(nxx, nyy, nzz))
+    return Auxiliaries(
+        zeros(nxx, nyy, nzz),
+        [zeros(nx, ny, nz) for i in 1:5]...,
+        [zeros(nx, ny) for i in 1:3]...,
+    )
 end
