@@ -47,7 +47,10 @@ struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitke::A
 end
 
-function TurbulenceFluxes(namelists::Namelists, domain::Domain)::TurbulenceFluxes
+function TurbulenceFluxes(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceFluxes
     (; turbulence_scheme) = namelists.turbulence
 
     return TurbulenceFluxes(domain, turbulence_scheme)

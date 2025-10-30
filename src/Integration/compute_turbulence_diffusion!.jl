@@ -40,7 +40,10 @@ function compute_turbulence_diffusion!(state::State)
     return
 end
 
-function compute_turbulence_diffusion!(state::State, turbulence_scheme::NoTurbulence)
+function compute_turbulence_diffusion!(
+    state::State,
+    turbulence_scheme::NoTurbulence,
+)
     return
 end
 
