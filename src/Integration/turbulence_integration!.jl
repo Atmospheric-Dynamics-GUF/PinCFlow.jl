@@ -29,19 +29,22 @@ function turbulence_integration!(
 )
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
+
     turbulence_integration!(state, p0, dt * 0.5, Dissipation())
 
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
+
     turbulence_integration!(state, p0, dt, Advection())
 
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
+
     turbulence_integration!(state, p0, dt, Diffusion())
 
-    set_boundaries!(state, BoundaryPredictands())
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
+
     turbulence_integration!(state, p0, dt * 0.5, Dissipation())
 
     check_tke!(state)
@@ -105,60 +108,87 @@ function turbulence_integration!(
     process::Diffusion,
 )
     (; tke) = state.turbulence.turbulencepredictands
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; comm, zz_size, nz, nzz, ko, down, up, i0, i1, j0, j1, k0, k1) =
+        state.domain
+    (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
-    (; athomas, bthomas, cthomas, fthomas, qthomas, fthomas) =
+    (; ath, bth, cth, fth, qth, fth, qth_bc, fth_bc) =
         state.turbulence.turbulenceauxiliaries
     (; kek) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
-    athomas .= 0.0
-    bthomas .= 0.0
-    cthomas .= 0.0
-    fthomas .= 0.0
-    qthomas .= 0.0
+    ath .= 0.0
+    bth .= 0.0
+    cth .= 0.0
+    fth .= 0.0
+    qth .= 0.0
+    qth_bc .= 0.0
+    fth_bc .= 0.0
 
-    for j in j0:j1, i in i0:i1
-        for k in k0:k1
-            kekd =
-                (
-                    jac[i, j, k - 1] * kek[i, j, k] +
-                    jac[i, j, k] * kek[i, j, k - 1]
-                ) / (jac[i, j, k - 1] + jac[i, j, k])
-            keku =
-                (
-                    jac[i, j, k + 1] * kek[i, j, k] +
-                    jac[i, j, k] * kek[i, j, k + 1]
-                ) / (jac[i, j, k + 1] + jac[i, j, k])
-            athomas[k] = -dtdz2 * kekd
-            bthomas[k] = 1 + dtdz2 * keku + dtdz2 * kekd
-            cthomas[k] = -dtdz2 * keku
+    for k in 1:nz
+        kekd =
+            (
+                jac[i0:i1, j0:j1, k + nbz - 1] .* kek[i0:i1, j0:j1, k + nbz] .+
+                jac[i0:i1, j0:j1, k + nbz] .* kek[i0:i1, j0:j1, k + nbz - 1]
+            ) ./ (jac[i0:i1, j0:j1, k + nbz - 1] + jac[i0:i1, j0:j1, k + nbz])
+        keku =
+            (
+                jac[i0:i1, j0:j1, k + nbz + 1] .* kek[i0:i1, j0:j1, k + nbz] .+
+                jac[i0:i1, j0:j1, k + nbz] .* kek[i0:i1, j0:j1, k + nbz + 1]
+            ) ./ (jac[i0:i1, j0:j1, k + 1] .+ jac[i0:i1, j0:j1, k])
+        ath[:, :, k] .= .-dtdz2 .* kekd
+        bth[:, :, k] .= 1 .+ dtdz2 .* keku .+ dtdz2 .* kekd
+        cth[:, :, k] .= .-dtdz2 .* keku
 
-            fthomas[k] =
-                (1 - dtdz2 * keku - dtdz2 * kekd) * tke[i, j, k] +
-                dtdz2 * keku * tke[i, j, k + 1] +
-                dtdz2 * kekd * tke[i, j, k - 1]
-        end
-
-        athomas[k0] = 0.0
-        cthomas[k1] = 0.0
-
-        qthomas[k0] = -cthomas[k0] / bthomas[k0]
-        fthomas[k0] = fthomas[k0] / bthomas[k0]
-
-        for k in (k0 + 1):k1
-            p = 1.0 / (bthomas[k] + athomas[k] * qthomas[k - 1])
-            qthomas[k] = -cthomas[k] * p
-            fthomas[k] = (fthomas[k] - athomas[k] * fthomas[k - 1]) * p
-        end
-
-        for k in (k1 - 1):-1:k0
-            fthomas[k] = fthomas[k] + qthomas[k] * fthomas[k + 1]
-        end
-
-        tke[i, j, :] .= fthomas[:]
+        fth[:, :, k] =
+            (1 .- dtdz2 .* keku .- dtdz2 .* kekd) .*
+            tke[i0:i1, j0:j1, k + nbz] .+
+            dtdz2 .* keku .* tke[i0:i1, j0:j1, k + nbz + 1] .+
+            dtdz2 .* kekd .* tke[i0:i1, j0:j1, k + nbz - 1]
     end
+
+    if ko == 0
+        qth[:, :, 1] .= .-cth[:, :, 1] ./ bth[:, :, 1]
+        fth[:, :, 1] .= fth[:, :, 1] ./ bth[:, :, 1]
+    else
+        MPI.Recv!(qth_bc, comm; source = down, tag = 1)
+        MPI.Recv!(fth_bc, comm; source = down, tag = 2)
+
+        p = 1.0 ./ (bth[:, :, 1] .+ ath[:, :, 1] .* qth_bc)
+        qth[:, :, 1] .= -cth[:, :, 1] .* p
+        fth[:, :, 1] .= (fth[:, :, 1] .- ath[:, :, 1] .* fth_bc) .* p
+    end
+
+    for k in 2:nz
+        p = 1.0 ./ (bth[:, :, k] .+ ath[:, :, k] .* qth[:, :, k - 1])
+        qth[:, :, k] .= -cth[:, :, k] .* p
+        fth[:, :, k] .= (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* p
+    end
+
+    if ko + nzz != zz_size
+        qth_bc .= qth[:, :, nz]
+        fth_bc .= fth[:, :, nz]
+
+        MPI.Send(qth_bc, comm; dest = up, tag = 1)
+        MPI.Send(fth_bc, comm; dest = up, tag = 2)
+
+        MPI.Recv!(fth_bc, comm; source = up)
+
+        fth[:, :, nz] .+= qth[:, :, nz] .* fth_bc
+    end
+
+    for k in (nz - 1):-1:1
+        fth[:, :, k] .+= qth[:, :, k] .* fth[:, :, k + 1]
+    end
+
+    if ko != 0
+        fth_bc .= fth[:, :, 1]
+
+        MPI.Send(fth_bc, comm; dest = down)
+    end
+
+    tke[i0:i1, j0:j1, k0:k1] .= fth
 
     return
 end

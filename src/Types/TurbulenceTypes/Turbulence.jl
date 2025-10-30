@@ -103,7 +103,7 @@ function Turbulence(
     )
     turbulenceincrements = TurbulenceIncrements(namelists, domain)
     turbulenceauxiliaries =
-        TurbulenceAuxiliaries(turbulencepredictands, constants, domain)
+        TurbulenceAuxiliaries(namelists, domain)
     turbulencereconstructions = TurbulenceReconstructions(namelists, domain)
     turbulencefluxes = TurbulenceFluxes(namelists, domain)
     turbulenceconstants = TurbulenceConstants(namelists, constants)

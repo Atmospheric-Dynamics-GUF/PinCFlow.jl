@@ -30,6 +30,7 @@ end
 function compute_diffusion_coefficients(
     state::State,
     i::Integer,
+    j::Integer,
     k::Integer,
     variable::Union{U, V, W, Theta, Chi},
     turbulence_scheme::NoTurbulence,
