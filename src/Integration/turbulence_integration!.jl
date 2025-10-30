@@ -112,7 +112,7 @@ function turbulence_integration!(
         state.domain
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
-    (; ath, bth, cth, fth, qth, fth, pth, qth_bc, fth_bc) =
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
         state.variables.auxiliaries
     (; kek) = state.turbulence.turbulencediffusioncoefficients
 

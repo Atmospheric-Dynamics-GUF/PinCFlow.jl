@@ -52,7 +52,8 @@ include("compute_operator!.jl")
 include("compute_lhs!.jl")
 include("correct!.jl")
 include("solve_poisson!.jl")
+include("thomas_algorithm!.jl")
 
-export apply_corrector!
+export apply_corrector!, thomas_algorithm!
 
 end

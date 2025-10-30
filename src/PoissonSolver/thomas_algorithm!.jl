@@ -21,14 +21,15 @@ function thomas_algorithm!(
         MPI.Recv!(fth_bc, comm; source = down, tag = 2)
 
         pth .= 1.0 ./ (bth[:, :, 1] .+ ath[:, :, 1] .* qth_bc)
-        qth[:, :, 1] .= -cth[:, :, 1] .* pth
+        qth[:, :, 1] .= .-cth[:, :, 1] .* pth
         fth[:, :, 1] .= (fth[:, :, 1] .- ath[:, :, 1] .* fth_bc) .* pth
     end
 
     for k in 2:nz
         pth .= 1.0 ./ (bth[:, :, k] .+ ath[:, :, k] .* qth[:, :, k - 1])
-        qth[:, :, k] .= -cth[:, :, k] .* pth
-        fth[:, :, k] .= (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* pth
+        qth[:, :, k] .= .-cth[:, :, k] .* pth
+        fth[:, :, k] .=
+            (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* pth
     end
 
     if ko + nzz != zz_size
