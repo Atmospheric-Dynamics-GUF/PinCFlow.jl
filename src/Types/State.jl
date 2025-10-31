@@ -110,7 +110,7 @@ function State(namelists::Namelists)::State
     grid = Grid(namelists, constants, domain)
     atmosphere = Atmosphere(namelists, constants, domain, grid)
     sponge = Sponge(namelists, domain)
-    poisson = Poisson(domain)
+    poisson = Poisson(namelists, domain)
     variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, domain)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)

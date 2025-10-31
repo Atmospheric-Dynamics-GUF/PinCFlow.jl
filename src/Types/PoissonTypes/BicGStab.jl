@@ -9,7 +9,7 @@ BicGStab{
 Workspace arrays used by [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 
 ```julia
-BicGStab(domain::Domain)::BicGStab
+BicGStab(namelists::Namelists, domain::Domain)::BicGStab
 ```
 
 Create a `BicGStab` instance with zero-initialized workspace arrays sized according to dimensions of the MPI subdomain.
@@ -38,6 +38,8 @@ Create a `BicGStab` instance with zero-initialized workspace arrays sized accord
 
 # Arguments
 
+  - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct BicGStab{
@@ -56,8 +58,12 @@ struct BicGStab{
     v_pc::B
 end
 
-function BicGStab(domain::Domain)::BicGStab
+function BicGStab(namelists::Namelists, domain::Domain)::BicGStab
+    (; float_type) = namelists.discretization
     (; nx, ny, nz) = domain
 
-    return BicGStab(zeros(nx, ny), [zeros(nx, ny, nz) for i in 1:9]...)
+    return BicGStab(
+        zeros(float_type, nx, ny),
+        [zeros(float_type, nx, ny, nz) for i in 1:9]...,
+    )
 end

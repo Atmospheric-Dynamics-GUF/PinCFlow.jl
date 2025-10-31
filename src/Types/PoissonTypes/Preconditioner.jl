@@ -9,7 +9,7 @@ Preconditioner{
 Workspace arrays for applying the preconditioner.
 
 ```julia
-Preconditioner(domain::Domain)::Preconditioner
+Preconditioner(namelists::Namelists, domain::Domain)::Preconditioner
 ```
 
 Create a `Preconditioner` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
@@ -28,6 +28,8 @@ Create a `Preconditioner` instance with zero-initialized arrays sized according 
 
 # Arguments
 
+  - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Preconditioner{
@@ -41,11 +43,12 @@ struct Preconditioner{
     q_pc_bc::B
 end
 
-function Preconditioner(domain::Domain)::Preconditioner
+function Preconditioner(namelists::Namelists, domain::Domain)::Preconditioner
+    (; float_type) = namelists.discretization
     (; nx, ny, nz) = domain
 
     return Preconditioner(
-        [zeros(nx, ny, nz) for i in 1:2]...,
-        [zeros(nx, ny) for i in 1:3]...,
+        [zeros(float_type, nx, ny, nz) for i in 1:2]...,
+        [zeros(float_type, nx, ny) for i in 1:3]...,
     )
 end

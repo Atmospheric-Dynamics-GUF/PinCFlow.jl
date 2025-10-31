@@ -13,7 +13,7 @@ Poisson{
 Main container for Poisson-solver workspace and solution arrays.
 
 ```julia
-Poisson(domain::Domain)::Poisson
+Poisson(namelists::Namelists, domain::Domain)::Poisson
 ```
 
 Create a `Poisson` instance with an initialized Poisson-solver workspace, sized according to the dimensions of the MPI subdomain.
@@ -35,6 +35,8 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
   - `correction::F`: Correction terms used to update the horizontal wind in the corrector step.
 
 # Arguments
+
+  - `namelists`: Namelists with all model parameters.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
@@ -67,15 +69,16 @@ struct Poisson{
     correction::F
 end
 
-function Poisson(domain::Domain)::Poisson
+function Poisson(namelists::Namelists, domain::Domain)::Poisson
+    (; float_type) = namelists.discretization
     (; nx, ny, nz) = domain
 
-    (rhs, solution) = (zeros(nx, ny, nz) for i in 1:2)
-    tensor = Tensor(domain)
-    operator = Operator(domain)
-    preconditioner = Preconditioner(domain)
-    bicgstab = BicGStab(domain)
-    correction = Correction(domain)
+    (rhs, solution) = (zeros(float_type, nx, ny, nz) for i in 1:2)
+    tensor = Tensor(namelists, domain)
+    operator = Operator(namelists, domain)
+    preconditioner = Preconditioner(namelists, domain)
+    bicgstab = BicGStab(namelists, domain)
+    correction = Correction(namelists, domain)
 
     return Poisson(
         rhs,
