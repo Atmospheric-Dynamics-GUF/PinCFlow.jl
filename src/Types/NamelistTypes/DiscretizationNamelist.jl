@@ -1,6 +1,6 @@
 """
 ```julia
-DiscretizationNamelist{A <: AbstractFloat, B <: Bool, C <: AbstractLimiter}
+DiscretizationNamelist{A <: Float64, B <: Bool, C <: AbstractLimiter}
 ```
 
 Namelist for parameters describing the discretization.
@@ -16,7 +16,7 @@ DiscretizationNamelist(;
 )::DiscretizationNamelist
 ```
 
-Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
+Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -32,11 +32,7 @@ Construct a `DiscretizationNamelist` instance with the given keyword arguments a
 
   - `limiter_type::C`: Flux limiter used by the MUSCL scheme.
 """
-struct DiscretizationNamelist{
-    A <: AbstractFloat,
-    B <: Bool,
-    C <: AbstractLimiter,
-}
+struct DiscretizationNamelist{A <: Float64, B <: Bool, C <: AbstractLimiter}
     cfl_number::A
     wkb_cfl_number::A
     dtmin::A
@@ -54,10 +50,10 @@ function DiscretizationNamelist(;
     limiter_type::AbstractLimiter = MCVariant(),
 )::DiscretizationNamelist
     return DiscretizationNamelist(
-        cfl_number,
-        wkb_cfl_number,
-        dtmin,
-        dtmax,
+        Float64(cfl_number),
+        Float64(wkb_cfl_number),
+        Float64(dtmin),
+        Float64(dtmax),
         adaptive_time_step,
         limiter_type,
     )

@@ -1,6 +1,6 @@
 """
 ```julia
-PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
+PoissonNamelist{A <: Float64, B <: Int, C <: Bool}
 ```
 
 Namelist for parameters used by the Poisson solver.
@@ -17,7 +17,7 @@ PoissonNamelist(;
 )::PoissonNamelist
 ```
 
-Construct a `PoissonNamelists` instance with the given keyword arguments as properties.
+Construct a `PoissonNamelists` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -35,7 +35,7 @@ Construct a `PoissonNamelists` instance with the given keyword arguments as prop
 
   - `tolerance_is_relative::C`: If set to `true`, the tolerance used for the convergence criterion is given by `tolerance`. If set to `false`, the tolerance is given by `tolerance` divided by a reference value determined from the right-hand side.
 """
-struct PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
+struct PoissonNamelist{A <: Float64, B <: Int, C <: Bool}
     tolerance::A
     poisson_iterations::B
     preconditioner::C
@@ -55,11 +55,11 @@ function PoissonNamelist(;
     tolerance_is_relative::Bool = false,
 )::PoissonNamelist
     return PoissonNamelist(
-        tolerance,
-        poisson_iterations,
+        Float64(tolerance),
+        Int(poisson_iterations),
         preconditioner,
-        dtau,
-        preconditioner_iterations,
+        Float64(dtau),
+        Int(preconditioner_iterations),
         initial_cleaning,
         tolerance_is_relative,
     )

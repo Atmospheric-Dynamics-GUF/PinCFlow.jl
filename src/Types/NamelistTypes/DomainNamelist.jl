@@ -1,6 +1,6 @@
 """
 ```julia
-DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}, C <: MPI.Comm}
+DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
 ```
 
 Namelist for parameters describing the model domain.
@@ -23,7 +23,7 @@ DomainNamelist(;
 )::DomainNamelist
 ```
 
-Construct a `DomainNamelist` instance with the given keyword arguments as properties.
+Construct a `DomainNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -53,7 +53,7 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
   - `base_comm::C`: MPI base communicator.
 """
-struct DomainNamelist{A <: Integer, B <: AbstractFloat, C <: MPI.Comm}
+struct DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
     x_size::A
     y_size::A
     z_size::A
@@ -85,18 +85,18 @@ function DomainNamelist(;
     base_comm::MPI.Comm = MPI.COMM_WORLD,
 )::DomainNamelist
     return DomainNamelist(
-        x_size,
-        y_size,
-        z_size,
-        nbx,
-        nby,
-        nbz,
-        lx,
-        ly,
-        lz,
-        npx,
-        npy,
-        npz,
+        Int(x_size),
+        Int(y_size),
+        Int(z_size),
+        Int(nbx),
+        Int(nby),
+        Int(nbz),
+        Float64(lx),
+        Float64(ly),
+        Float64(lz),
+        Int(npx),
+        Int(npy),
+        Int(npz),
         base_comm,
     )
 end

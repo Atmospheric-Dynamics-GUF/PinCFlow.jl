@@ -3,7 +3,7 @@
 AtmosphereNamelist{
     A <: AbstractModel,
     B <: Bool,
-    C <: AbstractFloat,
+    C <: Float64,
     D <: AbstractBackground,
     E <: Function,
     F <: Function,
@@ -42,7 +42,7 @@ AtmosphereNamelist(;
 )::AtmosphereNamelist
 ```
 
-Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties.
+Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -91,7 +91,7 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 struct AtmosphereNamelist{
     A <: AbstractModel,
     B <: Bool,
-    C <: AbstractFloat,
+    C <: Float64,
     D <: AbstractBackground,
     E <: Function,
     F <: Function,
@@ -149,19 +149,19 @@ function AtmosphereNamelist(;
     return AtmosphereNamelist(
         model,
         specify_reynolds_number,
-        inverse_reynolds_number,
-        kinematic_viscosity,
-        thermal_conductivity,
-        kinematic_diffusivity,
+        Float64(inverse_reynolds_number),
+        Float64(kinematic_viscosity),
+        Float64(thermal_conductivity),
+        Float64(kinematic_diffusivity),
         background,
-        buoyancy_frequency,
-        potential_temperature,
-        temperature,
-        ground_pressure,
-        coriolis_frequency,
-        tropopause_height,
-        troposphere_lapse_rate,
-        stratosphere_lapse_rate,
+        Float64(buoyancy_frequency),
+        Float64(potential_temperature),
+        Float64(temperature),
+        Float64(ground_pressure),
+        Float64(coriolis_frequency),
+        Float64(tropopause_height),
+        Float64(troposphere_lapse_rate),
+        Float64(stratosphere_lapse_rate),
         initial_rhop,
         initial_thetap,
         initial_u,

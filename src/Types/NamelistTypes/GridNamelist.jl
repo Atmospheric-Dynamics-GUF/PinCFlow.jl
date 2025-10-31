@@ -1,6 +1,6 @@
 """
 ```julia
-GridNamelist{A <: AbstractFloat, B <: Function, C <: Function}
+GridNamelist{A <: Float64, B <: Function, C <: Function}
 ```
 
 Namelist for parameters describing the grid.
@@ -13,7 +13,7 @@ GridNamelist(;
 )::GridNamelist
 ```
 
-Construct a `GridNamelist` instance with the given keyword arguments as properties.
+Construct a `GridNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -23,7 +23,7 @@ Construct a `GridNamelist` instance with the given keyword arguments as properti
 
   - `resolved_topography::C`: Function that returns a specified spectral mode of the unresolved topography at a specified horizontal position.
 """
-struct GridNamelist{A <: AbstractFloat, B <: Function, C <: Function}
+struct GridNamelist{A <: Float64, B <: Function, C <: Function}
     stretch_exponent::A
     resolved_topography::B
     unresolved_topography::C
@@ -35,7 +35,7 @@ function GridNamelist(;
     unresolved_topography::Function = (alpha, x, y) -> (0.0, 0.0, 0.0),
 )::GridNamelist
     return GridNamelist(
-        stretch_exponent,
+        Float64(stretch_exponent),
         resolved_topography,
         unresolved_topography,
     )

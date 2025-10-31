@@ -1,8 +1,8 @@
 """
 ```julia
 WKBNamelist{
-    A <: Integer,
-    B <: AbstractFloat,
+    A <: Int,
+    B <: Float64,
     C <: AbstractMergeMode,
     D <: Bool,
     E <: AbstractWKBFilter,
@@ -43,7 +43,7 @@ WKBNamelist(;
 )::WKBNamelist
 ```
 
-Construct a `WKBNamelist` instance with the given keyword arguments as properties.
+Construct a `WKBNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -96,8 +96,8 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
   - `initial_wave_field::G`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
 """
 struct WKBNamelist{
-    A <: Integer,
-    B <: AbstractFloat,
+    A <: Int,
+    B <: Float64,
     C <: AbstractMergeMode,
     D <: Bool,
     E <: AbstractWKBFilter,
@@ -158,29 +158,29 @@ function WKBNamelist(;
         (0.0, 0.0, 0.0, 0.0, 0.0),
 )::WKBNamelist
     return WKBNamelist(
-        nrx,
-        nry,
-        nrz,
-        nrk,
-        nrl,
-        nrm,
-        multiplication_factor,
-        dkr_factor,
-        dlr_factor,
-        dmr_factor,
-        branch,
+        Int(nrx),
+        Int(nry),
+        Int(nrz),
+        Int(nrk),
+        Int(nrl),
+        Int(nrm),
+        Int(multiplication_factor),
+        Float64(dkr_factor),
+        Float64(dlr_factor),
+        Float64(dmr_factor),
+        Int(branch),
         merge_mode,
-        filter_order,
+        Int(filter_order),
         smooth_tendencies,
         filter_type,
-        impact_altitude,
+        Float64(impact_altitude),
         use_saturation,
-        saturation_threshold,
+        Float64(saturation_threshold),
         wkb_mode,
         blocking,
-        long_threshold,
-        drag_coefficient,
-        wave_modes,
+        Float64(long_threshold),
+        Float64(drag_coefficient),
+        Int(wave_modes),
         initial_wave_field,
     )
 end
