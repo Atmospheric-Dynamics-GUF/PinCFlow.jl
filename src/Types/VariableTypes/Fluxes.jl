@@ -1,14 +1,6 @@
 """
 ```julia
-Fluxes{
-    A <: AbstractArray{<:AbstractFloat, 4},
-    B <: AbstractArray{<:AbstractFloat, 4},
-    C <: AbstractArray{<:AbstractFloat, 4},
-    D <: AbstractArray{<:AbstractFloat, 4},
-    E <: AbstractArray{<:AbstractFloat, 4},
-    F <: AbstractArray{<:AbstractFloat, 4},
-    G <: AbstractArray{<:AbstractFloat, 4},
-}
+Fluxes{A <: AbstractArray{<:AbstractFloat, 4}}
 ```
 
 Arrays for fluxes needed in the computation of the left-hand sides.
@@ -43,17 +35,17 @@ Construct a `Fluxes` instance in compressible mode.
 
   - `phirho::A`: Density fluxes.
 
-  - `phirhop::B`: Density-fluctuations fluxes.
+  - `phirhop::A`: Density-fluctuations fluxes.
 
-  - `phiu::C`: Zonal-momentum fluxes.
+  - `phiu::A`: Zonal-momentum fluxes.
 
-  - `phiv::D`: Meridional-momentum fluxes.
+  - `phiv::A`: Meridional-momentum fluxes.
 
-  - `phiw::E`: Transformed-vertical-momentum fluxes.
+  - `phiw::A`: Transformed-vertical-momentum fluxes.
 
-  - `phitheta::F`: Potential temperature fluxes.
+  - `phitheta::A`: Potential temperature fluxes.
 
-  - `phip::G`: Mass-weighted potential-temperature fluxes.
+  - `phip::A`: Mass-weighted potential-temperature fluxes.
 
 # Arguments
 
@@ -63,22 +55,14 @@ Construct a `Fluxes` instance in compressible mode.
 
   - `model`: Dynamic equations.
 """
-struct Fluxes{
-    A <: AbstractArray{<:AbstractFloat, 4},
-    B <: AbstractArray{<:AbstractFloat, 4},
-    C <: AbstractArray{<:AbstractFloat, 4},
-    D <: AbstractArray{<:AbstractFloat, 4},
-    E <: AbstractArray{<:AbstractFloat, 4},
-    F <: AbstractArray{<:AbstractFloat, 4},
-    G <: AbstractArray{<:AbstractFloat, 4},
-}
+struct Fluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phirho::A
-    phirhop::B
-    phiu::C
-    phiv::D
-    phiw::E
-    phitheta::F
-    phip::G
+    phirhop::A
+    phiu::A
+    phiv::A
+    phiw::A
+    phitheta::A
+    phip::A
 end
 
 function Fluxes(namelists::Namelists, domain::Domain)::Fluxes

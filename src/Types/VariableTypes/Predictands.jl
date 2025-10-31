@@ -1,14 +1,6 @@
 """
 ```julia
-Predictands{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-    D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 3},
-    F <: AbstractArray{<:AbstractFloat, 3},
-    G <: AbstractArray{<:AbstractFloat, 3},
-}
+Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Arrays for prognostic variables.
@@ -31,17 +23,17 @@ The predictands are initialized with the corresponding functions in `namelists.a
 
   - `rho::A`: Density.
 
-  - `rhop::B`: Density-fluctuations.
+  - `rhop::A`: Density-fluctuations.
 
-  - `u::C`: Zonal wind.
+  - `u::A`: Zonal wind.
 
-  - `v::D`: Meridional wind.
+  - `v::A`: Meridional wind.
 
-  - `w::E`: Transformed vertical wind.
+  - `w::A`: Transformed vertical wind.
 
-  - `pip::F`: Exner-pressure fluctuations.
+  - `pip::A`: Exner-pressure fluctuations.
 
-  - `p::G`: Mass-weighted potential temperature.
+  - `p::A`: Mass-weighted potential temperature.
 
 # Arguments
 
@@ -65,22 +57,14 @@ The predictands are initialized with the corresponding functions in `namelists.a
 
   - [`PinCFlow.Types.VariableTypes.set_p`](@ref)
 """
-struct Predictands{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-    D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 3},
-    F <: AbstractArray{<:AbstractFloat, 3},
-    G <: AbstractArray{<:AbstractFloat, 3},
-}
+struct Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
     rho::A
-    rhop::B
-    u::C
-    v::D
-    w::E
-    pip::F
-    p::G
+    rhop::A
+    u::A
+    v::A
+    w::A
+    pip::A
+    p::A
 end
 
 function Predictands(
