@@ -9,7 +9,7 @@ MergedRays{
 Composite type used for creating merged ray volumes.
 
 ```julia
-MergedRays(bounds::Integer, count::Integer)::MergedRays
+MergedRays(float_type::DataType, bounds::Integer, count::Integer)::MergedRays
 ```
 
 Construct a `MergedRays` instance, with arrays sized according to the given dimensions.
@@ -32,6 +32,8 @@ Construct a `MergedRays` instance, with arrays sized according to the given dime
 
 # Arguments
 
+  - `float_type`: Data type of the arrays' elements.
+
   - `bounds`: Number of bounds in each dimension.
 
   - `count`: Maximum ray-volume count per grid cell.
@@ -49,6 +51,13 @@ struct MergedRays{
     nr::B
 end
 
-function MergedRays(bounds::Integer, count::Integer)::MergedRays
-    return MergedRays([zeros(bounds, count) for i in 1:6]..., zeros(count))
+function MergedRays(
+    float_type::DataType,
+    bounds::Integer,
+    count::Integer,
+)::MergedRays
+    return MergedRays(
+        [zeros(float_type, bounds, count) for i in 1:6]...,
+        zeros(float_type, count),
+    )
 end

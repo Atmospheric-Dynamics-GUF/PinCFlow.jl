@@ -152,19 +152,21 @@ function WKB(namelists::Namelists, domain::Domain)::WKB
 end
 
 function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
+    (; float_type, integer_type) = namelists.discretization
+
     return WKB(
-        [0 for i in 1:9]...,
-        zeros(Int, 0, 0, 0),
-        Rays(0, 0, 0, 0),
-        MergedRays(0, 0),
-        SurfaceIndices(0, 0, 0),
-        WKBIncrements(0, 0, 0, 0),
-        WKBIntegrals(0, 0, 0),
-        WKBTendencies(0, 0, 0),
-        [Ref(0.0) for i in 1:2]...,
-        zeros(0, 0, 0),
-        zeros(0, 0),
-        zeros(0, 0, 0),
+        [integer_type(0) for i in 1:9]...,
+        zeros(integer_type, 0, 0, 0),
+        Rays(float_type, 0, 0, 0, 0),
+        MergedRays(float_type, 0, 0),
+        SurfaceIndices(integer_type, 0, 0, 0),
+        WKBIncrements(float_type, 0, 0, 0, 0),
+        WKBIntegrals(float_type, 0, 0, 0),
+        WKBTendencies(float_type, 0, 0, 0),
+        [Ref(float_type(0)) for i in 1:2]...,
+        zeros(float_type, 0, 0, 0),
+        zeros(float_type, 0, 0),
+        zeros(float_type, 0, 0, 0),
     )
 end
 
@@ -173,6 +175,7 @@ function WKB(
     domain::Domain,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::WKB
+    (; float_type, integer_type) = namelists.discretization
     (;
         nrx,
         nry,
@@ -202,67 +205,67 @@ function WKB(
 
     # Set zonal ray-volume count.
     if x_size == 1
-        nxray = 1
+        nxray = integer_type(1)
     else
-        nxray = multiplication_factor * nrx * nrk
+        nxray = integer_type(multiplication_factor * nrx * nrk)
     end
 
     # Set meridional ray-volume count.
     if y_size == 1
-        nyray = 1
+        nyray = integer_type(1)
     else
-        nyray = multiplication_factor * nry * nrl
+        nyray = integer_type(multiplication_factor * nry * nrl)
     end
 
     # Set vertical ray-volume count.
-    nzray = multiplication_factor * nrz * nrm
+    nzray = integer_type(multiplication_factor * nrz * nrm)
 
     # Set maximum ray-volume count.
-    nray_max = nxray * nyray * nzray * wave_modes
+    nray_max = nxray * nyray * nzray * integer_type(wave_modes)
 
     # Set spectral dimension of ray-volume array.
     if nxray > 1
-        nxray_wrk = 2 * nxray
+        nxray_wrk = integer_type(2) * nxray
     else
-        nxray_wrk = 1
+        nxray_wrk = integer_type(1)
     end
     if nyray > 1
-        nyray_wrk = 2 * nyray
+        nyray_wrk = integer_type(2) * nyray
     else
-        nyray_wrk = 1
+        nyray_wrk = integer_type(1)
     end
     if nzray > 1
-        nzray_wrk = 2 * nzray
+        nzray_wrk = integer_type(2) * nzray
     else
-        nzray_wrk = 1
+        nzray_wrk = integer_type(1)
     end
     nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk
 
     # Set number of surface ray volumes.
-    n_sfc = wave_modes
+    n_sfc = integer_type(wave_modes)
     if nxray > 1
-        n_sfc *= div(nxray, multiplication_factor)
+        n_sfc *= div(nxray, integer_type(multiplication_factor))
     end
     if nyray > 1
-        n_sfc *= div(nyray, multiplication_factor)
+        n_sfc *= div(nyray, integer_type(multiplication_factor))
     end
     if nzray > 1
-        n_sfc *= div(nzray, multiplication_factor)
+        n_sfc *= div(nzray, integer_type(multiplication_factor))
     end
 
     # Allocate ray-volume arrays.
-    nray = zeros(Int, nxx, nyy, nzz)
-    rays = Rays(nray_wrk, nxx, nyy, nzz)
-    merged_rays = MergedRays(2, nray_max)
-    surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
-    increments = WKBIncrements(nray_wrk, nxx, nyy, nzz)
-    integrals = WKBIntegrals(nxx, nyy, nzz)
-    tendencies = WKBTendencies(nxx, nyy, nzz)
-    cgx_max = Ref(0.0)
-    cgy_max = Ref(0.0)
-    cgz_max = zeros(nxx, nyy, nzz)
-    zb = zeros(nxx, nyy)
-    diffusion = zeros(nxx, nyy, nzz)
+    nray = zeros(integer_type, nxx, nyy, nzz)
+    rays = Rays(float_type, nray_wrk, nxx, nyy, nzz)
+    merged_rays = MergedRays(float_type, 2, nray_max)
+    surface_indices = SurfaceIndices(integer_type, n_sfc, nxx, nyy)
+    increments = WKBIncrements(float_type, nray_wrk, nxx, nyy, nzz)
+    integrals = WKBIntegrals(float_type, nxx, nyy, nzz)
+    tendencies = WKBTendencies(float_type, nxx, nyy, nzz)
+    cgx_max = Ref(float_type(0))
+    cgy_max = Ref(float_type(0))
+    cgz_max = zeros(float_type, nxx, nyy, nzz)
+    zb = zeros(float_type, nxx, nyy)
+    diffusion = zeros(float_type, nxx, nyy, nzz)
 
     return WKB(
         nxray,

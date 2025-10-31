@@ -6,7 +6,12 @@ WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 Gravity-wave drag and heating fields.
 
 ```julia
-WKBTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::WKBTendencies
+WKBTendencies(
+    float_type::DataType,
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+)::WKBTendencies
 ```
 
 Construct a `WKBTendencies` instance, with arrays sized according to the given dimensions.
@@ -21,6 +26,8 @@ Construct a `WKBTendencies` instance, with arrays sized according to the given d
 
 # Arguments
 
+  - `float_type`: Data type of the arrays' elements.
+
   - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
 
   - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
@@ -33,6 +40,11 @@ struct WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dthetadt::A
 end
 
-function WKBTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::WKBTendencies
-    return WKBTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)
+function WKBTendencies(
+    float_type::DataType,
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+)::WKBTendencies
+    return WKBTendencies([zeros(float_type, nxx, nyy, nzz) for i in 1:3]...)
 end
