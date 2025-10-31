@@ -3,14 +3,6 @@
 BicGStab{
     A <: AbstractMatrix{<:AbstractFloat},
     B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-    D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 3},
-    F <: AbstractArray{<:AbstractFloat, 3},
-    G <: AbstractArray{<:AbstractFloat, 3},
-    H <: AbstractArray{<:AbstractFloat, 3},
-    I <: AbstractArray{<:AbstractFloat, 3},
-    J <: AbstractArray{<:AbstractFloat, 3},
 }
 ```
 
@@ -28,21 +20,21 @@ Create a `BicGStab` instance with zero-initialized workspace arrays sized accord
 
   - `p::B`: Search direction.
 
-  - `r0::C`: Initial residual.
+  - `r0::B`: Initial residual.
 
-  - `rold::D`: Previous residual.
+  - `rold::B`: Previous residual.
 
-  - `r::E`: Current residual.
+  - `r::B`: Current residual.
 
-  - `s::F`: Intermediate solution.
+  - `s::B`: Intermediate solution.
 
-  - `t::G`: Result of applying the linear operator to `s`.
+  - `t::B`: Result of applying the linear operator to `s`.
 
-  - `v::H`: Result of applying the linear operator to `p`.
+  - `v::B`: Result of applying the linear operator to `p`.
 
-  - `matvec::I`: Intermediate result of applying the linear operator.
+  - `matvec::B`: Intermediate result of applying the linear operator.
 
-  - `v_pc::J`: Output of the preconditioner.
+  - `v_pc::B`: Output of the preconditioner.
 
 # Arguments
 
@@ -51,25 +43,17 @@ Create a `BicGStab` instance with zero-initialized workspace arrays sized accord
 struct BicGStab{
     A <: AbstractMatrix{<:AbstractFloat},
     B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-    D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 3},
-    F <: AbstractArray{<:AbstractFloat, 3},
-    G <: AbstractArray{<:AbstractFloat, 3},
-    H <: AbstractArray{<:AbstractFloat, 3},
-    I <: AbstractArray{<:AbstractFloat, 3},
-    J <: AbstractArray{<:AbstractFloat, 3},
 }
     r_vm::A
     p::B
-    r0::C
-    rold::D
-    r::E
-    s::F
-    t::G
-    v::H
-    matvec::I
-    v_pc::J
+    r0::B
+    rold::B
+    r::B
+    s::B
+    t::B
+    v::B
+    matvec::B
+    v_pc::B
 end
 
 function BicGStab(domain::Domain)::BicGStab
