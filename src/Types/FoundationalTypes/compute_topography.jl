@@ -68,7 +68,7 @@ The arrays representing the unresolved spectrum are set to have the size `(0, 0,
 
   - `y`: ``\\widehat{y}``-coordinate grid points.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 
@@ -109,7 +109,7 @@ function compute_topography(
 }
     (; wave_modes) = namelists.wkb
     (; resolved_topography, unresolved_topography) = namelists.grid
-    (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
+    (; nxx, nyy, i0, i1, j0, j1) = domain
     (; lref) = constants
 
     hb = zeros(nxx, nyy)
@@ -118,11 +118,11 @@ function compute_topography(
     lh = zeros(wave_modes, nxx, nyy)
 
     @ivy for j in j0:j1, i in i0:i1
-        hbdim = resolved_topography(x[io + i] * lref, y[jo + j] * lref)
+        hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
         for alpha in 1:wave_modes
             (khdim, lhdim, hwdim) =
-                unresolved_topography(alpha, x[io + i] * lref, y[jo + j] * lref)
+                unresolved_topography(alpha, x[i] * lref, y[j] * lref)
             kh[alpha, i, j] = khdim * lref
             lh[alpha, i, j] = lhdim * lref
             hw[alpha, i, j] = hwdim / lref
@@ -149,7 +149,7 @@ function compute_topography(
     <:AbstractArray{<:AbstractFloat, 3},
 }
     (; resolved_topography) = namelists.grid
-    (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
+    (; nxx, nyy, i0, i1, j0, j1) = domain
     (; lref) = constants
 
     hb = zeros(nxx, nyy)
@@ -158,7 +158,7 @@ function compute_topography(
     lh = zeros(0, 0, 0)
 
     @ivy for j in j0:j1, i in i0:i1
-        hbdim = resolved_topography(x[io + i] * lref, y[jo + j] * lref)
+        hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
     end
 

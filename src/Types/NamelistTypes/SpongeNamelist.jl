@@ -2,10 +2,11 @@
 ```julia
 SpongeNamelist{
     A <: Bool,
-    B <: Float64,
-    C <: AbstractSponge,
-    D <: Int,
-    E <: NTuple{3, Float64},
+    B <: Function,
+    C <: Function,
+    D <: Function,
+    E <: Function,
+    F <: Function,
 }
 ```
 
@@ -14,17 +15,12 @@ Namelist for parameters describing the sponge.
 ```julia
 SpongeNamelist(;
     damp_horizontal_wind_on_rhs::Bool = false,
-    sponge_extent::AbstractFloat = 5.0E-1,
-    alpharmax::AbstractFloat = 0.0E+0,
-    betarmax::AbstractFloat = 0.0E+0,
-    lateral_sponge::Bool = false,
-    sponge_type::AbstractSponge = PolynomialSponge(),
-    sponge_order::Integer = 1,
-    cosmo_steps::Integer = 1,
-    relax_to_mean::Bool = true,
-    perturbation_period::AbstractFloat = 0.0E+0,
-    perturbation_amplitude::AbstractFloat = 0.0E+0,
-    relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    relax_to_mean::Bool = false,
+    lhs_sponge::Function = (x, y, z, t, dt) -> 0.0,
+    rhs_sponge::Function = (x, y, z, t, dt) -> 0.0,
+    relaxed_u::Function = (x, y, z, t, dt) -> 0.0,
+    relaxed_v::Function = (x, y, z, t, dt) -> 0.0,
+    relaxed_w::Function = (x, y, z, t, dt) -> 0.0,
 )::SpongeNamelist
 ```
 
@@ -34,75 +30,51 @@ Construct a `SpongeNamelist` instance with the given keyword arguments as proper
 
   - `damp_horizontal_wind_on_rhs::A`: Switch for applying the RHS sponge to the horizontal wind.
 
-  - `sponge_extent::B`: Fractional vertical extent of the sponge.
+  - `relax_to_mean::A`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the relaxation wind is computed with `relaxed_u`, `relaxed_v` and `relaxed_w`.
 
-  - `alpharmax::B`: Rayleigh-damping coefficient of the LHS sponge.
+  - `lhs_sponge::B`: Function used to compute the Rayleigh-damping coefficient of the LHS sponge.
 
-  - `betarmax::B`: Rayleigh-damping coefficient of the RHS sponge, multiplied by the time step.
+  - `rhs_sponge::C`: Function used to compute the Rayleigh-damping coefficient of the RHS sponge.
 
-  - `lateral_sponge::A`: Switch for the lateral LHS sponge.
+  - `relaxed_u::D`: Function used to compute the zonal relaxation wind if `relax_to_mean` is set to `false`.
 
-  - `sponge_type::C`: Profile of the LHS sponge.
+  - `relaxed_v::E`: Function used to compute the meridional relaxation wind if `relax_to_mean` is set to `false`.
 
-  - `sponge_order::D`: Order of the polynomial LHS sponge.
-
-  - `cosmo_steps::D`: Factor by which the time step is multiplied in the damping coefficient of the COSMO-like LHS sponge.
-
-  - `relax_to_mean::A`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
-
-  - `perturbation_period::B`: Period of an oscillating perturbation on top of `relaxation_wind`.
-
-  - `perturbation_amplitude::B`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
-
-  - `relaxation_wind::E`: Wind to be obtained through Rayleigh damping in the LHS sponge.
+  - `relaxed_w::F`: Function used to compute the vertical relaxation wind if `relax_to_mean` is set to `false`.
 """
 struct SpongeNamelist{
     A <: Bool,
-    B <: Float64,
-    C <: AbstractSponge,
-    D <: Int,
-    E <: NTuple{3, Float64},
+    B <: Function,
+    C <: Function,
+    D <: Function,
+    E <: Function,
+    F <: Function,
 }
     damp_horizontal_wind_on_rhs::A
-    sponge_extent::B
-    alpharmax::B
-    betarmax::B
-    lateral_sponge::A
-    sponge_type::C
-    sponge_order::D
-    cosmo_steps::D
     relax_to_mean::A
-    perturbation_period::B
-    perturbation_amplitude::B
-    relaxation_wind::E
+    lhs_sponge::B
+    rhs_sponge::C
+    relaxed_u::D
+    relaxed_v::E
+    relaxed_w::F
 end
 
 function SpongeNamelist(;
     damp_horizontal_wind_on_rhs::Bool = false,
-    sponge_extent::AbstractFloat = 5.0E-1,
-    alpharmax::AbstractFloat = 0.0E+0,
-    betarmax::AbstractFloat = 0.0E+0,
-    lateral_sponge::Bool = false,
-    sponge_type::AbstractSponge = PolynomialSponge(),
-    sponge_order::Integer = 1,
-    cosmo_steps::Integer = 1,
-    relax_to_mean::Bool = true,
-    perturbation_period::AbstractFloat = 0.0E+0,
-    perturbation_amplitude::AbstractFloat = 0.0E+0,
-    relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    relax_to_mean::Bool = false,
+    lhs_sponge::Function = (x, y, z, t, dt) -> 0.0,
+    rhs_sponge::Function = (x, y, z, t, dt) -> 0.0,
+    relaxed_u::Function = (x, y, z, t, dt) -> 0.0,
+    relaxed_v::Function = (x, y, z, t, dt) -> 0.0,
+    relaxed_w::Function = (x, y, z, t, dt) -> 0.0,
 )::SpongeNamelist
     return SpongeNamelist(
         damp_horizontal_wind_on_rhs,
-        Float64(sponge_extent),
-        Float64(alpharmax),
-        Float64(betarmax),
-        lateral_sponge,
-        sponge_type,
-        Int(sponge_order),
-        Int(cosmo_steps),
         relax_to_mean,
-        Float64(perturbation_period),
-        Float64(perturbation_amplitude),
-        Float64.(relaxation_wind),
+        lhs_sponge,
+        rhs_sponge,
+        relaxed_u,
+        relaxed_v,
+        relaxed_w,
     )
 end

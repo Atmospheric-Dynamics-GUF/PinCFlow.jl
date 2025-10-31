@@ -11,7 +11,7 @@ WKBNamelist{
 }
 ```
 
-Namelist for parameters used by MSGWaM.
+Namelist for parameters used by MS-GWaM.
 
 ```julia
 WKBNamelist(;
@@ -83,7 +83,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `saturation_threshold::B`: Relative saturation threshold.
 
-  - `wkb_mode::F`: Approximations used by MSGWaM.
+  - `wkb_mode::F`: Approximations used by MS-GWaM.
 
   - `blocking::D`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
 

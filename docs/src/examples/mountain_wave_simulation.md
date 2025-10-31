@@ -18,32 +18,50 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
+h0 = 100.0
+l0 = 1000.0
+
+lx = 20000.0
+ly = 20000.0
+lz = 20000.0
+dxr = lx / 2
+dyr = ly / 2
+dzr = lz / 2
+alpharmax = 0.0179
+
 atmosphere = AtmosphereNamelist(;
-    coriolis_frequency = 0.0E+0,
-    initial_u = (x, y, z) -> 1.0E+1,
+    coriolis_frequency = 0.0,
+    initial_u = (x, y, z) -> 10.0,
 )
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 40,
     z_size = 40,
-    lx = 2.0E+4,
-    ly = 2.0E+4,
-    lz = 2.0E+4,
+    lx,
+    ly,
+    lz,
     npx,
     npy,
     npz,
 )
 grid = GridNamelist(;
-    resolved_topography = (x, y) -> 100 / (1 + (x^2 + y^2) / 1000^2),
+    resolved_topography = (x, y) -> h0 / (1 + (x^2 + y^2) / l0^2),
 )
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "mountain_wave.h5")
 sponge = SpongeNamelist(;
-    alpharmax = 1.79E-2,
-    lateral_sponge = true,
-    sponge_type = SinusoidalSponge(),
-    relax_to_mean = false,
-    relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
+    lhs_sponge = (x, y, z, t, dt) -> begin
+        alpharx =
+            abs(x) >= (lx - dxr) / 2 ?
+            sin(pi * (abs(x) - (lx - dxr) / 2) / dxr)^2 : 0.0
+        alphary =
+            abs(y) >= (ly - dyr) / 2 ?
+            sin(pi * (abs(y) - (ly - dyr) / 2) / dyr)^2 : 0.0
+        alpharz =
+            z >= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
+        return alpharmax * (alpharx + alphary + alpharz) / 3
+    end,
+    relaxed_u = (x, y, z, t, dt) -> 10.0,
 )
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
@@ -65,30 +83,26 @@ with $h_0 = 100 \, \mathrm{m}$ and $l_0 = 1 \, \mathrm{km}$. The atmosphere is i
 
 Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge defined by
 
-$$\alpha_\mathrm{R} \left(x, y, z\right) = \frac{\alpha_{\mathrm{R}, x} \left(x\right) + \alpha_{\mathrm{R}, y} \left(y\right) + \alpha_{\mathrm{R}, z} \left(z\right)}{3}$$
+$$\alpha_\mathrm{R} \left(x, y, z\right) = \alpha_{\mathrm{R}, \max} \frac{\alpha_{\mathrm{R}, x} \left(x\right) + \alpha_{\mathrm{R}, y} \left(y\right) + \alpha_{\mathrm{R}, z} \left(z\right)}{3}$$
 
 with
 
 $$\begin{align*}
     \alpha_{\mathrm{R}, x} \left(x\right) & = \begin{cases}
-        \alpha_{\mathrm{R}, \max} \sin^2 \left[\frac{\pi \left(x_{\mathrm{R}, 0} - x\right)}{2 \Delta x_\mathrm{R}}\right] & \mathrm{if} \quad x \leq x_{\mathrm{R}, 0},\\
-        \alpha_{\mathrm{R}, \max} \sin^2 \left[\frac{\pi \left(x - x_{\mathrm{R}, 1}\right)}{2 \Delta x_\mathrm{R}}\right] & \mathrm{if} \quad x \geq x_{\mathrm{R}, 1},\\
+        \sin^2 \left[\pi \frac{\left|x\right| - \left(L_x - \Delta x_\mathrm{R}\right) / 2}{\Delta x_\mathrm{R}}\right] & \mathrm{if} \quad \left|x\right| \geq \frac{1}{2} \left(L_x - \Delta x_\mathrm{R}\right),\\
         0 & \mathrm{else},
     \end{cases}\\
     \alpha_{\mathrm{R}, y} \left(y\right) & = \begin{cases}
-        \alpha_{\mathrm{R}, \max} \sin^2 \left[\frac{\pi \left(y_{\mathrm{R}, 0} - y\right)}{2 \Delta y_\mathrm{R}}\right] & \mathrm{if} \quad y \leq y_{\mathrm{R}, 0},\\
-        \alpha_{\mathrm{R}, \max} \sin^2 \left[\frac{\pi \left(y - y_{\mathrm{R}, 1}\right)}{2 \Delta y_\mathrm{R}}\right] & \mathrm{if} \quad y \geq y_{\mathrm{R}, 1},\\
+        \sin^2 \left[\pi \frac{\left|y\right| - \left(L_y - \Delta y_\mathrm{R}\right) / 2}{\Delta y_\mathrm{R}}\right] & \mathrm{if} \quad \left|y\right| \geq \frac{1}{2} \left(L_y - \Delta y_\mathrm{R}\right),\\
         0 & \mathrm{else},
     \end{cases}\\
     \alpha_{\mathrm{R}, z} \left(z\right) & = \begin{cases}
-        \alpha_{\mathrm{R}, \max} \sin^2 \left[\frac{\pi \left(z - z_\mathrm{R}\right)}{2 \Delta z_\mathrm{R}}\right] & \mathrm{if} \quad z \geq z_\mathrm{R},\\
+        \sin^2 \left[\frac{\pi}{2} \frac{z - \left(L_z - \Delta z_\mathrm{R}\right)}{\Delta z_\mathrm{R}}\right] & \mathrm{if} \quad z \geq L_z - \Delta z_\mathrm{R},\\
         0 & \mathrm{else},
     \end{cases}
 \end{align*}$$
 
-where the maximum of the damping coefficient is $\alpha_{\mathrm{R}, \max} = 0.0179 \, \mathrm{s^{- 1}}$, which corresponds to the buoyancy frequency. Since the simulation uses the default setting `sponge_extent = 0.5`, the parameter $\Delta z_\mathrm{R}$ is given by half of the domain's vertical extent, whereas $\Delta x_\mathrm{R}$ and $\Delta y_\mathrm{R}$ are each given by a quarter of the domain's extent in the respective dimension. The edges of the sponge are such that it is horizontally centered at $\left(- 10, - 10\right)^\mathrm{T} \, \mathrm{km}$ and has an extent of $\left(\Delta x_\mathrm{R}, \Delta y_\mathrm{R}\right)^\mathrm{T}$ below $z_\mathrm{R} = 10 \, \mathrm{km}$, whereas it covers the entire horizontal plane above that altitude (see below for plots of $\alpha_\mathrm{R}$ in three cross sections of the domain). This means that the sponge not only prevents wave reflections at the model top but also provides a damping at the horizontal boundaries. Moreover, it is configured such that the wind is relaxed towards its initial state, so that (in the ideal case) the periodicity in $x$ and $y$ is effectively eliminated by enforcing a constant wind at the domain edges.
-
-![](sinusoidal_sponge.svg)
+where $\alpha_{\mathrm{R}, \max} = 0.0179 \, \mathrm{s^{- 1}}$, $\Delta x_\mathrm{R} = L_x / 2$, $\Delta y_\mathrm{R} = L_y / 2$ and $\Delta z_\mathrm{R} = L_z / 2$. This sponge not only prevents wave reflections at the model top but also provides a damping at the horizontal boundaries. Moreover, it is configured such that the wind is relaxed towards its initial state, so that (in the ideal case) the periodicity in $x$ and $y$ is effectively eliminated by enforcing a constant wind at the domain edges.
 
 ## Visualization
 

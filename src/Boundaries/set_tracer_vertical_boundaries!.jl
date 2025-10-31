@@ -86,7 +86,7 @@ Enforce vertical boundary conditions for tracer WKB tendencies.
 
   - `tracer_setup`: General tracer-transport configuration.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 
@@ -155,7 +155,8 @@ function set_tracer_vertical_boundaries!(
     variables::BoundaryFluxes,
     tracer_setup::TracerOn,
 )
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
 
     @ivy if ko == 0
@@ -164,7 +165,7 @@ function set_tracer_vertical_boundaries!(
         end
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end

@@ -9,9 +9,9 @@ This method performs the complete time integration of the governing equations,
 using a semi-implicit time stepping scheme. It handles initialization,
 time stepping and output of the simulation data.
 
-The initialization begins with the construction of the model state (an instance of the composite type `State`), which involves the setup of the MPI parallelization and the definition of all arrays that are needed repeatedly during the simulation. This is followed by an (optional) initial cleaning, in which the Poisson solver is called to ensure that the initial dynamic fields satisfy the divergence constraint imposed by the thermodynamic energy equation. Afterwards, the initialization of MSGWaM is completed by adding ray volumes to the previously defined arrays. If the simulation is supposed to start from a previous model state, the fields are then overwritten with the data in the corresponding input file. Finally, the output file is created and the initial state is written into it.
+The initialization begins with the construction of the model state (an instance of the composite type `State`), which involves the setup of the MPI parallelization and the definition of all arrays that are needed repeatedly during the simulation. This is followed by an (optional) initial cleaning, in which the Poisson solver is called to ensure that the initial dynamic fields satisfy the divergence constraint imposed by the thermodynamic energy equation. Afterwards, the initialization of MS-GWaM is completed by adding ray volumes to the previously defined arrays. If the simulation is supposed to start from a previous model state, the fields are then overwritten with the data in the corresponding input file. Finally, the output file is created and the initial state is written into it.
 
-At the beginning of each time-loop iteration, the time step is determined from several stability criteria, using `compute_time_step`. In case the updated simulation time is later than the next output time, the time step is corrected accordingly. Subsequently, the damping coefficients of the sponges (which may depend on the time step) are calculated. Following this, MSGWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
+At the beginning of each time-loop iteration, the time step is determined from several stability criteria, using `compute_time_step`. In case the updated simulation time is later than the next output time, the time step is corrected accordingly. Subsequently, the damping coefficients of the sponges (which may depend on the time step) are calculated. Following this, MS-GWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
 
  1. Explicit RK3 integration of LHS over ``\\Delta t / 2``.
 
@@ -152,7 +152,7 @@ function integrate(namelists::Namelists)
     end
 
     #---------------------------------------------
-    #              Initialize MSGWaM
+    #              Initialize MS-GWaM
     #---------------------------------------------
 
     initialize_rays!(state)
@@ -244,10 +244,10 @@ function integrate(namelists::Namelists)
         #                           Sponges
         #-----------------------------------------------------------------
 
-        compute_sponges!(state, dt)
+        compute_sponges!(state, dt, time)
 
         #-----------------------------------------------------------------
-        #                           MSGWaM
+        #                           MS-GWaM
         #-----------------------------------------------------------------
 
         wkb_integration!(state, dt)

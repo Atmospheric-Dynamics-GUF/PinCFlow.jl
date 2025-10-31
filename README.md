@@ -1,4 +1,4 @@
-# PinCFlow.jl: An idealized-atmospheric-flow solver coupled to the 3D transient gravity-wave model MSGWaM
+# PinCFlow.jl: An idealized-atmospheric-flow solver coupled to the 3D transient gravity-wave model MS-GWaM
 
 [![Docs-stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Atmospheric-Dynamics-GUF.github.io/PinCFlow.jl/stable)
 [![Docs-dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Atmospheric-Dynamics-GUF.github.io/PinCFlow.jl/dev)
@@ -12,7 +12,7 @@
 
 PinCFlow.jl is an atmospheric-flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form ([Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)), using a semi-implicit method that combines explicit and implicit time-stepping schemes ([Benacchio & Klein, 2019](https://doi.org/10.1175/MWR-D-19-0073.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1); [Chew et al., 2022](https://doi.org/10.1175/MWR-D-21-0175.1)). Spatially, the equations are discretized with a finite-volume method, such that all quantities are represented by averages over grid cells and fluxes are computed on the respective cell interfaces. The grid is staggered so that the velocity components are defined at the same points as the corresponding fluxes of scalar quantities. PinCFlow.jl operates in a vertically stretched terrain-following coordinate system based on [Gal-Chen and Somerville (1975a)](https://doi.org/10.1016/0021-9991(75)90037-6), [Gal-Chen and Somerville (1975b)](https://doi.org/10.1016/0021-9991(75)90054-6) and [Clark (1977)](https://doi.org/10.1016/0021-9991(77)90057-2).
 
-The Lagrangian WKB model MSGWaM is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transience and horizontal propagation. The resolved fields are updated with tendencies computed by MSGWaM at the beginning of every time step. A description of the theory behind MSGWaM can be found in [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926) and [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180). For a numerical perspective and more information on the development, see [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
+The Lagrangian WKB model MS-GWaM is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transient wave-mean-flow interaction and horizontal wave propagation. The resolved fields are updated with tendencies computed by MS-GWaM at the beginning of every time step. A description of the theory behind MS-GWaM can be found in [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926) and [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180). For a numerical perspective and more information on the development, see [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
 
 ## User guide
 
@@ -63,26 +63,35 @@ using PinCFlow
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
+h0 = 10.0
+l0 = 10000.0
+
+lz = 20000.0
+zr = 10000.0
+
 atmosphere = AtmosphereNamelist(;
-    coriolis_frequency = 0.0E+0,
-    initial_u = (x, y, z) -> 1.0E+1,
+    coriolis_frequency = 0.0,
+    initial_u = (x, y, z) -> 10.0,
 )
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 1,
     z_size = 40,
-    lx = 2.0E+4,
-    ly = 2.0E+4,
-    lz = 2.0E+4,
+    lx = 20000.0,
+    ly = 20000.0,
+    lz,
     npx,
     npz,
 )
 grid = GridNamelist(;
-    resolved_topography = (x, y) -> 5 * (1 + cos(pi / 10000 * x)),
+    resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
 )
 output =
     OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
-sponge = SpongeNamelist(; betarmax = 1.0E+0)
+sponge = SpongeNamelist(;
+    rhs_sponge = (x, y, z, t, dt) ->
+        z >= zr ? sin(pi / 2 * (z - zr) / (lz - zr))^2 / dt : 0.0,
+)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 

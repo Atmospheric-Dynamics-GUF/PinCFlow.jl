@@ -93,10 +93,10 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the zonal-
 The update is given by
 
 ```math
-u_{i + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{u_{i + 1 / 2} + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t u_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\}.
+u_{i + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\left(u_{i + 1 / 2} + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t u_{\\mathrm{R}, i + 1 / 2}\\right).
 ```
 
-If `state.namelists.sponge.relax_to_mean` is `false`, ``u_\\mathrm{r}``, ``a_\\mathrm{r}`` and ``t_\\mathrm{r}`` are given by the sponge-namelist parameters `relaxation_wind[1]`, `perturbation_amplitude` and `perturbation_period`, respectively. Otherwise, ``u_\\mathrm{r}`` is the average of ``u_{i + 1 / 2}`` across the terrain-following coordinate surface and ``a_\\mathrm{r} = 0``.
+If `state.namelists.sponge.relax_to_mean` is `false`, ``u_{\\mathrm{R}, i + 1 / 2}`` is computed with `state.namelist.sponge.relaxed_u`. Otherwise, it is replaced with the average of ``u_{i + 1 / 2}`` across the terrain-following coordinate surface.
 
 ```julia
 apply_lhs_sponge!(
@@ -113,10 +113,10 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the meridi
 The update is given by
 
 ```math
-v_{j + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{v_{j + 1 / 2} + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t v_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\}.
+v_{j + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\left(v_{j + 1 / 2} + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t v_{\\mathrm{R}, j + 1 / 2}\\right).
 ```
 
-The computation of the relaxation wind is analogous to that in the method for the zonal momentum, with ``v_\\mathrm{r}`` given by `state.namelists.sponge.relaxation_wind[2]`.
+If `state.namelists.sponge.relax_to_mean` is `false`, ``v_{\\mathrm{R}, j + 1 / 2}`` is computed with `state.namelist.sponge.relaxed_v`. Otherwise, it is replaced with the average of ``v_{j + 1 / 2}`` across the terrain-following coordinate surface.
 
 ```julia
 apply_lhs_sponge!(
@@ -133,10 +133,10 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the transf
 The update is given by
 
 ```math
-\\widehat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{\\widehat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\widehat{w}_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\},
+\\widehat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left(\\widehat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\widehat{w}_{\\mathrm{R}, k + 1 / 2}\\right).
 ```
 
-The computation of the relaxation wind is analogous to that in the methods for the zonal and meridional momenta, with ``\\widehat{w}_\\mathrm{r}`` given by `state.namelists.sponge.relaxation_wind[3]`.
+If `state.namelists.sponge.relax_to_mean` is `false`, ``\\widehat{w}_{\\mathrm{R}, k + 1 / 2}`` is computed with the functions `relaxed_u`, `relaxed_v` and `relaxed_w` in `state.namelists.sponge`. Otherwise, it is replaced with the average of ``\\widehat{w}_{k + 1 / 2}`` across the terrain-following coordinate surface.
 
 ```julia
 apply_lhs_sponge!(
@@ -346,50 +346,43 @@ function apply_lhs_sponge!(
     model::AbstractModel,
 )
     (; x_size, y_size) = state.namelists.domain
-    (;
-        relax_to_mean,
-        perturbation_period,
-        perturbation_amplitude,
-        relaxation_wind,
-    ) = state.namelists.sponge
-    (; uref, tref) = state.constants
+    (; relax_to_mean, relaxed_u) = state.namelists.sponge
+    (; lref, tref, uref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
+    (; x, y, zc) = state.grid
     (; alphar, horizontal_mean) = state.sponge
     (; u) = state.variables.predictands
 
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
-    horizontal_mean .= 0.0
-
-    # Determine relaxation wind.
+    # Compute the horizontal mean.
     @ivy if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-    else
-        ubg = relaxation_wind[1] / uref
-        if perturbation_period > 0.0
-            ubg =
-                ubg * (
-                    1.0 +
-                    perturbation_amplitude *
-                    sin(2.0 * pi * time / perturbation_period * tref)
-                )
-        end
     end
 
     # Update the zonal wind.
-    @ivy for k in kk
-        if relax_to_mean
-            ubg = horizontal_mean[k - k0 + 1]
-        end
-        for j in jj, i in ii
-            alpha = 0.5 * (alphar[i, j, k] + alphar[i + 1, j, k])
-            uold = u[i, j, k]
-            beta = 1.0 / (1.0 + alpha * dt)
-            unew = (1.0 - beta) * ubg + beta * uold
-            u[i, j, k] = unew
-        end
+    @ivy for k in kk, j in jj, i in ii
+        xldim = x[i] * lref
+        xrdim = x[i + 1] * lref
+        ydim = y[j] * lref
+        zcdim = zc[i, j, k] * lref
+        tdim = time * tref
+        dtdim = dt * tref
+
+        ubg =
+            relax_to_mean ? horizontal_mean[k - k0 + 1] :
+            (
+                relaxed_u(xldim, ydim, zcdim, tdim, dtdim) +
+                relaxed_u(xrdim, ydim, zcdim, tdim, dtdim)
+            ) / uref / 2
+
+        alpha = 0.5 * (alphar[i, j, k] + alphar[i + 1, j, k])
+        uold = u[i, j, k]
+        beta = 1.0 / (1.0 + alpha * dt)
+        unew = (1.0 - beta) * ubg + beta * uold
+        u[i, j, k] = unew
     end
 
     return
@@ -403,50 +396,43 @@ function apply_lhs_sponge!(
     model::AbstractModel,
 )
     (; x_size, y_size) = state.namelists.domain
-    (;
-        relax_to_mean,
-        perturbation_period,
-        perturbation_amplitude,
-        relaxation_wind,
-    ) = state.namelists.sponge
-    (; uref, tref) = state.constants
+    (; relax_to_mean, relaxed_v) = state.namelists.sponge
+    (; lref, tref, uref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
+    (; x, y, zc) = state.grid
     (; alphar, horizontal_mean) = state.sponge
     (; v) = state.variables.predictands
 
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
-    horizontal_mean .= 0.0
-
-    # Determine relaxation wind.
+    # Compute the horizontal mean.
     @ivy if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-    else
-        vbg = relaxation_wind[2] / uref
-        if perturbation_period > 0.0
-            vbg =
-                vbg * (
-                    1.0 +
-                    perturbation_amplitude *
-                    sin(2.0 * pi * time / perturbation_period * tref)
-                )
-        end
     end
 
     # Update the meridional wind.
-    @ivy for k in kk
-        if relax_to_mean
-            vbg = horizontal_mean[k - k0 + 1]
-        end
-        for j in jj, i in ii
-            alpha = 0.5 * (alphar[i, j, k] + alphar[i, j + 1, k])
-            vold = v[i, j, k]
-            beta = 1.0 / (1.0 + alpha * dt)
-            vnew = (1.0 - beta) * vbg + beta * vold
-            v[i, j, k] = vnew
-        end
+    @ivy for k in kk, j in jj, i in ii
+        xdim = x[i] * lref
+        ybdim = y[j] * lref
+        yfdim = y[j + 1] * lref
+        zcdim = zc[i, j, k] * lref
+        tdim = time * tref
+        dtdim = dt * tref
+
+        vbg =
+            relax_to_mean ? horizontal_mean[k - k0 + 1] :
+            (
+                relaxed_v(xdim, ybdim, zcdim, tdim, dtdim) +
+                relaxed_v(xdim, yfdim, zcdim, tdim, dtdim)
+            ) / uref / 2
+
+        alpha = 0.5 * (alphar[i, j, k] + alphar[i, j + 1, k])
+        vold = v[i, j, k]
+        beta = 1.0 / (1.0 + alpha * dt)
+        vnew = (1.0 - beta) * vbg + beta * vold
+        v[i, j, k] = vnew
     end
 
     return
@@ -460,55 +446,60 @@ function apply_lhs_sponge!(
     model::AbstractModel,
 )
     (; x_size, y_size) = state.namelists.domain
-    (;
-        relax_to_mean,
-        perturbation_period,
-        perturbation_amplitude,
-        relaxation_wind,
-    ) = state.namelists.sponge
-    (; uref, tref) = state.constants
+    (; relax_to_mean, relaxed_u, relaxed_v, relaxed_w) = state.namelists.sponge
+    (; lref, tref, uref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar, horizontal_mean) = state.sponge
     (; w) = state.variables.predictands
-    (; jac) = state.grid
+    (; x, y, zc, jac, met) = state.grid
 
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
-    horizontal_mean .= 0.0
-
-    # Determine relaxation wind.
+    # Compute the horizontal mean.
     @ivy if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-    else
-        wbg = relaxation_wind[3] / uref
-        if perturbation_period > 0.0
-            wbg =
-                wbg * (
-                    1.0 +
-                    perturbation_amplitude *
-                    sin(2.0 * pi * time / perturbation_period * tref)
-                )
-        end
     end
 
     # Update the vertical wind.
-    @ivy for k in kk
-        if relax_to_mean
-            wbg = horizontal_mean[k - k0 + 1]
-        end
-        for j in jj, i in ii
-            alpha =
-                (
-                    jac[i, j, k + 1] * alphar[i, j, k] +
-                    jac[i, j, k] * alphar[i, j, k + 1]
-                ) / (jac[i, j, k] + jac[i, j, k + 1])
-            wold = w[i, j, k]
-            beta = 1.0 / (1.0 + alpha * dt)
-            wnew = (1.0 - beta) * wbg + beta * wold
-            w[i, j, k] = wnew
-        end
+    @ivy for k in kk, j in jj, i in ii
+        xdim = x[i] * lref
+        ydim = y[j] * lref
+        zcddim = zc[i, j, k] * lref
+        zcudim = zc[i, j, k + 1] * lref
+        tdim = time * tref
+        dtdim = dt * tref
+
+        wbg =
+            relax_to_mean ? horizontal_mean[k - k0 + 1] :
+            (
+                jac[i, j, k] * (
+                    met[i, j, k + 1, 1, 3] *
+                    relaxed_u(xdim, ydim, zcudim, tdim, dtdim) +
+                    met[i, j, k + 1, 2, 3] *
+                    relaxed_v(xdim, ydim, zcudim, tdim, dtdim) +
+                    relaxed_w(xdim, ydim, zcudim, tdim, dtdim) /
+                    jac[i, j, k + 1]
+                ) +
+                jac[i, j, k + 1] * (
+                    met[i, j, k, 1, 3] *
+                    relaxed_u(xdim, ydim, zcddim, tdim, dtdim) +
+                    met[i, j, k, 2, 3] *
+                    relaxed_v(xdim, ydim, zcddim, tdim, dtdim) +
+                    relaxed_w(xdim, ydim, zcddim, tdim, dtdim) / jac[i, j, k]
+                )
+            ) / (jac[i, j, k] + jac[i, j, k + 1]) / uref
+
+        alpha =
+            (
+                jac[i, j, k + 1] * alphar[i, j, k] +
+                jac[i, j, k] * alphar[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        wold = w[i, j, k]
+        beta = 1.0 / (1.0 + alpha * dt)
+        wnew = (1.0 - beta) * wbg + beta * wold
+        w[i, j, k] = wnew
     end
 
     return

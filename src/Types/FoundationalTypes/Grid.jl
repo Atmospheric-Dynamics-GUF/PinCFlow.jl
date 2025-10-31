@@ -166,8 +166,7 @@ end
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; x_size, y_size, z_size, nbz) = namelists.domain
     (; stretch_exponent) = namelists.grid
-    (; nxx, nyy, nzz, xx_size, yy_size, zz_size, ko, i0, i1, j0, j1, k0) =
-        domain
+    (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0) = domain
     (; lref) = constants
 
     # Non-dimensionalize domain boundaries.
@@ -181,28 +180,28 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     dz = lz / z_size
 
     # Compute x-coordinate.
-    x = zeros(xx_size)
-    @ivy for i in 1:xx_size
-        x[i] = -lx / 2 + (i - i0) * dx + dx / 2
+    x = zeros(nxx)
+    @ivy for i in 1:nxx
+        x[i] = -lx / 2 + (i + io - i0) * dx + dx / 2
     end
 
     # Compute y-coordinate.
-    y = zeros(yy_size)
-    @ivy for j in 1:yy_size
-        y[j] = -ly / 2 + (j - j0) * dy + dy / 2
+    y = zeros(nyy)
+    @ivy for j in 1:nyy
+        y[j] = -ly / 2 + (j + jo - j0) * dy + dy / 2
     end
 
     # Compute z-coordinate.
-    z = zeros(zz_size)
-    @ivy for k in 1:zz_size
+    z = zeros(z_size + 2 * nbz)
+    @ivy for k in 1:(z_size + 2 * nbz)
         z[k] = (k - k0) * dz + dz / 2
     end
 
     # Allocate the stretched vertical grid.
-    (ztildes, zs) = (zeros(zz_size) for i in 1:2)
+    (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
 
     # Compute the stretched vertical grid.
-    @ivy for k in 1:zz_size
+    @ivy for k in 1:(z_size + 2 * nbz)
         level = z[k] + 0.5 * dz
         if level < 0
             ztildes[k] = -lz * (-level / lz)^stretch_exponent
@@ -212,7 +211,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
             ztildes[k] = lz * (level / lz)^stretch_exponent
         end
     end
-    @ivy for k in 2:zz_size
+    @ivy for k in 2:(z_size + 2 * nbz)
         zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
     end
     @ivy zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
