@@ -6,6 +6,7 @@ OutputNamelist{
     C <: Integer,
     D <: AbstractFloat,
     E <: AbstractString,
+    F <: DataType,
 }
 ```
 
@@ -25,6 +26,7 @@ OutputNamelist(;
     tmax::AbstractFloat = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
+    float_type::DataType = Float32,
 )::OutputNamelist
 ```
 
@@ -55,6 +57,8 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
   - `input_file::E`: File from which to read input data in restart simulations.
 
   - `output_file::E`: File to which output data is written.
+
+  - `float_type::F`: Data type of floats in the output.
 """
 struct OutputNamelist{
     A <: Tuple{Vararg{Symbol}},
@@ -62,6 +66,7 @@ struct OutputNamelist{
     C <: Integer,
     D <: AbstractFloat,
     E <: AbstractString,
+    F <: DataType,
 }
     output_variables::A
     save_ray_volumes::B
@@ -75,6 +80,7 @@ struct OutputNamelist{
     tmax::D
     input_file::E
     output_file::E
+    float_type::F
 end
 
 function OutputNamelist(;
@@ -90,6 +96,7 @@ function OutputNamelist(;
     tmax::AbstractFloat = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
+    float_type::DataType = Float32,
 )::OutputNamelist
     return OutputNamelist(
         output_variables,
@@ -104,5 +111,6 @@ function OutputNamelist(;
         tmax,
         input_file,
         output_file,
+        float_type,
     )
 end

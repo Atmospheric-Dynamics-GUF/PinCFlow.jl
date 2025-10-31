@@ -15,8 +15,13 @@ function create_output end
 
 function create_output(state::State)
     (; x_size, y_size, z_size, npx, npy, npz) = state.namelists.domain
-    (; prepare_restart, save_ray_volumes, output_variables, output_file) =
-        state.namelists.output
+    (;
+        prepare_restart,
+        save_ray_volumes,
+        output_variables,
+        output_file,
+        float_type,
+    ) = state.namelists.output
     (; model) = state.namelists.atmosphere
     (; wkb_mode) = state.namelists.wkb
     (; comm) = state.domain
@@ -33,26 +38,26 @@ function create_output(state::State)
     h5open(output_file, "w", comm) do file
 
         # Create datasets for the dimensions.
-        create_dataset(file, "x", datatype(Float32), dataspace((x_size,)))
-        create_dataset(file, "y", datatype(Float32), dataspace((y_size,)))
+        create_dataset(file, "x", datatype(float_type), dataspace((x_size,)))
+        create_dataset(file, "y", datatype(float_type), dataspace((y_size,)))
         create_dataset(
             file,
             "z",
-            datatype(Float32),
+            datatype(float_type),
             dataspace((x_size, y_size, z_size));
             chunk = (cx, cy, cz),
         )
         create_dataset(
             file,
             "ztilde",
-            datatype(Float32),
+            datatype(float_type),
             dataspace((x_size, y_size, z_size + 1));
             chunk = (cx, cy, cz),
         )
         create_dataset(
             file,
             "t",
-            datatype(Float32),
+            datatype(float_type),
             dataspace((0,), (-1,));
             chunk = (ct,),
         )
@@ -63,7 +68,7 @@ function create_output(state::State)
                 create_dataset(
                     file,
                     label,
-                    datatype(Float32),
+                    datatype(float_type),
                     dataspace((x_size, y_size, z_size));
                     chunk = (cx, cy, cz),
                 )
@@ -73,7 +78,7 @@ function create_output(state::State)
                 create_dataset(
                     file,
                     "p",
-                    datatype(Float32),
+                    datatype(float_type),
                     dataspace(
                         (x_size, y_size, z_size, 0),
                         (x_size, y_size, z_size, -1),
@@ -84,7 +89,7 @@ function create_output(state::State)
                 create_dataset(
                     file,
                     "p",
-                    datatype(Float32),
+                    datatype(float_type),
                     dataspace((x_size, y_size, z_size));
                     chunk = (cx, cy, cz),
                 )
@@ -96,7 +101,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "rhop",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -108,7 +113,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "u",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -120,7 +125,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "us",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -132,7 +137,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "v",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -144,7 +149,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "vs",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -156,7 +161,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "w",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -168,7 +173,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "ws",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -180,7 +185,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "wt",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -192,7 +197,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "wts",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -204,7 +209,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "thetap",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -216,7 +221,7 @@ function create_output(state::State)
             create_dataset(
                 file,
                 "pip",
-                datatype(Float32),
+                datatype(float_type),
                 dataspace(
                     (x_size, y_size, z_size, 0),
                     (x_size, y_size, z_size, -1),
@@ -230,7 +235,7 @@ function create_output(state::State)
                 create_dataset(
                     file,
                     string(field),
-                    datatype(Float32),
+                    datatype(float_type),
                     dataspace(
                         (x_size, y_size, z_size, 0),
                         (x_size, y_size, z_size, -1),
@@ -245,7 +250,7 @@ function create_output(state::State)
                     create_dataset(
                         file,
                         string(field),
-                        datatype(Float32),
+                        datatype(float_type),
                         dataspace(
                             (x_size, y_size, z_size, 0),
                             (x_size, y_size, z_size, -1),
@@ -279,7 +284,7 @@ function create_output(state::State)
                     create_dataset(
                         file,
                         field,
-                        datatype(Float32),
+                        datatype(float_type),
                         dataspace(
                             (nray_max, x_size, y_size, z_size + 1, 0),
                             (nray_max, x_size, y_size, z_size + 1, -1),
@@ -295,7 +300,7 @@ function create_output(state::State)
                     create_dataset(
                         file,
                         string(field),
-                        datatype(Float32),
+                        datatype(float_type),
                         dataspace(
                             (x_size, y_size, z_size, 0),
                             (x_size, y_size, z_size, -1),
