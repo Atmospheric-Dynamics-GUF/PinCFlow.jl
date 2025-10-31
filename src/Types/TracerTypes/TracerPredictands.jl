@@ -106,8 +106,13 @@ function TracerPredictands(
     tracer_setup::NoTracer,
     variables::Variables,
 )::TracerPredictands
+    (; float_type) = namelists.discretization
+
     return TracerPredictands(
-        [zeros(0, 0, 0) for field in fieldnames(TracerPredictands)]...,
+        [
+            zeros(float_type, 0, 0, 0) for
+            field in fieldnames(TracerPredictands)
+        ]...,
     )
 end
 
@@ -120,6 +125,7 @@ function TracerPredictands(
     tracer_setup::TracerOn,
     variables::Variables,
 )::TracerPredictands
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz, i0, i1, j0, j1) = domain
     (; x, y, zc) = grid
     (; lref) = constants
@@ -128,7 +134,7 @@ function TracerPredictands(
     (; lref) = constants
     (; initial_tracer) = namelists.tracer
 
-    chi = zeros(nxx, nyy, nzz)
+    chi = zeros(float_type, nxx, nyy, nzz)
     @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
         chi[i, j, k] =
             initial_tracer(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)

@@ -32,13 +32,18 @@ TracerForcings(
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
+TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    wkb_mode::NoWKB,
+)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.
 
 ```julia
 TracerForcings(
+    namelists::Namelists,
     domain::Domain,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::TracerForcings
@@ -79,8 +84,13 @@ function TracerForcings(
     domain::Domain,
     tracer_setup::NoTracer,
 )::TracerForcings
+    (; float_type) = namelists.discretization
+
     return TracerForcings(
-        [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
+        [
+            TracerWKBImpact(float_type, 0, 0, 0) for
+            field in fieldnames(TracerForcings)
+        ]...,
     )
 end
 
@@ -91,24 +101,35 @@ function TracerForcings(
 )::TracerForcings
     (; wkb_mode) = namelists.wkb
 
-    return TracerForcings(domain, wkb_mode)
+    return TracerForcings(namelists, domain, wkb_mode)
 end
 
-function TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
+function TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    wkb_mode::NoWKB,
+)::TracerForcings
+    (; float_type) = namelists.discretization
+
     return TracerForcings(
-        [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
+        [
+            TracerWKBImpact(float_type, 0, 0, 0) for
+            field in fieldnames(TracerForcings)
+        ]...,
     )
 end
 
 function TracerForcings(
+    namelists::Namelists,
     domain::Domain,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::TracerForcings
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
 
     return TracerForcings(
         [
-            TracerWKBImpact(nxx, nyy, nzz) for
+            TracerWKBImpact(float_type, nxx, nyy, nzz) for
             field in fieldnames(TracerForcings)
         ]...,
     )
