@@ -1,10 +1,6 @@
 """
 ```julia
-DomainNamelist{
-    A <: Int,
-    B <: Float64,
-    C <: MPI.Comm,
-}
+DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
 ```
 
 Namelist for parameters describing the model domain.
@@ -57,11 +53,7 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
   - `base_comm::C`: MPI base communicator.
 """
-struct DomainNamelist{
-    A <: Int,
-    B <: Float64,
-    C <: MPI.Comm,
-}
+struct DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
     x_size::A
     y_size::A
     z_size::A
