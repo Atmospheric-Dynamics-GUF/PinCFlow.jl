@@ -2,6 +2,7 @@
 ```julia
 set_p(
     model::Union{Boussinesq, PseudoIncompressible},
+    float_type::DataType,
     rhobar::AbstractArray{<:AbstractFloat, 3},
     thetabar::AbstractArray{<:AbstractFloat, 3},
     rhop::AbstractArray{<:AbstractFloat, 3},
@@ -16,6 +17,7 @@ In these cases, the mass-weighted potential temperature is a background field: c
 ```julia
 set_p(
     model::Compressible,
+    float_type::DataType,
     rhobar::AbstractArray{<:AbstractFloat, 3},
     thetabar::AbstractArray{<:AbstractFloat, 3},
     rhop::AbstractArray{<:AbstractFloat, 3},
@@ -31,6 +33,8 @@ In compressible mode, the mass-weighted potential temperature is a prognostic va
 
   - `mode`: Dynamic equations.
 
+  - `float_type`: Data type of the array's elements.
+
   - `rhobar`: Density background.
 
   - `thetabar`: Potential-temperature background.
@@ -43,16 +47,18 @@ function set_p end
 
 function set_p(
     model::Union{Boussinesq, PseudoIncompressible},
+    float_type::DataType,
     rhobar::AbstractArray{<:AbstractFloat, 3},
     thetabar::AbstractArray{<:AbstractFloat, 3},
     rhop::AbstractArray{<:AbstractFloat, 3},
     thetap::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
-    return zeros(0, 0, 0)
+    return zeros(float_type, 0, 0, 0)
 end
 
 function set_p(
     model::Compressible,
+    float_type::DataType,
     rhobar::AbstractArray{<:AbstractFloat, 3},
     thetabar::AbstractArray{<:AbstractFloat, 3},
     rhop::AbstractArray{<:AbstractFloat, 3},

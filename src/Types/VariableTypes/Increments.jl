@@ -16,19 +16,27 @@ Increments(namelists::Namelists, domain::Domain)::Increments
 Create an `Increments` instance with dimensions depending on the model configuration, by dispatching to the appropriate method.
 
 ```julia
-Increments(domain::Domain, model::Boussinesq)::Increments
+Increments(namelists::Namelists, domain::Domain, model::Boussinesq)::Increments
 ```
 
 Create an `Increments` instance in Boussinesq mode, with zero-size arrays for the density and mass-weighted potential-temperature update.
 
 ```julia
-Increments(domain::Domain, model::PseudoIncompressible)::Increments
+Increments(
+    namelists::Namelists,
+    domain::Domain,
+    model::PseudoIncompressible,
+)::Increments
 ```
 
 Create an `Increments` instance in pseudo-incompressible mode, with a zero-size array for the mass-weighted potential-temperature update.
 
 ```julia
-Increments(domain::Domain, model::Compressible)::Increments
+Increments(
+    namelists::Namelists,
+    domain::Domain,
+    model::Compressible,
+)::Increments
 ```
 
 Create an `Increments` instance in compressible mode.
@@ -74,27 +82,45 @@ end
 function Increments(namelists::Namelists, domain::Domain)::Increments
     (; model) = namelists.atmosphere
 
-    return Increments(domain, model)
+    return Increments(namelists, domain, model)
 end
 
-function Increments(domain::Domain, model::Boussinesq)::Increments
+function Increments(
+    namelists::Namelists,
+    domain::Domain,
+    model::Boussinesq,
+)::Increments
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
 
     return Increments(
-        zeros(0, 0, 0),
-        [zeros(nxx, nyy, nzz) for i in 1:5]...,
-        zeros(0, 0, 0),
+        zeros(float_type, 0, 0, 0),
+        [zeros(float_type, nxx, nyy, nzz) for i in 1:5]...,
+        zeros(float_type, 0, 0, 0),
     )
 end
 
-function Increments(domain::Domain, model::PseudoIncompressible)::Increments
+function Increments(
+    namelists::Namelists,
+    domain::Domain,
+    model::PseudoIncompressible,
+)::Increments
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
 
-    return Increments([zeros(nxx, nyy, nzz) for i in 1:6]..., zeros(0, 0, 0))
+    return Increments(
+        [zeros(float_type, nxx, nyy, nzz) for i in 1:6]...,
+        zeros(float_type, 0, 0, 0),
+    )
 end
 
-function Increments(domain::Domain, model::Compressible)::Increments
+function Increments(
+    namelists::Namelists,
+    domain::Domain,
+    model::Compressible,
+)::Increments
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
 
-    return Increments([zeros(nxx, nyy, nzz) for i in 1:7]...)
+    return Increments([zeros(float_type, nxx, nyy, nzz) for i in 1:7]...)
 end

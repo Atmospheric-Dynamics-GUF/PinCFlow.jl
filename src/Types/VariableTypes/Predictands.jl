@@ -80,6 +80,7 @@ function Predictands(
     atmosphere::Atmosphere,
     grid::Grid,
 )::Predictands
+    (; float_type) = namelists.discretization
     (;
         initial_rhop,
         initial_thetap,
@@ -94,7 +95,8 @@ function Predictands(
     (; x, y, zc, met, jac) = grid
     (; rhobar, thetabar) = atmosphere
 
-    (rho, rhop, thetap, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:7)
+    (rho, rhop, thetap, u, v, w, pip) =
+        (zeros(float_type, nxx, nyy, nzz) for i in 1:7)
 
     @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
@@ -142,7 +144,7 @@ function Predictands(
     end
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
 
-    p = set_p(model, rhobar, thetabar, rhop, thetap)
+    p = set_p(model, float_type, rhobar, thetabar, rhop, thetap)
 
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
