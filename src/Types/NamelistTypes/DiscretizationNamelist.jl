@@ -1,6 +1,11 @@
 """
 ```julia
-DiscretizationNamelist{A <: AbstractFloat, B <: Bool, C <: AbstractLimiter}
+DiscretizationNamelist{
+    A <: AbstractFloat,
+    B <: Bool,
+    C <: AbstractLimiter,
+    D <: DataType,
+}
 ```
 
 Namelist for parameters describing the discretization.
@@ -13,6 +18,8 @@ DiscretizationNamelist(;
     dtmax::AbstractFloat = 1.0E+3,
     adaptive_time_step::Bool = true,
     limiter_type::AbstractLimiter = MCVariant(),
+    float_type::DataType = Float64,
+    integer_type::DataType = Int64,
 )::DiscretizationNamelist
 ```
 
@@ -31,11 +38,16 @@ Construct a `DiscretizationNamelist` instance with the given keyword arguments a
   - `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
 
   - `limiter_type::C`: Flux limiter used by the MUSCL scheme.
+
+  - `float_type::D`: Data type of floats.
+
+  - `integer_type::D`: Data type of integers.
 """
 struct DiscretizationNamelist{
     A <: AbstractFloat,
     B <: Bool,
     C <: AbstractLimiter,
+    D <: DataType,
 }
     cfl_number::A
     wkb_cfl_number::A
@@ -43,6 +55,8 @@ struct DiscretizationNamelist{
     dtmax::A
     adaptive_time_step::B
     limiter_type::C
+    float_type::D
+    integer_type::D
 end
 
 function DiscretizationNamelist(;
@@ -52,6 +66,8 @@ function DiscretizationNamelist(;
     dtmax::AbstractFloat = 1.0E+3,
     adaptive_time_step::Bool = true,
     limiter_type::AbstractLimiter = MCVariant(),
+    float_type::DataType = Float64,
+    integer_type::DataType = Int64,
 )::DiscretizationNamelist
     return DiscretizationNamelist(
         cfl_number,
@@ -60,5 +76,7 @@ function DiscretizationNamelist(;
         dtmax,
         adaptive_time_step,
         limiter_type,
+        float_type,
+        integer_type,
     )
 end
