@@ -1,11 +1,6 @@
 """
 ```julia
-TracerWKBImpact{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-    D <: AbstractArray{<:AbstractFloat, 3},
-}
+TracerWKBImpact{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Container for the gravity-wave-induced tracer fluxes and resulting tracer tendency.
@@ -20,11 +15,11 @@ Construct a `TracerWKBImpact` instance with array dimensions given by `nxi`, `ny
 
   - `uchi::A`: Zonal tracer fluxes due to unresolved gravity waves.
 
-  - `vchi::B`: Meridional tracer fluxes due to unresolved gravity waves.
+  - `vchi::A`: Meridional tracer fluxes due to unresolved gravity waves.
 
-  - `wchi::C`: Vertical tracer fluxes due to unresolved gravity waves.
+  - `wchi::A`: Vertical tracer fluxes due to unresolved gravity waves.
 
-  - `dchidt::D`: Leading-order tracer impact of unresolved gravity waves.
+  - `dchidt::A`: Leading-order tracer impact of unresolved gravity waves.
 
 # Arguments:
 
@@ -34,16 +29,11 @@ Construct a `TracerWKBImpact` instance with array dimensions given by `nxi`, `ny
 
   - `nzi`: Grid-points in `\\widehat{z}`-direction.
 """
-struct TracerWKBImpact{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-    D <: AbstractArray{<:AbstractFloat, 3},
-}
+struct TracerWKBImpact{A <: AbstractArray{<:AbstractFloat, 3}}
     uchi::A
-    vchi::B
-    wchi::C
-    dchidt::D
+    vchi::A
+    wchi::A
+    dchidt::A
 end
 
 function TracerWKBImpact(
