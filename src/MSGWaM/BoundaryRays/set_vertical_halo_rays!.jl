@@ -14,6 +14,7 @@ Performs MPI communication between downward and upward neighbor processes. The n
 function set_vertical_halo_rays! end
 
 function set_vertical_halo_rays!(state::State)
+    (; float_type) = state.namelists.discretization
     (; z_size) = state.namelists.domain
     (; comm, nz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) = state.domain
     (; nray, rays) = state.wkb
@@ -29,11 +30,11 @@ function set_vertical_halo_rays!(state::State)
     nray_max_down = MPI.Allreduce(nray_max_down, max, comm)
     nray_max_up = MPI.Allreduce(nray_max_up, max, comm)
 
-    send_up = zeros(fields, nray_max_up, nx + 2, ny + 2)
-    send_down = zeros(fields, nray_max_down, nx + 2, ny + 2)
+    send_up = zeros(float_type, fields, nray_max_up, nx + 2, ny + 2)
+    send_down = zeros(float_type, fields, nray_max_down, nx + 2, ny + 2)
 
-    receive_down = zeros(fields, nray_max_up, nx + 2, ny + 2)
-    receive_up = zeros(fields, nray_max_down, nx + 2, ny + 2)
+    receive_down = zeros(float_type, fields, nray_max_up, nx + 2, ny + 2)
+    receive_up = zeros(float_type, fields, nray_max_down, nx + 2, ny + 2)
 
     @ivy if ko == 0
         for field in 1:fields

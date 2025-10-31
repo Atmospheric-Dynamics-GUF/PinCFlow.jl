@@ -14,6 +14,7 @@ Performs bidirectional MPI communication between backward and forward neighbor p
 function set_meridional_halo_rays! end
 
 function set_meridional_halo_rays!(state::State)
+    (; float_type) = state.namelists.discretization
     (; comm, nx, nz, i0, i1, j0, j1, k0, k1, backward, forward) = state.domain
     (; nray, rays) = state.wkb
 
@@ -28,11 +29,13 @@ function set_meridional_halo_rays!(state::State)
     nray_max_backward = MPI.Allreduce(nray_max_backward, max, comm)
     nray_max_forward = MPI.Allreduce(nray_max_forward, max, comm)
 
-    send_forward = zeros(fields, nray_max_forward, nx + 2, nz + 2)
-    send_backward = zeros(fields, nray_max_backward, nx + 2, nz + 2)
+    send_forward = zeros(float_type, fields, nray_max_forward, nx + 2, nz + 2)
+    send_backward = zeros(float_type, fields, nray_max_backward, nx + 2, nz + 2)
 
-    receive_backward = zeros(fields, nray_max_forward, nx + 2, nz + 2)
-    receive_forward = zeros(fields, nray_max_backward, nx + 2, nz + 2)
+    receive_backward =
+        zeros(float_type, fields, nray_max_forward, nx + 2, nz + 2)
+    receive_forward =
+        zeros(float_type, fields, nray_max_backward, nx + 2, nz + 2)
 
     @ivy for field in 1:fields
         send_forward[field, :, :, :] .=

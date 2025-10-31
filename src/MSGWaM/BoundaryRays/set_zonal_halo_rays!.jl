@@ -14,6 +14,7 @@ Performs bidirectional MPI communication between left and right neighbor process
 function set_zonal_halo_rays! end
 
 function set_zonal_halo_rays!(state::State)
+    (; float_type) = state.namelists.discretization
     (; comm, ny, nz, i0, i1, j0, j1, k0, k1, left, right) = state.domain
     (; nray, rays) = state.wkb
 
@@ -28,11 +29,11 @@ function set_zonal_halo_rays!(state::State)
     nray_max_left = MPI.Allreduce(nray_max_left, max, comm)
     nray_max_right = MPI.Allreduce(nray_max_right, max, comm)
 
-    send_right = zeros(fields, nray_max_right, ny + 2, nz + 2)
-    send_left = zeros(fields, nray_max_left, ny + 2, nz + 2)
+    send_right = zeros(float_type, fields, nray_max_right, ny + 2, nz + 2)
+    send_left = zeros(float_type, fields, nray_max_left, ny + 2, nz + 2)
 
-    receive_left = zeros(fields, nray_max_right, ny + 2, nz + 2)
-    receive_right = zeros(fields, nray_max_left, ny + 2, nz + 2)
+    receive_left = zeros(float_type, fields, nray_max_right, ny + 2, nz + 2)
+    receive_right = zeros(float_type, fields, nray_max_left, ny + 2, nz + 2)
 
     @ivy for field in 1:fields
         send_right[field, :, :, :] .=

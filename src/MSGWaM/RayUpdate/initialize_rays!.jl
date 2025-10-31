@@ -52,6 +52,7 @@ function initialize_rays!(
     state::State,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )
+    (; float_type) = state.namelists.discretization
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
@@ -88,11 +89,11 @@ function initialize_rays!(
     fc = coriolis_frequency * tref
 
     # Initialize local arrays.
-    omi_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnk_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnl_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnm_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wad_ini = zeros(wave_modes, nxx, nyy, nzz)
+    omi_ini = zeros(float_type, wave_modes, nxx, nyy, nzz)
+    wnk_ini = zeros(float_type, wave_modes, nxx, nyy, nzz)
+    wnl_ini = zeros(float_type, wave_modes, nxx, nyy, nzz)
+    wnm_ini = zeros(float_type, wave_modes, nxx, nyy, nzz)
+    wad_ini = zeros(float_type, wave_modes, nxx, nyy, nzz)
 
     # Compute initial wavenumbers, intrinsic frequencies and wave-action
     # densities with initial_wave_field.

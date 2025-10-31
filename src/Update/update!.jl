@@ -1032,6 +1032,7 @@ function update!(
     variable::W,
     side::LHS,
 )
+    (; float_type) = state.namelists.discretization
     (; z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
@@ -1048,7 +1049,7 @@ function update!(
     fc = coriolis_frequency * tref
 
     # Initialize fields for transformation of momentum flux divergence.
-    (fluxdiffu, fluxdiffv) = (zeros(2, 2) for i in 1:2)
+    (fluxdiffu, fluxdiffv) = (zeros(float_type, 2, 2) for i in 1:2)
 
     if m == 1
         dw .= 0.0

@@ -32,6 +32,7 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 function apply_blocked_layer_scheme! end
 
 function apply_blocked_layer_scheme!(state::State)
+    (; float_type) = state.namelists.discretization
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dz, jac, zctilde, hw, kh, lh) = state.grid
@@ -45,7 +46,7 @@ function apply_blocked_layer_scheme!(state::State)
     end
 
     # Initialize arrays for blocked-flow drag computation.
-    (kavg, uperp, drag) = (zeros(2) for i in 1:3)
+    (kavg, uperp, drag) = (zeros(float_type, 2) for i in 1:3)
 
     # Adjust the drag to account for blocking.
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
