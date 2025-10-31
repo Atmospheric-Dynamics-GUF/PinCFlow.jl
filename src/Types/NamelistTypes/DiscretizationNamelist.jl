@@ -1,12 +1,9 @@
 """
 ```julia
 DiscretizationNamelist{
-    A <: AbstractFloat,
-    B <: AbstractFloat,
-    C <: AbstractFloat,
-    D <: AbstractFloat,
-    E <: Bool,
-    F <: AbstractLimiter,
+    A <: Float64,
+    B <: Bool,
+    C <: AbstractLimiter,
 }
 ```
 
@@ -23,36 +20,33 @@ DiscretizationNamelist(;
 )::DiscretizationNamelist
 ```
 
-Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
+Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
   - `cfl_number::A`: Number used for the CFL condition in the time step computation.
 
-  - `wkb_cfl_number::B`: Number used for the WKB-CFL condition in the time step computation.
+  - `wkb_cfl_number::A`: Number used for the WKB-CFL condition in the time step computation.
 
-  - `dtmin::C`: Minimum time step allowed for the integration.
+  - `dtmin::A`: Minimum time step allowed for the integration.
 
-  - `dtmax::D`: Maximum time step allowed for the integration.
+  - `dtmax::A`: Maximum time step allowed for the integration.
 
-  - `adaptive_time_step::E`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
+  - `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
 
-  - `limiter_type::F`: Flux limiter used by the MUSCL scheme.
+  - `limiter_type::C`: Flux limiter used by the MUSCL scheme.
 """
 struct DiscretizationNamelist{
-    A <: AbstractFloat,
-    B <: AbstractFloat,
-    C <: AbstractFloat,
-    D <: AbstractFloat,
-    E <: Bool,
-    F <: AbstractLimiter,
+    A <: Float64,
+    B <: Bool,
+    C <: AbstractLimiter,
 }
     cfl_number::A
-    wkb_cfl_number::B
-    dtmin::C
-    dtmax::D
-    adaptive_time_step::E
-    limiter_type::F
+    wkb_cfl_number::A
+    dtmin::A
+    dtmax::A
+    adaptive_time_step::B
+    limiter_type::C
 end
 
 function DiscretizationNamelist(;
@@ -64,10 +58,10 @@ function DiscretizationNamelist(;
     limiter_type::AbstractLimiter = MCVariant(),
 )::DiscretizationNamelist
     return DiscretizationNamelist(
-        cfl_number,
-        wkb_cfl_number,
-        dtmin,
-        dtmax,
+        Float64(cfl_number),
+        Float64(wkb_cfl_number),
+        Float64(dtmin),
+        Float64(dtmax),
         adaptive_time_step,
         limiter_type,
     )

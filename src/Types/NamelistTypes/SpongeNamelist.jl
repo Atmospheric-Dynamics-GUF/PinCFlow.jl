@@ -2,17 +2,10 @@
 ```julia
 SpongeNamelist{
     A <: Bool,
-    B <: AbstractFloat,
-    C <: AbstractFloat,
-    D <: AbstractFloat,
-    E <: Bool,
-    F <: AbstractSponge,
-    G <: Integer,
-    H <: Integer,
-    I <: Bool,
-    J <: AbstractFloat,
-    K <: AbstractFloat,
-    L <: NTuple{3, <:AbstractFloat},
+    B <: Float64,
+    C <: AbstractSponge,
+    D <: Int,
+    E <: NTuple{3, Float64},
 }
 ```
 
@@ -35,7 +28,7 @@ SpongeNamelist(;
 )::SpongeNamelist
 ```
 
-Construct a `SpongeNamelist` instance with the given keyword arguments as properties.
+Construct a `SpongeNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -43,52 +36,45 @@ Construct a `SpongeNamelist` instance with the given keyword arguments as proper
 
   - `sponge_extent::B`: Fractional vertical extent of the sponge.
 
-  - `alpharmax::C`: Rayleigh-damping coefficient of the LHS sponge.
+  - `alpharmax::B`: Rayleigh-damping coefficient of the LHS sponge.
 
-  - `betarmax::D`: Rayleigh-damping coefficient of the RHS sponge, multiplied by the time step.
+  - `betarmax::B`: Rayleigh-damping coefficient of the RHS sponge, multiplied by the time step.
 
-  - `lateral_sponge::E`: Switch for the lateral LHS sponge.
+  - `lateral_sponge::A`: Switch for the lateral LHS sponge.
 
-  - `sponge_type::F`: Profile of the LHS sponge.
+  - `sponge_type::C`: Profile of the LHS sponge.
 
-  - `sponge_order::G`: Order of the polynomial LHS sponge.
+  - `sponge_order::D`: Order of the polynomial LHS sponge.
 
-  - `cosmo_steps::H`: Factor by which the time step is multiplied in the damping coefficient of the COSMO-like LHS sponge.
+  - `cosmo_steps::D`: Factor by which the time step is multiplied in the damping coefficient of the COSMO-like LHS sponge.
 
-  - `relax_to_mean::I`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
+  - `relax_to_mean::A`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
 
-  - `perturbation_period::J`: Period of an oscillating perturbation on top of `relaxation_wind`.
+  - `perturbation_period::B`: Period of an oscillating perturbation on top of `relaxation_wind`.
 
-  - `perturbation_amplitude::K`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
+  - `perturbation_amplitude::B`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
 
-  - `relaxation_wind::L`: Wind to be obtained through Rayleigh damping in the LHS sponge.
+  - `relaxation_wind::E`: Wind to be obtained through Rayleigh damping in the LHS sponge.
 """
 struct SpongeNamelist{
     A <: Bool,
-    B <: AbstractFloat,
-    C <: AbstractFloat,
-    D <: AbstractFloat,
-    E <: Bool,
-    F <: AbstractSponge,
-    G <: Integer,
-    H <: Integer,
-    I <: Bool,
-    J <: AbstractFloat,
-    K <: AbstractFloat,
-    L <: NTuple{3, <:AbstractFloat},
+    B <: Float64,
+    C <: AbstractSponge,
+    D <: Int,
+    E <: NTuple{3, Float64},
 }
     damp_horizontal_wind_on_rhs::A
     sponge_extent::B
-    alpharmax::C
-    betarmax::D
-    lateral_sponge::E
-    sponge_type::F
-    sponge_order::G
-    cosmo_steps::H
-    relax_to_mean::I
-    perturbation_period::J
-    perturbation_amplitude::K
-    relaxation_wind::L
+    alpharmax::B
+    betarmax::B
+    lateral_sponge::A
+    sponge_type::C
+    sponge_order::D
+    cosmo_steps::D
+    relax_to_mean::A
+    perturbation_period::B
+    perturbation_amplitude::B
+    relaxation_wind::E
 end
 
 function SpongeNamelist(;
@@ -107,16 +93,16 @@ function SpongeNamelist(;
 )::SpongeNamelist
     return SpongeNamelist(
         damp_horizontal_wind_on_rhs,
-        sponge_extent,
-        alpharmax,
-        betarmax,
+        Float64(sponge_extent),
+        Float64(alpharmax),
+        Float64(betarmax),
         lateral_sponge,
         sponge_type,
-        sponge_order,
-        cosmo_steps,
+        Int(sponge_order),
+        Int(cosmo_steps),
         relax_to_mean,
-        perturbation_period,
-        perturbation_amplitude,
-        relaxation_wind,
+        Float64(perturbation_period),
+        Float64(perturbation_amplitude),
+        Float64.(relaxation_wind),
     )
 end

@@ -1,13 +1,9 @@
 """
 ```julia
 PoissonNamelist{
-    A <: AbstractFloat,
-    B <: Integer,
+    A <: Float64,
+    B <: Int,
     C <: Bool,
-    D <: AbstractFloat,
-    E <: Integer,
-    F <: Bool,
-    G <: Bool,
 }
 ```
 
@@ -25,7 +21,7 @@ PoissonNamelist(;
 )::PoissonNamelist
 ```
 
-Construct a `PoissonNamelists` instance with the given keyword arguments as properties.
+Construct a `PoissonNamelists` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -35,30 +31,26 @@ Construct a `PoissonNamelists` instance with the given keyword arguments as prop
 
   - `preconditioner::C`: Whether to use a preconditioner to accelerate the convergence of the Poisson solver.
 
-  - `dtau::D`: Pseudo-time step coefficient used by the preconditioner.
+  - `dtau::A`: Pseudo-time step coefficient used by the preconditioner.
 
-  - `preconditioner_iterations::E`: Number of iterations performed by the preconditioner.
+  - `preconditioner_iterations::B`: Number of iterations performed by the preconditioner.
 
-  - `initial_cleaning::F`: Whether to solve the Poisson problem at initialization to guarantee an initially divergence-free state.
+  - `initial_cleaning::C`: Whether to solve the Poisson problem at initialization to guarantee an initially divergence-free state.
 
-  - `tolerance_is_relative::G`: If set to `true`, the tolerance used for the convergence criterion is given by `tolerance`. If set to `false`, the tolerance is given by `tolerance` divided by a reference value determined from the right-hand side.
+  - `tolerance_is_relative::C`: If set to `true`, the tolerance used for the convergence criterion is given by `tolerance`. If set to `false`, the tolerance is given by `tolerance` divided by a reference value determined from the right-hand side.
 """
 struct PoissonNamelist{
-    A <: AbstractFloat,
-    B <: Integer,
+    A <: Float64,
+    B <: Int,
     C <: Bool,
-    D <: AbstractFloat,
-    E <: Integer,
-    F <: Bool,
-    G <: Bool,
 }
     tolerance::A
     poisson_iterations::B
     preconditioner::C
-    dtau::D
-    preconditioner_iterations::E
-    initial_cleaning::F
-    tolerance_is_relative::G
+    dtau::A
+    preconditioner_iterations::B
+    initial_cleaning::C
+    tolerance_is_relative::C
 end
 
 function PoissonNamelist(;
@@ -71,11 +63,11 @@ function PoissonNamelist(;
     tolerance_is_relative::Bool = false,
 )::PoissonNamelist
     return PoissonNamelist(
-        tolerance,
-        poisson_iterations,
+        Float64(tolerance),
+        Int(poisson_iterations),
         preconditioner,
-        dtau,
-        preconditioner_iterations,
+        Float64(dtau),
+        Int(preconditioner_iterations),
         initial_cleaning,
         tolerance_is_relative,
     )
