@@ -1,10 +1,6 @@
 """
 ```julia
-WKBTendencies{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-}
+WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Gravity-wave drag and heating fields.
@@ -19,9 +15,9 @@ Construct a `WKBTendencies` instance, with arrays sized according to the given d
 
   - `dudt::A`: Gravity-wave drag on the zonal momentum.
 
-  - `dvdt::B`: Gravity-wave drag on the meridional momentum.
+  - `dvdt::A`: Gravity-wave drag on the meridional momentum.
 
-  - `dthetadt::C`: Gravity-wave heating term in the mass-weighted potential-temperature equation.
+  - `dthetadt::A`: Gravity-wave heating term in the mass-weighted potential-temperature equation.
 
 # Arguments
 
@@ -31,14 +27,10 @@ Construct a `WKBTendencies` instance, with arrays sized according to the given d
 
   - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 """
-struct WKBTendencies{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-}
+struct WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dudt::A
-    dvdt::B
-    dthetadt::C
+    dvdt::A
+    dthetadt::A
 end
 
 function WKBTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::WKBTendencies

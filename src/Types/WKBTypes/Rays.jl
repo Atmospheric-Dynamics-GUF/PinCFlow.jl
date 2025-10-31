@@ -1,20 +1,6 @@
 """
 ```julia
-Rays{
-    A <: AbstractArray{<:AbstractFloat, 4},
-    B <: AbstractArray{<:AbstractFloat, 4},
-    C <: AbstractArray{<:AbstractFloat, 4},
-    D <: AbstractArray{<:AbstractFloat, 4},
-    E <: AbstractArray{<:AbstractFloat, 4},
-    F <: AbstractArray{<:AbstractFloat, 4},
-    G <: AbstractArray{<:AbstractFloat, 4},
-    H <: AbstractArray{<:AbstractFloat, 4},
-    I <: AbstractArray{<:AbstractFloat, 4},
-    J <: AbstractArray{<:AbstractFloat, 4},
-    K <: AbstractArray{<:AbstractFloat, 4},
-    L <: AbstractArray{<:AbstractFloat, 4},
-    M <: AbstractArray{<:AbstractFloat, 4},
-}
+Rays{A <: AbstractArray{<:AbstractFloat, 4}}
 ```
 
 Container for prognostic ray-volume properties.
@@ -29,29 +15,29 @@ Construct a `Rays` instance, with arrays sized according to the given dimensions
 
   - `x::A`: Position in ``x``.
 
-  - `y::B`: Position in ``y``.
+  - `y::A`: Position in ``y``.
 
-  - `z::C`: Position in ``z``.
+  - `z::A`: Position in ``z``.
 
-  - `k::D`: Position in ``k``.
+  - `k::A`: Position in ``k``.
 
-  - `l::E`: Position in ``l``.
+  - `l::A`: Position in ``l``.
 
-  - `m::F`: Position in ``m``.
+  - `m::A`: Position in ``m``.
 
-  - `dxray::G`: Extent in ``x``.
+  - `dxray::A`: Extent in ``x``.
 
-  - `dyray::H`: Extent in ``y``.
+  - `dyray::A`: Extent in ``y``.
 
-  - `dzray::I`: Extent in ``z``.
+  - `dzray::A`: Extent in ``z``.
 
-  - `dkray::J`: Extent in ``k``.
+  - `dkray::A`: Extent in ``k``.
 
-  - `dlray::K`: Extent in ``l``.
+  - `dlray::A`: Extent in ``l``.
 
-  - `dmray::L`: Extent in ``m``.
+  - `dmray::A`: Extent in ``m``.
 
-  - `dens::M`: Phase-space wave-action density.
+  - `dens::A`: Phase-space wave-action density.
 
 # Arguments
 
@@ -63,34 +49,20 @@ Construct a `Rays` instance, with arrays sized according to the given dimensions
 
   - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 """
-struct Rays{
-    A <: AbstractArray{<:AbstractFloat, 4},
-    B <: AbstractArray{<:AbstractFloat, 4},
-    C <: AbstractArray{<:AbstractFloat, 4},
-    D <: AbstractArray{<:AbstractFloat, 4},
-    E <: AbstractArray{<:AbstractFloat, 4},
-    F <: AbstractArray{<:AbstractFloat, 4},
-    G <: AbstractArray{<:AbstractFloat, 4},
-    H <: AbstractArray{<:AbstractFloat, 4},
-    I <: AbstractArray{<:AbstractFloat, 4},
-    J <: AbstractArray{<:AbstractFloat, 4},
-    K <: AbstractArray{<:AbstractFloat, 4},
-    L <: AbstractArray{<:AbstractFloat, 4},
-    M <: AbstractArray{<:AbstractFloat, 4},
-}
+struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     x::A
-    y::B
-    z::C
-    k::D
-    l::E
-    m::F
-    dxray::G
-    dyray::H
-    dzray::I
-    dkray::J
-    dlray::K
-    dmray::L
-    dens::M
+    y::A
+    z::A
+    k::A
+    l::A
+    m::A
+    dxray::A
+    dyray::A
+    dzray::A
+    dkray::A
+    dlray::A
+    dmray::A
+    dens::A
 end
 
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays

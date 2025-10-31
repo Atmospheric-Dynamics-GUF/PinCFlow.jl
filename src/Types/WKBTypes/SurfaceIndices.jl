@@ -1,15 +1,6 @@
 """
 ```julia
-SurfaceIndices{
-    A <: AbstractArray{<:Integer, 3},
-    B <: AbstractVector{<:Integer},
-    C <: AbstractVector{<:Integer},
-    D <: AbstractVector{<:Integer},
-    E <: AbstractVector{<:Integer},
-    F <: AbstractVector{<:Integer},
-    G <: AbstractVector{<:Integer},
-    H <: AbstractVector{<:Integer},
-}
+SurfaceIndices{A <: AbstractArray{<:Integer, 3}, B <: AbstractVector{<:Integer}}
 ```
 
 Indices that connect orographic wave modes to the corresponding ray volumes launched by [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref).
@@ -26,17 +17,17 @@ Construct a `SurfaceIndices` instance, with arrays sized according to the given 
 
   - `ixs::B`: Zonal indices within grid cells.
 
-  - `jys::C`: Meridional indices within grid cells.
+  - `jys::B`: Meridional indices within grid cells.
 
-  - `kzs::D`: Vertical indices within grid cells.
+  - `kzs::B`: Vertical indices within grid cells.
 
-  - `iks::E`: Indices in ``k``.
+  - `iks::B`: Indices in ``k``.
 
-  - `jls::F`: Indices in ``l``.
+  - `jls::B`: Indices in ``l``.
 
-  - `kms::G`: Indices in ``m``.
+  - `kms::B`: Indices in ``m``.
 
-  - `alphas::H`: Wave-mode indices.
+  - `alphas::B`: Wave-mode indices.
 
 # Arguments
 
@@ -49,21 +40,15 @@ Construct a `SurfaceIndices` instance, with arrays sized according to the given 
 struct SurfaceIndices{
     A <: AbstractArray{<:Integer, 3},
     B <: AbstractVector{<:Integer},
-    C <: AbstractVector{<:Integer},
-    D <: AbstractVector{<:Integer},
-    E <: AbstractVector{<:Integer},
-    F <: AbstractVector{<:Integer},
-    G <: AbstractVector{<:Integer},
-    H <: AbstractVector{<:Integer},
 }
     rs::A
     ixs::B
-    jys::C
-    kzs::D
-    iks::E
-    jls::F
-    kms::G
-    alphas::H
+    jys::B
+    kzs::B
+    iks::B
+    jls::B
+    kms::B
+    alphas::B
 end
 
 function SurfaceIndices(

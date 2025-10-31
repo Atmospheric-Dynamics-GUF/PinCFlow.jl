@@ -1,16 +1,6 @@
 """
 ```julia
-WKBIncrements{
-    A <: AbstractArray{<:AbstractFloat, 4},
-    B <: AbstractArray{<:AbstractFloat, 4},
-    C <: AbstractArray{<:AbstractFloat, 4},
-    D <: AbstractArray{<:AbstractFloat, 4},
-    E <: AbstractArray{<:AbstractFloat, 4},
-    F <: AbstractArray{<:AbstractFloat, 4},
-    G <: AbstractArray{<:AbstractFloat, 4},
-    H <: AbstractArray{<:AbstractFloat, 4},
-    I <: AbstractArray{<:AbstractFloat, 4},
-}
+WKBIncrements{A <: AbstractArray{<:AbstractFloat, 4}}
 ```
 
 Ray-volume-propagation increments.
@@ -30,21 +20,21 @@ Construct an `WKBIncrements` instance, with arrays sized according to the given 
 
   - `dxray::A`: WKBIncrements for the position in ``x``.
 
-  - `dyray::B`: WKBIncrements for the position in ``y``.
+  - `dyray::A`: WKBIncrements for the position in ``y``.
 
-  - `dzray::C`: WKBIncrements for the position in ``z``.
+  - `dzray::A`: WKBIncrements for the position in ``z``.
 
-  - `dkray::D`: WKBIncrements for the position in ``k``.
+  - `dkray::A`: WKBIncrements for the position in ``k``.
 
-  - `dlray::E`: WKBIncrements for the position in ``l``.
+  - `dlray::A`: WKBIncrements for the position in ``l``.
 
-  - `dmray::F`: WKBIncrements for the position in ``m``.
+  - `dmray::A`: WKBIncrements for the position in ``m``.
 
-  - `ddxray::G`: WKBIncrements for the extent in ``x``.
+  - `ddxray::A`: WKBIncrements for the extent in ``x``.
 
-  - `ddyray::H`: WKBIncrements for the extent in ``y``.
+  - `ddyray::A`: WKBIncrements for the extent in ``y``.
 
-  - `ddzray::I`: WKBIncrements for the extent in ``z``.
+  - `ddzray::A`: WKBIncrements for the extent in ``z``.
 
 # Arguments
 
@@ -56,26 +46,16 @@ Construct an `WKBIncrements` instance, with arrays sized according to the given 
 
   - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 """
-struct WKBIncrements{
-    A <: AbstractArray{<:AbstractFloat, 4},
-    B <: AbstractArray{<:AbstractFloat, 4},
-    C <: AbstractArray{<:AbstractFloat, 4},
-    D <: AbstractArray{<:AbstractFloat, 4},
-    E <: AbstractArray{<:AbstractFloat, 4},
-    F <: AbstractArray{<:AbstractFloat, 4},
-    G <: AbstractArray{<:AbstractFloat, 4},
-    H <: AbstractArray{<:AbstractFloat, 4},
-    I <: AbstractArray{<:AbstractFloat, 4},
-}
+struct WKBIncrements{A <: AbstractArray{<:AbstractFloat, 4}}
     dxray::A
-    dyray::B
-    dzray::C
-    dkray::D
-    dlray::E
-    dmray::F
-    ddxray::G
-    ddyray::H
-    ddzray::I
+    dyray::A
+    dzray::A
+    dkray::A
+    dlray::A
+    dmray::A
+    ddxray::A
+    ddyray::A
+    ddzray::A
 end
 
 function WKBIncrements(
