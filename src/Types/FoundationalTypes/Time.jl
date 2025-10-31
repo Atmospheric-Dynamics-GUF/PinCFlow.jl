@@ -1,11 +1,6 @@
 """
 ```julia
-Time{
-    A <: Integer,
-    B <: NTuple{3, <:AbstractFloat},
-    C <: NTuple{3, <:AbstractFloat},
-    D <: NTuple{3, <:AbstractFloat},
-}
+Time{A <: Integer, B <: NTuple{3, <:AbstractFloat}}
 ```
 
 Time integration parameters for the low-storage third-order Runge-Kutta scheme.
@@ -22,20 +17,15 @@ Construct a `Time` instance.
 
   - `alphark::B`: Runge-Kutta coefficients for the total tendency, i.e. ``\\boldsymbol{\\alpha}_\\mathrm{RK} = \\left(0, - 5 / 9, - 153 / 128\\right)``.
 
-  - `betark::C`: Runge-Kutta coefficients for the previous tendency, i.e. ``\\boldsymbol{\\beta}_\\mathrm{RK} = \\left(1 / 3, 15 / 16, 8 / 15\\right)``.
+  - `betark::B`: Runge-Kutta coefficients for the previous tendency, i.e. ``\\boldsymbol{\\beta}_\\mathrm{RK} = \\left(1 / 3, 15 / 16, 8 / 15\\right)``.
 
-  - `stepfrac::D`: Time step fractions for each stage, i.e. ``\\boldsymbol{f}_\\mathrm{RK} = \\left(1 / 3, 5 / 12, 1 / 4\\right)``.
+  - `stepfrac::B`: Time step fractions for each stage, i.e. ``\\boldsymbol{f}_\\mathrm{RK} = \\left(1 / 3, 5 / 12, 1 / 4\\right)``.
 """
-struct Time{
-    A <: Integer,
-    B <: NTuple{3, <:AbstractFloat},
-    C <: NTuple{3, <:AbstractFloat},
-    D <: NTuple{3, <:AbstractFloat},
-}
+struct Time{A <: Integer, B <: NTuple{3, <:AbstractFloat}}
     nstages::A
     alphark::B
-    betark::C
-    stepfrac::D
+    betark::B
+    stepfrac::B
 end
 
 function Time()::Time

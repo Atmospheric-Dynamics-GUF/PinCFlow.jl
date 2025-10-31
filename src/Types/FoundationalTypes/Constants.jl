@@ -1,30 +1,6 @@
 """
 ```julia
-Constants{
-    A <: AbstractFloat,
-    B <: AbstractFloat,
-    C <: AbstractFloat,
-    D <: AbstractFloat,
-    E <: AbstractFloat,
-    F <: AbstractFloat,
-    G <: AbstractFloat,
-    H <: AbstractFloat,
-    I <: AbstractFloat,
-    J <: AbstractFloat,
-    K <: AbstractFloat,
-    L <: AbstractFloat,
-    M <: AbstractFloat,
-    N <: AbstractFloat,
-    O <: AbstractFloat,
-    P <: AbstractFloat,
-    Q <: AbstractFloat,
-    R <: AbstractFloat,
-    S <: AbstractFloat,
-    T <: AbstractFloat,
-    U <: AbstractFloat,
-    V <: AbstractFloat,
-    W <: AbstractFloat,
-}
+Constants{A <: AbstractFloat}
 ```
 
 Composite type for natural constants, reference quantities and non-dimensional parameters.
@@ -43,114 +19,90 @@ Natural constants:
 
   - `gamma::A`: Ratio of specific heats ``\\gamma = c_p / c_V = 1.4``.
 
-  - `gammainv::B`: Inverse ratio of specific heats ``1 / \\gamma``.
+  - `gammainv::A`: Inverse ratio of specific heats ``1 / \\gamma``.
 
-  - `kappa::C`: Ratio between specific gas constant and specific heat capacity at constant pressure ``\\kappa = \\left(\\gamma - 1\\right) / \\gamma = R / c_p = 2 / 7``.
+  - `kappa::A`: Ratio between specific gas constant and specific heat capacity at constant pressure ``\\kappa = \\left(\\gamma - 1\\right) / \\gamma = R / c_p = 2 / 7``.
 
-  - `kappainv::D`: Ratio between specific heat capacity at constant pressure and specific gas constant ``1 / \\kappa``.
+  - `kappainv::A`: Ratio between specific heat capacity at constant pressure and specific gas constant ``1 / \\kappa``.
 
-  - `rsp::E`: Specific gas constant ``R = 287 \\, \\mathrm{J \\, kg^{- 1} \\, K^{- 1}}``.
+  - `rsp::A`: Specific gas constant ``R = 287 \\, \\mathrm{J \\, kg^{- 1} \\, K^{- 1}}``.
 
-  - `g::F`: Gravitational acceleration ``g = 9.81 \\, \\mathrm{m \\, s^{- 2}}``.
+  - `g::A`: Gravitational acceleration ``g = 9.81 \\, \\mathrm{m \\, s^{- 2}}``.
 
 Reference quantities:
 
-  - `rhoref::G`: Reference density ``\\rho_\\mathrm{ref} = 1.184 \\, \\mathrm{kg \\, m^{- 3}}``.
+  - `rhoref::A`: Reference density ``\\rho_\\mathrm{ref} = 1.184 \\, \\mathrm{kg \\, m^{- 3}}``.
 
-  - `pref::H`: Reference pressure ``p_\\mathrm{ref} = 101325 \\, \\mathrm{Pa}``.
+  - `pref::A`: Reference pressure ``p_\\mathrm{ref} = 101325 \\, \\mathrm{Pa}``.
 
-  - `aref::I`: Reference sound speed ``c_\\mathrm{ref} = \\sqrt{p_\\mathrm{ref} / \\rho_\\mathrm{ref}}``.
+  - `aref::A`: Reference sound speed ``c_\\mathrm{ref} = \\sqrt{p_\\mathrm{ref} / \\rho_\\mathrm{ref}}``.
 
-  - `uref::J`: Reference wind ``u_\\mathrm{ref} = a_\\mathrm{ref}``.
+  - `uref::A`: Reference wind ``u_\\mathrm{ref} = a_\\mathrm{ref}``.
 
-  - `lref::K`: Reference length ``L_\\mathrm{ref} = p_\\mathrm{ref} /\\left(g \\rho_\\mathrm{ref}\\right)``.
+  - `lref::A`: Reference length ``L_\\mathrm{ref} = p_\\mathrm{ref} /\\left(g \\rho_\\mathrm{ref}\\right)``.
 
-  - `tref::L`: Reference time ``t_\\mathrm{ref} = L_\\mathrm{ref} / a_\\mathrm{ref}``.
+  - `tref::A`: Reference time ``t_\\mathrm{ref} = L_\\mathrm{ref} / a_\\mathrm{ref}``.
 
-  - `thetaref::M`: Reference potential temperature ``\\theta_\\mathrm{ref} = a_\\mathrm{ref}^2 / R``.
+  - `thetaref::A`: Reference potential temperature ``\\theta_\\mathrm{ref} = a_\\mathrm{ref}^2 / R``.
 
-  - `fref::N`: Reference body force ``F_\\mathrm{ref} = \\rho_\\mathrm{ref} u_\\mathrm{ref}^2 / L_\\mathrm{ref}``.
+  - `fref::A`: Reference body force ``F_\\mathrm{ref} = \\rho_\\mathrm{ref} u_\\mathrm{ref}^2 / L_\\mathrm{ref}``.
 
 Non-dimensional parameters
 
-  - `g_ndim::O`: Non-dimensional gravitational acceleration ``\\widehat{g} = g L_\\mathrm{ref} / u_\\mathrm{ref}^2``.
+  - `g_ndim::A`: Non-dimensional gravitational acceleration ``\\widehat{g} = g L_\\mathrm{ref} / u_\\mathrm{ref}^2``.
 
-  - `re::P`: Reynolds number ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu`` (with ``\\mu`` being the kinematic viscosity at the surface).
+  - `re::A`: Reynolds number ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu`` (with ``\\mu`` being the kinematic viscosity at the surface).
 
-  - `ma::Q`: Mach number ``\\mathrm{Ma} = u_\\mathrm{ref} / a_\\mathrm{ref}``.
+  - `ma::A`: Mach number ``\\mathrm{Ma} = u_\\mathrm{ref} / a_\\mathrm{ref}``.
 
-  - `mainv2::R`: Inverse Mach number squared ``\\mathrm{Ma}^{- 2}``.
+  - `mainv2::A`: Inverse Mach number squared ``\\mathrm{Ma}^{- 2}``.
 
-  - `ma2::S`: Mach number squared ``\\mathrm{Ma}^2``.
+  - `ma2::A`: Mach number squared ``\\mathrm{Ma}^2``.
 
-  - `fr::T`: Froude number ``\\mathrm{Fr} = u_\\mathrm{ref} / \\sqrt{g L_\\mathrm{ref}}``.
+  - `fr::A`: Froude number ``\\mathrm{Fr} = u_\\mathrm{ref} / \\sqrt{g L_\\mathrm{ref}}``.
 
-  - `frinv2::U`: Inverse Froude number squared ``\\mathrm{Fr}^{- 2}``.
+  - `frinv2::A`: Inverse Froude number squared ``\\mathrm{Fr}^{- 2}``.
 
-  - `fr2::V`: Froude number squared ``\\mathrm{Fr}^{2}``.
+  - `fr2::A`: Froude number squared ``\\mathrm{Fr}^{2}``.
 
-  - `sig::W`: Ratio between squared Mach number and squared Froude number ``\\sigma = \\mathrm{Ma}^2 / \\mathrm{Fr}^2``.
+  - `sig::A`: Ratio between squared Mach number and squared Froude number ``\\sigma = \\mathrm{Ma}^2 / \\mathrm{Fr}^2``.
 
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
 """
-struct Constants{
-    A <: AbstractFloat,
-    B <: AbstractFloat,
-    C <: AbstractFloat,
-    D <: AbstractFloat,
-    E <: AbstractFloat,
-    F <: AbstractFloat,
-    G <: AbstractFloat,
-    H <: AbstractFloat,
-    I <: AbstractFloat,
-    J <: AbstractFloat,
-    K <: AbstractFloat,
-    L <: AbstractFloat,
-    M <: AbstractFloat,
-    N <: AbstractFloat,
-    O <: AbstractFloat,
-    P <: AbstractFloat,
-    Q <: AbstractFloat,
-    R <: AbstractFloat,
-    S <: AbstractFloat,
-    T <: AbstractFloat,
-    U <: AbstractFloat,
-    V <: AbstractFloat,
-    W <: AbstractFloat,
-}
+struct Constants{A <: AbstractFloat}
 
     # Natural constants.
     gamma::A
-    gammainv::B
-    kappa::C
-    kappainv::D
-    rsp::E
-    g::F
+    gammainv::A
+    kappa::A
+    kappainv::A
+    rsp::A
+    g::A
 
     # Reference quantities.
-    rhoref::G
-    pref::H
-    aref::I
-    uref::J
-    lref::K
-    tref::L
-    thetaref::M
-    fref::N
+    rhoref::A
+    pref::A
+    aref::A
+    uref::A
+    lref::A
+    tref::A
+    thetaref::A
+    fref::A
 
     # Non-dimensionalized gravitational acceleration.
-    g_ndim::O
+    g_ndim::A
 
     # Flow parameters.
-    re::P
-    ma::Q
-    mainv2::R
-    ma2::S
-    fr::T
-    frinv2::U
-    fr2::V
-    sig::W
+    re::A
+    ma::A
+    mainv2::A
+    ma2::A
+    fr::A
+    frinv2::A
+    fr2::A
+    sig::A
 end
 
 function Constants(namelists::Namelists)::Constants

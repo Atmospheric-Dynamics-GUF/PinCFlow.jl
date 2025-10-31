@@ -2,21 +2,11 @@
 ```julia
 Grid{
     A <: AbstractFloat,
-    B <: AbstractFloat,
-    C <: AbstractFloat,
-    D <: AbstractFloat,
-    E <: AbstractFloat,
-    F <: AbstractFloat,
-    G <: AbstractVector{<:AbstractFloat},
-    H <: AbstractVector{<:AbstractFloat},
-    I <: AbstractMatrix{<:AbstractFloat},
-    J <: AbstractArray{<:AbstractFloat, 3},
-    K <: AbstractArray{<:AbstractFloat, 3},
-    L <: AbstractArray{<:AbstractFloat, 3},
-    M <: AbstractArray{<:AbstractFloat, 3},
-    N <: AbstractArray{<:AbstractFloat, 5},
-    O <: AbstractArray{<:AbstractFloat, 3},
-    P <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractVector{<:AbstractFloat},
+    C <: AbstractMatrix{<:AbstractFloat},
+    D <: AbstractArray{<:AbstractFloat, 3},
+    E <: AbstractArray{<:AbstractFloat, 3},
+    F <: AbstractArray{<:AbstractFloat, 5},
 }
 ```
 
@@ -81,45 +71,45 @@ Domain extent:
 
   - `lx::A`: Non-dimensional domain extent in ``\\widehat{x}``-direction.
 
-  - `ly::B`: Non-dimensional domain extent in ``\\widehat{y}``-direction.
+  - `ly::A`: Non-dimensional domain extent in ``\\widehat{y}``-direction.
 
-  - `lz::C`: Non-dimensional domain extent in ``\\widehat{z}``-direction.
+  - `lz::A`: Non-dimensional domain extent in ``\\widehat{z}``-direction.
 
 Grid spacing:
 
-  - `dx::D`: Grid spacing ``\\Delta \\widehat{x}``.
+  - `dx::A`: Grid spacing ``\\Delta \\widehat{x}``.
 
-  - `dy::E`: Grid spacing ``\\Delta \\widehat{y}``.
+  - `dy::A`: Grid spacing ``\\Delta \\widehat{y}``.
 
-  - `dz::F`: Grid spacing ``\\Delta \\widehat{z}``.
+  - `dz::A`: Grid spacing ``\\Delta \\widehat{z}``.
 
 Horizontal coordinates:
 
-  - `x::G`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
+  - `x::B`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
 
-  - `y::H`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
+  - `y::B`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
 
 Topography:
 
-  - `hb::I`: Resolved surface topography.
+  - `hb::C`: Resolved surface topography.
 
-  - `hw::J`: Spectrum of the unresolved surface topography.
+  - `hw::D`: Spectrum of the unresolved surface topography.
 
-  - `kh::K`: Zonal wavenumbers of the spectrum.
+  - `kh::D`: Zonal wavenumbers of the spectrum.
 
-  - `lh::L`: Meridional wavenumbers of the spectrum.
+  - `lh::D`: Meridional wavenumbers of the spectrum.
 
 Coordinate transformation.
 
-  - `jac::M`: Jacobian.
+  - `jac::E`: Jacobian.
 
-  - `met::N`: Metric tensor.
+  - `met::F`: Metric tensor.
 
 Vertical coordinates:
 
-  - `zc::O`: Physical height at cell centers.
+  - `zc::E`: Physical height at cell centers.
 
-  - `zctilde::P`: Physical height at vertical cell edges.
+  - `zctilde::E`: Physical height at vertical cell edges.
 
 # Arguments
 
@@ -139,50 +129,40 @@ Vertical coordinates:
 """
 struct Grid{
     A <: AbstractFloat,
-    B <: AbstractFloat,
-    C <: AbstractFloat,
-    D <: AbstractFloat,
-    E <: AbstractFloat,
-    F <: AbstractFloat,
-    G <: AbstractVector{<:AbstractFloat},
-    H <: AbstractVector{<:AbstractFloat},
-    I <: AbstractMatrix{<:AbstractFloat},
-    J <: AbstractArray{<:AbstractFloat, 3},
-    K <: AbstractArray{<:AbstractFloat, 3},
-    L <: AbstractArray{<:AbstractFloat, 3},
-    M <: AbstractArray{<:AbstractFloat, 3},
-    N <: AbstractArray{<:AbstractFloat, 5},
-    O <: AbstractArray{<:AbstractFloat, 3},
-    P <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractVector{<:AbstractFloat},
+    C <: AbstractMatrix{<:AbstractFloat},
+    D <: AbstractArray{<:AbstractFloat, 3},
+    E <: AbstractArray{<:AbstractFloat, 3},
+    F <: AbstractArray{<:AbstractFloat, 5},
 }
 
     # Scaled domain.
     lx::A
-    ly::B
-    lz::C
+    ly::A
+    lz::A
 
     # Grid spacings.
-    dx::D
-    dy::E
-    dz::F
+    dx::A
+    dy::A
+    dz::A
 
     # Horizontal coordinates.
-    x::G
-    y::H
+    x::B
+    y::B
 
     # Topography.
-    hb::I
-    hw::J
-    kh::K
-    lh::L
+    hb::C
+    hw::D
+    kh::D
+    lh::D
 
     # Jacobian and metric tensor.
-    jac::M
-    met::N
+    jac::E
+    met::F
 
     # Vertical coordinates.
-    zc::O
-    zctilde::P
+    zc::E
+    zctilde::E
 end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
