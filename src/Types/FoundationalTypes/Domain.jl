@@ -128,6 +128,7 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 end
 
 function Domain(namelists::Namelists)::Domain
+    (; integer_type) = namelists.discretization
     (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz, base_comm) =
         namelists.domain
 
@@ -136,7 +137,7 @@ function Domain(namelists::Namelists)::Domain
         MPI.Init()
     end
     rank = MPI.Comm_rank(base_comm)
-    root = 0
+    root = integer_type(0)
     if rank == root
         master = true
     else
@@ -164,48 +165,48 @@ function Domain(namelists::Namelists)::Domain
 
     # Create a Cartesian topology.
     comm = MPI.Cart_create(base_comm, dims; periodic = periods)
-    rank = MPI.Comm_rank(comm)
+    rank = integer_type(MPI.Comm_rank(comm))
     coords = MPI.Cart_coords(comm, rank)
 
     # Set local grid size.
     @ivy if coords[1] == npx - 1
-        nx = div(x_size, npx) + x_size % npx
+        nx = integer_type(div(x_size, npx) + x_size % npx)
     else
-        nx = div(x_size, npx)
+        nx = integer_type(div(x_size, npx))
     end
     @ivy if coords[2] == npy - 1
-        ny = div(y_size, npy) + y_size % npy
+        ny = integer_type(div(y_size, npy) + y_size % npy)
     else
-        ny = div(y_size, npy)
+        ny = integer_type(div(y_size, npy))
     end
     @ivy if coords[3] == npz - 1
-        nz = div(z_size, npz) + z_size % npz
+        nz = integer_type(div(z_size, npz) + z_size % npz)
     else
-        nz = div(z_size, npz)
+        nz = integer_type(div(z_size, npz))
     end
 
     # Set grid sizes with boundary cells.
-    nxx = nx + 2 * nbx
-    nyy = ny + 2 * nby
-    nzz = nz + 2 * nbz
+    nxx = integer_type(nx + 2 * nbx)
+    nyy = integer_type(ny + 2 * nby)
+    nzz = integer_type(nz + 2 * nbz)
 
     # Set index offsets.
-    @ivy io = coords[1] * div(x_size, npx)
-    @ivy jo = coords[2] * div(y_size, npy)
-    @ivy ko = coords[3] * div(z_size, npz)
+    @ivy io = integer_type(coords[1] * div(x_size, npx))
+    @ivy jo = integer_type(coords[2] * div(y_size, npy))
+    @ivy ko = integer_type(coords[3] * div(z_size, npz))
 
     # Set index bounds.
-    i0 = nbx + 1
-    i1 = i0 + nx - 1
-    j0 = nby + 1
-    j1 = j0 + ny - 1
-    k0 = nbz + 1
-    k1 = k0 + nz - 1
+    i0 = integer_type(nbx + 1)
+    i1 = integer_type(i0 + nx - 1)
+    j0 = integer_type(nby + 1)
+    j1 = integer_type(j0 + ny - 1)
+    k0 = integer_type(nbz + 1)
+    k1 = integer_type(k0 + nz - 1)
 
     # Find the neighbour processors.
-    (left, right) = MPI.Cart_shift(comm, 0, 1)
-    (backward, forward) = MPI.Cart_shift(comm, 1, 1)
-    (down, up) = MPI.Cart_shift(comm, 2, 1)
+    (left, right) = integer_type.(MPI.Cart_shift(comm, 0, 1))
+    (backward, forward) = integer_type.(MPI.Cart_shift(comm, 1, 1))
+    (down, up) = integer_type.(MPI.Cart_shift(comm, 2, 1))
 
     # Create communicators for horizontal and vertical averages.
     @ivy layer_comm = MPI.Comm_split(comm, coords[3], rank)

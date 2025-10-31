@@ -45,8 +45,14 @@ function compute_time_step end
 
 function compute_time_step(state::State)::AbstractFloat
     (; grid) = state
-    (; cfl_number, wkb_cfl_number, dtmin, dtmax, adaptive_time_step) =
-        state.namelists.discretization
+    (;
+        cfl_number,
+        wkb_cfl_number,
+        dtmin,
+        dtmax,
+        adaptive_time_step,
+        float_type,
+    ) = state.namelists.discretization
     (; tref, re) = state.constants
     (; master, comm, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = grid
@@ -68,9 +74,9 @@ function compute_time_step(state::State)::AbstractFloat
         #     CFL condition
         #----------------------
 
-        umax = maximum(abs, u[i0:i1, j0:j1, k0:k1]) + eps()
-        vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps()
-        wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps()
+        umax = maximum(abs, u[i0:i1, j0:j1, k0:k1]) + eps(float_type)
+        vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps(float_type)
+        wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps(float_type)
 
         dtconv = cfl_number * min(dx / umax, dy / vmax, dz / wmax)
 
@@ -83,7 +89,7 @@ function compute_time_step(state::State)::AbstractFloat
                             compute_vertical_wind(i, j, k, state) +
                             compute_vertical_wind(i, j, k - 1, state)
                         ),
-                    ) + eps()
+                    ) + eps(float_type)
                 ),
             )
         end
@@ -105,7 +111,8 @@ function compute_time_step(state::State)::AbstractFloat
         #----------------------------------
 
         if wkb_mode != NoWKB()
-            dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
+            dtwkb =
+                jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps(float_type))
 
             kmin = ko == 0 ? k0 - 1 : k0
             kmax = k1
@@ -115,15 +122,15 @@ function compute_time_step(state::State)::AbstractFloat
                     dtwkb,
                     minimum(
                         jac[(i - 1):(i + 1), (j - 1):(j + 1), (k - 1):(k + 1)],
-                    ) * dz / (cgz_max[i, j, k] + eps()),
+                    ) * dz / (cgz_max[i, j, k] + eps(float_type)),
                 )
             end
 
             if x_size > 1
-                dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))
+                dtwkb = min(dtwkb, dx / (cgx_max[] + eps(float_type)))
             end
             if y_size > 1
-                dtwkb = min(dtwkb, dy / (cgy_max[] + eps()))
+                dtwkb = min(dtwkb, dy / (cgy_max[] + eps(float_type)))
             end
 
             dtwkb *= wkb_cfl_number

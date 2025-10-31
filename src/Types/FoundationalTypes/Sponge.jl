@@ -9,7 +9,7 @@ Sponge{
 Composite type for Rayleigh-damping coefficients and an auxiliary array for the computation of horizontal means.
 
 ```julia
-Sponge(domain::Domain)::Sponge
+Sponge(namelists::Namelists, domain::Domain)::Sponge
 ```
 
 Construct a `Sponge` instance with zero-initialized arrays.
@@ -24,6 +24,8 @@ Construct a `Sponge` instance with zero-initialized arrays.
 
 # Arguments
 
+  - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Sponge{
@@ -35,8 +37,12 @@ struct Sponge{
     horizontal_mean::B
 end
 
-function Sponge(domain::Domain)::Sponge
+function Sponge(namelists::Namelists, domain::Domain)::Sponge
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz, nz) = domain
 
-    return Sponge([zeros(nxx, nyy, nzz) for i in 1:2]..., zeros(nz))
+    return Sponge(
+        [zeros(float_type, nxx, nyy, nzz) for i in 1:2]...,
+        zeros(float_type, nz),
+    )
 end

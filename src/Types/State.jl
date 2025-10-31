@@ -105,11 +105,11 @@ end
 
 function State(namelists::Namelists)::State
     constants = Constants(namelists)
-    time = Time()
+    time = Time(namelists)
     domain = Domain(namelists)
     grid = Grid(namelists, constants, domain)
     atmosphere = Atmosphere(namelists, constants, domain, grid)
-    sponge = Sponge(domain)
+    sponge = Sponge(namelists, domain)
     poisson = Poisson(domain)
     variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, domain)

@@ -106,20 +106,21 @@ struct Constants{A <: AbstractFloat}
 end
 
 function Constants(namelists::Namelists)::Constants
+    (; float_type) = namelists.discretization
     (; specify_reynolds_number, inverse_reynolds_number, kinematic_viscosity) =
         namelists.atmosphere
 
     # Set natural constants.
-    gamma = 1.4
-    gammainv = 1.0 / gamma
-    kappa = (gamma - 1.0) / gamma
-    kappainv = 1.0 / kappa
-    rsp = 287.0
-    g = 9.81
+    gamma = float_type(1.4)
+    gammainv = 1 / gamma
+    kappa = (gamma - 1) / gamma
+    kappainv = 1 / kappa
+    rsp = float_type(287)
+    g = float_type(9.81)
 
     # Set reference quantities.
-    rhoref = 1.184 # in kg/m^3
-    pref = 101325.0 # in Pa = kg/m/s^2
+    rhoref = float_type(1.184) # in kg/m^3
+    pref = float_type(101325) # in Pa = kg/m/s^2
     aref = sqrt(pref / rhoref) # in m/s
     uref = aref # in m/s
     lref = pref / rhoref / g # in m
@@ -132,25 +133,25 @@ function Constants(namelists::Namelists)::Constants
 
     # Set the Reynolds number.
     if specify_reynolds_number
-        if inverse_reynolds_number < eps()
-            re = 1 / eps()
+        if inverse_reynolds_number < eps(float_type)
+            re = 1 / eps(float_type)
         else
-            re = 1.0 / inverse_reynolds_number
+            re = 1 / float_type(inverse_reynolds_number)
         end
     else
-        if kinematic_viscosity / uref / lref < eps()
-            re = 1 / eps()
+        if kinematic_viscosity / uref / lref < eps(float_type)
+            re = 1 / eps(float_type)
         else
-            re = uref * lref / kinematic_viscosity
+            re = uref * lref / float_type(kinematic_viscosity)
         end
     end
 
     # Set other flow parameters.
     ma = uref / aref # Ma = 1
-    mainv2 = 1.0 / ma^2
+    mainv2 = 1 / ma^2
     ma2 = ma^2
     fr = uref / sqrt(g * lref) # Fr = 1
-    frinv2 = 1.0 / fr^2
+    frinv2 = 1 / fr^2
     fr2 = fr^2
     sig = ma^2 / fr^2
 
