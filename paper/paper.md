@@ -56,11 +56,7 @@ Most gravity-wave parameterizations rely on single-column and steady-state appro
 
 \autoref{features} shows an overview of PinCFlow.jl's features. As has been mentioned above, the model can be used to integrate the Boussinesq, pseudo-incompressible or compressible equations. For each of these, it provides a number of backgrounds defined by namelist parameters. The initial deviations of the prognostic variables from the background are set with user-defined functions. In addition to the momentum, continuity and potential-temperature equations, the flow solver integrates the prognostic equation for an arbitrary passive tracer.
 
-\begin{figure}[b!]
-    \includegraphics[width = \textwidth]{features.pdf}
-    \caption{Overview of PinCFlow.jl's features.}
-    \label{features}
-\end{figure}
+![Overview of PinCFlow.jl's features.\label{features}](features.pdf)
 
 PinCFlow.jl's grid is determined from a user-defined surface topography, using a height-based terrain-following coordinate system. Fluxes are computed with a finite-volume (MUSCL) scheme [e.g. @Leer2003], using the monotonized-centered variant limiter [e.g. @Kemm2011]. In addition to the advection terms, the model includes molecular friction, heat conduction and an artificial momentum-diffusion term.
 
