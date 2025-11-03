@@ -87,8 +87,8 @@ function Predictands(
         initial_v,
         initial_w,
         initial_pip,
+        model,
     ) = namelists.atmosphere
-    (; model) = namelists.atmosphere
     (; lref, rhoref, thetaref, uref) = constants
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; x, y, zc, met, jac) = grid
@@ -119,7 +119,9 @@ function Predictands(
         f!(pip, namelists, domain)
     end
 
-    rho .= rhop
+    if model != Boussinesq()
+        rho .= rhop
+    end
 
     @ivy w .= met[:, :, :, 1, 3] .* u .+ met[:, :, :, 2, 3] .* v .+ w ./ jac
 
