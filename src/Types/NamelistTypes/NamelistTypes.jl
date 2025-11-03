@@ -74,21 +74,21 @@ abstract type AbstractTracer end
 
 """
 ```julia
-UniformBoussinesq <: AbstractBackground
+NeutralStratification <: AbstractBackground
 ```
 
-Singleton for a Boussinesq atmosphere without stratification.
+Singleton for a Boussinesq atmosphere with neutral stratification.
 """
-struct UniformBoussinesq <: AbstractBackground end
+struct NeutralStratification <: AbstractBackground end
 
 """
 ```julia
-StratifiedBoussinesq <: AbstractBackground
+StableStratification <: AbstractBackground
 ```
 
-Singleton for a Boussinesq atmosphere with stratification.
+Singleton for a Boussinesq atmosphere with stable stratification.
 """
-struct StratifiedBoussinesq <: AbstractBackground end
+struct StableStratification <: AbstractBackground end
 
 """
 ```julia
@@ -274,8 +274,8 @@ export AbstractBackground,
     AbstractWKBFilter,
     AbstractTracer
 
-export UniformBoussinesq,
-    StratifiedBoussinesq,
+export NeutralStratification,
+    StableStratification,
     Isothermal,
     Isentropic,
     Realistic,

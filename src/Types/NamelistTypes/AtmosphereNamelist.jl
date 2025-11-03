@@ -60,7 +60,7 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `background::D`: Atmospheric background.
 
-  - `buoyancy_frequency::C`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
+  - `buoyancy_frequency::C`: Buoyancy frequency if `background == StableStratification()`.
 
   - `potential_temperature::C`: Reference potential temperature.
 
