@@ -140,10 +140,7 @@ function integrate(namelists::Namelists)
         if errflagbicg
             create_output(state)
             iout = write_output(state, time, iout, machine_start_time)
-            if master
-                println("Output last state into record ", iout, ".")
-            end
-            exit()
+            error("BicGStab errored! Output last state into record ", iout, ".")
         end
 
         modify_compressible_wind!(state, /)
