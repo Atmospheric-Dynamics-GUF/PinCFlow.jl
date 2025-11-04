@@ -6,9 +6,9 @@ using .PinCFlow
 using HDF5
 
 domain = DomainNamelist(;
-    sizex = 8,
+    sizex = 80,
     sizey = 1,
-    sizez = 8,
+    sizez = 150,
     nbx = 3,
     nby = 3,
     nbz = 3,
@@ -22,23 +22,21 @@ domain = DomainNamelist(;
 
 output = OutputNamelist(;
     output_variables = (:rhop, :pip, :w, :u, :thetap, :n2, :rhobar, :thetabar, :n, :qv, :q, :iaux1, :iaux2, :iaux3, :wwp, :epp, :thp),
-    prepare_restart = false,
+    prepare_restart = true,
     restart = false,
     iin = -1,
     output_steps = false,
     noutput = 1,
     maxiter = 1,
     outputtimediff = 1.0, # 3.6E+1, #E+3
-    maxtime = 30.0, #3.6E+1, #E+3
+    maxtime = 10.0, #3.6E+1, #E+3
     input_file = "./test/pincflow_input.h5",
     output_file = "./test/pincflow_output.h5",
 )
 
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
-    #testcase = WKBMountainWave(),
-    testcase = WKBMultipleWavePackets(),
-    #testcase = MultipleWavePackets(),
+    testcase = MultipleWavePackets(),
     zboundaries = SolidWallBoundaries(),
 )
 
@@ -74,7 +72,6 @@ atmosphere = AtmosphereNamelist(;
 )
 
 grid = GridNamelist(;
-    #mountainheight_dim = 1.0E+3,
     mountainheight_dim = 0.0E+3,
     mountainwidth_dim = 1.0E+3,
     mountain_case = 3,
@@ -103,15 +100,12 @@ sponge = SpongeNamelist(;
 ice = IceNamelist(;
     icesetup = IceOn(),
     dt_ice = 1.,
-    nscx = 10,
+    nscx = 1,
     nscy = 1,
-    nscz = 20,
-    cloudcover = CloudCoverOn(),
-#    large_scale_ice = true,
-    parameterized_nucleation = true,
-#    parameterized_nucleation = false,
-#     parameterized_sgs_q = true,
-    parameterized_sgs_q = false,
+    nscz = 1,
+    cloudcover = CloudCoverOff(),
+    constant_advection = true,
+    hor_adv_vel = (0.0E+0, 0.0E+0), 
  ) 
 wkb = WKBNamelist(;
                     xrmin_dim = 0.0E+4,
@@ -149,20 +143,6 @@ wkb = WKBNamelist(;
                 )
 
 multiwavepackets = MultiWavePacketNamelist(; random_wavepackets = true, nwm=3)
-# multiwavepackets = MultiWavePacketNamelist(;
-#     nwm = 2,
-#     wavepacketdim = [1, 1],
-#     lambdax_dim = [1.0E+4, 1.0E+4],
-#     lambday_dim = [0.0E+0   , 0.0E+0   ],
-#     lambdaz_dim = [-2.0E+3, 2.0E+3],
-#     x0_dim = [5.0E+3, 5.0E+3],
-#     y0_dim = [5.0E+3, 5.0E+3],
-#     z0_dim = [7.0E+3, 9.0E+3],
-#     sigmax_dim = [0.0E+3, 0.0E+3],
-#     sigmay_dim = [0.0E+3, 0.0E+3],
-#     sigmaz_dim = [6.0E+3, 6.0E+3],
-#     a0 = [0.12E+0, 0.12E+0],
-# )
 
 namelists = Namelists(;
     domain = domain,
@@ -181,4 +161,5 @@ namelists = Namelists(;
 
 integrate(namelists)
 
-#include("../examples/visualization/fast_plot_tjl04.jl")
+#dirname=tjl05
+#dolaptch@iau61:~/PF/pinc$ mkdir ../runs/$dirname & mv test/pincflow_output.h5 ../runs/$dirname & cp -pr src ../runs/$dirname/.

@@ -50,7 +50,7 @@ include("iceroutines.jl")
 include("explicit_integration_rhs_ice!.jl")
 
 export integrate
-export psat_ice, sat_ratio, dot_qv, dot_n 
+export psat_ice, sat_ratio, dot_qv, dot_n, nIce_param_nuc 
 export compute_source_ice!, compute_msgwam_ice!
 
 end

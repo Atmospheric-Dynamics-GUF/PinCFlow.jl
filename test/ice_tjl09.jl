@@ -29,7 +29,7 @@ output = OutputNamelist(;
     noutput = 1,
     maxiter = 1,
     outputtimediff = 1.0, # 3.6E+1, #E+3
-    maxtime = 30.0, #3.6E+1, #E+3
+    maxtime = 10.0, #3.6E+1, #E+3
     input_file = "./test/pincflow_input.h5",
     output_file = "./test/pincflow_output.h5",
 )
@@ -107,6 +107,8 @@ ice = IceNamelist(;
     nscy = 1,
     nscz = 20,
     cloudcover = CloudCoverOn(),
+    constant_advection = true,
+    hor_adv_vel = (0.0E+0, 0.0E+0), 
 #    large_scale_ice = true,
     parameterized_nucleation = true,
 #    parameterized_nucleation = false,

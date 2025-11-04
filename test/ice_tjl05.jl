@@ -29,7 +29,7 @@ output = OutputNamelist(;
     noutput = 1,
     maxiter = 1,
     outputtimediff = 1.0, # 3.6E+1, #E+3
-    maxtime = 3.0, #3.6E+1, #E+3
+    maxtime = 30.0, #3.6E+1, #E+3
     input_file = "./test/pincflow_input.h5",
     output_file = "./test/pincflow_output.h5",
 )
@@ -137,10 +137,10 @@ wkb = WKBNamelist(;
                     blocking = false,
                     long_threshold = 2.5E-1,
                     drag_coefficient = 1.0E+0,
-                    nwm = 2,
+                    nwm = 3,
                 )
 
-multiwavepackets = MultiWavePacketNamelist(; random_wavepackets = true, nwm=2)
+multiwavepackets = MultiWavePacketNamelist(; random_wavepackets = true, nwm=3)
 
 namelists = Namelists(;
     domain = domain,

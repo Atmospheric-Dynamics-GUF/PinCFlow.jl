@@ -282,7 +282,7 @@ function WKB(
     else
         nzray_wrk = 1
     end
-    nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk
+    nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk * nwm
 
     # Set number of surface ray volumes.
     n_sfc = nwm

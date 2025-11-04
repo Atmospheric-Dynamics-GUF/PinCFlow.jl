@@ -594,9 +594,7 @@ module ice_module
 
     NIce_param_nuc = 2. * dotS / (DepS * (S_c - 1.) * T) - N
 
-    if(NIce_param_nuc .gt. n) then
-      NIce_param_nuc = NIce_param_nuc - N
-    else
+    if(NIce_param_nuc .lt. n) then
       NIce_param_nuc = N
     end if
 
