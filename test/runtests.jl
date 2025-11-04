@@ -10,5 +10,6 @@ update_references = false
 @testset verbose = true "PinCFlow tests" begin
     include("mountain_wave.jl")
     include("periodic_hill.jl")
+    include("vortex.jl")
     include("wkb_mountain_wave.jl")
 end
