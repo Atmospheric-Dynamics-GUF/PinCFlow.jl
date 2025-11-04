@@ -26,7 +26,7 @@ linf = (
 )
 reference = (l2, linf)
 
-@testset "Periodic hill" begin
+@testset "Vortex" begin
     test_example(
         joinpath(submit_directory, "vortex.jl"),
         reference,
