@@ -9,6 +9,7 @@ update_references = false
 
 @testset verbose = true "PinCFlow tests" begin
     include("cold_bubble.jl")
+    include("hot_bubble.jl")
     include("mountain_wave.jl")
     include("periodic_hill.jl")
     include("vortex.jl")
