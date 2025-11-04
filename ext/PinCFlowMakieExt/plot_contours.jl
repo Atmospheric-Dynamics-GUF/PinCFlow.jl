@@ -66,6 +66,8 @@ function plot_contours(
                 ticks = trunc.(levels; digits = 4),
                 label,
             )
+            xlims!(minimum(x), maximum(x))
+            ylims!(minimum(y), maximum(y))
         end
 
         # Plot in the x-z plane.
@@ -99,6 +101,8 @@ function plot_contours(
                 ticks = trunc.(levels; digits = 4),
                 label,
             )
+            xlims!(minimum(x), maximum(x))
+            ylims!(minimum(z), maximum(z))
         end
 
         # Plot in the y-z plane.
@@ -132,6 +136,8 @@ function plot_contours(
                 ticks = trunc.(levels; digits = 4),
                 label,
             )
+            xlims!(minimum(y), maximum(y))
+            ylims!(minimum(z), maximum(z))
         end
     end
 
