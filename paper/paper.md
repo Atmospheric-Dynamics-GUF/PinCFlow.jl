@@ -28,6 +28,7 @@ authors:
     orcid: 0000-0002-3456-2277
     affiliation: 2
   - name: Stamen Dolaptchiev
+    orcid: 0000-0002-2410-3739
     affiliation: 1
   - name: Ulrich Achatz
     affiliation: 1
