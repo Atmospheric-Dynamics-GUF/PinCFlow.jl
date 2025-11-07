@@ -34,7 +34,7 @@ authors:
   - name: Ulrich Achatz
     affiliation: 1
 affiliations:
-  - name: Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany
+  - name: Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany
     index: 1
   - name: Numerical Mathematics, Johannes Gutenberg University Mainz, Germany
     index: 2
