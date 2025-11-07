@@ -27,10 +27,12 @@ using PinCFlow
                 script_file[1:(end - 3)] *
                 "_simulation.md"
         end
-        page = replace(read(page_file, String), code => script)
-        open(page_file, "w") do io
-            write(io, page)
-            return
+        if isfile(page_file)
+            page = replace(read(page_file, String), code => script)
+            open(page_file, "w") do io
+                write(io, page)
+                return
+            end
         end
     end
 end
