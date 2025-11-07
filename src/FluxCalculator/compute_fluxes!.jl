@@ -9,6 +9,28 @@ Compute fluxes by dispatching to specialized methods for each prognostic variabl
 compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 ```
 
+Compute the density fluxes in all three directions, by dispatching to a model-specific method.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Boussinesq,
+)
+```
+
+Return in Boussinesq mode.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
+```
+
 Compute the density fluxes in all three directions.
 
 The fluxes are given by
@@ -286,6 +308,26 @@ function compute_fluxes!(state::State, predictands::Predictands)
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+    (; model) = state.namelists.atmosphere
+    compute_fluxes!(state, predictands, variable, model)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Boussinesq,
+)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -514,8 +556,9 @@ function compute_fluxes!(
     variable::U,
 )
     (; grid) = state
+    (; z_size) = state.namelists.domain
     (; re, uref, lref) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pbar, rhobar) = state.atmosphere
     (; utilde) = state.variables.reconstructions
@@ -525,7 +568,7 @@ function compute_fluxes!(
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -817,8 +860,9 @@ function compute_fluxes!(
     variable::V,
 )
     (; grid) = state
+    (; z_size) = state.namelists.domain
     (; re, uref, lref) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pbar, rhobar) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
@@ -828,7 +872,7 @@ function compute_fluxes!(
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes

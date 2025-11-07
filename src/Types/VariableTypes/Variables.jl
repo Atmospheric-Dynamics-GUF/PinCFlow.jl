@@ -88,7 +88,7 @@ function Variables(
     increments = Increments(namelists, domain)
     backups = Backups(domain)
     auxiliaries = Auxiliaries(domain)
-    reconstructions = Reconstructions(domain)
+    reconstructions = Reconstructions(namelists, domain)
     fluxes = Fluxes(namelists, domain)
 
     return Variables(

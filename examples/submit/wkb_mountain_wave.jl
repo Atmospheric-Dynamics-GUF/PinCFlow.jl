@@ -11,22 +11,30 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-h0 = 150
-l0 = 5000
+h0 = 150.0
+l0 = 5000.0
 rl = 10
 rh = 2
 
+lx = 400000.0
+ly = 400000.0
+lz = 20000.0
+dxr = lx / 20
+dyr = ly / 20
+dzr = lz / 10
+alpharmax = 0.0179
+
 atmosphere = AtmosphereNamelist(;
-    coriolis_frequency = 0.0E+0,
-    initial_u = (x, y, z) -> 1.0E+1,
+    coriolis_frequency = 0.0,
+    initial_u = (x, y, z) -> 10.0,
 )
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 40,
     z_size = 40,
-    lx = 4.0E+5,
-    ly = 4.0E+5,
-    lz = 2.0E+4,
+    lx,
+    ly,
+    lz,
     npx,
     npy,
     npz,
@@ -48,12 +56,13 @@ output = OutputNamelist(;
     output_file = "wkb_mountain_wave.h5",
 )
 sponge = SpongeNamelist(;
-    sponge_extent = 1.0E-1,
-    alpharmax = 1.79E-2,
-    lateral_sponge = true,
-    sponge_type = ExponentialSponge(),
-    relax_to_mean = false,
-    relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
+    lhs_sponge = (x, y, z, t, dt) ->
+        alpharmax / 3 * (
+            exp((abs(x) - lx / 2) / dxr) +
+            exp((abs(y) - ly / 2) / dyr) +
+            exp((z - lz) / dzr)
+        ),
+    relaxed_u = (x, y, z, t, dt) -> 10.0,
 )
 wkb = WKBNamelist(; wkb_mode = MultiColumn())
 
