@@ -36,14 +36,11 @@ atmosphere = AtmosphereNamelist(;
         end
     end,
 )
-
 domain = DomainNamelist(; x_size = 40, y_size = 40, lx, ly, npx, npy)
-
 output = OutputNamelist(;
     output_variables = (:chi, :u, :v),
     output_file = "vortex.h5",
 )
-
 tracer = TracerNamelist(;
     tracer_setup = TracerOn(),
     initial_tracer = (x, y, z) -> begin

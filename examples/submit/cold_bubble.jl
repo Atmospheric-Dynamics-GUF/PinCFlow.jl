@@ -27,11 +27,8 @@ atmosphere = AtmosphereNamelist(;
         end
     end,
 )
-
 discretization = DiscretizationNamelist(; dtmax = 60.0)
-
 domain = DomainNamelist(; x_size = 40, z_size = 40, lx, lz, npx, npz)
-
 output = OutputNamelist(;
     output_variables = (:thetap,),
     output_file = "cold_bubble.h5",
