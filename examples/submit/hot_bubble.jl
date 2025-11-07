@@ -31,8 +31,7 @@ atmosphere = AtmosphereNamelist(;
 
 discretization = DiscretizationNamelist(; dtmax = 60.0)
 
-domain =
-    DomainNamelist(; x_size = 40, y_size = 1, z_size = 40, lx, lz, npx, npz)
+domain = DomainNamelist(; x_size = 40, z_size = 40, lx, lz, npx, npz)
 
 output = OutputNamelist(;
     output_variables = (:thetap,),

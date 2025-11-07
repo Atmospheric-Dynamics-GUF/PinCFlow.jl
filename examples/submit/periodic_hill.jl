@@ -20,16 +20,7 @@ atmosphere = AtmosphereNamelist(;
     coriolis_frequency = 0.0,
     initial_u = (x, y, z) -> 10.0,
 )
-domain = DomainNamelist(;
-    x_size = 40,
-    y_size = 1,
-    z_size = 40,
-    lx = 20000.0,
-    ly = 20000.0,
-    lz,
-    npx,
-    npz,
-)
+domain = DomainNamelist(; x_size = 40, z_size = 40, lx = 20000.0, lz, npx, npz)
 grid = GridNamelist(;
     resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
 )

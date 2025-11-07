@@ -42,7 +42,7 @@ runs PinCFlow.jl in its default configuration, if executed with
 julia --project script.jl
 ```
 
-in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow.jl's example scripts. To run them, we recommend setting up an examples project by executing
+in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow.jl's example scripts. To run them, we recommend setting up an examples project by executing
 
 ```shell
 julia --project=examples -e 'using Pkg; Pkg.add("CairoMakie", "HDF5", "HDF5_jll", "MPICH_jll", "MPIPreferences", "PinCFlow", "Revise")'
@@ -73,16 +73,7 @@ atmosphere = AtmosphereNamelist(;
     coriolis_frequency = 0.0,
     initial_u = (x, y, z) -> 10.0,
 )
-domain = DomainNamelist(;
-    x_size = 40,
-    y_size = 1,
-    z_size = 40,
-    lx = 20000.0,
-    ly = 20000.0,
-    lz,
-    npx,
-    npz,
-)
+domain = DomainNamelist(; x_size = 40, z_size = 40, lx = 20000.0, lz, npx, npz)
 grid = GridNamelist(;
     resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
 )

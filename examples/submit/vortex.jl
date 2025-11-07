@@ -37,8 +37,7 @@ atmosphere = AtmosphereNamelist(;
     end,
 )
 
-domain =
-    DomainNamelist(; x_size = 40, y_size = 40, z_size = 1, lx, ly, npx, npy)
+domain = DomainNamelist(; x_size = 40, y_size = 40, lx, ly, npx, npy)
 
 output = OutputNamelist(;
     output_variables = (:chi, :u, :v),
@@ -54,7 +53,7 @@ tracer = TracerNamelist(;
         else
             return 0.0
         end
-    end
+    end,
 )
 
 integrate(Namelists(; atmosphere, domain, output, tracer))
