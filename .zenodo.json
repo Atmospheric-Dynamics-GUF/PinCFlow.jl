@@ -1,6 +1,6 @@
 {
     "title": "PinCFlow.jl: An idealized-atmospheric-flow solver coupled to the 3D transient gravity-wave model MS-GWaM",
-    "description": "PinCFlow.jl is an atmospheric-flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form, using a semi-implicit method that combines explicit and implicit time-stepping schemes. The Lagrangian WKB model MS-GWaM is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transience and horizontal propagation.",
+    "description": "PinCFlow.jl (Pseudo-inCompressible Flow solver) is an atmospheric-flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form, using a semi-implicit method that combines explicit and implicit time-stepping schemes. The Lagrangian gravity-wave parameterization MS-GWaM (Multi-Scale Gravity-Wave Model) is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transient wave-mean-flow interaction and horizontal wave propagation.",
     "license": "MIT",
     "upload_type": "software",
     "creators": [
