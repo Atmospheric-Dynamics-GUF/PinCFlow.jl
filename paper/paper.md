@@ -55,7 +55,7 @@ Most gravity-wave parameterizations rely on single-column and steady-state appro
 
 # Features
 
-\autoref{features} shows an overview of PinCFlow.jl's features. As has been mentioned above, the model can be used to integrate the Boussinesq, pseudo-incompressible or compressible equations. For each of these, it provides a number of background atmospheres defined by namelist parameters. The initial deviations of the prognostic variables from the background state are set with user-defined functions. In addition to the momentum, continuity and potential-temperature equations, the flow solver integrates the prognostic equation for an arbitrary passive tracer.
+\autoref{features} shows an overview of PinCFlow.jl's features. As has been mentioned above, the model can be used to integrate the Boussinesq, pseudo-incompressible or compressible equations. For each of these, it provides a number of background atmospheres defined by model parameters. The initial deviations of the prognostic variables from the background state are set with user-defined functions. In addition to the momentum, continuity and potential-temperature equations, the flow solver integrates the prognostic equation for an arbitrary passive tracer.
 
 ![Overview of PinCFlow.jl's features.\label{features}](features.pdf)
 
@@ -65,7 +65,7 @@ MS-GWaM can be run in a 1D steady-state mode (which represents classic gravity-w
 
 By default, the flow solver uses an adaptive time step determined from several stability criteria, including CFL conditions with respect to the resolved flow and the maximum group velocities of the unresolved gravity-wave field computed by MS-GWaM. The CFL numbers are configurable, however, one may also run the model with a fixed time step.
 
-MPI parallelization is supported in all grid dimensions. The number of MPI tasks is set per dimension, using the parameters of the domain namelist. Furthermore, one may pass a base communicator to the model, facilitating the setup of ensemble simulations in a single Julia script.
+MPI parallelization is supported in all grid dimensions. The number of MPI tasks is set per dimension, using corresponding model parameters. Furthermore, one may pass a base communicator to the model, facilitating the setup of ensemble simulations in a single Julia script.
 
 # Related research and software
 
