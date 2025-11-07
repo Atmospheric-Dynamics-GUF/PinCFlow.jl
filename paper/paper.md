@@ -12,6 +12,7 @@ authors:
     orcid: 0009-0006-9267-5006
     affiliation: 1
   - name: Irmgard Knop
+    orcid: 0009-0008-3003-091X
     affiliation: 1
   - name: Sandra Klewinghaus
     orcid: 0009-0009-0858-9845
