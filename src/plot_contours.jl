@@ -8,6 +8,8 @@ plot_contours(
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
     label::AbstractString = "",
+    space_unit::AbstractString = "km",
+    time_unit::AbstractString = "h",
 )
 ```
 
@@ -30,5 +32,9 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
   - `colormap_name`: Colormap of choice.
 
   - `label`: Colorbar label for the plots.
+
+  - `space_unit`: Unit used for the coordinates. Must be `"km"` or `"m"`.
+
+  - `time_unit`: Unit used for the time. Must be `"d"`, `"h"`, `"min"` or `"s"`.
 """
 function plot_contours end
