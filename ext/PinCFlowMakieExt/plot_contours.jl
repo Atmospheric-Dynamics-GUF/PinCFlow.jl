@@ -1,15 +1,46 @@
 function plot_contours(
     file::AbstractString,
     data::HDF5.File,
-    variable::AbstractString,
-    indices::Vararg{NTuple{4, <:Integer}};
+    fields::Vararg{
+        Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
+    };
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
-    label::AbstractString = "",
     space_unit::AbstractString = "km",
     time_unit::AbstractString = "h",
 )
     set_visualization_theme!()
+
+    # Define the labels.
+    labels = Dict(
+        "rhobar" => L"\overline{\rho}\,[\mathrm{kg\,m^{-3}}]",
+        "thetabar" => L"\overline{\theta}\,[\mathrm{K}]",
+        "n2" => L"N^2\,[\mathrm{s^{-2}}]",
+        "p" => L"P\,[\mathrm{kg\,m^{-3}\,K}]",
+        "rhop" => L"\rho'\,[\mathrm{kg\,m^{-3}}]",
+        "u" => L"u\,[\mathrm{m\,s^{-1}}]",
+        "us" => L"u_\mathrm{s}\,[\mathrm{m\,s^{-1}}]",
+        "v" => L"v\,[\mathrm{m\,s^{-1}}]",
+        "vs" => L"v_\mathrm{s}\,[\mathrm{m\,s^{-1}}]",
+        "w" => L"w\,[\mathrm{m\,s^{-1}}]",
+        "ws" => L"w_\mathrm{s}\,[\mathrm{m\,s^{-1}}]",
+        "wt" => L"\widehat{w}\,[\mathrm{m\,s^{-1}}]",
+        "wts" => L"\widehat{w}_\mathrm{s}\,[\mathrm{m\,s^{-1}}]",
+        "thetap" => L"\theta'\,[\mathrm{K}]",
+        "pip" => L"\pi'",
+        "chi" => L"\chi",
+        "dudt" =>
+            L"\left(\frac{\partial \rho u_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
+        "dvdt" =>
+            L"\left(\frac{\partial \rho v_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
+        "dthetadt" =>
+            L"\left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,K\,s^{-1}}]",
+        "dchidt" =>
+            L"\left(\frac{\partial \rho \chi_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,s^{-1}}]",
+        "uchi" => L"\overline{\rho}\langle u'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
+        "vchi" => L"\overline{\rho}\langle v'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
+        "wchi" => L"\overline{\rho}\langle w'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
+    )
 
     # Set the space unit factor.
     if space_unit == "km"
@@ -44,17 +75,20 @@ function plot_contours(
     # Get the time.
     t = data["t"][:] ./ time_unit_factor
 
-    # Get the variable.
-    phi = data[variable][:, :, :, :]
-
     # Create the figure.
     figure = Figure()
 
     # Loop over outputs.
     row = 0
-    for (i, j, k, n) in indices
+    for (variable, i, j, k, n) in fields
         row += 1
         column = 0
+
+        # Get the label.
+        label = labels[variable]
+
+        # Get the variable.
+        phi = data[variable][:, :, :, :]
 
         # Round the time.
         tn = round(t[n]; digits = 1)
@@ -87,7 +121,8 @@ function plot_contours(
             Colorbar(
                 figure[row, column],
                 contours;
-                ticks = trunc.(levels; digits = 4),
+                ticks = levels,
+                tickformat = "{:9.2E}",
                 label,
             )
             xlims!(minimum(x), maximum(x))
@@ -122,7 +157,8 @@ function plot_contours(
             Colorbar(
                 figure[row, column],
                 contours;
-                ticks = trunc.(levels; digits = 4),
+                ticks = levels,
+                tickformat = "{:9.2E}",
                 label,
             )
             xlims!(minimum(x), maximum(x))
@@ -157,7 +193,8 @@ function plot_contours(
             Colorbar(
                 figure[row, column],
                 contours;
-                ticks = trunc.(levels; digits = 4),
+                ticks = levels,
+                tickformat = "{:9.2E}",
                 label,
             )
             xlims!(minimum(y), maximum(y))

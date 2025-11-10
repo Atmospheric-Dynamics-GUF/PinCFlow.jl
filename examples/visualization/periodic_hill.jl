@@ -13,9 +13,7 @@ h5open("periodic_hill.h5") do data
     plot_contours(
         "examples/results/periodic_hill.svg",
         data,
-        "w",
-        (1, 1, 1, 2);
-        label = L"w\,[\mathrm{m\,s^{-1}}]",
+        ("w", 1, 1, 1, 2);
     )
     return
 end

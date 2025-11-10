@@ -13,9 +13,7 @@ h5open("hot_bubble.h5") do data
     plot_contours(
         "examples/results/hot_bubble.svg",
         data,
-        "thetap",
-        (1, 1, 1, 2);
-        label = L"\theta'\,[\mathrm{K}]",
+        ("thetap", 1, 1, 1, 2);
     )
     return
 end
