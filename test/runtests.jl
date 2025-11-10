@@ -13,5 +13,6 @@ update_references = false
     include("mountain_wave.jl")
     include("periodic_hill.jl")
     include("vortex.jl")
+    include("wave_packet.jl")
     include("wkb_mountain_wave.jl")
 end
