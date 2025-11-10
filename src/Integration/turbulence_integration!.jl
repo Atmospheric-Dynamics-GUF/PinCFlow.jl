@@ -25,7 +25,7 @@ function turbulence_integration!(
     state::State,
     p0::Predictands,
     dt::AbstractFloat,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
@@ -108,8 +108,7 @@ function turbulence_integration!(
     process::Diffusion,
 )
     (; tke) = state.turbulence.turbulencepredictands
-    (; nz, i0, i1, j0, j1, k0, k1) =
-        state.domain
+    (; nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
@@ -118,40 +117,39 @@ function turbulence_integration!(
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
-    ath .= 0.0
-    bth .= 0.0
-    cth .= 0.0
-    fth .= 0.0
-    qth .= 0.0
-    pth .= 0.0
-    qth_bc .= 0.0
-    fth_bc .= 0.0
+    reset_thomas!(state)
 
-    for k in 1:nz
+    ii = i0:i1
+    jj = j0:j1
+    kk = k0:k1
+
+    @ivy for k in 1:nz
+
+        knbz = k + nbz
         kekd =
             (
-                jac[i0:i1, j0:j1, k + nbz - 1] .* kek[i0:i1, j0:j1, k + nbz] .+
-                jac[i0:i1, j0:j1, k + nbz] .* kek[i0:i1, j0:j1, k + nbz - 1]
-            ) ./ (jac[i0:i1, j0:j1, k + nbz - 1] + jac[i0:i1, j0:j1, k + nbz])
+                jac[ii, jj, knbz - 1] .* kek[ii, jj, knbz] .+
+                jac[ii, jj, knbz] .* kek[ii, jj, knbz - 1]
+            ) ./ (jac[ii, jj, knbz - 1] + jac[ii, jj, knbz])
         keku =
             (
-                jac[i0:i1, j0:j1, k + nbz + 1] .* kek[i0:i1, j0:j1, k + nbz] .+
-                jac[i0:i1, j0:j1, k + nbz] .* kek[i0:i1, j0:j1, k + nbz + 1]
-            ) ./ (jac[i0:i1, j0:j1, k + 1] .+ jac[i0:i1, j0:j1, k])
+                jac[ii, jj, knbz + 1] .* kek[ii, jj, knbz] .+
+                jac[ii, jj, knbz] .* kek[ii, jj, knbz + 1]
+            ) ./ (jac[ii, jj, knbz + 1] .+ jac[ii, jj, knbz])
         ath[:, :, k] .= .-dtdz2 .* kekd
         bth[:, :, k] .= 1 .+ dtdz2 .* keku .+ dtdz2 .* kekd
         cth[:, :, k] .= .-dtdz2 .* keku
 
         fth[:, :, k] =
             (1 .- dtdz2 .* keku .- dtdz2 .* kekd) .*
-            tke[i0:i1, j0:j1, k + nbz] .+
-            dtdz2 .* keku .* tke[i0:i1, j0:j1, k + nbz + 1] .+
-            dtdz2 .* kekd .* tke[i0:i1, j0:j1, k + nbz - 1]
+            tke[ii, jj, knbz] .+
+            dtdz2 .* keku .* tke[ii, jj, knbz + 1] .+
+            dtdz2 .* kekd .* tke[ii, jj, knbz - 1]
     end
 
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
-    tke[i0:i1, j0:j1, k0:k1] .= fth
+    tke[ii, jj, kk] .= fth
 
     return
 end

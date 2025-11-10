@@ -15,14 +15,14 @@ function compute_diffusion_coefficients(
 
     mu_mom_diff = kinematic_diffusivity / uref / lref
     coef_d = mu_mom_diff * rhobar[i, j, k0]
-    coef_d += compute_diffusion_coefficients(
-        state,
-        i,
-        j,
-        k,
-        variable,
-        turbulence_scheme,
-    )
+    # coef_d += compute_diffusion_coefficients(
+    #     state,
+    #     i,
+    #     j,
+    #     k,
+    #     variable,
+    #     turbulence_scheme,
+    # )
 
     return coef_d
 end
@@ -120,14 +120,14 @@ function compute_diffusion_coefficients(
 
     mu_conduct = thermal_conductivity / uref / lref
     coef_t = mu_conduct * rhobar[i, j, k0] / rhobar[i, j, k]
-    coef_t += compute_diffusion_coefficients(
-        state,
-        i,
-        j,
-        k,
-        variable,
-        turbulence_scheme,
-    )
+    # coef_t += compute_diffusion_coefficients(
+    #     state,
+    #     i,
+    #     j,
+    #     k,
+    #     variable,
+    #     turbulence_scheme,
+    # )
 
     return coef_t
 end

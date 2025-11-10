@@ -48,15 +48,7 @@ function apply_preconditioner!(
     (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
         state.variables.auxiliaries
 
-    # Initialize auxiliary fields.
-    ath .= 0.0
-    bth .= 0.0
-    cth .= 0.0
-    fth .= 0.0
-    qth .= 0.0
-    pth .= 0.0
-    qth_bc .= 0.0
-    fth_bc .= 0.0
+    reset_thomas!(state)
 
     # Set pseudo-time step.
     deta = dtau / (2 * (1 / dx^2 + 1 / dy^2))
