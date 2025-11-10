@@ -37,9 +37,12 @@ function plot_contours(
             L"\left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,K\,s^{-1}}]",
         "dchidt" =>
             L"\left(\frac{\partial \rho \chi_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,s^{-1}}]",
-        "uchi" => L"\overline{\rho}\langle u'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
-        "vchi" => L"\overline{\rho}\langle v'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
-        "wchi" => L"\overline{\rho}\langle w'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
+        "uchi" =>
+            L"\overline{\rho}\langle u'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
+        "vchi" =>
+            L"\overline{\rho}\langle v'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
+        "wchi" =>
+            L"\overline{\rho}\langle w'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
     )
 
     # Set the space unit factor.
