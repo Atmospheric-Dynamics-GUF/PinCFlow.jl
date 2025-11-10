@@ -6,19 +6,43 @@ function plot_contours(
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
     label::AbstractString = "",
+    space_unit::AbstractString = "km",
+    time_unit::AbstractString = "h",
 )
     set_visualization_theme!()
 
+    # Set the space unit factor.
+    if space_unit == "km"
+        space_unit_factor = 1000
+    elseif space_unit == "m"
+        space_unit_factor = 1
+    else
+        error("Error: Unknown space unit!")
+    end
+
+    # Set the time unit factor.
+    if time_unit == "d"
+        time_unit_factor = 86400
+    elseif time_unit == "h"
+        time_unit_factor = 3600
+    elseif time_unit == "min"
+        time_unit_factor = 60
+    elseif time_unit == "s"
+        time_unit_factor = 1
+    else
+        error("Error: Unknown time unit!")
+    end
+
     # Set the grid.
-    x = data["x"][:] ./ 1000
-    y = data["y"][:] ./ 1000
-    z = data["z"][:, :, :] ./ 1000
+    x = data["x"][:] ./ space_unit_factor
+    y = data["y"][:] ./ space_unit_factor
+    z = data["z"][:, :, :] ./ space_unit_factor
     (nx, ny, nz) = size(z)
     x = [xi for xi in x, j in 1:ny, k in 1:nz]
     y = [yj for i in 1:nx, yj in y, k in 1:nz]
 
     # Get the time.
-    t = data["t"][:] ./ 3600
+    t = data["t"][:] ./ time_unit_factor
 
     # Get the variable.
     phi = data[variable][:, :, :, :]
@@ -41,9 +65,9 @@ function plot_contours(
             @ivy zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
             axis = Axis(
                 figure[row, column - 1];
-                title = L"t\approx%$tn\,\mathrm{h},\quad z\approx%$zk\,\mathrm{km}",
-                xlabel = L"x\,[\mathrm{km}]",
-                ylabel = L"y\,[\mathrm{km}]",
+                title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad z\approx%$zk\,\mathrm{%$space_unit}",
+                xlabel = L"x\,[\mathrm{%$space_unit}]",
+                ylabel = L"y\,[\mathrm{%$space_unit}]",
             )
             @ivy (levels, colormap) = symmetric_contours(
                 minimum(phi[:, :, k, n]),
@@ -76,9 +100,9 @@ function plot_contours(
             @ivy yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
             axis = Axis(
                 figure[row, column - 1];
-                title = L"t\approx%$tn\,\mathrm{h},\quad y\approx%$yj\,\mathrm{km}",
-                xlabel = L"x\,[\mathrm{km}]",
-                ylabel = L"z\,[\mathrm{km}]",
+                title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad y\approx%$yj\,\mathrm{%$space_unit}",
+                xlabel = L"x\,[\mathrm{%$space_unit}]",
+                ylabel = L"z\,[\mathrm{%$space_unit}]",
             )
             @ivy (levels, colormap) = symmetric_contours(
                 minimum(phi[:, j, :, n]),
@@ -111,9 +135,9 @@ function plot_contours(
             @ivy xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
             axis = Axis(
                 figure[row, column - 1];
-                title = L"t\approx%$tn\,\mathrm{h},\quad x\approx%$xi\,\mathrm{km}",
-                xlabel = L"y\,[\mathrm{km}]",
-                ylabel = L"z\,[\mathrm{km}]",
+                title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad x\approx%$xi\,\mathrm{%$space_unit}",
+                xlabel = L"y\,[\mathrm{%$space_unit}]",
+                ylabel = L"z\,[\mathrm{%$space_unit}]",
             )
             @ivy (levels, colormap) = symmetric_contours(
                 minimum(phi[i, :, :, n]),
