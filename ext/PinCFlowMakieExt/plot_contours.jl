@@ -30,13 +30,13 @@ function plot_contours(
         "pip" => L"\pi'",
         "chi" => L"\chi",
         "dudt" =>
-            L"\left(\frac{\partial \rho u_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
+            L"\left[\partial_t \left(\rho u_\mathrm{b}\right)\right]_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
         "dvdt" =>
-            L"\left(\frac{\partial \rho v_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
+            L"\left[\partial_t \left(\rho v_\mathrm{b}\right)\right]_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
         "dthetadt" =>
-            L"\left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,K\,s^{-1}}]",
+            L"\left[\partial_t \left(P_\mathrm{b}\right)\right]_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,K\,s^{-1}}]",
         "dchidt" =>
-            L"\left(\frac{\partial \rho \chi_\mathrm{b}}{\partial t}\right)_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,s^{-1}}]",
+            L"\left[\partial_t \left(\rho \chi_\mathrm{b}\right)\right]_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,s^{-1}}]",
         "uchi" =>
             L"\overline{\rho}\langle u'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
         "vchi" =>
