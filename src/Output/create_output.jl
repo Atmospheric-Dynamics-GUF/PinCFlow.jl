@@ -42,11 +42,13 @@ function create_output(state::State, machine_start_time::DateTime)
         dset =
             create_dataset(file, "x", datatype(Float32), dataspace((x_size,)))
         attributes(dset)["units"] = "m"
+        attributes(dset)["units_latex"] = "\\mathrm{m}"
         attributes(dset)["long_name"] = "x-coordinates"
 
         dset =
             create_dataset(file, "y", datatype(Float32), dataspace((y_size,)))
         attributes(dset)["units"] = "m"
+        attributes(dset)["units_latex"] = "\\mathrm{m}"
         attributes(dset)["long_name"] = "y-coordinates"
 
         dset = create_dataset(
@@ -57,6 +59,7 @@ function create_output(state::State, machine_start_time::DateTime)
             chunk = (cx, cy, cz),
         )
         attributes(dset)["units"] = "m"
+        attributes(dset)["units_latex"] = "\\mathrm{m}"
         attributes(dset)["long_name"] = "z-coordinates"
 
         dset = create_dataset(
@@ -67,7 +70,8 @@ function create_output(state::State, machine_start_time::DateTime)
             chunk = (cx, cy, cz),
         )
         attributes(dset)["units"] = "m"
-        attributes(dset)["long_name"] = "z-coordinates"
+        attributes(dset)["units_latex"] = "\\mathrm{m}"
+        attributes(dset)["long_name"] = "staggered z-coordinates"
 
         dset = create_dataset(
             file,
@@ -77,6 +81,7 @@ function create_output(state::State, machine_start_time::DateTime)
             chunk = (ct,),
         )
         attributes(dset)["units"] = "s"
+        attributes(dset)["units_latex"] = "\\mathrm{s}"
         attributes(dset)["long_name"] = "time"
 
         # Create datasets for the background.
@@ -88,8 +93,9 @@ function create_output(state::State, machine_start_time::DateTime)
                 dataspace((x_size, y_size, z_size));
                 chunk = (cx, cy, cz),
             )
-            attributes(dset)["units"] = "kg m^-3"
-            attributes(dset)["long_name"] = "background density"
+            attributes(dset)["units"] = "kg*m^-3"
+            attributes(dset)["units_latex"] = "\\mathrm{kg\\,m^{-3}}"
+            attributes(dset)["long_name"] = "density background"
 
             dset = create_dataset(
                 file,
@@ -99,7 +105,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz),
             )
             attributes(dset)["units"] = "K"
-            attributes(dset)["long_name"] = "background potential temperature"
+            attributes(dset)["units_latex"] = "\\mathrm{K}"
+            attributes(dset)["long_name"] = "potential-temperature background"
 
             dset = create_dataset(
                 file,
@@ -109,6 +116,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz),
             )
             attributes(dset)["units"] = "s^-2"
+            attributes(dset)["units_latex"] = "\\mathrm{s^{-3}}"
             attributes(dset)["long_name"] = "squared buoyancy frequency"
 
             if model == Compressible()
@@ -122,8 +130,6 @@ function create_output(state::State, machine_start_time::DateTime)
                     );
                     chunk = (cx, cy, cz, ct),
                 )
-                attributes(dset)["units"] = "kg K m^-3"
-                attributes(dset)["long_name"] = "mass-weighted potential temperature"
             else
                 dset = create_dataset(
                     file,
@@ -132,9 +138,10 @@ function create_output(state::State, machine_start_time::DateTime)
                     dataspace((x_size, y_size, z_size));
                     chunk = (cx, cy, cz),
                 )
-                attributes(dset)["units"] = "kg K m^-3"
-                attributes(dset)["long_name"] = "mass-weighted potential temperature"
             end
+            attributes(dset)["units"] = "kg*K*m^-3"
+            attributes(dset)["units_latex"] = "\\mathrm{kg\\,K\\,m^{-3}}"
+            attributes(dset)["long_name"] = "mass-weighted potential temperature"
         end
 
         # Create datasets for the prognostic variables.
@@ -149,7 +156,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "kg m^-3"
+            attributes(dset)["units"] = "kg*m^-3"
+            attributes(dset)["units_latex"] = "\\mathrm{kg\\,m^{-3}}"
             attributes(dset)["long_name"] = "density fluctuations"
         end
         if :u in output_variables
@@ -163,7 +171,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m s^-1"
+            attributes(dset)["units"] = "m*s^-1"
+            attributes(dset)["units_latex"] = "\\mathrm{m\\,s^{-1}}"
             attributes(dset)["long_name"] = "zonal wind"
         end
         if prepare_restart || :us in output_variables
@@ -177,7 +186,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m s^-1"
+            attributes(dset)["units"] = "m*s^-1"
+            attributes(dset)["units_latex"] = "\\mathrm{m\\,s^{-1}}"
             attributes(dset)["long_name"] = "staggered zonal wind"
         end
         if :v in output_variables
@@ -191,7 +201,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m s^-1"
+            attributes(dset)["units"] = "m*s^-1"
+            attributes(dset)["units_latex"] = "\\mathrm{m\\,s^{-1}}"
             attributes(dset)["long_name"] = "meridional wind"
         end
         if prepare_restart || :vs in output_variables
@@ -205,7 +216,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m s^-1"
+            attributes(dset)["units"] = "m*s^-1"
+            attributes(dset)["units_latex"] = "\\mathrm{m\\,s^{-1}}"
             attributes(dset)["long_name"] = "staggered meridional wind"
         end
         if :w in output_variables
@@ -219,7 +231,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m s^-1"
+            attributes(dset)["units"] = "m*s^-1"
+            attributes(dset)["units_latex"] = "\\mathrm{m\\,s^{-1}}"
             attributes(dset)["long_name"] = "vertical wind"
         end
         if :ws in output_variables
@@ -233,7 +246,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m s^-1"
+            attributes(dset)["units"] = "m*s^-1"
+            attributes(dset)["units_latex"] = "\\mathrm{m\\,s^{-1}}"
             attributes(dset)["long_name"] = "staggered vertical wind"
         end
         if :wt in output_variables
@@ -247,7 +261,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m s^-1"
+            attributes(dset)["units"] = "m*s^-1"
+            attributes(dset)["units_latex"] = "\\mathrm{m\\,s^{-1}}"
             attributes(dset)["long_name"] = "transformed vertical wind"
         end
         if prepare_restart || :wts in output_variables
@@ -261,7 +276,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m s^-1"
+            attributes(dset)["units"] = "m*s^-1"
+            attributes(dset)["units_latex"] = "\\mathrm{m\\,s^{-1}}"
             attributes(dset)["long_name"] = "staggered transformed vertical wind"
         end
         if :thetap in output_variables
@@ -276,6 +292,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "K"
+            attributes(dset)["units_latex"] = "\\mathrm{K}"
             attributes(dset)["long_name"] = "potential temperature fluctuations"
         end
         if prepare_restart || :pip in output_variables
@@ -289,7 +306,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = ""
+            attributes(dset)["units"] = "1"
+            attributes(dset)["units_latex"] = ""
             attributes(dset)["long_name"] = "Exner-pressure fluctuations"
         end
 
@@ -305,13 +323,29 @@ function create_output(state::State, machine_start_time::DateTime)
                     );
                     chunk = (cx, cy, cz, ct),
                 )
-                attributes(dset)["units"] = ""
+                attributes(dset)["units"] = "1"
+                attributes(dset)["units_latex"] = ""
                 attributes(dset)["long_name"] = "tracer mixing ratio"
             end
 
             if state.namelists.tracer.leading_order_impact &&
                :dchidt in output_variables
-                for (ifld, field) in enumerate(fieldnames(TracerWKBImpact))
+                for (field, units, units_latex, long_name) in zip(
+                    fieldnames(TracerWKBImpact),
+                    ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
+                    (
+                        "\\mathrm{m\\,s^{-1}}",
+                        "\\mathrm{m\\,s^{-1}}",
+                        "\\mathrm{m\\,s^{-1}}",
+                        "\\mathrm{s^{-1}}",
+                    ),
+                    (
+                        "zonal GW-tracer flux",
+                        "meridional GW-tracer flux",
+                        "vertical GW-tracer flux",
+                        "GW-tracer flux convergence",
+                    ),
+                )
                     dset = create_dataset(
                         file,
                         string(field),
@@ -322,14 +356,9 @@ function create_output(state::State, machine_start_time::DateTime)
                         );
                         chunk = (cx, cy, cz, ct),
                     )
-                    attributes(dset)["units"] =
-                        ["m s^-1", "m s^-1", "m s^-1", "s^-1"][ifld]
-                    attributes(dset)["long_name"] = [
-                        "zonal GW-tracer flux",
-                        "meridiona GW-tracer flux",
-                        "vertical GW-tracer flux",
-                        "gravity-wave-tracer flux convergence",
-                    ][ifld]
+                    attributes(dset)["units"] = units
+                    attributes(dset)["units_latex"] = units_latex
+                    attributes(dset)["long_name"] = long_name
                 end
             end
         end
@@ -339,21 +368,78 @@ function create_output(state::State, machine_start_time::DateTime)
 
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
-                for (ifld, field) in enumerate((
-                    "xr",
-                    "yr",
-                    "zr",
-                    "dxr",
-                    "dyr",
-                    "dzr",
-                    "kr",
-                    "lr",
-                    "mr",
-                    "dkr",
-                    "dlr",
-                    "dmr",
-                    "nr",
-                ))
+                if x_size == 1 && y_size == 1
+                    nr_units = "kg*s^-1"
+                    nr_units_latex = "\\mathrm{kg\\,s^-1}"
+                elseif x_size > 1 && y_size > 1
+                    nr_units = "kg*s^-3"
+                    nr_units_latex = "\\mathrm{kg\\,s^-3}"
+                else
+                    nr_units = "kg*s^-2"
+                    nr_units_latex = "\\mathrm{kg\\,s^-2}"
+                end
+                for (field, units, units_latex, long_name) in zip(
+                    (
+                        "xr",
+                        "yr",
+                        "zr",
+                        "dxr",
+                        "dyr",
+                        "dzr",
+                        "kr",
+                        "lr",
+                        "mr",
+                        "dkr",
+                        "dlr",
+                        "dmr",
+                        "nr",
+                    ),
+                    (
+                        "m",
+                        "m",
+                        "m",
+                        "m",
+                        "m",
+                        "m",
+                        "m^-1",
+                        "m^-1",
+                        "m^-1",
+                        "m^-1",
+                        "m^-1",
+                        "m^-1",
+                        nr_units,
+                    ),
+                    (
+                        "\\mathrm{m}",
+                        "\\mathrm{m}",
+                        "\\mathrm{m}",
+                        "\\mathrm{m}",
+                        "\\mathrm{m}",
+                        "\\mathrm{m}",
+                        "\\mathrm{m^{-1}}",
+                        "\\mathrm{m^{-1}}",
+                        "\\mathrm{m^{-1}}",
+                        "\\mathrm{m^{-1}}",
+                        "\\mathrm{m^{-1}}",
+                        "\\mathrm{m^{-1}}",
+                        nr_units_latex,
+                    ),
+                    (
+                        "ray-volume position in x",
+                        "ray-volume position in y",
+                        "ray-volume position in z",
+                        "ray-volume extent in x",
+                        "ray-volume extent in y",
+                        "ray-volume extent in z",
+                        "ray-volume position in k",
+                        "ray-volume position in l",
+                        "ray-volume position in m",
+                        "ray-volume extent in k",
+                        "ray-volume extent in l",
+                        "ray-volume extent in m",
+                        "ray-volume phase-space wave-action density",
+                    ),
+                )
                     dset = create_dataset(
                         file,
                         field,
@@ -364,41 +450,27 @@ function create_output(state::State, machine_start_time::DateTime)
                         );
                         chunk = (cr, cx, cy, cz, ct),
                     )
-                    attributes(dset)["units"] = [
-                        "m",
-                        "m",
-                        "m",
-                        "m",
-                        "m",
-                        "m",
-                        "m^-1",
-                        "m^-1",
-                        "m^-1",
-                        "m^-1",
-                        "m^-1",
-                        "m^-1",
-                        "kg s^-1",
-                    ][ifld]
-                    attributes(dset)["long_name"] = [
-                        "ray volume position in x-direction",
-                        "ray volume position in y-direction",
-                        "ray volume position in z-direction",
-                        "ray volume extent in x-direction",
-                        "ray volume extent in y-direction",
-                        "ray volume extent in z-direction",
-                        "ray volume position in k-direction",
-                        "ray volume position in l-direction",
-                        "ray volume position in m-direction",
-                        "ray volume extent in k-direction",
-                        "ray volume extent in l-direction",
-                        "ray volume extent in m-direction",
-                        "ray volume wave-action density",
-                    ][ifld]
+                    attributes(dset)["units"] = units
+                    attributes(dset)["units_latex"] = units_latex
+                    attributes(dset)["long_name"] = long_name
                 end
             end
 
             # Create datasets for GW tendencies.
-            for (ifld, field) in enumerate((:dudt, :dvdt, :dthetadt))
+            for (field, units, units_latex, long_name) in zip(
+                (:dudt, :dvdt, :dthetadt),
+                ("m*s^-2", "m*s^-2", "K*s^-1"),
+                (
+                    "\\mathrm{m\\,s^{-2}}",
+                    "\\mathrm{m\\,s^{-2}}",
+                    "\\mathrm{K\\,s^{-1}}",
+                ),
+                (
+                    "zonal-momentum GW forcing",
+                    "meridional-momentum GW forcing",
+                    "mass-weighted potential-temperature GW forcing",
+                ),
+            )
                 if field in output_variables
                     dset = create_dataset(
                         file,
@@ -410,13 +482,9 @@ function create_output(state::State, machine_start_time::DateTime)
                         );
                         chunk = (cx, cy, cz, ct),
                     )
-                    attributes(dset)["units"] =
-                        ["m s^-2", "m s^-2", "K s^-1"][ifld]
-                    attributes(dset)["long_name"] = [
-                        "zonal wind GW tendency",
-                        "meridional wind GW tendency",
-                        "potential temperature GW tendency",
-                    ][ifld]
+                    attributes(dset)["units"] = units
+                    attributes(dset)["units_latex"] = units_latex
+                    attributes(dset)["long_name"] = long_name
                 end
             end
         end
