@@ -21,8 +21,8 @@ OutputNamelist(;
     output_steps::Bool = false,
     nout::Integer = 1,
     iterations::Integer = 1,
-    output_interval::AbstractFloat = 3.6E+3,
-    tmax::AbstractFloat = 3.6E+3,
+    output_interval::Real = 3.6E+3,
+    tmax::Real = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
 )::OutputNamelist
@@ -86,8 +86,8 @@ function OutputNamelist(;
     output_steps::Bool = false,
     nout::Integer = 1,
     iterations::Integer = 1,
-    output_interval::AbstractFloat = 3.6E+3,
-    tmax::AbstractFloat = 3.6E+3,
+    output_interval::Real = 3.6E+3,
+    tmax::Real = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
 )::OutputNamelist

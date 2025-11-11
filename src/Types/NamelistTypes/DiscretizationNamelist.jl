@@ -7,10 +7,10 @@ Namelist for parameters describing the discretization.
 
 ```julia
 DiscretizationNamelist(;
-    cfl_number::AbstractFloat = 5.0E-1,
-    wkb_cfl_number::AbstractFloat = 5.0E-1,
-    dtmin::AbstractFloat = 1.0E-6,
-    dtmax::AbstractFloat = 1.0E+3,
+    cfl_number::Real = 5.0E-1,
+    wkb_cfl_number::Real = 5.0E-1,
+    dtmin::Real = 1.0E-6,
+    dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
     limiter_type::AbstractLimiter = MCVariant(),
 )::DiscretizationNamelist
@@ -42,10 +42,10 @@ struct DiscretizationNamelist{A <: Float64, B <: Bool, C <: AbstractLimiter}
 end
 
 function DiscretizationNamelist(;
-    cfl_number::AbstractFloat = 5.0E-1,
-    wkb_cfl_number::AbstractFloat = 5.0E-1,
-    dtmin::AbstractFloat = 1.0E-6,
-    dtmax::AbstractFloat = 1.0E+3,
+    cfl_number::Real = 5.0E-1,
+    wkb_cfl_number::Real = 5.0E-1,
+    dtmin::Real = 1.0E-6,
+    dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
     limiter_type::AbstractLimiter = MCVariant(),
 )::DiscretizationNamelist

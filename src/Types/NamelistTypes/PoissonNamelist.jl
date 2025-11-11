@@ -7,10 +7,10 @@ Namelist for parameters used by the Poisson solver.
 
 ```julia
 PoissonNamelist(;
-    tolerance::AbstractFloat = 1.0E-8,
+    tolerance::Real = 1.0E-8,
     poisson_iterations::Integer = 1000,
     preconditioner::Bool = true,
-    dtau::AbstractFloat = 1.0E+0,
+    dtau::Real = 1.0E+0,
     preconditioner_iterations::Integer = 2,
     initial_cleaning::Bool = true,
     tolerance_is_relative::Bool = false,
@@ -46,10 +46,10 @@ struct PoissonNamelist{A <: Float64, B <: Int, C <: Bool}
 end
 
 function PoissonNamelist(;
-    tolerance::AbstractFloat = 1.0E-8,
+    tolerance::Real = 1.0E-8,
     poisson_iterations::Integer = 1000,
     preconditioner::Bool = true,
-    dtau::AbstractFloat = 1.0E+0,
+    dtau::Real = 1.0E+0,
     preconditioner_iterations::Integer = 2,
     initial_cleaning::Bool = true,
     tolerance_is_relative::Bool = false,

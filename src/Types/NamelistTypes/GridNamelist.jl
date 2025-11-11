@@ -7,7 +7,7 @@ Namelist for parameters describing the grid.
 
 ```julia
 GridNamelist(;
-    stretch_exponent::AbstractFloat = 1.0E+0,
+    stretch_exponent::Real = 1.0E+0,
     resolved_topography::Function = (x, y) -> 0.0,
     unresolved_topography::Function = (alpha, x, y) -> (0.0, 0.0, 0.0),
 )::GridNamelist
@@ -30,7 +30,7 @@ struct GridNamelist{A <: Float64, B <: Function, C <: Function}
 end
 
 function GridNamelist(;
-    stretch_exponent::AbstractFloat = 1.0E+0,
+    stretch_exponent::Real = 1.0E+0,
     resolved_topography::Function = (x, y) -> 0.0,
     unresolved_topography::Function = (alpha, x, y) -> (0.0, 0.0, 0.0),
 )::GridNamelist
