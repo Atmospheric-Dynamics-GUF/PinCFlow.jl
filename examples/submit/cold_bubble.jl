@@ -10,7 +10,7 @@ using PinCFlow
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
-lx = 400000.0
+lx = 20000.0
 lz = 20000.0
 
 rx = lx / 8
