@@ -1,5 +1,5 @@
 # RUN in PF/pinc/
-# julia --project=. examples/visualization/fast_plot_compare.jl
+# julia --project=. examples/visualization/talk_plot_grusi_ws25-26.jl
 # view with: eog examples/visualization/mountain_wave.png &
 #
 using HDF5
@@ -7,8 +7,8 @@ using HDF5
 using PyPlot
 using Statistics
 
-data = h5open("/home/dolaptch/PF/runs/tjl05/pincflow_output.h5")  #LES
-data2 = h5open("/home/dolaptch/PF/runs/tjl06/pincflow_output.h5") # RT
+data = h5open("/home/dolaptch/PF/runs_save/GWI_grusi_WS_25-26/tjl05/pincflow_output.h5")  #LES
+data2 = h5open("/home/dolaptch/PF/runs_save/GWI_grusi_WS_25-26/tjl06/pincflow_output.h5") # RT + SGS Ice
 
 # Set grid.
 x = data["x"][:] .* 0.001
@@ -46,19 +46,13 @@ subplots_adjust(top = 0.90)
 suptitle("Ice Number Concentration")
 
 ax1 = subplot(121)
-#subplots_adjust(wspace=1.6) 
 
-#yaxis_limits = (7, 9.5)
-#yaxis_limits = (7.5, 10.5)
 yaxis_limits = (0.0, 12.0)
 # Use the same color scale for both panels
 vmin = min(minimum(fld), minimum(fld2))
 vmax = max(maximum(fld), maximum(fld2))
-#vlow = -0.7
-#vup = 0.7
-
 ylim(yaxis_limits)
-#contour = contourf(x2[:, iy, :], z2[:, iy, :], fld[:,iy,:]; cmap="RdBu")
+
 im1 = pcolormesh(x[:, iy, :], z[:, iy, :], fld[:, iy, :]; cmap = "Blues", vmin = vmin, vmax = vmax)
 contour(x[:, iy, :], z[:, iy, :], fld[:, iy, :], levels = [0.0], colors = "k", linewidths = 0.5)
 title("Res");
@@ -71,15 +65,13 @@ h2 = pcolormesh(x2[:, iy, :], z2[:, iy, :], fld2[:, iy, :]; cmap = "Blues", vmin
 contour(x2[:, iy, :], z2[:, iy, :], fld2[:, iy, :], levels = [0.0], colors = "k", linewidths = 0.5)
 #clim(vlow, vup)
 ylim(yaxis_limits)
-title("Par");
+title("SGS Ice Par GW");
 xlabel("x [km]");
 
 # Single, shared colorbar for both panels
 colorbar(h2, ax = [ax1, ax2])
 
-
 savefig("/home/dolaptch/PF/pinc/examples/visualization/nice_res_par.png")
-
 
 # ==========================
 # Histogram comparison (LES vs RT) for slices fld[:, iy, :] and fld2[:, iy, :]
@@ -122,119 +114,12 @@ if !isempty(finite1) && !isempty(finite2)
 	subplot(1, 2, 2)
 	hist(finite2; bins = edges2, alpha = 0.5, density = true, label = "RT", color = "C1")
 	xlabel("n [1/kg]");
-	title("Par.")
-	#legend()
-
-	# # Log-x histogram (only positive values)
-	# subplot(1, 2, 2)
-	# pos1 = finite1[finite1 .> 0]
-	# pos2 = finite2[finite2 .> 0]
-	# if !isempty(pos1) && !isempty(pos2)
-	# 	lowp = min(minimum(pos1), minimum(pos2))
-	# 	highp = max(maximum(pos1), maximum(pos2))
-	# 	if lowp < highp
-	# 		edges_log = 10 .^ range(log10(lowp), log10(highp); length=51)
-	# 		hist(pos1; bins=edges_log, alpha=0.5, density=true, label="LES", color="C0")
-	# 		hist(pos2; bins=edges_log, alpha=0.5, density=true, label="RT", color="C1")
-	# 		xscale("log")
-	# 		xlabel("Value (log)"); ylabel("PDF"); title("Histogram (log-x)")
-	# 		legend()
-	# 	else
-	# 		title("Histogram (log-x): insufficient range")
-	# 	end
-	# else
-	# 	title("Histogram (log-x): no positive values")
-	# end
-
+	title("SGS Ice Par GW.")
 	tight_layout()
 	savefig("/home/dolaptch/PF/pinc/examples/visualization/nice_res_par_hist.png")
 else
 	println("No finite values found for histogram plots.")
 end
-
-# ==========================
-# Coarse-grid fraction of exceedances for RT slice fld2[:, iy, :]
-# ==========================
-
-# # Extract 2D fields for the selected slice
-# X = x2[:, iy, :]
-# Z = z2[:, iy, :]
-# F = fld2[:, iy, :]
-
-# # Compute bin edges from coordinate ranges
-# xmin, xmax = minimum(X), maximum(X)
-# zmin, zmax = minimum(Z), maximum(Z)
-# if xmin == xmax
-# 	δ = max(abs(xmax), 1.0) * 1e-6; xmin -= δ; xmax += δ
-# end
-# if zmin == zmax
-# 	δ = max(abs(zmax), 1.0) * 1e-6; zmin -= δ; zmax += δ
-# end
-# xedges = collect(range(xmin, xmax; length=nxc+1))
-# zedges = collect(range(zmin, zmax; length=nzc+1))
-
-# # Initialize fraction grid
-# frac = zeros(Float64, nxc, nzc)
-
-# # Precompute masks per coarse cell and fill fractions
-# for ii in 1:nxc
-# 	xlo, xhi = xedges[ii], xedges[ii+1]
-# 	# include right edge only for last bin to cover the max
-# 	xmask = (X .>= xlo) .& ((ii < nxc) ? (X .< xhi) : (X .<= xhi))
-# 	for jj in 1:nzc
-# 		zlo, zhi = zedges[jj], zedges[jj+1]
-# 		zmask = (Z .>= zlo) .& ((jj < nzc) ? (Z .< zhi) : (Z .<= zhi))
-# 		mask = xmask .& zmask
-# 		total = count(mask)
-# 		if total == 0
-# 			frac[ii, jj] = NaN
-# 		else
-# 			exceed = count( (F .> thresh) .& mask )
-# 			frac[ii, jj] = exceed / total
-# 		end
-# 	end
-# end
-
-# # Plot the coarse fraction map using bin centers
-# xc = (xedges[1:end-1] .+ xedges[2:end]) ./ 2
-# zc = (zedges[1:end-1] .+ zedges[2:end]) ./ 2
-
-# figure()
-# pc = pcolormesh(xc, zc, frac'; cmap="Blues", vmin=0.0, vmax=1.0)
-# colorbar(pc)
-# xlabel("x (km)"); ylabel("z (km)"); title("Fraction > $(thresh) in coarse cells (RT)")
-# savefig("/home/dolaptch/PF/pinc/examples/visualization/mountain_wave_fraction.png")
-
-# # Histogram of fraction values and log-PDF plot
-# fvals = vec(frac)
-# fvalid = fvals[isfinite.(fvals) .& (fvals .>= 0.0) .& (fvals .<= 1.0)]
-# if !isempty(fvalid)
-# 	nb = 50
-# 	edgesf = collect(range(0.0, 1.0; length=nb+1))
-# 	counts = zeros(Int, nb)
-# 	for v in fvalid
-# 		bi = searchsortedlast(edgesf, v) - 1
-# 		if 1 <= bi <= nb
-# 			counts[bi] += 1
-# 		end
-# 	end
-# 	binw = 1.0 / nb
-# 	pdf = counts ./ (sum(counts) * binw)
-# 	binc = (edgesf[1:end-1] .+ edgesf[2:end]) ./ 2
-# 	#maskp = pdf .> 0
-#     maskp = (pdf .>= 0)
-# 	figure()
-# 	plot(binc[maskp], pdf[maskp]; color="C3")
-#     #plot(binc[maskp], log.(pdf[maskp]); color="C3")
-# 	xlabel("fraction (> $(thresh))")
-# 	ylabel("log(pdf)")
-# 	title("Log PDF of coarse-cell fraction (RT)")
-# 	grid(true)
-# 	tight_layout()
-# 	savefig("/home/dolaptch/PF/pinc/examples/visualization/mountain_wave_fraction_logpdf.png")
-# else
-# 	println("No valid fraction values for histogram/log-PDF.")
-# end
 
 # ==========================
 # Function: coarse-grid fraction of exceedances
@@ -318,7 +203,7 @@ ylabel("z (km)")
 ax2 = subplot(122)
 pc2 = pcolormesh(xc_rt, zc_rt, frac_rt'; cmap = "Blues", vmin = 0.0, vmax = 1.0)
 colorbar(pc2, ax = [ax1, ax2])
-title("Par SGS Ice")
+title("SGS Ice Par GW")
 xlabel("x (km)")
 savefig("/home/dolaptch/PF/pinc/examples/visualization/ccf_res_par.png")
 
@@ -343,9 +228,11 @@ savefig("/home/dolaptch/PF/pinc/examples/visualization/ccf_res_par_pdf.png")
 # compare with fully parameterized ice-microphysics
 # ==========================
 
-data3 = h5open("/home/dolaptch/PF/runs/tjl08/pincflow_output.h5") # RT
+data3 = h5open("/home/dolaptch/PF/runs_save/GWI_grusi_WS_25-26/tjl08/pincflow_output.h5") # RT + cloud cover
+
 tidx = 3
 println("Time index for noSGS changed to ", tidx)
+sleep(3)
 clc = data3["clc"][:, :, :, tidx]
 
 figure()
@@ -361,13 +248,14 @@ ylabel("z (km)")
 
 ax2 = subplot(132)
 pc2 = pcolormesh(xc_rt, zc_rt, frac_rt'; cmap = "Blues", vmin = 0.0, vmax = 1.0)
-title("Par SGS Ice")
+title("SGS Ice Par GW")
 xlabel("x (km)")
+gca().set_yticklabels([])
 
 ax3 = subplot(133)
 pc3 = pcolormesh(xc_rt, zc_rt, clc[:, iy, :]'; cmap="Blues", vmin=0.0, vmax=1.0)
 colorbar(pc3, ax = [ax1, ax2, ax3])
-title("Par noSGS")
+title("Par Ice+GW")
 xlabel("x (km)")
-
+gca().set_yticklabels([])
 savefig("/home/dolaptch/PF/pinc/examples/visualization/ccf_res_par_nosgs.png")
