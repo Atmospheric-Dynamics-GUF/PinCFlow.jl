@@ -27,7 +27,6 @@ include("apply_3d_muscl!.jl")
 include("compute_flux.jl")
 include("compute_fluxes!.jl")
 include("reconstruct!.jl")
-include("compute_diffusion_coefficients.jl")
 
 export compute_fluxes!, reconstruct!
 

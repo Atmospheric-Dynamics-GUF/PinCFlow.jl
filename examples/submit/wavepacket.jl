@@ -21,7 +21,7 @@ atmosphere = AtmosphereNamelist(;
     initial_w = wprime,
     initial_pip = piprime,
     initial_rhop = rhoprime,
-    initial_thetap = thetaprime,
+    model = Compressible(),
 )
 domain = DomainNamelist(;
     x_size = 16,
@@ -37,18 +37,17 @@ output = OutputNamelist(;
     output_variables = (:u, :w),
     output_file = "STIH_tke_without-coupling.h5",
     output_interval = 360.0,
-    tmax = 36000.0,
-)
-sponge = SpongeNamelist(;
-    alpharmax = 0.0,
-    damp_horizontal_wind_on_rhs = true,
-    relax_to_mean = false,
-)
-turbulence = TurbulenceNamelist(;
-    turbulence_scheme = TKEScheme(),
-    momentum_coupling = false,
+    tmax = 360.0,
 )
 
-namelists = Namelists(; atmosphere, domain, output, sponge, turbulence)
+turbulence = TurbulenceNamelist(;
+    turbulence_scheme = TKEScheme(),
+    momentum_coupling = true,
+)
+tracer = TracerNamelist(;
+    tracer_setup = TracerOn(),
+    initial_tracer = chitotal)
+
+namelists = Namelists(; atmosphere, domain, output, turbulence, tracer)
 
 integrate(namelists)

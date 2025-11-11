@@ -424,6 +424,47 @@ function turbulent_diffusion!(
     variable::Theta,
     model::Compressible,
 )
+    (; p) = state.variables.predictands
+    (; nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nbz) = state.namelists.domain
+    (; jac, dz) = state.grid
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
+    (; kh) = state.turbulence.turbulencediffusioncoefficients
+
+    dtdz2 = dt / (2.0 * dz^2.0)
+
+    reset_thomas!(state)
+
+    ii = i0:i1
+    jj = j0:j1
+    kk = k0:k1
+
+    @ivy for k in 1:nz
+        knbz = k + nbz
+        khd =
+            (
+                jac[ii, jj, knbz - 1] .* kh[ii, jj, knbz] .+
+                jac[ii, jj, knbz] .* kh[ii, jj, knbz - 1]
+            ) ./ (jac[ii, jj, knbz - 1] + jac[ii, jj, knbz])
+        khu =
+            (
+                jac[ii, jj, knbz + 1] .* kh[ii, jj, knbz] .+
+                jac[ii, jj, knbz] .* kh[ii, jj, knbz + 1]
+            ) ./ (jac[ii, jj, knbz + 1] .+ jac[ii, jj, knbz])
+        ath[:, :, k] .= .-dtdz2 .* khd
+        bth[:, :, k] .= 1 .+ dtdz2 .* khu .+ dtdz2 .* khd
+        cth[:, :, k] .= .-dtdz2 .* khu
+
+        fth[:, :, k] =
+            (1 .- dtdz2 .* khu .- dtdz2 .* khd) .* p[ii, jj, knbz] .+
+            dtdz2 .* khu .* p[ii, jj, knbz + 1] .+
+            dtdz2 .* khd .* p[ii, jj, knbz - 1]
+    end
+
+    thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+
+    p[ii, jj, kk] .= fth
     return
 end
 
@@ -446,8 +487,51 @@ end
 function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    variable::Theta,
+    variable::Chi,
     tracer_setup::TracerOn,
 )
+    (; tracerpredictands) = state.tracer
+    (; nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nbz) = state.namelists.domain
+    (; jac, dz) = state.grid
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
+    (; kh) = state.turbulence.turbulencediffusioncoefficients
+
+    dtdz2 = dt / (2.0 * dz^2.0)
+
+    reset_thomas!(state)
+
+    ii = i0:i1
+    jj = j0:j1
+    kk = k0:k1
+    for field in 1:fieldcount(TracerPredictands)
+        chi = getfield(tracerpredictands, field)
+        @ivy for k in 1:nz
+            knbz = k + nbz
+            khd =
+                (
+                    jac[ii, jj, knbz - 1] .* kh[ii, jj, knbz] .+
+                    jac[ii, jj, knbz] .* kh[ii, jj, knbz - 1]
+                ) ./ (jac[ii, jj, knbz - 1] + jac[ii, jj, knbz])
+            khu =
+                (
+                    jac[ii, jj, knbz + 1] .* kh[ii, jj, knbz] .+
+                    jac[ii, jj, knbz] .* kh[ii, jj, knbz + 1]
+                ) ./ (jac[ii, jj, knbz + 1] .+ jac[ii, jj, knbz])
+            ath[:, :, k] .= .-dtdz2 .* khd
+            bth[:, :, k] .= 1 .+ dtdz2 .* khu .+ dtdz2 .* khd
+            cth[:, :, k] .= .-dtdz2 .* khu
+
+            fth[:, :, k] =
+                (1 .- dtdz2 .* khu .- dtdz2 .* khd) .* chi[ii, jj, knbz] .+
+                dtdz2 .* khu .* chi[ii, jj, knbz + 1] .+
+                dtdz2 .* khd .* chi[ii, jj, knbz - 1]
+        end
+
+        thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+
+        chi[ii, jj, kk] .= fth
+    end
     return
 end

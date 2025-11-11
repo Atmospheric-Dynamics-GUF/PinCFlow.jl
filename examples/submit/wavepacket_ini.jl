@@ -133,3 +133,11 @@ end
 function thetaprime(x, y, z)::AbstractFloat
     return bprime(x, y, z) * thetabar(z) / g
 end
+
+function chiprime(x, y, z)::AbstractFloat 
+    return bprime(x, y, z) / n2 
+end
+
+function chitotal(x, y, z)::AbstractFloat 
+    return z + chiprime(x, y, z)
+end

@@ -11,7 +11,8 @@ function thomas_algorithm!(
     fth_bc::AbstractMatrix{<:AbstractFloat},
     qth_bc::AbstractMatrix{<:AbstractFloat},
 )
-    (; comm, zz_size, nz, nzz, ko, up, down) = state.domain
+    (; comm, nz, nz, ko, up, down) = state.domain
+    (; z_size) = state.namelists.domain
 
     if ko == 0
         qth[:, :, 1] .= .-cth[:, :, 1] ./ bth[:, :, 1]
@@ -32,7 +33,7 @@ function thomas_algorithm!(
             (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* pth
     end
 
-    if ko + nzz != zz_size
+    if ko + nz != z_size
         qth_bc .= qth[:, :, nz]
         fth_bc .= fth[:, :, nz]
 

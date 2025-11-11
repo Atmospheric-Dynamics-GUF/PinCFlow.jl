@@ -9,28 +9,6 @@ Compute fluxes by dispatching to specialized methods for each prognostic variabl
 compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 ```
 
-Compute the density fluxes in all three directions, by dispatching to a model-specific method.
-
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    variable::Rho,
-    model::Boussinesq,
-)
-```
-
-Return in Boussinesq mode.
-
-```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
-)
-```
-
 Compute the density fluxes in all three directions.
 
 The fluxes are given by
@@ -308,26 +286,6 @@ function compute_fluxes!(state::State, predictands::Predictands)
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
-    (; model) = state.namelists.atmosphere
-    compute_fluxes!(state, predictands, variable, model)
-    return
-end
-
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    variable::Rho,
-    model::Boussinesq,
-)
-    return
-end
-
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
-)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -557,12 +515,14 @@ function compute_fluxes!(
 )
     (; grid) = state
     (; z_size) = state.namelists.domain
-    (; re) = state.constants
+    (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pbar, rhobar) = state.atmosphere
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
+    (; kinematic_diffusivity) = state.namelists.atmosphere
+
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
@@ -646,6 +606,10 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
     #                          Viscous fluxes
     #-------------------------------------------------------------------
+
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+        return
+    end
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -744,13 +708,21 @@ function compute_fluxes!(
     #             Diffusion fluxes
     #-------------------------------------------------------------------
 
+    if kinematic_diffusivity == 0.0
+        return
+    end
+
+    mu_mom_diff = kinematic_diffusivity / uref / lref
+
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+        coef_d = mu_mom_diff * rhobar[i + 1, j, k0]
+
         frhou_diff =
-            compute_diffusion_coefficients(state, i + 1, j, k, U()) *
+            coef_d *
             jac[i + 1, j, k] *
             compute_momentum_diffusion_terms(state, i + 1, j, k, U(), X())
 
@@ -762,20 +734,27 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+        coef_d =
+            mu_mom_diff *
+            0.25 *
+            (
+                rhobar[i, j, k0] +
+                rhobar[i + 1, j, k0] +
+                rhobar[i, j + 1, k0] +
+                rhobar[i + 1, j + 1, k0]
+            )
+
         grhou_diff =
-            0.25 * (
-                compute_diffusion_coefficients(state, i, j, k, U()) *
+            coef_d *
+            0.25 *
+            (
                 jac[i, j, k] *
                 compute_momentum_diffusion_terms(state, i, j, k, U(), Y()) +
-                compute_diffusion_coefficients(state, i + 1, j, k, U()) *
                 jac[i + 1, j, k] *
                 compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Y()) +
-                compute_diffusion_coefficients(state, i, j + 1, k, U()) *
                 jac[i, j + 1, k] *
                 compute_momentum_diffusion_terms(state, i, j + 1, k, U(), Y()) +
-                compute_diffusion_coefficients(state, i + 1, j + 1, k, U()) *
-                jac[i + 1, j + 1, k] *
-                compute_momentum_diffusion_terms(
+                jac[i + 1, j + 1, k] * compute_momentum_diffusion_terms(
                     state,
                     i + 1,
                     j + 1,
@@ -793,28 +772,32 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+        coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
+
+        coef_dl = mu_mom_diff * rhobar[i, j, k0]
+
+        coef_d = 0.5 * (coef_dr + coef_dl)
+
         mom_diff =
-            compute_diffusion_coefficients(state, i, j, k, U()) *
             jac[i, j, k] *
             compute_momentum_diffusion_terms(state, i, j, k, U(), Z())
 
         mom_diff_r =
-            compute_diffusion_coefficients(state, i + 1, j, k, U()) *
             jac[i + 1, j, k] *
             compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Z())
 
         mom_diff_u =
-            compute_diffusion_coefficients(state, i, j, k + 1, U()) *
             jac[i, j, k + 1] *
             compute_momentum_diffusion_terms(state, i, j, k + 1, U(), Z())
 
         mom_diff_ru =
-            compute_diffusion_coefficients(state, i + 1, j, k + 1, U()) *
             jac[i + 1, j, k + 1] *
             compute_momentum_diffusion_terms(state, i + 1, j, k + 1, U(), Z())
 
         hrhou_diff =
-            0.5 * (
+            coef_d *
+            0.5 *
+            (
                 jac[i, j, k] * jac[i, j, k + 1] * (mom_diff + mom_diff_u) /
                 (jac[i, j, k] + jac[i, j, k + 1]) +
                 jac[i + 1, j, k] *
@@ -836,12 +819,13 @@ function compute_fluxes!(
 )
     (; grid) = state
     (; z_size) = state.namelists.domain
-    (; re) = state.constants
+    (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pbar, rhobar) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
+    (; kinematic_diffusivity) = state.namelists.atmosphere
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -926,6 +910,10 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
     #                          Viscous fluxes
     #-------------------------------------------------------------------
+
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+        return
+    end
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1024,25 +1012,38 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
+    if kinematic_diffusivity == 0.0
+        return
+    end
+
+    mu_mom_diff = kinematic_diffusivity / uref / lref
+
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+        coef_d =
+            mu_mom_diff *
+            0.25 *
+            (
+                rhobar[i, j, k0] +
+                rhobar[i + 1, j, k0] +
+                rhobar[i, j + 1, k0] +
+                rhobar[i + 1, j + 1, k0]
+            )
+
         frhov_diff =
-            0.25 * (
-                compute_diffusion_coefficients(state, i, j, k, V()) *
+            coef_d *
+            0.25 *
+            (
                 jac[i, j, k] *
                 compute_momentum_diffusion_terms(state, i, j, k, V(), X()) +
-                compute_diffusion_coefficients(state, i + 1, j, k, V()) *
                 jac[i + 1, j, k] *
                 compute_momentum_diffusion_terms(state, i + 1, j, k, V(), X()) +
-                compute_diffusion_coefficients(state, i, j + 1, k, V()) *
                 jac[i, j + 1, k] *
                 compute_momentum_diffusion_terms(state, i, j + 1, k, V(), X()) +
-                compute_diffusion_coefficients(state, i + 1, j + 1, k, V()) *
-                jac[i + 1, j + 1, k] *
-                compute_momentum_diffusion_terms(
+                jac[i + 1, j + 1, k] * compute_momentum_diffusion_terms(
                     state,
                     i + 1,
                     j + 1,
@@ -1060,8 +1061,10 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+        coef_d = mu_mom_diff * rhobar[i, j + 1, k0]
+
         grhov_diff =
-            compute_diffusion_coefficients(state, i, j + 1, k, V()) *
+            coef_d *
             jac[i, j + 1, k] *
             compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Y())
 
@@ -1073,28 +1076,32 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+        coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
+
+        coef_dl = mu_mom_diff * rhobar[i, j, k0]
+
+        coef_d = 0.5 * (coef_dr + coef_dl)
+
         u_diff =
-            compute_diffusion_coefficients(state, i, j, k, V()) *
             jac[i, j, k] *
             compute_momentum_diffusion_terms(state, i, j, k, V(), Z())
 
         u_diff_f =
-            compute_diffusion_coefficients(state, i, j + 1, k, V()) *
             jac[i, j + 1, k] *
             compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Z())
 
         u_diff_u =
-            compute_diffusion_coefficients(state, i, j, k + 1, V()) *
             jac[i, j, k + 1] *
             compute_momentum_diffusion_terms(state, i, j, k + 1, V(), Z())
 
         u_diff_fu =
-            compute_diffusion_coefficients(state, i, j + 1, k + 1, V()) *
             jac[i, j + 1, k + 1] *
             compute_momentum_diffusion_terms(state, i, j + 1, k + 1, V(), Z())
 
         hrhov_diff =
-            0.5 * (
+            coef_d *
+            0.5 *
+            (
                 jac[i, j, k] * jac[i, j, k + 1] * (u_diff + u_diff_u) /
                 (jac[i, j, k] + jac[i, j, k + 1]) +
                 jac[i, j + 1, k] *
@@ -1115,12 +1122,13 @@ function compute_fluxes!(
     variable::W,
 )
     (; grid) = state
-    (; re) = state.constants
+    (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pbar, rhobar) = state.atmosphere
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
+    (; kinematic_diffusivity) = state.namelists.atmosphere
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1225,6 +1233,10 @@ function compute_fluxes!(
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
+    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+        return
+    end
+
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
@@ -1306,33 +1318,43 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
+    if kinematic_diffusivity == 0.0
+        return
+    end
+
+    mu_mom_diff = kinematic_diffusivity / uref / lref
+
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+        coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
+
+        coef_dl = mu_mom_diff * rhobar[i, j, k0]
+
+        coef_d = 0.5 * (coef_dr + coef_dl)
+
         w_diff =
-            compute_diffusion_coefficients(state, i, j, k, W()) *
             jac[i, j, k] *
             compute_momentum_diffusion_terms(state, i, j, k, W(), X())
 
         w_diff_r =
-            compute_diffusion_coefficients(state, i + 1, j, k, W()) *
             jac[i + 1, j, k] *
             compute_momentum_diffusion_terms(state, i + 1, j, k, W(), X())
 
         w_diff_u =
-            compute_diffusion_coefficients(state, i, j, k + 1, W()) *
             jac[i, j, k + 1] *
             compute_momentum_diffusion_terms(state, i, j, k + 1, W(), X())
 
         w_diff_ru =
-            compute_diffusion_coefficients(state, i + 1, j, k + 1, W()) *
             jac[i + 1, j, k + 1] *
             compute_momentum_diffusion_terms(state, i + 1, j, k + 1, W(), X())
 
         frhow_diff =
-            0.5 * (
+            coef_d *
+            0.5 *
+            (
                 jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
                 (jac[i, j, k] + jac[i, j, k + 1]) +
                 jac[i + 1, j, k] *
@@ -1349,28 +1371,32 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+        coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
+
+        coef_dl = mu_mom_diff * rhobar[i, j, k0]
+
+        coef_d = 0.5 * (coef_dr + coef_dl)
+
         w_diff =
-            compute_diffusion_coefficients(state, i, j, k, W()) *
             jac[i, j, k] *
             compute_momentum_diffusion_terms(state, i, j, k, W(), Y())
 
         w_diff_f =
-            compute_diffusion_coefficients(state, i, j + 1, k, W()) *
             jac[i, j + 1, k] *
             compute_momentum_diffusion_terms(state, i, j + 1, k, W(), Y())
 
         w_diff_u =
-            compute_diffusion_coefficients(state, i, j, k + 1, W()) *
             jac[i, j, k + 1] *
             compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Y())
 
         w_diff_fu =
-            compute_diffusion_coefficients(state, i, j + 1, k + 1, W()) *
             jac[i, j + 1, k + 1] *
             compute_momentum_diffusion_terms(state, i, j + 1, k + 1, W(), Y())
 
         grhow_diff =
-            0.5 * (
+            coef_d *
+            0.5 *
+            (
                 jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
                 (jac[i, j, k] + jac[i, j, k + 1]) +
                 jac[i, j + 1, k] *
@@ -1387,8 +1413,10 @@ function compute_fluxes!(
     #-----------------------------------------
 
     @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+        coef_d = mu_mom_diff * rhobar[i, j, k0]
+
         hrhow_visc =
-            compute_diffusion_coefficients(state, i, j, k + 1, W()) *
+            coef_d *
             jac[i, j, k + 1] *
             compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Z())
 
@@ -1412,9 +1440,9 @@ function compute_fluxes!(
     tracer_setup::TracerOn,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, dx, dy, dz, met) = state.grid
+    (; jac) = state.grid
     (; pbar) = state.atmosphere
-    (; tracerpredictands, tracerreconstructions, tracerfluxes) = state.tracer
+    (; tracerreconstructions, tracerfluxes) = state.tracer
 
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
@@ -1460,121 +1488,6 @@ function compute_fluxes!(
 
             hchi[i, j, k] = compute_flux(wsurf, chid[i, j, k], chiu[i, j, k])
         end
-
-        #--------------------------------------
-        # Turbulent fluxes 
-        #--------------------------------------
-        #----------------------------------
-        # Zonal fluxes 
-        #----------------------------------
-        chi = getfield(tracerpredictands, field)
-        @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
-            coef_t =
-                0.5 * (
-                    compute_diffusion_coefficients(state, i, j, k, Chi()) +
-                    compute_diffusion_coefficients(state, i + 1, j, k, Chi())
-                )
-
-            chil = chi[i, j, k]
-            chir = chi[i + 1, j, k]
-
-            chid = 0.5 * (chi[i, j, k - 1] + chi[i + 1, j, k - 1])
-
-            chiu = 0.5 * (chi[i, j, k + 1] + chi[i + 1, j, k + 1])
-
-            dchi_dxi =
-                0.5 * (jac[i, j, k] + jac[i + 1, j, k]) * (chir - chil) / dx +
-                0.5 *
-                (
-                    jac[i, j, k] * met[i, j, k, 1, 3] +
-                    jac[i + 1, j, k] * met[i + 1, j, k, 1, 3]
-                ) *
-                (chiu - chid) / (2.0 * dz)
-
-            fchi[i, j, k] -= coef_t * dchi_dxi
-        end
-
-        #----------------------------------
-        # Meridional fluxes 
-        #----------------------------------
-        @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
-            coef_t =
-                0.5 * (
-                    compute_diffusion_coefficients(state, i, j, k, Chi()) +
-                    compute_diffusion_coefficients(state, i, j + 1, k, Chi())
-                )
-
-            chib = chi[i, j, k]
-            chif = chi[i, j + 1, k]
-
-            chid = 0.5 * (chi[i, j, k - 1] + chi[i, j + 1, k - 1])
-            chiu = 0.5 * (chi[i, j, k + 1] + chi[i, j + 1, k + 1])
-
-            dchi_dyi =
-                0.5 * (jac[i, j, k] + jac[i, j + 1, k]) * (chif - chib) / dy +
-                0.5 *
-                (
-                    jac[i, j, k] * met[i, j, k, 2, 3] +
-                    jac[i, j + 1, k] * met[i, j + 1, k, 2, 3]
-                ) *
-                (chiu - chid) / (2.0 * dz)
-
-            gchi[i, j, k] -= coef_t * dchi_dyi
-        end
-
-        #----------------------------------
-        # Vertical fluxes 
-        #----------------------------------
-        @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
-            coef_t =
-                (
-                    jac[i, j, k + 1] *
-                    compute_diffusion_coefficients(state, i, j, k, Chi()) +
-                    jac[i, j, k] *
-                    compute_diffusion_coefficients(state, i, j, k + 1, Chi())
-                ) / (jac[i, j, k + 1] + jac[i, j, k])
-
-            chil =
-                (
-                    jac[i - 1, j, k + 1] * chi[i - 1, j, k] +
-                    jac[i - 1, j, k] * chi[i - 1, j, k + 1]
-                ) / (jac[i - 1, j, k + 1] + jac[i - 1, j, k])
-
-            chir =
-                (
-                    jac[i + 1, j, k + 1] * chi[i + 1, j, k] +
-                    jac[i + 1, j, k] * chi[i + 1, j, k + 1]
-                ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
-
-            chib =
-                (
-                    jac[i, j - 1, k + 1] * chi[i, j - 1, k] +
-                    jac[i, j - 1, k] * chi[i, j - 1, k + 1]
-                ) / (jac[i, j - 1, k + 1] + jac[i, j - 1, k])
-
-            chif =
-                (
-                    jac[i, j + 1, k + 1] * chi[i, j + 1, k] +
-                    jac[i, j + 1, k] * chi[i, j + 1, k + 1]
-                ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
-
-            chid = chi[i, j, k]
-            chiu = chi[i, j, k + 1]
-
-            dchi_dzi =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (
-                    (met[i, j, k, 1, 3] + met[i, j, k + 1, 1, 3]) *
-                    (chir - chil) / (2.0 * dx) +
-                    (met[i, j, k, 2, 3] + met[i, j, k + 1, 2, 3]) *
-                    (chif - chib) / (2.0 * dy) +
-                    (met[i, j, k, 3, 3] + met[i, j, k + 1, 3, 3]) *
-                    (chiu - chid) / dz
-                ) / (jac[i, j, k] + jac[i, j, k + 1])
-
-            hchi[i, j, k] -= coef_t * dchi_dzi
-        end
     end
 
     return
@@ -1589,9 +1502,17 @@ function compute_fluxes!(
     (; jac, dx, dy, dz, met) = state.grid
     (; pbar, rhobar) = state.atmosphere
     (; phitheta) = state.variables.fluxes
+    (; thermal_conductivity) = state.namelists.atmosphere
+    (; uref, lref) = state.constants
     (; rho) = predictands
 
+    if thermal_conductivity == 0.0
+        return
+    end
+
     phitheta .= 0.0
+
+    mu_conduct = thermal_conductivity / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1599,9 +1520,11 @@ function compute_fluxes!(
 
     @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         coef_t =
-            0.5 * (
-                compute_diffusion_coefficients(state, i, j, k, Theta()) +
-                compute_diffusion_coefficients(state, i + 1, j, k, Theta())
+            mu_conduct *
+            0.5 *
+            (
+                rhobar[i, j, k0] / rhobar[i, j, k] +
+                rhobar[i + 1, j, k0] / rhobar[i + 1, j, k]
             )
 
         thetal = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
@@ -1638,9 +1561,11 @@ function compute_fluxes!(
 
     @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         coef_t =
-            0.5 * (
-                compute_diffusion_coefficients(state, i, j, k, Theta()) +
-                compute_diffusion_coefficients(state, i, j + 1, k, Theta())
+            mu_conduct *
+            0.5 *
+            (
+                rhobar[i, j, k0] / rhobar[i, j, k] +
+                rhobar[i, j + 1, k0] / rhobar[i, j + 1, k]
             )
 
         thetab = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
@@ -1677,11 +1602,9 @@ function compute_fluxes!(
 
     @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         coef_t =
-            (
-                jac[i, j, k + 1] *
-                compute_diffusion_coefficients(state, i, j, k, Theta()) +
-                jac[i, j, k] *
-                compute_diffusion_coefficients(state, i, j, k + 1, Theta())
+            mu_conduct * (
+                jac[i, j, k + 1] * rhobar[i, j, 1] / rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, 1] / rhobar[i, j, k + 1]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         thetal =
