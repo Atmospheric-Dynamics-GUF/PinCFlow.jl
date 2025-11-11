@@ -10,13 +10,15 @@ using PinCFlow
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
-h0 = 10.0
+h0 = 500.0
 l0 = 10000.0
 
 lz = 20000.0
 zr = 10000.0
 
 atmosphere = AtmosphereNamelist(;
+    model = Boussinesq(),
+    background = StableStratification(),
     coriolis_frequency = 0.0,
     initial_u = (x, y, z) -> 10.0,
 )
