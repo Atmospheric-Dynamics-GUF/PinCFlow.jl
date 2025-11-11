@@ -226,8 +226,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io] + dx / 2
-    @ivy xl = x[il + io] + dx / 2
+    @ivy xr = x[ir] + dx / 2
+    @ivy xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -248,8 +248,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo]
-    @ivy yb = y[jb + jo]
+    @ivy yf = y[jf]
+    @ivy yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
@@ -348,8 +348,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io]
-    @ivy xl = x[il + io]
+    @ivy xr = x[ir]
+    @ivy xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -370,8 +370,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo] + dy / 2
-    @ivy yb = y[jb + jo] + dy / 2
+    @ivy yf = y[jf] + dy / 2
+    @ivy yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
@@ -472,8 +472,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io]
-    @ivy xl = x[il + io]
+    @ivy xr = x[ir]
+    @ivy xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -494,8 +494,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo]
-    @ivy yb = y[jb + jo]
+    @ivy yf = y[jf]
+    @ivy yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
@@ -630,8 +630,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io]
-    @ivy xl = x[il + io]
+    @ivy xr = x[ir]
+    @ivy xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -652,8 +652,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo]
-    @ivy yb = y[jb + jo]
+    @ivy yf = y[jf]
+    @ivy yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
@@ -749,8 +749,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io] + dx / 2
-    @ivy xl = x[il + io] + dx / 2
+    @ivy xr = x[ir] + dx / 2
+    @ivy xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -771,8 +771,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo] + dy / 2
-    @ivy yb = y[jb + jo] + dy / 2
+    @ivy yf = y[jf] + dy / 2
+    @ivy yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
@@ -916,8 +916,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io] + dx / 2
-    @ivy xl = x[il + io] + dx / 2
+    @ivy xr = x[ir] + dx / 2
+    @ivy xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -938,8 +938,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo]
-    @ivy yb = y[jb + jo]
+    @ivy yf = y[jf]
+    @ivy yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
@@ -1035,8 +1035,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io] + dx / 2
-    @ivy xl = x[il + io] + dx / 2
+    @ivy xr = x[ir] + dx / 2
+    @ivy xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1057,8 +1057,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo] + dy / 2
-    @ivy yb = y[jb + jo] + dy / 2
+    @ivy yf = y[jf] + dy / 2
+    @ivy yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
@@ -1202,8 +1202,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io]
-    @ivy xl = x[il + io]
+    @ivy xr = x[ir]
+    @ivy xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1228,8 +1228,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo]
-    @ivy yb = y[jb + jo]
+    @ivy yf = y[jf]
+    @ivy yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
@@ -1325,8 +1325,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io]
-    @ivy xl = x[il + io]
+    @ivy xr = x[ir]
+    @ivy xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1347,8 +1347,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo] + dy / 2
-    @ivy yb = y[jb + jo] + dy / 2
+    @ivy yf = y[jf] + dy / 2
+    @ivy yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
@@ -1444,8 +1444,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io] + dx / 2
-    @ivy xl = x[il + io] + dx / 2
+    @ivy xr = x[ir] + dx / 2
+    @ivy xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1466,8 +1466,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo]
-    @ivy yb = y[jb + jo]
+    @ivy yf = y[jf]
+    @ivy yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
@@ -1562,8 +1562,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io]
-    @ivy xl = x[il + io]
+    @ivy xr = x[ir]
+    @ivy xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1584,8 +1584,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo] + dy / 2
-    @ivy yb = y[jb + jo] + dy / 2
+    @ivy yf = y[jf] + dy / 2
+    @ivy yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
@@ -1681,8 +1681,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy xr = x[ir + io]
-    @ivy xl = x[il + io]
+    @ivy xr = x[ir]
+    @ivy xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1703,8 +1703,8 @@ function interpolate_mean_flow(
             )
         end
     end
-    @ivy yf = y[jf + jo]
-    @ivy yb = y[jb + jo]
+    @ivy yf = y[jf]
+    @ivy yb = y[jb]
 
     # Locate the closest points in vertical direction.
 

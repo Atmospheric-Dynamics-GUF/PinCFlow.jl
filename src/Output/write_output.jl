@@ -131,8 +131,8 @@ function write_output(
 
         # Write the horizontal grid.
         if iout == 1
-            file["x"][:] = x[i0:(i0 + x_size - 1)] .* lref
-            file["y"][:] = y[j0:(j0 + y_size - 1)] .* lref
+            file["x"][iid] = x[ii] .* lref
+            file["y"][jjd] = y[jj] .* lref
         end
 
         # Write the vertical grid.
@@ -297,7 +297,7 @@ function write_output(
                             ii,
                             jj,
                             kk,
-                        ] ./ tref
+                        ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
                 end
                 for field in (:uchi, :vchi, :wchi)
                     HDF5.set_extent_dims(
@@ -309,7 +309,7 @@ function write_output(
                             ii,
                             jj,
                             kk,
-                        ] .* uref
+                        ] .* uref ./ rhobar[ii, jj, kk]
                 end
             end
         end

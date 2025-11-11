@@ -52,6 +52,7 @@ export MCVariant
 export UniformBoussinesq,
     StratifiedBoussinesq, RadiatedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
+    StratifiedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn

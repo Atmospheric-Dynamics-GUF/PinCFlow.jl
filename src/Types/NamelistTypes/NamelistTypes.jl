@@ -38,15 +38,6 @@ abstract type AbstractModel end
 
 """
 ```julia
-AbstractSponge
-```
-
-Abstract type for sponge configurations.
-"""
-abstract type AbstractSponge end
-
-"""
-```julia
 AbstractMergeMode
 ```
 
@@ -182,42 +173,6 @@ struct Compressible <: AbstractModel end
 
 """
 ```julia
-ExponentialSponge <: AbstractSponge
-```
-
-Singleton for an exponentially increasing Rayleigh damping in the entire Domain.
-"""
-struct ExponentialSponge <: AbstractSponge end
-
-"""
-```julia
-COSMOSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration similar to that used in the COSMO model (squared cosine with time-step-dependent maximum).
-"""
-struct COSMOSponge <: AbstractSponge end
-
-"""
-```julia
-PolynomialSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration with polynomial profiles.
-"""
-struct PolynomialSponge <: AbstractSponge end
-
-"""
-```julia
-SinusoidalSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration with sinusoidal profiles.
-"""
-struct SinusoidalSponge <: AbstractSponge end
-
-"""
-```julia
 ConstantWaveAction <: AbstractMergeMode
 ```
 
@@ -239,7 +194,7 @@ struct ConstantWaveEnergy <: AbstractMergeMode end
 NoWKB <: AbstractWKBMode
 ```
 
-Singleton for switching off MSGWaM.
+Singleton for switching off MS-GWaM.
 """
 struct NoWKB <: AbstractWKBMode end
 
@@ -248,7 +203,7 @@ struct NoWKB <: AbstractWKBMode end
 SteadyState <: AbstractWKBMode
 ```
 
-Singleton for the steady-state approximation in MSGWaM.
+Singleton for the steady-state approximation in MS-GWaM.
 """
 struct SteadyState <: AbstractWKBMode end
 
@@ -257,7 +212,7 @@ struct SteadyState <: AbstractWKBMode end
 SingleColumn <: AbstractWKBMode
 ```
 
-Singleton for the single-column approximation in MSGWaM.
+Singleton for the single-column approximation in MS-GWaM.
 """
 struct SingleColumn <: AbstractWKBMode end
 
@@ -266,7 +221,7 @@ struct SingleColumn <: AbstractWKBMode end
 MultiColumn <: AbstractWKBMode
 ```
 
-Singleton for the multi-column approximation in MSGWaM.
+Singleton for the multi-column approximation in MS-GWaM.
 """
 struct MultiColumn <: AbstractWKBMode end
 
@@ -323,7 +278,6 @@ include("Namelists.jl")
 export AbstractBackground,
     AbstractLimiter,
     AbstractModel,
-    AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
     AbstractWKBFilter,
@@ -340,10 +294,6 @@ export UniformBoussinesq,
     Boussinesq,
     PseudoIncompressible,
     Compressible,
-    ExponentialSponge,
-    COSMOSponge,
-    PolynomialSponge,
-    SinusoidalSponge,
     ConstantWaveAction,
     ConstantWaveEnergy,
     NoWKB,
