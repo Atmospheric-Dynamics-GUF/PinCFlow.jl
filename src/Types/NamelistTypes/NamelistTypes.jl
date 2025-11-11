@@ -101,6 +101,15 @@ struct StratifiedBoussinesq <: AbstractBackground end
 
 """
 ```julia
+RadiatedBoussinesq <: AbstractBackground
+```
+
+Singleton for a Boussinesq atmosphere with non uniform stratification genrated by the radiative cooling of the surface.
+"""
+struct RadiatedBoussinesq <: AbstractBackground end
+
+"""
+```julia
 Isothermal <: AbstractBackground
 ```
 
@@ -322,6 +331,7 @@ export AbstractBackground,
 
 export UniformBoussinesq,
     StratifiedBoussinesq,
+    RadiatedBoussinesq,
     Isothermal,
     Isentropic,
     Realistic,

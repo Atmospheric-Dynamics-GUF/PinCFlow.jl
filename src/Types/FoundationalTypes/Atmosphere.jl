@@ -295,6 +295,42 @@ function Atmosphere(
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
+
+function Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    model::Boussinesq,
+    background::RadiatedBoussinesq,
+)::Atmosphere
+    (; buoyancy_frequency, potential_temperature) = namelists.atmosphere
+    (; tref, thetaref, g_ndim) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
+    M = 2 * pi/1E+4
+    z1 = 1.0E+4 
+
+    rhobar = ones(nxx, nyy, nzz)
+    thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
+    pbar = rhobar .* thetabar
+    (thetaback, bback, n2) = (zeros(nxx, nyy, nzz) for i in 1:3)
+
+    @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        if z1 <= zc[i, j, k] && zc[i, j, k] <= z1 +  (2 * pi / M)
+            bback .= buoyancy_frequency.^2 .* zc  + (buoyancy_frequency.^2 .* 0.8 ./ (2 .* pi .* M)) .* (1 .- cos(M .* (zc .- z1)))
+            thetaback .= bback .* thetabar ./ g_ndim
+        else 
+            bback .= buoyancy_frequency .* zc
+            thetaback .= bback .* thetabar ./ g_ndim
+        end
+    end
+    
+    compute_n2!(namelists, constants, domain, grid, thetaback, n2)
+
+    return Atmosphere(pbar, thetabar, rhobar, n2)
+end
+
 function Atmosphere(
     namelists::Namelists,
     constants::Constants,
