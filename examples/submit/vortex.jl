@@ -10,8 +10,8 @@ using PinCFlow
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
-lx = 400000.0
-ly = 400000.0
+lx = 20000.0
+ly = 20000.0
 
 rx = lx / 4
 ry = ly / 4
@@ -22,7 +22,7 @@ atmosphere = AtmosphereNamelist(;
     initial_u = (x, y, z) -> begin
         r = sqrt((x / rx)^2 + (y / ry)^2)
         if r <= 1
-            return -50 * y / ry * (1 + cos(pi * r)) / 2
+            return -5 * y / ry * (1 + cos(pi * r)) / 2
         else
             return 0.0
         end
@@ -30,7 +30,7 @@ atmosphere = AtmosphereNamelist(;
     initial_v = (x, y, z) -> begin
         r = sqrt((x / rx)^2 + (y / ry)^2)
         if r <= 1
-            return 50 * x / rx * (1 + cos(pi * r)) / 2
+            return 5 * x / rx * (1 + cos(pi * r)) / 2
         else
             return 0.0
         end
