@@ -34,7 +34,7 @@ l = 16 * pi / ly
 m = -16 * pi / lz
 
 background = Realistic()
-coriolis_frequency = 0.0
+coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz)
