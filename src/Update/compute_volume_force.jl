@@ -118,7 +118,7 @@ Return the tracer flux convergence due to gravity waves.
 
   - `variable`: Variable (equation) of choice.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

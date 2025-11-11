@@ -622,8 +622,8 @@ function update!(
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; nbz) = state.namelists.domain
-    (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size, nbz) = state.namelists.domain
+    (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; betar) = state.sponge
     (; g_ndim) = state.constants
@@ -666,7 +666,7 @@ function update!(
         if ko + k == k0
             lower_gradient = 0.0
             lower_force = 0.0
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             upper_gradient = 0.0
             upper_force = 0.0
         end
@@ -722,7 +722,8 @@ function update!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhobar) = state.atmosphere
     (; du) = state.variables.increments
@@ -753,7 +754,7 @@ function update!(
 
         # Explicit integration of Coriolis force in TFC.
         uold[i, j, k] = u[i, j, k]
-        if k == k1 && ko + nzz != zz_size
+        if k == k1 && ko + nz != z_size
             uold[i, j, k + 1] = u[i, j, k + 1]
         end
         vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
@@ -854,14 +855,15 @@ function update!(
     rayleigh_factor::AbstractFloat,
     #turbulence_scheme::NoTurbulence,
 )
+    (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; betar) = state.sponge
     (; rho, u, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -1013,10 +1015,11 @@ function update!(
     variable::V,
     side::LHS,
 )
+    (; z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhobar) = state.atmosphere
     (; dv) = state.variables.increments
@@ -1047,7 +1050,7 @@ function update!(
 
         # Explicit integration of Coriolis force in TFC.
         vold[i, j, k] = v[i, j, k]
-        if k == k1 && ko + nzz != zz_size
+        if k == k1 && ko + nz != z_size
             vold[i, j, k + 1] = v[i, j, k + 1]
         end
         uc = 0.5 * (uold[i, j, k] + uold[i - 1, j, k])
@@ -1144,14 +1147,15 @@ function update!(
     rayleigh_factor::AbstractFloat,
     #turbulence_scheme::NoTurbulence,
 )
+    (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; betar) = state.sponge
     (; rho, v, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -1303,10 +1307,11 @@ function update!(
     variable::W,
     side::LHS,
 )
+    (; z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; dx, dy, dz, jac, met) = grid
     (; rhobar) = state.atmosphere
@@ -1325,7 +1330,7 @@ function update!(
     end
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 - 1 : k1
+    kmax = ko + nz == z_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
@@ -1462,15 +1467,16 @@ function update!(
     side::RHS,
     integration::Explicit,
 )
+    (; z_size) = state.namelists.domain
     (; g_ndim) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; rhobar) = state.atmosphere
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 - 1 : k1
+    kmax = ko + nz == z_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
@@ -1538,15 +1544,16 @@ function update!(
     rayleigh_factor::AbstractFloat,
     #turbulence_scheme::NoTurbulence,
 )
+    (; z_size) = state.namelists.domain
     (; g_ndim) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 - 1 : k1
+    kmax = ko + nz == z_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]

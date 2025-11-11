@@ -49,7 +49,7 @@ and the position update is
 \\end{align*}
 ```
 
-where the subscript ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition, MSGWaM updates the ray-volume extents, following
+where the subscript ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition, MS-GWaM updates the ray-volume extents, following
 
 ```math
 \\begin{align*}
@@ -116,7 +116,7 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 
   - `rkstage`: Runge-Kutta-stage index.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 
@@ -436,13 +436,12 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::SteadyState,
 )
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
-    (; comm, zz_size, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
-        state.domain
+    (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
     (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
@@ -621,7 +620,7 @@ function propagate_rays!(
         end
     end
 
-    @ivy if ko + nzz != zz_size
+    @ivy if ko + nz != z_size
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

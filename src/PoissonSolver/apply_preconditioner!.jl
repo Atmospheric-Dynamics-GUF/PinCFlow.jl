@@ -42,6 +42,7 @@ function apply_preconditioner!(
     sout::AbstractArray{<:AbstractFloat, 3},
     state::State,
 )
+    (; z_size) = state.namelists.domain
     (; dtau, preconditioner_iterations) = state.namelists.poisson
     (; dx, dy) = state.grid
     (; au_b, ac_b, ad_b) = state.poisson.tensor

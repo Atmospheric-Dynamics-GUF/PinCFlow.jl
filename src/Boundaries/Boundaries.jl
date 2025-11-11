@@ -30,6 +30,13 @@ abstract type AbstractBoundaryVariables end
 
 """
 ```julia
+AbstractBoundaryWKBVariables <: AbstractBoundaryVariables
+```
+"""
+abstract type AbstractBoundaryWKBVariables <: AbstractBoundaryVariables end
+
+"""
+```julia
 BoundaryPredictands <: AbstractBoundaryVariables
 ```
 
@@ -57,12 +64,12 @@ struct BoundaryFluxes <: AbstractBoundaryVariables end
 
 """
 ```julia
-BoundaryWKBIntegrals <: AbstractBoundaryVariables
+BoundaryWKBIntegrals <: AbstractBoundaryWKBVariables
 ```
 
 Boundary-variable category for gravity-wave-integral fields.
 """
-struct BoundaryWKBIntegrals <: AbstractBoundaryVariables end
+struct BoundaryWKBIntegrals <: AbstractBoundaryWKBVariables end
 
 """
 ```julia
@@ -71,7 +78,7 @@ BoundaryWKBTendencies <: AbstractBoundaryVariables
 
 Boundary-variable category for gravity-wave-tendency fields.
 """
-struct BoundaryWKBTendencies <: AbstractBoundaryVariables end
+struct BoundaryWKBTendencies <: AbstractBoundaryWKBVariables end
 
 """
 ```julia
@@ -83,9 +90,6 @@ Boundary-variable category for eddy diffusion coefficients.
 struct BoundaryDiffusionCoefficients <: AbstractBoundaryVariables end
 
 include("set_boundaries!.jl")
-include("set_compressible_meridional_boundaries!.jl")
-include("set_compressible_vertical_boundaries!.jl")
-include("set_compressible_zonal_boundaries!.jl")
 include("set_tracer_meridional_boundaries!.jl")
 include("set_tracer_vertical_boundaries!.jl")
 include("set_tracer_zonal_boundaries!.jl")

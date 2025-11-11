@@ -3,7 +3,7 @@
 initialize_rays!(state::State)
 ```
 
-Complete the initialization of MSGWaM by dispatching to a WKB-mode-specific method.
+Complete the initialization of MS-GWaM by dispatching to a WKB-mode-specific method.
 
 ```julia
 initialize_rays!(state::State, wkb_mode::NoWKB)
@@ -18,7 +18,7 @@ initialize_rays!(
 )
 ```
 
-Complete the initialization of MSGWaM.
+Complete the initialization of MS-GWaM.
 
 In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.wkb.initial_wave_field`, as well as `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
 
@@ -26,7 +26,7 @@ In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.
 
   - `state`: Model state.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 
@@ -70,8 +70,7 @@ function initialize_rays!(
         initial_wave_field,
     ) = state.namelists.wkb
     (; lref, tref, rhoref, uref) = state.constants
-    (; comm, master, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
-        state.domain
+    (; comm, master, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, x, y, zc, jac) = state.grid
     (;
         nray_max,
@@ -101,8 +100,8 @@ function initialize_rays!(
         for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
                 alpha,
-                x[io + i] * lref,
-                y[jo + j] * lref,
+                x[i] * lref,
+                y[j] * lref,
                 zc[i, j, k] * lref,
             )
             wnk_ini[alpha, i, j, k] = kdim * lref
@@ -113,7 +112,7 @@ function initialize_rays!(
         end
     else
         println(
-            "Warning: MSGWaM's steady-state mode currently ignores non-orographic initializations!",
+            "Warning: MS-GWaM's steady-state mode currently ignores non-orographic initializations!",
         )
         println("")
     end
@@ -180,8 +179,8 @@ function initialize_rays!(
             end
 
             # Set ray-volume positions.
-            rays.x[r, i, j, k] = (x[io + i] - 0.5 * dx + (ix - 0.5) * dx / nrx)
-            rays.y[r, i, j, k] = (y[jo + j] - 0.5 * dy + (jy - 0.5) * dy / nry)
+            rays.x[r, i, j, k] = (x[i] - 0.5 * dx + (ix - 0.5) * dx / nrx)
+            rays.y[r, i, j, k] = (y[j] - 0.5 * dy + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
                 zc[i, j, k] - 0.5 * jac[i, j, k] * dz +
                 (kz - 0.5) * jac[i, j, k] * dz / nrz
@@ -312,7 +311,7 @@ function initialize_rays!(
 
     # Print information.
     if master
-        println("MSGWaM:")
+        println("MS-GWaM:")
         println("Global ray-volume count: ", global_sum)
         println("Maximum number of ray volumes per cell: ", nray_max)
         println("")

@@ -3,7 +3,7 @@
 MSGWaM
 ```
 
-3D transient implementation of MSGWaM.
+3D transient implementation of MS-GWaM.
 
 # See also
 

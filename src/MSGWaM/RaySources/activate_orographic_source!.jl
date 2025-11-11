@@ -10,7 +10,7 @@ activate_orographic_source!(
 )
 ```
 
-Compute ray-volume properties in the launch layer (i.e. at `k = k0 - 1`) for the initialization of MSGWaM.
+Compute ray-volume properties in the launch layer (i.e. at `k = k0 - 1`) for the initialization of MS-GWaM.
 
 Sets the launch-layer values of arrays for initial ray-volume properties (intrinsic frequencies, wavenumbers and wave-action densities). For this purpose, the horizontal components of the resolved wind, the background density and the squared buoyancy frequency are vertically averaged between the surface and an approximation for the summits of the unresolved orography. The vertical averages are then used to compute a non-dimensionalized mountain wave amplitude, from which an approximate reduction of the generated wave amplitude due to blocking is inferred (see below). Afterwards, the ray-volume properties are obtained by calling `compute_orographic_mode` with the correspondingly scaled mode of the orographic spectrum and the vertical averages as arguments.
 
@@ -184,7 +184,7 @@ function activate_orographic_source!(state::State)
         wkb_mode,
     ) = state.namelists.wkb
     (; tref) = state.constants
-    (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, x, y, zc, jac, zctilde, kh, lh, hw) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
@@ -364,8 +364,8 @@ function activate_orographic_source!(state::State)
             end
 
             # Set physical ray-volume positions.
-            rays.x[r, i, j, k] = (x[io + i] - dx / 2 + (ix - 0.5) * dx / nrx)
-            rays.y[r, i, j, k] = (y[jo + j] - dy / 2 + (jy - 0.5) * dy / nry)
+            rays.x[r, i, j, k] = (x[i] - dx / 2 + (ix - 0.5) * dx / nrx)
+            rays.y[r, i, j, k] = (y[j] - dy / 2 + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
                 zc[i, j, k] - jac[i, j, k] * dz / 2 +
                 (kz - 0.5) * jac[i, j, k] * dz / nrz
