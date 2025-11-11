@@ -18,19 +18,23 @@ module TracerTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ...PinCFlow
 
 include("TracerPredictands.jl")
 include("TracerIncrements.jl")
 include("TracerAuxiliaries.jl")
 include("TracerReconstructions.jl")
 include("TracerFluxes.jl")
+include("TracerWKBImpact.jl")
+include("TracerForcings.jl")
 include("Tracer.jl")
-include("initialize_tracer_wave_packet!.jl")
 
 export TracerPredictands,
     TracerIncrements,
     TracerAuxiliaries,
     TracerReconstructions,
     TracerFluxes,
+    TracerGWForcings,
+    TracerWKBImpact,
     Tracer
 end

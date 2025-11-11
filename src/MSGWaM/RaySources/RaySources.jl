@@ -13,10 +13,11 @@ Module for ray-volume sources.
 """
 module RaySources
 
-using ...Types
 using ..RayOperations
 using ..Interpolation # required for activate_multiplewavepackets_source
 using Random
+using ...Types
+using ...PinCFlow
 
 include("activate_orographic_source!.jl")
 include("compute_orographic_mode.jl")

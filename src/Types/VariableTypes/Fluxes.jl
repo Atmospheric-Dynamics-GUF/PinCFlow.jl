@@ -32,7 +32,7 @@ Construct a `Fluxes` instance in compressible mode.
 
   - `phirho::A`: Density fluxes.
 
-  - `phirhop::A`: Density-fluctuation fluxes.
+  - `phirhop::A`: Density-fluctuations fluxes.
 
   - `phiu::A`: Zonal-momentum fluxes.
 
@@ -59,6 +59,7 @@ struct Fluxes{
     phiu::A
     phiv::A
     phiw::A
+    phitheta::A
     phip::B
 end
 
@@ -71,20 +72,19 @@ function Fluxes(domain::Domain, model::AbstractModel)::Fluxes
     (; nxx, nyy, nzz) = domain
 
     # Initialize the fluxes.
-    (phirho, phirhop, phiu, phiv, phiw) = (zeros(nxx, nyy, nzz, 3) for i in 1:5)
+    (phirho, phirhop, phiu, phiv, phiw, phitheta) =
+        (zeros(nxx, nyy, nzz, 3) for i in 1:6)
     phip = zeros(0, 0, 0, 0)
 
-    # Return a Fluxes instance.
-    return Fluxes(phirho, phirhop, phiu, phiv, phiw, phip)
+    return Fluxes(phirho, phirhop, phiu, phiv, phiw, phitheta, phip)
 end
 
 function Fluxes(domain::Domain, model::Compressible)::Fluxes
     (; nxx, nyy, nzz) = domain
 
     # Initialize the fluxes.
-    (phirho, phirhop, phiu, phiv, phiw, phip) =
-        (zeros(nxx, nyy, nzz, 3) for i in 1:6)
+    (phirho, phirhop, phiu, phiv, phiw, phitheta, phip) =
+        (zeros(nxx, nyy, nzz, 3) for i in 1:7)
 
-    # Return a Fluxes instance.
-    return Fluxes(phirho, phirhop, phiu, phiv, phiw, phip)
+    return Fluxes(phirho, phirhop, phiu, phiv, phiw, phitheta, phip)
 end

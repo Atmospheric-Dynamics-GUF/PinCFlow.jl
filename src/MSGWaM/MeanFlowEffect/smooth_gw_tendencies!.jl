@@ -153,6 +153,18 @@ smooth_gw_tendencies!(
 
 Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
 
+```julia 
+smooth_gw_tendencies!(state::State, tracersetup::AbstractTracer)
+```
+
+Apply smoothing to tracer tendencies.
+
+```julia 
+smooth_gw_tendencies!(state::State, tracersetup::NoTracer)
+```
+
+Return for configurations without tracer transport.
+
 # Arguments
 
   - `state`: Model state.
@@ -162,6 +174,8 @@ Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
   - `sm_filter`: Filter type.
 
   - `direction`: Directions to smooth in.
+
+  - `tracersetup`: General tracer-transport configuration.
 
 # See also
 
@@ -173,6 +187,7 @@ function smooth_gw_tendencies!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; lsmth_wkb, sm_filter) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
+    (; tracersetup) = state.namelists.tracer
 
     if !lsmth_wkb
         return
@@ -195,6 +210,8 @@ function smooth_gw_tendencies!(state::State)
         smooth_gw_tendencies!(dvdt, state, sm_filter, XYZ())
         smooth_gw_tendencies!(dthetadt, state, sm_filter, XYZ())
     end
+
+    smooth_gw_tendencies!(state, tracersetup)
 
     return
 end
@@ -220,8 +237,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @views output[i, j, k] =
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        output[i, j, k] =
             sum(
                 input[
                     (i - nsmth_wkb):(i + nsmth_wkb),
@@ -252,8 +269,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @views output[i, j, k] =
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        output[i, j, k] =
             sum(
                 input[
                     (i - nsmth_wkb):(i + nsmth_wkb),
@@ -284,8 +301,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @views output[i, j, k] =
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        output[i, j, k] =
             sum(
                 input[
                     i,
@@ -313,8 +330,8 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @views output[i, j, k] =
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        output[i, j, k] =
             sum(input[i, j, (k - nsmth_wkb):(k + nsmth_wkb)]) /
             (2 * nsmth_wkb + 1)
     end
@@ -371,11 +388,11 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for j in 1:nyy, i in 1:nxx
-        @views apply_shapiro_filter!(
+    @ivy for j in 1:nyy, i in 1:nxx
+        apply_shapiro_filter!(
             output[i, j, :],
             input[i, j, :],
-            (k0, k1),
+            k0:k1,
             Val(nsmth_wkb),
         )
     end
@@ -398,11 +415,11 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in 1:nzz, i in 1:nxx
-        @views apply_shapiro_filter!(
+    @ivy for k in 1:nzz, i in 1:nxx
+        apply_shapiro_filter!(
             output[i, :, k],
             input[i, :, k],
-            (j0, j1),
+            j0:j1,
             Val(nsmth_wkb),
         )
     end
@@ -425,14 +442,40 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    for k in 1:nzz, j in 1:nyy
-        @views apply_shapiro_filter!(
+    @ivy for k in 1:nzz, j in 1:nyy
+        apply_shapiro_filter!(
             output[:, j, k],
             input[:, j, k],
-            (i0, i1),
+            i0:i1,
             Val(nsmth_wkb),
         )
     end
 
+    return
+end
+
+function smooth_gw_tendencies!(state::State, tracersetup::AbstractTracer)
+    (; sizex, sizey) = state.namelists.domain
+    (; lsmth_wkb, sm_filter) = state.namelists.wkb
+    (; dchidt) = state.tracer.tracerforcings.chiq0
+
+    if !lsmth_wkb
+        return
+    end
+
+    if sizex == sizey == 1
+        smooth_gw_tendencies!(dchidt, state, sm_filter, Z())
+    elseif sizex == 1
+        smooth_gw_tendencies!(dchidt, state, sm_filter, YZ())
+    elseif sizey == 1
+        smooth_gw_tendencies!(dchidt, state, sm_filter, XZ())
+    else
+        smooth_gw_tendencies!(dchidt, state, sm_filter, XYZ())
+    end
+
+    return
+end
+
+function smooth_gw_tendencies!(state::State, tracersetup::NoTracer)
     return
 end

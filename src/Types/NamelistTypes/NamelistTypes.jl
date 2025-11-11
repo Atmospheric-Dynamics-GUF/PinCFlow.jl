@@ -20,15 +20,6 @@ abstract type AbstractBackground end
 
 """
 ```julia
-AbstractCoriolisMode
-```
-
-Abstract type for approximations of the Coriolis parameter.
-"""
-abstract type AbstractCoriolisMode end
-
-"""
-```julia
 AbstractLimiter
 ```
 
@@ -53,15 +44,6 @@ AbstractTestCase
 Abstract type for model test cases.
 """
 abstract type AbstractTestCase end
-
-"""
-```julia
-AbstractBoundaries
-```
-
-Abstract type for vertical boundary conditions.
-"""
-abstract type AbstractBoundaries end
 
 """
 ```julia
@@ -119,24 +101,6 @@ abstract type AbstractTracer end
 
 """
 ```julia
-AbstractIce
-```
-
-Abstract type for the inclusion of ice physics.
-"""
-abstract type AbstractIce end
-
-"""
-```julia
-AbstractTurbulence
-```
-
-Abstract type for the inclusion of turbulence physics.
-"""
-abstract type AbstractTurbulence end
-
-"""
-```julia
 UniformBoussinesq <: AbstractBackground
 ```
 
@@ -161,15 +125,6 @@ Isothermal <: AbstractBackground
 Singleton for an isothermal atmosphere in pseudo-incompressible or compressible mode.
 """
 struct Isothermal <: AbstractBackground end
-
-"""
-```julia
-FPlane <: AbstractCoriolisMode
-```
-
-Singleton for the ``f``-plane approximation of the Coriolis parameter.
-"""
-struct FPlane <: AbstractCoriolisMode end
 
 """
 ```julia
@@ -224,33 +179,6 @@ WKBMountainWave <: AbstractWKBTestCase
 Singleton for WKB-mountain-wave test cases.
 """
 struct WKBMountainWave <: AbstractWKBTestCase end
-
-"""
-```julia
-WavePacket <: AbstractTestCase
-```
-
-Singleton for wave-packet test cases.
-"""
-struct WavePacket <: AbstractTestCase end
-
-"""
-```julia
-PeriodicBoundaries <: AbstractBoundaries
-```
-
-Singleton for periodic boundary conditions in the vertical.
-"""
-struct PeriodicBoundaries <: AbstractBoundaries end
-
-"""
-```julia
-SolidWallBoundaries <: AbstractBoundaries
-```
-
-Singleton for solid-wall boundary conditions in the vertical.
-"""
-struct SolidWallBoundaries <: AbstractBoundaries end
 
 """
 ```julia
@@ -420,6 +348,7 @@ abstract type AbstractRandomWavePackets end
 struct RandomWavePackets <: AbstractRandomWavePackets end
 
 using MPI
+using ...PinCFlow
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
@@ -433,16 +362,12 @@ include("GridNamelist.jl")
 include("SpongeNamelist.jl")
 include("WKBNamelist.jl")
 include("TracerNamelist.jl")
-include("IceNamelist.jl")
-include("TurbulenceNamelist.jl")
 include("Namelists.jl")
 
 export AbstractBackground,
-    AbstractCoriolisMode,
     AbstractLimiter,
     AbstractModel,
     AbstractTestCase,
-    AbstractBoundaries,
     AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
@@ -457,16 +382,12 @@ export AbstractBackground,
 export UniformBoussinesq,
     StratifiedBoussinesq,
     Isothermal,
-    FPlane,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,
     Compressible,
     MountainWave,
     WKBMountainWave,
-    WavePacket,
-    PeriodicBoundaries,
-    SolidWallBoundaries,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,
@@ -496,7 +417,6 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
-    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,

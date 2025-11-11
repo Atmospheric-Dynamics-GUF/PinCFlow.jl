@@ -12,8 +12,6 @@ State{
     I <: Variables,
     J <: WKB,
     K <: Tracer,
-    L <: Ice,
-    M <: Turbulence,
 }
 ```
 
@@ -43,7 +41,7 @@ This method first uses the parameters specified in `namelists` to construct inst
 
   - `atmosphere::F`: Atmospheric-background fields.
 
-  - `sponge::G`: Sponge-layer parameters and damping coefficients.
+  - `sponge::G`: Sponge parameters and damping coefficients.
 
   - `poisson::H`: Workspace and solution arrays for the Poisson solver.
 
@@ -51,11 +49,7 @@ This method first uses the parameters specified in `namelists` to construct inst
 
   - `wkb::J`: Container for WKB ray-tracing data and parameters.
 
-  - `tracer::K`: ...
-
-  - `ice::L`: ...
-
-  - `turbulence::M`: ...
+  - `tracer::K`: Tracer setup and parameters.
 
 # Arguments
 
@@ -82,10 +76,6 @@ This method first uses the parameters specified in `namelists` to construct inst
   - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.Tracer`](@ref)
-
-  - [`PinCFlow.Types.IceTypes.Ice`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
 """
 struct State{
     A <: Namelists,
@@ -99,8 +89,6 @@ struct State{
     I <: Variables,
     J <: WKB,
     K <: Tracer,
-    L <: Ice,
-    M <: Turbulence,
 }
     namelists::A
     time::B
@@ -113,8 +101,6 @@ struct State{
     variables::I
     wkb::J
     tracer::K
-    ice::L
-    turbulence::M
 end
 
 function State(namelists::Namelists)::State
@@ -130,11 +116,7 @@ function State(namelists::Namelists)::State
     variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, constants, domain, grid)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
-    ice = Ice(namelists, constants, domain, atmosphere, grid, variables)
-    turbulence =
-        Turbulence(namelists, constants, domain, atmosphere, grid, variables)
 
-    # Return a State instance.
     return State(
         namelists,
         time,
@@ -147,7 +129,5 @@ function State(namelists::Namelists)::State
         variables,
         wkb,
         tracer,
-        ice,
-        turbulence,
     )
 end

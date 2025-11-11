@@ -18,6 +18,7 @@ module Update
 using MPI
 using ..Types
 using ..Boundaries
+using ..PinCFlow
 
 """
 ```julia
@@ -58,27 +59,58 @@ struct IceUpdateAdv end
 struct IceUpdatePhy end
 struct IceUpdateBoth end
 
-include("apply_unified_sponge!.jl")
-include("compute_compressible_buoyancy_factor.jl")
+"""
+```julia
+X
+```
+
+Singleton for ``\\widehat{x}``-axis along which a calculation should be performed.
+"""
+struct X end
+
+"""
+```julia
+Y
+```
+
+Singleton for ``\\widehat{y}``-axis along which a calculation should be performed.
+"""
+struct Y end
+
+"""
+```julia
+Z
+```
+
+Singleton for ``\\widehat{z}``-axis along which a calculation should be performed.
+"""
+struct Z end
+
+include("apply_lhs_sponge!.jl")
+include("compute_buoyancy_factor.jl")
 include("compute_compressible_wind_factor.jl")
 include("compute_pressure_gradient.jl")
-include("compute_sponge!.jl")
+include("compute_sponges!.jl")
 include("compute_stress_tensor.jl")
 include("compute_vertical_wind.jl")
 include("compute_volume_force.jl")
 include("transform.jl")
 include("update!.jl")
+include("conductive_heating.jl")
+include("compute_momentum_diffusion_terms.jl")
 
 export LHS, RHS, IceUpdatePhy
 
-export apply_unified_sponge!,
-    compute_compressible_buoyancy_factor,
+export apply_lhs_sponge!,
+    compute_buoyancy_factor,
     compute_compressible_wind_factor,
     compute_pressure_gradient,
-    compute_sponge!,
+    compute_sponges!,
     compute_stress_tensor,
     compute_vertical_wind,
     compute_volume_force,
+    conductive_heating,
+    compute_momentum_diffusion_terms,
     update!
 
 end

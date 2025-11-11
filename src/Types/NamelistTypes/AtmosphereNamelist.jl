@@ -5,7 +5,6 @@ AtmosphereNamelist{
     B <: AbstractFloat,
     C <: AbstractBackground,
     D <: NTuple{3, <:AbstractFloat},
-    E <: AbstractCoriolisMode,
 }
 ```
 
@@ -16,6 +15,8 @@ AtmosphereNamelist(;
     specifyreynolds::Bool = false,
     reinv::AbstractFloat = 0.0E+0,
     mu_viscous_dim::AbstractFloat = 0.0E+0,
+    mu_conduct_dim::AbstractFloat = 0.0E+0,
+    mu_mom_diff_dim::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
     theta0_dim::AbstractFloat = 3.0E+2,
@@ -23,7 +24,6 @@ AtmosphereNamelist(;
     press0_dim::AbstractFloat = 1.0E+5,
     backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
-    coriolis_mode::AbstractCoriolisMode = FPlane(),
 )::AtmosphereNamelist
 ```
 
@@ -37,6 +37,10 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `mu_viscous_dim::B`: Kinematic viscosity at the surface.
 
+  - `mu_conduct_dim::B`: Molecular diffusivity in the potential temperature.
+
+  - `mu_mom_diff_dim::B`: Turbulent diffusivity in the momentum.
+
   - `background::C`: Atmospheric background.
 
   - `buoyancy_frequency::B`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
@@ -49,20 +53,19 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `backgroundflow_dim::D`: Initial wind.
 
-  - `coriolis_frequency::B`: Coriolis frequency if `coriolis_mode == FPlane()`
-
-  - `coriolis_mode::E`: Approximation used for the Coriolis frequency.
+  - `coriolis_frequency::B`: Coriolis frequency of the ``f``-plane.
 """
 struct AtmosphereNamelist{
     A <: Bool,
     B <: AbstractFloat,
     C <: AbstractBackground,
     D <: NTuple{3, <:AbstractFloat},
-    E <: AbstractCoriolisMode,
 }
     specifyreynolds::A
     reinv::B
     mu_viscous_dim::B
+    mu_conduct_dim::B
+    mu_mom_diff_dim::B
     background::C
     buoyancy_frequency::B
     theta0_dim::B
@@ -70,13 +73,14 @@ struct AtmosphereNamelist{
     press0_dim::B
     backgroundflow_dim::D
     coriolis_frequency::B
-    coriolis_mode::E
 end
 
 function AtmosphereNamelist(;
     specifyreynolds::Bool = false,
     reinv::AbstractFloat = 0.0E+0,
     mu_viscous_dim::AbstractFloat = 0.0E+0,
+    mu_conduct_dim::AbstractFloat = 0.0E+0,
+    mu_mom_diff_dim::AbstractFloat = 0.0E+0,
     background::AbstractBackground = Isothermal(),
     buoyancy_frequency::AbstractFloat = 1.0E-2,
     theta0_dim::AbstractFloat = 3.0E+2,
@@ -84,12 +88,13 @@ function AtmosphereNamelist(;
     press0_dim::AbstractFloat = 1.0E+5,
     backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
     coriolis_frequency::AbstractFloat = 0.0E+0,
-    coriolis_mode::AbstractCoriolisMode = FPlane(),
 )::AtmosphereNamelist
     return AtmosphereNamelist(
         specifyreynolds,
         reinv,
         mu_viscous_dim,
+        mu_conduct_dim,
+        mu_mom_diff_dim,
         background,
         buoyancy_frequency,
         theta0_dim,
@@ -97,6 +102,5 @@ function AtmosphereNamelist(;
         press0_dim,
         backgroundflow_dim,
         coriolis_frequency,
-        coriolis_mode,
     )
 end

@@ -1,6 +1,3 @@
-using PythonCall
-using PyPlot
-
 """
 ```julia
 symmetric_contours(
@@ -8,7 +5,7 @@ symmetric_contours(
     maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::String = "seismic",
-)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
+)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
 ```
 
 Compute symmetric contours levels and return them and a correspondingly cropped colormap.
@@ -25,18 +22,20 @@ Compute symmetric contours levels and return them and a correspondingly cropped 
 
   - `colormap_name`: Name under which the chosen colormap is registered.
 """
+function symmetric_contours end
+
 function symmetric_contours(
     minimum::AbstractFloat,
     maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::String = "seismic",
-)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, PythonCall.Core.Py}
+)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
 
     # Compute contour levels.
-    if minimum == -maximum ||
-       sign(minimum) == sign(maximum) ||
-       minimum == 0.0 ||
-       maximum == 0.0
+    @ivy if minimum == -maximum ||
+            sign(minimum) == sign(maximum) ||
+            minimum == 0.0 ||
+            maximum == 0.0
         levels = LinRange(minimum, maximum, number)
     else
         peak = max(abs(minimum), abs(maximum))
@@ -60,10 +59,10 @@ function symmetric_contours(
 
     # Get the colormap and peak.
     colormap = matplotlib.cm.get_cmap(colormap_name)
-    peak = max(abs(levels[1]), abs(levels[end]))
+    @ivy peak = max(abs(levels[1]), abs(levels[end]))
 
     # Crop the colormap.
-    if levels[1] > 0.0
+    @ivy if levels[1] > 0.0
         colormap = matplotlib.colors.LinearSegmentedColormap.from_list(
             "",
             colormap(LinRange(0.5, 1.0, 100)),
@@ -87,28 +86,5 @@ function symmetric_contours(
         )
     end
 
-    # Return the results.
     return (levels, colormap)
 end
-
-# Set style.
-matplotlib.style.use(
-    [
-        entry for entry in matplotlib.style.available if
-        occursin(r".*seaborn.*bright.*", string(entry))
-    ][1],
-)
-matplotlib.rcParams["figure.autolayout"] = true
-matplotlib.rcParams["figure.figsize"] = (4.0, 3.0)
-matplotlib.rcParams["figure.dpi"] = 500
-matplotlib.rcParams["font.family"] = "serif"
-matplotlib.rcParams["image.cmap"] = "seismic"
-matplotlib.rcParams["legend.frameon"] = false
-matplotlib.rcParams["text.usetex"] = true
-matplotlib.rcParams["text.latex.preamble"] =
-    "\\usepackage{amsmath, amstext, amssymb, amsfonts, amsthm}" *
-    "\\allowdisplaybreaks" *
-    # "\\usepackage[slantedGreek]{newtxmath}" *
-    "\\renewcommand*\\rmdefault{ptm}" *
-    "\\renewcommand*\\sfdefault{phv}" *
-    "\\renewcommand*\\ttdefault{lmtt}"

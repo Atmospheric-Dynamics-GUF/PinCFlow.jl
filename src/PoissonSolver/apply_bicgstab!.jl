@@ -1,33 +1,15 @@
 """
 ```julia
-apply_bicgstab!(
-    b_in::AbstractArray{<:AbstractFloat, 3},
-    tolref::AbstractFloat,
-    sol::AbstractArray{<:AbstractFloat, 3},
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    poisson::Poisson,
-)::Tuple{Bool, <:Integer}
+apply_bicgstab!(state::State, tolref::AbstractFloat)::Tuple{Bool, <:Integer}
 ```
 
 Solve the Poisson equation using a preconditioned BicGStab algorithm and return a tuple containing an error flag and the number of iterations.
 
 # Arguments
 
-  - `b_in`: Right-hand side.
+  - `state`: Model state.
 
   - `tolref`: Reference tolerance for convergence criterion.
-
-  - `sol`: Solution (Exner-pressure differences).
-
-  - `namelists`: Namelists with all model parameters.
-
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
-
-  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # See also
 
@@ -40,19 +22,15 @@ Solve the Poisson equation using a preconditioned BicGStab algorithm and return 
 function apply_bicgstab! end
 
 function apply_bicgstab!(
-    b_in::AbstractArray{<:AbstractFloat, 3},
+    state::State,
     tolref::AbstractFloat,
-    sol::AbstractArray{<:AbstractFloat, 3},
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    poisson::Poisson,
 )::Tuple{Bool, <:Integer}
-    (; sizex, sizey, sizez) = namelists.domain
+    (; sizex, sizey, sizez) = state.namelists.domain
     (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
-        namelists.poisson
-    (; master, comm, nx, ny, nz, column_comm, layer_comm) = domain
-    (; r_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = poisson.bicgstab
+        state.namelists.poisson
+    (; master, comm, column_comm, layer_comm) = state.domain
+    (; rhs, solution) = state.poisson
+    (; r_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = state.poisson.bicgstab
 
     # Print information.
     if master
@@ -63,7 +41,7 @@ function apply_bicgstab!(
     end
 
     # Initialize solution.
-    sol .= 0.0
+    solution .= 0.0
 
     # Set parameters.
     maxit = maxiterpoisson
@@ -77,39 +55,22 @@ function apply_bicgstab!(
     # Set error flag.
     errflag = false
 
-    b = b_in
-
-    apply_operator!(sol, matvec, Total(), namelists, domain, poisson)
-    r0 .= b .- matvec
+    apply_operator!(solution, matvec, Total(), state)
+    r0 .= rhs .- matvec
     p .= r0
     r .= r0
 
-    res_local = 0.0
-    for k in 1:nz, j in 1:ny, i in 1:nx
-        res_local += r[i, j, k]^2
-    end
-
-    # MPI: Find global residual.
-    res = MPI.Allreduce(res_local, +, comm)
-
+    res = sum(a -> a^2, r)
+    res = MPI.Allreduce(res, +, comm)
     res = sqrt(res / sizex / sizey / sizez)
 
     b_norm = res
 
-    r_vm .= 0.0
-    for k in 1:nz
-        @views r_vm .+= r[:, :, k]
-    end
+    r_vm .= sum(a -> a / sizez, r; dims = 3)
     MPI.Allreduce!(r_vm, +, column_comm)
-    r_vm ./= sizez
 
-    res_local = 0.0
-    for j in 1:ny, i in 1:nx
-        res_local += r_vm[i, j]^2
-    end
-
-    res_vm = MPI.Allreduce(res_local, +, layer_comm)
-
+    res_vm = sum(a -> a^2, r_vm)
+    res_vm = MPI.Allreduce(res_vm, +, layer_comm)
     res_vm = sqrt(res_vm / sizex / sizey)
 
     b_vm_norm = res_vm
@@ -131,31 +92,31 @@ function apply_bicgstab!(
 
         # v = A*p
         if preconditioner
-            apply_preconditioner!(p, v_pc, namelists, domain, grid, poisson)
+            apply_preconditioner!(p, v_pc, state)
         else
             v_pc .= p
         end
-        apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
+        apply_operator!(v_pc, matvec, Total(), state)
         v .= matvec
 
         alpha =
-            compute_global_dot_product(r, r0, domain) /
-            compute_global_dot_product(v, r0, domain)
+            compute_global_dot_product(r, r0, state) /
+            compute_global_dot_product(v, r0, state)
         s .= r .- alpha .* v
 
         # t = A*s
         if preconditioner
-            apply_preconditioner!(s, v_pc, namelists, domain, grid, poisson)
+            apply_preconditioner!(s, v_pc, state)
         else
             v_pc .= s
         end
-        apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
+        apply_operator!(v_pc, matvec, Total(), state)
         t .= matvec
 
         omega =
-            compute_global_dot_product(t, s, domain) /
-            compute_global_dot_product(t, t, domain)
-        sol .+= alpha .* p .+ omega .* s
+            compute_global_dot_product(t, s, state) /
+            compute_global_dot_product(t, t, state)
+        solution .+= alpha .* p .+ omega .* s
 
         rold .= r
         r .= s .- omega .* t
@@ -164,30 +125,15 @@ function apply_bicgstab!(
         #   Abort criterion
         #-----------------------
 
-        res_local = 0.0
-        for k in 1:nz, j in 1:ny, i in 1:nx
-            res_local += r[i, j, k]^2
-        end
-
-        # MPI: Find global residual.
-        res = MPI.Allreduce(res_local, +, comm)
-
+        res = sum(a -> a^2, r)
+        res = MPI.Allreduce(res, +, comm)
         res = sqrt(res / sizex / sizey / sizez)
 
-        r_vm .= 0.0
-        for k in 1:nz
-            @views r_vm .+= r[:, :, k]
-        end
+        r_vm .= sum(a -> a / sizez, r; dims = 3)
         MPI.Allreduce!(r_vm, +, column_comm)
-        r_vm ./= sizez
 
-        res_local = 0.0
-        for j in 1:ny, i in 1:nx
-            res_local += r_vm[i, j]^2
-        end
-
-        res_vm = MPI.Allreduce(res_local, +, layer_comm)
-
+        res_vm = sum(a -> a^2, r_vm)
+        res_vm = MPI.Allreduce(res_vm, +, layer_comm)
         res_vm = sqrt(res_vm / sizex / sizey)
 
         if max(res / b_norm, res_vm / b_vm_norm) <= tol
@@ -200,20 +146,18 @@ function apply_bicgstab!(
             niter = j_b
 
             if preconditioner
-                s .= sol
-                apply_preconditioner!(s, sol, namelists, domain, grid, poisson)
+                s .= solution
+                apply_preconditioner!(s, solution, state)
             end
 
             return (errflag, niter)
         end
 
         beta =
-            alpha / omega * compute_global_dot_product(r, r0, domain) /
-            compute_global_dot_product(rold, r0, domain)
+            alpha / omega * compute_global_dot_product(r, r0, state) /
+            compute_global_dot_product(rold, r0, state)
         p .= r .+ beta .* (p .- omega .* v)
     end
-
-    # max iteration
 
     errflag = true
     niter = j_b

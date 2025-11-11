@@ -78,20 +78,12 @@ Enforce zonal boundary conditions for gravity-wave-tendency fields needed in `Mu
   - [`PinCFlow.Boundaries.set_compressible_zonal_boundaries!`](@ref)
 
   - [`PinCFlow.Boundaries.set_tracer_zonal_boundaries!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_ice_zonal_boundaries!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_turbulence_zonal_boundaries!`](@ref)
 """
 function set_zonal_boundaries! end
 
 function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     (; namelists, domain) = state
     (; predictands) = state.variables
-    (; model) = namelists.setting
-    (; tracersetup) = namelists.tracer
-    (; icesetup) = namelists.ice
-    (; turbulencesetup) = namelists.turbulence
 
     for field in (:rho, :rhop, :u, :v, :w, :pip)
         set_zonal_boundaries_of_field!(
@@ -101,11 +93,9 @@ function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
         )
     end
 
-    set_compressible_zonal_boundaries!(state, model)
+    set_compressible_zonal_boundaries!(state)
 
-    set_tracer_zonal_boundaries!(state, variables, tracersetup)
-    set_ice_zonal_boundaries!(state, variables, icesetup)
-    set_turbulence_zonal_boundaries!(state, variables, turbulencesetup)
+    set_tracer_zonal_boundaries!(state, variables)
 
     return
 end
@@ -114,8 +104,6 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
     (; namelists, domain) = state
     (; reconstructions) = state.variables
     (; tracersetup) = namelists.tracer
-    (; icesetup) = namelists.ice
-    (; turbulencesetup) = namelists.turbulence
 
     for field in fieldnames(Reconstructions)
         set_zonal_boundaries_of_field!(
@@ -125,16 +113,18 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
         )
     end
 
-    set_tracer_zonal_boundaries!(state, variables, tracersetup)
-    set_ice_zonal_boundaries!(state, variables, icesetup)
-    set_turbulence_zonal_boundaries!(state, variables, turbulencesetup)
+    set_tracer_zonal_boundaries!(state, variables)
 
     return
 end
 
 function set_zonal_boundaries!(state::State, variables::BoundaryWKBIntegrals)
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
+
     set_zonal_boundaries!(state, variables, wkb_mode)
+    set_tracer_zonal_boundaries!(state, variables, wkb_mode, tracersetup)
+
     return
 end
 
@@ -180,7 +170,11 @@ end
 
 function set_zonal_boundaries!(state::State, variables::BoundaryWKBTendencies)
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
+
     set_zonal_boundaries!(state, variables, wkb_mode)
+    set_tracer_zonal_boundaries!(state, variables, wkb_mode, tracersetup)
+
     return
 end
 

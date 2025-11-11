@@ -16,6 +16,9 @@ module VariableTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using Random
+using ...PinCFlow
+
+include("set_p.jl")
 
 include("../../MSGWaM/RaySources/construct_random_wavepackets!.jl")
 include("Predictands.jl")

@@ -34,6 +34,7 @@ using ..PoissonSolver
 using ..FluxCalculator
 using ..Output
 using ..MSGWaM
+using ..PinCFlow
 
 include("compute_time_step.jl")
 include("integrate.jl")
@@ -48,6 +49,7 @@ include("wkb_integration!.jl")
 include("compute_source_ice!.jl")
 include("iceroutines.jl")
 include("explicit_integration_rhs_ice!.jl")
+include("backup_predictands.jl")
 
 export integrate
 export psat_ice, sat_ratio, dot_qv, dot_n, nIce_param_nuc 

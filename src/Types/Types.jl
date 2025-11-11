@@ -18,10 +18,6 @@ Module for the construction of a single composite type that contains all informa
   - [`PinCFlow.Types.WKBTypes`](@ref)
 
   - [`PinCFlow.Types.TracerTypes`](@ref)
-
-  - [`PinCFlow.Types.IceTypes`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes`](@ref)
 """
 module Types
 
@@ -99,6 +95,24 @@ struct P <: AbstractVariable end
 
 """
 ```julia
+Theta <: AbstractVariable
+```
+
+Singleton that represents the potential temperature.
+"""
+struct Theta <: AbstractVariable end
+
+"""
+```julia
+Chi <: AbstractVariable
+```
+
+Singleton that represents the tracer mixing ratio.
+"""
+struct Chi <: AbstractVariable end
+
+"""
+```julia
 Explicit
 ```
 
@@ -121,8 +135,6 @@ include("PoissonTypes/PoissonTypes.jl")
 include("VariableTypes/VariableTypes.jl")
 include("WKBTypes/WKBTypes.jl")
 include("TracerTypes/TracerTypes.jl")
-include("IceTypes/IceTypes.jl")
-include("TurbulenceTypes/TurbulenceTypes.jl")
 
 using .NamelistTypes
 using .FoundationalTypes
@@ -130,26 +142,21 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
-using .IceTypes
-using .TurbulenceTypes
+using ..PinCFlow
 
 include("State.jl")
 
 export AbstractBackground,
-    AbstractCoriolisMode,
     AbstractLimiter,
     AbstractVariable,
     AbstractModel,
     AbstractTestCase,
-    AbstractBoundaries,
     AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter,
-    AbstractTracer,
-    AbstractIce,
-    AbstractTurbulence
+    AbstractTracer
 
 export Rho,
     RhoP,
@@ -158,12 +165,13 @@ export Rho,
     W,
     PiP,
     P,
+    Theta,
+    Chi,
     Explicit,
     Implicit,
     UniformBoussinesq,
     StratifiedBoussinesq,
     Isothermal,
-    FPlane,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,
@@ -193,7 +201,6 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
-    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
@@ -224,12 +231,11 @@ export DomainNamelist,
     WKBIntegrals,
     WKBTendencies,
     Rays,
+    MergedRays,
     WKBIncrements,
     SurfaceIndices,
     WKB,
     Tracer,
-    Ice,
-    Turbulence,
     State,
     NoTracer,
     LinearTracer,
@@ -260,6 +266,8 @@ export DomainNamelist,
     TurbulenceAuxiliaries,
     TurbulenceIncrements,
     TurbulenceReconstructions,
-    TurbulenceFluxes
-    
+    TurbulenceFluxes,
+    TracerForcings,
+    TracerWKBImpact
+
 end

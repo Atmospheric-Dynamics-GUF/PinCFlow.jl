@@ -4,25 +4,21 @@ WKB{
     A <: Integer,
     B <: AbstractArray{<:Integer, 3},
     C <: Rays,
-    D <: SurfaceIndices,
-    E <: WKBIncrements,
-    F <: WKBIntegrals,
-    G <: WKBTendencies,
-    H <: Ref{<:AbstractFloat},
-    I <: AbstractArray{<:AbstractFloat, 3},
-    J <: AbstractMatrix{<:AbstractFloat},
+    D <: MergedRays,
+    E <: SurfaceIndices,
+    F <: WKBIncrements,
+    G <: WKBIntegrals,
+    H <: WKBTendencies,
+    I <: Ref{<:AbstractFloat},
+    J <: AbstractArray{<:AbstractFloat, 3},
+    K <: AbstractMatrix{<:AbstractFloat},
 }
 ```
 
 Main container for WKB ray-tracing data and parameters.
 
 ```julia
-WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-)::WKB
+WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)::WKB
 ```
 
 Construct a `WKB` instance by dispatching to a test-case-specific method.
@@ -77,23 +73,25 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `rays::C`: Prognostic ray-volume properties.
 
-  - `surface_indices::D`: Indices that connect orographic wave modes to ray volumes.
+  - `merged_rays::D`: Container used for creating merged ray volumes.
 
-  - `increments::E`: WKBIncrements of the prognostic ray-volume properties.
+  - `surface_indices::E`: Indices that connect orographic wave modes to ray volumes.
 
-  - `integrals::F`: Integrals of ray-volume properties.
+  - `increments::F`: WKBIncrements of the prognostic ray-volume properties.
 
-  - `tendencies::G`: Gravity-wave drag and heating fields.
+  - `integrals::G`: Integrals of ray-volume properties.
 
-  - `cgx_max::H`: Maximum zonal group velocities.
+  - `tendencies::H`: Gravity-wave drag and heating fields.
 
-  - `cgy_max::H`: Maximum meridional group velocities.
+  - `cgx_max::I`: Maximum zonal group velocities.
 
-  - `cgz_max::I`: Maximum vertical group velocities.
+  - `cgy_max::I`: Maximum meridional group velocities.
 
-  - `zb::J`: Upper edge of the blocked layer.
+  - `cgz_max::J`: Maximum vertical group velocities.
 
-  - `diffusion::I`: Diffusion induced by wave breaking.
+  - `zb::K`: Upper edge of the blocked layer.
+
+  - `diffusion::J`: Diffusion induced by wave breaking.
 
 # Arguments
 
@@ -123,13 +121,14 @@ struct WKB{
     A <: Integer,
     B <: AbstractArray{<:Integer, 3},
     C <: Rays,
-    D <: SurfaceIndices,
-    E <: WKBIncrements,
-    F <: WKBIntegrals,
-    G <: WKBTendencies,
-    H <: Ref{<:AbstractFloat},
-    I <: AbstractArray{<:AbstractFloat, 3},
-    J <: AbstractMatrix{<:AbstractFloat},
+    D <: MergedRays,
+    E <: SurfaceIndices,
+    F <: WKBIncrements,
+    G <: WKBIntegrals,
+    H <: WKBTendencies,
+    I <: Ref{<:AbstractFloat},
+    J <: AbstractArray{<:AbstractFloat, 3},
+    K <: AbstractMatrix{<:AbstractFloat},
 }
     nxray::A
     nyray::A
@@ -142,15 +141,16 @@ struct WKB{
     n_sfc::A
     nray::B
     rays::C
-    surface_indices::D
-    increments::E
-    integrals::F
-    tendencies::G
-    cgx_max::H
-    cgy_max::H
-    cgz_max::I
-    zb::J
-    diffusion::I
+    merged_rays::D
+    surface_indices::E
+    increments::F
+    integrals::G
+    tendencies::H
+    cgx_max::I
+    cgy_max::I
+    cgz_max::J
+    zb::K
+    diffusion::J
 end
 
 function WKB(
@@ -173,7 +173,8 @@ function WKB(
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
-        Rays(0, 0, 0, 0, namelists),
+        Rays(0, 0, 0, 0),
+        MergedRays(0, 0),
         SurfaceIndices(0, 0, 0),
         WKBIncrements(0, 0, 0, 0),
         WKBIntegrals(0, 0, 0),
@@ -225,13 +226,13 @@ function WKB(
     zrmax = zrmax_dim / lref
 
     # Check if the boundaries for ray-volume propagation are within the domain.
-    if xrmin < lx[1] || xrmax > lx[2]
+    if xrmin < -lx / 2 || xrmax > lx / 2
         error("Error in WKB: xrmin too small or xrmax too large!")
     end
-    if yrmin < ly[1] || yrmax > ly[2]
+    if yrmin < -ly / 2 || yrmax > ly / 2
         error("Error in WKB: yrmin too small or yrmax too large!")
     end
-    if zrmin < lz[1] || zrmax > lz[2]
+    if zrmin < 0 || zrmax > lz
         error("Error in WKB: zrmin too small or zrmax too large!")
     end
 
@@ -298,7 +299,8 @@ function WKB(
 
     # Initialize ray-volume arrays.
     nray = zeros(Int, nxx, nyy, nzz)
-    rays = Rays(nray_wrk, nxx, nyy, nzz, namelists)
+    rays = Rays(nray_wrk, nxx, nyy, nzz)
+    merged_rays = MergedRays(2, nray_max)
     surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
     increments = WKBIncrements(nray_wrk, nxx, nyy, nzz)
     integrals = WKBIntegrals(nxx, nyy, nzz)
@@ -321,6 +323,7 @@ function WKB(
         n_sfc,
         nray,
         rays,
+        merged_rays,
         surface_indices,
         increments,
         integrals,

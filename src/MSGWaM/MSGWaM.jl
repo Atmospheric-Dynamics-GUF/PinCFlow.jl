@@ -39,6 +39,7 @@ using .BoundaryRays
 using .RayUpdate
 using .MeanFlowEffect
 using .IceMSGWaM
+using ..PinCFlow
 
 export apply_saturation_scheme!,
     compute_mean_flow_effect!,

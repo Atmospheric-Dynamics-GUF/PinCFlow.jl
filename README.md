@@ -1,10 +1,10 @@
-# PinCFlow
+# PinCFlow.jl
 
 ## Introduction
 
-PinCFlow integrates the pseudo-incompressible equations in a conservative flux form ([Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)), using a a semi-implicit method that combines explicit and implicit time-stepping schemes ([Benacchio & Klein, 2019](https://doi.org/10.1175/MWR-D-19-0073.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1)). The equations are discretized with a finite-volume method, such that all quantities are represented by spatial averages over grid cells and fluxes are computed on the respective cell interfaces. The grid is staggered so that the velocity components are defined at the same points as the corresponding fluxes of scalar quantities. PinCFlow operates in a vertically stretched terrain-following coordinate system based on [Gal-Chen and Somerville (1975a)](https://doi.org/10.1016/0021-9991(75)90037-6), [Gal-Chen and Somerville (1975b)](https://doi.org/10.1016/0021-9991(75)90054-6) and [Clark (1977)](https://doi.org/10.1016/0021-9991(77)90057-2).
+PinCFlow is an atmospheric flow solver that was designed for performing idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form ([Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)), using a a semi-implicit method that combines explicit and implicit time-stepping schemes ([Benacchio & Klein, 2019](https://doi.org/10.1175/MWR-D-19-0073.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1)). Spatially, the equations are discretized with a finite-volume method, such that all quantities are represented by averages over grid cells and fluxes are computed on the respective cell interfaces. The grid is staggered so that the velocity components are defined at the same points as the corresponding fluxes of scalar quantities. PinCFlow operates in a vertically stretched terrain-following coordinate system based on [Gal-Chen and Somerville (1975a)](https://doi.org/10.1016/0021-9991(75)90037-6), [Gal-Chen and Somerville (1975b)](https://doi.org/10.1016/0021-9991(75)90054-6) and [Clark (1977)](https://doi.org/10.1016/0021-9991(77)90057-2).
 
-The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that unresolved gravity waves may be parameterized in a manner that accounts for transience and horizontal propagation. The resolved fields are updated with tendencies computed by MSGWaM at the beginning of every time step. A description of PinCFlow-MSGWaM can be found in [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
+The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that unresolved gravity waves may be parameterized in a manner that accounts for transience and horizontal propagation. The resolved fields are updated with tendencies computed by MSGWaM at the beginning of every time step. A description of the theory behind PinCFlow-MSGWaM can be found in [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926) and [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180). For a numerical perspective and more information on the development, see [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
 
 ## User guide
 
@@ -13,7 +13,7 @@ The Lagrangian WKB model MSGWaM is interactively coupled to PinCFlow, so that un
 To install PinCFlow, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then clone this repository with
 
 ```shell
-git clone git@gitlab.dkrz.de:atmodynamics-goethe-universitaet-frankfurt/pinc.git
+git clone git@github.com:Atmospheric-Dynamics-GUF/PinCFlow.jl.git
 ```
 
 and set up the project environment by running
@@ -37,7 +37,7 @@ integrate(Namelists())
 runs PinCFlow in its default configuration, if executed with
 
 ```shell
-julia --project --check-bounds=no --math-mode=fast script.jl
+julia --project script.jl
 ```
 
 in the root directory of the repository. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with $3 \times 3 \times 3$ grid points and integrates the governing equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. For instance, running the script
@@ -47,7 +47,7 @@ in the root directory of the repository. This simulation will finish comparative
 
 using PinCFlow
 
-if length(ARGS) == 0
+@ivy if length(ARGS) == 0
     output_file = "./pincflow_output.h5"
 elseif length(ARGS) == 1
     output_file = ARGS[1] * "/pincflow_output.h5"
@@ -60,9 +60,9 @@ domain = DomainNamelist(;
     sizex = 40,
     sizey = 1,
     sizez = 40,
-    lx_dim = (-1.0E+4, 1.0E+4),
-    ly_dim = (-1.0E+4, 1.0E+4),
-    lz_dim = (0.0E+0, 2.0E+4),
+    lx_dim = 2.0E+4,
+    ly_dim = 2.0E+4,
+    lz_dim = 2.0E+4,
 )
 grid = GridNamelist(; mountainheight_dim = 1.0E+1, mountainwidth_dim = 1.0E+4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
@@ -72,13 +72,13 @@ integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
 ```
 
-yields a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ that generates a mountain wave above a periodic hill. The vertical wind is written to the output file `pincflow_output.h5` in the directory specified by an additional argument to the script. More involved examples are given in the "Examples" section of the documentation. A description of all namelists and their parameters is provided in the "Reference" section.
+yields a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ that generates a mountain wave above a periodic hill. The vertical wind is written to the output file `pincflow_output.h5` in the directory specified by an additional argument to the script (or the current directory, if that argument is omitted). More involved examples are given in the "Examples" section of the documentation. A description of all namelists and their parameters is provided in the "Reference" section.
 
 If you want to run PinCFlow in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). You can do so by running
 
 ```shell
 mpiexec=$(julia --project -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
+${mpiexec} -n ${tasks} julia --project script.jl
 ```
 
 with `tasks` set to the number of MPI processes. Note that in `script.jl`, the parameters `npx`, `npy` and `npz` of the namelist `domain`, which represent the number of MPI processes in the three dimensions of physical space, need to be set such that their product is equal to `tasks`.
@@ -100,27 +100,29 @@ julia --project -e 'using HDF5; HDF5.API.set_libraries!()'
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```shell
-mpiexec -n ${tasks} julia --project --check-bounds=no --math-mode=fast script.jl
+mpiexec -n ${tasks} julia --project script.jl
 ```
 
-with `mpiexec` being your chosen system binary.
+with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow on [Goethe](https://csc.uni-frankfurt.de/wiki/doku.php?id=public:usage:goethe) or [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in `examples/submit`.
 
 ### Visualizing the results
 
 PinCFlow uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5` (from the directory in which the run script is executed). This may be changed by setting the parameter `output_file` of the namelist `output` accordingly. The dimensions of most output fields are (in order) $\widehat{x}$ (zonal axis), $\widehat{y}$ (meridional axis), $\widehat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume property fields differ slightly in that they have an additional (spectral) dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the namelist `output` accordingly (more details are given in the "Reference" section of the documentation).
 
-For the visualization of simulation results, we recommend using [PythonPlot.jl](https://github.com/JuliaPy/PythonPlot.jl). A style configuration and a function that facilitates the generation of symmetric contour plots are provided in `examples/visualization/style.jl`. The script
+For the visualization of simulation results, we recommend using [PythonPlot.jl](https://github.com/JuliaPy/PythonPlot.jl). A function that configures PythonPlot.jl to use a preset style, as well as one that facilitates the generation of symmetric contour plots, are exported by `PinCFlow`. The script
 
 ```julia
 # examples/visualization/periodic_hill.jl
 
 using HDF5
+using PythonPlot
 using LaTeXStrings
+using PinCFlow
 
-include("style.jl")
+set_plot_style()
 
 # Import the data.
-if length(ARGS) == 0
+@ivy if length(ARGS) == 0
     data = h5open("./pincflow_output.h5")
 elseif length(ARGS) == 1
     data = h5open(ARGS[1] * "/pincflow_output.h5")
@@ -150,7 +152,7 @@ clf()
 
 ```
 
-is an example for how to visualize the vertical wind at the end of a simple mountain-wave simulation performed with the script introduced [above](#Running-the-model). Once again, the directory which the output file has been saved to is given as an additional argument to the script. The resulting plot is displayed below.
+is an example for how to visualize the vertical wind at the end of a simple mountain-wave simulation performed with the script introduced above. Once again, the directory which the output file has been saved to is given as an additional argument to the script. The resulting plot is displayed below.
 
 ![](examples/results/periodic_hill.png)
 
@@ -158,19 +160,19 @@ is an example for how to visualize the vertical wind at the end of a simple moun
 
 ### Workflow
 
-The code is shared in a GitLab repository. Any contributions to the code should adhere to the following workflow.
+The code is shared in a GitHub repository. Any contributions to the code should adhere to the following workflow.
 
  1. If you are new to the project, create a remote development branch for your contributions (name it such that others can identify it as your branch) and clone the repository.
 
  1. Make your changes on your local development branch.
 
- 1. Pull recent changes made on the remote master branch into your local master branch and merge it into your local development branch, resolving merge conflicts if necessary.
+ 1. Pull recent changes made on the remote main branch into your local main branch and merge it into your local development branch, resolving merge conflicts if necessary.
 
  1. **Ensure that the model is stable and that all canonical tests reproduce the sample results.**
 
  1. Push your changes to your remote development branch.
 
- 1. Request to merge your remote development branch into the remote master branch.
+ 1. Request to merge your remote development branch into the remote main branch.
 
 ### Writing code
 
@@ -184,113 +186,15 @@ Contributions to the code should respect the following rules.
 
   - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
-  - Use `@views` in front of expressions that create slices.
+  - Use PinCFlow's `@ivy` in front of expressions that access elements of arrays/tuples. Always apply this macro to the outermost expression possible but do not create new blocks for this purpose.
 
   - Do not use Unicode.
 
   - Use `CamelCase` for the names of modules and types. Use single captial letters for type parameters. For all other objects, use `snake_case` (in case the name only contains (preferrably whole) words, e.g. `vertical_wind`) and `squashedcase` (in case the name is mathematical, e.g. `what` for $\widehat{w}$).
 
-```mermaid
----
-config:
-    theme: forest
-    fontFamily: monospace
----
+![](pincflow_modules.svg)
 
-mindmap
-    root(PinCFlow)
-        (Boundaries)
-        (FluxCalculator)
-        (Integration)
-        (MPIOperations)
-        (MSGWaM)
-            (BoundaryRays)
-            (Interpolation)
-            (MeanFlowEffect)
-            (RayOperations)
-            (RaySources)
-            (RayUpdate)
-        (Output)
-        (PoissonSolver)
-        (Types)
-            (FoundationalTypes)
-            (IceTypes)
-            (NamelistTypes)
-            (PoissonTypes)
-            (TracerTypes)
-            (TurbulenceTypes)
-            (VariableTypes)
-            (WKBTypes)
-        (Update)
-```
-
-```mermaid
----
-config:
-    theme: forest
-    fontFamily: monospace
----
-
-mindmap
-    root(State)
-        (Namelists)
-            (AtmosphereNamelist)
-            (Discretization-<br>Namelist)
-            (DomainNamelist)
-            (GridNamelist)
-            (IceNamelist)
-            (OutputNamelist)
-            (PoissonNamelist)
-            (SettingNamelist)
-            (SpongeNamelist)
-            (TracerNamelist)
-            (TurbulenceNamelist)
-            (WavePacketNamelist)
-            (WKBNamelist)
-        (Time)
-        (Constants)
-        (Domain)
-        (Grid)
-        (Atmosphere)
-        (Sponge)
-        (Poisson)
-            (BicGStab)
-            (Correction)
-            (Operator)
-            (Preconditioner)
-            (Tensor)
-        (Variables)
-            (Auxiliaries)
-            (Backups)
-            (Fluxes)
-            (Predictands)
-            (Reconstructions)
-            (Increments)
-        (WKB)
-            (WKBIntegrals)
-            (WKBTendencies)
-            (WKBIncrements)
-            (Rays)
-            (SurfaceIndices)
-        (Tracer)
-            (TracerAuxiliaries)
-            (TracerFluxes)
-            (TracerPredictands)
-            (Tracer-<br>Reconstructions)
-            (TracerIncrements)
-        (Ice)
-            (IceAuxiliaries)
-            (IceFluxes)
-            (IcePredictands)
-            (IceReconstructions)
-            (IceIncrements)
-        (Turbulence)
-            (Turbulence-<br>Auxiliaries)
-            (TurbulenceFluxes)
-            (Turbulence-<br>Predictands)
-            (Turbulence-<br>Reconstructions)
-            (TurbulenceIncrements)
-```
+![](pincflow_structures.svg)
 
 ### Writing documentation
 
@@ -300,25 +204,25 @@ Contributions to the code should always be accompanied by corresponding contribu
 
   - Module docstrings:
 
-     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a second paragraph with more details.
+     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) additional paragraphs with more details.
 
      1. List links to imported modules in a `# See also` section, with one bullet for each.
 
   - Function docstrings:
 
-     1. For every method, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) a second paragraph with more details.
+     1. For every method, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) additional paragraphs with more details.
 
      1. List all positional and optional arguments with descriptions (but without types and default values) in an `# Arguments` section, with one bullet for each.
 
      1. List all keyword arguments with descriptions (but without types and default values) in a `# Keywords` section, with one bullet for each.
 
-     1. List links to constructors/functions that are called in any of the explicitly defined constructor methods in a `# See also` section, with one bullet for each.
+     1. List links to constructors/functions that are called in any of the function's methods in a `# See also` section, with one bullet for each.
 
   - Type docstrings:
 
-     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a second paragraph with more details.
+     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a additional paragraphs with more details.
 
-     1. If the type is composite, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) a second paragraph with more details, for each explicitly defined constructor method.
+     1. If the type is composite, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) additional paragraphs with more details, for each explicitly defined constructor method.
 
      1. If the type is composite, list all fields with their type restrictions and descriptions in a `# Fields` section, with one bullet for each.
 
@@ -513,6 +417,8 @@ In docstrings, the following syntax elements are different.
     and other stuff.
     ``````
 
+Moreover, every backslash used for LaTeX commands in equations has to be doubled.
+
 ### Building and accessing the documentation
 
 The code uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
@@ -526,16 +432,20 @@ in the root directory of the repository. The documentation will be generated in 
 
 ## List of publications
 
- 1. [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1)
+ 1. Initial flow solver: [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1)
 
- 1. [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381)
+ 1. Initial gravity-wave scheme: [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381)
 
- 1. [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1)
+ 1. Gravity-wave breaking scheme: [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1)
 
- 1. [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1)
+ 1. Gravity-wave theory: [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926)
 
- 1. [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1)
+ 1. Coupling of the flow solver and gravity-wave scheme: [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1)
 
- 1. [Schmid et al. (2021)](https://doi.org/10.1175/MWR-D-21-0126.1)
+ 1. Horizontal propagation and direct approach in the gravity-wave scheme: [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1)
 
- 1. [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1)
+ 1. Semi-implicit time scheme: [Schmid et al. (2021)](https://doi.org/10.1175/MWR-D-21-0126.1)
+
+ 1. Extended gravity-wave theory: [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180)
+
+ 1. Terrain-following coordinates & orographic source: [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1)

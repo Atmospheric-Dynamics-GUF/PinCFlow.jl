@@ -68,8 +68,6 @@ struct Poisson{
 end
 
 function Poisson(domain::Domain)::Poisson
-
-    # Get all necessary fields.
     (; nx, ny, nz) = domain
 
     # Initialize everything.
@@ -80,7 +78,6 @@ function Poisson(domain::Domain)::Poisson
     bicgstab = BicGStab(domain)
     correction = Correction(domain)
 
-    # Return a Poisson instance.
     return Poisson(
         rhs,
         solution,

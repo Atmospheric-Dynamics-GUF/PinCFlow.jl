@@ -6,28 +6,19 @@ TracerIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
 Arrays for the Runge-Kutta updates of tracers.
 
 ```julia
-TracerIncrements(
-    namelists::Namelists,
-    domain::Domain,
-)::TracerIncrements
+TracerIncrements(namelists::Namelists, domain::Domain)::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
 
 ```julia
-TracerIncrements(
-    domain::Domain,
-    tracersetup::NoTracer,
-)::TracerIncrements
+TracerIncrements(domain::Domain, tracersetup::NoTracer)::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerIncrements(
-    domain::Domain,
-    tracersetup::AbstractTracer,
-)::TracerIncrements
+TracerIncrements(domain::Domain, tracersetup::AbstractTracer)::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-initialized arrays.
