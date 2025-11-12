@@ -118,7 +118,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz),
             )
             attributes(dset)["units"] = "s^-2"
-            attributes(dset)["label"] = "\$N^2\\,[\\mathrm{s^{-3}}]\$"
+            attributes(dset)["label"] = "\$N^2\\,[\\mathrm{s^{-2}}]\$"
             attributes(dset)["long_name"] = "squared buoyancy frequency"
 
             if model == Compressible()
@@ -338,10 +338,10 @@ function create_output(state::State, machine_start_time::DateTime)
                     fieldnames(TracerWKBImpact),
                     ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
                     (
-                        "\$\\langle u'\\chi'\\rangel\\,[\\mathrm{m\\,s^{-1}}]\$",
-                        "\$\\langle v'\\chi'\\rangel\\,[\\mathrm{m\\,s^{-1}}]\$",
-                        "\$\\langle w'\\chi'\\rangel\\,[\\mathrm{m\\,s^{-1}}]\$",
-                        "\$\\mathcal{Q}^{(0)}\\,[\\mathrm{s^{-1}}]\$",
+                        "\$\\langle u'\\chi'\\rangle\\,[\\mathrm{m\\,s^{-1}}]\$",
+                        "\$\\langle v'\\chi'\\rangle\\,[\\mathrm{m\\,s^{-1}}]\$",
+                        "\$\\langle w'\\chi'\\rangle\\,[\\mathrm{m\\,s^{-1}}]\$",
+                        "\$(\\partial_t \\chi_\\mathrm{b})^{(0)}_\\mathrm{w},[\\mathrm{s^{-1}}]\$",
                     ),
                     (
                         "zonal GW-tracer flux",
@@ -374,13 +374,13 @@ function create_output(state::State, machine_start_time::DateTime)
             if prepare_restart || save_ray_volumes
                 if x_size == 1 && y_size == 1
                     nr_units = "kg*s^-1"
-                    nr_label = "\$\\mathcal{N}\\,[\\mathrm{kg\\,s^-1}]\$"
+                    nr_label = "\$\\mathcal{N}_r\\,[\\mathrm{kg\\,s^{-1}}]\$"
                 elseif x_size > 1 && y_size > 1
-                    nr_units = "kg*s^-3"
-                    nr_label = "\$\\mathcal{N}\\,[\\mathrm{kg\\,s^-3}]\$"
+                    nr_units = "kg*m^2*s^-1"
+                    nr_label = "\$\\mathcal{N}_r\\,[\\mathrm{kg\\,m^2\\,s^{-1}}]\$"
                 else
-                    nr_units = "kg*s^-2"
-                    nr_label = "\$\\mathcal{N}\\,[\\mathrm{kg\\,s^-2}]\$"
+                    nr_units = "kg*m*s^-1"
+                    nr_label = "\$\\mathcal{N}_r\\,[\\mathrm{kg\\,m\\,s^{-1}}]\$"
                 end
                 for (field, units, units_latex, long_name) in zip(
                     (
@@ -414,18 +414,18 @@ function create_output(state::State, machine_start_time::DateTime)
                         nr_units,
                     ),
                     (
-                        "\$x_{\\mathrm{r}}\\,[\\mathrm{m}]\$",
-                        "\$y_{\\mathrm{r}}\\,\\mathrm{m}\$",
-                        "\$z_{\\mathrm{r}}\\,\\mathrm{m}\$",
-                        "\$\\Delta x_{\\mathrm{r}}\\,\\mathrm{m}\$",
-                        "\$\\Delta y_{\\mathrm{r}}\\,\\mathrm{m}\$",
-                        "\$\\Delta z_{\\mathrm{r}}\\,\\mathrm{m}\$",
-                        "\$k_{\\mathrm{r}}\\,\\mathrm{m^{-1}}\$",
-                        "\$l_{\\mathrm{r}}\\,\\mathrm{m^{-1}}\$",
-                        "\$m_{\\mathrm{r}}\\,\\mathrm{m^{-1}}\$",
-                        "\$\\Delta k_{\\mathrm{r}}\\,\\mathrm{m^{-1}}\$",
-                        "\$\\Delta l_{\\mathrm{r}}\\,\\mathrm{m^{-1}}\$",
-                        "\$\\Delta m_{\\mathrm{r}}\\,\\mathrm{m^{-1}}\$",
+                        "\$x_{r}\\,[\\mathrm{m}]\$",
+                        "\$y_{r}\\,\\mathrm{m}\$",
+                        "\$z_{r}\\,\\mathrm{m}\$",
+                        "\$\\Delta x_{r}\\,\\mathrm{m}\$",
+                        "\$\\Delta y_{r}\\,\\mathrm{m}\$",
+                        "\$\\Delta z_{r}\\,\\mathrm{m}\$",
+                        "\$k_{r}\\,\\mathrm{m^{-1}}\$",
+                        "\$l_{r}\\,\\mathrm{m^{-1}}\$",
+                        "\$m_{r}\\,\\mathrm{m^{-1}}\$",
+                        "\$\\Delta k_{r}\\,\\mathrm{m^{-1}}\$",
+                        "\$\\Delta l_{r}\\,\\mathrm{m^{-1}}\$",
+                        "\$\\Delta m_{r}\\,\\mathrm{m^{-1}}\$",
                         nr_units_latex,
                     ),
                     (
@@ -465,9 +465,9 @@ function create_output(state::State, machine_start_time::DateTime)
                 (:dudt, :dvdt, :dthetadt),
                 ("m*s^-2", "m*s^-2", "K*s^-1"),
                 (
-                    "\$[\\partial_t (\\rho_\\mathrm{b} u_\\mathrm{b})]_\\mathrm{w}\\,[\\mathrm{m\\,s^{-2}}]\$",
-                    "\$[\\partial_t (\\rho_\\mathrm{b} v_\\mathrm{b})]_\\mathrm{w}\\,[\\mathrm{m\\,s^{-2}}]\$",
-                    "\$[\\partial_t (P_\\mathrm{b})]_\\mathrm{w}\\,[\\mathrm{K\\,s^{-1}}]\$",
+                    "\$[\\partial_t (\\rho_\\mathrm{b} u_\\mathrm{b})]_\\mathrm{w}\\,[\\mathrm{kg\\,m^{-2}\\,s^{-2}}]\$",
+                    "\$[\\partial_t (\\rho_\\mathrm{b} v_\\mathrm{b})]_\\mathrm{w}\\,[\\mathrm{kg\\,m^{-2}\\,s^{-2}}]\$",
+                    "\$[\\partial_t (P_\\mathrm{b})]_\\mathrm{w}\\,[\\mathrm{kg\\,K\\,m^{-3}\\,s^{-1}}]\$",
                 ),
                 (
                     "zonal-momentum GW forcing",
