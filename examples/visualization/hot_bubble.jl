@@ -10,7 +10,7 @@ using Revise
 using PinCFlow
 
 h5open("hot_bubble.h5") do data
-    plot_contours(
+    plot_output(
         "examples/results/hot_bubble.svg",
         data,
         ("thetap", 1, 1, 1, 2);

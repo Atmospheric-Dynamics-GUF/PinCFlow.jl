@@ -52,7 +52,7 @@ grid = GridNamelist(;
         ) : (0.0, 0.0, 0.0),
 )
 output = OutputNamelist(;
-    output_variables = (:w,),
+    save_ray_volumes = true,
     output_file = "wkb_mountain_wave.h5",
 )
 sponge = SpongeNamelist(;

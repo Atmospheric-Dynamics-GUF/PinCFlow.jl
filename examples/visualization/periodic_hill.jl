@@ -10,10 +10,6 @@ using Revise
 using PinCFlow
 
 h5open("periodic_hill.h5") do data
-    plot_contours(
-        "examples/results/periodic_hill.svg",
-        data,
-        ("w", 1, 1, 1, 2);
-    )
+    plot_output("examples/results/periodic_hill.svg", data, ("w", 1, 1, 1, 2);)
     return
 end

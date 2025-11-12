@@ -10,7 +10,7 @@ using Revise
 using PinCFlow
 
 h5open("wave_packet.h5") do data
-    plot_contours(
+    plot_output(
         "examples/results/wave_packet.svg",
         data,
         ("u", 20, 20, 30, 2),

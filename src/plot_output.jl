@@ -1,6 +1,6 @@
 """
 ```julia
-plot_contours(
+plot_output(
     file::AbstractString,
     data::HDF5.File,
     fields::Vararg{
@@ -35,4 +35,4 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `time_unit`: Unit used for the time. Must be `"d"`, `"h"`, `"min"` or `"s"`.
 """
-function plot_contours end
+function plot_output end
