@@ -382,7 +382,7 @@ function create_output(state::State, machine_start_time::DateTime)
                     nr_units = "kg*m*s^-1"
                     nr_label = "\$\\mathcal{N}_r\\,[\\mathrm{kg\\,m\\,s^{-1}}]\$"
                 end
-                for (field, units, units_latex, long_name) in zip(
+                for (field, units, label, long_name) in zip(
                     (
                         "xr",
                         "yr",
@@ -426,7 +426,7 @@ function create_output(state::State, machine_start_time::DateTime)
                         "\$\\Delta k_{r}\\,\\mathrm{m^{-1}}\$",
                         "\$\\Delta l_{r}\\,\\mathrm{m^{-1}}\$",
                         "\$\\Delta m_{r}\\,\\mathrm{m^{-1}}\$",
-                        nr_units_latex,
+                        nr_label,
                     ),
                     (
                         "ray-volume position in x",
@@ -455,13 +455,13 @@ function create_output(state::State, machine_start_time::DateTime)
                         chunk = (cr, cx, cy, cz, ct),
                     )
                     attributes(dset)["units"] = units
-                    attributes(dset)["units_latex"] = units_latex
+                    attributes(dset)["label"] = label
                     attributes(dset)["long_name"] = long_name
                 end
             end
 
             # Create datasets for GW tendencies.
-            for (field, units, units_latex, long_name) in zip(
+            for (field, units, label, long_name) in zip(
                 (:dudt, :dvdt, :dthetadt),
                 ("m*s^-2", "m*s^-2", "K*s^-1"),
                 (
@@ -487,7 +487,7 @@ function create_output(state::State, machine_start_time::DateTime)
                         chunk = (cx, cy, cz, ct),
                     )
                     attributes(dset)["units"] = units
-                    attributes(dset)["units_latex"] = units_latex
+                    attributes(dset)["label"] = label
                     attributes(dset)["long_name"] = long_name
                 end
             end
