@@ -21,7 +21,7 @@ atmosphere = AtmosphereNamelist(;
     initial_w = wprime,
     initial_pip = piprime,
     initial_rhop = rhoprime,
-    model = Compressible(),
+    model = PseudoIncompressible(),
 )
 domain = DomainNamelist(;
     x_size = 16,
@@ -35,14 +35,13 @@ domain = DomainNamelist(;
 )
 output = OutputNamelist(;
     output_variables = (:u, :w),
-    output_file = "STIH_tke_without-coupling.h5",
+    output_file = "wavepacket.h5",
     output_interval = 360.0,
-    tmax = 360.0,
+    tmax = 3600.0,
 )
 
 turbulence = TurbulenceNamelist(;
     turbulence_scheme = TKEScheme(),
-    momentum_coupling = true,
 )
 tracer = TracerNamelist(;
     tracer_setup = TracerOn(),
