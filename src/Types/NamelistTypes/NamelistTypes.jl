@@ -101,6 +101,23 @@ abstract type AbstractTracer end
 
 """
 ```julia
+AbstractIce
+```
+
+Abstract type for the inclusion of ice.
+"""
+abstract type AbstractIce end
+
+"""```julia
+AbstractTurbulence
+```
+
+Abstract type for the inclusion of turbulence.
+"""
+abstract type AbstractTurbulence end
+
+"""
+```julia
 UniformBoussinesq <: AbstractBackground
 ```
 

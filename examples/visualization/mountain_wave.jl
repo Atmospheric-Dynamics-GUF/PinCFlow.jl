@@ -5,18 +5,6 @@ using PythonPlot
 using LaTeXStrings
 using PinCFlow
 
-<<<<<<< HEAD
-# Set paths.
-host_name = readchomp(`hostname`)
-user_name = readchomp(`whoami`)
-if occursin("login", host_name)
-	data_path =
-		"/scratch/atmodynamics/" * user_name * "/pinc/examples/mountain_wave/"
-	reference_path = data_path
-elseif occursin("dkrz", host_name)
-	data_path = "/scratch/b/" * user_name * "/pinc/examples/mountain_wave/"
-	reference_path = data_path
-=======
 set_plot_style()
 
 # Import the data.
@@ -24,9 +12,8 @@ set_plot_style()
     data = h5open("./pincflow_output.h5")
 elseif length(ARGS) == 1
     data = h5open(ARGS[1] * "/pincflow_output.h5")
->>>>>>> 2aee3f7
 else
-	data_path = "~/PF/pinc/test/"
+    error("Too many arguments to the script!")
 end
 
 # Set the grid.
@@ -48,16 +35,6 @@ figure(; figsize = (12, 3))
 # Plot in x-y plane.
 k = 10
 subplot(131)
-<<<<<<< HEAD
-(levels, colormap) =
-	symmetric_contours(minimum(w[:, :, iz]), maximum(w[:, :, iz]))
-contours = contourf(
-	x[:, :, iz],
-	y[:, :, iz],
-	w[:, :, iz];
-	levels = levels,
-	cmap = colormap,
-=======
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[:, :, k]), maximum(w[:, :, k]))
 @ivy contours = contourf(
@@ -66,7 +43,6 @@ contours = contourf(
     w[:, :, k];
     levels = levels,
     cmap = colormap,
->>>>>>> 2aee3f7
 )
 xlabel(L"x\,\left[\mathrm{km}\right]")
 ylabel(L"y\,\left[\mathrm{km}\right]")
@@ -76,16 +52,6 @@ colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 # Plot in x-z plane.
 j = 20
 subplot(132)
-<<<<<<< HEAD
-(levels, colormap) =
-	symmetric_contours(minimum(w[:, iy, :]), maximum(w[:, iy, :]))
-contours = contourf(
-	x[:, iy, :],
-	z[:, iy, :],
-	w[:, iy, :];
-	levels = levels,
-	cmap = colormap,
-=======
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[:, j, :]), maximum(w[:, j, :]))
 @ivy contours = contourf(
@@ -94,7 +60,6 @@ contours = contourf(
     w[:, j, :];
     levels = levels,
     cmap = colormap,
->>>>>>> 2aee3f7
 )
 @ivy plot(x[:, j, 1], z[:, j, 1]; color = "black", linewidth = 0.5)
 xlabel(L"x\,\left[\mathrm{km}\right]")
@@ -105,16 +70,6 @@ colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 # Plot in y-z plane.
 i = 20
 subplot(133)
-<<<<<<< HEAD
-(levels, colormap) =
-	symmetric_contours(minimum(w[ix, :, :]), maximum(w[ix, :, :]))
-contours = contourf(
-	y[ix, :, :],
-	z[ix, :, :],
-	w[ix, :, :];
-	levels = levels,
-	cmap = colormap,
-=======
 @ivy (levels, colormap) =
     symmetric_contours(minimum(w[i, :, :]), maximum(w[i, :, :]))
 @ivy contours = contourf(
@@ -123,7 +78,6 @@ contours = contourf(
     w[i, :, :];
     levels = levels,
     cmap = colormap,
->>>>>>> 2aee3f7
 )
 @ivy plot(y[i, :, 1], z[i, :, 1]; color = "black", linewidth = 0.5)
 xlabel(L"y\,\left[\mathrm{km}\right]")

@@ -46,12 +46,9 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
-<<<<<<< HEAD
     IceNamelist,
     TurbulenceNamelist,
     MultiWavePacketNamelist,
-=======
->>>>>>> 2aee3f7
     Namelists
 
 # Export singletons needed in namelists.
@@ -64,14 +61,11 @@ export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export SteadyState, SingleColumn, MultiColumn
 export NoTracer, LinearTracer
-<<<<<<< HEAD
 export NoIce, IceOn
 export CloudCoverOff, CloudCoverOn
 export WKBMultipleWavePackets, MultipleWavePackets
 export RandomWavePackets
 export NoTurbulence, TurbulenceOn
-=======
->>>>>>> 2aee3f7
 
 # Export model-state constructor.
 export State

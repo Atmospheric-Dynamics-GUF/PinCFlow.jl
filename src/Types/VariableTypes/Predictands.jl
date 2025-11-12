@@ -21,20 +21,11 @@ Construct a `Predictands` instance with dimensions and initial values depending 
 
 ```julia
 Predictands(
-<<<<<<< HEAD
-	namelists::Namelists,
-	constants::Constants,
-	domain::Domain,
-	atmosphere::Atmosphere,
-	model::AbstractModel,
-	testcase::AbstractTestCase,
-=======
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
     testcase::AbstractTestCase,
->>>>>>> 2aee3f7
 )::Predictands
 ```
 
@@ -42,36 +33,6 @@ Construct a `Predictands` instance. The mass-weighted potential temperature `p` 
 
 The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The array for the mass-weighted potential temperature is constructed with size `(0, 0, 0)`.
 
-<<<<<<< HEAD
-```julia
-Predictands(
-	namelists::Namelists,
-	constants::Constants,
-	domain::Domain,
-	atmosphere::Atmosphere,
-	model::Compressible,
-	testcase::AbstractTestCase,
-)::Predictands
-```
-
-Construct a `Predictands` instance in compressible mode and non-wave-packet test cases.
-
-The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The mass-weighted potential temperature is initialized with the corresponding array in `atmosphere`.
-
-```julia
-Predictands(
-	namelists::Namelists,
-	constants::Constants,
-	domain::Domain,
-	atmosphere::Atmosphere,
-	grid::Grid,
-	model::PseudoIncompressible,
-	testcase::WavePacket,
-)::Predictands
-```
-
-=======
->>>>>>> 2aee3f7
 # Fields
 
   - `rho::A`: Density.
@@ -122,7 +83,6 @@ function Predictands(
 	atmosphere::Atmosphere,
 	grid::Grid,
 )::Predictands
-<<<<<<< HEAD
 	(; model, testcase) = namelists.setting
 	return Predictands(
 		namelists,
@@ -565,7 +525,6 @@ function Predictands(
 
 	# Return a Predictands instance.
 	return Predictands(rho, rhop, u, v, w, pip, p)
-=======
     (; testcase) = namelists.setting
     return Predictands(namelists, constants, domain, atmosphere, grid, testcase)
 end
@@ -594,5 +553,4 @@ function Predictands(
     @ivy w .= backgroundflow_dim[3] ./ uref
 
     return Predictands(rho, rhop, u, v, w, pip, p)
->>>>>>> 2aee3f7
 end
