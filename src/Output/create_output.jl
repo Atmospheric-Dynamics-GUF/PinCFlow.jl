@@ -94,9 +94,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz),
             )
             attributes(dset)["units"] = "kg*m^-3"
-            attributes(
-                dset,
-            )["label"] = L"\overline{\rho}\,[\mathrm{kg\,m^{-3}}]"
+            attributes(dset)["label"] =
+                L"\overline{\rho}\,[\mathrm{kg\,m^{-3}}]"
             attributes(dset)["long_name"] = "density background"
 
             dset = create_dataset(
@@ -279,9 +278,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "m*s^-1"
-            attributes(
-                dset,
-            )["label"] = L"\widehat{w}_{\mathrm{s}}\,[\mathrm{m\,s^{-1}}]"
+            attributes(dset)["label"] =
+                L"\widehat{w}_{\mathrm{s}}\,[\mathrm{m\,s^{-1}}]"
             attributes(dset)["long_name"] = "staggered transformed vertical wind"
         end
         if :thetap in output_variables
