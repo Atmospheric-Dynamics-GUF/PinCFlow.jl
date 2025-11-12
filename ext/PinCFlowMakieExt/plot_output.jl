@@ -88,7 +88,7 @@ function plot_output(
                 column += 2
                 @ivy zk =
                     round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
-                axis = Axis(
+                Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad z\approx%$zk\,\mathrm{%$space_unit}",
                     xlabel = L"x\,[\mathrm{%$space_unit}]",
@@ -102,7 +102,6 @@ function plot_output(
                     colormap_name,
                 )
                 @ivy plot = scatter!(
-                    axis,
                     xr[:, :, :, k][nonzero],
                     yr[:, :, :, k][nonzero];
                     color = ar[:, :, :, k][nonzero],
@@ -129,7 +128,7 @@ function plot_output(
                 column += 2
                 @ivy yj =
                     round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
-                axis = Axis(
+                Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad y\approx%$yj\,\mathrm{%$space_unit}",
                     xlabel = L"x\,[\mathrm{%$space_unit}]",
@@ -143,7 +142,6 @@ function plot_output(
                     colormap_name,
                 )
                 @ivy plot = scatter!(
-                    axis,
                     xr[:, :, j, :][nonzero],
                     zr[:, :, j, :][nonzero];
                     color = ar[:, :, j, :][nonzero],
@@ -170,7 +168,7 @@ function plot_output(
                 column += 2
                 @ivy xi =
                     round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
-                axis = Axis(
+                Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad x\approx%$xi\,\mathrm{%$space_unit}",
                     xlabel = L"y\,[\mathrm{%$space_unit}]",
@@ -184,7 +182,6 @@ function plot_output(
                     colormap_name,
                 )
                 @ivy plot = scatter!(
-                    axis,
                     yr[:, i, :, :][nonzero],
                     zr[:, i, :, :][nonzero];
                     color = ar[:, i, :, :][nonzero],
@@ -229,8 +226,7 @@ function plot_output(
                     number,
                     colormap_name,
                 )
-                @ivy contours = contourf!(
-                    axis,
+                @ivy plot = contourf!(
                     x[:, :, k],
                     y[:, :, k],
                     phi[:, :, k];
@@ -240,7 +236,7 @@ function plot_output(
                 tightlimits!(axis)
                 Colorbar(
                     figure[row, column],
-                    contours;
+                    plot;
                     ticks = levels,
                     tickformat = "{:9.2E}",
                     label,
@@ -267,8 +263,7 @@ function plot_output(
                     number,
                     colormap_name,
                 )
-                @ivy contours = contourf!(
-                    axis,
+                @ivy plot = contourf!(
                     x[:, j, :],
                     z[:, j, :],
                     phi[:, j, :];
@@ -278,7 +273,7 @@ function plot_output(
                 tightlimits!(axis)
                 Colorbar(
                     figure[row, column],
-                    contours;
+                    plot;
                     ticks = levels,
                     tickformat = "{:9.2E}",
                     label,
@@ -305,8 +300,7 @@ function plot_output(
                     number,
                     colormap_name,
                 )
-                @ivy contours = contourf!(
-                    axis,
+                @ivy plot = contourf!(
                     y[i, :, :],
                     z[i, :, :],
                     phi[i, :, :];
@@ -316,7 +310,7 @@ function plot_output(
                 tightlimits!(axis)
                 Colorbar(
                     figure[row, column],
-                    contours;
+                    plot;
                     ticks = levels,
                     tickformat = "{:9.2E}",
                     label,
