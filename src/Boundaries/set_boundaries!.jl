@@ -56,6 +56,10 @@ function set_boundaries!(
     set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
 
+    set_turbulence_zonal_boundaries!(state, variables)
+    set_turbulence_meridional_boundaries!(state, variables)
+    set_turbulence_vertical_boundaries!(state, variables)
+
     return
 end
 
@@ -63,6 +67,8 @@ function set_boundaries!(state::State, variables::BoundaryFluxes)
     set_vertical_boundaries!(state, variables)
 
     set_tracer_vertical_boundaries!(state, variables)
+
+    set_turbulence_vertical_boundaries!(state, variables)
 
     return
 end

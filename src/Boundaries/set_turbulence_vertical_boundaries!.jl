@@ -22,7 +22,7 @@ Return for configurations without turbulence transport.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -42,7 +42,7 @@ Return for configurations without turbulence transport.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -62,7 +62,7 @@ Return for configurations without turbulence transport.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -84,7 +84,7 @@ set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -106,7 +106,7 @@ set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -148,7 +148,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
     (; namelists, domain) = state
     (; turbulencepredictands) = state.turbulence
@@ -176,7 +176,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
@@ -203,9 +203,10 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
-    (; zz_size, nzz, ko, k0, k1) = state.domain
+    (; nz, ko, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
     (; turbulencefluxes) = state.turbulence
 
     @ivy if ko == 0
@@ -214,7 +215,7 @@ function set_turbulence_vertical_boundaries!(
         end
     end
 
-    @ivy if ko + nzz == zz_size
+    @ivy if ko + nz == z_size
         for field in fieldnames(TurbulenceFluxes)
             getfield(turbulencefluxes, field)[:, :, k1, 3] .= 0.0
         end

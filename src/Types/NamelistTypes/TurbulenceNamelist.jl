@@ -21,16 +21,19 @@ struct TurbulenceNamelist{A <: AbstractTurbulence, B <: Bool}
     turbulence_scheme::A
     momentum_coupling::B
     entropy_coupling::B
+    tracer_coupling::B
 end
 
 function TurbulenceNamelist(;
     turbulence_scheme::AbstractTurbulence = NoTurbulence(),
     momentum_coupling::Bool = true,
     entropy_coupling::Bool = true,
+    tracer_coupling::Bool = true,
 )::TurbulenceNamelist
     return TurbulenceNamelist(
         turbulence_scheme,
         momentum_coupling,
         entropy_coupling,
+        tracer_coupling,
     )
 end

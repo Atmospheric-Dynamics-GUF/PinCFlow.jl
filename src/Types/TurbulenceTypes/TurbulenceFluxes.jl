@@ -25,7 +25,7 @@ Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations
 ```julia
 TurbulenceFluxes(
     domain::Domain,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )::TurbulenceFluxes
 ```
 
@@ -67,7 +67,7 @@ end
 
 function TurbulenceFluxes(
     domain::Domain,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )::TurbulenceFluxes
     (; nxx, nyy, nzz) = domain
 

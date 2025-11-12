@@ -22,7 +22,7 @@ Return for configurations without turbulence transport.
 set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -42,7 +42,7 @@ Return for configurations without turbulence transport.
 set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -64,7 +64,7 @@ set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -86,7 +86,7 @@ set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 ```
 
@@ -128,7 +128,7 @@ end
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
     (; namelists, domain) = state
     (; turbulencepredictands) = state.turbulence
@@ -155,7 +155,7 @@ end
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
@@ -184,7 +184,7 @@ function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::AbstractWKBMode,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
     (; namelists, domain) = state
     (; chiq0) = state.turbulence.turbulenceforcings
@@ -214,7 +214,7 @@ function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::AbstractWKBMode,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
     (; namelists, domain) = state
     (; chiq0) = state.turbulence.turbulenceforcings

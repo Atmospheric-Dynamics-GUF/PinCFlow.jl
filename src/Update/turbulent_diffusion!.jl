@@ -20,7 +20,8 @@ function turbulent_diffusion!(
     dt::AbstractFloat,
     turbulence_scheme::TKEScheme,
 )
-    (; momentum_coupling, entropy_coupling) = state.namelists.turbulence
+    (; momentum_coupling, entropy_coupling, tracer_coupling) =
+        state.namelists.turbulence
     if momentum_coupling
         turbulent_diffusion!(state, dt, U())
         turbulent_diffusion!(state, dt, V())
@@ -29,21 +30,26 @@ function turbulent_diffusion!(
     if entropy_coupling
         turbulent_diffusion!(state, dt, Theta())
     end
-    turbulent_diffusion!(state, dt, Chi())
+    if tracer_coupling
+        turbulent_diffusion!(state, dt, Chi())
+    end
     return
 end
 
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u) = state.variables.predictands
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
     (; km) = state.turbulence.turbulencediffusioncoefficients
+
     dtdz2 = dt / (2.0 * dz^2.0)
+
     reset_thomas!(state)
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    ath, bth, cth, fth, qth, pth, qth_bc, fth_bc =
+        thomas_arrays(state, nx + 1, ny, nz)
+
+    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         k33u =
             0.5 * (
                 (
@@ -96,7 +102,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
 
         jacc = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
 
-        ith = i - nbx
+        ith = i - nbx + 1
         jth = j - nby
         kth = k - nbz
 
@@ -111,21 +117,24 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
 
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
-    u[i0:i1, j0:j1, k0:k1] .= fth
+    u[(i0 - 1):i1, j0:j1, k0:k1] .= fth
     return
 end
 
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
     (; nbx, nby, nbz) = state.namelists.domain
     (; v) = state.variables.predictands
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
     (; km) = state.turbulence.turbulencediffusioncoefficients
+
     dtdz2 = dt / (2.0 * dz^2.0)
+
     reset_thomas!(state)
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    ath, bth, cth, fth, qth, pth, qth_bc, fth_bc =
+        thomas_arrays(state, nx, ny + 1, nz)
+
+    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         k33u =
             0.5 * (
                 (
@@ -179,7 +188,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
         jacc = 0.5 * (jac[i, j, k] + jac[i, j + 1, k])
 
         ith = i - nbx
-        jth = j - nby
+        jth = j - nby + 1
         kth = k - nbz
 
         ath[ith, jth, kth] = -dtdz2 * k33d / jacc
@@ -193,7 +202,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
 
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
-    v[i0:i1, j0:j1, k0:k1] .= fth
+    v[i0:i1, (j0 - 1):j1, k0:k1] .= fth
     return
 end
 
@@ -201,15 +210,17 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u, v, w) = state.variables.predictands
     (; uold, vold) = state.variables.backups
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
     (; km) = state.turbulence.turbulencediffusioncoefficients
-    dtdz2 = dt / (2.0 * dz^2.0)
-    reset_thomas!(state)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    dtdz2 = dt / (2.0 * dz^2.0)
+
+    reset_thomas!(state)
+    ath, bth, cth, fth, qth, pth, qth_bc, fth_bc =
+        thomas_arrays(state, nx, ny, nz + 1)
+
+    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         met13c =
             (
                 jac[i, j, k] * met[i, j, k + 1, 1, 3] +
@@ -369,7 +380,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
 
         ith = i - nbx
         jth = j - nby
-        kth = k - nbz
+        kth = k - nbz + 1
 
         ath[ith, jth, kth] = -dtdz2 / jacc^2.0 * k33d * jacd
         bth[ith, jth, kth] = 1.0 + dtdz2 / jacc^2.0 * (k33u + k33d) * jacc
@@ -381,11 +392,11 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
                 k33u * jacu * met13u * uu - (k33u + k33d) * jacc * met13c * uc +
                 k33d * jacd * met13d * ud
             ) +
-            2.0 * dtdz2 * met13c / jacc *
+            2.0 * dtdz2 * met23c / jacc *
             (k33u * vu - (k33u + k33d) * vc + k33d * vd) -
             2.0 * dtdz2 / jacc^2.0 * (
-                k33u * jacu * met13u * vu - (k33u + k33d) * jacc * met13c * vc +
-                k33d * jacd * met13d * vd
+                k33u * jacu * met23u * vu - (k33u + k33d) * jacc * met23c * vc +
+                k33d * jacd * met23d * vd
             ) +
             dtdz2 *
             jacc^2.0 *
@@ -398,7 +409,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
 
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
-    w[i0:i1, j0:j1, k0:k1] .= fth
+    w[i0:i1, j0:j1, (k0 - 1):k1] .= fth
     return
 end
 
@@ -424,17 +435,18 @@ function turbulent_diffusion!(
     variable::Theta,
     model::Compressible,
 )
-    (; p) = state.variables.predictands
-    (; nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; p, rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
     (; kh) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
+    ath, bth, cth, fth, qth, pth, qth_bc, fth_bc =
+        thomas_arrays(state, nx, ny, nz)
 
     ii = i0:i1
     jj = j0:j1
@@ -457,14 +469,21 @@ function turbulent_diffusion!(
         cth[:, :, k] .= .-dtdz2 .* khu
 
         fth[:, :, k] =
-            (1 .- dtdz2 .* khu .- dtdz2 .* khd) .* p[ii, jj, knbz] .+
-            dtdz2 .* khu .* p[ii, jj, knbz + 1] .+
-            dtdz2 .* khd .* p[ii, jj, knbz - 1]
+            (1 .- dtdz2 .* khu .- dtdz2 .* khd) .*
+            (p[ii, jj, knbz] ./ (rho[ii, jj, knbz] .+ rhobar[ii, jj, knbz])) .+
+            dtdz2 .* khu .* (
+                p[ii, jj, knbz + 1] ./
+                (rho[ii, jj, knbz + 1] .+ rhobar[ii, jj, knbz + 1])
+            ) .+
+            dtdz2 .* khd .* (
+                p[ii, jj, knbz - 1] ./
+                (rho[ii, jj, knbz - 1] .+ rhobar[ii, jj, knbz - 1])
+            )
     end
 
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
-    p[ii, jj, kk] .= fth
+    p[ii, jj, kk] .= fth .* (rho[ii, jj, kk] .+ rhobar[ii, jj, kk])
     return
 end
 
@@ -491,20 +510,21 @@ function turbulent_diffusion!(
     tracer_setup::TracerOn,
 )
     (; tracerpredictands) = state.tracer
-    (; nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
     (; kh) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
+    ath, bth, cth, fth, qth, pth, qth_bc, fth_bc =
+        thomas_arrays(state, nx, ny, nz)
 
     ii = i0:i1
     jj = j0:j1
     kk = k0:k1
+
     for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)
         @ivy for k in 1:nz

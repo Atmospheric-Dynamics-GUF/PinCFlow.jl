@@ -823,29 +823,6 @@ function update!(
     return
 end
 
-# function update!(
-#     state::State,
-#     dt::AbstractFloat,
-#     variable::U,
-#     side::RHS,
-#     integration::Implicit,
-#     rayleigh_factor::AbstractFloat,
-# )
-#     (; turbulence_scheme) = state.namelists.turbulence
-
-#     update!(
-#         state,
-#         dt,
-#         variable,
-#         side,
-#         integration,
-#         rayleigh_factor,
-#         turbulence_scheme,
-#     )
-
-#     return
-# end
-
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -853,7 +830,6 @@ function update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-    #turbulence_scheme::NoTurbulence,
 )
     (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
@@ -893,120 +869,6 @@ function update!(
 
     return
 end
-
-# function update!(
-#     state::State,
-#     dt::AbstractFloat,
-#     variable::U,
-#     side::RHS,
-#     integration::Implicit,
-#     rayleigh_factor::AbstractFloat,
-#     turbulence_scheme::TKEScheme,
-# )
-#     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-#     (; nbx, nby, nbz) = state.namelists.domain
-#     (; rhobar) = state.atmosphere
-#     (; betar) = state.sponge
-#     (; rho, u, pip) = state.variables.predictands
-#     (; i0, i1, j0, j1, k0, k1) = state.domain
-#     (; jac, met, dz) = state.grid
-#     (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-#         state.variables.auxiliaries
-#     (; km) = state.turbulence.turbulencediffusioncoefficients
-
-#     reset_thomas!(state)
-
-#     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-#         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-#         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
-#         rhoedger += rhobaredger
-
-#         gradient = compute_pressure_gradient(state, pip, i, j, k, U())
-
-#         force = compute_volume_force(state, i, j, k, U())
-
-#         factor = 1.0
-
-#         if damp_horizontal_wind_on_rhs
-#             factor +=
-#                 dt *
-#                 0.5 *
-#                 (betar[i, j, k] + betar[i + 1, j, k]) *
-#                 rayleigh_factor
-#         end
-#         jpedger = compute_compressible_wind_factor(state, i, j, k, U())
-
-#         facu =
-#             0.5 * (
-#                 (
-#                     jac[i, j, k] * (
-#                         jac[i, j, k + 1] *
-#                         met[i, j, k + 1, 3, 3] *
-#                         km[i, j, k + 1]
-#                     ) +
-#                     jac[i, j, k + 1] *
-#                     (jac[i, j, k] * met[i, j, k, 3, 3] * km[i, j, k])
-#                 ) / (jac[i, j, k] + jac[i, j, k + 1]) +
-#                 (
-#                     jac[i, j + 1, k] * (
-#                         jac[i, j + 1, k + 1] *
-#                         met[i, j + 1, k + 1, 3, 3] *
-#                         km[i, j + 1, k + 1]
-#                     ) +
-#                     jac[i, j + 1, k + 1] * (
-#                         jac[i, j + 1, k] *
-#                         met[i, j + 1, k, 3, 3] *
-#                         km[i, j + 1, k]
-#                     )
-#                 ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-#             )
-#         facd =
-#             0.5 * (
-#                 (
-#                     jac[i, j, k] * (
-#                         jac[i, j, k - 1] *
-#                         met[i, j, k - 1, 3, 3] *
-#                         km[i, j, k - 1]
-#                     ) +
-#                     jac[i, j, k - 1] *
-#                     (jac[i, j, k] * met[i, j, k, 3, 3] * km[i, j, k])
-#                 ) / (jac[i, j, k] + jac[i, j, k - 1]) +
-#                 (
-#                     jac[i, j + 1, k] * (
-#                         jac[i, j + 1, k - 1] *
-#                         met[i, j + 1, k - 1, 3, 3] *
-#                         km[i, j + 1, k - 1]
-#                     ) +
-#                     jac[i, j + 1, k - 1] * (
-#                         jac[i, j + 1, k] *
-#                         met[i, j + 1, k, 3, 3] *
-#                         km[i, j + 1, k]
-#                     )
-#                 ) / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
-#             )
-
-#         ith = i - nbx
-#         jth = j - nby
-#         kth = k - nbz
-
-#         ath[ith, jth, kth] =
-#             -dt * facd / dz^2.0 / (0.5 * (jac[i, j, k] + jac[i + 1, j, k]))
-#         bth[ith, jth, kth] =
-#             factor +
-#             dt * (facd + facu) / dz^2.0 /
-#             (0.5 * (jac[i, j, k] + jac[i + 1, j, k]))
-#         cth[ith, jth, kth] =
-#             -dt * facu / dz^2.0 / (0.5 * (jac[i, j, k] + jac[i + 1, j, k]))
-#         fth[ith, jth, kth] =
-#             u[i, j, k] + dt * ((-gradient + force / rhoedger) * jpedger)
-#     end
-
-#     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
-
-#     u[i0:i1, j0:j1, k0:k1] .= fth
-
-#     return
-# end
 
 function update!(
     state::State,
@@ -1116,28 +978,6 @@ function update!(
     return
 end
 
-# function update!(
-#     state::State,
-#     dt::AbstractFloat,
-#     variable::V,
-#     side::RHS,
-#     integration::Implicit,
-#     rayleigh_factor::AbstractFloat,
-# )
-#     (; turbulence_scheme) = state.namelists.turbulence
-
-#     update!(
-#         state,
-#         dt,
-#         variable,
-#         side,
-#         integration,
-#         rayleigh_factor,
-#         turbulence_scheme,
-#     )
-#     return
-# end
-
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1145,7 +985,6 @@ function update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-    #turbulence_scheme::NoTurbulence,
 )
     (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
@@ -1185,120 +1024,6 @@ function update!(
 
     return
 end
-
-# function update!(
-#     state::State,
-#     dt::AbstractFloat,
-#     variable::V,
-#     side::RHS,
-#     integration::Implicit,
-#     rayleigh_factor::AbstractFloat,
-#     turbulence_scheme::TKEScheme,
-# )
-#     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-#     (; nbx, nby, nbz) = state.namelists.domain
-#     (; rhobar) = state.atmosphere
-#     (; betar) = state.sponge
-#     (; rho, v, pip) = state.variables.predictands
-#     (; i0, i1, j0, j1, k0, k1) = state.domain
-#     (; jac, met, dz) = state.grid
-#     (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-#         state.variables.auxiliaries
-#     (; km) = state.turbulence.turbulencediffusioncoefficients
-
-#     reset_thomas!(state)
-
-#     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-#         rhoedger = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-#         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
-#         rhoedger += rhobaredger
-
-#         gradient = compute_pressure_gradient(state, pip, i, j, k, V())
-
-#         force = compute_volume_force(state, i, j, k, V())
-
-#         factor = 1.0
-
-#         if damp_horizontal_wind_on_rhs
-#             factor +=
-#                 dt *
-#                 0.5 *
-#                 (betar[i, j, k] + betar[i, j + 1, k]) *
-#                 rayleigh_factor
-#         end
-#         jpedger = compute_compressible_wind_factor(state, i, j, k, V())
-
-#         facu =
-#             0.5 * (
-#                 (
-#                     jac[i, j, k] * (
-#                         jac[i, j, k + 1] *
-#                         met[i, j, k + 1, 3, 3] *
-#                         km[i, j, k + 1]
-#                     ) +
-#                     jac[i, j, k + 1] *
-#                     (jac[i, j, k] * met[i, j, k, 3, 3] * km[i, j, k])
-#                 ) / (jac[i, j, k] + jac[i, j, k + 1]) +
-#                 (
-#                     jac[i, j + 1, k] * (
-#                         jac[i, j + 1, k + 1] *
-#                         met[i, j + 1, k + 1, 3, 3] *
-#                         km[i, j + 1, k + 1]
-#                     ) +
-#                     jac[i, j + 1, k + 1] * (
-#                         jac[i, j + 1, k] *
-#                         met[i, j + 1, k, 3, 3] *
-#                         km[i, j + 1, k]
-#                     )
-#                 ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-#             )
-#         facd =
-#             0.5 * (
-#                 (
-#                     jac[i, j, k] * (
-#                         jac[i, j, k - 1] *
-#                         met[i, j, k - 1, 3, 3] *
-#                         km[i, j, k - 1]
-#                     ) +
-#                     jac[i, j, k - 1] *
-#                     (jac[i, j, k] * met[i, j, k, 3, 3] * km[i, j, k])
-#                 ) / (jac[i, j, k] + jac[i, j, k - 1]) +
-#                 (
-#                     jac[i, j + 1, k] * (
-#                         jac[i, j + 1, k - 1] *
-#                         met[i, j + 1, k - 1, 3, 3] *
-#                         km[i, j + 1, k - 1]
-#                     ) +
-#                     jac[i, j + 1, k - 1] * (
-#                         jac[i, j + 1, k] *
-#                         met[i, j + 1, k, 3, 3] *
-#                         km[i, j + 1, k]
-#                     )
-#                 ) / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
-#             )
-
-#         ith = i - nbx
-#         jth = j - nby
-#         kth = k - nbz
-
-#         ath[ith, jth, kth] =
-#             -dt * facd / dz^2.0 / (0.5 * (jac[i, j, k] + jac[i, j + 1, k]))
-#         bth[ith, jth, kth] =
-#             factor +
-#             dt * (facd + facu) / dz^2.0 /
-#             (0.5 * (jac[i, j, k] + jac[i, j + 1, k]))
-#         cth[ith, jth, kth] =
-#             -dt * facu / dz^2.0 / (0.5 * (jac[i, j, k] + jac[i, j + 1, k]))
-#         fth[ith, jth, kth] =
-#             v[i, j, k] + dt * ((-gradient + force / rhoedger) * jpedger)
-#     end
-
-#     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
-
-#     v[i0:i1, j0:j1, k0:k1] .= fth
-
-#     return
-# end
 
 function update!(
     state::State,
@@ -1513,28 +1238,6 @@ function update!(
     return
 end
 
-# function update!(
-#     state::State,
-#     dt::AbstractFloat,
-#     variable::W,
-#     side::RHS,
-#     integration::Implicit,
-#     rayleigh_factor::AbstractFloat,
-# )
-#     (; turbulence_scheme) = state.namelists.turbulence
-
-#     update!(
-#         state,
-#         dt,
-#         variable,
-#         side,
-#         integration,
-#         rayleigh_factor,
-#         turbulence_scheme,
-#     )
-#     return
-# end
-
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1542,7 +1245,6 @@ function update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-    #turbulence_scheme::NoTurbulence,
 )
     (; z_size) = state.namelists.domain
     (; g_ndim) = state.constants
@@ -1632,110 +1334,6 @@ function update!(
 
     return
 end
-
-# function update!(
-#     state::State,
-#     dt::AbstractFloat,
-#     variable::W,
-#     side::RHS,
-#     integration::Implicit,
-#     rayleigh_factor::AbstractFloat,
-#     turbulence_scheme::TKEScheme,
-# )
-#     (; g_ndim) = state.constants
-#     (; nbx, nby, nbz) = state.namelists.domain
-#     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-#     (; jac, met, dz) = state.grid
-#     (; rhobar, n2) = state.atmosphere
-#     (; betar) = state.sponge
-#     (; rho, rhop, u, v, w, pip) = state.variables.predictands
-#     (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-#         state.variables.auxiliaries
-#     (; km) = state.turbulence.turbulencediffusioncoefficients
-
-#     reset_thomas!(state)
-
-#     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-#         fac = jac[i, j, k] * met[i, j, k, 3, 3] * km[i, j, k]
-#         facu = jac[i, j, k + 1] * met[i, j, k + 1, 3, 3] * km[i, j, k + 1]
-
-#         uu =
-#             (
-#                 jac[i, j, k + 2] * (u[i - 1, j, k + 1] + u[i, j, k + 1]) * 0.5 +
-#                 jac[i, j, k + 1] * (u[i - 1, j, k + 2] + u[i, j, k + 2]) * 0.5
-#             ) / (jac[i, j, k + 1] + jac[i, j, k + 2])
-#         uc =
-#             (
-#                 jac[i, j, k + 1] * (u[i - 1, j, k] + u[i, j, k]) * 0.5 +
-#                 jac[i, j, k] * (u[i - 1, j, k + 1] + u[i, j, k + 1]) * 0.5
-#             ) / (jac[i, j, k] + jac[i, j, k + 1])
-#         ud =
-#             (
-#                 jac[i, j, k] * (u[i - 1, j, k - 1] + u[i, j, k - 1]) * 0.5 +
-#                 jac[i, j, k - 1] * (u[i - 1, j, k] + u[i, j, k]) * 0.5
-#             ) / (jac[i, j, k - 1] + jac[i, j, k])
-
-#         vu =
-#             (
-#                 jac[i, j, k + 2] * (v[i, j - 1, k + 1] + v[i, j, k + 1]) * 0.5 +
-#                 jac[i, j, k + 1] * (v[i, j - 1, k + 2] + v[i, j, k + 2]) * 0.5
-#             ) / (jac[i, j, k + 1] + jac[i, j, k + 2])
-#         vc =
-#             (
-#                 jac[i, j, k + 1] * (v[i, j - 1, k] + v[i, j, k]) * 0.5 +
-#                 jac[i, j, k] * (v[i, j - 1, k + 1] + v[i, j, k + 1]) * 0.5
-#             ) / (jac[i, j, k] + jac[i, j, k + 1])
-#         vd =
-#             (
-#                 jac[i, j, k] * (v[i, j - 1, k - 1] + v[i, j, k - 1]) * 0.5 +
-#                 jac[i, j, k - 1] * (v[i, j - 1, k] + v[i, j, k]) * 0.5
-#             ) / (jac[i, j, k - 1] + jac[i, j, k])
-
-#         jacu =
-#             2.0 * (jac[i, j, k + 2] * jac[i, j, k + 1]) /
-#             (jac[i, j, k + 1] + jac[i, j, k + 2])
-#         jacc =
-#             2.0 * (jac[i, j, k + 1] * jac[i, j, k]) /
-#             (jac[i, j, k] + jac[i, j, k + 1])
-#         jacd =
-#             2.0 * (jac[i, j, k] * jac[i, j, k - 1]) /
-#             (jac[i, j, k - 1] + jac[i, j, k])
-
-#         met13u =
-#             (
-#                 jac[i, j, k + 2] * met[i, j, k + 1, 1, 3] +
-#                 jac[i, j, k + 1] * met[i, j, k + 2, 1, 3]
-#             ) / (jac[i, j, k + 1] + jac[i, j, k + 2])
-#         met13c =
-#             (
-#                 jac[i, j, k + 1] * met[i, j, k, 1, 3] +
-#                 jac[i, j, k] * met[i, j, k + 1, 1, 3]
-#             ) / (jac[i, j, k] + jac[i, j, k + 1])
-#         met13d =
-#             (
-#                 jac[i, j, k] * met[i, j, k - 1, 1, 3] +
-#                 jac[i, j, k - 1] * met[i, j, k, 1, 3]
-#             ) / (jac[i, j, k - 1] + jac[i, j, k])
-
-#         met23u =
-#             (
-#                 jac[i, j, k + 2] * met[i, j, k + 1, 2, 3] +
-#                 jac[i, j, k + 1] * met[i, j, k + 2, 2, 3]
-#             ) / (jac[i, j, k + 1] + jac[i, j, k + 2])
-#         met23c =
-#             (
-#                 jac[i, j, k + 1] * met[i, j, k, 2, 3] +
-#                 jac[i, j, k] * met[i, j, k + 1, 2, 3]
-#             ) / (jac[i, j, k] + jac[i, j, k + 1])
-#         met23d =
-#             (
-#                 jac[i, j, k] * met[i, j, k - 1, 2, 3] +
-#                 jac[i, j, k - 1] * met[i, j, k, 2, 3]
-#             ) / (jac[i, j, k - 1] + jac[i, j, k])
-#     end
-
-#     return
-# end
 
 function update!(state::State, dt::AbstractFloat, variable::PiP)
     (; model) = state.namelists.atmosphere

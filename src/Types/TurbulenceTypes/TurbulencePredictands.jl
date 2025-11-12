@@ -39,7 +39,7 @@ TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
     variables::Variables,
 )::TurbulencePredictands
 ```
@@ -111,7 +111,7 @@ function TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
     variables::Variables,
 )::TurbulencePredictands
     (; nxx, nyy, nzz) = domain

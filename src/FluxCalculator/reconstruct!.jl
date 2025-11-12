@@ -283,7 +283,7 @@ function reconstruct!(state::State, turbulence_scheme::NoTurbulence)
     return
 end
 
-function reconstruct!(state::State, turbulence_scheme::AbstractTurbulence)
+function reconstruct!(state::State, turbulence_scheme::TKEScheme)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries

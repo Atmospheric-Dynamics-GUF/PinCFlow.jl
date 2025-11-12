@@ -28,7 +28,7 @@ Construct a `TurbulenceReconstructions` instance with zero-size arrays for confi
 ```julia
 TurbulenceReconstructions(
     domain::Domain,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )::TurbulenceReconstructions
 ```
 
@@ -70,7 +70,7 @@ end
 
 function TurbulenceReconstructions(
     domain::Domain,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )::TurbulenceReconstructions
     (; nxx, nyy, nzz) = domain
 

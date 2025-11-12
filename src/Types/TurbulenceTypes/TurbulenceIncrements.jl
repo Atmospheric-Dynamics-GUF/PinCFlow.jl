@@ -23,7 +23,7 @@ Construct a `TurbulenceIncrements` instance with zero-size arrays for configurat
 ```julia
 TurbulenceIncrements(
     domain::Domain,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )::TurbulenceIncrements
 ```
 
@@ -65,7 +65,7 @@ end
 
 function TurbulenceIncrements(
     domain::Domain,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )::TurbulenceIncrements
     (; nxx, nyy, nzz) = domain
 

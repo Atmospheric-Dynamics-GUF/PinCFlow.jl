@@ -230,8 +230,8 @@ function compute_momentum_diffusion_terms(
 
     @ivy diffuz =
         met[i, j, k, 1, 3] * (u[i, j, k] - u[i - 1, j, k]) / dx +
-        met[i, j, k, 2, 3] * (uf - ub) / (2.0 * dy) #+
-        #met[i, j, k, 3, 3] * (uu - ud) / (2.0 * dz)
+        met[i, j, k, 2, 3] * (uf - ub) / (2.0 * dy) +
+        met[i, j, k, 3, 3] * (uu - ud) / (2.0 * dz)
 
     return diffuz
 end
@@ -297,8 +297,8 @@ function compute_momentum_diffusion_terms(
 
     @ivy diffvz =
         met[i, j, k, 1, 3] * (vr - vl) / (2 * dx) +
-        met[i, j, k, 2, 3] * (v[i, j, k] - v[i, j - 1, k]) / dy #+
-        #met[i, j, k, 3, 3] * (vu - vd) / (2.0 * dz)
+        met[i, j, k, 2, 3] * (v[i, j, k] - v[i, j - 1, k]) / dy +
+        met[i, j, k, 3, 3] * (vu - vd) / (2.0 * dz)
 
     return diffvz
 end
@@ -404,11 +404,11 @@ function compute_momentum_diffusion_terms(
 
     @ivy diffwz =
         met[i, j, k, 1, 3] * (wr - wl) / (2.0 * dx) +
-        met[i, j, k, 2, 3] * (wf - wb) / (2.0 * dy) #+
-        # met[i, j, k, 3, 3] * (
-        #     compute_vertical_wind(i, j, k, state) -
-        #     compute_vertical_wind(i, j, k - 1, state)
-        # ) / dz
+        met[i, j, k, 2, 3] * (wf - wb) / (2.0 * dy) +
+        met[i, j, k, 3, 3] * (
+            compute_vertical_wind(i, j, k, state) -
+            compute_vertical_wind(i, j, k - 1, state)
+        ) / dz
 
     return diffwz
 end

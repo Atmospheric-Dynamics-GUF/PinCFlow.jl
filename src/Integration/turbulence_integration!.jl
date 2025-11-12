@@ -108,23 +108,22 @@ function turbulence_integration!(
     process::Diffusion,
 )
     (; tke) = state.turbulence.turbulencepredictands
-    (; nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
     (; kek) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
+    ath, bth, cth, fth, qth, pth, fth_bc, qth_bc =
+        thomas_arrays(state, nx, ny, nz)
 
     ii = i0:i1
     jj = j0:j1
     kk = k0:k1
 
     @ivy for k in 1:nz
-
         knbz = k + nbz
         kekd =
             (
@@ -141,8 +140,7 @@ function turbulence_integration!(
         cth[:, :, k] .= .-dtdz2 .* keku
 
         fth[:, :, k] =
-            (1 .- dtdz2 .* keku .- dtdz2 .* kekd) .*
-            tke[ii, jj, knbz] .+
+            (1 .- dtdz2 .* keku .- dtdz2 .* kekd) .* tke[ii, jj, knbz] .+
             dtdz2 .* keku .* tke[ii, jj, knbz + 1] .+
             dtdz2 .* kekd .* tke[ii, jj, knbz - 1]
     end

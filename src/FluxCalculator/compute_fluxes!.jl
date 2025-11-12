@@ -1671,7 +1671,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    turbulence_scheme::AbstractTurbulence,
+    turbulence_scheme::TKEScheme,
 )
 
     # Get all necessary fields.

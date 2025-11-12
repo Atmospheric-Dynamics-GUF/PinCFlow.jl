@@ -97,6 +97,7 @@ include("conductive_heating.jl")
 include("compute_momentum_diffusion_terms.jl")
 include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
+include("thomas_arrays.jl")
 include("turbulent_diffusion!.jl")
 
 export LHS, RHS, X, Y, Z
@@ -114,6 +115,7 @@ export apply_lhs_sponge!,
     thomas_algorithm!,
     reset_thomas!,
     turbulent_diffusion!,
+    thomas_arrays,
     update!
 
 end

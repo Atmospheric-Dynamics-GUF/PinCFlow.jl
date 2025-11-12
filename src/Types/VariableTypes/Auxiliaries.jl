@@ -25,14 +25,14 @@ struct Auxiliaries{
     C <: AbstractMatrix{<:AbstractFloat},
 }
     phi::A
-    ath::B
-    bth::B
-    cth::B
-    fth::B
-    qth::B
-    pth::C
-    fth_bc::C
-    qth_bc::C
+    athglob::B
+    bthglob::B
+    cthglob::B
+    fthglob::B
+    qthglob::B
+    pthglob::C
+    fthglob_bc::C
+    qthglob_bc::C
 end
 
 function Auxiliaries(domain::Domain)::Auxiliaries
@@ -40,7 +40,7 @@ function Auxiliaries(domain::Domain)::Auxiliaries
 
     return Auxiliaries(
         zeros(nxx, nyy, nzz),
-        [zeros(nx, ny, nz) for i in 1:5]...,
-        [zeros(nx, ny) for i in 1:3]...,
+        [zeros(nx + 1, ny + 1, nz + 1) for i in 1:5]...,
+        [zeros(nx + 1, ny + 1) for i in 1:3]...,
     )
 end
