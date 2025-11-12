@@ -138,7 +138,7 @@ function integrate(namelists::Namelists)
         (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0)
 
         if errflagbicg
-            create_output(state)
+            create_output(state, machine_start_time)
             iout = write_output(state, time, iout, machine_start_time)
             error("BicGStab errored! Output last state into record ", iout, ".")
         end
@@ -180,7 +180,7 @@ function integrate(namelists::Namelists)
     #------------------------------------------
 
     # Create the output file.
-    create_output(state)
+    create_output(state, machine_start_time)
 
     # Write the initial state.
     iout = write_output(state, time, iout, machine_start_time)

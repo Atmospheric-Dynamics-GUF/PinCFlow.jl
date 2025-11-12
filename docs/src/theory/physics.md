@@ -94,7 +94,7 @@ $$\begin{align*}
     \Pi^{33} & = \frac{2}{J} \frac{\partial w}{\partial \widehat{z}} - \frac{2}{3 J} \left(\frac{\partial J u}{\partial \widehat{x}} + \frac{\partial J v}{\partial \widehat{y}} + \frac{\partial J \widehat{w}}{\partial \widehat{z}}\right).
 \end{align*}$$
 
-In addition, artificial diffusion is represented by
+In addition, turbulent diffusion is represented by
 
 $$\begin{align*}
     \mathcal{X}^{\rho u} & = \frac{1}{J} \left[\frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{x}}}{\partial \widehat{x}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{y}}}{\partial \widehat{y}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{z}}}{\partial \widehat{z}}\right],\\
@@ -102,7 +102,7 @@ $$\begin{align*}
     \mathcal{X}^{\rho \widehat{w}} & = G^{13} \mathcal{X}^{\rho u} + G^{23} \mathcal{X}^{\rho v} + \frac{1}{J^2} \left[\frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{x}}}{\partial \widehat{x}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{y}}}{\partial \widehat{y}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{z}}}{\partial \widehat{z}}\right],
 \end{align*}$$
 
-where $\mu$ is the momentum-diffusion coefficient and
+where $\mu$ is a constant turbulent viscosity and
 
 $$\begin{align*}
     \widehat{\left(\boldsymbol{\nabla} \phi\right)}^{\widehat{x}} & = \frac{\partial \phi}{\partial \widehat{x}} + G^{13} \frac{\partial \phi}{\partial \widehat{z}},\\
