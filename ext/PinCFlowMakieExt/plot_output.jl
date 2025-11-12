@@ -291,8 +291,7 @@ function plot_output(
                     backgroundcolor = :black,
                     title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad y\approx%$yj\,\mathrm{%$space_unit}",
                     xlabel = L"x\,[\mathrm{%$space_unit}]",
-                    ylabel = L"z\,[\mathrm{%$sp@ivy xi =
-                    round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)ace_unit}]",
+                    ylabel = L"z\,[\mathrm{%$space_unit}]",
                 )
                 @ivy (levels, colormap) = symmetric_contours(
                     minimum(phi[:, j, :]),
