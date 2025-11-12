@@ -2,6 +2,7 @@ module PinCFlowMakieExt
 
 using HDF5
 using CairoMakie
+using LaTeXStrings
 using PinCFlow: @ivy
 
 import PinCFlow: plot_output, set_visualization_theme!, symmetric_contours

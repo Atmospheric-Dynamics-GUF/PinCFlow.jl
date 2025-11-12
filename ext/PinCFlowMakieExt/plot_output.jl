@@ -11,41 +11,6 @@ function plot_output(
 )
     set_visualization_theme!()
 
-    # Define the labels.
-    labels = Dict(
-        "rhobar" => L"\overline{\rho}\,[\mathrm{kg\,m^{-3}}]",
-        "thetabar" => L"\overline{\theta}\,[\mathrm{K}]",
-        "n2" => L"N^2\,[\mathrm{s^{-2}}]",
-        "p" => L"P\,[\mathrm{kg\,m^{-3}\,K}]",
-        "rhop" => L"\rho'\,[\mathrm{kg\,m^{-3}}]",
-        "u" => L"u\,[\mathrm{m\,s^{-1}}]",
-        "us" => L"u_\mathrm{s}\,[\mathrm{m\,s^{-1}}]",
-        "v" => L"v\,[\mathrm{m\,s^{-1}}]",
-        "vs" => L"v_\mathrm{s}\,[\mathrm{m\,s^{-1}}]",
-        "w" => L"w\,[\mathrm{m\,s^{-1}}]",
-        "ws" => L"w_\mathrm{s}\,[\mathrm{m\,s^{-1}}]",
-        "wt" => L"\widehat{w}\,[\mathrm{m\,s^{-1}}]",
-        "wts" => L"\widehat{w}_\mathrm{s}\,[\mathrm{m\,s^{-1}}]",
-        "thetap" => L"\theta'\,[\mathrm{K}]",
-        "pip" => L"\pi'",
-        "chi" => L"\chi",
-        "dudt" =>
-            L"\left[\partial_t \left(\rho u_\mathrm{b}\right)\right]_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
-        "dvdt" =>
-            L"\left[\partial_t \left(\rho v_\mathrm{b}\right)\right]_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
-        "dthetadt" =>
-            L"\left[\partial_t \left(P_\mathrm{b}\right)\right]_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,K\,s^{-1}}]",
-        "dchidt" =>
-            L"\left[\partial_t \left(\rho \chi_\mathrm{b}\right)\right]_\mathrm{w}\,[\mathrm{kg\,m^{-3}\,s^{-1}}]",
-        "uchi" =>
-            L"\overline{\rho}\langle u'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
-        "vchi" =>
-            L"\overline{\rho}\langle v'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
-        "wchi" =>
-            L"\overline{\rho}\langle w'\chi' \rangle\,[\mathrm{kg\,m^{-2}\,s^{-1}}]",
-        "ar" => L"\mathcal{A}_r\,[\mathrm{kg\,m^{-1}\,s^{-1}}]",
-    )
-
     # Set the space unit factor.
     if space_unit == "km"
         space_unit_factor = 1000
@@ -88,9 +53,6 @@ function plot_output(
         row += 1
         column = 0
 
-        # Get the label.
-        label = labels[variable]
-
         # Round the time.
         tn = round(t[n]; digits = 1)
 
@@ -117,6 +79,9 @@ function plot_output(
             else
                 ar = data["nr"][:, :, :, :, n] .* data["dmr"][:, :, :, :, n]
             end
+
+            # Set the label.
+            label = L"\mathcal{A}_r\,[\mathrm{kg\,m^{-1}\,s^{-1}}]"
 
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
@@ -243,6 +208,9 @@ function plot_output(
         else
             # Get the variable.
             phi = data[variable][:, :, :, n]
+
+            # Get the label.
+            label = LaTeXString(attrs(data[variable])["label"])
 
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
