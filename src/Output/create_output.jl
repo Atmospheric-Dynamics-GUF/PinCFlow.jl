@@ -297,7 +297,7 @@ function create_output(state::State, machine_start_time::DateTime)
             )
             attributes(dset)["units"] = "K"
             attributes(dset)["label"] = "\$\\theta'\\,[\\mathrm{K}]\$"
-            attributes(dset)["long_name"] = "potential temperature fluctuations"
+            attributes(dset)["long_name"] = "potential-temperature fluctuations"
         end
         if prepare_restart || :pip in output_variables
             dset = create_dataset(
@@ -463,7 +463,7 @@ function create_output(state::State, machine_start_time::DateTime)
             # Create datasets for GW tendencies.
             for (field, units, label, long_name) in zip(
                 (:dudt, :dvdt, :dthetadt),
-                ("m*s^-2", "m*s^-2", "K*s^-1"),
+                ("kg*m^-2*s^-2", "kg*m^-2*s^-2", "kg*K*m^-3*s^-1"),
                 (
                     "\$[\\partial_t (\\rho_\\mathrm{b} u_\\mathrm{b})]_\\mathrm{w}\\,[\\mathrm{kg\\,m^{-2}\\,s^{-2}}]\$",
                     "\$[\\partial_t (\\rho_\\mathrm{b} v_\\mathrm{b})]_\\mathrm{w}\\,[\\mathrm{kg\\,m^{-2}\\,s^{-2}}]\$",
