@@ -649,3 +649,41 @@ function apply_lhs_sponge!(
 
     return
 end
+
+function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    icesetup::NoIce,
+)
+    return
+end
+
+function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    icesetup::AbstractIce,
+)
+    (; spongelayer) = state.namelists.sponge
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphar) = state.sponge
+    (; icepredictands) = state.ice
+    (; iceauxiliaries) = state.ice
+
+    if !spongelayer
+        return
+    end
+
+    @ivy for field in fieldnames(IcePredictands)
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            alpha = alphar[i, j, k]
+            ice_old = getfield(icepredictands, field)[i, j, k]
+            beta = 1.0 / (1.0 + alpha * dt)
+            ice_new = (1.0 - beta) * iceauxiliaries[i, j, k] + beta * ice_old
+            getfield(icepredictands, field)[i, j, k] = ice_new
+        end
+    end
+
+    return
+end

@@ -12,9 +12,9 @@ domain = DomainNamelist(;
     nbx = 3,
     nby = 3,
     nbz = 3,
-    lx_dim = (0.0, 4.0E+4),
-    ly_dim = (0.0, 1.0E+4),
-    lz_dim = (0.0, 1.5E+4),
+    lx_dim = 4.0E+4,
+    ly_dim = 1.0E+4,
+    lz_dim = 1.5E+4,
     npx = 1,    
     npy = 1,
     npz = 1,
@@ -37,7 +37,6 @@ output = OutputNamelist(;
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
     testcase = MultipleWavePackets(),
-    zboundaries = SolidWallBoundaries(),
 )
 
 discretization = DiscretizationNamelist(;
@@ -68,7 +67,6 @@ atmosphere = AtmosphereNamelist(;
     backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
 #    backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0), # mountain wave
     coriolis_frequency = 1.0E-4,
-    coriolis_mode = FPlane(),
 )
 
 grid = GridNamelist(;
@@ -80,22 +78,14 @@ grid = GridNamelist(;
     spectral_modes = 1,
     stretch_exponent = 1.0E+0,
 )
-
 sponge = SpongeNamelist(;
     spongelayer = false,
-    sponge_uv = false,
-    spongeheight = 5.0E-1,
-    spongealphaz_dim = 1.79E-2,
-    spongealphaz_fac = 1.0E+0,
-    unifiedsponge = false,
+    alpharmax = 1.79E-2,
+    betarmax = 0.0E+0,
     lateralsponge = false,
     spongetype = SinusoidalSponge(),
-    spongeorder = 1,
-    cosmosteps = 1,
     relax_to_mean = false,
-    perturbation_period = 0.0E+0,
-    perturbation_amplitude = 0.0E+0,
-    relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
+    relaxation_wind = (0.0E+0   , 0.0E+0, 0.0E+0),
 )
 ice = IceNamelist(;
     icesetup = IceOn(),

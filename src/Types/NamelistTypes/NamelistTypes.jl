@@ -108,14 +108,6 @@ Abstract type for the inclusion of ice.
 """
 abstract type AbstractIce end
 
-"""```julia
-AbstractTurbulence
-```
-
-Abstract type for the inclusion of turbulence.
-"""
-abstract type AbstractTurbulence end
-
 """
 ```julia
 UniformBoussinesq <: AbstractBackground
@@ -332,23 +324,8 @@ Singleton for model configurations with ice physics.
 """
 struct IceOn <: AbstractIce end
 
-"""
-```julia
-NoTurbulence <: AbstractTurbulence
-```
 
-Singleton for model configurations without turbulence physics.
-"""
-struct NoTurbulence <: AbstractTurbulence end
-
-"""
-```julia
-TurbulenceOn <: AbstractTurbulence
-```
-
-Singleton for model configurations with turbulence physics.
-"""
-struct TurbulenceOn <: AbstractTurbulence end
+struct WavePacket <: AbstractTestCase end
 
 struct WKBMultipleWavePackets <: AbstractWKBTestCase end
 
@@ -379,6 +356,7 @@ include("GridNamelist.jl")
 include("SpongeNamelist.jl")
 include("WKBNamelist.jl")
 include("TracerNamelist.jl")
+include("IceNamelist.jl")
 include("Namelists.jl")
 
 export AbstractBackground,
@@ -405,6 +383,7 @@ export UniformBoussinesq,
     Compressible,
     MountainWave,
     WKBMountainWave,
+    WavePacket,
     ExponentialSponge,
     COSMOSponge,
     PolynomialSponge,
@@ -439,7 +418,6 @@ export DomainNamelist,
     WKBNamelist,
     TracerNamelist,
     IceNamelist,
-    TurbulenceNamelist,
     MultiWavePacketNamelist, 
     Namelists
 

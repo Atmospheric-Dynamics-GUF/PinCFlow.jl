@@ -13,14 +13,14 @@ Main module of PinCFlow.
 """
 module PinCFlow
 
-using PythonPlot
+#using PythonPlot
 
 include("@ivy.jl")
-include("set_plot_style.jl")
-include("symmetric_contours.jl")
+#include("set_plot_style.jl")
+#include("symmetric_contours.jl")
 
 export @ivy
-export set_plot_style, symmetric_contours
+#export set_plot_style, symmetric_contours
 
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
@@ -42,18 +42,18 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
+    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
     IceNamelist,
-    TurbulenceNamelist,
     MultiWavePacketNamelist,
     Namelists
 
 # Export singletons needed in namelists.
 export Boussinesq, PseudoIncompressible, Compressible
-export MountainWave, WKBMountainWave
+export MountainWave, WKBMountainWave, WavePacket
 export MCVariant
 export UniformBoussinesq, StratifiedBoussinesq, Isothermal
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
@@ -65,7 +65,6 @@ export NoIce, IceOn
 export CloudCoverOff, CloudCoverOn
 export WKBMultipleWavePackets, MultipleWavePackets
 export RandomWavePackets
-export NoTurbulence, TurbulenceOn
 
 # Export model-state constructor.
 export State

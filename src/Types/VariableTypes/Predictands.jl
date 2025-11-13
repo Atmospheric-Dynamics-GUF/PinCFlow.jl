@@ -159,7 +159,7 @@ function Predictands(
 	model::PseudoIncompressible,
 	testcase::WavePacket,
 )::Predictands
-	(; backgroundflow_dim, theta0_dim) = namelists.atmosphere
+	(; backgroundflow_dim, theta0_dim, coriolis_frequency) = namelists.atmosphere
 	(; nbx, nby, nbz) = namelists.domain
 	(;
 		lambdax_dim,
@@ -177,7 +177,7 @@ function Predictands(
 	) = namelists.wavepacket
 	(; uref, lref, tref, kappa, ma, thetaref, fr2) = constants
 	(; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1, io, jo) = domain
-	(; bvsstrattfc, fc, rhostrattfc, pstrattfc) = atmosphere
+	(; bvsstrattfc, rhostrattfc) = atmosphere
 	(; x, y, ztfc, jac, met) = grid
 
 	# Initialize the predictands.
@@ -218,7 +218,7 @@ function Predictands(
 		ix in (i0-nbx):(i1+nbx)
 
 		n2 = bvsstrattfc[ix, jy, kz]
-		f = fc[jy]
+		f = coriolis_frequency * tref
 		f2 = f^2.0
 		omega = branch * sqrt((n2 * kh^2.0 + f2 * mm^2.0) / (kh^2.0 + mm^2.0))
 
@@ -331,12 +331,12 @@ function Predictands(
 	model::PseudoIncompressible,
 	testcase::MultipleWavePackets,
 )::Predictands
-	(; backgroundflow_dim, theta0_dim) = namelists.atmosphere
+	(; backgroundflow_dim, theta0_dim, coriolis_frequency) = namelists.atmosphere
 	(; nbx, nby, nbz, npz) = namelists.domain
 	
 	(; uref, lref, tref, kappa, ma, thetaref, fr2) = constants
 	(; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1, io, jo, ko, nz) = domain
-	(; bvsstrattfc, fc, rhostrattfc, thetastrattfc, pstrattfc) = atmosphere
+	(; rhostrattfc) = atmosphere
 	(; x, y, ztfc, jac, met) = grid
 	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
 		x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
@@ -391,7 +391,7 @@ function Predictands(
 			#n2 = bvsstrattfc[ix, jy, kz]
 			n2 = 0.28572434787685907 
 
-			f = fc[jy]
+			f = coriolis_frequency * tref
 			f2 = f^2.0
 			omega = branchr * sqrt((n2 * kh^2.0 + f2 * mm^2.0) / (kh^2.0 + mm^2.0))
 

@@ -135,6 +135,8 @@ include("PoissonTypes/PoissonTypes.jl")
 include("VariableTypes/VariableTypes.jl")
 include("WKBTypes/WKBTypes.jl")
 include("TracerTypes/TracerTypes.jl")
+include("IceTypes/IceTypes.jl")
+#include("TurbulenceTypes/TurbulenceTypes.jl")
 
 using .NamelistTypes
 using .FoundationalTypes
@@ -142,6 +144,7 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
+using .IceTypes
 using ..PinCFlow
 
 include("State.jl")
@@ -156,7 +159,8 @@ export AbstractBackground,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter,
-    AbstractTracer
+    AbstractTracer, 
+    AbstractIce
 
 export Rho,
     RhoP,
@@ -206,7 +210,6 @@ export DomainNamelist,
     WKBNamelist,
     TracerNamelist,
     IceNamelist,
-    TurbulenceNamelist,
     MultiWavePacketNamelist,
     Namelists,
     Time,
@@ -260,13 +263,6 @@ export DomainNamelist,
     CloudCoverOn,
     CloudCoverOff,
     RandomWavePackets,
-    TurbulenceOn,
-    NoTurbulence,
-    TurbulencePredictands,
-    TurbulenceAuxiliaries,
-    TurbulenceIncrements,
-    TurbulenceReconstructions,
-    TurbulenceFluxes,
     TracerForcings,
     TracerWKBImpact
 

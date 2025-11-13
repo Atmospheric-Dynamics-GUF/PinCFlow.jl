@@ -173,14 +173,14 @@ function WKB(
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
-        Rays(0, 0, 0, 0),
+        Rays(0, 0, 0, 0, namelists),
         MergedRays(0, 0),
         SurfaceIndices(0, 0, 0),
         WKBIncrements(0, 0, 0, 0),
         WKBIntegrals(0, 0, 0),
         WKBTendencies(0, 0, 0),
         [Ref(0.0) for i in 1:2]...,
-        zeros(0, 0, 0),
+        zeros(0, 0, 0), 
         zeros(0, 0),
         zeros(0, 0, 0),
     )
@@ -299,7 +299,7 @@ function WKB(
 
     # Initialize ray-volume arrays.
     nray = zeros(Int, nxx, nyy, nzz)
-    rays = Rays(nray_wrk, nxx, nyy, nzz)
+    rays = Rays(nray_wrk, nxx, nyy, nzz, namelists)
     merged_rays = MergedRays(2, nray_max)
     surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
     increments = WKBIncrements(nray_wrk, nxx, nyy, nzz)

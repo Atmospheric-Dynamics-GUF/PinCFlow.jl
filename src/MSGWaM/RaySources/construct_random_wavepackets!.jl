@@ -21,11 +21,11 @@ domain::DomainNamelist, testcase::AbstractTestCase)
 
     if testcase isa MultipleWavePackets
         #check if resolution is sufficient for resolving the waves
-        if ((lx_dim[2]-lx_dim[1])/sizex < int_b_lambdax_dim/10.)
+        if (lx_dim/sizex < int_b_lambdax_dim/10.)
             println("Resolution in x-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
             exit(1)
         end
-        if ((lz_dim[2]-lz_dim[1])/sizez < int_b_lambdaz_dim/10.)
+        if (lz_dim/sizez < int_b_lambdaz_dim/10.)
             println("Resolution in z-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
             exit(1)
         end    
@@ -37,8 +37,8 @@ domain::DomainNamelist, testcase::AbstractTestCase)
     end
 
     # define intervals for centers wavepackets
-    int_b_x0_dim = lx_dim[2]/2.
-    int_e_x0_dim = lx_dim[2]/2.
+    int_b_x0_dim = lx_dim/2.
+    int_e_x0_dim = lx_dim/2.
 
     z0_issr = 8.e3 # [m] to be consistent with the value in IcePredictands.jl
     int_b_z0_dim = z0_issr - 2.e+3

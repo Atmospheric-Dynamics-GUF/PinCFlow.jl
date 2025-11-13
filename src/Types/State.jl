@@ -12,6 +12,7 @@ State{
     I <: Variables,
     J <: WKB,
     K <: Tracer,
+    L <: Ice,
 }
 ```
 
@@ -89,6 +90,7 @@ struct State{
     I <: Variables,
     J <: WKB,
     K <: Tracer,
+    L <: Ice,
 }
     namelists::A
     time::B
@@ -101,6 +103,7 @@ struct State{
     variables::I
     wkb::J
     tracer::K
+    ice::L
 end
 
 function State(namelists::Namelists)::State
@@ -116,6 +119,7 @@ function State(namelists::Namelists)::State
     variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, constants, domain, grid)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
+    ice = Ice(namelists, constants, domain, atmosphere, grid, variables)
 
     return State(
         namelists,
@@ -129,5 +133,6 @@ function State(namelists::Namelists)::State
         variables,
         wkb,
         tracer,
+        ice,
     )
 end

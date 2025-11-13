@@ -87,9 +87,9 @@ function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 				for jy in jymin:jymax
 
 					kzmin =
-						get_next_half_level(ix, jy, zr - dzr / 2, domain, grid)
+						get_next_half_level(ix, jy, zr - dzr / 2,state)
 					kzmax =
-						get_next_half_level(ix, jy, zr + dzr / 2, domain, grid)
+						get_next_half_level(ix, jy, zr + dzr / 2, state)
 
 
 					for kz in kzmin:kzmax

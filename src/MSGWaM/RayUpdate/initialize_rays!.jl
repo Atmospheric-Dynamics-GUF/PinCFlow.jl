@@ -93,32 +93,32 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 	yrmin = yrmin_dim / lref
 	yrmax = yrmax_dim / lref
 
-    # Set zonal index bounds.
-    if testcase == WKBMountainWave()
-        imin = i0
-        imax = i1
-    else
-        imin = max(i0, floor(Int, (xrmin + lx / 2) / dx) + i0 - io)
-        imax = min(i1, floor(Int, (xrmax + lx / 2) / dx) + i0 - io)
-    end
+	# Set zonal index bounds.
+	if testcase == WKBMountainWave()
+		imin = i0
+		imax = i1
+	else
+		imin = max(i0, floor(Int, (xrmin + lx / 2) / dx) + i0 - io)
+		imax = min(i1, floor(Int, (xrmax + lx / 2) / dx) + i0 - io)
+	end
 
-    # Set meridional index bounds.
-    if testcase == WKBMountainWave()
-        jmin = j0
-        jmax = j1
-    else
-        jmin = max(j0, floor(Int, (yrmin + ly / 2) / dy) + j0 - jo)
-        jmax = min(j1, floor(Int, (yrmax + ly / 2) / dy) + j0 - jo)
-    end
+	# Set meridional index bounds.
+	if testcase == WKBMountainWave()
+		jmin = j0
+		jmax = j1
+	else
+		jmin = max(j0, floor(Int, (yrmin + ly / 2) / dy) + j0 - jo)
+		jmax = min(j1, floor(Int, (yrmax + ly / 2) / dy) + j0 - jo)
+	end
 
-    # Set vertical index bounds.
-    if testcase == WKBMountainWave() && ko == 0
-        kmin = k0 - 1
-        kmax = k0 - 1
-    else
-        kmin = k0
-        kmax = k1
-    end
+	# Set vertical index bounds.
+	if testcase == WKBMountainWave() && ko == 0
+		kmin = k0 - 1
+		kmax = k0 - 1
+	else
+		kmin = k0
+		kmax = k1
+	end
 
 	# Initialize local arrays.
 	omi_ini = zeros(nwm, nxx, nyy, nzz)
@@ -155,167 +155,178 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 		)
 	end
 
-    # Loop over all grid cells with ray volumes.
-    @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
-        r = 0
-        s = 0
+    dk_ini_nd = 0.0
+    dl_ini_nd = 0.0
+    dm_ini_nd = 0.0
 
-        # Loop over all ray volumes within a spatial cell.
-        for ix in 1:nrxl,
-            ik in 1:nrk_init,
-            jy in 1:nryl,
-            jl in 1:nrl_init,
-            kz in 1:nrzl,
-            km in 1:nrm_init,
-            alpha in 1:nwm
+	# Loop over all grid cells with ray volumes.
+	@ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
+		r = 0
+		s = 0
 
-            # Set ray-volume indices.
-            if testcase == WKBMountainWave()
-                s += 1
+		# Loop over all ray volumes within a spatial cell.
+		for ix in 1:nrxl,
+			ik in 1:nrk_init,
+			jy in 1:nryl,
+			jl in 1:nrl_init,
+			kz in 1:nrzl,
+			km in 1:nrm_init,
+			alpha in 1:nwm
 
-                # Set surface indices.
-                surface_indices.ixs[s] = ix
-                surface_indices.jys[s] = jy
-                surface_indices.kzs[s] = kz
-                surface_indices.iks[s] = ik
-                surface_indices.jls[s] = jl
-                surface_indices.kms[s] = km
-                surface_indices.alphas[s] = alpha
+			# Set ray-volume indices.
+			if testcase == WKBMountainWave()
+				s += 1
 
-                # Set surface ray-volume index.
-                if wad_ini[alpha, i, j, k] == 0.0
-                    surface_indices.rs[s, i, j] = -1
-                    continue
-                else
-                    r += 1
-                    surface_indices.rs[s, i, j] = r
-                end
-            else
-                r += 1
-            end
+				# Set surface indices.
+				surface_indices.ixs[s] = ix
+				surface_indices.jys[s] = jy
+				surface_indices.kzs[s] = kz
+				surface_indices.iks[s] = ik
+				surface_indices.jls[s] = jl
+				surface_indices.kms[s] = km
+				surface_indices.alphas[s] = alpha
 
-            # Set ray-volume positions.
-            rays.x[r, i, j, k] = (x[io + i] - 0.5 * dx + (ix - 0.5) * dx / nrxl)
-            rays.y[r, i, j, k] = (y[jo + j] - 0.5 * dy + (jy - 0.5) * dy / nryl)
-            rays.z[r, i, j, k] = (
-                ztfc[i, j, k] - 0.5 * jac[i, j, k] * dz +
-                (kz - 0.5) * jac[i, j, k] * dz / nrzl
-            )
+				# Set surface ray-volume index.
+				if wad_ini[alpha, i, j, k] == 0.0
+					surface_indices.rs[s, i, j] = -1
+					continue
+				else
+					r += 1
+					surface_indices.rs[s, i, j] = r
+				end
+			else
+				r += 1
+			end
 
-            xr = rays.x[r, i, j, k]
-            yr = rays.y[r, i, j, k]
-            zr = rays.z[r, i, j, k]
+			# Set ray-volume positions.
+			rays.x[r, i, j, k] = (x[io+i] - 0.5 * dx + (ix - 0.5) * dx / nrxl)
+			rays.y[r, i, j, k] = (y[jo+j] - 0.5 * dy + (jy - 0.5) * dy / nryl)
+			rays.z[r, i, j, k] = (
+				ztfc[i, j, k] - 0.5 * jac[i, j, k] * dz +
+				(kz - 0.5) * jac[i, j, k] * dz / nrzl
+			)
 
-            # Check if ray volume is too low.
-            if zr < -dz
-                error(
-                    "Error in initialize_rays!: Ray volume",
-                    r,
-                    "at",
-                    i,
-                    j,
-                    k,
-                    "is too low!",
-                )
-            end
+			xr = rays.x[r, i, j, k]
+			yr = rays.y[r, i, j, k]
+			zr = rays.z[r, i, j, k]
 
 			# Check if ray volume is too low.
-			if zr < lz[1] - dz
+			if zr < -dz
 				error(
 					"Error in initialize_rays!: Ray volume",
-					iray,
+					r,
 					"at",
-					ix,
-					jy,
-					kz,
+					i,
+					j,
+					k,
 					"is too low!",
 				)
 			end
 
-            # Set spatial extents.
-            rays.dxray[r, i, j, k] = dx / nrxl
-            rays.dyray[r, i, j, k] = dy / nryl
-            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrzl
+            # Compute local stratification.
+			n2r = interpolate_stratification(zr, state, N2())
 
-            wnk0 = wnk_ini[alpha, i, j, k]
-            wnl0 = wnl_ini[alpha, i, j, k]
-            wnm0 = wnm_ini[alpha, i, j, k]
+			# Set spatial extents.
+			rays.dxray[r, i, j, k] = dx / nrxl
+			rays.dyray[r, i, j, k] = dy / nryl
+			rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrzl
 
-            # Set ray-volume wavenumbers.
-            rays.k[r, i, j, k] =
-                (wnk0 - 0.5 * dk_ini_nd + (ik - 0.5) * dk_ini_nd / nrk_init)
-            rays.l[r, i, j, k] =
-                (wnl0 - 0.5 * dl_ini_nd + (jl - 0.5) * dl_ini_nd / nrl_init)
-            rays.m[r, i, j, k] =
-                (wnm0 - 0.5 * dm_ini_nd + (km - 0.5) * dm_ini_nd / nrm_init)
+			wnk0 = wnk_ini[alpha, i, j, k]
+			wnl0 = wnl_ini[alpha, i, j, k]
+			wnm0 = wnm_ini[alpha, i, j, k]
 
-            # Set spectral extents.
-            rays.dkray[r, i, j, k] = dk_ini_nd / nrk_init
-            rays.dlray[r, i, j, k] = dl_ini_nd / nrl_init
-            rays.dmray[r, i, j, k] = dm_ini_nd / nrm_init
+            # Ensure correct wavenumber extents.
+			if (testcase == WKBMountainWave() || testcase == WKBMultipleWavePackets()) && sizex > 1
+				dk_ini_nd = fac_dk_init * sqrt(wnk0^2 + wnl0^2)
+			end
+			if (testcase == WKBMountainWave() || testcase == WKBMultipleWavePackets()) && sizey > 1
+				dl_ini_nd = fac_dl_init * sqrt(wnk0^2 + wnl0^2)
+			end
+			if wnm0 == 0.0
+				error("Error in WKB: wnm0 = 0!")
+			else
+				dm_ini_nd = fac_dm_init * abs(wnm0)
+			end
 
+			# Set ray-volume wavenumbers.
+			rays.k[r, i, j, k] =
+				(wnk0 - 0.5 * dk_ini_nd + (ik - 0.5) * dk_ini_nd / nrk_init)
+			rays.l[r, i, j, k] =
+				(wnl0 - 0.5 * dl_ini_nd + (jl - 0.5) * dl_ini_nd / nrl_init)
+			rays.m[r, i, j, k] =
+				(wnm0 - 0.5 * dm_ini_nd + (km - 0.5) * dm_ini_nd / nrm_init)
+
+			# Set spectral extents.
+			rays.dkray[r, i, j, k] = dk_ini_nd / nrk_init
+			rays.dlray[r, i, j, k] = dl_ini_nd / nrl_init
+			rays.dmray[r, i, j, k] = dm_ini_nd / nrm_init
+
+			# Set spectral volume.
+			pspvol = dm_ini_nd
+			if sizex > 1
+				pspvol = pspvol * dk_ini_nd
+			end
+			if sizey > 1
+				pspvol = pspvol * dl_ini_nd
+			end
+            
             # Set phase-space wave-action density.
-          
-                rays.dens[r, i, j, k] = wad_ini[alpha, i, j, k] / pspvol
+			rays.dens[r, i, j, k] = wad_ini[alpha, i, j, k] / pspvol
 
-            # Interpolate winds to ray-volume position.
+			# Interpolate winds to ray-volume position.
 			uxr = interpolate_mean_flow(xr, yr, zr, state, U())
 			vyr = interpolate_mean_flow(xr, yr, zr, state, V())
 			wzr = interpolate_mean_flow(xr, yr, zr, state, W())
 
-            wnrk = rays.k[r, i, j, k]
-            wnrl = rays.l[r, i, j, k]
-            wnrm = rays.m[r, i, j, k]
-            wnrh = sqrt(wnrk^2 + wnrl^2)
-            omir = omi_ini[alpha, i, j, k]
+			wnrk = rays.k[r, i, j, k]
+			wnrl = rays.l[r, i, j, k]
+			wnrm = rays.m[r, i, j, k]
+			wnrh = sqrt(wnrk^2 + wnrl^2)
+			omir = omi_ini[alpha, i, j, k]
 
-            # Compute maximum group velocities.
-            cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
-            if abs(uxr + cgirx) > abs(cgx_max[])
-                cgx_max[] = abs(uxr + cgirx)
-            end
-            cgiry = wnrl * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
-            if abs(vyr + cgiry) > abs(cgy_max[])
-                cgy_max[] = abs(vyr + cgiry)
-            end
-            cgirz = -wnrm * (omir^2 - fc^2) / (omir * (wnrh^2 + wnrm^2))
-            if abs(wzr + cgirz) > abs(cgz_max[i, j, k])
-                cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(wzr + cgirz))
-            end
-        end
+			# Compute maximum group velocities.
+			cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
+			if abs(uxr + cgirx) > abs(cgx_max[])
+				cgx_max[] = abs(uxr + cgirx)
+			end
+			cgiry = wnrl * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
+			if abs(vyr + cgiry) > abs(cgy_max[])
+				cgy_max[] = abs(vyr + cgiry)
+			end
+			cgirz = -wnrm * (omir^2 - fc^2) / (omir * (wnrh^2 + wnrm^2))
+			if abs(wzr + cgirz) > abs(cgz_max[i, j, k])
+				cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(wzr + cgirz))
+			end
+		end
 
-        # Set ray-volume count.
-        nray[i, j, k] = r
-        if r > nray_wrk
-            error(
-                "Error in initialize_rays!: nray",
-                [i, j, k],
-                " > nray_wrk =",
-                nray_wrk,
-            )
-        end
+		# Set ray-volume count.
+		nray[i, j, k] = r
+		if r > nray_wrk
+			error(
+				"Error in initialize_rays!: nray",
+				[i, j, k],
+				" > nray_wrk =",
+				nray_wrk,
+			)
+		end
 
-        # Check if surface ray-volume count is correct.
-        if testcase == WKBMountainWave()
-            if s != n_sfc
-                error(
-                    "Error in initialize_rays!: s =",
-                    s,
-                    "/= n_sfc =",
-                    n_sfc,
-                    "at (i, j, k) = ",
-                    (i, j, k),
-                )
-            end
-        end
-    end
-
-    # Compute global ray-volume count.
-    @ivy local_sum = sum(nray[imin:imax, jmin:jmax, kmin:kmax])
-    global_sum = MPI.Allreduce(local_sum, +, comm)
+		# Check if surface ray-volume count is correct.
+		if testcase == WKBMountainWave()
+			if s != n_sfc
+				error(
+					"Error in initialize_rays!: s =",
+					s,
+					"/= n_sfc =",
+					n_sfc,
+					"at (i, j, k) = ",
+					(i, j, k),
+				)
+			end
+		end
+	end
 
 	# Compute global ray-volume count.
-	local_sum = sum(nray[ix0:ix1, jy0:jy1, kz0:kz1])
+	@ivy local_sum = sum(nray[imin:imax, jmin:jmax, kmin:kmax])
 	global_sum = MPI.Allreduce(local_sum, +, comm)
 
 	# Print information.
