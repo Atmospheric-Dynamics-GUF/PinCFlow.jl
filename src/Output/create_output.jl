@@ -29,7 +29,7 @@ function create_output(state::State, machine_start_time::DateTime)
     cz = div(z_size, npz)
     ct = 1
 
-    # If there the output file exists already, remove it.
+    # If the output file already exists, remove it.
     master && isfile(output_file) && rm(output_file)
     MPI.Barrier(comm)
 
