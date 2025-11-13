@@ -28,7 +28,7 @@ reference = (l2, linf)
 
 @testset "Vortex" begin
     test_example(
-        joinpath(submit_directory, "vortex.jl"),
+        joinpath(scripts_directory, "vortex.jl"),
         reference,
         :x_size => 10,
         :y_size => 10,

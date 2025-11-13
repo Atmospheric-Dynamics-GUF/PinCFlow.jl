@@ -1,7 +1,7 @@
 #!/bin/bash
 ##SBATCH --partition=compute
 #SBATCH --partition=interactive
-#SBATCH --job-name=wkb_mountain_wave
+#SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=64
 #SBATCH --hint=nomultithread
@@ -20,9 +20,9 @@ julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_bin
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/submit/wkb_mountain_wave.jl 4 4 4 1>wkb_mountain_wave.log 2>&1
+# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/mountain_wave.jl 4 4 4 1>mountain_wave.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 64 julia examples/submit/wkb_mountain_wave.jl 4 4 4 1>wkb_mountain_wave.log 2>&1
+mpiexec -n 64 julia examples/scripts/mountain_wave.jl 4 4 4 1>mountain_wave.log 2>&1
 
 exit 0

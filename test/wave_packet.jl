@@ -34,11 +34,11 @@ reference = (l2, linf)
 
 @testset "Wave packet" begin
     cp(
-        joinpath(submit_directory, "wave_packet_tools.jl"),
+        joinpath(scripts_directory, "wave_packet_tools.jl"),
         "wave_packet_tools.jl",
     )
     test_example(
-        joinpath(submit_directory, "wave_packet.jl"),
+        joinpath(scripts_directory, "wave_packet.jl"),
         reference,
         :x_size => 10,
         :y_size => 10,

@@ -26,7 +26,7 @@ reference = (l2, linf)
 
 @testset "Periodic hill" begin
     test_example(
-        joinpath(submit_directory, "periodic_hill.jl"),
+        joinpath(scripts_directory, "periodic_hill.jl"),
         reference,
         :x_size => 10,
         :z_size => 10,

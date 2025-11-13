@@ -1,7 +1,7 @@
 #!/bin/bash
 ##SBATCH --partition=compute
 #SBATCH --partition=interactive
-#SBATCH --job-name=cold_bubble
+#SBATCH --job-name=vortex
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --hint=nomultithread
@@ -20,9 +20,9 @@ julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_bin
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/submit/cold_bubble.jl 4 4 1>cold_bubble.log 2>&1
+# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/vortex.jl 4 4 1>vortex.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 16 julia examples/submit/cold_bubble.jl 4 4 1>cold_bubble.log 2>&1
+mpiexec -n 16 julia examples/scripts/vortex.jl 4 4 1>vortex.log 2>&1
 
 exit 0

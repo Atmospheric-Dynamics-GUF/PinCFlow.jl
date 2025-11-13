@@ -1,10 +1,12 @@
-# examples/submit/wave_packet.jl
+# examples/scripts/wave_packet.jl
 
 using Pkg
 
 Pkg.activate("examples")
 
 using MPI
+using HDF5
+using CairoMakie
 using Revise
 using PinCFlow
 
@@ -73,3 +75,17 @@ output = OutputNamelist(;
 )
 
 integrate(Namelists(; atmosphere, domain, output))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open("wave_packet.h5") do data
+        plot_output(
+            "examples/results/wave_packet.svg",
+            data,
+            ("u", 20, 20, 40, 2),
+            ("v", 20, 20, 40, 2),
+            ("w", 20, 20, 40, 2);
+            time_unit = "min",
+        )
+        return
+    end
+end

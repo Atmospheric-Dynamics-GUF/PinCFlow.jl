@@ -4,7 +4,7 @@ using Test
 using PinCFlow
 using .TestTools
 
-submit_directory = "../examples/submit/"
+scripts_directory = "../examples/scripts/"
 update_references = false
 
 @testset verbose = true "PinCFlow tests" begin

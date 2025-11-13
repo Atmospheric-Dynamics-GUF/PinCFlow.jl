@@ -1,9 +1,12 @@
-# examples/submit/vortex.jl
+# examples/scripts/vortex.jl
 
 using Pkg
 
 Pkg.activate("examples")
 
+using MPI
+using HDF5
+using CairoMakie
 using Revise
 using PinCFlow
 
@@ -54,3 +57,10 @@ tracer = TracerNamelist(;
 )
 
 integrate(Namelists(; atmosphere, domain, output, tracer))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open("vortex.h5") do data
+        plot_output("examples/results/vortex.svg", data, ("chi", 1, 1, 1, 2);)
+        return
+    end
+end

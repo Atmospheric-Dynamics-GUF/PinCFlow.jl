@@ -34,7 +34,7 @@ reference = (l2, linf)
 
 @testset "Hot bubble" begin
     test_example(
-        joinpath(submit_directory, "hot_bubble.jl"),
+        joinpath(scripts_directory, "hot_bubble.jl"),
         reference,
         :x_size => 10,
         :z_size => 10,

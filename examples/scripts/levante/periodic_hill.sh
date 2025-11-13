@@ -1,9 +1,9 @@
 #!/bin/bash
 ##SBATCH --partition=compute
 #SBATCH --partition=interactive
-#SBATCH --job-name=mountain_wave
+#SBATCH --job-name=periodic_hill
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
+#SBATCH --ntasks-per-node=16
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-00:15:00
 #SBATCH --mail-type=FAIL
@@ -20,9 +20,9 @@ julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_bin
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/submit/mountain_wave.jl 4 4 4 1>mountain_wave.log 2>&1
+# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/periodic_hill.jl 4 4 1>periodic_hill.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 64 julia examples/submit/mountain_wave.jl 4 4 4 1>mountain_wave.log 2>&1
+mpiexec -n 16 julia examples/scripts/periodic_hill.jl 4 4 1>periodic_hill.log 2>&1
 
 exit 0
