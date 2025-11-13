@@ -15,4 +15,5 @@ update_references = false
     include("vortex.jl")
     include("wave_packet.jl")
     include("wkb_mountain_wave.jl")
+    include("wkb_wave_packet.jl")
 end
