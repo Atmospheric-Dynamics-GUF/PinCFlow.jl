@@ -42,7 +42,7 @@ runs PinCFlow.jl in its default configuration, if executed with
 julia --project script.jl
 ```
 
-in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \, \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow.jl's example scripts. To run them, we recommend setting up an examples project by executing
+in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \ \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow.jl's example scripts. To run them, we recommend setting up an examples project by executing
 
 ```shell
 julia --project=examples -e 'using Pkg; Pkg.add(["CairoMakie", "HDF5", "HDF5_jll", "MPI", "MPICH_jll", "MPIPreferences", "PinCFlow", "Revise"])'
@@ -104,7 +104,7 @@ end
 
 ```
 
-runs a 2D simulation with an initial wind of $10 \, \mathrm{m \, s^{- 1}}$ that generates a mountain wave above a periodic hill and visualizes the results.
+runs a 2D simulation with an initial wind of $10 \ \mathrm{m \ s^{- 1}}$ that generates a mountain wave above a periodic hill and visualizes the results.
 
 PinCFlow.jl uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5`. This may be changed by setting the parameter `output_file` of the namelist `output` accordingly (as illustrated above). The dimensions of most output fields are (in order) $\widehat{x}$ (zonal axis), $\widehat{y}$ (meridional axis), $\widehat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume-property fields differ slightly in that they have an additional (spectral) dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the namelist `output` accordingly (more details are given in the "Reference" section of the documentation).
 

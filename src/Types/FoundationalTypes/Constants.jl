@@ -25,15 +25,15 @@ Natural constants:
 
   - `kappainv::A`: Ratio between specific heat capacity at constant pressure and specific gas constant ``1 / \\kappa``.
 
-  - `rsp::A`: Specific gas constant ``R = 287 \\, \\mathrm{J \\, kg^{- 1} \\, K^{- 1}}``.
+  - `rsp::A`: Specific gas constant ``R = 287 \\ \\mathrm{J \\ kg^{- 1} \\ K^{- 1}}``.
 
-  - `g::A`: Gravitational acceleration ``g = 9.81 \\, \\mathrm{m \\, s^{- 2}}``.
+  - `g::A`: Gravitational acceleration ``g = 9.81 \\ \\mathrm{m \\ s^{- 2}}``.
 
 Reference quantities:
 
-  - `rhoref::A`: Reference density ``\\rho_\\mathrm{ref} = 1.184 \\, \\mathrm{kg \\, m^{- 3}}``.
+  - `rhoref::A`: Reference density ``\\rho_\\mathrm{ref} = 1.184 \\ \\mathrm{kg \\ m^{- 3}}``.
 
-  - `pref::A`: Reference pressure ``p_\\mathrm{ref} = 101325 \\, \\mathrm{Pa}``.
+  - `pref::A`: Reference pressure ``p_\\mathrm{ref} = 101325 \\ \\mathrm{Pa}``.
 
   - `aref::A`: Reference sound speed ``c_\\mathrm{ref} = \\sqrt{p_\\mathrm{ref} / \\rho_\\mathrm{ref}}``.
 

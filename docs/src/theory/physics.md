@@ -209,13 +209,13 @@ $$\begin{align*}
 where $\rho_\mathrm{b}$, $\widehat{\boldsymbol{u}}_\mathrm{b} = \left(u_\mathrm{b}, v_\mathrm{b}, \widehat{w}_\mathrm{b}\right)^\mathrm{T}$ and $P_\mathrm{b}$ are the resolved density, transformed wind and mass-weighted potential temperature, respectively, and
 
 $$\begin{align*}
-    \overline{\rho} \left\langle u' u' \right\rangle & = \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    \overline{\rho} \left\langle u' v' \right\rangle & = \int l \widehat{c}_{\mathrm{g} x} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    \overline{\rho} \left\langle u' w' \right\rangle & = \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    \overline{\rho} \left\langle v' v' \right\rangle & = \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    \overline{\rho} \left\langle v' w' \right\rangle & = \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    \left\langle \theta' u' \right\rangle & = \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    \left\langle \theta' v' \right\rangle & = - \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},
+    \overline{\rho} \left\langle u' u' \right\rangle & = \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle u' v' \right\rangle & = \int l \widehat{c}_{\mathrm{g} x} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle u' w' \right\rangle & = \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle v' v' \right\rangle & = \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle v' w' \right\rangle & = \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \left\langle \theta' u' \right\rangle & = \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \left\langle \theta' v' \right\rangle & = - \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},
 \end{align*}$$
 
 with $\widehat{\omega} = \omega - \boldsymbol{k} \cdot \boldsymbol{u}_\mathrm{b}$, $\widehat{\boldsymbol{c}}_\mathrm{g} = \left(\widehat{c}_{\mathrm{g} x}, \widehat{c}_{\mathrm{g} y}, \widehat{c}_{\mathrm{g} z}\right)^\mathrm{T} = \boldsymbol{\nabla}_{\boldsymbol{k}} \widehat{\omega}$ and $\mathrm{d} V_{\boldsymbol{k}} = \mathrm{d} k \mathrm{d} l \mathrm{d} m$ being the intrinsic frequency, intrinsic group velocity and spectral volume element, respectively (see [Achatz et al., 2017](https://doi.org/10.1002/qj.2926); [Achatz et al., 2023](https://doi.org/10.1063/5.0165180); [Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
@@ -228,7 +228,7 @@ $$\mathcal{S}_\mathrm{s} = - 2 K \left|\boldsymbol{k}\right|^2 \mathcal{N}.$$
 
 This damping is assumed to be such that within one time step $\Delta t$, the instability criterion is no longer fulfilled, which implies
 
-$$K = \frac{\overline{\rho}}{4 \Delta t} \left[\int N^4 \left(k^2 + l^2\right) m^2 \frac{\mathcal{N}}{\widehat{\omega}} \, \mathrm{d} V_{\boldsymbol{k}}\right]^{- 1} \max \left[0, \frac{2}{\overline{\rho}} \int \frac{N^4 \left(k^2 + l^2\right) m^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \mathrm{d} V_{\boldsymbol{k}} - \alpha_\mathrm{s}^2 N^4\right],$$
+$$K = \frac{\overline{\rho}}{4 \Delta t} \left[\int N^4 \left(k^2 + l^2\right) m^2 \frac{\mathcal{N}}{\widehat{\omega}} \ \mathrm{d} V_{\boldsymbol{k}}\right]^{- 1} \max \left[0, \frac{2}{\overline{\rho}} \int \frac{N^4 \left(k^2 + l^2\right) m^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \mathrm{d} V_{\boldsymbol{k}} - \alpha_\mathrm{s}^2 N^4\right],$$
 
 where $\alpha_\mathrm{s}$ is a saturation coefficient that accounts for uncertainties of the criterion ([Boeloeni et al., 2016](https://doi.org/10.1175/JAS-D-16-0069.1); [Boeloeni et al., 2021](https://doi.org/10.1175/JAS-D-20-0065.1)).
 
@@ -323,7 +323,7 @@ $$\begin{align*}
         \partial_{\widehat{x}} \chi_\mathrm{b} + G^{13} \partial_{\widehat{z}} \chi_\mathrm{b}\\
         \partial_{\widehat{y}} \chi_\mathrm{b} + G^{23} \partial_{\widehat{z}} \chi_\mathrm{b}\\
         J^{- 1} \partial_{\widehat{z}} \chi_\mathrm{b}
-    \end{pmatrix} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}}
+    \end{pmatrix} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}}
 \end{align*}$$
 
 and the corresponding impact on the large-scale tracer is

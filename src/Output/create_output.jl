@@ -46,13 +46,13 @@ function create_output(state::State, machine_start_time::DateTime)
         dset =
             create_dataset(file, "x", datatype(Float32), dataspace((x_size,)))
         attributes(dset)["units"] = "m"
-        attributes(dset)["label"] = L"x\,[\mathrm{m}]"
+        attributes(dset)["label"] = L"x\ [\mathrm{m}]"
         attributes(dset)["long_name"] = "x-coordinates"
 
         dset =
             create_dataset(file, "y", datatype(Float32), dataspace((y_size,)))
         attributes(dset)["units"] = "m"
-        attributes(dset)["label"] = L"y\,[\mathrm{m}]"
+        attributes(dset)["label"] = L"y\ [\mathrm{m}]"
         attributes(dset)["long_name"] = "y-coordinates"
 
         dset = create_dataset(
@@ -63,7 +63,7 @@ function create_output(state::State, machine_start_time::DateTime)
             chunk = (cx, cy, cz),
         )
         attributes(dset)["units"] = "m"
-        attributes(dset)["label"] = L"z\,[\mathrm{m}]"
+        attributes(dset)["label"] = L"z\ [\mathrm{m}]"
         attributes(dset)["long_name"] = "z-coordinates"
 
         dset = create_dataset(
@@ -74,7 +74,7 @@ function create_output(state::State, machine_start_time::DateTime)
             chunk = (cx, cy, cz),
         )
         attributes(dset)["units"] = "m"
-        attributes(dset)["label"] = L"z_{\mathrm{s}}\,[\mathrm{m}]"
+        attributes(dset)["label"] = L"z_{\mathrm{s}}\ [\mathrm{m}]"
         attributes(dset)["long_name"] = "staggered z-coordinates"
 
         dset = create_dataset(
@@ -85,7 +85,7 @@ function create_output(state::State, machine_start_time::DateTime)
             chunk = (ct,),
         )
         attributes(dset)["units"] = "s"
-        attributes(dset)["label"] = L"t\,[\mathrm{s}]"
+        attributes(dset)["label"] = L"t\ [\mathrm{s}]"
         attributes(dset)["long_name"] = "time"
 
         # Create datasets for the background.
@@ -99,7 +99,7 @@ function create_output(state::State, machine_start_time::DateTime)
             )
             attributes(dset)["units"] = "kg*m^-3"
             attributes(dset)["label"] =
-                L"\overline{\rho}\,[\mathrm{kg\,m^{-3}}]"
+                L"\overline{\rho}\ [\mathrm{kg\ m^{-3}}]"
             attributes(dset)["long_name"] = "density background"
 
             dset = create_dataset(
@@ -110,7 +110,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz),
             )
             attributes(dset)["units"] = "K"
-            attributes(dset)["label"] = L"\overline{\theta}\,[\mathrm{K}]"
+            attributes(dset)["label"] = L"\overline{\theta}\ [\mathrm{K}]"
             attributes(dset)["long_name"] = "potential-temperature background"
 
             dset = create_dataset(
@@ -121,7 +121,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz),
             )
             attributes(dset)["units"] = "s^-2"
-            attributes(dset)["label"] = L"N^2\,[\mathrm{s^{-2}}]"
+            attributes(dset)["label"] = L"N^2\ [\mathrm{s^{-2}}]"
             attributes(dset)["long_name"] = "squared buoyancy frequency"
 
             if model == Compressible()
@@ -145,7 +145,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
             attributes(dset)["units"] = "kg*K*m^-3"
-            attributes(dset)["label"] = L"P\,[\mathrm{kg\,K\,m^{-3}}]"
+            attributes(dset)["label"] = L"P\ [\mathrm{kg\ K\ m^{-3}}]"
             attributes(dset)["long_name"] = "mass-weighted potential temperature"
         end
 
@@ -162,7 +162,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "kg*m^-3"
-            attributes(dset)["label"] = L"\rho'\,[\mathrm{kg\,m^{-3}}]"
+            attributes(dset)["label"] = L"\rho'\ [\mathrm{kg\ m^{-3}}]"
             attributes(dset)["long_name"] = "density fluctuations"
         end
         if :u in output_variables
@@ -177,7 +177,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"u\,[\mathrm{m\,s^{-1}}]"
+            attributes(dset)["label"] = L"u\ [\mathrm{m\ s^{-1}}]"
             attributes(dset)["long_name"] = "zonal wind"
         end
         if prepare_restart || :us in output_variables
@@ -192,7 +192,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"u_{\mathrm{s}}\,[\mathrm{m\,s^{-1}}]"
+            attributes(dset)["label"] = L"u_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
             attributes(dset)["long_name"] = "staggered zonal wind"
         end
         if :v in output_variables
@@ -207,7 +207,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"v\,[\mathrm{m\,s^{-1}}]"
+            attributes(dset)["label"] = L"v\ [\mathrm{m\ s^{-1}}]"
             attributes(dset)["long_name"] = "meridional wind"
         end
         if prepare_restart || :vs in output_variables
@@ -222,7 +222,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"v_{\mathrm{s}}\,[\mathrm{m\,s^{-1}}]"
+            attributes(dset)["label"] = L"v_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
             attributes(dset)["long_name"] = "staggered meridional wind"
         end
         if :w in output_variables
@@ -237,7 +237,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"w\,[\mathrm{m\,s^{-1}}]"
+            attributes(dset)["label"] = L"w\ [\mathrm{m\ s^{-1}}]"
             attributes(dset)["long_name"] = "vertical wind"
         end
         if :ws in output_variables
@@ -252,7 +252,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"w_{\mathrm{s}}\,[\mathrm{m\,s^{-1}}]"
+            attributes(dset)["label"] = L"w_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
             attributes(dset)["long_name"] = "staggered vertical wind"
         end
         if :wt in output_variables
@@ -267,7 +267,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"\widehat{w}\,[\mathrm{m\,s^{-1}}]"
+            attributes(dset)["label"] = L"\widehat{w}\ [\mathrm{m\ s^{-1}}]"
             attributes(dset)["long_name"] = "transformed vertical wind"
         end
         if prepare_restart || :wts in output_variables
@@ -283,7 +283,7 @@ function create_output(state::State, machine_start_time::DateTime)
             )
             attributes(dset)["units"] = "m*s^-1"
             attributes(dset)["label"] =
-                L"\widehat{w}_{\mathrm{s}}\,[\mathrm{m\,s^{-1}}]"
+                L"\widehat{w}_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
             attributes(dset)["long_name"] = "staggered transformed vertical wind"
         end
         if :thetap in output_variables
@@ -298,7 +298,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
             )
             attributes(dset)["units"] = "K"
-            attributes(dset)["label"] = L"\theta'\,[\mathrm{K}]"
+            attributes(dset)["label"] = L"\theta'\ [\mathrm{K}]"
             attributes(dset)["long_name"] = "potential-temperature fluctuations"
         end
         if prepare_restart || :pip in output_variables
@@ -340,9 +340,9 @@ function create_output(state::State, machine_start_time::DateTime)
                     fieldnames(TracerWKBImpact),
                     ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
                     (
-                        L"\langle u'\chi' \rangle\,[\mathrm{m\,s^{-1}}]",
-                        L"\langle v'\chi' \rangle\,[\mathrm{m\,s^{-1}}]",
-                        L"\langle w'\chi' \rangle\,[\mathrm{m\,s^{-1}}]",
+                        L"\langle u'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
+                        L"\langle v'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
+                        L"\langle w'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
                         L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]",
                     ),
                     (
@@ -376,13 +376,13 @@ function create_output(state::State, machine_start_time::DateTime)
             if prepare_restart || save_ray_volumes
                 if x_size == 1 && y_size == 1
                     nr_units = "kg*s^-1"
-                    nr_label = L"\mathcal{N}_r\,[\mathrm{kg\,s^{-1}}]"
+                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ s^{-1}}]"
                 elseif x_size > 1 && y_size > 1
                     nr_units = "kg*m^2*s^-1"
-                    nr_label = L"\mathcal{N}_r\,[\mathrm{kg\,m^2\,s^{-1}}]"
+                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ m^2\ s^{-1}}]"
                 else
                     nr_units = "kg*m*s^-1"
-                    nr_label = L"\mathcal{N}_r\,[\mathrm{kg\,m\,s^{-1}}]"
+                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ m\ s^{-1}}]"
                 end
                 for (field, units, label, long_name) in zip(
                     (
@@ -416,18 +416,18 @@ function create_output(state::State, machine_start_time::DateTime)
                         nr_units,
                     ),
                     (
-                        L"x_{r}\,[\mathrm{m}]",
-                        L"y_{r}\,[\mathrm{m}]",
-                        L"z_{r}\,[\mathrm{m}]",
-                        L"\Delta x_{r}\,[\mathrm{m}]",
-                        L"\Delta y_{r}\,[\mathrm{m}]",
-                        L"\Delta z_{r}\,[\mathrm{m}]",
-                        L"k_{r}\,[\mathrm{m^{-1}}]",
-                        L"l_{r}\,[\mathrm{m^{-1}}]",
-                        L"m_{r}\,[\mathrm{m^{-1}}]",
-                        L"\Delta k_{r}\,[\mathrm{m^{-1}}]",
-                        L"\Delta l_{r}\,[\mathrm{m^{-1}}]",
-                        L"\Delta m_{r}\,[\mathrm{m^{-1}}]",
+                        L"x_{r}\ [\mathrm{m}]",
+                        L"y_{r}\ [\mathrm{m}]",
+                        L"z_{r}\ [\mathrm{m}]",
+                        L"\Delta x_{r}\ [\mathrm{m}]",
+                        L"\Delta y_{r}\ [\mathrm{m}]",
+                        L"\Delta z_{r}\ [\mathrm{m}]",
+                        L"k_{r}\ [\mathrm{m^{-1}}]",
+                        L"l_{r}\ [\mathrm{m^{-1}}]",
+                        L"m_{r}\ [\mathrm{m^{-1}}]",
+                        L"\Delta k_{r}\ [\mathrm{m^{-1}}]",
+                        L"\Delta l_{r}\ [\mathrm{m^{-1}}]",
+                        L"\Delta m_{r}\ [\mathrm{m^{-1}}]",
                         nr_label,
                     ),
                     (
@@ -467,9 +467,9 @@ function create_output(state::State, machine_start_time::DateTime)
                 (:dudt, :dvdt, :dthetadt),
                 ("kg*m^-2*s^-2", "kg*m^-2*s^-2", "kg*K*m^-3*s^-1"),
                 (
-                    L"[\partial_t (\rho_\mathrm{b} u_\mathrm{b})]_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
-                    L"[\partial_t (\rho_\mathrm{b} v_\mathrm{b})]_\mathrm{w}\,[\mathrm{kg\,m^{-2}\,s^{-2}}]",
-                    L"[\partial_t (P_\mathrm{b})]_\mathrm{w}\,[\mathrm{kg\,K\,m^{-3}\,s^{-1}}]",
+                    L"[\partial_t (\rho_\mathrm{b} u_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
+                    L"[\partial_t (\rho_\mathrm{b} v_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
+                    L"[\partial_t (P_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ K\ m^{-3}\ s^{-1}}]",
                 ),
                 (
                     "zonal-momentum GW forcing",

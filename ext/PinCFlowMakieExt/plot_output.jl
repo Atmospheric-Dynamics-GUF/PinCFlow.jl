@@ -94,9 +94,9 @@ function plot_output(
                     round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
                 Axis(
                     figure[row, column - 1];
-                    title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad z\approx%$zk\,\mathrm{%$space_unit}",
-                    xlabel = L"x_r\,[\mathrm{%$space_unit}]",
-                    ylabel = L"y_r\,[\mathrm{%$space_unit}]",
+                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
+                    xlabel = L"x_r\ [\mathrm{%$space_unit}]",
+                    ylabel = L"y_r\ [\mathrm{%$space_unit}]",
                 )
                 @ivy nonzero = nr[:, :, :, k] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
@@ -134,9 +134,9 @@ function plot_output(
                     round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
                 Axis(
                     figure[row, column - 1];
-                    title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad y\approx%$yj\,\mathrm{%$space_unit}",
-                    xlabel = L"x_r\,[\mathrm{%$space_unit}]",
-                    ylabel = L"z_r\,[\mathrm{%$space_unit}]",
+                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
+                    xlabel = L"x_r\ [\mathrm{%$space_unit}]",
+                    ylabel = L"z_r\ [\mathrm{%$space_unit}]",
                 )
                 @ivy nonzero = phi[:, :, j, :] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
@@ -174,9 +174,9 @@ function plot_output(
                     round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
                 Axis(
                     figure[row, column - 1];
-                    title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad x\approx%$xi\,\mathrm{%$space_unit}",
-                    xlabel = L"y_r\,[\mathrm{%$space_unit}]",
-                    ylabel = L"z_r\,[\mathrm{%$space_unit}]",
+                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
+                    xlabel = L"y_r\ [\mathrm{%$space_unit}]",
+                    ylabel = L"z_r\ [\mathrm{%$space_unit}]",
                 )
                 @ivy nonzero = phi[:, i, :, :] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
@@ -220,9 +220,9 @@ function plot_output(
                     round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
                 axis = Axis(
                     figure[row, column - 1];
-                    title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad z\approx%$zk\,\mathrm{%$space_unit}",
-                    xlabel = L"x\,[\mathrm{%$space_unit}]",
-                    ylabel = L"y\,[\mathrm{%$space_unit}]",
+                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
+                    xlabel = L"x\ [\mathrm{%$space_unit}]",
+                    ylabel = L"y\ [\mathrm{%$space_unit}]",
                 )
                 @ivy (levels, colormap) = symmetric_contours(
                     minimum(phi[:, :, k]),
@@ -257,9 +257,9 @@ function plot_output(
                 axis = Axis(
                     figure[row, column - 1];
                     backgroundcolor = :black,
-                    title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad y\approx%$yj\,\mathrm{%$space_unit}",
-                    xlabel = L"x\,[\mathrm{%$space_unit}]",
-                    ylabel = L"z\,[\mathrm{%$space_unit}]",
+                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
+                    xlabel = L"x\ [\mathrm{%$space_unit}]",
+                    ylabel = L"z\ [\mathrm{%$space_unit}]",
                 )
                 @ivy (levels, colormap) = symmetric_contours(
                     minimum(phi[:, j, :]),
@@ -294,9 +294,9 @@ function plot_output(
                 axis = Axis(
                     figure[row, column - 1];
                     backgroundcolor = :black,
-                    title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad x\approx%$xi\,\mathrm{%$space_unit}",
-                    xlabel = L"y\,[\mathrm{%$space_unit}]",
-                    ylabel = L"z\,[\mathrm{%$space_unit}]",
+                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
+                    xlabel = L"y\ [\mathrm{%$space_unit}]",
+                    ylabel = L"z\ [\mathrm{%$space_unit}]",
                 )
                 @ivy (levels, colormap) = symmetric_contours(
                     minimum(phi[i, :, :]),
