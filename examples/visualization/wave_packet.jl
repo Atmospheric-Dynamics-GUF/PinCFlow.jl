@@ -13,9 +13,9 @@ h5open("wave_packet.h5") do data
     plot_output(
         "examples/results/wave_packet.svg",
         data,
-        ("u", 20, 20, 30, 2),
-        ("v", 20, 20, 30, 2),
-        ("w", 20, 20, 30, 2);
+        ("u", 20, 20, 40, 2),
+        ("v", 20, 20, 40, 2),
+        ("w", 20, 20, 40, 2);
         time_unit = "min",
     )
     return

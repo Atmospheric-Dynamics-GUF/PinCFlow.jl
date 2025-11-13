@@ -1,38 +1,42 @@
 l2 = (
-    n2 = 0.009136622f0,
-    p = 5837.2305f0,
-    pip = 4.0536876f0,
-    rhobar = 19.042942f0,
-    rhop = 0.3046972f0,
+    n2 = 0.011484171f0,
+    p = 4077.7273f0,
+    pip = 0.18243694f0,
+    rhobar = 13.219808f0,
+    rhop = 0.0011686909f0,
     t = 3600.0f0,
-    thetabar = 10786.326f0,
-    us = 49.6171f0,
-    vs = 34.40523f0,
-    wts = 64.71526f0,
+    thetabar = 18475.896f0,
+    us = 3.8842697f0,
+    vs = 3.793277f0,
+    wts = 5.9603972f0,
     x = 18165.902f0,
     y = 18165.902f0,
-    z = 364691.66f0,
-    ztilde = 392428.34f0,
+    z = 729383.3f0,
+    ztilde = 784856.7f0,
 )
 linf = (
-    n2 = 0.00042362066f0,
-    p = 320.76392f0,
-    pip = 0.84784794f0,
-    rhobar = 1.069213f0,
-    rhop = 0.06671554f0,
+    n2 = 0.0004251976f0,
+    p = 294.45767f0,
+    pip = 0.078915805f0,
+    rhobar = 0.98152554f0,
+    rhop = 0.00047893592f0,
     t = 3600.0f0,
-    thetabar = 442.28027f0,
-    us = 5.9756207f0,
-    vs = 5.5485463f0,
-    wts = 11.815212f0,
+    thetabar = 1003.64667f0,
+    us = 1.238824f0,
+    vs = 1.2391315f0,
+    wts = 2.0654345f0,
     x = 9000.0f0,
     y = 9000.0f0,
-    z = 19000.0f0,
-    ztilde = 20000.0f0,
+    z = 38000.0f0,
+    ztilde = 40000.0f0,
 )
 reference = (l2, linf)
 
 @testset "Wave packet" begin
+    cp(
+        joinpath(submit_directory, "wave_packet_tools.jl"),
+        "wave_packet_tools.jl",
+    )
     test_example(
         joinpath(submit_directory, "wave_packet.jl"),
         reference,
@@ -42,4 +46,5 @@ reference = (l2, linf)
         :output => OutputNamelist(; prepare_restart = true);
         update_references,
     )
+    rm("wave_packet_tools.jl")
 end
