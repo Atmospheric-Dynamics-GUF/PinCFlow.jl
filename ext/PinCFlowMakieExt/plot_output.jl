@@ -11,6 +11,23 @@ function plot_output(
 )
     set_visualization_theme!()
 
+    # Store the ray-volume property names.
+    ray_volume_properties = (
+        "xr",
+        "yr",
+        "zr",
+        "dxr",
+        "dyr",
+        "dzr",
+        "kr",
+        "lr",
+        "mr",
+        "dkr",
+        "dlr",
+        "dmr",
+        "nr",
+    )
+
     # Set the space unit factor.
     if space_unit == "km"
         space_unit_factor = 1000
@@ -56,7 +73,7 @@ function plot_output(
         # Round the time.
         tn = round(t[n]; digits = 1)
 
-        if variable == "ar"
+        if variable in ray_volume_properties
             # Get the ray-volume data.
             xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
             yr = data["yr"][:, :, :, :, n] ./ space_unit_factor
@@ -64,24 +81,11 @@ function plot_output(
             dxr = data["dxr"][:, :, :, :, n] ./ space_unit_factor
             dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
             dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
-            if nx > 1 && ny > 1
-                ar =
-                    data["nr"][:, :, :, :, n] .* data["dkr"][:, :, :, :, n] .*
-                    data["dlr"][:, :, :, :, n] .* data["dmr"][:, :, :, :, n]
-            elseif nx > 1
-                ar =
-                    data["nr"][:, :, :, :, n] .* data["dkr"][:, :, :, :, n] .*
-                    data["dmr"][:, :, :, :, n]
-            elseif ny > 1
-                ar =
-                    data["nr"][:, :, :, :, n] .* data["dlr"][:, :, :, :, n] .*
-                    data["dmr"][:, :, :, :, n]
-            else
-                ar = data["nr"][:, :, :, :, n] .* data["dmr"][:, :, :, :, n]
-            end
+            nr = data["nr"][:, :, :, :, n]
+            phi = data[variable][:, :, :, :, n]
 
-            # Set the label.
-            label = L"\mathcal{A}_r\,[\mathrm{kg\,m^{-1}\,s^{-1}}]"
+            # Get the label.
+            label = LaTeXString(attrs(data[variable])["label"])
 
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
@@ -91,20 +95,20 @@ function plot_output(
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad z\approx%$zk\,\mathrm{%$space_unit}",
-                    xlabel = L"x\,[\mathrm{%$space_unit}]",
-                    ylabel = L"y\,[\mathrm{%$space_unit}]",
+                    xlabel = L"x_r\,[\mathrm{%$space_unit}]",
+                    ylabel = L"y_r\,[\mathrm{%$space_unit}]",
                 )
-                @ivy nonzero = ar[:, :, :, k] .!= 0
+                @ivy nonzero = nr[:, :, :, k] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(ar[:, :, :, k][nonzero]),
-                    maximum(ar[:, :, :, k][nonzero]);
+                    minimum(phi[:, :, :, k][nonzero]),
+                    maximum(phi[:, :, :, k][nonzero]);
                     number,
                     colormap_name,
                 )
                 @ivy plot = scatter!(
                     xr[:, :, :, k][nonzero],
                     yr[:, :, :, k][nonzero];
-                    color = ar[:, :, :, k][nonzero],
+                    color = phi[:, :, :, k][nonzero],
                     colormap = cgrad(colormap; categorical = true),
                     marker = Rect,
                     markersize = collect(
@@ -131,20 +135,20 @@ function plot_output(
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad y\approx%$yj\,\mathrm{%$space_unit}",
-                    xlabel = L"x\,[\mathrm{%$space_unit}]",
-                    ylabel = L"z\,[\mathrm{%$space_unit}]",
+                    xlabel = L"x_r\,[\mathrm{%$space_unit}]",
+                    ylabel = L"z_r\,[\mathrm{%$space_unit}]",
                 )
-                @ivy nonzero = ar[:, :, j, :] .!= 0
+                @ivy nonzero = phi[:, :, j, :] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(ar[:, :, j, :][nonzero]),
-                    maximum(ar[:, :, j, :][nonzero]);
+                    minimum(phi[:, :, j, :][nonzero]),
+                    maximum(phi[:, :, j, :][nonzero]);
                     number,
                     colormap_name,
                 )
                 @ivy plot = scatter!(
                     xr[:, :, j, :][nonzero],
                     zr[:, :, j, :][nonzero];
-                    color = ar[:, :, j, :][nonzero],
+                    color = phi[:, :, j, :][nonzero],
                     colormap = cgrad(colormap; categorical = true),
                     marker = Rect,
                     markersize = collect(
@@ -171,20 +175,20 @@ function plot_output(
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\,\mathrm{%$time_unit},\quad x\approx%$xi\,\mathrm{%$space_unit}",
-                    xlabel = L"y\,[\mathrm{%$space_unit}]",
-                    ylabel = L"z\,[\mathrm{%$space_unit}]",
+                    xlabel = L"y_r\,[\mathrm{%$space_unit}]",
+                    ylabel = L"z_r\,[\mathrm{%$space_unit}]",
                 )
-                @ivy nonzero = ar[:, i, :, :] .!= 0
+                @ivy nonzero = phi[:, i, :, :] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(ar[:, i, :, :][nonzero]),
-                    maximum(ar[:, i, :, :][nonzero]);
+                    minimum(phi[:, i, :, :][nonzero]),
+                    maximum(phi[:, i, :, :][nonzero]);
                     number,
                     colormap_name,
                 )
                 @ivy plot = scatter!(
                     yr[:, i, :, :][nonzero],
                     zr[:, i, :, :][nonzero];
-                    color = ar[:, i, :, :][nonzero],
+                    color = phi[:, i, :, :][nonzero],
                     colormap = cgrad(colormap; categorical = true),
                     marker = Rect,
                     markersize = collect(
