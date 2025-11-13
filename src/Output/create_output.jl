@@ -19,7 +19,7 @@ function create_output(state::State, machine_start_time::DateTime)
         state.namelists.output
     (; model) = state.namelists.atmosphere
     (; wkb_mode) = state.namelists.wkb
-    (; comm) = state.domain
+    (; comm, master) = state.domain
     (; nray_max) = state.wkb
 
     # Set the chunk dimensions.
@@ -28,6 +28,10 @@ function create_output(state::State, machine_start_time::DateTime)
     cy = div(y_size, npy)
     cz = div(z_size, npz)
     ct = 1
+
+    # If there the output file exists already, remove it.
+    master && isfile(output_file) && rm(output_file)
+    MPI.Barrier(comm)
 
     # Prepare the output.
     h5open(output_file, "w", comm) do file
