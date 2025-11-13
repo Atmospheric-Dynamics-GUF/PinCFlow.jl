@@ -8,9 +8,8 @@ using Revise
 using PinCFlow
 
 # Insert the example scripts.
-@ivy for folder in ("examples/submit/", "examples/visualization/"),
-    script_file in readdir(folder)
-
+folder = "examples/scripts/"
+@ivy for script_file in readdir(folder)
     if endswith(script_file, ".jl")
         script = read(folder * script_file, String)
         code = Regex(
@@ -22,10 +21,7 @@ using PinCFlow
         if script_file == "periodic_hill.jl"
             page_file = "README.md"
         else
-            page_file =
-                "docs/src/examples/" *
-                script_file[1:(end - 3)] *
-                "_simulation.md"
+            page_file = "docs/src/examples.md"
         end
         if isfile(page_file)
             page = replace(read(page_file, String), code => script)
@@ -145,10 +141,7 @@ makedocs(;
     remotes = nothing,
     pages = [
         "Home" => "index.md",
-        "Examples" => [
-            "Mountain-wave simulation" => "examples/mountain_wave_simulation.md",
-            "WKB mountain-wave simulation" => "examples/wkb_mountain_wave_simulation.md",
-        ],
+        "Examples" => "examples.md",
         "Theory" => [
             "Physics" => "theory/physics.md",
             "Numerics" => "theory/numerics.md",
