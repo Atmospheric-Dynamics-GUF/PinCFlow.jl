@@ -297,7 +297,7 @@ function write_output(
                             ii,
                             jj,
                             kk,
-                        ] ./ tref
+                        ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
                 end
                 for field in (:uchi, :vchi, :wchi)
                     HDF5.set_extent_dims(
@@ -309,7 +309,7 @@ function write_output(
                             ii,
                             jj,
                             kk,
-                        ] .* uref
+                        ] .* uref ./ rhobar[ii, jj, kk]
                 end
             end
         end
