@@ -13,7 +13,7 @@ for (root, directories, files) in walkdir(".")
             script = read(joinpath(root, file), String)
 
             for code_block in
-                eachmatch(r"(?s)(?<=\n`{3}julia\n)(.(?!\n`{3}))*.", script)
+                eachmatch(r"(?sm)(?<=^```julia\n)(.(?!^```\n))*", script)
                 script = replace(
                     script,
                     code_block.match => format_text(

@@ -1,9 +1,12 @@
-# examples/submit/mountain_wave.jl
+# examples/scripts/mountain_wave.jl
 
 using Pkg
 
 Pkg.activate("examples")
 
+using MPI
+using HDF5
+using CairoMakie
 using Revise
 using PinCFlow
 
@@ -58,3 +61,14 @@ sponge = SpongeNamelist(;
 )
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open("mountain_wave.h5") do data
+        plot_output(
+            "examples/results/mountain_wave.svg",
+            data,
+            ("w", 20, 20, 10, 2);
+        )
+        return
+    end
+end

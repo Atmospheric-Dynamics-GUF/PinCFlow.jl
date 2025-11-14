@@ -23,7 +23,7 @@ Atmosphere(
     domain::Domain,
     grid::Grid,
     model::Boussinesq,
-    background::UniformBoussinesq,
+    background::NeutralStratification,
 )::Atmosphere
 ```
 
@@ -46,7 +46,7 @@ Atmosphere(
     domain::Domain,
     grid::Grid,
     model::Boussinesq,
-    background::StratifiedBoussinesq,
+    background::StableStratification,
 )::Atmosphere
 ```
 
@@ -261,7 +261,7 @@ function Atmosphere(
     domain::Domain,
     grid::Grid,
     model::Boussinesq,
-    background::UniformBoussinesq,
+    background::NeutralStratification,
 )::Atmosphere
     (; potential_temperature) = namelists.atmosphere
     (; thetaref) = constants
@@ -281,7 +281,7 @@ function Atmosphere(
     domain::Domain,
     grid::Grid,
     model::Boussinesq,
-    background::StratifiedBoussinesq,
+    background::StableStratification,
 )::Atmosphere
     (; buoyancy_frequency, potential_temperature) = namelists.atmosphere
     (; tref, thetaref) = constants
@@ -372,7 +372,7 @@ function Atmosphere(
 )::Atmosphere
     (; potential_temperature, ground_pressure, tropopause_height) =
         namelists.atmosphere
-    (; thetaref, lref, pref, kappa, sig, rsp, gamma, g, gammainv) = constants
+    (; thetaref, lref, pref, kappa, sig, rsp, gamma, gammainv, g) = constants
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
 
