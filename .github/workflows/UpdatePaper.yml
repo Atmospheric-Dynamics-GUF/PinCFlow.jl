@@ -22,6 +22,7 @@ jobs:
       - name: Merge
         run: |
           git pull origin main
+          git pull origin paper
           git merge main --no-edit --no-ff
       - name: Push
         if: success()
