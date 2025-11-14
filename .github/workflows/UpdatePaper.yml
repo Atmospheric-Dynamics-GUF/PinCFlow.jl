@@ -1,0 +1,30 @@
+name: Update paper
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  merge-main-into-paper:
+    runs-on: ubuntu-latest
+    name: Merge main into paper
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure Git User
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Merge
+        run: |
+          git checkout paper
+          git pull origin paper
+          git merge origin/main --no-edit --no-ff --allow-unrelated-histories
+      - name: Push
+        if: success()
+        run: |
+          git push origin paper

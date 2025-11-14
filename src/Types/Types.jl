@@ -166,9 +166,14 @@ export Rho,
     Chi,
     Explicit,
     Implicit,
+<<<<<<< HEAD
     UniformBoussinesq,
     StratifiedBoussinesq,
     RadiatedBoussinesq,
+=======
+    NeutralStratification,
+    StableStratification,
+>>>>>>> main
     Isothermal,
     Isentropic,
     Realistic,

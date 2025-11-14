@@ -60,7 +60,7 @@ reference = (l2, linf)
 
 @testset "WKB mountain wave" begin
     test_example(
-        joinpath(submit_directory, "wkb_mountain_wave.jl"),
+        joinpath(scripts_directory, "wkb_mountain_wave.jl"),
         reference,
         :x_size => 10,
         :y_size => 10,
