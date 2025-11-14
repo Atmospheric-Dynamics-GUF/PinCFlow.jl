@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>WKB mountain-wave simulation · PinCFlow.jl</title><meta name="title" content="WKB mountain-wave simulation · PinCFlow.jl"/><meta property="og:title" content="WKB mountain-wave simulation · PinCFlow.jl"/><meta property="twitter:title" content="WKB mountain-wave simulation · PinCFlow.jl"/><meta name="description" content="Documentation for PinCFlow.jl."/><meta property="og:description" content="Documentation for PinCFlow.jl."/><meta property="twitter:description" content="Documentation for PinCFlow.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">PinCFlow.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../mountain_wave_simulation/">Mountain-wave simulation</a></li><li class="is-active"><a class="tocitem" href>WKB mountain-wave simulation</a><ul class="internal"><li><a class="tocitem" href="#Simulation"><span>Simulation</span></a></li><li><a class="tocitem" href="#Visualization"><span>Visualization</span></a></li></ul></li></ul></li><li><span class="tocitem">Theory</span><ul><li><a class="tocitem" href="../../theory/physics/">Physics</a></li><li><a class="tocitem" href="../../theory/numerics/">Numerics</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../reference/pincflow/">PinCFlow</a></li><li><a class="tocitem" href="../../reference/types/">Types</a></li><li><a class="tocitem" href="../../reference/mpi_operations/">MPIOperations</a></li><li><a class="tocitem" href="../../reference/boundaries/">Boundaries</a></li><li><a class="tocitem" href="../../reference/flux_calculator/">FluxCalculator</a></li><li><a class="tocitem" href="../../reference/poisson_solver/">PoissonSolver</a></li><li><a class="tocitem" href="../../reference/update/">Update</a></li><li><a class="tocitem" href="../../reference/msgwam/">MSGWaM</a></li><li><a class="tocitem" href="../../reference/integration/">Integration</a></li><li><a class="tocitem" href="../../reference/output/">Output</a></li></ul></li><li><a class="tocitem" href="../../developer_guide/">Developer guide</a></li><li><a class="tocitem" href="../../changelog/">Changelog</a></li><li><a class="tocitem" href="../../authors/">Authors</a></li><li><a class="tocitem" href="../../contributing/">Contributing</a></li><li><a class="tocitem" href="../../code_of_conduct/">Code of Conduct</a></li><li><a class="tocitem" href="../../license/">License</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>WKB mountain-wave simulation</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>WKB mountain-wave simulation</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl.git" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="WKB-mountain-wave-simulation"><a class="docs-heading-anchor" href="#WKB-mountain-wave-simulation">WKB mountain-wave simulation</a><a id="WKB-mountain-wave-simulation-1"></a><a class="docs-heading-anchor-permalink" href="#WKB-mountain-wave-simulation" title="Permalink"></a></h1><h2 id="Simulation"><a class="docs-heading-anchor" href="#Simulation">Simulation</a><a id="Simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/submit/wkb_mountain_wave.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using Revise
+using PinCFlow
+
+npx = length(ARGS) &gt;= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) &gt;= 2 ? parse(Int, ARGS[2]) : 1
+npz = length(ARGS) &gt;= 3 ? parse(Int, ARGS[3]) : 1
+
+h0 = 150.0
+l0 = 5000.0
+rl = 10
+rh = 2
+
+lx = 400000.0
+ly = 400000.0
+lz = 20000.0
+dxr = lx / 20
+dyr = ly / 20
+dzr = lz / 10
+alpharmax = 0.0179
+
+atmosphere = AtmosphereNamelist(;
+    coriolis_frequency = 0.0,
+    initial_u = (x, y, z) -&gt; 10.0,
+)
+domain = DomainNamelist(;
+    x_size = 40,
+    y_size = 40,
+    z_size = 40,
+    lx,
+    ly,
+    lz,
+    npx,
+    npy,
+    npz,
+)
+grid = GridNamelist(;
+    resolved_topography = (x, y) -&gt;
+        x^2 + y^2 &lt;= (rl * l0)^2 ?
+        h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) * rh / (rh + 1) : 0.0,
+    unresolved_topography = (alpha, x, y) -&gt;
+        x^2 + y^2 &lt;= (rl * l0)^2 ?
+        (
+            pi / l0,
+            0.0,
+            h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) / (rh + 1),
+        ) : (0.0, 0.0, 0.0),
+)
+output = OutputNamelist(;
+    output_variables = (:w,),
+    output_file = &quot;wkb_mountain_wave.h5&quot;,
+)
+sponge = SpongeNamelist(;
+    lhs_sponge = (x, y, z, t, dt) -&gt;
+        alpharmax / 3 * (
+            exp((abs(x) - lx / 2) / dxr) +
+            exp((abs(y) - ly / 2) / dyr) +
+            exp((z - lz) / dzr)
+        ),
+    relaxed_u = (x, y, z, t, dt) -&gt; 10.0,
+)
+wkb = WKBNamelist(; wkb_mode = MultiColumn())
+
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
+</code></pre><p>performs a 3D WKB mountain-wave simulation in 64 processes (4 for each dimension of physical space) and writes the vertical wind to <code>wkb_mountain_wave.h5</code>, if executed with</p><pre><code class="language-shell hljs">mpiexec=$(julia --project=examples -e &#39;using MPICH_jll; println(MPICH_jll.mpiexec_path)&#39;)
+${mpiexec} -n 64 julia examples/submit/wkb_mountain_wave.jl 4 4 4</code></pre><p>(provided the examples project has been set up as illustrated in the user guide and MPI.jl and HDF5.jl are configured to use their default backends). The full surface topography is given by</p><p class="math-container">\[\begin{align*}
+    h \left(x, y\right) &amp; = \begin{cases}
+        \frac{h_0}{2 \left(r_h + 1\right)} \left[1 + \cos \left(\frac{\pi}{r_l l_0} \sqrt{x^2 + y^2}\right)\right] \left[r_h + \cos \left(\frac{\pi x}{l_0}\right)\right] &amp; \mathrm{if} \quad x^2 + y^2 \leq r_l^2 l_0^2,\\
+        0 &amp; \mathrm{else},
+    \end{cases}\\
+\end{align*}\]</p><p>where <span>$h_0 = 150 \, \mathrm{m}$</span>, <span>$l_0 = 5 \, \mathrm{km}$</span>, <span>$r_h = 2$</span>, and <span>$r_l = 10$</span>. This is decomposed into a large-scale part <span>$h_\mathrm{b}$</span> and a small-scale part with the spectral amplitude <span>$h_\mathrm{w}$</span>, such that</p><p class="math-container">\[\begin{align*}
+    h_\mathrm{b} \left(x, y\right) &amp; = r_h h_\mathrm{w} \left(x, y\right),\\
+    h_\mathrm{w} \left(x, y\right) &amp; = \begin{cases}
+        \frac{h_0}{2 \left(r_h + 1\right)} \left[1 + \cos \left(\frac{\pi}{r_l l_0} \sqrt{x^2 + y^2}\right)\right] &amp; \mathrm{if} \quad x^2 + y^2 \leq r_l^2 l_0^2,\\
+        0 &amp; \mathrm{else}.
+    \end{cases}
+\end{align*}\]</p><p>The large-scale part is resolved, so that the grid is defined from it, whereas the small-scale part is used by MS-GWaM to parameterize the mountain waves generated by the resolved wind crossing it. As in the first mountain-wave example, the atmosphere is isothermal, with the default temperature <span>$T_0 = 300 \, \mathrm{K}$</span> and the initial wind <span>$\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \, \mathrm{m \, s^{- 1}}$</span>.</p><p>The damping coefficient of the sponge is given by</p><p class="math-container">\[\alpha_\mathrm{R} \left(x, y, z\right) = \frac{\alpha_{\mathrm{R}, \max}}{3} \left[\exp \left(\frac{\left|x\right| - L_x / 2}{\Delta x_\mathrm{R}}\right) + \exp \left(\frac{\left|y\right| - L_y / 2}{\Delta y_\mathrm{R}}\right) + \exp \left(\frac{z - L_z}{\Delta z_\mathrm{R}}\right)\right],\]</p><p>where <span>$\alpha_{\mathrm{R}, \max} = 0.0179 \, \mathrm{s^{- 1}}$</span>, <span>$\Delta x_\mathrm{R} = L_x / 20$</span>, <span>$\Delta y_\mathrm{R} = L_y / 20$</span> and <span>$\Delta z_\mathrm{R} = L_z / 10$</span>. In contrast to the sinusoidal sponge discussed in the first example, this sponge applies a damping everywhere in the domain (weakest at the center of the surface, strongest in the upper corners). Once again, the sponge relaxes the wind to its initial state.</p><p>MS-GWaM is used with most of its parameters set to their default values. This means that the orographic source launches exactly one ray volume in each surface grid cell with a nonzero <span>$h_\mathrm{w}$</span>. Thus, the number of ray volumes allowed per grid cell (before merging is triggered) is <code>multiplication_factor</code> (a parameter of the WKB namelist) cubed, which is <span>$4^3 = 64$</span>.</p><h2 id="Visualization"><a class="docs-heading-anchor" href="#Visualization">Visualization</a><a id="Visualization-1"></a><a class="docs-heading-anchor-permalink" href="#Visualization" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/visualization/wkb_mountain_wave.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using HDF5
+using CairoMakie
+using Revise
+using PinCFlow
+
+h5open(&quot;wkb_mountain_wave.h5&quot;) do data
+    plot_contours(
+        &quot;examples/results/wkb_mountain_wave.svg&quot;,
+        data,
+        &quot;w&quot;,
+        (20, 20, 10, 2);
+        label = L&quot;w\,[\mathrm{m\,s^{-1}}]&quot;,
+    )
+    return
+end
+</code></pre><p>visualizes the vertical wind at the end of the above simulation (i.e. after one hour) in three cross sections of the domain and saves the generated figure to an SVG file that is included below.</p><p><img src="../results/wkb_mountain_wave.svg" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../mountain_wave_simulation/">« Mountain-wave simulation</a><a class="docs-footer-nextpage" href="../../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Friday 14 November 2025 12:05">Friday 14 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
