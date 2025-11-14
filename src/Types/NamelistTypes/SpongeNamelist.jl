@@ -24,7 +24,7 @@ SpongeNamelist(;
 )::SpongeNamelist
 ```
 
-Construct a `SpongeNamelist` instance with the given keyword arguments as properties.
+Construct a `SpongeNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 

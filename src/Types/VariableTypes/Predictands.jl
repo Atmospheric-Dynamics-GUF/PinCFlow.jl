@@ -1,9 +1,6 @@
 """
 ```julia
-Predictands{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-}
+Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Arrays for prognostic variables.
@@ -36,7 +33,7 @@ The predictands are initialized with the corresponding functions in `namelists.a
 
   - `pip::A`: Exner-pressure fluctuations.
 
-  - `p::B`: Mass-weighted potential temperature.
+  - `p::A`: Mass-weighted potential temperature.
 
 # Arguments
 
@@ -60,17 +57,14 @@ The predictands are initialized with the corresponding functions in `namelists.a
 
   - [`PinCFlow.Types.VariableTypes.set_p`](@ref)
 """
-struct Predictands{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-}
+struct Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
     rho::A
     rhop::A
     u::A
     v::A
     w::A
     pip::A
-    p::B
+    p::A
 end
 
 function Predictands(
