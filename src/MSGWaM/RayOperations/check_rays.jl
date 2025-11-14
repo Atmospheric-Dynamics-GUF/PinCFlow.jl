@@ -106,7 +106,7 @@ function check_rays(state::State)
             end
 
             if zr > zctilde[i, j, k]
-                println(
+                error(
                     "Error in check_rays:\nzr = ",
                     zr,
                     " > zctilde[i, j, k] = ",
