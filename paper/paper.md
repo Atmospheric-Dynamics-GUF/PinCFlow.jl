@@ -36,7 +36,7 @@ authors:
 affiliations:
   - name: Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany
     index: 1
-  - name: Numerical Mathematics, Johannes Gutenberg University Mainz, Germany
+  - name: Institute of Mathematics, Johannes Gutenberg University Mainz, Germany
     index: 2
 date: 23 October 2025
 bibliography: paper.bib
