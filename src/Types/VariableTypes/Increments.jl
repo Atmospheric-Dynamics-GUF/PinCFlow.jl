@@ -1,10 +1,6 @@
 """
 ```julia
-Increments{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-}
+Increments{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Container for the Runge-Kutta updates of the prognostic variables, as well as the Exner-pressure update of the Poisson solver.
@@ -37,17 +33,17 @@ Create an `Increments` instance in compressible mode.
 
   - `drho::A`: Density update.
 
-  - `drhop::B`: Density-fluctuations update.
+  - `drhop::A`: Density-fluctuations update.
 
-  - `du::B`: Zonal-momentum update.
+  - `du::A`: Zonal-momentum update.
 
-  - `dv::B`: Meridional-momentum update.
+  - `dv::A`: Meridional-momentum update.
 
-  - `dw::B`: Transformed-vertical-momentum update.
+  - `dw::A`: Transformed-vertical-momentum update.
 
-  - `dpip::B`: Exner-pressure update.
+  - `dpip::A`: Exner-pressure update.
 
-  - `dp::C`: Mass-weighted potential-temperature update.
+  - `dp::A`: Mass-weighted potential-temperature update.
 
 # Arguments
 
@@ -57,18 +53,14 @@ Create an `Increments` instance in compressible mode.
 
   - `model`: Dynamic equations.
 """
-struct Increments{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-}
+struct Increments{A <: AbstractArray{<:AbstractFloat, 3}}
     drho::A
-    drhop::B
-    du::B
-    dv::B
-    dw::B
-    dpip::B
-    dp::C
+    drhop::A
+    du::A
+    dv::A
+    dw::A
+    dpip::A
+    dp::A
 end
 
 function Increments(namelists::Namelists, domain::Domain)::Increments

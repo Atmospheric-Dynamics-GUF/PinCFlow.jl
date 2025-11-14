@@ -5,8 +5,7 @@ Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 3},
-    F <: AbstractArray{<:AbstractFloat, 5},
+    E <: AbstractArray{<:AbstractFloat, 5},
 }
 ```
 
@@ -101,15 +100,15 @@ Topography:
 
 Coordinate transformation.
 
-  - `jac::E`: Jacobian.
+  - `jac::D`: Jacobian.
 
-  - `met::F`: Metric tensor.
+  - `met::E`: Metric tensor.
 
 Vertical coordinates:
 
-  - `zc::E`: Physical height at cell centers.
+  - `zc::D`: Physical height at cell centers.
 
-  - `zctilde::E`: Physical height at vertical cell edges.
+  - `zctilde::D`: Physical height at vertical cell edges.
 
 # Arguments
 
@@ -132,8 +131,7 @@ struct Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 3},
-    F <: AbstractArray{<:AbstractFloat, 5},
+    E <: AbstractArray{<:AbstractFloat, 5},
 }
 
     # Scaled domain.
@@ -157,12 +155,12 @@ struct Grid{
     lh::D
 
     # Jacobian and metric tensor.
-    jac::E
-    met::F
+    jac::D
+    met::E
 
     # Vertical coordinates.
-    zc::E
-    zctilde::E
+    zc::D
+    zctilde::D
 end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
