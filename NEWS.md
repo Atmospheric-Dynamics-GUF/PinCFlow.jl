@@ -3,10 +3,6 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
-## Release 0.1.0
-
-  - First public release of PinCFlow.jl.
-
 ## Release 1.0.0
 
   - The documentation has been updated, corrected and improved.
@@ -112,3 +108,7 @@ PinCFlow.jl follows the interpretation of
     The existing examples have been modified slightly. The run and visualization scripts have been merged.
 
   - The default values of the domain-namelist parameters `x_size`, `y_size` and `z_size` have been changed to `1`.
+
+## Release 0.1.0
+
+  - First public release of PinCFlow.jl.
