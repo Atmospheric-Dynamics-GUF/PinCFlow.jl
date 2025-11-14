@@ -34,7 +34,6 @@ AtmosphereNamelist(;
     troposphere_lapse_rate::Real = 6.5E-3,
     stratosphere_lapse_rate::Real = -5.0E-3,
     initial_rhop::Function = (x, y, z) -> 0.0,
-    initial_thetap::Function = (x, y, z) -> 0.0,
     initial_u::Function = (x, y, z) -> 0.0,
     initial_v::Function = (x, y, z) -> 0.0,
     initial_w::Function = (x, y, z) -> 0.0,
@@ -60,7 +59,7 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `background::D`: Atmospheric background.
 
-  - `buoyancy_frequency::C`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
+  - `buoyancy_frequency::C`: Buoyancy frequency if `background == StableStratification()`.
 
   - `potential_temperature::C`: Reference potential temperature.
 
@@ -78,15 +77,13 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `initial_rhop::E`: Function used to initialize the density fluctuations.
 
-  - `initial_thetap::F`: Function used to initialize the potential-temperature fluctuations (only relevant in compressible mode).
+  - `initial_u::F`: Function used to initialize the zonal wind.
 
-  - `initial_u::G`: Function used to initialize the zonal wind.
+  - `initial_v::G`: Function used to initialize the meridional wind.
 
-  - `initial_v::H`: Function used to initialize the meridional wind.
+  - `initial_w::H`: Function used to initialize the vertical wind.
 
-  - `initial_w::I`: Function used to initialize the vertical wind.
-
-  - `initial_pip::J`: Function used to initialize the Exner-pressure fluctuations.
+  - `initial_pip::I`: Function used to initialize the Exner-pressure fluctuations.
 """
 struct AtmosphereNamelist{
     A <: AbstractModel,
@@ -98,7 +95,6 @@ struct AtmosphereNamelist{
     G <: Function,
     H <: Function,
     I <: Function,
-    J <: Function,
 }
     model::A
     specify_reynolds_number::B
@@ -116,11 +112,10 @@ struct AtmosphereNamelist{
     troposphere_lapse_rate::C
     stratosphere_lapse_rate::C
     initial_rhop::E
-    initial_thetap::F
-    initial_u::G
-    initial_v::H
-    initial_w::I
-    initial_pip::J
+    initial_u::F
+    initial_v::G
+    initial_w::H
+    initial_pip::I
 end
 
 function AtmosphereNamelist(;
@@ -140,7 +135,6 @@ function AtmosphereNamelist(;
     troposphere_lapse_rate::Real = 6.5E-3,
     stratosphere_lapse_rate::Real = -5.0E-3,
     initial_rhop::Function = (x, y, z) -> 0.0,
-    initial_thetap::Function = (x, y, z) -> 0.0,
     initial_u::Function = (x, y, z) -> 0.0,
     initial_v::Function = (x, y, z) -> 0.0,
     initial_w::Function = (x, y, z) -> 0.0,
@@ -163,7 +157,6 @@ function AtmosphereNamelist(;
         Float64(troposphere_lapse_rate),
         Float64(stratosphere_lapse_rate),
         initial_rhop,
-        initial_thetap,
         initial_u,
         initial_v,
         initial_w,

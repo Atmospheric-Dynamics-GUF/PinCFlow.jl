@@ -7,9 +7,9 @@ Namelist for parameters describing the model domain.
 
 ```julia
 DomainNamelist(;
-    x_size::Integer = 3,
-    y_size::Integer = 3,
-    z_size::Integer = 3,
+    x_size::Integer = 1,
+    y_size::Integer = 1,
+    z_size::Integer = 1,
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,
@@ -70,9 +70,9 @@ struct DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
 end
 
 function DomainNamelist(;
-    x_size::Integer = 3,
-    y_size::Integer = 3,
-    z_size::Integer = 3,
+    x_size::Integer = 1,
+    y_size::Integer = 1,
+    z_size::Integer = 1,
     nbx::Integer = 3,
     nby::Integer = 3,
     nbz::Integer = 3,

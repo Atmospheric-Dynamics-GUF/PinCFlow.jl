@@ -15,6 +15,7 @@ Provides functions for writing the model state and initializing the model with d
 """
 module Output
 
+using LaTeXStrings
 using Dates
 using MPI
 using HDF5

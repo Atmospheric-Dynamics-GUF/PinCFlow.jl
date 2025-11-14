@@ -67,7 +67,22 @@ end
 function reset_predictands!(
     state::State,
     predictands::Predictands,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Boussinesq,
+)
+    (; rhop, u, v, w) = state.variables.predictands
+
+    rhop .= predictands.rhop
+    u .= predictands.u
+    v .= predictands.v
+    w .= predictands.w
+
+    return
+end
+
+function reset_predictands!(
+    state::State,
+    predictands::Predictands,
+    model::PseudoIncompressible,
 )
     (; rho, rhop, u, v, w) = state.variables.predictands
 
