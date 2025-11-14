@@ -21,8 +21,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Merge
         run: |
-          git fetch origin main
-          git merge origin/main --no-edit --no-ff
+          git pull origin main
+          git merge main --no-edit --no-ff
       - name: Push
         if: success()
         run: |
