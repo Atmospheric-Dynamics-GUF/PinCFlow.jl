@@ -1,22 +1,22 @@
 """
 ```julia
-DiscretizationNamelist{A <: AbstractFloat, B <: Bool, C <: AbstractLimiter}
+DiscretizationNamelist{A <: Float64, B <: Bool, C <: AbstractLimiter}
 ```
 
 Namelist for parameters describing the discretization.
 
 ```julia
 DiscretizationNamelist(;
-    cfl_number::AbstractFloat = 5.0E-1,
-    wkb_cfl_number::AbstractFloat = 5.0E-1,
-    dtmin::AbstractFloat = 1.0E-6,
-    dtmax::AbstractFloat = 1.0E+3,
+    cfl_number::Real = 5.0E-1,
+    wkb_cfl_number::Real = 5.0E-1,
+    dtmin::Real = 1.0E-6,
+    dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
     limiter_type::AbstractLimiter = MCVariant(),
 )::DiscretizationNamelist
 ```
 
-Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
+Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -32,11 +32,7 @@ Construct a `DiscretizationNamelist` instance with the given keyword arguments a
 
   - `limiter_type::C`: Flux limiter used by the MUSCL scheme.
 """
-struct DiscretizationNamelist{
-    A <: AbstractFloat,
-    B <: Bool,
-    C <: AbstractLimiter,
-}
+struct DiscretizationNamelist{A <: Float64, B <: Bool, C <: AbstractLimiter}
     cfl_number::A
     wkb_cfl_number::A
     dtmin::A
@@ -46,18 +42,18 @@ struct DiscretizationNamelist{
 end
 
 function DiscretizationNamelist(;
-    cfl_number::AbstractFloat = 5.0E-1,
-    wkb_cfl_number::AbstractFloat = 5.0E-1,
-    dtmin::AbstractFloat = 1.0E-6,
-    dtmax::AbstractFloat = 1.0E+3,
+    cfl_number::Real = 5.0E-1,
+    wkb_cfl_number::Real = 5.0E-1,
+    dtmin::Real = 1.0E-6,
+    dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
     limiter_type::AbstractLimiter = MCVariant(),
 )::DiscretizationNamelist
     return DiscretizationNamelist(
-        cfl_number,
-        wkb_cfl_number,
-        dtmin,
-        dtmax,
+        Float64(cfl_number),
+        Float64(wkb_cfl_number),
+        Float64(dtmin),
+        Float64(dtmax),
         adaptive_time_step,
         limiter_type,
     )
