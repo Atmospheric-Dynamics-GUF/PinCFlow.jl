@@ -1,9 +1,12 @@
-# examples/submit/wkb_mountain_wave.jl
+# examples/scripts/wkb_mountain_wave.jl
 
 using Pkg
 
 Pkg.activate("examples")
 
+using MPI
+using HDF5
+using CairoMakie
 using Revise
 using PinCFlow
 
@@ -52,7 +55,7 @@ grid = GridNamelist(;
         ) : (0.0, 0.0, 0.0),
 )
 output = OutputNamelist(;
-    output_variables = (:w,),
+    save_ray_volumes = true,
     output_file = "wkb_mountain_wave.h5",
 )
 sponge = SpongeNamelist(;
@@ -67,3 +70,14 @@ sponge = SpongeNamelist(;
 wkb = WKBNamelist(; wkb_mode = MultiColumn())
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open("wkb_mountain_wave.h5") do data
+        plot_output(
+            "examples/results/wkb_mountain_wave.svg",
+            data,
+            ("nr", 20, 20, 10, 2);
+        )
+        return
+    end
+end
