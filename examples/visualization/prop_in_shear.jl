@@ -9,12 +9,12 @@ using CairoMakie
 using Revise
 using PinCFlow
 
-h5open("wkb_prop_perturb.h5") do data
+h5open("prop_without_shear.h5") do data
     plot_contours(
-       "examples/results/wkb_prop_perturb.svg",
+       "examples/results/prop_without_shear.svg",
         data,
-        "u",
-        (5, 5, 5, 4);
+        "w",
+        (2, 2, 2, 4);
         label = L"w\,[\mathrm{m\,s^{-1}}]",
     )
     return

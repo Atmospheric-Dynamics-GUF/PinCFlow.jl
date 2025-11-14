@@ -38,16 +38,18 @@ lx = 5.0E+4
 ly = 5.0E+4
 lz = 4.0E+4
 
+sigma_sq = 6.0E+3
 k_1 = (2 * pi*10/lx) 
 l_1 = (2 * pi*10/lx) 
-m_1 = -0.0297
+m_1 = 10/sigma_sq
 k_2 = (2 * pi/lx) 
 l_2 = (2 * pi/lx) 
-m_2 =  0.05
-amp = 0.5
-lz_1 = lz*1/2
-lz_2 = lz/5
-sigma_sq = 4.0E+3
+m_2 =  10/sigma_sq
+amp = 2.0
+lz_1 = lz/2
+lz_2 = lz/4
+shear_s = 10.0
+
 vertical_wind_k_1 = (x, y, z) -> amp * exp(-(z - lz_1)^2/(4*sigma_sq)) * cos(k_1*x + l_1*y + m_1*z)
 
 vertical_wind_k_2 = (x, y, z) -> amp * exp(-(z - lz_2)^2/(4*sigma_sq)) * cos(k_2*x + l_2*y + m_2*z)
@@ -56,40 +58,33 @@ out_of_phase_w_k_1 = (x, y, z) -> amp * exp(-(z - lz_1)^2/(4*sigma_sq)) * sin(k_
 
 out_of_phase_w_k_2 = (x, y, z) -> amp * exp(-(z - lz_2)^2/(4*sigma_sq)) * sin(k_2*x + l_2*y + m_2*z)
 
-
-
-M = 2 * pi/1E+4
-z1 = 1.0E+4 
-N_Z = (x, y, z) -> z1 <= z && z <= z1 +  (2 * pi / M) ?
-               sqrt(buoyancy_f^2 + (buoyancy_f^2 * 0.8) * (sin(M * (z - z1)))) : buoyancy_f
-
-#####
-
-
+backg_shear = (x, y, z) -> shear_s * sin(2 * pi * z / lz)
 
 atmosphere = AtmosphereNamelist(;
     coriolis_frequency = 0.0E+0,
-    initial_rhop = (x, y, z) -> (-rho_o / gravity) * ((N_Z(x,y,z) * sqrt(k_1^2+l_1^2+ m_1^2) / sqrt(k_1^2+l_1^2)) * out_of_phase_w_k_1(x,y,z)
-                                + (N_Z(x,y,z) * sqrt(k_2^2+l_2^2+ m_2^2) / sqrt(k_2^2+l_2^2)) * out_of_phase_w_k_2(x,y,z)),
+    initial_rhop = (x, y, z) -> (-rho_o / gravity) * ((buoyancy_f * sqrt(k_1^2+l_1^2+ m_1^2) / sqrt(k_1^2+l_1^2)) * out_of_phase_w_k_1(x,y,z)
+                                + (buoyancy_f * sqrt(k_2^2+l_2^2+ m_2^2) / sqrt(k_2^2+l_2^2)) * out_of_phase_w_k_2(x,y,z)),
     initial_u = (x, y, z) -> - (k_1 * m_1 / (k_1^2+l_1^2)) * vertical_wind_k_1(x,y,z) - (k_2 * m_2 / (k_2^2+l_2^2)) * vertical_wind_k_2(x,y,z),
     initial_v = (x, y, z) -> - (l_1 * m_1 / (k_1^2+l_1^2)) * vertical_wind_k_1(x,y,z) - (l_2 * m_2 / (k_2^2+l_2^2)) * vertical_wind_k_2(x,y,z),
     initial_w = (x, y, z) -> vertical_wind_k_1(x,y,z) + vertical_wind_k_2(x,y,z),
-    initial_pip = (x, y, z) -> - (1/c_p/theta_o) * (m_1 * N_Z(x,y,z) * vertical_wind_k_1(x,y,z) / (sqrt(k_1^2+l_1^2+ m_1^2) * sqrt(k_1^2+l_1^2))
-                                +m_2 * N_Z(x,y,z) * vertical_wind_k_2(x,y,z) / (sqrt(k_2^2+l_2^2+ m_2^2) * sqrt(k_2^2+l_2^2))) ,
-    
-    #initial_u = (x, y, z) -> amp * exp(-(z - lz_1)^2/(4*sigma_sq)) * cos(k_1*x + l_1*y + m_1*z)
-    #            + amp * exp(-(z - lz_2)^2/(4*sigma_sq)) * cos(k_2*x + l_2*y + m_2*z),
-    #initial_v = (x, y, z) -> -(k_1 * m_1 / (k_1^2+l_1^2)) * amp * exp(-(z - lz_1)^2/(4*sigma_sq)) * cos(k_1*x + l_1*y + m_1*z)
-    #            -(k_2 * m_2 / (k_2^2+l_2^2)) * amp * exp(-(z - lz_2)^2/(4*sigma_sq)) * cos(k_2*x + l_2*y + m_2*z),
-    #initial_w = (x, y, z) -> -(l_1 * m_1 / (k_1^2+l_1^2)) * amp * exp(-(z - lz_1)^2/(4*sigma_sq)) * cos(k_1*x + l_1*y + m_1*z)
-    #            -(l_2 * m_2 / (k_2^2+l_2^2)) * amp * exp(-(z - lz_2)^2/(4*sigma_sq)) * cos(k_2*x + l_2*y + m_2*z),
+    initial_pip = (x, y, z) -> - (1/c_p/theta_o) * (m_1 * buoyancy_f * vertical_wind_k_1(x,y,z) / (sqrt(k_1^2+l_1^2+ m_1^2) * sqrt(k_1^2+l_1^2))
+                                +m_2 * buoyancy_f * vertical_wind_k_2(x,y,z) / (sqrt(k_2^2+l_2^2+ m_2^2) * sqrt(k_2^2+l_2^2))) ,
     model = Boussinesq(),
-    background = RadiatedBoussinesq(),
+    background = StratifiedBoussinesq(),
 )
+
+atmosphere_1 = AtmosphereNamelist(;
+    coriolis_frequency = 0.0E+0,
+    initial_u = (x, y, z) -> backg_shear(x, y, z),
+    model = Boussinesq(),
+    background = StratifiedBoussinesq(),
+)
+
+
 domain = DomainNamelist(;
     x_size = 40,
     y_size = 40,
-    z_size = 60,
+    z_size = 40,
     lx,
     ly,
     lz,
@@ -100,10 +95,10 @@ grid = GridNamelist(;
     #resolved_topography = (x, y) -> 5 * (1 + cos(pi / 10000 * x)),
 )
 output =
-    OutputNamelist(; output_variables = (:w, :dudt,), 
-    output_file = "prop_perturb.h5", 
+    OutputNamelist(; output_variables = (:w, :u, :rhop, ), 
+    output_file = "prop_in_shear.h5", 
     output_interval = 0.5E+2,
-    tmax = 0.5E+3,
+    tmax = 1.0E+3,
 )
 sponge = SpongeNamelist(;
     #rhs_sponge = (x, y, z, t, dt) ->
@@ -112,4 +107,14 @@ sponge = SpongeNamelist(;
 
 wkb = WKBNamelist(; wkb_mode = NoWKB())
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
+
+(state1) = State(Namelists(; atmosphere = atmosphere_1, domain, grid, output, sponge, wkb))
+
+(state) = State(Namelists(; atmosphere = atmosphere, domain, grid, output, sponge, wkb))
+#println("the pridictant u is:", state2.variables.predictands.u)
+
+#shear = state.variables.predictands.u
+shear1 = deepcopy(state1.variables.predictands.u)
+
+
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb), shear1)

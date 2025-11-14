@@ -20,7 +20,7 @@ function plot_contours(
     # Get the time.
     t = data["t"][:] ./ 3600
     (nt,) = size(t)
-    t = [tj for i in 1:nz, tj in t]
+    t = [tj for i in 1:nz, tj in t] #height-time meshgrid
 
     # Get the variable.
     phi = data[variable][:, :, :, :]

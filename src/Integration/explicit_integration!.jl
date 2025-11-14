@@ -98,6 +98,67 @@ end
 function explicit_integration!(
     state::State,
     p0::Predictands,
+    shear_predictands::AbstractArray,
+    dtstage::AbstractFloat,
+    time::AbstractFloat,
+    side::LHS,
+)
+    (; nstages, stepfrac) = state.time
+    (; tracer_setup) = state.namelists.tracer
+    
+
+    @ivy for rkstage in 1:nstages
+        reconstruct!(state)
+        set_boundaries!(state, BoundaryReconstructions())
+
+        p_new = deepcopy(p0)
+        p_new.u .= p_new.u + shear_predictands
+        
+        compute_fluxes!(state, p_new)
+
+        set_boundaries!(state, BoundaryFluxes())
+
+        save_backups!(state, :rho)
+
+        update!(state, dtstage, rkstage, Rho())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, Rho())
+
+        update!(state, dtstage, rkstage, RhoP(), side)
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, RhoP())
+
+        update!(state, dtstage, rkstage, P())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, P())
+
+        update!(state, dtstage, rkstage, tracer_setup)
+        apply_lhs_sponge!(
+            state,
+            stepfrac[rkstage] * dtstage,
+            time,
+            tracer_setup,
+        )
+
+        set_boundaries!(state, BoundaryPredictands())
+
+        update!(state, dtstage, rkstage, U(), side)
+        update!(state, dtstage, rkstage, V(), side)
+        update!(state, dtstage, rkstage, W(), side)
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, U())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, V())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, W())
+
+        set_boundaries!(state, BoundaryPredictands())
+    end
+
+    synchronize_compressible_atmosphere!(state, state.variables.predictands)
+
+    apply_lhs_sponge!(state, dtstage, time, PiP())
+
+    return
+end
+
+function explicit_integration!(
+    state::State,
+    p0::Predictands,
     dtstage::AbstractFloat,
     time::AbstractFloat,
     side::RHS,
