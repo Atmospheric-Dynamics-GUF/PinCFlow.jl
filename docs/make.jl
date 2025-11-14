@@ -13,10 +13,10 @@ folder = "examples/scripts/"
     if endswith(script_file, ".jl")
         script = read(folder * script_file, String)
         code = Regex(
-            "(?s)(?<=\\n`{3}julia\\n)# " *
+            "(?sm)(?<=^```julia\\n)# " *
             folder *
-            script_file[1:(end - 3)] *
-            "\\.jl\\n(.(?!\\n`{3}))*.",
+            script_file *
+            "(.(?!^```\\n))*",
         )
         if script_file == "periodic_hill.jl"
             page_file = "README.md"
