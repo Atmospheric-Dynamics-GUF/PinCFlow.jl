@@ -1,4 +1,4 @@
-name: Auto-merge main into paper
+name: Update paper
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: paper
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure Git User
         run: |
@@ -21,8 +21,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Merge
         run: |
-          git fetch origin main
-          git merge origin/main --no-edit --no-ff
+          git checkout paper
+          git pull origin paper
+          git merge origin/main --no-edit --no-ff --allow-unrelated-histories
       - name: Push
         if: success()
         run: |
