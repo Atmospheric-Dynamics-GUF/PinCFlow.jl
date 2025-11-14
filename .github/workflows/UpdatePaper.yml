@@ -1,4 +1,4 @@
-name: Auto-merge main into paper
+name: Update paper
 
 on:
   push:
