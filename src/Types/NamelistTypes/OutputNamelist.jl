@@ -3,9 +3,9 @@
 OutputNamelist{
     A <: Tuple{Vararg{Symbol}},
     B <: Bool,
-    C <: Integer,
-    D <: AbstractFloat,
-    E <: AbstractString,
+    C <: Int,
+    D <: Float64,
+    E <: String,
 }
 ```
 
@@ -21,14 +21,14 @@ OutputNamelist(;
     output_steps::Bool = false,
     nout::Integer = 1,
     iterations::Integer = 1,
-    output_interval::AbstractFloat = 3.6E+3,
-    tmax::AbstractFloat = 3.6E+3,
+    output_interval::Real = 3.6E+3,
+    tmax::Real = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
 )::OutputNamelist
 ```
 
-Construct an `OutputNamelist` instance with the given keyword arguments as properties.
+Construct an `OutputNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -59,9 +59,9 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
 struct OutputNamelist{
     A <: Tuple{Vararg{Symbol}},
     B <: Bool,
-    C <: Integer,
-    D <: AbstractFloat,
-    E <: AbstractString,
+    C <: Int,
+    D <: Float64,
+    E <: String,
 }
     output_variables::A
     save_ray_volumes::B
@@ -86,8 +86,8 @@ function OutputNamelist(;
     output_steps::Bool = false,
     nout::Integer = 1,
     iterations::Integer = 1,
-    output_interval::AbstractFloat = 3.6E+3,
-    tmax::AbstractFloat = 3.6E+3,
+    output_interval::Real = 3.6E+3,
+    tmax::Real = 3.6E+3,
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
 )::OutputNamelist
@@ -96,13 +96,13 @@ function OutputNamelist(;
         save_ray_volumes,
         prepare_restart,
         restart,
-        iin,
+        Int(iin),
         output_steps,
-        nout,
-        iterations,
-        output_interval,
-        tmax,
-        input_file,
-        output_file,
+        Int(nout),
+        Int(iterations),
+        Float64(output_interval),
+        Float64(tmax),
+        string(input_file),
+        string(output_file),
     )
 end
