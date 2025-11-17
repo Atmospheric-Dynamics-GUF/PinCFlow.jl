@@ -103,7 +103,7 @@ end
 function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
     (; namelists, domain) = state
     (; reconstructions) = state.variables
-    (; tracersetup) = namelists.tracer
+    (; tracer_setup) = namelists.tracer
 
     for field in fieldnames(Reconstructions)
         set_zonal_boundaries_of_field!(
@@ -120,10 +120,10 @@ end
 
 function set_zonal_boundaries!(state::State, variables::BoundaryWKBIntegrals)
     (; wkb_mode) = state.namelists.wkb
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
 
     set_zonal_boundaries!(state, variables, wkb_mode)
-    set_tracer_zonal_boundaries!(state, variables, wkb_mode, tracersetup)
+    set_tracer_zonal_boundaries!(state, variables, wkb_mode, tracer_setup)
 
     return
 end
@@ -156,7 +156,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uu, :uv, :uw, :vv, :vw, :etx, :ety, :utheta, :vtheta, :e)
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
         set_zonal_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -170,10 +170,10 @@ end
 
 function set_zonal_boundaries!(state::State, variables::BoundaryWKBTendencies)
     (; wkb_mode) = state.namelists.wkb
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
 
     set_zonal_boundaries!(state, variables, wkb_mode)
-    set_tracer_zonal_boundaries!(state, variables, wkb_mode, tracersetup)
+    set_tracer_zonal_boundaries!(state, variables, wkb_mode, tracer_setup)
 
     return
 end

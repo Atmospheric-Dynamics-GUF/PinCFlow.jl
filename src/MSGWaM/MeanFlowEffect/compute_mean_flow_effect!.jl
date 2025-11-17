@@ -6,13 +6,13 @@ compute_mean_flow_effect!(state::State)
 Calculate the mean-flow impact of unresolved gravity waves by dispatching to a test-case-specific method.
 
 ```julia
-compute_mean_flow_effect!(state::State, testcase::AbstractTestCase)
+compute_mean_flow_effect!(state::State, test_case::AbstractTestCase)
 ```
 
 Return for non-WKB test cases.
 
 ```julia
-compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
+compute_mean_flow_effect!(state::State, test_case::AbstractWKBTestCase)
 ```
 
 Calculate the mean-flow impact of unresolved gravity waves.
@@ -23,7 +23,7 @@ This method first computes several spectral integrals (using `compute_gw_integra
 
   - `state`: Model state.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
 # See also
 
@@ -40,16 +40,16 @@ This method first computes several spectral integrals (using `compute_gw_integra
 function compute_mean_flow_effect! end
 
 function compute_mean_flow_effect!(state::State)
-    (; testcase) = state.namelists.setting
-    compute_mean_flow_effect!(state, testcase)
+    (; test_case) = state.namelists.setting
+    compute_mean_flow_effect!(state, test_case)
     return
 end
 
-function compute_mean_flow_effect!(state::State, testcase::AbstractTestCase)
+function compute_mean_flow_effect!(state::State, test_case::AbstractTestCase)
     return
 end
 
-function compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
+function compute_mean_flow_effect!(state::State, test_case::AbstractWKBTestCase)
     compute_gw_integrals!(state)
 
     set_boundaries!(state, BoundaryWKBIntegrals())

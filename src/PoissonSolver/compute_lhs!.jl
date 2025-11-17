@@ -39,9 +39,7 @@ The scaled left-hand side is given by
 
 ```math
 \\begin{align*}
-    b & = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left\\{\\frac{1}{\\Delta \\widehat{x}} \\left[\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2} - \\left(J P\\right)_{i - 1 / 2} u_{i - 1 / 2}\\right]\\right.\\\\
-    & \\qquad \\qquad \\quad + \\frac{1}{\\Delta \\widehat{y}} \\left[\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2} - \\left(J P\\right)_{j - 1 / 2} v_{j - 1 / 2}\\right]\\\\
-    & \\qquad \\qquad \\quad + \\left.\\frac{1}{\\Delta \\widehat{z}} \\left[\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - \\left(J P\\right)_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right]\\right\\} - \\frac{\\sqrt{\\overline{\\rho}}}{P} F^P,
+    b & = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left(\\frac{U_{i + 1 / 2} - U_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{V_{j + 1 / 2} - V_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\widehat{W}_{k + 1 / 2} - \\widehat{W}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) - \\frac{\\sqrt{\\overline{\\rho}}}{P} F^P,
 \\end{align*}
 ```
 
@@ -65,11 +63,11 @@ function compute_lhs!(state::State)::AbstractFloat
 end
 
 function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
-    (; sizex, sizey, sizez) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
     (; rhs) = state.poisson
 
@@ -80,7 +78,7 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
     # Calculate RHS for TFC.
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
-        fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
+        fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
         ur = u[i, j, k]
         ul = u[i - 1, j, k]
@@ -91,33 +89,33 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
         # Calculate P at cell edges.
         pedger =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i + 1, j, k] * pbar[i + 1, j, k]
             )
         pedgel =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i - 1, j, k] * pstrattfc[i - 1, j, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i - 1, j, k] * pbar[i - 1, j, k]
             )
         pedgef =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j + 1, k] * pbar[i, j + 1, k]
             )
         pedgeb =
             0.5 * (
-                jac[i, j, k] * pstrattfc[i, j, k] +
-                jac[i, j - 1, k] * pstrattfc[i, j - 1, k]
+                jac[i, j, k] * pbar[i, j, k] +
+                jac[i, j - 1, k] * pbar[i, j - 1, k]
             )
         pedgeu =
             jac[i, j, k] *
             jac[i, j, k + 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (pbar[i, j, k] + pbar[i, j, k + 1]) /
             (jac[i, j, k] + jac[i, j, k + 1])
         pedged =
             jac[i, j, k] *
             jac[i, j, k - 1] *
-            (pstrattfc[i, j, k] + pstrattfc[i, j, k - 1]) /
+            (pbar[i, j, k] + pbar[i, j, k - 1]) /
             (jac[i, j, k] + jac[i, j, k - 1])
         # Determine indices for RHS.
         ib = i - i0 + 1
@@ -137,10 +135,10 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
     end
 
     divl2 = MPI.Allreduce(divl2, +, comm)
-    divl2 = sqrt(divl2 / sizex / sizey / sizez)
+    divl2 = sqrt(divl2 / x_size / y_size / z_size)
 
     divl2_norm = MPI.Allreduce(divl2_norm, +, comm)
-    divl2_norm = sqrt(divl2_norm / sizex / sizey / sizez)
+    divl2_norm = sqrt(divl2_norm / x_size / y_size / z_size)
 
     if divl2_norm != 0.0
         tolref = divl2 / divl2_norm
@@ -156,11 +154,11 @@ function compute_lhs!(state::State, model::AbstractModel)::AbstractFloat
 end
 
 function compute_lhs!(state::State, model::Compressible)::AbstractFloat
-    (; sizex, sizey, sizez) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, pstrattfc) = state.atmosphere
+    (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
     (; rhs) = state.poisson
 
@@ -171,7 +169,7 @@ function compute_lhs!(state::State, model::Compressible)::AbstractFloat
     # Calculate RHS for TFC.
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
-        fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
+        fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
         ur = u[i, j, k]
         ul = u[i - 1, j, k]
@@ -200,10 +198,10 @@ function compute_lhs!(state::State, model::Compressible)::AbstractFloat
     end
 
     divl2 = MPI.Allreduce(divl2, +, comm)
-    divl2 = sqrt(divl2 / sizex / sizey / sizez)
+    divl2 = sqrt(divl2 / x_size / y_size / z_size)
 
     divl2_norm = MPI.Allreduce(divl2_norm, +, comm)
-    divl2_norm = sqrt(divl2_norm / sizex / sizey / sizez)
+    divl2_norm = sqrt(divl2_norm / x_size / y_size / z_size)
 
     if divl2_norm != 0.0
         tolref = divl2 / divl2_norm

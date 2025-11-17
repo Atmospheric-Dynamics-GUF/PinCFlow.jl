@@ -11,24 +11,24 @@ function compute_msgwam_ice!(state::State, icesetup::NoIce)
 end
 
 function compute_msgwam_ice!(state::State, icesetup::IceOn)
-	(; testcase) = state.namelists.setting
-	compute_msgwam_ice!(state, testcase)
+	(; test_case) = state.namelists.setting
+	compute_msgwam_ice!(state, test_case)
 	return
 end
 
-function compute_msgwam_ice!(state::State, testcase::AbstractTestCase)
+function compute_msgwam_ice!(state::State, test_case::AbstractTestCase)
 	return
 end
 
-function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
+function compute_msgwam_ice!(state::State, test_case::WKBMultipleWavePackets)
 	(; domain, grid) = state
-	(; sizex, sizey) = state.namelists.domain
+	(; x_size, y_size) = state.namelists.domain
 	(; coriolis_frequency) = state.namelists.atmosphere
 	(; branchr) = state.namelists.wkb
 	(; tref, fr2) = state.constants
 	(; i0, i1, j0, j1, k0, k1, io, jo) = domain
-	(; dx, dy, dz, x, y, ztildetfc, jac) = grid
-	(; rhostrattfc, thetastrattfc) = state.atmosphere
+	(; dx, dy, dz, x, y, zctilde, jac) = grid
+	(; rhobar, thetabar) = state.atmosphere
 	(; nray, rays, integrals) = state.wkb
 	(; sgs) = state.ice
 	(; nscx, nscy, nscz) = state.namelists.ice
@@ -106,7 +106,7 @@ function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 										  (ii - 0.5) * dxsc
 									ysc = y[jy+jo] - dy / 2.0 +
 										  (jj - 0.5) * dysc
-									zsc = ztildetfc[ix, jy, kz-1] +
+									zsc = zctilde[ix, jy, kz-1] +
 										  (kk - 0.5) * dzsc * jac[ix, jy, kz]
 
 									#interpolate phase/amplitude RV at cell center
@@ -119,7 +119,7 @@ function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 									   abs(dyy) <= dyr / 2 &&
 									   abs(dzz) <= dzr / 2
 
-										if sizex > 1
+										if x_size > 1
 											dxi = (
 												min(xr + dxr / 2, xsc + dxsc * 0.5) -
 												max(xr - dxr / 2, xsc - dxsc * 0.5)
@@ -129,7 +129,7 @@ function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 											fcpspx = 1.0
 										end
 
-										if sizey > 1
+										if y_size > 1
 											dyi = (
 												min((yr + dyr * 0.5), ysc + dysc * 0.5) -
 												max((yr - dyr * 0.5), ysc - dysc * 0.5))
@@ -151,7 +151,7 @@ function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 										amprw = sqrt(
 											abs(omir) * 2.0 * khr^2 /
 											(khr^2 + mr^2) /
-											rhostrattfc[ix, jy, kz] * fcpswn *
+											rhobar[ix, jy, kz] * fcpswn *
 											rays.dens[iray, ixrv, jyrv, kzrv])
 
 
@@ -160,12 +160,12 @@ function compute_msgwam_ice!(state::State, testcase::WKBMultipleWavePackets)
 										b11 = amprw / abs(omir / n2r) * sign(mr)
 										w10 = Complex(0.0, omir / n2r) * b11 # amplitude w
 
-										theta0 = thetastrattfc[ix, jy, kz]
+										theta0 = thetabar[ix, jy, kz]
 										theta11 = fr2 * theta0 * b11
 
 										pi12 = Complex(0.0, kappa * ma2 *
 															(omir * omir - n2r) / n2r / mr /
-															thetastrattfc[ix, jy, kz]) * b11
+															thetabar[ix, jy, kz]) * b11
 
 										# phase at cell center
 										dphi = (rays.dphi[iray, ixrv, jyrv, kzrv] + kr * dxx + lr * dyy + mr * dzz)

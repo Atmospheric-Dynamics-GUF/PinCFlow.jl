@@ -10,7 +10,7 @@ write_output(
 
 Write the current simulation state to a previously created HDF5 output file and return the advanced output counter `iout`.
 
-The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `ztfc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
+The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
 
 The list of available output variables (as specified in `state.namelists.output.output_variables`) is as follows.
 
@@ -28,9 +28,9 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:ws`: Staggered vertical wind (computed with `compute_vertical_wind`).
 
-  - `:wtfc`: Transformed vertical wind.
+  - `:wt`: Transformed vertical wind.
 
-  - `:wstfc`: Staggered transformed vertical wind (restart variable).
+  - `:wts`: Staggered transformed vertical wind (restart variable).
 
   - `:thetap`: Potential-temperature fluctuations.
 
@@ -77,14 +77,14 @@ function write_output(
 	machine_start_time::DateTime,
 )::Integer
 	(; domain, grid) = state
-	(; sizex, sizey, sizez) = state.namelists.domain
+	(; x_size, y_size, z_size) = state.namelists.domain
 	(; prepare_restart, save_ray_volumes, output_variables, output_file) =
 		state.namelists.output
-	(; model, testcase) = state.namelists.setting
+	(; model, test_case) = state.namelists.setting
 	(; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
 	(; tref, lref, rhoref, thetaref, uref) = state.constants
-	(; x, y, ztfc) = grid
-	(; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
+	(; x, y, zc) = grid
+	(; rhobar, thetabar, n2, pbar) = state.atmosphere
 	(; predictands) = state.variables
 	(; rho, rhop, u, v, w, pip, p) = predictands
 	(; nray_max, rays, tendencies) = state.wkb
@@ -107,6 +107,14 @@ function write_output(
 
 	# Advance output counter.
 	iout += 1
+	# Determine dimensionality.
+	dim = 1
+	if x_size > 1
+		dim += 1
+	end
+	if y_size > 1
+		dim += 1
+	end
 
 	# Define slices.
 	dk0 = ko == 0 ? 1 : 0
@@ -123,13 +131,13 @@ function write_output(
 
 		# Write the horizontal grid.
 		if iout == 1
-			file["x"][:] = x[i0:(i0+sizex-1)] .* lref
-			file["y"][:] = y[j0:(j0+sizey-1)] .* lref
+			file["x"][:] = x[i0:(i0+x_size-1)] .* lref
+			file["y"][:] = y[j0:(j0+y_size-1)] .* lref
 		end
 
 		# Write the vertical grid.
 		if iout == 1
-			file["z"][iid, jjd, kkd] = ztfc[ii, jj, kk] .* lref
+			file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
 		end
 
 		# Write sub grid. 
@@ -147,32 +155,30 @@ function write_output(
 
 		# Write the background density.
 		if model != Boussinesq() && iout == 1
-			file["rhobar"][iid, jjd, kkd] = rhostrattfc[ii, jj, kk] .* rhoref
+			file["rhobar"][iid, jjd, kkd] = rhobar[ii, jj, kk] .* rhoref
 		end
 
 		# Write the background potential temperature.
 		if model != Boussinesq() && iout == 1
-			file["thetabar"][iid, jjd, kkd] =
-				thetastrattfc[ii, jj, kk] .* thetaref
+			file["thetabar"][iid, jjd, kkd] = thetabar[ii, jj, kk] .* thetaref
 		end
 
 		# Write the squared buoyancy frequency.
 		if model != Boussinesq() && iout == 1
-			file["n2"][iid, jjd, kkd] = bvsstrattfc[ii, jj, kk] ./ tref .^ 2
+			file["n2"][iid, jjd, kkd] = n2[ii, jj, kk] ./ tref .^ 2
 		end
 
 		# Write the mass-weighted potential temperature.
 		if model == Compressible()
-			HDF5.set_extent_dims(file["p"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["p"], (x_size, y_size, z_size, iout))
 			file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
 		elseif model != Boussinesq() && iout == 1
-			file["p"][iid, jjd, kkd] =
-				pstrattfc[ii, jj, kk] .* rhoref .* thetaref
+			file["p"][iid, jjd, kkd] = pbar[ii, jj, kk] .* rhoref .* thetaref
 		end
 
 		# Write the density fluctuations.
 		if prepare_restart || :rhop in output_variables
-			HDF5.set_extent_dims(file["rhop"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["rhop"], (x_size, y_size, z_size, iout))
 			if model == Boussinesq()
 				file["rhop"][iid, jjd, kkd, iout] = rhop[ii, jj, kk] .* rhoref
 			else
@@ -182,7 +188,7 @@ function write_output(
 
 		# Write the zonal winds.
 		if :u in output_variables
-			HDF5.set_extent_dims(file["u"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["u"], (x_size, y_size, z_size, iout))
 			file["u"][iid, jjd, kkd, iout] =
 				map(CartesianIndices((ii, jj, kk))) do ijk
 					(i, j, k) = Tuple(ijk)
@@ -192,13 +198,13 @@ function write_output(
 
 		# Write the staggered zonal winds.
 		if prepare_restart || :us in output_variables
-			HDF5.set_extent_dims(file["us"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["us"], (x_size, y_size, z_size, iout))
 			file["us"][iid, jjd, kkd, iout] = u[ii, jj, kk] .* uref
 		end
 
 		# Write the meridional winds.
 		if :v in output_variables
-			HDF5.set_extent_dims(file["v"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["v"], (x_size, y_size, z_size, iout))
 			file["v"][iid, jjd, kkd, iout] =
 				map(CartesianIndices((ii, jj, kk))) do ijk
 					(i, j, k) = Tuple(ijk)
@@ -208,13 +214,13 @@ function write_output(
 
 		# Write the staggered meridional winds.
 		if prepare_restart || :vs in output_variables
-			HDF5.set_extent_dims(file["vs"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["vs"], (x_size, y_size, z_size, iout))
 			file["vs"][iid, jjd, kkd, iout] = v[ii, jj, kk] .* uref
 		end
 
 		# Write the vertical winds.
 		if :w in output_variables
-			HDF5.set_extent_dims(file["w"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["w"], (x_size, y_size, z_size, iout))
 			file["w"][iid, jjd, kkd, iout] =
 				map(CartesianIndices((ii, jj, kk))) do ijk
 					(i, j, k) = Tuple(ijk)
@@ -227,7 +233,7 @@ function write_output(
 
 		# Write the staggered vertical winds.
 		if :ws in output_variables
-			HDF5.set_extent_dims(file["ws"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["ws"], (x_size, y_size, z_size, iout))
 			file["ws"][iid, jjd, kkd, iout] =
 				map(CartesianIndices((ii, jj, kk))) do ijk
 					(i, j, k) = Tuple(ijk)
@@ -236,9 +242,9 @@ function write_output(
 		end
 
 		# Write the transformed vertical winds.
-		if :wtfc in output_variables
-			HDF5.set_extent_dims(file["wtfc"], (sizex, sizey, sizez, iout))
-			file["wtfc"][iid, jjd, kkd, iout] =
+		if :wt in output_variables
+			HDF5.set_extent_dims(file["wt"], (x_size, y_size, z_size, iout))
+			file["wt"][iid, jjd, kkd, iout] =
 				map(CartesianIndices((ii, jj, kk))) do ijk
 					(i, j, k) = Tuple(ijk)
 					return (w[i, j, k] + w[i, j, k-1]) / 2 * uref
@@ -246,49 +252,49 @@ function write_output(
 		end
 
 		# Write the staggered transformed vertical winds.
-		if prepare_restart || :wstfc in output_variables
-			HDF5.set_extent_dims(file["wstfc"], (sizex, sizey, sizez, iout))
-			file["wstfc"][iid, jjd, kkd, iout] = w[ii, jj, kk] .* uref
+		if prepare_restart || :wts in output_variables
+			HDF5.set_extent_dims(file["wts"], (x_size, y_size, z_size, iout))
+			file["wts"][iid, jjd, kkd, iout] = w[ii, jj, kk] .* uref
 		end
 
 		# Write the potential-temperature fluctuations.
 		if :thetap in output_variables
-			HDF5.set_extent_dims(file["thetap"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["thetap"], (x_size, y_size, z_size, iout))
 			if model == Boussinesq()
 				file["thetap"][iid, jjd, kkd, iout] =
 					(
-						pstrattfc[ii, jj, kk] ./
-						(rhostrattfc[ii, jj, kk] .+ rhop[ii, jj, kk]) .-
-						thetastrattfc[ii, jj, kk]
+						pbar[ii, jj, kk] ./
+						(rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .-
+						thetabar[ii, jj, kk]
 					) .* thetaref
 			else
 				file["thetap"][iid, jjd, kkd, iout] =
 					(
-						pstrattfc[ii, jj, kk] ./
-						(rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk]) .-
-						thetastrattfc[ii, jj, kk]
+						pbar[ii, jj, kk] ./
+						(rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .-
+						thetabar[ii, jj, kk]
 					) .* thetaref
 			end
 		end
 
 		# Write the Exner-pressure fluctuations.
 		if prepare_restart || :pip in output_variables
-			HDF5.set_extent_dims(file["pip"], (sizex, sizey, sizez, iout))
+			HDF5.set_extent_dims(file["pip"], (x_size, y_size, z_size, iout))
 			file["pip"][iid, jjd, kkd, iout] = pip[ii, jj, kk]
 		end
 
-		if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
+		if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
 			for field in fieldnames(TracerPredictands)
 				HDF5.set_extent_dims(
 					file[string(field)],
-					(sizex, sizey, sizez, iout),
+					(x_size, y_size, z_size, iout),
 				)
 				file[string(field)][iid, jjd, kkd, iout] =
 					getfield(state.tracer.tracerpredictands, field)[
 						ii,
 						jj,
 						kk,
-					] ./ (rhostrattfc[ii, jj, kk] .+ rho[ii, jj, kk])
+					] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
 			end
 
 			if state.namelists.tracer.leading_order_impact &&
@@ -296,7 +302,7 @@ function write_output(
 				for field in (:dchidt,)
 					HDF5.set_extent_dims(
 						file[string(field)],
-						(sizex, sizey, sizez, iout),
+						(x_size, y_size, z_size, iout),
 					)
 					@views file[string(field)][iid, jjd, kkd, iout] =
 						getfield(state.tracer.tracerforcings.chiq0, field)[
@@ -308,7 +314,7 @@ function write_output(
 				for field in (:uchi, :vchi, :wchi)
 					HDF5.set_extent_dims(
 						file[string(field)],
-						(sizex, sizey, sizez, iout),
+						(x_size, y_size, z_size, iout),
 					)
 					@views file[string(field)][iid, jjd, kkd, iout] =
 						getfield(state.tracer.tracerforcings.chiq0, field)[
@@ -320,19 +326,48 @@ function write_output(
 			end
 		end
 
-		# Write the Exner-pressure fluctuations.
-		if prepare_restart || :pip in output_variables
-			HDF5.set_extent_dims(file["pip"], (sizex, sizey, sizez, iout))
-			@views file["pip"][
-				(io+1):(io+nx),
-				(jo+1):(jo+ny),
-				(ko+1):(ko+nz),
-				iout,
-			] = pip[i0:i1, j0:j1, k0:k1]
+		if !(typeof(state.namelists.ice.icesetup) <: NoIce)
+			for field in fieldnames(IcePredictands)
+				HDF5.set_extent_dims(
+					file[string(field)],
+					(x_size, y_size, z_size, iout),
+				)
+				@views file[string(field)][
+					(io+1):(io+nx),
+					(jo+1):(jo+ny),
+					(ko+1):(ko+nz),
+					iout,
+				] =
+					getfield(state.ice.icepredictands, field)[
+						i0:i1,
+						j0:j1,
+						k0:k1,
+					] ./ (
+						rhobar[i0:i1, j0:j1, k0:k1] .+
+						rho[i0:i1, j0:j1, k0:k1]
+					) * getfield(state.ice.iceconstants, field)
+			end
+			for field in fieldnames(IceAuxiliaries)
+				HDF5.set_extent_dims(
+					file[string(field)],
+					(x_size, y_size, z_size, iout),
+				)
+				@views file[string(field)][
+					(io+1):(io+nx),
+					(jo+1):(jo+ny),
+					(ko+1):(ko+nz),
+					iout,
+				] =
+					getfield(state.ice.iceauxiliaries, field)[
+						i0:i1,
+						j0:j1,
+						k0:k1,
+					]
+			end
 		end
 
 		# Write WKB variables.
-		if typeof(testcase) <: AbstractWKBTestCase
+		if typeof(test_case) <: AbstractWKBTestCase
 
 			# Write ray-volume properties.
 			if prepare_restart || save_ray_volumes
@@ -342,7 +377,7 @@ function write_output(
 				)
 					HDF5.set_extent_dims(
 						file[output_name],
-						(nray_max, sizex, sizey, sizez + 1, iout),
+						(nray_max, x_size, y_size, z_size + 1, iout),
 					)
 					file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
 						getfield(rays, field_name)[rr, ii, jj, kkr] .* lref
@@ -354,7 +389,7 @@ function write_output(
 				)
 					HDF5.set_extent_dims(
 						file[output_name],
-						(nray_max, sizex, sizey, sizez + 1, iout),
+						(nray_max, x_size, y_size, z_size + 1, iout),
 					)
 					file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
 						getfield(rays, field_name)[rr, ii, jj, kkr] ./ lref
@@ -362,7 +397,7 @@ function write_output(
 
 				HDF5.set_extent_dims(
 					file["nr"],
-					(nray_max, sizex, sizey, sizez + 1, iout),
+					(nray_max, x_size, y_size, z_size + 1, iout),
 				)
 				file["nr"][1:nray_max, iid, jjd, kkrd, iout] =
 					rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
@@ -381,13 +416,12 @@ function write_output(
 				if field in output_variables
 					HDF5.set_extent_dims(
 						file[string(field)],
-						(sizex, sizey, sizez, iout),
+						(x_size, y_size, z_size, iout),
 					)
 					file[string(field)][iid, jjd, kkd, iout] =
 						getfield(tendencies, field)[ii, jj, kk] .* scaling
 				end
 			end
-
 			if !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
 
 				# Write SgsGW variables.
@@ -428,7 +462,7 @@ function write_output(
 							j02:j12,
 							k02:k12,
 						] ./ repeat(
-							rhostrattfc[i0:i1, j0:j1, k0:k1] .+
+							rhobar[i0:i1, j0:j1, k0:k1] .+
 							rho[i0:i1, j0:j1, k0:k1],
 							inner = (nscx, nscy, nscz),
 						) * getfield(state.ice.iceconstants, field)

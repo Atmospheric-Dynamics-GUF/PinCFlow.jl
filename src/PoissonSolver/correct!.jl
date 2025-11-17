@@ -21,22 +21,22 @@ Correct the zonal wind to account for the pressure differences obtained from the
 The correction is given by
 
 ```math
-u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} - \\mathcal{C}_{i + 1 / 2}^u
+u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} - \\mathcal{C}_{i + 1 / 2}^{\\rho u}
 ```
 
 in Boussinesq/pseudo-incompressible mode and
 
 ```math
-U_{i + 1 / 2} \\rightarrow U_{i + 1 / 2} - \\left(J P\\right)_{i + 1 / 2} \\mathcal{C}_{i + 1 / 2}^u
+U_{i + 1 / 2} \\rightarrow U_{i + 1 / 2} - \\left(J P\\right)_{i + 1 / 2} \\mathcal{C}_{i + 1 / 2}^{\\rho u}
 ```
 
 in compressible mode, with
 
 ```math
-\\mathcal{C}_{i + 1 / 2}^u = \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2}^{uv} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{D}_{i + 1 / 2}^u.
+\\mathcal{C}_{i + 1 / 2}^{\\rho u} = \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{D}_{i + 1 / 2}^{\\rho u}.
 ```
 
-Therein, ``U_{i + 1 / 2} = \\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\Delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^u`` is computed with `compute_pressure_gradient`.
+Therein, ``\\Delta t`` is the fractional time step given as input to this method and ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right) \\mathcal{D}_{i + 1 / 2}^{\\rho u}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -52,22 +52,22 @@ Correct the meridional wind to account for the pressure differences obtained fro
 The correction is given by
 
 ```math
-v_{j + 1 / 2} \\rightarrow v_{j + 1 / 2} - \\mathcal{C}_{j + 1 / 2}^v
+v_{j + 1 / 2} \\rightarrow v_{j + 1 / 2} - \\mathcal{C}_{j + 1 / 2}^{\\rho v}
 ```
 
 in Boussinesq/pseudo-incompressible mode and
 
 ```math
-V_{j + 1 / 2} \\rightarrow V_{j + 1 / 2} - \\left(J P\\right)_{j + 1 / 2} \\mathcal{C}_{j + 1 / 2}^v
+V_{j + 1 / 2} \\rightarrow V_{j + 1 / 2} - \\left(J P\\right)_{j + 1 / 2} \\mathcal{C}_{j + 1 / 2}^{\\rho v}
 ```
 
 in compressible mode, with
 
 ```math
-\\mathcal{C}_{j + 1 / 2}^v = \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2}^{uv} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{D}_{j + 1 / 2}^v,
+\\mathcal{C}_{j + 1 / 2}^{\\rho v} = \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\Delta t c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{D}_{j + 1 / 2}^{\\rho v},
 ```
 
-where ``V_{j + 1 / 2} = \\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^v`` is computed with `compute_pressure_gradient`.
+where ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right) \\mathcal{D}_{j + 1 / 2}^{\\rho v}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -84,8 +84,8 @@ The correction is given by
 
 ```math
 \\begin{align*}
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\widehat{w}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2}^{\\widehat{w}} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\Delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}} + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^u\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^v\\right)_{k + 1 / 2}\\right]\\right\\},
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\widehat{w}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\Delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^{\\rho u}\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^{\\rho v}\\right)_{k + 1 / 2}\\right]\\right\\},
 \\end{align*}
 ```
 
@@ -93,13 +93,13 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\widehat{W}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2}^{\\widehat{w}} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\Delta t c_p \\left(J P\\right)_{k + 1 / 2} \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}} \\vphantom{\\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}}}\\right.\\\\
-    & \\qquad \\quad + \\left.\\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^u\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^v\\right)_{k + 1 / 2}\\right]\\right\\},
+    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\widehat{W}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\Delta t c_p \\left(J P\\right)_{k + 1 / 2} \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}} \\vphantom{\\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}}}\\right.\\\\
+    & \\qquad \\quad + \\left.\\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^{\\rho u}\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^{\\rho v}\\right)_{k + 1 / 2}\\right]\\right\\},
 \\end{align*}
 ```
 
-in compressible mode, where ``\\widehat{W}_{k + 1 / 2} = \\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` and ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` is computed with `compute_pressure_gradient`.
+in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -116,9 +116,9 @@ The correction is given by
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left[- \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^u + G^{2 3} \\mathcal{C}^v\\right)\\right],
+    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^{\\rho u} + G^{2 3} \\mathcal{C}^{\\rho v}\\right)\\right],
 \\end{align*}
 ```
 
@@ -126,13 +126,13 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left[- \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R}^{\\widehat{w}} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^u + G^{2 3} \\mathcal{C}^v\\right)\\right],
+    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^{\\rho u} + G^{2 3} \\mathcal{C}^{\\rho v}\\right)\\right],
 \\end{align*}
 ```
 
-in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\widehat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\widehat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
+in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\rho \\widehat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
 
 ```julia
 correct!(state::State, variable::PiP)
@@ -179,20 +179,20 @@ function correct!(
     variable::U,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; corx) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; u) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
 
-        if spongelayer && sponge_uv
+        if use_sponge && damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -218,20 +218,20 @@ function correct!(
     variable::V,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
     (; cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; v) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
 
-        if spongelayer && sponge_uv
+        if use_sponge && damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -257,22 +257,22 @@ function correct!(
     variable::W,
     rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; use_sponge) = state.namelists.sponge
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; bvsstrattfc) = state.atmosphere
+    (; n2) = state.atmosphere
     (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.increments
     (; w) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 - 1 : k1
+    kmax = ko + nzz == zz_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
 
-        if spongelayer
+        if use_sponge
             factor +=
                 dt * (
                     jac[i, j, k + 1] * betar[i, j, k] +
@@ -280,11 +280,9 @@ function correct!(
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
         end
 
-        bvsstratedgeu =
-            (
-                jac[i, j, k + 1] * bvsstrattfc[i, j, k] +
-                jac[i, j, k] * bvsstrattfc[i, j, k + 1]
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        n2edgeu =
+            (jac[i, j, k + 1] * n2[i, j, k] + jac[i, j, k] * n2[i, j, k + 1]) /
+            (jac[i, j, k] + jac[i, j, k + 1])
 
         gradient = compute_pressure_gradient(state, dpip, i, j, k, W())
 
@@ -292,10 +290,10 @@ function correct!(
         fw = compute_buoyancy_factor(state, i, j, k, W())
 
         w[i, j, k] +=
-            -dt / (factor + fw * bvsstratedgeu * dt^2.0) * jpedgeu * gradient -
-            1.0 / (factor + fw * bvsstratedgeu * dt^2.0) *
+            -dt / (factor + fw * n2edgeu * dt^2.0) * jpedgeu * gradient -
+            1.0 / (factor + fw * n2edgeu * dt^2.0) *
             fw *
-            bvsstratedgeu *
+            n2edgeu *
             dt^2.0 *
             jpedgeu *
             0.5 *
@@ -323,11 +321,11 @@ function correct!(
     rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; g_ndim) = state.constants
-    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.increments
@@ -336,7 +334,7 @@ function correct!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         factor = 1.0
 
-        if spongelayer
+        if use_sponge
             factor += dt * betar[i, j, k] * rayleigh_factor
         end
 
@@ -346,7 +344,7 @@ function correct!(
 
         if ko + k == k0
             lower_gradient = 0.0
-        elseif ko + k == sizezz - nbz
+        elseif ko + k == zz_size - nbz
             upper_gradient = 0.0
         end
 
@@ -354,10 +352,10 @@ function correct!(
 
         fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         db =
-            -1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
-                -fb * bvsstrattfc[i, j, k] * dt^2.0 * jac[i, j, k] * gradient +
+            -1.0 / (factor + fb * n2[i, j, k] * dt^2.0) * (
+                -fb * n2[i, j, k] * dt^2.0 * jac[i, j, k] * gradient +
                 fb *
-                bvsstrattfc[i, j, k] *
+                n2[i, j, k] *
                 dt *
                 jac[i, j, k] *
                 factor *
@@ -368,7 +366,7 @@ function correct!(
                 )
             )
 
-        rhop[i, j, k] -= (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
+        rhop[i, j, k] -= (rho[i, j, k] + rhobar[i, j, k]) / g_ndim * db
     end
 
     return

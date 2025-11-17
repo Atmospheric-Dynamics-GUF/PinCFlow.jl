@@ -19,7 +19,6 @@ function explicit_integration_rhs_ice!(
 	icesetup::IceOn,
 )
 	(; nstages) = state.time
-	(; tracersetup) = state.namelists.tracer
 	(; icesetup, dt_ice) = state.namelists.ice
 	(; tref) = state.constants
 	(; cloudcover) = state.namelists.ice
@@ -28,7 +27,6 @@ function explicit_integration_rhs_ice!(
 	(; nbx, nby) = state.namelists.domain
 	(; parameterized_nucleation, constant_advection, hor_adv_vel, parameterized_sgs_q) = state.namelists.ice
 	(; icepredictands) = state.ice
-	(; sizexx, sizeyy, sizezz) = state.domain
 	(; tref, lref) = state.constants
 
 	n_step_ice = ceil(Int, dtstage * tref / dt_ice)
@@ -102,7 +100,7 @@ function explicit_integration_rhs_ice!(
 			#    state,
 			#    stepfrac[rkstage] * dtstage,
 			#    time,
-			#    tracersetup,
+			#    ice_setup,
 			#)
 
 			set_boundaries!(state, BoundaryPredictands())

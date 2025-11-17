@@ -7,6 +7,7 @@ using HDF5
 using PyPlot
 using Statistics
 
+#data = h5open("/home/dolaptch/PF/pinc/test/pincflow_output.h5")
 #data = h5open("/home/dolaptch/PF/runs/tjl05/pincflow_output.h5")
 data = h5open("/home/dolaptch/PF/runs_save/GWI_grusi_WS_25-26/tjl05/pincflow_output.h5")
 #data2 = h5open("/home/dolaptch/PF/runs/tjl06/pincflow_output.h5")
@@ -27,10 +28,10 @@ x2 = [xi for xi in x2, iy in 1:size(z2)[2], iz in 1:size(z2)[3]]
 y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 
 iy = 1
-tidx = length(data["w"][1, 1, 1, :])
+tidx = 1 #length(data["w"][1, 1, 1, :])
 tidx2 = length(data2["w"][1, 1, 1, :])
 
-fld = data["n"][:, :, :, tidx]
+fld = data["w"][:, :, :, tidx]
 fld2 = data2["sn"][:, :, :, tidx2]
 
 println("size fld ", size(fld))

@@ -15,8 +15,9 @@ else
 	error("Too many arguments to the script!")
 end
 
-atmosphere = AtmosphereNamelist(; backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0))
+atmosphere = AtmosphereNamelist(; initial_wind = (1.0E+1, 0.0E+0, 0.0E+0))
 domain = DomainNamelist(;
+<<<<<<< HEAD
 <<<<<<< HEAD
 	sizex = 40,
 	sizey = 40,
@@ -33,6 +34,14 @@ domain = DomainNamelist(;
     lx_dim = 2.0E+4,
     ly_dim = 2.0E+4,
     lz_dim = 2.0E+4,
+=======
+    x_size = 40,
+    y_size = 40,
+    z_size = 40,
+    lx = 2.0E+4,
+    ly = 2.0E+4,
+    lz = 2.0E+4,
+>>>>>>> f0d2b4e
     npx = 8,
     npy = 8,
 >>>>>>> 2aee3f7
@@ -40,6 +49,7 @@ domain = DomainNamelist(;
 grid = GridNamelist(; mountain_case = 4)
 output = OutputNamelist(; output_variables = (:w,), output_file = output_file)
 sponge = SpongeNamelist(;
+<<<<<<< HEAD
 <<<<<<< HEAD
 	spongelayer = true,
 	spongealphaz_dim = 1.79E-2,
@@ -50,10 +60,13 @@ sponge = SpongeNamelist(;
 	relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 =======
     spongelayer = true,
+=======
+    use_sponge = true,
+>>>>>>> f0d2b4e
     alpharmax = 1.79E-2,
     betarmax = 0.0E+0,
-    lateralsponge = true,
-    spongetype = SinusoidalSponge(),
+    lateral_sponge = true,
+    sponge_type = SinusoidalSponge(),
     relax_to_mean = false,
     relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 >>>>>>> 2aee3f7

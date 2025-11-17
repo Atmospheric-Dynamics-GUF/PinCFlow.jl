@@ -25,13 +25,13 @@ Predictands(
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::Predictands
 ```
 
 Construct a `Predictands` instance. The mass-weighted potential temperature `p` is constructed depending on the dynamic equations (see `set_p`).
 
-The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The array for the mass-weighted potential temperature is constructed with size `(0, 0, 0)`.
+The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.initial_wind`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The array for the mass-weighted potential temperature is constructed with size `(0, 0, 0)`.
 
 # Fields
 
@@ -61,7 +61,7 @@ The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphe
 
   - `model`: Dynamic equations.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 """
 struct Predictands{
 	A <: AbstractArray{<:AbstractFloat, 3},
@@ -83,71 +83,41 @@ function Predictands(
 	atmosphere::Atmosphere,
 	grid::Grid,
 )::Predictands
-	(; model, testcase) = namelists.setting
-	return Predictands(
-		namelists,
-		constants,
-		domain,
-		atmosphere,
-		grid,
-		model,
-		testcase,
-	)
+ (; test_case) = namelists.setting
+    return Predictands(
+        namelists,
+        constants,
+        domain,
+        atmosphere,
+        grid,
+        test_case,
+    )
 end
 
 function Predictands(
-	namelists::Namelists,
-	constants::Constants,
-	domain::Domain,
-	atmosphere::Atmosphere,
-	grid::Grid,
-	model::AbstractModel,
-	testcase::AbstractTestCase,
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    test_case::AbstractTestCase,
 )::Predictands
-	(; backgroundflow_dim) = namelists.atmosphere
-	(; uref) = constants
-	(; nxx, nyy, nzz) = domain
+    (; initial_wind) = namelists.atmosphere
+    (; model) = namelists.setting
+    (; uref) = constants
+    (; nxx, nyy, nzz) = domain
+    (; pbar) = atmosphere
 
-	# Initialize the predictands.
-	(rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
-	p = zeros(0, 0, 0)
+    # Initialize the predictands.
+    (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
+    p = set_p(model, nxx, nyy, nzz, pbar)
 
-	# Set the initial winds.
-	u .= backgroundflow_dim[1] / uref
-	v .= backgroundflow_dim[2] / uref
-	w .= backgroundflow_dim[3] / uref
+    # Set the initial winds.
+    @ivy u .= initial_wind[1] ./ uref
+    @ivy v .= initial_wind[2] ./ uref
+    @ivy w .= initial_wind[3] ./ uref
 
-	# Return a Predictands instance.
-	return Predictands(rho, rhop, u, v, w, pip, p)
-end
-
-function Predictands(
-	namelists::Namelists,
-	constants::Constants,
-	domain::Domain,
-	atmosphere::Atmosphere,
-	grid::Grid,
-	model::Compressible,
-	testcase::AbstractTestCase,
-)::Predictands
-	(; backgroundflow_dim) = namelists.atmosphere
-	(; uref) = constants
-	(; nxx, nyy, nzz) = domain
-	(; pstrattfc) = atmosphere
-
-	# Initialize the predictands.
-	(rho, rhop, u, v, w, pip, p) = (zeros(nxx, nyy, nzz) for i in 1:7)
-
-	# Set the initial winds.
-	u .= backgroundflow_dim[1] / uref
-	v .= backgroundflow_dim[2] / uref
-	w .= backgroundflow_dim[3] / uref
-
-	# Set the initial mass-weighted potential temperature.
-	p .= pstrattfc
-
-	# Return a Predictands instance.
-	return Predictands(rho, rhop, u, v, w, pip, p)
+    return Predictands(rho, rhop, u, v, w, pip, p)
 end
 
 function Predictands(
@@ -159,7 +129,7 @@ function Predictands(
 	model::PseudoIncompressible,
 	testcase::WavePacket,
 )::Predictands
-	(; backgroundflow_dim, theta0_dim, coriolis_frequency) = namelists.atmosphere
+	(; initial_wind, theta0_dim, coriolis_frequency) = namelists.atmosphere
 	(; nbx, nby, nbz) = namelists.domain
 	(;
 		lambdax_dim,
@@ -177,17 +147,17 @@ function Predictands(
 	) = namelists.wavepacket
 	(; uref, lref, tref, kappa, ma, thetaref, fr2) = constants
 	(; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1, io, jo) = domain
-	(; bvsstrattfc, rhostrattfc) = atmosphere
-	(; x, y, ztfc, jac, met) = grid
+	(; n2, rhobar) = atmosphere
+	(; x, y, zc, jac, met) = grid
 
 	# Initialize the predictands.
 	(rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
 	p = zeros(0, 0, 0)
 
 	# Set the initial winds.
-	u .= backgroundflow_dim[1] / uref
-	v .= backgroundflow_dim[2] / uref
-	w .= backgroundflow_dim[3] / uref
+	u .= initial_wind[1] / uref
+	v .= initial_wind[2] / uref
+	w .= initial_wind[3] / uref
 
 	if lambdax_dim == 0.0
 		kk = 0.0
@@ -217,7 +187,7 @@ function Predictands(
 		jy in (j0-nby):(j1+nby),
 		ix in (i0-nbx):(i1+nbx)
 
-		n2 = bvsstrattfc[ix, jy, kz]
+		n2 = atmosphere.n2[ix, jy, kz]
 		f = coriolis_frequency * tref
 		f2 = f^2.0
 		omega = branch * sqrt((n2 * kh^2.0 + f2 * mm^2.0) / (kh^2.0 + mm^2.0))
@@ -235,7 +205,7 @@ function Predictands(
 			deltay = (y[jo+jy] - y0)
 		end
 
-		deltaz = ztfc[ix, jy, kz] - z0
+		deltaz = zc[ix, jy, kz] - z0
 
 		# Gaussian in z, Cosine in x and y.
 
@@ -271,7 +241,7 @@ function Predictands(
 		what = 1im * omega / n2 * bhat
 		piphat = 1im * kappa * ma^2.0 * (omega2 - n2) / n2 / mm / theta0 * bhat
 
-		phi = kk * x[io+ix] + ll * y[jo+jy] + mm * ztfc[ix, jy, kz]
+		phi = kk * x[io+ix] + ll * y[jo+jy] + mm * zc[ix, jy, kz]
 
 		bprime = real(bhat * exp(1im * phi))
 		uprime = real(uhat * exp(1im * phi))
@@ -279,8 +249,8 @@ function Predictands(
 		wprime = real(what * exp(1im * phi))
 		pipprime = real(piphat * exp(1im * phi))
 
-		rhoprime = 1.0 / (1.0 + fr2 * bprime) * rhostrattfc[ix, jy, kz]
-		rhoprime = rhoprime - rhostrattfc[ix, jy, kz]
+		rhoprime = 1.0 / (1.0 + fr2 * bprime) * rhobar[ix, jy, kz]
+		rhoprime = rhoprime - rhobar[ix, jy, kz]
 
 		u[ix, jy, kz] = u[ix, jy, kz] + uprime
 		v[ix, jy, kz] = v[ix, jy, kz] + vprime
@@ -331,13 +301,13 @@ function Predictands(
 	model::PseudoIncompressible,
 	testcase::MultipleWavePackets,
 )::Predictands
-	(; backgroundflow_dim, theta0_dim, coriolis_frequency) = namelists.atmosphere
+	(; initial_wind, theta0_dim, coriolis_frequency) = namelists.atmosphere
 	(; nbx, nby, nbz, npz) = namelists.domain
 	
 	(; uref, lref, tref, kappa, ma, thetaref, fr2) = constants
 	(; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1, io, jo, ko, nz) = domain
-	(; rhostrattfc) = atmosphere
-	(; x, y, ztfc, jac, met) = grid
+	(; rhobar) = atmosphere
+	(; x, y, zc, jac, met) = grid
 	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
 		x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
 		a0, branch, nwm, random_wavepackets) = namelists.multiwavepackets
@@ -347,9 +317,9 @@ function Predictands(
 	p = zeros(0, 0, 0)
 
 	# Set the initial winds.
-	u .= backgroundflow_dim[1] / uref
-	v .= backgroundflow_dim[2] / uref
-	w .= backgroundflow_dim[3] / uref
+	u .= initial_wind[1] / uref
+	v .= initial_wind[2] / uref
+	w .= initial_wind[3] / uref
 
 	if random_wavepackets
 		construct_random_wavepackets!(namelists.multiwavepackets, namelists.domain, testcase)
@@ -388,7 +358,7 @@ function Predictands(
 			ix in (i0-nbx):(i1+nbx)
 
 			#changes !!!
-			#n2 = bvsstrattfc[ix, jy, kz]
+			#n2 = n2[ix, jy, kz]
 			n2 = 0.28572434787685907 
 
 			f = coriolis_frequency * tref
@@ -408,7 +378,7 @@ function Predictands(
 				deltay = (y[jo+jy] - y0)
 			end
 
-			deltaz = ztfc[ix, jy, kz] - z0
+			deltaz = zc[ix, jy, kz] - z0
 
 			# Cosine in x, y and z.
 
@@ -455,7 +425,7 @@ function Predictands(
 
 			piphat = 1im * kappa * ma^2.0 * (omega2 - n2) / n2 / mm / theta0 * bhat
 
-			phi = kk * x[io+ix] + ll * y[jo+jy] + mm * ztfc[ix, jy, kz]
+			phi = kk * x[io+ix] + ll * y[jo+jy] + mm * zc[ix, jy, kz]
 
 			bprime = real(bhat * exp(1im * phi))
 			uprime = real(uhat * exp(1im * phi))
@@ -477,8 +447,8 @@ function Predictands(
 				bprime = rho[ix, jy, kz]
 				rho[ix, jy, kz] = 0.0
 
-				rhoprime = 1.0 / (1.0 + fr2 * bprime) * rhostrattfc[ix, jy, kz]
-				rhoprime = rhoprime - rhostrattfc[ix, jy, kz]
+				rhoprime = 1.0 / (1.0 + fr2 * bprime) * rhobar[ix, jy, kz]
+				rhoprime = rhoprime - rhobar[ix, jy, kz]
 
 				rho[ix, jy, kz] = rhoprime
 
@@ -529,28 +499,4 @@ function Predictands(
     return Predictands(namelists, constants, domain, atmosphere, grid, testcase)
 end
 
-function Predictands(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    atmosphere::Atmosphere,
-    grid::Grid,
-    testcase::AbstractTestCase,
-)::Predictands
-    (; backgroundflow_dim) = namelists.atmosphere
-    (; model) = namelists.setting
-    (; uref) = constants
-    (; nxx, nyy, nzz) = domain
-    (; pstrattfc) = atmosphere
 
-    # Initialize the predictands.
-    (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
-    p = set_p(model, nxx, nyy, nzz, pstrattfc)
-
-    # Set the initial winds.
-    @ivy u .= backgroundflow_dim[1] ./ uref
-    @ivy v .= backgroundflow_dim[2] ./ uref
-    @ivy w .= backgroundflow_dim[3] ./ uref
-
-    return Predictands(rho, rhop, u, v, w, pip, p)
-end

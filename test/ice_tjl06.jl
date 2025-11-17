@@ -6,15 +6,15 @@ using .PinCFlow
 using HDF5
 
 domain = DomainNamelist(;
-	sizex = 8,
-	sizey = 1,
-	sizez = 8,
+	x_size = 8,
+	y_size = 1,
+	z_size = 8,
 	nbx = 3,
 	nby = 3,
 	nbz = 3,
-	lx_dim = 4.0E+4,
-	ly_dim = 1.0E+4,
-	lz_dim = 1.5E+4,
+	lx  = 4.0E+4,
+	ly  = 1.0E+4,
+	lz = 1.5E+4,
 	npx = 1,
 	npy = 1,
 	npz = 1,
@@ -63,8 +63,8 @@ atmosphere = AtmosphereNamelist(;
 	mu_viscous_dim = 0.0E+0,
 	background = Isothermal(),
 	temp0_dim = 3.0E+2,
-	press0_dim = 1.0E+5,
-	backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
+	ground_pressure = 1.0E+5,
+	initial_wind = (0.0E+0, 0.0E+0, 0.0E+0),
 	coriolis_frequency = 1.0E-4,
 )
 
@@ -101,11 +101,11 @@ ice = IceNamelist(;
 	parameterized_sgs_q = false,
 )
 wkb = WKBNamelist(;
-	xrmin_dim = -2.0E+4,
+	zrmin = -2.0E+4,
 	xrmax_dim = 2.0E+4,
-	yrmin_dim = -5.0E+3,
+	zrmin = -5.0E+3,
 	yrmax_dim = 5.0E+3,
-	zrmin_dim = 0.0E+0,
+	zrmin = 0.0E+0,
 	zrmax_dim = 1.5E+4,
 	nrxl = 1,
 	nryl = 1,

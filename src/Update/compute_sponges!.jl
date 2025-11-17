@@ -5,26 +5,30 @@ compute_sponges!(state::State, dt::AbstractFloat)
 
 Compute the Rayleigh-damping coefficients of the two sponges.
 
-This method directly computes the Rayleigh-damping coefficients
+This method directly computes the Rayleigh-damping coefficient
 
 ```math
-\\beta_\\mathrm{R}^{uv} = \\beta_\\mathrm{R}^{\\widehat{w}} \\left(z\\right) = \\begin{cases}
+\\beta_\\mathrm{R} \\left(z\\right) = \\begin{cases}
     \\frac{\\beta_{\\mathrm{R}, \\max}}{\\Delta t} \\sin^2 \\left[\\frac{\\pi \\left(z - z_\\mathrm{R}\\right)}{2 \\left(L_z - z_\\mathrm{R}\\right)}\\right] & \\mathrm{if} \\quad z \\geq z_\\mathrm{R},\\\\
     0 & \\mathrm{else},
 \\end{cases}
 ```
 
-where ``\\beta_{\\mathrm{R}, \\max}`` and ``z_\\mathrm{R}`` are given by `state.namelists.sponge.betarmax` and `state.sponge.zsponge`, respectively. These coefficients are only used in the prognostic equations for the horizontal wind (``\\beta_\\mathrm{R}^{uv}``, only if `state.namelists.sponge.sponge_uv` is `true`) and the transformed vertical wind (``\\beta_\\mathrm{R}^{\\widehat{w}}``). The corresponding damping terms are integrated on the right-hand sides.
+where ``\\beta_{\\mathrm{R}, \\max}`` and ``z_\\mathrm{R}`` are given by `state.namelists.sponge.betarmax` and `state.sponge.zsponge`, respectively. This coefficient is only used in the prognostic equations for the horizontal wind (if `state.namelists.sponge.damp_horizontal_wind_on_rhs` is `true`) and the transformed vertical wind. The corresponding damping terms are integrated on the right-hand sides.
 
-This method also dispatches to a specific method that computes the Rayleigh damping coefficient of the RHS sponge defined for `state.namelists.sponge.spongetype`.
+This method also dispatches to a specific method that computes the Rayleigh damping coefficient of the RHS sponge defined for `state.namelists.sponge.sponge_type`.
 
 ```julia
-compute_sponges!(state::State, dt::AbstractFloat, spongetype::ExponentialSponge)
+compute_sponges!(
+    state::State,
+    dt::AbstractFloat,
+    sponge_type::ExponentialSponge,
+)
 ```
 
 Compute the Rayleigh-damping coefficient of an exponential sponge.
 
-If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
+If `state.namelists.sponge.lateral_sponge` is `true`, the Rayleigh-damping coefficient is
 
 ```math
 \\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, \\max}}{3} \\left[\\exp \\left(\\frac{\\left|x\\right| - L_x / 2}{\\Delta x_\\mathrm{R}}\\right) + \\exp \\left(\\frac{\\left|y\\right| - L_y / 2}{\\Delta y_\\mathrm{R}}\\right) + \\exp \\left(\\frac{z - L_z}{\\Delta z_\\mathrm{R}}\\right)\\right]
@@ -39,12 +43,12 @@ and otherwise, it is
 where ``\\alpha_{\\mathrm{R}, \\max}``, ``\\Delta x_\\mathrm{R}``, ``\\Delta y_\\mathrm{R}`` and ``\\Delta z_\\mathrm{R}`` are given by `state.namelists.sponge.alpharmax`, `state.sponge.dxsponge`, `state.sponge.dysponge` and `state.sponge.dzsponge`, respectively. If the grid size in a horizontal direction is one, the contribution from that direction is set to zero and the other two are reweighted accordingly.
 
 ```julia
-compute_sponges!(state::State, dt::AbstractFloat, spongetype::COSMOSponge)
+compute_sponges!(state::State, dt::AbstractFloat, sponge_type::COSMOSponge)
 ```
 
 Compute the Rayleigh-damping coefficient of a sponge similar to that used by the COSMO model.
 
-If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
+If `state.namelists.sponge.lateral_sponge` is `true`, the Rayleigh-damping coefficient is
 
 ```math
 \\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)
@@ -77,15 +81,15 @@ and otherwise, it is
 \\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right),
 ```
 
-where ``N_\\mathrm{R}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``z_{\\mathrm{R}, 0}`` and ``z_{\\mathrm{R}, 1}`` are given by `state.namelists.sponge.cosmosteps` and the properties `xsponge0`, `xsponge1`, `ysponge0`, `ysponge1`, `zsponge0` and `zsponge1` of `state.sponge`, respectively.
+where ``N_\\mathrm{R}``, ``x_{\\mathrm{R}, 0}``, ``x_{\\mathrm{R}, 1}``, ``y_{\\mathrm{R}, 0}``, ``y_{\\mathrm{R}, 1}``, ``z_{\\mathrm{R}, 0}`` and ``z_{\\mathrm{R}, 1}`` are given by `state.namelists.sponge.cosmo_steps` and the properties `xsponge0`, `xsponge1`, `ysponge0`, `ysponge1`, `zsponge0` and `zsponge1` of `state.sponge`, respectively.
 
 ```julia
-compute_sponges!(state::State, dt::AbstractFloat, spongetype::PolynomialSponge)
+compute_sponges!(state::State, dt::AbstractFloat, sponge_type::PolynomialSponge)
 ```
 
 Compute the Rayleigh-damping coefficient of a polynomial sponge.
 
-If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
+If `state.namelists.sponge.lateral_sponge` is `true`, the Rayleigh-damping coefficient is
 
 ```math
 \\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)}{3}
@@ -118,15 +122,15 @@ and otherwise, it is
 \\alpha_\\mathrm{R} \\left(z\\right) = \\alpha_{\\mathrm{R}, z} \\left(z\\right),
 ```
 
-where ``n_\\mathrm{R}`` is given by `state.namelists.sponge.spongeorder`. If the grid size in a horizontal direction is one, the contribution from that direction is set to zero and the other two are reweighted accordingly.
+where ``n_\\mathrm{R}`` is given by `state.namelists.sponge.sponge_order`. If the grid size in a horizontal direction is one, the contribution from that direction is set to zero and the other two are reweighted accordingly.
 
 ```julia
-compute_sponges!(state::State, dt::AbstractFloat, spongetype::SinusoidalSponge)
+compute_sponges!(state::State, dt::AbstractFloat, sponge_type::SinusoidalSponge)
 ```
 
 Compute the Rayleigh-damping coefficient of a sinusoidal sponge.
 
-If `state.namelists.sponge.lateralsponge` is `true`, the Rayleigh-damping coefficient is
+If `state.namelists.sponge.lateral_sponge` is `true`, the Rayleigh-damping coefficient is
 
 ```math
 \\alpha_\\mathrm{R} \\left(x, y, z\\right) = \\frac{\\alpha_{\\mathrm{R}, x} \\left(x\\right) + \\alpha_{\\mathrm{R}, y} \\left(y\\right) + \\alpha_{\\mathrm{R}, z} \\left(z\\right)}{3}
@@ -167,7 +171,7 @@ If the grid size in a horizontal direction is one, the contribution from that di
 
   - `dt`: Time step.
 
-  - `spongetype`: Specification of the spatial dependence of the  Rayleigh-damping coefficient.
+  - `sponge_type`: Specification of the spatial dependence of the  Rayleigh-damping coefficient.
 
 # See also
 
@@ -178,30 +182,30 @@ If the grid size in a horizontal direction is one, the contribution from that di
 function compute_sponges! end
 
 function compute_sponges!(state::State, dt::AbstractFloat)
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; ztfc, lz) = state.grid
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zc, lz) = state.grid
     (; betar, zsponge) = state.sponge
-    (; spongelayer, spongetype, betarmax) = state.namelists.sponge
+    (; use_sponge, sponge_type, betarmax) = state.namelists.sponge
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
-    compute_sponges!(state, dt, spongetype)
+    compute_sponges!(state, dt, sponge_type)
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
-        if ztfc[i, j, k] >= zsponge
+        if zc[i, j, k] >= zsponge
             betar[i, j, k] =
                 betarmax / dt *
-                sin(0.5 * pi * (ztfc[i, j, k] - zsponge) / (lz - zsponge))^2.0
+                sin(0.5 * pi * (zc[i, j, k] - zsponge) / (lz - zsponge))^2.0
         end
     end
 
     @ivy ko == 0 && betar[:, :, k0 - 1] .= betar[:, :, k0]
-    @ivy ko + nzz == sizezz && betar[:, :, k1 + 1] .= betar[:, :, k1]
+    @ivy ko + nzz == zz_size && betar[:, :, k1 + 1] .= betar[:, :, k1]
 
     return
 end
@@ -209,44 +213,44 @@ end
 function compute_sponges!(
     state::State,
     dt::AbstractFloat,
-    spongetype::ExponentialSponge,
+    sponge_type::ExponentialSponge,
 )
     (; namelists, domain) = state
-    (; sizex, sizey, sizez) = namelists.domain
-    (; sizezz, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; x, y, ztfc, lx, ly, lz) = state.grid
+    (; x_size, y_size, z_size) = namelists.domain
+    (; zz_size, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; x, y, zc, lx, ly, lz) = state.grid
     (; tref) = state.constants
-    (; lateralsponge, alpharmax) = namelists.sponge
+    (; lateral_sponge, alpharmax) = namelists.sponge
     (; alphar, dxsponge, dysponge, dzsponge) = state.sponge
 
     alpharzmax = alpharmax * tref
 
     dim = 1
-    sizex > 1 && (dim += 1)
-    sizey > 1 && (dim += 1)
-    lateralsponge && (alpharzmax /= dim)
+    x_size > 1 && (dim += 1)
+    y_size > 1 && (dim += 1)
+    lateral_sponge && (alpharzmax /= dim)
     alpharxmax = alpharymax = alpharzmax
 
     alphar .= 0.0
 
-    imin = lateralsponge ? i0 : 1
-    imax = lateralsponge ? i1 : nxx
+    imin = lateral_sponge ? i0 : 1
+    imax = lateral_sponge ? i1 : nxx
 
-    jmin = lateralsponge ? j0 : 1
-    jmax = lateralsponge ? j1 : nyy
+    jmin = lateral_sponge ? j0 : 1
+    jmax = lateral_sponge ? j1 : nyy
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
-        height = ztfc[i, j, k]
+        height = zc[i, j, k]
 
-        if sizez > 1
+        if z_size > 1
             alphar[i, j, k] =
                 alphar[i, j, k] + alpharzmax * exp((height - lz) / dzsponge)
         end
-        if lateralsponge
-            if sizex > 1
+        if lateral_sponge
+            if x_size > 1
                 if x[io + i] <= 0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
@@ -257,7 +261,7 @@ function compute_sponges!(
                         alpharxmax * exp((x[io + i] - lx / 2) / dxsponge)
                 end
             end
-            if sizey > 1
+            if y_size > 1
                 if y[jo + j] <= 0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
@@ -271,13 +275,13 @@ function compute_sponges!(
         end
     end
 
-    if lateralsponge
+    if lateral_sponge
         set_zonal_boundaries_of_field!(alphar, namelists, domain)
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
     @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-    @ivy ko + nzz == sizezz && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
+    @ivy ko + nzz == zz_size && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
 
     return
 end
@@ -285,13 +289,13 @@ end
 function compute_sponges!(
     state::State,
     dt::AbstractFloat,
-    spongetype::COSMOSponge,
+    sponge_type::COSMOSponge,
 )
     (; namelists, domain) = state
-    (; sizex, sizey, sizez) = namelists.domain
-    (; sizezz, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; x, y, ztfc) = state.grid
-    (; lateralsponge, cosmosteps) = namelists.sponge
+    (; x_size, y_size, z_size) = namelists.domain
+    (; zz_size, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; x, y, zc) = state.grid
+    (; lateral_sponge, cosmo_steps) = namelists.sponge
     (;
         alphar,
         dxsponge,
@@ -306,63 +310,63 @@ function compute_sponges!(
 
     alphar .= 0.0
 
-    imin = lateralsponge ? i0 : 1
-    imax = lateralsponge ? i1 : nxx
+    imin = lateral_sponge ? i0 : 1
+    imax = lateral_sponge ? i1 : nxx
 
-    jmin = lateralsponge ? j0 : 1
-    jmax = lateralsponge ? j1 : nyy
+    jmin = lateral_sponge ? j0 : 1
+    jmax = lateral_sponge ? j1 : nyy
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
-        height = ztfc[i, j, k]
+        height = zc[i, j, k]
 
-        if sizez > 1
+        if z_size > 1
             if height >= zsponge
                 alphar[i, j, k] =
                     alphar[i, j, k] +
-                    0.5 / cosmosteps / dt *
+                    0.5 / cosmo_steps / dt *
                     (1.0 - cos(pi * (height - zsponge) / dzsponge))
             end
         end
-        if lateralsponge
-            if sizex > 1
+        if lateral_sponge
+            if x_size > 1
                 if x[io + i] <= xsponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        0.5 / cosmosteps / dt *
+                        0.5 / cosmo_steps / dt *
                         (1.0 - cos(pi * (xsponge0 - x[io + i]) / dxsponge))
                 elseif x[io + i] >= xsponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        0.5 / cosmosteps / dt *
+                        0.5 / cosmo_steps / dt *
                         (1.0 - cos(pi * (x[io + i] - xsponge1) / dxsponge))
                 end
             end
-            if sizey > 1
+            if y_size > 1
                 if y[jo + j] <= ysponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        0.5 / cosmosteps / dt *
+                        0.5 / cosmo_steps / dt *
                         (1.0 - cos(pi * (ysponge0 - y[jo + j]) / dysponge))
                 elseif y[jo + j] >= ysponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
-                        0.5 / cosmosteps / dt *
+                        0.5 / cosmo_steps / dt *
                         (1.0 - cos(pi * (y[jo + j] - ysponge1) / dysponge))
                 end
             end
         end
     end
 
-    if lateralsponge
+    if lateral_sponge
         set_zonal_boundaries_of_field!(alphar, namelists, domain)
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
     @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-    @ivy ko + nzz == sizezz && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
+    @ivy ko + nzz == zz_size && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
 
     return
 end
@@ -370,14 +374,14 @@ end
 function compute_sponges!(
     state::State,
     dt::AbstractFloat,
-    spongetype::PolynomialSponge,
+    sponge_type::PolynomialSponge,
 )
     (; namelists, domain) = state
-    (; sizex, sizey, sizez) = namelists.domain
-    (; sizezz, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; x, y, ztfc) = state.grid
+    (; x_size, y_size, z_size) = namelists.domain
+    (; zz_size, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; x, y, zc) = state.grid
     (; tref) = state.constants
-    (; lateralsponge, alpharmax, spongeorder) = namelists.sponge
+    (; lateral_sponge, alpharmax, sponge_order) = namelists.sponge
     (;
         alphar,
         dxsponge,
@@ -393,69 +397,69 @@ function compute_sponges!(
     alpharzmax = alpharmax * tref
 
     dim = 1
-    sizex > 1 && (dim += 1)
-    sizey > 1 && (dim += 1)
-    lateralsponge && (alpharzmax /= dim)
+    x_size > 1 && (dim += 1)
+    y_size > 1 && (dim += 1)
+    lateral_sponge && (alpharzmax /= dim)
     alpharxmax = alpharymax = alpharzmax
 
     alphar .= 0.0
 
-    imin = lateralsponge ? i0 : 1
-    imax = lateralsponge ? i1 : nxx
+    imin = lateral_sponge ? i0 : 1
+    imax = lateral_sponge ? i1 : nxx
 
-    jmin = lateralsponge ? j0 : 1
-    jmax = lateralsponge ? j1 : nyy
+    jmin = lateral_sponge ? j0 : 1
+    jmax = lateral_sponge ? j1 : nyy
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
-        height = ztfc[i, j, k]
+        height = zc[i, j, k]
 
-        if sizez > 1
+        if z_size > 1
             if height >= zsponge
                 alphar[i, j, k] =
                     alphar[i, j, k] +
-                    alpharzmax * ((height - zsponge) / dzsponge)^spongeorder
+                    alpharzmax * ((height - zsponge) / dzsponge)^sponge_order
             end
         end
-        if lateralsponge
-            if sizex > 1
+        if lateral_sponge
+            if x_size > 1
                 if x[io + i] <= xsponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         alpharxmax *
-                        ((xsponge0 - x[io + i]) / dxsponge)^spongeorder
+                        ((xsponge0 - x[io + i]) / dxsponge)^sponge_order
                 elseif x[io + i] >= xsponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         alpharxmax *
-                        ((x[io + i] - xsponge1) / dxsponge)^spongeorder
+                        ((x[io + i] - xsponge1) / dxsponge)^sponge_order
                 end
             end
-            if sizey > 1
+            if y_size > 1
                 if y[jo + j] <= ysponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         alpharymax *
-                        ((ysponge0 - y[jo + j]) / dysponge)^spongeorder
+                        ((ysponge0 - y[jo + j]) / dysponge)^sponge_order
                 elseif y[jo + j] >= ysponge1
                     alphar[i, j, k] =
                         alphar[i, j, k] +
                         alpharymax *
-                        ((y[jo + j] - ysponge1) / dysponge)^spongeorder
+                        ((y[jo + j] - ysponge1) / dysponge)^sponge_order
                 end
             end
         end
     end
 
-    if lateralsponge
+    if lateral_sponge
         set_zonal_boundaries_of_field!(alphar, namelists, domain)
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
     @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-    @ivy ko + nzz == sizezz && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
+    @ivy ko + nzz == zz_size && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
 
     return
 end
@@ -463,14 +467,14 @@ end
 function compute_sponges!(
     state::State,
     dt::AbstractFloat,
-    spongetype::SinusoidalSponge,
+    sponge_type::SinusoidalSponge,
 )
     (; namelists, domain) = state
-    (; sizex, sizey, sizez) = namelists.domain
-    (; sizezz, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; x, y, ztfc) = state.grid
+    (; x_size, y_size, z_size) = namelists.domain
+    (; zz_size, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; x, y, zc) = state.grid
     (; tref) = state.constants
-    (; lateralsponge, alpharmax) = namelists.sponge
+    (; lateral_sponge, alpharmax) = namelists.sponge
     (;
         alphar,
         dxsponge,
@@ -486,26 +490,26 @@ function compute_sponges!(
     alpharzmax = alpharmax * tref
 
     dim = 1
-    sizex > 1 && (dim += 1)
-    sizey > 1 && (dim += 1)
-    lateralsponge && (alpharzmax /= dim)
+    x_size > 1 && (dim += 1)
+    y_size > 1 && (dim += 1)
+    lateral_sponge && (alpharzmax /= dim)
     alpharxmax = alpharymax = alpharzmax
 
     alphar .= 0.0
 
-    imin = lateralsponge ? i0 : 1
-    imax = lateralsponge ? i1 : nxx
+    imin = lateral_sponge ? i0 : 1
+    imax = lateral_sponge ? i1 : nxx
 
-    jmin = lateralsponge ? j0 : 1
-    jmax = lateralsponge ? j1 : nyy
+    jmin = lateral_sponge ? j0 : 1
+    jmax = lateral_sponge ? j1 : nyy
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in jmin:jmax, i in imin:imax
-        height = ztfc[i, j, k]
+        height = zc[i, j, k]
 
-        if sizez > 1
+        if z_size > 1
             if height >= zsponge
                 alphar[i, j, k] =
                     alphar[i, j, k] +
@@ -513,8 +517,8 @@ function compute_sponges!(
                     sin(0.5 * pi * (height - zsponge) / dzsponge)^2.0
             end
         end
-        if lateralsponge
-            if sizex > 1
+        if lateral_sponge
+            if x_size > 1
                 if x[io + i] <= xsponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
@@ -527,7 +531,7 @@ function compute_sponges!(
                         sin(0.5 * pi * (x[io + i] - xsponge1) / dxsponge)^2.0
                 end
             end
-            if sizey > 1
+            if y_size > 1
                 if y[jo + j] <= ysponge0
                     alphar[i, j, k] =
                         alphar[i, j, k] +
@@ -543,13 +547,13 @@ function compute_sponges!(
         end
     end
 
-    if lateralsponge
+    if lateral_sponge
         set_zonal_boundaries_of_field!(alphar, namelists, domain)
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
     @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-    @ivy ko + nzz == sizezz && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
+    @ivy ko + nzz == zz_size && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
 
     return
 end

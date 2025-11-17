@@ -95,9 +95,9 @@ function integrate(namelists::Namelists)
     machine_start_time = now()
 
     (; npx, npy, npz) = state.namelists.domain
-    (; initialcleaning) = state.namelists.poisson
-    (; dtmin_dim) = state.namelists.discretization
-    (; restart, maxtime, outputtimediff, output_steps, maxiter, noutput) =
+    (; initial_cleaning) = state.namelists.poisson
+    (; dtmin) = state.namelists.discretization
+    (; restart, tmax, output_interval, output_steps, iterations, nout) =
         state.namelists.output
     (; tref) = state.constants
     (; master) = state.domain
@@ -130,7 +130,7 @@ function integrate(namelists::Namelists)
     #        Initial divergence cleaning
     #---------------------------------------------
 
-    if initialcleaning
+    if initial_cleaning
         modify_compressible_wind!(state, *)
 
         set_boundaries!(state, BoundaryPredictands())
@@ -171,8 +171,8 @@ function integrate(namelists::Namelists)
 
         time = read_input!(state)
 
-        if maxtime < time * tref
-            error("Restart error: maxtime < time!")
+        if tmax < time * tref
+            error("Restart error: tmax < time!")
         end
 
         set_boundaries!(state, BoundaryPredictands())
@@ -192,7 +192,7 @@ function integrate(namelists::Namelists)
 
     # Prepare the next output.
     output = false
-    nextoutputtime = time * tref + outputtimediff
+    nextoutputtime = time * tref + output_interval
 
     #-----------------------------------------------------
     #                        Time loop
@@ -204,7 +204,7 @@ function integrate(namelists::Namelists)
     end
 
     if output_steps
-        maxiterations = maxiter
+        maxiterations = iterations
     else
         maxiterations = 2^30
     end
@@ -226,7 +226,7 @@ function integrate(namelists::Namelists)
 
         # Correct dt to hit desired output time.
         if !output_steps
-            if (time + dt) * tref + dtmin_dim > nextoutputtime
+            if (time + dt) * tref + dtmin > nextoutputtime
                 dt = nextoutputtime / tref - time
                 output = true
                 if master
@@ -348,16 +348,16 @@ function integrate(namelists::Namelists)
         #--------------------------------------------------------------
 
         if output_steps
-            if itime % noutput == 0
+            if itime % nout == 0
                 iout = write_output(state, time, iout, machine_start_time)
             end
         else
             if output
                 iout = write_output(state, time, iout, machine_start_time)
                 output = false
-                nextoutputtime = nextoutputtime + outputtimediff
-                if nextoutputtime >= maxtime
-                    nextoutputtime = maxtime
+                nextoutputtime = nextoutputtime + output_interval
+                if nextoutputtime >= tmax
+                    nextoutputtime = tmax
                 end
             end
         end
@@ -366,7 +366,7 @@ function integrate(namelists::Namelists)
         #              Abort criteria
         #-------------------------------------------
 
-        if !output_steps && time * tref >= maxtime
+        if !output_steps && time * tref >= tmax
             if master
                 naveragebicg = ntotalbicg / itime / 2
 
@@ -386,7 +386,7 @@ function integrate(namelists::Namelists)
 
     if output_steps
         if master
-            naveragebicg = ntotalbicg / maxiter / 2
+            naveragebicg = ntotalbicg / iterations / 2
 
             println(repeat("-", 80))
             println("Average Poisson iterations: ", naveragebicg)

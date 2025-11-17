@@ -29,7 +29,7 @@ WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::WKB
 ```
 
@@ -41,7 +41,7 @@ WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::WKB
 ```
 
@@ -51,11 +51,11 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
 # Fields
 
-  - `nxray::A`: Number of ray volumes allowed in ``\\widehat{x}``, per grid cell and wave mode (`nray_fac * nrxl * nrk_init`, taken from `namelists.wkb`).
+  - `nxray::A`: Number of ray volumes allowed in ``\\widehat{x}``, per grid cell and wave mode (`multiplication_factor * nrx * nrk`, taken from `namelists.wkb`).
 
-  - `nyray::A`: Number of ray volumes allowed in ``\\widehat{y}``, per grid cell and wave mode (`nray_fac * nryl * nrl_init`, taken from `namelists.wkb`).
+  - `nyray::A`: Number of ray volumes allowed in ``\\widehat{y}``, per grid cell and wave mode (`multiplication_factor * nry * nrl`, taken from `namelists.wkb`).
 
-  - `nzray::A`: Number of ray volumes allowed in ``\\widehat{z}``, per grid cell and wave mode (`nray_fac * nrzl * nrm_init`, taken from `namelists.wkb`).
+  - `nzray::A`: Number of ray volumes allowed in ``\\widehat{z}``, per grid cell and wave mode (`multiplication_factor * nrz * nrm`, taken from `namelists.wkb`).
 
   - `nxray_wrk::A`: `2 * nxray`.
 
@@ -63,7 +63,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `nzray_wrk::A`: `2 * nzray`.
 
-  - `nray_max::A`: Maximum ray-volume count allowed per grid-cell before merging is triggered (`nxray * nyray * nzray * namelists.wkb.nwm`).
+  - `nray_max::A`: Maximum ray-volume count allowed per grid-cell before merging is triggered (`nxray * nyray * nzray * namelists.wkb.wave_modes`).
 
   - `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays (`nxray_wrk * nyray_wrk * nzray_wrk`).
 
@@ -103,7 +103,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `grid`: Collection of parameters and fields that describe the grid.
 
-  - `testcase`: Test case on which the current simulation is based.
+  - `test_case`: Test case on which the current simulation is based.
 
 # See also
 
@@ -159,8 +159,8 @@ function WKB(
     domain::Domain,
     grid::Grid,
 )::WKB
-    (; testcase) = namelists.setting
-    return WKB(namelists, constants, domain, grid, testcase)
+    (; test_case) = namelists.setting
+    return WKB(namelists, constants, domain, grid, test_case)
 end
 
 function WKB(
@@ -168,7 +168,7 @@ function WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::WKB
     return WKB(
         [0 for i in 1:9]...,
@@ -191,81 +191,73 @@ function WKB(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::WKB
     (;
-        xrmin_dim,
-        xrmax_dim,
-        yrmin_dim,
-        yrmax_dim,
-        zrmin_dim,
-        zrmax_dim,
-        nrxl,
-        nryl,
-        nrzl,
-        nrk_init,
-        nrl_init,
-        nrm_init,
-        nray_fac,
-        nwm,
-        fac_dk_init,
-        fac_dl_init,
-        fac_dm_init,
+        xrmin,
+        xrmax,
+        yrmin,
+        yrmax,
+        zrmin,
+        zrmax,
+        nrx,
+        nry,
+        nrz,
+        nrk,
+        nrl,
+        nrm,
+        multiplication_factor,
+        wave_modes,
+        dkr_factor,
+        dlr_factor,
+        dmr_factor,
     ) = namelists.wkb
     (; lref) = constants
-    (; sizex, sizey, sizez) = namelists.domain
+    (; x_size, y_size, z_size) = namelists.domain
     (; nxx, nyy, nzz) = domain
     (; lx, ly, lz) = grid
 
-    # Non-dimensionalize boundaries for ray-volume propagation.
-    xrmin = xrmin_dim / lref
-    xrmax = xrmax_dim / lref
-    yrmin = yrmin_dim / lref
-    yrmax = yrmax_dim / lref
-    zrmin = zrmin_dim / lref
-    zrmax = zrmax_dim / lref
-
     # Check if the boundaries for ray-volume propagation are within the domain.
-    if xrmin < -lx / 2 || xrmax > lx / 2
+    if xrmin / lref < -lx / 2 || xrmax / lref > lx / 2
         error("Error in WKB: xrmin too small or xrmax too large!")
     end
-    if yrmin < -ly / 2 || yrmax > ly / 2
+    if yrmin / lref < -ly / 2 || yrmax / lref > ly / 2
         error("Error in WKB: yrmin too small or yrmax too large!")
     end
-    if zrmin < 0 || zrmax > lz
+    if zrmin / lref < 0 || zrmax / lref > lz
         error("Error in WKB: zrmin too small or zrmax too large!")
     end
 
     # Check if spectral-extent factors are set correctly.
-    if sizex > 1 && fac_dk_init == 0.0
-        error("Error in WKB: sizex > 1 && fac_dk_init == 0!")
+    if x_size > 1 && dkr_factor == 0.0
+        error("Error in WKB: x_size > 1 && dkr_factor == 0!")
     end
-    if sizey > 1 && fac_dl_init == 0.0
-        error("Error in WKB: sizey > 1 && fac_dl_init == 0!")
+    if y_size > 1 && dlr_factor == 0.0
+        error("Error in WKB: y_size > 1 && dlr_factor == 0!")
     end
-    if sizez == 1 || fac_dm_init == 0.0
-        error("Error in WKB: sizez == 1 || fac_dm_init == 0!")
+    if z_size == 1 || dmr_factor == 0.0
+        error("Error in WKB: z_size == 1 || dmr_factor == 0!")
     end
 
     # Set zonal ray-volume count.
-    if sizex == 1
+    if x_size == 1
         nxray = 1
     else
-        nxray = nray_fac * nrxl * nrk_init
+        nxray = multiplication_factor * nrx * nrk
     end
 
     # Set meridional ray-volume count.
-    if sizey == 1
+    if y_size == 1
         nyray = 1
     else
-        nyray = nray_fac * nryl * nrl_init
+        nyray = multiplication_factor * nry * nrl
     end
 
     # Set vertical ray-volume count.
-    nzray = nray_fac * nrzl * nrm_init
+    nzray = multiplication_factor * nrz * nrm
 
     # Set maximum ray-volume count.
-    nray_max = nxray * nyray * nzray * nwm
+    nray_max = nxray * nyray * nzray * wave_modes
 
     # Set spectral dimension of ray-volume array.
     if nxray > 1
@@ -286,15 +278,15 @@ function WKB(
     nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk * nwm
 
     # Set number of surface ray volumes.
-    n_sfc = nwm
+    n_sfc = wave_modes
     if nxray > 1
-        n_sfc *= div(nxray, nray_fac)
+        n_sfc *= div(nxray, multiplication_factor)
     end
     if nyray > 1
-        n_sfc *= div(nyray, nray_fac)
+        n_sfc *= div(nyray, multiplication_factor)
     end
     if nzray > 1
-        n_sfc *= div(nzray, nray_fac)
+        n_sfc *= div(nzray, multiplication_factor)
     end
 
     # Initialize ray-volume arrays.

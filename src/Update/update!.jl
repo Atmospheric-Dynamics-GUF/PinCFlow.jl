@@ -29,11 +29,42 @@ update!(
 
 Update the density with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
 
+The update is given by
+
+```math
+\\begin{align*}
+    q^\\rho & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\alpha_\\mathrm{RK} q^\\rho,\\\\
+    \\rho & \\rightarrow \\rho + \\beta_\\mathrm{RK} q^\\rho,
+\\end{align*}
+```
+
+where ``\\Delta t`` is the time step given as input to this method.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)
 ```
 
 Update the density fluctuations with a Runge-Kutta step on the left-hand-side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho'} & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
+\\end{align*}
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\begin{align*}
+    q^{\\rho'} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\frac{F^P}{\\overline{\\theta}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
+\\end{align*}
+```
+
+in compressible mode.
 
 ```julia
 update!(
@@ -46,6 +77,20 @@ update!(
 ```
 
 Update the density fluctuations with an explicit Euler step the on right-hand side of the equation, without the Rayleigh-damping term.
+
+The update is given by
+
+```math
+\\rho' \\rightarrow - \\frac{\\rho}{g} \\left(b' - \\Delta t N^2 \\frac{\\overline{\\rho}}{\\rho} w\\right)
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\rho' \\rightarrow - \\frac{\\rho}{g} \\left[b' - \\Delta t N^2 \\frac{P / \\overline{\\theta}}{\\rho} \\left(\\frac{W_{k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right)\\right]
+```
+
+in compressible mode, where ``b' = - g \\rho' / \\rho``.
 
 ```julia
 update!(
@@ -60,11 +105,46 @@ update!(
 
 Update the density fluctuations with an implicit Euler step on the right-hand side of the equation.
 
+The update is given by
+
+```math
+\\begin{align*}
+    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{- \\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left[\\widehat{w}_\\mathrm{old} + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right] + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b'\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{13} u + G^{23} v\\right)\\vphantom{\\left[\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right]}\\right\\},
+\\end{align*}
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\begin{align*}
+    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{- \\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left[\\left(\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right) + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right]\\right.\\\\
+    & \\qquad \\quad + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b' + \\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right)\\\\
+    & \\qquad \\quad \\times \\left.\\left[G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right) + G^{23} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right]\\right\\},
+\\end{align*}
+```
+
+in compressible mode, where ``\\widehat{w}_\\mathrm{old}`` is the transformed vertical wind stored in `state.variables.backups`.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
 ```
 
 Update the zonal momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho u}_{i + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + f \\left(\\rho_\\mathrm{old} v\\right)_{i + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2},\\\\
+    u_{i + 1 / 2} & \\rightarrow \\rho_{i + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, i + 1 / 2} u_{i + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2}\\right),
+\\end{align*}
+```
+
+where ``\\rho_\\mathrm{old}`` is the density stored in `state.variables.backups`.
 
 ```julia
 update!(
@@ -77,6 +157,20 @@ update!(
 ```
 
 Update the zonal wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
+
+The update is given by
+
+```math
+u_{i + 1 / 2} \\rightarrow u_{i + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{P}_{i + 1 / 2}^{\\rho u} + \\frac{F_{i + 1 / 2}^{\\rho u}}{\\rho_{i + 1 / 2}}\\right)
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+U_{i + 1 / 2} \\rightarrow U_{i + 1 / 2} + \\Delta t \\left(J P\\right)_{i + 1 / 2} \\left(- c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{P}_{i + 1 / 2}^{\\rho u} + \\frac{F_{i + 1 / 2}^{\\rho u}}{\\rho_{i + 1 / 2}}\\right)
+```
+
+in compressible mode.
 
 ```julia
 update!(
@@ -91,11 +185,37 @@ update!(
 
 Update the zonal wind with an implicit Euler step on the right-hand side of the equation.
 
+The update is given by
+
+```math
+u_{i + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\left[u_{i + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{P}_{i + 1 / 2}^{\\rho u} + \\frac{F_{i + 1 / 2}^{\\rho u}}{\\rho_{i + 1 / 2}}\\right)\\right]
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+U_{i + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\left[U_{i + 1 / 2} + \\Delta t \\left(J P\\right)_{i + 1 / 2} \\left(- c_p \\frac{P_{i + 1 / 2}}{\\rho_{i + 1 / 2}} \\mathcal{P}_{i + 1 / 2}^{\\rho u} + \\frac{F_{i + 1 / 2}^{\\rho u}}{\\rho_{i + 1 / 2}}\\right)\\right]
+```
+
+in compressible mode.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)
 ```
 
 Update the meridional momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho v}_{j + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\widehat{y}}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) - f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{j + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2},\\\\
+    v_{j + 1 / 2} & \\rightarrow \\rho_{j + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, j + 1 / 2} v_{j + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2}\\right),
+\\end{align*}
+```
+
+where ``\\rho_\\mathrm{old}`` and ``u_{\\mathrm{old}, i + 1 / 2}`` are the density and zonal wind stored in `state.variables.backups`.
 
 ```julia
 update!(
@@ -108,6 +228,20 @@ update!(
 ```
 
 Update the meridional wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
+
+The update is given by
+
+```math
+v_{i + 1 / 2} \\rightarrow v_{j + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{P}_{j + 1 / 2}^{\\rho v} + \\frac{F_{j + 1 / 2}^{\\rho v}}{\\rho_{j + 1 / 2}}\\right)
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+V_{j + 1 / 2} \\rightarrow V_{j + 1 / 2} + \\Delta t \\left(J P\\right)_{j + 1 / 2} \\left(- c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{P}_{j + 1 / 2}^{\\rho v} + \\frac{F_{j + 1 / 2}^{\\rho v}}{\\rho_{j + 1 / 2}}\\right)
+```
+
+in compressible mode.
 
 ```julia
 update!(
@@ -122,11 +256,42 @@ update!(
 
 Update the meridional wind with an implicit Euler step on the right-hand side of the equation.
 
+The update is given by
+
+```math
+v_{j + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\left[v_{j + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{P}_{j + 1 / 2}^{\\rho v} + \\frac{F_{j + 1 / 2}^{\\rho v}}{\\rho_{j + 1 / 2}}\\right)\\right]
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+V_{j + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\left[V_{j + 1 / 2} + \\Delta t \\left(J P\\right)_{j + 1 / 2} \\left(- c_p \\frac{P_{j + 1 / 2}}{\\rho_{j + 1 / 2}} \\mathcal{P}_{j + 1 / 2}^{\\rho v} + \\frac{F_{j + 1 / 2}^{\\rho v}}{\\rho_{j + 1 / 2}}\\right)\\right]
+```
+
+in compressible mode.
+
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::W, side::LHS)
 ```
 
 Update the transformed vertical momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho \\widehat{w}}_{k + 1 / 2} & \\rightarrow \\Delta t \\left\\{- \\left[G^{13} \\left(\\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
+    & \\qquad \\qquad - \\left[G^{23} \\left(\\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\widehat{y}}}{\\Delta \\widehat{y}}\\right.\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
+    & \\qquad \\qquad - \\frac{1}{J_{k + 1 / 2}^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\widehat{x}}_{i - 1 / 2, k + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\widehat{y}}_{j - 1 / 2, k + 1 / 2}}{\\Delta \\widehat{y}}\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\quad + \\left.\\frac{\\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\widehat{z}}}{\\Delta \\widehat{z}}\\right)\\\\
+    & \\qquad \\qquad + \\left.G^{13} f \\left(\\rho_\\mathrm{old} v_\\mathrm{old}\\right)_{k + 1 / 2} - G^{23} f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{k + 1 / 2}\\vphantom{- \\frac{1}{J^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\widehat{z}}}{\\Delta \\widehat{z}}\\right)}\\right\\} + \\alpha_\\mathrm{RK} q^{\\rho \\widehat{w}}_{k + 1 / 2},\\\\
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\rho_{k + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, k + 1 / 2} \\widehat{w}_{k + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho \\widehat{w}}_{k + 1 / 2}\\right),
+\\end{align*}
+```
+
+where ``\\rho_\\mathrm{old}``, ``u_{\\mathrm{old}, i + 1 / 2}`` and ``v_{\\mathrm{old}, j + 1 / 2}`` are the density, zonal wind and meridional wind stored in `state.variables.backups`.
 
 ```julia
 update!(
@@ -140,6 +305,20 @@ update!(
 
 Update the transformed vertical wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
 
+The update is given by
+
+```math
+\\widehat{w}_{k + 1 / 2} \\rightarrow \\widehat{w}_{k + 1 / 2} + \\Delta t \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right]
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\widehat{W}_{k + 1 / 2} \\rightarrow \\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right]
+```
+
+in compressible mode, where ``b'_\\mathrm{old} = - g \\rho'_\\mathrm{old} / \\rho``, with ``\\rho'_\\mathrm{old}`` being the density fluctuations stored in `state.variables.backups`.
+
 ```julia
 update!(
 	state::State,
@@ -152,6 +331,29 @@ update!(
 ```
 
 Update the transformed vertical wind with an implicit Euler step on the right-hand side of the equation.
+
+The update is given by
+
+```math
+\\begin{align*}
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\widehat{w}_{k + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2 \\left[\\left(G^{13} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+\\end{align*}
+```
+
+in Boussinesq/pseudo-incompressible mode and
+
+```math
+\\begin{align*}
+    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\\\
+    & \\qquad \\quad \\times \\left.\\left[\\left(G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right)\\right)_{k + 1 / 2} + \\left(G^{2 3} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+\\end{align*}
+```
+
+in compressible mode.
 
 ```julia
 update!(state::State, dt::AbstractFloat, variable::PiP)
@@ -170,6 +372,17 @@ update!(state::State, dt::AbstractFloat, variable::PiP, model::Compressible)
 ```
 
 Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.
+
+The update is given by
+
+```math
+\\begin{align*}
+    \\pi' & \\rightarrow \\pi' + \\Delta t \\left(\\frac{\\partial \\pi'}{\\partial P}\\right) \\left[- \\frac{1}{J} \\left(\\frac{U_{\\mathrm{old}, i + 1 / 2} - U_{\\mathrm{old}, i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{V_{\\mathrm{old}, j + 1 / 2} - V_{\\mathrm{old}, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2} - \\widehat{W}_{\\mathrm{old}, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^P\\right],
+\\end{align*}
+```
+
+where ``U_{\\mathrm{old}, i + 1 / 2}``, ``V_{\\mathrm{old}, j + 1 / 2}`` and ``\\widehat{W}_{\\mathrm{old}, k + 1 / 2}`` are the transformed wind components (including the factor ``J P``) stored in `state.variables.backups`.
 
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
@@ -201,22 +414,40 @@ update!(
 
 Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
 
+The update is given by
+
+```math
+\\begin{align*}
+    q^P & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{P, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{P, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{P, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{P, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{P, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{P, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^P\\right] + \\alpha_\\mathrm{RK} q^P,\\\\
+    P & \\rightarrow P + \\beta_\\mathrm{RK} q^P.
+\\end{align*}
+```
+
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracersetup::NoTracer)
+update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::NoTracer)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
 update!(
-	state::State,
-	dt::AbstractFloat,
-	m::Integer,
-	tracersetup::AbstractTracer,
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho \\chi} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^{\\rho \\chi}\\right] + \\alpha_\\mathrm{RK} q^{\\rho \\chi},\\\\
+    \\left(\\rho \\chi\\right) & \\rightarrow \\left(\\rho \\chi\\right) + \\beta_\\mathrm{RK} q^{\\rho \\chi}.
+\\end{align*}
+```
 
 # Arguments
 
@@ -236,7 +467,7 @@ Update the tracers with a Runge-Kutta step on the left-hand sides of the equatio
 
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
 # See also
 
@@ -317,13 +548,13 @@ function update!(
 	variable::RhoP,
 	side::LHS,
 )
-	(; i0, i1, j0, j1, k0, k1) = state.domain
-	(; dx, dy, dz, jac) = state.grid
-	(; thetastrattfc) = state.atmosphere
-	(; alphark, betark) = state.time
-	(; drhop) = state.variables.increments
-	(; phirhop) = state.variables.fluxes
-	(; rhop) = state.variables.predictands
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; thetabar) = state.atmosphere
+    (; alphark, betark) = state.time
+    (; drhop) = state.variables.increments
+    (; phirhop) = state.variables.fluxes
+    (; rhop) = state.variables.predictands
 
 	if m == 1
 		drhop .= 0.0
@@ -342,7 +573,7 @@ function update!(
 
         heating = compute_volume_force(state, i, j, k, P())
 
-        f = -fluxdiff - heating / thetastrattfc[i, j, k]
+        f = -fluxdiff - heating / thetabar[i, j, k]
 
 		drhop[i, j, k] = dt * f + alphark[m] * drhop[i, j, k]
 		rhop[i, j, k] += betark[m] * drhop[i, j, k]
@@ -360,7 +591,7 @@ function update!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; g_ndim) = state.constants
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; rhobar, n2) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop) = predictands
 
@@ -373,12 +604,12 @@ function update!(
                 compute_vertical_wind(i, j, k - 1, state) / jpd
             )
 
-        buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
+        buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         fb = compute_buoyancy_factor(state, i, j, k, RhoP())
-        buoy -= dt * fb * bvsstrattfc[i, j, k] * wvrt
+        buoy -= dt * fb * n2[i, j, k] * wvrt
 
-		rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
-	end
+        rhop[i, j, k] = -buoy * (rho[i, j, k] + rhobar[i, j, k]) / g_ndim
+    end
 
 	return
 end
@@ -392,17 +623,17 @@ function update!(
 	rayleigh_factor::AbstractFloat,
 )
     (; nbz) = state.namelists.domain
-    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; betar) = state.sponge
     (; g_ndim) = state.constants
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; rhobar, n2) = state.atmosphere
     (; rho, rhop, u, v, pip) = state.variables.predictands
     (; wold) = state.variables.backups
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        rhoc = rho[i, j, k] + rhostrattfc[i, j, k]
+        rhoc = rho[i, j, k] + rhobar[i, j, k]
         rhoedgeu =
             (
                 jac[i, j, k + 1] * rho[i, j, k] +
@@ -410,8 +641,8 @@ function update!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         rhoedgeu +=
             (
-                jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         rhoedged =
             (
@@ -420,8 +651,8 @@ function update!(
             ) / (jac[i, j, k] + jac[i, j, k - 1])
         rhoedged +=
             (
-                jac[i, j, k - 1] * rhostrattfc[i, j, k] +
-                jac[i, j, k] * rhostrattfc[i, j, k - 1]
+                jac[i, j, k - 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
 
         jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
@@ -436,7 +667,7 @@ function update!(
         if ko + k == k0
             lower_gradient = 0.0
             lower_force = 0.0
-        elseif ko + k == sizezz - nbz
+        elseif ko + k == zz_size - nbz
             upper_gradient = 0.0
             upper_force = 0.0
         end
@@ -446,26 +677,26 @@ function update!(
 
 		factor = 1.0
 
-        if spongelayer
+        if use_sponge
             factor += dt * betar[i, j, k] * rayleigh_factor
         end
 
-        b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
+        b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         jpedger = compute_compressible_wind_factor(state, i, j, k, U())
         jpedgel = compute_compressible_wind_factor(state, i - 1, j, k, U())
         jpedgef = compute_compressible_wind_factor(state, i, j, k, V())
         jpedgeb = compute_compressible_wind_factor(state, i, j - 1, k, V())
         fb = compute_buoyancy_factor(state, i, j, k, RhoP())
         b =
-            1.0 / (factor + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
+            1.0 / (factor + fb * n2[i, j, k] * dt^2.0) * (
                 -fb *
-                bvsstrattfc[i, j, k] *
+                n2[i, j, k] *
                 dt *
                 jac[i, j, k] *
                 (w + dt * (-gradient + force / rhoc)) +
                 factor * b +
                 fb *
-                bvsstrattfc[i, j, k] *
+                n2[i, j, k] *
                 dt *
                 jac[i, j, k] *
                 factor *
@@ -478,8 +709,8 @@ function update!(
                 )
             )
 
-		rhop[i, j, k] = -b * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
-	end
+        rhop[i, j, k] = -b * (rho[i, j, k] + rhobar[i, j, k]) / g_ndim
+    end
 
 	return
 end
@@ -494,9 +725,9 @@ function update!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; du) = state.variables.increments
     (; phiu) = state.variables.fluxes
     (; rhoold, uold) = state.variables.backups
@@ -525,7 +756,7 @@ function update!(
 
         # Explicit integration of Coriolis force in TFC.
         uold[i, j, k] = u[i, j, k]
-        if k == k1 && ko + nzz != sizezz
+        if k == k1 && ko + nzz != zz_size
             uold[i, j, k + 1] = u[i, j, k + 1]
         end
         vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
@@ -534,19 +765,19 @@ function update!(
             0.5 *
             fc *
             (
-                (rhoold[i, j, k] + rhostrattfc[i, j, k]) * vc +
-                (rhoold[i + 1, j, k] + rhostrattfc[i + 1, j, k]) * vr
+                (rhoold[i, j, k] + rhobar[i, j, k]) * vc +
+                (rhoold[i + 1, j, k] + rhobar[i + 1, j, k]) * vr
             )
 
 		# Compute force.
 		force = -fluxdiff + volforce
 
-		# Interpolate density.
-		rhom_1 = 0.5 * (rhoold[i, j, k] + rhoold[i+1, j, k])
-		rhom = 0.5 * (rho[i, j, k] + rho[i+1, j, k])
-		rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i+1, j, k])
-		rhom_1 += rhostratedger
-		rhom += rhostratedger
+        # Interpolate density.
+        rhom_1 = 0.5 * (rhoold[i, j, k] + rhoold[i + 1, j, k])
+        rhom = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
+        rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+        rhom_1 += rhobaredger
+        rhom += rhobaredger
 
 		# Set velocity and momentum at previous time.
 		um_1 = u[i, j, k]
@@ -573,14 +804,14 @@ function update!(
 	side::RHS,
 	integration::Explicit,
 )
-	(; i0, i1, j0, j1, k0, k1) = state.domain
-	(; rhostrattfc) = state.atmosphere
-	(; rho, u, pip) = state.variables.predictands
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; rhobar) = state.atmosphere
+    (; rho, u, pip) = state.variables.predictands
 
     @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-        rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-        rhoedger += rhostratedger
+        rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+        rhoedger += rhobaredger
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, U())
 
@@ -602,19 +833,19 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc) = state.atmosphere
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; rhobar) = state.atmosphere
     (; betar) = state.sponge
     (; rho, u, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-        rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-        rhoedger += rhostratedger
+        rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+        rhoedger += rhobaredger
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, U())
 
@@ -622,7 +853,7 @@ function update!(
 
 		factor = 1.0
 
-        if spongelayer && sponge_uv
+        if use_sponge && damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -650,9 +881,9 @@ function update!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; dv) = state.variables.increments
     (; phiv) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
@@ -679,30 +910,30 @@ function update!(
 		jacedgef = 0.5 * (jac[i, j, k] + jac[i, j+1, k])
 		fluxdiff /= jacedgef
 
-		# Explicit integration of Coriolis force in TFC.
-		vold[i, j, k] = v[i, j, k]
-		if k == k1 && ko + nzz != sizezz
-			vold[i, j, k+1] = v[i, j, k+1]
-		end
-		uc = 0.5 * (uold[i, j, k] + uold[i-1, j, k])
-		uf = 0.5 * (uold[i, j+1, k] + uold[i-1, j+1, k])
+        # Explicit integration of Coriolis force in TFC.
+        vold[i, j, k] = v[i, j, k]
+        if k == k1 && ko + nzz != zz_size
+            vold[i, j, k + 1] = v[i, j, k + 1]
+        end
+        uc = 0.5 * (uold[i, j, k] + uold[i - 1, j, k])
+        uf = 0.5 * (uold[i, j + 1, k] + uold[i - 1, j + 1, k])
 
         volforce =
             -0.5 *
             fc *
             (
-                (rhoold[i, j, k] + rhostrattfc[i, j, k]) * uc +
-                (rhoold[i, j + 1, k] + rhostrattfc[i, j + 1, k]) * uf
+                (rhoold[i, j, k] + rhobar[i, j, k]) * uc +
+                (rhoold[i, j + 1, k] + rhobar[i, j + 1, k]) * uf
             )
 
 		force = -fluxdiff + volforce
 
-		# Interpolate density.
-		rhom_1 = 0.5 * (rhoold[i, j, k] + rhoold[i, j+1, k])
-		rhom = 0.5 * (rho[i, j, k] + rho[i, j+1, k])
-		rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j+1, k])
-		rhom_1 += rhostratedgef
-		rhom += rhostratedgef
+        # Interpolate density.
+        rhom_1 = 0.5 * (rhoold[i, j, k] + rhoold[i, j + 1, k])
+        rhom = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
+        rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+        rhom_1 += rhobaredgef
+        rhom += rhobaredgef
 
 		vm_1 = v[i, j, k]
 		momm_1 = rhom_1 * vm_1
@@ -726,14 +957,14 @@ function update!(
 	side::RHS,
 	integration::Explicit,
 )
-	(; i0, i1, j0, j1, k0, k1) = state.domain
-	(; rhostrattfc) = state.atmosphere
-	(; rho, v, pip) = state.variables.predictands
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; rhobar) = state.atmosphere
+    (; rho, v, pip) = state.variables.predictands
 
     @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-        rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-        rhoedgef += rhostratedgef
+        rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+        rhoedgef += rhobaredgef
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, V())
 
@@ -755,19 +986,19 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc) = state.atmosphere
+    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; rhobar) = state.atmosphere
     (; betar) = state.sponge
     (; rho, v, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == sizezz ? k1 : k1 + 1
+    kmax = ko + nzz == zz_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-        rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-        rhoedgef += rhostratedgef
+        rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+        rhoedgef += rhobaredgef
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, V())
 
@@ -775,7 +1006,7 @@ function update!(
 
 		factor = 1.0
 
-        if spongelayer && sponge_uv
+        if use_sponge && damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -803,10 +1034,10 @@ function update!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; dx, dy, dz, jac, met) = grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; dw) = state.variables.increments
     (; phiu, phiv, phiw) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
@@ -822,7 +1053,7 @@ function update!(
 	end
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 - 1 : k1
+    kmax = ko + nzz == zz_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
@@ -898,44 +1129,44 @@ function update!(
             fc * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 1, 3] *
-                (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
+                (rhoold[i, j, k] + rhobar[i, j, k]) *
                 vc +
                 jac[i, j, k] *
                 met[i, j, k + 1, 1, 3] *
-                (rhoold[i, j, k + 1] + rhostrattfc[i, j, k + 1]) *
+                (rhoold[i, j, k + 1] + rhobar[i, j, k + 1]) *
                 vu
             ) / (jac[i, j, k] + jac[i, j, k + 1]) -
             fc * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 2, 3] *
-                (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
+                (rhoold[i, j, k] + rhobar[i, j, k]) *
                 uc +
                 jac[i, j, k] *
                 met[i, j, k + 1, 2, 3] *
-                (rhoold[i, j, k + 1] + rhostrattfc[i, j, k + 1]) *
+                (rhoold[i, j, k + 1] + rhobar[i, j, k + 1]) *
                 uu
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
 		force = -fluxdiff + volforce
 
-		# Interpolate densities.
-		rhom_1 =
-			(
-				jac[i, j, k+1] * rhoold[i, j, k] +
-				jac[i, j, k] * rhoold[i, j, k+1]
-			) / (jac[i, j, k] + jac[i, j, k+1])
-		rhom =
-			(
-				jac[i, j, k+1] * rho[i, j, k] +
-				jac[i, j, k] * rho[i, j, k+1]
-			) / (jac[i, j, k] + jac[i, j, k+1])
-		rhostratedgeu =
-			(
-				jac[i, j, k+1] * rhostrattfc[i, j, k] +
-				jac[i, j, k] * rhostrattfc[i, j, k+1]
-			) / (jac[i, j, k] + jac[i, j, k+1])
-		rhom_1 += rhostratedgeu
-		rhom += rhostratedgeu
+        # Interpolate densities.
+        rhom_1 =
+            (
+                jac[i, j, k + 1] * rhoold[i, j, k] +
+                jac[i, j, k] * rhoold[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        rhom =
+            (
+                jac[i, j, k + 1] * rho[i, j, k] +
+                jac[i, j, k] * rho[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        rhobaredgeu =
+            (
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        rhom_1 += rhobaredgeu
+        rhom += rhobaredgeu
 
 		wm_1 = w[i, j, k]
 		momm_1 = rhom_1 * wm_1
@@ -960,14 +1191,14 @@ function update!(
 	integration::Explicit,
 )
     (; g_ndim) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 - 1 : k1
+    kmax = ko + nzz == zz_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
@@ -978,13 +1209,13 @@ function update!(
                 jac[i, j, k] * rho[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-		rhoc += rhostrattfc[i, j, k]
-		rhou += rhostrattfc[i, j, k+1]
-		rhoedgeu +=
-			(
-				jac[i, j, k+1] * rhostrattfc[i, j, k] +
-				jac[i, j, k] * rhostrattfc[i, j, k+1]
-			) / (jac[i, j, k] + jac[i, j, k+1])
+        rhoc += rhobar[i, j, k]
+        rhou += rhobar[i, j, k + 1]
+        rhoedgeu +=
+            (
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, W())
 
@@ -1012,16 +1243,16 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; g_ndim) = state.constants
-    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == sizezz ? k1 - 1 : k1
+    kmax = ko + nzz == zz_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
@@ -1032,27 +1263,25 @@ function update!(
                 jac[i, j, k] * rho[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-		rhoc += rhostrattfc[i, j, k]
-		rhou += rhostrattfc[i, j, k+1]
-		rhoedgeu +=
-			(
-				jac[i, j, k+1] * rhostrattfc[i, j, k] +
-				jac[i, j, k] * rhostrattfc[i, j, k+1]
-			) / (jac[i, j, k] + jac[i, j, k+1])
+        rhoc += rhobar[i, j, k]
+        rhou += rhobar[i, j, k + 1]
+        rhoedgeu +=
+            (
+                jac[i, j, k + 1] * rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         gradient = compute_pressure_gradient(state, pip, i, j, k, W())
 
         force = compute_volume_force(state, i, j, k, W())
 
-		bvsstratedgeu =
-			(
-				jac[i, j, k+1] * bvsstrattfc[i, j, k] +
-				jac[i, j, k] * bvsstrattfc[i, j, k+1]
-			) / (jac[i, j, k] + jac[i, j, k+1])
+        n2edgeu =
+            (jac[i, j, k + 1] * n2[i, j, k] + jac[i, j, k] * n2[i, j, k + 1]) /
+            (jac[i, j, k] + jac[i, j, k + 1])
 
 		factor = 1.0
 
-        if spongelayer
+        if use_sponge
             factor +=
                 dt * (
                     jac[i, j, k + 1] * betar[i, j, k] +
@@ -1084,23 +1313,23 @@ function update!(
         jpedgeu = compute_compressible_wind_factor(state, i, j, k, W())
         fw = compute_buoyancy_factor(state, i, j, k, W())
 
-		w[i, j, k] =
-			1.0 / (factor + fw * bvsstratedgeu * dt^2.0) * (
-				w[i, j, k] - dt * gradient * jpedgeu +
-				dt * b * jpedgeu +
-				dt * force / rhoedgeu * jpedgeu +
-				jpedgeu *
-				fw *
-				bvsstratedgeu *
-				dt^2.0 *
-				(
-					jac[i, j, k+1] *
-					(met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
-					jac[i, j, k] *
-					(met[i, j, k+1, 1, 3] * uu + met[i, j, k+1, 2, 3] * vu)
-				) / (jac[i, j, k] + jac[i, j, k+1])
-			)
-	end
+        w[i, j, k] =
+            1.0 / (factor + fw * n2edgeu * dt^2.0) * (
+                w[i, j, k] - dt * gradient * jpedgeu +
+                dt * b * jpedgeu +
+                dt * force / rhoedgeu * jpedgeu +
+                jpedgeu *
+                fw *
+                n2edgeu *
+                dt^2.0 *
+                (
+                    jac[i, j, k + 1] *
+                    (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
+                    jac[i, j, k] *
+                    (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)
+                ) / (jac[i, j, k] + jac[i, j, k + 1])
+            )
+    end
 
 	return
 end
@@ -1211,25 +1440,25 @@ function update!(
 end
 
 function update!(
-	state::State,
-	dt::AbstractFloat,
-	m::Integer,
-	tracersetup::NoTracer,
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracer_setup::NoTracer,
 )
 	return
 end
 
 function update!(
-	state::State,
-	dt::AbstractFloat,
-	m::Integer,
-	tracersetup::AbstractTracer,
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracer_setup::AbstractTracer,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
-    (; testcase) = state.namelists.setting
+    (; test_case) = state.namelists.setting
 
     @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
         if m == 1
@@ -1247,7 +1476,7 @@ function update!(
 			fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
 			fluxdiff /= jac[i, j, k]
 
-            force = compute_volume_force(state, i, j, k, Chi(), testcase)
+            force = compute_volume_force(state, i, j, k, Chi(), test_case)
             f = -fluxdiff + force
 
 			getfield(tracerincrements, fd)[i, j, k] =

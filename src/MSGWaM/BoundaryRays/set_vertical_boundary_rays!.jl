@@ -24,8 +24,8 @@ function set_vertical_boundary_rays! end
 function set_vertical_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; npz) = namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; lx, ly, lz, dx, dy, topography_surface) = state.grid
+    (; zz_size, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; lx, ly, lz, dx, dy, hb) = state.grid
     (; nray, rays) = state.wkb
 
     # Set ray-volume count and ray-volumes properties.
@@ -51,9 +51,8 @@ function set_vertical_boundary_rays!(state::State)
 
                 iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
                 jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
-                if topography_surface[iray, jray] - zr + 0.5 * dzr > eps()
-                    rays.z[r, i, j, k] =
-                        2.0 * topography_surface[iray, jray] - zr + dzr
+                if hb[iray, jray] - zr + 0.5 * dzr > eps()
+                    rays.z[r, i, j, k] = 2.0 * hb[iray, jray] - zr + dzr
                     rays.m[r, i, j, k] = -wnrm
                 end
             end
@@ -61,7 +60,7 @@ function set_vertical_boundary_rays!(state::State)
     end
 
     # Cut ray volumes at the upper boundary.
-    @ivy if ko + nzz == sizezz
+    @ivy if ko + nzz == zz_size
         for k in (k1 - 1):k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
             local_count = 0
             for r in 1:nray[i, j, k]

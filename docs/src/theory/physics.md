@@ -45,34 +45,34 @@ $$\begin{align*}
     \overline{\pi} \left(0\right) = 1, && \frac{\mathrm{d} \overline{\pi}}{\mathrm{d} z} = - \frac{g}{c_p} \overline{\theta}^{- 1},
 \end{align*}$$
 
-with $g$ and $c_p$ being the gravitational acceleration and specific heat capacity at constant presssure, respectively ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)). Using this decomposition, the model equations in pseudo-incompressible mode are written as
+with $g$ and $c_p$ being the gravitational acceleration and specific heat capacity at constant pressure, respectively ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)). Using this decomposition, the model equations in pseudo-incompressible mode are written as
 
-$$\begin{align*}
+$${\small\begin{align*}
     \frac{\partial \rho}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho u}{\partial \widehat{x}} + \frac{\partial J \rho v}{\partial \widehat{y}} + \frac{\partial J \rho \widehat{w}}{\partial \widehat{z}}\right) + \alpha_\mathrm{R} \left(\rho - \overline{\rho}\right) & = 0,\\
     \frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) + \alpha_\mathrm{R} \rho' & = \frac{N^2 \overline{\rho} w}{g},\\
     \frac{1}{J} \left(\frac{\partial J P u}{\partial \widehat{x}} + \frac{\partial J P v}{\partial \widehat{y}} + \frac{\partial J P \widehat{w}}{\partial \widehat{z}}\right) & = 0,\\
-    \frac{\partial \rho u}{\partial t} + \mathcal{A}^u - \mathcal{V}^u - f \rho v + \alpha_\mathrm{R} \left(u - u_\mathrm{R}\right) & = - c_p P \mathcal{P}^u - \beta_\mathrm{R}^{uv} \rho u + F^u,\\
-    \frac{\partial \rho v}{\partial t} + \mathcal{A}^v - \mathcal{V}^v + f \rho u + \alpha_\mathrm{R} \left(v - v_\mathrm{R}\right) & = - c_p P \mathcal{P}^v - \beta_\mathrm{R}^{uv} \rho v + F^v,\\
-    \frac{\partial \rho \widehat{w}}{\partial t} + \mathcal{A}^{\widehat{w}} - \mathcal{V}^{\widehat{w}} - G^{13} f \rho v + G^{23} f \rho u + \alpha_\mathrm{R} \left(\widehat{w} - \widehat{w}_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\widehat{w}} - \frac{g \rho'}{J} - \beta_\mathrm{R}^{\widehat{w}} \rho \widehat{w} + F^{\widehat{w}},
-\end{align*}$$
+    \frac{\partial \rho u}{\partial t} + \mathcal{A}^{\rho u} - \mathcal{V}^{\rho u} - \mathcal{X}^{\rho u} - f \rho v + \alpha_\mathrm{R} \left(u - u_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho u} - \beta_\mathrm{R} \rho u + F^{\rho u},\\
+    \frac{\partial \rho v}{\partial t} + \mathcal{A}^{\rho v} - \mathcal{V}^{\rho v} - \mathcal{X}^{\rho v} + f \rho u + \alpha_\mathrm{R} \left(v - v_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho v} - \beta_\mathrm{R} \rho v + F^{\rho v},\\
+    \frac{\partial \rho \widehat{w}}{\partial t} + \mathcal{A}^{\rho \widehat{w}} - \mathcal{V}^{\rho \widehat{w}} - \mathcal{X}^{\rho \widehat{w}} - G^{13} f \rho v + G^{23} f \rho u + \alpha_\mathrm{R} \left(\widehat{w} - \widehat{w}_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho \widehat{w}} - \frac{g \rho'}{J} - \beta_\mathrm{R} \rho \widehat{w} + F^{\rho \widehat{w}},
+\end{align*}}$$
 
-where $\rho \left(\boldsymbol{x}, t\right) = \overline{\rho} \left(z\right) + \rho' \left(\boldsymbol{x}, t\right)$ is the density, $P = \rho \theta = \overline{\rho} \overline{\theta}$ is the mass-weighted potential temperature, $N^2 = \left(g / \overline{\theta}\right) \left(\mathrm{d} \overline{\theta} / \mathrm{d} z\right)$ is the squared buoyancy frequency and $f = f_0$ is the Coriolis frequency. On the left-hand sides, $\alpha_\mathrm{R}$ and $\left(u_\mathrm{R}, v_\mathrm{R}, \widehat{w}_\mathrm{R}\right)^\mathrm{R}$ represent the Rayleigh-damping coefficient of a customizable sponge and the transformed wind that is to be obtained via the relaxation in it. In contrast, the Rayleigh-damping coefficients $\beta_\mathrm{R}^{uv}$ and $\beta_\mathrm{R}^{\widehat{w}}$ on the right-hand side implement a preset sponge. The terms $\left(F^u, F^v, F^{\widehat{w}}\right)^\mathrm{T}$ represent volume forces in the momentum equation, e.g. drag imposed by unresolved gravity waves. The advective momentum-flux divergences are given by
+where $\rho \left(\boldsymbol{x}, t\right) = \overline{\rho} \left(z\right) + \rho' \left(\boldsymbol{x}, t\right)$ is the density, $P = \rho \theta = \overline{\rho} \overline{\theta}$ is the mass-weighted potential temperature, $N^2 = \left(g / \overline{\theta}\right) \left(\mathrm{d} \overline{\theta} / \mathrm{d} z\right)$ is the squared buoyancy frequency and $f = f_0$ is the Coriolis frequency. On the left-hand sides, $\alpha_\mathrm{R}$ and $\left(u_\mathrm{R}, v_\mathrm{R}, \widehat{w}_\mathrm{R}\right)^\mathrm{R}$ represent the Rayleigh-damping coefficient of a customizable sponge and the transformed wind that is to be obtained via the relaxation in it. In contrast, the Rayleigh-damping coefficient $\beta_\mathrm{R}$ on the right-hand side implements a preset sponge. The terms $\left(F^{\rho u}, F^{\rho v}, F^{\rho \widehat{w}}\right)^\mathrm{T}$ represent volume forces in the momentum equation, e.g. drag imposed by unresolved gravity waves. The advective momentum-flux divergences are given by
 
 $$\begin{align*}
-    \mathcal{A}^u & = \frac{1}{J} \left(\frac{\partial J \rho u u}{\partial \widehat{x}} + \frac{\partial J \rho u v}{\partial \widehat{y}} + \frac{\partial J \rho u \widehat{w}}{\partial \widehat{z}}\right),\\
-    \mathcal{A}^v & = \frac{1}{J} \left(\frac{\partial J \rho v u}{\partial \widehat{x}} + \frac{\partial J \rho v v}{\partial \widehat{y}} + \frac{\partial J \rho v \widehat{w}}{\partial \widehat{z}}\right),\\
-    \mathcal{A}^{\widehat{w}} & = G^{13} \mathcal{A}^u + G^{23} \mathcal{A}^v + \frac{1}{J^2} \left(\frac{\partial J \rho w u}{\partial \widehat{x}} + \frac{\partial J \rho w v}{\partial \widehat{y}} + \frac{\partial J \rho w \widehat{w}}{\partial \widehat{z}}\right)
+    \mathcal{A}^{\rho u} & = \frac{1}{J} \left(\frac{\partial J \rho u u}{\partial \widehat{x}} + \frac{\partial J \rho u v}{\partial \widehat{y}} + \frac{\partial J \rho u \widehat{w}}{\partial \widehat{z}}\right),\\
+    \mathcal{A}^{\rho v} & = \frac{1}{J} \left(\frac{\partial J \rho v u}{\partial \widehat{x}} + \frac{\partial J \rho v v}{\partial \widehat{y}} + \frac{\partial J \rho v \widehat{w}}{\partial \widehat{z}}\right),\\
+    \mathcal{A}^{\rho \widehat{w}} & = G^{13} \mathcal{A}^{\rho u} + G^{23} \mathcal{A}^{\rho v} + \frac{1}{J^2} \left(\frac{\partial J \rho w u}{\partial \widehat{x}} + \frac{\partial J \rho w v}{\partial \widehat{y}} + \frac{\partial J \rho w \widehat{w}}{\partial \widehat{z}}\right)
 \end{align*}$$
 
 and the viscous-flux divergences are
 
 $$\begin{align*}
-    \mathcal{V}^u & = \frac{1}{J} \left(\frac{\partial J \widehat{\Pi}^{11}}{\partial \widehat{x}} + \frac{\partial J \widehat{\Pi}^{12}}{\partial \widehat{y}} + \frac{\partial J \widehat{\Pi}^{13}}{\partial \widehat{z}}\right),\\
-    \mathcal{V}^v & = \frac{1}{J} \left(\frac{\partial J \widehat{\Pi}^{21}}{\partial \widehat{x}} + \frac{\partial J \widehat{\Pi}^{22}}{\partial \widehat{y}} + \frac{\partial J \widehat{\Pi}^{23}}{\partial \widehat{z}}\right),\\
-    \mathcal{V}^{\widehat{w}} & = G^{13} \mathcal{V}^u + G^{23} \mathcal{V}^v + \frac{1}{J^2} \left[\frac{\partial J \Pi^{31}}{\partial \widehat{x}} + \frac{\partial J \Pi^{32}}{\partial \widehat{y}} + \frac{\partial}{\partial \widehat{z}} \left(J G^{13} \Pi^{13} + J G^{23} \Pi^{23} + \Pi^{33}\right)\right].
+    \mathcal{V}^{\rho u} & = \frac{1}{J} \left(\frac{\partial J \eta \widehat{\Pi}^{11}}{\partial \widehat{x}} + \frac{\partial J \eta \widehat{\Pi}^{12}}{\partial \widehat{y}} + \frac{\partial J \eta \widehat{\Pi}^{13}}{\partial \widehat{z}}\right),\\
+    \mathcal{V}^{\rho v} & = \frac{1}{J} \left(\frac{\partial J \eta \widehat{\Pi}^{21}}{\partial \widehat{x}} + \frac{\partial J \eta \widehat{\Pi}^{22}}{\partial \widehat{y}} + \frac{\partial J \eta \widehat{\Pi}^{23}}{\partial \widehat{z}}\right),\\
+    \mathcal{V}^{\rho \widehat{w}} & = G^{13} \mathcal{V}^{\rho u} + G^{23} \mathcal{V}^{\rho v} + \frac{1}{J^2} \left[\frac{\partial J \eta \Pi^{31}}{\partial \widehat{x}} + \frac{\partial J \eta \Pi^{32}}{\partial \widehat{y}} + \frac{\partial}{\partial \widehat{z}} \left(J G^{13} \eta \Pi^{13} + J G^{23} \eta \Pi^{23} + \eta \Pi^{33}\right)\right].
 \end{align*}$$
 
-Therein, the elements of the (symmetric) transformed viscous-stress tensor are
+Therein, $\eta$ is the dynamic shear viscosity, the elements of the (symmetric) transformed stress tensor are given by
 
 $$\begin{align*}
     \widehat{\Pi}^{11} & = \Pi^{11},\\
@@ -86,20 +86,36 @@ $$\begin{align*}
 and those of its Cartesian counterpart are
 
 $$\begin{align*}
-    \Pi^{11} & = \eta \left[2 \left(\frac{\partial u}{\partial \widehat{x}} + G^{13} \frac{\partial u}{\partial \widehat{z}}\right) - \frac{2}{3 J} \left(\frac{\partial J u}{\partial \widehat{x}} + \frac{\partial J v}{\partial \widehat{y}} + \frac{\partial J \widehat{w}}{\partial \widehat{z}}\right)\right],\\
-    \Pi^{12} & = \eta \left(\frac{\partial u}{\partial \widehat{y}} + G^{23} \frac{\partial u}{\partial \widehat{z}} + \frac{\partial v}{\partial \widehat{x}} + G^{13} \frac{\partial v}{\partial \widehat{z}}\right),\\
-    \Pi^{13} & = \eta \left(\frac{1}{J} \frac{\partial u}{\partial \widehat{z}} + \frac{\partial w}{{\partial \widehat{x}}} + G^{13} \frac{\partial w}{\partial \widehat{z}}\right),\\
-    \Pi^{22} & = \eta \left[2 \left(\frac{\partial v}{{\partial \widehat{y}}} + G^{23} \frac{\partial v}{\partial \widehat{z}}\right) - \frac{2}{3 J} \left(\frac{\partial J u}{\partial \widehat{x}} + \frac{\partial J v}{\partial \widehat{y}} + \frac{\partial J \widehat{w}}{\partial \widehat{z}}\right)\right],\\
-    \Pi^{23} & = \eta \left(\frac{1}{J} \frac{\partial v}{\partial \widehat{z}} + \frac{\partial w}{\partial \widehat{y}} + G^{23} \frac{\partial w}{\partial \widehat{z}}\right),\\
-    \Pi^{33} & = \eta \left[\frac{2}{J} \frac{\partial w}{\partial \widehat{z}} - \frac{2}{3 J} \left(\frac{\partial J u}{\partial \widehat{x}} + \frac{\partial J v}{\partial \widehat{y}} + \frac{\partial J \widehat{w}}{\partial \widehat{z}}\right)\right],
+    \Pi^{11} & = 2 \left(\frac{\partial u}{\partial \widehat{x}} + G^{13} \frac{\partial u}{\partial \widehat{z}}\right) - \frac{2}{3 J} \left(\frac{\partial J u}{\partial \widehat{x}} + \frac{\partial J v}{\partial \widehat{y}} + \frac{\partial J \widehat{w}}{\partial \widehat{z}}\right),\\
+    \Pi^{12} & = \frac{\partial u}{\partial \widehat{y}} + G^{23} \frac{\partial u}{\partial \widehat{z}} + \frac{\partial v}{\partial \widehat{x}} + G^{13} \frac{\partial v}{\partial \widehat{z}},\\
+    \Pi^{13} & = \frac{1}{J} \frac{\partial u}{\partial \widehat{z}} + \frac{\partial w}{{\partial \widehat{x}}} + G^{13} \frac{\partial w}{\partial \widehat{z}},\\
+    \Pi^{22} & = 2 \left(\frac{\partial v}{{\partial \widehat{y}}} + G^{23} \frac{\partial v}{\partial \widehat{z}}\right) - \frac{2}{3 J} \left(\frac{\partial J u}{\partial \widehat{x}} + \frac{\partial J v}{\partial \widehat{y}} + \frac{\partial J \widehat{w}}{\partial \widehat{z}}\right),\\
+    \Pi^{23} & = \frac{1}{J} \frac{\partial v}{\partial \widehat{z}} + \frac{\partial w}{\partial \widehat{y}} + G^{23} \frac{\partial w}{\partial \widehat{z}},\\
+    \Pi^{33} & = \frac{2}{J} \frac{\partial w}{\partial \widehat{z}} - \frac{2}{3 J} \left(\frac{\partial J u}{\partial \widehat{x}} + \frac{\partial J v}{\partial \widehat{y}} + \frac{\partial J \widehat{w}}{\partial \widehat{z}}\right).
 \end{align*}$$
 
-where $\eta$ is the dynamic shear viscosity. Finallly, the components of the pressure gradient are given by
+In addition, artificial diffusion is represented by
 
 $$\begin{align*}
-    \mathcal{P}^u & = \left(\frac{\partial \pi'}{\partial \widehat{x}} + G^{13} \frac{\partial \pi'}{\partial \widehat{z}}\right),\\
-    \mathcal{P}^v & = \left(\frac{\partial \pi'}{\partial \widehat{y}} + G^{23} \frac{\partial \pi'}{\partial \widehat{z}}\right),\\
-    \mathcal{P}^{\widehat{w}} & = \left(G^{13} \frac{\partial \pi'}{\partial \widehat{x}} + G^{23} \frac{\partial \pi'}{\partial \widehat{y}} + G^{33} \frac{\partial \pi'}{\partial \widehat{z}}\right)
+    \mathcal{X}^{\rho u} & = \frac{1}{J} \left[\frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{x}}}{\partial \widehat{x}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{y}}}{\partial \widehat{y}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{z}}}{\partial \widehat{z}}\right],\\
+    \mathcal{X}^{\rho v} & = \frac{1}{J} \left[\frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} v\right)}^{\widehat{x}}}{\partial \widehat{x}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} v\right)}^{\widehat{y}}}{\partial \widehat{y}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} v\right)}^{\widehat{z}}}{\partial \widehat{z}}\right),\\
+    \mathcal{X}^{\rho \widehat{w}} & = G^{13} \mathcal{X}^{\rho u} + G^{23} \mathcal{X}^{\rho v} + \frac{1}{J^2} \left[\frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{x}}}{\partial \widehat{x}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{y}}}{\partial \widehat{y}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{z}}}{\partial \widehat{z}}\right],
+\end{align*}$$
+
+where $\mu$ is the momentum-diffusion coefficient and
+
+$$\begin{align*}
+    \widehat{\left(\boldsymbol{\nabla} \phi\right)}^{\widehat{x}} & = \frac{\partial \phi}{\partial \widehat{x}} + G^{13} \frac{\partial \phi}{\partial \widehat{z}},\\
+    \widehat{\left(\boldsymbol{\nabla} \phi\right)}^{\widehat{y}} & = \frac{\partial \phi}{\partial \widehat{y}} + G^{23} \frac{\partial \phi}{\partial \widehat{z}},\\
+    \widehat{\left(\boldsymbol{\nabla} \phi\right)}^{\widehat{z}} & = G^{13}\frac{\partial \phi}{\partial \widehat{x}} + G^{23} \frac{\partial \phi}{\partial \widehat{y}} + G^{33}\frac{\partial \phi}{\partial \widehat{z}}.
+\end{align*}$$
+
+Analogously, the components of the pressure gradient are given by
+
+$$\begin{align*}
+    \mathcal{P}^{\rho u} & = \frac{\partial \pi'}{\partial \widehat{x}} + G^{13} \frac{\partial \pi'}{\partial \widehat{z}},\\
+    \mathcal{P}^{\rho v} & = \frac{\partial \pi'}{\partial \widehat{y}} + G^{23} \frac{\partial \pi'}{\partial \widehat{z}},\\
+    \mathcal{P}^{\rho \widehat{w}} & = G^{13} \frac{\partial \pi'}{\partial \widehat{x}} + G^{23} \frac{\partial \pi'}{\partial \widehat{y}} + G^{33} \frac{\partial \pi'}{\partial \widehat{z}}
 \end{align*}$$
 
  (see [Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1)).
@@ -114,11 +130,19 @@ In compressible mode, the identity $P = \overline{\rho} \overline{\theta}$ no lo
 
 $$\frac{\partial P}{\partial t} + \frac{1}{J} \left(\frac{\partial J P u}{\partial \widehat{x}} + \frac{\partial J P v}{\partial \widehat{y}} + \frac{\partial J P \widehat{w}}{\partial \widehat{z}}\right) - F^P + \alpha_\mathrm{R} P \left(1 - \frac{\overline{\rho}}{\rho}\right) = 0,$$
 
-where the volume force $F^P$ represents a diabatic heating (e.g. due to unresolved gravity waves) that is not allowed in pseudo-incompressible mode. This term must also be represented in the auxiliary equation, which now reads
+where the volume force $F^P$ represents a diabatic heating (e.g. due to heat conduction or unresolved gravity waves) that is not allowed in pseudo-incompressible mode. This term must also be represented in the auxiliary equation, which now reads
 
 $$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \widehat{x}} + \frac{\partial J \rho' v}{\partial \widehat{y}} + \frac{\partial J \rho' \widehat{w}}{\partial \widehat{z}}\right) + \frac{F^P}{\overline{\theta}} + \alpha_\mathrm{R} \left[\rho' - \overline{\rho} \left(1 - \frac{P}{\rho \overline{\theta}}\right)\right] = \frac{N^2 P w}{g \overline{\theta}}.$$
 
 Note that in addition to the new volume-force term, $\overline{\rho}$ has been replaced with $P / \overline{\theta}$, which is due to the density fluctuations being defined as $\rho' = \rho - P / \overline{\theta}$ ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
+
+## Tracer transport
+
+PinCFlow transports a passive tracer $\chi$ governed by
+
+$$\frac{\partial \rho \chi}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho \chi u}{\partial \widehat{x}} + \frac{\partial J \rho \chi v}{\partial \widehat{y}} + \frac{\partial J \rho \chi \widehat{w}}{\partial \widehat{z}}\right) - F^{\rho \chi} + \alpha_\mathrm{R} \left[\rho \chi - \left(\rho \chi\right)^{\left(0\right)}\right] = 0,$$
+
+where $F^{\rho \chi}$ represents another volume force, e.g. a tracer-flux divergence due to unresolved gravity waves, and $\left(\rho \chi\right)^{\left(0\right)}$ is the initial mass-weighted tracer.
 
 ## MSGWaM
 
@@ -168,40 +192,30 @@ $$\begin{align*}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \begin{pmatrix}
-        M_{uu}\\
-        M_{uv}\\
-        M_{uw}\\
-    \end{pmatrix} + E_u,\\
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle u' \boldsymbol{u}' \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{\overline{\rho}} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \begin{pmatrix}
-        M_{uv}\\
-        M_{vv}\\
-        M_{vw}\\
-    \end{pmatrix} + E_v,\\
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle v' \boldsymbol{u}' \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
     \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \rho_\mathrm{b} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
-    \end{pmatrix} \cdot \begin{pmatrix}
-        T_u\\
-        T_v\\
-    \end{pmatrix},
+        0
+    \end{pmatrix} \cdot \left\langle \theta' \boldsymbol{u}' \right\rangle,
 \end{align*}$$
 
 where $\rho_\mathrm{b}$, $\widehat{\boldsymbol{u}}_\mathrm{b} = \left(u_\mathrm{b}, v_\mathrm{b}, \widehat{w}_\mathrm{b}\right)^\mathrm{T}$ and $P_\mathrm{b}$ are the resolved density, transformed wind and mass-weighted potential temperature, respectively, and
 
 $$\begin{align*}
-    M_{uu} & = \overline{\rho} \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    M_{uv} & = \overline{\rho} \int l \widehat{c}_{\mathrm{g} x} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    M_{uw} & = \overline{\rho} \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    M_{vv} & = \overline{\rho} \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    M_{vw} & = \overline{\rho} \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    T_u & = \frac{f}{g \overline{\theta}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
-    T_v & = - \frac{f}{g \overline{\theta}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},
+    \overline{\rho} \left\langle u' u' \right\rangle & = \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle u' v' \right\rangle & = \int l \widehat{c}_{\mathrm{g} x} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle u' w' \right\rangle & = \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle v' v' \right\rangle & = \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle v' w' \right\rangle & = \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \left\langle \theta' u' \right\rangle & = \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},\\
+    \left\langle \theta' v' \right\rangle & = - \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}},
 \end{align*}$$
 
 with $\widehat{\omega} = \omega - \boldsymbol{k} \cdot \boldsymbol{u}_\mathrm{b}$, $\widehat{\boldsymbol{c}}_\mathrm{g} = \left(\widehat{c}_{\mathrm{g} x}, \widehat{c}_{\mathrm{g} y}, \widehat{c}_{\mathrm{g} z}\right)^\mathrm{T} = \boldsymbol{\nabla}_{\boldsymbol{k}} \widehat{\omega}$ and $\mathrm{d} V_{\boldsymbol{k}} = \mathrm{d} k \mathrm{d} l \mathrm{d} m$ being the intrinsic frequency, intrinsic group velocity and spectral volume element, respectively (see [Achatz et al., 2017](https://doi.org/10.1002/qj.2926); [Achatz et al., 2023](https://doi.org/10.1063/5.0165180); [Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
@@ -246,8 +260,8 @@ $$\dot{\mathcal{N}} = \left(\frac{\partial}{\partial t} + \frac{c_{\mathrm{g} z}
 and integrated along rays defined by $\left(\dot{z}, \dot{m}\right)^\mathrm{T}$. Finally, the impact on the resolved flow becomes
 
 $$\begin{align*}
-    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial M_{uw}}{\partial \widehat{z}} + E_u,\\
-    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial M_{vw}}{\partial \widehat{z}} + E_v,\\
+    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle u' w' \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
+    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle v' w' \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
     \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = 0
 \end{align*}$$
@@ -263,7 +277,7 @@ $$J^{- 1} \frac{\partial}{\partial \widehat{z}} \left(c_{\mathrm{g} z, \alpha} \
 where $\mathcal{N} = \sum_\alpha \mathcal{A}_\alpha \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right)$ and $\mathcal{S}_s = \sum_\alpha \mathcal{Q}_{s, \alpha} \delta \left(\boldsymbol{k} - \boldsymbol{k}_\alpha\right)$. Similarly, the eikonal equations become
 
 $$\begin{align*}
-    \frac{c_{\mathrm{g} z, \alpha}}{J} \frac{\partial \omega}{\partial \widehat{z}} & = 0,\\
+    \frac{c_{\mathrm{g} z, \alpha}}{J} \frac{\partial \omega_\alpha}{\partial \widehat{z}} & = 0,\\
     \frac{c_{\mathrm{g} z, \alpha}}{J} \frac{\partial m_\alpha}{\partial \widehat{z}} & = J^{- 1} \frac{\partial \Omega}{\partial \widehat{z}}.
 \end{align*}$$
 
@@ -299,3 +313,25 @@ The vertical wavenumber at the source is
 $$m_\alpha = - \mathrm{sgn} \left(\widehat{\omega}_\alpha\right) \sqrt{\frac{\left(k_\alpha^2 + l_\alpha^2\right) \left(N^2 - \widehat{\omega}_\alpha^2\right)}{\widehat{\omega}_\alpha^2 - f^2}}$$
 
 (see [Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
+
+### Tracer fluxes
+
+The leading-order tracer fluxes due to unresolved gravity waves are given by
+
+$$\begin{align*}
+    \overline{\rho} \left\langle \chi' \boldsymbol{u}' \right\rangle & = f \int \frac{m}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \boldsymbol{k} \times \begin{pmatrix}
+        \partial_{\widehat{x}} \chi_\mathrm{b} + G^{13} \partial_{\widehat{z}} \chi_\mathrm{b}\\
+        \partial_{\widehat{y}} \chi_\mathrm{b} + G^{23} \partial_{\widehat{z}} \chi_\mathrm{b}\\
+        J^{- 1} \partial_{\widehat{z}} \chi_\mathrm{b}
+    \end{pmatrix} \mathcal{N} \, \mathrm{d} V_{\boldsymbol{k}}
+\end{align*}$$
+
+and the corresponding impact on the large-scale tracer is
+
+$$\begin{align*}
+    \left(\frac{\partial \rho_\mathrm{b} \chi_\mathrm{b}}{\partial t}\right)_\mathrm{w} = - \frac{\rho_\mathrm{b}}{\overline{\rho}} \begin{pmatrix}
+        \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
+        \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
+        J^{- 1} \partial_{\widehat{z}}
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle \chi' \boldsymbol{u}' \right\rangle\right).
+\end{align*}$$

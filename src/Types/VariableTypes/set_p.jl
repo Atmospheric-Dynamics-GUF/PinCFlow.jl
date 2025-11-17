@@ -1,11 +1,11 @@
 """
-```julia 
+```julia
 set_p(
     model::AbstractModel,
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    pstrattfc::AbstractArray{<:AbstractFloat, 3},
+    pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
 ```
 
@@ -13,17 +13,17 @@ Return a zero-size array in non-compressible modes.
 
 In these cases, the mass-weighted potential temperature is a background field: constant in Boussinesq mode, vertically varying in pseudo-incompressible mode.
 
-```julia 
+```julia
 set_p(
     model::Compressible,
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    pstrattfc::AbstractArray{<:AbstractFloat, 3},
+    pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
 ```
 
-Return a copy of `pstrattfc` in compressible mode.
+Return a copy of `pbar` in compressible mode.
 
 In compressible mode, the mass-weighted potential temperature is a prognostic variable.
 
@@ -37,7 +37,7 @@ In compressible mode, the mass-weighted potential temperature is a prognostic va
 
   - `nzz`: Number of subdomain grid points in ``\\widehat{x}``-direction.
 
-  - `pstrattfc`: Mass-weighted potential temperature.
+  - `pbar`: Mass-weighted potential temperature.
 
 """
 function set_p end
@@ -47,7 +47,7 @@ function set_p(
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    pstrattfc::AbstractArray{<:AbstractFloat, 3},
+    pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
     return zeros(0, 0, 0)
 end
@@ -57,7 +57,7 @@ function set_p(
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    pstrattfc::AbstractArray{<:AbstractFloat, 3},
+    pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
-    return copy(pstrattfc)
+    return copy(pbar)
 end

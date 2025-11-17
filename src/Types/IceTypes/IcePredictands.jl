@@ -128,11 +128,11 @@ function IcePredictands(
 )
 	(; nxx, nyy, nzz) = domain
 	(; i0, i1, j0, j1, k0, k1) = domain
-	(; ztfc) = grid
-	(; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = atmosphere
+	(; zc) = grid
+	(; rhobar, pbar) = atmosphere
 	(; rho, rhop, u, v, w, pip, p) = variables.predictands
 	(; kappainv, pref, gamma, lref) = constants
-	(; press0_dim) = namelists.atmosphere
+	(; ground_pressure) = namelists.atmosphere
 	(; epsil0hat, meanMassIce, mRef) = iceconstants
 
 	# **********************
@@ -160,23 +160,23 @@ function IcePredictands(
 	zMin_issr = z0_issr - sig_issr
 	zMax_issr = z0_issr + sig_issr
 
-	p0 = press0_dim / pref
+	p0 = ground_pressure / pref
 	S0_ini = 0
 
 	for k in k0:k1, j in j0:j1, i in i0:i1
 
-		# Question exn_p = pi(i, j, k) + (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
-		#exn_p = pip[i, j, k] + (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
-		exn_pMean = (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
+		# Question exn_p = pi(i, j, k) + (pbar[i, j, k] / p0) ^ (gamma - 1)
+		#exn_p = pip[i, j, k] + (pbar[i, j, k] / p0) ^ (gamma - 1)
+		exn_pMean = (pbar[i, j, k] / p0) ^ (gamma - 1)
 
 		#pres = p0 * exn_p ^ kappainv #kappaInv = c_p/R
 		presMean = p0 * exn_pMean ^ kappainv #kappaInv = c_p/R
 
-		rhoMean = rhostrattfc[i, j, k]
+		rhoMean = rhobar[i, j, k]
 		rho_full = rho[i, j, k] + rhoMean
 
-		#theta = pstrattfc[i, j, k] / rho_full
-		thetaMean = pstrattfc[i, j, k] / rhoMean
+		#theta = pbar[i, j, k] / rho_full
+		thetaMean = pbar[i, j, k] / rhoMean
 
 		#temp = theta * exn_p
 		tempMean = thetaMean * exn_pMean
@@ -193,8 +193,8 @@ function IcePredictands(
 		#  !S0  = q_v(0)* \mean p/ \mean p_si
 		#  !S_i = q_v(0)* p/p_si
 
-		if ((ztfc[i, j, k] >= zMin_issr) && (ztfc[i, j, k] <= zMax_issr))
-			S0 = S_issr * exp(- (ztfc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2)
+		if ((zc[i, j, k] >= zMin_issr) && (zc[i, j, k] <= zMax_issr))
+			S0 = S_issr * exp(- (zc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2)
 		else
 			S0 = S0_ini
 		end

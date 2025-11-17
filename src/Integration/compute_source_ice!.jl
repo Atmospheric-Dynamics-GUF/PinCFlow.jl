@@ -27,28 +27,28 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 	(; parameterized_nucleation, parameterized_sgs_q) = state.namelists.ice
 	#(; dxsc, dysc, dzsc) = state.ice.subgrid
 	(; n, q, qv) = state.ice.icepredictands
-	(; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
+	(; rhobar, pbar) = state.atmosphere
 	(; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 	(; iceconstants) = state.ice
 	(; icesource, icepredictands, sgstendencies, sgs, sgspredictands, sgsauxiliaries) = state.ice
 	(; iceauxiliaries) = state.ice
 	(; kappainv, pref, gamma) = state.constants
-	(; press0_dim) = state.namelists.atmosphere
+	(; ground_pressure) = state.namelists.atmosphere
 	(; Li_hat, S_c) = iceconstants
 	(; dz, jac) = state.grid
 
-	p0 = press0_dim / pref
+	p0 = ground_pressure / pref
 
 	for k in k0:k1, j in j0:j1, i in i0:i1
 
-		# Question exn_p = pi(i, j, k) + (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
-		exn_p = pip[i, j, k] + (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
+		# Question exn_p = pi(i, j, k) + (pbar[i, j, k] / p0) ^ (gamma - 1)
+		exn_p = pip[i, j, k] + (pbar[i, j, k] / p0) ^ (gamma - 1)
 
 		rqv = qv[i, j, k]
 		pres = p0 * exn_p ^ kappainv #kappaInv = c_p/R
-		rhoMean = rhostrattfc[i, j, k]
+		rhoMean = rhobar[i, j, k]
 		rho_full = rho[i, j, k] + rhoMean
-		theta = pstrattfc[i, j, k] / rho_full
+		theta = pbar[i, j, k] / rho_full
 
 		temp = theta * exn_p
 
@@ -63,7 +63,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 		if parameterized_nucleation
 
 			dPdz = (kappainv - Li_hat / temp) * (gamma - 1) *
-				   (pstrattfc[i, j, k+1] - pstrattfc[i, j, k-1]) / 2.0 / (dz * jac[i, j, k]) / pstrattfc[i, j, k]
+				   (pbar[i, j, k+1] - pbar[i, j, k-1]) / 2.0 / (dz * jac[i, j, k]) / pbar[i, j, k]
 
 			dotPiPrime_ls = w[i, j, k] * dPdz
 
@@ -209,27 +209,27 @@ end
 # 	(; n, q, qv) = state.ice.icepredictands
 # 	(; dz, jac) = state.grid
 
-# 	(; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
+# 	(; rhobar, thetabar, bvsstrattfc, pbar) = state.atmosphere
 # 	(; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 # 	(; iceconstants) = state.ice
 # 	(; icesource, icepredictands, sgstendencies, sgs, sgspredictands, sgsauxiliaries) = state.ice
 # 	#(; iceauxiliaries) = state.ice
 # 	(; kappainv, pref, gamma) = state.constants
 # 	(; Li_hat) = iceconstants
-# 	(; press0_dim) = state.namelists.atmosphere
+# 	(; ground_pressure) = state.namelists.atmosphere
 
-# 	p0 = press0_dim / pref
+# 	p0 = ground_pressure / pref
 
 # 	for k in k0:k1, j in j0:j1, i in i0:i1
 
-# 		# Question exn_p = pi(i, j, k) + (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
-# 		exn_p = pip[i, j, k] + (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
+# 		# Question exn_p = pi(i, j, k) + (pbar[i, j, k] / p0) ^ (gamma - 1)
+# 		exn_p = pip[i, j, k] + (pbar[i, j, k] / p0) ^ (gamma - 1)
 
 # 		rqv = icepredictands.qv[i, j, k]
 # 		pres = p0 * exn_p ^ kappainv #kappaInv = c_p/R
-# 		rhoMean = rhostrattfc[i, j, k]
+# 		rhoMean = rhobar[i, j, k]
 # 		rho_full = rho[i, j, k] + rhoMean
-# 		theta = pstrattfc[i, j, k] / rho_full
+# 		theta = pbar[i, j, k] / rho_full
 
 # 		temp = theta * exn_p
 
@@ -248,7 +248,7 @@ end
 # 		if state.namelists.ice.parameterized_nucleation
 
 # 			dPdz = (kappainv - Li_hat / temp) * (gamma - 1) *
-# 				   (pstrattfc[i, j, k+1] - pstrattfc[i, j, k-1]) / 2.0 / (dz * jac[i, j, k]) / pstrattfc[i, j, k]
+# 				   (pbar[i, j, k+1] - pbar[i, j, k-1]) / 2.0 / (dz * jac[i, j, k]) / pbar[i, j, k]
 
 # 			dotPiPrime = w[i, j, k] * dPdz
 
@@ -311,28 +311,28 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 	(; n, q, qv) = state.ice.icepredictands
 	(; dz, jac) = state.grid
 
-	(; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
+	(; rhobar, pbar) = state.atmosphere
 	(; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 	(; iceconstants) = state.ice
 	(; icesource) = state.ice
 	(; iceauxiliaries) = state.ice
 	(; kappainv, pref, gamma) = state.constants
 	(; Li_hat) = iceconstants
-	(; press0_dim) = state.namelists.atmosphere
+	(; ground_pressure) = state.namelists.atmosphere
 
-	p0 = press0_dim / pref
+	p0 = ground_pressure / pref
 
 
 	for k in k0:k1, j in j0:j1, i in i0:i1
 
-		# Question exn_p = pi(i, j, k) + (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
-		exn_p = pip[i, j, k] + (pstrattfc[i, j, k] / p0) ^ (gamma - 1)
+		# Question exn_p = pi(i, j, k) + (pbar[i, j, k] / p0) ^ (gamma - 1)
+		exn_p = pip[i, j, k] + (pbar[i, j, k] / p0) ^ (gamma - 1)
 
 		rqv = qv[i, j, k]
 		pres = p0 * exn_p ^ kappainv #kappaInv = c_p/R
-		rhoMean = rhostrattfc[i, j, k]
+		rhoMean = rhobar[i, j, k]
 		rho_full = rho[i, j, k] + rhoMean
-		theta = pstrattfc[i, j, k] / rho_full
+		theta = pbar[i, j, k] / rho_full
 
 		temp = theta * exn_p
 
@@ -349,7 +349,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 			if state.namelists.ice.parameterized_nucleation
 
 				dPdz = (kappainv - Li_hat / temp) * (gamma - 1) *
-					   (pstrattfc[i, j, k+1] - pstrattfc[i, j, k-1]) / 2.0 / (dz * jac[i, j, k]) / pstrattfc[i, j, k]
+					   (pbar[i, j, k+1] - pbar[i, j, k-1]) / 2.0 / (dz * jac[i, j, k]) / pbar[i, j, k]
 
 				dotPiPrime = w[i, j, k] * dPdz
 

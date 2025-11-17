@@ -202,13 +202,13 @@ function interpolate_mean_flow(
     phitype::U,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; u) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -230,7 +230,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -253,25 +253,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
-    @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il + 1, jb, klbd]) / 2
-    @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il + 1, jb, klbu]) / 2
+    @ivy zlbd = (zc[il, jb, klbd] + zc[il + 1, jb, klbd]) / 2
+    @ivy zlbu = (zc[il, jb, klbu] + zc[il + 1, jb, klbu]) / 2
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
-    @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il + 1, jf, klfd]) / 2
-    @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il + 1, jf, klfu]) / 2
+    @ivy zlfd = (zc[il, jf, klfd] + zc[il + 1, jf, klfd]) / 2
+    @ivy zlfu = (zc[il, jf, klfu] + zc[il + 1, jf, klfu]) / 2
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
-    @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir + 1, jb, krbd]) / 2
-    @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir + 1, jb, krbu]) / 2
+    @ivy zrbd = (zc[ir, jb, krbd] + zc[ir + 1, jb, krbd]) / 2
+    @ivy zrbu = (zc[ir, jb, krbu] + zc[ir + 1, jb, krbu]) / 2
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
-    @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir + 1, jf, krfd]) / 2
-    @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir + 1, jf, krfu]) / 2
+    @ivy zrfd = (zc[ir, jf, krfd] + zc[ir + 1, jf, krfd]) / 2
+    @ivy zrfu = (zc[ir, jf, krfu] + zc[ir + 1, jf, krfu]) / 2
 
     @ivy philbd = u[il, jb, klbd]
     @ivy philbu = u[il, jb, klbu]
@@ -324,13 +324,13 @@ function interpolate_mean_flow(
     phitype::V,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -352,7 +352,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -375,25 +375,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
-    @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il, jb + 1, klbd]) / 2
-    @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il, jb + 1, klbu]) / 2
+    @ivy zlbd = (zc[il, jb, klbd] + zc[il, jb + 1, klbd]) / 2
+    @ivy zlbu = (zc[il, jb, klbu] + zc[il, jb + 1, klbu]) / 2
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
-    @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il, jf + 1, klfd]) / 2
-    @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il, jf + 1, klfu]) / 2
+    @ivy zlfd = (zc[il, jf, klfd] + zc[il, jf + 1, klfd]) / 2
+    @ivy zlfu = (zc[il, jf, klfu] + zc[il, jf + 1, klfu]) / 2
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
-    @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir, jb + 1, krbd]) / 2
-    @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir, jb + 1, krbu]) / 2
+    @ivy zrbd = (zc[ir, jb, krbd] + zc[ir, jb + 1, krbd]) / 2
+    @ivy zrbu = (zc[ir, jb, krbu] + zc[ir, jb + 1, krbu]) / 2
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
-    @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir, jf + 1, krfd]) / 2
-    @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir, jf + 1, krfu]) / 2
+    @ivy zrfd = (zc[ir, jf, krfd] + zc[ir, jf + 1, krfd]) / 2
+    @ivy zrfu = (zc[ir, jf, krfu] + zc[ir, jf + 1, krfu]) / 2
 
     # Assign the values.
 
@@ -449,12 +449,12 @@ function interpolate_mean_flow(
 )::AbstractFloat
     (; namelists, domain, grid) = state
     (; predictands) = state.variables
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztildetfc, topography_surface) = grid
+    (; lx, ly, dx, dy, x, y, zctilde, hb) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -476,7 +476,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -499,32 +499,32 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_half_level(il, jb, zlc, state)
+    klbu = get_next_half_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
-    @ivy zlbd = ztildetfc[il, jb, klbd]
-    @ivy zlbu = ztildetfc[il, jb, klbu]
+    @ivy zlbd = zctilde[il, jb, klbd]
+    @ivy zlbu = zctilde[il, jb, klbu]
 
-    klfu = get_next_half_level(il, jf, zlc, state)
+    klfu = get_next_half_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
-    @ivy zlfd = ztildetfc[il, jf, klfd]
-    @ivy zlfu = ztildetfc[il, jf, klfu]
+    @ivy zlfd = zctilde[il, jf, klfd]
+    @ivy zlfu = zctilde[il, jf, klfu]
 
-    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbu = get_next_half_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
-    @ivy zrbd = ztildetfc[ir, jb, krbd]
-    @ivy zrbu = ztildetfc[ir, jb, krbu]
+    @ivy zrbd = zctilde[ir, jb, krbd]
+    @ivy zrbu = zctilde[ir, jb, krbu]
 
-    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfu = get_next_half_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
-    @ivy zrfd = ztildetfc[ir, jf, krfd]
-    @ivy zrfu = ztildetfc[ir, jf, krfu]
+    @ivy zrfd = zctilde[ir, jf, krfd]
+    @ivy zrfu = zctilde[ir, jf, krfu]
 
     # Assign the values.
 
-    @ivy if zlbu < topography_surface[il, jb]
+    @ivy if zlbu < hb[il, jb]
         philbd = 0.0
         philbu = 0.0
-    elseif zlbd < topography_surface[il, jb]
+    elseif zlbd < hb[il, jb]
         philbd = 0.0
         philbu = compute_vertical_wind(il, jb, klbu, state)
     else
@@ -532,10 +532,10 @@ function interpolate_mean_flow(
         philbu = compute_vertical_wind(il, jb, klbu, state)
     end
 
-    @ivy if zlfu < topography_surface[il, jf]
+    @ivy if zlfu < hb[il, jf]
         philfd = 0.0
         philfu = 0.0
-    elseif zlfd < topography_surface[il, jf]
+    elseif zlfd < hb[il, jf]
         philfd = 0.0
         philfu = compute_vertical_wind(il, jf, klfu, state)
     else
@@ -543,10 +543,10 @@ function interpolate_mean_flow(
         philfu = compute_vertical_wind(il, jf, klfu, state)
     end
 
-    @ivy if zrbu < topography_surface[ir, jb]
+    @ivy if zrbu < hb[ir, jb]
         phirbd = 0.0
         phirbu = 0.0
-    elseif zrbd < topography_surface[ir, jb]
+    elseif zrbd < hb[ir, jb]
         phirbd = 0.0
         phirbu = compute_vertical_wind(ir, jb, krbu, state)
     else
@@ -554,10 +554,10 @@ function interpolate_mean_flow(
         phirbu = compute_vertical_wind(ir, jb, krbu, state)
     end
 
-    @ivy if zrfu < topography_surface[ir, jf]
+    @ivy if zrfu < hb[ir, jf]
         phirfd = 0.0
         phirfu = 0.0
-    elseif zrfd < topography_surface[ir, jf]
+    elseif zrfd < hb[ir, jf]
         phirfd = 0.0
         phirfu = compute_vertical_wind(ir, jf, krfu, state)
     else
@@ -604,11 +604,11 @@ function interpolate_mean_flow(
     phitype::DUDX,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
 
-    if sizex == 1
+    if x_size == 1
         phi = 0.0
         return phi
     else
@@ -634,7 +634,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -657,25 +657,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = ztfc[il, jb, klbd]
-    @ivy zlbu = ztfc[il, jb, klbu]
+    @ivy zlbd = zc[il, jb, klbd]
+    @ivy zlbu = zc[il, jb, klbu]
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = ztfc[il, jf, klfd]
-    @ivy zlfu = ztfc[il, jf, klfu]
+    @ivy zlfd = zc[il, jf, klfd]
+    @ivy zlfu = zc[il, jf, klfu]
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = ztfc[ir, jb, krbd]
-    @ivy zrbu = ztfc[ir, jb, krbu]
+    @ivy zrbd = zc[ir, jb, krbd]
+    @ivy zrbu = zc[ir, jb, krbu]
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = ztfc[ir, jf, krfd]
-    @ivy zrfu = ztfc[ir, jf, krfu]
+    @ivy zrfd = zc[ir, jf, krfd]
+    @ivy zrfu = zc[ir, jf, krfu]
 
     # Assign the values.
 
@@ -726,12 +726,12 @@ function interpolate_mean_flow(
     phitype::DUDY,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -753,7 +753,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         phi = 0.0
         return phi
     else
@@ -776,72 +776,72 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
     @ivy zlbd =
         (
-            ztfc[il, jb, klbd] +
-            ztfc[il + 1, jb, klbd] +
-            ztfc[il, jb + 1, klbd] +
-            ztfc[il + 1, jb + 1, klbd]
+            zc[il, jb, klbd] +
+            zc[il + 1, jb, klbd] +
+            zc[il, jb + 1, klbd] +
+            zc[il + 1, jb + 1, klbd]
         ) / 4
     @ivy zlbu =
         (
-            ztfc[il, jb, klbu] +
-            ztfc[il + 1, jb, klbu] +
-            ztfc[il, jb + 1, klbu] +
-            ztfc[il + 1, jb + 1, klbu]
+            zc[il, jb, klbu] +
+            zc[il + 1, jb, klbu] +
+            zc[il, jb + 1, klbu] +
+            zc[il + 1, jb + 1, klbu]
         ) / 4
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
     @ivy zlfd =
         (
-            ztfc[il, jf, klfd] +
-            ztfc[il + 1, jf, klfd] +
-            ztfc[il, jf + 1, klfd] +
-            ztfc[il + 1, jf + 1, klfd]
+            zc[il, jf, klfd] +
+            zc[il + 1, jf, klfd] +
+            zc[il, jf + 1, klfd] +
+            zc[il + 1, jf + 1, klfd]
         ) / 4
     @ivy zlfu =
         (
-            ztfc[il, jf, klfu] +
-            ztfc[il + 1, jf, klfu] +
-            ztfc[il, jf + 1, klfu] +
-            ztfc[il + 1, jf + 1, klfu]
+            zc[il, jf, klfu] +
+            zc[il + 1, jf, klfu] +
+            zc[il, jf + 1, klfu] +
+            zc[il + 1, jf + 1, klfu]
         ) / 4
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
     @ivy zrbd =
         (
-            ztfc[ir, jb, krbd] +
-            ztfc[ir + 1, jb, krbd] +
-            ztfc[ir, jb + 1, krbd] +
-            ztfc[ir + 1, jb + 1, krbd]
+            zc[ir, jb, krbd] +
+            zc[ir + 1, jb, krbd] +
+            zc[ir, jb + 1, krbd] +
+            zc[ir + 1, jb + 1, krbd]
         ) / 4
     @ivy zrbu =
         (
-            ztfc[ir, jb, krbu] +
-            ztfc[ir + 1, jb, krbu] +
-            ztfc[ir, jb + 1, krbu] +
-            ztfc[ir + 1, jb + 1, krbu]
+            zc[ir, jb, krbu] +
+            zc[ir + 1, jb, krbu] +
+            zc[ir, jb + 1, krbu] +
+            zc[ir + 1, jb + 1, krbu]
         ) / 4
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
     @ivy zrfd =
         (
-            ztfc[ir, jf, krfd] +
-            ztfc[ir + 1, jf, krfd] +
-            ztfc[ir, jf + 1, krfd] +
-            ztfc[ir + 1, jf + 1, krfd]
+            zc[ir, jf, krfd] +
+            zc[ir + 1, jf, krfd] +
+            zc[ir, jf + 1, krfd] +
+            zc[ir + 1, jf + 1, krfd]
         ) / 4
     @ivy zrfu =
         (
-            ztfc[ir, jf, krfu] +
-            ztfc[ir + 1, jf, krfu] +
-            ztfc[ir, jf + 1, krfu] +
-            ztfc[ir + 1, jf + 1, krfu]
+            zc[ir, jf, krfu] +
+            zc[ir + 1, jf, krfu] +
+            zc[ir, jf + 1, krfu] +
+            zc[ir + 1, jf + 1, krfu]
         ) / 4
 
     # Assign the values.
@@ -893,12 +893,12 @@ function interpolate_mean_flow(
     phitype::DUDZ,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztildetfc) = grid
+    (; lx, ly, dx, dy, x, y, zctilde) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -920,7 +920,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -943,25 +943,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_half_level(il, jb, zlc, state)
+    klbu = get_next_half_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = (ztildetfc[il, jb, klbd] + ztildetfc[il + 1, jb, klbd]) / 2
-    @ivy zlbu = (ztildetfc[il, jb, klbu] + ztildetfc[il + 1, jb, klbu]) / 2
+    @ivy zlbd = (zctilde[il, jb, klbd] + zctilde[il + 1, jb, klbd]) / 2
+    @ivy zlbu = (zctilde[il, jb, klbu] + zctilde[il + 1, jb, klbu]) / 2
 
-    klfu = get_next_half_level(il, jf, zlc, state)
+    klfu = get_next_half_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = (ztildetfc[il, jf, klfd] + ztildetfc[il + 1, jf, klfd]) / 2
-    @ivy zlfu = (ztildetfc[il, jf, klfu] + ztildetfc[il + 1, jf, klfu]) / 2
+    @ivy zlfd = (zctilde[il, jf, klfd] + zctilde[il + 1, jf, klfd]) / 2
+    @ivy zlfu = (zctilde[il, jf, klfu] + zctilde[il + 1, jf, klfu]) / 2
 
-    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbu = get_next_half_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = (ztildetfc[ir, jb, krbd] + ztildetfc[ir + 1, jb, krbd]) / 2
-    @ivy zrbu = (ztildetfc[ir, jb, krbu] + ztildetfc[ir + 1, jb, krbu]) / 2
+    @ivy zrbd = (zctilde[ir, jb, krbd] + zctilde[ir + 1, jb, krbd]) / 2
+    @ivy zrbu = (zctilde[ir, jb, krbu] + zctilde[ir + 1, jb, krbu]) / 2
 
-    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfu = get_next_half_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = (ztildetfc[ir, jf, krfd] + ztildetfc[ir + 1, jf, krfd]) / 2
-    @ivy zrfu = (ztildetfc[ir, jf, krfu] + ztildetfc[ir + 1, jf, krfu]) / 2
+    @ivy zrfd = (zctilde[ir, jf, krfd] + zctilde[ir + 1, jf, krfd]) / 2
+    @ivy zrfu = (zctilde[ir, jf, krfu] + zctilde[ir + 1, jf, krfu]) / 2
 
     # Assign the values.
 
@@ -1012,12 +1012,12 @@ function interpolate_mean_flow(
     phitype::DVDX,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         phi = 0.0
         return phi
     else
@@ -1039,7 +1039,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -1062,72 +1062,72 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
     @ivy zlbd =
         (
-            ztfc[il, jb, klbd] +
-            ztfc[il + 1, jb, klbd] +
-            ztfc[il, jb + 1, klbd] +
-            ztfc[il + 1, jb + 1, klbd]
+            zc[il, jb, klbd] +
+            zc[il + 1, jb, klbd] +
+            zc[il, jb + 1, klbd] +
+            zc[il + 1, jb + 1, klbd]
         ) / 4
     @ivy zlbu =
         (
-            ztfc[il, jb, klbu] +
-            ztfc[il + 1, jb, klbu] +
-            ztfc[il, jb + 1, klbu] +
-            ztfc[il + 1, jb + 1, klbu]
+            zc[il, jb, klbu] +
+            zc[il + 1, jb, klbu] +
+            zc[il, jb + 1, klbu] +
+            zc[il + 1, jb + 1, klbu]
         ) / 4
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
     @ivy zlfd =
         (
-            ztfc[il, jf, klfd] +
-            ztfc[il + 1, jf, klfd] +
-            ztfc[il, jf + 1, klfd] +
-            ztfc[il + 1, jf + 1, klfd]
+            zc[il, jf, klfd] +
+            zc[il + 1, jf, klfd] +
+            zc[il, jf + 1, klfd] +
+            zc[il + 1, jf + 1, klfd]
         ) / 4
     @ivy zlfu =
         (
-            ztfc[il, jf, klfu] +
-            ztfc[il + 1, jf, klfu] +
-            ztfc[il, jf + 1, klfu] +
-            ztfc[il + 1, jf + 1, klfu]
+            zc[il, jf, klfu] +
+            zc[il + 1, jf, klfu] +
+            zc[il, jf + 1, klfu] +
+            zc[il + 1, jf + 1, klfu]
         ) / 4
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
     @ivy zrbd =
         (
-            ztfc[ir, jb, krbd] +
-            ztfc[ir + 1, jb, krbd] +
-            ztfc[ir, jb + 1, krbd] +
-            ztfc[ir + 1, jb + 1, krbd]
+            zc[ir, jb, krbd] +
+            zc[ir + 1, jb, krbd] +
+            zc[ir, jb + 1, krbd] +
+            zc[ir + 1, jb + 1, krbd]
         ) / 4
     @ivy zrbu =
         (
-            ztfc[ir, jb, krbu] +
-            ztfc[ir + 1, jb, krbu] +
-            ztfc[ir, jb + 1, krbu] +
-            ztfc[ir + 1, jb + 1, krbu]
+            zc[ir, jb, krbu] +
+            zc[ir + 1, jb, krbu] +
+            zc[ir, jb + 1, krbu] +
+            zc[ir + 1, jb + 1, krbu]
         ) / 4
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
     @ivy zrfd =
         (
-            ztfc[ir, jf, krfd] +
-            ztfc[ir + 1, jf, krfd] +
-            ztfc[ir, jf + 1, krfd] +
-            ztfc[ir + 1, jf + 1, krfd]
+            zc[ir, jf, krfd] +
+            zc[ir + 1, jf, krfd] +
+            zc[ir, jf + 1, krfd] +
+            zc[ir + 1, jf + 1, krfd]
         ) / 4
     @ivy zrfu =
         (
-            ztfc[ir, jf, krfu] +
-            ztfc[ir + 1, jf, krfu] +
-            ztfc[ir, jf + 1, krfu] +
-            ztfc[ir + 1, jf + 1, krfu]
+            zc[ir, jf, krfu] +
+            zc[ir + 1, jf, krfu] +
+            zc[ir, jf + 1, krfu] +
+            zc[ir + 1, jf + 1, krfu]
         ) / 4
 
     # Assign the values.
@@ -1179,12 +1179,12 @@ function interpolate_mean_flow(
     phitype::DVDY,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -1206,7 +1206,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         phi = 0.0
         return phi
     else
@@ -1233,25 +1233,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = ztfc[il, jb, klbd]
-    @ivy zlbu = ztfc[il, jb, klbu]
+    @ivy zlbd = zc[il, jb, klbd]
+    @ivy zlbu = zc[il, jb, klbu]
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = ztfc[il, jf, klfd]
-    @ivy zlfu = ztfc[il, jf, klfu]
+    @ivy zlfd = zc[il, jf, klfd]
+    @ivy zlfu = zc[il, jf, klfu]
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = ztfc[ir, jb, krbd]
-    @ivy zrbu = ztfc[ir, jb, krbu]
+    @ivy zrbd = zc[ir, jb, krbd]
+    @ivy zrbu = zc[ir, jb, krbu]
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = ztfc[ir, jf, krfd]
-    @ivy zrfu = ztfc[ir, jf, krfu]
+    @ivy zrfd = zc[ir, jf, krfd]
+    @ivy zrfu = zc[ir, jf, krfu]
 
     # Assign the values.
 
@@ -1302,12 +1302,12 @@ function interpolate_mean_flow(
     phitype::DVDZ,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztildetfc) = grid
+    (; lx, ly, dx, dy, x, y, zctilde) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -1329,7 +1329,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -1352,25 +1352,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_half_level(il, jb, zlc, state)
+    klbu = get_next_half_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = (ztildetfc[il, jb, klbd] + ztildetfc[il, jb + 1, klbd]) / 2
-    @ivy zlbu = (ztildetfc[il, jb, klbu] + ztildetfc[il, jb + 1, klbu]) / 2
+    @ivy zlbd = (zctilde[il, jb, klbd] + zctilde[il, jb + 1, klbd]) / 2
+    @ivy zlbu = (zctilde[il, jb, klbu] + zctilde[il, jb + 1, klbu]) / 2
 
-    klfu = get_next_half_level(il, jf, zlc, state)
+    klfu = get_next_half_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = (ztildetfc[il, jf, klfd] + ztildetfc[il, jf + 1, klfd]) / 2
-    @ivy zlfu = (ztildetfc[il, jf, klfu] + ztildetfc[il, jf + 1, klfu]) / 2
+    @ivy zlfd = (zctilde[il, jf, klfd] + zctilde[il, jf + 1, klfd]) / 2
+    @ivy zlfu = (zctilde[il, jf, klfu] + zctilde[il, jf + 1, klfu]) / 2
 
-    krbu = get_next_half_level(ir, jb, zlc, state)
+    krbu = get_next_half_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = (ztildetfc[ir, jb, krbd] + ztildetfc[ir, jb + 1, krbd]) / 2
-    @ivy zrbu = (ztildetfc[ir, jb, krbu] + ztildetfc[ir, jb + 1, krbu]) / 2
+    @ivy zrbd = (zctilde[ir, jb, krbd] + zctilde[ir, jb + 1, krbd]) / 2
+    @ivy zrbu = (zctilde[ir, jb, krbu] + zctilde[ir, jb + 1, krbu]) / 2
 
-    krfu = get_next_half_level(ir, jf, zlc, state)
+    krfu = get_next_half_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = (ztildetfc[ir, jf, krfd] + ztildetfc[ir, jf + 1, krfd]) / 2
-    @ivy zrfu = (ztildetfc[ir, jf, krfu] + ztildetfc[ir, jf + 1, krfu]) / 2
+    @ivy zrfd = (zctilde[ir, jf, krfd] + zctilde[ir, jf + 1, krfd]) / 2
+    @ivy zrfu = (zctilde[ir, jf, krfu] + zctilde[ir, jf + 1, krfu]) / 2
 
     # Assign the values.
 
@@ -1421,12 +1421,12 @@ function interpolate_mean_flow(
     phitype::DChiDX,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         phi = 0.0
         return phi
     else
@@ -1448,7 +1448,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io] + dx / 2
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -1471,25 +1471,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = (ztfc[il, jb, klbd] + ztfc[il + 1, jb, klbd]) / 2
-    @ivy zlbu = (ztfc[il, jb, klbu] + ztfc[il + 1, jb, klbu]) / 2
+    @ivy zlbd = (zc[il, jb, klbd] + zc[il + 1, jb, klbd]) / 2
+    @ivy zlbu = (zc[il, jb, klbu] + zc[il + 1, jb, klbu]) / 2
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il + 1, jf, klfd]) / 2
-    @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il + 1, jf, klfu]) / 2
+    @ivy zlfd = (zc[il, jf, klfd] + zc[il + 1, jf, klfd]) / 2
+    @ivy zlfu = (zc[il, jf, klfu] + zc[il + 1, jf, klfu]) / 2
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir + 1, jb, krbd]) / 2
-    @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir + 1, jb, krbu]) / 2
+    @ivy zrbd = (zc[ir, jb, krbd] + zc[ir + 1, jb, krbd]) / 2
+    @ivy zrbu = (zc[ir, jb, krbu] + zc[ir + 1, jb, krbu]) / 2
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir + 1, jf, krfd]) / 2
-    @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir + 1, jf, krfu]) / 2
+    @ivy zrfd = (zc[ir, jf, krfd] + zc[ir + 1, jf, krfd]) / 2
+    @ivy zrfu = (zc[ir, jf, krfu] + zc[ir + 1, jf, krfu]) / 2
 
     # Assign the values.
 
@@ -1540,11 +1540,11 @@ function interpolate_mean_flow(
     phitype::DChiDY,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, zc) = grid
 
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -1566,7 +1566,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         phi = 0.0
         return phi
     else
@@ -1589,25 +1589,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = (ztfc[il, jf, klbd] + ztfc[il, jf + 1, klbd]) / 2
-    @ivy zlbu = (ztfc[il, jf, klbu] + ztfc[il, jf + 1, klbu]) / 2
+    @ivy zlbd = (zc[il, jf, klbd] + zc[il, jf + 1, klbd]) / 2
+    @ivy zlbu = (zc[il, jf, klbu] + zc[il, jf + 1, klbu]) / 2
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = (ztfc[il, jf, klfd] + ztfc[il, jf + 1, klfd]) / 2
-    @ivy zlfu = (ztfc[il, jf, klfu] + ztfc[il, jf + 1, klfu]) / 2
+    @ivy zlfd = (zc[il, jf, klfd] + zc[il, jf + 1, klfd]) / 2
+    @ivy zlfu = (zc[il, jf, klfu] + zc[il, jf + 1, klfu]) / 2
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = (ztfc[ir, jb, krbd] + ztfc[ir, jb + 1, krbd]) / 2
-    @ivy zrbu = (ztfc[ir, jb, krbu] + ztfc[ir, jb + 1, krbu]) / 2
+    @ivy zrbd = (zc[ir, jb, krbd] + zc[ir, jb + 1, krbd]) / 2
+    @ivy zrbu = (zc[ir, jb, krbu] + zc[ir, jb + 1, krbu]) / 2
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = (ztfc[ir, jf, krfd] + ztfc[ir, jf + 1, krfd]) / 2
-    @ivy zrfu = (ztfc[ir, jf, krfu] + ztfc[ir, jf + 1, krfu]) / 2
+    @ivy zrfd = (zc[ir, jf, krfd] + zc[ir, jf + 1, krfd]) / 2
+    @ivy zrfu = (zc[ir, jf, krfu] + zc[ir, jf + 1, krfu]) / 2
 
     # Assign the values.
 
@@ -1658,12 +1658,12 @@ function interpolate_mean_flow(
     phitype::DChiDZ,
 )::AbstractFloat
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, x, y, ztildetfc) = grid
+    (; lx, ly, dx, dy, x, y, zctilde) = grid
 
     # Locate the closest points in zonal direction.
-    if sizex == 1
+    if x_size == 1
         il = i0
         ir = i0
     else
@@ -1685,7 +1685,7 @@ function interpolate_mean_flow(
     @ivy xl = x[il + io]
 
     # Locate the closest points in meridional direction.
-    if sizey == 1
+    if y_size == 1
         jb = j0
         jf = j0
     else
@@ -1708,25 +1708,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in vertical direction.
 
-    klbu = get_next_level(il, jb, zlc, state)
+    klbu = get_next_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = ztildetfc[il, jb, klbd]
-    @ivy zlbu = ztildetfc[il, jb, klbu]
+    @ivy zlbd = zctilde[il, jb, klbd]
+    @ivy zlbu = zctilde[il, jb, klbu]
 
-    klfu = get_next_level(il, jf, zlc, state)
+    klfu = get_next_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = ztildetfc[il, jf, klfd]
-    @ivy zlfu = ztildetfc[il, jf, klfu]
+    @ivy zlfd = zctilde[il, jf, klfd]
+    @ivy zlfu = zctilde[il, jf, klfu]
 
-    krbu = get_next_level(ir, jb, zlc, state)
+    krbu = get_next_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = ztildetfc[ir, jb, krbd]
-    @ivy zrbu = ztildetfc[ir, jb, krbu]
+    @ivy zrbd = zctilde[ir, jb, krbd]
+    @ivy zrbu = zctilde[ir, jb, krbu]
 
-    krfu = get_next_level(ir, jf, zlc, state)
+    krfu = get_next_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = ztildetfc[ir, jf, krfd]
-    @ivy zrfu = ztildetfc[ir, jf, krfu]
+    @ivy zrfd = zctilde[ir, jf, krfd]
+    @ivy zrfu = zctilde[ir, jf, krfu]
 
     # Assign the values.
 

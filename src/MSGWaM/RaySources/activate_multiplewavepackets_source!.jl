@@ -84,8 +84,8 @@ function activate_multiplewavepackets_source!(
 	(; branchr) = state.namelists.wkb
 	(; tref, lref) = state.constants
 	(; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
-	(; ztfc, x, y) = state.grid
-	(; rhostrattfc, bvsstrattfc) = state.atmosphere
+	(; zc, x, y) = state.grid
+	(; rhobar) = state.atmosphere
 	#(; u, v) = state.variables.predictands
 	#(; zb) = state.wkb
 
@@ -136,7 +136,7 @@ function activate_multiplewavepackets_source!(
 			wnm_ini[iwm, ix, jy, kz] = wnrm_init
 
 			# Compute local stratification.
-			n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
+			n2r = interpolate_stratification(zc[ix, jy, kz], state, N2())
 
 			# intrinsic frequency
 			omi_notop = branchr * sqrt((n2r * wnrh_init ^ 2
@@ -147,10 +147,10 @@ function activate_multiplewavepackets_source!(
 			# wave-action density
 			fld_amp = (amp_wkb / wnrm_init) ^ 2 *
 					  (wnrh_init ^ 2 + wnrm_init ^ 2) / (2.0 * wnrh_init ^ 2) *
-					  omi_notop * rhostrattfc[ix, jy, kz]
+					  omi_notop * rhobar[ix, jy, kz]
 
-			if abs(ztfc[ix, jy, kz] - zr0) < sigwpz
-				fld_amp *= 0.5 * (1.0 + cos(pi * (ztfc[ix, jy, kz] - zr0) / sigwpz))
+			if abs(zc[ix, jy, kz] - zr0) < sigwpz
+				fld_amp *= 0.5 * (1.0 + cos(pi * (zc[ix, jy, kz] - zr0) / sigwpz))
 
 				if sigwpx > 0.0 && abs(x[ix+io] - xr0) < sigwpx
 					fld_amp *= 0.5 * (1.0 + cos(pi * (x[ix+io] - xr0) / sigwpx))

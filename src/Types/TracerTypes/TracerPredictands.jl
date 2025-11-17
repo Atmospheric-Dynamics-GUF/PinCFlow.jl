@@ -25,7 +25,7 @@ TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
     variables::Variables,
 )::TracerPredictands
 ```
@@ -39,7 +39,7 @@ TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracersetup::LinearTracer,
+    tracer_setup::LinearTracer,
     variables::Variables,
 )::TracerPredictands
 ```
@@ -62,7 +62,7 @@ Construct a `TracerPredictands` instance with an initialized non-dimensional tra
 
   - `grid`: Collection of parameters and fields describing the grid.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 """
@@ -78,7 +78,7 @@ function TracerPredictands(
     grid::Grid,
     variables::Variables,
 )::TracerPredictands
-    (; tracersetup) = namelists.tracer
+    (; tracer_setup) = namelists.tracer
 
     return TracerPredictands(
         namelists,
@@ -86,7 +86,7 @@ function TracerPredictands(
         domain,
         atmosphere,
         grid,
-        tracersetup,
+        tracer_setup,
         variables,
     )
 end
@@ -97,7 +97,7 @@ function TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
     variables::Variables,
 )::TracerPredictands
     chi = zeros(0, 0, 0)
@@ -111,21 +111,21 @@ function TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracersetup::LinearTracer,
+    tracer_setup::LinearTracer,
     variables::Variables,
 )::TracerPredictands
     (; nxx, nyy, nzz) = domain
-    (; ztfc) = grid
+    (; zc) = grid
     (; lref) = constants
-    (; rhostrattfc) = atmosphere
+    (; rhobar) = atmosphere
     (; rho) = variables.predictands
     (; lref) = constants
     (; alphatracer) = namelists.tracer
 
     chi = zeros(nxx, nyy, nzz)
-    chi .= alphatracer .* lref .* ztfc
+    chi .= alphatracer .* lref .* zc
 
-    chi .= chi .* (rho .+ rhostrattfc)
+    chi .= chi .* (rho .+ rhobar)
 
     return TracerPredictands(chi)
 end

@@ -12,7 +12,7 @@ TracerForcings(namelists::Namelists, domain::Domain)
 Construct a `TracerForcings` instance set according to the model configuration.
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain, tracersetup::NoTracer)
+TracerForcings(namelists::Namelists, domain::Domain, tracer_setup::NoTracer)
 ```
 
 Construct a `TracerForcings` instance for configurations without tracer transport.
@@ -21,14 +21,18 @@ Construct a `TracerForcings` instance for configurations without tracer transpor
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain, testcase::AbstractTestCase)
+TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    test_case::AbstractTestCase,
+)
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.
@@ -37,7 +41,7 @@ Construct a `TracerForcings` instance for configurations without WKB model.
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )
 ```
 
@@ -53,9 +57,9 @@ Construct a `TracerForcings` instance for configurations with tracer transport a
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
-  - `testcase`: Teset case on which the current simulation is based.
+  - `test_case`: Teset case on which the current simulation is based.
 
 # See also:
 
@@ -66,15 +70,15 @@ struct TracerForcings{A <: TracerWKBImpact}
 end
 
 function TracerForcings(namelists::Namelists, domain::Domain)::TracerForcings
-    (; tracersetup) = namelists.tracer
+    (; tracer_setup) = namelists.tracer
 
-    return TracerForcings(namelists, domain, tracersetup)
+    return TracerForcings(namelists, domain, tracer_setup)
 end
 
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )::TracerForcings
     return TracerForcings(TracerWKBImpact(0, 0, 0))
 end
@@ -82,17 +86,17 @@ end
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )::TracerForcings
-    (; testcase) = namelists.setting
+    (; test_case) = namelists.setting
 
-    return TracerForcings(namelists, domain, testcase)
+    return TracerForcings(namelists, domain, test_case)
 end
 
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    testcase::AbstractTestCase,
+    test_case::AbstractTestCase,
 )::TracerForcings
     return TracerForcings(TracerWKBImpact(0, 0, 0))
 end
@@ -100,7 +104,7 @@ end
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    testcase::AbstractWKBTestCase,
+    test_case::AbstractWKBTestCase,
 )::TracerForcings
     (; nxx, nyy, nzz) = domain
 

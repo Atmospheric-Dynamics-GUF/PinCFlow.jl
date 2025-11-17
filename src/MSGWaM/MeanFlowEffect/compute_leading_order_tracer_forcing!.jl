@@ -5,7 +5,7 @@ compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
@@ -17,7 +17,7 @@ compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
 ```
 
@@ -33,22 +33,22 @@ Return for configurations without tracer transport.
 
   - `k`: Vertical grid-cell index.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 """
 function compute_leading_order_tracer_forcing!(
     state::State,
     i::Integer,
     j::Integer,
     k::Integer,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; uchi, vchi, wchi, dchidt) = state.tracer.tracerforcings.chiq0
 
     @ivy dchidt[i, j, k] = 0.0
 
-    @ivy if sizex > 1
+    @ivy if x_size > 1
         dchiu =
             (uchi[i + 1, j, k] - uchi[i - 1, j, k]) / (2.0 * dx) +
             met[i, j, k, 1, 3] * (uchi[i, j, k + 1] - uchi[i, j, k - 1]) /
@@ -57,7 +57,7 @@ function compute_leading_order_tracer_forcing!(
         dchiu = 0.0
     end
 
-    @ivy if sizey > 1
+    @ivy if y_size > 1
         dchiv =
             (vchi[i, j + 1, k] - vchi[i, j - 1, k]) / (2.0 * dy) +
             met[i, j, k, 2, 3] * (vchi[i, j, k + 1] - vchi[i, j, k - 1]) /
@@ -79,7 +79,7 @@ function compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
     return
 end

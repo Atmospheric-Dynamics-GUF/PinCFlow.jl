@@ -47,7 +47,7 @@ function explicit_integration!(
     side::LHS,
 )
     (; nstages, stepfrac) = state.time
-    (; tracersetup) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer
     (; icesetup) = state.namelists.ice
 
     @ivy for rkstage in 1:nstages
@@ -69,8 +69,13 @@ function explicit_integration!(
         update!(state, dtstage, rkstage, P())
         apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, P())
 
-        update!(state, dtstage, rkstage, tracersetup)
-        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, tracersetup)
+        update!(state, dtstage, rkstage, tracer_setup)
+        apply_lhs_sponge!(
+            state,
+            stepfrac[rkstage] * dtstage,
+            time,
+            tracer_setup,
+        )
 
         #CHANGES no ice advection
         #update!(state, dtstage, rkstage, icesetup)

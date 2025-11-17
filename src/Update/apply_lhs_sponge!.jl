@@ -185,7 +185,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
 ```
 
@@ -196,7 +196,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
 ```
 
@@ -205,10 +205,8 @@ Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer
 In each tracer equation, the update is given by
 
 ```math
-\\chi \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\chi + \\alpha_\\mathrm{R} \\Delta t \\chi_0\\right),
+\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
 ```
-
-where ``\\chi_0`` is the initial distribution of the tracer.
 
 # Arguments
 
@@ -222,7 +220,7 @@ where ``\\chi_0`` is the initial distribution of the tracer.
 
   - `model`: Dynamic equations.
 
-  - `tracersetup`: General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 """
 function apply_lhs_sponge! end
 
@@ -254,12 +252,12 @@ function apply_lhs_sponge!(
     variable::Rho,
     model::AbstractModel,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rho) = state.variables.predictands
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
@@ -282,22 +280,22 @@ function apply_lhs_sponge!(
     variable::RhoP,
     model::Compressible,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhostrattfc, thetastrattfc) = state.atmosphere
+    (; rhobar, thetabar) = state.atmosphere
     (; alphar) = state.sponge
     (; rho, rhop, p) = state.variables.predictands
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         rhopbg =
-            rhostrattfc[i, j, k] * (
+            rhobar[i, j, k] * (
                 1.0 -
-                p[i, j, k] / thetastrattfc[i, j, k] /
-                (rho[i, j, k] + rhostrattfc[i, j, k])
+                p[i, j, k] / thetabar[i, j, k] /
+                (rho[i, j, k] + rhobar[i, j, k])
             )
         alpha = alphar[i, j, k]
         rhopold = rhop[i, j, k]
@@ -316,12 +314,12 @@ function apply_lhs_sponge!(
     variable::RhoP,
     model::AbstractModel,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rhop) = state.variables.predictands
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
@@ -344,9 +342,9 @@ function apply_lhs_sponge!(
     variable::U,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (;
-        spongelayer,
+        use_sponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -357,7 +355,7 @@ function apply_lhs_sponge!(
     (; alphar, horizontal_mean) = state.sponge
     (; u) = state.variables.predictands
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
@@ -368,7 +366,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     @ivy if relax_to_mean
         horizontal_mean .=
-            sum(a -> a / sizex / sizey, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
+            sum(a -> a / x_size / y_size, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         ubg = relaxation_wind[1] / uref
@@ -406,9 +404,9 @@ function apply_lhs_sponge!(
     variable::V,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (;
-        spongelayer,
+        use_sponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -419,7 +417,7 @@ function apply_lhs_sponge!(
     (; alphar, horizontal_mean) = state.sponge
     (; v) = state.variables.predictands
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
@@ -430,7 +428,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     @ivy if relax_to_mean
         horizontal_mean .=
-            sum(a -> a / sizex / sizey, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
+            sum(a -> a / x_size / y_size, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         vbg = relaxation_wind[2] / uref
@@ -468,9 +466,9 @@ function apply_lhs_sponge!(
     variable::W,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (;
-        spongelayer,
+        use_sponge,
         relax_to_mean,
         perturbation_period,
         perturbation_amplitude,
@@ -482,7 +480,7 @@ function apply_lhs_sponge!(
     (; w) = state.variables.predictands
     (; jac) = state.grid
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
@@ -493,7 +491,7 @@ function apply_lhs_sponge!(
     # Determine relaxation wind.
     @ivy if relax_to_mean
         horizontal_mean .=
-            sum(a -> a / sizex / sizey, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
+            sum(a -> a / x_size / y_size, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     else
         wbg = relaxation_wind[3] / uref
@@ -545,14 +543,14 @@ function apply_lhs_sponge!(
     variable::PiP,
     model::Compressible,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
@@ -560,8 +558,8 @@ function apply_lhs_sponge!(
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
         pib =
-            rhostrattfc[i, j, k] * p[i, j, k] /
-            (rho[i, j, k] + rhostrattfc[i, j, k]) / dpdpi
+            rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) /
+            dpdpi
         alpha = alphar[i, j, k]
         pipold = pip[i, j, k]
         pipnew = pipold - alpha * dt * (p[i, j, k] / dpdpi - pib)
@@ -588,20 +586,18 @@ function apply_lhs_sponge!(
     variable::P,
     model::Compressible,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
-    (; rhostrattfc) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        pb =
-            rhostrattfc[i, j, k] * p[i, j, k] /
-            (rho[i, j, k] + rhostrattfc[i, j, k])
+        pb = rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         alpha = alphar[i, j, k]
         pold = p[i, j, k]
         beta = 1 / (1 + alpha * dt)
@@ -616,7 +612,7 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracersetup::NoTracer,
+    tracer_setup::NoTracer,
 )
     return
 end
@@ -625,15 +621,15 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracersetup::AbstractTracer,
+    tracer_setup::AbstractTracer,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; tracerpredictands) = state.tracer
     (; initialtracer) = state.tracer.tracerauxiliaries
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 
@@ -665,13 +661,13 @@ function apply_lhs_sponge!(
     time::AbstractFloat,
     icesetup::AbstractIce,
 )
-    (; spongelayer) = state.namelists.sponge
+    (; use_sponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; icepredictands) = state.ice
     (; iceauxiliaries) = state.ice
 
-    if !spongelayer
+    if !use_sponge
         return
     end
 

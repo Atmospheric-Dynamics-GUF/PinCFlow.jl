@@ -43,14 +43,14 @@ function SubGrid(namelists::Namelists,
 
 	(; nbx, nby, nbz) = namelists.domain
 	(; nscx, nscy, nscz) = namelists.ice
-	(; sizex, sizey, sizez) = namelists.domain
+	(; x_size, y_size, z_size) = namelists.domain
 	(; nx, ny, nz, i0, j0, k0, i1, j1, k1) = domain
-	(; sizexx, sizeyy, sizezz) = domain
+	(; xx_size, yy_size) = domain
 	(; dx, dy, dz) = grid
 
-	sizex2 = sizex
-	sizey2 = sizey
-	sizez2 = sizez
+	sizex2 = x_size
+	sizey2 = y_size
+	sizez2 = z_size
 
 	dxsc = dx
 	dysc = dy
@@ -71,8 +71,8 @@ function SubGrid(namelists::Namelists,
 	j12 = j1
 	k12 = k1
 
-	sizexx2 = sizexx * nscx
-	sizeyy2 = sizeyy * nscy
+	sizexx2 = xx_size * nscx
+	sizeyy2 = yy_size * nscy
 
 	x2 = zeros(sizexx2)
 	y2 = zeros(sizeyy2)
@@ -96,10 +96,10 @@ function SubGrid(namelists::Namelists,
 
 	(; nscx, nscy, nscz) = namelists.ice
 	(; nbx, nby, nbz) = namelists.domain
-	(; sizex, sizey, sizez) = namelists.domain
+	(; x_size, y_size, z_size) = namelists.domain
 	(; lx, ly, dx, dy, dz) = grid
-    (; x, y, ztildetfc, jac) = grid
-	(; sizexx, sizeyy, sizezz, 
+    (; x, y, zctilde, jac) = grid
+	(; xx_size, yy_size, 
 	nx, ny, nz,
 	i0, j0, k0, i1, j1, k1) = domain
 
@@ -123,22 +123,22 @@ function SubGrid(namelists::Namelists,
 		j12 = j02 + nynscy - 1
 		k12 = k02 + nznscz - 1
 
-		sizex2 = sizex * nscx
-		sizey2 = sizey * nscy
-		sizez2 = sizez * nscz
+		sizex2 = x_size * nscx
+		sizey2 = y_size * nscy
+		sizez2 = z_size * nscz
 
 		# Compute sub grid x-coordinate.
-		sizexx2 = sizexx * nscx
+		sizexx2 = xx_size * nscx
 		x2 = zeros(sizexx2)
 		for ix in 1:sizexx2
-			x2[ix] = lx[1] + (ix - i02) * dxsc + dxsc / 2
+			x2[ix] = -lx/2. + (ix - i02) * dxsc + dxsc / 2
 		end
 
 		# Compute y-coordinate.
-		sizeyy2 = sizeyy * nscy
+		sizeyy2 = yy_size * nscy
 		y2 = zeros(sizeyy2)
 		for jy in 1:sizeyy2
-			y2[jy] = ly[1] + (jy - j02) * dysc + dysc / 2
+			y2[jy] = -ly/2. + (jy - j02) * dysc + dysc / 2
 		end
 
 		# Initialize the physical layers.
@@ -159,7 +159,7 @@ function SubGrid(namelists::Namelists,
 								#	  (ii - 0.5) * dxsc
 								#ysc = y[jy+jo] - dy / 2.0 +
 								#	  (jj - 0.5) * dysc
-								zsc = ztildetfc[ix, jy, kz-1] +
+								zsc = zctilde[ix, jy, kz-1] +
 									  (kk - 0.5) * dzsc * jac[ix, jy, kz]
 
 								z2tfc[ii2, jj2, kk2] = zsc
