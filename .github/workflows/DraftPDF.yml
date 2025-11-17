@@ -13,13 +13,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build draft PDF
-        uses: openjournals/openjournals-draft-action@master
+      - name: Generate LaTeX source code and compiled PDF
+        uses: docker://openjournals/paperdraft:latest
         with:
-          journal: joss
-          paper-path: paper/paper.md
+          args: '-k paper/paper.md'
+        env:
+          GIT_SHA: $GITHUB_SHA
+          JOURNAL: joss
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: paper
-          path: paper/paper.pdf
+          path: paper
