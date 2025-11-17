@@ -38,7 +38,7 @@ affiliations:
     index: 1
   - name: Institute of Mathematics, Johannes Gutenberg University Mainz, Germany
     index: 2
-date: 23 October 2025
+date: 17 November 2025
 bibliography: paper.bib
 ---
 
