@@ -3,7 +3,7 @@
 PinCFlow
 ```
 
-Main module of PinCFlow.
+Main module of PinCFlow.jl.
 
 # See also
 

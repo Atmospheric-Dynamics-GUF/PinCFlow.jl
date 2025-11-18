@@ -3,7 +3,7 @@
 Output
 ```
 
-Module for I/O of PinCFlow simulation data.
+Module for I/O of simulation data.
 
 Provides functions for writing the model state and initializing the model with data from a previous simulation.
 
