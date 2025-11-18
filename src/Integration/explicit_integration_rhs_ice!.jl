@@ -59,7 +59,7 @@ function explicit_integration_rhs_ice!(
 				continue
 			end
 
-			println("Advecting ice predictand field: ", fd, " by (", di_adv, ", ", dj_adv, ") grid cells.", nbx)
+			#println("Advecting ice predictand field: ", fd, " by (", di_adv, ", ", dj_adv, ") grid cells.", nbx)
 
 			matrix = circshift(getfield(icepredictands, fd)[:, :, :], (di_adv, 0, 0))
 			getfield(icepredictands, fd)[:, :, :] .= matrix

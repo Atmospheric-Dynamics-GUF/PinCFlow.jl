@@ -1,7 +1,7 @@
 function construct_random_wavepackets!(wavepacket_namelist::MultiWavePacketNamelist, 
 domain::DomainNamelist, testcase::AbstractTestCase)
     (; lx , ly , lz) = domain
-    (; x_size, sizey, sizez) = domain
+    (; x_size, y_size, z_size) = domain
     Random.seed!(1234)  
     (;random_wavepackets, nwm, wavepacketdim) = wavepacket_namelist
     (;lambdax_dim, lambday_dim, lambdaz_dim, x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim, a0) = wavepacket_namelist
@@ -37,8 +37,8 @@ domain::DomainNamelist, testcase::AbstractTestCase)
     end
 
     # define intervals for centers wavepackets
-    int_b_x0_dim = lx /2.
-    int_e_x0_dim = lx /2.
+    int_b_x0_dim = 0.0 #lx /2.
+    int_e_x0_dim = 0.0 #lx /2.
 
     z0_issr = 8.e3 # [m] to be consistent with the value in IcePredictands.jl
     int_b_z0_dim = z0_issr - 2.e+3
@@ -54,9 +54,9 @@ domain::DomainNamelist, testcase::AbstractTestCase)
 
     a0 .= int_b_a0 .+ (int_e_a0 .- int_b_a0) .* rand(Float64, nwm)
 
-    x0_dim[:] = int_b_x0_dim .+ (int_e_x0_dim - int_b_x0_dim) .* rand(Float64, nwm)
-    y0_dim[:] = 1.e+3 .* ones(Float64, nwm)
-    z0_dim[:] = int_b_z0_dim .+ (int_e_z0_dim - int_b_z0_dim) .* rand(Float64, nwm)
+    x0_dim[:] .= int_b_x0_dim .+ (int_e_x0_dim - int_b_x0_dim) .* rand(Float64, nwm)
+    y0_dim[:] .= 1.e+3 .* ones(Float64, nwm)
+    z0_dim[:] .= int_b_z0_dim .+ (int_e_z0_dim - int_b_z0_dim) .* rand(Float64, nwm)
 
     lambdax_dim[:] = int_b_lambdax_dim .+ (int_e_lambdax_dim - int_b_lambdax_dim) .* rand(Float64, nwm)
     lambday_dim[:] = zeros(Float64, nwm)
@@ -70,6 +70,7 @@ domain::DomainNamelist, testcase::AbstractTestCase)
 
     println("Random wavelengths x-direction: ", lambdax_dim)
     println("Random wavelengths z-direction: ", lambdaz_dim)
+    
     return 
 end    
 

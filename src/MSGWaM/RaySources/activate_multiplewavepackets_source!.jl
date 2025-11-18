@@ -81,7 +81,7 @@ function activate_multiplewavepackets_source!(
 	wad_ini::AbstractArray{<:AbstractFloat, 4},
 )
 	(; coriolis_frequency) = state.namelists.atmosphere
-	(; branchr) = state.namelists.wkb
+	(; branch) = state.namelists.wkb
 	(; tref, lref) = state.constants
 	(; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
 	(; zc, x, y) = state.grid
@@ -91,7 +91,7 @@ function activate_multiplewavepackets_source!(
 
 	(; random_wavepackets) = state.namelists.multiwavepackets
 	if random_wavepackets
-		construct_random_wavepackets!(state.namelists.multiwavepackets, state.namelists.domain, state.namelists.setting.testcase)
+		construct_random_wavepackets!(state.namelists.multiwavepackets, state.namelists.domain, state.namelists.setting.test_case)
 	end
 
 	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
@@ -139,7 +139,7 @@ function activate_multiplewavepackets_source!(
 			n2r = interpolate_stratification(zc[ix, jy, kz], state, N2())
 
 			# intrinsic frequency
-			omi_notop = branchr * sqrt((n2r * wnrh_init ^ 2
+			omi_notop = branch * sqrt((n2r * wnrh_init ^ 2
 										+
 										fc ^ 2 * wnrm_init ^ 2) /
 									   (wnrh_init ^ 2 + wnrm_init ^ 2))

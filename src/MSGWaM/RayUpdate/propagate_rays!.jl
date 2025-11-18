@@ -192,7 +192,7 @@ function propagate_rays!(
     (; use_sponge) = state.namelists.sponge
     (; lref, tref) = state.constants
     (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
-    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
+    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray, dpray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
     (; lz, zctilde) = state.grid
@@ -217,6 +217,7 @@ function propagate_rays!(
                 ddxray[r, i, j, k] = 0.0
                 ddyray[r, i, j, k] = 0.0
                 ddzray[r, i, j, k] = 0.0
+                dpray[r, i, j, k] = 0.0
             end
         end
     end
@@ -471,21 +472,6 @@ function propagate_rays!(
     if test_case == WKBMountainWave()
         activate_orographic_source!(state)
     end
-
-	@ivy if spongelayer
-		for k in k0:k1, j in j0:j1, i in i0:i1
-			for r in 1:nray[i, j, k]
-				(xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-				alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-				betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
-				rays.dens[r, i, j, k] *= betasponge
-			end
-		end
-	end
-
-	if testcase == WKBMountainWave()
-		activate_orographic_source!(state)
-	end
 
 	return
 end

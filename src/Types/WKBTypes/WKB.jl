@@ -275,7 +275,13 @@ function WKB(
     else
         nzray_wrk = 1
     end
-    nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk * nwm
+
+    if test_case isa WKBMultipleWavePackets && namelists.multiwavepackets.nwm != wave_modes
+        println("Warning: nwm (", namelists.multiwavepackets.nwm, ") != wave_modes (", wave_modes, ") in WKB initialization.")
+        exit(1)
+    end
+    
+    nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk * wave_modes
 
     # Set number of surface ray volumes.
     n_sfc = wave_modes

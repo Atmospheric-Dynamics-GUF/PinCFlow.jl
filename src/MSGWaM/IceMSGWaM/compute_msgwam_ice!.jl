@@ -24,7 +24,7 @@ function compute_msgwam_ice!(state::State, test_case::WKBMultipleWavePackets)
 	(; domain, grid) = state
 	(; x_size, y_size) = state.namelists.domain
 	(; coriolis_frequency) = state.namelists.atmosphere
-	(; branchr) = state.namelists.wkb
+	(; branch) = state.namelists.wkb
 	(; tref, fr2) = state.constants
 	(; i0, i1, j0, j1, k0, k1, io, jo) = domain
 	(; dx, dy, dz, x, y, zctilde, jac) = grid
@@ -73,7 +73,7 @@ function compute_msgwam_ice!(state::State, test_case::WKBMultipleWavePackets)
 			n2r = interpolate_stratification(zr, state, N2())
 
 			omir = 
-					branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+					branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
 			#cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
 			#cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))

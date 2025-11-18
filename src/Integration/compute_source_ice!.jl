@@ -173,7 +173,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 
 			clc = numcell_sc / (nscx*nscy*nscz) # cloud cover fraction
 			if clc > 0.0
-				println(i, " ", j, " ", k, " ", clc, " ", numcell_sc, " ", nscx*nscy*nscz)
+			#	println(i, " ", j, " ", k, " ", clc, " ", numcell_sc, " ", nscx*nscy*nscz)
 			end
 
 			#CHANGES 
