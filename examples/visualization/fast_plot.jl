@@ -25,20 +25,20 @@ x = [xi for xi in x, iy in 1:size(z)[2], iz in 1:size(z)[3]]
 y = [yi for ix in 1:size(z)[1], yi in y, iz in 1:size(z)[3]]
 
 # Set grid for data2
-x2 = data2["x2"][:] .* 0.001 .- 10
-y2 = data2["y2"][:] .* 0.001 .- 10
+x2 = data2["x2"][:] .* 0.001 
+y2 = data2["y2"][:] .* 0.001 
 z2 = data2["z2"][:, :, :] .* 0.001
 x2 = [xi for xi in x2, iy in 1:size(z2)[2], iz in 1:size(z2)[3]]
 y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 
 iy = 1
-tidx = 1 # length(data["w"][1, 1, 1, :])
+tidx = length(data["w"][1, 1, 1, :])
 tidxs = tidx
-tidx2 = 1 # length(data2["w"][1, 1, 1, :])
+tidx2 = 2 #length(data2["w"][1, 1, 1, :])
 tidx2s = tidx2 
 
-fld = data["w"][:, :, :, tidx]
-flds = datas["w"][:, :, :, tidxs]
+fld = data["n"][:, :, :, tidx]
+flds = datas["n"][:, :, :, tidxs]
 fld2 = data2["sn"][:, :, :, tidx2]
 fld2s = data2s["sn"][:, :, :, tidx2s]
 
