@@ -76,34 +76,33 @@ function write_output(
 	iout::Integer,
 	machine_start_time::DateTime,
 )::Integer
-	(; domain, grid) = state
-	(; x_size, y_size, z_size) = state.namelists.domain
-	(; prepare_restart, save_ray_volumes, output_variables, output_file) =
-		state.namelists.output
-	(; model, test_case) = state.namelists.setting
-	(; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-	(; tref, lref, rhoref, thetaref, uref) = state.constants
-	(; x, y, zc) = grid
-	(; rhobar, thetabar, n2, pbar) = state.atmosphere
-	(; predictands) = state.variables
-	(; rho, rhop, u, v, w, pip, p) = predictands
-	(; nray_max, rays, tendencies) = state.wkb
-
+    (; domain, grid) = state
+    (; x_size, y_size, z_size) = state.namelists.domain
+    (; prepare_restart, save_ray_volumes, output_variables, output_file) =
+        state.namelists.output
+    (; model, test_case) = state.namelists.setting
+    (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; tref, lref, rhoref, thetaref, uref) = state.constants
+    (; x, y, zc, zctilde) = grid
+    (; rhobar, thetabar, n2, pbar) = state.atmosphere
+    (; predictands) = state.variables
+    (; rho, rhop, u, v, w, pip, p) = predictands
+    (; nray_max, rays, tendencies) = state.wkb
 	(; nscx, nscy, nscz) = state.namelists.ice
 	(; sizex2, sizey2, sizez2,
 		i02, j02, k02,
 		i12, j12, k12,
 		x2, y2, z2tfc) = state.ice.subgrid
 
-	# Print information.
-	if master
-		println(repeat("-", 80))
-		println("Output into file pincflow_output.h5")
-		println("Physical time: ", time * tref, " s")
-		println("Machine time: ", canonicalize(now() - machine_start_time))
-		println(repeat("-", 80))
-		println("")
-	end
+    # Print information.
+    if master
+        println(repeat("-", 80))
+        println("Output into file ", output_file)
+        println("Physical time: ", time * tref, " s")
+        println("Machine time: ", canonicalize(now() - machine_start_time))
+        println(repeat("-", 80))
+        println("")
+    end
 
 	# Advance output counter.
 	iout += 1
@@ -135,18 +134,19 @@ function write_output(
 			file["y"][:] = y[j0:(j0+y_size-1)] .* lref
 		end
 
-		# Write the vertical grid.
-		if iout == 1
-			file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
-		end
+        # Write the vertical grid.
+        if iout == 1
+            file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
+            file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
+        end
 
 		# Write sub grid. 
 		if iout == 1 && !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
 
-			@views file["x2"][:] = x2[i02:(i02+sizex2-1)] .* lref
-			@views file["y2"][:] = y2[j02:(j02+sizey2-1)] .* lref
+			file["x2"][:] = x2[i02:(i02+sizex2-1)] .* lref
+			file["y2"][:] = y2[j02:(j02+sizey2-1)] .* lref
 
-			@views file["z2"][
+			file["z2"][
 				(io*nscx+1):((io+nx)*nscx),
 				(jo*nscy+1):((jo+ny)*nscy),
 				(ko*nscz+1):((ko+nz)*nscz),

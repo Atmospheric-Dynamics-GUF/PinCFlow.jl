@@ -16,6 +16,7 @@ Provides functions for writing the model state and initializing the model with d
 module Output
 
 using Dates
+using MPI
 using HDF5
 using ..Types
 using ..Update

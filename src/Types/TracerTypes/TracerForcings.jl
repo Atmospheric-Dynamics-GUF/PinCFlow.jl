@@ -80,7 +80,9 @@ function TracerForcings(
     domain::Domain,
     tracer_setup::NoTracer,
 )::TracerForcings
-    return TracerForcings(TracerWKBImpact(0, 0, 0))
+    return TracerForcings(
+        [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
+    )
 end
 
 function TracerForcings(
@@ -98,7 +100,9 @@ function TracerForcings(
     domain::Domain,
     test_case::AbstractTestCase,
 )::TracerForcings
-    return TracerForcings(TracerWKBImpact(0, 0, 0))
+    return TracerForcings(
+        [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
+    )
 end
 
 function TracerForcings(
@@ -108,5 +112,10 @@ function TracerForcings(
 )::TracerForcings
     (; nxx, nyy, nzz) = domain
 
-    return TracerForcings(TracerWKBImpact(nxx, nyy, nzz))
+    return TracerForcings(
+        [
+            TracerWKBImpact(nxx, nyy, nzz) for
+            field in fieldnames(TracerForcings)
+        ]...,
+    )
 end

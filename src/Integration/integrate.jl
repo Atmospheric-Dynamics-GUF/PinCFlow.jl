@@ -397,7 +397,7 @@ function integrate(namelists::Namelists)
 
     if master
         println(repeat("-", 80))
-        println(repeat(" ", 32), "PincFlow finished", repeat(" ", 33))
+        println(repeat(" ", 31), "PinCFlow finished")
         println(repeat("-", 80))
     end
 

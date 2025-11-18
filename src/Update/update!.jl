@@ -625,7 +625,6 @@ function update!(
     (; nbz) = state.namelists.domain
     (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
-    (; use_sponge) = state.namelists.sponge
     (; betar) = state.sponge
     (; g_ndim) = state.constants
     (; rhobar, n2) = state.atmosphere
@@ -677,9 +676,7 @@ function update!(
 
 		factor = 1.0
 
-        if use_sponge
-            factor += dt * betar[i, j, k] * rayleigh_factor
-        end
+        factor += dt * betar[i, j, k] * rayleigh_factor
 
         b = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         jpedger = compute_compressible_wind_factor(state, i, j, k, U())
@@ -833,7 +830,7 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; betar) = state.sponge
@@ -853,7 +850,7 @@ function update!(
 
 		factor = 1.0
 
-        if use_sponge && damp_horizontal_wind_on_rhs
+        if damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -986,7 +983,7 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge, damp_horizontal_wind_on_rhs) = state.namelists.sponge
+    (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; betar) = state.sponge
@@ -1006,7 +1003,7 @@ function update!(
 
 		factor = 1.0
 
-        if use_sponge && damp_horizontal_wind_on_rhs
+        if damp_horizontal_wind_on_rhs
             factor +=
                 dt *
                 0.5 *
@@ -1243,7 +1240,6 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
-    (; use_sponge) = state.namelists.sponge
     (; g_ndim) = state.constants
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -1281,13 +1277,11 @@ function update!(
 
 		factor = 1.0
 
-        if use_sponge
-            factor +=
-                dt * (
-                    jac[i, j, k + 1] * betar[i, j, k] +
-                    jac[i, j, k] * betar[i, j, k + 1]
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
-        end
+        factor +=
+            dt * (
+                jac[i, j, k + 1] * betar[i, j, k] +
+                jac[i, j, k] * betar[i, j, k + 1]
+            ) / (jac[i, j, k] + jac[i, j, k + 1]) * rayleigh_factor
 
 		# Buoyancy is predicted after momentum in implicit steps.
 		b =
@@ -1460,18 +1454,23 @@ function update!(
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
     (; test_case) = state.namelists.setting
 
-    @ivy for (fd, field) in enumerate(fieldnames(TracerPredictands))
+    @ivy for field in 1:fieldcount(TracerPredictands)
         if m == 1
-            getfield(tracerincrements, fd) .= 0.0
+            getfield(tracerincrements, field) .= 0.0
         end
 
-		for k in k0:k1, j in j0:j1, i in i0:i1
-			fl = getfield(tracerfluxes, fd)[i-1, j, k, 1]
-			fr = getfield(tracerfluxes, fd)[i, j, k, 1]
-			gb = getfield(tracerfluxes, fd)[i, j-1, k, 2]
-			gf = getfield(tracerfluxes, fd)[i, j, k, 2]
-			hd = getfield(tracerfluxes, fd)[i, j, k-1, 3]
-			hu = getfield(tracerfluxes, fd)[i, j, k, 3]
+        flr = getfield(tracerfluxes, field)[:, :, :, 1]
+        gbf = getfield(tracerfluxes, field)[:, :, :, 2]
+        hdu = getfield(tracerfluxes, field)[:, :, :, 3]
+        chi = getfield(tracerpredictands, field)[:, :, :]
+        dchi = getfield(tracerincrements, field)[:, :, :]
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = flr[i - 1, j, k]
+            fr = flr[i, j, k]
+            gb = gbf[i, j - 1, k]
+            gf = gbf[i, j, k]
+            hd = hdu[i, j, k - 1]
+            hu = hdu[i, j, k]
 
 			fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
 			fluxdiff /= jac[i, j, k]
@@ -1479,12 +1478,10 @@ function update!(
             force = compute_volume_force(state, i, j, k, Chi(), test_case)
             f = -fluxdiff + force
 
-			getfield(tracerincrements, fd)[i, j, k] =
-				dt * f + alphark[m] * getfield(tracerincrements, fd)[i, j, k]
-			getfield(tracerpredictands, fd)[i, j, k] +=
-				betark[m] * getfield(tracerincrements, fd)[i, j, k]
-		end
-	end
+            dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]
+            chi[i, j, k] += betark[m] * dchi[i, j, k]
+        end
+    end
 
 	return
 end

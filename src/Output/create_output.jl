@@ -32,16 +32,30 @@ function create_output(state::State)
 	# Prepare the output.
 	h5open(output_file, "w", comm) do file
 
-		# Create datasets for the dimensions.
-		create_dataset(file, "x", datatype(Float32), dataspace((x_size,)))
-		create_dataset(file, "y", datatype(Float32), dataspace((y_size,)))
-		create_dataset(
-			file,
-			"z",
-			datatype(Float32),
-			dataspace((x_size, y_size, z_size));
-			chunk = (cx, cy, cz),
-		)
+        # Create datasets for the dimensions.
+        create_dataset(file, "x", datatype(Float32), dataspace((x_size,)))
+        create_dataset(file, "y", datatype(Float32), dataspace((y_size,)))
+        create_dataset(
+            file,
+            "z",
+            datatype(Float32),
+            dataspace((x_size, y_size, z_size));
+            chunk = (cx, cy, cz),
+        )
+        create_dataset(
+            file,
+            "ztilde",
+            datatype(Float32),
+            dataspace((x_size, y_size, z_size + 1));
+            chunk = (cx, cy, cz),
+        )
+        create_dataset(
+            file,
+            "t",
+            datatype(Float32),
+            dataspace((0,), (-1,));
+            chunk = (ct,),
+        )
 		#changes for cloudcover
 		if !(typeof(state.namelists.ice.icesetup) <: NoIce) && state.namelists.ice.cloudcover isa CloudCoverOn
 
@@ -62,14 +76,6 @@ function create_output(state::State)
 				chunk = (cx2, cy2, cz2),
 			)
 		end
-
-		create_dataset(
-			file,
-			"t",
-			datatype(Float32),
-			dataspace((0,), (-1,));
-			chunk = (ct,),
-		)
 
 		# Create datasets for the background.
 		if model != Boussinesq()

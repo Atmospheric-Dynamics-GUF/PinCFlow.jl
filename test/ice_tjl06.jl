@@ -12,8 +12,8 @@ domain = DomainNamelist(;
 	nbx = 3,
 	nby = 3,
 	nbz = 3,
-	lx  = 4.0E+4,
-	ly  = 1.0E+4,
+	lx = 4.0E+4,
+	ly = 1.0E+4,
 	lz = 1.5E+4,
 	npx = 1,
 	npy = 1,
@@ -53,16 +53,8 @@ poisson = PoissonNamelist(;
 atmosphere = AtmosphereNamelist(;
 	initial_wind = (0.0E+0, 0.0E+0, 0.0E+0),
 	coriolis_frequency = 1.0E-4,
-)
-
-grid = GridNamelist(;
-	mountain_height = 0.0E+3,
-	mountain_half_width = 1.0E+3,
-	mountain_case = 3,
-	height_factor = 1.0E+0,
-	width_factor = 1.0E+0,
-	spectral_modes = 1,
-	stretch_exponent = 1.0E+0,
+	kinematic_viscosity = 0.0E+0,
+	thermal_conductivity = 0.0E+0,
 )
 
 ice = IceNamelist(;
@@ -121,7 +113,6 @@ namelists = Namelists(;
 	discretization = discretization,
 	poisson = poisson,
 	atmosphere = atmosphere,
-	grid = grid,
 	ice = ice,
 	wkb = wkb,
 	multiwavepackets = multiwavepackets,

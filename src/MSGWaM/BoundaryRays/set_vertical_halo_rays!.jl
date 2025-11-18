@@ -18,52 +18,52 @@ function set_vertical_halo_rays!(state::State)
         state.domain
     (; nray, rays) = state.wkb
 
-    fields = fieldnames(Rays)
+    fields = fieldcount(Rays)
 
     ii = (i0 - 1):(i1 + 1)
     jj = (j0 - 1):(j1 + 1)
 
     @ivy nray_max_down = maximum(nray[ii, jj, k0])
-    @ivy nray_max_up = maximum(nray[ii, j, k1])
+    @ivy nray_max_up = maximum(nray[ii, jj, k1])
 
     nray_max_down = MPI.Allreduce(nray_max_down, max, comm)
     nray_max_up = MPI.Allreduce(nray_max_up, max, comm)
 
-    send_up = zeros(length(fields), nray_max_up, nx + 2, ny + 2)
-    send_down = zeros(length(fields), nray_max_down, nx + 2, ny + 2)
+    send_up = zeros(fields, nray_max_up, nx + 2, ny + 2)
+    send_down = zeros(fields, nray_max_down, nx + 2, ny + 2)
 
-    receive_down = zeros(length(fields), nray_max_up, nx + 2, ny + 2)
-    receive_up = zeros(length(fields), nray_max_down, nx + 2, ny + 2)
+    receive_down = zeros(fields, nray_max_up, nx + 2, ny + 2)
+    receive_up = zeros(fields, nray_max_down, nx + 2, ny + 2)
 
     @ivy if ko == 0
-        for (index, field) in enumerate(fields)
-            send_up[index, :, :, :] .=
+        for field in 1:fields
+            send_up[field, :, :, :] .=
                 getfield(rays, field)[1:nray_max_up, ii, jj, k1]
         end
 
         MPI.Sendrecv!(send_up, receive_up, comm; dest = up, source = up)
 
-        for (index, field) in enumerate(fields)
+        for field in 1:fields
             getfield(rays, field)[1:nray_max_down, ii, jj, k1 + 1] .=
-                receive_up[index, :, :, :]
+                receive_up[field, :, :, :]
         end
     elseif ko + nzz == zz_size
-        for (index, field) in enumerate(fields)
-            send_down[index, :, :, :] .=
+        for field in 1:fields
+            send_down[field, :, :, :] .=
                 getfield(rays, field)[1:nray_max_down, ii, jj, k0]
         end
 
         MPI.Sendrecv!(send_down, receive_down, comm; dest = down, source = down)
 
-        for (index, field) in enumerate(fields)
+        for field in 1:fields
             getfield(rays, field)[1:nray_max_up, ii, jj, k0 - 1] .=
-                receive_down[index, :, :, :]
+                receive_down[field, :, :, :]
         end
     else
-        for (index, field) in enumerate(fields)
-            send_up[index, :, :, :] .=
+        for field in 1:fields
+            send_up[field, :, :, :] .=
                 getfield(rays, field)[1:nray_max_up, ii, jj, k1]
-            send_down[index, :, :, :] .=
+            send_down[field, :, :, :] .=
                 getfield(rays, field)[1:nray_max_down, ii, jj, k0]
         end
 
@@ -71,11 +71,11 @@ function set_vertical_halo_rays!(state::State)
 
         MPI.Sendrecv!(send_down, receive_up, comm; dest = down, source = up)
 
-        for (index, field) in enumerate(fields)
+        for field in 1:fields
             getfield(rays, field)[1:nray_max_up, ii, jj, k0 - 1] .=
-                receive_down[index, :, :, :]
+                receive_down[field, :, :, :]
             getfield(rays, field)[1:nray_max_down, ii, jj, k1 + 1] .=
-                receive_up[index, :, :, :]
+                receive_up[field, :, :, :]
         end
     end
 

@@ -247,13 +247,13 @@ function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
 
             r += 1
 
-            rays.x[r, i, j, k] = mean(merged_rays.xr[:, bin])
-            rays.y[r, i, j, k] = mean(merged_rays.yr[:, bin])
-            rays.z[r, i, j, k] = mean(merged_rays.zr[:, bin])
+            rays.x[r, i, j, k] = sum(merged_rays.xr[:, bin]) / 2
+            rays.y[r, i, j, k] = sum(merged_rays.yr[:, bin]) / 2
+            rays.z[r, i, j, k] = sum(merged_rays.zr[:, bin]) / 2
 
-            rays.k[r, i, j, k] = mean(merged_rays.kr[:, bin])
-            rays.l[r, i, j, k] = mean(merged_rays.lr[:, bin])
-            rays.m[r, i, j, k] = mean(merged_rays.mr[:, bin])
+            rays.k[r, i, j, k] = sum(merged_rays.kr[:, bin]) / 2
+            rays.l[r, i, j, k] = sum(merged_rays.lr[:, bin]) / 2
+            rays.m[r, i, j, k] = sum(merged_rays.mr[:, bin]) / 2
 
             rays.dxray[r, i, j, k] = diff(merged_rays.xr[:, bin])[1]
             rays.dyray[r, i, j, k] = diff(merged_rays.yr[:, bin])[1]

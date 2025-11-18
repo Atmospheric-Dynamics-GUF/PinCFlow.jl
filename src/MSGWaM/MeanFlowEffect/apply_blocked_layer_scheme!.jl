@@ -89,16 +89,17 @@ function apply_blocked_layer_scheme!(state::State, test_case::WKBMountainWave)
             kavg[1] = ksum / hsum
             kavg[2] = lsum / hsum
 
+            kavg2 = sum(a -> a^2, kavg)
             uperp .=
                 (
                     (u[i, j, k] .+ u[i - 1, j, k]) .* kavg[1] .+
                     (v[i, j, k] .+ v[i, j - 1, k]) .* kavg[2]
-                ) ./ 2 .* kavg ./ dot(kavg, kavg)
+                ) ./ 2 .* kavg ./ kavg2
 
+            uperp2 = sum(a -> a^2, uperp)
             drag .=
                 .-drag_coefficient .* (rho[i, j, k] .+ rhobar[i, j, k]) .*
-                sqrt.(dot(kavg, kavg)) ./ (2 .* pi) .*
-                sqrt.(dot(uperp, uperp)) .* uperp
+                sqrt.(kavg2) ./ (2 .* pi) .* sqrt.(uperp2) .* uperp
 
             dudt[i, j, k] = fraction * drag[1] + (1 - fraction) * dudt[i, j, k]
             dvdt[i, j, k] = fraction * drag[2] + (1 - fraction) * dvdt[i, j, k]

@@ -189,7 +189,6 @@ function propagate_rays!(
     (; branch, impact_altitude) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; use_sponge) = state.namelists.sponge
     (; lref, tref) = state.constants
     (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray, dpray) =
@@ -458,14 +457,12 @@ function propagate_rays!(
 	#     Change of wave action
 	#-------------------------------
 
-    @ivy if use_sponge
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            for r in 1:nray[i, j, k]
-                (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-                betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
-                rays.dens[r, i, j, k] *= betasponge
-            end
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        for r in 1:nray[i, j, k]
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+            betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
+            rays.dens[r, i, j, k] *= betasponge
         end
     end
 
@@ -485,7 +482,6 @@ function propagate_rays!(
     (; x_size, y_size) = state.namelists.domain
     (; test_case) = state.namelists.setting
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; use_sponge) = state.namelists.sponge
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
@@ -508,17 +504,17 @@ function propagate_rays!(
 		MPI.Recv!(nray_down, comm; source = down)
 		nray[i0:i1, j0:j1, k0-1] .= nray_down
 
-		local_count = maximum(nray[i0:i1, j0:j1, k0-1])
-		if local_count > 0
-			fields = fieldnames(Rays)
-			rays_down = zeros(length(fields), local_count, nx, ny)
-			MPI.Recv!(rays_down, comm; source = down)
-			for (index, field) in enumerate(fields)
-				getfield(rays, field)[1:local_count, i0:i1, j0:j1, k0-1] .=
-					rays_down[index, :, :, :]
-			end
-		end
-	end
+        local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
+        if local_count > 0
+            fields = fieldcount(Rays)
+            rays_down = zeros(fields, local_count, nx, ny)
+            MPI.Recv!(rays_down, comm; source = down)
+            for field in 1:fields
+                getfield(rays, field)[1:local_count, i0:i1, j0:j1, k0 - 1] .=
+                    rays_down[field, :, :, :]
+            end
+        end
+    end
 
 	# Loop over grid cells.
 	@ivy for k in k0:k1, j in j0:j1, i in i0:i1
@@ -590,21 +586,16 @@ function propagate_rays!(
 			rays.m[r, i, j, k] = mr
 
             # Set the local wave action density.
-            if use_sponge
-                (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-                rays.dens[r, i, j, k] =
-                    1 / (
-                        1 +
-                        alphasponge / cgirz *
-                        (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
-                    ) *
-                    cgirz0 *
-                    rays.dens[r, i, j, kref] / cgirz
-            else
-                rays.dens[r, i, j, k] =
-                    cgirz0 * rays.dens[r, i, j, kref] / cgirz
-            end
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+            rays.dens[r, i, j, k] =
+                1 / (
+                    1 +
+                    alphasponge / cgirz *
+                    (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
+                ) *
+                cgirz0 *
+                rays.dens[r, i, j, kref] / cgirz
 
             # Cycle if the saturation scheme is turned off.
             if !use_saturation
@@ -680,17 +671,17 @@ function propagate_rays!(
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
-		local_count = maximum(nray[i0:i1, j0:j1, k1])
-		if local_count > 0
-			fields = fieldnames(Rays)
-			rays_up = zeros(length(fields), local_count, nx, ny)
-			for (index, field) in enumerate(fields)
-				rays_up[index, :, :, :] .=
-					getfield(rays, field)[1:local_count, i0:i1, j0:j1, k1]
-			end
-			MPI.Send(rays_up, comm; dest = up)
-		end
-	end
+        local_count = maximum(nray[i0:i1, j0:j1, k1])
+        if local_count > 0
+            fields = fieldcount(Rays)
+            rays_up = zeros(fields, local_count, nx, ny)
+            for field in 1:fields
+                rays_up[field, :, :, :] .=
+                    getfield(rays, field)[1:local_count, i0:i1, j0:j1, k1]
+            end
+            MPI.Send(rays_up, comm; dest = up)
+        end
+    end
 
 	return
 end

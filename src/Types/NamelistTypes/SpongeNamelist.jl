@@ -1,11 +1,11 @@
 """
 ```julia
 SpongeNamelist{
-    A <: Bool,
-    B <: AbstractFloat,
-    C <: AbstractSponge,
-    D <: Integer,
-    E <: NTuple{3, <:AbstractFloat},
+	A <: Bool,
+	B <: AbstractFloat,
+	C <: AbstractSponge,
+	D <: Integer,
+	E <: NTuple{3, <:AbstractFloat},
 }
 ```
 
@@ -13,27 +13,24 @@ Namelist for parameters describing the sponge.
 
 ```julia
 SpongeNamelist(;
-    use_sponge::Bool = false,
-    damp_horizontal_wind_on_rhs::Bool = false,
-    sponge_extent::AbstractFloat = 5.0E-1,
-    alpharmax::AbstractFloat = 0.0E+0,
-    betarmax::AbstractFloat = 1.0E+0,
-    lateral_sponge::Bool = false,
-    sponge_type::AbstractSponge = PolynomialSponge(),
-    sponge_order::Integer = 1,
-    cosmo_steps::Integer = 1,
-    relax_to_mean::Bool = true,
-    perturbation_period::AbstractFloat = 0.0E+0,
-    perturbation_amplitude::AbstractFloat = 0.0E+0,
-    relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+	damp_horizontal_wind_on_rhs::Bool = false,
+	sponge_extent::AbstractFloat = 5.0E-1,
+	alpharmax::AbstractFloat = 0.0E+0,
+	betarmax::AbstractFloat = 0.0E+0,
+	lateral_sponge::Bool = false,
+	sponge_type::AbstractSponge = PolynomialSponge(),
+	sponge_order::Integer = 1,
+	cosmo_steps::Integer = 1,
+	relax_to_mean::Bool = true,
+	perturbation_period::AbstractFloat = 0.0E+0,
+	perturbation_amplitude::AbstractFloat = 0.0E+0,
+	relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
 )::SpongeNamelist
 ```
 
 Construct a `SpongeNamelist` instance with the given keyword arguments as properties.
 
 # Fields/Keywords
-
-  - `use_sponge::A`: Switch for enabling Rayleigh-damping in the sponges.
 
   - `damp_horizontal_wind_on_rhs::A`: Switch for applying the RHS sponge to the horizontal wind.
 
@@ -60,55 +57,52 @@ Construct a `SpongeNamelist` instance with the given keyword arguments as proper
   - `relaxation_wind::E`: Wind to be obtained through Rayleigh damping in the LHS sponge.
 """
 struct SpongeNamelist{
-    A <: Bool,
-    B <: AbstractFloat,
-    C <: AbstractSponge,
-    D <: Integer,
-    E <: NTuple{3, <:AbstractFloat},
+	A <: Bool,
+	B <: AbstractFloat,
+	C <: AbstractSponge,
+	D <: Integer,
+	E <: NTuple{3, <:AbstractFloat},
 }
-    use_sponge::A
-    damp_horizontal_wind_on_rhs::A
-    sponge_extent::B
-    alpharmax::B
-    betarmax::B
-    lateral_sponge::A
-    sponge_type::C
-    sponge_order::D
-    cosmo_steps::D
-    relax_to_mean::A
-    perturbation_period::B
-    perturbation_amplitude::B
-    relaxation_wind::E
+	damp_horizontal_wind_on_rhs::A
+	sponge_extent::B
+	alpharmax::B
+	betarmax::B
+	lateral_sponge::A
+	sponge_type::C
+	sponge_order::D
+	cosmo_steps::D
+	relax_to_mean::A
+	perturbation_period::B
+	perturbation_amplitude::B
+	relaxation_wind::E
 end
 
 function SpongeNamelist(;
-    use_sponge::Bool = false,
-    damp_horizontal_wind_on_rhs::Bool = false,
-    sponge_extent::AbstractFloat = 5.0E-1,
-    alpharmax::AbstractFloat = 0.0E+0,
-    betarmax::AbstractFloat = 1.0E+0,
-    lateral_sponge::Bool = false,
-    sponge_type::AbstractSponge = PolynomialSponge(),
-    sponge_order::Integer = 1,
-    cosmo_steps::Integer = 1,
-    relax_to_mean::Bool = true,
-    perturbation_period::AbstractFloat = 0.0E+0,
-    perturbation_amplitude::AbstractFloat = 0.0E+0,
-    relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+	damp_horizontal_wind_on_rhs::Bool = false,
+	sponge_extent::AbstractFloat = 5.0E-1,
+	alpharmax::AbstractFloat = 0.0E+0,
+	betarmax::AbstractFloat = 0.0E+0,
+	lateral_sponge::Bool = false,
+	sponge_type::AbstractSponge = PolynomialSponge(),
+	sponge_order::Integer = 1,
+	cosmo_steps::Integer = 1,
+	relax_to_mean::Bool = true,
+	perturbation_period::AbstractFloat = 0.0E+0,
+	perturbation_amplitude::AbstractFloat = 0.0E+0,
+	relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
 )::SpongeNamelist
-    return SpongeNamelist(
-        use_sponge,
-        damp_horizontal_wind_on_rhs,
-        sponge_extent,
-        alpharmax,
-        betarmax,
-        lateral_sponge,
-        sponge_type,
-        sponge_order,
-        cosmo_steps,
-        relax_to_mean,
-        perturbation_period,
-        perturbation_amplitude,
-        relaxation_wind,
-    )
+	return SpongeNamelist(
+		damp_horizontal_wind_on_rhs,
+		sponge_extent,
+		alpharmax,
+		betarmax,
+		lateral_sponge,
+		sponge_type,
+		sponge_order,
+		cosmo_steps,
+		relax_to_mean,
+		perturbation_period,
+		perturbation_amplitude,
+		relaxation_wind,
+	)
 end

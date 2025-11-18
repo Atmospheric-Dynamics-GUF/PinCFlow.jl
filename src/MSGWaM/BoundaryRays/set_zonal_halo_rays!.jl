@@ -17,7 +17,7 @@ function set_zonal_halo_rays!(state::State)
     (; comm, ny, nz, i0, i1, j0, j1, k0, k1, left, right) = state.domain
     (; nray, rays) = state.wkb
 
-    fields = fieldnames(Rays)
+    fields = fieldcount(Rays)
 
     jj = (j0 - 1):(j1 + 1)
     kk = (k0 - 1):(k1 + 1)
@@ -28,16 +28,16 @@ function set_zonal_halo_rays!(state::State)
     nray_max_left = MPI.Allreduce(nray_max_left, max, comm)
     nray_max_right = MPI.Allreduce(nray_max_right, max, comm)
 
-    send_right = zeros(length(fields), nray_max_right, ny + 2, nz + 2)
-    send_left = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
+    send_right = zeros(fields, nray_max_right, ny + 2, nz + 2)
+    send_left = zeros(fields, nray_max_left, ny + 2, nz + 2)
 
-    receive_left = zeros(length(fields), nray_max_right, ny + 2, nz + 2)
-    receive_right = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
+    receive_left = zeros(fields, nray_max_right, ny + 2, nz + 2)
+    receive_right = zeros(fields, nray_max_left, ny + 2, nz + 2)
 
-    @ivy for (index, field) in enumerate(fields)
-        send_right[index, :, :, :] .=
+    @ivy for field in 1:fields
+        send_right[field, :, :, :] .=
             getfield(rays, field)[1:nray_max_right, i1, jj, kk]
-        send_left[index, :, :, :] .=
+        send_left[field, :, :, :] .=
             getfield(rays, field)[1:nray_max_left, i0, jj, kk]
     end
 
@@ -45,11 +45,11 @@ function set_zonal_halo_rays!(state::State)
 
     MPI.Sendrecv!(send_left, receive_right, comm; dest = left, source = right)
 
-    @ivy for (index, field) in enumerate(fields)
+    @ivy for field in 1:fields
         getfield(rays, field)[1:nray_max_right, i0 - 1, jj, kk] .=
-            receive_left[index, :, :, :]
+            receive_left[field, :, :, :]
         getfield(rays, field)[1:nray_max_left, i1 + 1, jj, kk] .=
-            receive_right[index, :, :, :]
+            receive_right[field, :, :, :]
     end
 
     return

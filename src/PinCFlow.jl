@@ -14,11 +14,12 @@ Main module of PinCFlow.
 module PinCFlow
 
 include("@ivy.jl")
-#include("set_plot_style.jl")
+#include("plot_contours.jl")
+#include("set_visualization_theme!.jl")
 #include("symmetric_contours.jl")
 
 export @ivy
-#export set_plot_style, symmetric_contours
+#export plot_contours, set_visualization_theme!, symmetric_contours
 
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
@@ -53,7 +54,12 @@ export DomainNamelist,
 export Boussinesq, PseudoIncompressible, Compressible
 export MountainWave, WKBMountainWave, WavePacket
 export MCVariant
-export UniformBoussinesq, StratifiedBoussinesq, Isothermal
+export UniformBoussinesq,
+    StratifiedBoussinesq,
+    Isothermal,
+    Isentropic,
+    Realistic,
+    LapseRates
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro

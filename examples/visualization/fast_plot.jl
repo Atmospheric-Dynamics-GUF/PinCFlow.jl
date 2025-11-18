@@ -43,11 +43,11 @@ fld2s = data2s["sn"][:, :, :, tidx2s]
 println("size fld  ", size(fld))
 println("size flds ", size(flds))
 println("size fld2  ", size(fld2))
-println("size fld2s ", size(fld2s))
+println("size fld2s", size(fld2s))
 println("fld  ", maximum(fld), " ", minimum(fld))
 println("flds ", maximum(flds), " ", minimum(flds))
 println("fld2 ", maximum(fld2), " ", minimum(fld2))
-println("fld2s ", maximum(fld2s), " ", minimum(fld2s))
+println("fld2s", maximum(fld2s), " ", minimum(fld2s))
 
 # Plot comparison: data vs datas
 figure(figsize=(12, 10))

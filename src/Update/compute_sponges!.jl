@@ -185,11 +185,7 @@ function compute_sponges!(state::State, dt::AbstractFloat)
     (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; zc, lz) = state.grid
     (; betar, zsponge) = state.sponge
-    (; use_sponge, sponge_type, betarmax) = state.namelists.sponge
-
-    if !use_sponge
-        return
-    end
+    (; sponge_type, betarmax) = state.namelists.sponge
 
     compute_sponges!(state, dt, sponge_type)
 
@@ -204,8 +200,8 @@ function compute_sponges!(state::State, dt::AbstractFloat)
         end
     end
 
-    @ivy ko == 0 && betar[:, :, k0 - 1] .= betar[:, :, k0]
-    @ivy ko + nzz == zz_size && betar[:, :, k1 + 1] .= betar[:, :, k1]
+    @ivy ko == 0 && (betar[:, :, k0 - 1] .= betar[:, :, k0])
+    @ivy ko + nzz == zz_size && (betar[:, :, k1 + 1] .= betar[:, :, k1])
 
     return
 end
@@ -280,8 +276,8 @@ function compute_sponges!(
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
-    @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-    @ivy ko + nzz == zz_size && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
+    @ivy ko == 0 && (alphar[:, :, k0 - 1] .= alphar[:, :, k0])
+    @ivy ko + nzz == zz_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
 
     return
 end
@@ -365,8 +361,8 @@ function compute_sponges!(
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
-    @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-    @ivy ko + nzz == zz_size && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
+    @ivy ko == 0 && (alphar[:, :, k0 - 1] .= alphar[:, :, k0])
+    @ivy ko + nzz == zz_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
 
     return
 end
@@ -458,8 +454,8 @@ function compute_sponges!(
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
-    @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-    @ivy ko + nzz == zz_size && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
+    @ivy ko == 0 && (alphar[:, :, k0 - 1] .= alphar[:, :, k0])
+    @ivy ko + nzz == zz_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
 
     return
 end
@@ -552,8 +548,8 @@ function compute_sponges!(
         set_meridional_boundaries_of_field!(alphar, namelists, domain)
     end
 
-    @ivy ko == 0 && alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-    @ivy ko + nzz == zz_size && alphar[:, :, k1 + 1] .= alphar[:, :, k1]
+    @ivy ko == 0 && (alphar[:, :, k0 - 1] .= alphar[:, :, k0])
+    @ivy ko + nzz == zz_size && (alphar[:, :, k1 + 1] .= alphar[:, :, k1])
 
     return
 end

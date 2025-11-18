@@ -95,9 +95,9 @@ function activate_multiplewavepackets_source!(
 	end
 
 	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,
-			x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
-			a0, nwm) = state.namelists.multiwavepackets
-			
+		x0_dim, y0_dim, z0_dim, sigmax_dim, sigmay_dim, sigmaz_dim,
+		a0, nwm) = state.namelists.multiwavepackets
+
 	# Set Coriolis parameter.
 	fc = coriolis_frequency * tref
 
@@ -140,9 +140,9 @@ function activate_multiplewavepackets_source!(
 
 			# intrinsic frequency
 			omi_notop = branch * sqrt((n2r * wnrh_init ^ 2
-										+
-										fc ^ 2 * wnrm_init ^ 2) /
-									   (wnrh_init ^ 2 + wnrm_init ^ 2))
+									   +
+									   fc ^ 2 * wnrm_init ^ 2) /
+									  (wnrh_init ^ 2 + wnrm_init ^ 2))
 
 			# wave-action density
 			fld_amp = (amp_wkb / wnrm_init) ^ 2 *
