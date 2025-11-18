@@ -7,13 +7,11 @@ using HDF5
 using PyPlot
 using Statistics
 
-#data = h5open("/home/dolaptch/PF/runs/tjl05/pincflow_output.h5")
-data = h5open("/home/dolaptch/PF/runs/mjl05/pincflow_output.h5")
+data = h5open("/home/dolaptch/PF/runs/tjl05/pincflow_output.h5")
 datas = h5open("/home/dolaptch/PF/runs/sjl05/pincflow_output.h5") # shift domain to -20,20 km to be consistent with merged run
 #datas = h5open("/home/dolaptch/PF/runs_save/GWI_grusi_WS_25-26/tjl05/pincflow_output.h5")
 
-#data2 = h5open("/home/dolaptch/PF/runs/tjl06/pincflow_output.h5")
-data2 = h5open("/home/dolaptch/PF/runs/mjl06/pincflow_output.h5")
+data2 = h5open("/home/dolaptch/PF/runs/tjl06/pincflow_output.h5")
 data2s = h5open("/home/dolaptch/PF/runs/sjl06/pincflow_output.h5") # shift domain to -20,20 km to be consistent with merged run
 #data2s = h5open("/home/dolaptch/PF/runs_save/GWI_grusi_WS_25-26/tjl06/pincflow_output.h5")
 
@@ -34,7 +32,7 @@ y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 iy = 1
 tidx = length(data["w"][1, 1, 1, :])
 tidxs = tidx
-tidx2 = 2 #length(data2["w"][1, 1, 1, :])
+tidx2 = length(data2["w"][1, 1, 1, :])
 tidx2s = tidx2 
 
 fld = data["n"][:, :, :, tidx]
@@ -42,9 +40,9 @@ flds = datas["n"][:, :, :, tidxs]
 fld2 = data2["sn"][:, :, :, tidx2]
 fld2s = data2s["sn"][:, :, :, tidx2s]
 
-println("size fld ", size(fld))
+println("size fld  ", size(fld))
 println("size flds ", size(flds))
-println("size fld2 ", size(fld2))
+println("size fld2  ", size(fld2))
 println("size fld2s ", size(fld2s))
 println("fld  ", maximum(fld), " ", minimum(fld))
 println("flds ", maximum(flds), " ", minimum(flds))
