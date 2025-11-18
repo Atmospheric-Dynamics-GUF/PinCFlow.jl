@@ -55,20 +55,16 @@ export Boussinesq, PseudoIncompressible, Compressible
 export MountainWave, WKBMountainWave, WavePacket
 export MCVariant
 export UniformBoussinesq,
-    StratifiedBoussinesq,
-    Isothermal,
-    Isentropic,
-    Realistic,
-    LapseRates
+    StratifiedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export SteadyState, SingleColumn, MultiColumn
-export NoTracer, LinearTracer
 export NoIce, IceOn
 export CloudCoverOff, CloudCoverOn
 export WKBMultipleWavePackets, MultipleWavePackets
 export RandomWavePackets
+export NoTracer, TracerOn
 
 # Export model-state constructor.
 export State

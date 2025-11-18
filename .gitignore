@@ -5,6 +5,7 @@ Manifest.toml
 /build
 /docs/build
 .vscode
+<<<<<<< HEAD
 slurm*.out
 *~
 build/
@@ -13,3 +14,7 @@ output/
 !output/.gitkeep 
 *.h5
 git_hash
+=======
+# Julia's code coverage report files
+**/*.cov
+>>>>>>> fb6246b9c47

@@ -6,7 +6,7 @@ TracerWKBImpact{A <: AbstractArray{<:AbstractFloat, 3}}
 Container for the gravity-wave-induced tracer fluxes and resulting tracer tendency.
 
 ```julia
-TracerWKBImpact(nxi::Integer, nyi::Integer, nzi::Integer)
+TracerWKBImpact(nxi::Integer, nyi::Integer, nzi::Integer)::TracerWKBImpact
 ```
 
 Construct a `TracerWKBImpact` instance with array dimensions given by `nxi`, `nyi`, and `nzi`.
@@ -36,6 +36,10 @@ struct TracerWKBImpact{A <: AbstractArray{<:AbstractFloat, 3}}
     dchidt::A
 end
 
-function TracerWKBImpact(nxi::Integer, nyi::Integer, nzi::Integer)
+function TracerWKBImpact(
+    nxi::Integer,
+    nyi::Integer,
+    nzi::Integer,
+)::TracerWKBImpact
     return TracerWKBImpact([zeros(nxi, nyi, nzi) for i in 1:4]...)
 end

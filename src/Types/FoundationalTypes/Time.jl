@@ -29,8 +29,6 @@ struct Time{A <: Integer, B <: NTuple{3, <:AbstractFloat}}
 end
 
 function Time()::Time
-
-    # Set Runge-Kutta parameters.
     nstages = 3
     alphark = (0.0, -5.0 / 9.0, -153.0 / 128.0)
     betark = (1.0 / 3.0, 15.0 / 16.0, 8.0 / 15.0)

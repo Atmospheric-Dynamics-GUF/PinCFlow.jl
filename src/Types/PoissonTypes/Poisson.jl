@@ -70,7 +70,6 @@ end
 function Poisson(domain::Domain)::Poisson
     (; nx, ny, nz) = domain
 
-    # Initialize everything.
     (rhs, solution) = (zeros(nx, ny, nz) for i in 1:2)
     tensor = Tensor(domain)
     operator = Operator(domain)

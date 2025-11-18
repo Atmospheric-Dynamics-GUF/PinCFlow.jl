@@ -18,31 +18,19 @@ WKB{
 Main container for WKB ray-tracing data and parameters.
 
 ```julia
-WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)::WKB
+WKB(namelists::Namelists, domain::Domain)::WKB
 ```
 
 Construct a `WKB` instance by dispatching to a test-case-specific method.
 
 ```julia
-WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    test_case::AbstractTestCase,
-)::WKB
+WKB(namelists::Namelists, domain::Domain, test_case::AbstractTestCase)::WKB
 ```
 
 Construct a `WKB` instance with zero-size arrays for non-WKB test cases.
 
 ```julia
-WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    test_case::AbstractWKBTestCase,
-)::WKB
+WKB(namelists::Namelists, domain::Domain, test_case::AbstractWKBTestCase)::WKB
 ```
 
 Construct a `WKB` instance.
@@ -153,21 +141,15 @@ struct WKB{
     diffusion::J
 end
 
-function WKB(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-)::WKB
+function WKB(namelists::Namelists, domain::Domain)::WKB
     (; test_case) = namelists.setting
-    return WKB(namelists, constants, domain, grid, test_case)
+
+    return WKB(namelists, domain, test_case)
 end
 
 function WKB(
     namelists::Namelists,
-    constants::Constants,
     domain::Domain,
-    grid::Grid,
     test_case::AbstractTestCase,
 )::WKB
     return WKB(
@@ -188,18 +170,10 @@ end
 
 function WKB(
     namelists::Namelists,
-    constants::Constants,
     domain::Domain,
-    grid::Grid,
     test_case::AbstractWKBTestCase,
 )::WKB
     (;
-        xrmin,
-        xrmax,
-        yrmin,
-        yrmax,
-        zrmin,
-        zrmax,
         nrx,
         nry,
         nrz,
@@ -212,21 +186,8 @@ function WKB(
         dlr_factor,
         dmr_factor,
     ) = namelists.wkb
-    (; lref) = constants
     (; x_size, y_size, z_size) = namelists.domain
     (; nxx, nyy, nzz) = domain
-    (; lx, ly, lz) = grid
-
-    # Check if the boundaries for ray-volume propagation are within the domain.
-    if xrmin / lref < -lx / 2 || xrmax / lref > lx / 2
-        error("Error in WKB: xrmin too small or xrmax too large!")
-    end
-    if yrmin / lref < -ly / 2 || yrmax / lref > ly / 2
-        error("Error in WKB: yrmin too small or yrmax too large!")
-    end
-    if zrmin / lref < 0 || zrmax / lref > lz
-        error("Error in WKB: zrmin too small or zrmax too large!")
-    end
 
     # Check if spectral-extent factors are set correctly.
     if x_size > 1 && dkr_factor == 0.0
@@ -295,7 +256,7 @@ function WKB(
         n_sfc *= div(nzray, multiplication_factor)
     end
 
-    # Initialize ray-volume arrays.
+    # Allocate ray-volume arrays.
     nray = zeros(Int, nxx, nyy, nzz)
     rays = Rays(nray_wrk, nxx, nyy, nzz, namelists)
     merged_rays = MergedRays(2, nray_max)

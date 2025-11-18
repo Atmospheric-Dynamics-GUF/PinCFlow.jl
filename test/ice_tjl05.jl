@@ -53,7 +53,6 @@ poisson = PoissonNamelist(;
 )
 
 atmosphere = AtmosphereNamelist(;
-	initial_wind = (0.0E+0, 0.0E+0, 0.0E+0),
 	coriolis_frequency = 1.0E-4,
     kinematic_viscosity = 0.0E+0,
     thermal_conductivity = 0.0E+0,
@@ -68,12 +67,6 @@ ice = IceNamelist(;
 	cloudcover = CloudCoverOff(),
 )
 wkb = WKBNamelist(;
-	xrmin = 0.0E+4,
-	xrmax = 4.0E+4,
-	yrmin = 0.0E+4,
-	yrmax = 1.0E+4,
-	zrmin = 0.0E+0,
-	zrmax = 1.5E+4,
 	nrx = 1,
 	nry = 1,
 	nrz = 1,

@@ -326,12 +326,12 @@ struct NoTracer <: AbstractTracer end
 
 """
 ```julia
-LinearTracer <: AbstractTracer
+TracerOn <: AbstractTracer
 ```
 
 Singleton for model configurations with an initially linear tracer.
 """
-struct LinearTracer <: AbstractTracer end
+struct TracerOn <: AbstractTracer end
 
 """
 ```julia
@@ -426,16 +426,14 @@ export UniformBoussinesq,
     Box,
     Shapiro,
     NoTracer,
-    LinearTracer,
     NoIce,
     IceOn,
     CloudCoverOff,
     CloudCoverOn,  
     RandomWavePackets,
-    NoTurbulence,
-    TurbulenceOn, 
     MultipleWavePackets,
-    WKBMultipleWavePackets
+    WKBMultipleWavePackets,
+    TracerOn
 
 export DomainNamelist,
     OutputNamelist,

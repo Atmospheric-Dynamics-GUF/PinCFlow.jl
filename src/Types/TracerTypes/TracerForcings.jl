@@ -6,13 +6,17 @@ TracerForcings{A <: TracerWKBImpact}
 Container for `TracerWKBImpact` instance with all necessary terms for the right-hand side of the tracer equation.
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain)
+TracerForcings(namelists::Namelists, domain::Domain)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance set according to the model configuration.
 
 ```julia
-TracerForcings(namelists::Namelists, domain::Domain, tracer_setup::NoTracer)
+TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    tracer_setup::NoTracer,
+)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations without tracer transport.
@@ -22,27 +26,19 @@ TracerForcings(
     namelists::Namelists,
     domain::Domain,
     tracer_setup::AbstractTracer,
-)
+)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(
-    namelists::Namelists,
-    domain::Domain,
-    test_case::AbstractTestCase,
-)
+TracerForcings(domain::Domain, test_case::AbstractTestCase)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.
 
 ```julia
-TracerForcings(
-    namelists::Namelists,
-    domain::Domain,
-    test_case::AbstractWKBTestCase,
-)
+TracerForcings(domain::Domain, test_case::AbstractWKBTestCase)::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations with tracer transport and WKB model.
@@ -92,11 +88,10 @@ function TracerForcings(
 )::TracerForcings
     (; test_case) = namelists.setting
 
-    return TracerForcings(namelists, domain, test_case)
+    return TracerForcings(domain, test_case)
 end
 
 function TracerForcings(
-    namelists::Namelists,
     domain::Domain,
     test_case::AbstractTestCase,
 )::TracerForcings
@@ -106,7 +101,6 @@ function TracerForcings(
 end
 
 function TracerForcings(
-    namelists::Namelists,
     domain::Domain,
     test_case::AbstractWKBTestCase,
 )::TracerForcings

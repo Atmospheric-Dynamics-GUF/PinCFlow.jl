@@ -25,5 +25,6 @@ end
 
 function Operator(domain::Domain)::Operator
     (; nxx, nyy, nzz) = domain
+
     return Operator(zeros(nxx, nyy, nzz))
 end

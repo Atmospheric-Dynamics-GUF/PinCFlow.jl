@@ -1,6 +1,12 @@
 """
-```julia 
+```julia
 compute_n2!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    thetabar::AbstractArray{<:AbstractFloat, 3},
+    n2::AbstractArray{<:AbstractFloat, 3},
 )
 ```
 
@@ -8,7 +14,7 @@ Compute the buoyancy frequency ``N^2 \\left(z\\right)`` from the potential tempe
 
 The squared buoyancy frequency is given by
 
-```math 
+```math
 \\begin{align*}
 N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}} \\;.
 \\end{align*}
@@ -23,7 +29,11 @@ N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\ov
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
   - `grid`: Collection of parameters and fields that describe the grid.
-  
+
+  - `thetabar`: Potential-temperature background.
+
+  - `n2`: Squared buoyancy frequency.
+
 # See also
 
   - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)

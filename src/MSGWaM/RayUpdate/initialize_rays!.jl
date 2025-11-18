@@ -17,7 +17,7 @@ initialize_rays!(state::State, test_case::AbstractWKBTestCase)
 
 Complete the initialization of MSGWaM for WKB test cases.
 
-In each grid cell, `wave_modes` wave modes are computed, using e.g. `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
+In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.wkb.initial_wave_field`, as well as `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
 
 # Arguments
 
@@ -46,64 +46,51 @@ function initialize_rays!(state::State, test_case::AbstractTestCase)
 end
 
 function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
-	(; x_size, y_size, z_size) = state.namelists.domain
-	(; test_case) = state.namelists.setting
-	(; coriolis_frequency) = state.namelists.atmosphere
-	(;
-		xrmin,
-		xrmax,
-		yrmin,
-		yrmax,
-		nrx,
-		nry,
-		nrz,
-		nrk,
-		nrl,
-		nrm,
-		wave_modes,
-		dkr_factor,
-		dlr_factor,
-		dmr_factor,
-		wkb_mode,
-		wave_modes,
-	) = state.namelists.wkb
-	(; lref, tref) = state.constants
-	(; comm, master, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
-		state.domain
-	(; lx, ly, lz, dx, dy, dz, x, y, zc, jac) = state.grid
-	(;
-		nray_max,
-		nray_wrk,
-		n_sfc,
-		nray,
-		rays,
-		surface_indices,
-		cgx_max,
-		cgy_max,
-		cgz_max,
-	) = state.wkb
-	(; icesetup) = state.namelists.ice
+    (; x_size, y_size) = state.namelists.domain
+    (; test_case) = state.namelists.setting
+    (; coriolis_frequency) = state.namelists.atmosphere
+    (;
+        nrx,
+        nry,
+        nrz,
+        nrk,
+        nrl,
+        nrm,
+        wave_modes,
+        dkr_factor,
+        dlr_factor,
+        dmr_factor,
+        wkb_mode,
+        wave_modes,
+        initial_wave_field,
+    ) = state.namelists.wkb
+    (; lref, tref, rhoref, uref) = state.constants
+    (; comm, master, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
+        state.domain
+    (; dx, dy, dz, x, y, zc, jac) = state.grid
+    (;
+        nray_max,
+        nray_wrk,
+        n_sfc,
+        nray,
+        rays,
+        surface_indices,
+        cgx_max,
+        cgy_max,
+        cgz_max,
+    ) = state.wkb
+    (; icesetup) = state.namelists.ice
 
 	# Set Coriolis parameter.
 	fc = coriolis_frequency * tref
 
-	# Set zonal index bounds.
-	if test_case == WKBMountainWave()
-		imin = i0
-		imax = i1
-	else
-		imin = max(i0, floor(Int, (xrmin / lref + lx / 2) / dx) + i0 - io)
-		imax = min(i1, floor(Int, (xrmax / lref + lx / 2) / dx) + i0 - io)
-	end
+    # Set zonal index bounds.
+    imin = i0
+    imax = i1
 
-	# Set meridional index bounds.
-	if test_case == WKBMountainWave()
-		jmin = j0
-		jmax = j1
-	else
-		jmin = max(j0, floor(Int, (yrmin / lref + ly / 2) / dy) + j0 - jo)
-		jmax = min(j1, floor(Int, (yrmax / lref + ly / 2) / dy) + j0 - jo)
-	end
+    # Set meridional index bounds.
+    jmin = j0
+    jmax = j1
 
 	# Set vertical index bounds.
 	if test_case == WKBMountainWave() && ko == 0
@@ -127,16 +114,30 @@ function initialize_rays!(state::State, test_case::AbstractWKBTestCase)
 		)
 	end
 
-	if test_case == WKBMountainWave()
-		activate_orographic_source!(
-			state,
-			omi_ini,
-			wnk_ini,
-			wnl_ini,
-			wnm_ini,
-			wad_ini,
-		)
-	end
+    for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
+        (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
+            alpha,
+            x[io + i] * lref,
+            y[jo + j] * lref,
+            zc[i, j, k] * lref,
+        )
+        wnk_ini[alpha, i, j, k] = kdim * lref
+        wnl_ini[alpha, i, j, k] = ldim * lref
+        wnm_ini[alpha, i, j, k] = mdim * lref
+        omi_ini[alpha, i, j, k] = omegadim * tref
+        wad_ini[alpha, i, j, k] = adim / rhoref / uref^2 / tref
+    end
+
+    if test_case == WKBMountainWave()
+        activate_orographic_source!(
+            state,
+            omi_ini,
+            wnk_ini,
+            wnl_ini,
+            wnm_ini,
+            wad_ini,
+        )
+    end
 
 	if test_case == WKBMultipleWavePackets()
 		activate_multiplewavepackets_source!(
