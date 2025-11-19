@@ -253,7 +253,29 @@ The computation is analogous to that of the density fluxes.
 compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
 ```
 
-Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian).
+Compute the potential temperature fluxes by dispatching to a model-specific method.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Union{Boussinesq, PseudoIncompressible},
+)
+```
+
+Return in Boussinesq/pseudo-incompressible mode.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Compressible,
+)
+```
+
+Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian) in compressible mode.
 
 The fluxes are given by
 
@@ -1539,6 +1561,27 @@ function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
+)
+    (; model) = state.namelists.atmosphere
+
+    compute_fluxes!(state, predictands, variable, model)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Union{Boussinesq, PseudoIncompressible},
+)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Compressible,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dx, dy, dz, met) = state.grid
