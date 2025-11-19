@@ -256,13 +256,23 @@ compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
 Compute the potential temperature fluxes by dispatching to a model-specific method.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Theta, model::Union{Boussinesq, PseudoIncompressible})
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Union{Boussinesq, PseudoIncompressible},
+)
 ```
 
 Return in Boussinesq/pseudo-incompressible mode.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Theta, model::Compressible)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Compressible,
+)
 ```
 
 Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian) in compressible mode.
