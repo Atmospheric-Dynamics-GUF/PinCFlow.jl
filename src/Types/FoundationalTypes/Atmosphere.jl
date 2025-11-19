@@ -251,9 +251,8 @@ function Atmosphere(
 	domain::Domain,
 	grid::Grid,
 )::Atmosphere
-	(; model) = namelists.setting
-	(; background) = namelists.atmosphere
-	return Atmosphere(namelists, constants, domain, grid, model, background)
+    (; model, background) = namelists.atmosphere
+    return Atmosphere(namelists, constants, domain, grid, model, background)
 end
 
 function Atmosphere(

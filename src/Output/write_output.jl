@@ -80,7 +80,8 @@ function write_output(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; model, test_case) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
+    (; wkb_mode) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, zc, zctilde) = grid
@@ -125,14 +126,18 @@ function write_output(
 		(ko+2-dk0):(ko+nz+1),
 	)
 
-	# Open the file. Note: Fused in-place assignments cannot be used here!
-	@ivy h5open(output_file, "r+", comm) do file
+    # Open the file. Note: Fused in-place assignments cannot be used here!
+    @ivy h5open(output_file, "r+", comm) do file
 
-		# Write the horizontal grid.
-		if iout == 1
-			file["x"][:] = x[i0:(i0+x_size-1)] .* lref
-			file["y"][:] = y[j0:(j0+y_size-1)] .* lref
-		end
+        # Write the time.
+        HDF5.set_extent_dims(file["t"], (iout,))
+        file["t"][iout] = time * tref
+
+        # Write the horizontal grid.
+        if iout == 1
+            file["x"][iid] = x[ii] .* lref
+            file["y"][jjd] = y[jj] .* lref
+        end
 
         # Write the vertical grid.
         if iout == 1
@@ -367,7 +372,7 @@ function write_output(
 		end
 
 		# Write WKB variables.
-		if typeof(test_case) <: AbstractWKBTestCase
+        if wkb_mode != NoWKB()
 
 			# Write ray-volume properties.
 			if prepare_restart || save_ray_volumes

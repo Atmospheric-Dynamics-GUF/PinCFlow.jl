@@ -20,7 +20,6 @@ function create_output(state::State)
 	(; model, test_case) = state.namelists.setting
 	(; comm) = state.domain
 	(; nray_max) = state.wkb
-	(; nxnscxx, nynscyy, nznsczz) = state.ice.subgrid
 
 	# Set the chunk dimensions.
 	cr = nray_max
@@ -90,26 +89,26 @@ function create_output(state::State)
 			end
 
 			if model == Compressible()
-				create_dataset(
-					file,
-					"p",
-					datatype(Float32),
-					dataspace(
-						(x_size, y_size, z_size, 0),
-						(x_size, y_size, z_size, -1),
-					);
-					chunk = (cx, cy, cz, ct),
-				)
-			else
-				create_dataset(
-					file,
-					"p",
-					datatype(Float32),
-					dataspace((x_size, y_size, z_size));
-					chunk = (cx, cy, cz),
-				)
-			end
-		end
+                create_dataset(
+                    file,
+                    "p",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            else
+                create_dataset(
+                    file,
+                    "p",
+                    datatype(Float32),
+                    dataspace((x_size, y_size, z_size));
+                    chunk = (cx, cy, cz),
+                )
+            end
+        end
 
 		# Create datasets for the prognostic variables.
 		if prepare_restart || :rhop in output_variables
@@ -258,6 +257,22 @@ function create_output(state::State)
 					chunk = (cx, cy, cz, ct),
 				)
 			end
+
+			if state.namelists.tracer.leading_order_impact &&
+               :dchidt in output_variables
+                for field in fieldnames(TracerWKBImpact)
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
 		end
 
 		if !(typeof(state.namelists.ice.icesetup) <: NoIce)
@@ -290,24 +305,9 @@ function create_output(state::State)
 			end
 		end
 
-		if state.namelists.tracer.leading_order_impact &&
-		   :dchidt in output_variables
-			for field in fieldnames(TracerWKBImpact)
-				create_dataset(
-					file,
-					string(field),
-					datatype(Float32),
-					dataspace(
-						(x_size, y_size, z_size, 0),
-						(x_size, y_size, z_size, -1),
-					);
-					chunk = (cx, cy, cz, ct),
-				)
-			end
-		end
-
-		# Create datasets for WKB variables.
-		if typeof(test_case) <: AbstractWKBTestCase
+	
+        # Create datasets for WKB variables.
+        if wkb_mode != NoWKB()
 
 			# Create datasets for ray-volume properties.
 			if prepare_restart || save_ray_volumes

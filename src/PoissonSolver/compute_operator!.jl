@@ -42,11 +42,11 @@ function compute_operator!(
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
 )
-    (; nbz) = state.namelists.domain
+    (; z_size, nbz) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-    (; model) = state.namelists.setting
+    (; model) = state.namelists.atmosphere
     (; gamma, rsp, pref, kappa) = state.constants
-    (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; pbar, rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
@@ -437,7 +437,7 @@ function compute_operator!(
                 met[i, j, k, 1, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredger / rhoedger
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             gedger =
                 jacinv / dx * pedgerdiv * imphoredger / rhoedger -
                 jacinv / dz *
@@ -489,7 +489,7 @@ function compute_operator!(
                 met[i, j, k, 1, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgel / rhoedgel
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             gedgel =
                 -jacinv / dx * pedgeldiv * imphoredgel / rhoedgel -
                 jacinv / dz *
@@ -541,7 +541,7 @@ function compute_operator!(
                 met[i, j, k, 2, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgef / rhoedgef
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             gedgef =
                 jacinv / dy * pedgefdiv * imphoredgef / rhoedgef -
                 jacinv / dz *
@@ -593,7 +593,7 @@ function compute_operator!(
                 met[i, j, k, 2, 3] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgeb / rhoedgeb
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             gedgeb =
                 -jacinv / dy * pedgebdiv * imphoredgeb / rhoedgeb -
                 jacinv / dz *
@@ -632,7 +632,7 @@ function compute_operator!(
         end
 
         # G(k + 1 / 2)
-        if ko + k == zz_size - nbz
+        if ko + k == z_size + nbz
             gedgeu = 0.0
         else
             gedgeu = jacinv / dz * pedgeudiv * impveredgeu / rhoedgeu
@@ -646,7 +646,7 @@ function compute_operator!(
         end
 
         # G(i + 1 / 2, k + 1)
-        if ko + k == zz_size - nbz
+        if ko + k == z_size + nbz
             guedger = 0.0
         else
             guedger =
@@ -663,7 +663,7 @@ function compute_operator!(
         end
 
         # G(i - 1 / 2, k + 1)
-        if ko + k == zz_size - nbz
+        if ko + k == z_size + nbz
             guedgel = 0.0
         else
             guedgel =
@@ -680,7 +680,7 @@ function compute_operator!(
         end
 
         # G(j + 1 / 2, k + 1)
-        if ko + k == zz_size - nbz
+        if ko + k == z_size + nbz
             guedgef = 0.0
         else
             guedgef =
@@ -697,7 +697,7 @@ function compute_operator!(
         end
 
         # G(j - 1 / 2, k + 1)
-        if ko + k == zz_size - nbz
+        if ko + k == z_size + nbz
             guedgeb = 0.0
         else
             guedgeb =
@@ -810,7 +810,7 @@ function compute_operator!(
                 gdedgel * pdedgelgra * met13dedgel / dz +
                 gdedgef * pdedgefgra * met23dedgef / dz +
                 gdedgeb * pdedgebgra * met23dedgeb / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             ac =
                 -gedger * pedgergra / dx + gedgel * pedgelgra / dx -
                 gedgef * pedgefgra / dy + gedgeb * pedgebgra / dy -
@@ -824,7 +824,7 @@ function compute_operator!(
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz +
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz +
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             ac =
                 -gedger * pedgergra * (1.0 / dx - 0.75 * met13edger / dz) +
                 gedgel * pedgelgra * (1.0 / dx + 0.75 * met13edgel / dz) -
@@ -878,7 +878,7 @@ function compute_operator!(
                 jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) -
                 guedger * puedgergra * 0.25 * met13uedger / dz +
                 gdedger * pdedgergra * met13dedger / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             ar =
                 gedger * pedgergra / dx +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -888,7 +888,7 @@ function compute_operator!(
                 jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) -
                 guedger * puedgergra * met13uedger / dz +
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             ar =
                 gedger * pedgergra * (1.0 / dx + 0.75 * met13edger / dz) +
                 gedged * pedgedgra * 0.5 * met13edged / dx *
@@ -927,7 +927,7 @@ function compute_operator!(
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 gdedgel * pdedgelgra * met13dedgel / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             al =
                 -gedgel * pedgelgra / dx -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -938,7 +938,7 @@ function compute_operator!(
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 guedgel * puedgelgra * met13uedgel / dz +
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             al =
                 -gedgel * pedgelgra * (1.0 / dx - 0.75 * met13edgel / dz) -
                 gedged * pedgedgra * 0.5 * met13edged / dx *
@@ -977,7 +977,7 @@ function compute_operator!(
                 jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) -
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 gdedgef * pdedgefgra * met23dedgef / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             af =
                 gedgef * pedgefgra / dy +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -987,7 +987,7 @@ function compute_operator!(
                 jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) -
                 guedgef * puedgefgra * met23uedgef / dz +
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             af =
                 gedgef * pedgefgra * (1.0 / dy + 0.75 * met23edgef / dz) +
                 gedged * pedgedgra * 0.5 * met23edged / dy *
@@ -1026,7 +1026,7 @@ function compute_operator!(
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz +
                 gdedgeb * pdedgebgra * met23dedgeb / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             ab =
                 -gedgeb * pedgebgra / dy -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -1037,7 +1037,7 @@ function compute_operator!(
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 guedgeb * puedgebgra * met23uedgeb / dz +
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             ab =
                 -gedgeb * pedgebgra * (1.0 / dy - 0.75 * met23edgeb / dz) -
                 gedged * pedgedgra * 0.5 * met23edged / dy *
@@ -1081,7 +1081,7 @@ function compute_operator!(
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             au =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgel * pedgelgra * 0.25 * met13edgel / dz +
@@ -1092,7 +1092,7 @@ function compute_operator!(
                 guedgel * puedgelgra * (1.0 / dx + 0.75 * met13uedgel / dz) -
                 guedgef * puedgefgra * (1.0 / dy - 0.75 * met23uedgef / dz) +
                 guedgeb * puedgebgra * (1.0 / dy + 0.75 * met23uedgeb / dz)
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             au = 0.0
         else
             au =
@@ -1120,7 +1120,7 @@ function compute_operator!(
                 gdedgel * pdedgelgra * (1.0 / dx - 0.75 * met13dedgel / dz) -
                 gdedgef * pdedgefgra * (1.0 / dy + 0.75 * met23dedgef / dz) +
                 gdedgeb * pdedgebgra * (1.0 / dy - 0.75 * met23dedgeb / dz)
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             ad =
                 -gedger * pedgergra * 0.25 * met13edger / dz -
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
@@ -1134,7 +1134,7 @@ function compute_operator!(
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             ad =
                 -gedger * pedgergra * met13edger / dz -
                 gedgel * pedgelgra * met13edgel / dz -
@@ -1169,13 +1169,13 @@ function compute_operator!(
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) +
                 guedger * puedgergra / dx -
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             aru =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) +
                 guedger * puedgergra * (1.0 / dx + 0.75 * met13uedger / dz)
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             aru = 0.0
         else
             aru =
@@ -1195,14 +1195,14 @@ function compute_operator!(
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) +
                 gdedger * pdedgergra * (1.0 / dx - 0.75 * met13dedger / dz)
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             ard =
                 -gedger * pedgergra * 0.25 * met13edger / dz +
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) +
                 gdedger * pdedgergra / dx +
                 guedger * puedgergra * 0.25 * met13uedger / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             ard =
                 -gedger * pedgergra * met13edger / dz +
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
@@ -1231,13 +1231,13 @@ function compute_operator!(
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra / dx -
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             alu =
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra * (1.0 / dx - 0.75 * met13uedgel / dz)
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             alu = 0.0
         else
             alu =
@@ -1257,14 +1257,14 @@ function compute_operator!(
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 gdedgel * pdedgelgra * (1.0 / dx + 0.75 * met13dedgel / dz)
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             ald =
                 -gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 gdedgel * pdedgelgra / dx +
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             ald =
                 -gedgel * pedgelgra * met13edgel / dz -
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
@@ -1293,13 +1293,13 @@ function compute_operator!(
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) +
                 guedgef * puedgefgra / dy -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             afu =
                 gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) +
                 guedgef * puedgefgra * (1.0 / dy + 0.75 * met23uedgef / dz)
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             afu = 0.0
         else
             afu =
@@ -1319,14 +1319,14 @@ function compute_operator!(
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) +
                 gdedgef * pdedgefgra * (1.0 / dy - 0.75 * met23dedgef / dz)
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             afd =
                 -gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) +
                 gdedgef * pdedgefgra / dy +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             afd =
                 -gedgef * pedgefgra * met23edgef / dz +
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
@@ -1355,13 +1355,13 @@ function compute_operator!(
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra / dy -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             abu =
                 gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra * (1.0 / dy - 0.75 * met23uedgeb / dz)
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             abu = 0.0
         else
             abu =
@@ -1381,14 +1381,14 @@ function compute_operator!(
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 gdedgeb * pdedgebgra * (1.0 / dy + 0.75 * met23dedgeb / dz)
-        elseif ko + k == zz_size - nbz - 1
+        elseif ko + k == z_size + nbz - 1
             abd =
                 -gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 gdedgeb * pdedgebgra / dy +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             abd =
                 -gedgeb * pedgebgra * met23edgeb / dz -
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
@@ -1414,7 +1414,7 @@ function compute_operator!(
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k >= zz_size - nbz - 1
+        elseif ko + k >= z_size + nbz - 1
             auu = 0.0
         else
             auu =
@@ -1428,7 +1428,7 @@ function compute_operator!(
 
         if ko + k <= k0 + 1
             add = 0.0
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             add =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgel * pedgelgra * 0.25 * met13edgel / dz +
@@ -1452,7 +1452,7 @@ function compute_operator!(
             aruu =
                 -gedger * pedgergra * 0.25 * met13edger / dz +
                 guedger * puedgergra * 0.25 * met13uedger / dz
-        elseif ko + k >= zz_size - nbz - 1
+        elseif ko + k >= z_size + nbz - 1
             aruu = 0.0
         else
             aruu = guedger * puedgergra * 0.25 * met13uedger / dz
@@ -1462,7 +1462,7 @@ function compute_operator!(
 
         if ko + k <= k0 + 1
             ardd = 0.0
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             ardd =
                 gedger * pedgergra * 0.25 * met13edger / dz -
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
@@ -1476,7 +1476,7 @@ function compute_operator!(
             aluu =
                 -gedgel * pedgelgra * 0.25 * met13edgel / dz +
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz
-        elseif ko + k >= zz_size - nbz - 1
+        elseif ko + k >= z_size + nbz - 1
             aluu = 0.0
         else
             aluu = guedgel * puedgelgra * 0.25 * met13uedgel / dz
@@ -1486,7 +1486,7 @@ function compute_operator!(
 
         if ko + k <= k0 + 1
             aldd = 0.0
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             aldd =
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
@@ -1500,7 +1500,7 @@ function compute_operator!(
             afuu =
                 -gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz
-        elseif ko + k >= zz_size - nbz - 1
+        elseif ko + k >= z_size + nbz - 1
             afuu = 0.0
         else
             afuu = guedgef * puedgefgra * 0.25 * met23uedgef / dz
@@ -1510,7 +1510,7 @@ function compute_operator!(
 
         if ko + k <= k0 + 1
             afdd = 0.0
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             afdd =
                 gedgef * pedgefgra * 0.25 * met23edgef / dz -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
@@ -1524,7 +1524,7 @@ function compute_operator!(
             abuu =
                 -gedgeb * pedgebgra * 0.25 * met23edgeb / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k >= zz_size - nbz - 1
+        elseif ko + k >= z_size + nbz - 1
             abuu = 0.0
         else
             abuu = guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
@@ -1534,7 +1534,7 @@ function compute_operator!(
 
         if ko + k <= k0 + 1
             abdd = 0.0
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             abdd =
                 gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz

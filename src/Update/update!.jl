@@ -19,11 +19,11 @@ Return in Boussinesq mode (the density is constant).
 
 ```julia
 update!(
-	state::State,
-	dt::AbstractFloat,
-	m::Integer,
-	variable::Rho,
-	model::AbstractModel,
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
 )
 ```
 
@@ -362,7 +362,12 @@ update!(state::State, dt::AbstractFloat, variable::PiP)
 Update the Exner-pressure if the atmosphere is compressible by dispatching to the appropriate method.
 
 ```julia
-update!(state::State, dt::AbstractFloat, variable::PiP, model::AbstractModel)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::PiP,
+    model::Union{Boussinesq, PseudoIncompressible},
+)
 ```
 
 Return in non-compressible modes.
@@ -392,11 +397,11 @@ Update the mass-weighted potential temperature if the atmosphere is compressible
 
 ```julia
 update!(
-	state::State,
-	dt::AbstractFloat,
-	m::Integer,
-	variable::P,
-	model::AbstractModel,
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 ```
 
@@ -430,12 +435,7 @@ update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::NoTracer)
 Return for configurations without tracer transport.
 
 ```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracer_setup::AbstractTracer,
-)
+update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::TracerOn)
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
@@ -488,9 +488,9 @@ The update is given by
 function update! end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
-	(; model) = state.namelists.setting
-	update!(state, dt, m, variable, model)
-	return
+    (; model) = state.namelists.atmosphere
+    update!(state, dt, m, variable, model)
+    return
 end
 
 function update!(
@@ -504,11 +504,11 @@ function update!(
 end
 
 function update!(
-	state::State,
-	dt::AbstractFloat,
-	m::Integer,
-	variable::Rho,
-	model::AbstractModel,
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
 )
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; dx, dy, dz, jac) = state.grid
@@ -622,8 +622,8 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
-    (; nbz) = state.namelists.domain
-    (; zz_size, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size, nbz) = state.namelists.domain
+    (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; betar) = state.sponge
     (; g_ndim) = state.constants
@@ -666,7 +666,7 @@ function update!(
         if ko + k == k0
             lower_gradient = 0.0
             lower_force = 0.0
-        elseif ko + k == zz_size - nbz
+        elseif ko + k == z_size + nbz
             upper_gradient = 0.0
             upper_force = 0.0
         end
@@ -722,7 +722,8 @@ function update!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhobar) = state.atmosphere
     (; du) = state.variables.increments
@@ -753,7 +754,7 @@ function update!(
 
         # Explicit integration of Coriolis force in TFC.
         uold[i, j, k] = u[i, j, k]
-        if k == k1 && ko + nzz != zz_size
+        if k == k1 && ko + nz != z_size
             uold[i, j, k + 1] = u[i, j, k + 1]
         end
         vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
@@ -830,14 +831,15 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
+    (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; betar) = state.sponge
     (; rho, u, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -875,10 +877,11 @@ function update!(
 	variable::V,
 	side::LHS,
 )
+    (; z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhobar) = state.atmosphere
     (; dv) = state.variables.increments
@@ -909,7 +912,7 @@ function update!(
 
         # Explicit integration of Coriolis force in TFC.
         vold[i, j, k] = v[i, j, k]
-        if k == k1 && ko + nzz != zz_size
+        if k == k1 && ko + nz != z_size
             vold[i, j, k + 1] = v[i, j, k + 1]
         end
         uc = 0.5 * (uold[i, j, k] + uold[i - 1, j, k])
@@ -983,14 +986,15 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
+    (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; betar) = state.sponge
     (; rho, v, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -1028,10 +1032,11 @@ function update!(
 	variable::W,
 	side::LHS,
 )
+    (; z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; dx, dy, dz, jac, met) = grid
     (; rhobar) = state.atmosphere
@@ -1050,7 +1055,7 @@ function update!(
 	end
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 - 1 : k1
+    kmax = ko + nz == z_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
@@ -1187,15 +1192,16 @@ function update!(
 	side::RHS,
 	integration::Explicit,
 )
+    (; z_size) = state.namelists.domain
     (; g_ndim) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; rhobar) = state.atmosphere
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 - 1 : k1
+    kmax = ko + nz == z_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
@@ -1240,15 +1246,16 @@ function update!(
 	integration::Implicit,
 	rayleigh_factor::AbstractFloat,
 )
+    (; z_size) = state.namelists.domain
     (; g_ndim) = state.constants
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 - 1 : k1
+    kmax = ko + nz == z_size ? k1 - 1 : k1
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
@@ -1329,16 +1336,16 @@ function update!(
 end
 
 function update!(state::State, dt::AbstractFloat, variable::PiP)
-	(; model) = state.namelists.setting
-	update!(state, dt, variable, model)
-	return
+    (; model) = state.namelists.atmosphere
+    update!(state, dt, variable, model)
+    return
 end
 
 function update!(
-	state::State,
-	dt::AbstractFloat,
-	variable::PiP,
-	model::AbstractModel,
+    state::State,
+    dt::AbstractFloat,
+    variable::PiP,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 	return
 end
@@ -1378,17 +1385,17 @@ function update!(
 end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
-	(; model) = state.namelists.setting
-	update!(state, dt, m, variable, model)
-	return
+    (; model) = state.namelists.atmosphere
+    update!(state, dt, m, variable, model)
+    return
 end
 
 function update!(
-	state::State,
-	dt::AbstractFloat,
-	m::Integer,
-	variable::P,
-	model::AbstractModel,
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+    model::Union{Boussinesq, PseudoIncompressible},
 )
 	return
 end
@@ -1446,13 +1453,12 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
-    (; test_case) = state.namelists.setting
 
     @ivy for field in 1:fieldcount(TracerPredictands)
         if m == 1
@@ -1475,7 +1481,7 @@ function update!(
 			fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
 			fluxdiff /= jac[i, j, k]
 
-            force = compute_volume_force(state, i, j, k, Chi(), test_case)
+            force = compute_volume_force(state, i, j, k, Chi())
             f = -fluxdiff + force
 
             dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]

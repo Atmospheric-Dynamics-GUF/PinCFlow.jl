@@ -6,12 +6,12 @@ set_tracer_meridional_boundaries!(
 )
 ```
 
-Enforce meridional boundary conditions for tracers by dispatching to a tracer-configuration-specific method.
+Enforce meridional boundary conditions for tracers by dispatching to the appropriate method.
 
 ```julia
 set_tracer_meridional_boundaries!(
     state::State,
-    variables::BoundaryPredictands,
+    variables::AbstractBoundaryVariables,
     tracer_setup::NoTracer,
 )
 ```
@@ -22,75 +22,51 @@ Return for configurations without tracer transport.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
-Enforce meridional boundary conditions for tracers.
+Enforce meridional boundary conditions for tracer predictands.
 
 ```julia
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::NoTracer,
+    tracer_setup::TracerOn,
 )
 ```
 
-Return for configurations without tracer transport.
+Enforce meridional boundary conditions for tracer reconstructions.
 
 ```julia
 set_tracer_meridional_boundaries!(
     state::State,
-    variables::BoundaryReconstructions,
-    tracer_setup::AbstractTracer,
+    variables::AbstractBoundaryWKBVariables,
+    tracer_setup::TracerOn,
 )
 ```
 
-Enforce meridional boundary conditions for reconstructions of tracers.
-
-```julia
-set_tracer_meridional_boundaries!(
-    state::State,
-    variables::BoundaryWKBIntegrals,
-    wkb_model::AbstractWKBMode,
-    tracer_setup::NoTracer,
-)
-```
-
-Return for configurations without tracer transport.
+Enforce meridional boundary conditions for tracer WKB quantities by dispatching to the appropriate method.
 
 ```julia
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::AbstractTracer,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )
 ```
 
-Enforce meridional boundary conditions for tracer-gravity-wave-integral fields.
+Enforce meridional boundary conditions for tracer WKB integrals.
 
 ```julia
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::NoTracer,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )
 ```
 
-Return for configurations without tracer transport.
-
-```julia
-set_tracer_meridional_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::AbstractTracer,
-)
-```
-
-Enforce meridional boundary conditions for tracer-gravity-wave-tendency fields.
+Enforce meridional boundary conditions for tracer WKB tendencies.
 
 # Arguments
 
@@ -119,7 +95,7 @@ end
 
 function set_tracer_meridional_boundaries!(
     state::State,
-    variables::BoundaryPredictands,
+    variables::AbstractBoundaryVariables,
     tracer_setup::NoTracer,
 )
     return
@@ -128,7 +104,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
@@ -147,15 +123,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::NoTracer,
-)
-    return
-end
-
-function set_tracer_meridional_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
-    tracer_setup::AbstractTracer,
+    tracer_setup::TracerOn,
 )
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
@@ -173,18 +141,18 @@ end
 
 function set_tracer_meridional_boundaries!(
     state::State,
-    variables::BoundaryWKBIntegrals,
-    wkb_model::AbstractWKBMode,
-    tracer_setup::NoTracer,
+    variables::AbstractBoundaryWKBVariables,
+    tracer_setup::TracerOn,
 )
+    (; wkb_mode) = state.namelists.wkb
+    set_tracer_meridional_boundaries!(state, variables, wkb_mode)
     return
 end
 
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::AbstractTracer,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )
     (; namelists, domain) = state
     (; chiq0) = state.tracer.tracerforcings
@@ -204,17 +172,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::NoTracer,
-)
-    return
-end
-
-function set_tracer_meridional_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    tracer_setup::AbstractTracer,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )
     (; namelists, domain) = state
     (; chiq0) = state.tracer.tracerforcings

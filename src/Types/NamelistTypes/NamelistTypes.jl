@@ -38,24 +38,6 @@ abstract type AbstractModel end
 
 """
 ```julia
-AbstractTestCase
-```
-
-Abstract type for model test cases.
-"""
-abstract type AbstractTestCase end
-
-"""
-```julia
-AbstractSponge
-```
-
-Abstract type for sponge configurations.
-"""
-abstract type AbstractSponge end
-
-"""
-```julia
 AbstractMergeMode
 ```
 
@@ -71,15 +53,6 @@ AbstractWKBMode
 Abstract type for approximations in WKB theory.
 """
 abstract type AbstractWKBMode end
-
-"""
-```julia
-AbstractWKBTestCase <: AbstractTestCase
-```
-
-Abstract type for WKB test cases.
-"""
-abstract type AbstractWKBTestCase <: AbstractTestCase end
 
 """
 ```julia
@@ -200,60 +173,6 @@ struct Compressible <: AbstractModel end
 
 """
 ```julia
-MountainWave <: AbstractTestCase
-```
-
-Singleton for mountain-wave test cases.
-"""
-struct MountainWave <: AbstractTestCase end
-
-"""
-```julia
-WKBMountainWave <: AbstractWKBTestCase
-```
-
-Singleton for WKB-mountain-wave test cases.
-"""
-struct WKBMountainWave <: AbstractWKBTestCase end
-
-"""
-```julia
-ExponentialSponge <: AbstractSponge
-```
-
-Singleton for an exponentially increasing Rayleigh damping in the entire Domain.
-"""
-struct ExponentialSponge <: AbstractSponge end
-
-"""
-```julia
-COSMOSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration similar to that used in the COSMO model (squared cosine with time-step-dependent maximum).
-"""
-struct COSMOSponge <: AbstractSponge end
-
-"""
-```julia
-PolynomialSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration with polynomial profiles.
-"""
-struct PolynomialSponge <: AbstractSponge end
-
-"""
-```julia
-SinusoidalSponge <: AbstractSponge
-```
-
-Singleton for a sponge configuration with sinusoidal profiles.
-"""
-struct SinusoidalSponge <: AbstractSponge end
-
-"""
-```julia
 ConstantWaveAction <: AbstractMergeMode
 ```
 
@@ -269,6 +188,15 @@ ConstantWaveEnergy <: AbstractMergeMode
 Singleton for the constant-wave-energy ray-volume merging algorithm.
 """
 struct ConstantWaveEnergy <: AbstractMergeMode end
+
+"""
+```julia
+NoWKB <: AbstractWKBMode
+```
+
+Singleton for switching off MSGWaM.
+"""
+struct NoWKB <: AbstractWKBMode end
 
 """
 ```julia
@@ -373,7 +301,6 @@ using ...PinCFlow
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
-include("SettingNamelist.jl")
 include("DiscretizationNamelist.jl")
 include("PoissonNamelist.jl")
 include("AtmosphereNamelist.jl")
@@ -389,11 +316,8 @@ include("Namelists.jl")
 export AbstractBackground,
     AbstractLimiter,
     AbstractModel,
-    AbstractTestCase,
-    AbstractSponge,
     AbstractMergeMode,
     AbstractWKBMode,
-    AbstractWKBTestCase,
     AbstractWKBFilter,
     AbstractTracer,
     AbstractIce,
@@ -411,15 +335,10 @@ export UniformBoussinesq,
     Boussinesq,
     PseudoIncompressible,
     Compressible,
-    MountainWave,
-    WKBMountainWave,
     WavePacket,
-    ExponentialSponge,
-    COSMOSponge,
-    PolynomialSponge,
-    SinusoidalSponge,
     ConstantWaveAction,
     ConstantWaveEnergy,
+    NoWKB,
     SteadyState,
     SingleColumn,
     MultiColumn,
@@ -437,7 +356,6 @@ export UniformBoussinesq,
 
 export DomainNamelist,
     OutputNamelist,
-    SettingNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,

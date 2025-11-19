@@ -3,25 +3,13 @@
 shift_rays!(state::State)
 ```
 
-Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a test-case-specific method.
-
-```julia
-shift_rays!(state::State, test_case::AbstractTestCase)
-```
-
-Return for non-WKB test cases.
-
-```julia
-shift_rays!(state::State, test_case::AbstractWKBTestCase)
-```
-
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a WKB-mode-specific method.
 
 ```julia
-shift_rays!(state::State, wkb_mode::SteadyState)
+shift_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
 ```
 
-Return for steady-state mode.
+Return for configurations without WKB / with steady-state WKB.
 
 ```julia
 shift_rays!(state::State, wkb_mode::SingleColumn)
@@ -67,8 +55,6 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 
   - `state`: Model state.
 
-  - `test_case`: Test case on which the current simulation is based.
-
   - `wkb_mode`: Approximations used by MSGWaM.
 
   - `direction`: Shift direction.
@@ -92,22 +78,12 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 function shift_rays! end
 
 function shift_rays!(state::State)
-    (; test_case) = state.namelists.setting
-    shift_rays!(state, test_case)
-    return
-end
-
-function shift_rays!(state::State, test_case::AbstractTestCase)
-    return
-end
-
-function shift_rays!(state::State, test_case::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     shift_rays!(state, wkb_mode)
     return
 end
 
-function shift_rays!(state::State, wkb_mode::SteadyState)
+function shift_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
     return
 end
 
@@ -150,12 +126,13 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
 end
 
 function shift_rays!(state::State, direction::X)
-    (; zz_size, nzz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -183,12 +160,13 @@ function shift_rays!(state::State, direction::X)
 end
 
 function shift_rays!(state::State, direction::Y)
-    (; zz_size, nzz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; z_size) = state.namelists.domain
+    (; nz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -217,11 +195,12 @@ end
 
 function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
-    (; zz_size, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; z_size) = state.namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nzz == zz_size ? k1 : k1 + 1
+    kmax = ko + nz == z_size ? k1 : k1 + 1
 
     @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]

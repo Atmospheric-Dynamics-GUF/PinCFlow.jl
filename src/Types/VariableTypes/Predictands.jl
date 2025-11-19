@@ -90,15 +90,15 @@ function Predictands(
     ) = namelists.atmosphere
     (; model, test_case) = namelists.setting
     (; lref, rhoref, thetaref, uref) = constants
-    (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz, io, jo) = domain
+    (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; x, y, zc, met, jac) = grid
     (; rhobar, thetabar) = atmosphere
 
     (rho, rhop, thetap, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:7)
 
     @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
-        xdim = x[io + i] * lref
-        ydim = y[jo + j] * lref
+        xdim = x[i] * lref
+        ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
 
         rhop[i, j, k] = initial_rhop(xdim, ydim, zcdim) / rhoref

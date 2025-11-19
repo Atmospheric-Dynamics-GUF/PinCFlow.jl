@@ -6,7 +6,6 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    test_case::AbstractWKBTestCase,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -15,7 +14,25 @@ compute_topography(
 }
 ```
 
-Compute and return the topography for WKB test cases.
+Compute and return the topography by dispatching to a WKB-mode-specific method.
+
+```julia
+compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)::Tuple{
+    <:AbstractMatrix{<:AbstractFloat},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+}
+```
+
+Compute and return the topography for WKB configurations.
 
 The arrays in the returned tuple represent (in order) the resolved topography, the amplitudes of the unresolved topography, the corresponding zonal wavenumbers and the corresponding meridional wavenumbers.
 
@@ -26,7 +43,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    test_case::AbstractTestCase,
+    wkb_mode::NoWKB,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -35,7 +52,7 @@ compute_topography(
 }
 ```
 
-Compute and return the topography for non-WKB test cases.
+Compute and return the topography for non-WKB configurations.
 
 The arrays representing the unresolved spectrum are set to have the size `(0, 0, 0)`. The topography is represented by the first array in the returned tuple.
 
@@ -51,7 +68,7 @@ The arrays representing the unresolved spectrum are set to have the size `(0, 0,
 
   - `y`: ``\\widehat{y}``-coordinate grid points.
 
-  - `test_case`: Test case on which the current simulation is based.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
@@ -67,7 +84,23 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    test_case::AbstractWKBTestCase,
+)::Tuple{
+    <:AbstractMatrix{<:AbstractFloat},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+    <:AbstractArray{<:AbstractFloat, 3},
+}
+    (; wkb_mode) = namelists.wkb
+    return compute_topography(namelists, constants, domain, x, y, wkb_mode)
+end
+
+function compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -76,7 +109,7 @@ function compute_topography(
 }
     (; wave_modes) = namelists.wkb
     (; resolved_topography, unresolved_topography) = namelists.grid
-    (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
+    (; nxx, nyy, i0, i1, j0, j1) = domain
     (; lref) = constants
 
     hb = zeros(nxx, nyy)
@@ -85,11 +118,11 @@ function compute_topography(
     lh = zeros(wave_modes, nxx, nyy)
 
     @ivy for j in j0:j1, i in i0:i1
-        hbdim = resolved_topography(x[io + i] * lref, y[jo + j] * lref)
+        hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
         for alpha in 1:wave_modes
             (khdim, lhdim, hwdim) =
-                unresolved_topography(alpha, x[io + i] * lref, y[jo + j] * lref)
+                unresolved_topography(alpha, x[i] * lref, y[j] * lref)
             kh[alpha, i, j] = khdim * lref
             lh[alpha, i, j] = lhdim * lref
             hw[alpha, i, j] = hwdim / lref
@@ -108,7 +141,7 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    test_case::AbstractTestCase,
+    wkb_mode::NoWKB,
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -116,7 +149,7 @@ function compute_topography(
     <:AbstractArray{<:AbstractFloat, 3},
 }
     (; resolved_topography) = namelists.grid
-    (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
+    (; nxx, nyy, i0, i1, j0, j1) = domain
     (; lref) = constants
 
     hb = zeros(nxx, nyy)
@@ -125,7 +158,7 @@ function compute_topography(
     lh = zeros(0, 0, 0)
 
     @ivy for j in j0:j1, i in i0:i1
-        hbdim = resolved_topography(x[io + i] * lref, y[jo + j] * lref)
+        hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
     end
 

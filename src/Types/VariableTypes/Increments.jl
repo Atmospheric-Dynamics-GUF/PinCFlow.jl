@@ -72,7 +72,7 @@ struct Increments{
 end
 
 function Increments(namelists::Namelists, domain::Domain)::Increments
-    (; model) = namelists.setting
+    (; model) = namelists.atmosphere
 
     return Increments(domain, model)
 end

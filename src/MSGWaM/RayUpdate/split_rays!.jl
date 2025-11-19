@@ -3,25 +3,13 @@
 split_rays!(state::State)
 ```
 
-Split ray volumes that have become larger than the local grid cell by dispatching to a test-case-specific method.
-
-```julia
-split_rays!(state::State, test_case::AbstractTestCase)
-```
-
-Return for non-WKB test cases.
-
-```julia
-split_rays!(state::State, test_case::AbstractWKBTestCase)
-```
-
 Split ray volumes that have become larger than the local grid cell by dispatching to a WKB-mode-specific method.
 
 ```julia
-split_rays!(state::State, wkb_mode::SteadyState)
+split_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
 ```
 
-Return for steady-state mode.
+Return for configurations without WKB / with steady-state WKB.
 
 ```julia
 split_rays!(state::State, wkb_mode::SingleColumn)
@@ -65,8 +53,6 @@ The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 
   - `state`: Model state.
 
-  - `test_case`: Test case on which the current simulation is based.
-
   - `wkb_mode`: Approximations used by MSGWaM.
 
   - `i`: Grid-cell index in ``\\widehat{x}``-direction
@@ -86,22 +72,12 @@ The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 function split_rays! end
 
 function split_rays!(state::State)
-    (; test_case) = state.namelists.setting
-    split_rays!(state, test_case)
-    return
-end
-
-function split_rays!(state::State, test_case::AbstractTestCase)
-    return
-end
-
-function split_rays!(state::State, test_case::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     split_rays!(state, wkb_mode)
     return
 end
 
-function split_rays!(state::State, wkb_mode::SteadyState)
+function split_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
     return
 end
 
