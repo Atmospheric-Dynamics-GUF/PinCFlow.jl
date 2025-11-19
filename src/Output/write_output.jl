@@ -76,34 +76,34 @@ function write_output(
 	iout::Integer,
 	machine_start_time::DateTime,
 )::Integer
-    (; domain, grid) = state
-    (; x_size, y_size, z_size) = state.namelists.domain
-    (; prepare_restart, save_ray_volumes, output_variables, output_file) =
-        state.namelists.output
-    (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
-    (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; tref, lref, rhoref, thetaref, uref) = state.constants
-    (; x, y, zc, zctilde) = grid
-    (; rhobar, thetabar, n2, pbar) = state.atmosphere
-    (; predictands) = state.variables
-    (; rho, rhop, u, v, w, pip, p) = predictands
-    (; nray_max, rays, tendencies) = state.wkb
+	(; domain, grid) = state
+	(; x_size, y_size, z_size) = state.namelists.domain
+	(; prepare_restart, save_ray_volumes, output_variables, output_file) =
+		state.namelists.output
+	(; model) = state.namelists.atmosphere
+	(; wkb_mode) = state.namelists.wkb
+	(; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+	(; tref, lref, rhoref, thetaref, uref) = state.constants
+	(; x, y, zc, zctilde) = grid
+	(; rhobar, thetabar, n2, pbar) = state.atmosphere
+	(; predictands) = state.variables
+	(; rho, rhop, u, v, w, pip, p) = predictands
+	(; nray_max, rays, tendencies) = state.wkb
 	(; nscx, nscy, nscz) = state.namelists.ice
 	(; sizex2, sizey2, sizez2,
 		i02, j02, k02,
 		i12, j12, k12,
 		x2, y2, z2tfc) = state.ice.subgrid
 
-    # Print information.
-    if master
-        println(repeat("-", 80))
-        println("Output into file ", output_file)
-        println("Physical time: ", time * tref, " s")
-        println("Machine time: ", canonicalize(now() - machine_start_time))
-        println(repeat("-", 80))
-        println("")
-    end
+	# Print information.
+	if master
+		println(repeat("-", 80))
+		println("Output into file ", output_file)
+		println("Physical time: ", time * tref, " s")
+		println("Machine time: ", canonicalize(now() - machine_start_time))
+		println(repeat("-", 80))
+		println("")
+	end
 
 	# Advance output counter.
 	iout += 1
@@ -126,24 +126,24 @@ function write_output(
 		(ko+2-dk0):(ko+nz+1),
 	)
 
-    # Open the file. Note: Fused in-place assignments cannot be used here!
-    @ivy h5open(output_file, "r+", comm) do file
+	# Open the file. Note: Fused in-place assignments cannot be used here!
+	@ivy h5open(output_file, "r+", comm) do file
 
-        # Write the time.
-        HDF5.set_extent_dims(file["t"], (iout,))
-        file["t"][iout] = time * tref
+		# Write the time.
+		HDF5.set_extent_dims(file["t"], (iout,))
+		file["t"][iout] = time * tref
 
-        # Write the horizontal grid.
-        if iout == 1
-            file["x"][iid] = x[ii] .* lref
-            file["y"][jjd] = y[jj] .* lref
-        end
+		# Write the horizontal grid.
+		if iout == 1
+			file["x"][iid] = x[ii] .* lref
+			file["y"][jjd] = y[jj] .* lref
+		end
 
-        # Write the vertical grid.
-        if iout == 1
-            file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
-            file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
-        end
+		# Write the vertical grid.
+		if iout == 1
+			file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
+			file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
+		end
 
 		# Write sub grid.
 		if iout == 1 && !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
@@ -301,7 +301,7 @@ function write_output(
 						kk,
 					] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
 			end
-
+			
 			if state.namelists.tracer.leading_order_impact &&
 			   :dchidt in output_variables
 				for field in (:dchidt,)
@@ -314,7 +314,7 @@ function write_output(
 							ii,
 							jj,
 							kk,
-						] ./ tref
+						] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
 				end
 				for field in (:uchi, :vchi, :wchi)
 					HDF5.set_extent_dims(
@@ -326,7 +326,7 @@ function write_output(
 							ii,
 							jj,
 							kk,
-						] .* uref
+						] .* uref ./ rhobar[ii, jj, kk]
 				end
 			end
 		end
@@ -372,7 +372,7 @@ function write_output(
 		end
 
 		# Write WKB variables.
-        if wkb_mode != NoWKB()
+		if wkb_mode != NoWKB()
 
 			# Write ray-volume properties.
 			if prepare_restart || save_ray_volumes

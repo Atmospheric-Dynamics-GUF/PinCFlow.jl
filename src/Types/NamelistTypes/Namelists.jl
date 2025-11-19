@@ -62,7 +62,7 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
 
   - `sponge::G`: Namelist for parameters describing the sponge.
 
-  - `wkb::H`: Namelist for parameters used by MSGWaM.
+  - `wkb::H`: Namelist for parameters used by MS-GWaM.
 
   - `tracer::I`: Namelist for parameters configuring tracer transport.
 

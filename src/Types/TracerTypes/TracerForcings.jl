@@ -58,7 +58,7 @@ Construct a `TracerForcings` instance for configurations with tracer transport a
 
   - `tracer_setup`: General tracer-transport configuration.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also:
 

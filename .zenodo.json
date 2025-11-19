@@ -1,20 +1,21 @@
 {
-    "title": "PinCFlow.jl: An idealized-atmospheric-flow solver coupled to the 3D transient gravity-wave model MSGWaM",
-    "description": "PinCFlow.jl is an atmospheric-flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form, using a semi-implicit method that combines explicit and implicit time-stepping schemes. The Lagrangian WKB model MSGWaM is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transience and horizontal propagation.",
+    "title": "PinCFlow.jl: An idealized-atmospheric-flow solver coupled to the 3D transient gravity-wave model MS-GWaM",
+    "description": "PinCFlow.jl (Pseudo-inCompressible Flow solver) is an atmospheric-flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form, using a semi-implicit method that combines explicit and implicit time-stepping schemes. The Lagrangian gravity-wave parameterization MS-GWaM (Multi-Scale Gravity-Wave Model) is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transient wave-mean-flow interaction and horizontal wave propagation.",
     "license": "MIT",
     "upload_type": "software",
     "creators": [
         {
-            "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
+            "affiliation": "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany",
             "name": "Jochum, Felix",
             "orcid": "0009-0006-9267-5006"
         },
         {
-            "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
-            "name": "Knop, Irmgard"
+            "affiliation": "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany",
+            "name": "Knop, Irmgard",
+            "orcid": "0009-0008-3003-091X"
         },
         {
-            "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
+            "affiliation": "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany",
             "name": "Rothermel, Jonas"
         },
         {
@@ -33,16 +34,17 @@
             "orcid": "0000-0002-3456-2277"
         },
         {
-            "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
-            "name": "Dolaptchiev, Stamen"
+            "affiliation": "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany",
+            "name": "Dolaptchiev, Stamen",
+            "orcid": "0000-0002-2410-3739"
         },
         {
-            "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
+            "affiliation": "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany",
             "name": "Klewinghaus, Sandra",
             "orcid": "0009-0009-0858-9845"
         },
         {
-            "affiliation": "Theory of Atmospheric Dynamics and Climate, Goethe University Frankfurt, Germany",
+            "affiliation": "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany",
             "name": "Achatz, Ulrich"
         }
     ],

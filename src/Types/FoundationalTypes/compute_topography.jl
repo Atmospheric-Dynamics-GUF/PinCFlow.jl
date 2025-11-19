@@ -68,7 +68,7 @@ The arrays representing the unresolved spectrum are set to have the size `(0, 0,
 
   - `y`: ``\\widehat{y}``-coordinate grid points.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

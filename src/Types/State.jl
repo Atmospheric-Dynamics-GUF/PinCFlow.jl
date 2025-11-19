@@ -26,7 +26,7 @@ State(namelists::Namelists)::State
 
 Construct a `State` instance and thus initialize the model.
 
-This method first uses the parameters specified in `namelists` to construct instances of the composite types defined in `FoundationalTypes` (i.e. `Constants`, `Time`, `Domain`, `Grid`, `Atmosphere` and `Sponge`). It then uses these instances to prepare the arrays needed for the Poisson solver, the time integration and the parameterization of unresolved gravity waves with MSGWaM. Afterwards, only three operations of the initialization process remain (these are performed by [`PinCFlow.Integration.integrate`](@ref)), namely the initial cleaning, the setting of the initial ray-volume properties and the reading of input data in restart simulations.
+This method first uses the parameters specified in `namelists` to construct instances of the composite types defined in `FoundationalTypes` (i.e. `Constants`, `Time`, `Domain`, `Grid`, `Atmosphere` and `Sponge`). It then uses these instances to prepare the arrays needed for the Poisson solver, the time integration and the parameterization of unresolved gravity waves with MS-GWaM. Afterwards, only three operations of the initialization process remain (these are performed by [`PinCFlow.Integration.integrate`](@ref)), namely the initial cleaning, the setting of the initial ray-volume properties and the reading of input data in restart simulations.
 
 # Fields
 

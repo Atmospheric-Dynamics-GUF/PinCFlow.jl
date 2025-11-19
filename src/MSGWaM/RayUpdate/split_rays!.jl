@@ -53,7 +53,7 @@ The splitting is analogous to that in ``\\widehat{x}`` and ``\\widehat{y}``.
 
   - `state`: Model state.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
   - `i`: Grid-cell index in ``\\widehat{x}``-direction
 

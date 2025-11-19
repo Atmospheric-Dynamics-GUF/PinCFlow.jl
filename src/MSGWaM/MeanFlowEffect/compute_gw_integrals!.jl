@@ -77,7 +77,7 @@ This method computes the sums ``\\overline{\\rho} \\left\\langle u' w' \\right\\
 
   - `state::State`: Model state.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 

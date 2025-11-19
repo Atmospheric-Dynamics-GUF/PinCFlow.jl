@@ -23,7 +23,7 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 
   - `state`: Model state.
 
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `wkb_mode`: Approximations used by MS-GWaM.
 
 # See also
 
