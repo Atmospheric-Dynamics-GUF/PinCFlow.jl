@@ -353,7 +353,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 
 				dotPiPrime = w[i, j, k] * dPdz
 
-				if state.setting.testcase isa WKBMultipleWavePackets
+				if state.namelists.ice.ice_test_case isa WKBMultipleWavePackets
 
 					wPrime = state.ice.sgs.wwp[i, j, k]
 

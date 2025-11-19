@@ -42,10 +42,8 @@ function SubGrid(namelists::Namelists,
 )
 
 	(; nbx, nby, nbz) = namelists.domain
-	(; nscx, nscy, nscz) = namelists.ice
 	(; x_size, y_size, z_size) = namelists.domain
 	(; nx, ny, nz, i0, j0, k0, i1, j1, k1) = domain
-	(; xx_size, yy_size) = domain
 	(; dx, dy, dz) = grid
 
 	sizex2 = x_size
@@ -71,11 +69,8 @@ function SubGrid(namelists::Namelists,
 	j12 = j1
 	k12 = k1
 
-	sizexx2 = xx_size * nscx
-	sizeyy2 = yy_size * nscy
-
-	x2 = zeros(sizexx2)
-	y2 = zeros(sizeyy2)
+	x2 = zeros(nxnscxx)
+	y2 = zeros(nynscyy)
 	z2tfc = zeros(nxnscxx, nynscyy, nznsczz)
 
 	return SubGrid(sizex2, sizey2, sizez2,
@@ -99,8 +94,7 @@ function SubGrid(namelists::Namelists,
 	(; x_size, y_size, z_size) = namelists.domain
 	(; lx, ly, dx, dy, dz) = grid
     (; x, y, zctilde, jac) = grid
-	(; xx_size, yy_size, 
-	nx, ny, nz,
+	(; nx, ny, nz, io, jo, ko,
 	i0, j0, k0, i1, j1, k1) = domain
 
 		dxsc = dx / nscx
@@ -128,17 +122,17 @@ function SubGrid(namelists::Namelists,
 		sizez2 = z_size * nscz
 
 		# Compute sub grid x-coordinate.
-		sizexx2 = xx_size * nscx
-		x2 = zeros(sizexx2)
-		for ix in 1:sizexx2
-			x2[ix] = -lx/2. + (ix - i02) * dxsc + dxsc / 2
+
+		x2 = zeros(nxnscxx)
+		for ix in 1:nxnscxx
+			x2[ix] = -lx/2. + (ix + io - i02) * dxsc + dxsc / 2
 		end
 
 		# Compute y-coordinate.
-		sizeyy2 = yy_size * nscy
-		y2 = zeros(sizeyy2)
-		for jy in 1:sizeyy2
-			y2[jy] = -ly/2. + (jy - j02) * dysc + dysc / 2
+
+		y2 = zeros(nynscyy)
+		for jy in 1:nynscyy
+			y2[jy] = -ly/2. + (jy + jo - j02) * dysc + dysc / 2
 		end
 
 		# Initialize the physical layers.

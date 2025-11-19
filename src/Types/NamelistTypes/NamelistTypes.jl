@@ -279,12 +279,15 @@ Singleton for model configurations with ice physics.
 """
 struct IceOn <: AbstractIce end
 
+abstract type AbstractIceTestCase end
 
-struct WavePacket <: AbstractTestCase end
+struct NoIceTestCase <: AbstractIceTestCase end
 
-struct WKBMultipleWavePackets <: AbstractWKBTestCase end
+struct WavePacket <: AbstractIceTestCase end
 
-struct MultipleWavePackets <: AbstractTestCase end
+struct WKBMultipleWavePackets <: AbstractIceTestCase end
+
+struct MultipleWavePackets <: AbstractIceTestCase end
 
 abstract type AbstractCloudCover end
 
@@ -323,6 +326,7 @@ export AbstractBackground,
     AbstractIce,
     AbstractCloudCover,
     AbstractRandomWavePackets,
+    AbstractIceTestCase,
     AbstractTurbulence
 
 export UniformBoussinesq,
@@ -352,6 +356,7 @@ export UniformBoussinesq,
     RandomWavePackets,
     MultipleWavePackets,
     WKBMultipleWavePackets,
+    NoIceTestCase,
     TracerOn
 
 export DomainNamelist,

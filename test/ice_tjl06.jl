@@ -31,10 +31,6 @@ output = OutputNamelist(;
 	output_file = "./test/pincflow_output.h5",
 )
 
-setting = SettingNamelist(;
-	model = PseudoIncompressible(),
-	test_case = WKBMultipleWavePackets(),
-)
 discretization = DiscretizationNamelist(;
 	cfl_number = 5.0E-1,
 	dtmin = 1.0E-5,
@@ -51,6 +47,7 @@ poisson = PoissonNamelist(;
 	tolerance_is_relative = false,
 )
 atmosphere = AtmosphereNamelist(;
+	model = PseudoIncompressible(),
 	coriolis_frequency = 1.0E-4,
 	kinematic_viscosity = 0.0E+0,
 	thermal_conductivity = 0.0E+0,
@@ -58,6 +55,7 @@ atmosphere = AtmosphereNamelist(;
 
 ice = IceNamelist(;
 	icesetup = IceOn(),
+	ice_test_case = WKBMultipleWavePackets(),
 	dt_ice = 1.0,
 	nscx = 10,
 	nscy = 1,
@@ -102,7 +100,6 @@ multiwavepackets = MultiWavePacketNamelist(; random_wavepackets = true, nwm = 3)
 namelists = Namelists(;
 	domain = domain,
 	output = output,
-	setting = setting,
 	discretization = discretization,
 	poisson = poisson,
 	atmosphere = atmosphere,

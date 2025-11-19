@@ -11,16 +11,16 @@ function compute_msgwam_ice!(state::State, icesetup::NoIce)
 end
 
 function compute_msgwam_ice!(state::State, icesetup::IceOn)
-	(; test_case) = state.namelists.setting
-	compute_msgwam_ice!(state, test_case)
+	(; ice_test_case) = state.namelists.ice
+	compute_msgwam_ice!(state, ice_test_case)
 	return
 end
 
-function compute_msgwam_ice!(state::State, test_case::AbstractTestCase)
+function compute_msgwam_ice!(state::State, ice_test_case::AbstractIceTestCase)
 	return
 end
 
-function compute_msgwam_ice!(state::State, test_case::WKBMultipleWavePackets)
+function compute_msgwam_ice!(state::State, ice_test_case::WKBMultipleWavePackets)
 	(; domain, grid) = state
 	(; x_size, y_size) = state.namelists.domain
 	(; coriolis_frequency) = state.namelists.atmosphere
@@ -102,9 +102,9 @@ function compute_msgwam_ice!(state::State, test_case::WKBMultipleWavePackets)
 									kk2 = (kz - 1) * nscz + kk
 
 									#subcell center
-									xsc = x[ix+io] - dx / 2.0 +
+									xsc = x[ix] - dx / 2.0 +
 										  (ii - 0.5) * dxsc
-									ysc = y[jy+jo] - dy / 2.0 +
+									ysc = y[jy] - dy / 2.0 +
 										  (jj - 0.5) * dysc
 									zsc = zctilde[ix, jy, kz-1] +
 										  (kk - 0.5) * dzsc * jac[ix, jy, kz]
@@ -114,6 +114,13 @@ function compute_msgwam_ice!(state::State, test_case::WKBMultipleWavePackets)
 									dxx = xsc - xr
 									dyy = ysc - yr
 									dzz = zsc - zr
+
+									 #CHANGES
+									#    println("Adding wavepacket at cell: ",
+									# 	   ixrv, ", ", jyrv, ", ", kzrv,
+									# 	   " to subgrid cell: ",
+									# 	   ii2, ", ", jj2, ", ", kk2)
+									# exit(1)
 
 									if abs(dxx) <= dxr / 2 &&
 									   abs(dyy) <= dyr / 2 &&

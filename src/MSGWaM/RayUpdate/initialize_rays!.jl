@@ -83,7 +83,7 @@ function initialize_rays!(
 		cgy_max,
 		cgz_max,
 	) = state.wkb
-	(; icesetup) = state.namelists.ice
+	(; icesetup, ice_test_case) = state.namelists.ice
 
 	# Set Coriolis parameter.
 	fc = coriolis_frequency * tref
@@ -98,18 +98,30 @@ function initialize_rays!(
 	# Compute initial wavenumbers, intrinsic frequencies and wave-action
 	# densities with initial_wave_field.
 	if wkb_mode != SteadyState()
-		for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
-			(kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
-				alpha,
-				x[i] * lref,
-				y[j] * lref,
-				zc[i, j, k] * lref,
+		# CHANGES
+		if ice_test_case == WKBMultipleWavePackets()
+			activate_multiplewavepackets_source!(
+				state,
+				omi_ini,
+				wnk_ini,
+				wnl_ini,
+				wnm_ini,
+				wad_ini,
 			)
-			wnk_ini[alpha, i, j, k] = kdim * lref
-			wnl_ini[alpha, i, j, k] = ldim * lref
-			wnm_ini[alpha, i, j, k] = mdim * lref
-			omi_ini[alpha, i, j, k] = omegadim * tref
-			wad_ini[alpha, i, j, k] = adim / rhoref / uref^2 / tref
+		else
+			for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
+				(kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
+					alpha,
+					x[i] * lref,
+					y[j] * lref,
+					zc[i, j, k] * lref,
+				)
+				wnk_ini[alpha, i, j, k] = kdim * lref
+				wnl_ini[alpha, i, j, k] = ldim * lref
+				wnm_ini[alpha, i, j, k] = mdim * lref
+				omi_ini[alpha, i, j, k] = omegadim * tref
+				wad_ini[alpha, i, j, k] = adim / rhoref / uref^2 / tref
+			end
 		end
 	else
 		println(
@@ -118,16 +130,8 @@ function initialize_rays!(
 		println("")
 	end
 
-	if test_case == WKBMultipleWavePackets()
-		activate_multiplewavepackets_source!(
-			state,
-			omi_ini,
-			wnk_ini,
-			wnl_ini,
-			wnm_ini,
-			wad_ini,
-		)
-	else
+	#CHANGES
+	if ice_test_case != WKBMultipleWavePackets()
 		# Add orographic wave modes.
 		activate_orographic_source!(
 			state,
@@ -155,7 +159,6 @@ function initialize_rays!(
 	@ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
 		r = 0
 		s = 0
-
 
 		# Loop over all ray volumes within a spatial cell.
 		for ix in 1:nrx,
@@ -310,19 +313,21 @@ function initialize_rays!(
 			)
 		end
 
+		#changes
+		#WKBMountain Removed
 		# Check if surface ray-volume count is correct.
-		if test_case == WKBMountainWave()
-			if s != n_sfc
-				error(
-					"Error in initialize_rays!: s =",
-					s,
-					"/= n_sfc =",
-					n_sfc,
-					"at (i, j, k) = ",
-					(i, j, k),
-				)
-			end
-		end
+		# if ice_test_case == WKBMountainWave()
+		# 	if s != n_sfc
+		# 		error(
+		# 			"Error in initialize_rays!: s =",
+		# 			s,
+		# 			"/= n_sfc =",
+		# 			n_sfc,
+		# 			"at (i, j, k) = ",
+		# 			(i, j, k),
+		# 		)
+		# 	end
+		# end
 	end
 
 	# Compute global ray-volume count.

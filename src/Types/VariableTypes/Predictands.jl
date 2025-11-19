@@ -87,8 +87,9 @@ function Predictands(
         initial_v,
         initial_w,
         initial_pip,
+		model,
     ) = namelists.atmosphere
-    (; model, test_case) = namelists.setting
+	(; ice_test_case) = namelists.ice
     (; lref, rhoref, thetaref, uref) = constants
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; x, y, zc, met, jac) = grid
@@ -144,7 +145,7 @@ function Predictands(
 
     p = set_p(model, rhobar, thetabar, rhop, thetap)
 
-	if model isa PseudoIncompressible && test_case isa WavePacket
+	if model isa PseudoIncompressible && ice_test_case isa WavePacket
 		(; initial_wind, potential_temperature, coriolis_frequency) = namelists.atmosphere
 		(; nbx, nby, nbz) = namelists.domain
 		(;
@@ -297,7 +298,7 @@ function Predictands(
 
 	end
 
-	if model isa PseudoIncompressible && test_case isa MultipleWavePackets
+	if model isa PseudoIncompressible && ice_test_case isa MultipleWavePackets
 	(; potential_temperature, coriolis_frequency) = namelists.atmosphere
 	(; nbx, nby, nbz, npz) = namelists.domain
 
@@ -310,7 +311,7 @@ function Predictands(
 		a0, branch, nwm, random_wavepackets) = namelists.multiwavepackets
 
 		if random_wavepackets
-			construct_random_wavepackets!(namelists.multiwavepackets, namelists.domain, test_case)
+			construct_random_wavepackets!(namelists.multiwavepackets, namelists.domain, ice_test_case)
 		end
 
 		for iwm in 1:nwm

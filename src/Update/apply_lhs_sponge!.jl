@@ -1,17 +1,10 @@
 """
 ```julia
 apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::AbstractVariable,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::AbstractPredictand,
->>>>>>> cf395edbf2
 )
 ```
 
@@ -31,19 +24,11 @@ Return in Boussinesq mode (constant density).
 
 ```julia
 apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::Rho,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
     model::Union{PseudoIncompressible, Compressible},
->>>>>>> cf395edbf2
 )
 ```
 
@@ -59,19 +44,11 @@ where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`
 
 ```julia
 apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::RhoP,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
     model::Compressible,
->>>>>>> cf395edbf2
 )
 ```
 
@@ -85,13 +62,6 @@ The update is given by
 
 ```julia
 apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::U,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -115,7 +85,6 @@ apply_lhs_sponge!(
     time::AbstractFloat,
     variable::U,
     model::AbstractModel,
->>>>>>> cf395edbf2
 )
 ```
 
@@ -171,19 +140,11 @@ If `state.namelists.sponge.relax_to_mean` is `false`, ``\\widehat{w}_{\\mathrm{R
 
 ```julia
 apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::PiP,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
     model::Union{Boussinesq, PseudoIncompressible},
->>>>>>> cf395edbf2
 )
 ```
 
@@ -209,19 +170,11 @@ The update is given by
 
 ```julia
 apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::P,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
     model::Union{Boussinesq, PseudoIncompressible},
->>>>>>> cf395edbf2
 )
 ```
 
@@ -258,17 +211,10 @@ Return for configurations without tracer transport.
 
 ```julia
 apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	tracer_setup::AbstractTracer,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     tracer_setup::TracerOn,
->>>>>>> cf395edbf2
 )
 ```
 
@@ -297,16 +243,6 @@ In each tracer equation, the update is given by
 function apply_lhs_sponge! end
 
 function apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::AbstractVariable,
-)
-	(; model) = state.namelists.setting
-	apply_lhs_sponge!(state, dt, time, variable, model)
-	return
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -315,7 +251,6 @@ function apply_lhs_sponge!(
     (; model) = state.namelists.atmosphere
     apply_lhs_sponge!(state, dt, time, variable, model)
     return
->>>>>>> cf395edbf2
 end
 
 function apply_lhs_sponge!(
@@ -329,19 +264,11 @@ function apply_lhs_sponge!(
 end
 
 function apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::Rho,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
     model::Union{PseudoIncompressible, Compressible},
->>>>>>> cf395edbf2
 )
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; alphar) = state.sponge
@@ -389,19 +316,11 @@ function apply_lhs_sponge!(
 end
 
 function apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::RhoP,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
     model::Union{Boussinesq, PseudoIncompressible},
->>>>>>> cf395edbf2
 )
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; alphar) = state.sponge
@@ -426,19 +345,6 @@ function apply_lhs_sponge!(
 	variable::U,
 	model::AbstractModel,
 )
-<<<<<<< HEAD
-	(; x_size, y_size) = state.namelists.domain
-	(;
-		relax_to_mean,
-		perturbation_period,
-		perturbation_amplitude,
-		relaxation_wind,
-	) = state.namelists.sponge
-	(; uref, tref) = state.constants
-	(; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
-	(; alphar, horizontal_mean) = state.sponge
-	(; u) = state.variables.predictands
-=======
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_u) = state.namelists.sponge
     (; lref, tref, uref) = state.constants
@@ -446,44 +352,9 @@ function apply_lhs_sponge!(
     (; x, y, zc) = state.grid
     (; alphar, horizontal_mean) = state.sponge
     (; u) = state.variables.predictands
->>>>>>> cf395edbf2
 
 	(ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
-<<<<<<< HEAD
-	horizontal_mean .= 0.0
-
-	# Determine relaxation wind.
-	@ivy if relax_to_mean
-		horizontal_mean .=
-			sum(a -> a / x_size / y_size, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
-		MPI.Allreduce!(horizontal_mean, +, layer_comm)
-	else
-		ubg = relaxation_wind[1] / uref
-		if perturbation_period > 0.0
-			ubg =
-				ubg * (
-					1.0 +
-					perturbation_amplitude *
-					sin(2.0 * pi * time / perturbation_period * tref)
-				)
-		end
-	end
-
-	# Update the zonal wind.
-	@ivy for k in kk
-		if relax_to_mean
-			ubg = horizontal_mean[k-k0+1]
-		end
-		for j in jj, i in ii
-			alpha = 0.5 * (alphar[i, j, k] + alphar[i+1, j, k])
-			uold = u[i, j, k]
-			beta = 1.0 / (1.0 + alpha * dt)
-			unew = (1.0 - beta) * ubg + beta * uold
-			u[i, j, k] = unew
-		end
-	end
-=======
     # Compute the horizontal mean.
     @ivy if relax_to_mean
         horizontal_mean .=
@@ -513,7 +384,6 @@ function apply_lhs_sponge!(
         unew = (1.0 - beta) * ubg + beta * uold
         u[i, j, k] = unew
     end
->>>>>>> cf395edbf2
 
 	return
 end
@@ -525,19 +395,6 @@ function apply_lhs_sponge!(
 	variable::V,
 	model::AbstractModel,
 )
-<<<<<<< HEAD
-	(; x_size, y_size) = state.namelists.domain
-	(;
-		relax_to_mean,
-		perturbation_period,
-		perturbation_amplitude,
-		relaxation_wind,
-	) = state.namelists.sponge
-	(; uref, tref) = state.constants
-	(; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
-	(; alphar, horizontal_mean) = state.sponge
-	(; v) = state.variables.predictands
-=======
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_v) = state.namelists.sponge
     (; lref, tref, uref) = state.constants
@@ -545,44 +402,9 @@ function apply_lhs_sponge!(
     (; x, y, zc) = state.grid
     (; alphar, horizontal_mean) = state.sponge
     (; v) = state.variables.predictands
->>>>>>> cf395edbf2
 
 	(ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
-<<<<<<< HEAD
-	horizontal_mean .= 0.0
-
-	# Determine relaxation wind.
-	@ivy if relax_to_mean
-		horizontal_mean .=
-			sum(a -> a / x_size / y_size, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
-		MPI.Allreduce!(horizontal_mean, +, layer_comm)
-	else
-		vbg = relaxation_wind[2] / uref
-		if perturbation_period > 0.0
-			vbg =
-				vbg * (
-					1.0 +
-					perturbation_amplitude *
-					sin(2.0 * pi * time / perturbation_period * tref)
-				)
-		end
-	end
-
-	# Update the meridional wind.
-	@ivy for k in kk
-		if relax_to_mean
-			vbg = horizontal_mean[k-k0+1]
-		end
-		for j in jj, i in ii
-			alpha = 0.5 * (alphar[i, j, k] + alphar[i, j+1, k])
-			vold = v[i, j, k]
-			beta = 1.0 / (1.0 + alpha * dt)
-			vnew = (1.0 - beta) * vbg + beta * vold
-			v[i, j, k] = vnew
-		end
-	end
-=======
     # Compute the horizontal mean.
     @ivy if relax_to_mean
         horizontal_mean .=
@@ -612,7 +434,6 @@ function apply_lhs_sponge!(
         vnew = (1.0 - beta) * vbg + beta * vold
         v[i, j, k] = vnew
     end
->>>>>>> cf395edbf2
 
 	return
 end
@@ -624,20 +445,6 @@ function apply_lhs_sponge!(
 	variable::W,
 	model::AbstractModel,
 )
-<<<<<<< HEAD
-	(; x_size, y_size) = state.namelists.domain
-	(;
-		relax_to_mean,
-		perturbation_period,
-		perturbation_amplitude,
-		relaxation_wind,
-	) = state.namelists.sponge
-	(; uref, tref) = state.constants
-	(; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
-	(; alphar, horizontal_mean) = state.sponge
-	(; w) = state.variables.predictands
-	(; jac) = state.grid
-=======
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_u, relaxed_v, relaxed_w) = state.namelists.sponge
     (; lref, tref, uref) = state.constants
@@ -645,48 +452,9 @@ function apply_lhs_sponge!(
     (; alphar, horizontal_mean) = state.sponge
     (; w) = state.variables.predictands
     (; x, y, zc, jac, met) = state.grid
->>>>>>> cf395edbf2
 
 	(ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
-<<<<<<< HEAD
-	horizontal_mean .= 0.0
-
-	# Determine relaxation wind.
-	@ivy if relax_to_mean
-		horizontal_mean .=
-			sum(a -> a / x_size / y_size, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
-		MPI.Allreduce!(horizontal_mean, +, layer_comm)
-	else
-		wbg = relaxation_wind[3] / uref
-		if perturbation_period > 0.0
-			wbg =
-				wbg * (
-					1.0 +
-					perturbation_amplitude *
-					sin(2.0 * pi * time / perturbation_period * tref)
-				)
-		end
-	end
-
-	# Update the vertical wind.
-	@ivy for k in kk
-		if relax_to_mean
-			wbg = horizontal_mean[k-k0+1]
-		end
-		for j in jj, i in ii
-			alpha =
-				(
-					jac[i, j, k+1] * alphar[i, j, k] +
-					jac[i, j, k] * alphar[i, j, k+1]
-				) / (jac[i, j, k] + jac[i, j, k+1])
-			wold = w[i, j, k]
-			beta = 1.0 / (1.0 + alpha * dt)
-			wnew = (1.0 - beta) * wbg + beta * wold
-			w[i, j, k] = wnew
-		end
-	end
-=======
     # Compute the horizontal mean.
     @ivy if relax_to_mean
         horizontal_mean .=
@@ -733,25 +501,16 @@ function apply_lhs_sponge!(
         wnew = (1.0 - beta) * wbg + beta * wold
         w[i, j, k] = wnew
     end
->>>>>>> cf395edbf2
 
 	return
 end
 
 function apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::PiP,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
     model::Union{Boussinesq, PseudoIncompressible},
->>>>>>> cf395edbf2
 )
 	return
 end
@@ -785,19 +544,11 @@ function apply_lhs_sponge!(
 end
 
 function apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	variable::P,
-	model::AbstractModel,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
     model::Union{Boussinesq, PseudoIncompressible},
->>>>>>> cf395edbf2
 )
 	return
 end
@@ -836,17 +587,10 @@ function apply_lhs_sponge!(
 end
 
 function apply_lhs_sponge!(
-<<<<<<< HEAD
-	state::State,
-	dt::AbstractFloat,
-	time::AbstractFloat,
-	tracer_setup::AbstractTracer,
-=======
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     tracer_setup::TracerOn,
->>>>>>> cf395edbf2
 )
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; alphar) = state.sponge

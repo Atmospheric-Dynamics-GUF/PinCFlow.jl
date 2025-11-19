@@ -91,7 +91,7 @@ function activate_multiplewavepackets_source!(
 
 	(; random_wavepackets) = state.namelists.multiwavepackets
 	if random_wavepackets
-		construct_random_wavepackets!(state.namelists.multiwavepackets, state.namelists.domain, state.namelists.setting.test_case)
+		construct_random_wavepackets!(state.namelists.multiwavepackets, state.namelists.domain, state.namelists.ice.ice_test_case)
 	end
 
 	(; wavepacketdim, lambdax_dim, lambday_dim, lambdaz_dim,

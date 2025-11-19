@@ -145,11 +145,11 @@ function write_output(
             file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
         end
 
-		# Write sub grid. 
+		# Write sub grid.
 		if iout == 1 && !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
 
-			file["x2"][:] = x2[i02:(i02+sizex2-1)] .* lref
-			file["y2"][:] = y2[j02:(j02+sizey2-1)] .* lref
+			file["x2"][(io*nscx+1):((io+nx)*nscx)] = x2[i02:i12] .* lref
+			file["y2"][(jo*nscy+1):((jo+ny)*nscy)] = y2[j02:j12] .* lref
 
 			file["z2"][
 				(io*nscx+1):((io+nx)*nscx),

@@ -1,5 +1,5 @@
 function construct_random_wavepackets!(wavepacket_namelist::MultiWavePacketNamelist, 
-domain::DomainNamelist, testcase::AbstractTestCase)
+domain::DomainNamelist, ice_test_case::AbstractIceTestCase)
     (; lx , ly , lz) = domain
     (; x_size, y_size, z_size) = domain
     Random.seed!(1234)  
@@ -19,7 +19,7 @@ domain::DomainNamelist, testcase::AbstractTestCase)
     int_b_lambdaz_dim = 1.e3
     int_e_lambdaz_dim = 2.e3
 
-    if testcase isa MultipleWavePackets
+    if ice_test_case isa MultipleWavePackets
         #check if resolution is sufficient for resolving the waves
         if (lx /x_size < int_b_lambdax_dim/10.)
             println("Resolution in x-direction too coarse for random wavepackets in MultipleWavePackets testcase !!! ")
@@ -30,8 +30,8 @@ domain::DomainNamelist, testcase::AbstractTestCase)
             exit(1)
         end    
 
-    elseif !(testcase isa WKBMultipleWavePackets)
-        println("only testcase=MultipleWavePackets or WKBMultipleWavePacket for  random wavepackets !!! ")
+    elseif !(ice_test_case isa WKBMultipleWavePackets)
+        println("only ice_test_case=MultipleWavePackets or WKBMultipleWavePacket for  random wavepackets !!! ")
         exit(1)    
 
     end

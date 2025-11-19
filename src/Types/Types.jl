@@ -157,7 +157,8 @@ export AbstractBackground,
     AbstractWKBMode,
     AbstractWKBFilter,
     AbstractTracer, 
-    AbstractIce
+    AbstractIce,
+    AbstractIceTestCase
 
 export Rho,
     RhoP,
@@ -184,6 +185,7 @@ export Rho,
     WavePacket,
     WKBMultipleWavePackets,
     MultipleWavePackets,
+    NoIceTestCase,
     ConstantWaveAction,
     ConstantWaveEnergy,
     NoWKB,

@@ -56,7 +56,7 @@ atmosphere = AtmosphereNamelist(;
 
 ice = IceNamelist(;
 	icesetup = IceOn(),
-	test_case = MultipleWavePackets(),
+	ice_test_case = MultipleWavePackets(),
 	dt_ice = 1.0,
 	nscx = 1,
 	nscy = 1,
@@ -83,7 +83,7 @@ wkb = WKBNamelist(;
 	use_saturation = false,
 	#lsaturation = true,
 	saturation_threshold = 1.0E+0,
-	wkb_mode = MultiColumn(),
+	wkb_mode = NoWKB(),
 	#blocking = true,
 	blocking = false,
 	long_threshold = 2.5E-1,
@@ -96,13 +96,11 @@ multiwavepackets = MultiWavePacketNamelist(; random_wavepackets = true, nwm = 3)
 namelists = Namelists(;
 	domain = domain,
 	output = output,
-	setting = setting,
 	discretization = discretization,
 	poisson = poisson,
 	atmosphere = atmosphere,
 	ice = ice,
 	wkb = wkb,
-	#    wavepacket=wavepacket,
 	multiwavepackets = multiwavepackets,
 )
 

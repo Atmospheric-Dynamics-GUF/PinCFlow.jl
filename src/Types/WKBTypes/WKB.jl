@@ -188,6 +188,7 @@ function WKB(
     ) = namelists.wkb
     (; x_size, y_size, z_size) = namelists.domain
     (; nxx, nyy, nzz) = domain
+    (; ice_test_case) = namelists.ice
 
     # Check if spectral-extent factors are set correctly.
     if x_size > 1 && dkr_factor == 0.0
@@ -237,7 +238,7 @@ function WKB(
         nzray_wrk = 1
     end
 
-    if test_case isa WKBMultipleWavePackets && namelists.multiwavepackets.nwm != wave_modes
+    if ice_test_case isa WKBMultipleWavePackets && namelists.multiwavepackets.nwm != wave_modes
         println("Warning: nwm (", namelists.multiwavepackets.nwm, ") != wave_modes (", wave_modes, ") in WKB initialization.")
         exit(1)
     end
