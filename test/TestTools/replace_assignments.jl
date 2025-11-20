@@ -22,6 +22,7 @@ function replace_assignments(
 )::AbstractString
     for assignment in assignments
         (name, value) = assignment
+        typeof(value) <: AbstractString && (value = "\"$value\"")
         range = findfirst(Regex("$name *= *"), code)
         if range !== nothing
             (start, stop) = extrema(range)
