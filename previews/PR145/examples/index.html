@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · PinCFlow.jl</title><meta name="title" content="Examples · PinCFlow.jl"/><meta property="og:title" content="Examples · PinCFlow.jl"/><meta property="twitter:title" content="Examples · PinCFlow.jl"/><meta name="description" content="Documentation for PinCFlow.jl."/><meta property="og:description" content="Documentation for PinCFlow.jl."/><meta property="twitter:description" content="Documentation for PinCFlow.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">PinCFlow.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#Cold-bubble"><span>Cold bubble</span></a></li><li><a class="tocitem" href="#Hot-bubble"><span>Hot bubble</span></a></li><li><a class="tocitem" href="#Mountain-wave"><span>Mountain wave</span></a></li><li><a class="tocitem" href="#Vortex"><span>Vortex</span></a></li><li><a class="tocitem" href="#Wave-packet"><span>Wave packet</span></a></li><li><a class="tocitem" href="#WKB-mountain-wave"><span>WKB mountain wave</span></a></li><li><a class="tocitem" href="#WKB-wave-packet"><span>WKB wave packet</span></a></li><li><a class="tocitem" href="#Wave-packet-helper-functions"><span>Wave-packet helper functions</span></a></li></ul></li><li><span class="tocitem">Theory</span><ul><li><a class="tocitem" href="../theory/physics/">Physics</a></li><li><a class="tocitem" href="../theory/numerics/">Numerics</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../reference/pincflow/">PinCFlow</a></li><li><a class="tocitem" href="../reference/types/">Types</a></li><li><a class="tocitem" href="../reference/mpi_operations/">MPIOperations</a></li><li><a class="tocitem" href="../reference/boundaries/">Boundaries</a></li><li><a class="tocitem" href="../reference/flux_calculator/">FluxCalculator</a></li><li><a class="tocitem" href="../reference/poisson_solver/">PoissonSolver</a></li><li><a class="tocitem" href="../reference/update/">Update</a></li><li><a class="tocitem" href="../reference/msgwam/">MSGWaM</a></li><li><a class="tocitem" href="../reference/integration/">Integration</a></li><li><a class="tocitem" href="../reference/output/">Output</a></li></ul></li><li><a class="tocitem" href="../developer_guide/">Developer guide</a></li><li><a class="tocitem" href="../changelog/">Changelog</a></li><li><a class="tocitem" href="../authors/">Authors</a></li><li><a class="tocitem" href="../contributing/">Contributing</a></li><li><a class="tocitem" href="../code_of_conduct/">Code of Conduct</a></li><li><a class="tocitem" href="../license/">License</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl.git" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><h2 id="Cold-bubble"><a class="docs-heading-anchor" href="#Cold-bubble">Cold bubble</a><a id="Cold-bubble-1"></a><a class="docs-heading-anchor-permalink" href="#Cold-bubble" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/scripts/cold_bubble.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using MPI
+using HDF5
+using CairoMakie
+using Revise
+using PinCFlow
+
+npx = length(ARGS) &gt;= 1 ? parse(Int, ARGS[1]) : 1
+npz = length(ARGS) &gt;= 2 ? parse(Int, ARGS[2]) : 1
+
+lx = 20000.0
+lz = 20000.0
+
+rx = lx / 8
+rz = lz / 8
+
+atmosphere = AtmosphereNamelist(;
+    background = Isentropic(),
+    initial_rhop = (x, y, z) -&gt; begin
+        r = sqrt((x / rx)^2 + ((z - 3 * rz) / rz)^2)
+        if r &lt;= 1
+            return 0.005 * (1 + cos(pi * r))
+        else
+            return 0.0
+        end
+    end,
+)
+discretization = DiscretizationNamelist(; dtmax = 60.0)
+domain = DomainNamelist(; x_size = 40, z_size = 40, lx, lz, npx, npz)
+output = OutputNamelist(;
+    output_variables = (:thetap,),
+    output_file = &quot;cold_bubble.h5&quot;,
+)
+
+integrate(Namelists(; atmosphere, discretization, domain, output))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open(&quot;cold_bubble.h5&quot;) do data
+        plot_output(
+            &quot;examples/results/cold_bubble.svg&quot;,
+            data,
+            (&quot;thetap&quot;, 1, 1, 1, 2);
+        )
+        return
+    end
+end
+</code></pre><p>simulates a cold bubble in a 2D pseudo-incompressible isentropic atmosphere and visualizes the potential-temperature fluctuations after one hour integration time (see below).</p><p><img src="results/cold_bubble.svg" alt/></p><h2 id="Hot-bubble"><a class="docs-heading-anchor" href="#Hot-bubble">Hot bubble</a><a id="Hot-bubble-1"></a><a class="docs-heading-anchor-permalink" href="#Hot-bubble" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/scripts/hot_bubble.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using MPI
+using HDF5
+using CairoMakie
+using Revise
+using PinCFlow
+
+npx = length(ARGS) &gt;= 1 ? parse(Int, ARGS[1]) : 1
+npz = length(ARGS) &gt;= 2 ? parse(Int, ARGS[2]) : 1
+
+lx = 20000.0
+lz = 20000.0
+
+rx = lx / 8
+rz = lz / 8
+
+atmosphere = AtmosphereNamelist(;
+    model = Compressible(),
+    background = Isentropic(),
+    initial_rhop = (x, y, z) -&gt; begin
+        r = sqrt((x / rx)^2 + ((z - 5 * rz) / rz)^2)
+        if r &lt;= 1
+            return -0.005 * (1 + cos(pi * r))
+        else
+            return 0.0
+        end
+    end,
+)
+discretization = DiscretizationNamelist(; dtmax = 60.0)
+domain = DomainNamelist(; x_size = 40, z_size = 40, lx, lz, npx, npz)
+output = OutputNamelist(;
+    output_variables = (:thetap,),
+    output_file = &quot;hot_bubble.h5&quot;,
+)
+
+integrate(Namelists(; atmosphere, discretization, domain, output))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open(&quot;hot_bubble.h5&quot;) do data
+        plot_output(
+            &quot;examples/results/hot_bubble.svg&quot;,
+            data,
+            (&quot;thetap&quot;, 1, 1, 1, 2);
+        )
+        return
+    end
+end
+</code></pre><p>simulates a hot bubble in a 2D compressible isentropic atmosphere and visualizes the potential-temperature fluctuations after one hour integration time (see below).</p><p><img src="results/hot_bubble.svg" alt/></p><h2 id="Mountain-wave"><a class="docs-heading-anchor" href="#Mountain-wave">Mountain wave</a><a id="Mountain-wave-1"></a><a class="docs-heading-anchor-permalink" href="#Mountain-wave" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/scripts/mountain_wave.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using MPI
+using HDF5
+using CairoMakie
+using Revise
+using PinCFlow
+
+npx = length(ARGS) &gt;= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) &gt;= 2 ? parse(Int, ARGS[2]) : 1
+npz = length(ARGS) &gt;= 3 ? parse(Int, ARGS[3]) : 1
+
+h0 = 100.0
+l0 = 1000.0
+
+lx = 20000.0
+ly = 20000.0
+lz = 20000.0
+dxr = lx / 2
+dyr = ly / 2
+dzr = lz / 2
+alpharmax = 0.0179
+
+atmosphere = AtmosphereNamelist(;
+    coriolis_frequency = 0.0,
+    initial_u = (x, y, z) -&gt; 10.0,
+)
+domain = DomainNamelist(;
+    x_size = 40,
+    y_size = 40,
+    z_size = 40,
+    lx,
+    ly,
+    lz,
+    npx,
+    npy,
+    npz,
+)
+grid = GridNamelist(;
+    resolved_topography = (x, y) -&gt; h0 / (1 + (x^2 + y^2) / l0^2),
+)
+output =
+    OutputNamelist(; output_variables = (:w,), output_file = &quot;mountain_wave.h5&quot;)
+sponge = SpongeNamelist(;
+    lhs_sponge = (x, y, z, t, dt) -&gt; begin
+        alpharx =
+            abs(x) &gt;= (lx - dxr) / 2 ?
+            sin(pi * (abs(x) - (lx - dxr) / 2) / dxr)^2 : 0.0
+        alphary =
+            abs(y) &gt;= (ly - dyr) / 2 ?
+            sin(pi * (abs(y) - (ly - dyr) / 2) / dyr)^2 : 0.0
+        alpharz =
+            z &gt;= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
+        return alpharmax * (alpharx + alphary + alpharz) / 3
+    end,
+    relaxed_u = (x, y, z, t, dt) -&gt; 10.0,
+)
+
+integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open(&quot;mountain_wave.h5&quot;) do data
+        plot_output(
+            &quot;examples/results/mountain_wave.svg&quot;,
+            data,
+            (&quot;w&quot;, 20, 20, 10, 2);
+        )
+        return
+    end
+end
+</code></pre><p>performs a 3D mountain-wave simulation. The surface topography is given by</p><p class="math-container">\[h \left(x, y\right) = \frac{h_0}{1 + \left(x^2 + y^2\right) / l_0^2},\]</p><p>with <span>$h_0 = 100 \ \mathrm{m}$</span> and <span>$l_0 = 1 \ \mathrm{km}$</span>. The atmosphere is isothermal, with the default temperature <span>$T_0 = 300 \ \mathrm{K}$</span> and the initial wind <span>$\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \ \mathrm{m \ s^{- 1}}$</span>.</p><p>Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge defined by</p><p class="math-container">\[\alpha_\mathrm{R} \left(x, y, z\right) = \alpha_{\mathrm{R}, \max} \frac{\alpha_{\mathrm{R}, x} \left(x\right) + \alpha_{\mathrm{R}, y} \left(y\right) + \alpha_{\mathrm{R}, z} \left(z\right)}{3}\]</p><p>with</p><p class="math-container">\[\begin{align*}
+    \alpha_{\mathrm{R}, x} \left(x\right) &amp; = \begin{cases}
+        \sin^2 \left[\pi \frac{\left|x\right| - \left(L_x - \Delta x_\mathrm{R}\right) / 2}{\Delta x_\mathrm{R}}\right] &amp; \mathrm{if} \quad \left|x\right| \geq \frac{1}{2} \left(L_x - \Delta x_\mathrm{R}\right),\\
+        0 &amp; \mathrm{else},
+    \end{cases}\\
+    \alpha_{\mathrm{R}, y} \left(y\right) &amp; = \begin{cases}
+        \sin^2 \left[\pi \frac{\left|y\right| - \left(L_y - \Delta y_\mathrm{R}\right) / 2}{\Delta y_\mathrm{R}}\right] &amp; \mathrm{if} \quad \left|y\right| \geq \frac{1}{2} \left(L_y - \Delta y_\mathrm{R}\right),\\
+        0 &amp; \mathrm{else},
+    \end{cases}\\
+    \alpha_{\mathrm{R}, z} \left(z\right) &amp; = \begin{cases}
+        \sin^2 \left[\frac{\pi}{2} \frac{z - \left(L_z - \Delta z_\mathrm{R}\right)}{\Delta z_\mathrm{R}}\right] &amp; \mathrm{if} \quad z \geq L_z - \Delta z_\mathrm{R},\\
+        0 &amp; \mathrm{else},
+    \end{cases}
+\end{align*}\]</p><p>where <span>$\alpha_{\mathrm{R}, \max} = 0.0179 \ \mathrm{s^{- 1}}$</span>, <span>$\Delta x_\mathrm{R} = L_x / 2$</span>, <span>$\Delta y_\mathrm{R} = L_y / 2$</span> and <span>$\Delta z_\mathrm{R} = L_z / 2$</span>. This sponge not only prevents wave reflections at the model top but also provides a damping at the horizontal boundaries. Moreover, it is configured such that the wind is relaxed towards its initial state, so that (in the ideal case) the periodicity in <span>$x$</span> and <span>$y$</span> is effectively eliminated by enforcing a constant wind at the domain edges.</p><p>After the simulation has finished, the vertical wind is visualized in three cross sections of the domain (see below).</p><p><img src="results/mountain_wave.svg" alt/></p><h2 id="Vortex"><a class="docs-heading-anchor" href="#Vortex">Vortex</a><a id="Vortex-1"></a><a class="docs-heading-anchor-permalink" href="#Vortex" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/scripts/vortex.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using MPI
+using HDF5
+using CairoMakie
+using Revise
+using PinCFlow
+
+npx = length(ARGS) &gt;= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) &gt;= 2 ? parse(Int, ARGS[2]) : 1
+
+lx = 20000.0
+ly = 20000.0
+
+rx = lx / 4
+ry = ly / 4
+
+atmosphere = AtmosphereNamelist(;
+    model = Boussinesq(),
+    background = NeutralStratification(),
+    initial_u = (x, y, z) -&gt; begin
+        r = sqrt((x / rx)^2 + (y / ry)^2)
+        if r &lt;= 1
+            return -5 * y / ry * (1 + cos(pi * r)) / 2
+        else
+            return 0.0
+        end
+    end,
+    initial_v = (x, y, z) -&gt; begin
+        r = sqrt((x / rx)^2 + (y / ry)^2)
+        if r &lt;= 1
+            return 5 * x / rx * (1 + cos(pi * r)) / 2
+        else
+            return 0.0
+        end
+    end,
+)
+domain = DomainNamelist(; x_size = 40, y_size = 40, lx, ly, npx, npy)
+output = OutputNamelist(;
+    output_variables = (:chi, :u, :v),
+    output_file = &quot;vortex.h5&quot;,
+)
+tracer = TracerNamelist(;
+    tracer_setup = TracerOn(),
+    initial_tracer = (x, y, z) -&gt; begin
+        r = sqrt(((abs(x) - rx) / rx)^2 + (y / ry)^2)
+        if r &lt;= 1
+            return sign(x) * (1 + cos(pi * r)) / 2
+        else
+            return 0.0
+        end
+    end,
+)
+
+integrate(Namelists(; atmosphere, domain, output, tracer))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open(&quot;vortex.h5&quot;) do data
+        plot_output(&quot;examples/results/vortex.svg&quot;, data, (&quot;chi&quot;, 1, 1, 1, 2);)
+        return
+    end
+end
+</code></pre><p>initializes two tracer disks and a vortex in a 2D horizontal Boussinesq atmosphere, integrates over one hour and visualizes the resulting tracer distribution (see below).</p><p><img src="results/vortex.svg" alt/></p><h2 id="Wave-packet"><a class="docs-heading-anchor" href="#Wave-packet">Wave packet</a><a id="Wave-packet-1"></a><a class="docs-heading-anchor-permalink" href="#Wave-packet" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/scripts/wave_packet.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using MPI
+using HDF5
+using CairoMakie
+using Revise
+using PinCFlow
+
+npx = length(ARGS) &gt;= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) &gt;= 2 ? parse(Int, ARGS[2]) : 1
+npz = length(ARGS) &gt;= 3 ? parse(Int, ARGS[3]) : 1
+
+x_size = 40
+y_size = 40
+z_size = 80
+
+lx = 20000.0
+ly = 20000.0
+lz = 40000.0
+
+rx = 0.25
+ry = 0.25
+rz = 0.25
+
+x0 = 0.0
+y0 = 0.0
+z0 = 20000.0
+
+a0 = 0.05
+
+k = 16 * pi / lx
+l = 16 * pi / ly
+m = 32 * pi / lz
+
+background = Realistic()
+coriolis_frequency = 0.0001
+
+atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
+domain = DomainNamelist(;
+    x_size,
+    y_size,
+    z_size,
+    lx,
+    ly,
+    lz,
+    base_comm = MPI.COMM_SELF,
+)
+auxiliary_state = State(Namelists(; atmosphere, domain))
+(; g, kappa, rsp) = auxiliary_state.constants
+
+include(&quot;wave_packet_tools.jl&quot;)
+
+atmosphere = AtmosphereNamelist(;
+    background,
+    coriolis_frequency,
+    initial_rhop = (x, y, z) -&gt;
+        rhobar(x, y, z) *
+        (1 / (1 + real(bhat(x, y, z) * exp(1im * phi(x, y, z))) / g) - 1),
+    initial_u = (x, y, z) -&gt; real(uhat(x, y, z) * exp(1im * phi(x, y, z))),
+    initial_v = (x, y, z) -&gt; real(vhat(x, y, z) * exp(1im * phi(x, y, z))),
+    initial_w = (x, y, z) -&gt; real(what(x, y, z) * exp(1im * phi(x, y, z))),
+    initial_pip = (x, y, z) -&gt;
+        real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
+)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+output = OutputNamelist(;
+    output_variables = (:u, :v, :w),
+    output_file = &quot;wave_packet.h5&quot;,
+    tmax = 900.0,
+    output_interval = 900.0,
+)
+
+integrate(Namelists(; atmosphere, domain, output))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open(&quot;wave_packet.h5&quot;) do data
+        plot_output(
+            &quot;examples/results/wave_packet.svg&quot;,
+            data,
+            (&quot;u&quot;, 20, 20, 40, 2),
+            (&quot;v&quot;, 20, 20, 40, 2),
+            (&quot;w&quot;, 20, 20, 40, 2);
+            time_unit = &quot;min&quot;,
+        )
+        return
+    end
+end
+</code></pre><p>initializes a resolved gravity-wave packet in the stratosphere of a &quot;realistic&quot; atmosphere (isentropic troposphere and isothermal stratosphere) and visualizes the resulting wind after fifteen minutes integration time (see below). For the relatively complex initialization, this script first constructs an auxiliary state that contains the necessary background fields and then uses helper functions that implement the gravity-wave dispersion and polarization relations (included in a separate section below).</p><p><img src="results/wave_packet.svg" alt/></p><h2 id="WKB-mountain-wave"><a class="docs-heading-anchor" href="#WKB-mountain-wave">WKB mountain wave</a><a id="WKB-mountain-wave-1"></a><a class="docs-heading-anchor-permalink" href="#WKB-mountain-wave" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/scripts/wkb_mountain_wave.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using MPI
+using HDF5
+using CairoMakie
+using Revise
+using PinCFlow
+
+npx = length(ARGS) &gt;= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) &gt;= 2 ? parse(Int, ARGS[2]) : 1
+npz = length(ARGS) &gt;= 3 ? parse(Int, ARGS[3]) : 1
+
+h0 = 150.0
+l0 = 5000.0
+rl = 10
+rh = 2
+
+lx = 400000.0
+ly = 400000.0
+lz = 20000.0
+dxr = lx / 20
+dyr = ly / 20
+dzr = lz / 10
+alpharmax = 0.0179
+
+atmosphere = AtmosphereNamelist(;
+    coriolis_frequency = 0.0,
+    initial_u = (x, y, z) -&gt; 10.0,
+)
+domain = DomainNamelist(;
+    x_size = 40,
+    y_size = 40,
+    z_size = 40,
+    lx,
+    ly,
+    lz,
+    npx,
+    npy,
+    npz,
+)
+grid = GridNamelist(;
+    resolved_topography = (x, y) -&gt;
+        x^2 + y^2 &lt;= (rl * l0)^2 ?
+        h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) * rh / (rh + 1) : 0.0,
+    unresolved_topography = (alpha, x, y) -&gt;
+        x^2 + y^2 &lt;= (rl * l0)^2 ?
+        (
+            pi / l0,
+            0.0,
+            h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) / (rh + 1),
+        ) : (0.0, 0.0, 0.0),
+)
+output = OutputNamelist(;
+    save_ray_volumes = true,
+    output_file = &quot;wkb_mountain_wave.h5&quot;,
+)
+sponge = SpongeNamelist(;
+    lhs_sponge = (x, y, z, t, dt) -&gt;
+        alpharmax / 3 * (
+            exp((abs(x) - lx / 2) / dxr) +
+            exp((abs(y) - ly / 2) / dyr) +
+            exp((z - lz) / dzr)
+        ),
+    relaxed_u = (x, y, z, t, dt) -&gt; 10.0,
+)
+wkb = WKBNamelist(; wkb_mode = MultiColumn())
+
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open(&quot;wkb_mountain_wave.h5&quot;) do data
+        plot_output(
+            &quot;examples/results/wkb_mountain_wave.svg&quot;,
+            data,
+            (&quot;nr&quot;, 20, 20, 10, 2);
+        )
+        return
+    end
+end
+</code></pre><p>performs a 3D WKB mountain-wave simulation. The full surface topography is given by</p><p class="math-container">\[\begin{align*}
+    h \left(x, y\right) &amp; = \begin{cases}
+        \frac{h_0}{2 \left(r_h + 1\right)} \left[1 + \cos \left(\frac{\pi}{r_l l_0} \sqrt{x^2 + y^2}\right)\right] \left[r_h + \cos \left(\frac{\pi x}{l_0}\right)\right] &amp; \mathrm{if} \quad x^2 + y^2 \leq r_l^2 l_0^2,\\
+        0 &amp; \mathrm{else},
+    \end{cases}\\
+\end{align*}\]</p><p>where <span>$h_0 = 150 \ \mathrm{m}$</span>, <span>$l_0 = 5 \ \mathrm{km}$</span>, <span>$r_h = 2$</span>, and <span>$r_l = 10$</span>. This is decomposed into a large-scale part <span>$h_\mathrm{b}$</span> and a small-scale part with the spectral amplitude <span>$h_\mathrm{w}$</span>, such that</p><p class="math-container">\[\begin{align*}
+    h_\mathrm{b} \left(x, y\right) &amp; = r_h h_\mathrm{w} \left(x, y\right),\\
+    h_\mathrm{w} \left(x, y\right) &amp; = \begin{cases}
+        \frac{h_0}{2 \left(r_h + 1\right)} \left[1 + \cos \left(\frac{\pi}{r_l l_0} \sqrt{x^2 + y^2}\right)\right] &amp; \mathrm{if} \quad x^2 + y^2 \leq r_l^2 l_0^2,\\
+        0 &amp; \mathrm{else}.
+    \end{cases}
+\end{align*}\]</p><p>The large-scale part is resolved, so that the grid is defined from it, whereas the small-scale part is used by MS-GWaM to parameterize the mountain waves generated by the resolved wind crossing it. As in the first mountain-wave example, the atmosphere is isothermal, with the default temperature <span>$T_0 = 300 \ \mathrm{K}$</span> and the initial wind <span>$\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \ \mathrm{m \ s^{- 1}}$</span>.</p><p>The damping coefficient of the sponge is given by</p><p class="math-container">\[\alpha_\mathrm{R} \left(x, y, z\right) = \frac{\alpha_{\mathrm{R}, \max}}{3} \left[\exp \left(\frac{\left|x\right| - L_x / 2}{\Delta x_\mathrm{R}}\right) + \exp \left(\frac{\left|y\right| - L_y / 2}{\Delta y_\mathrm{R}}\right) + \exp \left(\frac{z - L_z}{\Delta z_\mathrm{R}}\right)\right],\]</p><p>where <span>$\alpha_{\mathrm{R}, \max} = 0.0179 \ \mathrm{s^{- 1}}$</span>, <span>$\Delta x_\mathrm{R} = L_x / 20$</span>, <span>$\Delta y_\mathrm{R} = L_y / 20$</span> and <span>$\Delta z_\mathrm{R} = L_z / 10$</span>. In contrast to the sinusoidal sponge discussed in the first example, this sponge applies a damping everywhere in the domain (weakest at the center of the surface, strongest in the upper corners). Once again, the sponge relaxes the wind to its initial state.</p><p>MS-GWaM is used with most of its parameters set to their default values. This means that the orographic source launches exactly one ray volume in each surface grid cell with a nonzero <span>$h_\mathrm{w}$</span>. Thus, the number of ray volumes allowed per grid cell (before merging is triggered) is <code>multiplication_factor</code> (a parameter of the WKB namelist) cubed, which is <span>$4^3 = 64$</span>.</p><p>Instead of a contour plot, the above script generates a scatter plot that visualizes the ray volumes, with the color representing the value of the phase-space wave-action density (see below).</p><p><img src="results/wkb_mountain_wave.svg" alt/></p><h2 id="WKB-wave-packet"><a class="docs-heading-anchor" href="#WKB-wave-packet">WKB wave packet</a><a id="WKB-wave-packet-1"></a><a class="docs-heading-anchor-permalink" href="#WKB-wave-packet" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/scripts/wkb_wave_packet.jl
+
+using Pkg
+
+Pkg.activate(&quot;examples&quot;)
+
+using MPI
+using HDF5
+using CairoMakie
+using Revise
+using PinCFlow
+
+npx = length(ARGS) &gt;= 1 ? parse(Int, ARGS[1]) : 1
+npy = length(ARGS) &gt;= 2 ? parse(Int, ARGS[2]) : 1
+npz = length(ARGS) &gt;= 3 ? parse(Int, ARGS[3]) : 1
+
+x_size = 16
+y_size = 16
+z_size = 32
+
+lx = 20000.0
+ly = 20000.0
+lz = 40000.0
+
+rx = 0.25
+ry = 0.25
+rz = 0.25
+
+x0 = 0.0
+y0 = 0.0
+z0 = 20000.0
+
+a0 = 0.05
+
+k = 16 * pi / lx
+l = 16 * pi / ly
+m = 32 * pi / lz
+
+model = Compressible()
+background = Realistic()
+coriolis_frequency = 0.0001
+
+atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
+domain = DomainNamelist(;
+    x_size,
+    y_size,
+    z_size,
+    lx,
+    ly,
+    lz,
+    base_comm = MPI.COMM_SELF,
+)
+auxiliary_state = State(Namelists(; atmosphere, domain))
+(; g, kappa, rsp) = auxiliary_state.constants
+
+include(&quot;wave_packet_tools.jl&quot;)
+
+atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+output = OutputNamelist(;
+    save_ray_volumes = true,
+    output_file = &quot;wkb_wave_packet.h5&quot;,
+    tmax = 900.0,
+    output_interval = 900.0,
+)
+wkb = WKBNamelist(;
+    wkb_mode = MultiColumn(),
+    initial_wave_field = (alpha, x, y, z) -&gt; (
+        k,
+        l,
+        m,
+        omega(x, y, z),
+        rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
+        n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z),
+    ),
+)
+
+integrate(Namelists(; atmosphere, domain, output, wkb))
+
+if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open(&quot;wkb_wave_packet.h5&quot;) do data
+        plot_output(
+            &quot;examples/results/wkb_wave_packet.svg&quot;,
+            data,
+            (&quot;nr&quot;, 8, 8, 16, 2);
+            time_unit = &quot;min&quot;,
+        )
+        return
+    end
+end
+</code></pre><p>initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a &quot;realistic&quot; compressible atmosphere (isentropic troposphere and isothermal stratosphere) and visualizes the resulting ray-volume distribution after fifteen minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.</p><p><img src="results/wkb_wave_packet.svg" alt/></p><h2 id="Wave-packet-helper-functions"><a class="docs-heading-anchor" href="#Wave-packet-helper-functions">Wave-packet helper functions</a><a id="Wave-packet-helper-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Wave-packet-helper-functions" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs">function ijk(x, y, z)
+    i = argmin(abs.(x .- auxiliary_state.grid.x))
+    j = argmin(abs.(y .- auxiliary_state.grid.y))
+    k = argmin(abs.(z .- auxiliary_state.grid.zc[i, j, :]))
+
+    return CartesianIndex(i, j, k)
+end
+
+function rhobar(x, y, z)
+    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)]
+end
+
+function thetabar(x, y, z)
+    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)]
+end
+
+function n2(x, y, z)
+    return auxiliary_state.atmosphere.n2[ijk(x, y, z)]
+end
+
+function envelope(x, y, z)
+    r =
+        sqrt(
+            (rx * k * (x - x0))^2 +
+            (ry * l * (y - y0))^2 +
+            (rz * m * (z - z0))^2,
+        ) / pi
+    if r &lt;= 1
+        return (1 + cos(pi * r)) / 2
+    else
+        return 0.0
+    end
+end
+
+function phi(x, y, z)
+    return k * x + l * y + m * z
+end
+
+function omega(x, y, z)
+    return -sqrt(
+        (n2(x, y, z) * (k^2 + l^2) + coriolis_frequency^2 * m^2) /
+        (k^2 + l^2 + m^2),
+    )
+end
+
+function bhat(x, y, z)
+    return a0 * n2(x, y, z) / m * envelope(x, y, z)
+end
+
+function uhat(x, y, z)
+    return 1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
+           (omega(x, y, z)^2 - coriolis_frequency^2) *
+           (k * omega(x, y, z) + 1im * l * coriolis_frequency) *
+           bhat(x, y, z)
+end
+
+function vhat(x, y, z)
+    return 1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
+           (omega(x, y, z)^2 - coriolis_frequency^2) *
+           (l * omega(x, y, z) - 1im * k * coriolis_frequency) *
+           bhat(x, y, z)
+end
+
+function what(x, y, z)
+    return 1im * omega(x, y, z) / n2(x, y, z) * bhat(x, y, z)
+end
+
+function pihat(x, y, z)
+    return kappa / rsp / thetabar(x, y, z) * 1im / m *
+           (omega(x, y, z)^2 - n2(x, y, z)) / n2(x, y, z) * bhat(x, y, z)
+end
+</code></pre><p>provides helper functions that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets. It is to be included below the construction of a corresponding auxiliary state and the extraction of <span>$\kappa = R / c_p$</span>, <span>$R$</span> and <span>$g$</span> from its <code>Constants</code> instance.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.0 on <span class="colophon-date" title="Thursday 20 November 2025 15:30">Thursday 20 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
