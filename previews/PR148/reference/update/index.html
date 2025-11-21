@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Update · PinCFlow.jl</title><meta name="title" content="Update · PinCFlow.jl"/><meta property="og:title" content="Update · PinCFlow.jl"/><meta property="twitter:title" content="Update · PinCFlow.jl"/><meta name="description" content="Documentation for PinCFlow.jl."/><meta property="og:description" content="Documentation for PinCFlow.jl."/><meta property="twitter:description" content="Documentation for PinCFlow.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">PinCFlow.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../examples/">Examples</a></li><li><span class="tocitem">Theory</span><ul><li><a class="tocitem" href="../../theory/physics/">Physics</a></li><li><a class="tocitem" href="../../theory/numerics/">Numerics</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../pincflow/">PinCFlow</a></li><li><a class="tocitem" href="../types/">Types</a></li><li><a class="tocitem" href="../mpi_operations/">MPIOperations</a></li><li><a class="tocitem" href="../boundaries/">Boundaries</a></li><li><a class="tocitem" href="../flux_calculator/">FluxCalculator</a></li><li><a class="tocitem" href="../poisson_solver/">PoissonSolver</a></li><li class="is-active"><a class="tocitem" href>Update</a></li><li><a class="tocitem" href="../msgwam/">MSGWaM</a></li><li><a class="tocitem" href="../integration/">Integration</a></li><li><a class="tocitem" href="../output/">Output</a></li></ul></li><li><a class="tocitem" href="../../developer_guide/">Developer guide</a></li><li><a class="tocitem" href="../../changelog/">Changelog</a></li><li><a class="tocitem" href="../../authors/">Authors</a></li><li><a class="tocitem" href="../../contributing/">Contributing</a></li><li><a class="tocitem" href="../../code_of_conduct/">Code of Conduct</a></li><li><a class="tocitem" href="../../license/">License</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Reference</a></li><li class="is-active"><a href>Update</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Update</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl.git" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Update"><a class="docs-heading-anchor" href="#Update">Update</a><a id="Update-1"></a><a class="docs-heading-anchor-permalink" href="#Update" title="Permalink"></a></h1><article><details class="docstring" open="true"><summary id="PinCFlow.Update"><a class="docstring-binding" href="#PinCFlow.Update"><code>PinCFlow.Update</code></a> — <span class="docstring-category">Module</span></summary><div><pre><code class="language-julia hljs">Update</code></pre><p>Module for integrating the prognostic equations.</p><p>Provides functions for updating the prognostic variables at the various stages of the semi-implicit time scheme.</p><p><strong>See also</strong></p><ul><li><p><a href="../types/#PinCFlow.Types"><code>PinCFlow.Types</code></a></p></li><li><p><a href="../boundaries/#PinCFlow.Boundaries"><code>PinCFlow.Boundaries</code></a></p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.Cartesian"><a class="docstring-binding" href="#PinCFlow.Update.Cartesian"><code>PinCFlow.Update.Cartesian</code></a> — <span class="docstring-category">Type</span></summary><div><pre><code class="language-julia hljs">Cartesian</code></pre><p>Singleton for transformations from the terrain-following system to the Cartesian one.</p></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.LHS"><a class="docstring-binding" href="#PinCFlow.Update.LHS"><code>PinCFlow.Update.LHS</code></a> — <span class="docstring-category">Type</span></summary><div><pre><code class="language-julia hljs">LHS</code></pre><p>Singleton for the integration of the left-hand side of an equation.</p></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.RHS"><a class="docstring-binding" href="#PinCFlow.Update.RHS"><code>PinCFlow.Update.RHS</code></a> — <span class="docstring-category">Type</span></summary><div><pre><code class="language-julia hljs">RHS</code></pre><p>Singleton for the integration of the right-hand side of an equation.</p></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.Transformed"><a class="docstring-binding" href="#PinCFlow.Update.Transformed"><code>PinCFlow.Update.Transformed</code></a> — <span class="docstring-category">Type</span></summary><div><pre><code class="language-julia hljs">Transformed</code></pre><p>Singleton for transformations from the Cartesian system to the terrain-following one.</p></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.X"><a class="docstring-binding" href="#PinCFlow.Update.X"><code>PinCFlow.Update.X</code></a> — <span class="docstring-category">Type</span></summary><div><pre><code class="language-julia hljs">X</code></pre><p>Singleton for <span>$\widehat{x}$</span>-axis along which a calculation should be performed.</p></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.Y"><a class="docstring-binding" href="#PinCFlow.Update.Y"><code>PinCFlow.Update.Y</code></a> — <span class="docstring-category">Type</span></summary><div><pre><code class="language-julia hljs">Y</code></pre><p>Singleton for <span>$\widehat{y}$</span>-axis along which a calculation should be performed.</p></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.Z"><a class="docstring-binding" href="#PinCFlow.Update.Z"><code>PinCFlow.Update.Z</code></a> — <span class="docstring-category">Type</span></summary><div><pre><code class="language-julia hljs">Z</code></pre><p>Singleton for <span>$\widehat{z}$</span>-axis along which a calculation should be performed.</p></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.apply_lhs_sponge!"><a class="docstring-binding" href="#PinCFlow.Update.apply_lhs_sponge!"><code>PinCFlow.Update.apply_lhs_sponge!</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::AbstractPredictand,
+)</code></pre><p>Perform an implicit substep to integrate the Rayleigh-damping term that represents the LHS sponge in the prognostic equation for <code>variable</code> by dispatching to the appropriate model-specific method.</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Rho,
+    model::Boussinesq,
+)</code></pre><p>Return in Boussinesq mode (constant density).</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)</code></pre><p>Integrate the Rayleigh-damping term that represents the LHS sponge in the continuity equation.</p><p>The update is given by</p><p class="math-container">\[\rho \rightarrow \left(1 + \alpha_\mathrm{R} \Delta t\right)^{- 1} \left(\rho + \alpha_\mathrm{R} \Delta t \overline{\rho}\right),\]</p><p>where <span>$\alpha_\mathrm{R}$</span> is the Rayleigh-damping coefficient computed by <a href="#PinCFlow.Update.compute_sponges!"><code>PinCFlow.Update.compute_sponges!</code></a> and <span>$\Delta t$</span> is the time step given as input to this method.</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::RhoP,
+    model::Compressible,
+)</code></pre><p>Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation in compressible mode.</p><p>The update is given by</p><p class="math-container">\[\rho&#39; \rightarrow \left(1 + \alpha_\mathrm{R} \Delta t\right)^{- 1} \left[\rho&#39; + \alpha_\mathrm{R} \Delta t \overline{\rho} \left(1 - \frac{P}{\rho \overline{\theta}}\right)\right].\]</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::RhoP,
+    model::Union{Boussinesq, PseudoIncompressible},
+)</code></pre><p>Integrate the Rayleigh-damping term that represents the LHS sponge in the auxiliary equation in non-compressible modes.</p><p>The update is given by</p><p class="math-container">\[\rho&#39; \rightarrow \left(1 + \alpha_\mathrm{R} \Delta t\right)^{- 1} \rho&#39;.\]</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::U,
+    model::AbstractModel,
+)</code></pre><p>Integrate the Rayleigh-damping term that represents the LHS sponge in the zonal-momentum equation.</p><p>The update is given by</p><p class="math-container">\[u_{i + 1 / 2} \rightarrow \left(1 + \alpha_{\mathrm{R}, i + 1 / 2} \Delta t\right)^{- 1} \left(u_{i + 1 / 2} + \alpha_{\mathrm{R}, i + 1 / 2} \Delta t u_{\mathrm{R}, i + 1 / 2}\right).\]</p><p>If <code>state.namelists.sponge.relax_to_mean</code> is <code>false</code>, <span>$u_{\mathrm{R}, i + 1 / 2}$</span> is computed with <code>state.namelist.sponge.relaxed_u</code>. Otherwise, it is replaced with the average of <span>$u_{i + 1 / 2}$</span> across the terrain-following coordinate surface.</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::V,
+    model::AbstractModel,
+)</code></pre><p>Integrate the Rayleigh-damping term that represents the LHS sponge in the meridional-momentum equation.</p><p>The update is given by</p><p class="math-container">\[v_{j + 1 / 2} \rightarrow \left(1 + \alpha_{\mathrm{R}, j + 1 / 2} \Delta t\right)^{- 1} \left(v_{j + 1 / 2} + \alpha_{\mathrm{R}, j + 1 / 2} \Delta t v_{\mathrm{R}, j + 1 / 2}\right).\]</p><p>If <code>state.namelists.sponge.relax_to_mean</code> is <code>false</code>, <span>$v_{\mathrm{R}, j + 1 / 2}$</span> is computed with <code>state.namelist.sponge.relaxed_v</code>. Otherwise, it is replaced with the average of <span>$v_{j + 1 / 2}$</span> across the terrain-following coordinate surface.</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::W,
+    model::AbstractModel,
+)</code></pre><p>Integrate the Rayleigh-damping term that represents the LHS sponge in the transformed-vertical-momentum equation.</p><p>The update is given by</p><p class="math-container">\[\widehat{w}_{k + 1 / 2} \rightarrow \left(1 + \alpha_{\mathrm{R}, k + 1 / 2} \Delta t\right)^{- 1} \left(\widehat{w}_{k + 1 / 2} + \alpha_{\mathrm{R}, k + 1 / 2} \Delta t \widehat{w}_{\mathrm{R}, k + 1 / 2}\right).\]</p><p>If <code>state.namelists.sponge.relax_to_mean</code> is <code>false</code>, <span>$\widehat{w}_{\mathrm{R}, k + 1 / 2}$</span> is computed with the functions <code>relaxed_u</code>, <code>relaxed_v</code> and <code>relaxed_w</code> in <code>state.namelists.sponge</code>. Otherwise, it is replaced with the average of <span>$\widehat{w}_{k + 1 / 2}$</span> across the terrain-following coordinate surface.</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::PiP,
+    model::Union{Boussinesq, PseudoIncompressible},
+)</code></pre><p>Return in non-compressible modes (Exner-pressure fluctuations are only updated in the corrector step).</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::PiP,
+    model::Compressible,
+)</code></pre><p>Update the Exner-pressure fluctuations to account for the Rayleigh damping applied to the mass-weighted potential temperature.</p><p>The update is given by</p><p class="math-container">\[\pi&#39; \rightarrow \pi&#39; - \alpha_\mathrm{R} \Delta t P \frac{\partial \pi&#39;}{\partial P} \left(1 - \frac{\overline{\rho}}{\rho}\right).\]</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::P,
+    model::Union{Boussinesq, PseudoIncompressible},
+)</code></pre><p>Return in non-compressible modes (mass-weighted potential temperature is constant in time).</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::P,
+    model::Compressible,
+)</code></pre><p>Integrate the Rayleigh-damping term that represents the LHS sponge in the thermodynamic-energy equation.</p><p>The update is given by</p><p class="math-container">\[P \rightarrow \left(1 + \alpha_\mathrm{R} \Delta t\right)^{- 1} P \left(1 + \alpha_\mathrm{R} \Delta t \frac{\overline{\rho}}{\rho}\right).\]</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    tracer_setup::NoTracer,
+)</code></pre><p>Return for configurations without tracer transport.</p><pre><code class="language-julia hljs">apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    tracer_setup::TracerOn,
+)</code></pre><p>Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations.</p><p>In each tracer equation, the update is given by</p><p class="math-container">\[\left(\rho \chi\right) \rightarrow \left(1 + \alpha_\mathrm{R} \Delta t\right)^{- 1} \left[\rho \chi + \alpha_\mathrm{R} \Delta t \left(\rho \chi\right)^{\left(0\right)}\right].\]</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>dt</code>: Time step.</p></li><li><p><code>time</code>: Simulation time.</p></li><li><p><code>variable</code>: Variable to apply Rayleigh damping to.</p></li><li><p><code>model</code>: Dynamic equations.</p></li><li><p><code>tracer_setup</code>: General tracer-transport configuration.</p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.compute_buoyancy_factor"><a class="docstring-binding" href="#PinCFlow.Update.compute_buoyancy_factor"><code>PinCFlow.Update.compute_buoyancy_factor</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">compute_buoyancy_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::Union{RhoP, W},
+)::AbstractFloat</code></pre><p>Compute the factor by which the buoyancy term should be multiplied at <span>$\left(i, j, k\right)$</span> or <span>$\left(i, j, k + 1 / 2\right)$</span>, by dispatching to a method specific for the dynamic equations and <code>variable</code>, and return the result.</p><p>In pseudo-incompressible mode, <span>$\rho&#39;$</span> are deviations of the total density from <span>$\overline{\rho}$</span>, which describes the reference atmosphere. However, in compressible mode, <span>$\rho&#39; = \rho - P / \overline{\theta}$</span> does not reduce to this, i.e. the density background has a spatiotemporal dependence. As a consequence, the right-hand side of the prognostic equation for <span>$\rho&#39;$</span> is given by</p><p class="math-container">\[\left(\frac{\partial \rho&#39;}{\partial t}\right)_{N^2} = f_{\rho&#39;} \frac{N^2 \rho w}{g},\]</p><p>with <span>$f_{\rho&#39;} = \overline{\rho} / \rho$</span> in pseudo-incompressible mode and <span>$f_{\rho&#39;} = P / \left(\rho \overline{\theta}\right)$</span> in compressible mode. This method returns either <span>$f_{\rho&#39;}$</span> at <span>$\left(i, j, k\right)$</span> or <span>$f_w$</span>, which is the interpolation of <span>$f_{\rho&#39;}$</span> to <span>$\left(i, j, k + 1 / 2\right)$</span>, based on the type of <code>variable</code>.</p><pre><code class="language-julia hljs">compute_buoyancy_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::RhoP,
+    model::Compressible,
+)::AbstractFloat</code></pre><p>Return <span>$f_{\rho&#39;} = P / \left(\rho \overline{\theta}\right)$</span> as the factor by which the buoyancy term should be multiplied at <span>$\left(i, j, k\right)$</span> in compressible mode.</p><pre><code class="language-julia hljs">compute_buoyancy_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::RhoP,
+    model::Union{Boussinesq, PseudoIncompressible},
+)::AbstractFloat</code></pre><p>Return <span>$f_{\rho&#39;} = \overline{\rho} / \rho$</span> as the factor by which the buoyancy term should be multiplied at <span>$\left(i, j, k\right)$</span> in pseudo-incompressible mode (this method is also used in Boussinesq mode).</p><pre><code class="language-julia hljs">compute_buoyancy_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    model::Compressible,
+)::AbstractFloat</code></pre><p>Return <span>$f_w = \left(P / \overline{\theta}\right)_{k + 1 / 2} / \rho_{k + 1 / 2}$</span> as the factor by which the buoyancy term should be multiplied in compressible mode.</p><pre><code class="language-julia hljs">compute_buoyancy_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    model::Union{Boussinesq, PseudoIncompressible},
+)::AbstractFloat</code></pre><p>Return <span>$f_w = \overline{\rho}_{k + 1 / 2} / \rho_{k + 1 / 2}$</span> as the factor by which the buoyancy term should be multiplied at <span>$\left(i, j, k + 1 / 2\right)$</span> in pseudo-incompressible mode (this method is also used in Boussinesq mode).</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>i</code>: Zonal grid-cell index.</p></li><li><p><code>j</code>: Meridional grid-cell index.</p></li><li><p><code>k</code>: Vertical grid-cell index.</p></li><li><p><code>variable</code>: Variable for which the factor is needed.</p></li><li><p><code>model</code>: Dynamic equations.</p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.compute_compressible_wind_factor"><a class="docstring-binding" href="#PinCFlow.Update.compute_compressible_wind_factor"><code>PinCFlow.Update.compute_compressible_wind_factor</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">compute_compressible_wind_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::Union{U, V, W},
+)::AbstractFloat</code></pre><p>Compute the factor by which the wind should be multiplied at <span>$\left(i + 1 / 2, j, k\right)$</span>, <span>$\left(i, j + 1 / 2, k\right)$</span> or <span>$\left(i, j, k + 1 / 2\right)$</span>, by dispatching to a method specific for the dynamic equations and the component indicated by <code>variable</code>, and return the result.</p><p>In compressible mode, the Euler steps that are used to integrate the right-hand side of the momentum equation update <span>$\left(J P\right)_{i + 1 / 2} u_{i + 1 / 2}$</span>, <span>$\left(J P\right)_{j + 1 / 2} v_{j + 1 / 2}$</span> and <span>$\left(J P\right)_{k + 1 / 2} \widehat{w}_{k + 1 / 2}$</span> instead of <span>$u_{i + 1 / 2}$</span>, <span>$v_{j + 1 / 2}$</span> and <span>$\widehat{w}_{k + 1 / 2}$</span>.</p><pre><code class="language-julia hljs">compute_compressible_wind_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::Union{U, V, W},
+    model::Union{Boussinesq, PseudoIncompressible},
+)::AbstractFloat</code></pre><p>Return <span>$1$</span> as the factor by which the wind should be multiplied in non-compressible mode.</p><pre><code class="language-julia hljs">compute_compressible_wind_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    model::Compressible,
+)::AbstractFloat</code></pre><p>Return <span>$\left(J P\right)_{i + 1 / 2}$</span> as the factor by which the zonal wind should be multiplied in compressible mode.</p><pre><code class="language-julia hljs">compute_compressible_wind_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    model::Compressible,
+)::AbstractFloat</code></pre><p>Return <span>$\left(J P\right)_{j + 1 / 2}$</span> as the factor by which the meridional wind should be multiplied in compressible mode.</p><pre><code class="language-julia hljs">compute_compressible_wind_factor(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    model::Compressible,
+)::AbstractFloat</code></pre><p>Return <span>$\left(J P\right)_{k + 1 / 2}$</span> as the factor by which the transformed vertical wind should be multiplied in compressible mode.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>i</code>: Zonal grid-cell index.</p></li><li><p><code>j</code>: Meridional grid-cell index.</p></li><li><p><code>k</code>: Vertical grid-cell index.</p></li><li><p><code>variable</code>: Variable for which the factor is needed.</p></li><li><p><code>model</code>: Dynamic equations.</p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.compute_momentum_diffusion_terms"><a class="docstring-binding" href="#PinCFlow.Update.compute_momentum_diffusion_terms"><code>PinCFlow.Update.compute_momentum_diffusion_terms</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    direction::X,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive zonal momentum fluxes in <span>$\widehat{x}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{x}} = \frac{u_{i + 1 / 2} - u_{i - 1 / 2}}{\Delta \widehat{x}} + G^{13} \frac{u_{k + 1} - u_{k - 1}}{2\Delta \widehat{z}}.\]</p><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    direction::Y,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive zonal momentum fluxes in <span>$\widehat{y}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{y}} = \frac{u_{j + 1} - u_{j - 1}}{2\Delta \widehat{y}} + G^{23} \frac{u_{k + 1} - u_{k - 1}}{2\Delta \widehat{z}}.\]</p><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    direction::Z,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive zonal momentum fluxes in <span>$\widehat{z}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} u\right)}^{\widehat{z}} = G^{13}\frac{u_{i + 1 / 2} - u_{i - 1 / 2}}{\Delta \widehat{x}} + G^{23} \frac{u_{j + 1} - u_{j - 1}}{2 \Delta \widehat{y}} + G^{33} \frac{u_{k + 1} - u_{k - 1}}{2 \Delta \widehat{z}}.\]</p><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    direction::X,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive meridional momentum fluxes in <span>$\widehat{x}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} v\right)}^{\widehat{x}} = \frac{v_{i + 1} - v_{i - 1}}{2 \Delta \widehat{x}} + G^{13} \frac{v_{k + 1} - v_{k - 1}}{2 \Delta \widehat{z}}.\]</p><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    direction::Y,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive meridional momentum fluxes in <span>$\widehat{y}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} v\right)}^{\widehat{y}} = \frac{v_{j + 1 / 2} - v_{j - 1 / 2}}{\Delta \widehat{y}} + G^{23} \frac{v_{k + 1} - v_{k - 1}}{2 \Delta \widehat{z}}.\]</p><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    direction::Z,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive meridional momentum fluxes in <span>$\widehat{z}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} v\right)}^{\widehat{z}} = G^{13}\frac{v_{i + 1} - v_{i - 1}}{2 \Delta \widehat{x}} + G^{23} \frac{v_{j + 1 / 2} - v_{j - 1 / 2}}{\Delta \widehat{y}} + G^{33} \frac{v_{k + 1} - v_{k - 1}}{2 \Delta \widehat{z}}.\]</p><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    direction::X,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive vertical momentum fluxes in <span>$\widehat{x}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{x}} = \frac{w_{i + 1} - w_{i - 1}}{2 \Delta \widehat{x}} + G^{13} \frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\Delta \widehat{z}}.\]</p><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    direction::Y,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive vertical momentum fluxes in <span>$\widehat{y}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{y}} = \frac{w_{j + 1} - w_{j - 1}}{2 \Delta \widehat{y}} + G^{23} \frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\Delta \widehat{z}}.\]</p><pre><code class="language-julia hljs">compute_momentum_diffusion_terms(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    direction::Z,
+)::AbstractFloat</code></pre><p>Compute and return the diffusive vertical momentum fluxes in <span>$\widehat{z}$</span>-direction, i.e.</p><p class="math-container">\[\widehat{\left(\boldsymbol{\nabla} w\right)}^{\widehat{z}} = G^{13} \frac{w_{i + 1} - w_{i - 1}}{2 \Delta \widehat{x}} + G^{23} \frac{w_{j + 1} - w_{j - 1}}{2 \Delta \widehat{y}} + G^{33} \frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\Delta \widehat{z}}.\]</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>i</code>: Grid-cell index on the <span>$\widehat{x}$</span>-axis.</p></li><li><p><code>j</code>: Grid-cell index on the <span>$\widehat{y}$</span>-axis.</p></li><li><p><code>k</code>: Grid-cell index on the <span>$\widehat{z}$</span>-axis.</p></li><li><p><code>variable</code>: Wind direction.</p></li><li><p><code>direction</code>: Direction of the flux.</p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.compute_pressure_gradient"><a class="docstring-binding" href="#PinCFlow.Update.compute_pressure_gradient"><code>PinCFlow.Update.compute_pressure_gradient</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">compute_pressure_gradient(
+    state::State,
+    pip::AbstractArray{&lt;:AbstractFloat, 3},
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+)::AbstractFloat</code></pre><p>Compute and return the pressure(-difference)-gradient term in the zonal-wind equation at <span>$\left(i + 1 / 2, j, k\right)$</span>, using the pressure(-difference) field <code>pip</code>.</p><p>The pressure-gradient component is given by</p><p class="math-container">\[\mathcal{P}^{\rho u}_{i + 1 / 2} = \frac{\pi&#39;_{i + 1} - \pi&#39;}{\Delta \widehat{x}} + G^{13}_{i + 1 / 2} \frac{\pi&#39;_{i + 1 / 2, k + 1} - \pi&#39;_{i + 1 / 2, k - 1}}{2 \Delta \widehat{z}}.\]</p><p>Since the Exner-pressure is not known in the vertical ghost cells, a different discretization is needed at the vertical boundaries. At <span>$k = k_0$</span> (in the first process in <span>$\widehat{z}$</span>), the alternative second-order-accurate approximation</p><p class="math-container">\[\mathcal{P}^{\rho u}_{i + 1 / 2} = \frac{\pi&#39;_{i + 1} - \pi&#39;}{\Delta \widehat{x}} + G^{13}_{i + 1 / 2} \frac{- \pi&#39;_{i + 1 / 2, k + 2} + 4 \pi&#39;_{i + 1 / 2, k + 1} - 3 \pi&#39;_{i + 1 / 2}}{2 \Delta \widehat{z}}\]</p><p>is used and, in a similar manner, one has</p><p class="math-container">\[\mathcal{P}^{\rho u}_{i + 1 / 2} = \frac{\pi&#39;_{i + 1} - \pi&#39;}{\Delta \widehat{x}} + G^{13}_{i + 1 / 2} \frac{\pi&#39;_{i + 1 / 2, k - 2} - 4 \pi&#39;_{i + 1 / 2, k - 1} + 3 \pi&#39;_{i + 1 / 2}}{2 \Delta \widehat{z}}\]</p><p>at <span>$k = k_1$</span> (in the last process in <span>$\widehat{z}$</span>). The corresponding pressure-difference-gradient component <span>$\mathcal{D}^{\rho u}_{i + 1 / 2}$</span> is obtained by replacing <span>$\pi&#39;$</span> with <span>$\Delta \pi&#39;$</span>. The returned quantity also includes the factor <span>$c_p \left(P_{i + 1 / 2} / \rho_{i + 1 / 2}\right)$</span>.</p><pre><code class="language-julia hljs">compute_pressure_gradient(
+    state::State,
+    pip::AbstractArray{&lt;:AbstractFloat, 3},
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+)::AbstractFloat</code></pre><p>Compute and return the pressure-gradient term in the meridional-wind equation at <span>$\left(i, j + 1 / 2, k\right)$</span>, using the pressure(-difference) field <code>pip</code>.</p><p>The pressure-gradient component is given by</p><p class="math-container">\[\mathcal{P}^{\rho v}_{j + 1 / 2} = \frac{\pi&#39;_{j + 1} - \pi&#39;}{\Delta \widehat{y}} + G^{23}_{j + 1 / 2} \frac{\pi&#39;_{j + 1 / 2, k + 1} - \pi&#39;_{j + 1 / 2, k - 1}}{2 \Delta \widehat{z}}.\]</p><p>Analogous to the component in the zonal-wind equation, one has</p><p class="math-container">\[\mathcal{P}^{\rho v}_{j + 1 / 2} = \frac{\pi&#39;_{j + 1} - \pi&#39;}{\Delta \widehat{y}} + G^{23}_{j + 1 / 2} \frac{- \pi&#39;_{j + 1 / 2, k + 2} + 4 \pi&#39;_{j + 1 / 2, k + 1} - 3 \pi&#39;_{j + 1 / 2}}{2 \Delta \widehat{z}}\]</p><p>at <span>$k = k_0$</span> (in the first process in <span>$\widehat{z}$</span>) and</p><p class="math-container">\[\mathcal{P}^{\rho v}_{j + 1 / 2} = \frac{\pi&#39;_{j + 1} - \pi&#39;}{\Delta \widehat{y}} + G^{23}_{j + 1 / 2} \frac{\pi&#39;_{j + 1 / 2, k - 2} - 4 \pi&#39;_{j + 1 / 2, k - 1} + 3 \pi&#39;_{j + 1 / 2}}{2 \Delta \widehat{z}}\]</p><p>at <span>$k = k_1$</span> (in the last process in <span>$\widehat{z}$</span>). The corresponding pressure-difference-gradient component <span>$\mathcal{D}^{\rho v}_{j + 1 / 2}$</span> is obtained by replacing <span>$\pi&#39;$</span> with <span>$\Delta \pi&#39;$</span>. The returned quantity also includes the factor <span>$c_p \left(P_{j + 1 / 2} / \rho_{j + 1 / 2}\right)$</span>.</p><pre><code class="language-julia hljs">compute_pressure_gradient(
+    state::State,
+    pip::AbstractArray{&lt;:AbstractFloat, 3},
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+)::AbstractFloat</code></pre><p>Compute and return the pressure(-difference)-gradient term in the transformed-vertical-wind equation at <span>$\left(i, j, k + 1 / 2\right)$</span>, using the pressure(-difference) field <code>pip</code>.</p><p>The pressure-gradient component is given by</p><p class="math-container">\[\begin{align*}
+    \mathcal{P}^{\rho \widehat{w}}_{k + 1 / 2} &amp; = G^{13}_{k + 1 / 2} \frac{\pi&#39;_{i + 1, k + 1 / 2} - \pi&#39;_{i - 1, k + 1 / 2}}{2 \Delta \widehat{x}} + G^{23}_{k + 1 / 2} \frac{\pi&#39;_{j + 1, k + 1 / 2} - \pi&#39;_{j - 1, k + 1 / 2}}{2 \Delta \widehat{y}}\\
+    &amp; \quad + G^{33}_{k + 1 / 2} \frac{\pi&#39;_{k + 1} - \pi&#39;}{\Delta \widehat{z}}.
+ \end{align*}\]</p><p>At <span>$k = k_0 - 1$</span> (in the first process in <span>$\widehat{z}$</span>) and <span>$k = k_1$</span> (in the last process in <span>$\widehat{z}$</span>), it is set to zero. The corresponding pressure-difference-gradient component <span>$\mathcal{D}^{\rho \widehat{w}}_{k + 1 / 2}$</span> is obtained by replacing <span>$\pi&#39;$</span> with <span>$\Delta \pi&#39;$</span>. The returned quantity also includes the factor <span>$c_p \left(P_{k + 1 / 2} / \rho_{k + 1 / 2}\right)$</span>.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>pip</code>: Pressure field.</p></li><li><p><code>i</code>: Zonal grid-cell index.</p></li><li><p><code>j</code>: Meridional grid-cell index.</p></li><li><p><code>k</code>: Vertical grid-cell index.</p></li><li><p><code>variable</code>: Equation in which the respective pressure-gradient component is needed.</p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.compute_sponges!"><a class="docstring-binding" href="#PinCFlow.Update.compute_sponges!"><code>PinCFlow.Update.compute_sponges!</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)</code></pre><p>Compute the Rayleigh-damping coefficients of the two sponges.</p><p>The coefficients are computed with the functions <code>lhs_sponge</code> and <code>rhs_sponge</code> in <code>state.namelists.sponge</code>.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>dt</code>: Time step.</p></li><li><p><code>time</code>: Simulation time.</p></li></ul><p><strong>See also</strong></p><ul><li><p><a href="../boundaries/#PinCFlow.Boundaries.set_zonal_boundaries_of_field!"><code>PinCFlow.Boundaries.set_zonal_boundaries_of_field!</code></a></p></li><li><p><a href="../boundaries/#PinCFlow.Boundaries.set_meridional_boundaries_of_field!"><code>PinCFlow.Boundaries.set_meridional_boundaries_of_field!</code></a></p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.compute_stress_tensor"><a class="docstring-binding" href="#PinCFlow.Update.compute_stress_tensor"><code>PinCFlow.Update.compute_stress_tensor</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">compute_stress_tensor(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    mu::Integer,
+    nu::Integer,
+    state::State,
+)::AbstractFloat</code></pre><p>Compute and return the element <span>$\left(\mu, \nu\right)$</span> of the Cartesian stress tensor at the grid point <span>$\left(i, j, k\right)$</span>.</p><p>The discretized elements of the Cartesian stress tensor are given by</p><p class="math-container">\[\begin{align*}
+    \Pi^{1 1} &amp; = \frac{2}{\Delta \widehat{x}} \left(u_{i + 1 / 2} - u_{i - 1 / 2}\right) + \frac{G^{1 3}}{\Delta \widehat{z}} \left(u_{k + 1} - u_{k - 1}\right) - \frac{2}{3} \delta,\\
+    \Pi^{1 2} &amp; = \frac{1}{2 \Delta \widehat{y}} \left(u_{j + 1} - u_{j - 1}\right) + \frac{G^{2 3}}{2 \Delta \widehat{z}} \left(u_{k + 1} - u_{k - 1}\right) + \frac{1}{2 \Delta \widehat{x}} \left(v_{i + 1} - v_{i - 1}\right) + \frac{G^{1 3}}{2 \Delta \widehat{z}} \left(v_{k + 1} - v_{k - 1}\right),\\
+    \Pi^{1 3} &amp; = \frac{1}{2 J \Delta \widehat{z}} \left(u_{k + 1} - u_{k - 1}\right) + \frac{1}{2 \Delta \widehat{x}} \left(w_{i + 1} - w_{i - 1}\right) + \frac{G^{1 3}}{\Delta \widehat{z}} \left(w_{k + 1 / 2} - w_{k - 1 / 2}\right),\\
+    \Pi^{2 2} &amp; = \frac{2}{\Delta \widehat{y}} \left(v_{j + 1 / 2} - v_{j - 1 / 2}\right) + \frac{G^{2 3}}{\Delta \widehat{z}} \left(v_{k + 1} - v_{k - 1}\right) - \frac{2}{3} \delta,\\
+    \Pi^{2 3} &amp; = \frac{1}{2 J \Delta \widehat{z}} \left(v_{k + 1} - v_{k - 1}\right) + \frac{1}{2 \Delta \widehat{y}} \left(w_{j + 1} - w_{j - 1}\right) + \frac{G^{2 3}}{\Delta \widehat{z}} \left(w_{k + 1 / 2} - w_{k - 1 / 2}\right),\\
+    \Pi^{3 3} &amp; = \frac{2}{J \Delta \widehat{z}} \left(w_{k + 1 / 2} - w_{k - 1 / 2}\right) - \frac{2}{3} \delta,
+\end{align*}\]</p><p>where</p><p class="math-container">\[\begin{align*}
+    \delta &amp; = \frac{1}{J} \left[\frac{1}{\Delta \widehat{x}} \left(J_{i + 1 / 2} u_{i + 1 / 2} - J_{i - 1 / 2} u_{i - 1 / 2}\right) + \frac{1}{\Delta \widehat{y}} \left(J_{j + 1 / 2} v_{j + 1 / 2} - J_{j - 1 / 2} v_{j - 1 / 2}\right)\right.\\
+    &amp; \qquad \quad + \left.\frac{1}{\Delta \widehat{z}} \left(J_{k + 1 / 2} \widehat{w}_{k + 1 / 2} - J_{k - 1 / 2} \widehat{w}_{k - 1 / 2}\right)\right].
+\end{align*}\]</p><p><strong>Arguments</strong></p><ul><li><p><code>i</code>: Zonal grid-cell index.</p></li><li><p><code>j</code>: Meridional grid-cell index.</p></li><li><p><code>k</code>: Vertical grid-cell index.</p></li><li><p><code>mu</code>: First contravariant tensor index.</p></li><li><p><code>nu</code>: Second contravariant tensor index.</p></li><li><p><code>state</code>: Model state.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Update.compute_vertical_wind"><code>PinCFlow.Update.compute_vertical_wind</code></a></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.compute_vertical_wind"><a class="docstring-binding" href="#PinCFlow.Update.compute_vertical_wind"><code>PinCFlow.Update.compute_vertical_wind</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">compute_vertical_wind(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    state::State,
+)::AbstractFloat</code></pre><p>Compute and return the Cartesian vertical wind at the grid point <span>$\left(i, j, k + 1 / 2\right)$</span>.</p><p><strong>Arguments</strong></p><ul><li><p><code>i</code>: Zonal grid-cell index.</p></li><li><p><code>j</code>: Meridional grid-cell index.</p></li><li><p><code>k</code>: Vertical grid-cell index.</p></li><li><p><code>state</code>: Model state.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Update.transform"><code>PinCFlow.Update.transform</code></a></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.compute_volume_force"><a class="docstring-binding" href="#PinCFlow.Update.compute_volume_force"><code>PinCFlow.Update.compute_volume_force</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::Union{U, V, W, P, Chi},
+)::AbstractFloat</code></pre><p>Return the volume force in the equation specified by <code>variable</code>, by dispatching to an equation-and-WKB-mode specific method.</p><pre><code class="language-julia hljs">compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::Union{U, V, W, Chi},
+    wkb_mode::NoWKB,
+)::AbstractFloat</code></pre><p>Return <span>$0$</span> as the volume force in non-WKB configurations (for all variables except the mass-weighted potential temperature).</p><pre><code class="language-julia hljs">compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)::AbstractFloat</code></pre><p>Return the gravity-wave drag on the zonal momentum, interpolated to <span>$\left(i + 1 / 2, j, k\right)$</span>.</p><pre><code class="language-julia hljs">compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)::AbstractFloat</code></pre><p>Return the gravity-wave drag on the meridional momentum, interpolated to <span>$\left(i, j + 1 / 2, k\right)$</span>.</p><pre><code class="language-julia hljs">compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::W,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)::AbstractFloat</code></pre><p>Return the gravity-wave drag on the transformed vertical momentum, interpolated to <span>$\left(i, j, k + 1 / 2\right)$</span>, as given by</p><p class="math-container">\[\left(\frac{\partial \widehat{w}}{\partial t}\right)_\mathrm{w} = \left[G^{1 3} \left(\frac{\partial u}{\partial t}\right)_\mathrm{w}\right]_{k + 1 / 2} + \left[G^{2 3} \left(\frac{\partial v}{\partial t}\right)_\mathrm{w}\right]_{k + 1 / 2}.\]</p><pre><code class="language-julia hljs">compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::P,
+    wkb_mode::NoWKB,
+)::AbstractFloat</code></pre><p>Return the conductive heating.</p><pre><code class="language-julia hljs">compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::P,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)::AbstractFloat</code></pre><p>Return the sum of gravity-wave impact on the mass-weighted potential temperature and conductive heating.</p><pre><code class="language-julia hljs">compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::Chi,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)::AbstractFloat</code></pre><p>Return the tracer flux convergence due to gravity waves.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>i</code>: Zonal grid-cell index.</p></li><li><p><code>j</code>: Meridional grid-cell index.</p></li><li><p><code>k</code>: Vertical grid-cell index.</p></li><li><p><code>variable</code>: Variable (equation) of choice.</p></li><li><p><code>wkb_mode</code>: Approximations used by MS-GWaM.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Update.conductive_heating"><code>PinCFlow.Update.conductive_heating</code></a></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.conductive_heating"><a class="docstring-binding" href="#PinCFlow.Update.conductive_heating"><code>PinCFlow.Update.conductive_heating</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">conductive_heating(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)::AbstractFloat</code></pre><p>Compute and return the conductive heating by dispatching to specialized methods dependent on the model.</p><pre><code class="language-julia hljs">conductive_heating(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    model::Boussinesq,
+)::AbstractFloat</code></pre><p>Return <span>$0$</span> as conductive heating in Boussinesq mode.</p><pre><code class="language-julia hljs">conductive_heating(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    model::PseudoIncompressible,
+)::AbstractFloat</code></pre><p>Return <span>$0$</span> as conductive heating in PseudoIncompressible mode.</p><pre><code class="language-julia hljs">conductive_heating(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    model::Compressible,
+)::AbstractFloat</code></pre><p>Compute and return the conductive heating as the convergence of potential temperature fluxes (weighted by the density), i.e.</p><p class="math-container">\[\left(\frac{\partial P}{\partial t}\right)_\lambda = - \frac{\rho}{J} \left(\frac{\mathcal{F}_{i + 1 / 2}^{\theta, \widehat{x}} - \mathcal{F}_{i - 1 / 2}^{\theta, \widehat{x}}}{\Delta \widehat{x}} + \frac{\mathcal{F}_{j + 1 / 2}^{\theta, \widehat{y}} - \mathcal{F}_{j - 1 / 2}^{\theta, \widehat{y}}}{\Delta \widehat{y}} + \frac{\mathcal{F}_{k + 1 / 2}^{\theta, \widehat{z}} - \mathcal{F}_{k - 1 / 2}^{\theta, \widehat{z}}}{\Delta \widehat{z}}\right).\]</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>i</code>: Zonal grid-cell index.</p></li><li><p><code>j</code>: Meridional grid-cell index.</p></li><li><p><code>k</code>: Vertical grid-cell index.</p></li><li><p><code>model</code>: Dynamic equations.</p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.transform"><a class="docstring-binding" href="#PinCFlow.Update.transform"><code>PinCFlow.Update.transform</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">transform(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    uedger::AbstractFloat,
+    uuedger::AbstractFloat,
+    uedgel::AbstractFloat,
+    uuedgel::AbstractFloat,
+    vedgef::AbstractFloat,
+    vuedgef::AbstractFloat,
+    vedgeb::AbstractFloat,
+    vuedgeb::AbstractFloat,
+    wedgeu::AbstractFloat,
+    coordinate::Cartesian,
+    state::State,
+)::AbstractFloat</code></pre><p>Perform the transformation of a vertical-wind-like variable from the transformed system to the Cartesian one, given the wind-like components at the grid points surrounding <span>$\left(i, j, k + 1 / 2\right)$</span>, and return the result.</p><p>The discretized transformation rule for the vertical wind is given by</p><p class="math-container">\[w_{k + 1 / 2} = J_{k + 1 / 2} \left[- \left(G^{1 3} u\right)_{k + 1 / 2} - \left(G^{2 3} v\right)_{k + 1 / 2} + \widehat{w}_{k + 1 / 2}\right].\]</p><pre><code class="language-julia hljs">transform(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    uedger::AbstractFloat,
+    uuedger::AbstractFloat,
+    uedgel::AbstractFloat,
+    uuedgel::AbstractFloat,
+    vedgef::AbstractFloat,
+    vuedgef::AbstractFloat,
+    vedgeb::AbstractFloat,
+    vuedgeb::AbstractFloat,
+    wedgeu::AbstractFloat,
+    coordinate::Transformed,
+    state::State,
+)::AbstractFloat</code></pre><p>Perform the transformation of a vertical-wind-like variable from the Cartesian system to the transformed one, given the wind-like components at the grid points surrounding <span>$\left(i, j, k + 1 / 2\right)$</span>, and return the result.</p><p>The discretized transformation rule for the vertical wind is given by</p><p class="math-container">\[\widehat{w}_{k + 1 / 2} = \left(G^{1 3} u\right)_{k + 1 / 2} + \left(G^{2 3} v\right)_{k + 1 / 2} + \frac{w_{k + 1 / 2}}{J_{k + 1 / 2}}.\]</p><p><strong>Arguments</strong></p><ul><li><p><code>i</code>: Zonal grid-cell index.</p></li><li><p><code>j</code>: Meridional grid-cell index.</p></li><li><p><code>k</code>: Vertical grid-cell index.</p></li><li><p><code>uedger</code>: Zonal-wind equivalent at <span>$\left(i + 1 / 2, j, k\right)$</span>.</p></li><li><p><code>uuedger</code>: Zonal-wind equivalent at <span>$\left(i + 1 / 2, j, k + 1\right)$</span>.</p></li><li><p><code>uedgel</code>: Zonal-wind equivalent at <span>$\left(i - 1 / 2, j, k\right)$</span>.</p></li><li><p><code>uuedgel</code>: Zonal-wind equivalent at <span>$\left(i - 1 / 2, j, k + 1\right)$</span>.</p></li><li><p><code>vedgef</code>: Meridional-wind equivalent at <span>$\left(i, j + 1 / 2, k\right)$</span>.</p></li><li><p><code>vuedgef</code>: Meridional-wind equivalent at <span>$\left(i, j + 1 / 2, k + 1\right)$</span>.</p></li><li><p><code>vedgeb</code>: Meridional-wind equivalent at <span>$\left(i, j - 1 / 2, k\right)$</span>.</p></li><li><p><code>vuedgeb</code>: Meridional-wind equivalent at <span>$\left(i, j - 1 / 2, k + 1\right)$</span>.</p></li><li><p><code>wedgeu</code>: Transformed-vertical-wind equivalent at <span>$\left(i, j, k + 1 / 2\right)$</span></p></li><li><p><code>coordinate</code>: Coordinate system to transform to.</p></li><li><p><code>state</code>: Model state.</p></li></ul></div></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Update.update!"><a class="docstring-binding" href="#PinCFlow.Update.update!"><code>PinCFlow.Update.update!</code></a> — <span class="docstring-category">Function</span></summary><div><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)</code></pre><p>Update the density if the atmosphere is not Boussinesq by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Rho,
+    model::Boussinesq,
+)</code></pre><p>Return in Boussinesq mode (the density is constant).</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Rho,
+    model::Union{PseudoIncompressible, Compressible},
+)</code></pre><p>Update the density with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    q^\rho &amp; \rightarrow - \frac{\Delta t}{J} \left(\frac{\mathcal{F}^{\rho, \widehat{x}}_{i + 1 / 2} - \mathcal{F}^{\rho, \widehat{x}}_{i - 1 / 2}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho, \widehat{y}}_{j + 1 / 2} - \mathcal{F}^{\rho, \widehat{y}}_{j - 1 / 2}}{\Delta \widehat{y}} + \frac{\mathcal{F}^{\rho, \widehat{z}}_{k + 1 / 2} - \mathcal{F}^{\rho, \widehat{z}}_{k - 1 / 2}}{\Delta \widehat{z}}\right) + \alpha_\mathrm{RK} q^\rho,\\
+    \rho &amp; \rightarrow \rho + \beta_\mathrm{RK} q^\rho,
+\end{align*}\]</p><p>where <span>$\Delta t$</span> is the time step given as input to this method.</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)</code></pre><p>Update the density fluctuations with a Runge-Kutta step on the left-hand-side of the equation.</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    q^{\rho&#39;} &amp; \rightarrow - \frac{\Delta t}{J} \left(\frac{\mathcal{F}^{\rho&#39;, \widehat{x}}_{i + 1 / 2} - \mathcal{F}^{\rho&#39;, \widehat{x}}_{i - 1 / 2}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho&#39;, \widehat{y}}_{j + 1 / 2} - \mathcal{F}^{\rho&#39;, \widehat{y}}_{j - 1 / 2}}{\Delta \widehat{y}} + \frac{\mathcal{F}^{\rho&#39;, \widehat{z}}_{k + 1 / 2} - \mathcal{F}^{\rho&#39;, \widehat{z}}_{k - 1 / 2}}{\Delta \widehat{z}}\right) + \alpha_\mathrm{RK} q^{\rho&#39;},\\
+    \rho&#39; &amp; \rightarrow \rho&#39; + \beta_\mathrm{RK} q^{\rho&#39;}
+\end{align*}\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[\begin{align*}
+    q^{\rho&#39;} &amp; \rightarrow \Delta t \left[- \frac{1}{J} \left(\frac{\mathcal{F}^{\rho&#39;, \widehat{x}}_{i + 1 / 2} - \mathcal{F}^{\rho&#39;, \widehat{x}}_{i - 1 / 2}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho&#39;, \widehat{y}}_{j + 1 / 2} - \mathcal{F}^{\rho&#39;, \widehat{y}}_{j - 1 / 2}}{\Delta \widehat{y}} + \frac{\mathcal{F}^{\rho&#39;, \widehat{z}}_{k + 1 / 2} - \mathcal{F}^{\rho&#39;, \widehat{z}}_{k - 1 / 2}}{\Delta \widehat{z}}\right) + \frac{F^P}{\overline{\theta}}\right] + \alpha_\mathrm{RK} q^{\rho&#39;},\\
+    \rho&#39; &amp; \rightarrow \rho&#39; + \beta_\mathrm{RK} q^{\rho&#39;}
+\end{align*}\]</p><p>in compressible mode.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::RhoP,
+    side::RHS,
+    integration::Explicit,
+)</code></pre><p>Update the density fluctuations with an explicit Euler step the on right-hand side of the equation, without the Rayleigh-damping term.</p><p>The update is given by</p><p class="math-container">\[\rho&#39; \rightarrow - \frac{\rho}{g} \left(b&#39; - \Delta t N^2 \frac{\overline{\rho}}{\rho} w\right)\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[\rho&#39; \rightarrow - \frac{\rho}{g} \left[b&#39; - \Delta t N^2 \frac{P / \overline{\theta}}{\rho} \left(\frac{W_{k + 1 / 2}}{\left(J P\right)_{k + 1 / 2}}\right)\right]\]</p><p>in compressible mode, where <span>$b&#39; = - g \rho&#39; / \rho$</span>.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::RhoP,
+    side::RHS,
+    integration::Implicit,
+    rayleigh_factor::AbstractFloat,
+)</code></pre><p>Update the density fluctuations with an implicit Euler step on the right-hand side of the equation.</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    \rho&#39; &amp; \rightarrow - \frac{\rho}{g} \left[1 + \beta_\mathrm{R} \Delta t + \frac{\overline{\rho}}{\rho} \left(N \Delta t\right)^2\right]^{- 1}\\
+    &amp; \quad \times \left\{- \frac{\overline{\rho}}{\rho} N^2 \Delta t J \left[\widehat{w}_\mathrm{old} + \Delta t \left(- \left(c_p \frac{P_{k + 1 / 2}}{\rho_{k + 1 / 2}} \mathcal{P}_{k + 1 / 2}^{\rho \widehat{w}}\right) + \left(\frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right)\right)\right] + \left(1 + \beta_\mathrm{R} \Delta t\right) b&#39;\right.\\
+    &amp; \qquad \quad + \left.\frac{\overline{\rho}}{\rho} N^2 \Delta t J \left(1 + \beta_\mathrm{R} \Delta t\right) \left(G^{13} u + G^{23} v\right)\vphantom{\left[\left(\frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right)\right]}\right\},
+\end{align*}\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[\begin{align*}
+    \rho&#39; &amp; \rightarrow - \frac{\rho}{g} \left[1 + \beta_\mathrm{R} \Delta t + \frac{P / \overline{\theta}}{\rho} \left(N \Delta t\right)^2\right]^{- 1}\\
+    &amp; \quad \times \left\{- \frac{P / \overline{\theta}}{\rho} N^2 \Delta t J \left[\left(\frac{\widehat{W}_{\mathrm{old}, k + 1 / 2}}{\left(J P\right)_{k + 1 / 2}}\right) + \Delta t \left(- \left(c_p \frac{P_{k + 1 / 2}}{\rho_{k + 1 / 2}} \mathcal{P}_{k + 1 / 2}^{\rho \widehat{w}}\right) + \left(\frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right)\right)\right]\right.\\
+    &amp; \qquad \quad + \left(1 + \beta_\mathrm{R} \Delta t\right) b&#39; + \frac{P / \overline{\theta}}{\rho} N^2 \Delta t J \left(1 + \beta_\mathrm{R} \Delta t\right)\\
+    &amp; \qquad \quad \times \left.\left[G^{13} \left(\frac{U_{i + 1 / 2}}{\left(J P\right)_{i + 1 / 2}}\right) + G^{23} \left(\frac{V_{j + 1 / 2}}{\left(J P\right)_{j + 1 / 2}}\right)\right]\right\},
+\end{align*}\]</p><p>in compressible mode, where <span>$\widehat{w}_\mathrm{old}$</span> is the transformed vertical wind stored in <code>state.variables.backups</code>.</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)</code></pre><p>Update the zonal momentum with a Runge-Kutta step on the left-hand side of the equation.</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    q^{\rho u}_{i + 1 / 2} &amp; \rightarrow \Delta t \left[- \frac{1}{J_{i + 1 / 2}} \left(\frac{\mathcal{F}^{\rho u, \widehat{x}}_{i + 1} - \mathcal{F}^{\rho u, \widehat{x}}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho u, \widehat{y}}_{i + 1 / 2, j + 1 / 2} - \mathcal{F}^{\rho u, \widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\Delta \widehat{y}}\right.\right.\\
+    &amp; \qquad \qquad \qquad \qquad + \left.\left.\frac{\mathcal{F}^{\rho u, \widehat{z}}_{i + 1 / 2, k + 1 / 2} - \mathcal{F}^{\rho u, \widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\Delta \widehat{z}}\right) + f \left(\rho_\mathrm{old} v\right)_{i + 1 / 2}\right] + \alpha_\mathrm{RK} q^{\rho u}_{i + 1 / 2},\\
+    u_{i + 1 / 2} &amp; \rightarrow \rho_{i + 1 / 2}^{- 1} \left(\rho_{\mathrm{old}, i + 1 / 2} u_{i + 1 / 2} + \beta_\mathrm{RK} q^{\rho u}_{i + 1 / 2}\right),
+\end{align*}\]</p><p>where <span>$\rho_\mathrm{old}$</span> is the density stored in <code>state.variables.backups</code>.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::U,
+    side::RHS,
+    integration::Explicit,
+)</code></pre><p>Update the zonal wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.</p><p>The update is given by</p><p class="math-container">\[u_{i + 1 / 2} \rightarrow u_{i + 1 / 2} + \Delta t \left(- c_p \frac{P_{i + 1 / 2}}{\rho_{i + 1 / 2}} \mathcal{P}_{i + 1 / 2}^{\rho u} + \frac{F_{i + 1 / 2}^{\rho u}}{\rho_{i + 1 / 2}}\right)\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[U_{i + 1 / 2} \rightarrow U_{i + 1 / 2} + \Delta t \left(J P\right)_{i + 1 / 2} \left(- c_p \frac{P_{i + 1 / 2}}{\rho_{i + 1 / 2}} \mathcal{P}_{i + 1 / 2}^{\rho u} + \frac{F_{i + 1 / 2}^{\rho u}}{\rho_{i + 1 / 2}}\right)\]</p><p>in compressible mode.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::U,
+    side::RHS,
+    integration::Implicit,
+    rayleigh_factor::AbstractFloat,
+)</code></pre><p>Update the zonal wind with an implicit Euler step on the right-hand side of the equation.</p><p>The update is given by</p><p class="math-container">\[u_{i + 1 / 2} \rightarrow \left(1 + \beta_{\mathrm{R}, i + 1 / 2} \Delta t\right)^{- 1} \left[u_{i + 1 / 2} + \Delta t \left(- c_p \frac{P_{i + 1 / 2}}{\rho_{i + 1 / 2}} \mathcal{P}_{i + 1 / 2}^{\rho u} + \frac{F_{i + 1 / 2}^{\rho u}}{\rho_{i + 1 / 2}}\right)\right]\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[U_{i + 1 / 2} \rightarrow \left(1 + \beta_{\mathrm{R}, i + 1 / 2} \Delta t\right)^{- 1} \left[U_{i + 1 / 2} + \Delta t \left(J P\right)_{i + 1 / 2} \left(- c_p \frac{P_{i + 1 / 2}}{\rho_{i + 1 / 2}} \mathcal{P}_{i + 1 / 2}^{\rho u} + \frac{F_{i + 1 / 2}^{\rho u}}{\rho_{i + 1 / 2}}\right)\right]\]</p><p>in compressible mode.</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)</code></pre><p>Update the meridional momentum with a Runge-Kutta step on the left-hand side of the equation.</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    q^{\rho v}_{j + 1 / 2} &amp; \rightarrow \Delta t \left[- \frac{1}{J_{j + 1 / 2}} \left(\frac{\mathcal{F}^{\rho v, \widehat{x}}_{i + 1 / 2, j + 1 / 2} - \mathcal{F}^{\rho v, \widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho v, \widehat{y}}_{j + 1} - \mathcal{F}^{\rho v, \widehat{y}}}{\Delta \widehat{y}}\right.\right.\\
+    &amp; \qquad \qquad \qquad \qquad + \left.\left.\frac{\mathcal{F}^{\rho v, \widehat{z}}_{j + 1 / 2, k + 1 / 2} - \mathcal{F}^{\rho v, \widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\Delta \widehat{z}}\right) - f \left(\rho_\mathrm{old} u_\mathrm{old}\right)_{j + 1 / 2}\right] + \alpha_\mathrm{RK} q^{\rho v}_{j + 1 / 2},\\
+    v_{j + 1 / 2} &amp; \rightarrow \rho_{j + 1 / 2}^{- 1} \left(\rho_{\mathrm{old}, j + 1 / 2} v_{j + 1 / 2} + \beta_\mathrm{RK} q^{\rho v}_{j + 1 / 2}\right),
+\end{align*}\]</p><p>where <span>$\rho_\mathrm{old}$</span> and <span>$u_{\mathrm{old}, i + 1 / 2}$</span> are the density and zonal wind stored in <code>state.variables.backups</code>.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::V,
+    side::RHS,
+    integration::Explicit,
+)</code></pre><p>Update the meridional wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.</p><p>The update is given by</p><p class="math-container">\[v_{i + 1 / 2} \rightarrow v_{j + 1 / 2} + \Delta t \left(- c_p \frac{P_{j + 1 / 2}}{\rho_{j + 1 / 2}} \mathcal{P}_{j + 1 / 2}^{\rho v} + \frac{F_{j + 1 / 2}^{\rho v}}{\rho_{j + 1 / 2}}\right)\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[V_{j + 1 / 2} \rightarrow V_{j + 1 / 2} + \Delta t \left(J P\right)_{j + 1 / 2} \left(- c_p \frac{P_{j + 1 / 2}}{\rho_{j + 1 / 2}} \mathcal{P}_{j + 1 / 2}^{\rho v} + \frac{F_{j + 1 / 2}^{\rho v}}{\rho_{j + 1 / 2}}\right)\]</p><p>in compressible mode.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::V,
+    side::RHS,
+    integration::Implicit,
+    rayleigh_factor::AbstractFloat,
+)</code></pre><p>Update the meridional wind with an implicit Euler step on the right-hand side of the equation.</p><p>The update is given by</p><p class="math-container">\[v_{j + 1 / 2} \rightarrow \left(1 + \beta_{\mathrm{R}, j + 1 / 2} \Delta t\right)^{- 1} \left[v_{j + 1 / 2} + \Delta t \left(- c_p \frac{P_{j + 1 / 2}}{\rho_{j + 1 / 2}} \mathcal{P}_{j + 1 / 2}^{\rho v} + \frac{F_{j + 1 / 2}^{\rho v}}{\rho_{j + 1 / 2}}\right)\right]\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[V_{j + 1 / 2} \rightarrow \left(1 + \beta_{\mathrm{R}, j + 1 / 2} \Delta t\right)^{- 1} \left[V_{j + 1 / 2} + \Delta t \left(J P\right)_{j + 1 / 2} \left(- c_p \frac{P_{j + 1 / 2}}{\rho_{j + 1 / 2}} \mathcal{P}_{j + 1 / 2}^{\rho v} + \frac{F_{j + 1 / 2}^{\rho v}}{\rho_{j + 1 / 2}}\right)\right]\]</p><p>in compressible mode.</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, m::Integer, variable::W, side::LHS)</code></pre><p>Update the transformed vertical momentum with a Runge-Kutta step on the left-hand side of the equation.</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    q^{\rho \widehat{w}}_{k + 1 / 2} &amp; \rightarrow \Delta t \left\{- \left[G^{13} \left(\frac{1}{J_{i + 1 / 2}} \left(\frac{\mathcal{F}^{\rho u, \widehat{x}}_{i + 1} - \mathcal{F}^{\rho u, \widehat{x}}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho u, \widehat{y}}_{i + 1 / 2, j + 1 / 2} - \mathcal{F}^{\rho u, \widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\Delta \widehat{y}}\right.\right.\right.\right.\\
+    &amp; \qquad \qquad \qquad \qquad \qquad \qquad + \left.\left.\left.\frac{\mathcal{F}^{\rho u, \widehat{z}}_{i + 1 / 2, k + 1 / 2} - \mathcal{F}^{\rho u, \widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\Delta \widehat{z}}\right)\right)\right]_{k + 1 / 2}\\
+    &amp; \qquad \qquad - \left[G^{23} \left(\frac{1}{J_{j + 1 / 2}} \left(\frac{\mathcal{F}^{\rho v, \widehat{x}}_{i + 1 / 2, j + 1 / 2} - \mathcal{F}^{\rho v, \widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho v, \widehat{y}}_{j + 1} - \mathcal{F}^{\rho v, \widehat{y}}}{\Delta \widehat{y}}\right.\right.\right.\\
+    &amp; \qquad \qquad \qquad \qquad \qquad \qquad + \left.\left.\left.\frac{\mathcal{F}^{\rho v, \widehat{z}}_{j + 1 / 2, k + 1 / 2} - \mathcal{F}^{\rho v, \widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\Delta \widehat{z}}\right)\right)\right]_{k + 1 / 2}\\
+    &amp; \qquad \qquad - \frac{1}{J_{k + 1 / 2}^2} \left(\frac{\mathcal{F}^{\rho w, \widehat{x}}_{i + 1 / 2, k + 1 / 2} - \mathcal{F}^{\rho w, \widehat{x}}_{i - 1 / 2, k + 1 / 2}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho w, \widehat{y}}_{j + 1 / 2, k + 1 / 2} - \mathcal{F}^{\rho w, \widehat{y}}_{j - 1 / 2, k + 1 / 2}}{\Delta \widehat{y}}\right.\\
+    &amp; \qquad \qquad \qquad \qquad \quad + \left.\frac{\mathcal{F}^{\rho w, \widehat{z}}_{k + 1} - \mathcal{F}^{\rho w, \widehat{z}}}{\Delta \widehat{z}}\right)\\
+    &amp; \qquad \qquad + \left.G^{13} f \left(\rho_\mathrm{old} v_\mathrm{old}\right)_{k + 1 / 2} - G^{23} f \left(\rho_\mathrm{old} u_\mathrm{old}\right)_{k + 1 / 2}\vphantom{- \frac{1}{J^2} \left(\frac{\mathcal{F}^{\rho w, \widehat{z}}_{k + 1} - \mathcal{F}^{\rho w, \widehat{z}}}{\Delta \widehat{z}}\right)}\right\} + \alpha_\mathrm{RK} q^{\rho \widehat{w}}_{k + 1 / 2},\\
+    \widehat{w}_{k + 1 / 2} &amp; \rightarrow \rho_{k + 1 / 2}^{- 1} \left(\rho_{\mathrm{old}, k + 1 / 2} \widehat{w}_{k + 1 / 2} + \beta_\mathrm{RK} q^{\rho \widehat{w}}_{k + 1 / 2}\right),
+\end{align*}\]</p><p>where <span>$\rho_\mathrm{old}$</span>, <span>$u_{\mathrm{old}, i + 1 / 2}$</span> and <span>$v_{\mathrm{old}, j + 1 / 2}$</span> are the density, zonal wind and meridional wind stored in <code>state.variables.backups</code>.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::W,
+    side::RHS,
+    integration::Explicit,
+)</code></pre><p>Update the transformed vertical wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.</p><p>The update is given by</p><p class="math-container">\[\widehat{w}_{k + 1 / 2} \rightarrow \widehat{w}_{k + 1 / 2} + \Delta t \left[- c_p \frac{P_{k + 1 / 2}}{\rho_{k + 1 / 2}} \mathcal{P}_{k + 1 / 2}^{\rho \widehat{w}} + \left(\frac{b&#39;_\mathrm{old}}{J}\right)_{k + 1 / 2} + \frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right]\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[\widehat{W}_{k + 1 / 2} \rightarrow \widehat{W}_{k + 1 / 2} + \Delta t \left(J P\right)_{k + 1 / 2} \left[- c_p \frac{P_{k + 1 / 2}}{\rho_{k + 1 / 2}} \mathcal{P}_{k + 1 / 2}^{\rho \widehat{w}} + \left(\frac{b&#39;_\mathrm{old}}{J}\right)_{k + 1 / 2} + \frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right]\]</p><p>in compressible mode, where <span>$b&#39;_\mathrm{old} = - g \rho&#39;_\mathrm{old} / \rho$</span>, with <span>$\rho&#39;_\mathrm{old}$</span> being the density fluctuations stored in <code>state.variables.backups</code>.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::W,
+    side::RHS,
+    integration::Implicit,
+    rayleigh_factor::AbstractFloat,
+)</code></pre><p>Update the transformed vertical wind with an implicit Euler step on the right-hand side of the equation.</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    \widehat{w}_{k + 1 / 2} &amp; \rightarrow \left[1 + \beta_{\mathrm{R}, k + 1 / 2} \Delta t + \frac{\overline{\rho}_{k + 1 / 2}}{\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \left(\Delta t\right)^2\right]^{- 1}\\
+    &amp; \quad \times \left\{\widehat{w}_{k + 1 / 2} + \Delta t \left(- c_p \frac{P_{k + 1 / 2}}{\rho_{k + 1 / 2}} \mathcal{P}_{k + 1 / 2}^{\rho \widehat{w}} + \left(\frac{b&#39;}{J}\right)_{k + 1 / 2} + \frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right)\right.\\
+    &amp; \qquad \quad + \left.\frac{\overline{\rho}_{k + 1 / 2}}{\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \left(\Delta t\right)^2 \left[\left(G^{13} u\right)_{k + 1 / 2} + \left(G^{2 3} v\right)_{k + 1 / 2}\right]\vphantom{\left(\frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right)}\right\}
+\end{align*}\]</p><p>in Boussinesq/pseudo-incompressible mode and</p><p class="math-container">\[\begin{align*}
+    \widehat{W}_{k + 1 / 2} &amp; \rightarrow \left[1 + \beta_{\mathrm{R}, k + 1 / 2} \Delta t + \frac{\left(P / \overline{\theta}\right)_{k + 1 / 2}}{\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \left(\Delta t\right)^2\right]^{- 1}\\
+    &amp; \quad \times \left\{\widehat{W}_{k + 1 / 2} + \Delta t \left(J P\right)_{k + 1 / 2} \left(- c_p \frac{P_{k + 1 / 2}}{\rho_{k + 1 / 2}} \mathcal{P}_{k + 1 / 2}^{\rho \widehat{w}} + \left(\frac{b&#39;}{J}\right)_{k + 1 / 2} + \frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right)\right.\\
+    &amp; \qquad \quad + \left(J P\right)_{k + 1 / 2} \frac{\left(P / \overline{\theta}\right)_{k + 1 / 2}}{\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \left(\Delta t\right)^2\\
+    &amp; \qquad \quad \times \left.\left[\left(G^{13} \left(\frac{U_{i + 1 / 2}}{\left(J P\right)_{i + 1 / 2}}\right)\right)_{k + 1 / 2} + \left(G^{2 3} \left(\frac{V_{j + 1 / 2}}{\left(J P\right)_{j + 1 / 2}}\right)\right)_{k + 1 / 2}\right]\vphantom{\left(\frac{F_{k + 1 / 2}^{\rho \widehat{w}}}{\rho_{k + 1 / 2}}\right)}\right\}
+\end{align*}\]</p><p>in compressible mode.</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, variable::PiP)</code></pre><p>Update the Exner-pressure if the atmosphere is compressible by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::PiP,
+    model::Union{Boussinesq, PseudoIncompressible},
+)</code></pre><p>Return in non-compressible modes.</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, variable::PiP, model::Compressible)</code></pre><p>Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    \pi&#39; &amp; \rightarrow \pi&#39; + \Delta t \left(\frac{\partial \pi&#39;}{\partial P}\right) \left[- \frac{1}{J} \left(\frac{U_{\mathrm{old}, i + 1 / 2} - U_{\mathrm{old}, i - 1 / 2}}{\Delta \widehat{x}} + \frac{V_{\mathrm{old}, j + 1 / 2} - V_{\mathrm{old}, j - 1 / 2}}{\Delta \widehat{y}}\right.\right.\\
+    &amp; \qquad \qquad \qquad \qquad \qquad \qquad + \left.\left.\frac{\widehat{W}_{\mathrm{old}, k + 1 / 2} - \widehat{W}_{\mathrm{old}, k - 1 / 2}}{\Delta \widehat{z}}\right) + F^P\right],
+\end{align*}\]</p><p>where <span>$U_{\mathrm{old}, i + 1 / 2}$</span>, <span>$V_{\mathrm{old}, j + 1 / 2}$</span> and <span>$\widehat{W}_{\mathrm{old}, k + 1 / 2}$</span> are the transformed wind components (including the factor <span>$J P$</span>) stored in <code>state.variables.backups</code>.</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, m::Integer, variable::P)</code></pre><p>Update the mass-weighted potential temperature if the atmosphere is compressible by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+    model::Union{Boussinesq, PseudoIncompressible},
+)</code></pre><p>Return in non-compressible modes.</p><pre><code class="language-julia hljs">update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+    model::Compressible,
+)</code></pre><p>Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    q^P &amp; \rightarrow \Delta t \left[- \frac{1}{J} \left(\frac{\mathcal{F}^{P, \widehat{x}}_{i + 1 / 2} - \mathcal{F}^{P, \widehat{x}}_{i - 1 / 2}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{P, \widehat{y}}_{j + 1 / 2} - \mathcal{F}^{P, \widehat{y}}_{j - 1 / 2}}{\Delta \widehat{y}} + \frac{\mathcal{F}^{P, \widehat{z}}_{k + 1 / 2} - \mathcal{F}^{P, \widehat{z}}_{k - 1 / 2}}{\Delta \widehat{z}}\right) + F^P\right] + \alpha_\mathrm{RK} q^P,\\
+    P &amp; \rightarrow P + \beta_\mathrm{RK} q^P.
+\end{align*}\]</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::NoTracer)</code></pre><p>Return for configurations without tracer transport.</p><pre><code class="language-julia hljs">update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::TracerOn)</code></pre><p>Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.</p><p>The update is given by</p><p class="math-container">\[\begin{align*}
+    q^{\rho \chi} &amp; \rightarrow \Delta t \left[- \frac{1}{J} \left(\frac{\mathcal{F}^{\rho \chi, \widehat{x}}_{i + 1 / 2} - \mathcal{F}^{\rho \chi, \widehat{x}}_{i - 1 / 2}}{\Delta \widehat{x}} + \frac{\mathcal{F}^{\rho \chi, \widehat{y}}_{j + 1 / 2} - \mathcal{F}^{\rho \chi, \widehat{y}}_{j - 1 / 2}}{\Delta \widehat{y}} + \frac{\mathcal{F}^{\rho \chi, \widehat{z}}_{k + 1 / 2} - \mathcal{F}^{\rho \chi, \widehat{z}}_{k - 1 / 2}}{\Delta \widehat{z}}\right) + F^{\rho \chi}\right] + \alpha_\mathrm{RK} q^{\rho \chi},\\
+    \left(\rho \chi\right) &amp; \rightarrow \left(\rho \chi\right) + \beta_\mathrm{RK} q^{\rho \chi}.
+\end{align*}\]</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>dt</code>: Time step.</p></li><li><p><code>m</code>: Runge-Kutta-stage index.</p></li><li><p><code>variable</code>: Variable to update.</p></li><li><p><code>model</code>: Dynamic equations.</p></li><li><p><code>side</code>: Side of the equation.</p></li><li><p><code>integration</code>: Type of the Euler step.</p></li><li><p><code>rayleigh_factor</code>: Factor by which the Rayleigh-damping coefficient is multiplied.</p></li><li><p><code>tracer_setup</code>: General tracer-transport configuration.</p></li></ul><p><strong>See also</strong></p><ul><li><p><a href="#PinCFlow.Update.compute_volume_force"><code>PinCFlow.Update.compute_volume_force</code></a></p></li><li><p><a href="#PinCFlow.Update.compute_compressible_wind_factor"><code>PinCFlow.Update.compute_compressible_wind_factor</code></a></p></li><li><p><a href="#PinCFlow.Update.compute_vertical_wind"><code>PinCFlow.Update.compute_vertical_wind</code></a></p></li><li><p><a href="#PinCFlow.Update.compute_buoyancy_factor"><code>PinCFlow.Update.compute_buoyancy_factor</code></a></p></li><li><p><a href="#PinCFlow.Update.compute_pressure_gradient"><code>PinCFlow.Update.compute_pressure_gradient</code></a></p></li><li><p><a href="#PinCFlow.Update.transform"><code>PinCFlow.Update.transform</code></a></p></li><li><p><a href="#PinCFlow.Update.conductive_heating"><code>PinCFlow.Update.conductive_heating</code></a></p></li></ul></div></details></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../poisson_solver/">« PoissonSolver</a><a class="docs-footer-nextpage" href="../msgwam/">MSGWaM »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.0 on <span class="colophon-date" title="Friday 21 November 2025 15:40">Friday 21 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
