@@ -15,9 +15,9 @@ domain = DomainNamelist(;
 	lx = 4.0E+4,
 	ly = 1.0E+4,
 	lz = 1.5E+4,
-	npx = 1,
+	npx = 2,
 	npy = 1,
-	npz = 1,
+	npz = 2,
 )
 
 output = OutputNamelist(;

@@ -1,8 +1,12 @@
+#mpiexec=$(julia --project=. -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
+#${mpiexec} -n 1 julia --project test/ice_tjl05.jl
+
+
 #using Revise
 
-include("../src/PinCFlow.jl")
+# include("../src/PinCFlow.jl")
 
-using .PinCFlow
+using PinCFlow
 using HDF5
 
 domain = DomainNamelist(;
@@ -15,10 +19,9 @@ domain = DomainNamelist(;
 	lx = 4.0E+4,
 	ly = 1.0E+4,
 	lz = 1.5E+4,
-	npx = 1,
+	npx = 2,
 	npy = 1,
-	npz = 1,
-)
+	npz = 2,
 output = OutputNamelist(;
 	output_variables = (:rhop, :pip, :w, :u, :thetap, :n2, :rhobar, :thetabar, :n, :qv, :q, :iaux1, :iaux2, :iaux3, :wwp, :epp, :thp),
 	prepare_restart = false,

@@ -206,11 +206,11 @@ function Predictands(
 				deltax = 0.0
 				deltay = 0.0
 			elseif wavepacketdim == 2
-				deltax = x[io+ix] - x0
+				deltax = x[ix] - x0
 				deltay = 0.0
 			elseif wavepacketdim == 3
-				deltax = (x[io+ix] - x0)
-				deltay = (y[jo+jy] - y0)
+				deltax = (x[ix] - x0)
+				deltay = (y[jy] - y0)
 			end
 
 			deltaz = zc[ix, jy, kz] - z0
@@ -249,7 +249,7 @@ function Predictands(
 			what = 1im * omega / n2 * bhat
 			piphat = 1im * kappa * ma^2.0 * (omega2 - n2) / n2 / mm / theta0 * bhat
 
-			phi = kk * x[io+ix] + ll * y[jo+jy] + mm * zc[ix, jy, kz]
+			phi = kk * x[ix] + ll * y[jy] + mm * zc[ix, jy, kz]
 
 			bprime = real(bhat * exp(1im * phi))
 			uprime = real(uhat * exp(1im * phi))
@@ -360,11 +360,11 @@ function Predictands(
 					deltax = 0.0
 					deltay = 0.0
 				elseif wavepacketdim[iwm] == 2
-					deltax = x[io+ix] - x0
+					deltax = x[ix] - x0
 					deltay = 0.0
 				elseif wavepacketdim[iwm] == 3
-					deltax = (x[io+ix] - x0)
-					deltay = (y[jo+jy] - y0)
+					deltax = (x[ix] - x0)
+					deltay = (y[jy] - y0)
 				end
 
 				deltaz = zc[ix, jy, kz] - z0
@@ -414,7 +414,7 @@ function Predictands(
 
 				piphat = 1im * kappa * ma^2.0 * (omega2 - n2) / n2 / mm / theta0 * bhat
 
-				phi = kk * x[io+ix] + ll * y[jo+jy] + mm * zc[ix, jy, kz]
+				phi = kk * x[ix] + ll * y[jy] + mm * zc[ix, jy, kz]
 
 				bprime = real(bhat * exp(1im * phi))
 				uprime = real(uhat * exp(1im * phi))
