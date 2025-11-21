@@ -591,5 +591,7 @@ function create_output(state::State, machine_start_time::DateTime)
         return
     end
 
+    MPI.Barrier(comm)
+
     return
 end
