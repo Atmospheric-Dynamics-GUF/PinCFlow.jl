@@ -1,9 +1,6 @@
 """
 ```julia
-Predictands{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-}
+Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Arrays for prognostic variables.
@@ -20,7 +17,7 @@ Predictands(
 
 Construct a `Predictands` instance.
 
-The predictands are initialized with the corresponding functions in `namelists.atmosphere`. The mass-weighted potential temperature `p` is constructed depending on the dynamic equations (see `set_p`).
+The predictands are initialized with the corresponding functions in `namelists.atmosphere`. The mass-weighted potential temperature ``P`` is constructed depending on the dynamic equations (see `set_p`).
 
 # Fields
 
@@ -36,7 +33,7 @@ The predictands are initialized with the corresponding functions in `namelists.a
 
   - `pip::A`: Exner-pressure fluctuations.
 
-  - `p::B`: Mass-weighted potential temperature.
+  - `p::A`: Mass-weighted potential temperature.
 
 # Arguments
 
@@ -60,17 +57,14 @@ The predictands are initialized with the corresponding functions in `namelists.a
 
   - [`PinCFlow.Types.VariableTypes.set_p`](@ref)
 """
-struct Predictands{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-}
+struct Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
     rho::A
     rhop::A
     u::A
     v::A
     w::A
     pip::A
-    p::B
+    p::A
 end
 
 function Predictands(
@@ -80,21 +74,14 @@ function Predictands(
     atmosphere::Atmosphere,
     grid::Grid,
 )::Predictands
-    (;
-        initial_rhop,
-        initial_thetap,
-        initial_u,
-        initial_v,
-        initial_w,
-        initial_pip,
-    ) = namelists.atmosphere
-    (; model) = namelists.atmosphere
-    (; lref, rhoref, thetaref, uref) = constants
+    (; initial_rhop, initial_u, initial_v, initial_w, initial_pip, model) =
+        namelists.atmosphere
+    (; lref, rhoref, uref) = constants
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; x, y, zc, met, jac) = grid
-    (; rhobar, thetabar) = atmosphere
+    (; pbar) = atmosphere
 
-    (rho, rhop, thetap, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:7)
+    (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
 
     @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
@@ -102,7 +89,6 @@ function Predictands(
         zcdim = zc[i, j, k] * lref
 
         rhop[i, j, k] = initial_rhop(xdim, ydim, zcdim) / rhoref
-        thetap[i, j, k] = initial_thetap(xdim, ydim, zcdim) / thetaref
         u[i, j, k] = initial_u(xdim, ydim, zcdim) / uref
         v[i, j, k] = initial_v(xdim, ydim, zcdim) / uref
         w[i, j, k] = initial_w(xdim, ydim, zcdim) / uref
@@ -112,14 +98,15 @@ function Predictands(
     for f! in
         (set_zonal_boundaries_of_field!, set_meridional_boundaries_of_field!)
         f!(rhop, namelists, domain)
-        f!(thetap, namelists, domain)
         f!(u, namelists, domain)
         f!(v, namelists, domain)
         f!(w, namelists, domain)
         f!(pip, namelists, domain)
     end
 
-    rho .= rhop
+    if model != Boussinesq()
+        rho .= rhop
+    end
 
     @ivy w .= met[:, :, :, 1, 3] .* u .+ met[:, :, :, 2, 3] .* v .+ w ./ jac
 
@@ -142,7 +129,7 @@ function Predictands(
     end
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
 
-    p = set_p(model, rhobar, thetabar, rhop, thetap)
+    p = set_p(model, pbar)
 
     return Predictands(rho, rhop, u, v, w, pip, p)
 end

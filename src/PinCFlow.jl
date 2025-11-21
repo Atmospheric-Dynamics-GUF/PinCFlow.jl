@@ -14,12 +14,12 @@ Main module of PinCFlow.jl.
 module PinCFlow
 
 include("@ivy.jl")
-include("plot_contours.jl")
+include("plot_output.jl")
 include("set_visualization_theme!.jl")
 include("symmetric_contours.jl")
 
 export @ivy
-export plot_contours, set_visualization_theme!, symmetric_contours
+export plot_output, set_visualization_theme!, symmetric_contours
 
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
@@ -50,8 +50,8 @@ export DomainNamelist,
 # Export singletons needed in namelists.
 export Boussinesq, PseudoIncompressible, Compressible
 export MCVariant
-export UniformBoussinesq,
-    StratifiedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
+export NeutralStratification,
+    StableStratification, Isothermal, Isentropic, Realistic, LapseRates
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn

@@ -40,10 +40,15 @@ function test_example(
 )
     # Read the example script and modify it.
     script = read(file, String)
+    start = findfirst(r"(?m)^ *integrate\(", script)[1]
+    stop = Meta.parse(script, start)[2] - 1
+    script = script[1:stop]
     script = replace(
         script,
         r"(?m)^ *using +Pkg *\n+" => "",
         r"(?m)^ *Pkg.activate\( *\"examples\" *\) *\n+" => "",
+        r"(?m)^ *using +HDF5 *\n+" => "",
+        r"(?m)^ *using +CairoMakie *\n+" => "",
     )
     script = replace_assignments(script, assignments...)
 

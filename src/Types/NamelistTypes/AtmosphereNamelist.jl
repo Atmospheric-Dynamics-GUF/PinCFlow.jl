@@ -3,7 +3,7 @@
 AtmosphereNamelist{
     A <: AbstractModel,
     B <: Bool,
-    C <: AbstractFloat,
+    C <: Float64,
     D <: AbstractBackground,
     E <: Function,
     F <: Function,
@@ -20,21 +20,20 @@ Namelist for parameters used in the definition of the atmospheric background and
 AtmosphereNamelist(;
     model::AbstractModel = PseudoIncompressible(),
     specify_reynolds_number::Bool = false,
-    inverse_reynolds_number::AbstractFloat = 0.0E+0,
-    kinematic_viscosity::AbstractFloat = 1.5E-5,
-    thermal_conductivity::AbstractFloat = 3.0E-5,
-    kinematic_diffusivity::AbstractFloat = 0.0E+0,
+    inverse_reynolds_number::Real = 0.0E+0,
+    kinematic_viscosity::Real = 1.5E-5,
+    thermal_conductivity::Real = 3.0E-5,
+    kinematic_diffusivity::Real = 0.0E+0,
     background::AbstractBackground = Isothermal(),
-    buoyancy_frequency::AbstractFloat = 1.0E-2,
-    potential_temperature::AbstractFloat = 3.0E+2,
-    temperature::AbstractFloat = 3.0E+2,
-    ground_pressure::AbstractFloat = 1.0E+5,
-    coriolis_frequency::AbstractFloat = 1.0E-4,
-    tropopause_height::AbstractFloat = 1.0E+4,
-    troposphere_lapse_rate::AbstractFloat = 6.5E-3,
-    stratosphere_lapse_rate::AbstractFloat = -5.0E-3,
+    buoyancy_frequency::Real = 1.0E-2,
+    potential_temperature::Real = 3.0E+2,
+    temperature::Real = 3.0E+2,
+    ground_pressure::Real = 1.0E+5,
+    coriolis_frequency::Real = 1.0E-4,
+    tropopause_height::Real = 1.0E+4,
+    troposphere_lapse_rate::Real = 6.5E-3,
+    stratosphere_lapse_rate::Real = -5.0E-3,
     initial_rhop::Function = (x, y, z) -> 0.0,
-    initial_thetap::Function = (x, y, z) -> 0.0,
     initial_u::Function = (x, y, z) -> 0.0,
     initial_v::Function = (x, y, z) -> 0.0,
     initial_w::Function = (x, y, z) -> 0.0,
@@ -42,7 +41,7 @@ AtmosphereNamelist(;
 )::AtmosphereNamelist
 ```
 
-Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties.
+Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
@@ -60,7 +59,7 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `background::D`: Atmospheric background.
 
-  - `buoyancy_frequency::C`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
+  - `buoyancy_frequency::C`: Buoyancy frequency if `background == StableStratification()`.
 
   - `potential_temperature::C`: Reference potential temperature.
 
@@ -78,27 +77,24 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `initial_rhop::E`: Function used to initialize the density fluctuations.
 
-  - `initial_thetap::F`: Function used to initialize the potential-temperature fluctuations (only relevant in compressible mode).
+  - `initial_u::F`: Function used to initialize the zonal wind.
 
-  - `initial_u::G`: Function used to initialize the zonal wind.
+  - `initial_v::G`: Function used to initialize the meridional wind.
 
-  - `initial_v::H`: Function used to initialize the meridional wind.
+  - `initial_w::H`: Function used to initialize the vertical wind.
 
-  - `initial_w::I`: Function used to initialize the vertical wind.
-
-  - `initial_pip::J`: Function used to initialize the Exner-pressure fluctuations.
+  - `initial_pip::I`: Function used to initialize the Exner-pressure fluctuations.
 """
 struct AtmosphereNamelist{
     A <: AbstractModel,
     B <: Bool,
-    C <: AbstractFloat,
+    C <: Float64,
     D <: AbstractBackground,
     E <: Function,
     F <: Function,
     G <: Function,
     H <: Function,
     I <: Function,
-    J <: Function,
 }
     model::A
     specify_reynolds_number::B
@@ -116,31 +112,29 @@ struct AtmosphereNamelist{
     troposphere_lapse_rate::C
     stratosphere_lapse_rate::C
     initial_rhop::E
-    initial_thetap::F
-    initial_u::G
-    initial_v::H
-    initial_w::I
-    initial_pip::J
+    initial_u::F
+    initial_v::G
+    initial_w::H
+    initial_pip::I
 end
 
 function AtmosphereNamelist(;
     model::AbstractModel = PseudoIncompressible(),
     specify_reynolds_number::Bool = false,
-    inverse_reynolds_number::AbstractFloat = 0.0E+0,
-    kinematic_viscosity::AbstractFloat = 1.5E-5,
-    thermal_conductivity::AbstractFloat = 3.0E-5,
-    kinematic_diffusivity::AbstractFloat = 0.0E+0,
+    inverse_reynolds_number::Real = 0.0E+0,
+    kinematic_viscosity::Real = 1.5E-5,
+    thermal_conductivity::Real = 3.0E-5,
+    kinematic_diffusivity::Real = 0.0E+0,
     background::AbstractBackground = Isothermal(),
-    buoyancy_frequency::AbstractFloat = 1.0E-2,
-    potential_temperature::AbstractFloat = 3.0E+2,
-    temperature::AbstractFloat = 3.0E+2,
-    ground_pressure::AbstractFloat = 1.0E+5,
-    coriolis_frequency::AbstractFloat = 1.0E-4,
-    tropopause_height::AbstractFloat = 1.0E+4,
-    troposphere_lapse_rate::AbstractFloat = 6.5E-3,
-    stratosphere_lapse_rate::AbstractFloat = -5.0E-3,
+    buoyancy_frequency::Real = 1.0E-2,
+    potential_temperature::Real = 3.0E+2,
+    temperature::Real = 3.0E+2,
+    ground_pressure::Real = 1.0E+5,
+    coriolis_frequency::Real = 1.0E-4,
+    tropopause_height::Real = 1.0E+4,
+    troposphere_lapse_rate::Real = 6.5E-3,
+    stratosphere_lapse_rate::Real = -5.0E-3,
     initial_rhop::Function = (x, y, z) -> 0.0,
-    initial_thetap::Function = (x, y, z) -> 0.0,
     initial_u::Function = (x, y, z) -> 0.0,
     initial_v::Function = (x, y, z) -> 0.0,
     initial_w::Function = (x, y, z) -> 0.0,
@@ -149,21 +143,20 @@ function AtmosphereNamelist(;
     return AtmosphereNamelist(
         model,
         specify_reynolds_number,
-        inverse_reynolds_number,
-        kinematic_viscosity,
-        thermal_conductivity,
-        kinematic_diffusivity,
+        Float64(inverse_reynolds_number),
+        Float64(kinematic_viscosity),
+        Float64(thermal_conductivity),
+        Float64(kinematic_diffusivity),
         background,
-        buoyancy_frequency,
-        potential_temperature,
-        temperature,
-        ground_pressure,
-        coriolis_frequency,
-        tropopause_height,
-        troposphere_lapse_rate,
-        stratosphere_lapse_rate,
+        Float64(buoyancy_frequency),
+        Float64(potential_temperature),
+        Float64(temperature),
+        Float64(ground_pressure),
+        Float64(coriolis_frequency),
+        Float64(tropopause_height),
+        Float64(troposphere_lapse_rate),
+        Float64(stratosphere_lapse_rate),
         initial_rhop,
-        initial_thetap,
         initial_u,
         initial_v,
         initial_w,
