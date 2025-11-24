@@ -29,103 +29,59 @@ function create_output(state::State, machine_start_time::DateTime)
     cz = div(z_size, npz)
     ct = 1
 
-    # If the output file already exists, remove it.
-    master && isfile(output_file) && rm(output_file)
-    MPI.Barrier(comm)
-
-    # Prepare the output.
+    # Create the output file and the datasets.
     h5open(output_file, "w", comm) do file
-        attributes(file)["Title"] = "PinCFlow.jl data"
-        attributes(
-            file,
-        )["Institution"] = "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany"
-        attributes(file)["Date"] = string(Dates.Date(machine_start_time))
-        attributes(file)["Time"] = string(Dates.Time(machine_start_time))
 
         # Create datasets for the dimensions.
-        dset =
-            create_dataset(file, "x", datatype(Float32), dataspace((x_size,)))
-        attributes(dset)["units"] = "m"
-        attributes(dset)["label"] = L"x\ [\mathrm{m}]"
-        attributes(dset)["long_name"] = "x-coordinates"
-
-        dset =
-            create_dataset(file, "y", datatype(Float32), dataspace((y_size,)))
-        attributes(dset)["units"] = "m"
-        attributes(dset)["label"] = L"y\ [\mathrm{m}]"
-        attributes(dset)["long_name"] = "y-coordinates"
-
-        dset = create_dataset(
+        create_dataset(file, "x", datatype(Float32), dataspace((x_size,)))
+        create_dataset(file, "y", datatype(Float32), dataspace((y_size,)))
+        create_dataset(
             file,
             "z",
             datatype(Float32),
             dataspace((x_size, y_size, z_size));
             chunk = (cx, cy, cz),
         )
-        attributes(dset)["units"] = "m"
-        attributes(dset)["label"] = L"z\ [\mathrm{m}]"
-        attributes(dset)["long_name"] = "z-coordinates"
-
-        dset = create_dataset(
+        create_dataset(
             file,
             "ztilde",
             datatype(Float32),
             dataspace((x_size, y_size, z_size + 1));
             chunk = (cx, cy, cz),
         )
-        attributes(dset)["units"] = "m"
-        attributes(dset)["label"] = L"z_{\mathrm{s}}\ [\mathrm{m}]"
-        attributes(dset)["long_name"] = "staggered z-coordinates"
-
-        dset = create_dataset(
+        create_dataset(
             file,
             "t",
             datatype(Float32),
             dataspace((0,), (-1,));
             chunk = (ct,),
         )
-        attributes(dset)["units"] = "s"
-        attributes(dset)["label"] = L"t\ [\mathrm{s}]"
-        attributes(dset)["long_name"] = "time"
 
         # Create datasets for the background.
         if model != Boussinesq()
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "rhobar",
                 datatype(Float32),
                 dataspace((x_size, y_size, z_size));
                 chunk = (cx, cy, cz),
             )
-            attributes(dset)["units"] = "kg*m^-3"
-            attributes(dset)["label"] =
-                L"\overline{\rho}\ [\mathrm{kg\ m^{-3}}]"
-            attributes(dset)["long_name"] = "density background"
-
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "thetabar",
                 datatype(Float32),
                 dataspace((x_size, y_size, z_size));
                 chunk = (cx, cy, cz),
             )
-            attributes(dset)["units"] = "K"
-            attributes(dset)["label"] = L"\overline{\theta}\ [\mathrm{K}]"
-            attributes(dset)["long_name"] = "potential-temperature background"
-
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "n2",
                 datatype(Float32),
                 dataspace((x_size, y_size, z_size));
                 chunk = (cx, cy, cz),
             )
-            attributes(dset)["units"] = "s^-2"
-            attributes(dset)["label"] = L"N^2\ [\mathrm{s^{-2}}]"
-            attributes(dset)["long_name"] = "squared buoyancy frequency"
-
             if model == Compressible()
-                dset = create_dataset(
+                create_dataset(
                     file,
                     "p",
                     datatype(Float32),
@@ -136,7 +92,7 @@ function create_output(state::State, machine_start_time::DateTime)
                     chunk = (cx, cy, cz, ct),
                 )
             else
-                dset = create_dataset(
+                create_dataset(
                     file,
                     "p",
                     datatype(Float32),
@@ -144,14 +100,12 @@ function create_output(state::State, machine_start_time::DateTime)
                     chunk = (cx, cy, cz),
                 )
             end
-            attributes(dset)["units"] = "kg*K*m^-3"
-            attributes(dset)["label"] = L"P\ [\mathrm{kg\ K\ m^{-3}}]"
-            attributes(dset)["long_name"] = "mass-weighted potential temperature"
         end
 
         # Create datasets for the prognostic variables.
+
         if prepare_restart || :rhop in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "rhop",
                 datatype(Float32),
@@ -161,12 +115,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "kg*m^-3"
-            attributes(dset)["label"] = L"\rho'\ [\mathrm{kg\ m^{-3}}]"
-            attributes(dset)["long_name"] = "density fluctuations"
         end
+
         if :u in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "u",
                 datatype(Float32),
@@ -176,12 +128,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"u\ [\mathrm{m\ s^{-1}}]"
-            attributes(dset)["long_name"] = "zonal wind"
         end
+
         if prepare_restart || :us in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "us",
                 datatype(Float32),
@@ -191,12 +141,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"u_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
-            attributes(dset)["long_name"] = "staggered zonal wind"
         end
+
         if :v in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "v",
                 datatype(Float32),
@@ -206,12 +154,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"v\ [\mathrm{m\ s^{-1}}]"
-            attributes(dset)["long_name"] = "meridional wind"
         end
+
         if prepare_restart || :vs in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "vs",
                 datatype(Float32),
@@ -221,12 +167,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"v_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
-            attributes(dset)["long_name"] = "staggered meridional wind"
         end
+
         if :w in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "w",
                 datatype(Float32),
@@ -236,12 +180,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"w\ [\mathrm{m\ s^{-1}}]"
-            attributes(dset)["long_name"] = "vertical wind"
         end
+
         if :ws in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "ws",
                 datatype(Float32),
@@ -251,12 +193,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"w_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
-            attributes(dset)["long_name"] = "staggered vertical wind"
         end
+
         if :wt in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "wt",
                 datatype(Float32),
@@ -266,12 +206,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] = L"\widehat{w}\ [\mathrm{m\ s^{-1}}]"
-            attributes(dset)["long_name"] = "transformed vertical wind"
         end
+
         if prepare_restart || :wts in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "wts",
                 datatype(Float32),
@@ -281,13 +219,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "m*s^-1"
-            attributes(dset)["label"] =
-                L"\widehat{w}_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
-            attributes(dset)["long_name"] = "staggered transformed vertical wind"
         end
+
         if :thetap in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "thetap",
                 datatype(Float32),
@@ -297,12 +232,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "K"
-            attributes(dset)["label"] = L"\theta'\ [\mathrm{K}]"
-            attributes(dset)["long_name"] = "potential-temperature fluctuations"
         end
+
         if prepare_restart || :pip in output_variables
-            dset = create_dataset(
+            create_dataset(
                 file,
                 "pip",
                 datatype(Float32),
@@ -312,14 +245,11 @@ function create_output(state::State, machine_start_time::DateTime)
                 );
                 chunk = (cx, cy, cz, ct),
             )
-            attributes(dset)["units"] = "1"
-            attributes(dset)["label"] = L"\pi'"
-            attributes(dset)["long_name"] = "Exner-pressure fluctuations"
         end
 
         if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
-                dset = create_dataset(
+                create_dataset(
                     file,
                     string(field),
                     datatype(Float32),
@@ -329,9 +259,205 @@ function create_output(state::State, machine_start_time::DateTime)
                     );
                     chunk = (cx, cy, cz, ct),
                 )
-                attributes(dset)["units"] = "1"
-                attributes(dset)["label"] = L"\chi"
-                attributes(dset)["long_name"] = "tracer mixing ratio"
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt in output_variables
+                for field in fieldnames(TracerWKBImpact)
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
+        end
+
+        # Create datasets for WKB variables.
+        if wkb_mode != NoWKB()
+
+            # Create datasets for ray-volume properties.
+            if prepare_restart || save_ray_volumes
+                for field in (
+                    "xr",
+                    "yr",
+                    "zr",
+                    "dxr",
+                    "dyr",
+                    "dzr",
+                    "kr",
+                    "lr",
+                    "mr",
+                    "dkr",
+                    "dlr",
+                    "dmr",
+                    "nr",
+                )
+                    create_dataset(
+                        file,
+                        field,
+                        datatype(Float32),
+                        dataspace(
+                            (nray_max, x_size, y_size, z_size + 1, 0),
+                            (nray_max, x_size, y_size, z_size + 1, -1),
+                        );
+                        chunk = (cr, cx, cy, cz, ct),
+                    )
+                end
+            end
+
+            # Create datasets for GW tendencies.
+            for field in (:dudt, :dvdt, :dthetadt)
+                if field in output_variables
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
+        end
+
+        return
+    end
+
+    # Add attributes.
+    master && h5open(output_file, "r+") do file
+        attributes(file)["Title"] = "PinCFlow.jl data"
+        attributes(
+            file,
+        )["Institution"] = "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany"
+        attributes(file)["Date"] = string(Dates.Date(machine_start_time))
+        attributes(file)["Time"] = string(Dates.Time(machine_start_time))
+
+        attributes(file["x"])["units"] = "m"
+        attributes(file["x"])["label"] = L"x\ [\mathrm{m}]"
+        attributes(file["x"])["long_name"] = "x-coordinates"
+
+        attributes(file["y"])["units"] = "m"
+        attributes(file["y"])["label"] = L"y\ [\mathrm{m}]"
+        attributes(file["y"])["long_name"] = "y-coordinates"
+
+        attributes(file["z"])["units"] = "m"
+        attributes(file["z"])["label"] = L"z\ [\mathrm{m}]"
+        attributes(file["z"])["long_name"] = "z-coordinates"
+
+        attributes(file["ztilde"])["units"] = "m"
+        attributes(file["ztilde"])["label"] =
+            L"z_{\mathrm{s}}\ [\mathrm{m}]"
+        attributes(file["ztilde"])["long_name"] = "staggered z-coordinates"
+
+        attributes(file["t"])["units"] = "s"
+        attributes(file["t"])["label"] = L"t\ [\mathrm{s}]"
+        attributes(file["t"])["long_name"] = "time"
+
+        if model != Boussinesq()
+            attributes(file["rhobar"])["units"] = "kg*m^-3"
+            attributes(file["rhobar"])["label"] =
+                L"\overline{\rho}\ [\mathrm{kg\ m^{-3}}]"
+            attributes(file["rhobar"])["long_name"] = "density background"
+
+            attributes(file["thetabar"])["units"] = "K"
+            attributes(file["thetabar"])["label"] =
+                L"\overline{\theta}\ [\mathrm{K}]"
+            attributes(file["thetabar"])["long_name"] = "potential-temperature background"
+
+            attributes(file["n2"])["units"] = "s^-2"
+            attributes(file["n2"])["label"] = L"N^2\ [\mathrm{s^{-2}}]"
+            attributes(file["n2"])["long_name"] = "squared buoyancy frequency"
+
+            attributes(file["p"])["units"] = "kg*K*m^-3"
+            attributes(file["p"])["label"] = L"P\ [\mathrm{kg\ K\ m^{-3}}]"
+            attributes(file["p"])["long_name"] = "mass-weighted potential temperature"
+        end
+
+        if prepare_restart || :rhop in output_variables
+            attributes(file["rhop"])["units"] = "kg*m^-3"
+            attributes(file["rhop"])["label"] =
+                L"\rho'\ [\mathrm{kg\ m^{-3}}]"
+            attributes(file["rhop"])["long_name"] = "density fluctuations"
+        end
+
+        if :u in output_variables
+            attributes(file["u"])["units"] = "m*s^-1"
+            attributes(file["u"])["label"] = L"u\ [\mathrm{m\ s^{-1}}]"
+            attributes(file["u"])["long_name"] = "zonal wind"
+        end
+
+        if prepare_restart || :us in output_variables
+            attributes(file["us"])["units"] = "m*s^-1"
+            attributes(file["us"])["label"] =
+                L"u_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
+            attributes(file["us"])["long_name"] = "staggered zonal wind"
+        end
+
+        if :v in output_variables
+            attributes(file["v"])["units"] = "m*s^-1"
+            attributes(file["v"])["label"] = L"v\ [\mathrm{m\ s^{-1}}]"
+            attributes(file["v"])["long_name"] = "meridional wind"
+        end
+
+        if prepare_restart || :vs in output_variables
+            attributes(file["vs"])["units"] = "m*s^-1"
+            attributes(file["vs"])["label"] =
+                L"v_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
+            attributes(file["vs"])["long_name"] = "staggered meridional wind"
+        end
+
+        if :w in output_variables
+            attributes(file["w"])["units"] = "m*s^-1"
+            attributes(file["w"])["label"] = L"w\ [\mathrm{m\ s^{-1}}]"
+            attributes(file["w"])["long_name"] = "vertical wind"
+        end
+
+        if :ws in output_variables
+            attributes(file["ws"])["units"] = "m*s^-1"
+            attributes(file["ws"])["label"] =
+                L"w_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
+            attributes(file["ws"])["long_name"] = "staggered vertical wind"
+        end
+
+        if :wt in output_variables
+            attributes(file["wt"])["units"] = "m*s^-1"
+            attributes(file["wt"])["label"] =
+                L"\widehat{w}\ [\mathrm{m\ s^{-1}}]"
+            attributes(file["wt"])["long_name"] = "transformed vertical wind"
+        end
+
+        if prepare_restart || :wts in output_variables
+            attributes(file["wts"])["units"] = "m*s^-1"
+            attributes(file["wts"])["label"] =
+                L"\widehat{w}_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
+            attributes(file["wts"])["long_name"] = "staggered transformed vertical wind"
+        end
+
+        if :thetap in output_variables
+            attributes(file["thetap"])["units"] = "K"
+            attributes(file["thetap"])["label"] = L"\theta'\ [\mathrm{K}]"
+            attributes(file["thetap"])["long_name"] = "potential-temperature fluctuations"
+        end
+
+        if prepare_restart || :pip in output_variables
+            attributes(file["pip"])["units"] = "1"
+            attributes(file["pip"])["label"] = L"\pi'"
+            attributes(file["pip"])["long_name"] = "Exner-pressure fluctuations"
+        end
+
+        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
+            for field in fieldnames(TracerPredictands)
+                attributes(file[string(field)])["units"] = "1"
+                attributes(file[string(field)])["label"] = L"\chi"
+                attributes(file[string(field)])["long_name"] = "tracer mixing ratio"
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -352,27 +478,14 @@ function create_output(state::State, machine_start_time::DateTime)
                         "GW-tracer flux convergence",
                     ),
                 )
-                    dset = create_dataset(
-                        file,
-                        string(field),
-                        datatype(Float32),
-                        dataspace(
-                            (x_size, y_size, z_size, 0),
-                            (x_size, y_size, z_size, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                    attributes(dset)["units"] = units
-                    attributes(dset)["label"] = label
-                    attributes(dset)["long_name"] = long_name
+                    attributes(file[string(field)])["units"] = units
+                    attributes(file[string(field)])["label"] = label
+                    attributes(file[string(field)])["long_name"] = long_name
                 end
             end
         end
 
-        # Create datasets for WKB variables.
         if wkb_mode != NoWKB()
-
-            # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
                 if x_size == 1 && y_size == 1
                     nr_units = "kg*s^-1"
@@ -446,19 +559,9 @@ function create_output(state::State, machine_start_time::DateTime)
                         "ray-volume phase-space wave-action density",
                     ),
                 )
-                    dset = create_dataset(
-                        file,
-                        field,
-                        datatype(Float32),
-                        dataspace(
-                            (nray_max, x_size, y_size, z_size + 1, 0),
-                            (nray_max, x_size, y_size, z_size + 1, -1),
-                        );
-                        chunk = (cr, cx, cy, cz, ct),
-                    )
-                    attributes(dset)["units"] = units
-                    attributes(dset)["label"] = label
-                    attributes(dset)["long_name"] = long_name
+                    attributes(file[field])["units"] = units
+                    attributes(file[field])["label"] = label
+                    attributes(file[field])["long_name"] = long_name
                 end
             end
 
@@ -478,25 +581,17 @@ function create_output(state::State, machine_start_time::DateTime)
                 ),
             )
                 if field in output_variables
-                    dset = create_dataset(
-                        file,
-                        string(field),
-                        datatype(Float32),
-                        dataspace(
-                            (x_size, y_size, z_size, 0),
-                            (x_size, y_size, z_size, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                    attributes(dset)["units"] = units
-                    attributes(dset)["label"] = label
-                    attributes(dset)["long_name"] = long_name
+                    attributes(file[string(field)])["units"] = units
+                    attributes(file[string(field)])["label"] = label
+                    attributes(file[string(field)])["long_name"] = long_name
                 end
             end
         end
 
         return
     end
+
+    MPI.Barrier(comm)
 
     return
 end
