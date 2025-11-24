@@ -38,6 +38,8 @@ function replace_assignments(
             end
             stop -= 1
             code = replace(code, code[start:stop] => "$name = $value" * suffix)
+        else
+            println("Warning: No assignment of \"$name\" was found!")
         end
     end
 
