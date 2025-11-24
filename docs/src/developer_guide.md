@@ -275,3 +275,12 @@ julia docs/make.jl
 ```
 
 in the root directory of the repository. The documentation will be generated in the `docs/build` directory. To view it, open `docs/build/index.html` in a web browser or preview the file in Visual Studio Code with [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server).
+
+## Running and updating the tests
+
+PinCFlow.jl's tests run the example simulations with a few modified parameters (most notably a lower resolution) and check if the $L_2$ and $L_\infty$ norms of the resulting outputs agree with reference values (given a certain tolerance). For this purpose, the example scripts are directly read, modified and evaluated in the test environment. To run the tests, execute
+
+```shell
+julia --project -e 'using Pkg; Pkg.test(; julia_args = `--check-bounds=auto`)'
+```
+in the root directory of the repository. To update the reference values for the norms, run the tests after setting the variable `update_references` in `test/runtests.jl` to `true`.
