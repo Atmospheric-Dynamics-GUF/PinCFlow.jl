@@ -56,9 +56,8 @@ function apply_blocked_layer_scheme!(state::State)
             continue
         else
             hsum = sum(abs, hw[:, i, j])
-            ksum = mapreduce((a, b) -> abs(a) * b, +, kh[:, i, j], hw[:, i, j])
-
-            lsum = mapreduce((a, b) -> abs(a) * b, +, lh[:, i, j], hw[:, i, j])
+            ksum = mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], kw[:, i, j])
+            lsum = mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], lw[:, i, j])
             kavg[1] = ksum / hsum
             kavg[2] = lsum / hsum
 
