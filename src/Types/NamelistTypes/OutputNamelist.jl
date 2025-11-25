@@ -40,7 +40,7 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
 
   - `restart::B`: A boolean indicating whether to initialize with data from a previous state (as written in `input_file`).
 
-  - `iin::C`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations.
+  - `iin::C`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations. If it's set to the default value `-1`, the data will be read at the last index.
 
   - `output_steps::B`: If set to `true`, write output every `nout` time steps.
 
