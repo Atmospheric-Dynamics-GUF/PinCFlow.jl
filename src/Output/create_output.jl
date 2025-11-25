@@ -331,7 +331,7 @@ function create_output(state::State, machine_start_time::DateTime)
         return
     end
 
-    # Add attributes.
+    # Add attributes and namelists.
     master && h5open(output_file, "r+") do file
         attributes(file)["Title"] = "PinCFlow.jl data"
         attributes(
@@ -585,6 +585,18 @@ function create_output(state::State, machine_start_time::DateTime)
                     attributes(file[string(field)])["label"] = label
                     attributes(file[string(field)])["long_name"] = long_name
                 end
+            end
+        end
+
+        create_group(file, "namelists")
+        for namelist in fieldnames(Namelists)
+            create_group(file["namelists"], string(namelist))
+            for parameter in
+                fieldnames(typeof(getfield(state.namelists, namelist)))
+                value = getfield(getfield(state.namelists, namelist), parameter)
+                file["namelists"][string(namelist)][string(parameter)] =
+                    typeof(value) <: AbstractString ? "\"" * value * "\"" :
+                    string(value)
             end
         end
 
