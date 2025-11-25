@@ -66,7 +66,7 @@ output = OutputNamelist(;
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
     initial_wave_field = (alpha, x, y, z) ->
-        (k, l, m, omega(x, y, z), wadens(x, y, z)),
+        (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
 
 integrate(Namelists(; atmosphere, domain, output, wkb))
