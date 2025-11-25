@@ -37,9 +37,10 @@ l = 16 * pi / ly
 m = 32 * pi / lz
 
 model = Compressible()
+background = Realistic()
 coriolis_frequency = 0.0001
 
-atmosphere = AtmosphereNamelist(; model, coriolis_frequency)
+atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(;
     x_size,
     y_size,
@@ -54,7 +55,7 @@ auxiliary_state = State(Namelists(; atmosphere, domain))
 
 include("wave_packet_tools.jl")
 
-atmosphere = AtmosphereNamelist(; model, coriolis_frequency)
+atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     save_ray_volumes = true,
@@ -64,14 +65,8 @@ output = OutputNamelist(;
 )
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
-    initial_wave_field = (alpha, x, y, z) -> (
-        k,
-        l,
-        m,
-        omega(x, y, z),
-        rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
-        n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z),
-    ),
+    initial_wave_field = (alpha, x, y, z) ->
+        (k, l, m, omega(x, y, z), wadens(x, y, z)),
 )
 
 integrate(Namelists(; atmosphere, domain, output, wkb))

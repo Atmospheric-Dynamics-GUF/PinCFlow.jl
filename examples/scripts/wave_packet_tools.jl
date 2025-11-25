@@ -73,3 +73,9 @@ function pihat(x, y, z)
            kappa / rsp / thetabar(x, y, z) * 1im / m *
            (omega(x, y, z)^2 - n2(x, y, z)) / n2(x, y, z) * bhat(x, y, z)
 end
+
+function wadens(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
+           n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z)^2
+end
