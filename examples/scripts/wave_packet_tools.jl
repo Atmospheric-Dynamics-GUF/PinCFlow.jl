@@ -44,7 +44,7 @@ function omega(x, y, z)
 end
 
 function bhat(x, y, z)
-    return n2(x, y, z) == 0.0 ? 0.0 : a0 * n2(x, y, z) / m * envelope(x, y, z)
+    return a0 * n2(x, y, z) / m * envelope(x, y, z)
 end
 
 function uhat(x, y, z)
