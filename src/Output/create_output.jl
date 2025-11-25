@@ -593,13 +593,10 @@ function create_output(state::State, machine_start_time::DateTime)
             create_group(file["namelists"], string(namelist))
             for parameter in
                 fieldnames(typeof(getfield(state.namelists, namelist)))
+                value = getfield(getfield(state.namelists, namelist), parameter)
                 file["namelists"][string(namelist)][string(parameter)] =
-                    string(
-                        getfield(
-                            getfield(state.namelists, namelist),
-                            parameter,
-                        ),
-                    )
+                    typeof(value) <: AbstractString ? "\"" * value * "\"" :
+                    string(value)
             end
         end
 
