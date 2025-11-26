@@ -17,9 +17,7 @@ Construct a `TurbulenceAuxiliaries` instance with both fields set to ``t_\\mathr
 
   - `constants`: Physical constants and reference values.
 """
-struct TurbulenceAuxiliaries{
-    A <: AbstractArray{<:AbstractFloat, 3},
-}
+struct TurbulenceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     shearproduction::A
     buoyancyproduction::A
 end
@@ -37,9 +35,7 @@ function TurbulenceAuxiliaries(
     domain::Domain,
     turbulence_scheme::NoTurbulence,
 )::TurbulenceAuxiliaries
-    return TurbulenceAuxiliaries(
-        [zeros(0, 0, 0) for i in 1:2]...,
-    )
+    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:2]...)
 end
 
 function TurbulenceAuxiliaries(
@@ -47,7 +43,5 @@ function TurbulenceAuxiliaries(
     turbulence_scheme::TKEScheme,
 )::TurbulenceAuxiliaries
     (; nxx, nyy, nzz, nx, ny, nz) = domain
-    return TurbulenceAuxiliaries(
-        [zeros(nxx, nyy, nzz) for i in 1:2]...,
-    )
+    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:2]...)
 end

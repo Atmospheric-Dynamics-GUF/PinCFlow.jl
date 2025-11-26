@@ -83,12 +83,12 @@ abstract type AbstractTurbulence end
 
 """
 ```julia
-NeutralStratification <: AbstractBackground 
+NeutralStratification <: AbstractBackground
 ```
 
 Singleton for a Boussinesq atmosphere with neutral stratification.
 """
-struct NeutralStratification <: AbstractBackground end
+struct NeutralStratification <: AbstractBackgroundend end
 
 """
 ```julia
