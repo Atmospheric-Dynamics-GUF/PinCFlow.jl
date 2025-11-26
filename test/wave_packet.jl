@@ -35,7 +35,8 @@ reference = (l2, linf)
 @testset "Wave packet" begin
     cp(
         joinpath(scripts_directory, "wave_packet_tools.jl"),
-        "wave_packet_tools.jl",
+        "wave_packet_tools.jl";
+        force = true,
     )
     test_example(
         joinpath(scripts_directory, "wave_packet.jl"),

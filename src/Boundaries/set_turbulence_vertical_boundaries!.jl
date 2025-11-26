@@ -223,3 +223,11 @@ function set_turbulence_vertical_boundaries!(
 
     return
 end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Union{NoTurbulence, TKEScheme},
+)
+    return
+end
