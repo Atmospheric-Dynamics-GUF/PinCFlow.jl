@@ -173,60 +173,8 @@ end
 
 function set_turbulence_zonal_boundaries!(
     state::State,
-    variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::NoTurbulence,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Union{NoTurbulence, TKEScheme},
 )
-    return
-end
-
-function set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::TKEScheme,
-)
-    (; namelists, domain) = state
-    (; chiq0) = state.turbulence.turbulenceforcings
-
-    for field in (:uchi, :vchi, :wchi)
-        set_zonal_boundaries_of_field!(
-            getfield(chiq0, field),
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
-    end
-
-    return
-end
-
-function set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::NoTurbulence,
-)
-    return
-end
-
-function set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::TKEScheme,
-)
-    (; namelists, domain) = state
-    (; chiq0) = state.turbulence.turbulenceforcings
-
-    for field in (:dchidt,)
-        set_zonal_boundaries_of_field!(
-            getfield(chiq0, field),
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
-    end
-
     return
 end

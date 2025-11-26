@@ -255,8 +255,6 @@ function integrate(namelists::Namelists)
 
         compute_turbulence_diffusion!(state)
 
-        save_backups!(state, :u, :v)
-
         turbulent_diffusion!(state, dt)
 
         set_boundaries!(state, BoundaryPredictands())
