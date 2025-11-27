@@ -50,9 +50,9 @@ domain = DomainNamelist(;
     base_comm = MPI.COMM_SELF,
 )
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp) = auxiliary_state.constants
-#println(auxiliary_state.grid.kp)
+(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
+#println(auxiliary_state.grid.kp)
 include("wave_packet_tools.jl")
 
 atmosphere = AtmosphereNamelist(;
