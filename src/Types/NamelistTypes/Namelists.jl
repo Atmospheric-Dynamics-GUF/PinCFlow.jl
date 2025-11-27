@@ -10,6 +10,7 @@ Namelists{
     G <: SpongeNamelist,
     H <: WKBNamelist,
     I <: TracerNamelist,
+    J <: TriadNamelist,
 }
 ```
 
@@ -26,6 +27,7 @@ Namelists(;
     sponge::SpongeNamelist = SpongeNamelist(),
     wkb::WKBNamelist = WKBNamelist(),
     tracer::TracerNamelist = TracerNamelist(),
+    triad::TriadNamelist = TriadNamelist(),
 )::Namelists
 ```
 
@@ -81,6 +83,7 @@ struct Namelists{
     G <: SpongeNamelist,
     H <: WKBNamelist,
     I <: TracerNamelist,
+    J <: TriadNamelist,
 }
     domain::A
     output::B
@@ -91,6 +94,7 @@ struct Namelists{
     sponge::G
     wkb::H
     tracer::I
+    triad::J
 end
 
 function Namelists(;
@@ -103,6 +107,7 @@ function Namelists(;
     sponge::SpongeNamelist = SpongeNamelist(),
     wkb::WKBNamelist = WKBNamelist(),
     tracer::TracerNamelist = TracerNamelist(),
+    triad::TriadNamelist = TriadNamelist(),
 )::Namelists
     return Namelists(
         domain,
@@ -114,5 +119,6 @@ function Namelists(;
         sponge,
         wkb,
         tracer,
+        triad,
     )
 end

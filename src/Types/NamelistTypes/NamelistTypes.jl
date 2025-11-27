@@ -273,7 +273,9 @@ include("GridNamelist.jl")
 include("SpongeNamelist.jl")
 include("WKBNamelist.jl")
 include("TracerNamelist.jl")
+include("TriadNamelist.jl")
 include("Namelists.jl")
+
 
 export AbstractBackground,
     AbstractLimiter,
@@ -283,14 +285,9 @@ export AbstractBackground,
     AbstractWKBFilter,
     AbstractTracer
 
-<<<<<<< HEAD
-export UniformBoussinesq,
-    StratifiedBoussinesq,
-    RadiatedBoussinesq,
-=======
 export NeutralStratification,
     StableStratification,
->>>>>>> main
+    RadiatedBoussinesq,
     Isothermal,
     Isentropic,
     Realistic,
@@ -318,6 +315,7 @@ export DomainNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
+    TriadNamelist,
     TracerNamelist,
     Namelists
 

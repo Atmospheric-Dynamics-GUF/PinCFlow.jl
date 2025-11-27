@@ -44,20 +44,14 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    TriadNamelist,
     Namelists
 
 # Export singletons needed in namelists.
 export Boussinesq, PseudoIncompressible, Compressible
 export MCVariant
-<<<<<<< HEAD
-export UniformBoussinesq,
-    StratifiedBoussinesq, RadiatedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
-export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
-    StratifiedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
-=======
 export NeutralStratification,
-    StableStratification, Isothermal, Isentropic, Realistic, LapseRates
->>>>>>> main
+    StableStratification, RadiatedBoussinesq, Isothermal, Isentropic, Realistic, LapseRates
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn

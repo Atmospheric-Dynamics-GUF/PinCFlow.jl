@@ -37,7 +37,7 @@ l = 16 * pi / ly
 m = 32 * pi / lz
 
 background = Realistic()
-coriolis_frequency = 0.0001
+coriolis_frequency = 0.0
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
 domain = DomainNamelist(;
@@ -51,6 +51,7 @@ domain = DomainNamelist(;
 )
 auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp) = auxiliary_state.constants
+#println(auxiliary_state.grid.kp)
 
 include("wave_packet_tools.jl")
 
@@ -70,8 +71,8 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),
     output_file = "wave_packet.h5",
-    tmax = 900.0,
-    output_interval = 900.0,
+    tmax = 100.0,
+    output_interval = 100.0,
 )
 
 integrate(Namelists(; atmosphere, domain, output))
