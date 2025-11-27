@@ -8,15 +8,16 @@ MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 PinCFlow = "230a4047-f24c-41d9-8d93-b3b8a5ef3847"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 
-[sources]
-PinCFlow = {path = ".."}
-
 [compat]
 CairoMakie = "0.15.6"
 HDF5 = "0.17.2"
 HDF5_jll = "1.14.6"
+MPI = "0.20.23"
 MPICH_jll = "4.3.1"
 MPIPreferences = "0.1.11"
-PinCFlow = "0.1.0"
+PinCFlow = "1.0.0"
 Revise = "3.9.0"
 julia = "1.10.10"
+
+[sources.PinCFlow]
+path = ".."

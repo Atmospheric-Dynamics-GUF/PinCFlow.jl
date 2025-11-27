@@ -632,7 +632,7 @@ function apply_lhs_sponge!(
 
 	if maximum(alphar) != 0.0
 		println("Applying LHS sponge to ice variables not working")
-        exit(1)
+        #exit(1)
 	end
 
 	# @ivy for field in fieldnames(IcePredictands)

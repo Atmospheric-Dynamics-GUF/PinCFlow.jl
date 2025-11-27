@@ -7,11 +7,13 @@ using HDF5
 using PyPlot
 using Statistics
 
-data = h5open("/home/dolaptch/PF/runs/tjl05/pincflow_output.h5")
+data = h5open("/home/dolaptch/PF/pinc/exp/pincflow_output.h5")
+#data = h5open("/home/dolaptch/PF/runs/tjl05/pincflow_output.h5")
 datas = h5open("/home/dolaptch/PF/runs/sjl05/pincflow_output.h5") # shift domain to -20,20 km to be consistent with merged run
 #datas = h5open("/home/dolaptch/PF/runs_save/GWI_grusi_WS_25-26/tjl05/pincflow_output.h5")
 
 data2 = h5open("/home/dolaptch/PF/runs/tjl06/pincflow_output.h5")
+#data2 = h5open("/home/dolaptch/PF/pinc/exp/pincflow_output.h5")
 data2s = h5open("/home/dolaptch/PF/runs/sjl06/pincflow_output.h5") # shift domain to -20,20 km to be consistent with merged run
 #data2s = h5open("/home/dolaptch/PF/runs_save/GWI_grusi_WS_25-26/tjl06/pincflow_output.h5")
 
@@ -77,4 +79,4 @@ title("data2s: Par (saved)")
 xlabel("x (km)"); ylabel("z (km)")
 
 tight_layout()
-savefig("/home/dolaptch/PF/pinc/examples/visualization/mountain_wave.png")
+savefig("/home/dolaptch/output/mountain_wave.png")

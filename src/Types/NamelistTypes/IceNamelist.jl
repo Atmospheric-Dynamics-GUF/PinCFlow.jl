@@ -29,7 +29,7 @@ struct IceNamelist{A <: AbstractIce, B <: AbstractFloat, C <: Integer, D <: Abst
      ice_test_case :: F
 end
 
-function IceNamelist(; icesetup::AbstractIce, dt_ice = 1.0, nscx = 1, nscy = 1, nscz = 1, cloudcover= CloudCoverOff(), parameterized_nucleation = false, parameterized_sgs_q = false, constant_advection = false, hor_adv_vel = (0.0, 0.0), ice_test_case = NoIceTestCase())
+function IceNamelist(; icesetup = NoIce(), dt_ice = 1.0, nscx = 1, nscy = 1, nscz = 1, cloudcover= CloudCoverOff(), parameterized_nucleation = false, parameterized_sgs_q = false, constant_advection = false, hor_adv_vel = (0.0, 0.0), ice_test_case = NoIceTestCase())
     return IceNamelist(icesetup, dt_ice, nscx, nscy, nscz, cloudcover, parameterized_nucleation, parameterized_sgs_q, constant_advection, hor_adv_vel, ice_test_case)
 end
 

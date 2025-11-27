@@ -28,7 +28,7 @@ output = OutputNamelist(;
 	output_steps = false,
 	output_interval = 1.0,
 	tmax = 30.0, #3.6E+1, #E+3
-	output_file = "./test/pincflow_output.h5",
+	output_file = "./exp/pincflow_output.h5",
 )
 
 discretization = DiscretizationNamelist(;

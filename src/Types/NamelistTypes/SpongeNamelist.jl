@@ -1,20 +1,12 @@
 """
 ```julia
 SpongeNamelist{
-<<<<<<< HEAD
-	A <: Bool,
-	B <: AbstractFloat,
-	C <: AbstractSponge,
-	D <: Integer,
-	E <: NTuple{3, <:AbstractFloat},
-=======
     A <: Bool,
     B <: Function,
     C <: Function,
     D <: Function,
     E <: Function,
     F <: Function,
->>>>>>> cf395edbf2
 }
 ```
 
@@ -22,20 +14,6 @@ Namelist for parameters describing the sponge.
 
 ```julia
 SpongeNamelist(;
-<<<<<<< HEAD
-	damp_horizontal_wind_on_rhs::Bool = false,
-	sponge_extent::AbstractFloat = 5.0E-1,
-	alpharmax::AbstractFloat = 0.0E+0,
-	betarmax::AbstractFloat = 0.0E+0,
-	lateral_sponge::Bool = false,
-	sponge_type::AbstractSponge = PolynomialSponge(),
-	sponge_order::Integer = 1,
-	cosmo_steps::Integer = 1,
-	relax_to_mean::Bool = true,
-	perturbation_period::AbstractFloat = 0.0E+0,
-	perturbation_amplitude::AbstractFloat = 0.0E+0,
-	relaxation_wind::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
-=======
     damp_horizontal_wind_on_rhs::Bool = false,
     relax_to_mean::Bool = false,
     lhs_sponge::Function = (x, y, z, t, dt) -> 0.0,
@@ -43,7 +21,6 @@ SpongeNamelist(;
     relaxed_u::Function = (x, y, z, t, dt) -> 0.0,
     relaxed_v::Function = (x, y, z, t, dt) -> 0.0,
     relaxed_w::Function = (x, y, z, t, dt) -> 0.0,
->>>>>>> cf395edbf2
 )::SpongeNamelist
 ```
 

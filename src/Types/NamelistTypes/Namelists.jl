@@ -3,18 +3,6 @@
 Namelists{
     A <: DomainNamelist,
     B <: OutputNamelist,
-<<<<<<< HEAD
-    C <: SettingNamelist,
-    D <: DiscretizationNamelist,
-    E <: PoissonNamelist,
-    F <: AtmosphereNamelist,
-    G <: GridNamelist,
-    H <: SpongeNamelist,
-    I <: WKBNamelist,
-    J <: TracerNamelist,
-    K <: IceNamelist,
-    M <: WavePacketNamelist,
-=======
     C <: DiscretizationNamelist,
     D <: PoissonNamelist,
     E <: AtmosphereNamelist,
@@ -22,7 +10,8 @@ Namelists{
     G <: SpongeNamelist,
     H <: WKBNamelist,
     I <: TracerNamelist,
->>>>>>> cf395edbf2
+    J <: IceNamelist,
+    K <: WavePacketNamelist,
 }
 ```
 
@@ -104,9 +93,9 @@ struct Namelists{
     G <: SpongeNamelist,
     H <: WKBNamelist,
     I <: TracerNamelist,
-    K <: IceNamelist,
-    M <: WavePacketNamelist,
-    N <: MultiWavePacketNamelist,
+    J <: IceNamelist,
+    K <: WavePacketNamelist,
+    L <: MultiWavePacketNamelist,
 }
     domain::A
     output::B
@@ -117,9 +106,9 @@ struct Namelists{
     sponge::G
     wkb::H
     tracer::I
-    ice::K
-    wavepacket::M
-    multiwavepackets::N
+    ice::J
+    wavepacket::K
+    multiwavepackets::L
 end
 
 function Namelists(;

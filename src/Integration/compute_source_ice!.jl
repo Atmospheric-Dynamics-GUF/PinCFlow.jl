@@ -342,6 +342,9 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 
 		sice = sat_ratio(rqv, pres, psi, rhoMean, iceconstants)
 
+		#changes
+		iceauxiliaries.iaux1[i, j, k] = sice	
+
 		if sice >= iceconstants.S_c
 
 			sice = iceconstants.S_c #set to critical value
@@ -387,7 +390,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 		icesource.qvsource[i, j, k] = dqv
 		icesource.qsource[i, j, k] = -dqv
 
-		iceauxiliaries.iaux1[i, j, k] = sice
+		
 		iceauxiliaries.iaux2[i, j, k] = icesource.nsource[i, j, k]
 		iceauxiliaries.iaux3[i, j, k] = dqv
 	end

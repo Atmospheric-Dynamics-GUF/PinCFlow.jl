@@ -22,6 +22,7 @@ domain = DomainNamelist(;
 	npx = 2,
 	npy = 1,
 	npz = 2,
+)
 output = OutputNamelist(;
 	output_variables = (:rhop, :pip, :w, :u, :thetap, :n2, :rhobar, :thetabar, :n, :qv, :q, :iaux1, :iaux2, :iaux3, :wwp, :epp, :thp),
 	prepare_restart = false,
@@ -30,7 +31,7 @@ output = OutputNamelist(;
 	output_steps = false,
 	output_interval = 1.0, # 3.6E+1, #E+3
 	tmax = 30.0, #3.6E+1, #E+3
-	output_file = "./test/pincflow_output.h5",
+	output_file = "./exp/pincflow_output.h5",
 )
 
 discretization = DiscretizationNamelist(;
