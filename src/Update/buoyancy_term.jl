@@ -1,3 +1,36 @@
+"""
+```julia 
+buoyancy_term(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)
+```
+
+Compute the buoyancy term in the prognostic equation for the TKE by dispatching to the appropriate model-specific method.
+
+The buoyancy term is given by 
+
+```math 
+\\mathcal{B} = -K_H \\left(N^2 + \\frac{\\partial b}{\\partial z}\\right)
+```
+
+```julia 
+buoyancy_term(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    model::Boussinesq,
+)
+```
+
+Compute the buoyancy term in Boussinesq mode.
+
+"""
 function buoyancy_term end
 
 function buoyancy_term(
