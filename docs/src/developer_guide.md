@@ -285,6 +285,8 @@ julia --project -e 'using Pkg; Pkg.test(; julia_args = `--check-bounds=auto`)'
 ```
 in the root directory of the repository. To update the reference values for the norms, run the tests after setting the variable `update_references` in `test/runtests.jl` to `true`.
 
+When you need to update the reference norms, please remember to also update the plots of the corresponding examples. Note that the exact results depend on the system and the level of parallelism you use. You may choose these freely.
+
 ## Creating new releases
 
 The creation of a new release must not be attempted without the express permission of one of PinCFlow.jl's maintainers. To create a new release, first update the version numbers in `Project.toml`, `docs/Project.toml` and `examples/Project.toml` (following the interpretation of [semantic versioning](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1)) and add the release notes to `NEWS.md`, documenting all relevant changes that have been implemented since the last release. Push your commit, navigate to it on GitHub and add the comment `@JuliaRegistrator register()`. If the release includes breaking changes, the comment must mention where they are documented (an example of this can be found [here](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/commit/6049b83416104195e0575516d4d12f5614a6e0b1#commitcomment-170569001)).
