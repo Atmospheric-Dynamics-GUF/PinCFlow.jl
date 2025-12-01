@@ -88,7 +88,7 @@ NeutralStratification <: AbstractBackground
 
 Singleton for a Boussinesq atmosphere with neutral stratification.
 """
-struct NeutralStratification <: AbstractBackgroundend end
+struct NeutralStratification <: AbstractBackground end
 
 """
 ```julia
