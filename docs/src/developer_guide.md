@@ -285,7 +285,7 @@ julia --project -e 'using Pkg; Pkg.test(; julia_args = `--check-bounds=auto`)'
 ```
 in the root directory of the repository. To update the reference values for the norms, run the tests after setting the variable `update_references` in `test/runtests.jl` to `true`.
 
-Whenever someone updates the reference norms of the tests, that person should also update the plots of the corresponding examples. On which system and with which level of parallelism they do that, they may decide for themselves.
+When you need to update the reference norms, please remember to also update the plots of the corresponding examples. Note that the exact results depend on the system and the level of parallelism you use. You may choose these freely.
 
 ## Creating new releases
 
