@@ -3,6 +3,10 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 1.1.1
+
+  - A bug has been fixed where `uold` was not being assigned correctly in `update`.
+
 ## Release 1.1.0
 
   - Potential-temperature fluxes due to heat conduction are no longer computed in pseudo-incompressible or Boussinesq mode.
