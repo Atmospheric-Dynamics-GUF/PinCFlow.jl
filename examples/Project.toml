@@ -15,7 +15,7 @@ HDF5_jll = "1.14.6"
 MPI = "0.20.23"
 MPICH_jll = "4.3.1"
 MPIPreferences = "0.1.11"
-PinCFlow = "1.1.0"
+PinCFlow = "1.1.1"
 Revise = "3.9.0"
 julia = "1.10.10"
 
