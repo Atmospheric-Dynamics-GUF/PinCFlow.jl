@@ -3,6 +3,26 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 1.1.0
+
+  - Potential-temperature fluxes due to heat conduction are no longer computed in pseudo-incompressible or Boussinesq mode.
+
+  - Two bugs that prevented MS-GWaM from being run in `SingleColumn` or `SteadyState` mode have been fixed.
+
+  - A bug that prevented the helper function `replace_assignments` (used in the tests) from properly overwriting variables with strings has been fixed. This function now also issues a warning if an assignment wasn't found.
+
+  - The writing of attributes to the model output file has been serialized. This fixes a bug that led to occasional HDF5 errors in parallel simulations.
+
+  - A bug has been fixed in the averaging of orographic wavenumbers in `apply_blocked_layer_scheme!`.
+
+  - The developer guide has been extended with information on running and updating tests, and instructions for creating new releases.
+
+  - The behavior of the default value of the output-namelist parameter `iin` has been changed, so that it no longer results in an error but in the selection of the last record in the input file.
+
+  - Several bugs have been fixed in the scripts for the wave-packet examples.
+
+  - A record of the configured namelists is now included in the model output.
+
 ## Release 1.0.0
 
   - The documentation has been updated, corrected and improved.
