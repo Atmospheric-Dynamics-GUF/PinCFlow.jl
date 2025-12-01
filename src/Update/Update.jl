@@ -99,6 +99,7 @@ include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
 include("thomas_arrays.jl")
 include("turbulent_diffusion!.jl")
+include("buoyancy_term.jl")
 
 export LHS, RHS, X, Y, Z
 
