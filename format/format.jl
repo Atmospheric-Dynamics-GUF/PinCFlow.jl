@@ -1,6 +1,7 @@
 using Pkg
 
-Pkg.activate("format")
+Pkg.activate(@__DIR__)
+Pkg.instantiate()
 
 using JuliaFormatter
 using Revise
