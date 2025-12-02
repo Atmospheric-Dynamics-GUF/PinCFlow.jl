@@ -19,9 +19,9 @@ domain = DomainNamelist(;
 	lx = 4.0E+4,
 	ly = 1.0E+4,
 	lz = 1.5E+4,
-	npx = 2,
+	npx = 1,
 	npy = 1,
-	npz = 2,
+	npz = 1,
 )
 output = OutputNamelist(;
 	output_variables = (:rhop, :pip, :w, :u, :thetap, :n2, :rhobar, :thetabar, :n, :qv, :q, :iaux1, :iaux2, :iaux3, :wwp, :epp, :thp),

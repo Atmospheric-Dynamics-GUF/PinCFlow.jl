@@ -18,6 +18,3 @@ MPIPreferences = "0.1.11"
 PinCFlow = "1.0.0"
 Revise = "3.9.0"
 julia = "1.10.10"
-
-[sources.PinCFlow]
-path = ".."
