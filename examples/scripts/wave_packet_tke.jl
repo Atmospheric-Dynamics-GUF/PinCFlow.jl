@@ -74,6 +74,6 @@ output = OutputNamelist(;
     output_interval = 10.0,
 )
 
-turbulence = TurbulenceNamelist(;)
+turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
 
-integrate(Namelists(; atmosphere, domain, output))
+integrate(Namelists(; atmosphere, domain, output, turbulence))
