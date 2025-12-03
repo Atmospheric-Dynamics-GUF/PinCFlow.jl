@@ -11,6 +11,10 @@
 
 set -x
 
+# Load necessary modules.
+module purge
+module load intel-oneapi-mpi/2021.5.0-gcc-11.2.0
+
 # Set Intel MPI configuration on compute partition.
 # export I_MPI_PMI=pmi
 # export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
