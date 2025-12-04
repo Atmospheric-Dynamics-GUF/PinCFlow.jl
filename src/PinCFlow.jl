@@ -13,13 +13,16 @@ Main module of PinCFlow.jl.
 """
 module PinCFlow
 
+using MPI
+
+include("@ensemble.jl")
 include("@ivy.jl")
 include("plot_output.jl")
 include("replace_assignments.jl")
 include("set_visualization_theme!.jl")
 include("symmetric_contours.jl")
 
-export @ivy
+export @ensemble, @ivy
 export plot_output,
     replace_assignments, set_visualization_theme!, symmetric_contours
 
