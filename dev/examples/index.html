@@ -297,15 +297,7 @@ background = Realistic()
 coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
-domain = DomainNamelist(;
-    x_size,
-    y_size,
-    z_size,
-    lx,
-    ly,
-    lz,
-    base_comm = MPI.COMM_SELF,
-)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
@@ -323,7 +315,6 @@ atmosphere = AtmosphereNamelist(;
     initial_pip = (x, y, z) -&gt;
         real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
 )
-domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),
     output_file = &quot;wave_packet.h5&quot;,
@@ -483,22 +474,13 @@ background = Realistic()
 coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
-domain = DomainNamelist(;
-    x_size,
-    y_size,
-    z_size,
-    lx,
-    ly,
-    lz,
-    base_comm = MPI.COMM_SELF,
-)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
 include(&quot;wave_packet_tools.jl&quot;)
 
 atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
-domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     save_ray_volumes = true,
     output_file = &quot;wkb_wave_packet.h5&quot;,
@@ -607,4 +589,4 @@ function wave_action_density(x, y, z)
            rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
            n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z)^2
 end
-</code></pre><p>provides helper functions that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets. It is to be included below the construction of a corresponding auxiliary state and the extraction of <span>$\kappa = R / c_p$</span>, <span>$R$</span> and <span>$g$</span> from its <code>Constants</code> instance.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Wednesday 3 December 2025 12:33">Wednesday 3 December 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre><p>provides helper functions that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets. It is to be included below the construction of a corresponding auxiliary state and the extraction of <span>$\kappa = R / c_p$</span>, <span>$R$</span> and <span>$g$</span> from its <code>Constants</code> instance.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Thursday 4 December 2025 10:36">Thursday 4 December 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
