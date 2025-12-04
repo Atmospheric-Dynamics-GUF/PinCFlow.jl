@@ -3,7 +3,7 @@
 #SBATCH --partition=interactive
 #SBATCH --job-name=periodic_hill
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=9
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-00:15:00
 #SBATCH --mail-type=FAIL
@@ -23,6 +23,6 @@ julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-leva
 # srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/periodic_hill.jl 4 4 1>periodic_hill.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 16 julia examples/scripts/periodic_hill.jl 4 4 1>periodic_hill.log 2>&1
+mpiexec -n 9 julia examples/scripts/periodic_hill.jl 3 3 1>periodic_hill.log 2>&1
 
 exit 0
