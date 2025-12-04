@@ -40,15 +40,7 @@ background = Realistic()
 coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
-domain = DomainNamelist(;
-    x_size,
-    y_size,
-    z_size,
-    lx,
-    ly,
-    lz,
-    base_comm = MPI.COMM_SELF,
-)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
@@ -66,7 +58,6 @@ atmosphere = AtmosphereNamelist(;
     initial_pip = (x, y, z) ->
         real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
 )
-domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),
     output_file = "wave_packet.h5",
