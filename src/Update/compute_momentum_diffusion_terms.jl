@@ -456,7 +456,7 @@ function compute_momentum_diffusion_terms(
     @ivy vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
 
     @ivy diffvz =
-        met[i, j, k, 1, 3] * (vr - vl) / (2 * dx) +
+        met[i, j, k, 1, 3] * (vr - vl) / (2.0 * dx) +
         met[i, j, k, 2, 3] * (v[i, j, k] - v[i, j - 1, k]) / dy +
         met[i, j, k, 3, 3] * (vu - vd) / (2.0 * dz)
 

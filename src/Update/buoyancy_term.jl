@@ -63,7 +63,7 @@ function buoyancy_term(
     theta = pbar[i, j, k] / (rhop[i, j, k] + rhobar[i, j, k])
     thetad = pbar[i, j, k - 1] / (rhop[i, j, k - 1] + rhobar[i, j, k - 1])
 
-    wthetap = -kh[i, j, k] * (thetau - thetad) / (jac[i, j, k] * 2.0 * dz)
+    wthetap = (thetau - thetad) / (jac[i, j, k] * 2.0 * dz)
 
     buoyancy = wthetap * g_ndim / theta
 
@@ -88,7 +88,7 @@ function buoyancy_term(
     theta = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
     thetad = pbar[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
-    wthetap = -kh[i, j, k] * (thetau - thetad) / (jac[i, j, k] * 2.0 * dz)
+    wthetap = (thetau - thetad) / (jac[i, j, k] * 2.0 * dz)
 
     buoyancy = wthetap * g_ndim / theta
 
@@ -113,7 +113,7 @@ function buoyancy_term(
     theta = p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
     thetad = p[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
-    wthetap = -kh[i, j, k] * (thetau - thetad) / (jac[i, j, k] * 2.0 * dz)
+    wthetap = (thetau - thetad) / (jac[i, j, k] * 2.0 * dz)
 
     buoyancy = wthetap * g_ndim / theta
 

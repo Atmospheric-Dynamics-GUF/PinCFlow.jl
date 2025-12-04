@@ -341,7 +341,7 @@ function write_output(
                     ii,
                     jj,
                     kk,
-                ] .* lref .^ 2 ./ tref .^ 3
+                ] ./ (tref .^ 2)
 
             HDF5.set_extent_dims(
                 file["buoyancy-production"],
@@ -352,7 +352,7 @@ function write_output(
                     ii,
                     jj,
                     kk,
-                ] .* lref .^ 2 ./ tref .^ 3
+                ] ./ (tref .^ 2)
         end
 
         # Write WKB variables.
