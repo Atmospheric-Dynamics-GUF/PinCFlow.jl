@@ -21,6 +21,10 @@ macro ensemble(code::Expr, assignments::Expr)
         index === nothing &&
             error("The parameter output_file must be assigned in ensembles!")
         local output_file = $(esc(assignments))[index][2]
+        for entry in output_file
+            length(output_file[output_file .== entry]) != 1 &&
+                error("There are duplicate output files!")
+        end
 
         MPI.Init()
         local rank = MPI.Comm_rank(MPI.COMM_WORLD)
