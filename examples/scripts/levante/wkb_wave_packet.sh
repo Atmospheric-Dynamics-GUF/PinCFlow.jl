@@ -3,7 +3,7 @@
 #SBATCH --partition=interactive
 #SBATCH --job-name=wkb_wave_packet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
+#SBATCH --ntasks-per-node=27
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-00:30:00
 #SBATCH --mail-type=FAIL
@@ -23,6 +23,6 @@ julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-leva
 # srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/wkb_wave_packet.jl 4 4 4 1>wkb_wave_packet.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 64 julia examples/scripts/wkb_wave_packet.jl 4 4 4 1>wkb_wave_packet.log 2>&1
+mpiexec -n 27 julia examples/scripts/wkb_wave_packet.jl 3 3 3 1>wkb_wave_packet.log 2>&1
 
 exit 0
