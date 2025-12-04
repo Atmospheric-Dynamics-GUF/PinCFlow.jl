@@ -22,8 +22,8 @@ macro ensemble(code::Expr, assignments::Expr)
             error("The parameter output_file must be assigned in ensembles!")
         local output_file = $(esc(assignments))[index][2]
         for entry in output_file
-            length(output_file[output_file .== entry]) != 1 &&
-                error("There are duplicate output files!")
+            sum(1 for other_entry in output_file if other_entry == entry) !=
+            1 && error("There are duplicate output files!")
         end
 
         MPI.Init()
