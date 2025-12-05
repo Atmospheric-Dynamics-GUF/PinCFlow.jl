@@ -30,9 +30,9 @@ atmosphere = AtmosphereNamelist(;
     initial_u = (x, y, z) -> 10.0,
 )
 domain = DomainNamelist(;
-    x_size = 40,
+    x_size = 4,
     y_size = 1,
-    z_size = 80,
+    z_size = 8,
     lx,
     ly,
     lz,
@@ -57,7 +57,7 @@ output =
     output_steps = false,
 	output_interval = 100.0,
 	tmax = 2000.0,
-    output_file = "exp/results/ice_mountain_wave.h5")
+    output_file = "ice_mountain_wave.h5")
 
     sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) -> begin
