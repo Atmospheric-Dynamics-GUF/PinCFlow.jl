@@ -57,7 +57,7 @@ function explicit_integration!(
 
         set_boundaries!(state, BoundaryFluxes())
 
-        save_backups!(state, :rho)
+        save_backups!(state, :rho, :u, :v)
 
         update!(state, dtstage, rkstage, Rho())
         apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, Rho())

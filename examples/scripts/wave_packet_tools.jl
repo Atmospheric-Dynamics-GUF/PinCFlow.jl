@@ -1,3 +1,4 @@
+# examples/scripts/wave_packet_tools.jl
 
 function ijk(x, y, z)
     i = argmin(abs.(x .- auxiliary_state.grid.x .* lref))
