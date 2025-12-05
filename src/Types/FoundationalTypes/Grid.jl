@@ -177,7 +177,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     lx = namelists.domain.lx / lref
     ly = namelists.domain.ly / lref
     lz = namelists.domain.lz / lref
-    lkh = namelists.triad.lkh * lref
+    lkp = namelists.triad.lkp * lref
     lm = namelists.triad.lm * lref
 
     # Compute grid spacings.
@@ -206,10 +206,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     # Compute the kh-direction
     kp = zeros(kp_size)
     @ivy for khi in 1:kp_size
-        kh_min = sqrt((2 * pi / lx)^2 + (2 * pi / ly)^2)
-        kh_max = lkh
-        lmbda = (kh_min / kh_max)^(1/(1-kp_size))
-        kp[khi] = kh_max * lmbda^(-kp_size + khi)
+        kp_min = sqrt((2 * pi / lx)^2 + (2 * pi / ly)^2)
+        kp_max = lkp
+        lmbda = (kp_min / kp_max)^(1/(1-kp_size))
+        kp[khi] = kp_max * lmbda^(-kp_size + khi)
     end
 
     # Compute the m-direction

@@ -21,6 +21,8 @@ function create_output(state::State, machine_start_time::DateTime)
     (; wkb_mode) = state.namelists.wkb
     (; comm, master) = state.domain
     (; nray_max) = state.wkb
+    (; kp_size, m_size, triad_int) = state.namelists.triad
+    
 
     # Set the chunk dimensions.
     cr = nray_max
@@ -28,6 +30,8 @@ function create_output(state::State, machine_start_time::DateTime)
     cy = div(y_size, npy)
     cz = div(z_size, npz)
     ct = 1
+    ckp = kp_size
+    cm = m_size
 
     # Create the output file and the datasets.
     h5open(output_file, "w", comm) do file
@@ -56,6 +60,9 @@ function create_output(state::State, machine_start_time::DateTime)
             dataspace((0,), (-1,));
             chunk = (ct,),
         )
+        # Create dataset for the spectral dimensions
+        create_dataset(file, "kp", datatype(Float32), dataspace((kp_size,)))
+        create_dataset(file, "m", datatype(Float32), dataspace((m_size,)))
 
         # Create datasets for the background.
         if model != Boussinesq()
@@ -326,6 +333,21 @@ function create_output(state::State, machine_start_time::DateTime)
                     )
                 end
             end
+
+            if :wavespectrum in output_variables && triad_int
+                create_dataset(
+                        file,
+                        "wavespectrum",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, kp_size, m_size, 0),
+                            (x_size, y_size, z_size, kp_size, m_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ckp, cm, ct),
+                    )
+
+                
+            end
         end
 
         return
@@ -360,6 +382,14 @@ function create_output(state::State, machine_start_time::DateTime)
         attributes(file["t"])["units"] = "s"
         attributes(file["t"])["label"] = L"t\ [\mathrm{s}]"
         attributes(file["t"])["long_name"] = "time"
+
+        attributes(file["kp"])["units"] = "m^{-1}"
+        attributes(file["kp"])["label"] = L"kp\ [\mathrm{m^{-1}}]"
+        attributes(file["kp"])["long_name"] = "absolute horizontal wave number"
+
+        attributes(file["m"])["units"] = "m^{-1}"
+        attributes(file["m"])["label"] = L"kp\ [\mathrm{m^{-1}}]"
+        attributes(file["m"])["long_name"] = "absolute vertical wave number"
 
         if model != Boussinesq()
             attributes(file["rhobar"])["units"] = "kg*m^-3"
@@ -567,17 +597,19 @@ function create_output(state::State, machine_start_time::DateTime)
 
             # Create datasets for GW tendencies.
             for (field, units, label, long_name) in zip(
-                (:dudt, :dvdt, :dthetadt),
-                ("kg*m^-2*s^-2", "kg*m^-2*s^-2", "kg*K*m^-3*s^-1"),
+                (:dudt, :dvdt, :dthetadt, :wavespectrum),
+                ("kg*m^-2*s^-2", "kg*m^-2*s^-2", "kg*K*m^-3*s^-1", "m^5*s^-1"),
                 (
                     L"[\partial_t (\rho_\mathrm{b} u_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
                     L"[\partial_t (\rho_\mathrm{b} v_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
                     L"[\partial_t (P_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ K\ m^{-3}\ s^{-1}}]",
+                    L"[ \mathrm{N}]\ [\mathrm{ Kg\ m^{2}\ s^{-1}}]",
                 ),
                 (
                     "zonal-momentum GW forcing",
                     "meridional-momentum GW forcing",
                     "mass-weighted potential-temperature GW forcing",
+                    "Wave action spectrum",
                 ),
             )
                 if field in output_variables

@@ -9,11 +9,11 @@ using CairoMakie
 using Revise
 using PinCFlow
 
-h5open("wkb_prop_perturb.h5") do data
+h5open("wkb_wave_packet.h5") do data
     plot_contours(
-       "examples/results/wkb_prop_perturb.svg",
+       "examples/results/wkb_wave_packet.svg",
         data,
-        "u",
+        "w",
         (5, 5, 5, 4);
         label = L"w\,[\mathrm{m\,s^{-1}}]",
     )

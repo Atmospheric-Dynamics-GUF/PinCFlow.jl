@@ -73,7 +73,61 @@ function plot_output(
         # Round the time.
         tn = round(t[n]; digits = 1)
 
-        if variable in ray_volume_properties
+        if variable in ("wavespectrum", )
+            column += 2
+
+             kp = data["kp"][:] .* space_unit_factor
+             m = data["m"][:] .* space_unit_factor
+             phi = data[variable][:, :, :, :, :, n]
+             nkp = length(kp)
+             nm = length(m)
+             kp = [kpi for kpi in kp, mi in 1:nm]
+             m = [mi for kpi in 1:nkp, mi in m]
+             # Get the label.
+            label = LaTeXString(attrs(data[variable])["label"])
+            # Plot in the kp-m plane.
+            if nkp > 1 && nm > 1
+                column += 2
+                @ivy zk =
+                    round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
+                @ivy yj =
+                    round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                @ivy xi =
+                    round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+                axis = Axis(
+                    figure[row, column - 1];
+                    title = L"t\approx%$tn\ \mathrm{%$time_unit}, \quad x\approx%$xi\ \mathrm{%$space_unit}, 
+                     \quad y\approx%$yj\ \mathrm{%$space_unit}, \quad z\approx%$zk\ \mathrm{%$space_unit}",
+                    xlabel = L"kp \ [\mathrm{%$space_unit}^{-1}]",
+                    ylabel = L"m \ [\mathrm{%$space_unit}^{-1}]" ,
+                )
+                @ivy (levels, colormap) = symmetric_contours(
+                    minimum(phi[i, j, k, :, :]),
+                    maximum(phi[i, j, k, :, :]);
+                    number,
+                    colormap_name,
+                )
+                @ivy plot = contourf!(
+                    kp,
+                    m,
+                    phi[i,j,k, :, :];
+                    levels,
+                    colormap,
+                )
+                tightlimits!(axis)
+                Colorbar(
+                    figure[row, column],
+                    plot;
+                    ticks = levels,
+                    tickformat = "{:9.2E}",
+                    label,
+                    
+                )
+                xlims!(minimum(kp), maximum(kp))
+                ylims!(minimum(m), maximum(m))
+            end
+
+        elseif variable in ray_volume_properties
             # Get the ray-volume data.
             xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
             yr = data["yr"][:, :, :, :, n] ./ space_unit_factor

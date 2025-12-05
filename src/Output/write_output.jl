@@ -88,7 +88,9 @@ function write_output(
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; nray_max, rays, tendencies) = state.wkb
+    (; nray_max, rays, tendencies, spec_tend) = state.wkb
+    (; kp_size, m_size, triad_int) = state.namelists.triad
+    (; kp, m) = state.grid
 
     # Print information.
     if master
@@ -122,6 +124,8 @@ function write_output(
         (ko + 2 - dk0):(ko + nz + 1),
     )
 
+    (kpr, mr) = (1:kp_size, 1:m_size)
+
     # Open the file. Note: Fused in-place assignments cannot be used here!
     @ivy h5open(output_file, "r+", comm) do file
 
@@ -139,6 +143,12 @@ function write_output(
         if iout == 1
             file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
             file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
+        end
+
+        #write the spectral grid.
+        if iout == 1
+            file["kp"][kpr] = kp[kpr] ./ lref
+            file["m"][mr] = m[mr] ./ lref
         end
 
         # Write the background density.
@@ -369,6 +379,16 @@ function write_output(
                     file[string(field)][iid, jjd, kkd, iout] =
                         getfield(tendencies, field)[ii, jj, kk] .* scaling
                 end
+            end
+            if :wavespectrum in output_variables && triad_int
+                HDF5.set_extent_dims(
+                    file["wavespectrum"],
+                    (x_size, y_size, z_size, kp_size, m_size, iout),
+                )
+                file["wavespectrum"][iid, jjd, kkd, kpr, mr, iout] = 
+                    spec_tend.wavespectrum[ii, jj, kk, kpr, mr] .* rhoref .* uref .^ 2 .* tref .*
+                    lref .^ 3
+
             end
         end
 

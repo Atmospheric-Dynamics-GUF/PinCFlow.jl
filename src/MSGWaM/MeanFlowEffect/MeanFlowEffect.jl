@@ -64,6 +64,7 @@ include("compute_horizontal_cell_indices.jl")
 include("compute_mean_flow_effect!.jl")
 include("smooth_gw_tendencies!.jl")
 
-export compute_mean_flow_effect!
+export compute_mean_flow_effect!,
+        compute_horizontal_cell_indices
 
 end

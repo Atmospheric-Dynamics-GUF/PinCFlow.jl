@@ -408,7 +408,7 @@ function Atmosphere(
 )::Atmosphere
     (; potential_temperature, ground_pressure, tropopause_height) =
         namelists.atmosphere
-    (; thetaref, lref, pref, kappa, sig, rsp, gamma, gammainv, g) = constants
+    (; thetaref, lref, pref, kappa, sig, rsp, gamma, g, gammainv) = constants
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
 

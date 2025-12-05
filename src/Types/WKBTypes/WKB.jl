@@ -121,6 +121,7 @@ struct WKB{
     I <: Ref{<:AbstractFloat},
     J <: AbstractArray{<:AbstractFloat, 3},
     K <: AbstractMatrix{<:AbstractFloat},
+    L <: TriadTendencies
 }
     nxray::A
     nyray::A
@@ -143,6 +144,7 @@ struct WKB{
     cgz_max::J
     zb::K
     diffusion::J
+    spec_tend::L
 end
 
 function WKB(namelists::Namelists, domain::Domain)::WKB
@@ -165,6 +167,7 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
         zeros(0, 0, 0),
         zeros(0, 0),
         zeros(0, 0, 0),
+        TriadTendencies(0, 0, 0, 0, 0),
     )
 end
 
@@ -187,6 +190,7 @@ function WKB(
         dmr_factor,
     ) = namelists.wkb
     (; x_size, y_size, z_size) = namelists.domain
+    (; kp_size, m_size) = namelists.triad
     (; nxx, nyy, nzz) = domain
 
     # Check if spectral-extent factors are set correctly.
@@ -258,6 +262,8 @@ function WKB(
     increments = WKBIncrements(nray_wrk, nxx, nyy, nzz)
     integrals = WKBIntegrals(nxx, nyy, nzz)
     tendencies = WKBTendencies(nxx, nyy, nzz)
+
+    spec_tend = TriadTendencies(nxx, nyy, nzz, kp_size, m_size)
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
     cgz_max = zeros(nxx, nyy, nzz)
@@ -286,5 +292,6 @@ function WKB(
         cgz_max,
         zb,
         diffusion,
+        spec_tend
     )
 end

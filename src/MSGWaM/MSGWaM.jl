@@ -33,10 +33,12 @@ include("RaySources/RaySources.jl")
 include("BoundaryRays/BoundaryRays.jl")
 include("RayUpdate/RayUpdate.jl")
 include("MeanFlowEffect/MeanFlowEffect.jl")
+include("TriadInteractions/TriadInteractions.jl")
 
 using .BoundaryRays
 using .RayUpdate
 using .MeanFlowEffect
+using .TriadInteractions
 using ..PinCFlow
 
 export apply_saturation_scheme!,
@@ -46,6 +48,7 @@ export apply_saturation_scheme!,
     propagate_rays!,
     set_boundary_rays!,
     shift_rays!,
-    split_rays!
+    split_rays!,
+    compute_wave_spectrum!
 
 end

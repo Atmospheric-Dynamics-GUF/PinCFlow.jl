@@ -30,6 +30,7 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
     set_boundary_rays!(state)
 
     compute_mean_flow_effect!(state)
+    compute_wave_spectrum!(state)
 
     return
 end
