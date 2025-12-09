@@ -68,8 +68,10 @@ function compute_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, Singl
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = domain
-    (; kp, m, dx, dy, dz, x, y, zctilde, jac) = grid
+    (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; nray, rays, spec_tend) = state.wkb
+    (; kp, m) = spec_tend
+
 
     (ukp, lkp) = half_logwidth(kp)
     (um, lm) = half_logwidth(m)
@@ -79,7 +81,9 @@ function compute_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, Singl
     fc = coriolis_frequency * tref
 
     for field in fieldnames(TriadTendencies)
-        getfield(spec_tend, field) .= 0.0
+        if field == :wavespectrum
+            getfield(spec_tend, field) .= 0.0
+        end
     end
 
 

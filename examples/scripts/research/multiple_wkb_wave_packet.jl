@@ -22,9 +22,9 @@ lx = 20000.0
 ly = 20000.0
 lz = 40000.0
 
-wave_modes = 2
+wave_modes = 1
 
-
+"""
 x_c = [0.0, 10000.0]
 y_c = [0.0, 10000.0]
 z_c = [30000.0, 20000.0 ]
@@ -38,6 +38,22 @@ a0 = [0.05, 0.1]
 k = [20 * pi / lx, 15 * pi / lx]
 l = [20 * pi / ly, 15 * pi / ly]
 m = [32 * pi / lz, -25 * pi / lz]
+
+"""
+
+x_c = [0.0]
+y_c = [0.0]
+z_c = [30000.0]
+
+sigma_xc = [lx / 6]
+sigma_yc = [ly / 6]
+sigma_zc = [lz / 12]
+
+a0 = [0.05]
+
+k = [20 * pi / lx]
+l = [20 * pi / ly]
+m = [32 * pi / lz]
 
 k_perp = sqrt.(k.^2 + l.^2)
 
@@ -70,7 +86,11 @@ triad = TriadNamelist(;
     lm,
     triad_int = true,
 )
-auxiliary_state = State(Namelists(; atmosphere, domain, triad))
+
+wkb = WKBNamelist(;
+    wkb_mode = MultiColumn(),
+)
+auxiliary_state = State(Namelists(; atmosphere, domain, wkb, triad))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
 include("multiple_wave_packet_tools.jl")

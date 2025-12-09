@@ -147,13 +147,13 @@ struct WKB{
     spec_tend::L
 end
 
-function WKB(namelists::Namelists, domain::Domain)::WKB
+function WKB(namelists::Namelists, domain::Domain, constants::Constants)::WKB
     (; wkb_mode) = namelists.wkb
 
-    return WKB(namelists, domain, wkb_mode)
+    return WKB(namelists, domain, constants, wkb_mode)
 end
 
-function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
+function WKB(namelists::Namelists, domain::Domain, constants::Constants, wkb_mode::NoWKB)::WKB
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
@@ -167,13 +167,14 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
         zeros(0, 0, 0),
         zeros(0, 0),
         zeros(0, 0, 0),
-        TriadTendencies(0, 0, 0, 0, 0),
+        TriadTendencies(namelists, domain, wkb_mode),
     )
 end
 
 function WKB(
     namelists::Namelists,
     domain::Domain,
+    constants::Constants,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::WKB
     (;
@@ -190,7 +191,7 @@ function WKB(
         dmr_factor,
     ) = namelists.wkb
     (; x_size, y_size, z_size) = namelists.domain
-    (; kp_size, m_size) = namelists.triad
+    
     (; nxx, nyy, nzz) = domain
 
     # Check if spectral-extent factors are set correctly.
@@ -263,7 +264,7 @@ function WKB(
     integrals = WKBIntegrals(nxx, nyy, nzz)
     tendencies = WKBTendencies(nxx, nyy, nzz)
 
-    spec_tend = TriadTendencies(nxx, nyy, nzz, kp_size, m_size)
+    spec_tend = TriadTendencies(namelists, domain, constants, wkb_mode)
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
     cgz_max = zeros(nxx, nyy, nzz)

@@ -139,8 +139,6 @@ struct Grid{
     ly::A
     lz::A
 
-    kp::B
-    m::B
 
     # Grid spacings.
     dx::A
@@ -171,7 +169,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; stretch_exponent) = namelists.grid
     (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0) = domain
     (; lref) = constants
-    (; kp_size, m_size) = namelists.triad
 
     # Non-dimensionalize domain boundaries.
     lx = namelists.domain.lx / lref
@@ -203,23 +200,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
         z[k] = (k - k0) * dz + dz / 2
     end
 
-    # Compute the kh-direction
-    kp = zeros(kp_size)
-    @ivy for khi in 1:kp_size
-        kp_min = sqrt((2 * pi / lx)^2 + (2 * pi / ly)^2)
-        kp_max = lkp
-        lmbda = (kp_min / kp_max)^(1/(1-kp_size))
-        kp[khi] = kp_max * lmbda^(-kp_size + khi)
-    end
-
-    # Compute the m-direction
-    m = zeros(m_size)
-    @ivy for mi in 1:m_size
-        m_min = 2 * pi / lz
-        m_max = lm
-        lmbda = (m_min / m_max)^(1/(1-m_size))
-        m[mi] = m_max * lmbda^(-m_size + mi)
-    end
 
     # Allocate the stretched vertical grid.
     (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
@@ -329,8 +309,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
         lx,
         ly,
         lz,
-        kp,
-        m,
         dx,
         dy,
         dz,

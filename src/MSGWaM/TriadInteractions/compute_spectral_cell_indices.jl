@@ -33,7 +33,7 @@ function compute_spectral_cell_indices(
     dmr::AbstractFloat,
 )::NTuple{4, <:Integer}
     (; kp_size, m_size) = state.namelists.triad
-    (; kp, m) = state.grid
+    (; kp, m) = state.wkb.spec_tend
     mr = abs(mr)
     kp_l = kpr - dkpr/2
     kp_u = kpr + dkpr/2

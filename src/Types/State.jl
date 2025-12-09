@@ -112,7 +112,7 @@ function State(namelists::Namelists)::State
     sponge = Sponge(domain)
     poisson = Poisson(domain)
     variables = Variables(namelists, constants, domain, atmosphere, grid)
-    wkb = WKB(namelists, domain)
+    wkb = WKB(namelists, domain, constants)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
 
     return State(
