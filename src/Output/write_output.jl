@@ -323,7 +323,7 @@ function write_output(
                     file[string(field)],
                     (x_size, y_size, z_size, iout),
                 )
-                file[string(field)][iid, jjd, kkd, iout] =
+                @views file[string(field)][iid, jjd, kkd, iout] =
                     getfield(state.turbulence.turbulencepredictands, field)[
                         ii,
                         jj,
@@ -336,7 +336,7 @@ function write_output(
                 file["shear-production"],
                 (x_size, y_size, z_size, iout),
             )
-            file["shear-production"][iid, jjd, kkd, iout] =
+            @views file["shear-production"][iid, jjd, kkd, iout] =
                 state.turbulence.turbulenceauxiliaries.shearproduction[
                     ii,
                     jj,
@@ -347,7 +347,7 @@ function write_output(
                 file["buoyancy-production"],
                 (x_size, y_size, z_size, iout),
             )
-            file["buoyancy-production"][iid, jjd, kkd, iout] =
+            @views file["buoyancy-production"][iid, jjd, kkd, iout] =
                 state.turbulence.turbulenceauxiliaries.buoyancyproduction[
                     ii,
                     jj,

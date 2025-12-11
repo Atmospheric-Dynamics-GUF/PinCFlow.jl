@@ -114,14 +114,29 @@ function TurbulencePredictands(
     turbulence_scheme::TKEScheme,
     variables::Variables,
 )::TurbulencePredictands
-    (; nxx, nyy, nzz) = domain
+    (; i0, i1, j0, j1, nxx, nyy, nzz) = domain
     (; rhobar) = atmosphere
+    (; x, y, zc) = grid
     (; rho) = variables.predictands
     (; lref, tref) = constants
+    (; initial_tke) = namelists.turbulence
 
-    tke =
-        ones(nxx, nyy, nzz) .* 5.0E-5 .* (tref .^ 2.0) ./ (lref .^ 2.0) .*
-        (rho .+ rhobar)
+    tke = zeros(nxx, nyy, nzz)
+
+    @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
+        xdim = x[i] * lref
+        ydim = y[j] * lref
+        zcdim = zc[i, j, k] * lref
+
+        tke[i, j, k] = 
+            initial_tke(xdim, ydim, zcdim) * (tref^2.0) / (lref^2.0) *
+            (rho[i, j, k] + rhobar[i, j, k])
+    end
+
+    for f! in
+        (set_zonal_boundaries_of_field!, set_meridional_boundaries_of_field!)
+        f!(tke, namelists, domain)
+    end
 
     return TurbulencePredictands(tke)
 end

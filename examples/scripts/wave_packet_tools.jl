@@ -81,3 +81,22 @@ function wave_action_density(x, y, z)
            rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
            n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z)^2
 end
+
+function qtilde(x, y, z)
+    return max(
+        5.e-5,
+        real(
+            lturb^2.0 * (
+                m^2 / 2 * (
+                    abs(uhat(x, y, z))^2 + abs(vhat(x, y, z))^2 - real(
+                        (uhat(x, y, z)^2 + vhat(x, y, z)^2) *
+                        exp(2im * phi(x, y, z)),
+                    )
+                ) - (
+                    n2(x, y, z) +
+                    real(1im * m * bhat(x, y, z) * exp(1im * phi(x, y, z)))
+                )
+            ),
+        ),
+    )
+end

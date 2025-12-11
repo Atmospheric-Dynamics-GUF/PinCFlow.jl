@@ -278,6 +278,46 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
+        if !(
+            typeof(state.namelists.turbulence.turbulence_scheme) <:
+            NoTurbulence
+        )
+            for field in fieldnames(TurbulencePredictands)
+                create_dataset(
+                    file,
+                    string(field),
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            create_dataset(
+                file,
+                "shear-production",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
+            )
+
+            create_dataset(
+                file,
+                "buoyancy-production",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
+            )
+        end
+
         # Create datasets for WKB variables.
         if wkb_mode != NoWKB()
 
@@ -451,191 +491,6 @@ function create_output(state::State, machine_start_time::DateTime)
             attributes(file["pip"])["units"] = "1"
             attributes(file["pip"])["label"] = L"\pi'"
             attributes(file["pip"])["long_name"] = "Exner-pressure fluctuations"
-        end
-
-        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
-            for field in fieldnames(TracerPredictands)
-                attributes(file[string(field)])["units"] = "1"
-                attributes(file[string(field)])["label"] = L"\chi"
-                attributes(file[string(field)])["long_name"] = "tracer mixing ratio"
-            end
-
-            if state.namelists.tracer.leading_order_impact &&
-               :dchidt in output_variables
-                for (field, units, label, long_name) in zip(
-                    fieldnames(TracerWKBImpact),
-                    ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
-                    (
-                        L"\langle u'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"\langle v'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"\langle w'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]",
-                    ),
-                    (
-                        "zonal GW-tracer flux",
-                        "meridional GW-tracer flux",
-                        "vertical GW-tracer flux",
-                        "GW-tracer flux convergence",
-                    ),
-                )
-                    dset = create_dataset(
-                        file,
-                        string(field),
-                        datatype(Float32),
-                        dataspace(
-                            (x_size, y_size, z_size, 0),
-                            (x_size, y_size, z_size, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                    attributes(dset)["units"] = units
-                    attributes(dset)["label"] = label
-                    attributes(dset)["long_name"] = long_name
-                end
-            end
-        end
-
-        if !(
-            typeof(state.namelists.turbulence.turbulence_scheme) <:
-            NoTurbulence
-        )
-            for field in fieldnames(TurbulencePredictands)
-                create_dataset(
-                    file,
-                    string(field),
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
-            end
-
-            create_dataset(
-                file,
-                "shear-production",
-                datatype(Float32),
-                dataspace(
-                    (x_size, y_size, z_size, 0),
-                    (x_size, y_size, z_size, -1),
-                );
-                chunk = (cx, cy, cz, ct),
-            )
-
-            create_dataset(
-                file,
-                "buoyancy-production",
-                datatype(Float32),
-                dataspace(
-                    (x_size, y_size, z_size, 0),
-                    (x_size, y_size, z_size, -1),
-                );
-                chunk = (cx, cy, cz, ct),
-            )
-        end
-
-        if wkb_mode != NoWKB()
-            if prepare_restart || save_ray_volumes
-                if x_size == 1 && y_size == 1
-                    nr_units = "kg*s^-1"
-                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ s^{-1}}]"
-                elseif x_size > 1 && y_size > 1
-                    nr_units = "kg*m^2*s^-1"
-                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ m^2\ s^{-1}}]"
-                else
-                    nr_units = "kg*m*s^-1"
-                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ m\ s^{-1}}]"
-                end
-                for (field, units, label, long_name) in zip(
-                    (
-                        "xr",
-                        "yr",
-                        "zr",
-                        "dxr",
-                        "dyr",
-                        "dzr",
-                        "kr",
-                        "lr",
-                        "mr",
-                        "dkr",
-                        "dlr",
-                        "dmr",
-                        "nr",
-                    ),
-                    (
-                        "m",
-                        "m",
-                        "m",
-                        "m",
-                        "m",
-                        "m",
-                        "m^-1",
-                        "m^-1",
-                        "m^-1",
-                        "m^-1",
-                        "m^-1",
-                        "m^-1",
-                        nr_units,
-                    ),
-                    (
-                        L"x_{r}\ [\mathrm{m}]",
-                        L"y_{r}\ [\mathrm{m}]",
-                        L"z_{r}\ [\mathrm{m}]",
-                        L"\Delta x_{r}\ [\mathrm{m}]",
-                        L"\Delta y_{r}\ [\mathrm{m}]",
-                        L"\Delta z_{r}\ [\mathrm{m}]",
-                        L"k_{r}\ [\mathrm{m^{-1}}]",
-                        L"l_{r}\ [\mathrm{m^{-1}}]",
-                        L"m_{r}\ [\mathrm{m^{-1}}]",
-                        L"\Delta k_{r}\ [\mathrm{m^{-1}}]",
-                        L"\Delta l_{r}\ [\mathrm{m^{-1}}]",
-                        L"\Delta m_{r}\ [\mathrm{m^{-1}}]",
-                        nr_label,
-                    ),
-                    (
-                        "ray-volume position in x",
-                        "ray-volume position in y",
-                        "ray-volume position in z",
-                        "ray-volume extent in x",
-                        "ray-volume extent in y",
-                        "ray-volume extent in z",
-                        "ray-volume position in k",
-                        "ray-volume position in l",
-                        "ray-volume position in m",
-                        "ray-volume extent in k",
-                        "ray-volume extent in l",
-                        "ray-volume extent in m",
-                        "ray-volume phase-space wave-action density",
-                    ),
-                )
-                    attributes(file[field])["units"] = units
-                    attributes(file[field])["label"] = label
-                    attributes(file[field])["long_name"] = long_name
-                end
-            end
-
-            # Create datasets for GW tendencies.
-            for (field, units, label, long_name) in zip(
-                (:dudt, :dvdt, :dthetadt),
-                ("kg*m^-2*s^-2", "kg*m^-2*s^-2", "kg*K*m^-3*s^-1"),
-                (
-                    L"[\partial_t (\rho_\mathrm{b} u_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
-                    L"[\partial_t (\rho_\mathrm{b} v_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
-                    L"[\partial_t (P_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ K\ m^{-3}\ s^{-1}}]",
-                ),
-                (
-                    "zonal-momentum GW forcing",
-                    "meridional-momentum GW forcing",
-                    "mass-weighted potential-temperature GW forcing",
-                ),
-            )
-                if field in output_variables
-                    attributes(file[string(field)])["units"] = units
-                    attributes(file[string(field)])["label"] = label
-                    attributes(file[string(field)])["long_name"] = long_name
-                end
-            end
         end
 
         create_group(file, "namelists")
