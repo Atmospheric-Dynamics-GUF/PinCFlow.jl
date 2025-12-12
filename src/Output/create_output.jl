@@ -295,27 +295,18 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            create_dataset(
-                file,
-                "shear-production",
-                datatype(Float32),
-                dataspace(
-                    (x_size, y_size, z_size, 0),
-                    (x_size, y_size, z_size, -1),
-                );
-                chunk = (cx, cy, cz, ct),
-            )
-
-            create_dataset(
-                file,
-                "buoyancy-production",
-                datatype(Float32),
-                dataspace(
-                    (x_size, y_size, z_size, 0),
-                    (x_size, y_size, z_size, -1),
-                );
-                chunk = (cx, cy, cz, ct),
-            )
+            for field in fieldnames(TurbulenceAuxiliaries)
+                create_dataset(
+                    file,
+                    string(field),
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
         end
 
         # Create datasets for WKB variables.

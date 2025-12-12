@@ -332,27 +332,18 @@ function write_output(
                     (lref .^ 2.0) ./ (tref .^ 2.0)
             end
 
-            HDF5.set_extent_dims(
-                file["shear-production"],
-                (x_size, y_size, z_size, iout),
-            )
-            @views file["shear-production"][iid, jjd, kkd, iout] =
-                state.turbulence.turbulenceauxiliaries.shearproduction[
-                    ii,
-                    jj,
-                    kk,
-                ] .* (lref .^ 2) ./ (tref .^ 3)
-
-            HDF5.set_extent_dims(
-                file["buoyancy-production"],
-                (x_size, y_size, z_size, iout),
-            )
-            @views file["buoyancy-production"][iid, jjd, kkd, iout] =
-                state.turbulence.turbulenceauxiliaries.buoyancyproduction[
-                    ii,
-                    jj,
-                    kk,
-                ] .* (lref .^ 2) ./ (tref .^ 3)
+            for field in fieldnames(TurbulenceAuxiliaries)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file[string(field)][iid, jjd, kkd, iout] =
+                    getfield(state.turbulence.turbulenceauxiliaries, field)[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* rhoref .* uref .^2 ./ tref
+            end
         end
 
         # Write WKB variables.
