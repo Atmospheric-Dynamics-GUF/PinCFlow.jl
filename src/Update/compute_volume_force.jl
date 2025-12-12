@@ -251,14 +251,15 @@ function compute_volume_force(
 )::AbstractFloat
     (; shearproduction, buoyancyproduction) =
         state.turbulence.turbulenceauxiliaries
-    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
+    (; km) = state.turbulence.turbulencediffusioncoefficients
     (; rho) = p0
     (; rhobar) = state.atmosphere
 
-    shear = (
-        compute_momentum_diffusion_terms(state, p0, i, j, k, U(), Z())^2.0 +
-        compute_momentum_diffusion_terms(state, p0, i, j, k, V(), Z())^2.0
-    )
+    shear =
+        km[i, j, k] * (
+            compute_momentum_diffusion_terms(state, p0, i, j, k, U(), Z())^2.0 +
+            compute_momentum_diffusion_terms(state, p0, i, j, k, V(), Z())^2.0
+        )
 
     shearproduction[i, j, k] = shear
 
@@ -266,6 +267,5 @@ function compute_volume_force(
 
     buoyancyproduction[i, j, k] = buoyancy
 
-    return (rho[i, j, k] + rhobar[i, j, k]) *
-           (km[i, j, k] * shear - kh[i, j, k] * buoyancy)
+    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end

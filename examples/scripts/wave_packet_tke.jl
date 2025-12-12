@@ -24,13 +24,13 @@ lz = 40000.0
 
 rx = 0.0
 ry = 0.0
-rz = 0.1
+rz = 0.15
 
 x0 = 0.0
 y0 = 0.0
 z0 = 15e3
 
-a0 = 0.5
+a0 = 2
 
 k = 2 * pi / lx
 l = 0.0
@@ -74,11 +74,11 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),
-    output_file = "wave_packet_tke.h5",
+    output_file = "wp-test.h5",
     tmax = 1800.0,
     output_interval = 36.0,
 )
 
-turbulence = TurbulenceNamelist(; turbulence_scheme = NoTurbulence())
+turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
 
 integrate(Namelists(; atmosphere, domain, output, turbulence))
