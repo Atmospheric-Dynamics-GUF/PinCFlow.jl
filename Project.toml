@@ -1,7 +1,7 @@
 name = "PinCFlow"
 uuid = "230a4047-f24c-41d9-8d93-b3b8a5ef3847"
-authors = ["Felix Jochum", "Irmgard Knop", "Jonas Rothermel", "Marco Artiano", "Arpit Babbar", "Hendrik Ranocha", "Stamen Dolaptchiev", "Sandra Klewinghaus", "Ulrich Achatz"]
 version = "1.1.1"
+authors = ["Felix Jochum", "Irmgard Knop", "Jonas Rothermel", "Marco Artiano", "Arpit Babbar", "Hendrik Ranocha", "Stamen Dolaptchiev", "Sandra Klewinghaus", "Ulrich Achatz"]
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -18,7 +18,7 @@ PinCFlowMakieExt = "CairoMakie"
 [compat]
 CairoMakie = "0.15.6"
 HDF5 = "0.17.2"
-JuliaFormatter = "1.0.62"
+JuliaFormatter = "1.0.62, 2"
 LaTeXStrings = "1.4.0"
 MPI = "0.20.23"
 Revise = "3.9.0"
