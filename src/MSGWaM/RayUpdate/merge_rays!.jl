@@ -241,7 +241,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
 
             #CHANGES
             # set phase to zero after merging
-            rays.dphi[iray, i, j, k] = 0.0
+            rays.dphi[r, i, j, k] = 0.0
 
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
