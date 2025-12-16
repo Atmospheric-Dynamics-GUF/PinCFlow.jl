@@ -1,6 +1,7 @@
 # RUN in PF/pinc/
-# view with: eog examples/visualization/mountain_wave.png &
+# source PF/venv_lev/bin/activate  
 # julia --project=exp/ exp/visualization/fast_plot_everywhere.jl
+# view with: eog examples/visualization/mountain_wave.png &
 
 using HDF5
 #using LaTeXStrings
@@ -14,7 +15,7 @@ runName = length(ARGS) >= 1 ? ARGS[1] : "default_run"
 host_name = Sockets.gethostname()
 user_name = get(ENV, "USER", get(ENV, "LOGNAME", "unknown"))
 
-runName1 = "tjl11"   # Resolved simulation
+runName1 = "tjl10"   # Resolved simulation
 runName2 = "tjl11"   # RT simulation
 
 file_name = "ice_mountain_wave.h5"
@@ -53,14 +54,20 @@ y = [yi for ix in 1:size(z)[1], yi in y, iz in 1:size(z)[3]]
 # x2 = [xi for xi in x2, iy in 1:size(z2)[2], iz in 1:size(z2)[3]]
 # y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 
+x2 = data2["x"][:] .* 0.001 
+y2 = data2["y"][:] .* 0.001 
+z2 = data2["z"][:, :, :] .* 0.001
+x2 = [xi for xi in x2, iy in 1:size(z2)[2], iz in 1:size(z2)[3]]
+y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
+
 iy = 1
 tidx = length(data["w"][1, 1, 1, :])
 tidxs = tidx
 tidx2 = length(data2["w"][1, 1, 1, :])
 tidx2s = tidx2 
 
-fld = data["w"][:, :, :, tidx]
-fld2 = data2["w"][:, :, :, tidx2]
+fld = data["u"][:, :, :, tidx]
+fld2 = data2["u"][:, :, :, tidx2]
 
 println("size fld  ", size(fld))
 println("size fld2  ", size(fld2))
@@ -76,7 +83,7 @@ title("data: Res")
 xlabel("x (km)"); ylabel("z (km)")
 
 subplot(222)
-contours = pcolormesh(x[:, iy, :], z[:, iy, :], fld2[:,iy,:]; cmap="Blues")
+contours = pcolormesh(x2[:, iy, :], z2[:, iy, :], fld2[:,iy,:]; cmap="Blues")
 colorbar(contours)
 title("datas: Res (saved)")
 xlabel("x (km)"); ylabel("z (km)")

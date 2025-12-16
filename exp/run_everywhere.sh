@@ -47,7 +47,7 @@ mkdir -p "${dirSaveCode}"
 namelist=${dirHome}/exp/${namelist_run}.jl
     
 # Copy source and this script to the save directory
-if [[ -d "${dirHome}" ]]; then
+if [[ -d "${dirHome}" ]]; then  
   cp -rp "${dirHome}/src" "${dirHome}/Project.toml" "${dirHome}/Manifest.toml" "${namelist}" "${dirSaveCode}/."
 fi
 cp -p "${BASH_SOURCE[0]}" "${dirSaveCode}/." || true
@@ -57,12 +57,21 @@ cd "${dirScratch}"
 
 # Placeholder: execute the Julia script or other commands here
 # Example: julia --project=${dirHome} exp/fast_plot_run.jl
-if [[ ${parallel} == "yes" ]]; then
-  mpiexec=$(julia --project="${dirHome}" -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-  ${mpiexec} -n $numberprc julia --project="${dirHome}" "${namelist}" $numberprc
-  exit 0
-else
-  julia --project="${dirHome}" "${namelist}"
+if [[ $user_name == "dolaptch" ]]; then
+  if [[ ${parallel} == "yes" ]]; then
+    mpiexec=$(julia --project="${dirHome}" -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
+    ${mpiexec} -n $numberprc julia --project="${dirHome}" "${namelist}" $numberprc
+    exit 0 
+  else
+    julia --project="${dirHome}" "${namelist}"
+  fi
 fi
+
+if [[ $user_name == "b381734" ]]; then
+   echo $dirSaveCode
+   echo "usage: sbatch ice_mountain_2D_2.sh runName namelist_run", "${dirSaveCode}"
+   cp -p "${dirHome}/exp/levante/ice_dump.sh" "${dirSaveCode}/."
+   sbatch ${dirHome}/exp/levante/ice_dump.sh ${namelist}
+fi 
 
 exit 0

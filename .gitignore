@@ -14,8 +14,8 @@ Manifest.toml
 slurm*.out
 *~
 *.h5
-git_hash
 *.png
+git_hash
 **/*.cov
 *.code-workspace
 *.cov
