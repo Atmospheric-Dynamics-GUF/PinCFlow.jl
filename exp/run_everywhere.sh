@@ -69,7 +69,7 @@ fi
 
 if [[ $user_name == "b381734" ]]; then
    echo $dirSaveCode
-   echo "usage: sbatch ice_mountain_2D_2.sh runName namelist_run", "${dirSaveCode}"
+   echo $dirScratch
    cp -p "${dirHome}/exp/levante/ice_dump.sh" "${dirSaveCode}/."
    sbatch ${dirHome}/exp/levante/ice_dump.sh ${namelist}
 fi 

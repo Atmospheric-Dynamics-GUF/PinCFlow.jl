@@ -66,8 +66,8 @@ tidxs = tidx
 tidx2 = length(data2["w"][1, 1, 1, :])
 tidx2s = tidx2 
 
-fld = data["u"][:, :, :, tidx]
-fld2 = data2["u"][:, :, :, tidx2]
+fld = data["w"][:, :, :, tidx]
+fld2 = data2["w"][:, :, :, tidx2]
 
 println("size fld  ", size(fld))
 println("size fld2  ", size(fld2))

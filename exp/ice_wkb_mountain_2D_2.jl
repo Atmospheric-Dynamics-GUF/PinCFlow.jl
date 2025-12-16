@@ -43,13 +43,13 @@ domain = DomainNamelist(;
 grid = GridNamelist(;
     resolved_topography = (x, y) ->
         x^2 <= (rl * l0)^2 ?
-        h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) * rh / (rh + 1) : 0.0,
+        h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) * 0 : 0.0,
     unresolved_topography = (alpha, x, y) ->
         x^2 <= (rl * l0)^2 ?
         (
             pi / l0,
             0.0,
-            h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) / (rh + 1),
+            h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) ,
         ) : (0.0, 0.0, 0.0),
 )
 ice = IceNamelist(;
