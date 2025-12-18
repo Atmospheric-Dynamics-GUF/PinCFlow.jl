@@ -77,7 +77,6 @@ include("backup_predictands.jl")
 include("turbulence_integration!.jl")
 include("compute_turbulence_diffusion!.jl")
 include("check_tke!.jl")
-include("compute_tke_terms!.jl")
 
 export integrate
 

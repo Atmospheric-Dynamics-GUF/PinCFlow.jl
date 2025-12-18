@@ -332,17 +332,17 @@ function write_output(
                     (lref .^ 2.0) ./ (tref .^ 2.0)
             end
 
-            for field in fieldnames(TurbulenceAuxiliaries)
+            for field in fieldnames(TurbulenceDiffusionCoefficients)
                 HDF5.set_extent_dims(
                     file[string(field)],
                     (x_size, y_size, z_size, iout),
                 )
                 @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulenceauxiliaries, field)[
+                    getfield(state.turbulence.turbulencediffusioncoefficients, field)[
                         ii,
                         jj,
                         kk,
-                    ] .* rhoref .* uref .^2 ./ tref
+                    ] .* lref .^ 2 / tref
             end
         end
 

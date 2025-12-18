@@ -76,6 +76,11 @@ function pihat(x, y, z)
            (omega(x, y, z)^2 - n2(x, y, z)) / n2(x, y, z) * bhat(x, y, z)
 end
 
+function chihat(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 :
+            bhat(x, y, z) / n2(x, y, z)
+end
+
 function wave_action_density(x, y, z)
     return n2(x, y, z) == 0.0 ? 0.0 :
            rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /

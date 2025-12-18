@@ -295,7 +295,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            for field in fieldnames(TurbulenceAuxiliaries)
+            for field in fieldnames(TurbulenceDiffusionCoefficients)
                 create_dataset(
                     file,
                     string(field),

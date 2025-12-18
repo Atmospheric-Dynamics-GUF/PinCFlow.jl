@@ -30,8 +30,6 @@ function turbulence_integration!(
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
 
-    compute_tke_terms!(state, p0)
-
     turbulence_integration!(state, p0, dt * 0.5, Dissipation())
 
     check_tke!(state)
