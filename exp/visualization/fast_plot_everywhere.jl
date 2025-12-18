@@ -19,12 +19,12 @@ runName = length(ARGS) >= 1 ? ARGS[1] : "default_run"
 host_name = Sockets.gethostname()
 user_name = get(ENV, "USER", get(ENV, "LOGNAME", "unknown"))
 
-runName1 = "tjl12"   # Resolved simulation
+runName1 = "tjl14"   # Resolved simulation
 runName2 = "tjl13"   # RT simulation
 
 # tjl10/11 Mountain wave
-# 12/13 (RT) mountain wave + ice
-# 14/16 test MPI
+# 12 LES 128 proc /13 (RT) mountain wave + ice
+# 14 LES 32 proc /16 test MPI
 
 file_name = "ice_mountain_wave.h5"
 

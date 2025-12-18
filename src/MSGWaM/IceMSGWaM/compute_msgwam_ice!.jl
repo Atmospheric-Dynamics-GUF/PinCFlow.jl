@@ -1,7 +1,17 @@
 function compute_msgwam_ice! end
 
 function compute_msgwam_ice!(state::State)
-	icesetup = state.namelists.ice.icesetup
+	(; wkb_mode) = state.namelists.wkb
+	compute_msgwam_ice!(state, wkb_mode)
+	return
+end
+
+function compute_msgwam_ice!(state::State, wkb_mode::NoWKB)
+	return
+end
+
+function compute_msgwam_ice!(state::State, wkb_mode::Union{SteadyState, SingleColumn, MultiColumn})
+	icesetup = state.namelists.ice.icesetup	
 	compute_msgwam_ice!(state, icesetup)
 	return
 end

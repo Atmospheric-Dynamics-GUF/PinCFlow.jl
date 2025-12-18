@@ -30,7 +30,7 @@ atmosphere = AtmosphereNamelist(;
     initial_u = (x, y, z) -> 10.0,
 )
 domain = DomainNamelist(;
-    x_size = 40,
+    x_size = 416,
     y_size = 1,
     z_size = 40,
     lx,
@@ -58,7 +58,7 @@ output = OutputNamelist(;
     output_variables = (:w, :u, :n, :qv, :q, :iaux1, :iaux2, :iaux3), 
     output_steps = false,
 	output_interval = 100.0,
-	tmax = 2000.0,
+	tmax = 4000.0,
     save_ray_volumes = true,
     output_file = "ice_mountain_wave.h5",
 )
