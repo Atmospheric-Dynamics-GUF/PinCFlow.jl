@@ -18,8 +18,8 @@ x_size = 32
 y_size = 1
 z_size = 854
 
-lx = 30000.0
-ly = 30000.0
+lx = 100000.0
+ly = 10000.0
 lz = 40000.0
 
 rx = 0.0
@@ -75,10 +75,10 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),
     output_file = "wp-test.h5",
-    tmax = 1800.0,
+    tmax = 3600.0,
     output_interval = 36.0,
 )
-
+poisson = PoissonNamelist(; preconditioner_iterations = 20)
 turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
 
-integrate(Namelists(; atmosphere, domain, output, turbulence))
+integrate(Namelists(; atmosphere, domain, output, turbulence, poisson))

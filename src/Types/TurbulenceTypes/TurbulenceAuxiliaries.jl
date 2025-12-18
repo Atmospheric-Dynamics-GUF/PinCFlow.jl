@@ -23,6 +23,7 @@ struct TurbulenceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     advection::A
     diffusion::A
     dissipation::A
+    dtkedt::A
 end
 
 function TurbulenceAuxiliaries(
@@ -38,7 +39,7 @@ function TurbulenceAuxiliaries(
     domain::Domain,
     turbulence_scheme::NoTurbulence,
 )::TurbulenceAuxiliaries
-    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:5]...)
+    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:6]...)
 end
 
 function TurbulenceAuxiliaries(
@@ -46,5 +47,5 @@ function TurbulenceAuxiliaries(
     turbulence_scheme::TKEScheme,
 )::TurbulenceAuxiliaries
     (; nxx, nyy, nzz, nx, ny, nz) = domain
-    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:5]...)
+    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:6]...)
 end

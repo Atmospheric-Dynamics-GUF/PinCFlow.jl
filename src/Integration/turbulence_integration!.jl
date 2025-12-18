@@ -27,6 +27,12 @@ function turbulence_integration!(
     dt::AbstractFloat,
     turbulence_scheme::TKEScheme,
 )
+    (; tke) = state.turbulence.turbulencepredictands
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dtkedt) = state.turbulence.turbulenceauxiliaries
+
+    tkeold = copy(tke)
+
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
 
@@ -51,7 +57,10 @@ function turbulence_integration!(
 
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
-    
+
+    dtkedt[i0:i1, j0:j1, k0:k1] .=
+        (tke[i0:i1, j0:j1, k0:k1] .- tkeold[i0:i1, j0:j1, k0:k1]) ./ dt
+
     return
 end
 
