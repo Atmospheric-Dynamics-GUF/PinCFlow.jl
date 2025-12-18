@@ -4,9 +4,11 @@ set -euo pipefail
 # run_everywhere.sh - determine machine locations and prepare run directories
 # Usage: run_everywhere.sh [runName]
 
-parallel="yes"
-numberprc=4
-#parallel="${3:-no}"
+#parallel="yes"
+numberprc=2
+optimization="-O3"
+
+parallel="${3:-no}"
 runName=${1:-default_run}
 namelist_run=${2:-namelists_run};
 
@@ -60,10 +62,10 @@ cd "${dirScratch}"
 if [[ $user_name == "dolaptch" ]]; then
   if [[ ${parallel} == "yes" ]]; then
     mpiexec=$(julia --project="${dirHome}" -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-    ${mpiexec} -n $numberprc julia --project="${dirHome}" "${namelist}" $numberprc
+    ${mpiexec} -n $numberprc julia "${optimization}" --project="${dirHome}" "${namelist}" $numberprc
     exit 0 
   else
-    julia --project="${dirHome}" "${namelist}"
+    julia "${optimization}" --project="${dirHome}" "${namelist}"
   fi
 fi
 

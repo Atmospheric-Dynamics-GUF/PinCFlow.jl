@@ -90,7 +90,7 @@ nfield = vec(data["n"][:, :, :, tidx])
 total_n_v1 = length(v1_full)
 keep_mask = nfield .< 100.0
 
-#CHNAGES plot all
+#CHANGES plot all
 #v1 = v1_full[keep_mask]
 v1 = v1_full
 after_mask_n_v1 = length(v1)

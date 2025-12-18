@@ -12,8 +12,8 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-h0 = 150.0
-l0 = 5000.0
+h0 = 1500.0
+l0 = 5.0e3
 rl = 10
 rh = 2
 
@@ -43,7 +43,7 @@ domain = DomainNamelist(;
 grid = GridNamelist(;
     resolved_topography = (x, y) ->
         x^2 <= (rl * l0)^2 ?
-        h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) : 0.0,
+        h0 / 2 * (1 + cos(pi / (l0) * abs(x))) : 0.0,
 )
 ice = IceNamelist(;
 	icesetup = IceOn(),
@@ -73,7 +73,7 @@ sponge = SpongeNamelist(;
 )
 #wkb = WKBNamelist(; wkb_mode = MultiColumn())
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+integrate(Namelists(; atmosphere, domain, grid, output, sponge, ice))
 
 # if MPI.Comm_rank(MPI.COMM_WORLD) == 0
 #     h5open("wkb_mountain_wave.h5") do data

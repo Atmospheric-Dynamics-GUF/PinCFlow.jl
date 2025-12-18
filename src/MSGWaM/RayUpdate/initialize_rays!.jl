@@ -143,9 +143,6 @@ function initialize_rays!(
 		)
 	end
 
-	#CHANGES 
-	# xrmin, yrmin, etc. dimensional
-
 	# Set initial spectral extents (these will be overwritten in the loop).
 	dk_ini_nd = 0.0
 	dl_ini_nd = 0.0

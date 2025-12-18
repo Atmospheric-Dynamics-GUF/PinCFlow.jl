@@ -5,6 +5,10 @@
 
 using HDF5
 #using LaTeXStrings
+# Use a non-interactive Matplotlib backend so figures are not shown in the REPL
+# Set the MPL backend before importing PyPlot. 'Agg' is a raster backend suitable for
+# writing PNG files from headless environments.
+ENV["MPLBACKEND"] = "Agg"
 using PyPlot
 using Statistics
 using Sockets
@@ -15,8 +19,12 @@ runName = length(ARGS) >= 1 ? ARGS[1] : "default_run"
 host_name = Sockets.gethostname()
 user_name = get(ENV, "USER", get(ENV, "LOGNAME", "unknown"))
 
-runName1 = "tjl10"   # Resolved simulation
-runName2 = "tjl11"   # RT simulation
+runName1 = "tjl12"   # Resolved simulation
+runName2 = "tjl13"   # RT simulation
+
+# tjl10/11 Mountain wave
+# 12/13 (RT) mountain wave + ice
+# 14/16 test MPI
 
 file_name = "ice_mountain_wave.h5"
 
@@ -48,15 +56,15 @@ x = [xi for xi in x, iy in 1:size(z)[2], iz in 1:size(z)[3]]
 y = [yi for ix in 1:size(z)[1], yi in y, iz in 1:size(z)[3]]
 
 # Set grid for data2
-# x2 = data2["x2"][:] .* 0.001 
-# y2 = data2["y2"][:] .* 0.001 
-# z2 = data2["z2"][:, :, :] .* 0.001
+ x2 = data2["x2"][:] .* 0.001 
+ y2 = data2["y2"][:] .* 0.001 
+ z2 = data2["z2"][:, :, :] .* 0.001
 # x2 = [xi for xi in x2, iy in 1:size(z2)[2], iz in 1:size(z2)[3]]
 # y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 
-x2 = data2["x"][:] .* 0.001 
-y2 = data2["y"][:] .* 0.001 
-z2 = data2["z"][:, :, :] .* 0.001
+#x2 = data2["x"][:] .* 0.001 
+#y2 = data2["y"][:] .* 0.001 
+#z2 = data2["z"][:, :, :] .* 0.001
 x2 = [xi for xi in x2, iy in 1:size(z2)[2], iz in 1:size(z2)[3]]
 y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 
@@ -66,8 +74,13 @@ tidxs = tidx
 tidx2 = length(data2["w"][1, 1, 1, :])
 tidx2s = tidx2 
 
-fld = data["w"][:, :, :, tidx]
-fld2 = data2["w"][:, :, :, tidx2]
+fld = data["n"][:, :, :, tidx]
+#fld = data["iaux1"][:, :, :, tidx]
+#fld2 = data2["u"][:, :, :, tidx2]
+fld2 = data2["sn"][:, :, :, tidx2]
+
+# subtract zonal mean
+#fld = fld .- mean(fld, dims=1)
 
 println("size fld  ", size(fld))
 println("size fld2  ", size(fld2))
@@ -103,3 +116,6 @@ xlabel("x (km)"); ylabel("z (km)")
 
 tight_layout()
 savefig("$dirHome/exp/visualization/mountain_wave.png")
+
+# Close figures to avoid displaying them in interactive sessions and to free resources
+PyPlot.close("all")
