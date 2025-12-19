@@ -50,6 +50,7 @@ grid = GridNamelist(;
             #NB number of rayvolues becomes zero if wavenumber changed : pi/ (rl*l0) --> pi/l0 ??
             pi / (rl * l0),
             0.0,
+            #NB  cos(pi / (rl * l0)) --> cos(pi / l0) ??
             h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) ,
         ) : (0.0, 0.0, 0.0),
 )
