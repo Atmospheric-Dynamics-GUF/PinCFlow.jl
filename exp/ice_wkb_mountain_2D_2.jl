@@ -47,16 +47,16 @@ grid = GridNamelist(;
     unresolved_topography = (alpha, x, y) ->
         x^2 <= (rl * l0)^2 ?
         (
-            pi / (rl * l0),
+            pi / l0,
             0.0,
-            h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) ,
+            h0 / 2 * (1 + cos(pi / l0 * abs(x))) ,
         ) : (0.0, 0.0, 0.0),
 )
 ice = IceNamelist(;
 	icesetup = IceOn(),
 #	ice_test_case = MultipleWavePackets(),
 	dt_ice = 2.0,
-	nscx = 5,
+	nscx = 50,
 	nscy = 1,
 	nscz = 4,
 	cloudcover = CloudCoverOn(),

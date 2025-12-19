@@ -43,7 +43,7 @@ domain = DomainNamelist(;
 grid = GridNamelist(;
     resolved_topography = (x, y) ->
         x^2 <= (rl * l0)^2 ?
-        h0 / 2 * (1 + cos(pi / (l0) * abs(x))) : 0.0,
+        h0 / 2 * (1 + cos(pi / l0 * abs(x))) : 0.0,
 )
 ice = IceNamelist(;
 	icesetup = IceOn(),

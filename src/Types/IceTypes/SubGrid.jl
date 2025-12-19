@@ -125,14 +125,14 @@ function SubGrid(namelists::Namelists,
 
 		x2 = zeros(nxnscxx)
 		for ix in 1:nxnscxx
-			x2[ix] = -lx/2. + (ix + io - i02) * dxsc + dxsc / 2
+			x2[ix] = -lx/2. + (ix + io*nscx - i02) * dxsc + dxsc / 2
 		end
 
 		# Compute y-coordinate.
 
 		y2 = zeros(nynscyy)
 		for jy in 1:nynscyy
-			y2[jy] = -ly/2. + (jy + jo - j02) * dysc + dysc / 2
+			y2[jy] = -ly/2. + (jy + jo*nscy - j02) * dysc + dysc / 2
 		end
 
 		# Initialize the physical layers.

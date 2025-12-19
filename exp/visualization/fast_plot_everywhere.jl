@@ -19,8 +19,8 @@ runName = length(ARGS) >= 1 ? ARGS[1] : "default_run"
 host_name = Sockets.gethostname()
 user_name = get(ENV, "USER", get(ENV, "LOGNAME", "unknown"))
 
-runName1 = "tjl14"   # Resolved simulation
-runName2 = "tjl13"   # RT simulation
+runName1 = "tjl14"   # Resolved simulation, high resolution
+runName2 = "tjl13"   # RT simulation, x2 shifted
 
 # tjl10/11 Mountain wave
 # 12 LES 128 proc /13 (RT) mountain wave + ice
@@ -90,13 +90,13 @@ println("fld2", maximum(fld2), " ", minimum(fld2))
 # Plot comparison: data vs datas
 figure(figsize=(12, 10))
 subplot(221)
-contour = pcolormesh(x[:, iy, :], z[:, iy, :], fld[:,iy,:]; cmap="Blues")
+contour = pcolormesh(x[:, iy, :], z[:, iy, :], fld[:,iy,:]; cmap="Blues", shading="auto")
 colorbar(contour)
 title("data: Res")
 xlabel("x (km)"); ylabel("z (km)")
 
 subplot(222)
-contours = pcolormesh(x2[:, iy, :], z2[:, iy, :], fld2[:,iy,:]; cmap="Blues")
+contours = pcolormesh(x2[:, iy, :], z2[:, iy, :], fld2[:,iy,:]; cmap="Blues", shading="auto")
 colorbar(contours)
 title("datas: Res (saved)")
 xlabel("x (km)"); ylabel("z (km)")
