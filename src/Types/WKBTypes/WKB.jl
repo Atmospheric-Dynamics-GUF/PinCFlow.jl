@@ -264,7 +264,7 @@ function WKB(
     integrals = WKBIntegrals(nxx, nyy, nzz)
     tendencies = WKBTendencies(nxx, nyy, nzz)
 
-    spec_tend = TriadTendencies(namelists, domain, constants, wkb_mode)
+    spec_tend = TriadTendencies(namelists, domain, constants, nray_max , wkb_mode)
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
     cgz_max = zeros(nxx, nyy, nzz)

@@ -153,7 +153,9 @@ export AbstractBackground,
     AbstractMergeMode,
     AbstractWKBMode,
     AbstractWKBFilter,
-    AbstractTracer
+    AbstractTracer,
+    AbstractTriad,
+    AbstractResonance
 
 export Rho,
     RhoP,
@@ -235,6 +237,9 @@ export DomainNamelist,
     TracerReconstructions,
     TracerFluxes,
     TracerForcings,
-    TracerWKBImpact
+    TracerWKBImpact,
+    Sum,
+    Difference,
+    SpectralGrid
 
 end

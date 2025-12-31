@@ -90,7 +90,7 @@ function write_output(
     (; rho, rhop, u, v, w, pip, p) = predictands
     (; nray_max, rays, tendencies, spec_tend) = state.wkb
     (; kp_size, m_size, triad_int) = state.namelists.triad
-    (; kp, m) = state.wkb.spec_tend
+    (; kp, m) = state.wkb.spec_tend.spec_grid
 
     # Print information.
     if master

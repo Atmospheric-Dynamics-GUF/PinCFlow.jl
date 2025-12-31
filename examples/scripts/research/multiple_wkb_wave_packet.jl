@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 16 #x_size = 16
-y_size = 16 #y_size = 16
-z_size = 32 #z_size = 32
+x_size = 8 #x_size = 16
+y_size = 8 #y_size = 16
+z_size = 16 #z_size = 32
 
 lx = 20000.0
 ly = 20000.0
@@ -59,8 +59,8 @@ k_perp = sqrt.(k.^2 + l.^2)
 
 lkp = 4 * max(abs.(k_perp)...)
 lm = 4 * max(abs.(m)...)
-kp_size = 16
-m_size = 16
+kp_size = 8
+m_size = 8
 
 
 
@@ -76,6 +76,9 @@ domain = DomainNamelist(;
     lx,
     ly,
     lz,
+    npx = 1,
+    npy = 1,
+    npz = 1,
     base_comm = MPI.COMM_SELF,
 )
 
@@ -89,6 +92,8 @@ triad = TriadNamelist(;
 
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
+    branch = +1,
+    impact_altitude = 0.0,
 )
 auxiliary_state = State(Namelists(; atmosphere, domain, wkb, triad))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
@@ -101,11 +106,13 @@ output = OutputNamelist(;
     output_variables = (:u, :w, :wavespectrum),
     save_ray_volumes = true,
     output_file = "multiple_wkb_wave_packet.h5",
-    tmax = 600.0,
-    output_interval = 30.0,
+    tmax = 80.0,
+    output_interval = 20.0,
 )
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
+    branch = +1,
+    impact_altitude = 0.0,
     wave_modes,
     initial_wave_field = (alpha, x, y, z) ->
         (k[alpha], l[alpha], m[alpha], omega(alpha, x, y, z), wave_action_density(alpha, x, y, z)),

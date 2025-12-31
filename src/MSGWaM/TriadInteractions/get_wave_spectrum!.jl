@@ -1,12 +1,12 @@
 """
 ```julia
-compute_wave_spectrum!(state::State)
+get_wave_spectrum!(state::State)
 ```
 
 Compute the gravity-wave spectrum needed for the computation of the scattering integral by dispatching to a WKB-mode-specific method.
 
 ```julia
-compute_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, SingleColumn})
+get_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, SingleColumn})
 ```
 
 Compute the gravity-wave spectrum needed for the computation of the scattering integral in multi-column mode.
@@ -50,18 +50,18 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
-function compute_wave_spectrum! end
+function get_wave_spectrum! end
 
-function compute_wave_spectrum!(state::State)
+function get_wave_spectrum!(state::State)
     (; wkb_mode) = state.namelists.wkb
     (; triad_int) = state.namelists.triad
     if triad_int
-        compute_wave_spectrum!(state, wkb_mode, triad_int)
+        get_wave_spectrum!(state, wkb_mode, triad_int)
     end
     return
 end
 
-function compute_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, SingleColumn}, triad_int::Bool)
+function get_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, SingleColumn}, triad_int::Bool)
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -70,20 +70,25 @@ function compute_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, Singl
     (; i0, i1, j0, j1, k0, k1) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; nray, rays, spec_tend) = state.wkb
-    (; kp, m) = spec_tend
+    (; kp, m) = spec_tend.spec_grid
 
 
-    (ukp, lkp) = half_logwidth(kp)
-    (um, lm) = half_logwidth(m)
+    (ckp, fkp) = half_logwidth(kp)
+    (cm, fm) = half_logwidth(m)
     
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
     for field in fieldnames(TriadTendencies)
-        if field == :wavespectrum
+        if field == :wavespectrum 
             getfield(spec_tend, field) .= 0.0
         end
+    end
+
+    #reseting the ray volume signatures
+    for idx in eachindex(spec_tend.ray_vol_signature)
+        empty!(spec_tend.ray_vol_signature[idx])
     end
 
 
@@ -171,34 +176,41 @@ function compute_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, Singl
                         
                         for kpray in kpmin:kpmax
                              dkpi = 
-                                min(kr + dkr / 2, kp[kpray] + ukp[kpray]) -
-                                max(kr - dkr / 2, kp[kpray] - lkp[kpray])
+                                min(kr + dkr / 2, kp[kpray] + ckp[kpray]) -
+                                max(kr - dkr / 2, kp[kpray] - fkp[kpray])
                                       
                              fcpspkp =  dkpi / dkpr
 
                              for mray in mmin:mmax
                                 dmi = 
-                                    min(mr + dmr / 2, m[mray] + um[mray]) -
-                                    max(mr - dmr / 2, m[mray] - lm[mray])
+                                    min(mr + dmr / 2, m[mray] + cm[mray]) -
+                                    max(mr - dmr / 2, m[mray] - fm[mray])
                                 fcpspm = dmi / dmr
                                 
-                                wadr = fcpspx * fcpspy * fcpspz * fcpspkp * fcpspm * rays.dens[r, i, j, k]
+                                tot_vol = fcpspx * fcpspy * fcpspz * fcpspkp * fcpspm
+                                wadr = tot_vol * rays.dens[r, i, j, k]
                                 spec_tend.wavespectrum[iray, jray, kray, kpray, mray] += wadr
+                                push!(spec_tend.ray_vol_signature[iray, jray, kray, kpray, mray], (r, i, j, k, wadr, tot_vol))
 
                              end
 
                         end
+
+                        
 
                     end
 
                 end
 
             end
-
+        
         end
+
         
 
     end
+
+
     
 
 end

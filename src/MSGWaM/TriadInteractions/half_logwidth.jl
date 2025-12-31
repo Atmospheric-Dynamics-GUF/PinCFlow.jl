@@ -26,8 +26,8 @@ From the given horizontal ray-volume position and extent, determine the indices 
 function half_logwidth end
 
 function half_logwidth(
-    logarray::AbstractVector,
-)::NTuple{2, <:AbstractVector}
+    logarray::AbstractVector{<:AbstractFloat},
+)::NTuple{2, <:AbstractVector{<:AbstractFloat}}
     
     uper_half_width = zeros(length(logarray))
     lower_half_width = zeros(length(logarray))

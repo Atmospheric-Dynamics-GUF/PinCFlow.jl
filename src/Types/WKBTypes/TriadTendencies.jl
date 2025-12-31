@@ -10,9 +10,10 @@ TriadTendencies{A <: AbstractVector{<:AbstractFloat}, B <: AbstractArray{<: Abst
     kp::A
     m::A
     wavespectrum::B
-    St_k::B
-    Col_int::B
+    st_k::B
+    col_int::B
     kin_box::KinematicBox
+    interp_coef::InterpCoef
 ```
 
 Construct a `TriadTendencies` instance, with arrays sized according to the given dimensions.
@@ -42,13 +43,16 @@ Construct a `TriadTendencies` instance, with arrays sized according to the given
   
 """
 
-struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}}
-    kp::AbstractVector{<:AbstractFloat}
-    m::AbstractVector{<:AbstractFloat}
+const RaySignature = Tuple{Int, Int, Int, Int, Float64, Float64}
+
+
+struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}, B <: AbstractArray{<: AbstractFloat, 2}}
+    spec_grid::SpectralGrid
     wavespectrum::A
-    st_k::A
-    col_int::A
+    ray_vol_signature::Array{Vector{RaySignature},5}
+    col_int::B
     kin_box::KinematicBox
+    interp_coef::InterpCoef
 end
 
 
@@ -56,48 +60,36 @@ function TriadTendencies(namelists::Namelists,
    domain::Domain,
    wkb_mode::NoWKB)::TriadTendencies
 
-   println("Trying call kinematic box for NoWKB")
+  spec_grid = SpectralGrid(wkb_mode)
    
   kin_box = KinematicBox(wkb_mode)
 
-  println("Succesfully called kinematic for NoWKB")
+  interp_coef = InterpCoef(wkb_mode)  
   
-  return TriadTendencies(zeros(0), zeros(0), [zeros(0, 0, 0, 0, 0) for i in 1:3]...,
-    kin_box)
-end
+  v = Array{Vector{RaySignature}}(undef, 0, 0, 0, 0, 0)
+  
+  return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), v, zeros(0, 0),
+    kin_box, interp_coef)
+  end
 
 function TriadTendencies(namelists::Namelists,
    domain::Domain,
    constants::Constants,
+   nray_max::Integer,
    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn})::TriadTendencies
 
-   println("Trying call kinematic box for WKB mode")
 
-   (; lref) = constants
-   (; kp_size, m_size) = namelists.triad
-
-    # Non-dimensionalize domain boundaries.
-    lx = namelists.domain.lx / lref
-    ly = namelists.domain.ly / lref
-    lz = namelists.domain.lz / lref
-    lkp = namelists.triad.lkp * lref
-    lm = namelists.triad.lm * lref
 
    (; nxx, nyy, nzz) = domain
 
-   (; kp_size, m_size) = namelists.triad
-  
    # Compute the grid in kp and m direction
-
-   kpmin = sqrt((2 * pi / lx)^2 + (2 * pi / ly)^2)
-   kpmax = lkp
-   mmin = 2 * pi / lz
-   mmax = lm
-   kp = log_range(kpmin, kpmax, kp_size)
-   m = log_range(mmin, mmax, m_size)
   
 
-   println(kp)
+   spec_grid = SpectralGrid(namelists, constants, wkb_mode)
+   
+   (; kp, m) = spec_grid
+
+   println(kp, m)
    kpl = length(kp)
    ml = length(m)
    kpmin = kp[1] 
@@ -112,10 +104,17 @@ function TriadTendencies(namelists::Namelists,
    qmax = 2.0 * kpmax
    kin_box = KinematicBox(amin, amax, ma, qmin, qmax, mq, wkb_mode)
 
-   println("Succesfully called kinematic box for WKB mode")
+   interp_coef = InterpCoef(kp, m, wkb_mode)
+
+   ray_vol_signature = Array{Vector{RaySignature},5}(undef, nxx, nyy, nzz, kpl, ml)
+
+  for idx in eachindex(ray_vol_signature)
+      ray_vol_signature[idx] = RaySignature[]
+  end
+  
    
-   return TriadTendencies(kp, m,
-      [zeros(nxx, nyy, nzz, kpl, ml) for i in 1:3]...,
-      kin_box)
+   return TriadTendencies(spec_grid, zeros(nxx, nyy, nzz, kpl, ml), ray_vol_signature,
+      zeros(kpl, ml),
+      kin_box, interp_coef)
 end
 

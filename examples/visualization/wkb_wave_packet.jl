@@ -13,7 +13,7 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
             "examples/results/multiple_wkb_wave_packet1.svg",
             data,
-            ("wavespectrum", 15, 15, 16, 4);
+            ("u", 4, 4, 8, 2);
             time_unit = "s",
             space_unit = "m"
         )

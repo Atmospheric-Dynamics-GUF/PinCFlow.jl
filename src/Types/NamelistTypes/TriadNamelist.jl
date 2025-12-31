@@ -38,9 +38,9 @@ end
 function TriadNamelist(;
     kp_size::Integer = 1,
     m_size::Integer = 1,
-    lkp::Real = 1,
-    lm::Real = 1, 
-    triad_int = true,
+    lkp::Real = 1.0,
+    lm::Real = 1.0, 
+    triad_int = false,
 )::TriadNamelist
     return TriadNamelist(
         Int(kp_size),

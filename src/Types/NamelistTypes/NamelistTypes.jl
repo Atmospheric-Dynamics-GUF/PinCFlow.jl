@@ -74,6 +74,29 @@ abstract type AbstractTracer end
 
 """
 ```julia
+AbstractTriad
+```
+
+Abstract type for triad interactions.
+"""
+abstract type AbstractTriad end
+
+
+
+"""
+```julia
+AbstractResonance
+```
+
+Abstract type for resonance.
+"""
+abstract type AbstractResonance end
+
+
+
+
+"""
+```julia
 NeutralStratification <: AbstractBackground
 ```
 
@@ -261,6 +284,25 @@ Singleton for model configurations with an initially linear tracer.
 """
 struct TracerOn <: AbstractTracer end
 
+"""
+```julia
+Sum <: AbstractResonance
+```
+
+Singleton for model configurations with the sum resonance interactions.
+"""
+struct Sum <: AbstractResonance end
+
+"""
+```julia
+Difference <: AbstractResonance
+```
+
+Singleton for model configurations with the difference resonance interactions.
+"""
+struct Difference <: AbstractResonance end
+
+
 using MPI
 using ...PinCFlow
 
@@ -283,7 +325,9 @@ export AbstractBackground,
     AbstractMergeMode,
     AbstractWKBMode,
     AbstractWKBFilter,
-    AbstractTracer
+    AbstractTracer, 
+    AbstractTriad,
+    AbstractResonance
 
 export NeutralStratification,
     StableStratification,
@@ -305,7 +349,9 @@ export NeutralStratification,
     Box,
     Shapiro,
     NoTracer,
-    TracerOn
+    TracerOn, 
+    Sum,
+    Difference
 
 export DomainNamelist,
     OutputNamelist,

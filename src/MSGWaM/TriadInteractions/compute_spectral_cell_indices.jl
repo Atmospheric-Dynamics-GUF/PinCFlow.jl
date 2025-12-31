@@ -33,7 +33,8 @@ function compute_spectral_cell_indices(
     dmr::AbstractFloat,
 )::NTuple{4, <:Integer}
     (; kp_size, m_size) = state.namelists.triad
-    (; kp, m) = state.wkb.spec_tend
+    (; kp, m) = state.wkb.spec_tend.spec_grid
+    
     mr = abs(mr)
     kp_l = kpr - dkpr/2
     kp_u = kpr + dkpr/2
@@ -42,12 +43,54 @@ function compute_spectral_cell_indices(
     kpmin = kpmax = mmin = mmax = 0
 
     # Bounds check
+    """
     if (kp_l < kp[1] - (kp[2] - kp[1]) / 2) ||
        (kp_u > kp[end] + (kp[end] - kp[end-1]) / 2) ||
        (m_l < m[1] - (m[2] - m[1]) / 2) ||
        (m_u > m[end] + (m[end] - m[end-1]) / 2)
         error("Error: Ray volume out of spectral bound")
     end
+    """
+    kp_lo = kp[1]  - (kp[2]     - kp[1])     / 2
+    kp_hi = kp[end] + (kp[end] - kp[end-1]) / 2
+
+    m_lo  = m[1]   - (m[2]      - m[1])      / 2
+    m_hi  = m[end] + (m[end]   - m[end-1])  / 2
+
+    out = false
+
+    if kp_l < kp_lo
+        println("Ray volume out of bounds in kp (lower)")
+        println("  kp_l = ", kp_l, " < kp_min = ", kp_lo)
+        out = true
+    end
+
+    if kp_u > kp_hi
+        println("Ray volume out of bounds in kp (upper)")
+        println("  kp_u = ", kp_u, " > kp_max = ", kp_hi)
+        out = true
+    end
+
+    if m_l < m_lo
+        println("Ray volume out of bounds in m (lower)")
+        println("  m_l = ", m_l, " < m_min = ", m_lo)
+        out = true
+    end
+
+    if m_u > m_hi
+        println("Ray volume out of bounds in m (upper)")
+        println("  m_u = ", m_u, " > m_max = ", m_hi)
+        out = true
+    end
+
+    if out
+        println("Ray-volume center and width:")
+        println("  kpr = ", kpr, ", dkpr = ", dkpr)
+        println("  mr  = ", mr,  ", dmr  = ", dmr)
+        error("Error: Ray volume out of spectral bound")
+    end
+
+
 
     # ---- kp indices ----
     if kp_size > 1

@@ -38,8 +38,8 @@ function goussian_envelope(alpha, x, y, z)
     (sigma_x, sigma_y, sigma_z) = (sigma_xc[alpha], sigma_yc[alpha], sigma_zc[alpha])
 
     r1 = (x - x0)^2 / (2 * sigma_x^2) + 
-     (y - y0)^2 / (2 * sigma_y^2) + 
-     (z - z0)^2 / (2 * sigma_z^2)
+        (y - y0)^2 / (2 * sigma_y^2) + 
+        (z - z0)^2 / (2 * sigma_z^2)
 
     if (abs(x-x0) <= 2.5 * sigma_x) && (abs(y-y0) <= 2.5 * sigma_y) && (abs(z-z0) <= 2.5 * sigma_z)
         return exp(-r1)
@@ -57,7 +57,7 @@ function phi(alpha, x, y, z)
 end
 
 function omega(alpha, x, y, z)
-    return -sqrt(
+    return sqrt(
         (n2(x, y, z) * (k[alpha]^2 + l[alpha]^2) + coriolis_frequency^2 * m[alpha]^2) /
         (k[alpha]^2 + l[alpha]^2 + m[alpha]^2),
     )
