@@ -16,11 +16,11 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 128
 y_size = 16
-z_size = 160
+z_size = 320
 
 lx = 900000.0
 ly = 100000.0
-lz = 30000.0
+lz = 60000.0
 
 rx = 0.1
 ry = 0.0
@@ -70,9 +70,9 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :chi),
-    output_file = "wp-test.h5",
+    output_file = "wp-tracer-tke.h5",
     tmax = 36000.0,
-    output_interval = 36000.0,
+    output_interval = 3600.0,
 )
 tracer = TracerNamelist(;
     tracer_setup = TracerOn(),

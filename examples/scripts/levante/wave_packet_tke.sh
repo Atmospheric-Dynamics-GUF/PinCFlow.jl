@@ -1,11 +1,11 @@
 #!/bin/bash
-##SBATCH --partition=compute
-#SBATCH --partition=interactive
+#SBATCH --partition=compute
+##SBATCH --partition=interactive
 #SBATCH --job-name=STIH
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=1
 #SBATCH --hint=nomultithread
-#SBATCH --time=0-02:00:00
+#SBATCH --time=0-08:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
 
@@ -19,6 +19,6 @@ julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-leva
 # srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/wave_packet.jl 4 4 4 1>wave_packet.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 4 julia examples/scripts/wave_packet_tke.jl 4 1>wave_packet_tke.log 2>&1
+mpiexec -n 4 julia examples/scripts/wave_packet_tke.jl 4 1>wp-tracer-tke.log 2>&1
 
 exit 0
