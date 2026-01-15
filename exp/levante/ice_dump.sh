@@ -3,7 +3,7 @@
 #SBATCH --partition=interactive
 #SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-node=128
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-00:15:00
 #SBATCH --mail-type=FAIL
@@ -26,6 +26,6 @@ julia --project=${project_dir} -e 'using HDF5; HDF5.API.set_libraries!("/sw/spac
 # srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/mountain_wave.jl 4 4 4 1>mountain_wave.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 4 julia --project=${project_dir} ${1} 2 1 2 1>ice_dump.log 2>&1
+mpiexec -n 128 julia --project=${project_dir} ${1} 32 1 4 1>ice_dump.log 2>&1
 
 exit 0
