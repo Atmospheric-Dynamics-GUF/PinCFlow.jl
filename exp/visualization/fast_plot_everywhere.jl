@@ -19,7 +19,8 @@ runName = length(ARGS) >= 1 ? ARGS[1] : "default_run"
 host_name = Sockets.gethostname()
 user_name = get(ENV, "USER", get(ENV, "LOGNAME", "unknown"))
 
-runName1 = "tjl14"   # Resolved simulation, high resolution
+#runName1 = "tjl14"   # Resolved simulation, high resolution, really?
+runName1 = "tjl20"   # RT simulation, high resolution, redone
 runName2 = "tjl13"   # RT simulation
 #NB number of rayvolues becomes zero if wavenumber changed : pi/ (rl*l0) --> pi/l0
 
