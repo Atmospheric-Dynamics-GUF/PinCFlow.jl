@@ -6,7 +6,7 @@ set -euo pipefail
 
 #parallel="yes"
 numberprc=2
-optimization="-O3"
+optimization="-O0"
 
 parallel="${3:-no}"
 runName=${1:-default_run}

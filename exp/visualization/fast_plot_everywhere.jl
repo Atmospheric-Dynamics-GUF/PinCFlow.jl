@@ -20,10 +20,10 @@ host_name = Sockets.gethostname()
 user_name = get(ENV, "USER", get(ENV, "LOGNAME", "unknown"))
 
 #runName1 = "tjl14"   # Resolved simulation, high resolution, really?
-runName1 = "tjl20"   # RT simulation, high resolution, redone
-runName2 = "tjl13"   # RT simulation
+#runName2 = "tjl13"   # RT simulation
 #NB number of rayvolues becomes zero if wavenumber changed : pi/ (rl*l0) --> pi/l0
-
+runName1 = "tjl20"   # Resolved simulation, high resolution, redone
+runName2 = "tjl21"   # RT simulation
 
 # tjl10/11 Mountain wave
 # 12 LES 128 proc /13 (RT) mountain wave + ice
