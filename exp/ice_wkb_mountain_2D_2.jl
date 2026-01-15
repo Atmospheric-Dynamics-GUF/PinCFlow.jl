@@ -30,7 +30,7 @@ atmosphere = AtmosphereNamelist(;
     initial_u = (x, y, z) -> 10.0,
 )
 domain = DomainNamelist(;
-    x_size = 8,
+    x_size = 16,
     y_size = 1,
     z_size = 10,
     lx,
@@ -47,11 +47,9 @@ grid = GridNamelist(;
     unresolved_topography = (alpha, x, y) ->
         x^2 <= (rl * l0)^2 ?
         (
-            #NB number of rayvolues becomes zero if wavenumber changed : pi/ (rl*l0) --> pi/l0 ??
-            pi / (1.01 * l0),
+            pi / l0,
             0.0,
-            #NB  cos(pi / (rl * l0)) --> cos(pi / l0) ??
-            h0 / 2 * (1 + cos(pi / (1.01 * l0) * abs(x))) ,
+            h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) ,
         ) : (0.0, 0.0, 0.0),
 )
 ice = IceNamelist(;

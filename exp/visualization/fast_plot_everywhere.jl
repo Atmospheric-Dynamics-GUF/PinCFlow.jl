@@ -74,7 +74,7 @@ y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 iy = 1
 tidx = length(data["w"][1, 1, 1, :])
 tidxs = tidx
-tidx2 = length(data2["w"][1, 1, 1, :])
+tidx2 = 2 #length(data2["w"][1, 1, 1, :])
 tidx2s = tidx2 
 
 fld = data["n"][:, :, :, tidx]
