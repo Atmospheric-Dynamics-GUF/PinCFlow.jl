@@ -77,7 +77,7 @@ function explicit_integration!(
             tracer_setup,
         )
 
-        #CHANGES no ice advection
+        #CHANGES ice advection
         update!(state, dtstage, rkstage, ice_setup)
         #apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, ice_setup)
 

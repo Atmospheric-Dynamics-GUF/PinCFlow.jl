@@ -186,6 +186,7 @@ function IcePredictands(
 
 		#dimensional IC for n, q_v, q
 		n0 = 0.0 #[kg**-1]
+		#n0 = i
 
 		#use S0 to define q_v
 		#  !to be consistent with RayTracer simulation

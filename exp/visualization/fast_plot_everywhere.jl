@@ -22,9 +22,10 @@ user_name = get(ENV, "USER", get(ENV, "LOGNAME", "unknown"))
 #runName1 = "tjl14"   # Resolved simulation, high resolution, really?
 #runName2 = "tjl13"   # RT simulation
 #NB number of rayvolues becomes zero if wavenumber changed : pi/ (rl*l0) --> pi/l0
-runName1 = "tjl20"   # Resolved simulation, high resolution, redone
-runName2 = "tjl23"   # RT simulation
-
+#runName1 = "tjl20"   # Resolved simulation, high resolution, redone
+#runName2 = "tjl23"   # RT simulation
+runName1 = "tjl24"   # test advection simulation
+runName2 = "tjl13"   # dummy RT simulation
 # tjl10/11 Mountain wave
 # 12 LES 128 proc /13 (RT) mountain wave + ice
 # 14 LES 32 proc /16 test MPI
@@ -72,12 +73,12 @@ x2 = [xi for xi in x2, iy in 1:size(z2)[2], iz in 1:size(z2)[3]]
 y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 
 iy = 1
-tidx = 1 #length(data["w"][1, 1, 1, :])
+tidx = 4 #length(data["w"][1, 1, 1, :])
 #tidxs = tidx
 tidx2 = length(data2["w"][1, 1, 1, :])
 #tidx2s = tidx2 
 
-fld = data["w"][:, :, :, tidx]
+fld = data["n"][:, :, :, tidx]
 #fld = data["iaux1"][:, :, :, tidx]
 fld2 = data2["wwp"][:, :, :, tidx2]
 #fld2 = data2["sn"][:, :, :, tidx2]
@@ -111,7 +112,7 @@ iz2 = findmin(abs.(z2[1, 1, :] .- zlevel))[2]
 
 subplot(223)
 hs1 = plot(x[:, iy, iz], fld[:, iy, iz])
-hs2 = plot(x2[:, iy, iz2], fld2[:, iy, iz2], linestyle="--", color="red")
+#hs2 = plot(x2[:, iy, iz2], fld2[:, iy, iz2], linestyle="--", color="red")
 title("data: Res — horizontal at z=10 km")
 xlabel("x (km)"); ylabel("field ")
 

@@ -101,6 +101,7 @@ function reconstruct! end
 
 function reconstruct!(state::State)
     (; tracer_setup) = state.namelists.tracer
+    (; ice_setup) = state.namelists.ice
 
     reconstruct!(state, Rho())
     reconstruct!(state, RhoP())
@@ -109,6 +110,7 @@ function reconstruct!(state::State)
     reconstruct!(state, W())
 
     reconstruct!(state, tracer_setup)
+    reconstruct!(state, ice_setup)
 
     return
 end
@@ -269,6 +271,35 @@ function reconstruct!(state::State, tracer_setup::TracerOn)
         apply_3d_muscl!(
             phi,
             getfield(tracerreconstructions, field),
+            nxx,
+            nyy,
+            nzz,
+            limiter_type,
+        )
+    end
+
+    return
+end
+
+function reconstruct!(state::State, ice_setup::NoIce)
+    return
+end
+
+function reconstruct!(state::State, ice_setup::IceOn)
+    (; limiter_type) = state.namelists.discretization
+    (; k0, k1, nxx, nyy, nzz) = state.domain
+    (; phi) = state.variables.auxiliaries
+    (; pbar) = state.atmosphere
+    (; icereconstructions, icepredictands) = state.ice
+
+    @ivy for field in 1:fieldcount(IcePredictands)
+        chi = getfield(icepredictands, field)[:, :, :]
+        for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+            phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
+        end
+        apply_3d_muscl!(
+            phi,
+            getfield(icereconstructions, field),
             nxx,
             nyy,
             nzz,
