@@ -139,7 +139,7 @@ end
 function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
     (; dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
-    (; icesetup) = state.namelists.ice 
+    (; ice_setup) = state.namelists.ice 
 
     @ivy local_count = nray[i, j, k]
     @ivy for r in 1:nray[i, j, k]
@@ -150,7 +150,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
             factor = ceil(Int, dxr / dx)
             rays.x[r, i, j, k] = xr + (1 / factor - 1) * dxr / 2
             rays.dxray[r, i, j, k] = dxr / factor
-            if icesetup isa AbstractIce
+            if ice_setup isa AbstractIce
                   dphi = rays.dphi[r, i, j, k]
                   deltaPhi = (rays.x[r, i, j, k] - xr) * rays.k[r, i, j, k]
                   rays.dphi[r, i, j, k] = dphi + deltaPhi
@@ -158,7 +158,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
             for rray in (local_count + 1):(local_count + factor - 1)
                 copy_rays!(rays, r => rray, i => i, j => j, k => k)
                 rays.x[rray, i, j, k] += (rray - local_count) * dxr / factor
-                 if icesetup isa AbstractIce
+                 if ice_setup isa AbstractIce
                   deltaPhi = (rays.x[rray, j, k] - xr) * rays.k[r, i, j, k]
                   rays.dphi[rray, i, j, k] = dphi + deltaPhi
                 end
@@ -186,7 +186,7 @@ end
 function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
     (; dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
-   (; icesetup) = state.namelists.ice 
+   (; ice_setup) = state.namelists.ice 
 
     @ivy local_count = nray[i, j, k]
     @ivy for r in 1:nray[i, j, k]
@@ -197,7 +197,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
             factor = ceil(Int, dyr / dy)
             rays.y[r, i, j, k] = yr + (1 / factor - 1) * dyr / 2
             rays.dyray[r, i, j, k] = dyr / factor
-            if icesetup isa AbstractIce
+            if ice_setup isa AbstractIce
                   dphi = rays.dphi[r, i, j, k]
                   deltaPhi = (rays.y[r, i, j, k] - yr) * rays.l[r, i, j, k]
                   rays.dphi[r, i, j, k] = dphi + deltaPhi
@@ -206,7 +206,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
                 copy_rays!(rays, r => rray, i => i, j => j, k => k)
                 rays.y[rray, i, j, k] += (rray - local_count) * dyr / factor
 
-                if icesetup isa AbstractIce
+                if ice_setup isa AbstractIce
                   deltaPhi = (rays.y[rray, j, k] - yr) * rays.l[r, i, j, k]
                   rays.dphi[rray, i, j, k] = dphi + deltaPhi
                 end
@@ -236,7 +236,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dz, jac) = grid
     (; nray_wrk, nray, rays) = state.wkb
-    (; icesetup) = state.namelists.ice 
+    (; ice_setup) = state.namelists.ice 
 
     @ivy local_count = nray[i, j, k]
     @ivy for r in 1:nray[i, j, k]
@@ -260,7 +260,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
             factor = ceil(Int, dzr / dzmin)
             rays.z[r, i, j, k] = zr + (1 / factor - 1) * dzr / 2
             rays.dzray[r, i, j, k] = dzr / factor
-             if icesetup isa AbstractIce
+             if ice_setup isa AbstractIce
                 dphi = rays.dphi[r, i, j, k]
                 deltaPhi = (rays.z[r, i, j, k] - zr)* rays.m[r, i, j, k]
                 rays.dphi[r, i, j, k] = dphi + deltaPhi
@@ -268,7 +268,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
             for rray in (local_count + 1):(local_count + factor - 1)
                 copy_rays!(rays, r => rray, i => i, j => j, k => k)
                 rays.z[rray, i, j, k] += (rray - local_count) * dzr / factor
-                if icesetup isa AbstractIce
+                if ice_setup isa AbstractIce
                   deltaPhi = (rays.z[rray, i, j, k] - zr) * rays.m[r, i, j, k]
                   rays.dphi[rray, i, j, k] = dphi + deltaPhi
                 end

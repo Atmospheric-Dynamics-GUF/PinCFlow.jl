@@ -23,7 +23,7 @@ user_name = get(ENV, "USER", get(ENV, "LOGNAME", "unknown"))
 #runName2 = "tjl13"   # RT simulation
 #NB number of rayvolues becomes zero if wavenumber changed : pi/ (rl*l0) --> pi/l0
 runName1 = "tjl20"   # Resolved simulation, high resolution, redone
-runName2 = "tjl21"   # RT simulation
+runName2 = "tjl23"   # RT simulation
 
 # tjl10/11 Mountain wave
 # 12 LES 128 proc /13 (RT) mountain wave + ice
@@ -72,15 +72,15 @@ x2 = [xi for xi in x2, iy in 1:size(z2)[2], iz in 1:size(z2)[3]]
 y2 = [yi for ix in 1:size(z2)[1], yi in y2, iz in 1:size(z2)[3]]
 
 iy = 1
-tidx = length(data["w"][1, 1, 1, :])
-tidxs = tidx
-tidx2 = 2 #length(data2["w"][1, 1, 1, :])
-tidx2s = tidx2 
+tidx = 1 #length(data["w"][1, 1, 1, :])
+#tidxs = tidx
+tidx2 = length(data2["w"][1, 1, 1, :])
+#tidx2s = tidx2 
 
-fld = data["n"][:, :, :, tidx]
+fld = data["w"][:, :, :, tidx]
 #fld = data["iaux1"][:, :, :, tidx]
-#fld2 = data2["wwp"][:, :, :, tidx2]
-fld2 = data2["sn"][:, :, :, tidx2]
+fld2 = data2["wwp"][:, :, :, tidx2]
+#fld2 = data2["sn"][:, :, :, tidx2]
 
 # subtract zonal mean
 #fld = fld .- mean(fld, dims=1)
@@ -88,7 +88,7 @@ fld2 = data2["sn"][:, :, :, tidx2]
 println("size fld  ", size(fld))
 println("size fld2  ", size(fld2))
 println("fld  ", maximum(fld), " ", minimum(fld))
-println("fld2", maximum(fld2), " ", minimum(fld2))
+println("fld2 ", maximum(fld2), " ", minimum(fld2))
 
 # Plot comparison: data vs datas
 figure(figsize=(12, 10))
@@ -103,6 +103,23 @@ contours = pcolormesh(x2[:, iy, :], z2[:, iy, :], fld2[:,iy,:]; cmap="Blues", sh
 colorbar(contours)
 title("datas: Res (saved)")
 xlabel("x (km)"); ylabel("z (km)")
+
+# Horizontal cross-section at z = 7.5 km
+zlevel = 4.5
+iz = findmin(abs.(z[1, 1, :] .- zlevel))[2]
+iz2 = findmin(abs.(z2[1, 1, :] .- zlevel))[2]
+
+subplot(223)
+hs1 = plot(x[:, iy, iz], fld[:, iy, iz])
+hs2 = plot(x2[:, iy, iz2], fld2[:, iy, iz2], linestyle="--", color="red")
+title("data: Res — horizontal at z=10 km")
+xlabel("x (km)"); ylabel("field ")
+
+subplot(224)
+hs2 = plot(x2[:, iy, iz2], fld2[:, iy, iz2])
+
+title("datas: Res (saved) — horizontal at z=10 km")
+xlabel("x (km)"); ylabel("field 2")
 
 # # Plot comparison: data2 vs data2s
 # subplot(223)

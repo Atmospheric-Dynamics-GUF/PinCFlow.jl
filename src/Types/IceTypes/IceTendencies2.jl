@@ -4,7 +4,7 @@ struct IceTendencies2{A <: AbstractArray{<:AbstractFloat, 3}}
     dqv2::A
 end
 
-function IceTendencies2(domain::Domain, icesetup::AbstractIce)
+function IceTendencies2(domain::Domain, ice_setup::AbstractIce)
     (; nxx, nyy, nzz) = domain
 
     dn2 = zeros(nxx, nyy, nzz)

@@ -5,12 +5,12 @@ struct IceSource{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function IceSource(namelists::Namelists, domain::Domain)    
-    (; icesetup) = namelists.ice
+    (; ice_setup) = namelists.ice
 
-    return IceSource(domain, icesetup)
+    return IceSource(domain, ice_setup)
 end
 
-function IceSource(domain::Domain, icesetup::NoIce)
+function IceSource(domain::Domain, ice_setup::NoIce)
     
     nsource = zeros(0, 0, 0)
     qsource = zeros(0, 0, 0)
@@ -19,7 +19,7 @@ function IceSource(domain::Domain, icesetup::NoIce)
     return IceSource(nsource, qsource, qvsource)
 end
 
-function IceSource(domain::Domain, icesetup::AbstractIce)
+function IceSource(domain::Domain, ice_setup::AbstractIce)
     (; nxx, nyy, nzz) = domain
 
     nsource = zeros(nxx, nyy, nzz)

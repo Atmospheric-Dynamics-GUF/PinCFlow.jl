@@ -14,13 +14,13 @@ IceFluxes(namelists::Namelists, domain::Domain)::IceFluxes
 Construct an `IceFluxes` instance with dimensions depending on the general ice-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-IceFluxes(domain::Domain, icesetup::NoIce)::IceFluxes
+IceFluxes(domain::Domain, ice_setup::NoIce)::IceFluxes
 ```
 
 Construct an `IceFluxes` instance with zero-size arrays for configurations without ice physics.
 
 ```julia
-IceFluxes(domain::Domain, icesetup::AbstractIce)::IceFluxes
+IceFluxes(domain::Domain, ice_setup::AbstractIce)::IceFluxes
 ```
 
 Construct an `IceFluxes` instance with zero-initialized arrays.
@@ -39,7 +39,7 @@ Construct an `IceFluxes` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `icesetup`: General ice-physics configuration.
+  - `ice_setup`: General ice-physics configuration.
 """
 struct IceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phin::A
@@ -48,12 +48,12 @@ struct IceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
 end
 
 function IceFluxes(namelists::Namelists, domain::Domain)::IceFluxes
-    (; icesetup) = namelists.ice
+    (; ice_setup) = namelists.ice
 
-    return IceFluxes(domain, icesetup)
+    return IceFluxes(domain, ice_setup)
 end
 
-function IceFluxes(domain::Domain, icesetup::NoIce)::IceFluxes
+function IceFluxes(domain::Domain, ice_setup::NoIce)::IceFluxes
     phin = zeros(0, 0, 0, 0)
     phiq = zeros(0, 0, 0, 0)
     phiqv = zeros(0, 0, 0, 0)
@@ -61,7 +61,7 @@ function IceFluxes(domain::Domain, icesetup::NoIce)::IceFluxes
     return IceFluxes(phin, phiq, phiqv)
 end
 
-function IceFluxes(domain::Domain, icesetup::AbstractIce)::IceFluxes
+function IceFluxes(domain::Domain, ice_setup::AbstractIce)::IceFluxes
     (; nxx, nyy, nzz) = domain
 
     phin = zeros(nxx, nyy, nzz, 3)

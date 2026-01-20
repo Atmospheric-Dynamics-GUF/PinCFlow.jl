@@ -83,7 +83,7 @@ function initialize_rays!(
 		cgy_max,
 		cgz_max,
 	) = state.wkb
-	(; icesetup, ice_test_case) = state.namelists.ice
+	(; ice_setup, ice_test_case) = state.namelists.ice
 
 	# Set Coriolis parameter.
 	fc = coriolis_frequency * tref
@@ -294,7 +294,7 @@ function initialize_rays!(
 				cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(wzr + cgirz))
 			end
 
-			if !(icesetup isa NoIce)
+			if !(ice_setup isa NoIce)
 				rays.dphi[r, i, j, k] = wnrk * xr + wnrl * yr + wnrm * zr
 			end
 		end

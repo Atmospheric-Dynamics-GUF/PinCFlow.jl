@@ -1,21 +1,21 @@
 function compute_source_ice! end
 
 function compute_source_ice!(state::State)
-	icesetup = state.namelists.ice.icesetup
-	compute_source_ice!(state, icesetup)
+	ice_setup = state.namelists.ice.ice_setup
+	compute_source_ice!(state, ice_setup)
 	return
 end
 
-function compute_source_ice!(state::State, icesetup::AbstractIce)
-	@warn "No specific ice source computation implemented for $(typeof(icesetup)). Skipping."
+function compute_source_ice!(state::State, ice_setup::AbstractIce)
+	@warn "No specific ice source computation implemented for $(typeof(ice_setup)). Skipping."
 	return
 end
 
-function compute_source_ice!(state::State, icesetup::NoIce)
+function compute_source_ice!(state::State, ice_setup::NoIce)
 	return
 end
 
-function compute_source_ice!(state::State, icesetup::IceOn)
+function compute_source_ice!(state::State, ice_setup::IceOn)
 	(; cloudcover) = state.namelists.ice
 	compute_source_ice!(state, cloudcover)
 	return

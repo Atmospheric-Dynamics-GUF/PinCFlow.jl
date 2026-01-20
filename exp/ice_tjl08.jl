@@ -67,7 +67,7 @@ grid = GridNamelist(;
 )
 
 ice = IceNamelist(;
-	icesetup = IceOn(),
+	ice_setup = IceOn(),
 	dt_ice = 1.0,
 	nscx = 10,
 	nscy = 1,

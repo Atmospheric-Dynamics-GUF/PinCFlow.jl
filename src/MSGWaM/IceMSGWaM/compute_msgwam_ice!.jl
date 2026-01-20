@@ -11,16 +11,16 @@ function compute_msgwam_ice!(state::State, wkb_mode::NoWKB)
 end
 
 function compute_msgwam_ice!(state::State, wkb_mode::Union{SteadyState, SingleColumn, MultiColumn})
-	icesetup = state.namelists.ice.icesetup	
-	compute_msgwam_ice!(state, icesetup)
+	ice_setup = state.namelists.ice.ice_setup	
+	compute_msgwam_ice!(state, ice_setup)
 	return
 end
 
-function compute_msgwam_ice!(state::State, icesetup::NoIce)
+function compute_msgwam_ice!(state::State, ice_setup::NoIce)
 	return
 end
 
-function compute_msgwam_ice!(state::State, icesetup::IceOn)
+function compute_msgwam_ice!(state::State, ice_setup::IceOn)
 	(; domain, grid) = state
 	(; x_size, y_size) = state.namelists.domain
 	(; coriolis_frequency) = state.namelists.atmosphere

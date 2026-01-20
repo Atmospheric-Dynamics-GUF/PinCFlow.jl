@@ -146,7 +146,7 @@ function write_output(
 		end
 
 		# Write sub grid.
-		if iout == 1 && !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
+		if iout == 1 && !(typeof(state.namelists.ice.ice_setup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
 
 			file["x2"][(io*nscx+1):((io+nx)*nscx)] = x2[i02:i12] .* lref
 			file["y2"][(jo*nscy+1):((jo+ny)*nscy)] = y2[j02:j12] .* lref
@@ -331,7 +331,7 @@ function write_output(
 			end
 		end
 
-		if !(typeof(state.namelists.ice.icesetup) <: NoIce)
+		if !(typeof(state.namelists.ice.ice_setup) <: NoIce)
 			for field in fieldnames(IcePredictands)
 				HDF5.set_extent_dims(
 					file[string(field)],
@@ -427,7 +427,7 @@ function write_output(
 						getfield(tendencies, field)[ii, jj, kk] .* scaling
 				end
 			end
-			if !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
+			if !(typeof(state.namelists.ice.ice_setup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
 
 				# Write SgsGW variables.
 				for (field, scaling) in zip(fieldnames(SgsGW),

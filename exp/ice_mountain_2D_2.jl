@@ -46,7 +46,7 @@ grid = GridNamelist(;
         h0 / 2 * (1 + cos(pi / l0 * abs(x))) : 0.0,
 )
 ice = IceNamelist(;
-	icesetup = IceOn(),
+	ice_setup = IceOn(),
 #	ice_test_case = MultipleWavePackets(),
 	dt_ice = 2.0,
 	nscx = 1,

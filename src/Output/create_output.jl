@@ -57,7 +57,7 @@ function create_output(state::State)
             chunk = (ct,),
         )
 		#changes for cloudcover
-		if !(typeof(state.namelists.ice.icesetup) <: NoIce) && state.namelists.ice.cloudcover isa CloudCoverOn
+		if !(typeof(state.namelists.ice.ice_setup) <: NoIce) && state.namelists.ice.cloudcover isa CloudCoverOn
 
 			(; sizex2, sizey2, sizez2) = state.ice.subgrid
 
@@ -276,7 +276,7 @@ function create_output(state::State)
             end
 		end
 
-		if !(typeof(state.namelists.ice.icesetup) <: NoIce)
+		if !(typeof(state.namelists.ice.ice_setup) <: NoIce)
 			for field in fieldnames(IcePredictands)
 				create_dataset(
 					file,
@@ -291,7 +291,7 @@ function create_output(state::State)
 			end
 		end
 
-		if !(typeof(state.namelists.ice.icesetup) <: NoIce)
+		if !(typeof(state.namelists.ice.ice_setup) <: NoIce)
 			for field in fieldnames(IceAuxiliaries)
 				create_dataset(
 					file,
@@ -356,7 +356,7 @@ function create_output(state::State)
 				end
 			end
 
-			if !(typeof(state.namelists.ice.icesetup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
+			if !(typeof(state.namelists.ice.ice_setup) <: NoIce) && typeof(state.namelists.ice.cloudcover) <: CloudCoverOn
 
 				# Create datasets for SgsGW variables.
 				for field in fieldnames(SgsGW)

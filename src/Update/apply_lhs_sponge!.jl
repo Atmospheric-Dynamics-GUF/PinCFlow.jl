@@ -615,7 +615,7 @@ function apply_lhs_sponge!(
 	state::State,
 	dt::AbstractFloat,
 	time::AbstractFloat,
-	icesetup::AbstractIce,
+	ice_setup::AbstractIce,
 )
 	return
 end
@@ -624,7 +624,7 @@ function apply_lhs_sponge!(
 	state::State,
 	dt::AbstractFloat,
 	time::AbstractFloat,
-	icesetup::IceOn,
+	ice_setup::IceOn,
 )
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; alphar) = state.sponge

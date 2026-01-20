@@ -44,7 +44,7 @@ grid = GridNamelist(;
     resolved_topography = (x, y) -> h0 / (1 + x^2 / l0^2),
 )
 ice = IceNamelist(;
-	icesetup = IceOn(),
+	ice_setup = IceOn(),
 #	ice_test_case = MultipleWavePackets(),
 	dt_ice = 2.0,
 	nscx = 1,

@@ -9,13 +9,13 @@ function SgsIncrements(
 	domain::Domain,
 	subgrid::SubGrid,
 )
-	(; icesetup) = namelists.ice
+	(; ice_setup) = namelists.ice
 
 	return SgsIncrements(
 		namelists,
 		domain,
 		subgrid,
-		icesetup,
+		ice_setup,
 	)
 end
 
@@ -23,7 +23,7 @@ function SgsIncrements(
 	namelists::Namelists,
 	domain::Domain,
 	subgrid::SubGrid,
-	icesetup::NoIce,
+	ice_setup::NoIce,
 )
 	n = zeros(0, 0, 0)
 	q = zeros(0, 0, 0)
@@ -36,7 +36,7 @@ function SgsIncrements(
 	namelists::Namelists,
 	domain::Domain,
 	subgrid::SubGrid,
-	icesetup::IceOn,
+	ice_setup::IceOn,
 )
 	(; cloudcover) = namelists.ice
 

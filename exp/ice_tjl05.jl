@@ -59,7 +59,7 @@ atmosphere = AtmosphereNamelist(;
 )
 
 ice = IceNamelist(;
-	icesetup = IceOn(),
+	ice_setup = IceOn(),
 	ice_test_case = MultipleWavePackets(),
 	dt_ice = 1.0,
 	nscx = 1,

@@ -304,6 +304,7 @@ function compute_fluxes!(state::State, predictands::Predictands)
 
     compute_fluxes!(state, predictands, model, P())
     compute_fluxes!(state, predictands, state.namelists.tracer.tracer_setup)
+    compute_fluxes!(state, predictands, state.namelists.ice.ice_setup)
     return
 end
 
@@ -1520,6 +1521,73 @@ function compute_fluxes!(
         chiu = getfield(tracerreconstructions, field)[:, :, 2:end, 3, 1]
         chid = getfield(tracerreconstructions, field)[:, :, :, 3, 2]
         hchi = getfield(tracerfluxes, field)[:, :, :, 3]
+        for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+            pedgeu =
+                jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (pbar[i, j, k] + pbar[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
+            wsurf = pedgeu * w0[i, j, k]
+
+            hchi[i, j, k] = compute_flux(wsurf, chid[i, j, k], chiu[i, j, k])
+        end
+    end
+
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    ice_setup::NoIce,
+)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    ice_setup::IceOn,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac) = state.grid
+    (; pbar) = state.atmosphere
+    (; icereconstructions, icefluxes) = state.ice
+
+    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
+
+    @ivy for field in 1:fieldcount(IcePredictands)
+        chir = getfield(icereconstructions, field)[2:end, :, :, 1, 1]
+        chil = getfield(icereconstructions, field)[:, :, :, 1, 2]
+        fchi = getfield(icefluxes, field)[:, :, :, 1]
+        for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+            pedger =
+                0.5 * (
+                    jac[i, j, k] * pbar[i, j, k] +
+                    jac[i + 1, j, k] * pbar[i + 1, j, k]
+                )
+            usurf = pedger * u0[i, j, k]
+
+            fchi[i, j, k] = compute_flux(usurf, chil[i, j, k], chir[i, j, k])
+        end
+
+        chif = getfield(icereconstructions, field)[:, 2:end, :, 2, 1]
+        chib = getfield(icereconstructions, field)[:, :, :, 2, 2]
+        gchi = getfield(icefluxes, field)[:, :, :, 2]
+        for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+            pedgef =
+                0.5 * (
+                    jac[i, j, k] * pbar[i, j, k] +
+                    jac[i, j + 1, k] * pbar[i, j + 1, k]
+                )
+            vsurf = pedgef * v0[i, j, k]
+
+            gchi[i, j, k] = compute_flux(vsurf, chib[i, j, k], chif[i, j, k])
+        end
+
+        chiu = getfield(icereconstructions, field)[:, :, 2:end, 3, 1]
+        chid = getfield(icereconstructions, field)[:, :, :, 3, 2]
+        hchi = getfield(icefluxes, field)[:, :, :, 3]
         for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
             pedgeu =
                 jac[i, j, k] *

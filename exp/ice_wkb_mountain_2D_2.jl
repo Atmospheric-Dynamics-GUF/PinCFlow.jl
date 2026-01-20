@@ -30,9 +30,9 @@ atmosphere = AtmosphereNamelist(;
     initial_u = (x, y, z) -> 10.0,
 )
 domain = DomainNamelist(;
-    x_size = 16,
+    x_size = 80,
     y_size = 1,
-    z_size = 10,
+    z_size = 40,
     lx,
     ly,
     lz,
@@ -43,30 +43,29 @@ domain = DomainNamelist(;
 grid = GridNamelist(;
     resolved_topography = (x, y) ->
         x^2 <= (rl * l0)^2 ?
-        h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) * 0 : 0.0,
+        h0 / 2 : 0.0,
     unresolved_topography = (alpha, x, y) ->
         x^2 <= (rl * l0)^2 ?
         (
             pi / l0,
             0.0,
-            h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) ,
+            h0 /2. , # h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x))) ,
         ) : (0.0, 0.0, 0.0),
 )
 ice = IceNamelist(;
-	icesetup = IceOn(),
+	ice_setup = IceOn(),
 #	ice_test_case = MultipleWavePackets(),
 	dt_ice = 2.0,
-    # NB set nscx = 50 to be consistent with LES
-	nscx = 10, 
+	nscx = 5, 
 	nscy = 1,
-	nscz = 4,
+	nscz = 1,
 	cloudcover = CloudCoverOn(),
 )
 output = OutputNamelist(; 
     output_variables = (:w, :u, :n, :qv, :q, :iaux1, :iaux2, :iaux3), 
     output_steps = false,
-	output_interval = 4000.0,
-	tmax = 40000.0,
+	output_interval = 100.0,
+	tmax = 4000.0,
     save_ray_volumes = true,
     output_file = "ice_mountain_wave.h5",
 )
@@ -79,7 +78,7 @@ sponge = SpongeNamelist(;
         ),
     relaxed_u = (x, y, z, t, dt) -> 10.0,
 )
-wkb = WKBNamelist(; wkb_mode = MultiColumn())
+wkb = WKBNamelist(; wkb_mode = MultiColumn(), use_saturation = false)
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb, ice))
 # if MPI.Comm_rank(MPI.COMM_WORLD) == 0

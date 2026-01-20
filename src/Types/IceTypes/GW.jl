@@ -5,11 +5,11 @@ struct GW{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function GW(namelists::Namelists, domain::Domain)
-    (; icesetup) = namelists.ice
-    return GW(domain, icesetup)
+    (; ice_setup) = namelists.ice
+    return GW(domain, ice_setup)
 end
 
-function GW(domain::Domain, icesetup::NoIce)
+function GW(domain::Domain, ice_setup::NoIce)
 
     wwp = zeros(0, 0, 0)
     epp = zeros(0, 0, 0)
@@ -18,7 +18,7 @@ function GW(domain::Domain, icesetup::NoIce)
     return GW(wwp, epp, thp)
 end
 
-function GW(domain::Domain, icesetup::AbstractIce)
+function GW(domain::Domain, ice_setup::AbstractIce)
     
     (; nxx, nyy, nzz) = domain
 
