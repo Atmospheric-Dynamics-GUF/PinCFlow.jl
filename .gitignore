@@ -32,3 +32,4 @@ git_hash
 *.code-workspace
 *.cov
 >>>>>>> a5716668
+*.log
