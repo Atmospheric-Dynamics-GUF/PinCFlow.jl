@@ -1492,7 +1492,7 @@ function update!(
 	return
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
+function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn)
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; dx, dy, dz, jac) = state.grid
 	(; alphark, betark) = state.time
@@ -1526,7 +1526,7 @@ function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
 	return
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn, update_type::IceUpdateAdv)
+function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn, update_type::IceUpdateAdv)
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; dx, dy, dz, jac) = state.grid
 	(; alphark, betark) = state.time

@@ -15,9 +15,9 @@ domain = DomainNamelist(;
 	lx = 4.0E+4,
 	ly = 1.0E+4,
 	lz = 1.5E+4,
-	npx = 2,
+	npx = 1,
 	npy = 1,
-	npz = 2,
+	npz = 1,
 )
 
 output = OutputNamelist(;
@@ -27,10 +27,14 @@ output = OutputNamelist(;
 	iin = -1,
 	output_steps = false,
 	output_interval = 1.0,
-	tmax = 30.0, #3.6E+1, #E+3
-	output_file = "./exp/pincflow_output.h5",
+	tmax = 10.0, #3.6E+1, #E+3
+	output_file = "./test/pincflow_output.h5",
 )
 
+setting = SettingNamelist(;
+	model = PseudoIncompressible(),
+	test_case = WKBMultipleWavePackets(),
+)
 discretization = DiscretizationNamelist(;
 	cfl_number = 5.0E-1,
 	dtmin = 1.0E-5,
@@ -38,6 +42,7 @@ discretization = DiscretizationNamelist(;
 	adaptive_time_step = true,
 	limiter_type = MCVariant(),
 )
+
 poisson = PoissonNamelist(;
 	tolerance = 1.0E-8,
 	poisson_iterations = 1000,
@@ -47,24 +52,42 @@ poisson = PoissonNamelist(;
 	tolerance_is_relative = false,
 )
 atmosphere = AtmosphereNamelist(;
-	model = PseudoIncompressible(),
+	initial_wind = (0.0E+0, 0.0E+0, 0.0E+0),
 	coriolis_frequency = 1.0E-4,
-	kinematic_viscosity = 0.0E+0,
-	thermal_conductivity = 0.0E+0,
+)
+
+grid = GridNamelist(;
+	mountain_height = 0.0E+3,
+	mountain_half_width = 1.0E+3,
+	mountain_case = 3,
+	height_factor = 1.0E+0,
+	width_factor = 1.0E+0,
+	spectral_modes = 1,
+	stretch_exponent = 1.0E+0,
 )
 
 ice = IceNamelist(;
-	icesetup = IceOn(),
-	ice_test_case = WKBMultipleWavePackets(),
+	ice_setup = IceOn(),
 	dt_ice = 1.0,
 	nscx = 10,
 	nscy = 1,
 	nscz = 20,
 	cloudcover = CloudCoverOn(),
+	constant_advection = true,
+	hor_adv_vel = (0.0E+0, 0.0E+0),
+	#    large_scale_ice = true,
 	parameterized_nucleation = true,
-	parameterized_sgs_q = false,
+	#    parameterized_nucleation = false,
+	parameterized_sgs_q = true,
+	#    parameterized_sgs_q = false,
 )
 wkb = WKBNamelist(;
+	xrmin = -2.0E+4,
+	xrmax = 2.0E+4,
+	yrmin = -5.0E+3,
+	yrmax = 5.0E+3,
+	zrmin = 0.0E+0,
+	zrmax = 1.5E+4,
 	nrx = 1,
 	nry = 1,
 	nrz = 1,
@@ -100,12 +123,16 @@ multiwavepackets = MultiWavePacketNamelist(; random_wavepackets = true, nwm = 3)
 namelists = Namelists(;
 	domain = domain,
 	output = output,
+	setting = setting,
 	discretization = discretization,
 	poisson = poisson,
 	atmosphere = atmosphere,
+	grid = grid,
 	ice = ice,
 	wkb = wkb,
 	multiwavepackets = multiwavepackets,
 )
 
 integrate(namelists)
+
+#include("../examples/visualization/fast_plot_tjl04.jl")

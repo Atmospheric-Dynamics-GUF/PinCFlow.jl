@@ -9,16 +9,16 @@ function SgsGW(namelists::Namelists,
     subgrid::SubGrid
     )
 
-    (; icesetup, cloudcover) = namelists.ice
+    (; ice_setup, cloudcover) = namelists.ice
 
-    return SgsGW(namelists, domain, subgrid, icesetup, cloudcover)
+    return SgsGW(namelists, domain, subgrid, ice_setup, cloudcover)
 
 end
 
 function SgsGW(namelists :: Namelists, 
     domain :: Domain,
     subgrid ::SubGrid,
-    icesetup :: NoIce,
+    ice_setup :: NoIce,
     cloudcover:: AbstractCloudCover
     )
 
@@ -32,7 +32,7 @@ end
 function SgsGW( namelists::Namelists, 
     domain :: Domain,
     subgrid::SubGrid,
-    icesetup :: IceOn,
+    ice_setup :: IceOn,
     cloudcover :: CloudCoverOff
     )
 
@@ -48,7 +48,7 @@ end
 function SgsGW( namelists::Namelists, 
     domain :: Domain,
     subgrid::SubGrid,
-    icesetup :: AbstractIce,
+    ice_setup :: AbstractIce,
     cloudcover :: CloudCoverOn
     )
 

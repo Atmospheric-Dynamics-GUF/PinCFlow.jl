@@ -417,6 +417,7 @@ function activate_orographic_source!(state::State)
 
             # Set phase-space wave-action density.
             rays.dens[r, i, j, k] = wadr / pspvol
+
         end
     end
 end

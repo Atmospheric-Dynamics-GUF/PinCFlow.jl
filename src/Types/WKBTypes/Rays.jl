@@ -68,14 +68,14 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
 end
 
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, namelists::Namelists)
-	(; icesetup) = namelists.ice
-	return Rays(nray_wrk, nxx, nyy, nzz, icesetup)
+	(; ice_setup) = namelists.ice
+	return Rays(nray_wrk, nxx, nyy, nzz, ice_setup)
 end
 
-function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, icesetup::NoIce)
+function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, ice_setup::NoIce)
 	return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:14]...)
 end
 
-function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, icesetup::AbstractIce)
+function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer, ice_setup::AbstractIce)
 	return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:14]...)
 end

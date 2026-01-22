@@ -1,14 +1,18 @@
+#mpiexec=$(julia --project=. -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
+#${mpiexec} -n 1 julia --project test/ice_tjl05.jl
+
+
 #using Revise
 
-include("../src/PinCFlow.jl")
+# include("../src/PinCFlow.jl")
 
-using .PinCFlow
+using PinCFlow
 using HDF5
 
 domain = DomainNamelist(;
-	x_size = 8,
+	x_size = 80,
 	y_size = 1,
-	z_size = 8,
+	z_size = 150,
 	nbx = 3,
 	nby = 3,
 	nbz = 3,
@@ -19,22 +23,17 @@ domain = DomainNamelist(;
 	npy = 1,
 	npz = 1,
 )
-
 output = OutputNamelist(;
 	output_variables = (:rhop, :pip, :w, :u, :thetap, :n2, :rhobar, :thetabar, :n, :qv, :q, :iaux1, :iaux2, :iaux3, :wwp, :epp, :thp),
 	prepare_restart = false,
 	restart = false,
 	iin = -1,
 	output_steps = false,
-	output_interval = 1.0,
-	tmax = 10.0, #3.6E+1, #E+3
-	output_file = "./test/pincflow_output.h5",
+	output_interval = 1.0, # 3.6E+1, #E+3
+	tmax = 30.0, #3.6E+1, #E+3
+	output_file = "./exp/pincflow_output.h5",
 )
 
-setting = SettingNamelist(;
-	model = PseudoIncompressible(),
-	test_case = WKBMultipleWavePackets(),
-)
 discretization = DiscretizationNamelist(;
 	cfl_number = 5.0E-1,
 	dtmin = 1.0E-5,
@@ -51,43 +50,24 @@ poisson = PoissonNamelist(;
 	initial_cleaning = false,
 	tolerance_is_relative = false,
 )
-atmosphere = AtmosphereNamelist(;
-	initial_wind = (0.0E+0, 0.0E+0, 0.0E+0),
-	coriolis_frequency = 1.0E-4,
-)
 
-grid = GridNamelist(;
-	mountain_height = 0.0E+3,
-	mountain_half_width = 1.0E+3,
-	mountain_case = 3,
-	height_factor = 1.0E+0,
-	width_factor = 1.0E+0,
-	spectral_modes = 1,
-	stretch_exponent = 1.0E+0,
+atmosphere = AtmosphereNamelist(;
+	model = PseudoIncompressible(),
+	coriolis_frequency = 1.0E-4,
+    kinematic_viscosity = 0.0E+0,
+    thermal_conductivity = 0.0E+0,
 )
 
 ice = IceNamelist(;
-	icesetup = IceOn(),
+	ice_setup = IceOn(),
+	ice_test_case = MultipleWavePackets(),
 	dt_ice = 1.0,
-	nscx = 10,
+	nscx = 1,
 	nscy = 1,
-	nscz = 20,
-	cloudcover = CloudCoverOn(),
-	constant_advection = true,
-	hor_adv_vel = (0.0E+0, 0.0E+0),
-	#    large_scale_ice = true,
-	parameterized_nucleation = true,
-	#    parameterized_nucleation = false,
-	parameterized_sgs_q = true,
-	#    parameterized_sgs_q = false,
+	nscz = 1,
+	cloudcover = CloudCoverOff(),
 )
 wkb = WKBNamelist(;
-	xrmin = -2.0E+4,
-	xrmax = 2.0E+4,
-	yrmin = -5.0E+3,
-	yrmax = 5.0E+3,
-	zrmin = 0.0E+0,
-	zrmax = 1.5E+4,
 	nrx = 1,
 	nry = 1,
 	nrz = 1,
@@ -101,16 +81,13 @@ wkb = WKBNamelist(;
 	branch = 1,
 	merge_mode = ConstantWaveAction(),
 	filter_order = 2,
+	#lsmth_wkb = true,
 	smooth_tendencies = false,
 	filter_type = Shapiro(),
 	use_saturation = false,
 	#lsaturation = true,
 	saturation_threshold = 1.0E+0,
-	#zmin_wkb_dim = 0.0,
-	#lsaturation = false,
-	#lsaturation = true,
-	#alpha_sat = 1.0E+0,
-	wkb_mode = MultiColumn(),
+	wkb_mode = NoWKB(),
 	#blocking = true,
 	blocking = false,
 	long_threshold = 2.5E-1,
@@ -123,16 +100,12 @@ multiwavepackets = MultiWavePacketNamelist(; random_wavepackets = true, nwm = 3)
 namelists = Namelists(;
 	domain = domain,
 	output = output,
-	setting = setting,
 	discretization = discretization,
 	poisson = poisson,
 	atmosphere = atmosphere,
-	grid = grid,
 	ice = ice,
 	wkb = wkb,
 	multiwavepackets = multiwavepackets,
 )
 
 integrate(namelists)
-
-#include("../examples/visualization/fast_plot_tjl04.jl")

@@ -25,7 +25,7 @@ IcePredictands(
 	domain::Domain,
 	atmosphere::Atmosphere,
 	grid::Grid,
-	icesetup::NoIce,
+	ice_setup::NoIce,
 	variables::Variables,
 )::IcePredictands
 ```
@@ -39,7 +39,7 @@ IcePredictands(
 	domain::Domain,
 	atmosphere::Atmosphere,
 	grid::Grid,
-	icesetup::AbstractIce,
+	ice_setup::AbstractIce,
 	variables::Variables,
 )::IcePredictands
 ```
@@ -66,7 +66,7 @@ Construct an `IcePredictands` instance with all arrays initialized as ``z \\rho`
 
   - `grid`: Collection of parameters and fields describing the grid.
 
-  - `icesetup`: General ice-physics configuration.
+  - `ice_setup`: General ice-physics configuration.
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 """
@@ -85,7 +85,7 @@ function IcePredictands(
 	variables::Variables,
 	iceconstants::IceConstants,
 )
-	(; icesetup) = namelists.ice
+	(; ice_setup) = namelists.ice
 
 	return IcePredictands(
 		namelists,
@@ -93,7 +93,7 @@ function IcePredictands(
 		domain,
 		atmosphere,
 		grid,
-		icesetup,
+		ice_setup,
 		variables,
 		iceconstants,
 	)
@@ -105,7 +105,7 @@ function IcePredictands(
 	domain::Domain,
 	atmosphere::Atmosphere,
 	grid::Grid,
-	icesetup::NoIce,
+	ice_setup::NoIce,
 	variables::Variables,
 	iceconstants::IceConstants,
 )
@@ -122,7 +122,7 @@ function IcePredictands(
 	domain::Domain,
 	atmosphere::Atmosphere,
 	grid::Grid,
-	icesetup::AbstractIce,
+	ice_setup::AbstractIce,
 	variables::Variables,
 	iceconstants::IceConstants,
 )
@@ -186,6 +186,7 @@ function IcePredictands(
 
 		#dimensional IC for n, q_v, q
 		n0 = 0.0 #[kg**-1]
+		#n0 = i
 
 		#use S0 to define q_v
 		#  !to be consistent with RayTracer simulation

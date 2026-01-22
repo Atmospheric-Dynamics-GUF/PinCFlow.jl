@@ -1,6 +1,7 @@
 .aider*
 .vscode
 build
+/docs/build
 docs/src/authors.md
 docs/src/changelog.md
 docs/src/code_of_conduct.md
@@ -10,26 +11,12 @@ docs/src/index.md
 docs/src/license.md
 LocalPreferences.toml
 Manifest.toml
-<<<<<<< HEAD
-.aider*
-/build
-/docs/build
-.vscode
-<<<<<<< HEAD
 slurm*.out
 *~
-build/
-!build/.gitkeep 
-output/
-!output/.gitkeep 
 *.h5
+*.png
 git_hash
-=======
-# Julia's code coverage report files
 **/*.cov
->>>>>>> fb6246b9c47
-=======
 *.code-workspace
 *.cov
->>>>>>> a5716668
 *.log

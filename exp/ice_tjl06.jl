@@ -1,35 +1,32 @@
-#mpiexec=$(julia --project=. -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-#${mpiexec} -n 1 julia --project test/ice_tjl05.jl
-
-
 #using Revise
 
-# include("../src/PinCFlow.jl")
+include("../src/PinCFlow.jl")
 
-using PinCFlow
+using .PinCFlow
 using HDF5
 
 domain = DomainNamelist(;
-	x_size = 80,
+	x_size = 8,
 	y_size = 1,
-	z_size = 150,
+	z_size = 8,
 	nbx = 3,
 	nby = 3,
 	nbz = 3,
 	lx = 4.0E+4,
 	ly = 1.0E+4,
 	lz = 1.5E+4,
-	npx = 1,
+	npx = 2,
 	npy = 1,
-	npz = 1,
+	npz = 2,
 )
+
 output = OutputNamelist(;
 	output_variables = (:rhop, :pip, :w, :u, :thetap, :n2, :rhobar, :thetabar, :n, :qv, :q, :iaux1, :iaux2, :iaux3, :wwp, :epp, :thp),
 	prepare_restart = false,
 	restart = false,
 	iin = -1,
 	output_steps = false,
-	output_interval = 1.0, # 3.6E+1, #E+3
+	output_interval = 1.0,
 	tmax = 30.0, #3.6E+1, #E+3
 	output_file = "./exp/pincflow_output.h5",
 )
@@ -41,7 +38,6 @@ discretization = DiscretizationNamelist(;
 	adaptive_time_step = true,
 	limiter_type = MCVariant(),
 )
-
 poisson = PoissonNamelist(;
 	tolerance = 1.0E-8,
 	poisson_iterations = 1000,
@@ -50,22 +46,23 @@ poisson = PoissonNamelist(;
 	initial_cleaning = false,
 	tolerance_is_relative = false,
 )
-
 atmosphere = AtmosphereNamelist(;
 	model = PseudoIncompressible(),
 	coriolis_frequency = 1.0E-4,
-    kinematic_viscosity = 0.0E+0,
-    thermal_conductivity = 0.0E+0,
+	kinematic_viscosity = 0.0E+0,
+	thermal_conductivity = 0.0E+0,
 )
 
 ice = IceNamelist(;
-	icesetup = IceOn(),
-	ice_test_case = MultipleWavePackets(),
+	ice_setup = IceOn(),
+	ice_test_case = WKBMultipleWavePackets(),
 	dt_ice = 1.0,
-	nscx = 1,
+	nscx = 10,
 	nscy = 1,
-	nscz = 1,
-	cloudcover = CloudCoverOff(),
+	nscz = 20,
+	cloudcover = CloudCoverOn(),
+	parameterized_nucleation = true,
+	parameterized_sgs_q = false,
 )
 wkb = WKBNamelist(;
 	nrx = 1,
@@ -81,13 +78,16 @@ wkb = WKBNamelist(;
 	branch = 1,
 	merge_mode = ConstantWaveAction(),
 	filter_order = 2,
-	#lsmth_wkb = true,
 	smooth_tendencies = false,
 	filter_type = Shapiro(),
 	use_saturation = false,
 	#lsaturation = true,
 	saturation_threshold = 1.0E+0,
-	wkb_mode = NoWKB(),
+	#zmin_wkb_dim = 0.0,
+	#lsaturation = false,
+	#lsaturation = true,
+	#alpha_sat = 1.0E+0,
+	wkb_mode = MultiColumn(),
 	#blocking = true,
 	blocking = false,
 	long_threshold = 2.5E-1,

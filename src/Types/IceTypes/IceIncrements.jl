@@ -12,13 +12,13 @@ IceIncrements(namelists::Namelists, domain::Domain)::IceIncrements
 Construct an `IceIncrements` instance with dimensions depending on the general ice-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-IceIncrements(domain::Domain, icesetup::NoIce)::IceIncrements
+IceIncrements(domain::Domain, ice_setup::NoIce)::IceIncrements
 ```
 
 Construct an `IceIncrements` instance with zero-size arrays for configurations without ice physics.
 
 ```julia
-IceIncrements(domain::Domain, icesetup::AbstractIce)::IceIncrements
+IceIncrements(domain::Domain, ice_setup::AbstractIce)::IceIncrements
 ```
 
 Construct an `IceIncrements` instance with zero-initialized arrays.
@@ -37,7 +37,7 @@ Construct an `IceIncrements` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `icesetup`: General ice-physics configuration.
+  - `ice_setup`: General ice-physics configuration.
 """
 struct IceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dn::A
@@ -46,11 +46,11 @@ struct IceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function IceIncrements(namelists::Namelists, domain::Domain)::IceIncrements
-    (; icesetup) = namelists.ice
-    return IceIncrements(domain, icesetup)
+    (; ice_setup) = namelists.ice
+    return IceIncrements(domain, ice_setup)
 end
 
-function IceIncrements(domain::Domain, icesetup::NoIce)::IceIncrements
+function IceIncrements(domain::Domain, ice_setup::NoIce)::IceIncrements
     dn = zeros(0, 0, 0)
     dq = zeros(0, 0, 0)
     dqv = zeros(0, 0, 0)
@@ -58,7 +58,7 @@ function IceIncrements(domain::Domain, icesetup::NoIce)::IceIncrements
     return IceIncrements(dn, dq, dqv)
 end
 
-function IceIncrements(domain::Domain, icesetup::AbstractIce)::IceIncrements
+function IceIncrements(domain::Domain, ice_setup::AbstractIce)::IceIncrements
     (; nxx, nyy, nzz) = domain
 
     dn = zeros(nxx, nyy, nzz)

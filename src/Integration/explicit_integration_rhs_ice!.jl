@@ -1,25 +1,25 @@
 
-function explicit_integration! end
+function explicit_integration_rhs_ice! end
 
 function explicit_integration_rhs_ice!(
 	state::State,
 	dtstage::AbstractFloat,
 )
-	icesetup = state.namelists.ice.icesetup
-	return explicit_integration_rhs_ice!(state, dtstage, icesetup)
+	ice_setup = state.namelists.ice.ice_setup
+	return explicit_integration_rhs_ice!(state, dtstage, ice_setup)
 end
 
-function explicit_integration_rhs_ice!(state::State, dtstage::AbstractFloat, icesetup::NoIce)
+function explicit_integration_rhs_ice!(state::State, dtstage::AbstractFloat, ice_setup::NoIce)
 	return
 end
 
 function explicit_integration_rhs_ice!(
 	state::State,
 	dtstage::AbstractFloat,
-	icesetup::IceOn,
+	ice_setup::IceOn,
 )
 	(; nstages) = state.time
-	(; icesetup, dt_ice) = state.namelists.ice
+	(; ice_setup, dt_ice) = state.namelists.ice
 	(; tref) = state.constants
 	(; cloudcover) = state.namelists.ice
 

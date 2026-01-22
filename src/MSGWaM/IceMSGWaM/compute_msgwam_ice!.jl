@@ -1,26 +1,26 @@
 function compute_msgwam_ice! end
 
 function compute_msgwam_ice!(state::State)
-	icesetup = state.namelists.ice.icesetup
-	compute_msgwam_ice!(state, icesetup)
+	(; wkb_mode) = state.namelists.wkb
+	compute_msgwam_ice!(state, wkb_mode)
 	return
 end
 
-function compute_msgwam_ice!(state::State, icesetup::NoIce)
+function compute_msgwam_ice!(state::State, wkb_mode::NoWKB)
 	return
 end
 
-function compute_msgwam_ice!(state::State, icesetup::IceOn)
-	(; ice_test_case) = state.namelists.ice
-	compute_msgwam_ice!(state, ice_test_case)
+function compute_msgwam_ice!(state::State, wkb_mode::Union{SteadyState, SingleColumn, MultiColumn})
+	ice_setup = state.namelists.ice.ice_setup	
+	compute_msgwam_ice!(state, ice_setup)
 	return
 end
 
-function compute_msgwam_ice!(state::State, ice_test_case::AbstractIceTestCase)
+function compute_msgwam_ice!(state::State, ice_setup::NoIce)
 	return
 end
 
-function compute_msgwam_ice!(state::State, ice_test_case::WKBMultipleWavePackets)
+function compute_msgwam_ice!(state::State, ice_setup::IceOn)
 	(; domain, grid) = state
 	(; x_size, y_size) = state.namelists.domain
 	(; coriolis_frequency) = state.namelists.atmosphere
@@ -39,7 +39,7 @@ function compute_msgwam_ice!(state::State, ice_test_case::WKBMultipleWavePackets
 	fc = coriolis_frequency * tref
 
 	# set sgs fields to zero
-	for field in fieldnames(SgsGW)		
+	for field in fieldnames(SgsGW)
 		getfield(sgs, field) .= 0.0
 	end
 
@@ -72,8 +72,8 @@ function compute_msgwam_ice!(state::State, ice_test_case::WKBMultipleWavePackets
 
 			n2r = interpolate_stratification(zr, state, N2())
 
-			omir = 
-					branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+			omir =
+				branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
 			#cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
 			#cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
@@ -87,7 +87,7 @@ function compute_msgwam_ice!(state::State, ice_test_case::WKBMultipleWavePackets
 				for jy in jymin:jymax
 
 					kzmin =
-						get_next_half_level(ix, jy, zr - dzr / 2,state)
+						get_next_half_level(ix, jy, zr - dzr / 2, state)
 					kzmax =
 						get_next_half_level(ix, jy, zr + dzr / 2, state)
 
@@ -114,13 +114,6 @@ function compute_msgwam_ice!(state::State, ice_test_case::WKBMultipleWavePackets
 									dxx = xsc - xr
 									dyy = ysc - yr
 									dzz = zsc - zr
-
-									 #CHANGES
-									#    println("Adding wavepacket at cell: ",
-									# 	   ixrv, ", ", jyrv, ", ", kzrv,
-									# 	   " to subgrid cell: ",
-									# 	   ii2, ", ", jj2, ", ", kk2)
-									# exit(1)
 
 									if abs(dxx) <= dxr / 2 &&
 									   abs(dyy) <= dyr / 2 &&
@@ -154,9 +147,9 @@ function compute_msgwam_ice!(state::State, ice_test_case::WKBMultipleWavePackets
 
 										fcpswn = fcpspz * fcpspy * fcpspx
 
-
+										# bug-fix omega * \rho > 0
 										amprw = sqrt(
-											abs(omir) * 2.0 * khr^2 /
+											omir * 2.0 * khr^2 /
 											(khr^2 + mr^2) /
 											rhobar[ix, jy, kz] * fcpswn *
 											rays.dens[iray, ixrv, jyrv, kzrv])

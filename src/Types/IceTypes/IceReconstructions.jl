@@ -17,7 +17,7 @@ IceReconstructions(
 Construct an `IceReconstructions` instance with dimensions depending on the general ice-physics configuration, by dispatching to the appropriate method.
 
 ```julia
-IceReconstructions(domain::Domain, icesetup::NoIce)::IceReconstructions
+IceReconstructions(domain::Domain, ice_setup::NoIce)::IceReconstructions
 ```
 
 Construct an `IceReconstructions` instance with zero-size arrays for configurations without ice physics.
@@ -25,7 +25,7 @@ Construct an `IceReconstructions` instance with zero-size arrays for configurati
 ```julia
 IceReconstructions(
     domain::Domain,
-    icesetup::AbstractIce,
+    ice_setup::AbstractIce,
 )::IceReconstructions
 ```
 
@@ -45,7 +45,7 @@ Construct an `IceReconstructions` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `icesetup`: General ice-physics configuration.
+  - `ice_setup`: General ice-physics configuration.
 """
 struct IceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     ntilde::A
@@ -57,12 +57,12 @@ function IceReconstructions(
     namelists::Namelists,
     domain::Domain,
 )::IceReconstructions
-    (; icesetup) = namelists.ice
+    (; ice_setup) = namelists.ice
 
-    return IceReconstructions(domain, icesetup)
+    return IceReconstructions(domain, ice_setup)
 end
 
-function IceReconstructions(domain::Domain, icesetup::NoIce)::IceReconstructions
+function IceReconstructions(domain::Domain, ice_setup::NoIce)::IceReconstructions
     ntilde = zeros(0, 0, 0, 0, 0)
     qtilde = zeros(0, 0, 0, 0, 0)
     qvtilde = zeros(0, 0, 0, 0, 0)
@@ -72,7 +72,7 @@ end
 
 function IceReconstructions(
     domain::Domain,
-    icesetup::AbstractIce,
+    ice_setup::AbstractIce,
 )::IceReconstructions
     (; nxx, nyy, nzz) = domain
 
