@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Boundaries · PinCFlow.jl</title><meta name="title" content="Boundaries · PinCFlow.jl"/><meta property="og:title" content="Boundaries · PinCFlow.jl"/><meta property="twitter:title" content="Boundaries · PinCFlow.jl"/><meta name="description" content="Documentation for PinCFlow.jl."/><meta property="og:description" content="Documentation for PinCFlow.jl."/><meta property="twitter:description" content="Documentation for PinCFlow.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">PinCFlow.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../examples/">Examples</a></li><li><span class="tocitem">Theory</span><ul><li><a class="tocitem" href="../../theory/physics/">Physics</a></li><li><a class="tocitem" href="../../theory/numerics/">Numerics</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../pincflow/">PinCFlow</a></li><li><a class="tocitem" href="../types/">Types</a></li><li><a class="tocitem" href="../mpi_operations/">MPIOperations</a></li><li class="is-active"><a class="tocitem" href>Boundaries</a></li><li><a class="tocitem" href="../flux_calculator/">FluxCalculator</a></li><li><a class="tocitem" href="../poisson_solver/">PoissonSolver</a></li><li><a class="tocitem" href="../update/">Update</a></li><li><a class="tocitem" href="../msgwam/">MSGWaM</a></li><li><a class="tocitem" href="../integration/">Integration</a></li><li><a class="tocitem" href="../output/">Output</a></li></ul></li><li><a class="tocitem" href="../../developer_guide/">Developer guide</a></li><li><a class="tocitem" href="../../changelog/">Changelog</a></li><li><a class="tocitem" href="../../authors/">Authors</a></li><li><a class="tocitem" href="../../contributing/">Contributing</a></li><li><a class="tocitem" href="../../code_of_conduct/">Code of Conduct</a></li><li><a class="tocitem" href="../../license/">License</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Reference</a></li><li class="is-active"><a href>Boundaries</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Boundaries</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl.git" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Boundaries"><a class="docs-heading-anchor" href="#Boundaries">Boundaries</a><a id="Boundaries-1"></a><a class="docs-heading-anchor-permalink" href="#Boundaries" title="Permalink"></a></h1><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries"><a class="docstring-binding" href="#PinCFlow.Boundaries"><code>PinCFlow.Boundaries</code></a> — <span class="docstring-category">Module</span></summary><section><div><pre><code class="language-julia hljs">Boundaries</code></pre><p>Module for enforcing boundary conditions for different variable types and field dimensions.</p><p>Handles periodic boundaries in the horizontal and solid-wall boundaries in the vertical, as well as MPI communication in all dimensions.</p><p><strong>See also</strong></p><ul><li><p><a href="../types/#PinCFlow.Types"><code>PinCFlow.Types</code></a></p></li><li><p><a href="../mpi_operations/#PinCFlow.MPIOperations"><code>PinCFlow.MPIOperations</code></a></p></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.AbstractBoundaryVariables"><a class="docstring-binding" href="#PinCFlow.Boundaries.AbstractBoundaryVariables"><code>PinCFlow.Boundaries.AbstractBoundaryVariables</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">AbstractBoundaryVariables</code></pre><p>Abstract type for boundary-variable categories.</p></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.AbstractBoundaryWKBVariables"><a class="docstring-binding" href="#PinCFlow.Boundaries.AbstractBoundaryWKBVariables"><code>PinCFlow.Boundaries.AbstractBoundaryWKBVariables</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">AbstractBoundaryWKBVariables &lt;: AbstractBoundaryVariables</code></pre></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.BoundaryFluxes"><a class="docstring-binding" href="#PinCFlow.Boundaries.BoundaryFluxes"><code>PinCFlow.Boundaries.BoundaryFluxes</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">BoundaryFluxes &lt;: AbstractBoundaryVariables</code></pre><p>Boundary-variable category for flux fields.</p></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.BoundaryPredictands"><a class="docstring-binding" href="#PinCFlow.Boundaries.BoundaryPredictands"><code>PinCFlow.Boundaries.BoundaryPredictands</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">BoundaryPredictands &lt;: AbstractBoundaryVariables</code></pre><p>Boundary-variable category for predictand fields.</p></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.BoundaryReconstructions"><a class="docstring-binding" href="#PinCFlow.Boundaries.BoundaryReconstructions"><code>PinCFlow.Boundaries.BoundaryReconstructions</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">BoundaryReconstructions &lt;: AbstractBoundaryVariables</code></pre><p>Boundary-variable category for reconstruction fields.</p></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.BoundaryWKBIntegrals"><a class="docstring-binding" href="#PinCFlow.Boundaries.BoundaryWKBIntegrals"><code>PinCFlow.Boundaries.BoundaryWKBIntegrals</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">BoundaryWKBIntegrals &lt;: AbstractBoundaryWKBVariables</code></pre><p>Boundary-variable category for gravity-wave-integral fields.</p></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.BoundaryWKBTendencies"><a class="docstring-binding" href="#PinCFlow.Boundaries.BoundaryWKBTendencies"><code>PinCFlow.Boundaries.BoundaryWKBTendencies</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">BoundaryWKBTendencies &lt;: AbstractBoundaryVariables</code></pre><p>Boundary-variable category for gravity-wave-tendency fields.</p></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_boundaries!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_boundaries!"><code>PinCFlow.Boundaries.set_boundaries!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_boundaries!(
+    state::State,
+    variables::Union{
+        BoundaryPredictands,
+        BoundaryReconstructions,
+        AbstractBoundaryWKBVariables,
+    },
+)</code></pre><p>Enforce all boundary conditions for non-flux fields.</p><pre><code class="language-julia hljs">set_boundaries!(state::State, variables::BoundaryFluxes)</code></pre><p>Enforce vertical boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>variables</code>: Boundary-variable category.</p></li></ul><p><strong>See also</strong></p><ul><li><p><a href="#PinCFlow.Boundaries.set_zonal_boundaries!"><code>PinCFlow.Boundaries.set_zonal_boundaries!</code></a></p></li><li><p><a href="#PinCFlow.Boundaries.set_meridional_boundaries!"><code>PinCFlow.Boundaries.set_meridional_boundaries!</code></a></p></li><li><p><a href="#PinCFlow.Boundaries.set_vertical_boundaries!"><code>PinCFlow.Boundaries.set_vertical_boundaries!</code></a></p></li><li><p><a href="#PinCFlow.Boundaries.set_tracer_zonal_boundaries!"><code>PinCFlow.Boundaries.set_tracer_zonal_boundaries!</code></a></p></li><li><p><a href="#PinCFlow.Boundaries.set_tracer_meridional_boundaries!"><code>PinCFlow.Boundaries.set_tracer_meridional_boundaries!</code></a></p></li><li><p><a href="#PinCFlow.Boundaries.set_tracer_vertical_boundaries!"><code>PinCFlow.Boundaries.set_tracer_vertical_boundaries!</code></a></p></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_meridional_boundaries!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_meridional_boundaries!"><code>PinCFlow.Boundaries.set_meridional_boundaries!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
+)</code></pre><p>Enforce meridional boundary conditions for predictands or reconstructions by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Boussinesq,
+)</code></pre><p>Enforce meridional boundary conditions for predictands in Boussinesq mode.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::PseudoIncompressible,
+)</code></pre><p>Enforce meridional boundary conditions for predictands in pseudo-incompressible mode.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Compressible,
+)</code></pre><p>Enforce meridional boundary conditions for predictands in compressible mode.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Boussinesq,
+)</code></pre><p>Enforce meridional boundary conditions for reconstructions in Boussinesq mode.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Union{PseudoIncompressible, Compressible},
+)</code></pre><p>Enforce meridional boundary conditions for reconstructions in non-Boussinesq modes.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)</code></pre><p>Enforce meridional boundary conditions for WKB variables by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)</code></pre><p>Enforce meridional boundary conditions for WKB integrals needed in <code>SingleColumn</code> and <code>SteadyState</code> configurations.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::MultiColumn,
+)</code></pre><p>Enforce meridional boundary conditions for WKB integrals needed in <code>MultiColumn</code> configurations.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)</code></pre><p>Enforce meridional boundary conditions for WKB tendencies needed in <code>SingleColumn</code> and <code>SteadyState</code> configurations.</p><pre><code class="language-julia hljs">set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::MultiColumn,
+)</code></pre><p>Enforce meridional boundary conditions for WKB tendencies needed in <code>MultiColumn</code> configurations.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>variables</code>: Boundary-variable category.</p></li><li><p><code>wkb_mode</code>: Approximations used by MS-GWaM.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Boundaries.set_meridional_boundaries_of_field!"><code>PinCFlow.Boundaries.set_meridional_boundaries_of_field!</code></a></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_meridional_boundaries_of_field!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_meridional_boundaries_of_field!"><code>PinCFlow.Boundaries.set_meridional_boundaries_of_field!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_meridional_boundaries_of_field!(
+    field::AbstractMatrix{&lt;:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)</code></pre><p>Enforce meridional boundary conditions for a matrix.</p><p>Halo exchange is used for multi-process domains (<code>npy &gt; 1</code>), otherwise periodic boundaries are set by copying values from opposite domain edges.</p><pre><code class="language-julia hljs">set_meridional_boundaries_of_field!(
+    field::AbstractArray{&lt;:Real, 3},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, &lt;:Integer} = (-1, -1, -1),
+)</code></pre><p>Enforce meridional boundary conditions for a 3D array.</p><p>Halo exchange is used in the same manner as in the method for matrices.</p><pre><code class="language-julia hljs">set_meridional_boundaries_of_field!(
+    field::AbstractArray{&lt;:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, &lt;:Integer} = (-1, -1, -1),
+)</code></pre><p>Enforce meridional boundary conditions for a 5D array.</p><p>Halo exchange is used in the same manner as in the methods for matrices and 3D arrays. The first three dimensions of the array are assumed to represent the dimensions of physical space.</p><p><strong>Arguments</strong></p><ul><li><p><code>field</code>: Input array.</p></li><li><p><code>namelists</code>: Namelists with all model parameters.</p></li><li><p><code>domain</code>: Collection of domain-decomposition and MPI-communication parameters.</p></li></ul><p><strong>Keywords</strong></p><ul><li><code>layers</code>: The number of boundary layers in each dimension. Use <code>-1</code> for the default values from <code>namelists</code>.</li></ul><p><strong>See also</strong></p><ul><li><a href="../mpi_operations/#PinCFlow.MPIOperations.set_meridional_halos_of_field!"><code>PinCFlow.MPIOperations.set_meridional_halos_of_field!</code></a></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_tracer_meridional_boundaries!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_tracer_meridional_boundaries!"><code>PinCFlow.Boundaries.set_tracer_meridional_boundaries!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_tracer_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+)</code></pre><p>Enforce meridional boundary conditions for tracers by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_tracer_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+    tracer_setup::NoTracer,
+)</code></pre><p>Return for configurations without tracer transport.</p><pre><code class="language-julia hljs">set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce meridional boundary conditions for tracer predictands.</p><pre><code class="language-julia hljs">set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce meridional boundary conditions for tracer reconstructions.</p><pre><code class="language-julia hljs">set_tracer_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce meridional boundary conditions for tracer WKB quantities by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)</code></pre><p>Enforce meridional boundary conditions for tracer WKB integrals.</p><pre><code class="language-julia hljs">set_tracer_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)</code></pre><p>Enforce meridional boundary conditions for tracer WKB tendencies.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>variables</code>: Boundary-variable category.</p></li><li><p><code>tracer_setup</code>: General tracer-transport configuration.</p></li><li><p><code>wkb_mode</code>: Approximations used by MS-GWaM.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Boundaries.set_meridional_boundaries_of_field!"><code>PinCFlow.Boundaries.set_meridional_boundaries_of_field!</code></a></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_tracer_vertical_boundaries!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_tracer_vertical_boundaries!"><code>PinCFlow.Boundaries.set_tracer_vertical_boundaries!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_tracer_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+)</code></pre><p>Enforce vertical boundary conditions for tracers by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_tracer_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+    tracer_setup::NoTracer,
+)</code></pre><p>Return for configurations without tracer transport.</p><pre><code class="language-julia hljs">set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce vertical boundary conditions for tracer predictands.</p><pre><code class="language-julia hljs">set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce vertical boundary conditions for tracer reconstructions.</p><pre><code class="language-julia hljs">set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce vertical boundary conditions for vertical tracer fluxes.</p><pre><code class="language-julia hljs">set_tracer_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce vertical boundary conditions for tracer WKB quantities by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)</code></pre><p>Enforce vertical boundary conditions for tracer WKB integrals.</p><pre><code class="language-julia hljs">set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)</code></pre><p>Enforce vertical boundary conditions for tracer WKB tendencies.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>variables</code>: Boundary-variable category.</p></li><li><p><code>tracer_setup</code>: General tracer-transport configuration.</p></li><li><p><code>wkb_mode</code>: Approximations used by MS-GWaM.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Boundaries.set_vertical_boundaries_of_field!"><code>PinCFlow.Boundaries.set_vertical_boundaries_of_field!</code></a></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_tracer_zonal_boundaries!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_tracer_zonal_boundaries!"><code>PinCFlow.Boundaries.set_tracer_zonal_boundaries!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_tracer_zonal_boundaries!(state::State, variables::AbstractBoundaryVariables)</code></pre><p>Enforce zonal boundary conditions for tracers by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_tracer_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+    tracer_setup::NoTracer,
+)</code></pre><p>Return for configurations without tracer transport.</p><pre><code class="language-julia hljs">set_tracer_zonal_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce zonal boundary conditions for tracer predictands.</p><pre><code class="language-julia hljs">set_tracer_zonal_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce zonal boundary conditions for tracer reconstructions.</p><pre><code class="language-julia hljs">set_tracer_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    tracer_setup::TracerOn,
+)</code></pre><p>Enforce zonal boundary conditions for tracer WKB quantities by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_tracer_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)</code></pre><p>Enforce zonal boundary conditions for tracer WKB integrals.</p><pre><code class="language-julia hljs">set_tracer_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)</code></pre><p>Enforce zonal boundary conditions for tracer WKB tendencies.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>variables</code>: Boundary-variable category.</p></li><li><p><code>tracer_setup</code>: General tracer-transport configuration.</p></li><li><p><code>wkb_mode</code>: Approximations used by MS-GWaM.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Boundaries.set_zonal_boundaries_of_field!"><code>PinCFlow.Boundaries.set_zonal_boundaries_of_field!</code></a></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_vertical_boundaries!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_vertical_boundaries!"><code>PinCFlow.Boundaries.set_vertical_boundaries!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::Union{
+        BoundaryPredictands,
+        BoundaryReconstructions,
+        BoundaryFluxes,
+    },
+)</code></pre><p>Enforce vertical boundary conditions for predictands, reconstructions or fluxes, by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Boussinesq,
+)</code></pre><p>Enforce vertical boundary conditions for predictands in Boussinesq mode.</p><p>The symmetry conditions are as follows:</p><ul><li><p>Density fluctuations (<code>rhop</code>): point reflection (<code>-</code>)</p></li><li><p>Vertical velocity (<code>w</code>): point reflection (<code>-</code>) on the staggered grid</p></li><li><p>Horizontal velocities (<code>u</code>, <code>v</code>): line reflection (<code>+</code>)</p></li><li><p>Exner-pressure fluctuations (<code>pip</code>): line reflection (<code>+</code>)</p></li></ul><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::PseudoIncompressible,
+)</code></pre><p>Enforce vertical boundary conditions for predictands in pseudo-incompressible mode.</p><p>In contrast to Boussinesq mode, this includes the density (<code>rho</code>). Since it is offset by the background, it is point-reflected, like the density fluctuations.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Compressible,
+)</code></pre><p>Enforce vertical boundary conditions for predictands in compressible mode.</p><p>In contrast to pseudo-incompressible modes, this includes the mass-weighted potential temperature (<code>p</code>), which is line-reflected.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Boussinesq,
+)</code></pre><p>Enforce vertical boundary conditions for reconstructions in Boussinesq mode.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Union{PseudoIncompressible, Compressible},
+)</code></pre><p>Enforce vertical boundary conditions for reconstructions in non-Boussinesq modes.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Boussinesq,
+)</code></pre><p>Enforce vertical boundary conditions for vertical fluxes in Boussinesq mode.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::PseudoIncompressible,
+)</code></pre><p>Enforce vertical boundary conditions for vertical fluxes in pseudo-incompressible mode.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Compressible,
+)</code></pre><p>Enforce vertical boundary conditions for vertical fluxes in compressible mode.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)</code></pre><p>Enforce vertical boundary conditions for WKB variables by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)</code></pre><p>Enforce vertical boundary conditions for WKB integrals needed in <code>SingleColumn</code> and <code>SteadyState</code> configurations, using line reflection.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::MultiColumn,
+)</code></pre><p>Enforce vertical boundary conditions for WKB integrals needed in <code>MultiColumn</code> configurations, using line reflection.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)</code></pre><p>Enforce vertical boundary conditions for WKB tendencies needed in <code>SingleColumn</code> and <code>SteadyState</code> configurations, using line reflection.</p><pre><code class="language-julia hljs">set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::MultiColumn,
+)</code></pre><p>Enforce vertical boundary conditions for WKB tendencies needed in <code>MultiColumn</code> configurations, using line reflection.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>variables</code>: Boundary-variable category.</p></li><li><p><code>wkb_mode</code>: Approximations used by MS-GWaM.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Boundaries.set_vertical_boundaries_of_field!"><code>PinCFlow.Boundaries.set_vertical_boundaries_of_field!</code></a></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_vertical_boundaries_of_field!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_vertical_boundaries_of_field!"><code>PinCFlow.Boundaries.set_vertical_boundaries_of_field!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_vertical_boundaries_of_field!(
+    field::AbstractArray{&lt;:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    mode::Function;
+    layers::NTuple{3, &lt;:Integer} = (-1, -1, -1),
+    staggered = false,
+)</code></pre><p>Enforce vertical boundary conditions for a 3D array (assuming solid-wall boundaries).</p><p>Halo exchange is used for multi-process domains (<code>npz &gt; 1</code>). Use <code>mode = +</code> (<code>mode = -</code>) for line-reflected (point-reflected) ghost-cell values.</p><pre><code class="language-julia hljs">set_vertical_boundaries_of_field!(
+    field::AbstractArray{&lt;:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, &lt;:Integer} = (-1, -1, -1),
+)</code></pre><p>Exchange halo values of a 5D array if multiple processes are used in the vertical (<code>npz &gt; 1</code>).</p><p>This method is applied to reconstruction arrays. Vertical boundary conditions are not enforced for these but for the fluxes determined from them.</p><p><strong>Arguments</strong></p><ul><li><p><code>field</code>: Input array.</p></li><li><p><code>namelists</code>: Namelists with all model parameters.</p></li><li><p><code>domain</code>: Collection of domain-decomposition and MPI-communication parameters.</p></li><li><p><code>mode</code>: Method used for setting the boundary-cell values.</p></li></ul><p><strong>Keywords</strong></p><ul><li><p><code>layers</code>: The number of boundary layers in each dimension. Use <code>-1</code> for the default values from <code>namelists</code>.</p></li><li><p><code>staggered</code>: A switch for whether or not the field is on the staggered vertical grid.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="../mpi_operations/#PinCFlow.MPIOperations.set_vertical_halos_of_field!"><code>PinCFlow.MPIOperations.set_vertical_halos_of_field!</code></a></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_zonal_boundaries!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_zonal_boundaries!"><code>PinCFlow.Boundaries.set_zonal_boundaries!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
+)</code></pre><p>Enforce zonal boundary conditions for predictands or reconstructions by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Boussinesq,
+)</code></pre><p>Enforce zonal boundary conditions for predictands in Boussinesq mode.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::PseudoIncompressible,
+)</code></pre><p>Enforce zonal boundary conditions for predictands in pseudo-incompressible mode.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Compressible,
+)</code></pre><p>Enforce zonal boundary conditions for predictands in compressible mode.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Boussinesq,
+)</code></pre><p>Enforce zonal boundary conditions for reconstructionss in Boussinesq mode.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    model::Union{PseudoIncompressible, Compressible},
+)</code></pre><p>Enforce zonal boundary conditions for reconstructions in non-Boussinesq modes.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)</code></pre><p>Enforce zonal boundary conditions for WKB variables by dispatching to the appropriate method.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)</code></pre><p>Enforce zonal boundary conditions for WKB integrals needed in <code>SingleColumn</code> and <code>SteadyState</code> configurations.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::MultiColumn,
+)</code></pre><p>Enforce zonal boundary conditions for WKB integrals needed in <code>MultiColumn</code> configurations.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)</code></pre><p>Enforce zonal boundary conditions for WKB tendencies needed in <code>SingleColumn</code> and <code>SteadyState</code> configurations.</p><pre><code class="language-julia hljs">set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::MultiColumn,
+)</code></pre><p>Enforce zonal boundary conditions for WKB tendencies needed in <code>MultiColumn</code> configurations.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>variables</code>: Boundary-variable category.</p></li><li><p><code>wkb_mode</code>: Approximations used by MS-GWaM.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.Boundaries.set_zonal_boundaries_of_field!"><code>PinCFlow.Boundaries.set_zonal_boundaries_of_field!</code></a></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.Boundaries.set_zonal_boundaries_of_field!"><a class="docstring-binding" href="#PinCFlow.Boundaries.set_zonal_boundaries_of_field!"><code>PinCFlow.Boundaries.set_zonal_boundaries_of_field!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_zonal_boundaries_of_field!(
+    field::AbstractMatrix{&lt;:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)</code></pre><p>Enforce zonal boundary conditions for a matrix.</p><p>Halo exchange is used for multi-process domains (<code>npx &gt; 1</code>), otherwise periodic boundaries are set by copying values from opposite domain edges.</p><pre><code class="language-julia hljs">set_zonal_boundaries_of_field!(
+    field::AbstractArray{&lt;:Real, 3},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, &lt;:Integer} = (-1, -1, -1),
+)</code></pre><p>Enforce zonal boundary conditions for a 3D array.</p><p>Halo exchange is used in the same manner as in the method for matrices.</p><pre><code class="language-julia hljs">set_zonal_boundaries_of_field!(
+    field::AbstractArray{&lt;:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, &lt;:Integer} = (-1, -1, -1),
+)</code></pre><p>Enforce zonal boundary conditions for a 5D array.</p><p>Halo exchange is used in the same manner as in the methods for matrices and 3D arrays. The first three dimensions of the array are assumed to represent the dimensions of physical space.</p><p><strong>Arguments</strong></p><ul><li><p><code>field</code>: Input array.</p></li><li><p><code>namelists</code>: Namelists with all model parameters.</p></li><li><p><code>domain</code>: Collection of domain-decomposition and MPI-communication parameters.</p></li></ul><p><strong>Keywords</strong></p><ul><li><code>layers</code>: The number of boundary layers in each dimension. Use <code>-1</code> for the default values from <code>namelists</code>.</li></ul><p><strong>See also</strong></p><ul><li><a href="../mpi_operations/#PinCFlow.MPIOperations.set_zonal_halos_of_field!"><code>PinCFlow.MPIOperations.set_zonal_halos_of_field!</code></a></li></ul></div></section></details></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../mpi_operations/">« MPIOperations</a><a class="docs-footer-nextpage" href="../flux_calculator/">FluxCalculator »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Thursday 22 January 2026 14:10">Thursday 22 January 2026</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
