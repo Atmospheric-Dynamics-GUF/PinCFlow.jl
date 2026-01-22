@@ -76,7 +76,8 @@ struct Ice{
     K <: SubGrid,
     L <: SgsIncrements,
     M <: SgsTendencies,
-    N <: SgsAuxiliaries
+    N <: SgsAuxiliaries,
+    O <: IceForcing # added
     }
     
     icepredictands::A
@@ -93,6 +94,8 @@ struct Ice{
     sgsincrements::L 
     sgstendencies::M
     sgsauxiliaries::N
+    iceforcing::O # added
+
 end
 
 function Ice(
@@ -126,6 +129,8 @@ function Ice(
     sgsincrements = SgsIncrements(namelists, domain, subgrid)
     sgstendencies = SgsTendencies(namelists, subgrid)
     sgsauxiliaries = SgsAuxiliaries(namelists, domain, subgrid)
+
+    iceforcing = IceForcing(constants) # added
     
     return Ice(
         icepredictands,
@@ -141,6 +146,7 @@ function Ice(
         subgrid,
         sgsincrements,
         sgstendencies,
-        sgsauxiliaries
+        sgsauxiliaries,
+        iceforcing # added
     )
 end

@@ -1,4 +1,6 @@
-# examples/scripts/mountain_wave.jl
+# examples/scripts/ice_mountain_2D.jl
+# Run with:
+# julia --project examples/scripts/ice_mountain_2D.jl
 
 using Pkg
 
@@ -13,6 +15,18 @@ using PinCFlow
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
+
+tau_q_sink = length(ARGS) ≥ 5 ? parse(Float64, ARGS[5]) : 0.0
+@info "tau_q_sink" tau_q_sink
+
+period_ss = length(ARGS) ≥ 6 ? parse(Float64, ARGS[6]) : 3600.0
+@info "period_ss" period_ss
+
+run = length(ARGS) ≥ 7 ? ARGS[7] : "0000_00"
+@info "run" run
+
+#outfile = "/home/b/b383844/PinCFlow/sedimentation/results/ice_mountain_wave_$(run).h5"
+outfile = "/work/bb1097/b383844/PinCFlow/qv_forcing/results/ice_mountain_wave_$(run).h5"
 
 h0 = 1000.0
 l0 = 1000.0
@@ -44,6 +58,7 @@ grid = GridNamelist(;
     resolved_topography = (x, y) -> h0 / (1 + x^2 / l0^2),
 )
 ice = IceNamelist(;
+    tau_q_sink = tau_q_sink,
 	icesetup = IceOn(),
 #	ice_test_case = MultipleWavePackets(),
 	dt_ice = 2.0,
@@ -53,11 +68,11 @@ ice = IceNamelist(;
 	cloudcover = CloudCoverOff(),
 )
 output =
-    OutputNamelist(; output_variables = (:w, :u, :n, :qv, :q, :iaux1, :iaux2, :iaux3), 
+    OutputNamelist(; output_variables = (:w, :u, :n, :qv, :q, :iaux1, :iaux2, :iaux3, :clc), 
     output_steps = false,
 	output_interval = 100.0,
 	tmax = 2000.0,
-    output_file = "/home/b/b381734/spr/pinc/ice_mountain_wave.h5")
+    output_file = outfile)
 
     sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) -> begin
@@ -71,7 +86,7 @@ output =
             z >= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
         return alpharmax * (alpharx + alphary + alpharz) / 3
     end,
-    relaxed_u = (x, y, z, t, dt) -> 10.0 * cos(pi * t/ 1800.0),
+    relaxed_u = (x, y, z, t, dt) -> 10.0 * cos(2 * pi * t/ period_ss),
 )
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge, ice))

@@ -251,6 +251,7 @@ export DomainNamelist,
     IceFluxes,
     IceSource,
     IceConstants,
+    IceForcing, # added
     SgsAuxiliaries,
     SgsGW,
     SgsPredictands,

@@ -243,6 +243,17 @@ function integrate(namelists::Namelists)
         time += dt
 
         #--------------------------------------------------------------
+        #                 Save time to state
+        #--------------------------------------------------------------
+
+        state.ice.iceforcing.time_physical = time * tref
+        # test print
+        if master
+            println("Physical time = ", state.ice.iceforcing.time_physical, " seconds")
+            println("")
+        end
+
+        #--------------------------------------------------------------
         #              Update RHS ice variables
         #--------------------------------------------------------------
 

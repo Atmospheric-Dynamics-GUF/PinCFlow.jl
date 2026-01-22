@@ -3,17 +3,19 @@
 #SBATCH --partition=interactive
 #SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
+#SBATCH --ntasks-per-node=128
 #SBATCH --hint=nomultithread
-#SBATCH --time=0-00:15:00
+#SBATCH --time=0-03:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
 
 set -x
 
+
 # Set Intel MPI configuration on compute partition.
-# export I_MPI_PMI=pmi
-# export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
+#export I_MPI_PMI=pmi
+#export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
+
 
 julia --project -e 'import Pkg; Pkg.instantiate()'
 
@@ -22,9 +24,9 @@ julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; lib
 julia --project -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/mountain_wave.jl 4 4 4 1>mountain_wave.log 2>&1
+#srun -n $SLURM_NTASKS --cpu_bind=verbose --distribution=block:cyclic julia --project examples/scripts/mountain_wave.jl 8 1 8 1>ice_mountain_2D.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 32 julia --project examples/scripts/ice_mountain_2D.jl 4 1 8 1>ice_mountain_2D.log 2>&1
+mpiexec -n 128 julia --project examples/scripts/ice_mountain_2D.jl 8 1 16 1>ice_mountain_2D.log 2>&1
 
 exit 0

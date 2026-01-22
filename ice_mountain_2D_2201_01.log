@@ -1,0 +1,896 @@
+cpu-bind=MASK - l40694, task  0  0 [2427239]: mask 0x1 set
+cpu-bind=MASK - l40694, task  1  1 [2427240]: mask 0x2 set
+cpu-bind=MASK - l40694, task  2  2 [2427241]: mask 0x4 set
+cpu-bind=MASK - l40694, task  3  3 [2427242]: mask 0x8 set
+cpu-bind=MASK - l40694, task  4  4 [2427243]: mask 0x10 set
+cpu-bind=MASK - l40694, task  5  5 [2427244]: mask 0x20 set
+cpu-bind=MASK - l40694, task  6  6 [2427245]: mask 0x40 set
+cpu-bind=MASK - l40694, task  7  7 [2427246]: mask 0x80 set
+cpu-bind=MASK - l40694, task  8  8 [2427247]: mask 0x100 set
+cpu-bind=MASK - l40694, task  9  9 [2427248]: mask 0x200 set
+cpu-bind=MASK - l40694, task 10 10 [2427249]: mask 0x400 set
+cpu-bind=MASK - l40694, task 11 11 [2427250]: mask 0x800 set
+cpu-bind=MASK - l40694, task 12 12 [2427251]: mask 0x1000 set
+cpu-bind=MASK - l40694, task 13 13 [2427252]: mask 0x2000 set
+cpu-bind=MASK - l40694, task 14 14 [2427253]: mask 0x4000 set
+cpu-bind=MASK - l40694, task 15 15 [2427254]: mask 0x8000 set
+cpu-bind=MASK - l40694, task 16 16 [2427255]: mask 0x10000 set
+cpu-bind=MASK - l40694, task 17 17 [2427256]: mask 0x20000 set
+cpu-bind=MASK - l40694, task 18 18 [2427257]: mask 0x40000 set
+cpu-bind=MASK - l40694, task 19 19 [2427258]: mask 0x80000 set
+cpu-bind=MASK - l40694, task 20 20 [2427259]: mask 0x100000 set
+cpu-bind=MASK - l40694, task 21 21 [2427260]: mask 0x200000 set
+cpu-bind=MASK - l40694, task 22 22 [2427261]: mask 0x400000 set
+cpu-bind=MASK - l40694, task 23 23 [2427262]: mask 0x800000 set
+cpu-bind=MASK - l40694, task 24 24 [2427263]: mask 0x1000000 set
+cpu-bind=MASK - l40694, task 25 25 [2427264]: mask 0x2000000 set
+cpu-bind=MASK - l40694, task 26 26 [2427265]: mask 0x4000000 set
+cpu-bind=MASK - l40694, task 27 27 [2427266]: mask 0x8000000 set
+cpu-bind=MASK - l40694, task 28 28 [2427267]: mask 0x10000000 set
+cpu-bind=MASK - l40694, task 29 29 [2427268]: mask 0x20000000 set
+cpu-bind=MASK - l40694, task 30 30 [2427269]: mask 0x40000000 set
+cpu-bind=MASK - l40694, task 31 31 [2427270]: mask 0x80000000 set
+cpu-bind=MASK - l40694, task 32 32 [2427271]: mask 0x100000000 set
+cpu-bind=MASK - l40694, task 33 33 [2427272]: mask 0x200000000 set
+cpu-bind=MASK - l40694, task 34 34 [2427273]: mask 0x400000000 set
+cpu-bind=MASK - l40694, task 35 35 [2427274]: mask 0x800000000 set
+cpu-bind=MASK - l40694, task 36 36 [2427275]: mask 0x1000000000 set
+cpu-bind=MASK - l40694, task 37 37 [2427276]: mask 0x2000000000 set
+cpu-bind=MASK - l40694, task 38 38 [2427277]: mask 0x4000000000 set
+cpu-bind=MASK - l40694, task 39 39 [2427278]: mask 0x8000000000 set
+cpu-bind=MASK - l40694, task 40 40 [2427279]: mask 0x10000000000 set
+cpu-bind=MASK - l40694, task 41 41 [2427280]: mask 0x20000000000 set
+cpu-bind=MASK - l40694, task 42 42 [2427281]: mask 0x40000000000 set
+cpu-bind=MASK - l40695, task 64  0 [2087561]: mask 0x1 set
+cpu-bind=MASK - l40694, task 43 43 [2427282]: mask 0x80000000000 set
+cpu-bind=MASK - l40695, task 65  1 [2087562]: mask 0x2 set
+cpu-bind=MASK - l40694, task 44 44 [2427283]: mask 0x100000000000 set
+cpu-bind=MASK - l40695, task 66  2 [2087563]: mask 0x4 set
+cpu-bind=MASK - l40695, task 67  3 [2087564]: mask 0x8 set
+cpu-bind=MASK - l40694, task 45 45 [2427284]: mask 0x200000000000 set
+cpu-bind=MASK - l40695, task 68  4 [2087565]: mask 0x10 set
+cpu-bind=MASK - l40694, task 46 46 [2427285]: mask 0x400000000000 set
+cpu-bind=MASK - l40695, task 69  5 [2087566]: mask 0x20 set
+cpu-bind=MASK - l40694, task 47 47 [2427286]: mask 0x800000000000 set
+cpu-bind=MASK - l40695, task 70  6 [2087567]: mask 0x40 set
+cpu-bind=MASK - l40694, task 48 48 [2427287]: mask 0x1000000000000 set
+cpu-bind=MASK - l40695, task 71  7 [2087568]: mask 0x80 set
+cpu-bind=MASK - l40695, task 72  8 [2087569]: mask 0x100 set
+cpu-bind=MASK - l40694, task 49 49 [2427288]: mask 0x2000000000000 set
+cpu-bind=MASK - l40695, task 73  9 [2087570]: mask 0x200 set
+cpu-bind=MASK - l40694, task 50 50 [2427289]: mask 0x4000000000000 set
+cpu-bind=MASK - l40695, task 74 10 [2087571]: mask 0x400 set
+cpu-bind=MASK - l40694, task 51 51 [2427290]: mask 0x8000000000000 set
+cpu-bind=MASK - l40694, task 52 52 [2427291]: mask 0x10000000000000 set
+cpu-bind=MASK - l40695, task 75 11 [2087572]: mask 0x800 set
+cpu-bind=MASK - l40695, task 76 12 [2087573]: mask 0x1000 set
+cpu-bind=MASK - l40694, task 53 53 [2427292]: mask 0x20000000000000 set
+cpu-bind=MASK - l40694, task 54 54 [2427293]: mask 0x40000000000000 set
+cpu-bind=MASK - l40695, task 77 13 [2087574]: mask 0x2000 set
+cpu-bind=MASK - l40694, task 55 55 [2427294]: mask 0x80000000000000 set
+cpu-bind=MASK - l40695, task 78 14 [2087575]: mask 0x4000 set
+cpu-bind=MASK - l40694, task 56 56 [2427295]: mask 0x100000000000000 set
+cpu-bind=MASK - l40695, task 79 15 [2087576]: mask 0x8000 set
+cpu-bind=MASK - l40694, task 57 57 [2427296]: mask 0x200000000000000 set
+cpu-bind=MASK - l40695, task 80 16 [2087577]: mask 0x10000 set
+cpu-bind=MASK - l40694, task 58 58 [2427297]: mask 0x400000000000000 set
+cpu-bind=MASK - l40695, task 81 17 [2087578]: mask 0x20000 set
+cpu-bind=MASK - l40694, task 59 59 [2427298]: mask 0x800000000000000 set
+cpu-bind=MASK - l40695, task 82 18 [2087579]: mask 0x40000 set
+cpu-bind=MASK - l40694, task 60 60 [2427299]: mask 0x1000000000000000 set
+cpu-bind=MASK - l40695, task 83 19 [2087580]: mask 0x80000 set
+cpu-bind=MASK - l40694, task 61 61 [2427300]: mask 0x2000000000000000 set
+cpu-bind=MASK - l40694, task 62 62 [2427301]: mask 0x4000000000000000 set
+cpu-bind=MASK - l40695, task 84 20 [2087581]: mask 0x100000 set
+cpu-bind=MASK - l40695, task 85 21 [2087582]: mask 0x200000 set
+cpu-bind=MASK - l40695, task 86 22 [2087583]: mask 0x400000 set
+cpu-bind=MASK - l40695, task 87 23 [2087584]: mask 0x800000 set
+cpu-bind=MASK - l40694, task 63 63 [2427302]: mask 0x8000000000000000 set
+cpu-bind=MASK - l40695, task 88 24 [2087585]: mask 0x1000000 set
+cpu-bind=MASK - l40695, task 89 25 [2087586]: mask 0x2000000 set
+cpu-bind=MASK - l40695, task 90 26 [2087587]: mask 0x4000000 set
+cpu-bind=MASK - l40695, task 91 27 [2087588]: mask 0x8000000 set
+cpu-bind=MASK - l40695, task 92 28 [2087589]: mask 0x10000000 set
+cpu-bind=MASK - l40695, task 93 29 [2087590]: mask 0x20000000 set
+cpu-bind=MASK - l40695, task 94 30 [2087591]: mask 0x40000000 set
+cpu-bind=MASK - l40695, task 95 31 [2087592]: mask 0x80000000 set
+cpu-bind=MASK - l40695, task 96 32 [2087593]: mask 0x100000000 set
+cpu-bind=MASK - l40695, task 97 33 [2087594]: mask 0x200000000 set
+cpu-bind=MASK - l40695, task 98 34 [2087595]: mask 0x400000000 set
+cpu-bind=MASK - l40695, task 99 35 [2087596]: mask 0x800000000 set
+cpu-bind=MASK - l40695, task 100 36 [2087597]: mask 0x1000000000 set
+cpu-bind=MASK - l40695, task 101 37 [2087598]: mask 0x2000000000 set
+cpu-bind=MASK - l40695, task 102 38 [2087599]: mask 0x4000000000 set
+cpu-bind=MASK - l40695, task 103 39 [2087600]: mask 0x8000000000 set
+cpu-bind=MASK - l40695, task 104 40 [2087601]: mask 0x10000000000 set
+cpu-bind=MASK - l40695, task 105 41 [2087602]: mask 0x20000000000 set
+cpu-bind=MASK - l40695, task 106 42 [2087603]: mask 0x40000000000 set
+cpu-bind=MASK - l40695, task 107 43 [2087604]: mask 0x80000000000 set
+cpu-bind=MASK - l40695, task 108 44 [2087605]: mask 0x100000000000 set
+cpu-bind=MASK - l40695, task 109 45 [2087606]: mask 0x200000000000 set
+cpu-bind=MASK - l40695, task 110 46 [2087607]: mask 0x400000000000 set
+cpu-bind=MASK - l40695, task 111 47 [2087608]: mask 0x800000000000 set
+cpu-bind=MASK - l40695, task 112 48 [2087609]: mask 0x1000000000000 set
+cpu-bind=MASK - l40695, task 113 49 [2087610]: mask 0x2000000000000 set
+cpu-bind=MASK - l40695, task 114 50 [2087611]: mask 0x4000000000000 set
+cpu-bind=MASK - l40695, task 115 51 [2087612]: mask 0x8000000000000 set
+cpu-bind=MASK - l40695, task 116 52 [2087613]: mask 0x10000000000000 set
+cpu-bind=MASK - l40695, task 117 53 [2087614]: mask 0x20000000000000 set
+cpu-bind=MASK - l40695, task 118 54 [2087615]: mask 0x40000000000000 set
+cpu-bind=MASK - l40695, task 119 55 [2087616]: mask 0x80000000000000 set
+cpu-bind=MASK - l40695, task 120 56 [2087617]: mask 0x100000000000000 set
+cpu-bind=MASK - l40695, task 121 57 [2087618]: mask 0x200000000000000 set
+cpu-bind=MASK - l40695, task 122 58 [2087619]: mask 0x400000000000000 set
+cpu-bind=MASK - l40695, task 123 59 [2087620]: mask 0x800000000000000 set
+cpu-bind=MASK - l40695, task 124 60 [2087621]: mask 0x1000000000000000 set
+cpu-bind=MASK - l40695, task 125 61 [2087622]: mask 0x2000000000000000 set
+cpu-bind=MASK - l40695, task 126 62 [2087623]: mask 0x4000000000000000 set
+cpu-bind=MASK - l40695, task 127 63 [2087624]: mask 0x8000000000000000 set
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: tau_q_sink
+└   tau_q_sink = 0.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: period_ss
+└   period_ss = 3600.0
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"
+┌ Info: run
+└   run = "2201_01"

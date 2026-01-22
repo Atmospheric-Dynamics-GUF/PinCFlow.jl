@@ -30,7 +30,7 @@ grid = GridNamelist(;
     resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
 )
 output =
-    OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
+    OutputNamelist(; output_variables = (:w,), output_interval = 30,output_file = "periodic_hill.h5")
 sponge = SpongeNamelist(;
     rhs_sponge = (x, y, z, t, dt) ->
         z >= zr ? sin(pi / 2 * (z - zr) / (lz - zr))^2 / dt : 0.0,

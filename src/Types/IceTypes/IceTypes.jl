@@ -20,6 +20,7 @@ using ..FoundationalTypes
 using ..VariableTypes
 
 include("IceConstants.jl")
+include("IceForcing.jl") # added
 include("../../Integration/iceroutines.jl")
 include("IcePredictands.jl")
 include("IceIncrements.jl")
@@ -39,7 +40,7 @@ include("Ice.jl")
 export IcePredictands,
     IceIncrements, IceAuxiliaries, IceReconstructions, IceFluxes,
     IceSource, IceConstants, Ice,
-    SgsGW, SgsPredictands, SgsIncrements, SgsTendencies, SgsAuxiliaries, SubGrid
+    SgsGW, SgsPredictands, SgsIncrements, SgsTendencies, SgsAuxiliaries, SubGrid, IceForcing
 
 export psat_ice, sat_ratio, dot_qv, dot_n 
 
