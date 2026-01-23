@@ -31,6 +31,7 @@ include("KinematicBox.jl")
 include("InterpCoef.jl")
 include("TriadTendencies.jl")
 include("log_range.jl")
+include("compute_edges.jl")
 include("WKB.jl")
 
 export WKBIntegrals,

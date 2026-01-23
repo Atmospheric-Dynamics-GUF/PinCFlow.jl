@@ -30,8 +30,7 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
     set_boundary_rays!(state)
 
     compute_mean_flow_effect!(state)
-    #get_wave_spectrum!(state)
-    #apply_triad_interactions!(state, dtstage)
+    apply_triad_interactions!(state, dtstage)
 
     return
 end

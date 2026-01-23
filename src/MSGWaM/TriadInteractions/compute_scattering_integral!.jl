@@ -1,20 +1,23 @@
 function compute_scattering_integral! end
 
-
 function compute_scattering_integral!(
     state::State,
     ii::Integer,
     jj::Integer,
-    kk::Integer
+    kk::Integer,
+    triad_mode::Triad2D
     )
     (; spec_tend) = state.wkb
-    ( ; kp, m) = spec_tend.spec_grid
+    (; kp, m) = spec_tend.spec_grid
     (; aa, la, qq, lq, lia, liq, loglia, logliq) = spec_tend.kin_box
     (; wavespectrum, col_int) = spec_tend
+    (; n2) = state.atmosphere
+
+    nn = sqrt(n2[ii, jj, kk]) ##Bruint vaisala frequency at the level (ii, jj, kk)
 
     was = wavespectrum[ii, jj, kk, :, :]
 
-    update_interpolation_coef!(spec_tend, was)
+    update_interpolation_coef!(spec_tend, was, triad_mode)
 
     for field in fieldnames(TriadTendencies)
         if field == :st_k || field == :col_int
@@ -22,8 +25,68 @@ function compute_scattering_integral!(
         end
     end
     
-    
 
+    for mi in eachindex(m),
+        kpi in eachindex(kp)
+
+        nk = was[kpi, mi]
+
+        kr = kp[kpi]  
+        mr = m[mi]
+        aar = aa[kpi]
+        q = qq[1]
+
+        fpl = zeros(la[kpi])
+        fpr = zeros(la[kpi])
+
+        for i in 1:(la[kpi]) #for p ∈ (-kr, kr)
+            pl = aar[i] - kr  #for the left part of kinematic box, also as aar never equal to zero, so p = \pm 1 is not included here
+            pr = kr - aar[i]  #for the right part of kinematic box
+
+            if i == la[kpi] # to avoid to count p = 0 twice
+                fpl[i] = compute_st_k(spec_tend, pl, q, nk, kr, mr, nn, triad_mode)
+                fpr[i] = 0.0
+            else
+                fpl[i] = compute_st_k(spec_tend, pl, q, nk, kr, mr, nn, triad_mode)
+                fpr[i] = compute_st_k(spec_tend, pr, q, nk, kr, mr, nn, triad_mode)
+            end
+
+            
+        end
+        col_int[kpi, mi] = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) + 
+                            trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi])
+
+        # Singularities p=±kr, yet to define
+
+        col_int[kpi, mi] *= 2 * pi 
+
+        
+    end
+   
+end
+
+
+function compute_scattering_integral!(
+    state::State,
+    ii::Integer,
+    jj::Integer,
+    kk::Integer,
+    triad_mode::Triad3DIso
+    )
+    (; spec_tend) = state.wkb
+    (; kp, m) = spec_tend.spec_grid
+    (; aa, la, qq, lq, lia, liq, loglia, logliq) = spec_tend.kin_box
+    (; wavespectrum, col_int) = spec_tend
+
+    was = wavespectrum[ii, jj, kk, :, :]
+
+    update_interpolation_coef!(spec_tend, was, triad_mode)
+
+    for field in fieldnames(TriadTendencies)
+        if field == :st_k || field == :col_int
+            getfield(spec_tend, field) .= 0.0
+        end
+    end
     
 
     for mi in eachindex(m),
@@ -52,8 +115,8 @@ function compute_scattering_integral!(
             for j in 1:lq #this excludes q = 0 as q_min \ne 0
                 q = qqr[j]
 
-                fql[j] = compute_st_k(spec_tend, pl, q, nk, kr, mr) / compute_delta_pq(kr, pl, q)
-                fqr[j] = compute_st_k(spec_tend, pr, q, nk, kr, mr) / compute_delta_pq(kr, pr, q)
+                fql[j] = compute_st_k(spec_tend, pl, q, nk, kr, mr, triad_mode) / compute_delta_pq(kr, pl, q)
+                fqr[j] = compute_st_k(spec_tend, pr, q, nk, kr, mr, triad_mode) / compute_delta_pq(kr, pr, q)
                 
             end
 
@@ -68,9 +131,9 @@ function compute_scattering_integral!(
 
             # for the singularities at p = \pm kr, q = 0 as q = 0 was not included in the kinematic box
 
-            fpl[i] +=  (compute_st_k(spec_tend, pl, 0.0, nk, kr, mr) + compute_st_k(spec_tend, pl, qqr[1], nk, kr, mr)) / sqrt(2*del/(kr^2-pl^2)) 
+            fpl[i] +=  (compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, triad_mode) + compute_st_k(spec_tend, pl, qqr[1], nk, kr, mr, triad_mode)) / sqrt(2*del/(kr^2-pl^2)) 
 
-            fpr[i] +=  (compute_st_k(spec_tend, pr, 0.0, nk, kr, mr) + compute_st_k(spec_tend, pr, qqr[1], nk, kr, mr)) / sqrt(2*del/(kr^2-pr^2))
+            fpr[i] +=  (compute_st_k(spec_tend, pr, 0.0, nk, kr, mr, triad_mode) + compute_st_k(spec_tend, pr, qqr[1], nk, kr, mr, triad_mode)) / sqrt(2*del/(kr^2-pr^2))
                 
 
             
@@ -81,10 +144,10 @@ function compute_scattering_integral!(
         # Singularities p=±kr q≠0 
         for j in 1:lq
             q = qq[j]
-            fql[j] = (compute_st_k(spec_tend, -kr, q, nk, kr, mr) + 
-                compute_st_k(spec_tend, -kr * (1-chi), q, nk, kr, mr)+
-                compute_st_k(spec_tend, kr * (1-chi), q, nk, kr, mr) +
-                compute_st_k(spec_tend, kr, q, nk, kr, mr) ) *
+            fql[j] = (compute_st_k(spec_tend, -kr, q, nk, kr, mr, triad_mode) + 
+                compute_st_k(spec_tend, -kr * (1-chi), q, nk, kr, mr, triad_mode)+
+                compute_st_k(spec_tend, kr * (1-chi), q, nk, kr, mr, triad_mode) +
+                compute_st_k(spec_tend, kr, q, nk, kr, mr, triad_mode) ) *
                 sqrt(2 * chi / (q * (2 * kr + q)))
         end
 
@@ -92,8 +155,8 @@ function compute_scattering_integral!(
 
         # Singularities p=±kr q=0 here
 
-        col_int[kpi, mi] += (compute_st_k(spec_tend, kr * (chi - 1), qq[1], nk, kr, mr) +
-                            compute_st_k(spec_tend, kr * (1 - chi), qq[1], nk, kr, mr) ) *
+        col_int[kpi, mi] += (compute_st_k(spec_tend, kr * (chi - 1), qq[1], nk, kr, mr, triad_mode) +
+                            compute_st_k(spec_tend, kr * (1 - chi), qq[1], nk, kr, mr, triad_mode) ) *
                             2 * (pi - 2*asin(1-chi)) * asin(sqrt(del/2))
 
         
@@ -103,3 +166,4 @@ function compute_scattering_integral!(
     end
    
 end
+

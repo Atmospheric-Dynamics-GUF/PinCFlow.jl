@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 16
-y_size = 16
-z_size = 32
+x_size = 16 #x_size = 16
+y_size = 1 #y_size = 16
+z_size = 32 #z_size = 32
 
 lx = 20000.0
 ly = 20000.0
@@ -28,7 +28,7 @@ rz = 0.25
 
 x0 = 0.0
 y0 = 0.0
-z0 = 20000.0
+z0 = 10000.0
 
 a0 = 0.05
 
@@ -36,8 +36,8 @@ k = 16 * pi / lx
 l = 16 * pi / ly
 m = 32 * pi / lz
 
-model = Compressible()
-background = Realistic()
+model = Boussinesq()
+background = StableStratification()
 coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
@@ -67,7 +67,7 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
             "examples/results/wkb_wave_packet.svg",
             data,
-            ("nr", 8, 8, 16, 2);
+            ("nr", 4, 1, 8, 1);
             time_unit = "min",
         )
         return

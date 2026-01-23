@@ -54,14 +54,14 @@ function get_wave_spectrum! end
 
 function get_wave_spectrum!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    (; triad_int) = state.namelists.triad
-    if triad_int
-        get_wave_spectrum!(state, wkb_mode, triad_int)
-    end
+    (; triad_mode) = state.namelists.triad
+    get_wave_spectrum!(state, wkb_mode, triad_mode)
     return
 end
 
-function get_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, SingleColumn}, triad_int::Bool)
+function get_wave_spectrum!(state::State, 
+    wkb_mode::Union{MultiColumn, SingleColumn}, 
+    triad_mode::Triad3DIso)
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -77,6 +77,7 @@ function get_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, SingleCol
     (cm, fm) = half_logwidth(m)
     
 
+    
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
@@ -196,7 +197,177 @@ function get_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, SingleCol
 
                         end
 
+                    end
+
+                end
+
+            end
+        
+        end
+
+    end
+
+end
+
+function get_wave_spectrum!(state::State, 
+    wkb_mode::Union{MultiColumn, SingleColumn}, 
+    triad_mode::Triad2D)
+    (; domain, grid) = state
+    (; x_size, y_size) = state.namelists.domain
+    (; coriolis_frequency) = state.namelists.atmosphere
+    (; branch) = state.namelists.wkb
+    (; lref, tref, g_ndim) = state.constants
+    (; i0, i1, j0, j1, k0, k1) = domain
+    (; dx, dy, dz, x, y, zc, zctilde, jac) = grid
+    (; nray, rays, spec_tend) = state.wkb
+    (; kp, m, kpc, mc) = spec_tend.spec_grid
+
+
+
+   println("------Calling get wave spectrum----------")
+    # Set Coriolis parameter.
+    fc = coriolis_frequency * tref
+
+    for field in fieldnames(TriadTendencies)
+        if field == :wavespectrum 
+            getfield(spec_tend, field) .= 0.0
+        end
+    end
+
+    #reseting the ray volume signatures
+    for idx in eachindex(spec_tend.ray_vol_signature)
+        empty!(spec_tend.ray_vol_signature[idx])
+    end
+
+
+
+     for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
+                continue
+            end
+
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
+
+            dxr = rays.dxray[r, i, j, k]
+            dyr = rays.dyray[r, i, j, k]
+            dzr = rays.dzray[r, i, j, k]
+
+            kr = rays.k[r, i, j, k]
+            lr = rays.l[r, i, j, k]
+            mr = rays.m[r, i, j, k]
+
+            dkr = rays.dkray[r, i, j, k]
+            dlr = rays.dlray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
+
+            kpr = abs(kr)
+            dkpr = dkr
+
+            #println("The ray volume with non zero wad", "Ray volume grid cell", (x[i] * lref, y[j]* lref, zc[i, j, k]*lref), 
+            #"\n Ray volume center", (xr * lref, yr * lref, zr * lref),
+            #"\n Ray volume physical extend", (dxr * lref, dyr * lref, dzr * lref),
+            # "\n Ray volume wave number", (kr / lref, lr /lref ,mr / lref),
+            #"\n Ray volume spectral extend", (dkr / lref, dlr /lref, dmr / lref))
+
+            (imin, imax, jmin, jmax) =
+                compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+
+            (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+            
+            for iray in imin:imax
+                if x_size > 1
+                    dxi = (
+                        min(xr + dxr / 2, x[iray] + dx / 2) -
+                        max(xr - dxr / 2, x[iray] - dx / 2)
+                    )
+
+                    fcpspx =  dxi / dx
+                else
+                    dxi = 1.0
+                    fcpspx = 1.0
+                    dxr = 1.0
+                end
+
+                for jray in jmin:jmax
+                    if y_size > 1
+                        dyi = (
+                            min(yr + dyr / 2, y[jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jray] - dy / 2)
+                        )
+
+                        fcpspy =  dyi / dy
+                    else
+                        dyi = 1.0
+                        fcpspy = 1.0
+                        dyr = 1.0
+                    end
+
+                    kmin = get_next_half_level(
+                        iray,
+                        jray,
+                        zr - dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
+                    kmax = get_next_half_level(
+                        iray,
+                        jray,
+                        zr + dzr / 2,
+                        state;
+                        dkd = 1,
+                    )
+
+                    for kray in kmin:kmax
+                        dzi =
+                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
+                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
+
+                        fcpspz =  dzi / jac[iray, jray, kray] / dz
                         
+                        for kpray in kpmin:kpmax
+                             dkpi = 
+                                min(kr + dkr / 2, kpc[kpray + 1]) -  #kpi_i > 0, always lies between kpc_{i+1} to kpc_{i}
+                                max(kr - dkr / 2, kpc[kpray] )
+                            dkp = kpc[kpray + 1] - kpc[kpray]
+                                      
+                            #fcpspkp =  dkpi / dkpr
+                            fcpspkp =  dkpi / dkp
+
+                             for mray in mmin:mmax
+                                if mr >= 0       #becuase for mr > 0,  m_i > 0 always lies between mc_{i+2} to mc_{i+1}
+                                    dmi = 
+                                        min(mr + dmr / 2, mc[mray + 2]) -
+                                        max(mr - dmr / 2, mc[mray + 1])
+                                    dm = mc[mray + 2] - mc[mray + 1]
+                                    #fcpspm = dmi / dmr
+                                    fcpspm = dmi / dm
+                                else
+                                    dmi = 
+                                        min(mr + dmr / 2, mc[mray + 1]) -
+                                        max(mr - dmr / 2, mc[mray])
+                                    dm = mc[mray + 1] - mc[mray]
+                                    #fcpspm = dmi / dmr
+                                    fcpspm = dmi / dm
+                                end
+                                
+                                accupied_vol = dxi * dyi * dzi * dkpi * dmi #total volume of the ray volume (r, i, j, k) accupied by the grid cell
+                                vol_ratio = fcpspx * fcpspy * fcpspz * fcpspkp * fcpspm # Fraction of the accupied_vol ray volume and the volume of the grid cell
+                                ray_vol = dxr * dyr * dzr * dkpr * dmr #total volume of the ray in 5D ray phase space
+                                wadr = rays.dens[r, i, j, k]
+                                wadi = vol_ratio * rays.dens[r, i, j, k]
+                                spec_tend.wavespectrum[iray, jray, kray, kpray, mray] += wadi
+                                push!(spec_tend.ray_vol_signature[iray, jray, kray, kpray, mray], (r, i, j, k, wadr, accupied_vol, ray_vol))
+                                #println(spec_tend.wavespectrum[iray, jray, kray, kpray, mray])
+
+                             end
+
+                        end
 
                     end
 
@@ -206,15 +377,13 @@ function get_wave_spectrum!(state::State, wkb_mode::Union{MultiColumn, SingleCol
         
         end
 
-        
-
     end
-
-
-    
 
 end
 
+
+                        
+            
 
                         
             

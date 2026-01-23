@@ -14,9 +14,10 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 40
-y_size = 40
-z_size = 80
+x_size = 32 #x_size = 16
+y_size = 1 #y_size = 16
+z_size = 64 #z_size = 32
+
 
 lx = 20000.0
 ly = 20000.0
@@ -30,16 +31,25 @@ x0 = 0.0
 y0 = 0.0
 z0 = 20000.0
 
+x_c = 0.0
+y_c = 0.0
+z_c = 20000.0
+
+sigma_x = lx / 6
+sigma_y = ly / 6
+sigma_z = lz / 12
+
 a0 = 0.05
 
 k = 16 * pi / lx
 l = 16 * pi / ly
 m = 32 * pi / lz
 
-background = Realistic()
+model = Boussinesq()
+background = StableStratification()
 coriolis_frequency = 0.0
 
-atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
+atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
@@ -49,6 +59,7 @@ include("wave_packet_tools.jl")
 
 atmosphere = AtmosphereNamelist(;
     background,
+    model,
     coriolis_frequency,
     initial_rhop = (x, y, z) ->
         rhobar(x, y, z) *
@@ -62,8 +73,9 @@ atmosphere = AtmosphereNamelist(;
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),
     output_file = "wave_packet.h5",
+    save_ray_volumes = true,
     tmax = 100.0,
-    output_interval = 100.0,
+    output_interval = 20.0,
 )
 
 integrate(Namelists(; atmosphere, domain, output))
@@ -73,9 +85,9 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
             "examples/results/wave_packet.svg",
             data,
-            ("u", 20, 20, 40, 2),
-            ("v", 20, 20, 40, 2),
-            ("w", 20, 20, 40, 2);
+            ("w", 4, 1, 8, 1),
+            #("v", 20, 20, 40, 2),
+            #("w", 20, 20, 40, 2);
             time_unit = "min",
         )
         return

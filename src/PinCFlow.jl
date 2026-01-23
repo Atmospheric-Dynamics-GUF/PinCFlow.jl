@@ -58,6 +58,8 @@ export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn
 export NoTracer, TracerOn
 
+export NoTriad, Triad2D, Triad3DIso
+
 export Sum, Difference
 
 # Export model-state constructor.

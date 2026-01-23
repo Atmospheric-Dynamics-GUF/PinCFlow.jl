@@ -50,5 +50,6 @@ export apply_saturation_scheme!,
     shift_rays!,
     split_rays!,
     get_wave_spectrum!,
-    apply_triad_interactions!
+    apply_triad_interactions!,
+    initialize_wave_spectrum!
 end
