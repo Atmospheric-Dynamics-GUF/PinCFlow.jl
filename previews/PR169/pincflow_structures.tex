@@ -1,0 +1,50 @@
+\documentclass[tikz]{standalone}
+\usetikzlibrary{mindmap}
+\begin{document}
+    \begin{tikzpicture}[mindmap, grow cyclic, line width = 2pt, execute at begin node = \hspace{0pt}\texttt, every node/.style = {concept, fill = white}, level 1/.append style = {sibling angle = 32.7273, level distance = 5.4cm}, level 2/.append style = {sibling angle = 22.5, level distance = 4.9cm}, level 3/.append style = {level distance = 2.2cm}]
+        \node {State}
+            child {node {Atmosphere}}
+            child {node {Namelists}
+                child {node {Atmo-\\sphere-\\Namelist}}
+                child {node {Discre-\\tization-\\Namelist}}
+                child {node {Domain-\\Namelist}}
+                child {node {Output-\\Namelist}}
+                child {node {Poisson-\\Namelist}}
+                child {node {Sponge-\\Namelist}}
+                child {node {Tracer-\\Namelist}}
+                child {node {WKB-\\Namelist}}}
+            child {node {Constants}}
+            child {node {Poisson}
+                child {node {BiCGSTAB}}
+                child {node {Correction}}
+                child {node {Operator}}
+                child {node {Precon-\\ditioner}}
+                child {node {Tensor}}}
+            child {node {Domain}}
+            child {node {Tracer}
+                child {node {Tracer-\\Aux-\\iliaries}}
+                child {node {Tracer-\\Fluxes}}
+                child {node {Tracer-\\Forcings}
+                    child {node {Tracer-\\WKB-\\Impact}}}
+                child {node {Tracer-\\Increments}}
+                child {node {Tracer-\\Pre-\\dictands}}
+                child {node {Tracer-\\Recon-\\structions}}}
+            child {node {Grid}}
+            child {node {Variables}
+                child {node {Aux-\\iliaries}}
+                child {node {Backups}}
+                child {node {Fluxes}}
+                child {node {Increments}}
+                child {node {Pre-\\dictands}}
+                child {node {Recon-\\structions}}}
+            child {node {Sponge}}
+            child {node {WKB}
+                child {node {MergedRays}}
+                child {node {Rays}}
+                child {node {Surface-\\Indices}}
+                child {node {WKB-\\Increments}}
+                child {node {WKB-\\Integrals}}
+                child {node {WKB-\\Tendencies}}}
+            child {node {Time}};
+    \end{tikzpicture}
+\end{document}
