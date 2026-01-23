@@ -174,8 +174,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     lx = namelists.domain.lx / lref
     ly = namelists.domain.ly / lref
     lz = namelists.domain.lz / lref
-    lkp = namelists.triad.lkp * lref
-    lm = namelists.triad.lm * lref
 
     # Compute grid spacings.
     dx = lx / x_size

@@ -60,7 +60,8 @@ function plot_output(
 
     # Get the time.
     t = data["t"][:] ./ time_unit_factor
-
+    (nt,) = size(t)
+    #t = [tj for i in 1:nz, tj in t] #height-time meshgrid
     # Create the figure.
     figure = Figure()
 
@@ -97,7 +98,7 @@ function plot_output(
                 axis = Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit}, \quad x\approx%$xi\ \mathrm{%$space_unit}, 
-                     \quad y\approx%$yj\ \mathrm{%$space_unit}, \quad z\approx%$zk\ \mathrm{%$space_unit}",
+                     , \quad z\approx%$zk\ \mathrm{%$space_unit}",
                     xlabel = L"kp \ [\mathrm{%$space_unit}^{-1}]",
                     ylabel = L"m \ [\mathrm{%$space_unit}^{-1}]" ,
                 )
@@ -126,6 +127,171 @@ function plot_output(
                 xlims!(minimum(kp), maximum(kp))
                 ylims!(minimum(m), maximum(m))
             end
+            # Plot in the m-z plane for single kp.
+            if nz > 1 && nm > 1
+                column += 2
+
+                kp = data["kp"][:] .* space_unit_factor
+                m  = data["m"][:]  .* space_unit_factor
+
+                # assumes `z` already exists in your scope (like in your kp-m plot block)
+                # build a 1D z-vector (mean over x,y at each vertical index)
+                nz = size(z, 3)
+                zvec = [sum(z[:, :, kk]) / length(z[:, :, kk]) for kk in 1:nz] .* space_unit_factor
+
+                phi = data[variable][:, :, :, :, :, n]   # dims: x,y,z,kp,m
+
+                nkp = length(kp)
+                nm  = length(m)
+
+                # ---- choose kp index where spectrum is nonzero for given (i,j) ----
+                A = @view phi[i, j, :, :, :]             # dims: z,kp,m (3D view)
+                # collapse over (z,m) -> vector over kp
+                Skp = vec(dropdims(sum(abs.(A); dims=(1, 3)), dims=(1, 3)))
+
+                tol = 0.0  # set e.g. tol = 1e-14 if you want to ignore tiny numerical noise
+                kp_idx = findfirst(s -> s > tol, Skp)
+
+                # If no non-zero kp slice exists at this (i,j), skip plotting
+                if kp_idx === nothing
+                    @warn "No non-zero kp slice found for (i,j)=($i,$j); skipping z-m plot."
+                else
+                    kp_sel = kp[kp_idx]
+
+                    # z-m field at selected kp
+                    phim = @view phi[i, j, :, kp_idx, :]  # dims: z,m
+
+                    # Build 2D grids for contourf
+                    Z = [zz for zz in zvec, mi in 1:nm]
+                    M = [mm for zz in 1:nz,  mm in m]
+
+                    # Get the label.
+                    label = LaTeXString(attrs(data[variable])["label"])
+
+                    # Title helpers (keep your existing style)
+                    @ivy yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                    @ivy xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+
+                    axis = Axis(
+                        figure[row, column - 1];
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}, \quad x\approx%$xi\ \mathrm{%$space_unit}, 
+                                \quad kp\approx%$kp_sel\ \mathrm{%$space_unit}^{-1}",
+                        xlabel = L"z \ [\mathrm{%$space_unit}]",
+                        ylabel = L"m \ [\mathrm{%$space_unit}^{-1}]",
+                    )
+
+                    @ivy (levels, colormap) = symmetric_contours(
+                        minimum(phim),
+                        maximum(phim);
+                        number,
+                        colormap_name,
+                    )
+
+                    @ivy plot = contourf!(
+                        Z,
+                        M,
+                        phim;
+                        levels,
+                        colormap,
+                    )
+
+                    tightlimits!(axis)
+                    Colorbar(
+                        figure[row, column],
+                        plot;
+                        ticks = levels,
+                        tickformat = "{:9.2E}",
+                        label,
+                    )
+
+                    xlims!(minimum(zvec), maximum(zvec))
+                    ylims!(minimum(m), maximum(m))
+                end
+            end
+
+            # Plot in the m-z plane integrated over kp.
+            if nz > 1 && nm > 1
+                column += 2
+
+                kp = data["kp"][:] .* space_unit_factor
+                m  = data["m"][:]  .* space_unit_factor
+
+                # assumes `z` already exists in your scope (like in your kp-m plot block)
+                # build a 1D z-vector (mean over x,y at each vertical index)
+                nz = size(z, 3)
+                zvec = [sum(z[:, :, kk]) / length(z[:, :, kk]) for kk in 1:nz] .* space_unit_factor
+
+                phi = data[variable][:, :, :, :, :, n]   # dims: x,y,z,kp,m
+
+                nkp = length(kp)
+                nm  = length(m)
+
+                # ---- choose kp index where spectrum is nonzero for given (i,j) ----
+                A = @view phi[i, j, :, :, :]             # dims: z,kp,m (3D view)
+                # collapse over (z,m) -> vector over kp
+                Skp = vec(dropdims(sum(abs.(A); dims=(1, 3)), dims=(1, 3)))
+
+                tol = 0.0  # set e.g. tol = 1e-14 if you want to ignore tiny numerical noise
+                kp_idx = findfirst(s -> s > tol, Skp)
+
+                # If no non-zero kp slice exists at this (i,j), skip plotting
+                if kp_idx === nothing
+                    @warn "No non-zero kp slice found for (i,j)=($i,$j); skipping z-m plot."
+                else
+                    kp_sel = kp[kp_idx]
+
+                    # z-m field at selected kp
+                    phim = @view phi[i, j, :, kp_idx, :]  # dims: z,m
+
+                    # Build 2D grids for contourf
+                    Z = [zz for zz in zvec, mi in 1:nm]
+                    M = [mm for zz in 1:nz,  mm in m]
+
+                    # Get the label.
+                    label = LaTeXString(attrs(data[variable])["label"])
+
+                    # Title helpers (keep your existing style)
+                    @ivy yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                    @ivy xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+
+                    axis = Axis(
+                        figure[row, column - 1];
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}, \quad x\approx%$xi\ \mathrm{%$space_unit}, 
+                                \quad kp\approx%$kp_sel\ \mathrm{%$space_unit}^{-1}",
+                        xlabel = L"z \ [\mathrm{%$space_unit}]",
+                        ylabel = L"m \ [\mathrm{%$space_unit}^{-1}]",
+                    )
+
+                    @ivy (levels, colormap) = symmetric_contours(
+                        minimum(phim),
+                        maximum(phim);
+                        number,
+                        colormap_name,
+                    )
+
+                    @ivy plot = contourf!(
+                        Z,
+                        M,
+                        phim;
+                        levels,
+                        colormap,
+                    )
+
+                    tightlimits!(axis)
+                    Colorbar(
+                        figure[row, column],
+                        plot;
+                        ticks = levels,
+                        tickformat = "{:9.2E}",
+                        label,
+                    )
+
+                    xlims!(minimum(zvec), maximum(zvec))
+                    ylims!(minimum(m), maximum(m))
+                end
+            end
+
+
 
         elseif variable in ray_volume_properties
             # Get the ray-volume data.
@@ -137,6 +303,8 @@ function plot_output(
             dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
             nr = data["nr"][:, :, :, :, n]
             phi = data[variable][:, :, :, :, n]
+
+            #println("the ray valumes are", phi[:, 1, 1, 136])
 
             # Get the label.
             label = LaTeXString(attrs(data[variable])["label"])
@@ -376,6 +544,98 @@ function plot_output(
                 xlims!(minimum(y), maximum(y))
                 ylims!(minimum(z), maximum(z))
             end
+
+            
+            # Plot in the x-t plane.
+
+
+            if nx > 1 && nt > 2
+                # Get the variable.
+                phi_xt = data[variable][:, j, k, :]
+                xarray = [xj for xj in x[:, j, k], i in 1:nt]
+                tarray = [tj for i in 1:nx, tj in t] #height-time meshgrid
+                column += 2
+                @ivy zi =
+                    round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
+                    yi =
+                    round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                axis = Axis(
+                    figure[row, column - 1];
+                    backgroundcolor = :black,
+                    title = L"y\approx%$yi\ \mathrm{%$space_unit},\quad z\approx%$zi\ \mathrm{%$space_unit}",
+                    xlabel = L"t\ [\mathrm{%$time_unit}]",
+                    ylabel = L"x\ [\mathrm{%$space_unit}]",
+                )
+                @ivy (levels, colormap) = symmetric_contours(
+                    minimum(phi_xt),
+                    maximum(phi_xt);
+                    number,
+                    colormap_name,
+                )
+                @ivy plot = contourf!(
+                    tarray,
+                    xarray,
+                    phi_xt;
+                    levels,
+                    colormap,
+                )
+                tightlimits!(axis)
+                Colorbar(
+                    figure[row, column],
+                    plot;
+                    ticks = levels,
+                    tickformat = "{:9.2E}",
+                    label,
+                )
+                xlims!(minimum(tarray), maximum(tarray))
+                ylims!(minimum(xarray), maximum(xarray))
+            end
+            
+
+            # Plot in the z-t plane.
+
+            if nz > 1 && nt > 2
+                # Get the variable.
+                phi_zt = data[variable][i, j, :, :]
+                zarray = [zj for zj in z[i, j, :], i in 1:nt]
+                tarray = [tj for i in 1:nz, tj in t] #height-time meshgrid
+                column += 2
+                @ivy xi =
+                    round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+                    yi =
+                    round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                axis = Axis(
+                    figure[row, column - 1];
+                    backgroundcolor = :black,
+                    title = L"x\approx%$xi\ \mathrm{%$space_unit},\quad y\approx%$yi\ \mathrm{%$space_unit}",
+                    xlabel = L"t\ [\mathrm{%$time_unit}]",
+                    ylabel = L"z\ [\mathrm{%$space_unit}]",
+                )
+                @ivy (levels, colormap) = symmetric_contours(
+                    minimum(phi_zt),
+                    maximum(phi_zt);
+                    number,
+                    colormap_name,
+                )
+                @ivy plot = contourf!(
+                    tarray,
+                    zarray,
+                    phi_zt;
+                    levels,
+                    colormap,
+                )
+                tightlimits!(axis)
+                Colorbar(
+                    figure[row, column],
+                    plot;
+                    ticks = levels,
+                    tickformat = "{:9.2E}",
+                    label,
+                )
+                xlims!(minimum(tarray), maximum(tarray))
+                ylims!(minimum(zarray), maximum(zarray))
+            end
+            
         end
     end
 

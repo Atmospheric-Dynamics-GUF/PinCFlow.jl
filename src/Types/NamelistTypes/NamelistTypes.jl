@@ -286,6 +286,42 @@ struct TracerOn <: AbstractTracer end
 
 """
 ```julia
+TriadOn <: AbstractTriad
+```
+
+Singleton for model configurations with Triad inetractions.
+"""
+struct TriadOn <: AbstractTriad end
+
+"""
+```julia
+NoTriad <: AbstractTriad
+```
+
+Singleton for model configurations without Triad inetractions.
+"""
+struct NoTriad <: AbstractTriad end
+
+"""
+```julia
+Triad2D <: AbstractTriad
+```
+
+Singleton for model configurations with Triad inetractions in 2D setup.
+"""
+struct Triad2D <: AbstractTriad end
+
+"""
+```julia
+Triad3DIso <: AbstractTriad
+```
+
+Singleton for model configurations with Triad inetractions in 3D, horizontally isotropic and vertical axis symmetric setup.
+"""
+struct Triad3DIso <: AbstractTriad end
+
+"""
+```julia
 Sum <: AbstractResonance
 ```
 
@@ -349,7 +385,11 @@ export NeutralStratification,
     Box,
     Shapiro,
     NoTracer,
-    TracerOn, 
+    TracerOn,
+    TriadOn,
+    NoTriad,
+    Triad2D,
+    Triad3DIso, 
     Sum,
     Difference
 

@@ -153,6 +153,7 @@ function integrate(namelists::Namelists)
     #---------------------------------------------
 
     initialize_rays!(state)
+    initialize_wave_spectrum!(state)
 
     #-------------------------------------------------
     #              Read initial data
@@ -218,6 +219,8 @@ function integrate(namelists::Namelists)
         #----------------------------------
 
         dt = compute_time_step(state)
+        #dt = -dt  #in order to back propagate the rays position sand wave numbers in time. 
+                
 
         # Correct dt to hit desired output time.
         if !output_steps
@@ -468,7 +471,7 @@ function integrate(namelists::Namelists, shear::AbstractArray)
         (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0)
 
         if errflagbicg
-            create_output(state)
+            create_output(state, machine_start_time)
             iout = write_output(state, time, iout, machine_start_time)
             if master
                 println("Output last state into record ", iout, ".")
@@ -513,7 +516,7 @@ function integrate(namelists::Namelists, shear::AbstractArray)
     #------------------------------------------
 
     # Create the output file.
-    create_output(state)
+    create_output(state, machine_start_time)
 
     # Write the initial state.
     iout = write_output(state, time, iout, machine_start_time)
