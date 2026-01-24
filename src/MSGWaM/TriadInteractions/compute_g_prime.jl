@@ -7,6 +7,6 @@ function compute_g_prime(
     m2::AbstractFloat
     )::AbstractFloat
 
-    return kp1 * sign(m1) / kp1^2 - kp2 * sign(m2) / kp2^2
+    return (kp1 * sign(m1) / m1^2) - (kp2 * sign(m2) / m2^2)
  
 end

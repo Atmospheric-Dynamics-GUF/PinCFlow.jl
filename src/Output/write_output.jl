@@ -89,7 +89,8 @@ function write_output(
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
     (; nray_max, rays, tendencies, spec_tend) = state.wkb
-    (; kp_size, m_size, triad_int) = state.namelists.triad
+    (; kpl, ml) = state.wkb.spec_tend.spec_grid
+    (; triad_mode) = state.namelists.triad
     (; kp, m) = state.wkb.spec_tend.spec_grid
 
     # Print information.
@@ -124,7 +125,7 @@ function write_output(
         (ko + 2 - dk0):(ko + nz + 1),
     )
 
-    (kpr, mr) = (1:kp_size, 1:m_size)
+    (kpr, mr) = (1:kpl, 1:ml)
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
     @ivy h5open(output_file, "r+", comm) do file
@@ -380,10 +381,10 @@ function write_output(
                         getfield(tendencies, field)[ii, jj, kk] .* scaling
                 end
             end
-            if :wavespectrum in output_variables && triad_int
+            if :wavespectrum in output_variables && triad_mode != NoTriad()
                 HDF5.set_extent_dims(
                     file["wavespectrum"],
-                    (x_size, y_size, z_size, kp_size, m_size, iout),
+                    (x_size, y_size, z_size, kpl, ml, iout),
                 )
                 file["wavespectrum"][iid, jjd, kkd, kpr, mr, iout] = 
                     spec_tend.wavespectrum[ii, jj, kk, kpr, mr] .* rhoref .* uref .^ 2 .* tref .*

@@ -7,19 +7,24 @@ end
 
 #dafualt initialization for NoWKB mode
 
-function InterpCoef(wkb_mod::NoWKB)::InterpCoef
+function InterpCoef(wkb_mode::Union{NoWKB, SteadyState, SingleColumn, MultiColumn},
+   triad_mode::NoTriad)::InterpCoef
     
-    v = Array{Float64}(undef, 0, 0)
+     Array{Float64}(undef, 0, 0)
     
-    return InterpCoef(v, v, v, v)
+    return InterpCoef(Array{Float64}(undef, 0, 0), Array{Float64}(undef, 0, 0), Array{Float64}(undef, 0, 0), Array{Float64}(undef, 0, 0))
 end
 
 
-function InterpCoef(kp::AbstractVector{<:AbstractFloat},
-    m::AbstractVector{<:AbstractFloat}, 
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn})::InterpCoef
+function InterpCoef(kk::AbstractVector{<:AbstractFloat},
+    mm::AbstractVector{<:AbstractFloat}, 
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    triad_mode::Union{Triad2D, Triad3DIso})::InterpCoef
 
-     v = zeros(length(kp), length(m))
+     c_o = zeros(length(kk), length(mm))
+     alphakp = zeros(length(kk), length(mm))
+     alpham = zeros(length(kk), length(mm))
+     beta = zeros(length(kk), length(mm))
     
-    return InterpCoef(v, v, v, v)
+    return InterpCoef(c_o, alphakp, alpham, beta)
 end

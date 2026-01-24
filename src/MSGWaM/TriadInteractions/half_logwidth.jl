@@ -27,7 +27,7 @@ function half_logwidth end
 
 function half_logwidth(
     logarray::AbstractVector{<:AbstractFloat},
-)::NTuple{2, <:AbstractVector{<:AbstractFloat}}
+    )::NTuple{2, <:AbstractVector{<:AbstractFloat}}
     
     uper_half_width = zeros(length(logarray))
     lower_half_width = zeros(length(logarray))
@@ -39,8 +39,8 @@ function half_logwidth(
             uper_half_width[i] = (logarray[i] - logarray[i-1]) / 2
             lower_half_width[i] = (logarray[i] - logarray[i-1]) / 2
         else
-            uper_half_width[i] = (logarray[i+1] - logarray[i]) / 2
-            lower_half_width[i] = (logarray[i] - logarray[i-1]) / 2
+            uper_half_width[i] = abs(logarray[i+1] - logarray[i]) / 2
+            lower_half_width[i] = abs(logarray[i] - logarray[i-1]) / 2
         end
     end
     

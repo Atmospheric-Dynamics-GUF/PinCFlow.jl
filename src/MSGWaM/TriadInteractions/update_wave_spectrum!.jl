@@ -5,13 +5,14 @@ function update_wave_spectrum!(
     ii::Integer,
     jj::Integer,
     kk::Integer,
-    dtau::AbstractFloat
+    dtau::AbstractFloat, 
+    triad_mode::Union{Triad2D, Triad3DIso}
 )
     (; spec_tend) = state.wkb
     (; wavespectrum, col_int) = spec_tend
     (; kp, m) = spec_tend.spec_grid
 
-    compute_scattering_integral!(state, ii, jj, kk)
+    compute_scattering_integral!(state, ii, jj, kk, triad_mode)
 
 
     #Euler method 
@@ -38,11 +39,11 @@ function update_wave_spectrum!(
 
     end
 
-    compute_scattering_integral!(state, ii, jj, kk)
+    compute_scattering_integral!(state, ii, jj, kk, triad_mode)
 
     for mi in eachindex(m),
         kpi in eachindex(kp)
-
+        
         if  col_int[kpi, mi] != 0
             wavespectrum[ii, jj, kk, kpi, mi] = was_copy[ii, jj, kk, kpi, mi] + dtau * col_int[kpi, mi]  
         end

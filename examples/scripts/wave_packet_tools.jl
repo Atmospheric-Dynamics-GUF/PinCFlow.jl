@@ -39,11 +39,11 @@ function goussian_envelope(x, y, z)
          (y - y0)^2 / (2 * sigma_y^2) + 
          (z - z0)^2 / (2 * sigma_z^2)
 
-    #if (abs(x-x0) <= 2.5 * sigma_x) && (abs(y-y0) <= 2.5 * sigma_y) && (abs(z-z0) <= 2.5 * sigma_x)
-    return exp(-r1)
-    #else
-    #    return 0.0
-    #end
+    if (abs(x-x0) <= 2.5 * sigma_x) && (abs(y-y0) <= 2.5 * sigma_y) && (abs(z-z0) <= 2.5 * sigma_x)
+        return exp(-r1)
+    else
+        return 0.0
+    end
 end
 
 
@@ -59,7 +59,7 @@ function omega(x, y, z)
 end
 
 function bhat(x, y, z)
-    return a0 * n2(x, y, z) / m * envelope(x, y, z)
+    return a0 * n2(x, y, z) / m * goussian_envelope(x, y, z)
 end
 
 function uhat(x, y, z)

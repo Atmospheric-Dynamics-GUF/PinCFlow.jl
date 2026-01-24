@@ -9,13 +9,12 @@ using Revise
 using PinCFlow
 
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("multiple_wkb_wave_packet.h5") do data
+    h5open("resolved_wave_prop_without_shear.h5") do data
         plot_output(
-            "examples/results/multiple_wkb_wave_packet1.svg",
+            "examples/results/resolved_wave_prop_without_shear.svg",
             data,
-            ("u", 4, 4, 8, 2);
-            time_unit = "s",
-            space_unit = "m"
+            ("w", 33, 1, 160, 1);
+            time_unit = "min",
         )
         return
     end
