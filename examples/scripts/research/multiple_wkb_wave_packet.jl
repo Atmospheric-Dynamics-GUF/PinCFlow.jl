@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 8 #x_size = 16
-y_size = 8 #y_size = 16
-z_size = 16 #z_size = 32
+x_size = 10 #x_size = 16
+y_size = 10 #y_size = 16
+z_size = 22 #z_size = 32
 
 lx = 20000.0
 ly = 20000.0
@@ -57,10 +57,10 @@ m = [32 * pi / lz]
 
 k_perp = sqrt.(k.^2 + l.^2)
 
-lkp = 4 * max(abs.(k_perp)...)
-lm = 4 * max(abs.(m)...)
-kp_size = 8
-m_size = 8
+lkp = 6 * max(abs.(k_perp)...)
+lm = 6 * max(abs.(m)...)
+kp_size = 12
+m_size = 12
 
 
 
@@ -76,9 +76,6 @@ domain = DomainNamelist(;
     lx,
     ly,
     lz,
-    npx = 1,
-    npy = 1,
-    npz = 1,
     base_comm = MPI.COMM_SELF,
 )
 
@@ -106,7 +103,7 @@ output = OutputNamelist(;
     output_variables = (:u, :w, :wavespectrum),
     save_ray_volumes = true,
     output_file = "multiple_wkb_wave_packet.h5",
-    tmax = 80.0,
+    tmax = 60.0,
     output_interval = 20.0,
 )
 wkb = WKBNamelist(;

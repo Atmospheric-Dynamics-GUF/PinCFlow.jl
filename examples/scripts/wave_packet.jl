@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 40
-y_size = 40
-z_size = 80
+x_size = 3*40
+y_size = 3*40
+z_size = 3*80
 
 lx = 20000.0
 ly = 20000.0
