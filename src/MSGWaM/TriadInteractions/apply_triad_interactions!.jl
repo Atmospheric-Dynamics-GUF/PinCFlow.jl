@@ -33,8 +33,7 @@ function apply_triad_interactions!(state::State,
     @ivy for kk in (k0-1):(k1+1),
         jj in (j0-1):(j1+1),
         ii in (i0-1):(i1+1)
-    
-        compute_scattering_integral!(state, ii, jj, kk, triad_mode)
+
         update_wave_spectrum!(state, ii, jj, kk, dtau, triad_mode)
 
     end
