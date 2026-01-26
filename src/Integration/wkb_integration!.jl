@@ -23,13 +23,12 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
     for rkstage in 1:nstages
         propagate_rays!(state, dtstage, rkstage)
     end
-
     split_rays!(state)
     shift_rays!(state)
     merge_rays!(state)
     set_boundary_rays!(state)
 
-    compute_mean_flow_effect!(state)
+    #compute_mean_flow_effect!(state)
     apply_triad_interactions!(state, dtstage)
 
     return

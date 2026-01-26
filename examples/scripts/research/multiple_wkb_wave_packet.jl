@@ -68,7 +68,7 @@ sigma_xc = [lx / 2, lx / 2]
 sigma_yc = [1.0, 1.0]
 sigma_zc = [lz / 40, lz / 40]
 
-a0 = [0.5, 0.5]
+a0 = [0.8, 0.8]
 
 k = [2 * pi / 25000.0, 2 * pi / 25000.0]
 l = [0.0, 0.0]
@@ -94,8 +94,8 @@ m = [-2.07 * 2 * pi / 5000.0]
 
 lk = 6 * max(abs.(k)...)
 lm = 6 * max(abs.(m)...)
-k_size = 12
-m_size = 16
+k_size = 16
+m_size = 20
 
 
 
@@ -127,8 +127,8 @@ triad = TriadNamelist(;
     m_size,
     lk,
     lm,
-
     triad_mode = Triad2D(),
+    time_scheme = EulerMethod(),
 )
 
 wkb = WKBNamelist(;
@@ -147,9 +147,9 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :w, :wavespectrum),
     save_ray_volumes = true,
-    #output_steps = true,
-    #nout = 5,  #5,
-    #iterations = 100,   #130,
+    output_steps = true,
+    nout = 5,  #5,
+    iterations = 100,   #130,
     output_file = "triad_wave_propagation2.h5",
     tmax = 80,
     output_interval = 20.0,
@@ -170,7 +170,7 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
             "examples/results/triad_wave_propagation2.svg",
             data,
-            ("nr", 2, 1, 67, 9);
+            ("nr", 2, 1, 67, 1);
             time_unit = "min",
         )
         return

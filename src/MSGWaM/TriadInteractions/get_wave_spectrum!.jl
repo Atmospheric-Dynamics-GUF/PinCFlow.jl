@@ -224,7 +224,7 @@ function get_wave_spectrum!(state::State,
 
 
 
-   println("------Calling get wave spectrum----------")
+   println("\n Getting wave spectrum on the Eulerian grid from the Ray volumes")
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
@@ -241,7 +241,7 @@ function get_wave_spectrum!(state::State,
 
 
 
-     for k in (k0 - 1):(k1 + 1),
+     @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 

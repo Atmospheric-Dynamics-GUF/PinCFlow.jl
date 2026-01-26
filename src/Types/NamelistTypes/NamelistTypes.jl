@@ -92,6 +92,15 @@ Abstract type for resonance.
 """
 abstract type AbstractResonance end
 
+"""
+```julia
+AbstractTimeStepping
+```
+
+Abstract type for time steping schem for triad interactions.
+"""
+abstract type AbstractTimeStepping end
+
 
 
 
@@ -338,6 +347,24 @@ Singleton for model configurations with the difference resonance interactions.
 """
 struct Difference <: AbstractResonance end
 
+"""
+```julia
+EulerMethod <: AbstractTimeStepping
+```
+
+Singleton for model configurations to use the Euler method for the time stepping in triad interactions.
+"""
+struct EulerMethod <: AbstractTimeStepping end
+
+"""
+```julia
+Rk2Step <: AbstractTimeStepping
+```
+
+Singleton for model configurations to use the RK2 method for the time stepping in triad interactions.
+"""
+struct Rk2Step <: AbstractTimeStepping end
+
 
 using MPI
 using ...PinCFlow
@@ -363,7 +390,8 @@ export AbstractBackground,
     AbstractWKBFilter,
     AbstractTracer, 
     AbstractTriad,
-    AbstractResonance
+    AbstractResonance,
+    AbstractTimeStepping
 
 export NeutralStratification,
     StableStratification,
@@ -391,7 +419,9 @@ export NeutralStratification,
     Triad2D,
     Triad3DIso, 
     Sum,
-    Difference
+    Difference,
+    EulerMethod,
+    Rk2Step
 
 export DomainNamelist,
     OutputNamelist,

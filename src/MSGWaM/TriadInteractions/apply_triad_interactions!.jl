@@ -25,23 +25,26 @@ function apply_triad_interactions!(state::State,
     (; i0, i1, j0, j1, k0, k1) = domain
     (; spec_tend) = state.wkb
 
-    println("-------calling triad interaction module-------------")
+    println(repeat("-", 80))
+    println("\n Calling triad interaction module")
 
     get_wave_spectrum!(state)
     wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
-   
-    @ivy for kk in (k0-1):(k1+1),
-        jj in (j0-1):(j1+1),
-        ii in (i0-1):(i1+1)
-
-        update_wave_spectrum!(state, ii, jj, kk, dtau, triad_mode)
-
+    
+    println("\n Updating wave spectrum due to interactions")
+    @ivy for kk in (k0 - 1):(k1 + 1),
+        jj in j0:j1,
+        ii in i0:i1
+        
+            update_wave_spectrum!(state, ii, jj, kk, dtau, triad_mode)
+        
     end
     
    
     get_ray_volumes!(state, wavespectrum_copy, triad_mode)
 
-    println("----------Triad interaction module called successfully------------")
+    println("Triad interaction module successfully called \n")
+    println(repeat("-", 80))
 
     
 end

@@ -72,6 +72,6 @@ function launch_new_ray_vol!(state::State, i::Integer, j::Integer, k::Integer, k
      rays.dens[ray_index, i, j, k] = was
      nray[i, j, k] += 1
 
-    println("\n with the non dimensional ray volume properties ", 
-                (kpr, mr, dkpr, dmr, was))
+    #println("\n with the non dimensional ray volume properties ", 
+    #            (kpr, mr, dkpr, dmr, was))
 end

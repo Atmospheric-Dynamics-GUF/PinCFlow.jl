@@ -44,8 +44,8 @@ function get_ray_volumes!(state::State, wavespectrum_copy::Array{<: AbstractFloa
                 continue
 
             elseif was != 0 && length(rv) == 0
-                println("new ray volume loop called \n new ray volume launched at ", 
-                (x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
+                #println("new ray volume loop called \n new ray volume launched at ", 
+                #(x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
                 kpr = kp[kpi]
                 mr = m[mi]
                 dkpr = ukp[kpi] - lkp[kpi]
@@ -80,7 +80,7 @@ function get_ray_volumes!(state::State, wavespectrum_copy::Array{<: AbstractFloa
     #setting up wave action density equal to zero for all rays, they will be re-written in loop
     rays.dens .= 0
 
-    println("calling the get ray volume")
+   println("\n Getting the modified wave action density for the existing ray volumes, also lanching new ray volumes if required")
     #println("maximum wave density before getting it back", maximum(rays.dens) )
    
         
@@ -97,11 +97,7 @@ function get_ray_volumes!(state::State, wavespectrum_copy::Array{<: AbstractFloa
             
             was_old = wavespectrum_copy[i, j, k, kpi, mi]
             was = spec_tend.wavespectrum[i, j, k, kpi, mi]
-            """
-            if (i, j, k, kpi, mi) == (4, 4, 28, 10, 10)
-                was = 1.0
-            end
-            """
+            
             
             rv = spec_tend.ray_vol_signature[i, j, k, kpi, mi]
 
@@ -123,9 +119,9 @@ function get_ray_volumes!(state::State, wavespectrum_copy::Array{<: AbstractFloa
                 launch_new_ray_vol!(state, i, j, k, kpr, mr, dkpr, dmr, was, triad_mode)
             else
                 for tup in rv
-                    #println(rays.dens[tup[1], tup[2], tup[3], tup[4]])
+
                     rays.dens[tup[1], tup[2], tup[3], tup[4]] += (tup[5] * tup[6] * was / was_old / tup[7] )
-                    #println(rays.dens[tup[1], tup[2], tup[3], tup[4]])  
+
                 end
                  
             end
