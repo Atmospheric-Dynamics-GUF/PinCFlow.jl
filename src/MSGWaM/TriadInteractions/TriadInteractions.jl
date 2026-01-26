@@ -46,6 +46,7 @@ include("get_ray_volumes!.jl")
 include("launch_new_ray_vol!.jl")
 include("initialize_wave_spectrum!.jl")
 include("check_resonance.jl")
+include("get_nl_time_scale.jl")
 
 export get_wave_spectrum!,
        apply_triad_interactions!,

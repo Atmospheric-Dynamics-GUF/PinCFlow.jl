@@ -27,7 +27,7 @@ Construct a `TriadNamelist` instance with the given keyword arguments as propert
   - `lm::B`: Domain extent in ``\\widehat{m}``-direction.
 
 """
-struct TriadNamelist{A <: Int, B <: Float64, C <:AbstractTriad}
+struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTimeStepping}
     k_size::A
     l_size::A
     m_size::A
@@ -35,6 +35,7 @@ struct TriadNamelist{A <: Int, B <: Float64, C <:AbstractTriad}
     ll::B
     lm::B
     triad_mode::C
+    time_scheme::D
 end
 
 function TriadNamelist(;
@@ -45,6 +46,7 @@ function TriadNamelist(;
     ll::Real = 1.0,
     lm::Real = 1.0, 
     triad_mode = NoTriad(),
+    time_scheme = EulerMethod(),
 )::TriadNamelist
     return TriadNamelist(
         Int(k_size),
@@ -53,6 +55,7 @@ function TriadNamelist(;
         Float64(lk),
         Float64(ll),
         Float64(lm),
-        triad_mode
+        triad_mode,
+        time_scheme
     )
 end

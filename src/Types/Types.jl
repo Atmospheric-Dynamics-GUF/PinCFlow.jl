@@ -155,7 +155,8 @@ export AbstractBackground,
     AbstractWKBFilter,
     AbstractTracer,
     AbstractTriad,
-    AbstractResonance
+    AbstractResonance,
+    AbstractTimeStepping
 
 export Rho,
     RhoP,
@@ -244,6 +245,8 @@ export DomainNamelist,
     Triad3DIso,
     Sum,
     Difference,
-    SpectralGrid
+    SpectralGrid,
+    EulerMethod,
+    Rk2Step
 
 end

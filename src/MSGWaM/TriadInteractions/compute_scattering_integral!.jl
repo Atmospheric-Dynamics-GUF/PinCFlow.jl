@@ -26,7 +26,7 @@ function compute_scattering_integral!(
     end
     
 
-    for mi in eachindex(m),
+    @ivy for mi in eachindex(m),
         kpi in eachindex(kp)
 
         nk = was[kpi, mi]
@@ -58,7 +58,7 @@ function compute_scattering_integral!(
 
         # Singularities p=±kr, yet to define
 
-        col_int[kpi, mi] *= 2 * pi 
+        col_int[kpi, mi] *= (2 * pi) 
 
         
     end
@@ -89,7 +89,7 @@ function compute_scattering_integral!(
     end
     
 
-    for mi in eachindex(m),
+     for mi in eachindex(m),
         kpi in eachindex(kp)
 
         nk = wavespectrum[ii, jj, kk, kpi, mi]
