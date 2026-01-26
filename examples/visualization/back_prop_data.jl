@@ -20,21 +20,34 @@ function mean_nonzero(A::AbstractArray)::Float64
     return n > 0 ? s / n : zero(s)
 end
 
-time_slice = 7
+x_slice = 1
+y_slize = 1
+z_slice = 110
+time_slice = 51
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("back_prop_1.h5") do data
+    h5open("back_prop_pos.h5") do data
         plot_output(
-            "examples/results/back_prop_1.svg",
+            "examples/results/back_prop_pos.svg",
             data,
-            ("zr", 2, 1, 90, time_slice);
+            ("nr", 1, 1, 110, time_slice);
             time_unit = "min",
         )
         # position of the wave mode at the initial time
-        z_pos = data["zr"][:, 3, 1, :, time_slice]
-        wave_number = data["mr"][:, 3, 1, :, time_slice]
+        #to find the average hieght and wave numbers
+        z_pos = data["zr"][:, 1, 1, :, time_slice]
+        wave_number = data["mr"][:, 1, 1, :, time_slice]
         mean_pos = mean_nonzero(z_pos)
         mean_wave_number = mean_nonzero(wave_number)
         println((mean_pos, mean_wave_number))
+
+        #to find the postion and wavenumber towards the maximum nr
+        nr_Z = data["nr"][:, 1, 1, :, time_slice]
+        peak_nr = argmax(nr_Z)
+        (max_alpha, max_z) = Tuple(peak_nr)
+        z_pos = data["zr"][max_alpha, 1, 1, max_z, time_slice]
+        wave_number = data["mr"][max_alpha, 1, 1, max_z, time_slice]
+        println((mean_pos, mean_wave_number))
+
         return
     end
 end

@@ -42,6 +42,7 @@ function launch_new_ray_vol!(state::State, i::Integer, j::Integer, k::Integer, k
 
      (; nray, rays, nray_wrk) = state.wkb
      (; dx, dy, dz, x, y, zc ,zctilde, jac) = state.grid
+     (;lref ) = state.constants
 
      
      ray_index = nray[i, j, k] + 1
@@ -71,5 +72,6 @@ function launch_new_ray_vol!(state::State, i::Integer, j::Integer, k::Integer, k
      rays.dens[ray_index, i, j, k] = was
      nray[i, j, k] += 1
 
-
+    println("\n with the non dimensional ray volume properties ", 
+                (kpr, mr, dkpr, dmr, was))
 end

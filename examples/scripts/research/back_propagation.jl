@@ -16,30 +16,34 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 #model parameters
 
-x_size = 5 #x_size = 16
+x_size = 2 #x_size = 16
 y_size = 1 #y_size = 16
-z_size = 176 #z_size = 32
+z_size = 229 #z_size = 32
 
 lx = 50000.0
 ly = 50000.0
 lz = 40000.0
 
-wave_modes = 1
+wave_modes = 2
 
-x_c = [0.0]
+x_c = [0.0, 0.0]
 y_c = [0.0, 0.0]
-z_c = [20000.0]
+z_c = [20000.0, 20000.0]
 
-sigma_xc = [lx]
+sigma_xc = [lx, lx]
 sigma_yc = [1.0, 1.0]
-sigma_zc = [lz / 20, lz / 20]
+sigma_zc = [1000.0, 1000.0]
 
 a0 = [0.5, 0.5]
 
-k = [4 * pi / 50000.0]
-l = [0.0]
+k = [4 * pi / 50000.0, 4 * pi / 50000.0]
+l = [0.0, 0.0]
 #m = [5 * 2 * pi / 5000.0, -2.07 * 2 * pi / 5000.0]
-m = [-0.00145606671777678]
+#postive wave number
+#m = [0.03575356081779317]
+
+#negative wave number
+m = [0.03575356081779317, -0.014809609793861218]
 
 """
 x_c = [0.0]
@@ -117,8 +121,8 @@ output = OutputNamelist(;
     save_ray_volumes = true,
     output_steps = true,
     nout = 10,
-    iterations = 100,
-    output_file = "back_prop_1.h5",
+    iterations = 700,
+    output_file = "back_prop_pos_neg.h5",
     tmax = 1000.0,
     output_interval = 100.0,
 )
@@ -134,11 +138,11 @@ wkb = WKBNamelist(;
 integrate(Namelists(; atmosphere, domain, output, wkb, triad))
 
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("back_prop_1.h5") do data
+    h5open("back_prop_pos_neg.h5") do data
         plot_output(
-            "examples/results/back_prop_1.svg",
+            "examples/results/back_prop_pos_neg.svg",
             data,
-            ("nr", 2, 1, 67, 9);
+            ("nr", 2, 1, 67, 71);
             time_unit = "min",
         )
         return

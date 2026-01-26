@@ -110,8 +110,8 @@ function get_ray_volumes!(state::State, wavespectrum_copy::Array{<: AbstractFloa
                 continue
 
             elseif was != 0 && length(rv) == 0
-                #println("new ray volume loop called \n new ray volume launched at ", 
-                #(x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
+                println("new ray volume loop called \n new ray volume launched at ", 
+                (x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
                 kpr = kp[kpi]
                 mr = m[mi]
                 dkpr = kpc[kpi + 1] - kpc[kpi]

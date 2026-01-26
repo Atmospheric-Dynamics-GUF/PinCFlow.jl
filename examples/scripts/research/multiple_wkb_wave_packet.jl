@@ -18,7 +18,7 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 2 #x_size = 16
 y_size = 1 #y_size = 16
-z_size = 40 #z_size = 176 #z_size = 32
+z_size = 229 #z_size = 176 #z_size = 32
 
 lx = 50000.0
 ly = 50000.0
@@ -42,7 +42,7 @@ k = [2 * pi / 50000.0, 2 * pi / 50000.0]
 l = [0.0, 0.0]
 #m = [5 * 2 * pi / 5000.0, -2.07 * 2 * pi / 5000.0]
 m = [0.0043791985000000005, -0.0033200091999999997]
-"""
+
 #Second set of initial conditions
 x_c = [0.0, 0.0]
 y_c = [0.0, 0.0]
@@ -58,6 +58,22 @@ k = [2 * pi / 25000.0, 2 * pi / 25000.0]
 l = [0.0, 0.0]
 #m = [5 * 2 * pi / 5000.0, -2.07 * 2 * pi / 5000.0]
 m = [0.002864732639864087, -0.0015909071080386639]
+"""
+#Third set of initial conditions
+x_c = [0.0, 0.0]
+y_c = [0.0, 0.0]
+z_c = [21094.263671875, 18609.89453125]
+
+sigma_xc = [lx / 2, lx / 2]
+sigma_yc = [1.0, 1.0]
+sigma_zc = [lz / 40, lz / 40]
+
+a0 = [0.5, 0.5]
+
+k = [2 * pi / 25000.0, 2 * pi / 25000.0]
+l = [0.0, 0.0]
+#m = [5 * 2 * pi / 5000.0, -2.07 * 2 * pi / 5000.0]
+m = [0.019409503787755966, -0.02801777608692646]
 
 """
 x_c = [0.0]
@@ -79,7 +95,7 @@ m = [-2.07 * 2 * pi / 5000.0]
 lk = 6 * max(abs.(k)...)
 lm = 6 * max(abs.(m)...)
 k_size = 12
-m_size = 12
+m_size = 16
 
 
 
@@ -132,11 +148,11 @@ output = OutputNamelist(;
     output_variables = (:u, :w, :wavespectrum),
     save_ray_volumes = true,
     #output_steps = true,
-    #nout = 3,  #5,
+    #nout = 5,  #5,
     #iterations = 100,   #130,
-    output_file = "wkb_wave_propagation.h5",
-    tmax = 100.0,
-    output_interval = 10.0,
+    output_file = "triad_wave_propagation2.h5",
+    tmax = 80,
+    output_interval = 20.0,
 )
 wkb = WKBNamelist(;
     wkb_mode = SingleColumn(),
@@ -150,9 +166,9 @@ wkb = WKBNamelist(;
 integrate(Namelists(; atmosphere, domain, output, wkb, triad))
 
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("wkb_wave_propagation.h5") do data
+    h5open("triad_wave_propagation2.h5") do data
         plot_output(
-            "examples/results/wkb_wave_propagation.svg",
+            "examples/results/triad_wave_propagation2.svg",
             data,
             ("nr", 2, 1, 67, 9);
             time_unit = "min",
