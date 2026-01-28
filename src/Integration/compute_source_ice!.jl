@@ -331,7 +331,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 
 	(; rhobar, pbar) = state.atmosphere
 	(; rho, rhop, u, v, w, pip, p) = state.variables.predictands
-	(; iceconstants) = state.ice
+	(; iceconstants, iceforcing) = state.ice
 	(; icesource) = state.ice
 	(; iceauxiliaries) = state.ice
 	(; kappainv, pref, gamma, lref) = state.constants
@@ -344,6 +344,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 
 	#n_min = 1.0e-8 # minimum number concentration to avoid division by zero
 	tau = state.namelists.ice.tau_q_sink
+	tau_qv_source = state.namelists.ice.tau_qv_source
 
 	# center ISSR # eventuell noch in namelist auslagern (wird auch in IcePredictands.jl verwendet)
 	z0_issr = 8.e3 # [m]
@@ -360,8 +361,13 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 	zMin_issr = z0_issr - sig_issr
 	zMax_issr = z0_issr + sig_issr
 
-	# test print time
-	#println("Physical Time is", t*tref)
+	# initial ice forcing profile
+	qv_eq = iceforcing.qv_ref
+	#println("Using ice forcing qv profile with length and min/max", length(qv_eq), " ", minimum(qv_eq), " ", maximum(qv_eq))
+	#println("Time is ", state.ice.iceforcing.time_physical)
+
+	q_ref = 1.0
+
 
 	for k in k0:k1, j in j0:j1, i in i0:i1
 
@@ -420,14 +426,14 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 				icesource.nsource[i, j, k] = 0.0 # \dot N_ice=0.
 			else
 				if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-					icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants) - 0.5 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
+					icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants) - 1.0 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
 				else
 					icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants)
 				end
 			end
 		else
 			if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-				icesource.nsource[i, j, k] = 0.0 - 0.5 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
+				icesource.nsource[i, j, k] = 0.0 - 1.0 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
 			else
 				icesource.nsource[i, j, k] = 0.0
 			end
@@ -435,27 +441,30 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 
 		dqv = dot_qv(sice, NIce, temp, pres, psi, iceconstants)
 
-		calculate_qv_forcing = true
-		z_factor = 1.0
+		#z_factor = 1.0
 		#z_factor = exp(- (zc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2)
+		if tau_qv_source > 0.0 && q[i, j, k] >= 0.0 && n[i, j, k] >= 0.0 && qv[i, j, k] >= 0.0
+			z_factor = 1.0 / 2.0 * (tanh( (zc[i, j, k] - zMin_issr) / (0.1 * sig_issr) ) - tanh( (zc[i, j, k] - zMax_issr) / (0.1 * sig_issr) ) )
+		end
 
-		if calculate_qv_forcing
-			# water vapor source term
-			if ((zc[i, j, k] >= zMin_issr) && (zc[i, j, k] <= zMax_issr)) && calculate_qv_forcing  # evtl durch glatte funktion ersetzen
-				qv_forcing = z_factor * 1.0 / 3.0e-3 * qv[i, j, k] #* (1 - qv[i, j, k] / qv_issr_max)
-				println("qv forcing = ", qv_forcing)
-			else
-				qv_forcing = 0.0
-			end
-		end		
 
-		icesource.qvsource[i, j, k] = dqv #+ qv_forcing # hier quelle ergänzt
+		# water vapor source term
+		if tau_qv_source > 0.0 && q[i, j, k] >= 0.0 && n[i, j, k] >= 0.0 && qv[i, j, k] >= 0.0 # evtl durch ((zc[i, j, k] >= zMin_issr) && (zc[i, j, k] <= zMax_issr))
+			#qv_forcing = z_factor * 1.0 / tau_qv_source * qv[i, j, k] #* (1 - qv[i, j, k] / qv_issr_max)
+			qv_forcing = (qv_eq[k] - qv[i, j, k]) / tau_qv_source * z_factor #* exp(-q[i, j, k]/q_ref)
+			#qv_forcing = (qv_eq[k] - qv[i, j, k]) / tau_qv_source * exp(-q[i, j, k]/q_ref) * z_factor * 0.5 * (1 - cos(2 * pi * state.iceforcing.time_physical/1.0e5)) 
+			#println("qv_forcing = ", qv_forcing)
+		else
+			qv_forcing = 0.0
+		end
+	
+		icesource.qvsource[i, j, k] = dqv + qv_forcing # hier quelle ergänzt
+
 		if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
 			icesource.qsource[i, j, k] = -dqv - 1.0 / tau * q[i, j, k]^(5. / 3.) * n[i, j, k]^(-2. / 3.) # added sink term
 		else
 			icesource.qsource[i, j, k] = -dqv
 		end
-
 		
 		iceauxiliaries.iaux2[i, j, k] = icesource.nsource[i, j, k]
 		iceauxiliaries.iaux3[i, j, k] = dqv
