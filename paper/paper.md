@@ -76,7 +76,7 @@ The Public API consists of all objects that are exported by PinCFlow.jl's main m
 
 # Research impact statement
 
-PinCFlow.jl originated from a Fortran code [@Rieper2013] that was used and extended for gravity-wave research [@Boeloeni2016; @Wilhelm2018; @Wei2019; @Schmid2021; @Jochum2025]. Most notably, this includes the development of MS-GWaM. PinCFlow.jl's semi-implicit time scheme [@Schmid2021] is based on the temporal discretization in the models introduced by @Benacchio2019 and @Chew2022. In contrast to these models, PinCFlow.jl does not provide seamless access to soundproof and hydrostatic dynamics (instead, the prognostic equations are set in the initialization and not changed during the simulation) or any data assimilation capabilities, since it was primarily designed for idealized studies of wave dynamics.
+PinCFlow.jl originated from a Fortran code [@Rieper2013] that was used and extended for gravity-wave research [@Boeloeni2016; @Wilhelm2018; @Wei2019; @Schmid2021; @Jochum2025]. Most notably, this included the development of MS-GWaM. PinCFlow.jl's semi-implicit time scheme [@Schmid2021] is based on the temporal discretization in the models introduced by @Benacchio2019 and @Chew2022. In contrast to these models, PinCFlow.jl does not provide seamless access to soundproof and hydrostatic dynamics (instead, the prognostic equations are set in the initialization and not changed during the simulation) or any data assimilation capabilities, since it was primarily designed for idealized studies of wave dynamics.
 
 # State of the field
 
