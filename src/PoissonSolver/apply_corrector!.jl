@@ -7,9 +7,9 @@ apply_corrector!(
 )::Tuple{Bool, <:Integer}
 ```
 
-Perform the corrector step and return a tuple containing an error flag and the number of BicGStab iterations.
+Perform the corrector step and return a tuple containing an error flag and the number of BiCGSTAB iterations.
 
-The left-hand side and the linear operator of the discrete Poisson equation are calculated. The equation is then solved for Exner-pressure differences, using a preconditioned BicGStab algorithm. Finally, the Exner-pressure, wind and density fluctuations are corrected accordingly.
+The left-hand side and the linear operator of the discrete Poisson equation are calculated. The equation is then solved for Exner-pressure differences, using a preconditioned BiCGSTAB algorithm. Finally, the Exner-pressure, wind and density fluctuations are corrected accordingly.
 
 # Arguments
 
