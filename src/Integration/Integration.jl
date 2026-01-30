@@ -48,6 +48,7 @@ include("implicit_integration!.jl")
 include("wkb_integration!.jl")
 include("compute_source_ice!.jl")
 include("iceroutines.jl")
+#include("ice_processes.jl") # added
 include("explicit_integration_rhs_ice!.jl")
 include("backup_predictands.jl")
 

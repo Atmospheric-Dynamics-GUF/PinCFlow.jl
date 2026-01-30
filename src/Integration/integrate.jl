@@ -247,11 +247,6 @@ function integrate(namelists::Namelists)
         #--------------------------------------------------------------
 
         state.ice.iceforcing.time_physical = time * tref
-        # test print
-        if master
-            println("Physical time = ", state.ice.iceforcing.time_physical, " seconds")
-            println("")
-        end
 
         #--------------------------------------------------------------
         #              Update RHS ice variables
@@ -284,7 +279,7 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        (p0, chi0) = backup_predictands(state)
+        (p0, chi0, ice0) = backup_predictands(state)
 
         compute_fluxes!(state, p0, Theta())
 
@@ -318,7 +313,7 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        reset_predictands!(state, p0, chi0)
+        reset_predictands!(state, p0, chi0, ice0)
 
         explicit_integration!(state, p0, 0.5 * dt, time, RHS())
 
@@ -353,6 +348,37 @@ function integrate(namelists::Namelists)
             println("...the semi-implicit time step is done.")
             println("")
         end
+
+        # --------------------------------------------------------------
+        #               Enforce non-negativity of ice variables
+        # --------------------------------------------------------------
+
+        (; n, q, qv) = state.ice.icepredictands
+        
+        clamp!(n, 0.0, Inf)
+        clamp!(q, 0.0, Inf)
+        clamp!(qv, 0.0, Inf)
+
+        #--------------------------------------------------------------
+        #          Print max of ice variables for monitoring
+        #--------------------------------------------------------------
+
+        #if master
+        #    println(
+        #        "Max n = ",
+        #        maximum(skipmissing(filter(isfinite, n))),
+        #    )
+        #    println(
+        #        "Max q = ",
+        #        maximum(skipmissing(filter(isfinite, q))),
+        #    )
+        #    println(
+        #        "Max qv = ",
+        #        maximum(skipmissing(filter(isfinite, qv))),
+        #    )
+        #    println("")
+        #end
+
 
         #--------------------------------------------------------------
         #                           Output

@@ -22,6 +22,7 @@ using ..VariableTypes
 include("IceConstants.jl")
 include("IceForcing.jl") # added
 include("../../Integration/iceroutines.jl")
+#include("../../Integration/ice_processes.jl") #added
 include("IcePredictands.jl")
 include("IceIncrements.jl")
 include("IceAuxiliaries.jl")

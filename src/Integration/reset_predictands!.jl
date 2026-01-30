@@ -47,11 +47,13 @@ function reset_predictands!(
     state::State,
     predictands::Predictands,
     tracerpredictands::TracerPredictands,
+    icepredictands::IcePredictands,
 )
     (; model) = state.namelists.atmosphere
 
     reset_predictands!(state, predictands, model)
     reset_predictands!(state, tracerpredictands)
+    reset_predictands!(state, icepredictands) # added ice predictands reset
 
     return
 end
@@ -60,6 +62,16 @@ function reset_predictands!(state::State, tracerpredictands::TracerPredictands)
     (; chi) = state.tracer.tracerpredictands
 
     chi .= tracerpredictands.chi
+
+    return
+end
+
+function reset_predictands!(state::State, icepredictands::IcePredictands) # added ice predictands reset
+    (; n, q, qv) = state.ice.icepredictands
+
+    n .= icepredictands.n
+    q .= icepredictands.q
+    qv .= icepredictands.qv
 
     return
 end

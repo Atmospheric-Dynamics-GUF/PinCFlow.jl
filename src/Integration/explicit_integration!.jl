@@ -78,8 +78,8 @@ function explicit_integration!(
         )
 
         #CHANGES ice advection
-        update!(state, dtstage, rkstage, ice_setup)
-        #apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, ice_setup)
+        update!(state, dtstage, rkstage, ice_setup) # advection of ice variables
+        #apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, ice_setup) # useless :)
 
         set_boundaries!(state, BoundaryPredictands())
 

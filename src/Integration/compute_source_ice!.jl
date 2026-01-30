@@ -366,7 +366,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 	#println("Using ice forcing qv profile with length and min/max", length(qv_eq), " ", minimum(qv_eq), " ", maximum(qv_eq))
 	#println("Time is ", state.ice.iceforcing.time_physical)
 
-	q_ref = 1.0
+	#q_ref = 1.0
 
 
 	for k in k0:k1, j in j0:j1, i in i0:i1
@@ -426,32 +426,36 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 				icesource.nsource[i, j, k] = 0.0 # \dot N_ice=0.
 			else
 				if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-					icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants) - 1.0 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
+					nsink = - 1.0 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
 				else
-					icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants)
+					nsink = 0.0
 				end
+
+				icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants) + nsink # added sink term
 			end
 		else
 			if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-				icesource.nsource[i, j, k] = 0.0 - 1.0 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
+				nsink = - 1.0 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
 			else
-				icesource.nsource[i, j, k] = 0.0
+				nsink = 0.0
 			end
+
+			icesource.nsource[i, j, k] = nsink # added sink term
 		end
 
 		dqv = dot_qv(sice, NIce, temp, pres, psi, iceconstants)
 
 		#z_factor = 1.0
 		#z_factor = exp(- (zc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2)
-		if tau_qv_source > 0.0 && q[i, j, k] >= 0.0 && n[i, j, k] >= 0.0 && qv[i, j, k] >= 0.0
-			z_factor = 1.0 / 2.0 * (tanh( (zc[i, j, k] - zMin_issr) / (0.1 * sig_issr) ) - tanh( (zc[i, j, k] - zMax_issr) / (0.1 * sig_issr) ) )
-		end
+		#if tau_qv_source > 0.0 && q[i, j, k] >= 0.0 && n[i, j, k] >= 0.0 && qv[i, j, k] >= 0.0
+		#	z_factor = 1.0 / 2.0 * (tanh( (zc[i, j, k] - zMin_issr) / (0.1 * sig_issr) ) - tanh( (zc[i, j, k] - zMax_issr) / (0.1 * sig_issr) ) )
+		#end
 
 
 		# water vapor source term
 		if tau_qv_source > 0.0 && q[i, j, k] >= 0.0 && n[i, j, k] >= 0.0 && qv[i, j, k] >= 0.0 # evtl durch ((zc[i, j, k] >= zMin_issr) && (zc[i, j, k] <= zMax_issr))
 			#qv_forcing = z_factor * 1.0 / tau_qv_source * qv[i, j, k] #* (1 - qv[i, j, k] / qv_issr_max)
-			qv_forcing = (qv_eq[k] - qv[i, j, k]) / tau_qv_source * z_factor #* exp(-q[i, j, k]/q_ref)
+			qv_forcing = (qv_eq[k] - qv[i, j, k]) / tau_qv_source #* z_factor #* exp(-q[i, j, k]/q_ref)
 			#qv_forcing = (qv_eq[k] - qv[i, j, k]) / tau_qv_source * exp(-q[i, j, k]/q_ref) * z_factor * 0.5 * (1 - cos(2 * pi * state.iceforcing.time_physical/1.0e5)) 
 			#println("qv_forcing = ", qv_forcing)
 		else
@@ -459,16 +463,29 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 		end
 	
 		icesource.qvsource[i, j, k] = dqv + qv_forcing # hier quelle ergänzt
-
-		if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-			icesource.qsource[i, j, k] = -dqv - 1.0 / tau * q[i, j, k]^(5. / 3.) * n[i, j, k]^(-2. / 3.) # added sink term
-		else
-			icesource.qsource[i, j, k] = -dqv
-		end
 		
+		if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
+			qsink = - 1.0 / tau * q[i, j, k]^(5. / 3.) * n[i, j, k]^(-2. / 3.) # added sink term
+		else
+			qsink = 0.0
+		end
+
+		icesource.qsource[i, j, k] = -dqv + qsink # added sink term
+
 		iceauxiliaries.iaux2[i, j, k] = icesource.nsource[i, j, k]
 		iceauxiliaries.iaux3[i, j, k] = dqv
+		iceauxiliaries.iaux4[i, j, k] = qv_forcing
+		iceauxiliaries.iaux5[i, j, k] = qsink
+
+		#icesource.qvsource[i, j, k] = qv_forcing # debug without dqv
+		#icesource.nsource[i, j, k] = nsink # debug with only n sink
+		#icesource.qsource[i, j, k] = qsink # debug with only q sink
+
 	end
+
+	#icesource.nsource .= 0.0 # for debugging
+	#icesource.qsource .= 0.0 # for debugging
+	#icesource.qvsource .= 0.0 # for debugging
 
 	return
 end

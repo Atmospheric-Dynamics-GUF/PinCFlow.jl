@@ -108,6 +108,8 @@ function Ice(
 )
     iceconstants = IceConstants(constants)
 
+    iceforcing = IceForcing(constants, domain) # added
+
     icepredictands = IcePredictands(
         namelists,
         constants,
@@ -115,7 +117,8 @@ function Ice(
         atmosphere,
         grid,
         variables,
-        iceconstants 
+        iceconstants,
+        iceforcing # added
     )
     iceincrements = IceIncrements(namelists, domain)
     iceauxiliaries = IceAuxiliaries(icepredictands)
@@ -129,8 +132,6 @@ function Ice(
     sgsincrements = SgsIncrements(namelists, domain, subgrid)
     sgstendencies = SgsTendencies(namelists, subgrid)
     sgsauxiliaries = SgsAuxiliaries(namelists, domain, subgrid)
-
-    iceforcing = IceForcing(constants) # added
     
     return Ice(
         icepredictands,

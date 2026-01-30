@@ -1498,6 +1498,8 @@ function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn)
 	(; alphark, betark) = state.time
 	(; iceincrements, icepredictands, icefluxes) = state.ice
 
+    #println("Ice Advection Update Step")
+
 	for (fd, field) in enumerate(fieldnames(IcePredictands))
 		if m == 1
 			getfield(iceincrements, fd) .= 0.0
@@ -1520,6 +1522,10 @@ function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn)
 				dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
 			getfield(icepredictands, fd)[i, j, k] +=
 				betark[m] * getfield(iceincrements, fd)[i, j, k]
+            getfield(icepredictands, fd)[i, j, k] = max.(
+                getfield(icepredictands, fd)[i, j, k],
+                0.0
+            )
 		end
 	end
 
@@ -1578,6 +1584,10 @@ function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUp
 				dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
 			getfield(icepredictands, fd)[i, j, k] +=
 				betark[m] * getfield(iceincrements, fd)[i, j, k]
+            getfield(icepredictands, fd)[i, j, k] = max.(
+                getfield(icepredictands, fd)[i, j, k],
+                0.0
+            )
 		end
 	end
 
