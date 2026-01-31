@@ -162,6 +162,7 @@ function activate_orographic_source!(
             wad_ini[alpha, i, j, k] = wad
         end
     end
+
     return
 end
 
@@ -419,4 +420,6 @@ function activate_orographic_source!(state::State)
             rays.dens[r, i, j, k] = wadr / pspvol
         end
     end
+
+    return
 end

@@ -367,17 +367,9 @@ background = Realistic()
 coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
-domain = DomainNamelist(;
-    x_size,
-    y_size,
-    z_size,
-    lx,
-    ly,
-    lz,
-    base_comm = MPI.COMM_SELF,
-)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp) = auxiliary_state.constants
+(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
 include("wave_packet_tools.jl")
 
@@ -393,7 +385,6 @@ atmosphere = AtmosphereNamelist(;
     initial_pip = (x, y, z) ->
         real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
 )
-domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),
     output_file = "wave_packet.h5",
@@ -594,23 +585,14 @@ model = Compressible()
 background = Realistic()
 coriolis_frequency = 0.0001
 
-atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
-domain = DomainNamelist(;
-    x_size,
-    y_size,
-    z_size,
-    lx,
-    ly,
-    lz,
-    base_comm = MPI.COMM_SELF,
-)
+atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp) = auxiliary_state.constants
+(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
 include("wave_packet_tools.jl")
 
-atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
-domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 output = OutputNamelist(;
     save_ray_volumes = true,
     output_file = "wkb_wave_packet.h5",
@@ -619,14 +601,8 @@ output = OutputNamelist(;
 )
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
-    initial_wave_field = (alpha, x, y, z) -> (
-        k,
-        l,
-        m,
-        omega(x, y, z),
-        rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
-        n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z),
-    ),
+    initial_wave_field = (alpha, x, y, z) ->
+        (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
 
 integrate(Namelists(; atmosphere, domain, output, wkb))
@@ -654,24 +630,26 @@ initializes an unresolved gravity-wave packet (i.e. one that is parameterized by
 The script
 
 ```julia
+# examples/scripts/wave_packet_tools.jl
+
 function ijk(x, y, z)
-    i = argmin(abs.(x .- auxiliary_state.grid.x))
-    j = argmin(abs.(y .- auxiliary_state.grid.y))
-    k = argmin(abs.(z .- auxiliary_state.grid.zc[i, j, :]))
+    i = argmin(abs.(x .- auxiliary_state.grid.x .* lref))
+    j = argmin(abs.(y .- auxiliary_state.grid.y .* lref))
+    k = argmin(abs.(z .- auxiliary_state.grid.zc[i, j, :] .* lref))
 
     return CartesianIndex(i, j, k)
 end
 
 function rhobar(x, y, z)
-    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)] .* rhoref
 end
 
 function thetabar(x, y, z)
-    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)] .* thetaref
 end
 
 function n2(x, y, z)
-    return auxiliary_state.atmosphere.n2[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.n2[ijk(x, y, z)] ./ tref .^ 2
 end
 
 function envelope(x, y, z)
@@ -704,26 +682,36 @@ function bhat(x, y, z)
 end
 
 function uhat(x, y, z)
-    return 1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
            (omega(x, y, z)^2 - coriolis_frequency^2) *
            (k * omega(x, y, z) + 1im * l * coriolis_frequency) *
            bhat(x, y, z)
 end
 
 function vhat(x, y, z)
-    return 1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
            (omega(x, y, z)^2 - coriolis_frequency^2) *
            (l * omega(x, y, z) - 1im * k * coriolis_frequency) *
            bhat(x, y, z)
 end
 
 function what(x, y, z)
-    return 1im * omega(x, y, z) / n2(x, y, z) * bhat(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im * omega(x, y, z) / n2(x, y, z) * bhat(x, y, z)
 end
 
 function pihat(x, y, z)
-    return kappa / rsp / thetabar(x, y, z) * 1im / m *
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           kappa / rsp / thetabar(x, y, z) * 1im / m *
            (omega(x, y, z)^2 - n2(x, y, z)) / n2(x, y, z) * bhat(x, y, z)
+end
+
+function wave_action_density(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
+           n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z)^2
 end
 
 ```

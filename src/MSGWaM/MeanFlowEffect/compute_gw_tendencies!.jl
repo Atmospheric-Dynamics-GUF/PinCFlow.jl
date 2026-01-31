@@ -156,4 +156,6 @@ function compute_gw_tendencies!(state::State)
             state.namelists.tracer.tracer_setup,
         )
     end
+
+    return
 end

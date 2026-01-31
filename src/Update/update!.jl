@@ -753,10 +753,6 @@ function update!(
         fluxdiff /= jacedger
 
         # Explicit integration of Coriolis force in TFC.
-        uold[i, j, k] = u[i, j, k]
-        if k == k1 && ko + nz != z_size
-            uold[i, j, k + 1] = u[i, j, k + 1]
-        end
         vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
         vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
         volforce =
@@ -911,10 +907,6 @@ function update!(
         fluxdiff /= jacedgef
 
         # Explicit integration of Coriolis force in TFC.
-        vold[i, j, k] = v[i, j, k]
-        if k == k1 && ko + nz != z_size
-            vold[i, j, k + 1] = v[i, j, k + 1]
-        end
         uc = 0.5 * (uold[i, j, k] + uold[i - 1, j, k])
         uf = 0.5 * (uold[i, j + 1, k] + uold[i - 1, j + 1, k])
 
