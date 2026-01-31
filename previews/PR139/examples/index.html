@@ -297,17 +297,9 @@ background = Realistic()
 coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
-domain = DomainNamelist(;
-    x_size,
-    y_size,
-    z_size,
-    lx,
-    ly,
-    lz,
-    base_comm = MPI.COMM_SELF,
-)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp) = auxiliary_state.constants
+(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
 include(&quot;wave_packet_tools.jl&quot;)
 
@@ -323,7 +315,6 @@ atmosphere = AtmosphereNamelist(;
     initial_pip = (x, y, z) -&gt;
         real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
 )
-domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),
     output_file = &quot;wave_packet.h5&quot;,
@@ -482,23 +473,14 @@ model = Compressible()
 background = Realistic()
 coriolis_frequency = 0.0001
 
-atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
-domain = DomainNamelist(;
-    x_size,
-    y_size,
-    z_size,
-    lx,
-    ly,
-    lz,
-    base_comm = MPI.COMM_SELF,
-)
+atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp) = auxiliary_state.constants
+(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
 include(&quot;wave_packet_tools.jl&quot;)
 
-atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
-domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 output = OutputNamelist(;
     save_ray_volumes = true,
     output_file = &quot;wkb_wave_packet.h5&quot;,
@@ -507,14 +489,8 @@ output = OutputNamelist(;
 )
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
-    initial_wave_field = (alpha, x, y, z) -&gt; (
-        k,
-        l,
-        m,
-        omega(x, y, z),
-        rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
-        n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z),
-    ),
+    initial_wave_field = (alpha, x, y, z) -&gt;
+        (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
 
 integrate(Namelists(; atmosphere, domain, output, wkb))
@@ -530,24 +506,26 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         return
     end
 end
-</code></pre><p>initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a &quot;realistic&quot; compressible atmosphere (isentropic troposphere and isothermal stratosphere) and visualizes the resulting ray-volume distribution after fifteen minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.</p><p><img src="results/wkb_wave_packet.svg" alt/></p><h2 id="Wave-packet-helper-functions"><a class="docs-heading-anchor" href="#Wave-packet-helper-functions">Wave-packet helper functions</a><a id="Wave-packet-helper-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Wave-packet-helper-functions" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs">function ijk(x, y, z)
-    i = argmin(abs.(x .- auxiliary_state.grid.x))
-    j = argmin(abs.(y .- auxiliary_state.grid.y))
-    k = argmin(abs.(z .- auxiliary_state.grid.zc[i, j, :]))
+</code></pre><p>initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a &quot;realistic&quot; compressible atmosphere (isentropic troposphere and isothermal stratosphere) and visualizes the resulting ray-volume distribution after fifteen minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.</p><p><img src="results/wkb_wave_packet.svg" alt/></p><h2 id="Wave-packet-helper-functions"><a class="docs-heading-anchor" href="#Wave-packet-helper-functions">Wave-packet helper functions</a><a id="Wave-packet-helper-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Wave-packet-helper-functions" title="Permalink"></a></h2><p>The script</p><pre><code class="language-julia hljs"># examples/scripts/wave_packet_tools.jl
+
+function ijk(x, y, z)
+    i = argmin(abs.(x .- auxiliary_state.grid.x .* lref))
+    j = argmin(abs.(y .- auxiliary_state.grid.y .* lref))
+    k = argmin(abs.(z .- auxiliary_state.grid.zc[i, j, :] .* lref))
 
     return CartesianIndex(i, j, k)
 end
 
 function rhobar(x, y, z)
-    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)] .* rhoref
 end
 
 function thetabar(x, y, z)
-    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)] .* thetaref
 end
 
 function n2(x, y, z)
-    return auxiliary_state.atmosphere.n2[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.n2[ijk(x, y, z)] ./ tref .^ 2
 end
 
 function envelope(x, y, z)
@@ -580,25 +558,35 @@ function bhat(x, y, z)
 end
 
 function uhat(x, y, z)
-    return 1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
            (omega(x, y, z)^2 - coriolis_frequency^2) *
            (k * omega(x, y, z) + 1im * l * coriolis_frequency) *
            bhat(x, y, z)
 end
 
 function vhat(x, y, z)
-    return 1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
            (omega(x, y, z)^2 - coriolis_frequency^2) *
            (l * omega(x, y, z) - 1im * k * coriolis_frequency) *
            bhat(x, y, z)
 end
 
 function what(x, y, z)
-    return 1im * omega(x, y, z) / n2(x, y, z) * bhat(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im * omega(x, y, z) / n2(x, y, z) * bhat(x, y, z)
 end
 
 function pihat(x, y, z)
-    return kappa / rsp / thetabar(x, y, z) * 1im / m *
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           kappa / rsp / thetabar(x, y, z) * 1im / m *
            (omega(x, y, z)^2 - n2(x, y, z)) / n2(x, y, z) * bhat(x, y, z)
 end
-</code></pre><p>provides helper functions that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets. It is to be included below the construction of a corresponding auxiliary state and the extraction of <span>$\kappa = R / c_p$</span>, <span>$R$</span> and <span>$g$</span> from its <code>Constants</code> instance.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.0 on <span class="colophon-date" title="Friday 14 November 2025 16:38">Friday 14 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+
+function wave_action_density(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
+           n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z)^2
+end
+</code></pre><p>provides helper functions that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets. It is to be included below the construction of a corresponding auxiliary state and the extraction of <span>$\kappa = R / c_p$</span>, <span>$R$</span> and <span>$g$</span> from its <code>Constants</code> instance.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Saturday 31 January 2026 15:00">Saturday 31 January 2026</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
