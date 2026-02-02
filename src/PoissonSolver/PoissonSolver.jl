@@ -5,7 +5,7 @@ PoissonSolver
 
 Module for solving the Poisson equation and performing a corrector step.
 
-Provides the functions needed to solve the Poisson equation of the semi-implicit time scheme, using a preconditioned BicGStab algorithm, and correcting the Exner-pressure, momentum and density fluctuations accordingly.
+Provides the functions needed to solve the Poisson equation of the semi-implicit time scheme, using a preconditioned BiCGSTAB algorithm, and correcting the Exner-pressure, momentum and density fluctuations accordingly.
 
 # See also
 
