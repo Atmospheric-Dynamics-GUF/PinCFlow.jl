@@ -8,7 +8,7 @@ BicGStab{
 Workspace arrays used by [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 
 ```julia
-BicGStab(domain::Domain)::AicGStab
+BicGStab(domain::Domain)::BicGStab
 ```
 
 Create a `BicGStab` instance with zero-initialized workspace arrays sized according to dimensions of the MPI subdomain.
@@ -51,7 +51,7 @@ struct BicGStab{
     v_pc::A
 end
 
-function BicGStab(domain::Domain)::AicGStab
+function BicGStab(domain::Domain)::BicGStab
     (; nx, ny, nz) = domain
 
     return BicGStab([zeros(nx, ny, nz) for i in 1:9]...)
