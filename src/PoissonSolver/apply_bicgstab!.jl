@@ -3,7 +3,7 @@
 apply_bicgstab!(state::State, tolref::AbstractFloat)::Tuple{Bool, <:Integer}
 ```
 
-Solve the Poisson equation using a preconditioned BicGStab algorithm and return a tuple containing an error flag and the number of iterations.
+Solve the Poisson equation using a preconditioned BiCGSTAB algorithm and return a tuple containing an error flag and the number of iterations.
 
 # Arguments
 
@@ -35,7 +35,7 @@ function apply_bicgstab!(
     # Print information.
     if master
         println(repeat("-", 80))
-        println("BicGStab: Solving linear system...")
+        println("BiCGSTAB: Solving linear system...")
         println(repeat("-", 80))
         println("")
     end
