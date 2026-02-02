@@ -1,4 +1,4 @@
-function plot_output(
+function my_plot_output(
     file::AbstractString,
     data::HDF5.File,
     fields::Vararg{
@@ -126,7 +126,104 @@ function plot_output(
                 )
                 xlims!(minimum(kp), maximum(kp))
                 ylims!(minimum(m), maximum(m))
+
+                #plot in m-z direction integrated over kp
+
+                column += 2
+
+                # --- grids ---
+                kp = data["kp"][:] .* space_unit_factor
+                m  = data["m"][:]  .* space_unit_factor
+
+                # --- field (time-sliced) ---
+                phi = data[variable][:, :, :, :, :, n]   # x,y,z,kp,m
+
+                # --- z vector (1D) from your existing z-array in scope ---
+                # If you already have a 1D z-grid in your file, replace this by that.
+                nz = size(phi, 3)
+                zvec = [sum(z[:, :, kk]) / length(z[:, :, kk]) for kk in 1:nz] .* space_unit_factor
+
+                # --- select (x,y) slice -> A(z,kp,m) ---
+                A = @view phi[i, j, :, :, :]   # dims should be (z, kp, m)
+
+                # Sanity checks (remove once you’re confident)
+                @assert size(A, 2) == length(kp) "kp dimension mismatch: size(A,2)=$(size(A,2)) vs length(kp)=$(length(kp))"
+                @assert size(A, 3) == length(m)  "m dimension mismatch: size(A,3)=$(size(A,3)) vs length(m)=$(length(m))"
+                @assert length(zvec) == size(A,1) "z dimension mismatch: length(zvec)=$(length(zvec)) vs size(A,1)=$(size(A,1))"
+
+                # --- integrate over kp ---
+                # Option 1: simple discrete sum over kp bins
+                #phim = dropdims(sum(A; dims=2), dims=2)   # dims: (z, m)
+
+                # Option 2: approximate ∫ φ dkp with bin-width weights (uncomment if desired)
+                 function cellwidths_from_centers(x::AbstractVector)
+                     n = length(x)
+                     @assert n ≥ 2
+                     edges = similar(x, float(eltype(x)), n+1)
+                     edges[1]   = x[1] - (x[2]-x[1])/2
+                     edges[end] = x[end] + (x[end]-x[end-1])/2
+                     @inbounds for q in 2:n
+                         edges[q] = (x[q-1] + x[q]) / 2
+                     end
+                     return @views edges[2:end] .- edges[1:end-1]
+                 end
+                 Δkp = cellwidths_from_centers(kp)
+                 phim = dropdims(sum(A .* reshape(Δkp, 1, :, 1); dims=2), dims=2)  # (z,m)
+
+                # --- build explicit 2D grids for contourf! (shape = (z,m)) ---
+                nm = length(m)
+                Mgrid = [mm for zz in 1:nz, mm in m]        # x-axis grid (m)
+                Zgrid = [zz for zz in zvec, mm in 1:nm]     # y-axis grid (z)
+
+                # --- labels ---
+                label = LaTeXString(attrs(data[variable])["label"])
+                #label = L"\mathscr{N} \ [\mathrm{Kg} \mathrm{%$space_unit} \mathrm{%$time_unit}^{-1}]"
+
+                @ivy yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                @ivy xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+
+                axis = Axis(
+                    figure[row, column - 1];
+                    title = L"t\approx%$tn\ \mathrm{%$time_unit}, \quad x\approx%$xi\ \mathrm{%$space_unit}, 
+                            \quad y\approx%$yj\ \mathrm{%$space_unit}, \quad \int_{kp} \mathscr{N}",
+                    xlabel = L"m \ [\mathrm{%$space_unit}^{-1}]",
+                    ylabel = L"z \ [\mathrm{%$space_unit}]",
+                )
+
+                @ivy (levels, colormap) = symmetric_contours(
+                    minimum(phim),
+                    maximum(phim);
+                    number,
+                    colormap_name,
+                )
+
+                @ivy plot = contourf!(
+                    axis,
+                    Mgrid,
+                    Zgrid,
+                    phim;
+                    levels,
+                    colormap,
+                )
+
+                tightlimits!(axis)
+
+                Colorbar(
+                    figure[row, column],
+                    plot;
+                    ticks = levels,
+                    tickformat = "{:9.2E}",
+                    label,
+                )
+
+                xlims!(axis, (minimum(m)), (maximum(m)))
+                ylims!(axis, minimum(zvec), maximum(zvec))
+
             end
+
+            
+
+            
 
         elseif variable in ray_volume_properties
             # Get the ray-volume data.
