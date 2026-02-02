@@ -58,7 +58,7 @@ function compute_scattering_integral!(
 
         # Singularities p=±kr, yet to define
 
-        col_int[kpi, mi] *= (2 * pi) 
+        col_int[kpi, mi] *= (4 * pi) 
 
         
     end

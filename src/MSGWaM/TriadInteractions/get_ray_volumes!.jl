@@ -14,8 +14,8 @@ function get_ray_volumes!(state::State, wavespectrum_copy::Array{<: AbstractFloa
     
     rays.dens .= 0
 
-    println("calling the get ray volume")
-    println("maximum wave density before getting it back", maximum(rays.dens) )
+    #println("calling the get ray volume")
+    #println("maximum wave density before getting it back", maximum(rays.dens) )
    
         
 
@@ -80,7 +80,7 @@ function get_ray_volumes!(state::State, wavespectrum_copy::Array{<: AbstractFloa
     #setting up wave action density equal to zero for all rays, they will be re-written in loop
     rays.dens .= 0
 
-   println("\n Getting the modified wave action density for the existing ray volumes, also lanching new ray volumes if required")
+   #println("\n Getting the modified wave action density for the existing ray volumes, also lanching new ray volumes if required")
     #println("maximum wave density before getting it back", maximum(rays.dens) )
    
         
