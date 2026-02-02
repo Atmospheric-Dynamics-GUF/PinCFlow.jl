@@ -37,7 +37,7 @@ function update_wave_spectrum!(
     tau_nl = get_nl_time_scale!(spec_tend, ii, jj, kk)
 
     if tau_nl > (dtau * 1.0E+5)
-        #The nonlnear time scale is too large, inetraction is not required in this grid cell
+        #The nonlnear time scale is too large, interaction is not required in this grid cell
         return
     end 
 

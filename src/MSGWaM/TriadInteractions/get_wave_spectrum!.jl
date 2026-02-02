@@ -224,7 +224,6 @@ function get_wave_spectrum!(state::State,
 
 
 
-  
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 

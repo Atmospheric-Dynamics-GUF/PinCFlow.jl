@@ -63,7 +63,7 @@ function interaction_matrix(
     v_k12 = - sqrt(kpr * kp1 * kp2 / (abs(mr * m1 * m2))) *
             (kp1 * m2 - kp2 * m1) * 
             (sign(kpr * kp2) * abs(mr * m2) - sign(kpr * kp1) * abs(mr * m1) - mr * m1 + mr * m2) /
-            4  / kpr / abs(m1 * m2)            
+            2 / sqrt(2)  / kpr / abs(m1 * m2)            
     return v_k12
 end
 
@@ -81,7 +81,7 @@ function interaction_matrix(
     v_k12 = - sqrt(kpr * kp1 * kp2 / (abs(mr * m1 * m2))) *
             (kp1 * m2 - kp2 * m1) * 
             (sign(kpr * kp2) * abs(mr * m2) - sign(kpr * kp1) * abs(mr * m1) - mr * m1 - mr * m2) /
-            4  / kpr / abs(m1 * m2)            
+            2 / sqrt(2)  / kpr / abs(m1 * m2)            
     return v_k12
 end
 

@@ -19,6 +19,7 @@ function apply_triad_interactions!(state::State,
     dtau::AbstractFloat,
     wkb_mode::Union{MultiColumn, SingleColumn},
     triad_mode::Union{Triad2D, Triad3DIso})
+    (; master) = state.domain
 
     (; domain, grid) = state
     (; branch) = state.namelists.wkb
@@ -35,7 +36,7 @@ function apply_triad_interactions!(state::State,
     wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
     
     if master
-        println("\n Updating wave spectrum due to interactions")
+        println("\n Updating wave action spectrum due to interactions")
     end
 
     @ivy for kk in k0:k1,
