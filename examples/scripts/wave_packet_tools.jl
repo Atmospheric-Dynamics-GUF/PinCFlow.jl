@@ -77,8 +77,7 @@ function pihat(x, y, z)
 end
 
 function chihat(x, y, z)
-    return n2(x, y, z) == 0.0 ? 0.0 :
-            bhat(x, y, z) / n2(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 : bhat(x, y, z) / n2(x, y, z)
 end
 
 function wave_action_density(x, y, z)
@@ -89,7 +88,7 @@ end
 
 function qtilde(x, y, z)
     return max(
-        5.e-5,
+        10.e-5,
         real(
             lturb^2.0 * (
                 m^2 / 2 * (

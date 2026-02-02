@@ -41,7 +41,11 @@ function turbulent_diffusion!(
     return
 end
 
-function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
+function turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    variable::U,
+)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u) = state.variables.predictands
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
@@ -126,7 +130,11 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
     return
 end
 
-function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
+function turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    variable::V,
+)
     (; nbx, nby, nbz) = state.namelists.domain
     (; v) = state.variables.predictands
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
@@ -211,7 +219,11 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
     return
 end
 
-function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
+function turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    variable::W,
+)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u, v, w) = state.variables.predictands
     (; uold, vold) = state.variables.backups
@@ -415,6 +427,54 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
     w[i0:i1, j0:j1, (k0 - 1):k1] .= fth
+    return
+end
+
+function turbulent_diffusion_new!(state::State, dt::AbstractFloat, variable::W)
+    (; nbx, nby, nbz) = state.namelists.domain
+    (; u, v, w) = state.variables.predictands
+    (; uold, vold) = state.variables.backups
+    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac, met, dz) = state.grid
+    (; km) = state.turbulence.turbulencediffusioncoefficients
+
+    dtdz2 = dt / (2.0 * dz^2.0)
+
+    reset_thomas!(state)
+    ath, bth, cth, fth, qth, pth, qth_bc, fth_bc =
+        thomas_arrays(state, nx, ny, nz + 1)
+
+    ii = i0:i1
+    jj = j0:j1
+
+    @ivy for k in 1:(nz + 1)
+        knbz = k + nbz
+        kmd =
+            (
+                jac[ii, jj, knbz - 1] .* km[ii, jj, knbz] .+
+                jac[ii, jj, knbz] .* km[ii, jj, knbz - 1]
+            ) ./ (jac[ii, jj, knbz - 1] + jac[ii, jj, knbz])
+        kmu =
+            (
+                jac[ii, jj, knbz + 1] .* km[ii, jj, knbz] .+
+                jac[ii, jj, knbz] .+ km[ii, jj, knbz + 1]
+            ) ./ (jac[ii, jj, knbz + 1] .+ jac[ii, jj, knbz])
+        ath[:, :, k] .= .-dtdz2 .* kmd
+        bth[:, :, k] .= 1 .+ dtdz2 .* kmu .+ dtdz2 .* kmd
+        cth[:, :, k] .= .-dtdz2 .* kmu
+
+        fth[:, :, k] =
+            (1 .- dtdz2 .* kmu .- dtdz2 .* kmd) .* 0.5 .*
+            (w[ii, jj, knbz] .+ w[ii, jj, knbz - 1]) .+
+            dtdz2 .* kmu .* 0.5 .*
+            (w[ii, jj, knbz] .+ w[ii, jj, knbz + 1]) .+
+            dtdz2 .* kmd .* 0.5 .* (w[ii, jj, knbz - 1] .+ w[ii, jj, knbz - 2])
+    end
+
+    thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+
+    w[i0:i1, j0:j1, k0:k1] .=
+        0.5 .* (fth[:, :, begin:(end - 1)] .+ fth[:, :, (begin + 1):end])
     return
 end
 

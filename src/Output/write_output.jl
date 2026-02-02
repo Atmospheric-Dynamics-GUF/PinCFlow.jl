@@ -318,18 +318,47 @@ function write_output(
             typeof(state.namelists.turbulence.turbulence_scheme) <:
             NoTurbulence
         )
-            for field in fieldnames(TurbulencePredictands)
+            if model == Boussinesq()
+                for field in fieldnames(TurbulencePredictands)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    @views file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(state.turbulence.turbulencepredictands, field)[
+                            ii,
+                            jj,
+                            kk,
+                        ] ./ (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .*
+                        (lref .^ 2.0) ./ (tref .^ 2.0)
+                end
+            else
+                for field in fieldnames(TurbulencePredictands)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    @views file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(state.turbulence.turbulencepredictands, field)[
+                            ii,
+                            jj,
+                            kk,
+                        ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
+                        (lref .^ 2.0) ./ (tref .^ 2.0)
+                end
+            end
+
+            for field in fieldnames(TurbulenceAuxiliaries)
                 HDF5.set_extent_dims(
                     file[string(field)],
                     (x_size, y_size, z_size, iout),
                 )
                 @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulencepredictands, field)[
+                    getfield(state.turbulence.turbulenceauxiliaries, field)[
                         ii,
                         jj,
                         kk,
-                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
-                    (lref .^ 2.0) ./ (tref .^ 2.0)
+                    ] ./ (tref .^ 2.)
             end
 
             for field in fieldnames(TurbulenceDiffusionCoefficients)
@@ -338,7 +367,10 @@ function write_output(
                     (x_size, y_size, z_size, iout),
                 )
                 @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulencediffusioncoefficients, field)[
+                    getfield(
+                        state.turbulence.turbulencediffusioncoefficients,
+                        field,
+                    )[
                         ii,
                         jj,
                         kk,

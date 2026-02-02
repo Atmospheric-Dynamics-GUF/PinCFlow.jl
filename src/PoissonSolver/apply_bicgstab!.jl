@@ -136,7 +136,8 @@ function apply_bicgstab!(
         res_vm = MPI.Allreduce(res_vm, +, layer_comm)
         res_vm = sqrt(res_vm / x_size / y_size)
 
-        if max(res / b_norm, res_vm / b_vm_norm) <= tol
+        #if max(res / b_norm, res_vm / b_vm_norm) <= tol
+        if res / b_norm <= tol
             if master
                 println("Iterations: ", j_b)
                 println("Final residual: ", res / b_norm)

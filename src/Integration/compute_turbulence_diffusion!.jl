@@ -51,6 +51,16 @@ function compute_turbulence_diffusion!(
     state::State,
     turbulence_scheme::TKEScheme,
 )
+    (; model) = state.namelists.atmosphere
+
+    return compute_turbulence_diffusion!(state, turbulence_scheme, model)
+end
+
+function compute_turbulence_diffusion!(
+    state::State,
+    turbulence_scheme::TKEScheme,
+    model::Union{PseudoIncompressible, Compressible},
+)
     (; lturb_ndim, prandtlinv) = state.turbulence.turbulenceconstants
     (; kh, km, kek) = state.turbulence.turbulencediffusioncoefficients
     (; tke) = state.turbulence.turbulencepredictands
@@ -76,6 +86,42 @@ function compute_turbulence_diffusion!(
         sqrt.(
             tke[i0:i1, j0:j1, k0:k1] ./
             (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+        )
+
+    set_boundaries!(state, BoundaryDiffusionCoefficients())
+    return
+end
+
+function compute_turbulence_diffusion!(
+    state::State,
+    turbulence_scheme::TKEScheme,
+    model::Boussinesq,
+)
+    (; lturb_ndim, prandtlinv) = state.turbulence.turbulenceconstants
+    (; kh, km, kek) = state.turbulence.turbulencediffusioncoefficients
+    (; tke) = state.turbulence.turbulencepredictands
+    (; rhop) = state.variables.predictands
+    (; rhobar) = state.atmosphere
+    (; k0, k1, j0, j1, i0, i1) = state.domain
+
+    check_tke!(state)
+    kh[i0:i1, j0:j1, k0:k1] .=
+        lturb_ndim .*
+        sqrt.(
+            2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
+            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+        )
+    km[i0:i1, j0:j1, k0:k1] .=
+        lturb_ndim .*
+        sqrt.(
+            2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
+            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+        )
+    kek[i0:i1, j0:j1, k0:k1] .=
+        lturb_ndim .*
+        sqrt.(
+            2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
+            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
 
     set_boundaries!(state, BoundaryDiffusionCoefficients())
