@@ -1,63 +1,58 @@
 """
 ```julia
 BicGStab{
-    A <: AbstractMatrix{<:AbstractFloat},
-    B <: AbstractArray{<:AbstractFloat, 3},
+    A <: AbstractArray{<:AbstractFloat, 3},
 }
 ```
 
 Workspace arrays used by [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 
 ```julia
-BicGStab(domain::Domain)::BicGStab
+BicGStab(domain::Domain)::AicGStab
 ```
 
 Create a `BicGStab` instance with zero-initialized workspace arrays sized according to dimensions of the MPI subdomain.
 
 # Fields
 
-  - `r_vm::A`: Vertically-averaged residual.
+  - `p::A`: Search direction.
 
-  - `p::B`: Search direction.
+  - `r0::A`: Initial residual.
 
-  - `r0::B`: Initial residual.
+  - `rold::A`: Previous residual.
 
-  - `rold::B`: Previous residual.
+  - `r::A`: Current residual.
 
-  - `r::B`: Current residual.
+  - `s::A`: Intermediate solution.
 
-  - `s::B`: Intermediate solution.
+  - `t::A`: Result of applying the linear operator to `s`.
 
-  - `t::B`: Result of applying the linear operator to `s`.
+  - `v::A`: Result of applying the linear operator to `p`.
 
-  - `v::B`: Result of applying the linear operator to `p`.
+  - `matvec::A`: Intermediate result of applying the linear operator.
 
-  - `matvec::B`: Intermediate result of applying the linear operator.
-
-  - `v_pc::B`: Output of the preconditioner.
+  - `v_pc::A`: Output of the preconditioner.
 
 # Arguments
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct BicGStab{
-    A <: AbstractMatrix{<:AbstractFloat},
-    B <: AbstractArray{<:AbstractFloat, 3},
+    A <: AbstractArray{<:AbstractFloat, 3},
 }
-    r_vm::A
-    p::B
-    r0::B
-    rold::B
-    r::B
-    s::B
-    t::B
-    v::B
-    matvec::B
-    v_pc::B
+    p::A
+    r0::A
+    rold::A
+    r::A
+    s::A
+    t::A
+    v::A
+    matvec::A
+    v_pc::A
 end
 
-function BicGStab(domain::Domain)::BicGStab
+function BicGStab(domain::Domain)::AicGStab
     (; nx, ny, nz) = domain
 
-    return BicGStab(zeros(nx, ny), [zeros(nx, ny, nz) for i in 1:9]...)
+    return BicGStab([zeros(nx, ny, nz) for i in 1:9]...)
 end
