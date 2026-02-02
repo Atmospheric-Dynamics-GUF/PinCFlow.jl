@@ -5,7 +5,7 @@ Poisson{
     B <: Tensor,
     C <: Operator,
     D <: Preconditioner,
-    E <: BicGStab,
+    E <: BiCGSTAB,
     F <: Correction,
 }
 ```
@@ -30,7 +30,7 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 
   - `preconditioner::D`: Workspace arrays for applying the preconditioner.
 
-  - `bicgstab::E`: Workspace arrays used by the BicGStab algorithm.
+  - `bicgstab::E`: Workspace arrays used by the BiCGSTAB algorithm.
 
   - `correction::F`: Correction terms used to update the horizontal wind in the corrector step.
 
@@ -46,7 +46,7 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 
   - [`PinCFlow.Types.PoissonTypes.Preconditioner`](@ref)
 
-  - [`PinCFlow.Types.PoissonTypes.BicGStab`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.BiCGSTAB`](@ref)
 
   - [`PinCFlow.Types.PoissonTypes.Correction`](@ref)
 """
@@ -55,7 +55,7 @@ struct Poisson{
     B <: Tensor,
     C <: Operator,
     D <: Preconditioner,
-    E <: BicGStab,
+    E <: BiCGSTAB,
     F <: Correction,
 }
     rhs::A
@@ -74,7 +74,7 @@ function Poisson(domain::Domain)::Poisson
     tensor = Tensor(domain)
     operator = Operator(domain)
     preconditioner = Preconditioner(domain)
-    bicgstab = BicGStab(domain)
+    bicgstab = BiCGSTAB(domain)
     correction = Correction(domain)
 
     return Poisson(
