@@ -62,6 +62,7 @@ struct Poisson{
     solution::A
     tensor::B
     operator::C
+    preconditioner::D
     bicgstab::E
     correction::F
 end
@@ -76,5 +77,13 @@ function Poisson(domain::Domain)::Poisson
     bicgstab = BiCGSTAB(domain)
     correction = Correction(domain)
 
-    return Poisson(rhs, solution, tensor, operator, bicgstab, correction)
+    return Poisson(
+        rhs,
+        solution,
+        tensor,
+        operator,
+        preconditioner,
+        bicgstab,
+        correction,
+    )
 end

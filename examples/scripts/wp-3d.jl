@@ -71,7 +71,7 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "wp-3d.h5",
+    output_file = "test.h5",
     tmax = 720.0,
     output_interval = 36.0,
 )

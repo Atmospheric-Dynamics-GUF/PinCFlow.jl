@@ -19,7 +19,7 @@ using ...PinCFlow
 
 include("Tensor.jl")
 include("Operator.jl")
-include("Preconditioner.jl") 
+include("Preconditioner.jl")
 include("BiCGSTAB.jl")
 include("Correction.jl")
 include("Poisson.jl")

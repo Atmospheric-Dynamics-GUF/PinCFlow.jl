@@ -49,7 +49,7 @@ function turbulence_integration!(
 
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
-    
+
     return
 end
 
@@ -66,11 +66,10 @@ function turbulence_integration!(
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         tke[i, j, k] =
-            4.0 /
             (
-                2.0 * dt / (lturb_ndim * sqrt(rhobar[i, j, k])) +
-                2.0 / sqrt(tke[i, j, k])
-            )^2.0
+                dt / (lturb_ndim * sqrt(rhobar[i, j, k])) +
+                1 / sqrt(tke[i, j, k])
+            )^(-2)
     end
 
     return
