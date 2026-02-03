@@ -61,8 +61,8 @@ m = [-2.07 * 2 * pi / 5000.0]
 
 lk = 3.5 * max(abs.(k)...)
 lm = 2.5 * max(abs.(m)...)
-k_size = 26
-m_size = 32
+k_size = 32
+m_size = 42
 
 
 
@@ -83,9 +83,6 @@ domain = DomainNamelist(;
     lx,
     ly,
     lz,
-    nbx = 1,
-    nby = 1,
-    nbz = 1,
     base_comm = MPI.COMM_SELF,
 )
 
@@ -106,7 +103,7 @@ wkb = WKBNamelist(;
 auxiliary_state = State(Namelists(; atmosphere, domain, wkb, triad))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
-include("multiple_wave_packet_tools.jl")
+include("multiple_hyd_wave_packet_tools.jl")
 
 atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency,
 initial_u = (x, y, z) -> backg_shear(x, y, z))
@@ -115,9 +112,9 @@ output = OutputNamelist(;
     output_variables = (:u, :w, :wavespectrum),
     save_ray_volumes = true,
     output_steps = true,
-    nout = 5,  #5,
-    iterations = 350,   #130,
-    output_file = "triad_wave_propagation_350_new.h5",
+    nout = 3,  #5,
+    iterations = 250,   #130,
+    output_file = "triad_wave_propagation_250_hyds.h5",
     tmax = 80,
     output_interval = 20.0,
 )
@@ -135,9 +132,9 @@ wkb = WKBNamelist(;
 integrate(Namelists(; atmosphere, domain, output, wkb, triad))
 
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("triad_wave_propagation_350_new.h5") do data
+    h5open("triad_wave_propagation_250_hyds.h5") do data
         plot_output(
-            "examples/results/triad_wave_propagation_350_new.svg",
+            "examples/results/triad_wave_propagation_250_hyds.svg",
             data,
             ("nr", 2, 1, 67, 1);
             time_unit = "min",

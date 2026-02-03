@@ -8,14 +8,14 @@ using CairoMakie
 using Revise
 using PinCFlow
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("resolved_wave_prop_shear.h5") do data
+#if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open("resolved_flow_test_1.h5") do data
         plot_output(
-            "examples/results/resolved_wave_prop_shear.svg",
+            "examples/results/resolved_flow_test_1.svg",
             data,
-            ("w", 26, 1, 160, 3);
+            ("w", 40, 1, 1200, 1);
             time_unit = "min",
         )
         return
     end
-end
+#end

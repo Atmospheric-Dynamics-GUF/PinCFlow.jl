@@ -13,13 +13,16 @@ using PinCFlow
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
+nbx = 2
+nby = 1
+nbz = 3
 
 
 #model parameters
 
-x_size = 50 #x_size = 16
+x_size = 80 #x_size = 16
 y_size = 1 #y_size = 16
-z_size = 320 #z_size = 32
+z_size = 2400 #z_size = 32
 
 lx = 50000.0
 ly = 50000.0
@@ -28,20 +31,22 @@ lz = 40000.0
 wave_modes = 2
 
 
+#First set of initial conditi
 x_c = [0.0, 0.0]
 y_c = [0.0, 0.0]
-z_c = [21937.755, 16851.213]
+z_c = [20769.375, 18079.259765625]
 
-sigma_xc = [lx, lx]
+sigma_xc = [lx / 2, lx / 2]
 sigma_yc = [1.0, 1.0]
-sigma_zc = [lz / 20, lz / 20]
+sigma_zc = [lz / 40, lz / 40]
 
-a0 = [0.5, 0.5]
+a0 = [0.8, 0.8]
 
-k = [2 * pi / lx, 2 * pi / lx]
+k = [2 * pi / 25000.0, 2 * pi / 25000.0]
 l = [0.0, 0.0]
 #m = [5 * 2 * pi / 5000.0, -2.07 * 2 * pi / 5000.0]
-m = [0.0043791985000000005, -0.0033200091999999997]
+m = [0.013695018365979195, -0.011669567786157131]
+
 
 # defining the shear
 shear_s = 1.0
@@ -74,17 +79,10 @@ domain = DomainNamelist(;
     lx,
     ly,
     lz,
-    npx = 1,
-    npy = 1,
-    npz = 1,
     base_comm = MPI.COMM_SELF,
 )
 
 triad = TriadNamelist(;
-    k_size,
-    m_size,
-    lk,
-    lm,
     triad_mode = NoTriad(),
 )
 
@@ -115,10 +113,13 @@ atmosphere = AtmosphereNamelist(;
 )
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
-    output_variables = (:u, :w),
+    output_variables = (:u, :w, :rhop, :thetap),
     #save_ray_volumes = true,
-    output_file = "resolved_wave_prop_shear.h5",
-    tmax = 5000.0,
+    output_steps = true,
+    nout = 3,  #5,
+    iterations = 400, 
+    output_file = "resolved_flow_test_1.h5",
+    tmax = 100.0,
     output_interval = 50.0,
 )
 wkb = WKBNamelist(;
@@ -140,9 +141,9 @@ shear1 = deepcopy(state1.variables.predictands.u)
 integrate(Namelists(; atmosphere, domain, output, wkb, triad), shear1)
 
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("resolved_wave_prop_shear.h5") do data
+    h5open("resolved_flow_test_1.h5") do data
         plot_output(
-            "examples/results/resolved_wave_prop_shear.svg",
+            "examples/results/resolved_flow_test_1.svg",
             data,
             ("w", 26, 1, 160, 1);
             time_unit = "min",

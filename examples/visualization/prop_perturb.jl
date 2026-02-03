@@ -12,11 +12,11 @@ using PinCFlow
 
 
 #if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("triad_wave_propagation_350_new.h5") do data
+    h5open("triad_wave_propagation_250.h5") do data
         my_plot_output(
-            "examples/results/triad_wave_propagation_time_new_4.svg",
+            "examples/results/triad_wave_propagation_250_time14.svg",
             data,
-            ("wavespectrum", 1, 1, 60, 21);
+            ("wavespectrum", 1, 1, 60, 65);
             space_unit = "m",
             time_unit = "min",
         )

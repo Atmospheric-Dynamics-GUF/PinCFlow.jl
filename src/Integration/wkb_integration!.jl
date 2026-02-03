@@ -29,9 +29,9 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
     set_boundary_rays!(state)
 
     apply_triad_interactions!(state, dtstage)
-    #compute_mean_flow_effect!(state)
 
     set_boundary_rays!(state)
+    #compute_mean_flow_effect!(state)
 
     return
 end

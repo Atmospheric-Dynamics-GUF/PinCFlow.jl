@@ -9,9 +9,9 @@ using CairoMakie
 using Revise
 using PinCFlow
 
-h5open("prop_without_shear.h5") do data
+h5open("resolved_flow_test_1.h5") do data
     plot_contours(
-       "examples/results/prop_without_shear.svg",
+       "examples/results/resolved_flow_test_1.svg",
         data,
         "w",
         (2, 2, 2, 4);

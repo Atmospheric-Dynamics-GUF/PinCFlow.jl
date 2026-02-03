@@ -102,13 +102,8 @@ end
 
 time_slice = 21
 nn = 0.02
-<<<<<<< HEAD
-nt = 50
-h5open("triad_wave_propagation_350_new.h5") do data
-=======
-nt = 30
-h5open("triad_wave_propagation3_new.h5") do data
->>>>>>> c62c974b213887c7b639d31ff0abc0715356515a
+nt = 80
+h5open("triad_wave_propagation_250.h5") do data
         x = data["x"][:] 
         y = data["y"][:] 
         z = data["z"][1, 1, :]
@@ -122,13 +117,8 @@ h5open("triad_wave_propagation3_new.h5") do data
 
             total_energy[ti] = compute_total_energy(wave_spectrum, x, z, k, m)
             total_spectrum[ti] = compute_total_spectrum(wave_spectrum, x, z, k, m)
-<<<<<<< HEAD
 
         end
-=======
-        end
-
->>>>>>> c62c974b213887c7b639d31ff0abc0715356515a
         
         fig = Figure()
         ax1 = Axis(fig[1, 1]; xlabel="t", ylabel="Total energy")
@@ -136,11 +126,7 @@ h5open("triad_wave_propagation3_new.h5") do data
         lines!(ax1, t[1:nt], total_energy)  # <-- attach plot to the axis in fig
         lines!(ax2, t[1:nt], total_spectrum)
 
-<<<<<<< HEAD
-        save("examples/results/total_budget_triad_new.svg", fig)
-=======
-        save("examples/results/total_budget_wkb_new.svg", fig)
->>>>>>> c62c974b213887c7b639d31ff0abc0715356515a
+        save("examples/results/total_budget_triad_250.svg", fig)
 
     return
 end
