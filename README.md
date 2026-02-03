@@ -116,10 +116,10 @@ If you want to run PinCFlow.jl in parallel, make sure you are using the correct 
 
 ```shell
 mpiexec=$(julia --project=examples -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 16 julia examples/scripts/periodic_hill.jl 4 4
+${mpiexec} -n 9 julia examples/scripts/periodic_hill.jl 3 3
 ```
 
-you can run the above simulation in 16 MPI processes. Note that by passing extra arguments to the script, you set the parameters `npx` and `npz` of the namelist `domain`, which represent the number of MPI processes in $\widehat{x}$ and $\widehat{z}$. Their product must be equal to the total number of processes, otherwise PinCFlow.jl will throw an error.
+you can run the above simulation in 9 MPI processes. Note that by passing extra arguments to the script, you set the parameters `npx` and `npz` of the namelist `domain`, which represent the number of MPI processes in $\widehat{x}$ and $\widehat{z}$. Their product must be equal to the total number of processes, otherwise PinCFlow.jl will throw an error.
 
 However, if you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 

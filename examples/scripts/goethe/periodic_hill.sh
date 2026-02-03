@@ -2,7 +2,7 @@
 #SBATCH --partition=general1
 #SBATCH --job-name=periodic_hill
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=9
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-00:15:00
 #SBATCH --mail-type=FAIL
@@ -14,6 +14,6 @@ julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_bin
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/home/atmodynamics/public/hdf5-1.14.4-3/src/.libs/libhdf5.so", "/home/atmodynamics/public/hdf5-1.14.4-3/hl/src/.libs/libhdf5_hl.so")'
 
 # Run the model.
-mpiexec -n 16 julia examples/scripts/periodic_hill.jl 4 4 1>periodic_hill.log 2>&1
+mpiexec -n 9 julia examples/scripts/periodic_hill.jl 3 3 1>periodic_hill.log 2>&1
 
 exit 0

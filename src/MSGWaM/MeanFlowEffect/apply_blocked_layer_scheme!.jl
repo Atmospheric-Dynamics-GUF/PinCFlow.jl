@@ -78,4 +78,6 @@ function apply_blocked_layer_scheme!(state::State)
             dthetadt[i, j, k] = (1 - fraction) * dthetadt[i, j, k]
         end
     end
+
+    return
 end
