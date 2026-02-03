@@ -2,6 +2,7 @@
 ```julia
 BiCGSTAB{
     A <: AbstractArray{<:AbstractFloat, 3},
+    A <: AbstractArray{<:AbstractFloat, 3},
 }
 ```
 
