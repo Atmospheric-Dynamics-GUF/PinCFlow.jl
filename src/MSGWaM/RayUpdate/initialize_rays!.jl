@@ -277,6 +277,7 @@ function initialize_rays!(
             if abs(wzr + cgirz) > abs(cgz_max[i, j, k])
                 cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(wzr + cgirz))
             end
+            rays.dphi[r, i, j, k] = wnrk * xr + wnrl * yr + wnrm * zr
         end
 
         # Set ray-volume count.

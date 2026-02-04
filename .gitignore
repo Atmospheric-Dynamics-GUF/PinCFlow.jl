@@ -12,3 +12,4 @@ LocalPreferences.toml
 Manifest.toml
 *.code-workspace
 *.cov
+*.h5

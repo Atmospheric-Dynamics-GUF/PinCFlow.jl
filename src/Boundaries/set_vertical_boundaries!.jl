@@ -363,7 +363,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uw, :vw, :e)
+    for field in (:uw, :vw, :e, :shear)
         set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -384,7 +384,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e, :shear)
         set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -405,7 +405,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt)
+    for field in (:dudt, :dvdt, :shear)
         set_vertical_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,
@@ -425,7 +425,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt, :dthetadt)
+    for field in (:dudt, :dvdt, :dthetadt, :shear)
         set_vertical_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,

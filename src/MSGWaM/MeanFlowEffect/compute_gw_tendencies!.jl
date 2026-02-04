@@ -148,6 +148,8 @@ function compute_gw_tendencies!(state::State)
             end
         end
 
+        tendencies.shear[i, j, k] = integrals.shear[i, j, k]
+
         compute_leading_order_tracer_forcing!(
             state,
             i,

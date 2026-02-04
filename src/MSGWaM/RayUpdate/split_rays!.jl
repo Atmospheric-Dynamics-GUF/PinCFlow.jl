@@ -149,9 +149,14 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
             factor = ceil(Int, dxr / dx)
             rays.x[r, i, j, k] = xr + (1 / factor - 1) * dxr / 2
             rays.dxray[r, i, j, k] = dxr / factor
+            dphi = rays.dphi[r, i, j, k]
+            deltaPhi = (rays.x[r, i, j, k] - xr) * rays.k[r, i, j, k]
+            rays.dphi[r, i, j, k] = dphi + deltaPhi
             for rray in (local_count + 1):(local_count + factor - 1)
                 copy_rays!(rays, r => rray, i => i, j => j, k => k)
                 rays.x[rray, i, j, k] += (rray - local_count) * dxr / factor
+                deltaPhi = (rays.x[rray, j, k] - xr) * rays.k[r, i, j, k]
+                rays.dphi[rray, i, j, k] = dphi + deltaPhi
             end
             local_count += factor - 1
         end
@@ -186,9 +191,14 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
             factor = ceil(Int, dyr / dy)
             rays.y[r, i, j, k] = yr + (1 / factor - 1) * dyr / 2
             rays.dyray[r, i, j, k] = dyr / factor
+            dphi = rays.dphi[r, i, j, k]
+            deltaPhi = (rays.y[r, i, j, k] - yr) * rays.l[r, i, j, k]
+            rays.dphi[r, i, j, k] = dphi + deltaPhi
             for rray in (local_count + 1):(local_count + factor - 1)
                 copy_rays!(rays, r => rray, i => i, j => j, k => k)
                 rays.y[rray, i, j, k] += (rray - local_count) * dyr / factor
+                deltaPhi = (rays.y[rray, j, k] - yr) * rays.l[r, i, j, k]
+                rays.dphi[rray, i, j, k] = dphi + deltaPhi
             end
             local_count += factor - 1
         end
@@ -238,9 +248,14 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
             factor = ceil(Int, dzr / dzmin)
             rays.z[r, i, j, k] = zr + (1 / factor - 1) * dzr / 2
             rays.dzray[r, i, j, k] = dzr / factor
+            dphi = rays.dphi[r, i, j, k]
+            deltaPhi = (rays.z[r, i, j, k] - zr) * rays.m[r, i, j, k]
+            rays.dphi[r, i, j, k] = dphi + deltaPhi
             for rray in (local_count + 1):(local_count + factor - 1)
                 copy_rays!(rays, r => rray, i => i, j => j, k => k)
                 rays.z[rray, i, j, k] += (rray - local_count) * dzr / factor
+                deltaPhi = (rays.z[rray, i, j, k] - zr) * rays.m[r, i, j, k]
+                rays.dphi[rray, i, j, k] = dphi + deltaPhi
             end
             local_count += factor - 1
         end

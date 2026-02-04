@@ -132,6 +132,9 @@ function read_input!(state::State)
                 file["nr"][rr, iid, jjd, kkrd, iin == -1 ? end : iin] ./
                 rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
 
+            rays.dphi[rr, ii, jj, kkr] =
+                file["phase"][rr, iid, jjd, kkrd, iin == -1 ? end : iin]
+
             # Determine nray.
             for k in kkr, j in jj, i in ii
                 local_count = 0

@@ -238,6 +238,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
             rays.dkray[r, i, j, k] = diff(merged_rays.kr[:, bin])[1]
             rays.dlray[r, i, j, k] = diff(merged_rays.lr[:, bin])[1]
             rays.dmray[r, i, j, k] = diff(merged_rays.mr[:, bin])[1]
+            rays.dphi[r, i, j, k] = 0.0
 
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 

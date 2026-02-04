@@ -166,7 +166,7 @@ function propagate_rays!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
     (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
-    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
+    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray, dpray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
     (; lz, zctilde) = state.grid
@@ -191,6 +191,7 @@ function propagate_rays!(
                 ddxray[r, i, j, k] = 0.0
                 ddyray[r, i, j, k] = 0.0
                 ddzray[r, i, j, k] = 0.0
+                dpray[r, i, j, k] = 0.0
             end
         end
     end
@@ -398,6 +399,11 @@ function propagate_rays!(
                 end
 
                 rays.dmray[r, i, j, k] = azm / rays.dzray[r, i, j, k]
+
+                # Update phase
+                dpray[r, i, j, k] =
+                    -dt * omir + alphark[rkstage] * dpray[r, i, j, k]
+                rays.dphi[r, i, j, k] += betark[rkstage] * dpray[r, i, j, k]
             end
         end
 

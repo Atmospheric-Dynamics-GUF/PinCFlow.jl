@@ -269,6 +269,12 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
+                        integrals.shear[iray, jray, kray] +=
+                            mr^2 * 2 / rhobar[iray, jray, kray] *
+                            mr^2 *
+                            (fc^2 + omir^2) / (omir * (kr^2 + lr^2 + mr^2)) *
+                            wadr
+
                         compute_leading_order_tracer_fluxes!(
                             state,
                             state.namelists.tracer.tracer_setup,

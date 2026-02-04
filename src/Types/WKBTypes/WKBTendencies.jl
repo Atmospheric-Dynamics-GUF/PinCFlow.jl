@@ -31,8 +31,9 @@ struct WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dudt::A
     dvdt::A
     dthetadt::A
+    shear::A
 end
 
 function WKBTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::WKBTendencies
-    return WKBTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)
+    return WKBTendencies([zeros(nxx, nyy, nzz) for i in 1:4]...)
 end
