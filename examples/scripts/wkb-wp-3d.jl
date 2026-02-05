@@ -16,9 +16,9 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 1
 y_size = 1
-z_size = 20
+z_size = 40
 
-lx = 60e3
+lx = 30e3
 ly = 30e3
 lz = 60e3
 
@@ -61,18 +61,22 @@ atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    save_ray_volumes = true,
-    output_variables = (:u, :v, :w, :rhop, :shear),
+    save_ray_volumes = false,
+    output_variables = (:u, :v, :w, :rhop, :dtkedt),
     output_file = "wkb-wp-3d.h5",
     tmax = 720.0,
     output_interval = 36.0,
 )
 
+discretization = DiscretizationNamelist(; dtmax = 5.0)
+
 wkb = WKBNamelist(;
+    nrz = 4,
     use_saturation = false,
     wkb_mode = MultiColumn(),
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
+    filter_order = 3,
 )
 
 turbulence = TurbulenceNamelist(;
@@ -81,4 +85,6 @@ turbulence = TurbulenceNamelist(;
     initial_tke = (x, y, z) -> 5e-5,
 )
 
-integrate(Namelists(; atmosphere, domain, output, turbulence, wkb))
+integrate(
+    Namelists(; atmosphere, domain, output, turbulence, discretization, wkb),
+)

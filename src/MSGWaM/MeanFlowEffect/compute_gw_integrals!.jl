@@ -146,6 +146,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
+            phi = rays.dphi[r, i, j, k]
+
             cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
@@ -269,15 +271,47 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        integrals.shear[iray, jray, kray] +=
-                            mr^2 * 2 / rhobar[iray, jray, kray] *
-                            mr^2 *
-                            (fc^2 + omir^2) / (omir * (kr^2 + lr^2 + mr^2)) *
-                            wadr
+                        # integrals.sterm[iray, jray, kray] +=
+                        #     mr^2 * 2 / rhobar[iray, jray, kray] * (
+                        #         mr^2 * (fc^2 + omir^2) /
+                        #         (omir * (khr^2 + mr^2)) *
+                        #         2 *
+                        #         wadr / rhobar[iray, jray, kray] -
+                        #         0 * real(
+                        #             -(n2r - fc^2) * khr^2 * mr^2 /
+                        #             (khr^2 + mr^2)^2 *
+                        #             2 *
+                        #             wadr / omir * exp(2im * phi),
+                        #         )
+                        #     )
+
+                        integrals.sterm[iray, jray, kray] +=
+                            mr^2 / 2 * (
+                                2 * mr^2 * wadr * (omir^2 + fc^2) /
+                                rhobar[iray, jray, kray] / omir /
+                                (khr^2 + mr^2) - real(
+                                    -(n2r - fc^2) * khr^2 * mr^2 /
+                                    (khr^2 + mr^2)^2 *
+                                    2 *
+                                    wadr / omir / rhobar[iray, jray, kray] *
+                                    exp(2im * phi),
+                                )
+                            )
+
+                        integrals.bterm[iray, jray, kray] +=
+                            -real(
+                                1im *
+                                mr *
+                                sqrt(
+                                    2 * wadr * mr^2 * (omir^2 + fc^2) /
+                                    rhobar[iray, jray, kray] / omir /
+                                    (khr^2 + mr^2),
+                                ) *
+                                exp(1im * phi),
+                            )
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             kr,

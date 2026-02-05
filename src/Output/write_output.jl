@@ -425,12 +425,12 @@ function write_output(
 
             # Write GW tendencies.
             for (field, scaling) in zip(
-                (:dudt, :dvdt, :dthetadt, :shear),
+                (:dudt, :dvdt, :dthetadt, :dtkedt),
                 (
                     rhoref * uref / tref,
                     rhoref * uref / tref,
                     rhoref * thetaref / tref,
-                    1 / tref^2,
+                    uref^2 / tref,
                 ),
             )
                 if field in output_variables

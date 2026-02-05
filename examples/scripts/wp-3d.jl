@@ -71,14 +71,14 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "test.h5",
+    output_file = "wp-3d.h5",
     tmax = 720.0,
     output_interval = 36.0,
 )
 turbulence = TurbulenceNamelist(;
     turbulence_scheme = TKEScheme(),
     momentum_coupling = true,
-    initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
+    initial_tke = (x, y, z) -> 5e-5,
 )
 
 integrate(Namelists(; atmosphere, domain, output, turbulence))

@@ -357,7 +357,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             # Create datasets for GW tendencies.
-            for field in (:dudt, :dvdt, :dthetadt, :shear)
+            for field in (:dudt, :dvdt, :dthetadt, :dtkedt)
                 if field in output_variables
                     create_dataset(
                         file,

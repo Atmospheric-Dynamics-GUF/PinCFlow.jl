@@ -166,8 +166,18 @@ function propagate_rays!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
     (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
-    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray, dpray) =
-        state.wkb.increments
+    (;
+        dxray,
+        dyray,
+        dzray,
+        dkray,
+        dlray,
+        dmray,
+        ddxray,
+        ddyray,
+        ddzray,
+        dpray,
+    ) = state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
     (; lz, zctilde) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
@@ -426,7 +436,11 @@ function propagate_rays!(
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-            betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
+            turbulentdamping =
+                2 * compute_turbulent_damping(state, r, i, j, k, xr, yr, zr)
+            betasponge =
+                1 /
+                (1 + (alphasponge + turbulentdamping) * stepfrac[rkstage] * dt)
             rays.dens[r, i, j, k] *= betasponge
         end
     end

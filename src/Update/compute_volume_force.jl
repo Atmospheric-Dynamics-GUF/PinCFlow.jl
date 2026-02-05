@@ -280,8 +280,10 @@ function compute_volume_force(
 
     buoyancyproduction[i, j, k] = buoyancy
 
+    dtkedt = wkb_term(state, i, j, k)
+
     return (rho[i, j, k] + rhobar[i, j, k]) *
-           (km[i, j, k] * shear + kh[i, j, k] * buoyancy)
+           (km[i, j, k] * shear + kh[i, j, k] * buoyancy + dtkedt)
 end
 
 function compute_volume_force(

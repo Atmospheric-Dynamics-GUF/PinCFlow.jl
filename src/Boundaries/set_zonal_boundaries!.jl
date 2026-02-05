@@ -239,7 +239,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uw, :vw, :e, :shear)
+    for field in (:uw, :vw, :e, :sterm, :bterm)
         set_zonal_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -259,7 +259,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e, :shear)
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e, :sterm, :bterm)
         set_zonal_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -279,7 +279,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt, :shear)
+    for field in (:dudt, :dvdt, :dtkedt)
         set_zonal_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,
@@ -298,7 +298,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt, :dthetadt, :shear)
+    for field in (:dudt, :dvdt, :dthetadt, :dtkedt)
         set_zonal_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,

@@ -89,6 +89,7 @@ include("merge_rays!.jl")
 include("propagate_rays!.jl")
 include("shift_rays!.jl")
 include("split_rays!.jl")
+include("compute_turbulent_damping.jl")
 
 export X, Y, Z, XZ, YZ, XYZ
 

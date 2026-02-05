@@ -86,17 +86,17 @@ function buoyancy_term(
     (; jac, dz) = state.grid
     (; g_ndim) = state.constants
 
-    # bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    # bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
+    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
+    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
-    # buoyancy = -(n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2 * dz))
+    buoyancy = -(n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2 * dz))
 
-    thetau = pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
-    theta = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
-    thetad = pbar[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
+    # thetau = pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
+    # theta = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+    # thetad = pbar[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
-    wthetap = (thetau - thetad) / (jac[i, j, k] * 2 * dz)
-    buoyancy = -g_ndim * wthetap / theta
+    # wthetap = (thetau - thetad) / (jac[i, j, k] * 2 * dz)
+    # buoyancy = -g_ndim * wthetap / theta
 
     return buoyancy
 end
