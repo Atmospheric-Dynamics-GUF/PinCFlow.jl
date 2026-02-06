@@ -107,6 +107,15 @@ set_meridional_boundaries!(
 
 Enforce meridional boundary conditions for WKB tendencies needed in `MultiColumn` configurations.
 
+```julia
+set_meridional_boundaries!(
+    state::State,
+    variables::BoundaryDiffusionCoefficients,
+)
+```
+
+Enforce meridional boundary conditions for eddy diffusion coefficients.
+
 # Arguments
 
   - `state`: Model state.
