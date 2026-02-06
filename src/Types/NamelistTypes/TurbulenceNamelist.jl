@@ -17,7 +17,7 @@ Construct a `TurbulenceNamelist` instance with the given keyword arguments as pr
 
   - `turbulence_scheme::A`: Turbulence parameterization scheme.
 """
-struct TurbulenceNamelist{A <: AbstractTurbulence, B <: Bool, C <: Function,}
+struct TurbulenceNamelist{A <: AbstractTurbulence, B <: Bool, C <: Function}
     turbulence_scheme::A
     momentum_coupling::B
     entropy_coupling::B

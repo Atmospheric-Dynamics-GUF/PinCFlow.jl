@@ -46,7 +46,7 @@ struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     utheta::A
     vtheta::A
     e::A
-    sterm::A 
+    sterm::A
     bterm::A
 end
 

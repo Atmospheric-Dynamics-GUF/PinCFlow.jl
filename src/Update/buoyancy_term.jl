@@ -93,7 +93,7 @@ function buoyancy_term(
     bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
     buoyancy =
-        -kh[i, j, k] * (n2[i, j, k] + 0 * (bu - bd) / (jac[i, j, k] * 2 * dz))
+        -kh[i, j, k] * (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2 * dz))
 
     # thetau = pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     # theta = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])

@@ -41,11 +41,7 @@ function turbulent_diffusion!(
     return
 end
 
-function turbulent_diffusion!(
-    state::State,
-    dt::AbstractFloat,
-    variable::U,
-)
+function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u) = state.variables.predictands
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
@@ -130,11 +126,7 @@ function turbulent_diffusion!(
     return
 end
 
-function turbulent_diffusion!(
-    state::State,
-    dt::AbstractFloat,
-    variable::V,
-)
+function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
     (; nbx, nby, nbz) = state.namelists.domain
     (; v) = state.variables.predictands
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
@@ -219,11 +211,7 @@ function turbulent_diffusion!(
     return
 end
 
-function turbulent_diffusion!(
-    state::State,
-    dt::AbstractFloat,
-    variable::W,
-)
+function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u, v, w) = state.variables.predictands
     (; uold, vold) = state.variables.backups
@@ -466,8 +454,7 @@ function turbulent_diffusion_new!(state::State, dt::AbstractFloat, variable::W)
         fth[:, :, k] =
             (1 .- dtdz2 .* kmu .- dtdz2 .* kmd) .* 0.5 .*
             (w[ii, jj, knbz] .+ w[ii, jj, knbz - 1]) .+
-            dtdz2 .* kmu .* 0.5 .*
-            (w[ii, jj, knbz] .+ w[ii, jj, knbz + 1]) .+
+            dtdz2 .* kmu .* 0.5 .* (w[ii, jj, knbz] .+ w[ii, jj, knbz + 1]) .+
             dtdz2 .* kmd .* 0.5 .* (w[ii, jj, knbz - 1] .+ w[ii, jj, knbz - 2])
     end
 

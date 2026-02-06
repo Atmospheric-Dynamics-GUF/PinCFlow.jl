@@ -62,7 +62,10 @@ function TurbulenceFluxes(
     return TurbulenceFluxes(phitke)
 end
 
-function TurbulenceFluxes(domain::Domain, turbulence_scheme::TKEScheme)::TurbulenceFluxes
+function TurbulenceFluxes(
+    domain::Domain,
+    turbulence_scheme::TKEScheme,
+)::TurbulenceFluxes
     (; nxx, nyy, nzz) = domain
 
     phitke = zeros(nxx, nyy, nzz, 3)

@@ -33,7 +33,7 @@ function compute_turbulence_forcing!(
     (; km, kh) = state.turbulence.turbulencediffusioncoefficients
     (; dtkedt) = state.wkb.tendencies
     (; sterm, bterm) = state.wkb.integrals
-    
+
     @ivy dtkedt[i, j, k] =
         km[i, j, k] * sterm[i, j, k] + kh[i, j, k] * bterm[i, j, k]
 
