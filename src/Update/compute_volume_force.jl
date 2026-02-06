@@ -106,6 +106,47 @@ compute_volume_force(
 
 Return the tracer flux convergence due to gravity waves.
 
+```julia
+compute_volume_force(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+)::AbstractFloat
+```
+
+Return the mass-weighted shear-, buoyancy-, and gravity wave-impact on the TKE by dispatching to the appropriate method.
+
+```julia
+compute_volume_force(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    model::Union{PseudoIncompressible, Compressible},
+)::AbstractFloat
+```
+
+Return the mass-weighted shear-, buoyancy-, and gravity wave-impact on the TKE in pseudo-incompressible and compressible mode.
+
+```julia
+compute_volume_force(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    model::Boussinesq,
+)::AbstractFloat
+```
+
+Return the mass-weighted shear-, buoyancy-, and gravity wave-impact on the TKE in Boussinesq mode.
+
 # Arguments
 
   - `state`: Model state.
@@ -120,9 +161,17 @@ Return the tracer flux convergence due to gravity waves.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
+  - `p0`: Predictands
+
 # See also
 
   - [`PinCFlow.Update.conductive_heating`](@ref)
+
+  - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
+
+  - [`PinCFlow.Update.buoyancy_term`](@ref)
+
+  - [`PinCFlow.Update.wkb_term`](@ref)
 """
 function compute_volume_force end
 
