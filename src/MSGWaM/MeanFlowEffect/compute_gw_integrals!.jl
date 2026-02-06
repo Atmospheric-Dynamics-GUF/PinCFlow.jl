@@ -271,25 +271,12 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        # integrals.sterm[iray, jray, kray] +=
-                        #     mr^2 * 2 / rhobar[iray, jray, kray] * (
-                        #         mr^2 * (fc^2 + omir^2) /
-                        #         (omir * (khr^2 + mr^2)) *
-                        #         2 *
-                        #         wadr / rhobar[iray, jray, kray] -
-                        #         0 * real(
-                        #             -(n2r - fc^2) * khr^2 * mr^2 /
-                        #             (khr^2 + mr^2)^2 *
-                        #             2 *
-                        #             wadr / omir * exp(2im * phi),
-                        #         )
-                        #     )
-
                         integrals.sterm[iray, jray, kray] +=
                             mr^2 / 2 * (
                                 2 * mr^2 * wadr * (omir^2 + fc^2) /
                                 rhobar[iray, jray, kray] / omir /
-                                (khr^2 + mr^2) - real(
+                                (khr^2 + mr^2) -
+                                0 * real(
                                     -(n2r - fc^2) * khr^2 * mr^2 /
                                     (khr^2 + mr^2)^2 *
                                     2 *
@@ -299,7 +286,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             )
 
                         integrals.bterm[iray, jray, kray] +=
-                            -real(
+                            -0 * real(
                                 1im *
                                 mr *
                                 sqrt(

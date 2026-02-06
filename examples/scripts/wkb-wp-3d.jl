@@ -16,7 +16,7 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 1
 y_size = 1
-z_size = 40
+z_size = 20
 
 lx = 30e3
 ly = 30e3
@@ -61,7 +61,7 @@ atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    save_ray_volumes = false,
+    save_ray_volumes = true,
     output_variables = (:u, :v, :w, :rhop, :dtkedt),
     output_file = "wkb-wp-3d.h5",
     tmax = 720.0,
