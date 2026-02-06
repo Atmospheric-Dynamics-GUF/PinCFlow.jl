@@ -358,7 +358,7 @@ function write_output(
                         ii,
                         jj,
                         kk,
-                    ] ./ (tref .^ 2.0)
+                    ] .* uref.^2 ./ tref
             end
 
             for field in fieldnames(TurbulenceDiffusionCoefficients)

@@ -63,15 +63,15 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     save_ray_volumes = true,
     output_variables = (:u, :v, :w, :rhop, :dtkedt),
-    output_file = "wkb-wp-3d.h5",
-    tmax = 720.0,
+    output_file = "wkb-wp-3d-nobp.h5",
+    tmax = 360.0,
     output_interval = 36.0,
 )
 
-discretization = DiscretizationNamelist(; dtmax = 5.0)
+discretization = DiscretizationNamelist(; dtmax = 1.0)
 
 wkb = WKBNamelist(;
-    nrz = 4,
+    nrz = 1,
     use_saturation = false,
     wkb_mode = MultiColumn(),
     initial_wave_field = (alpha, x, y, z) ->
@@ -82,6 +82,7 @@ wkb = WKBNamelist(;
 turbulence = TurbulenceNamelist(;
     turbulence_scheme = TKEScheme(),
     momentum_coupling = true,
+    wave_action_coupling = true,
     initial_tke = (x, y, z) -> 5e-5,
 )
 

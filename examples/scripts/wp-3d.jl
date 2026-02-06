@@ -35,6 +35,7 @@ a0 = 2
 k = 2 * pi / 30e3
 l = 2 * pi / 30e3
 m = 2 * pi / 3e3
+
 background = Isothermal()
 model = PseudoIncompressible()
 coriolis_frequency = 1e-4
@@ -71,8 +72,8 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "wp-3d.h5",
-    tmax = 720.0,
+    output_file = "wp-3d-nobp.h5",
+    tmax = 360.0,
     output_interval = 36.0,
 )
 turbulence = TurbulenceNamelist(;

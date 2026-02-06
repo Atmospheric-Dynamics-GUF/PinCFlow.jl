@@ -55,13 +55,15 @@ function buoyancy_term(
 )
     (; rhop) = p0
     (; pbar, rhobar) = state.atmosphere
+    (; kh) = state.turbulence.turbulencediffusioncoefficients
     (; jac, dz) = state.grid
     (; g_ndim) = state.constants
 
     bu = g_ndim * (1 / (rhop[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
     bd = g_ndim * (1 / (rhop[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
-    buoyancy = -(n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+    buoyancy =
+        -kh[i, j, k] * (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     # thetau = pbar[i, j, k + 1] / (rhop[i, j, k + 1] + rhobar[i, j, k + 1])
     # theta = pbar[i, j, k] / (rhop[i, j, k] + rhobar[i, j, k])
@@ -83,13 +85,15 @@ function buoyancy_term(
 )
     (; rho) = p0
     (; pbar, rhobar, n2) = state.atmosphere
+    (; kh) = state.turbulence.turbulencediffusioncoefficients
     (; jac, dz) = state.grid
     (; g_ndim) = state.constants
 
     bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
     bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
-    buoyancy = -(n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2 * dz))
+    buoyancy =
+        -kh[i, j, k] * (n2[i, j, k] + 0 * (bu - bd) / (jac[i, j, k] * 2 * dz))
 
     # thetau = pbar[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     # theta = pbar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])

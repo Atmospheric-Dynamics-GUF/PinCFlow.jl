@@ -52,6 +52,11 @@ function compute_turbulent_damping(
     (; tref) = state.constants
     (; rays) = state.wkb
     (; lturb_ndim) = state.turbulence.turbulenceconstants
+    (; wave_action_coupling) = state.namelists.turbulence
+
+    if !wave_action_coupling
+        return 0.0
+    end
 
     fc = coriolis_frequency * tref
 
@@ -67,7 +72,7 @@ function compute_turbulent_damping(
 
     tkeloc = interpolate_tke(xr, yr, zr, state)
 
-    gammas = mr^2 * sqrt(tkeloc) * lturb_ndim
+    gammas = mr^2 * sqrt(2 * tkeloc) * lturb_ndim
 
     return gammas
 end

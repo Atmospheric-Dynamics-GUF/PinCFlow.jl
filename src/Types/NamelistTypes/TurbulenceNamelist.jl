@@ -22,6 +22,7 @@ struct TurbulenceNamelist{A <: AbstractTurbulence, B <: Bool, C <: Function,}
     momentum_coupling::B
     entropy_coupling::B
     tracer_coupling::B
+    wave_action_coupling::B
     initial_tke::C
 end
 
@@ -30,6 +31,7 @@ function TurbulenceNamelist(;
     momentum_coupling::Bool = true,
     entropy_coupling::Bool = true,
     tracer_coupling::Bool = true,
+    wave_action_coupling::Bool = true,
     initial_tke::Function = (x, y, z) -> 5e-5,
 )::TurbulenceNamelist
     return TurbulenceNamelist(
@@ -37,6 +39,7 @@ function TurbulenceNamelist(;
         momentum_coupling,
         entropy_coupling,
         tracer_coupling,
+        wave_action_coupling,
         initial_tke,
     )
 end
