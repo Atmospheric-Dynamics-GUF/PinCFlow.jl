@@ -64,6 +64,7 @@ include("compute_horizontal_cell_indices.jl")
 include("compute_mean_flow_effect!.jl")
 include("smooth_gw_tendencies!.jl")
 include("compute_turbulence_forcing!.jl")
+include("compute_qbeta0.jl")
 
 export compute_mean_flow_effect!
 

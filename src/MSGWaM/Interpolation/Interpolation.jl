@@ -118,6 +118,10 @@ Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\par
 """
 struct DChiDZ end
 
+struct Q00 end 
+struct Q10 end 
+struct Q20 end
+
 include("compute_derivatives.jl")
 include("get_next_half_level.jl")
 include("get_next_level.jl")
@@ -125,15 +129,15 @@ include("interpolate_mean_flow.jl")
 include("interpolate_sponge.jl")
 include("interpolate_stratification.jl")
 include("interpolate.jl")
-include("interpolate_tke.jl")
+include("interpolate_q.jl")
 
-export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DChiDX, DChiDY, DChiDZ
+export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DChiDX, DChiDY, DChiDZ, Q00, Q10, Q20
 
 export get_next_half_level,
     get_next_level,
     interpolate_mean_flow,
     interpolate_sponge,
     interpolate_stratification,
-    interpolate_tke
+    interpolate_q
 
 end

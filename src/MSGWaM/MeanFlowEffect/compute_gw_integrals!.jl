@@ -155,6 +155,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
             (imin, imax, jmin, jmax) =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
+            wadr_ref = 0.0
+
             for iray in imin:imax
                 if x_size > 1
                     dxi = (
@@ -270,6 +272,52 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         end
 
                         integrals.e[iray, jray, kray] += wadr * omir
+
+                        if abs(wadr) > abs(wadr_ref)
+                            wadr_ref = wadr
+                            integrals.q00[iray, jray, kray] = compute_qbeta0(
+                                state,
+                                kr,
+                                lr,
+                                mr,
+                                omir,
+                                n2r,
+                                fc,
+                                wadr,
+                                iray,
+                                jray,
+                                kray,
+                                0.0,
+                            )
+                            integrals.q10[iray, jray, kray] = compute_qbeta0(
+                                state,
+                                kr,
+                                lr,
+                                mr,
+                                omir,
+                                n2r,
+                                fc,
+                                wadr,
+                                iray,
+                                jray,
+                                kray,
+                                1.0,
+                            )
+                            integrals.q20[iray, jray, kray] = compute_qbeta0(
+                                state,
+                                kr,
+                                lr,
+                                mr,
+                                omir,
+                                n2r,
+                                fc,
+                                wadr,
+                                iray,
+                                jray,
+                                kray,
+                                2.0,
+                            )
+                        end
 
                         integrals.sterm[iray, jray, kray] +=
                             mr^2 / 2 * (

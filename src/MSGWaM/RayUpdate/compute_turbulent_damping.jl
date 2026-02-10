@@ -8,71 +8,32 @@ function compute_turbulent_damping(
     yr::AbstractFloat,
     zr::AbstractFloat,
 )::AbstractFloat
-    (; turbulence_scheme) = state.namelists.turbulence
-
-    return compute_turbulent_damping(
-        state,
-        r,
-        i,
-        j,
-        k,
-        xr,
-        yr,
-        zr,
-        turbulence_scheme,
-    )
-end
-
-function compute_turbulent_damping(
-    state::State,
-    r::Integer,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    xr::AbstractFloat,
-    yr::AbstractFloat,
-    zr::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
-)::AbstractFloat
-    return 0.0
-end
-
-function compute_turbulent_damping(
-    state::State,
-    r::Integer,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    xr::AbstractFloat,
-    yr::AbstractFloat,
-    zr::AbstractFloat,
-    turbulence_scheme::TKEScheme,
-)::AbstractFloat
+    (; rays) = state.wkb
+    (; lv, lb) = state.turbulence.turbulenceconstants
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
-    (; rays) = state.wkb
-    (; lturb_ndim) = state.turbulence.turbulenceconstants
-    (; wave_action_coupling) = state.namelists.turbulence
 
-    if !wave_action_coupling
-        return 0.0
-    end
-
-    fc = coriolis_frequency * tref
+    fc = coriolis_frequency / tref
 
     kr = rays.k[r, i, j, k]
     lr = rays.l[r, i, j, k]
     mr = rays.m[r, i, j, k]
 
-    khr = sqrt(kr^2 + lr^2)
+    kh2 = kr^2 + lr^2
 
     n2r = interpolate_stratification(zr, state, N2())
 
-    delta = n2r * khr^2 / (2 * (n2r * khr^2 + fc^2 * mr^2))
+    q00loc = interpolate_q(xr, yr, zr, state, Q00())
+    q20loc = interpolate_q(xr, yr, zr, state, Q20())
 
-    tkeloc = interpolate_tke(xr, yr, zr, state)
+    delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
-    gammas = mr^2 * sqrt(2 * tkeloc) * lturb_ndim
+    gammas = mr^2 * q00loc * (lv * (1 - delta) + lb * delta)
 
-    return gammas
+    gammaw =
+        mr^2 / 4 * n2r * kh2 / (n2r * kh2 + fc^2 * mr^2) *
+        (lv * (1 - fc^2 / n2r) / (1 + kh2 / mr^2) - lb) *
+        q20loc
+
+    return gammas + gammaw
 end

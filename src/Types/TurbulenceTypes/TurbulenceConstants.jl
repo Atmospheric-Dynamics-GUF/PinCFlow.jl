@@ -31,6 +31,10 @@ struct TurbulenceConstants{A <: AbstractFloat}
     # Dissipation constant
     lturb::A
     lturb_ndim::A
+    ld::A
+    lv::A
+    lb::A
+    lt::A
     tkemin::A
     prandtl::A
     prandtlinv::A
@@ -44,9 +48,21 @@ function TurbulenceConstants(
 
     lturb = 30.0
     lturb_ndim = lturb / lref
+    ld = sqrt(2) * lturb_ndim
+    lv = lb = lt = lturb_ndim / sqrt(2)
     tkemin = 5.E-5 * tref^2.0 / lref^2.0
     prandtl = 0.85
     prandtlinv = 1.0 / prandtl
 
-    return TurbulenceConstants(lturb, lturb_ndim, tkemin, prandtl, prandtlinv)
+    return TurbulenceConstants(
+        lturb,
+        lturb_ndim,
+        ld,
+        lv,
+        lb,
+        lt,
+        tkemin,
+        prandtl,
+        prandtlinv,
+    )
 end

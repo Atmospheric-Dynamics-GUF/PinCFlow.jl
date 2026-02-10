@@ -148,6 +148,10 @@ function compute_gw_tendencies!(state::State)
             end
         end
 
+        tendencies.q00[i, j, k] = integrals.q00[i, j, k]
+        tendencies.q10[i, j, k] = integrals.q10[i, j, k]
+        tendencies.q20[i, j, k] = integrals.q20[i, j, k]
+
         compute_turbulence_forcing!(state, i, j, k)
 
         compute_leading_order_tracer_forcing!(state, i, j, k)

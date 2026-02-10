@@ -72,12 +72,12 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "wp-3d-nobp.h5",
+    output_file = "wp-3d-noturb.h5",
     tmax = 360.0,
     output_interval = 36.0,
 )
 turbulence = TurbulenceNamelist(;
-    turbulence_scheme = TKEScheme(),
+    turbulence_scheme = NoTurbulence(),
     momentum_coupling = true,
     initial_tke = (x, y, z) -> 5e-5,
 )

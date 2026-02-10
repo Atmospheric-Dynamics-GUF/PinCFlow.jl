@@ -37,7 +37,7 @@ l = 2 * pi / 30e3
 m = 2 * pi / 3e3
 
 background = Isothermal()
-model = PseudoIncompressible()
+model = Compressible()
 coriolis_frequency = 1e-4
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency, model)
@@ -62,27 +62,27 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
     save_ray_volumes = true,
-    output_variables = (:u, :v, :w, :rhop, :dtkedt),
-    output_file = "wkb-wp-3d-nobp.h5",
+    output_variables = (:u, :v, :w, :rhop, :dtkedt, :q00, :q10, :q20),
+    output_file = "wkb-wp-3d.h5",
     tmax = 360.0,
     output_interval = 36.0,
 )
 
-discretization = DiscretizationNamelist(; dtmax = 1.0)
+discretization = DiscretizationNamelist(; dtmax = 5.0)
 
 wkb = WKBNamelist(;
     nrz = 1,
+    multiplication_factor = 2,
     use_saturation = false,
     wkb_mode = MultiColumn(),
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
-    filter_order = 3,
+    filter_order = 2,
 )
 
 turbulence = TurbulenceNamelist(;
     turbulence_scheme = TKEScheme(),
     momentum_coupling = true,
-    wave_action_coupling = true,
     initial_tke = (x, y, z) -> 5e-5,
 )
 

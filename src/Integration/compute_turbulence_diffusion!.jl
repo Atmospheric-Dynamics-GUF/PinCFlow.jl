@@ -61,7 +61,7 @@ function compute_turbulence_diffusion!(
     turbulence_scheme::TKEScheme,
     model::Union{PseudoIncompressible, Compressible},
 )
-    (; lturb_ndim, prandtlinv) = state.turbulence.turbulenceconstants
+    (; lv, lb, lt, prandtlinv) = state.turbulence.turbulenceconstants
     (; kh, km, kek) = state.turbulence.turbulencediffusioncoefficients
     (; tke) = state.turbulence.turbulencepredictands
     (; rho) = state.variables.predictands
@@ -70,21 +70,21 @@ function compute_turbulence_diffusion!(
 
     check_tke!(state)
     kh[i0:i1, j0:j1, k0:k1] .=
-        lturb_ndim .*
+        lb .*
         sqrt.(
-            tke[i0:i1, j0:j1, k0:k1] ./
+            2.0 * tke[i0:i1, j0:j1, k0:k1] ./
             (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
     km[i0:i1, j0:j1, k0:k1] .=
-        lturb_ndim .*
+        lv .*
         sqrt.(
-            tke[i0:i1, j0:j1, k0:k1] ./
+            2.0 * tke[i0:i1, j0:j1, k0:k1] ./
             (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
     kek[i0:i1, j0:j1, k0:k1] .=
-        lturb_ndim .*
+        lt .*
         sqrt.(
-            tke[i0:i1, j0:j1, k0:k1] ./
+            2.0 * tke[i0:i1, j0:j1, k0:k1] ./
             (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
 
@@ -97,7 +97,7 @@ function compute_turbulence_diffusion!(
     turbulence_scheme::TKEScheme,
     model::Boussinesq,
 )
-    (; lturb_ndim, prandtlinv) = state.turbulence.turbulenceconstants
+    (; lb, lv, lt, prandtlinv) = state.turbulence.turbulenceconstants
     (; kh, km, kek) = state.turbulence.turbulencediffusioncoefficients
     (; tke) = state.turbulence.turbulencepredictands
     (; rhop) = state.variables.predictands
@@ -106,19 +106,19 @@ function compute_turbulence_diffusion!(
 
     check_tke!(state)
     kh[i0:i1, j0:j1, k0:k1] .=
-        lturb_ndim .*
+        lb .*
         sqrt.(
             2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
             (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
     km[i0:i1, j0:j1, k0:k1] .=
-        lturb_ndim .*
+        lv .*
         sqrt.(
             2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
             (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
     kek[i0:i1, j0:j1, k0:k1] .=
-        lturb_ndim .*
+        lt .*
         sqrt.(
             2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
             (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
