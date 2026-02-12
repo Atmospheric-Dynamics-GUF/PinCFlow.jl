@@ -13,12 +13,17 @@ Return `code` with replaced `assignments`.
   - `code`: String of Julia code.
 
   - `assignments`: Replacements for assignments in the code.
+
+# Keywords
+
+  - `allow_missing_assignments`: If set to `true`, a warning is issued if an assignment isn't found in `code`. If set to `false`, an error is raised instead.
 """
 function replace_assignments end
 
 function replace_assignments(
     code::AbstractString,
-    assignments::Vararg{Pair{Symbol, <:Any}},
+    assignments::Vararg{Pair{Symbol, <:Any}};
+    allow_missing_assignments::Bool = true,
 )::AbstractString
     for assignment in assignments
         (name, value) = assignment
@@ -33,14 +38,17 @@ function replace_assignments(
                 suffix = "\n"
             catch
                 while !(code[stop] in (',', ')'))
+                    code[stop] == '.' && (stop += 1)
                     stop = Meta.parse(code, stop; greedy = false)[2]
                 end
             end
             stop -= 1
             code = replace(code, code[start:stop] => "$name = $value" * suffix)
-        else
+        elseif allow_missing_assignments
             println("Warning: No assignment of \"$name\" was found!")
             println("")
+        else
+            error("No assignment of \"$name\" was found!")
         end
     end
 
