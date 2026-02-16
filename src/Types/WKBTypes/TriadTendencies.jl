@@ -50,7 +50,7 @@ struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}, B <: AbstractArr
     spec_grid::SpectralGrid
     wavespectrum::A
     ray_vol_signature::Array{Vector{RaySignature},5}
-    col_int::B
+    col_int::A
     diag_time::B
     kin_box::KinematicBox
     interp_coef::InterpCoef
@@ -69,7 +69,7 @@ end
 
   interp_coef = InterpCoef(wkb_mode, triad_mode)  
   
-  return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), Array{Vector{RaySignature}}(undef, 0, 0, 0, 0, 0), zeros(0, 0), zeros(0, 0),
+  return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), Array{Vector{RaySignature}}(undef, 0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), zeros(0, 0),
     kin_box, interp_coef)
   end
 
@@ -117,7 +117,7 @@ function TriadTendencies(namelists::Namelists,
   interp_coef = InterpCoef(kp, m, wkb_mode, triad_mode)
 
   wavespectrum =  zeros(nxx, nyy, nzz, kpl, ml)
-  col_int = zeros(kpl, ml)
+  col_int = zeros(nxx, nyy, nzz, kpl, ml)
   diag_time = zeros(kpl, ml)
 
   ray_vol_signature = Array{Vector{RaySignature},5}(undef, nxx, nyy, nzz, kpl, ml)

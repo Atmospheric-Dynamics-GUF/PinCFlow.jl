@@ -349,6 +349,20 @@ function create_output(state::State, machine_start_time::DateTime)
 
                 
             end
+            if :stk in output_variables && triad_mode != NoTriad()
+                create_dataset(
+                        file,
+                        "stk",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, kpl, ml, 0),
+                            (x_size, y_size, z_size, kpl, ml, -1),
+                        );
+                        chunk = (cx, cy, cz, ckp, cm, ct),
+                    )
+
+                
+            end
         end
 
         return
@@ -386,11 +400,11 @@ function create_output(state::State, machine_start_time::DateTime)
 
         attributes(file["kp"])["units"] = "m^{-1}"
         attributes(file["kp"])["label"] = L"kp\ [\mathrm{m^{-1}}]"
-        attributes(file["kp"])["long_name"] = "absolute horizontal wave number"
+        attributes(file["kp"])["long_name"] = "absolute horizontal wave number coordinates"
 
         attributes(file["m"])["units"] = "m^{-1}"
         attributes(file["m"])["label"] = L"kp\ [\mathrm{m^{-1}}]"
-        attributes(file["m"])["long_name"] = "absolute vertical wave number"
+        attributes(file["m"])["long_name"] = "vertical wave number coordinates"
 
         if model != Boussinesq()
             attributes(file["rhobar"])["units"] = "kg*m^-3"
@@ -618,9 +632,34 @@ function create_output(state::State, machine_start_time::DateTime)
                 end
             end
             if :wavespectrum in output_variables && triad_mode != NoTriad()
-                attributes(file["wavespectrum"])["units"] = "m^5*s^-1"
-                attributes(file["wavespectrum"])["label"] = L"[ \mathrm{N}]\ [\mathrm{ Kg\ m^{2}\ s^{-1}}]"
+                if x_size == 1 && y_size == 1
+                    was_units = "kg*s^-1"
+                    was_label = L"\mathcal{N}_r\ [\mathrm{kg\ s^{-1}}]"
+                elseif x_size > 1 && y_size > 1
+                    was_units = "kg*m^2*s^-1"
+                    was_label = L"\mathcal{N}_r\ [\mathrm{kg\ m^2\ s^{-1}}]"
+                else
+                    was_units = "kg*m*s^-1"
+                    was_label = L"\mathcal{N}_r\ [\mathrm{kg\ m\ s^{-1}}]"
+                end
+                attributes(file["wavespectrum"])["units"] = was_units
+                attributes(file["wavespectrum"])["label"] = was_label
                 attributes(file["wavespectrum"])["long_name"] = "Wave action spectrum"
+            end
+            if :stk in output_variables && triad_mode != NoTriad()
+                if x_size == 1 && y_size == 1
+                    stk_units = "kg*s^-1"
+                    stk_label = L"\mathcal{N}_r\ [\mathrm{kg\ s^{-2}}]"
+                elseif x_size > 1 && y_size > 1
+                    stk_units = "kg*m^2*s^-1"
+                    stk_label = L"\mathcal{N}_r\ [\mathrm{kg\ m^2\ s^{-2}}]"
+                else
+                    stk_units = "kg*m*s^-1"
+                    stk_label = L"\mathcal{N}_r\ [\mathrm{kg\ m\ s^{-2}}]"
+                end
+                attributes(file["stk"])["units"] = stk_units
+                attributes(file["stk"])["label"] = stk_label
+                attributes(file["stk"])["long_name"] = "collision integral"
             end
         end
 

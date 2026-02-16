@@ -15,12 +15,13 @@ module PinCFlow
 
 include("@ivy.jl")
 include("plot_output.jl")
+include("my_plot_output.jl")
 include("plot_contours.jl")
 include("set_visualization_theme!.jl")
 include("symmetric_contours.jl")
 
 export @ivy
-export plot_output, plot_contours, set_visualization_theme!, symmetric_contours
+export plot_output, my_plot_output ,plot_contours, set_visualization_theme!, symmetric_contours
 
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")

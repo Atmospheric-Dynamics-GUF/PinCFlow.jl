@@ -19,11 +19,6 @@ function compute_scattering_integral!(
 
     update_interpolation_coef!(spec_tend, was, triad_mode)
 
-    for field in fieldnames(TriadTendencies)
-        if field == :st_k || field == :col_int
-            getfield(spec_tend, field) .= 0.0
-        end
-    end
     
 
     @ivy for mi in eachindex(m),
@@ -53,12 +48,12 @@ function compute_scattering_integral!(
 
             
         end
-        col_int[kpi, mi] = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) + 
+        col_int[ii, jj, kk, kpi, mi] = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) + 
                             trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi])
 
         # Singularities p=±kr, yet to define
 
-        col_int[kpi, mi] *= (2 * pi) 
+        col_int[ii, jj, kk, kpi, mi] *= (2 * pi) 
 
         
     end
