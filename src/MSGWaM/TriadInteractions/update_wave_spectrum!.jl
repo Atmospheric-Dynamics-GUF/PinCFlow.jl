@@ -46,12 +46,11 @@ function update_wave_spectrum!(
     @ivy for mi in eachindex(m),
         kpi in eachindex(kp)
 
-        if  (dtau * abs(col_int[kpi, mi])) < (1.0E-5 * max_was) #cell wise exclusion for small col_int, the collision integral is too small just ignore it
+        if  (dtau * abs(col_int[ii, jj, kk, kpi, mi])) < (1.0E-5 * max_was) #cell wise exclusion for small col_int, the collision integral is too small just ignore it
             continue
         else
-            wavespectrum[ii, jj, kk, kpi, mi] += dtau * col_int[kpi, mi]  
+            wavespectrum[ii, jj, kk, kpi, mi] += dtau * col_int[ii, jj, kk, kpi, mi]  
         end
-
     end
     
 end

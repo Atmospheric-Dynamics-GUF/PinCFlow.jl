@@ -77,13 +77,13 @@ function SpectralGrid(namelists::Namelists,
         m = log_range(mmin, mmax, m_size)
         lambdam = m[2] / m[1] 
         loglm = log(lambdam)
-        mc = compute_edges(m)
+        mc = compute_edges_centre(m)
         if triad_mode == Triad2D()   
             m = [-reverse(m); m]   #to include negative vertical wave number
             mc = [-reverse(mc); mc]
         end
     end
-    kpc = compute_edges(kp)
+    kpc = compute_edges_centre(kp)
     kpl = length(kp)
     ml = length(m)
 
