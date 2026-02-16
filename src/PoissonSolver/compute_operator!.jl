@@ -1574,7 +1574,7 @@ function compute_operator!(
         ja = j - j0 + 1
         ka = k - k0 + 1
 
-        # Set matrix elements for bicgstab.
+        # Set matrix elements for BiCGSTAB.
         ac_b[ia, ja, ka] = ac
         ar_b[ia, ja, ka] = ar
         al_b[ia, ja, ka] = al

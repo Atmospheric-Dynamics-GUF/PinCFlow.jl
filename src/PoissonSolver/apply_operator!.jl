@@ -268,6 +268,7 @@ function apply_operator!(
             abuu * sbuu +
             abdd * sbdd
     end
+
     return
 end
 
@@ -473,5 +474,6 @@ function apply_operator!(
             abuu * sbuu +
             abdd * sbdd
     end
+
     return
 end
