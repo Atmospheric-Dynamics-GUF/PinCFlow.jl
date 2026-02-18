@@ -4,8 +4,6 @@ function compute_turbulent_damping(
     i::Integer,
     j::Integer,
     k::Integer,
-    xr::AbstractFloat,
-    yr::AbstractFloat,
     zr::AbstractFloat,
 )::AbstractFloat
     (; rays) = state.wkb
@@ -23,17 +21,20 @@ function compute_turbulent_damping(
 
     n2r = interpolate_stratification(zr, state, N2())
 
-    q00loc = interpolate_q(xr, yr, zr, state, Q00())
-    q20loc = interpolate_q(xr, yr, zr, state, Q20())
+    q00, q10, q20 = compute_q(state, r, i, j, k)
+
+    rays.q00[r, i, j, k] = q00
+    rays.q10[r, i, j, k] = q10
+    rays.q20[r, i, j, k] = q20
 
     delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
-    gammas = mr^2 * q00loc * (lv * (1 - delta) + lb * delta)
+    gammas = mr^2 * q00 * (lv * (1 - delta) + lb * delta)
 
     gammaw =
         mr^2 / 4 * n2r * kh2 / (n2r * kh2 + fc^2 * mr^2) *
         (lv * (1 - fc^2 / n2r) / (1 + kh2 / mr^2) - lb) *
-        q20loc
+        q20
 
-    return gammas + gammaw
+    return 0. # gammas + gammaw
 end

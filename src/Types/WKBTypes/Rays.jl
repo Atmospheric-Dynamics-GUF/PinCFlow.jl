@@ -66,8 +66,11 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     dmray::A
     dens::A
     dphi::A
+    q00::A
+    q10::A
+    q20::A
 end
 
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
-    return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:14]...)
+    return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:17]...)
 end

@@ -83,7 +83,7 @@ function write_output(
     (; model) = state.namelists.atmosphere
     (; wkb_mode) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; tref, lref, rhoref, thetaref, uref) = state.constants
+    (; tref, lref, rhoref, thetaref, uref, g_ndim) = state.constants
     (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
@@ -421,19 +421,26 @@ function write_output(
                 )
                 file["phase"][1:nray_max, iid, jjd, kkrd, iout] =
                     rays.dphi[rr, ii, jj, kkr]
+
+                for (output_name, field_name) in
+                    zip(("q00", "q10", "q20"), (:q00, :q10, :q20))
+                    HDF5.set_extent_dims(
+                        file[output_name],
+                        (nray_max, x_size, y_size, z_size + 1, iout),
+                    )
+                    file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
+                        getfield(rays, field_name)[rr, ii, jj, kkr] .* uref
+                end
             end
 
             # Write GW tendencies.
             for (field, scaling) in zip(
-                (:dudt, :dvdt, :dthetadt, :dtkedt, :q00, :q10, :q20),
+                (:dudt, :dvdt, :dthetadt, :dtkedt),
                 (
                     rhoref * uref / tref,
                     rhoref * uref / tref,
                     rhoref * thetaref / tref,
                     uref^2 / tref,
-                    uref,
-                    uref,
-                    uref,
                 ),
             )
                 if field in output_variables

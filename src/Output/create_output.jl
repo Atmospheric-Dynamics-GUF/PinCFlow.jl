@@ -342,6 +342,9 @@ function create_output(state::State, machine_start_time::DateTime)
                     "dmr",
                     "nr",
                     "phase",
+                    "q00",
+                    "q10",
+                    "q20"
                 )
                     create_dataset(
                         file,
@@ -357,7 +360,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             # Create datasets for GW tendencies.
-            for field in (:dudt, :dvdt, :dthetadt, :dtkedt, :q00, :q10, :q20)
+            for field in (:dudt, :dvdt, :dthetadt, :dtkedt)
                 if field in output_variables
                     create_dataset(
                         file,

@@ -436,8 +436,7 @@ function propagate_rays!(
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-            turbulentdamping =
-                compute_turbulent_damping(state, r, i, j, k, xr, yr, zr)
+            turbulentdamping = compute_turbulent_damping(state, r, i, j, k, zr)
             betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
             rays.dens[r, i, j, k] *=
                 betasponge * exp(-2 * turbulentdamping * stepfrac[rkstage] * dt)

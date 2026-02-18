@@ -37,7 +37,7 @@ l = 2 * pi / 30e3
 m = 2 * pi / 3e3
 
 background = Isothermal()
-model = PseudoIncompressible()
+model = Compressible()
 coriolis_frequency = 1e-4
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency, model)
@@ -72,12 +72,12 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "wp-3d-noturb.h5",
+    output_file = "wp-3d.h5",
     tmax = 360.0,
     output_interval = 36.0,
 )
 turbulence = TurbulenceNamelist(;
-    turbulence_scheme = NoTurbulence(),
+    turbulence_scheme = TKEScheme(),
     momentum_coupling = true,
     initial_tke = (x, y, z) -> 5e-5,
 )

@@ -113,14 +113,8 @@ function buoyancy_term(
     bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
     bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
-    if ko == 0 && k == k0
-        alpha = 0.
-    else
-        alpha = 1.
-    end
-
     buoyancy =
-        -kh[i, j, k] * (n2[i, j, k] + alpha * (bu - bd) / (jac[i, j, k] * 2 * dz))
+        -kh[i, j, k] * (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2 * dz))
 
     return buoyancy
 end
