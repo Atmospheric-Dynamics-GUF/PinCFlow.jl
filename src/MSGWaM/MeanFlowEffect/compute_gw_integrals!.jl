@@ -275,27 +275,10 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             mr^2 / 2 * (
                                 2 * mr^2 * wadr * (omir^2 + fc^2) /
                                 rhobar[iray, jray, kray] / omir /
-                                (khr^2 + mr^2) -
-                                0 * real(
-                                    -(n2r - fc^2) * khr^2 * mr^2 /
-                                    (khr^2 + mr^2)^2 *
-                                    2 *
-                                    wadr / omir / rhobar[iray, jray, kray] *
-                                    exp(2im * phi),
-                                )
+                                (khr^2 + mr^2)
                             )
 
-                        integrals.bterm[iray, jray, kray] +=
-                            -0 * real(
-                                1im *
-                                mr *
-                                sqrt(
-                                    2 * wadr * mr^2 * (omir^2 + fc^2) /
-                                    rhobar[iray, jray, kray] / omir /
-                                    (khr^2 + mr^2),
-                                ) *
-                                exp(1im * phi),
-                            )
+                        integrals.bterm[iray, jray, kray] += 0.0
 
                         compute_leading_order_tracer_fluxes!(
                             state,

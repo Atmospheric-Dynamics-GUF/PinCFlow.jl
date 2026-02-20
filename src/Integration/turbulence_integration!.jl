@@ -59,17 +59,57 @@ function turbulence_integration!(
     dt::AbstractFloat,
     process::Dissipation,
 )
+    (; model) = state.namelists.atmosphere
+
+    turbulence_integration!(state, p0, dt, process, model)
+    return
+end
+
+function turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    process::Dissipation,
+    model::Union{PseudoIncompressible, Compressible},
+)
     (; tke) = state.turbulence.turbulencepredictands
     (; ld) = state.turbulence.turbulenceconstants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
+    (; rho) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         tke[i, j, k] =
+            1 /
             (
-                dt / (ld * sqrt(rhobar[i, j, k])) +
-                1 / sqrt(2.0 * tke[i, j, k])
-            )^(-2)
+                sqrt(2) * dt / (ld * sqrt(rho[i, j, k] + rhobar[i, j, k])) +
+                1 / sqrt(tke[i, j, k])
+            )^2.0
+    end
+
+    return
+end
+
+function turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    process::Dissipation,
+    model::Boussinesq,
+)
+    (; tke) = state.turbulence.turbulencepredictands
+    (; ld) = state.turbulence.turbulenceconstants
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; rhobar) = state.atmosphere
+    (; rhop) = state.variables.predictands
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        tke[i, j, k] =
+            1 /
+            (
+                sqrt(2) * dt / (ld * sqrt(rhop[i, j, k] + rhobar[i, j, k])) +
+                1 / sqrt(tke[i, j, k])
+            )^2.0
     end
 
     return

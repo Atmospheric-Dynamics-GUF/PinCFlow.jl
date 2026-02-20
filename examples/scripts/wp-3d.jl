@@ -16,11 +16,11 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 16
 y_size = 16
-z_size = 640
+z_size = 980
 
 lx = 30e3
 ly = 30e3
-lz = 60e3
+lz = 90e3
 
 rx = 0.0
 ry = 0.0
@@ -28,7 +28,7 @@ rz = 0.05
 
 x0 = 0.0
 y0 = 0.0
-z0 = 20e3
+z0 = 30e3
 
 a0 = 2
 
@@ -72,14 +72,14 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "wp-3d.h5",
+    output_file = "wp-3d-ref.h5",
     tmax = 360.0,
     output_interval = 36.0,
 )
 turbulence = TurbulenceNamelist(;
-    turbulence_scheme = TKEScheme(),
+    turbulence_scheme = NoTurbulence(),
     momentum_coupling = true,
-    initial_tke = (x, y, z) -> 5e-5,
+    initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
 )
 
 integrate(Namelists(; atmosphere, domain, output, turbulence))

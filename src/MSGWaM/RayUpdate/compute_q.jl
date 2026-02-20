@@ -34,7 +34,6 @@ function compute_q(
     (; rhobar, n2) = state.atmosphere
     (; x_size, y_size) = state.namelists.domain
 
-
     (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
     rhob = interpolate_rhobar(zr, state, Rhobar())
@@ -73,11 +72,14 @@ function compute_q(
     end
     if beta == 0.0
         integral /= (2 * pi)
+        return real(integral)
+    elseif beta == 1.0
+        integral /= pi
+        return real(1im * integral)
     else
         integral /= pi
+        return real(integral)
     end
-
-    return real(integral)
 end
 
 function compute_q(

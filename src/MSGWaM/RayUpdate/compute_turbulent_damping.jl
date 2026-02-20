@@ -5,7 +5,7 @@ function compute_turbulent_damping(
     j::Integer,
     k::Integer,
     zr::AbstractFloat,
-)::AbstractFloat
+)::Tuple{<:AbstractFloat, <:AbstractFloat, <:AbstractFloat}
     (; rays) = state.wkb
     (; lv, lb) = state.turbulence.turbulenceconstants
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -20,6 +20,9 @@ function compute_turbulent_damping(
     kh2 = kr^2 + lr^2
 
     n2r = interpolate_stratification(zr, state, N2())
+
+    omir = -sqrt(n2r * kh2 + fc^2 * mr^2) / sqrt(kh2 + mr^2)
+    rhob = interpolate_rhobar(zr, state, Rhobar())
 
     q00, q10, q20 = compute_q(state, r, i, j, k)
 
@@ -36,5 +39,13 @@ function compute_turbulent_damping(
         (lv * (1 - fc^2 / n2r) / (1 + kh2 / mr^2) - lb) *
         q20
 
-    return 0. # gammas + gammaw
+    gammawp =
+        lb * mr / omir *
+        sqrt(
+            n2r^2 * kh2 / (kh2 + mr^2) * rhob / 2 / omir /
+            rays.dens[r, i, j, k],
+        ) *
+        q10
+
+    return gammas, gammaw, gammawp
 end

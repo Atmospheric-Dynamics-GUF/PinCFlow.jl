@@ -16,11 +16,11 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 1
 y_size = 1
-z_size = 20
+z_size = 30
 
 lx = 30e3
 ly = 30e3
-lz = 60e3
+lz = 90e3
 
 rx = 0.0
 ry = 0.0
@@ -28,7 +28,7 @@ rz = 0.05
 
 x0 = 0.0
 y0 = 0.0
-z0 = 20e3
+z0 = 30e3
 
 a0 = 2
 
@@ -63,7 +63,7 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     save_ray_volumes = true,
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "wkb-wp-3d-360s-ref.h5",
+    output_file = "wkb-wp-3d.h5",
     tmax = 360.0,
     output_interval = 36.0,
 )
@@ -72,15 +72,16 @@ discretization = DiscretizationNamelist(; dtmax = 5.0)
 
 wkb = WKBNamelist(;
     use_saturation = false,
+    nrz = 4,
     wkb_mode = MultiColumn(),
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
 
 turbulence = TurbulenceNamelist(;
-    turbulence_scheme = NoTurbulence(),
+    turbulence_scheme = TKEScheme(),
     momentum_coupling = true,
-    initial_tke = (x, y, z) -> 5e-5,
+    initial_tke = (x, y, z) -> qtilde_wkb(x, y, z) / 2,
 )
 
 integrate(
