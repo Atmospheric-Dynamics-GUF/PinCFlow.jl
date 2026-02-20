@@ -31,8 +31,28 @@ include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
 include("Integration/Integration.jl")
 
+using PrecompileTools
 using .Types
 using .Integration
+
+@setup_workload begin
+    @compile_workload begin
+        redirect_stdout(devnull) do
+            mktempdir() do directory
+                integrate(
+                    Namelists(;
+                        output = OutputNamelist(;
+                            output_steps = true,
+                            output_file = directory * "/pincflow_output.h5",
+                        ),
+                    ),
+                )
+                return
+            end
+            return
+        end
+    end
+end
 
 # Export namelists.
 export DomainNamelist,
