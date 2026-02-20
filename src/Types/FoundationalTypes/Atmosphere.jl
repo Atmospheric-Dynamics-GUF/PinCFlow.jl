@@ -483,7 +483,8 @@ function Atmosphere(
                 pbar[i, j, k] =
                     ptrop * exp(-(zc[i, j, k] - ztrop) * sig / gamma / ttrop)
                 thetabar[i, j, k] =
-                    pttrop * exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop))
+                    pttrop *
+                    (1.0 + exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop)))
             end
         end
     end
