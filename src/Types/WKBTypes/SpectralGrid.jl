@@ -26,34 +26,34 @@ function SpectralGrid(namelists::Namelists,
 
    (; lref) = constants
    (; x_size, y_size, z_size) = namelists.domain
-   (;k_size, l_size, m_size) = namelists.triad
+   (;k_size, l_size, m_size, k_max, l_max, m_max, k_min, l_min, m_min) = namelists.triad
 
 
     # Non-dimensionalize domain boundaries.
     lx = namelists.domain.lx / lref
     ly = namelists.domain.ly / lref
     lz = namelists.domain.lz / lref
-    lk = namelists.triad.lk * lref
-    ll = namelists.triad.ll * lref
-    lm = namelists.triad.lm * lref
+    k_max = k_max * lref
+    l_max = l_max * lref
+    m_max = m_max * lref
 
     #compute the grid in kp-direction
 
     if triad_mode == Triad2D() && k_size != 1 && x_size != 1
-        kmin = 2 * pi / (lx * 4) #to include the smaller wave numbers 
-        kmax = lk
+        kmin = (k_min == 1) ? (2π / lx) : (k_min * lref)
+        kmax = k_max
         kp = log_range(kmin, kmax, k_size)
         lambdakp = kp[2] / kp[1]
         loglkp = log(lambdakp)
     elseif triad_mode == Triad2D() && l_size != 1 && y_size != 1
-        lmin = 2 * pi / ly
-        lmax = ll
+        lmin = (l_min == 1) ? (2π / lx) : (l_min * lref)
+        lmax = l_max
         kp = log_range(lmin, lmax, l_size)
         lambdakp = kp[2] / kp[1]
         loglkp = log(lambdakp)
     elseif triad_mode == Triad3DIso() && k_size != 1 && y_size != 1 
-        kpmin = sqrt((2 * pi / lx)^2 + (2 * pi / ly)^2)
-        kpmax = sqrt(lk^2 + ll^2)
+        kpmin = (k_min == 1 && l_min == 1) ? (sqrt((2 * pi / lx)^2 + (2 * pi / ly)^2)) : (sqrt((k_min * lref)^2 + (l_min * lref)^2))
+        kpmax = sqrt(k_max^2 + l_max^2)
         kp = log_range(kpmin, kpmax, k_size)
         lambdakp = kp[2] / kp[1]
         loglkp = log(lambdakp)   
@@ -73,7 +73,7 @@ function SpectralGrid(namelists::Namelists,
         mc = zeros(0)
     else
         mmin = 2 * pi / lz
-        mmax = lm
+        mmax = m_max
         m = log_range(mmin, mmax, m_size)
         lambdam = m[2] / m[1] 
         loglm = log(lambdam)
