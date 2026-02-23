@@ -100,14 +100,17 @@ function TriadTendencies(namelists::Namelists,
     amax = Float64.(kp)
     ma = Int.(max.(8*ones(kpl), 1:kpl)) 
     if triad_mode == Triad3DIso() 
-      mq = 2 * kpl
-      qmin = kpmin / mq
-      qmax = 2.0 * kpmax
+      mq = Int.(2 * kpl .* ones(kpl))
+      qmin = ones(kpl) .* (kpmin / mq[1])
+      qmax = ones(kpl) .* (2.0 * kpmax)
     else
-      mq = 1
-      qmin = 0.0
-      qmax = 0.0
+      mq = reverse(Int.(max.(8*ones(kpl), 2 .* (1:kpl))))
+      #mq[end] = 1
+      qmin = ones(kpl) .* (kpmin / mq[1])
+      qmax = ones(kpl) .* (2.0 * kpmax)
+      #qmax = 2 .* (-kp .+ kpmax)
     end
+
     kin_box = KinematicBox(amin, amax, ma, qmin, qmax, mq, wkb_mode, triad_mode)
     
   else

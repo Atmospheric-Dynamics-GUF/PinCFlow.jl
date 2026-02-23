@@ -35,8 +35,8 @@ function get_ray_volumes!(state::State,
                 continue
 
             elseif was != 0 && length(rv) == 0
-                println("new ray volume loop called \n new ray volume launched at ", 
-                (x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
+                #println("new ray volume loop called \n new ray volume launched at ", 
+                #(x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
                 kpr = kp[kpi]
                 mr = m[mi]
                 dkpr = kpc[kpi + 1] - kpc[kpi]
@@ -47,10 +47,8 @@ function get_ray_volumes!(state::State,
                 end
                 launch_new_ray_vol!(state, i, j, k, kpr, mr, dkpr, dmr, was, triad_mode)
             else
-                for tup in rv
-                    
-                    rays.dens[tup[1], tup[2], tup[3], tup[4]] += (tup[5] * tup[6] * was / was_old / tup[7] )
-
+                for tup in rv                    
+                    rays.dens[tup[1], tup[2], tup[3], tup[4]] += (tup[5] * tup[6] * was / was_old / tup[7])
                 end
                  
             end
