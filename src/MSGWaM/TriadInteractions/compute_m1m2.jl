@@ -10,8 +10,6 @@ function compute_m1m2(
     sol_branch::Sum
     )::NTuple{2, <:AbstractFloat}
 
-    f1 = f2 = m1 = m2 = 0.0
-
     f1 =  mr / (2 * kpr)
     f2 = kpr + kpr1 + kpr2
     m1 = f1 * (f2 + sqrt(f2^2 - 4 * kpr * kpr1))
@@ -51,8 +49,6 @@ function compute_m1m2(
     sol_branch::Sum
     )::NTuple{2, <:AbstractFloat}
 
-    f1 = f2 = m1 = m2 = 0.0
-    
     f1 =  mr / (2 * kpr)
     f2 = kpr + kpr1 + kpr2
     m1 = f1 * (f2 - sqrt(f2^2 - 4 * kpr * kpr1))
@@ -71,8 +67,6 @@ function compute_m1m2(
     sol_branch::Difference
     )::NTuple{2, <:AbstractFloat}
 
-    f1 = f2 = m1 = m2 = 0.0
-    
     f1 =  mr / (2 * kpr)
     f2 = kpr - kpr1 + kpr2
     m1 = f1 * (f2 - sqrt((-f2)^2 + 4 * kpr * kpr1))

@@ -8,7 +8,7 @@ function compute_scattering_integral!(
     triad_mode::Triad2D
     )
     (; spec_tend) = state.wkb
-    (; kp, m) = spec_tend.spec_grid
+    (; kp, m, kpl) = spec_tend.spec_grid
     (; aa, la, qq, lq, lia, liq, loglia, logliq) = spec_tend.kin_box
     (; wavespectrum, col_int) = spec_tend
     (; n2) = state.atmosphere
@@ -29,28 +29,36 @@ function compute_scattering_integral!(
         kr = kp[kpi]  
         mr = m[mi]
         aar = aa[kpi]
-        q = qq[1]
+        qqr = qq[kpi]
 
         fpl = zeros(la[kpi])
         fpr = zeros(la[kpi])
+        fq = zeros(lq[kpi])
 
         for i in 1:(la[kpi]) #for p ∈ (-kr, kr)
             pl = aar[i] - kr  #for the left part of kinematic box, also as aar never equal to zero, so p = \pm 1 is not included here
             pr = kr - aar[i]  #for the right part of kinematic box
 
             if i == la[kpi] # to avoid to count p = 0 twice
-                fpl[i] = compute_st_k(spec_tend, pl, q, nk, kr, mr, nn, triad_mode)
+                fpl[i] = compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, nn, triad_mode, Sum())
                 fpr[i] = 0.0
             else
-                fpl[i] = compute_st_k(spec_tend, pl, q, nk, kr, mr, nn, triad_mode)
-                fpr[i] = compute_st_k(spec_tend, pr, q, nk, kr, mr, nn, triad_mode)
-            end
-
-            
+                fpl[i] = compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, nn, triad_mode, Sum())
+                fpr[i] = compute_st_k(spec_tend, pr, 0.0, nk, kr, mr, nn, triad_mode, Sum())
+            end    
         end
-        col_int[ii, jj, kk, kpi, mi] = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) + 
-                            trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi])
-
+        #if kpi == kpl
+        #    col_int[ii, jj, kk, kpi, mi] = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) + 
+        #                                trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi])
+        #else
+            for j in 1:(lq[kpi])
+                q = qqr[j]
+                fq[j] = compute_st_k(spec_tend, 0.0, q, nk, kr, mr, nn, triad_mode, Difference())
+            end
+            col_int[ii, jj, kk, kpi, mi] = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) + 
+                                        trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi]) -
+                                        trapazoidal_with_logbin(fq, qqr, lq[kpi], liq[kpi], logliq[kpi])
+        #end
         # Singularities p=±kr, yet to define
 
         col_int[ii, jj, kk, kpi, mi] *= (2 * pi) 

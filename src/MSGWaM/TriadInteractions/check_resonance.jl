@@ -11,7 +11,9 @@ function check_resonance(
     )
 
     reso_offening = abs(abs(kpr1) / abs(mr1) + abs(kpr2) / abs(mr2) - abs(kpr) / abs(mr))
-    if reso_offening > 1.0E-5
+    delkp = kpr1 + kpr2 - kpr
+    delm = mr1 + mr2 - mr
+    if (reso_offening > 1.0E-5) || (delkp > 1.0E-5) || (delm > 1.0E-5)
         error("Error in resonance, resonance offening for the sum interaction is", reso_offening)
     end
     return 
@@ -29,8 +31,10 @@ function check_resonance(
     )
 
     reso_offening = abs(kpr1) / abs(mr1) - abs(kpr2) / abs(mr2) - abs(kpr) / abs(mr) 
-    if reso_offening > 1.0E-5
-        error("Error in resonance, resonance offening for the difference interaction is", reso_offening)
+    delkp = kpr1 - kpr2 - kpr
+    delm = mr1 - mr2 - mr
+    if (reso_offening > 1.0E-5) || (delkp > 1.0E-5) || (delm > 1.0E-5)
+        error("Error in resonance, resonance offening for the difference interaction is too large:", reso_offening)
     end
     return 
 

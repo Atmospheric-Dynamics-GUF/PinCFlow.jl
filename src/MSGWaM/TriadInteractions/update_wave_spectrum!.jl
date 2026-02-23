@@ -25,6 +25,7 @@ function update_wave_spectrum!(
     (; spec_tend) = state.wkb
     (; wavespectrum, col_int) = spec_tend
     (; kp, m) = spec_tend.spec_grid
+    (; col_int_tol) = state.namelists.triad
 
     max_was = maximum(spec_tend.wavespectrum[ii, jj, kk, :, :])
 
@@ -36,7 +37,7 @@ function update_wave_spectrum!(
     compute_scattering_integral!(state, ii, jj, kk, triad_mode)
     tau_nl = get_nl_time_scale!(spec_tend, ii, jj, kk)
 
-    if tau_nl > (dtau * 1.0E+5)
+    if (tau_nl * col_int_tol) > dtau
         #The nonlnear time scale is too large, interaction is not required in this grid cell
         return
     end 
@@ -46,7 +47,7 @@ function update_wave_spectrum!(
     @ivy for mi in eachindex(m),
         kpi in eachindex(kp)
 
-        if  (dtau * abs(col_int[ii, jj, kk, kpi, mi])) < (1.0E-5 * max_was) #cell wise exclusion for small col_int, the collision integral is too small just ignore it
+        if  (dtau * abs(col_int[ii, jj, kk, kpi, mi])) < (col_int_tol * max_was) #cell wise exclusion for small col_int, the collision integral is too small just ignore it
             continue
         else
             wavespectrum[ii, jj, kk, kpi, mi] += dtau * col_int[ii, jj, kk, kpi, mi]  
