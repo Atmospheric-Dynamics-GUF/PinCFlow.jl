@@ -54,6 +54,7 @@ struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}, B <: AbstractArr
     diag_time::B
     kin_box::KinematicBox
     interp_coef::InterpCoef
+    res_manifold::ResManifold
 end
 
 
@@ -67,10 +68,12 @@ end
    
   kin_box = KinematicBox(wkb_mode, triad_mode)
 
-  interp_coef = InterpCoef(wkb_mode, triad_mode)  
+  interp_coef = InterpCoef(wkb_mode, triad_mode)
+  
+  res_manifold = ResManifold(wkb_mode, triad_mode)
   
   return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), Array{Vector{RaySignature}}(undef, 0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), zeros(0, 0),
-    kin_box, interp_coef)
+    kin_box, interp_coef, res_manifold)
   end
 
 function TriadTendencies(namelists::Namelists,
@@ -79,13 +82,11 @@ function TriadTendencies(namelists::Namelists,
    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
    triad_mode::Union{Triad2D, Triad3DIso})::TriadTendencies
 
-
-
    (; nxx, nyy, nzz) = domain
+   (; rm_index) = namelists.triad
 
    # Compute the grid in kp and m direction
   
-
    spec_grid = SpectralGrid(namelists, constants, wkb_mode, triad_mode)
    
    (;kp, m, kpl, ml) = spec_grid
@@ -117,6 +118,8 @@ function TriadTendencies(namelists::Namelists,
     error("Error in triad domain configurations, don't meet the specification for either 2D or 3D model")
   end
 
+  res_manifold = ResManifold(kin_box.la[rm_index[1]], kin_box.lq[rm_index[1]], wkb_mode, triad_mode)
+
   interp_coef = InterpCoef(kp, m, wkb_mode, triad_mode)
 
   wavespectrum =  zeros(nxx, nyy, nzz, kpl, ml)
@@ -130,6 +133,6 @@ function TriadTendencies(namelists::Namelists,
   end
   
    
-   return TriadTendencies(spec_grid, wavespectrum, ray_vol_signature, col_int, diag_time, kin_box, interp_coef)
+   return TriadTendencies(spec_grid, wavespectrum, ray_vol_signature, col_int, diag_time, kin_box, interp_coef, res_manifold)
 end
 

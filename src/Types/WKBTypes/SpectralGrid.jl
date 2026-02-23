@@ -1,7 +1,7 @@
 struct SpectralGrid{A <: AbstractVector{<:AbstractFloat}, B <: Float64}
-    kp::A
+    kp::A  #grid center
     m::A
-    kpc::A
+    kpc::A  #grid edges
     mc::A
     kpl::Integer
     ml::Integer
@@ -40,7 +40,7 @@ function SpectralGrid(namelists::Namelists,
     #compute the grid in kp-direction
 
     if triad_mode == Triad2D() && k_size != 1 && x_size != 1
-        kmin = 2 * pi / lx
+        kmin = 2 * pi / (lx * 4) #to include the smaller wave numbers 
         kmax = lk
         kp = log_range(kmin, kmax, k_size)
         lambdakp = kp[2] / kp[1]
