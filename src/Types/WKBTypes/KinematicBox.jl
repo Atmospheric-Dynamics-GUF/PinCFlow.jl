@@ -40,13 +40,9 @@ function KinematicBox(amin::Vector{Float64},
     end
     
     for iz in eachindex(lq)
-        #if iz == mq
-        #    qq[iz] = [qmin[iz]]
-        #    liq[iz] = 1.0
-        #else  
+        @assert lq[iz] >= 2 
             qq[iz] = log_range(qmin[iz], qmax[iz], lq[iz])
             liq[iz] = qq[iz][2] / qq[iz][1]
-        #end
     end
 
     return KinematicBox(la, lq, lia, liq, log.(lia), log.(liq), aa, qq)

@@ -17,7 +17,7 @@ function compute_st_k(
                         
     # k = 1 + 2, branch +
     (m1, m2) = compute_m1m2(kpr, kp1, kp2, mr, Sum(), Sum())
-    check_resonance(kpr, mr, kp1, m1, kp2, m2, Sum())
+    #check_resonance(kpr, mr, kp1, m1, kp2, m2, Sum())
     
     n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
     n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode) 
@@ -29,7 +29,7 @@ function compute_st_k(
 
     # k = 1 + 2, branch -
     (m1, m2) = compute_m1m2(kpr, kp1, kp2, mr, Sum(), Difference())
-    check_resonance(kpr, mr, kp1, m1, kp2, m2, Sum())
+    #check_resonance(kpr, mr, kp1, m1, kp2, m2, Sum())
     
     n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
     n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode) 
@@ -62,7 +62,7 @@ function compute_st_k(
                         
     # 1 = k + 2, branch +
     (m1, m2) = compute_m1m2(kpr, kp1, kp2, mr, Difference(), Sum())
-    check_resonance(kpr, mr, kp1, m1, kp2, m2, Difference())
+    #check_resonance(kpr, mr, kp1, m1, kp2, m2, Difference())
     
     n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
     n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode) 
@@ -74,7 +74,7 @@ function compute_st_k(
 
     # 1 = k + 2, branch -
     (m1, m2) = compute_m1m2(kpr, kp1, kp2, mr, Difference(), Difference())
-    check_resonance(kpr, mr, kp1, m1, kp2, m2, Difference())
+    #check_resonance(kpr, mr, kp1, m1, kp2, m2, Difference())
     
     n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
     n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode) 

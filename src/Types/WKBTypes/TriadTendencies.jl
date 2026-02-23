@@ -106,10 +106,8 @@ function TriadTendencies(namelists::Namelists,
       qmax = ones(kpl) .* (2.0 * kpmax)
     else
       mq = reverse(Int.(max.(8*ones(kpl), 2 .* (1:kpl))))
-      #mq[end] = 1
       qmin = ones(kpl) .* (kpmin / mq[1])
       qmax = ones(kpl) .* (2.0 * kpmax)
-      #qmax = 2 .* (-kp .+ kpmax)
     end
 
     kin_box = KinematicBox(amin, amax, ma, qmin, qmax, mq, wkb_mode, triad_mode)

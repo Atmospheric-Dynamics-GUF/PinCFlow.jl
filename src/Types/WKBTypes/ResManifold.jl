@@ -26,7 +26,7 @@ function ResManifold(l_sum::Integer,
    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
    triad_mode::Union{Triad2D, Triad3DIso})::ResManifold
 
-   ni_sum = Int(2 * l_sum - 1)
+    ni_sum = Int(2 * l_sum - 1)
     k1s = zeros(ni_sum) 
     k2s = zeros(ni_sum)
     k1d = zeros(l_diff)  
