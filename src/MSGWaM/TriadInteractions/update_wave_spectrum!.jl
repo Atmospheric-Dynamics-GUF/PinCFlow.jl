@@ -77,9 +77,9 @@ function update_wave_spectrum!(
         kpi in eachindex(kp)
 
         if  col_int[kpi, mi] != 0
+            
             wavespectrum[ii, jj, kk, kpi, mi] += 0.5 * dtau * col_int[kpi, mi]
-            #println("The collision integral is no zero for the grid cell", (ii, jj, kk, kpi, mi), 
-            #"\n The collision integral is", col_int[kpi, mi])  
+
         end
 
     end

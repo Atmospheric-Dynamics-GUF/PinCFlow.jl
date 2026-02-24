@@ -25,17 +25,22 @@ function apply_triad_interactions!(state::State,
     (; branch) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = domain
     (; spec_tend) = state.wkb
+    (; nthreads_triad) = state.namelists.triad
+    
+    if Threads.nthreads() != nthreads_triad
+        error("Julia started with Threads.nthreads()=$(Threads.nthreads()) but nthreads_triad=$nthreads_triad. Start Julia with --threads=$nthreads_triad (or set JULIA_NUM_THREADS).")
+    end
 
     if master
         println(repeat("-", 80))
-        println("\n Calling triad interaction module")
+        println("Calling triad interaction module")
     end
 
     get_wave_spectrum!(state)
     wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
     
     if master
-        println("\n Updating wave action spectrum due to interactions")
+        println("Updating wave action spectrum due to interactions")
     end
 
     @ivy for kk in k0:k1,
@@ -50,7 +55,7 @@ function apply_triad_interactions!(state::State,
     get_ray_volumes!(state, wavespectrum_copy, triad_mode)
 
     if master
-        println("Triad interaction module successfully called \n")
+        println("Triad interaction module successfully called")
         println(repeat("-", 80))
     end
 

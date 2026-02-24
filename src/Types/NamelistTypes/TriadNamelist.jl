@@ -41,6 +41,7 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     triad_mode::C
     time_scheme::D
     rm_index::E
+    nthreads_triad::A
 end
 
 function TriadNamelist(;
@@ -57,6 +58,7 @@ function TriadNamelist(;
     triad_mode::AbstractTriad = NoTriad(),
     time_scheme::AbstractTimeStepping = EulerMethod(),
     rm_index::Tuple{Int, Int} = (1, 1),
+    nthreads_triad::Integer = 1,
 )::TriadNamelist
     return TriadNamelist(
         Int(k_size),
@@ -71,6 +73,7 @@ function TriadNamelist(;
         Float64(col_int_tol),
         triad_mode,
         time_scheme,
-        rm_index
+        rm_index,
+        nthreads_triad
     )
 end
