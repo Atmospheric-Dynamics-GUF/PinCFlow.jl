@@ -94,6 +94,9 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
   - `wave_modes::A`: Number of wave modes per grid cell.
 
   - `initial_wave_field::G`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
+
+!!! danger "Experimental"
+    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
 struct WKBNamelist{
     A <: Int,
