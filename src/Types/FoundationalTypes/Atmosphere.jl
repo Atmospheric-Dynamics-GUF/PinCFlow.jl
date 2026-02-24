@@ -181,8 +181,8 @@ The background fields are given by
     \\begin{cases}
         p_0 \\left[\\frac{T(z)}{T_0} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{TS}}\\gamma}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
         p_0 \\exp\\left(- \\frac{z \\sigma}{\\gamma T_0} \\right) & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
-        p_{\\mathrm{TP}} \\left[\\frac{T(z)}{T_{\\mathrm{TP}}} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{SS}}\\gamma}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
-        p_{\\mathrm{TP}}\\exp\\left[- \\frac{\\left(z - z_{\\mathrm{TP}} \\right)\\sigma}{\\gamma T_{\\mathrm{TP}}} \\right] & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
+        p_{\\mathrm{TP}} \\left[\\frac{T(z)}{T\\left(z_{\\mathrm{TP}}\\right)} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{SS}}\\gamma}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
+        p_{\\mathrm{TP}}\\exp\\left[- \\frac{\\left(z - z_{\\mathrm{TP}} \\right)\\sigma}{\\gamma T\\left(z_{\\mathrm{TP}}\\right)} \\right] & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
     \\end{cases} \\\\
     \\overline{\\theta}\\left(z\\right) & = T(z)\\left[\\frac{p_0}{P(z)}\\right]^{\\kappa\\gamma} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
@@ -195,7 +195,7 @@ where
 \\begin{align*}
     p_{\\mathrm{TP}} & =
     \\begin{cases}
-        p_0 \\left(\\frac{T_{\\mathrm{TP}}}{T_0} \\right)^{\\frac{g}{R\\Gamma_{\\mathrm{TS}}\\gamma}} & \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        p_0 \\left(\\frac{T\\left(z_{\\mathrm{TP}}\\right)}{T_0} \\right)^{\\frac{g}{R\\Gamma_{\\mathrm{TS}}\\gamma}} & \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
         p_0 \\exp\\left(- \\frac{z_{\\mathrm{TP}} \\sigma}{\\gamma T_0} \\right) & \\Gamma_{\\mathrm{TS}} = 0 \\;,
     \\end{cases} 
 \\end{align*}
@@ -460,7 +460,6 @@ function Atmosphere(
             else
                 pbar[i, j, k] = p0 * exp(-zc[i, j, k] * sig / gamma / t0)
             end
-            thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(kappa * gamma)
         else
             tbar = ttrop - gamma_s * (zc[i, j, k] - ztrop)
 
@@ -470,8 +469,8 @@ function Atmosphere(
                 pbar[i, j, k] =
                     ptrop * exp(-(zc[i, j, k] - ztrop) * sig / gamma / ttrop)
             end
-            thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(kappa * gamma)
         end
+        thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(kappa * gamma)
     end
 
     rhobar .= pbar ./ thetabar
