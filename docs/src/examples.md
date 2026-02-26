@@ -505,7 +505,7 @@ end
 
 ```
 
-performs a 3D WKB mountain-wave simulation. The full surface topography is given by
+performs a 3D WKB mountain-wave simulation in an atmosphere with a positive/negative lapse rate in the troposphere/stratosphere. The full surface topography is given by
 
 $$\begin{align*}
     h \left(x, y\right) & = \begin{cases}
