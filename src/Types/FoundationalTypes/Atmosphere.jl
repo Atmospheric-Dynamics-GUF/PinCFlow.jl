@@ -179,18 +179,12 @@ The background fields are given by
     \\end{cases} \\\\
     P\\left(z\\right) & =
     \\begin{cases}
-        p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{TS}} z}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{TS}}}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        p_0 \\left[\\frac{T(z)}{T_0} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{TS}}\\gamma}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
         p_0 \\exp\\left(- \\frac{z \\sigma}{\\gamma T_0} \\right) & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
-        p_{\\mathrm{TP}}\\left[1 - \\frac{\\Gamma_{\\mathrm{SS}} \\left(z - z_{\\mathrm{TP}} \\right)}{T_{\\mathrm{TP}}} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{SS}}}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
-        p_{\\mathrm{TP}}\\exp\\left[- \\frac{\\left(z - z_{\\mathrm{TP}} \\right)\\sigma}{\\gamma T_{\\mathrm{TP}}} \\right] & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
+        p_{\\mathrm{TP}} \\left[\\frac{T(z)}{T\\left(z_{\\mathrm{TP}}\\right)} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{SS}}\\gamma}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
+        p_{\\mathrm{TP}}\\exp\\left[- \\frac{\\left(z - z_{\\mathrm{TP}} \\right)\\sigma}{\\gamma T\\left(z_{\\mathrm{TP}}\\right)} \\right] & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
     \\end{cases} \\\\
-    \\overline{\\theta}\\left(z\\right) & =
-    \\begin{cases}
-        T\\left(z\\right) \\left[\\frac{p_0}{P\\left(z\\right)}\\right]^{\\frac{R\\Gamma_{\\mathrm{TS}}}{g}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
-        T_0 \\exp\\left(\\frac{\\kappa\\sigma z}{T_0}\\right) & z \\leq z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
-        T\\left(z\\right)\\left[\\frac{p_{\\mathrm{TP}}}{P\\left(z\\right)}\\right]^{\\frac{R\\Gamma_{\\mathrm{SS}}}{g}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
-        \\theta_{\\mathrm{TP}}\\exp\\left[\\frac{\\kappa\\sigma \\left(z-z_{\\mathrm{TP}}\\right)}{T\\left(z_{\\mathrm{TP}}\\right)}\\right] & z > z_{\\mathrm{TP}} \\;\\&\\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
-    \\end{cases} \\\\
+    \\overline{\\theta}\\left(z\\right) & = T(z)\\left[\\frac{p_0}{P(z)}\\right]^{\\kappa\\gamma} \\\\
     \\overline{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\overline{\\theta} \\left(z\\right)}\\;,\\\\
     N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;,
 \\end{align*}
@@ -201,10 +195,9 @@ where
 \\begin{align*}
     p_{\\mathrm{TP}} & =
     \\begin{cases}
-        p_0 \\left(1 - \\frac{\\Gamma_{\\mathrm{TS}} z_{\\mathrm{TP}}}{T_0}\\right)^{\\frac{g}{R \\Gamma_{\\mathrm{TS}}}} & \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
-        p_0 \\exp\\left(- \\frac{z_{\\mathrm{TP}}\\sigma}{\\gamma T_0} \\right) & \\Gamma_{\\mathrm{TS}} = 0 \\;,
-    \\end{cases} \\\\
-    \\theta_{\\mathrm{TP}} &= T_0 \\exp\\left(\\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{T_0} \\right)\\;,
+        p_0 \\left(\\frac{T\\left(z_{\\mathrm{TP}}\\right)}{T_0} \\right)^{\\frac{g}{R\\Gamma_{\\mathrm{TS}}\\gamma}} & \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        p_0 \\exp\\left(- \\frac{z_{\\mathrm{TP}} \\sigma}{\\gamma T_0} \\right) & \\Gamma_{\\mathrm{TS}} = 0 \\;,
+    \\end{cases} 
 \\end{align*}
 ```
 
@@ -446,46 +439,38 @@ function Atmosphere(
     t0 = temperature / thetaref
     ztrop = tropopause_height / lref
 
+    ttrop = t0 - gamma_t * ztrop
+
     if gamma_t != 0.0
-        power_t = g / (rsp * troposphere_lapse_rate)
-        ptrop = p0 * (1.0 - gamma_t * ztrop / t0)^power_t
+        power_t = g / rsp / troposphere_lapse_rate / gamma
+        ptrop = p0 * (ttrop / t0)^power_t
     else
         ptrop = p0 * exp(-ztrop * sig / gamma / t0)
-        pttrop = t0 * exp(kappa * sig / t0 * ztrop)
     end
     if gamma_s != 0.0
-        power_s = g / (rsp * stratosphere_lapse_rate)
+        power_s = g / rsp / stratosphere_lapse_rate / gamma
     end
-
-    ttrop = t0 - gamma_t * ztrop
 
     @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
         if zc[i, j, k] <= ztrop
             tbar = t0 - gamma_t * zc[i, j, k]
 
             if gamma_t != 0.0
-                pbar[i, j, k] = p0 * (1.0 - gamma_t * zc[i, j, k] / t0)^power_t
-                thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(1 / power_t)
+                pbar[i, j, k] = p0 * (tbar / t0)^power_t
             else
                 pbar[i, j, k] = p0 * exp(-zc[i, j, k] * sig / gamma / t0)
-                thetabar[i, j, k] = t0 * exp(kappa * sig / t0 * zc[i, j, k])
             end
-
         else
             tbar = ttrop - gamma_s * (zc[i, j, k] - ztrop)
 
             if gamma_s != 0.0
-                pbar[i, j, k] =
-                    ptrop *
-                    (1.0 - gamma_s * (zc[i, j, k] - ztrop) / ttrop)^power_s
-                thetabar[i, j, k] = tbar * (ptrop / pbar[i, j, k])^(1 / power_s)
+                pbar[i, j, k] = ptrop * (tbar / ttrop)^power_s
             else
                 pbar[i, j, k] =
                     ptrop * exp(-(zc[i, j, k] - ztrop) * sig / gamma / ttrop)
-                thetabar[i, j, k] =
-                    pttrop * exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop))
             end
         end
+        thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(kappa * gamma)
     end
 
     rhobar .= pbar ./ thetabar
