@@ -151,12 +151,11 @@ function turbulence_integration!(
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; kek) = state.turbulence.turbulencediffusioncoefficients
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
-    ath, bth, cth, fth, qth, pth, fth_bc, qth_bc =
-        thomas_arrays(state, nx, ny, nz)
 
     ii = i0:i1
     jj = j0:j1

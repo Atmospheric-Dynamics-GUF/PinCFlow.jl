@@ -46,10 +46,9 @@ function apply_preconditioner!(
     (; nx, ny, nz) = state.domain
     (; dx, dy) = state.grid
     (; au_b, ac_b, ad_b) = state.poisson.tensor
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
 
     reset_thomas!(state)
-    ath, bth, cth, fth, qth, pth, fth_bc, qth_bc =
-        thomas_arrays(state, nx, ny, nz)
 
     # Set pseudo-time step.
     deta = dtau / (2 * (1 / dx^2 + 1 / dy^2))

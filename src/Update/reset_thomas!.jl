@@ -4,14 +4,14 @@ function reset_thomas!(state::State)
     (; auxiliaries) = state.variables
 
     for field in (
-        :athglob,
-        :bthglob,
-        :cthglob,
-        :fthglob,
-        :qthglob,
-        :pthglob,
-        :qthglob_bc,
-        :fthglob_bc,
+        :ath,
+        :bth,
+        :cth,
+        :fth,
+        :qth,
+        :pth,
+        :qth_bc,
+        :fth_bc,
     )
         getfield(auxiliaries, field) .= 0.0
     end
