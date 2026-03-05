@@ -28,7 +28,7 @@ f_r = \\max \\left(1, \\frac{\\Delta x_r}{\\Delta \\widehat{x}}\\right) \\max \\
 is the maximum grid-cell fraction that can be covered by each ray volume (with ``\\left(\\Delta x_r, \\Delta y_r, \\Delta z_r\\right)`` being the ray-volume extents in physical space) and
 
 ```math
-\\left|b_{\\mathrm{w}, r}\\right|^2 = \\frac{2}{\\overline{\\rho}} \\frac{N_r^4 \\left(k_r^2 + l_r^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{N}_r \\Delta k_r \\Delta l_r \\Delta m_r
+\\left|b_{\\mathrm{w}, r}\\right|^2 = \\frac{2}{\\bar{\\rho}} \\frac{N_r^4 \\left(k_r^2 + l_r^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{N}_r \\Delta k_r \\Delta l_r \\Delta m_r
 ```
 
 is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`) and ``\\left(\\Delta k_r, \\Delta l_r, \\Delta m_r\\right)`` are the ray-volume extents in spectral space.

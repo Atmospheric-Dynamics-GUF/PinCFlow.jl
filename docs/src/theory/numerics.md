@@ -7,7 +7,7 @@
 The pseudo-incompressible equations are integrated with the semi-implicit time scheme
 
 $$\begin{align*}
-    1. && \rho'^n & = \rho^n - \overline{\rho},\\
+    1. && \rho'^n & = \rho^n - \bar{\rho},\\
     2. && \left(\rho^\#, \rho'^\#, \widehat{\boldsymbol{u}}^\#\right) & = \mathrm{L}_{\Delta t / 2} \left(\rho^n, \rho'^n, \widehat{\boldsymbol{u}}^n, \widehat{\boldsymbol{u}}^n, \alpha_\mathrm{R}^{n + 1}\right)\\
     3. && \left(\rho'^{n + 1 / 2}, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \pi'^{n + 1 / 2}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^\#, \rho'^\#, \widehat{\boldsymbol{u}}^\#, \pi'^n, \beta_\mathrm{R}^{n + 1}\right)\\
     4. && \left(\rho'^*, \widehat{\boldsymbol{u}}^*\right) & = \mathrm{RE}_{\Delta t / 2} \left(\rho^n, \rho'^n, \widehat{\boldsymbol{u}}^n, \pi'^{n + 1 / 2}\right)\\
@@ -19,7 +19,7 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
 
  1. The density fluctuations are synchronized with the full density, i.e.
 
-    $$\rho'^n = \rho^n - \overline{\rho}.$$
+    $$\rho'^n = \rho^n - \bar{\rho}.$$
 
  1. The left-hand sides are integrated over $\Delta t / 2$ with a low-storage RK3 scheme ([Williamson, 1980](https://doi.org/10.1016/0021-9991(80)90033-9)). Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the LHS sponge. At every RK3 stage $m$, the following updates are performed.
 
@@ -28,7 +28,7 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
         $$\begin{align*}
             q^{\rho, m + 1} & = - \frac{\Delta t}{2 J} \left(\frac{\partial J \rho^m u^n}{\partial \widehat{x}} + \frac{\partial J \rho^m v^n}{\partial \widehat{y}} + \frac{\partial J \rho^m \widehat{w}^n}{\partial \widehat{z}}\right) + \left(\alpha_\mathrm{RK} q^\rho\right)^m,\\
             \rho^{m + 1} & = \rho^m + \beta_\mathrm{RK}^m q^{\rho, m + 1},\\
-            \rho^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\rho^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \overline{\rho}\right)
+            \rho^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\rho^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \bar{\rho}\right)
         \end{align*}$$
 
      1. Density-fluctuations update:
@@ -66,23 +66,23 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
         $$\begin{align*}
             u^{n + 1 / 2} & = \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)^{- 1} \left[u^\# + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^\#} \mathcal{P}^{\rho u, n} + \frac{F^{\rho u, n + 1}}{\rho^\#}\right)\right],\\
             v^{n + 1 / 2} & = \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)^{- 1} \left[v^\# + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^\#} \mathcal{P}^{\rho v, n} + \frac{F^{\rho v, n + 1}}{\rho^\#}\right)\right],\\
-            \widehat{w}^{n + 1 / 2} & = \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
-            & \quad \times \left[\widehat{w}^\# + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^\#} \mathcal{P}^{\rho \widehat{w}, n} + \frac{b'^\#}{J} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^\#}\right) \vphantom{\frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}}\right.\\
-            & \qquad \quad + \left.\frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{1 3} u^{n + 1 / 2} + G^{2 3} v^{n + 1 / 2}\right)\right],\\
-            \rho'^{n + 1 / 2} & = - \frac{\rho^\#}{g} \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
-            & \quad \times \left\{- \frac{\overline{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left[\widehat{w}^\# + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^\#} \mathcal{P}^{\rho \widehat{w}, n} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^\#}\right)\right]\right.\\
-            & \qquad \quad + \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right) b'^\# + \frac{\overline{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)\\
-            & \qquad \quad \times \left.\left(G^{1 3} u^{n + 1 / 2} + G^{2 3} v^{n + 1 / 2}\right) \vphantom{\frac{\overline{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2}}\right\}
+            \widehat{w}^{n + 1 / 2} & = \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
+            & \quad \times \left[\widehat{w}^\# + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^\#} \mathcal{P}^{\rho \widehat{w}, n} + \frac{b'^\#}{J} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^\#}\right) \vphantom{\frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}}\right.\\
+            & \qquad \quad + \left.\frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{1 3} u^{n + 1 / 2} + G^{2 3} v^{n + 1 / 2}\right)\right],\\
+            \rho'^{n + 1 / 2} & = - \frac{\rho^\#}{g} \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
+            & \quad \times \left\{- \frac{\bar{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left[\widehat{w}^\# + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^\#} \mathcal{P}^{\rho \widehat{w}, n} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^\#}\right)\right]\right.\\
+            & \qquad \quad + \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right) b'^\# + \frac{\bar{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)\\
+            & \qquad \quad \times \left.\left(G^{1 3} u^{n + 1 / 2} + G^{2 3} v^{n + 1 / 2}\right) \vphantom{\frac{\bar{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2}}\right\}
         \end{align*}$$
 
      1. Poisson equation:
 
         $$\begin{align*}
             & \frac{1}{J} \left(\frac{\partial J P u^{n + 1 / 2}}{\partial \widehat{x}} + \frac{\partial J P v^{n + 1 / 2}}{\partial \widehat{y}} + \frac{\partial J P \widehat{w}^{n + 1 / 2}}{\partial \widehat{z}}\right)\\
-            & \quad = \frac{1}{J} \left\{\frac{\partial J P \mathcal{C}^{\rho u, \#, n + 1}}{\partial \widehat{x}} + \frac{\partial J P \mathcal{C}^{\rho v, \#, n + 1}}{\partial \widehat{y}} \vphantom{\left(\frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}}\right.\\
-            & \qquad \qquad + \frac{\partial}{\partial \widehat{z}} \left[\left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}\right.\\
-            & \qquad \qquad \qquad \quad \times \left(\frac{\Delta t}{2} c_p \frac{J P^2}{\rho^\#} \mathcal{D}^{\rho \widehat{w}} + J P \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right.\\
-            & \qquad \qquad \qquad \qquad \quad \times \left.\left.\left.\left(G^{13} \mathcal{C}^{\rho u, \#, n + 1} + G^{23} \mathcal{C}^{\rho v, \#, n + 1}\right) \vphantom{\frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}}\right) \vphantom{\left(\frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}}\right]\right\}
+            & \quad = \frac{1}{J} \left\{\frac{\partial J P \mathcal{C}^{\rho u, \#, n + 1}}{\partial \widehat{x}} + \frac{\partial J P \mathcal{C}^{\rho v, \#, n + 1}}{\partial \widehat{y}} \vphantom{\left(\frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}}\right.\\
+            & \qquad \qquad + \frac{\partial}{\partial \widehat{z}} \left[\left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}\right.\\
+            & \qquad \qquad \qquad \quad \times \left(\frac{\Delta t}{2} c_p \frac{J P^2}{\rho^\#} \mathcal{D}^{\rho \widehat{w}} + J P \frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right.\\
+            & \qquad \qquad \qquad \qquad \quad \times \left.\left.\left.\left(G^{13} \mathcal{C}^{\rho u, \#, n + 1} + G^{23} \mathcal{C}^{\rho v, \#, n + 1}\right) \vphantom{\frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}}\right) \vphantom{\left(\frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}}\right]\right\}
         \end{align*}$$
 
      1. Corrector step:
@@ -90,11 +90,11 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
         $$\begin{align*}
             u^{n + 1 / 2} & \rightarrow u^{n + 1 / 2} - \mathcal{C}^{\rho u, \#, n + 1},\\
             v^{n + 1 / 2} & \rightarrow v^{n + 1 / 2} - \mathcal{C}^{\rho v, \#, n + 1},\\
-            \widehat{w}^{n + 1 / 2} & \rightarrow \widehat{w}^{n + 1 / 2} - \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
-            & \quad \times \left[\frac{\Delta t}{2} c_p \frac{P}{\rho^\#} \mathcal{D}^{\rho \widehat{w}} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{1 3} \mathcal{C}^{\rho u, \#, n + 1} + G^{23} \mathcal{C}^{\rho v, \#, n + 1}\right)\right],\\
-            \rho'^{n + 1 / 2} & \rightarrow \rho'^{n + 1 / 2} + \frac{\rho^\#}{g} \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
-            & \quad \times \left[- \frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} J c_p \frac{P}{\rho^\#} \mathcal{D}^{\rho \widehat{w}} + \frac{\overline{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)\right.\\
-            & \qquad \quad \times \left.\left(G^{1 3} \mathcal{C}^{\rho u, \#, n + 1} + G^{2 3} \mathcal{C}^{\rho v, \#, n + 1}\right) \vphantom{\frac{\overline{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}}\right],\\
+            \widehat{w}^{n + 1 / 2} & \rightarrow \widehat{w}^{n + 1 / 2} - \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
+            & \quad \times \left[\frac{\Delta t}{2} c_p \frac{P}{\rho^\#} \mathcal{D}^{\rho \widehat{w}} + \frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} \left(G^{1 3} \mathcal{C}^{\rho u, \#, n + 1} + G^{23} \mathcal{C}^{\rho v, \#, n + 1}\right)\right],\\
+            \rho'^{n + 1 / 2} & \rightarrow \rho'^{n + 1 / 2} + \frac{\rho^\#}{g} \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
+            & \quad \times \left[- \frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4} J c_p \frac{P}{\rho^\#} \mathcal{D}^{\rho \widehat{w}} + \frac{\bar{\rho}}{\rho^\#} N^2 \frac{\Delta t}{2} J \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)\right.\\
+            & \qquad \quad \times \left.\left(G^{1 3} \mathcal{C}^{\rho u, \#, n + 1} + G^{2 3} \mathcal{C}^{\rho v, \#, n + 1}\right) \vphantom{\frac{\bar{\rho}}{\rho^\#} \frac{\left(N \Delta t\right)^2}{4}}\right],\\
             \pi'^{n + 1 / 2} & = \pi'^n + \Delta \pi'
         \end{align*}$$
 
@@ -119,7 +119,7 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
         u^* & = u^n + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^n} \mathcal{P}^{\rho u, n + 1 / 2} + \frac{F^{\rho u, n + 1}}{\rho^n}\right),\\
         v^* & = v^n + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^n} \mathcal{P}^{\rho v, n + 1 / 2} + \frac{F^{\rho v, n + 1}}{\rho^n}\right),\\
         \widehat{w}^* & = \widehat{w}^n + \frac{\Delta t}{2} \left(- c_p \frac{P}{\rho^n} \mathcal{P}^{\rho \widehat{w}, n + 1 / 2} + \frac{b'^n}{J} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^n}\right),\\
-        \rho'^* & = - \frac{\rho^n}{g} \left[b'^n - \frac{\Delta t}{2} \overline{\rho} N^2 \left(\frac{w}{\rho}\right)^n\right].
+        \rho'^* & = - \frac{\rho^n}{g} \left[b'^n - \frac{\Delta t}{2} \bar{\rho} N^2 \left(\frac{w}{\rho}\right)^n\right].
     \end{align*}$$
 
  1. The left-hand sides are integrated over $\Delta t$ with the low-storage RK3 scheme. Fractional implicit Euler steps are once again used to integrate the Rayleigh-damping terms of the LHS sponge. This step is equivalent to the first one, except for the differences indicated in the compact description above.
@@ -128,14 +128,14 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
 
 ### Boussinesq mode
 
-In Boussinesq mode, the time scheme remains mostly unchanged. As has been mentioned in the description of the physics, the continuity equation is removed, as are the density fluctuations everywhere except in the auxiliary equation and the buoyancy term of the transformed-vertical-momentum equation. Furthermore, $\overline{\rho}$, $\overline{\theta}$, $P$ and $N^2$ are replaced with $\rho_0$, $\theta_0$, $P_0$ and $N_0^2$, respectively.
+In Boussinesq mode, the time scheme remains mostly unchanged. As has been mentioned in the description of the physics, the continuity equation is removed, as are the density fluctuations everywhere except in the auxiliary equation and the buoyancy term of the transformed-vertical-momentum equation. Furthermore, $\bar{\rho}$, $\bar{\theta}$, $P$ and $N^2$ are replaced with $\rho_0$, $\theta_0$, $P_0$ and $N_0^2$, respectively.
 
 ### Compressible mode
 
 In compressible mode, the time scheme is changed in several ways, due to the mass-weighted potential temperature having a spatiotemporal dependence and being directly coupled to the Exner-pressure. It may be summarized by
 
 $$\begin{align*}
-    1. && \rho'^n & = \rho^n - \frac{P^n}{\overline{\theta}},\\
+    1. && \rho'^n & = \rho^n - \frac{P^n}{\bar{\theta}},\\
     2. && \left(\rho^\#, \rho'^\#, P^\#, \widehat{\boldsymbol{u}}^\#, \pi'^\#\right) & = \mathrm{L}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \widehat{\boldsymbol{u}}^n, \pi'^n, P^n, \widehat{\boldsymbol{u}}^n, \alpha_\mathrm{R}^{n + 1}\right)\\
     3. && \left(\rho'^{n + 1 / 2}, \widehat{\boldsymbol{u}}^{n + 1 / 2}, \pi'^{n + 1 / 2}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^\#, \rho'^\#, P^\#, \widehat{\boldsymbol{u}}^\#, \pi'^\#, \beta_\mathrm{R}^{n + 1}\right)\\
     4. && \left(\rho'^*, \widehat{\boldsymbol{u}}^*, \pi'^*\right) & = \mathrm{RE}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \widehat{\boldsymbol{u}}^n, \pi'^n\right)\\
@@ -147,7 +147,7 @@ $$\begin{align*}
 
  1. The density fluctuations are synchronized with the full density, i.e.
 
-    $$\rho'^n = \rho^n - \frac{P^n}{\overline{\theta}}.$$
+    $$\rho'^n = \rho^n - \frac{P^n}{\bar{\theta}}.$$
 
  1. The left-hand sides are integrated over $\Delta t / 2$ with the low-storage RK3 scheme. Fractional implicit Euler steps are used to integrate the Rayleigh-damping terms of the LHS sponge. The updates at every RK3 stage are as follows.
 
@@ -156,15 +156,15 @@ $$\begin{align*}
         $$\begin{align*}
             q^{\rho, m + 1} & = - \frac{\Delta t}{2 J} \left(\frac{\partial J \rho^m u^n}{\partial \widehat{x}} + \frac{\partial J \rho^m v^n}{\partial \widehat{y}} + \frac{\partial J \rho^m \widehat{w}^n}{\partial \widehat{z}}\right) + \left(\alpha_\mathrm{RK} q^\rho\right)^m,\\
             \rho^{m + 1} & = \rho^m + \beta_\mathrm{RK}^m q^{\rho, m + 1},\\
-            \rho^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\rho^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \overline{\rho}\right)
+            \rho^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left(\rho^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \bar{\rho}\right)
         \end{align*}$$
 
      1. Density-fluctuations update:
 
         $$\begin{align*}
-            q^{\rho', m + 1} & = - \frac{\Delta t}{2} \left[\frac{1}{J} \left(\frac{\partial J \rho'^m u^n}{\partial \widehat{x}} + \frac{\partial J \rho'^m v^n}{\partial \widehat{y}} + \frac{\partial J \rho'^m \widehat{w}^n}{\partial \widehat{z}}\right) + \frac{F^{P, n + 1}}{\overline{\theta}}\right] + \left(\alpha_\mathrm{RK} q^{\rho'}\right)^m,\\
+            q^{\rho', m + 1} & = - \frac{\Delta t}{2} \left[\frac{1}{J} \left(\frac{\partial J \rho'^m u^n}{\partial \widehat{x}} + \frac{\partial J \rho'^m v^n}{\partial \widehat{y}} + \frac{\partial J \rho'^m \widehat{w}^n}{\partial \widehat{z}}\right) + \frac{F^{P, n + 1}}{\bar{\theta}}\right] + \left(\alpha_\mathrm{RK} q^{\rho'}\right)^m,\\
             \rho'^{m + 1} & = \rho'^m + \beta_\mathrm{RK}^m q^{\rho', m + 1},\\
-            \rho'^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left\{\rho'^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \overline{\rho} \left[1 - \frac{\left(P / \rho\right)^{m + 1}}{\overline{\theta}}\right]\right\}
+            \rho'^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left\{\rho'^{m + 1} + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \bar{\rho} \left[1 - \frac{\left(P / \rho\right)^{m + 1}}{\bar{\theta}}\right]\right\}
         \end{align*}$$
 
      1. Mass-weighted potential-temperature update:
@@ -173,7 +173,7 @@ $$\begin{align*}
             q^{P, m + 1} & = - \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(P u\right)^n}{\partial \widehat{x}} + \frac{\partial J \left(P v\right)^n}{\partial \widehat{y}} + \frac{\partial J \left(P \widehat{w}\right)^n}{\partial \widehat{z}}\right] - F^{P, n + 1}\right\}\\
             & \quad + \left(\alpha_\mathrm{RK} q^P\right)^m,\\
             P^{m + 1} & = P^m + \beta_\mathrm{RK}^m q^{P, m + 1},\\
-            P^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} P^{m + 1} \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \frac{\overline{\rho}}{\rho^{m + 1}}\right)
+            P^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} P^{m + 1} \left(1 + \alpha_\mathrm{R}^{n + 1} f_\mathrm{RK}^m \frac{\Delta t}{2} \frac{\bar{\rho}}{\rho^{m + 1}}\right)
         \end{align*}$$
 
      1. Wind update:
@@ -191,7 +191,7 @@ $$\begin{align*}
     After the last RK3 step, the Exner-pressure fluctuations are updated according to the Rayleigh damping applied to the mass-weighted potential temperature, i.e.
 
     $$\begin{align*}
-        \pi'^\# = \pi'^n - \alpha_\mathrm{R} \frac{\Delta t}{2} \left(P \frac{\partial \pi'}{\partial P}\right)^\# \left(1 - \frac{\overline{\rho}}{\rho^\#}\right),
+        \pi'^\# = \pi'^n - \alpha_\mathrm{R} \frac{\Delta t}{2} \left(P \frac{\partial \pi'}{\partial P}\right)^\# \left(1 - \frac{\bar{\rho}}{\rho^\#}\right),
     \end{align*}$$
 
     where $\left(\partial P / \partial \pi'\right)^\# = \left(\gamma - 1\right)^{- 1} \left(R / p_\mathrm{ref}\right)^{1 - \gamma} \left(P^{2 - \gamma}\right)^\#$, with $\gamma$ being the ratio between the specific heat capacities and constant pressure and volume, $R$ being the specific gas constant and $p_\mathrm{ref}$ being the reference (ground) pressure.
@@ -203,12 +203,12 @@ $$\begin{align*}
         $$\begin{align*}
             U^{n + 1 / 2} & = \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)^{- 1} \left\{U^\# + \frac{\Delta t}{2} J P^\# \left[- c_p \left(\frac{P}{\rho}\right)^\# \mathcal{P}^{\rho u, n} + \frac{F^{\rho u, n + 1}}{\rho^\#}\right]\right\},\\
             V^{n + 1 / 2} & = \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)^{- 1} \left\{V^\# + \frac{\Delta t}{2} J P^\# \left[- c_p \left(\frac{P}{\rho}\right)^\# \mathcal{P}^{\rho v, n} + \frac{F^{\rho v, n + 1}}{\rho^\#}\right]\right\},\\
-            \widehat{W}^{n + 1 / 2} & = \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
+            \widehat{W}^{n + 1 / 2} & = \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
             & \quad \times \left\{\widehat{W}^\# + \frac{\Delta t}{2} J P^\# \left[- c_p \left(\frac{P}{\rho}\right)^\# \mathcal{P}^{\rho \widehat{w}, n} + \frac{b'^\#}{J} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^\#}\right]\right.\\
-            & \qquad \quad + \left.J P^\#\frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4} \left[G^{1 3} \frac{U^{n + 1 / 2}}{J P^\#} + G^{2 3} \frac{V^{n + 1 / 2}}{J P^\#}\right]\right\},\\
-            \rho'^{n + 1 / 2} & = - \frac{\rho^\#}{g} \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
-            & \quad \times \left\{- \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} N^2 \frac{\Delta t}{2} J \left[\frac{\widehat{W}^\#}{J P^\#} + \frac{\Delta t}{2} \left(- c_p \left(\frac{P}{\rho}\right)^\# \mathcal{P}^{\rho \widehat{w}, n} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^\#}\right)\right]\right.\\
-            & \qquad \quad  + \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right) b'^\# + \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} N^2 \frac{\Delta t}{2} J \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)\\
+            & \qquad \quad + \left.J P^\#\frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4} \left[G^{1 3} \frac{U^{n + 1 / 2}}{J P^\#} + G^{2 3} \frac{V^{n + 1 / 2}}{J P^\#}\right]\right\},\\
+            \rho'^{n + 1 / 2} & = - \frac{\rho^\#}{g} \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
+            & \quad \times \left\{- \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} N^2 \frac{\Delta t}{2} J \left[\frac{\widehat{W}^\#}{J P^\#} + \frac{\Delta t}{2} \left(- c_p \left(\frac{P}{\rho}\right)^\# \mathcal{P}^{\rho \widehat{w}, n} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^\#}\right)\right]\right.\\
+            & \qquad \quad  + \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right) b'^\# + \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} N^2 \frac{\Delta t}{2} J \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)\\
             & \qquad \quad \times \left.\left(G^{1 3} \frac{U^{n + 1 / 2}}{J P^\#} + G^{2 3} \frac{V^{n + 1 / 2}}{J P^\#}\right) \vphantom{\left[\left(\left(\frac{P}{\rho}\right)^\#\right)\right]}\right\}
         \end{align*}$$
 
@@ -217,10 +217,10 @@ $$\begin{align*}
         $$\begin{align*}
             & \frac{1}{J} \left[\frac{\partial U^{n + 1 / 2}}{\partial \widehat{x}} + \frac{\partial V^{n + 1 / 2}}{\partial \widehat{y}} + \frac{\partial \widehat{W}^{n + 1 / 2}}{\partial \widehat{z}}\right] - F^{P, n + 1}\\
             & \quad = - \left(\frac{\partial P}{\partial \pi'}\right)^\# \frac{2 \Delta \pi'}{\Delta t}\\
-            & \qquad + \frac{1}{J} \left\{\frac{\partial J P^\# \mathcal{C}^{\rho u, \#, n + 1}}{\partial \widehat{x}} + \frac{\partial J P^\# \mathcal{C}^{\rho v, \#, n + 1}}{\partial \widehat{y}} \vphantom{\left[\left(\frac{\left(P /  \rho\right)^\#}{\overline{\theta}}\right)^{- 1}\right]}\right.\\
-            & \qquad \qquad \quad + \frac{\partial}{\partial \widehat{z}} \left[\left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}\right.\\
-            & \qquad \qquad \qquad \qquad \times \left(\frac{\Delta t}{2} J P^\# c_p \left(\frac{P}{\rho}\right)^\# \mathcal{D}^{\rho \widehat{w}} + J P^\# \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right.\\
-            & \qquad \qquad \qquad \qquad \qquad \times \left.\left.\left.\left(G^{13} \mathcal{C}^{\rho u, \#, n + 1} + G^{23} \mathcal{C}^{\rho v, \#, n + 1}\right)\vphantom{\left(\frac{P^2}{\rho}\right)^\#}\right) \vphantom{\left(\frac{\left(P /  \rho\right)^\#}{\overline{\theta}}\right)^{- 1}}\right]\right\}
+            & \qquad + \frac{1}{J} \left\{\frac{\partial J P^\# \mathcal{C}^{\rho u, \#, n + 1}}{\partial \widehat{x}} + \frac{\partial J P^\# \mathcal{C}^{\rho v, \#, n + 1}}{\partial \widehat{y}} \vphantom{\left[\left(\frac{\left(P /  \rho\right)^\#}{\bar{\theta}}\right)^{- 1}\right]}\right.\\
+            & \qquad \qquad \quad + \frac{\partial}{\partial \widehat{z}} \left[\left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right)^{- 1}\right.\\
+            & \qquad \qquad \qquad \qquad \times \left(\frac{\Delta t}{2} J P^\# c_p \left(\frac{P}{\rho}\right)^\# \mathcal{D}^{\rho \widehat{w}} + J P^\# \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right.\\
+            & \qquad \qquad \qquad \qquad \qquad \times \left.\left.\left.\left(G^{13} \mathcal{C}^{\rho u, \#, n + 1} + G^{23} \mathcal{C}^{\rho v, \#, n + 1}\right)\vphantom{\left(\frac{P^2}{\rho}\right)^\#}\right) \vphantom{\left(\frac{\left(P /  \rho\right)^\#}{\bar{\theta}}\right)^{- 1}}\right]\right\}
         \end{align*}$$
 
      1. Corrector step:
@@ -228,12 +228,12 @@ $$\begin{align*}
         $$\begin{align*}
             U^{n + 1 / 2} & = \left(U^{n + 1 / 2} - J P^\# \mathcal{C}^{\rho u, \#, n + 1}\right),\\
             V^{n + 1 / 2} & = \left(V^{n + 1 / 2} - J P^\# \mathcal{C}^{\rho v, \#, n + 1}\right),\\
-            \widehat{W}^{n + 1 / 2} & = \left\{\widehat{W}^{n + 1 / 2} - \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\right.\\
-            & \qquad \qquad \qquad \times \left[\frac{\Delta t}{2} J P^\# c_p \left(\frac{P}{\rho}\right)^\# \mathcal{D}^{\rho \widehat{w}} + J P^\# \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right.\\
-            & \qquad \qquad \qquad \qquad \times \left.\left.\left(G^{1 3} \mathcal{C}^{\rho u, \#, n + 1} + G^{23} \mathcal{C}^{\rho v, \#, n + 1}\right) \vphantom{\left(\frac{P^2}{\rho}\right)^\#}\right] \vphantom{\left[\frac{\left(P /  \rho\right)^\#}{\overline{\theta}}\right]^{- 1}}\right\},\\
-            \rho'^{n + 1 / 2} & \rightarrow \rho'^{n + 1 / 2} + \frac{\rho^\#}{g} \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
-            & \quad \times \left[- \frac{\left(P /  \rho\right)^\#}{\overline{\theta}} \frac{\left(N \Delta t\right)^2}{4} J c_p \left(\frac{P}{\rho}\right)^\# \mathcal{D}^{\rho \widehat{w}}\right.\\
-            & \qquad \quad + \left.\frac{\left(P /  \rho\right)^\#}{\overline{\theta}} N^2 \frac{\Delta t}{2} J \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)  \left(G^{1 3} \mathcal{C}^{\rho u, \#, n + 1} + G^{2 3} \mathcal{C}^{\rho v, \#, n + 1}\right)\right],\\
+            \widehat{W}^{n + 1 / 2} & = \left\{\widehat{W}^{n + 1 / 2} - \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\right.\\
+            & \qquad \qquad \qquad \times \left[\frac{\Delta t}{2} J P^\# c_p \left(\frac{P}{\rho}\right)^\# \mathcal{D}^{\rho \widehat{w}} + J P^\# \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right.\\
+            & \qquad \qquad \qquad \qquad \times \left.\left.\left(G^{1 3} \mathcal{C}^{\rho u, \#, n + 1} + G^{23} \mathcal{C}^{\rho v, \#, n + 1}\right) \vphantom{\left(\frac{P^2}{\rho}\right)^\#}\right] \vphantom{\left[\frac{\left(P /  \rho\right)^\#}{\bar{\theta}}\right]^{- 1}}\right\},\\
+            \rho'^{n + 1 / 2} & \rightarrow \rho'^{n + 1 / 2} + \frac{\rho^\#}{g} \left[1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2} + \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4}\right]^{- 1}\\
+            & \quad \times \left[- \frac{\left(P /  \rho\right)^\#}{\bar{\theta}} \frac{\left(N \Delta t\right)^2}{4} J c_p \left(\frac{P}{\rho}\right)^\# \mathcal{D}^{\rho \widehat{w}}\right.\\
+            & \qquad \quad + \left.\frac{\left(P /  \rho\right)^\#}{\bar{\theta}} N^2 \frac{\Delta t}{2} J \left(1 + \beta_\mathrm{R}^{n + 1} \frac{\Delta t}{2}\right)  \left(G^{1 3} \mathcal{C}^{\rho u, \#, n + 1} + G^{2 3} \mathcal{C}^{\rho v, \#, n + 1}\right)\right],\\
             \pi'^{n + 1 / 2} & = \pi'^n + \Delta \pi'
         \end{align*}$$
 
@@ -250,7 +250,7 @@ $$\begin{align*}
         U^* & = \left\{U^n + \frac{\Delta t}{2} J P^n \left[- c_p \left(\frac{P}{\rho}\right)^n \mathcal{P}^{\rho u, n} + \frac{F^{\rho u, n + 1}}{\rho^n}\right]\right\},\\
         V^* & = \left\{V^n + \frac{\Delta t}{2} J P^n \left[- c_p \left(\frac{P}{\rho}\right)^n \mathcal{P}^{\rho v, n} + \frac{F^{\rho v, n + 1}}{\rho^n}\right]\right\},\\
         \widehat{W}^* & = \left\{\widehat{W}^n + \frac{\Delta t}{2} J P^n \left[- c_p \left(\frac{P}{\rho}\right)^n \mathcal{P}^{\rho \widehat{w}, n} + \frac{b'^n}{J} + \frac{F^{\rho \widehat{w}, n + 1}}{\rho^n}\right]\right\},\\
-        \rho'^* & = - \frac{\rho^n}{g} \left[b'^n - \frac{\Delta t}{2} N^2 \frac{\left(P / \rho\right)^n}{\overline{\theta}} \frac{W^n}{J P^n}\right],\\
+        \rho'^* & = - \frac{\rho^n}{g} \left[b'^n - \frac{\Delta t}{2} N^2 \frac{\left(P / \rho\right)^n}{\bar{\theta}} \frac{W^n}{J P^n}\right],\\
         \pi'^* & = \pi'^n - \frac{\Delta t}{2} \left(\frac{\partial \pi'}{\partial P}\right)^n \left\{\frac{1}{J} \left[\frac{\partial U^n}{\partial \widehat{x}} + \frac{\partial V^n}{\partial \widehat{y}} + \frac{\partial \widehat{W}^n}{\partial \widehat{z}}\right] - F^{P, n + 1}\right\}.
     \end{align*}$$
 

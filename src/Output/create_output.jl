@@ -364,12 +364,12 @@ function create_output(state::State, machine_start_time::DateTime)
         if model != Boussinesq()
             attributes(file["rhobar"])["units"] = "kg*m^-3"
             attributes(file["rhobar"])["label"] =
-                L"\overline{\rho}\ [\mathrm{kg\ m^{-3}}]"
+                L"\bar{\rho}\ [\mathrm{kg\ m^{-3}}]"
             attributes(file["rhobar"])["long_name"] = "density background"
 
             attributes(file["thetabar"])["units"] = "K"
             attributes(file["thetabar"])["label"] =
-                L"\overline{\theta}\ [\mathrm{K}]"
+                L"\bar{\theta}\ [\mathrm{K}]"
             attributes(file["thetabar"])["long_name"] = "potential-temperature background"
 
             attributes(file["n2"])["units"] = "s^-2"

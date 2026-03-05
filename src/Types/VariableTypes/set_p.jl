@@ -17,9 +17,9 @@ set_p(
 )::AbstractArray{<:AbstractFloat, 3}
 ```
 
-Return a copy of ``\\overline{P} = \\overline{\\rho} \\overline{\\theta}`` in compressible mode.
+Return a copy of ``\\bar{P} = \\bar{\\rho} \\bar{\\theta}`` in compressible mode.
 
-In compressible mode, the mass-weighted potential temperature is a prognostic variable. Its initialization as ``P = \\overline{\\rho} \\overline{\\theta}`` means that the initial potential temperature fluctuations are such that ``\\rho \\theta = \\overline{\\rho} \\overline{\\theta}``.
+In compressible mode, the mass-weighted potential temperature is a prognostic variable. Its initialization as ``P = \\bar{\\rho} \\bar{\\theta}`` means that the initial potential temperature fluctuations are such that ``\\rho \\theta = \\bar{\\rho} \\bar{\\theta}``.
 
 # Arguments:
 

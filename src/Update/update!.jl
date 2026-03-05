@@ -59,7 +59,7 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    q^{\\rho'} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\frac{F^P}{\\overline{\\theta}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    q^{\\rho'} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\frac{F^P}{\\bar{\\theta}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
     \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
 \\end{align*}
 ```
@@ -81,13 +81,13 @@ Update the density fluctuations with an explicit Euler step the on right-hand si
 The update is given by
 
 ```math
-\\rho' \\rightarrow - \\frac{\\rho}{g} \\left(b' - \\Delta t N^2 \\frac{\\overline{\\rho}}{\\rho} w\\right)
+\\rho' \\rightarrow - \\frac{\\rho}{g} \\left(b' - \\Delta t N^2 \\frac{\\bar{\\rho}}{\\rho} w\\right)
 ```
 
 in Boussinesq/pseudo-incompressible mode and
 
 ```math
-\\rho' \\rightarrow - \\frac{\\rho}{g} \\left[b' - \\Delta t N^2 \\frac{P / \\overline{\\theta}}{\\rho} \\left(\\frac{W_{k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right)\\right]
+\\rho' \\rightarrow - \\frac{\\rho}{g} \\left[b' - \\Delta t N^2 \\frac{P / \\bar{\\theta}}{\\rho} \\left(\\frac{W_{k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right)\\right]
 ```
 
 in compressible mode, where ``b' = - g \\rho' / \\rho``.
@@ -109,9 +109,9 @@ The update is given by
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{- \\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left[\\widehat{w}_\\mathrm{old} + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right] + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b'\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{13} u + G^{23} v\\right)\\vphantom{\\left[\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right]}\\right\\},
+    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\bar{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{- \\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left[\\widehat{w}_\\mathrm{old} + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right] + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b'\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{13} u + G^{23} v\\right)\\vphantom{\\left[\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right]}\\right\\},
 \\end{align*}
 ```
 
@@ -119,9 +119,9 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{- \\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left[\\left(\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right) + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right]\\right.\\\\
-    & \\qquad \\quad + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b' + \\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right)\\\\
+    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\bar{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{- \\frac{P / \\bar{\\theta}}{\\rho} N^2 \\Delta t J \\left[\\left(\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right) + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right]\\right.\\\\
+    & \\qquad \\quad + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b' + \\frac{P / \\bar{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right)\\\\
     & \\qquad \\quad \\times \\left.\\left[G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right) + G^{23} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right]\\right\\},
 \\end{align*}
 ```
@@ -336,9 +336,9 @@ The update is given by
 
 ```math
 \\begin{align*}
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
     & \\quad \\times \\left\\{\\widehat{w}_{k + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2 \\left[\\left(G^{13} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2 \\left[\\left(G^{13} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
 \\end{align*}
 ```
 
@@ -346,9 +346,9 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
     & \\quad \\times \\left\\{\\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\\\
+    & \\qquad \\quad + \\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\\\
     & \\qquad \\quad \\times \\left.\\left[\\left(G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right)\\right)_{k + 1 / 2} + \\left(G^{2 3} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
 \\end{align*}
 ```
