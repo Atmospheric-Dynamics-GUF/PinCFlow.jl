@@ -33,7 +33,7 @@ smooth_gw_tendencies!(
 )
 ```
 
-Apply a 2D box filter to smooth in ``\\widehat{x}`` and ``\\widehat{z}``.
+Apply a 2D box filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
 
 Applies the moving average
 
@@ -52,7 +52,7 @@ smooth_gw_tendencies!(
 )
 ```
 
-Apply a 2D box filter to smooth in ``\\widehat{y}`` and ``\\widehat{z}``.
+Apply a 2D box filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
 
 Applies the moving average
 
@@ -71,7 +71,7 @@ smooth_gw_tendencies!(
 )
 ```
 
-Apply a 1D box filter to smooth in ``\\widehat{z}``.
+Apply a 1D box filter to smooth in ``\\hat{z}``.
 
 Applies the moving average
 
@@ -92,7 +92,7 @@ smooth_gw_tendencies!(
 
 Apply a 3D Shapiro filter to smooth in all spatial directions.
 
-A 1D Shapiro filter is applied sequentially in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``.
+A 1D Shapiro filter is applied sequentially in ``\\hat{x}``, ``\\hat{y}`` and ``\\hat{z}``.
 
 ```julia
 smooth_gw_tendencies!(
@@ -103,9 +103,9 @@ smooth_gw_tendencies!(
 )
 ```
 
-Apply a 2D Shapiro filter to smooth in ``\\widehat{x}`` and ``\\widehat{z}``.
+Apply a 2D Shapiro filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
 
-A 1D Shapiro filter is applied sequentially in ``\\widehat{x}`` and ``\\widehat{z}``.
+A 1D Shapiro filter is applied sequentially in ``\\hat{x}`` and ``\\hat{z}``.
 
 ```julia
 smooth_gw_tendencies!(
@@ -116,9 +116,9 @@ smooth_gw_tendencies!(
 )
 ```
 
-Apply a 2D Shapiro filter to smooth in ``\\widehat{y}`` and ``\\widehat{z}``.
+Apply a 2D Shapiro filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
 
-A 1D Shapiro filter is applied sequentially in ``\\widehat{y}`` and ``\\widehat{z}``.
+A 1D Shapiro filter is applied sequentially in ``\\hat{y}`` and ``\\hat{z}``.
 
 ```julia
 smooth_gw_tendencies!(
@@ -129,7 +129,7 @@ smooth_gw_tendencies!(
 )
 ```
 
-Apply a 1D Shapiro filter to smooth in ``\\widehat{z}``.
+Apply a 1D Shapiro filter to smooth in ``\\hat{z}``.
 
 ```julia
 smooth_gw_tendencies!(
@@ -140,7 +140,7 @@ smooth_gw_tendencies!(
 )
 ```
 
-Apply a 1D Shapiro filter to smooth in ``\\widehat{y}``.
+Apply a 1D Shapiro filter to smooth in ``\\hat{y}``.
 
 ```julia
 smooth_gw_tendencies!(
@@ -151,7 +151,7 @@ smooth_gw_tendencies!(
 )
 ```
 
-Apply a 1D Shapiro filter to smooth in ``\\widehat{x}``.
+Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
 
 ```julia
 smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)

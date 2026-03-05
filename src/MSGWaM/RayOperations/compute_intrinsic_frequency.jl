@@ -14,7 +14,7 @@ Return the intrinsic frequency of the ray volume specified by ``\\left(r, i, j, 
 The intrinsic frequency is calculated from the dispersion relation
 
 ```math
-\\widehat{\\omega}_r = \\sigma \\sqrt{\\frac{N_r^2 \\left(k_r^2 + l_r^2\\right) + f^2 m_r^2}{\\left|\\boldsymbol{k}_r\\right|^2}},
+\\hat{\\omega}_r = \\sigma \\sqrt{\\frac{N_r^2 \\left(k_r^2 + l_r^2\\right) + f^2 m_r^2}{\\left|\\boldsymbol{k}_r\\right|^2}},
 ```
 
 where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray volume's vertical position and ``\\sigma`` is the frequency branch.

@@ -22,7 +22,7 @@ This method computes the sums
     \\bar{\\rho} \\left\\langle v' w' \\right\\rangle & = \\bar{\\rho} \\sum_{r, \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} w_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
     \\left\\langle \\theta' u' \\right\\rangle & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\theta_\\mathrm{w} u_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
     \\left\\langle \\theta' v' \\right\\rangle & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\theta_\\mathrm{w} v_\\mathrm{w}^*\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    \\mathcal{E} & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\mathcal{A} \\widehat{\\omega}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
+    \\mathcal{E} & = \\sum_{r, \\lambda, \\mu, \\nu} \\left(F \\mathcal{A} \\hat{\\omega}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
 \\end{align*}
 ```
 
@@ -30,13 +30,13 @@ Therein, ``\\left(\\lambda, \\mu, \\nu\\right)`` are index shifts to ray volumes
 
 ```math
 \\begin{align*}
-    \\bar{\\rho} u_{\\mathrm{w}, r} u_{\\mathrm{w}, r}^* & = \\left(k_r \\widehat{c}_{\\mathrm{g} x, r} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_r \\widehat{c}_{\\mathrm{g} x, r} + l_r \\widehat{c}_{\\mathrm{g} y, r}}{1 - \\left(\\widehat{\\omega}_r / f\\right)^2}\\right) \\mathcal{A}_r,\\\\
-    \\bar{\\rho} u_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = l_r \\widehat{c}_{\\mathrm{g} x, r} \\mathcal{A}_r,\\\\
-    \\bar{\\rho} u_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = \\frac{k_r \\widehat{c}_{\\mathrm{g} z, r}}{1 - \\left(f / \\widehat{\\omega}_r\\right)^2} \\mathcal{A}_r,\\\\
-    \\bar{\\rho} v_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = \\left(l_r \\widehat{c}_{\\mathrm{g} y, r} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_r \\widehat{c}_{\\mathrm{g} x, r} + l_r \\widehat{c}_{\\mathrm{g} y, r}}{1 - \\left(\\widehat{\\omega}_r / f\\right)^2}\\right) \\mathcal{A}_r,\\\\
-    \\bar{\\rho} v_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = \\frac{l_r \\widehat{c}_{\\mathrm{g} z, r}}{1 - \\left(f / \\widehat{\\omega}_r\\right)^2} \\mathcal{A}_r,\\\\
-    \\theta_{\\mathrm{w}, r} u_{\\mathrm{w}, r}^* & = \\frac{f \\bar{\\theta}}{g \\bar{\\rho}} \\frac{l_r m_r N_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,\\\\
-    \\theta_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = - \\frac{f \\bar{\\theta}}{g \\bar{\\rho}} \\frac{k_r m_r N_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,
+    \\bar{\\rho} u_{\\mathrm{w}, r} u_{\\mathrm{w}, r}^* & = \\left(k_r \\hat{c}_{\\mathrm{g} x, r} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_r \\hat{c}_{\\mathrm{g} x, r} + l_r \\hat{c}_{\\mathrm{g} y, r}}{1 - \\left(\\hat{\\omega}_r / f\\right)^2}\\right) \\mathcal{A}_r,\\\\
+    \\bar{\\rho} u_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = l_r \\hat{c}_{\\mathrm{g} x, r} \\mathcal{A}_r,\\\\
+    \\bar{\\rho} u_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = \\frac{k_r \\hat{c}_{\\mathrm{g} z, r}}{1 - \\left(f / \\hat{\\omega}_r\\right)^2} \\mathcal{A}_r,\\\\
+    \\bar{\\rho} v_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = \\left(l_r \\hat{c}_{\\mathrm{g} y, r} - \\mathrm{sgn} \\left(\\left|f\\right|\\right) \\frac{k_r \\hat{c}_{\\mathrm{g} x, r} + l_r \\hat{c}_{\\mathrm{g} y, r}}{1 - \\left(\\hat{\\omega}_r / f\\right)^2}\\right) \\mathcal{A}_r,\\\\
+    \\bar{\\rho} v_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = \\frac{l_r \\hat{c}_{\\mathrm{g} z, r}}{1 - \\left(f / \\hat{\\omega}_r\\right)^2} \\mathcal{A}_r,\\\\
+    \\theta_{\\mathrm{w}, r} u_{\\mathrm{w}, r}^* & = \\frac{f \\bar{\\theta}}{g \\bar{\\rho}} \\frac{l_r m_r N_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,\\\\
+    \\theta_{\\mathrm{w}, r} v_{\\mathrm{w}, r}^* & = - \\frac{f \\bar{\\theta}}{g \\bar{\\rho}} \\frac{k_r m_r N_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r,
 \\end{align*}
 ```
 
@@ -44,9 +44,9 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 
 ```math
 \\begin{align*}
-    \\widehat{c}_{\\mathrm{g} x, r} & = \\frac{k_r \\left(N_r^2 - \\widehat{\\omega}_r^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
-    \\widehat{c}_{\\mathrm{g} y, r} & = \\frac{l_r \\left(N_r^2 - \\widehat{\\omega}_r^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
-    \\widehat{c}_{\\mathrm{g} z, r} & = - \\frac{m_r \\left(\\widehat{\\omega}_r^2 - f^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
+    \\hat{c}_{\\mathrm{g} x, r} & = \\frac{k_r \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    \\hat{c}_{\\mathrm{g} y, r} & = \\frac{l_r \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    \\hat{c}_{\\mathrm{g} z, r} & = - \\frac{m_r \\left(\\hat{\\omega}_r^2 - f^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
 \\end{align*}
 ```
 
@@ -68,8 +68,8 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle u' w' \\right\\rangl
 
 ```math
 \\begin{align*}
-    \\bar{\\rho} u_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = k_r \\widehat{c}_{\\mathrm{g} z, r} \\mathcal{A}_r,\\\\
-    \\bar{\\rho} v_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = l_r \\widehat{c}_{\\mathrm{g} z, r} \\mathcal{A}_r.
+    \\bar{\\rho} u_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = k_r \\hat{c}_{\\mathrm{g} z, r} \\mathcal{A}_r,\\\\
+    \\bar{\\rho} v_{\\mathrm{w}, r} w_{\\mathrm{w}, r}^* & = l_r \\hat{c}_{\\mathrm{g} z, r} \\mathcal{A}_r.
 \\end{align*}
 ```
 

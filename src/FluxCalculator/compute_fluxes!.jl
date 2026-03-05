@@ -37,9 +37,9 @@ The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho, \\hat{x}}_{i + 1 / 2} & = \\frac{\\tau_{\\hat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho, \\hat{y}}_{j + 1 / 2} & = \\frac{\\tau_{\\hat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho, \\hat{z}}_{k + 1 / 2} & = \\frac{\\tau_{\\hat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -48,9 +48,9 @@ where
 
 ```math
 \\begin{align*}
-    \\tau_{\\widehat{x}} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
-    \\tau_{\\widehat{y}} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
-    \\tau_{\\widehat{z}} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}
+    \\tau_{\\hat{x}} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
+    \\tau_{\\hat{y}} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
+    \\tau_{\\hat{z}} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}
 \\end{align*}
 ```
 
@@ -91,9 +91,9 @@ The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{P, \\widehat{x}}_{i + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
-    \\mathcal{F}^{P, \\widehat{y}}_{j + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
-    \\mathcal{F}^{P, \\widehat{z}}_{k + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}.
+    \\mathcal{F}^{P, \\hat{x}}_{i + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
+    \\mathcal{F}^{P, \\hat{y}}_{j + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
+    \\mathcal{F}^{P, \\hat{z}}_{k + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -107,9 +107,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 3 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2, j + 1}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} & = \\frac{\\tau_{\\hat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 3 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\hat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2, j + 1}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\hat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -117,9 +117,9 @@ with
 
 ```math
 \\begin{align*}
-    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1},\\\\
-    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2}
+    \\tau_{\\hat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1},\\\\
+    \\tau_{\\hat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\tau_{\\hat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2}
 \\end{align*}
 ```
 
@@ -127,9 +127,9 @@ and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{i + 1 / 2} u_{i + 1 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\eta_{i + 1} \\left(J \\widehat{\\Pi}^{11}\\right)_{i + 1},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\widehat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\eta_{i + 1} \\left(J \\hat{\\Pi}^{11}\\right)_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\hat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\hat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -137,9 +137,9 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mu_{i + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{x}}\\right]_{i + 1},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{y}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{z}}\\right]_{i + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\mu_{i + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{x}}\\right]_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{y}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{z}}\\right]_{i + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -153,9 +153,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1, j + 1 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 3 / 2}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\hat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1, j + 1 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} & = \\frac{\\tau_{\\hat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 3 / 2}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\hat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -163,9 +163,9 @@ with
 
 ```math
 \\begin{align*}
-    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1},\\\\
-    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2}
+    \\tau_{\\hat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\tau_{\\hat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1},\\\\
+    \\tau_{\\hat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2}
 \\end{align*}
 ```
 
@@ -173,9 +173,9 @@ and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{j + 1 / 2} v_{j + 1 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\eta_{j + 1} \\left(J \\widehat{\\Pi}^{22}\\right)_{j + 1},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\widehat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\hat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\eta_{j + 1} \\left(J \\hat{\\Pi}^{22}\\right)_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\hat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -183,9 +183,9 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{x}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mu_{j + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{y}}\\right]_{j + 1},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{z}}\\right]_{j + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{x}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\mu_{j + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{y}}\\right]_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{z}}\\right]_{j + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -199,9 +199,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1, k + 1 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1, k + 1 / 2}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 3 / 2}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\hat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1, k + 1 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\hat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1, k + 1 / 2}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} & = \\frac{\\tau_{\\hat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 3 / 2}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -209,9 +209,9 @@ with
 
 ```math
 \\begin{align*}
-    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
-    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
-    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{k + 1}
+    \\tau_{\\hat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
+    \\tau_{\\hat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
+    \\tau_{\\hat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{k + 1}
 \\end{align*}
 ```
 
@@ -219,9 +219,9 @@ and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{k + 1 / 2} w_{k + 1 
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\eta_{k + 1} \\left[\\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}\\right].
+    \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\eta_{k + 1} \\left[\\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}\\right].
 \\end{align*}
 ```
 
@@ -229,9 +229,9 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{x}}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{y}}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mu_{k + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{z}}\\right]_{k + 1}.
+    \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{x}}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{y}}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\mu_{k + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{z}}\\right]_{k + 1}.
 \\end{align*}
 ```
 
@@ -281,13 +281,13 @@ The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\theta, \\widehat{x}}_{i + 1 / 2} & = - \\lambda_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
-    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{13}\\right)_{i + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k - 1}\\right]\\right\\},\\\\
-    \\mathcal{F}^{\\theta, \\widehat{y}}_{j + 1 / 2} & = - \\lambda_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
-    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{23}\\right)_{j + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k - 1}\\right]\\right\\},\\\\
-    \\mathcal{F}^{\\theta, \\widehat{z}}_{k + 1 / 2} & = - \\lambda_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
-    & \\qquad \\qquad \\qquad + \\frac{\\left(J G^{23}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{j - 1, k + 1 / 2}\\right]\\\\
-    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{33}\\right)_{k + 1 / 2}}{\\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{k + 1} - \\frac{P}{\\rho}\\right]\\right\\},
+    \\mathcal{F}^{\\theta, \\hat{x}}_{i + 1 / 2} & = - \\lambda_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\hat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{13}\\right)_{i + 1 / 2}}{2 \\Delta \\hat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k - 1}\\right]\\right\\},\\\\
+    \\mathcal{F}^{\\theta, \\hat{y}}_{j + 1 / 2} & = - \\lambda_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\hat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{23}\\right)_{j + 1 / 2}}{2 \\Delta \\hat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k - 1}\\right]\\right\\},\\\\
+    \\mathcal{F}^{\\theta, \\hat{z}}_{k + 1 / 2} & = - \\lambda_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\hat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\frac{\\left(J G^{23}\\right)_{k + 1 / 2}}{2 \\Delta \\hat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{j - 1, k + 1 / 2}\\right]\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{33}\\right)_{k + 1 / 2}}{\\Delta \\hat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{k + 1} - \\frac{P}{\\rho}\\right]\\right\\},
 \\end{align*}
 ```
 

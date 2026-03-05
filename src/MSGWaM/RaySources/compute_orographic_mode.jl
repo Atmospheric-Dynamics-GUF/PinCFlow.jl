@@ -22,7 +22,7 @@ mountain-wave theory. The implemented formulas are as follows (where this method
   - Intrinsic frequency:
 
     ```math
-    \\widehat{\\omega}_\\alpha = \\sigma \\left|- k_{h, \\alpha} u_h - l_{h, \\alpha} v_h\\right|
+    \\hat{\\omega}_\\alpha = \\sigma \\left|- k_{h, \\alpha} u_h - l_{h, \\alpha} v_h\\right|
     ```
 
   - Horizontal wavenumbers:
@@ -37,13 +37,13 @@ mountain-wave theory. The implemented formulas are as follows (where this method
   - Vertical wavenumber:
 
     ```math
-    m_\\alpha = - \\sigma \\sqrt{\\frac{\\left(k_\\alpha^2 + l_\\alpha^2\\right) \\left(N_h^2 - \\widehat{\\omega}_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha^2 - f^2}}
+    m_\\alpha = - \\sigma \\sqrt{\\frac{\\left(k_\\alpha^2 + l_\\alpha^2\\right) \\left(N_h^2 - \\hat{\\omega}_\\alpha^2\\right)}{\\hat{\\omega}_\\alpha^2 - f^2}}
     ```
 
   - Wave-action density:
 
     ```math
-    \\mathcal{A}_\\alpha = \\frac{\\bar{\\rho}_h}{2} \\frac{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2}{k_\\alpha^2 + l_\\alpha^2} \\left|h_{\\mathrm{w}, \\alpha}\\right|^2
+    \\mathcal{A}_\\alpha = \\frac{\\bar{\\rho}_h}{2} \\frac{\\hat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2}{k_\\alpha^2 + l_\\alpha^2} \\left|h_{\\mathrm{w}, \\alpha}\\right|^2
     ```
 
 If the squared intrinsic frequency is smaller than the squared Coriolis parameter or larger than the squared buoyancy frequency (and thus outside of the gravity-wave spectrum), the vertical wavenumber and wave-action density are set to zero.

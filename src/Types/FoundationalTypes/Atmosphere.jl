@@ -82,7 +82,7 @@ The background fields are given by
     P \\left(z\\right) & = p_0 \\exp \\left(- \\frac{\\sigma z}{\\gamma T_0}\\right),\\\\
     \\bar{\\theta} \\left(z\\right) & = T_0 \\exp \\left(\\frac{\\kappa \\sigma z}{T_0}\\right),\\\\
     \\bar{\\rho} \\left(z\\right) & = \\frac{P \\left(z\\right)}{\\bar{\\theta} \\left(z\\right)},\\\\
-    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}},
+    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\hat{z}},
 \\end{align*}
 ```
 
@@ -142,7 +142,7 @@ The background fields are given by
         \\theta_0 \\exp\\left[\\frac{\\kappa\\sigma(z-z_{\\mathrm{TP}})}{T_{\\mathrm{TP}}}\\right] & z > z_{\\mathrm{TP}} \\;,
     \\end{cases} \\\\
     \\bar{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\bar{\\theta} \\left(z\\right)}\\;,\\\\
-    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;,
+    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\hat{z}}\\;,
 \\end{align*}
 ```
 where
@@ -186,7 +186,7 @@ The background fields are given by
     \\end{cases} \\\\
     \\bar{\\theta}\\left(z\\right) & = T(z)\\left[\\frac{p_0}{P(z)}\\right]^{\\kappa\\gamma} \\\\
     \\bar{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\bar{\\theta} \\left(z\\right)}\\;,\\\\
-    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}}\\;,
+    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\hat{z}}\\;,
 \\end{align*}
 ```
 where

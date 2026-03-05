@@ -133,10 +133,10 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the transf
 The update is given by
 
 ```math
-\\widehat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left(\\widehat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\widehat{w}_{\\mathrm{R}, k + 1 / 2}\\right).
+\\hat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left(\\hat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\hat{w}_{\\mathrm{R}, k + 1 / 2}\\right).
 ```
 
-If `state.namelists.sponge.relax_to_mean` is `false`, ``\\widehat{w}_{\\mathrm{R}, k + 1 / 2}`` is computed with the functions `relaxed_u`, `relaxed_v` and `relaxed_w` in `state.namelists.sponge`. Otherwise, it is replaced with the average of ``\\widehat{w}_{k + 1 / 2}`` across the terrain-following coordinate surface.
+If `state.namelists.sponge.relax_to_mean` is `false`, ``\\hat{w}_{\\mathrm{R}, k + 1 / 2}`` is computed with the functions `relaxed_u`, `relaxed_v` and `relaxed_w` in `state.namelists.sponge`. Otherwise, it is replaced with the average of ``\\hat{w}_{k + 1 / 2}`` across the terrain-following coordinate surface.
 
 ```julia
 apply_lhs_sponge!(

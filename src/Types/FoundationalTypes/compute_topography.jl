@@ -64,9 +64,9 @@ The arrays representing the unresolved spectrum are set to have the size `(0, 0,
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `x`: ``\\widehat{x}``-coordinate grid points.
+  - `x`: ``\\hat{x}``-coordinate grid points.
 
-  - `y`: ``\\widehat{y}``-coordinate grid points.
+  - `y`: ``\\hat{y}``-coordinate grid points.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 

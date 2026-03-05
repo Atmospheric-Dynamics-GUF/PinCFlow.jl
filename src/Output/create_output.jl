@@ -430,14 +430,14 @@ function create_output(state::State, machine_start_time::DateTime)
         if :wt in output_variables
             attributes(file["wt"])["units"] = "m*s^-1"
             attributes(file["wt"])["label"] =
-                L"\widehat{w}\ [\mathrm{m\ s^{-1}}]"
+                L"\hat{w}\ [\mathrm{m\ s^{-1}}]"
             attributes(file["wt"])["long_name"] = "transformed vertical wind"
         end
 
         if prepare_restart || :wts in output_variables
             attributes(file["wts"])["units"] = "m*s^-1"
             attributes(file["wts"])["label"] =
-                L"\widehat{w}_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
+                L"\hat{w}_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
             attributes(file["wts"])["long_name"] = "staggered transformed vertical wind"
         end
 

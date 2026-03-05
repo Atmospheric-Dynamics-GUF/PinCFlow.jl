@@ -61,7 +61,7 @@ struct RHS end
 X
 ```
 
-Singleton for ``\\widehat{x}``-axis along which a calculation should be performed.
+Singleton for ``\\hat{x}``-axis along which a calculation should be performed.
 """
 struct X end
 
@@ -70,7 +70,7 @@ struct X end
 Y
 ```
 
-Singleton for ``\\widehat{y}``-axis along which a calculation should be performed.
+Singleton for ``\\hat{y}``-axis along which a calculation should be performed.
 """
 struct Y end
 
@@ -79,7 +79,7 @@ struct Y end
 Z
 ```
 
-Singleton for ``\\widehat{z}``-axis along which a calculation should be performed.
+Singleton for ``\\hat{z}``-axis along which a calculation should be performed.
 """
 struct Z end
 

@@ -33,7 +33,7 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^\\rho & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\alpha_\\mathrm{RK} q^\\rho,\\\\
+    q^\\rho & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + \\alpha_\\mathrm{RK} q^\\rho,\\\\
     \\rho & \\rightarrow \\rho + \\beta_\\mathrm{RK} q^\\rho,
 \\end{align*}
 ```
@@ -50,7 +50,7 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho'} & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    q^{\\rho'} & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho', \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho', \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
     \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
 \\end{align*}
 ```
@@ -59,7 +59,7 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    q^{\\rho'} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\frac{F^P}{\\bar{\\theta}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    q^{\\rho'} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho', \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho', \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + \\frac{F^P}{\\bar{\\theta}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
     \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
 \\end{align*}
 ```
@@ -110,8 +110,8 @@ The update is given by
 ```math
 \\begin{align*}
     \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\bar{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{- \\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left[\\widehat{w}_\\mathrm{old} + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right] + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b'\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{13} u + G^{23} v\\right)\\vphantom{\\left[\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right]}\\right\\},
+    & \\quad \\times \\left\\{- \\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left[\\hat{w}_\\mathrm{old} + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right] + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b'\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{13} u + G^{23} v\\right)\\vphantom{\\left[\\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right]}\\right\\},
 \\end{align*}
 ```
 
@@ -120,13 +120,13 @@ in Boussinesq/pseudo-incompressible mode and
 ```math
 \\begin{align*}
     \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\bar{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{- \\frac{P / \\bar{\\theta}}{\\rho} N^2 \\Delta t J \\left[\\left(\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right) + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right]\\right.\\\\
+    & \\quad \\times \\left\\{- \\frac{P / \\bar{\\theta}}{\\rho} N^2 \\Delta t J \\left[\\left(\\frac{\\hat{W}_{\\mathrm{old}, k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right) + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right]\\right.\\\\
     & \\qquad \\quad + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b' + \\frac{P / \\bar{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right)\\\\
     & \\qquad \\quad \\times \\left.\\left[G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right) + G^{23} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right]\\right\\},
 \\end{align*}
 ```
 
-in compressible mode, where ``\\widehat{w}_\\mathrm{old}`` is the transformed vertical wind stored in `state.variables.backups`.
+in compressible mode, where ``\\hat{w}_\\mathrm{old}`` is the transformed vertical wind stored in `state.variables.backups`.
 
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
@@ -138,8 +138,8 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho u}_{i + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + f \\left(\\rho_\\mathrm{old} v\\right)_{i + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2},\\\\
+    q^{\\rho u}_{i + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\hat{x}}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\hat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\hat{z}}\\right) + f \\left(\\rho_\\mathrm{old} v\\right)_{i + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2},\\\\
     u_{i + 1 / 2} & \\rightarrow \\rho_{i + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, i + 1 / 2} u_{i + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2}\\right),
 \\end{align*}
 ```
@@ -209,8 +209,8 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho v}_{j + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\widehat{y}}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) - f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{j + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2},\\\\
+    q^{\\rho v}_{j + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\hat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\hat{y}}}{\\Delta \\hat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\hat{z}}\\right) - f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{j + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2},\\\\
     v_{j + 1 / 2} & \\rightarrow \\rho_{j + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, j + 1 / 2} v_{j + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2}\\right),
 \\end{align*}
 ```
@@ -280,14 +280,14 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho \\widehat{w}}_{k + 1 / 2} & \\rightarrow \\Delta t \\left\\{- \\left[G^{13} \\left(\\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
-    & \\qquad \\qquad - \\left[G^{23} \\left(\\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\widehat{y}}}{\\Delta \\widehat{y}}\\right.\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
-    & \\qquad \\qquad - \\frac{1}{J_{k + 1 / 2}^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\widehat{x}}_{i - 1 / 2, k + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\widehat{y}}_{j - 1 / 2, k + 1 / 2}}{\\Delta \\widehat{y}}\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad \\quad + \\left.\\frac{\\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\widehat{z}}}{\\Delta \\widehat{z}}\\right)\\\\
-    & \\qquad \\qquad + \\left.G^{13} f \\left(\\rho_\\mathrm{old} v_\\mathrm{old}\\right)_{k + 1 / 2} - G^{23} f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{k + 1 / 2}\\vphantom{- \\frac{1}{J^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\widehat{z}}}{\\Delta \\widehat{z}}\\right)}\\right\\} + \\alpha_\\mathrm{RK} q^{\\rho \\widehat{w}}_{k + 1 / 2},\\\\
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\rho_{k + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, k + 1 / 2} \\widehat{w}_{k + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho \\widehat{w}}_{k + 1 / 2}\\right),
+    q^{\\rho \\hat{w}}_{k + 1 / 2} & \\rightarrow \\Delta t \\left\\{- \\left[G^{13} \\left(\\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\hat{x}}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\hat{y}}\\right.\\right.\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\hat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
+    & \\qquad \\qquad - \\left[G^{23} \\left(\\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\hat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\hat{y}}}{\\Delta \\hat{y}}\\right.\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\hat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
+    & \\qquad \\qquad - \\frac{1}{J_{k + 1 / 2}^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\hat{x}}_{i - 1 / 2, k + 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\hat{y}}_{j - 1 / 2, k + 1 / 2}}{\\Delta \\hat{y}}\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\quad + \\left.\\frac{\\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\hat{z}}}{\\Delta \\hat{z}}\\right)\\\\
+    & \\qquad \\qquad + \\left.G^{13} f \\left(\\rho_\\mathrm{old} v_\\mathrm{old}\\right)_{k + 1 / 2} - G^{23} f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{k + 1 / 2}\\vphantom{- \\frac{1}{J^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\hat{z}}}{\\Delta \\hat{z}}\\right)}\\right\\} + \\alpha_\\mathrm{RK} q^{\\rho \\hat{w}}_{k + 1 / 2},\\\\
+    \\hat{w}_{k + 1 / 2} & \\rightarrow \\rho_{k + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, k + 1 / 2} \\hat{w}_{k + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho \\hat{w}}_{k + 1 / 2}\\right),
 \\end{align*}
 ```
 
@@ -308,13 +308,13 @@ Update the transformed vertical wind with an explicit Euler step on the right-ha
 The update is given by
 
 ```math
-\\widehat{w}_{k + 1 / 2} \\rightarrow \\widehat{w}_{k + 1 / 2} + \\Delta t \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right]
+\\hat{w}_{k + 1 / 2} \\rightarrow \\hat{w}_{k + 1 / 2} + \\Delta t \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right]
 ```
 
 in Boussinesq/pseudo-incompressible mode and
 
 ```math
-\\widehat{W}_{k + 1 / 2} \\rightarrow \\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right]
+\\hat{W}_{k + 1 / 2} \\rightarrow \\hat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right]
 ```
 
 in compressible mode, where ``b'_\\mathrm{old} = - g \\rho'_\\mathrm{old} / \\rho``, with ``\\rho'_\\mathrm{old}`` being the density fluctuations stored in `state.variables.backups`.
@@ -336,9 +336,9 @@ The update is given by
 
 ```math
 \\begin{align*}
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\widehat{w}_{k + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2 \\left[\\left(G^{13} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+    \\hat{w}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\hat{w}_{k + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2 \\left[\\left(G^{13} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
 \\end{align*}
 ```
 
@@ -346,10 +346,10 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
+    \\hat{W}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\hat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
     & \\qquad \\quad + \\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\\\
-    & \\qquad \\quad \\times \\left.\\left[\\left(G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right)\\right)_{k + 1 / 2} + \\left(G^{2 3} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+    & \\qquad \\quad \\times \\left.\\left[\\left(G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right)\\right)_{k + 1 / 2} + \\left(G^{2 3} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
 \\end{align*}
 ```
 
@@ -382,12 +382,12 @@ The update is given by
 
 ```math
 \\begin{align*}
-    \\pi' & \\rightarrow \\pi' + \\Delta t \\left(\\frac{\\partial \\pi'}{\\partial P}\\right) \\left[- \\frac{1}{J} \\left(\\frac{U_{\\mathrm{old}, i + 1 / 2} - U_{\\mathrm{old}, i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{V_{\\mathrm{old}, j + 1 / 2} - V_{\\mathrm{old}, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2} - \\widehat{W}_{\\mathrm{old}, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^P\\right],
+    \\pi' & \\rightarrow \\pi' + \\Delta t \\left(\\frac{\\partial \\pi'}{\\partial P}\\right) \\left[- \\frac{1}{J} \\left(\\frac{U_{\\mathrm{old}, i + 1 / 2} - U_{\\mathrm{old}, i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{V_{\\mathrm{old}, j + 1 / 2} - V_{\\mathrm{old}, j - 1 / 2}}{\\Delta \\hat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\hat{W}_{\\mathrm{old}, k + 1 / 2} - \\hat{W}_{\\mathrm{old}, k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^P\\right],
 \\end{align*}
 ```
 
-where ``U_{\\mathrm{old}, i + 1 / 2}``, ``V_{\\mathrm{old}, j + 1 / 2}`` and ``\\widehat{W}_{\\mathrm{old}, k + 1 / 2}`` are the transformed wind components (including the factor ``J P``) stored in `state.variables.backups`.
+where ``U_{\\mathrm{old}, i + 1 / 2}``, ``V_{\\mathrm{old}, j + 1 / 2}`` and ``\\hat{W}_{\\mathrm{old}, k + 1 / 2}`` are the transformed wind components (including the factor ``J P``) stored in `state.variables.backups`.
 
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
@@ -423,7 +423,7 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^P & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{P, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{P, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{P, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{P, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{P, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{P, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^P\\right] + \\alpha_\\mathrm{RK} q^P,\\\\
+    q^P & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{P, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{P, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{P, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{P, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{P, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{P, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^P\\right] + \\alpha_\\mathrm{RK} q^P,\\\\
     P & \\rightarrow P + \\beta_\\mathrm{RK} q^P.
 \\end{align*}
 ```
@@ -444,7 +444,7 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho \\chi} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^{\\rho \\chi}\\right] + \\alpha_\\mathrm{RK} q^{\\rho \\chi},\\\\
+    q^{\\rho \\chi} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho \\chi, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^{\\rho \\chi}\\right] + \\alpha_\\mathrm{RK} q^{\\rho \\chi},\\\\
     \\left(\\rho \\chi\\right) & \\rightarrow \\left(\\rho \\chi\\right) + \\beta_\\mathrm{RK} q^{\\rho \\chi}.
 \\end{align*}
 ```

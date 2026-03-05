@@ -10,10 +10,10 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive zonal momentum fluxes in ``\\widehat{x}``-direction, i.e.
+Compute and return the diffusive zonal momentum fluxes in ``\\hat{x}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{x}} = \\frac{u_{i + 1 / 2} - u_{i - 1 / 2}}{\\Delta \\widehat{x}} + G^{13} \\frac{u_{k + 1} - u_{k - 1}}{2\\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{x}} = \\frac{u_{i + 1 / 2} - u_{i - 1 / 2}}{\\Delta \\hat{x}} + G^{13} \\frac{u_{k + 1} - u_{k - 1}}{2\\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -27,10 +27,10 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive zonal momentum fluxes in ``\\widehat{y}``-direction, i.e.
+Compute and return the diffusive zonal momentum fluxes in ``\\hat{y}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{y}} = \\frac{u_{j + 1} - u_{j - 1}}{2\\Delta \\widehat{y}} + G^{23} \\frac{u_{k + 1} - u_{k - 1}}{2\\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{y}} = \\frac{u_{j + 1} - u_{j - 1}}{2\\Delta \\hat{y}} + G^{23} \\frac{u_{k + 1} - u_{k - 1}}{2\\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -44,10 +44,10 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive zonal momentum fluxes in ``\\widehat{z}``-direction, i.e.
+Compute and return the diffusive zonal momentum fluxes in ``\\hat{z}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{z}} = G^{13}\\frac{u_{i + 1 / 2} - u_{i - 1 / 2}}{\\Delta \\widehat{x}} + G^{23} \\frac{u_{j + 1} - u_{j - 1}}{2 \\Delta \\widehat{y}} + G^{33} \\frac{u_{k + 1} - u_{k - 1}}{2 \\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{z}} = G^{13}\\frac{u_{i + 1 / 2} - u_{i - 1 / 2}}{\\Delta \\hat{x}} + G^{23} \\frac{u_{j + 1} - u_{j - 1}}{2 \\Delta \\hat{y}} + G^{33} \\frac{u_{k + 1} - u_{k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -61,10 +61,10 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive meridional momentum fluxes in ``\\widehat{x}``-direction, i.e.
+Compute and return the diffusive meridional momentum fluxes in ``\\hat{x}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{x}} = \\frac{v_{i + 1} - v_{i - 1}}{2 \\Delta \\widehat{x}} + G^{13} \\frac{v_{k + 1} - v_{k - 1}}{2 \\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{x}} = \\frac{v_{i + 1} - v_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{v_{k + 1} - v_{k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -78,10 +78,10 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive meridional momentum fluxes in ``\\widehat{y}``-direction, i.e.
+Compute and return the diffusive meridional momentum fluxes in ``\\hat{y}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{y}} = \\frac{v_{j + 1 / 2} - v_{j - 1 / 2}}{\\Delta \\widehat{y}} + G^{23} \\frac{v_{k + 1} - v_{k - 1}}{2 \\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{y}} = \\frac{v_{j + 1 / 2} - v_{j - 1 / 2}}{\\Delta \\hat{y}} + G^{23} \\frac{v_{k + 1} - v_{k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -95,10 +95,10 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive meridional momentum fluxes in ``\\widehat{z}``-direction, i.e.
+Compute and return the diffusive meridional momentum fluxes in ``\\hat{z}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{z}} = G^{13}\\frac{v_{i + 1} - v_{i - 1}}{2 \\Delta \\widehat{x}} + G^{23} \\frac{v_{j + 1 / 2} - v_{j - 1 / 2}}{\\Delta \\widehat{y}} + G^{33} \\frac{v_{k + 1} - v_{k - 1}}{2 \\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{z}} = G^{13}\\frac{v_{i + 1} - v_{i - 1}}{2 \\Delta \\hat{x}} + G^{23} \\frac{v_{j + 1 / 2} - v_{j - 1 / 2}}{\\Delta \\hat{y}} + G^{33} \\frac{v_{k + 1} - v_{k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -112,10 +112,10 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive vertical momentum fluxes in ``\\widehat{x}``-direction, i.e.
+Compute and return the diffusive vertical momentum fluxes in ``\\hat{x}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{x}} = \\frac{w_{i + 1} - w_{i - 1}}{2 \\Delta \\widehat{x}} + G^{13} \\frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{x}} = \\frac{w_{i + 1} - w_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -129,10 +129,10 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive vertical momentum fluxes in ``\\widehat{y}``-direction, i.e.
+Compute and return the diffusive vertical momentum fluxes in ``\\hat{y}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{y}} = \\frac{w_{j + 1} - w_{j - 1}}{2 \\Delta \\widehat{y}} + G^{23} \\frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{y}} = \\frac{w_{j + 1} - w_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -146,21 +146,21 @@ compute_momentum_diffusion_terms(
 )::AbstractFloat
 ```
 
-Compute and return the diffusive vertical momentum fluxes in ``\\widehat{z}``-direction, i.e.
+Compute and return the diffusive vertical momentum fluxes in ``\\hat{z}``-direction, i.e.
 
 ```math
-\\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{z}} = G^{13} \\frac{w_{i + 1} - w_{i - 1}}{2 \\Delta \\widehat{x}} + G^{23} \\frac{w_{j + 1} - w_{j - 1}}{2 \\Delta \\widehat{y}} + G^{33} \\frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\\Delta \\widehat{z}}.
+\\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{z}} = G^{13} \\frac{w_{i + 1} - w_{i - 1}}{2 \\Delta \\hat{x}} + G^{23} \\frac{w_{j + 1} - w_{j - 1}}{2 \\Delta \\hat{y}} + G^{33} \\frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\\Delta \\hat{z}}.
 ```
 
 # Arguments
 
   - `state`: Model state.
 
-  - `i`: Grid-cell index on the ``\\widehat{x}``-axis.
+  - `i`: Grid-cell index on the ``\\hat{x}``-axis.
 
-  - `j`: Grid-cell index on the ``\\widehat{y}``-axis.
+  - `j`: Grid-cell index on the ``\\hat{y}``-axis.
 
-  - `k`: Grid-cell index on the ``\\widehat{z}``-axis.
+  - `k`: Grid-cell index on the ``\\hat{z}``-axis.
 
   - `variable`: Wind direction.
 

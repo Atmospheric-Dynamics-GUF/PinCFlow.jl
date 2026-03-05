@@ -10,7 +10,7 @@ interpolate_sponge(
 
 Interpolate the Rayleigh-damping coefficient of the LHS sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
-This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\alpha_\\mathrm{R}`` to the location of interest, using `interpolate`.
+This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\alpha_\\mathrm{R}`` to the location of interest, using `interpolate`.
 
 # Arguments
 

@@ -11,7 +11,7 @@ Domain(namelists::Namelists)::Domain
 
 Construct a `Domain` instance from the model parameters in `namelists`.
 
-If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\widehat{x}`` and ``\\widehat{y}``) but not in the last (``\\widehat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
+If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\hat{x}`` and ``\\hat{y}``) but not in the last (``\\hat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\hat{x}``, ``\\hat{y}`` and ``\\hat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
 
 # Fields
 
@@ -27,37 +27,37 @@ General MPI communication:
 
 Dimensions of the MPI subdomain:
 
-  - `nx::C`: Number of physical grid points in ``\\widehat{x}``-direction.
+  - `nx::C`: Number of physical grid points in ``\\hat{x}``-direction.
 
-  - `ny::C`: Number of physical grid points in ``\\widehat{y}``-direction.
+  - `ny::C`: Number of physical grid points in ``\\hat{y}``-direction.
 
-  - `nz::C`: Number of physical grid points in ``\\widehat{z}``-direction.
+  - `nz::C`: Number of physical grid points in ``\\hat{z}``-direction.
 
-  - `nxx::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+  - `nxx::C`: Number of computational grid points in ``\\hat{x}``-direction (including halo/boundary cells).
 
-  - `nyy::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+  - `nyy::C`: Number of computational grid points in ``\\hat{y}``-direction (including halo/boundary cells).
 
-  - `nzz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
+  - `nzz::C`: Number of computational grid points in ``\\hat{z}``-direction (including halo/boundary cells).
 
 Index offsets and bounds:
 
-  - `io::C`: MPI offset in ``\\widehat{x}``-direction.
+  - `io::C`: MPI offset in ``\\hat{x}``-direction.
 
-  - `jo::C`: MPI offset in ``\\widehat{y}``-direction.
+  - `jo::C`: MPI offset in ``\\hat{y}``-direction.
 
-  - `ko::C`: MPI offset in ``\\widehat{z}``-direction.
+  - `ko::C`: MPI offset in ``\\hat{z}``-direction.
 
-  - `i0::C`: First physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+  - `i0::C`: First physical grid cell of the subdomain in ``\\hat{x}``-direction.
 
-  - `i1::C`: Last physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+  - `i1::C`: Last physical grid cell of the subdomain in ``\\hat{x}``-direction.
 
-  - `j0::C`: First physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+  - `j0::C`: First physical grid cell of the subdomain in ``\\hat{y}``-direction.
 
-  - `j1::C`: Last physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+  - `j1::C`: Last physical grid cell of the subdomain in ``\\hat{y}``-direction.
 
-  - `k0::C`: First physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+  - `k0::C`: First physical grid cell of the subdomain in ``\\hat{z}``-direction.
 
-  - `k1::C`: Last physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+  - `k1::C`: Last physical grid cell of the subdomain in ``\\hat{z}``-direction.
 
 Neighbor-process ranks:
 
