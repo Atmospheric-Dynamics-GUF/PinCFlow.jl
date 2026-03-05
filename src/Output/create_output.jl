@@ -570,9 +570,9 @@ function create_output(state::State, machine_start_time::DateTime)
                 (:dudt, :dvdt, :dthetadt),
                 ("kg*m^-2*s^-2", "kg*m^-2*s^-2", "kg*K*m^-3*s^-1"),
                 (
-                    L"[\partial_t (\rho_\mathrm{b} u_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
-                    L"[\partial_t (\rho_\mathrm{b} v_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
-                    L"[\partial_t (P_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ K\ m^{-3}\ s^{-1}}]",
+                    L"[\partial_t (\rho_\mathrm{r} u_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
+                    L"[\partial_t (\rho_\mathrm{r} v_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
+                    L"[\partial_t (P_\mathrm{r})]_\mathrm{w}\ [\mathrm{kg\ K\ m^{-3}\ s^{-1}}]",
                 ),
                 (
                     "zonal-momentum GW forcing",

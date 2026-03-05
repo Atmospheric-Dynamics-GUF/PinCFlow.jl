@@ -188,25 +188,25 @@ $$\dot{\mathcal{N}} = \left[\frac{\partial}{\partial t} + \boldsymbol{c}_\mathrm
 where $\mathcal{S}_s$ are sinks and sources. This latter equation is integrated along rays defined by $\left(\dot{\boldsymbol{x}}, \dot{\boldsymbol{k}}\right)^\mathrm{T}$, so that $\mathcal{N}$ is conserved if the right-hand side is zero. The impact of the unresolved gravity waves on the resolved flow is given by
 
 $$\begin{align*}
-    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{\overline{\rho}} \begin{pmatrix}
+    \left(\frac{\partial \rho_\mathrm{r} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{r}}{\overline{\rho}} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle u' \boldsymbol{u}' \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
-    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{\overline{\rho}} \begin{pmatrix}
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle u' \boldsymbol{u}' \right\rangle\right) - \rho_\mathrm{r} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
+    \left(\frac{\partial \rho_\mathrm{r} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{r}}{\overline{\rho}} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle v' \boldsymbol{u}' \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
-    \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
-    \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \rho_\mathrm{b} \begin{pmatrix}
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle v' \boldsymbol{u}' \right\rangle\right) + \rho_\mathrm{r} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
+    \left(\frac{\partial \rho_\mathrm{r} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{r} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{r} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
+    \left(\frac{\partial P_\mathrm{r}}{\partial t}\right)_\mathrm{w} & = - \rho_\mathrm{r} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         0
     \end{pmatrix} \cdot \left\langle \theta' \boldsymbol{u}' \right\rangle,
 \end{align*}$$
 
-where $\rho_\mathrm{b}$, $\widehat{\boldsymbol{u}}_\mathrm{b} = \left(u_\mathrm{b}, v_\mathrm{b}, \widehat{w}_\mathrm{b}\right)^\mathrm{T}$ and $P_\mathrm{b}$ are the resolved density, transformed wind and mass-weighted potential temperature, respectively, and
+where $\rho_\mathrm{r}$, $\widehat{\boldsymbol{u}}_\mathrm{b} = \left(u_\mathrm{b}, v_\mathrm{b}, \widehat{w}_\mathrm{b}\right)^\mathrm{T}$ and $P_\mathrm{r}$ are the resolved density (including the reference part $\overline{\rho}$), transformed wind and mass-weighted potential temperature (including the reference part $\overline{P}$), respectively, and
 
 $$\begin{align*}
     \overline{\rho} \left\langle u' u' \right\rangle & = \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
@@ -260,10 +260,10 @@ $$\dot{\mathcal{N}} = \left(\frac{\partial}{\partial t} + \frac{c_{\mathrm{g} z}
 and integrated along rays defined by $\left(\dot{z}, \dot{m}\right)^\mathrm{T}$. Finally, the impact on the resolved flow becomes
 
 $$\begin{align*}
-    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle u' w' \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
-    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle v' w' \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
-    \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
-    \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = 0
+    \left(\frac{\partial \rho_\mathrm{r} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{r}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle u' w' \right\rangle\right) - \rho_\mathrm{r} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
+    \left(\frac{\partial \rho_\mathrm{r} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{r}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle v' w' \right\rangle\right) + \rho_\mathrm{r} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
+    \left(\frac{\partial \rho_\mathrm{r} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{r} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{r} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
+    \left(\frac{\partial P_\mathrm{r}}{\partial t}\right)_\mathrm{w} & = 0
 \end{align*}$$
 
 (e.g. [Boeloeni et al., 2016](https://doi.org/10.1175/JAS-D-16-0069.1); [Boeloeni et al., 2021](https://doi.org/10.1175/JAS-D-20-0065.1)).
@@ -329,7 +329,7 @@ $$\begin{align*}
 and the corresponding impact on the large-scale tracer is
 
 $$\begin{align*}
-    \left(\frac{\partial \rho_\mathrm{b} \chi_\mathrm{b}}{\partial t}\right)_\mathrm{w} = - \frac{\rho_\mathrm{b}}{\overline{\rho}} \begin{pmatrix}
+    \left(\frac{\partial \rho_\mathrm{r} \chi_\mathrm{b}}{\partial t}\right)_\mathrm{w} = - \frac{\rho_\mathrm{r}}{\overline{\rho}} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
