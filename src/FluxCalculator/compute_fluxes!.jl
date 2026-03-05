@@ -37,9 +37,9 @@ The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -54,7 +54,7 @@ where
 \\end{align*}
 ```
 
-are the transporting velocities (weighted by the Jacobian) and ``\\widetilde{\\phi}`` is the reconstruction of ``\\rho / P_\\mathrm{old}``. More specifically, the superscripts ``\\mathrm{R}``, ``\\mathrm{L}``, ``\\mathrm{F}``, ``\\mathrm{B}``, ``\\mathrm{U}`` and ``\\mathrm{D}`` indicate reconstructions at the right, left, forward, backward, upward and downward cell interfaces of the respective grid points, respectively. Quantities with the subscript ``\\mathrm{old}`` are obtained from a previous state, which is partially passed to the method via `predictands`.
+are the transporting velocities (weighted by the Jacobian) and ``\\tilde{\\phi}`` is the reconstruction of ``\\rho / P_\\mathrm{old}``. More specifically, the superscripts ``\\mathrm{R}``, ``\\mathrm{L}``, ``\\mathrm{F}``, ``\\mathrm{B}``, ``\\mathrm{U}`` and ``\\mathrm{D}`` indicate reconstructions at the right, left, forward, backward, upward and downward cell interfaces of the respective grid points, respectively. Quantities with the subscript ``\\mathrm{old}`` are obtained from a previous state, which is partially passed to the method via `predictands`.
 
 
 ```julia
@@ -107,9 +107,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 3 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2, j + 1}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 3 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2, j + 1}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -123,7 +123,7 @@ with
 \\end{align*}
 ```
 
-and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{i + 1 / 2} u_{i + 1 / 2} / P_{\\mathrm{old}, i + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{i + 1 / 2} u_{i + 1 / 2} / P_{\\mathrm{old}, i + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
 
 ```math
 \\begin{align*}
@@ -153,9 +153,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1, j + 1 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 3 / 2}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1, j + 1 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 3 / 2}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -169,7 +169,7 @@ with
 \\end{align*}
 ```
 
-and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{j + 1 / 2} v_{j + 1 / 2} / P_{\\mathrm{old}, j + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{j + 1 / 2} v_{j + 1 / 2} / P_{\\mathrm{old}, j + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
 
 ```math
 \\begin{align*}
@@ -199,9 +199,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1, k + 1 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1, k + 1 / 2}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 3 / 2}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1, k + 1 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1, k + 1 / 2}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 3 / 2}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -215,7 +215,7 @@ with
 \\end{align*}
 ```
 
-and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{k + 1 / 2} w_{k + 1 / 2} / P_{\\mathrm{old}, k + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{k + 1 / 2} w_{k + 1 / 2} / P_{\\mathrm{old}, k + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
 
 ```math
 \\begin{align*}

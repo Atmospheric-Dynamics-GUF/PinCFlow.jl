@@ -42,25 +42,25 @@ The vertical layer centers and edges of the stretched and physical grids are giv
 
 ```math
 \\begin{align*}
-    \\widetilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\widetilde{z}_{k + 1 / 2} + h,\\\\
-    \\widetilde{z} & = \\frac{\\widetilde{z}_{k + 1 / 2} + \\widetilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h}{L_z} \\widetilde{z} + h,
+    \\tilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\tilde{z}_{k + 1 / 2} + h,\\\\
+    \\tilde{z} & = \\frac{\\tilde{z}_{k + 1 / 2} + \\tilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h}{L_z} \\tilde{z} + h,
 \\end{align*}
 ```
 
 where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
 
 ```math
-J = \\frac{L_z - h}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
+J = \\frac{L_z - h}{L_z} \\frac{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
 ```
 
 and the non-Cartesian elements of the metric tensor are
 
 ```math
 \\begin{align*}
-    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\widetilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\widetilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\}\\\\
-    & \\quad \\times \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
+    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
+    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
+    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\tilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\}\\\\
+    & \\quad \\times \\left(\\frac{\\Delta \\widehat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}}\\right)^2.
 \\end{align*}
 ```
 
