@@ -43,11 +43,11 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
 # Fields
 
-  - `nxray::A`: Number of ray volumes allowed in ``\\widehat{x}``, per grid cell and wave mode (`multiplication_factor * nrx * nrk`, taken from `namelists.wkb`).
+  - `nxray::A`: Number of ray volumes allowed in ``\\hat{x}``, per grid cell and wave mode (`multiplication_factor * nrx * nrk`, taken from `namelists.wkb`).
 
-  - `nyray::A`: Number of ray volumes allowed in ``\\widehat{y}``, per grid cell and wave mode (`multiplication_factor * nry * nrl`, taken from `namelists.wkb`).
+  - `nyray::A`: Number of ray volumes allowed in ``\\hat{y}``, per grid cell and wave mode (`multiplication_factor * nry * nrl`, taken from `namelists.wkb`).
 
-  - `nzray::A`: Number of ray volumes allowed in ``\\widehat{z}``, per grid cell and wave mode (`multiplication_factor * nrz * nrm`, taken from `namelists.wkb`).
+  - `nzray::A`: Number of ray volumes allowed in ``\\hat{z}``, per grid cell and wave mode (`multiplication_factor * nrz * nrm`, taken from `namelists.wkb`).
 
   - `nxray_wrk::A`: `2 * nxray`.
 

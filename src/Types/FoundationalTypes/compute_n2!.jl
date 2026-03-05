@@ -16,7 +16,7 @@ The squared buoyancy frequency is given by
 
 ```math
 \\begin{align*}
-N^2 & = \\frac{g}{\\overline{\\theta}} \\frac{\\overline{\\theta}_{k + 1} - \\overline{\\theta}_{k - 1}}{2 J \\Delta \\widehat{z}} \\;.
+N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\hat{z}} \\;.
 \\end{align*}
 ```
 
