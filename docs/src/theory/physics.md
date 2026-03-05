@@ -192,30 +192,30 @@ $$\begin{align*}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle u' \boldsymbol{u}' \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle \tilde{u} \tilde{\boldsymbol{u}} \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \tilde{\theta} \tilde{v} \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{\overline{\rho}} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle v' \boldsymbol{u}' \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle \tilde{v} \tilde{\boldsymbol{u}} \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \tilde{\theta} \tilde{u} \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
     \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \rho_\mathrm{b} \begin{pmatrix}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         0
-    \end{pmatrix} \cdot \left\langle \theta' \boldsymbol{u}' \right\rangle,
+    \end{pmatrix} \cdot \left\langle \tilde{\theta} \tilde{\boldsymbol{u}} \right\rangle,
 \end{align*}$$
 
 where $\rho_\mathrm{b}$, $\widehat{\boldsymbol{u}}_\mathrm{b} = \left(u_\mathrm{b}, v_\mathrm{b}, \widehat{w}_\mathrm{b}\right)^\mathrm{T}$ and $P_\mathrm{b}$ are the resolved density, transformed wind and mass-weighted potential temperature, respectively, and
 
 $$\begin{align*}
-    \overline{\rho} \left\langle u' u' \right\rangle & = \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
-    \overline{\rho} \left\langle u' v' \right\rangle & = \int l \widehat{c}_{\mathrm{g} x} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
-    \overline{\rho} \left\langle u' w' \right\rangle & = \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
-    \overline{\rho} \left\langle v' v' \right\rangle & = \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(\left|f\right|\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
-    \overline{\rho} \left\langle v' w' \right\rangle & = \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
-    \left\langle \theta' u' \right\rangle & = \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
-    \left\langle \theta' v' \right\rangle & = - \frac{f \overline{\theta}}{g \overline{\rho}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},
+    \overline{\rho} \left\langle \tilde{u} \tilde{u} \right\rangle & = \int \left[k \widehat{c}_{\mathrm{g} x} - \mathrm{sgn} \left(f^2\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle \tilde{u} \tilde{v} \right\rangle & = \int l \widehat{c}_{\mathrm{g} x} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle \tilde{u} \tilde{w} \right\rangle & = \int \frac{k \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle \tilde{v} \tilde{v} \right\rangle & = \int \left[l \widehat{c}_{\mathrm{g} y} - \mathrm{sgn} \left(f^2\right) \frac{k \widehat{c}_{\mathrm{g} x} + l \widehat{c}_{\mathrm{g} y}}{1 - \left(\widehat{\omega} / f\right)^2}\right] \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle \tilde{v} \tilde{w} \right\rangle & = \int \frac{l \widehat{c}_{\mathrm{g} z}}{1 - \left(f / \widehat{\omega}\right)^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \left\langle \tilde{\theta} \tilde{u} \right\rangle & = \frac{f}{g} \frac{\overline{\theta}}{\overline{\rho}} \int \frac{l m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \left\langle \tilde{\theta} \tilde{v} \right\rangle & = - \frac{f}{g} \frac{\overline{\theta}}{\overline{\rho}} \int \frac{k m N^2}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},
 \end{align*}$$
 
 with $\widehat{\omega} = \omega - \boldsymbol{k} \cdot \boldsymbol{u}_\mathrm{b}$, $\widehat{\boldsymbol{c}}_\mathrm{g} = \left(\widehat{c}_{\mathrm{g} x}, \widehat{c}_{\mathrm{g} y}, \widehat{c}_{\mathrm{g} z}\right)^\mathrm{T} = \boldsymbol{\nabla}_{\boldsymbol{k}} \widehat{\omega}$ and $\mathrm{d} V_{\boldsymbol{k}} = \mathrm{d} k \mathrm{d} l \mathrm{d} m$ being the intrinsic frequency, intrinsic group velocity and spectral volume element, respectively (see [Achatz et al., 2017](https://doi.org/10.1002/qj.2926); [Achatz et al., 2023](https://doi.org/10.1063/5.0165180); [Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
@@ -260,8 +260,8 @@ $$\dot{\mathcal{N}} = \left(\frac{\partial}{\partial t} + \frac{c_{\mathrm{g} z}
 and integrated along rays defined by $\left(\dot{z}, \dot{m}\right)^\mathrm{T}$. Finally, the impact on the resolved flow becomes
 
 $$\begin{align*}
-    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle u' w' \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' v' \right\rangle,\\
-    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle v' w' \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \theta' u' \right\rangle,\\
+    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle \tilde{u} \tilde{w} \right\rangle\right) - \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \tilde{\theta} \tilde{v} \right\rangle,\\
+    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle \tilde{v} \tilde{w} \right\rangle\right) + \rho_\mathrm{b} \frac{f}{\overline{\theta}} \left\langle \tilde{\theta} \tilde{u} \right\rangle,\\
     \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
     \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = 0
 \end{align*}$$
@@ -290,7 +290,23 @@ $$\begin{align*}
 
 where $\omega_\alpha$ is a constant. Since the wave-action-density equation is solved by vertical integration, the saturation scheme must be amended. Specifically, the saturation sink term $\mathcal{Q}_{\mathrm{s}, \alpha}$ is integrated over a pseudo-time step $J \Delta \widehat{z} / c_{\mathrm{g} z, \alpha}$. Therein, the turbulent viscosity and diffusivity is given by
 
-$$K = \frac{\overline{\rho}}{4} \left[\sum\limits_\alpha \frac{J \Delta \widehat{z}}{c_{\mathrm{g} z, \alpha}} N^4 \left(k_\alpha^2 + l_\alpha^2\right) m_\alpha^2 \frac{\mathcal{A}_\alpha}{\widehat{\omega}_\alpha}\right]^{- 1} \max \left[0, \frac{2}{\overline{\rho}} \sum\limits_\alpha \frac{N^4 \left(k_\alpha^2 + l_\alpha^2\right) m_\alpha^2}{\widehat{\omega}_\alpha \left|\boldsymbol{k}_\alpha\right|^2} \mathcal{A}_\alpha - \alpha_\mathrm{s}^2 N^4\right]$$
+$$K = \frac{\overline{\rho}}{4} \left[\sum\limits_\alpha \frac{J \Delta \widehat{z}}{c_{\mathrm{g} z, \alpha}} N^4 \left(k_\alpha^2 + l_\alpha^2\right) m_\alpha^2 \frac{\mathcal{A}_\alpha}{\widehat{\omega}_\alpha}\right]^{- 1} \max \left[0, \frac{2}{\overline{\rho}} \sum\limits_\alpha \frac{N^4 \left(k_\alpha^2 + l_\alpha^2\right) m_\alpha^2}{\widehat{\omega}_\alpha \left|\boldsymbol{k}_\alpha\right|^2} \mathcal{A}_\alpha - \alpha_\mathrm{s}^2 N^4\right].$$
+
+Finally, using the pseudo-momentum approximation, the impact on the resolved flow is reduced to
+
+$$\begin{align*}
+    \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle \tilde{u} \tilde{w} \right\rangle\right),\\
+    \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = - \frac{\rho_\mathrm{b}}{J \overline{\rho}} \frac{\partial}{\partial \widehat{z}} \left(\overline{\rho} \left\langle \tilde{v} \tilde{w} \right\rangle\right),\\
+    \left(\frac{\partial \rho_\mathrm{b} \widehat{w}_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = G^{13} \left(\frac{\partial \rho_\mathrm{b} u_\mathrm{b}}{\partial t}\right)_\mathrm{w} + G^{23} \left(\frac{\partial \rho_\mathrm{b} v_\mathrm{b}}{\partial t}\right)_\mathrm{w},\\
+    \left(\frac{\partial P_\mathrm{b}}{\partial t}\right)_\mathrm{w} & = 0,
+\end{align*}$$
+
+with
+
+$$\begin{align*}
+    \overline{\rho} \left\langle \tilde{u} \tilde{w} \right\rangle & = \int k \widehat{c}_{\mathrm{g} z} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}},\\
+    \overline{\rho} \left\langle \tilde{v} \tilde{w} \right\rangle & = \int l \widehat{c}_{\mathrm{g} z} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}}
+\end{align*}$$
 
 (see [Boeloeni et al., 2021](https://doi.org/10.1175/JAS-D-20-0065.1); [Jochum et al., 2025](https://doi.org/10.1175/JAS-D-24-0158.1)).
 
@@ -319,7 +335,7 @@ $$m_\alpha = - \mathrm{sgn} \left(\widehat{\omega}_\alpha\right) \sqrt{\frac{\le
 The leading-order tracer fluxes due to unresolved gravity waves are given by
 
 $$\begin{align*}
-    \overline{\rho} \left\langle \chi' \boldsymbol{u}' \right\rangle & = f \int \frac{m}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \boldsymbol{k} \times \begin{pmatrix}
+    \overline{\rho} \left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle & = f \int \frac{m}{\widehat{\omega} \left|\boldsymbol{k}\right|^2} \boldsymbol{k} \times \begin{pmatrix}
         \partial_{\widehat{x}} \chi_\mathrm{b} + G^{13} \partial_{\widehat{z}} \chi_\mathrm{b}\\
         \partial_{\widehat{y}} \chi_\mathrm{b} + G^{23} \partial_{\widehat{z}} \chi_\mathrm{b}\\
         J^{- 1} \partial_{\widehat{z}} \chi_\mathrm{b}
@@ -333,5 +349,5 @@ $$\begin{align*}
         \partial_{\widehat{x}} + G^{13} \partial_{\widehat{z}}\\
         \partial_{\widehat{y}} + G^{23} \partial_{\widehat{z}}\\
         J^{- 1} \partial_{\widehat{z}}
-    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle \chi' \boldsymbol{u}' \right\rangle\right).
+    \end{pmatrix} \cdot \left(\overline{\rho} \left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle\right).
 \end{align*}$$
