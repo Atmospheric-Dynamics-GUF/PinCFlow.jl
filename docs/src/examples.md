@@ -449,6 +449,7 @@ dzr = lz / 10
 alpharmax = 0.0179
 
 atmosphere = AtmosphereNamelist(;
+    background = LapseRates(),
     coriolis_frequency = 0.0,
     initial_u = (x, y, z) -> 10.0,
 )
