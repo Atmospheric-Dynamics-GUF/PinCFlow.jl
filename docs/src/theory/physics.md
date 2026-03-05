@@ -97,17 +97,17 @@ $$\begin{align*}
 In addition, turbulent diffusion is represented by
 
 $$\begin{align*}
-    \mathcal{X}^{\rho u} & = \frac{1}{J} \left[\frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\hat{x}}}{\partial \hat{x}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\hat{y}}}{\partial \hat{y}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} u\right)}^{\hat{z}}}{\partial \hat{z}}\right],\\
-    \mathcal{X}^{\rho v} & = \frac{1}{J} \left[\frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} v\right)}^{\hat{x}}}{\partial \hat{x}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} v\right)}^{\hat{y}}}{\partial \hat{y}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} v\right)}^{\hat{z}}}{\partial \hat{z}}\right),\\
-    \mathcal{X}^{\rho \hat{w}} & = G^{13} \mathcal{X}^{\rho u} + G^{23} \mathcal{X}^{\rho v} + \frac{1}{J^2} \left[\frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\hat{x}}}{\partial \hat{x}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\hat{y}}}{\partial \hat{y}} + \frac{\partial J \mu \widehat{\left(\boldsymbol{\nabla} w\right)}^{\hat{z}}}{\partial \hat{z}}\right],
+    \mathcal{X}^{\rho u} & = \frac{1}{J} \left(\frac{\partial J \mu \Xi_u^{\hat{x}}}{\partial \hat{x}} + \frac{\partial J \mu \Xi_u^{\hat{y}}}{\partial \hat{y}} + \frac{\partial J \mu \Xi_u^{\hat{z}}}{\partial \hat{z}}\right),\\
+    \mathcal{X}^{\rho v} & = \frac{1}{J} \left(\frac{\partial J \mu \Xi_v^{\hat{x}}}{\partial \hat{x}} + \frac{\partial J \mu \Xi_v^{\hat{y}}}{\partial \hat{y}} + \frac{\partial J \mu \Xi_v^{\hat{z}}}{\partial \hat{z}}\right),\\
+    \mathcal{X}^{\rho \hat{w}} & = G^{13} \mathcal{X}^{\rho u} + G^{23} \mathcal{X}^{\rho v} + \frac{1}{J^2} \left(\frac{\partial J \mu \Xi_w^{\hat{x}}}{\partial \hat{x}} + \frac{\partial J \mu \Xi_w^{\hat{y}}}{\partial \hat{y}} + \frac{\partial J \mu \Xi_w^{\hat{z}}}{\partial \hat{z}}\right),
 \end{align*}$$
 
 where $\mu$ is a constant turbulent viscosity and
 
 $$\begin{align*}
-    \widehat{\left(\boldsymbol{\nabla} \phi\right)}^{\hat{x}} & = \frac{\partial \phi}{\partial \hat{x}} + G^{13} \frac{\partial \phi}{\partial \hat{z}},\\
-    \widehat{\left(\boldsymbol{\nabla} \phi\right)}^{\hat{y}} & = \frac{\partial \phi}{\partial \hat{y}} + G^{23} \frac{\partial \phi}{\partial \hat{z}},\\
-    \widehat{\left(\boldsymbol{\nabla} \phi\right)}^{\hat{z}} & = G^{13}\frac{\partial \phi}{\partial \hat{x}} + G^{23} \frac{\partial \phi}{\partial \hat{y}} + G^{33}\frac{\partial \phi}{\partial \hat{z}}.
+    \left(\Xi_u^{\hat{x}}, \Xi_v^{\hat{x}}, \Xi_w^{\hat{x}}\right) & = \left(\frac{\partial}{\partial \hat{x}} + G^{13} \frac{\partial}{\partial \hat{z}}\right) \left(u, v, w\right),\\
+    \left(\Xi_u^{\hat{y}}, \Xi_v^{\hat{y}}, \Xi_w^{\hat{y}}\right) & = \left(\frac{\partial}{\partial \hat{y}} + G^{23} \frac{\partial}{\partial \hat{z}}\right) \left(u, v, w\right),\\
+    \left(\Xi_u^{\hat{z}}, \Xi_v^{\hat{z}}, \Xi_w^{\hat{z}}\right) & = \left(G^{13} \frac{\partial}{\partial \hat{x}} + G^{23} \frac{\partial}{\partial \hat{y}} + G^{33} \frac{\partial}{\partial \hat{z}}\right) \left(u, v, w\right).
 \end{align*}$$
 
 Analogously, the components of the pressure gradient are given by

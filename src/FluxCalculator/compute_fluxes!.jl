@@ -137,9 +137,9 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\mu_{i + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{x}}\\right]_{i + 1},\\\\
-    \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{y}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\hat{z}}\\right]_{i + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\mu_{i + 1} \\left(J \\Xi_u^{\\hat{x}}\\right)_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left(J \\Xi_u^{\\hat{y}}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left(J \\Xi_u^{\\hat{z}}\\right)_{i + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -183,9 +183,9 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{x}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\mu_{j + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{y}}\\right]_{j + 1},\\\\
-    \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\hat{z}}\\right]_{j + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left(J \\Xi_v^{\\hat{x}}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\mu_{j + 1} \\left(J \\Xi_v^{\\hat{y}}\\right)_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left(J \\Xi_v^{\\hat{z}}\\right)_{j + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -229,9 +229,9 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{x}}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{y}}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\mu_{k + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\hat{z}}\\right]_{k + 1}.
+    \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left(J \\Xi_w^{\\hat{x}}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left(J \\Xi_w^{\\hat{y}}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\mu_{k + 1} \\left(J \\Xi_w^{\\hat{z}}\\right)_{k + 1}.
 \\end{align*}
 ```
 
