@@ -449,6 +449,7 @@ dzr = lz / 10
 alpharmax = 0.0179
 
 atmosphere = AtmosphereNamelist(;
+    background = LapseRates(),
     coriolis_frequency = 0.0,
     initial_u = (x, y, z) -> 10.0,
 )
@@ -505,7 +506,7 @@ end
 
 ```
 
-performs a 3D WKB mountain-wave simulation. The full surface topography is given by
+performs a 3D WKB mountain-wave simulation in an atmosphere with a positive lapse rate in the toposphere and a negative one in the stratosphere. The full surface topography is given by
 
 $$\begin{align*}
     h \left(x, y\right) & = \begin{cases}

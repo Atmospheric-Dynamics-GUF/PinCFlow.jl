@@ -20,10 +20,10 @@ using ...PinCFlow
 include("Tensor.jl")
 include("Operator.jl")
 include("Preconditioner.jl")
-include("BicGStab.jl")
+include("BiCGSTAB.jl")
 include("Correction.jl")
 include("Poisson.jl")
 
-export Tensor, Operator, Preconditioner, BicGStab, Correction, Poisson
+export Tensor, Operator, Preconditioner, BiCGSTAB, Correction, Poisson
 
 end

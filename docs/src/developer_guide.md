@@ -66,7 +66,7 @@ Contributions to the code should always be accompanied by corresponding contribu
 
   - Type docstrings:
 
-     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) a additional paragraphs with more details.
+     1. Include the exact full signature within a Julia code block, followed by a single descriptive (pseudo-)sentence and (if needed) additional paragraphs with more details.
 
      1. If the type is composite, include the exact full signature within a Julia code block, followed by a single, descriptive sentence in imperative form and (if needed) additional paragraphs with more details, for each explicitly defined constructor method.
 
@@ -77,6 +77,13 @@ Contributions to the code should always be accompanied by corresponding contribu
      1. If the type is composite, list all keyword arguments of the explicitly defined constructor methods with descriptions (but without types and default values) in a `# Keywords` section, with one bullet for each.
 
      1. If the type is composite, list links to constructors/functions that are called in any of the explicitly defined constructor methods in a `# See also` section, with one bullet for each.
+
+  - Mark experimental features in the docstrings of objects that implement them by placing an admonition at the end of those docstrings, similar to the following example.
+
+    ```markdown
+    !!! danger "Experimental"
+        The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    ```
 
   - Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences instead of Unicode characters.
 

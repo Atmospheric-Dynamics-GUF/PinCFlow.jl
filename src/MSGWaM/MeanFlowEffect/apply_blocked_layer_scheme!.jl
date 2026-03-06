@@ -28,6 +28,9 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 # Arguments
 
   - `state`: Model state.
+
+!!! danger "Experimental"
+    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
 function apply_blocked_layer_scheme! end
 
@@ -78,4 +81,6 @@ function apply_blocked_layer_scheme!(state::State)
             dthetadt[i, j, k] = (1 - fraction) * dthetadt[i, j, k]
         end
     end
+
+    return
 end
