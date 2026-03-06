@@ -41,10 +41,7 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     triad_mode::C
     time_scheme::D
     rm_index::E
-<<<<<<< HEAD
-=======
     nthreads_triad::A
->>>>>>> 16241d8c6edbf07841dc5e26b1b0c509a5136489
 end
 
 function TriadNamelist(;
