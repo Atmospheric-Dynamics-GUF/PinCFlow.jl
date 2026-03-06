@@ -41,17 +41,14 @@ function turbulent_diffusion!(
     return
 end
 
-function turbulent_diffusion!(
-    state::State,
-    dt::AbstractFloat,
-    variable::U,
-)
+function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u) = state.variables.predictands
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; km) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -110,7 +107,7 @@ function turbulent_diffusion!(
 
         jacc = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
 
-        ith = i - nbx# + 1
+        ith = i - nbx
         jth = j - nby
         kth = k - nbz
 
@@ -135,7 +132,8 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; km) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -220,197 +218,70 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; km) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        met13c =
+        k33u = jac[i, j, k + 1] * met[i, j, k + 1, 3, 3] * km[i, j, k + 1]
+        k33d = jac[i, j, k - 1] * met[i, j, k - 1, 3, 3] * km[i, j, k - 1]
+
+        wu = compute_vertical_wind(i, j, k + 1, state)
+        wc = compute_vertical_wind(i, j, k, state)
+        wd = compute_vertical_wind(i, j, k - 1, state)
+
+        dudtd =
+            0.5 * (
+                (u[i - 1, j, k] - uold[i - 1, j, k]) / dt +
+                (u[i, j, k] - uold[i, j, k]) / dt
+            )
+        dudtu =
+            0.5 * (
+                (u[i - 1, j, k + 1] - uold[i - 1, j, k + 1]) / dt +
+                (u[i, j, k + 1] - uold[i, j, k + 1]) / dt
+            )
+        dudtc13 =
             (
-                jac[i, j, k] * met[i, j, k + 1, 1, 3] +
-                jac[i, j, k + 1] * met[i, j, k, 1, 3]
+                jac[i, j, k] * met[i, j, k + 1, 1, 3] * dudtu +
+                jac[i, j, k + 1] * met[i, j, k, 1, 3] * dudtd
             ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met23c =
+
+        dvdtd =
+            0.5 * (
+                (v[i, j - 1, k] - vold[i, j - 1, k]) / dt +
+                (v[i, j, k] - vold[i, j, k]) / dt
+            )
+        dvdtu =
+            0.5 * (
+                (v[i, j - 1, k + 1] - vold[i, j - 1, k + 1]) / dt +
+                (v[i, j, k + 1] - vold[i, j, k + 1]) / dt
+            )
+        dvdtc23 =
             (
-                jac[i, j, k] * met[i, j, k + 1, 2, 3] +
-                jac[i, j, k + 1] * met[i, j, k, 2, 3]
+                jac[i, j, k] * met[i, j, k + 1, 2, 3] * dvdtu +
+                jac[i, j, k + 1] * met[i, j, k, 2, 3] * dvdtd
             ) / (jac[i, j, k] + jac[i, j, k + 1])
+
         jacc =
             2.0 * jac[i, j, k] * jac[i, j, k + 1] /
             (jac[i, j, k] + jac[i, j, k + 1])
-        met13u =
-            (
-                jac[i, j, k + 1] * met[i, j, k + 2, 1, 3] +
-                jac[i, j, k + 2] * met[i, j, k + 1, 1, 3]
-            ) / (jac[i, j, k + 1] + jac[i, j, k + 2])
-        met23u =
-            (
-                jac[i, j, k + 1] * met[i, j, k + 2, 2, 3] +
-                jac[i, j, k + 2] * met[i, j, k + 1, 2, 3]
-            ) / (jac[i, j, k + 1] + jac[i, j, k + 2])
-        jacu =
-            2.0 * jac[i, j, k + 1] * jac[i, j, k + 2] /
-            (jac[i, j, k + 1] + jac[i, j, k + 2])
-        met13d =
-            (
-                jac[i, j, k] * met[i, j, k - 1, 1, 3] +
-                jac[i, j, k - 1] * met[i, j, k, 1, 3]
-            ) / (jac[i, j, k] + jac[i, j, k - 1])
-        met23d =
-            (
-                jac[i, j, k] * met[i, j, k - 1, 2, 3] +
-                jac[i, j, k - 1] * met[i, j, k, 2, 3]
-            ) / (jac[i, j, k] + jac[i, j, k - 1])
-        jacd =
-            2.0 * jac[i, j, k] * jac[i, j, k - 1] /
-            (jac[i, j, k] + jac[i, j, k - 1])
-        k33d = jac[i, j, k] * met[i, j, k, 3, 3] * km[i, j, k]
-        k33u = jac[i, j, k + 1] * met[i, j, k + 1, 3, 3] * km[i, j, k + 1]
-
-        uc =
-            (
-                jac[i, j, k] *
-                0.25 *
-                (
-                    u[i - 1, j, k + 1] +
-                    u[i, j, k + 1] +
-                    uold[i - 1, j, k + 1] +
-                    uold[i, j, k + 1]
-                ) +
-                jac[i, j, k + 1] *
-                0.25 *
-                (
-                    u[i - 1, j, k] +
-                    u[i, j, k] +
-                    uold[i - 1, j, k] +
-                    uold[i, j, k]
-                )
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        vc =
-            (
-                jac[i, j, k] *
-                0.25 *
-                (
-                    v[i, j - 1, k + 1] +
-                    v[i, j, k + 1] +
-                    vold[i, j - 1, k + 1] +
-                    vold[i, j, k + 1]
-                ) +
-                jac[i, j, k + 1] *
-                0.25 *
-                (
-                    v[i, j - 1, k] +
-                    v[i, j, k] +
-                    vold[i, j - 1, k] +
-                    vold[i, j, k]
-                )
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
-        ud =
-            (
-                jac[i, j, k - 1] *
-                0.25 *
-                (
-                    u[i - 1, j, k] +
-                    u[i, j, k] +
-                    uold[i - 1, j, k] +
-                    uold[i, j, k]
-                ) +
-                jac[i, j, k] *
-                0.25 *
-                (
-                    u[i - 1, j, k - 1] +
-                    u[i, j, k - 1] +
-                    uold[i - 1, j, k - 1] +
-                    uold[i, j, k - 1]
-                )
-            ) / (jac[i, j, k - 1] + jac[i, j, k])
-        vd =
-            (
-                jac[i, j, k - 1] *
-                0.25 *
-                (
-                    v[i, j - 1, k + 1] +
-                    v[i, j, k] +
-                    vold[i, j - 1, k + 1] +
-                    vold[i, j, k]
-                ) +
-                jac[i, j, k] *
-                0.25 *
-                (
-                    v[i, j - 1, k - 1] +
-                    v[i, j, k - 1] +
-                    vold[i, j - 1, k - 1] +
-                    vold[i, j, k - 1]
-                )
-            ) / (jac[i, j, k - 1] + jac[i, j, k])
-        uu =
-            (
-                jac[i, j, k + 1] *
-                0.25 *
-                (
-                    u[i - 1, j, k + 2] +
-                    u[i, j, k + 2] +
-                    uold[i - 1, j, k + 2] +
-                    uold[i, j, k + 2]
-                ) +
-                jac[i, j, k + 2] *
-                0.25 *
-                (
-                    u[i - 1, j, k + 1] +
-                    u[i, j, k + 1] +
-                    uold[i - 1, j, k + 1] +
-                    uold[i, j, k + 1]
-                )
-            ) / (jac[i, j, k + 1] + jac[i, j, k + 2])
-        vu =
-            (
-                jac[i, j, k + 1] *
-                0.25 *
-                (
-                    v[i, j - 1, k + 2] +
-                    v[i, j, k + 2] +
-                    vold[i, j - 1, k + 2] +
-                    vold[i, j, k + 2]
-                ) +
-                jac[i, j, k + 2] *
-                0.25 *
-                (
-                    v[i, j - 1, k + 1] +
-                    v[i, j, k + 1] +
-                    vold[i, j - 1, k + 1] +
-                    vold[i, j, k + 1]
-                )
-            ) / (jac[i, j, k + 1] + jac[i, j, k + 2])
 
         ith = i - nbx
         jth = j - nby
         kth = k - nbz
 
-        ath[ith, jth, kth] = -dtdz2 / jacc^2.0 * k33d * jacd
-        bth[ith, jth, kth] = 1.0 + dtdz2 / jacc^2.0 * (k33u + k33d) * jacc
-        cth[ith, jth, kth] = -dtdz2 / jacc^2.0 * k33u * jacu
+        ath[ith, jth, kth] = -dtdz2 / jacc * k33d
+        bth[ith, jth, kth] = 1 + dtdz2 / jacc * k33u + dtdz2 / jacc * k33d
+        cth[ith, jth, kth] = -dtdz2 / jacc * k33u
         fth[ith, jth, kth] =
-            2.0 * dtdz2 * met13c / jacc *
-            (k33u * uu - (k33u + k33d) * uc + k33d * ud) -
-            2.0 * dtdz2 / jacc^2.0 * (
-                k33u * jacu * met13u * uu - (k33u + k33d) * jacc * met13c * uc +
-                k33d * jacd * met13d * ud
-            ) +
-            2.0 * dtdz2 * met23c / jacc *
-            (k33u * vu - (k33u + k33d) * vc + k33d * vd) -
-            2.0 * dtdz2 / jacc^2.0 * (
-                k33u * jacu * met23u * vu - (k33u + k33d) * jacc * met23c * vc +
-                k33d * jacd * met23d * vd
-            ) +
-            dtdz2 *
-            jacc^2.0 *
-            (
-                k33u * jacu * w[i, j, k + 1] -
-                (k33u + k33d) * jacc * w[i, j, k] +
-                k33d * jacd * w[i, j, k - 1]
-            )
+            dtdz2 / jacc * k33u * wu +
+            (1 - dtdz2 / jacc * k33u - dtdz2 / jacc * k33d) * wc +
+            dtdz2 / jacc * k33d * wd +
+            dudtc13 +
+            dvdtc23
     end
 
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
@@ -444,51 +315,44 @@ function turbulent_diffusion!(
     (; p, rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
-    (; nbz) = state.namelists.domain
+    (; nbx, nby, nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; kh) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
 
-    ii = i0:i1
-    jj = j0:j1
-    kk = k0:k1
-
-    @ivy for k in 1:nz
-        knbz = k + nbz
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         khd =
-            (
-                jac[ii, jj, knbz - 1] .* kh[ii, jj, knbz] .+
-                jac[ii, jj, knbz] .* kh[ii, jj, knbz - 1]
-            ) ./ (jac[ii, jj, knbz - 1] + jac[ii, jj, knbz])
+            (jac[i, j, k - 1] * kh[i, j, k] + jac[i, j, k] * kh[i, j, k - 1]) /
+            (jac[i, j, k - 1] + jac[i, j, k])
         khu =
-            (
-                jac[ii, jj, knbz + 1] .* kh[ii, jj, knbz] .+
-                jac[ii, jj, knbz] .* kh[ii, jj, knbz + 1]
-            ) ./ (jac[ii, jj, knbz + 1] .+ jac[ii, jj, knbz])
-        ath[:, :, k] .= .-dtdz2 .* khd
-        bth[:, :, k] .= 1 .+ dtdz2 .* khu .+ dtdz2 .* khd
-        cth[:, :, k] .= .-dtdz2 .* khu
+            (jac[i, j, k + 1] * kh[i, j, k] + jac[i, j, k] * kh[i, j, k + 1]) /
+            (jac[i, j, k + 1] + jac[i, j, k])
 
-        fth[:, :, k] =
-            (1 .- dtdz2 .* khu .- dtdz2 .* khd) .*
-            (p[ii, jj, knbz] ./ (rho[ii, jj, knbz] .+ rhobar[ii, jj, knbz])) .+
-            dtdz2 .* khu .* (
-                p[ii, jj, knbz + 1] ./
-                (rho[ii, jj, knbz + 1] .+ rhobar[ii, jj, knbz + 1])
-            ) .+
-            dtdz2 .* khd .* (
-                p[ii, jj, knbz - 1] ./
-                (rho[ii, jj, knbz - 1] .+ rhobar[ii, jj, knbz - 1])
-            )
+        ith = i - nbx
+        jth = j - nby
+        kth = k - nbz
+
+        ath[ith, jth, kth] = -dtdz2 * khd
+        bth[ith, jth, kth] = 1 + dtdz2 * khu + dtdz2 * khd
+        cth[ith, jth, kth] = -dtdz2 * khu
+
+        fth[ith, jth, kth] =
+            (1 - dtdz2 * khu - dtdz2 * khd) * p[i, j, k] +
+            #(p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])) +
+            dtdz2 * khu * p[i, j, k + 1] +
+            #(p[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])) +
+            dtdz2 * khd * p[i, j, k - 1]
+        #(p[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1]))
     end
 
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
-    p[ii, jj, kk] .= fth .* (rho[ii, jj, kk] .+ rhobar[ii, jj, kk])
+    p[i0:i1, j0:j1, k0:k1] .= fth #.* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
     return
 end
 
@@ -519,7 +383,8 @@ function turbulent_diffusion!(
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; kh) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -535,22 +400,22 @@ function turbulent_diffusion!(
             knbz = k + nbz
             khd =
                 (
-                    jac[ii, jj, knbz - 1] .* kh[ii, jj, knbz] .+
-                    jac[ii, jj, knbz] .* kh[ii, jj, knbz - 1]
-                ) ./ (jac[ii, jj, knbz - 1] + jac[ii, jj, knbz])
+                    jac[i, j, k - 1] .* kh[i, j, k] .+
+                    jac[i, j, k] .* kh[i, j, k - 1]
+                ) ./ (jac[i, j, k - 1] + jac[i, j, k])
             khu =
                 (
-                    jac[ii, jj, knbz + 1] .* kh[ii, jj, knbz] .+
-                    jac[ii, jj, knbz] .* kh[ii, jj, knbz + 1]
-                ) ./ (jac[ii, jj, knbz + 1] .+ jac[ii, jj, knbz])
+                    jac[i, j, k + 1] .* kh[i, j, k] .+
+                    jac[i, j, k] .* kh[i, j, k + 1]
+                ) ./ (jac[i, j, k + 1] .+ jac[i, j, k])
             ath[:, :, k] .= .-dtdz2 .* khd
             bth[:, :, k] .= 1 .+ dtdz2 .* khu .+ dtdz2 .* khd
             cth[:, :, k] .= .-dtdz2 .* khu
 
             fth[:, :, k] =
-                (1 .- dtdz2 .* khu .- dtdz2 .* khd) .* chi[ii, jj, knbz] .+
-                dtdz2 .* khu .* chi[ii, jj, knbz + 1] .+
-                dtdz2 .* khd .* chi[ii, jj, knbz - 1]
+                (1 .- dtdz2 .* khu .- dtdz2 .* khd) .* chi[i, j, k] .+
+                dtdz2 .* khu .* chi[i, j, k + 1] .+
+                dtdz2 .* khd .* chi[i, j, k - 1]
         end
 
         thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)

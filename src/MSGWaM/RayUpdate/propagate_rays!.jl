@@ -218,6 +218,39 @@ function propagate_rays!(
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
+            gammas, gammaw, gammawp =
+                compute_turbulent_damping(state, r, i, j, k, zr)
+
+            println(gammas / tref, ", ", gammaw / tref, ", ", gammawp / tref)
+
+            dkr = rays.dkray[r, i, j, k]
+            dlr = rays.dlray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
+
+            wadr = rays.dens[r, i, j, k] * dmr
+
+            if x_size > 1
+                wadr *= dkr
+            end
+            if y_size > 1
+                wadr *= dlr
+            end
+
+            wadr =
+                wadr +
+                stepfrac[rkstage] *
+                dt *
+                (-2 * (gammas + gammaw) * wadr + gammawp * wadr)
+
+            densr = wadr / dmr
+            if x_size > 1
+                densr /= dkr
+            end
+            if y_size > 1
+                densr /= dlr
+            end
+            rays.dens[r, i, j, k] = densr
+
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
             yr1 = yr - dyr / 2
@@ -436,10 +469,8 @@ function propagate_rays!(
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-            gammas, gammaw, gammawp = compute_turbulent_damping(state, r, i, j, k, zr)
             betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
-            rays.dens[r, i, j, k] *=
-                exp(-(alphasponge + 2 * gammas + 2 * gammaw) * stepfrac[rkstage] * dt)
+            rays.dens[r, i, j, k] *= betasponge
         end
     end
 

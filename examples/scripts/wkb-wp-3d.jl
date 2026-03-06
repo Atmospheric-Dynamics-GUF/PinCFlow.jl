@@ -61,10 +61,10 @@ atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    save_ray_volumes = true,
-    output_variables = (:u, :v, :w, :rhop),
+    save_ray_volumes = false,
+    output_variables = (:u, :v, :w, :rhop, :e),
     output_file = "wkb-wp-3d.h5",
-    tmax = 360.0,
+    tmax = 3600.0,
     output_interval = 36.0,
 )
 
@@ -72,18 +72,12 @@ discretization = DiscretizationNamelist(; dtmax = 5.0)
 
 wkb = WKBNamelist(;
     use_saturation = false,
-    nrz = 4,
+    nrz = 1,
     wkb_mode = MultiColumn(),
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
 
-turbulence = TurbulenceNamelist(;
-    turbulence_scheme = TKEScheme(),
-    momentum_coupling = true,
-    initial_tke = (x, y, z) -> qtilde_wkb(x, y, z) / 2,
-)
-
 integrate(
-    Namelists(; atmosphere, domain, output, turbulence, discretization, wkb),
+    Namelists(; atmosphere, domain, output, discretization, wkb),
 )

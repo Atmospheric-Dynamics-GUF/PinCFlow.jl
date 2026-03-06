@@ -271,15 +271,6 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        integrals.sterm[iray, jray, kray] +=
-                            mr^2 / 2 * (
-                                2 * mr^2 * wadr * (omir^2 + fc^2) /
-                                rhobar[iray, jray, kray] / omir /
-                                (khr^2 + mr^2)
-                            )
-
-                        integrals.bterm[iray, jray, kray] += 0.0
-
                         compute_leading_order_tracer_fluxes!(
                             state,
                             fc,

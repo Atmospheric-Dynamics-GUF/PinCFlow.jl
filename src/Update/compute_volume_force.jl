@@ -330,9 +330,7 @@ function compute_volume_force(
 
     buoyancyproduction[i, j, k] = buoyancy
 
-    dtkedt = wkb_term(state, i, j, k)
-
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
+    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end
 
 function compute_volume_force(
@@ -362,7 +360,5 @@ function compute_volume_force(
 
     buoyancyproduction[i, j, k] = buoyancy
 
-    dtkedt = wkb_term(state, i, j, k)
-
-    return (rhop[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
+    return (rhop[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end

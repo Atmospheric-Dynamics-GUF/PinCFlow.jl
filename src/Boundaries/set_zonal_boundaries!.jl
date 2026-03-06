@@ -290,7 +290,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt, :dtkedt)
+    for field in (:dudt, :dvdt)
         set_zonal_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,
@@ -309,7 +309,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt, :dthetadt, :dtkedt)
+    for field in (:dudt, :dvdt, :dthetadt)
         set_zonal_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,

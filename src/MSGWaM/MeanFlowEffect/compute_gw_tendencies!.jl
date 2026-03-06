@@ -148,8 +148,6 @@ function compute_gw_tendencies!(state::State)
             end
         end
 
-        compute_turbulence_forcing!(state, i, j, k)
-
         compute_leading_order_tracer_forcing!(state, i, j, k)
     end
 

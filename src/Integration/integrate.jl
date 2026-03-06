@@ -261,6 +261,8 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
+        synchronize_compressible_atmosphere!(state, state.variables.predictands)
+
         #---------------------------------------------------------------
         #                   Semi-implicit time scheme
         #---------------------------------------------------------------

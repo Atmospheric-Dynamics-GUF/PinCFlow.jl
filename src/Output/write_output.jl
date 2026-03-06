@@ -380,6 +380,11 @@ function write_output(
 
         # Write WKB variables.
         if wkb_mode != NoWKB()
+            if :e in output_variables
+                HDF5.set_extent_dims(file["e"], (x_size, y_size, z_size, iout))
+                file["e"][iid, jjd, kkd, iout] =
+                    state.wkb.integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2.0
+            end
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes
@@ -435,12 +440,11 @@ function write_output(
 
             # Write GW tendencies.
             for (field, scaling) in zip(
-                (:dudt, :dvdt, :dthetadt, :dtkedt),
+                (:dudt, :dvdt, :dthetadt),
                 (
                     rhoref * uref / tref,
                     rhoref * uref / tref,
                     rhoref * thetaref / tref,
-                    uref^2 / tref,
                 ),
             )
                 if field in output_variables

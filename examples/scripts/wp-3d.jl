@@ -40,7 +40,13 @@ background = Isothermal()
 model = Compressible()
 coriolis_frequency = 1e-4
 
-atmosphere = AtmosphereNamelist(; background, coriolis_frequency, model)
+atmosphere = AtmosphereNamelist(;
+    background,
+    coriolis_frequency,
+    model,
+    kinematic_viscosity = 0.0,
+    thermal_conductivity = 0.0,
+)
 domain = DomainNamelist(;
     x_size,
     y_size,
@@ -60,6 +66,8 @@ atmosphere = AtmosphereNamelist(;
     background,
     model,
     coriolis_frequency,
+    kinematic_viscosity = 0.0,
+    thermal_conductivity = 0.0,
     initial_rhop = (x, y, z) ->
         rhobar(x, y, z) *
         (1 / (1 + real(bhat(x, y, z) * exp(1im * phi(x, y, z))) / g) - 1),
@@ -79,6 +87,7 @@ output = OutputNamelist(;
 turbulence = TurbulenceNamelist(;
     turbulence_scheme = TKEScheme(),
     momentum_coupling = true,
+    entropy_coupling = true,
     initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
 )
 

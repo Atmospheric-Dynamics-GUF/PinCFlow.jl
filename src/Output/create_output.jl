@@ -325,6 +325,19 @@ function create_output(state::State, machine_start_time::DateTime)
         # Create datasets for WKB variables.
         if wkb_mode != NoWKB()
 
+            if :e in output_variables
+                create_dataset(
+                    file,
+                    "e",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
                 for field in (
@@ -360,7 +373,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             # Create datasets for GW tendencies.
-            for field in (:dudt, :dvdt, :dthetadt, :dtkedt)
+            for field in (:dudt, :dvdt, :dthetadt)
                 if field in output_variables
                     create_dataset(
                         file,
