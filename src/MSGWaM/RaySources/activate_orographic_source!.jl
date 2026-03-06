@@ -69,6 +69,9 @@ The launch algorithm distinguishes between the following situations (regarding p
   - [`PinCFlow.MSGWaM.RaySources.compute_orographic_mode`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+!!! danger "Experimental"
+    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
 function activate_orographic_source! end
 
@@ -162,6 +165,7 @@ function activate_orographic_source!(
             wad_ini[alpha, i, j, k] = wad
         end
     end
+
     return
 end
 
@@ -419,4 +423,6 @@ function activate_orographic_source!(state::State)
             rays.dens[r, i, j, k] = wadr / pspvol
         end
     end
+
+    return
 end
