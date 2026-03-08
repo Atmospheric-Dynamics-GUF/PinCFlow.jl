@@ -42,12 +42,12 @@ The vertical layer centers and edges of the stretched and physical grids are giv
 
 ```math
 \\begin{align*}
-    \\widetilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\widetilde{z}_{k + 1 / 2} + h,\\\\
+    \\widetilde{z}_{k + 1 / 2} & = s \\left(\\widehat{z}_{k + 1 / 2}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\widetilde{z}_{k + 1 / 2} + h,\\\\
     \\widetilde{z} & = \\frac{\\widetilde{z}_{k + 1 / 2} + \\widetilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h}{L_z} \\widetilde{z} + h,
 \\end{align*}
 ```
 
-where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
+where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz`), the vertical grid stretching (`namelists.grid.vertical_grid_stretching`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
 
 ```math
 J = \\frac{L_z - h}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
@@ -165,7 +165,7 @@ end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; x_size, y_size, z_size, nbz) = namelists.domain
-    (; stretch_exponent) = namelists.grid
+    (; vertical_grid_stretching) = namelists.grid
     (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0) = domain
     (; lref) = constants
 
@@ -204,13 +204,17 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     @ivy for k in 1:(z_size + 2 * nbz)
         level = z[k] + 0.5 * dz
         if level < 0
-            ztildes[k] = -lz * (-level / lz)^stretch_exponent
+            ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
         elseif level > lz
-            ztildes[k] = 2 * lz - lz * ((2 * lz - level) / lz)^stretch_exponent
+            ztildes[k] =
+                2 * lz -
+                vertical_grid_stretching((2 * lz - level) * lref) / lref
         else
-            ztildes[k] = lz * (level / lz)^stretch_exponent
+            ztildes[k] = vertical_grid_stretching(level * lref) / lref
         end
     end
+    !issorted(ztildes; lt = <=) &&
+        error("Error in Grid: Impossible vertical grid stretching!")
     @ivy for k in 2:(z_size + 2 * nbz)
         zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
     end
