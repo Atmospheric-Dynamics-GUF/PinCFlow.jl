@@ -214,7 +214,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
         end
     end
     @ivy !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = <=) &&
-        error("Error in Grid: Impossible vertical grid stretching!")
+         error("Error in Grid: Impossible vertical grid stretching!")
     @ivy for k in 2:(z_size + 2 * nbz)
         zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
     end
