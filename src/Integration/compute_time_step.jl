@@ -33,6 +33,12 @@ The individual stability criteria are as follows.
     \\Delta t_\\mathrm{viscous} = \\frac{\\mathrm{Re}}{2} \\min\\limits_\\mathrm{global} \\left[\\left(\\Delta \\widehat{x}\\right)^2, \\left(\\Delta \\widehat{y}\\right)^2, \\left(J \\Delta \\widehat{z}\\right)^2\\right]
     ```
 
+  - CFL condition with respect to the turbulent kinetic energy:
+
+    ```math 
+    \\Delta t_\\mathrm{TKE} = 
+    ```
+
 # Arguments
 
   - `state`: Model state.

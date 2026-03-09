@@ -152,6 +152,15 @@ set_vertical_boundaries!(
 
 Enforce vertical boundary conditions for WKB tendencies needed in `MultiColumn` configurations, using line reflection.
 
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryDiffusionCoefficients,
+)
+```
+
+Enforce vertical boundary conditions for eddy diffusion coefficients.
+
 # Arguments
 
   - `state`: Model state.

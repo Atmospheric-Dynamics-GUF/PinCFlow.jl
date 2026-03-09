@@ -11,6 +11,7 @@ function compute_turbulent_damping(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
+    (; rhobar) = state.atmosphere
 
     fc = coriolis_frequency / tref
 
@@ -27,7 +28,7 @@ function compute_turbulent_damping(
     n2r = interpolate_stratification(zr, state, N2())
 
     omir = -sqrt(n2r * kh2 + fc^2 * mr^2) / sqrt(kh2 + mr^2)
-    rhob = interpolate_rhobar(zr, state, Rhobar())
+    rhob = rhobar[i, j, k]
 
     wadr = rays.dens[r, i, j, k] * dmr
 

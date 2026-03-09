@@ -250,6 +250,28 @@ Compute the tracer fluxes in all three directions.
 The computation is analogous to that of the density fluxes.
 
 ```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    turbulence_scheme::NoTurbulence,
+)
+```
+
+Return for configurations without turbulence scheme.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    turbulence_scheme::TKEScheme,
+)
+```
+
+Compute the turbulence fluxes in all three directions.
+
+The computation is analogous to that of the density fluxes.
+
+```julia
 compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
 ```
 
@@ -304,6 +326,8 @@ where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.a
   - `variable`: Flux variable.
 
   - `tracer_setup`: General tracer-transport configuration.
+
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
 # See also
 

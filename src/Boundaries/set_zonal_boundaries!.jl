@@ -104,6 +104,15 @@ set_zonal_boundaries!(
 
 Enforce zonal boundary conditions for WKB tendencies needed in `MultiColumn` configurations.
 
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryDiffusionCoefficients,
+)
+```
+
+Enforce zonal boundary conditions for eddy diffusion coefficients.
+
 # Arguments
 
   - `state`: Model state.

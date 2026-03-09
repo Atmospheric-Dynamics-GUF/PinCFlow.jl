@@ -6,7 +6,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Enforce meridional boundary conditions for turbulence energies by dispatching to a turbulence-configuration-specific method.
+Enforce meridional boundary conditions for turbulences by dispatching to a turbulence-configuration-specific method.
 
 ```julia
 set_turbulence_meridional_boundaries!(
@@ -16,7 +16,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Return for configurations without turbulence transport.
+Return for configurations without turbulence scheme.
 
 ```julia
 set_turbulence_meridional_boundaries!(
@@ -26,7 +26,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Enforce meridional boundary conditions for turbulence energies.
+Enforce meridional boundary conditions for turbulent kinetic energy.
 
 ```julia
 set_turbulence_meridional_boundaries!(
@@ -36,7 +36,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Return for configurations without turbulence transport.
+Return for configurations without turbulence scheme.
 
 ```julia
 set_turbulence_meridional_boundaries!(
@@ -46,7 +46,17 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Enforce meridional boundary conditions for reconstructions of turbulence energies.
+Enforce meridional boundary conditions for reconstructions of turbulent kinetic energy.
+
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Union{NoTurbulence, TKEScheme},
+)
+```
+
+Return for WKB-variables.
 
 # Arguments
 
@@ -55,8 +65,6 @@ Enforce meridional boundary conditions for reconstructions of turbulence energie
   - `variables`: Boundary-variable category.
 
   - `turbulence_scheme`: General turbulence parameterization configuration.
-
-  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 

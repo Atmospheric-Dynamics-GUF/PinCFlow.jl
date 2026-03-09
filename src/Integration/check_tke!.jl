@@ -1,3 +1,16 @@
+"""
+```julia 
+check_tke!(state::State)
+```
+
+Enforce a minimum mass-specific turbulent kinetic energy value set by `tkemin`.
+
+# Arguments 
+
+  - `state`: Model state.
+"""
+function check_tke! end
+
 function check_tke!(state::State)
     (; k0, k1, j0, j1, i0, i1) = state.domain
     (; tke) = state.turbulence.turbulencepredictands

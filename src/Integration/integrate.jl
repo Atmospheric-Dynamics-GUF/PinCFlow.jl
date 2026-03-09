@@ -25,6 +25,8 @@ At the beginning of each time-loop iteration, the time step is determined from s
 
 Therein, the left-hand sides of the equations include advective fluxes, diffusion terms, rotation and heating, whereas the pressure gradient, buoyancy term and momentum-flux divergence due to unresolved gravity waves are on the right-hand sides. Boundary conditions are enforced continuously. At the end of the time step, the updated fields are written into the output file if the next output time has been reached.
 
+In the case of turbulence parameterization: momentum and mass-weighted potential temperature diffusion before step 1 and turbulence integration after step 3.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -62,6 +64,12 @@ Therein, the left-hand sides of the equations include advective fluxes, diffusio
   - [`PinCFlow.Integration.implicit_integration!`](@ref)
 
   - [`PinCFlow.Integration.reset_predictands!`](@ref)
+
+  - [`PinCFlow.Integration.compute_turbulence_diffusion!`](@ref)
+
+  - [`PinCFlow.Update.turbulence_diffusion!`](@ref)
+
+  - [`PinCFlow.Integration.turbulence_integration!`](@ref)
 """
 function integrate end
 

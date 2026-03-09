@@ -75,7 +75,19 @@ reconstruct!(state::State, tracer_setup::TracerOn)
 
 Reconstruct the tracers.
 
-Similar to the density, the tracers are divided by ``P`` before reconstruction.
+```julia
+reconstruct!(state::State, turbulence_scheme::NoTurbulence)
+```
+
+Return for configurations without turbulence_scheme.
+
+```julia
+reconstruct!(state::State, turbulence_scheme::TKEScheme)
+```
+
+Reconstruct the turbulent kinetic energy.
+
+Similar to the density, the turbulence kinetic energy is divided by ``P`` before reconstruction.
 
 # Arguments
 

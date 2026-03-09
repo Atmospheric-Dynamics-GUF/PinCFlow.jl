@@ -16,7 +16,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Return for configurations without turbulence transport.
+Return for configurations without turbulence scheme.
 
 ```julia
 set_turbulence_zonal_boundaries!(
@@ -26,7 +26,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Enforce zonal boundary conditions for turbulences.
+Enforce zonal boundary conditions for turbulent kinetic energy.
 
 ```julia
 set_turbulence_zonal_boundaries!(
@@ -36,7 +36,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Return for configurations without turbulence transport.
+Return for configurations without turbulence scheme.
 
 ```julia
 set_turbulence_zonal_boundaries!(
@@ -46,51 +46,17 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Enforce zonal boundary conditions for reconstructions of turbulences.
+Enforce zonal boundary conditions for reconstructions of turbulent kinetic energy.
 
 ```julia
 set_turbulence_zonal_boundaries!(
     state::State,
-    variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::NoTurbulence,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Union{NoTurbulence, TKEScheme},
 )
 ```
 
-Return for configurations without turbulence transport.
-
-```julia
-set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::TKEScheme,
-)
-```
-
-Enforce zonal boundary conditions for turbulence-gravity-wave-integral fields.
-
-```julia
-set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::NoTurbulence,
-)
-```
-
-Return for configurations without turbulence transport.
-
-```julia
-set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::TKEScheme,
-)
-```
-
-Enforce zonal boundary conditions for turbulence-gravity-wave-tendency fields.
+Return for WKB-variables.
 
 # Arguments
 
@@ -98,9 +64,7 @@ Enforce zonal boundary conditions for turbulence-gravity-wave-tendency fields.
 
   - `variables`: Boundary-variable category.
 
-  - `turbulence_scheme`: General turbulence-transport configuration.
-
-  - `wkb_mode`: Approximations used by MSGWaM.
+  - `turbulence_scheme`: General turbulence scheme configuration.
 
 # See also
 

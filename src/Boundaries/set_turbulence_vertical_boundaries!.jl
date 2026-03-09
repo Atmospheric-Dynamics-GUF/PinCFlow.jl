@@ -16,7 +16,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Return for configurations without turbulence transport.
+Return for configurations without turbulence scheme.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -26,7 +26,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for turbulences.
+Enforce vertical boundary conditions for turbulent kinetic energy.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -36,7 +36,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Return for configurations without turbulence transport.
+Return for configurations without turbulence scheme.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -46,7 +46,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for reconstructions of turbulences.
+Enforce vertical boundary conditions for reconstructions of turbulent kinetic energy.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -56,7 +56,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Return for configurations without turbulence transport.
+Return for configurations without turbulence scheme.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -66,51 +66,17 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Set the vertical turbulence fluxes at the vertical boundaries to zero.
+Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to zero.
 
 ```julia
 set_turbulence_vertical_boundaries!(
     state::State,
-    variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::NoTurbulence,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Union{NoTurbulence, TKEScheme},
 )
 ```
 
-Return for configurations without turbulence transport.
-
-```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::BoundaryWKBIntegrals,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::TKEScheme,
-)
-```
-
-Enforce vertical boundary conditions for turbulence-gravity-wave-integral fields.
-
-```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::NoTurbulence,
-)
-```
-
-Return for configurations without turbulence transport.
-
-```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::AbstractWKBMode,
-    turbulence_scheme::TKEScheme,
-)
-```
-
-Enforce vertical boundary conditions for turbulence-gravity-wave-tendency fields.
+Return for WKB-variables.
 
 # Arguments
 
@@ -119,8 +85,6 @@ Enforce vertical boundary conditions for turbulence-gravity-wave-tendency fields
   - `variables`: Boundary-variable category.
 
   - `turbulence_scheme`: General turbulence-transport configuration.
-
-  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 

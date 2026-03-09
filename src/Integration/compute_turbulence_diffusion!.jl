@@ -18,18 +18,57 @@ compute_turbulence_diffusion!(
 )
 ```
 
-Compute the turbulent eddy diffusivity coefficients for turbulence parameterization using a TKE-Scheme.
+Compute the turbulent eddy diffusivity coefficients for turbulence parameterization using a TKE-Scheme by dispatching over a model-specific method.
 
-The eddy diffusion coefficients for momentum, heat, and turbulence energy are given by 
+```julia 
+compute_turbulence_diffusion!(
+    state::State,
+    turbulence_scheme::TKEScheme,
+    model::Union{PseudoIncompressible, Compressible},
+)
+```
+
+Compute the turbulent eddy diffusivity coefficients for turbulence parameterization using a TKE-Scheme in pseudo-incompressible and compressible mode. 
+
+The eddy diffusion coefficients for momentum, heat, and turbulent kinetic energy are given by 
 
 ```math 
 \\begin{align*}
-    K_M & = L \\sqrt{e_k} \\;, \\\\
-    K_H & = L \\sqrt{e_k} \\;, \\\\
-    K_{e_k} & = L \\sqrt{e_k} \\;, \\\\
+    K_M & = l_v \\sqrt{2 e_k} \\;, \\\\
+    K_H & = l_h \\sqrt{2 e_k} \\;, \\\\
+    K_{e_k} & = l_t \\sqrt{2 e_k} \\;, \\\\
 \\end{align*}
 ```
-respectively, with turbulence length scale `L`.
+respectively, with turbulence length scales `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_k`.
+
+```julia 
+compute_turbulence_diffusion!(
+    state::State,
+    turbulence_scheme::TKEScheme,
+    model::Boussinesq,
+)
+```
+
+Compute the turbulent eddy diffusivity coefficients for turbulence parameterization using a TKE-Scheme in Boussinesq mode.
+
+The eddy diffusion coefficients for momentum, heat, and turbulent kinetic energy are given by 
+
+```math 
+\\begin{align*}
+    K_M & = l_v \\sqrt{2 e_k} \\;, \\\\
+    K_H & = l_h \\sqrt{2 e_k} \\;, \\\\
+    K_{e_k} & = l_t \\sqrt{2 e_k} \\;, \\\\
+\\end{align*}
+```
+respectively, with turbulence length scales `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_k`.
+
+# Arguements:
+
+  - `state`: Model state. 
+
+  - `turbulence_scheme`: General turbulence-parameterization configuration.
+
+  - `model`: Dynamic equations.
 """
 function compute_turbulence_diffusion! end
 
