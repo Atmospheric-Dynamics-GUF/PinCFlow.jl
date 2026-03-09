@@ -386,6 +386,15 @@ function write_output(
                     state.wkb.integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2.0
             end
 
+            if :q10 in output_variables
+                HDF5.set_extent_dims(
+                    file["q10int"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["q10int"][iid, jjd, kkd, iout] =
+                    state.wkb.integrals.q10[ii, jj, kk] .* uref
+            end
+
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes
                 for (output_name, field_name) in zip(

@@ -271,6 +271,11 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
+                        q00, q10, q20 = compute_q(state, r, i, j, k)
+
+                        integrals.q10[iray, jray, kray] +=
+                            q10 * fcpspx * fcpspy * fcpspz
+
                         compute_leading_order_tracer_fluxes!(
                             state,
                             fc,

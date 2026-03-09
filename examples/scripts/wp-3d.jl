@@ -80,15 +80,22 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "wp-3d.h5",
-    tmax = 3600.0,
+    output_file = "wp-3d-tracer.h5",
+    tmax = 360.0,
     output_interval = 36.0,
 )
 turbulence = TurbulenceNamelist(;
     turbulence_scheme = TKEScheme(),
     momentum_coupling = true,
     entropy_coupling = true,
+    tracer_coupling = true,
     initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
 )
 
-integrate(Namelists(; atmosphere, domain, output, turbulence))
+tracer = TracerNamelist(;
+    tracer_setup = TracerOn(),
+    initial_tracer = (x, y, z) ->
+        real(chihat(x, y, z) * exp(1im * phi(x, y, z))) + z,
+)
+
+integrate(Namelists(; atmosphere, domain, output, turbulence, tracer))

@@ -324,11 +324,23 @@ function create_output(state::State, machine_start_time::DateTime)
 
         # Create datasets for WKB variables.
         if wkb_mode != NoWKB()
-
             if :e in output_variables
                 create_dataset(
                     file,
                     "e",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if :q10int in output_variables
+                create_dataset(
+                    file,
+                    "q10int",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),
@@ -357,7 +369,7 @@ function create_output(state::State, machine_start_time::DateTime)
                     "phase",
                     "q00",
                     "q10",
-                    "q20"
+                    "q20",
                 )
                     create_dataset(
                         file,

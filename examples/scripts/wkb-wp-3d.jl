@@ -61,11 +61,11 @@ atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    save_ray_volumes = false,
-    output_variables = (:u, :v, :w, :rhop, :e),
-    output_file = "wkb-wp-3d.h5",
-    tmax = 3600.0,
-    output_interval = 36.0,
+    save_ray_volumes = true,
+    output_variables = (:u, :v, :w, :rhop, :e, :q10int),
+    output_file = "wkb-wp-3d-tracer.h5",
+    tmax = 15.0,
+    output_interval = 5.0,
 )
 
 discretization = DiscretizationNamelist(; dtmax = 5.0)
@@ -78,6 +78,10 @@ wkb = WKBNamelist(;
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
 
+tracer = TracerNamelist(;
+tracer_setup = TracerOn(),
+initial_tracer = (x, y, z) -> z)
+
 integrate(
-    Namelists(; atmosphere, domain, output, discretization, wkb),
+    Namelists(; atmosphere, domain, output, discretization, wkb, tracer),
 )
