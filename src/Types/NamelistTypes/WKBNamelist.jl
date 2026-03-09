@@ -47,11 +47,11 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
 # Fields/Keywords
 
-  - `nrx::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{x}``-direction.
+  - `nrx::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{x}``-direction.
 
-  - `nry::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{y}``-direction.
+  - `nry::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{y}``-direction.
 
-  - `nrz::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{z}``-direction.
+  - `nrz::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{z}``-direction.
 
   - `nrk::A`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
 

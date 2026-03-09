@@ -133,7 +133,7 @@ PinCFlow.jl follows the interpretation of
 
       - `initial_thetap`
 
-    The initial potential-temperature fluctuations are now always such that $P = \overline{\rho} \overline{\theta}$.
+    The initial potential-temperature fluctuations are now always such that $P = \bar{\rho} \bar{\theta}$.
 
   - The visualization function `plot_contours` of PinCFlow.jl's `CairoMakie` extension has been replaced with the function `plot_output`, with the following changes.
 

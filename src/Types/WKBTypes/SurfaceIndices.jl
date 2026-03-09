@@ -33,9 +33,9 @@ Construct a `SurfaceIndices` instance, with arrays sized according to the given 
 
   - `n_sfc`: Number of orographic wave modes per grid cell.
 
-  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `nxx`: Number of subdomain grid points in ``\\hat{x}``-direction.
 
-  - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
+  - `nyy`: Number of subdomain grid points in ``\\hat{y}``-direction.
 """
 struct SurfaceIndices{
     A <: AbstractArray{<:Integer, 3},
