@@ -239,7 +239,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uw, :vw, :e, :sterm, :bterm)
+    for field in (:uw, :vw, :e)
         set_zonal_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -268,8 +268,6 @@ function set_zonal_boundaries!(
         :utheta,
         :vtheta,
         :e,
-        :sterm,
-        :bterm,
     )
         set_zonal_boundaries_of_field!(
             getfield(integrals, field),

@@ -129,7 +129,7 @@ end
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
     (; nbx, nby, nbz) = state.namelists.domain
     (; v) = state.variables.predictands
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; km) = state.turbulence.turbulencediffusioncoefficients
     (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
@@ -343,16 +343,13 @@ function turbulent_diffusion!(
 
         fth[ith, jth, kth] =
             (1 - dtdz2 * khu - dtdz2 * khd) * p[i, j, k] +
-            #(p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])) +
             dtdz2 * khu * p[i, j, k + 1] +
-            #(p[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])) +
             dtdz2 * khd * p[i, j, k - 1]
-        #(p[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1]))
     end
 
     thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
 
-    p[i0:i1, j0:j1, k0:k1] .= fth #.* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+    p[i0:i1, j0:j1, k0:k1] .= fth
     return
 end
 
@@ -379,8 +376,8 @@ function turbulent_diffusion!(
     tracer_setup::TracerOn,
 )
     (; tracerpredictands) = state.tracer
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
-    (; nbz) = state.namelists.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nbx, nby, nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; kh) = state.turbulence.turbulencediffusioncoefficients
     (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
@@ -390,32 +387,32 @@ function turbulent_diffusion!(
 
     reset_thomas!(state)
 
-    ii = i0:i1
-    jj = j0:j1
-    kk = k0:k1
-
     for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)
-        @ivy for k in 1:nz
-            knbz = k + nbz
+        @ivy for k in k0:k1, j in j0:j1, i in i0:i1
             khd =
                 (
-                    jac[i, j, k - 1] .* kh[i, j, k] .+
-                    jac[i, j, k] .* kh[i, j, k - 1]
-                ) ./ (jac[i, j, k - 1] + jac[i, j, k])
+                    jac[i, j, k - 1] * kh[i, j, k] +
+                    jac[i, j, k] * kh[i, j, k - 1]
+                ) / (jac[i, j, k - 1] + jac[i, j, k])
             khu =
                 (
-                    jac[i, j, k + 1] .* kh[i, j, k] .+
-                    jac[i, j, k] .* kh[i, j, k + 1]
-                ) ./ (jac[i, j, k + 1] .+ jac[i, j, k])
-            ath[:, :, k] .= .-dtdz2 .* khd
-            bth[:, :, k] .= 1 .+ dtdz2 .* khu .+ dtdz2 .* khd
-            cth[:, :, k] .= .-dtdz2 .* khu
+                    jac[i, j, k + 1] * kh[i, j, k] +
+                    jac[i, j, k] * kh[i, j, k + 1]
+                ) / (jac[i, j, k + 1] + jac[i, j, k])
 
-            fth[:, :, k] =
-                (1 .- dtdz2 .* khu .- dtdz2 .* khd) .* chi[i, j, k] .+
-                dtdz2 .* khu .* chi[i, j, k + 1] .+
-                dtdz2 .* khd .* chi[i, j, k - 1]
+            ith = i - nbx
+            jth = j - nby
+            kth = k - nbz
+
+            ath[ith, jth, kth] = -dtdz2 * khd
+            bth[ith, jth, kth] = 1 + dtdz2 * khu + dtdz2 * khd
+            cth[ith, jth, kth] = -dtdz2 * khu
+
+            fth[ith, jth, kth] =
+                (1 - dtdz2 * khu - dtdz2 * khd) * chi[i, j, k] +
+                dtdz2 * khu * chi[i, j, k + 1] +
+                dtdz2 * khd * chi[i, j, k - 1]
         end
 
         thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)

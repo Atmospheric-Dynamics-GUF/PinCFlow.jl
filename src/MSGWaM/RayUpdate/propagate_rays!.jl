@@ -221,8 +221,6 @@ function propagate_rays!(
             gammas, gammaw, gammawp =
                 compute_turbulent_damping(state, r, i, j, k, zr)
 
-            println(gammas / tref, ", ", gammaw / tref, ", ", gammawp / tref)
-
             dkr = rays.dkray[r, i, j, k]
             dlr = rays.dlray[r, i, j, k]
             dmr = rays.dmray[r, i, j, k]
