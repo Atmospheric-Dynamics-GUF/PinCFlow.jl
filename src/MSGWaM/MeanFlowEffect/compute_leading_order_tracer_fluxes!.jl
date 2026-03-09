@@ -45,9 +45,9 @@ The zonal, meridional, and vertical fluxes are given by
 
 ```math
 \\begin{align*}
-    \\overline{\\rho}\\left\\langle u' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r, \\lambda,\\mu,\\nu}\\left(F u_\\mathrm{w}\\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    \\overline{\\rho}\\left\\langle v' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r,  \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    \\overline{\\rho}\\left\\langle w' \\chi'\\right\\rangle & = \\overline{\\rho}\\sum_{r, \\lambda, \\mu, \\nu} \\left(F w_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
+    \\bar{\\rho}\\left\\langle u' \\chi'\\right\\rangle & = \\bar{\\rho}\\sum_{r, \\lambda,\\mu,\\nu}\\left(F u_\\mathrm{w}\\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\bar{\\rho}\\left\\langle v' \\chi'\\right\\rangle & = \\bar{\\rho}\\sum_{r,  \\lambda, \\mu, \\nu} \\left(F v_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\bar{\\rho}\\left\\langle w' \\chi'\\right\\rangle & = \\bar{\\rho}\\sum_{r, \\lambda, \\mu, \\nu} \\left(F w_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)_{r, i + \\lambda, j + \\mu, k + \\nu}.
 \\end{align*}
 ```
 

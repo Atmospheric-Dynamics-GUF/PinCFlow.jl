@@ -23,11 +23,11 @@ Construct a `TracerWKBImpact` instance with array dimensions given by `nxi`, `ny
 
 # Arguments:
 
-  - `nxi`: Grid-points in `\\widehat{x}`-direction.
+  - `nxi`: Grid-points in `\\hat{x}`-direction.
 
-  - `nyi`: Grid-points in `\\widehat{y}`-direction.
+  - `nyi`: Grid-points in `\\hat{y}`-direction.
 
-  - `nzi`: Grid-points in `\\widehat{z}`-direction.
+  - `nzi`: Grid-points in `\\hat{z}`-direction.
 """
 struct TracerWKBImpact{A <: AbstractArray{<:AbstractFloat, 3}}
     uchi::A
