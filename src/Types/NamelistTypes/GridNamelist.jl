@@ -1,6 +1,6 @@
 """
 ```julia
-GridNamelist{A <: Float64, B <: Function, C <: Function}
+GridNamelist{A <: Function, B <: Function, C <: Function}
 ```
 
 Namelist for parameters describing the grid.
