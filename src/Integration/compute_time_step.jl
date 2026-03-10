@@ -74,19 +74,6 @@ function compute_time_step(state::State)::AbstractFloat
 
         dtconv = cfl_number * min(dx / umax, dy / vmax, dz / wmax)
 
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            dtconv = min(
-                dtconv,
-                cfl_number * jac[i, j, k] * dz / (
-                    abs(
-                        0.5 * (
-                            compute_vertical_wind(i, j, k, state) +
-                            compute_vertical_wind(i, j, k - 1, state)
-                        ),
-                    ) + eps()
-                ),
-            )
-        end
         dtconv = MPI.Allreduce(dtconv, min, comm)
 
         #---------------------------
@@ -110,6 +97,7 @@ function compute_time_step(state::State)::AbstractFloat
             if x_size > 1
                 dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))
             end
+
             if y_size > 1
                 dtwkb = min(dtwkb, dy / (cgy_max[] + eps()))
             end
