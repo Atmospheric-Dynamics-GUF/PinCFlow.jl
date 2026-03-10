@@ -466,9 +466,9 @@ function create_output(state::State, machine_start_time::DateTime)
                     fieldnames(TracerWKBImpact),
                     ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
                     (
-                        L"\langle u'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"\langle v'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"\langle w'\chi' \rangle\ [\mathrm{m\ s^{-1}}]",
+                        L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
+                        L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
+                        L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
                         L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]",
                     ),
                     (
