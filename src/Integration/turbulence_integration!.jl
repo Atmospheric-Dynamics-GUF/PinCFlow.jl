@@ -1,3 +1,107 @@
+"""
+```julia
+turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+) 
+```
+
+Integrate the turbulence energies by dispatching to the scheme-specific method.
+
+```julia 
+turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    turbulence_scheme::NoTurbulence,
+)
+```
+
+Return for configurations without turbulence parameterization.
+
+```julia 
+turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    turbulence_scheme::TKEScheme,
+)
+```
+
+Integrate the turbulent kinetic energy by dispatching to the specific operations.
+
+```julia 
+turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    process::Dissipation,
+)
+```
+
+Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy by dispatching to the model-specific method.
+
+```julia 
+turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    process::Dissipation,
+    model::Union{PseudoIncompressible, Compressible},
+)
+```
+
+Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy for configurations in psueod-incompressible or compressible mode.
+
+```julia 
+turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    process::Dissipation,
+    model::Boussinesq,
+)
+```
+
+Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy for configurations in Boussinesq mode.
+
+```julia 
+turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    process::Advection,
+)
+```
+
+Integrate the advection, shear production, and buoyancy contribution terms in the prognostic equation for the turbulent kinetic energy with a Runge-Kutta time step.
+
+```julia
+turbulence_integration!(
+    state::State,
+    p0::Predictands,
+    dt::AbstractFloat,
+    process::Diffusion,
+)
+```
+
+Integrate the turbulent diffusion term in the prognostic equation for the turbulent kinetic energy.
+
+# Arguements:
+
+  - `state`: Model state. 
+
+  - `p0`: The predictands that are used to compute the transporting velocities in the computation of the fluxes and the shear and buyoancy contribution terms.
+
+  - `dt`: Time step.
+
+  - `turbulence_scheme`: General turbulence parameterization setup.
+
+  - `process`: Terms in the prognostic equations.
+
+  - `model`: Dynamic equations.
+"""
 function turbulence_integration! end
 
 function turbulence_integration!(
@@ -151,7 +255,8 @@ function turbulence_integration!(
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; kek) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
+        state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
