@@ -27,29 +27,29 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
 # Fields/Keywords
 
-  - `x_size::A`: Number of grid cells in ``\\widehat{x}``-direction.
+  - `x_size::A`: Number of grid cells in ``\\hat{x}``-direction.
 
-  - `y_size::A`: Number of grid cells in ``\\widehat{y}``-direction.
+  - `y_size::A`: Number of grid cells in ``\\hat{y}``-direction.
 
-  - `z_size::A`: Number of grid cells in ``\\widehat{z}``-direction.
+  - `z_size::A`: Number of grid cells in ``\\hat{z}``-direction.
 
-  - `nbx::A`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
+  - `nbx::A`: Number of boundary/halo cells in ``\\hat{x}``-direction.
 
-  - `nby::A`: Number of boundary/halo cells in ``\\widehat{y}``-direction.
+  - `nby::A`: Number of boundary/halo cells in ``\\hat{y}``-direction.
 
-  - `nbz::A`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
+  - `nbz::A`: Number of boundary/halo cells in ``\\hat{z}``-direction.
 
-  - `lx::B`: Domain extent in ``\\widehat{x}``-direction.
+  - `lx::B`: Domain extent in ``\\hat{x}``-direction.
 
-  - `ly::B`: Domain extent in ``\\widehat{y}``-direction.
+  - `ly::B`: Domain extent in ``\\hat{y}``-direction.
 
-  - `lz::B`: Domain extent in ``\\widehat{z}``-direction.
+  - `lz::B`: Domain extent in ``\\hat{z}``-direction.
 
-  - `npx::A`: Number of MPI processes in ``\\widehat{x}``-direction.
+  - `npx::A`: Number of MPI processes in ``\\hat{x}``-direction.
 
-  - `npy::A`: Number of MPI processes in ``\\widehat{y}``-direction.
+  - `npy::A`: Number of MPI processes in ``\\hat{y}``-direction.
 
-  - `npz::A`: Number of MPI processes in ``\\widehat{z}``-direction.
+  - `npz::A`: Number of MPI processes in ``\\hat{z}``-direction.
 
   - `base_comm::C`: MPI base communicator.
 """

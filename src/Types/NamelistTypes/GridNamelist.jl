@@ -17,7 +17,7 @@ Construct a `GridNamelist` instance with the given keyword arguments as properti
 
 # Fields/Keywords
 
-  - `vertical_grid_stretching::A`: Function that defines the vertical grid stretching ``\\widetilde{z} \\left(\\widehat{z}\\right)``.
+  - `vertical_grid_stretching::A`: Function that defines the vertical grid stretching ``\\tilde{z} \\left(\\hat{z}\\right)``.
 
   - `resolved_topography::B`: Function that returns the resolved topography at a specified horizontal position.
 

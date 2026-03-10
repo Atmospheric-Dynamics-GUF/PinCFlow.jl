@@ -21,7 +21,7 @@ interpolate_stratification(
 
 Interpolate the vertical derivative of the squared buoyancy frequency (``\\partial N^2 / \\partial z``) to `zlc` and return the result.
 
-This method first determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. As for ``N^2``, `(i0, j0)` is used as the horizontal position, and simple linear interpolation is performed to find ``\\partial N^2 / \\partial z`` at `zlc`.
+This method first determines the two points in ``z + J \\Delta \\hat{z} / 2`` that are closest to `zlc`. As for ``N^2``, `(i0, j0)` is used as the horizontal position, and simple linear interpolation is performed to find ``\\partial N^2 / \\partial z`` at `zlc`.
 
 # Arguments
 
