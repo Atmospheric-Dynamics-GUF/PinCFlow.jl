@@ -104,7 +104,7 @@ function compute_time_step(state::State)::AbstractFloat
         #         WKB-CFL criterion
         #----------------------------------
 
-        if wkb_mode != NoWKB()
+        if wkb_mode in (SingleColumn(), MultiColumn())
             dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
             kmin = ko == 0 ? k0 - 1 : k0
@@ -136,7 +136,7 @@ function compute_time_step(state::State)::AbstractFloat
         #        Make your choice
         #-------------------------------
 
-        if wkb_mode != NoWKB()
+        if wkb_mode in (SingleColumn(), MultiColumn())
             dt = min(dtvisc, dtconv, dtmax / tref, dtwkb)
         else
             dt = min(dtvisc, dtconv, dtmax / tref)
@@ -150,7 +150,7 @@ function compute_time_step(state::State)::AbstractFloat
             println("dtvisc = ", dtvisc * tref, " seconds")
             println("dtconv = ", dtconv * tref, " seconds")
             println("dtmax = ", dtmax, " seconds")
-            if wkb_mode != NoWKB()
+            if wkb_mode in (SingleColumn(), MultiColumn())
                 println("dtwkb = ", dtwkb * tref, " seconds")
             end
             println("")
@@ -161,7 +161,7 @@ function compute_time_step(state::State)::AbstractFloat
                 println("=> dt = dtconv = ", dt * tref, " seconds")
             elseif dt == dtvisc
                 println("=> dt = dtvisc = ", dt * tref, " seconds")
-            elseif wkb_mode != NoWKB() && dt == dtwkb
+            elseif wkb_mode in (SingleColumn(), MultiColumn()) && dt == dtwkb
                 println("=> dt = dtwkb = ", dt * tref, " seconds")
             else
                 println("=> dt = ??? = ", dt * tref, " seconds")
