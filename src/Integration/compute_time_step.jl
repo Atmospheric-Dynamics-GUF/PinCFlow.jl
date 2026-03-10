@@ -105,7 +105,7 @@ function compute_time_step(state::State)::AbstractFloat
         #----------------------------------
 
         if wkb_mode in (SingleColumn(), MultiColumn())
-            dtwkb = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
+            dtwkb = jac[i0, j0, k0] * dz / (cgz_max[] + eps())
 
             kmin = ko == 0 ? k0 - 1 : k0
             kmax = k1
@@ -115,7 +115,7 @@ function compute_time_step(state::State)::AbstractFloat
                     dtwkb,
                     minimum(
                         jac[(i - 1):(i + 1), (j - 1):(j + 1), (k - 1):(k + 1)],
-                    ) * dz / (cgz_max[i, j, k] + eps()),
+                    ) * dz / (cgz_max[] + eps()),
                 )
             end
 

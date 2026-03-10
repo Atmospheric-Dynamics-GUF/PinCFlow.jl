@@ -274,8 +274,8 @@ function initialize_rays!(
                 cgy_max[] = abs(vyr + cgiry)
             end
             cgirz = -wnrm * (omir^2 - fc^2) / (omir * (wnrh^2 + wnrm^2))
-            if abs(wzr + cgirz) > abs(cgz_max[i, j, k])
-                cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(wzr + cgirz))
+            if abs(wzr + cgirz) > abs(cgz_max[])
+                cgz_max[] = max(cgz_max[], abs(wzr + cgirz))
             end
         end
 

@@ -198,7 +198,7 @@ function propagate_rays!(
 
     cgx_max[] = 0.0
     cgy_max[] = 0.0
-    @ivy cgz_max[i0:i1, j0:j1, kmin:kmax] .= 0.0
+    cgz_max[] = 0.0
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         nskip = 0
@@ -308,7 +308,7 @@ function propagate_rays!(
             dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
             rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-            cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(cgrz))
+            cgz_max[] = max(cgz_max[], abs(cgrz))
 
             # Refraction is only allowed above impact_altitude / lref.
 
