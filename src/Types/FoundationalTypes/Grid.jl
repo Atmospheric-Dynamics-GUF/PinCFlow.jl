@@ -42,7 +42,7 @@ The vertical layer centers and edges of the stretched and physical grids are giv
 
 ```math
 \\begin{align*}
-    \\tilde{z}_{k + 1 / 2} & = s \\left(\\hat{z}_{k + 1 / 2}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\tilde{z}_{k + 1 / 2} + h,\\\\
+    \\tilde{z}_{k + 1 / 2} & = s \\left(\\hat{z}_{k + 1 / 2}\\right), & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\tilde{z}_{k + 1 / 2} + h,\\\\
     \\tilde{z} & = \\frac{\\tilde{z}_{k + 1 / 2} + \\tilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h}{L_z} \\tilde{z} + h,
 \\end{align*}
 ```
