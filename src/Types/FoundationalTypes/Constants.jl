@@ -49,7 +49,7 @@ Reference quantities:
 
 Non-dimensional parameters
 
-  - `g_ndim::A`: Non-dimensional gravitational acceleration ``\\widehat{g} = g L_\\mathrm{ref} / u_\\mathrm{ref}^2``.
+  - `g_ndim::A`: Non-dimensional gravitational acceleration ``\\hat{g} = g L_\\mathrm{ref} / u_\\mathrm{ref}^2``.
 
   - `re::A`: Reynolds number ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu`` (with ``\\mu`` being the kinematic viscosity at the surface).
 

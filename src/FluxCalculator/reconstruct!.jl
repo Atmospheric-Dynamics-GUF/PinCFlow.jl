@@ -29,7 +29,7 @@ reconstruct!(
 
 Reconstruct the density in non-Boussinesq modes.
 
-Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction.
+Since the transporting velocity is ``P \\hat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction.
 
 ```julia
 reconstruct!(state::State, variable::RhoP)
@@ -45,7 +45,7 @@ reconstruct!(state::State, variable::U)
 
 Reconstruct the zonal momentum.
 
-Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the zonal momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
+Since the transporting velocity is ``P \\hat{\\boldsymbol{u}}``, the zonal momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
 reconstruct!(state::State, variable::V)

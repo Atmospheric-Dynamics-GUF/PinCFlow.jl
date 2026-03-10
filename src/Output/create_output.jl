@@ -425,12 +425,12 @@ function create_output(state::State, machine_start_time::DateTime)
         if model != Boussinesq()
             attributes(file["rhobar"])["units"] = "kg*m^-3"
             attributes(file["rhobar"])["label"] =
-                L"\overline{\rho}\ [\mathrm{kg\ m^{-3}}]"
+                L"\bar{\rho}\ [\mathrm{kg\ m^{-3}}]"
             attributes(file["rhobar"])["long_name"] = "density background"
 
             attributes(file["thetabar"])["units"] = "K"
             attributes(file["thetabar"])["label"] =
-                L"\overline{\theta}\ [\mathrm{K}]"
+                L"\bar{\theta}\ [\mathrm{K}]"
             attributes(file["thetabar"])["long_name"] = "potential-temperature background"
 
             attributes(file["n2"])["units"] = "s^-2"
@@ -491,14 +491,14 @@ function create_output(state::State, machine_start_time::DateTime)
         if :wt in output_variables
             attributes(file["wt"])["units"] = "m*s^-1"
             attributes(file["wt"])["label"] =
-                L"\widehat{w}\ [\mathrm{m\ s^{-1}}]"
+                L"\hat{w}\ [\mathrm{m\ s^{-1}}]"
             attributes(file["wt"])["long_name"] = "transformed vertical wind"
         end
 
         if prepare_restart || :wts in output_variables
             attributes(file["wts"])["units"] = "m*s^-1"
             attributes(file["wts"])["label"] =
-                L"\widehat{w}_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
+                L"\hat{w}_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"
             attributes(file["wts"])["long_name"] = "staggered transformed vertical wind"
         end
 

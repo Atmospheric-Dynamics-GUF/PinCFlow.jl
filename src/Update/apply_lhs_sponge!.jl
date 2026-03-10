@@ -37,7 +37,7 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the contin
 The update is given by
 
 ```math
-\\rho \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho}\\right),
+\\rho \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho + \\alpha_\\mathrm{R} \\Delta t \\bar{\\rho}\\right),
 ```
 
 where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponges!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
@@ -57,7 +57,7 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the auxili
 The update is given by
 
 ```math
-\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho} \\left(1 - \\frac{P}{\\rho \\overline{\\theta}}\\right)\\right].
+\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\bar{\\rho} \\left(1 - \\frac{P}{\\rho \\bar{\\theta}}\\right)\\right].
 ```
 
 ```julia
@@ -133,10 +133,10 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the transf
 The update is given by
 
 ```math
-\\widehat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left(\\widehat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\widehat{w}_{\\mathrm{R}, k + 1 / 2}\\right).
+\\hat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left(\\hat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\hat{w}_{\\mathrm{R}, k + 1 / 2}\\right).
 ```
 
-If `state.namelists.sponge.relax_to_mean` is `false`, ``\\widehat{w}_{\\mathrm{R}, k + 1 / 2}`` is computed with the functions `relaxed_u`, `relaxed_v` and `relaxed_w` in `state.namelists.sponge`. Otherwise, it is replaced with the average of ``\\widehat{w}_{k + 1 / 2}`` across the terrain-following coordinate surface.
+If `state.namelists.sponge.relax_to_mean` is `false`, ``\\hat{w}_{\\mathrm{R}, k + 1 / 2}`` is computed with the functions `relaxed_u`, `relaxed_v` and `relaxed_w` in `state.namelists.sponge`. Otherwise, it is replaced with the average of ``\\hat{w}_{k + 1 / 2}`` across the terrain-following coordinate surface.
 
 ```julia
 apply_lhs_sponge!(
@@ -165,7 +165,7 @@ Update the Exner-pressure fluctuations to account for the Rayleigh damping appli
 The update is given by
 
 ```math
-\\pi' \\rightarrow \\pi' - \\alpha_\\mathrm{R} \\Delta t P \\frac{\\partial \\pi'}{\\partial P} \\left(1 - \\frac{\\overline{\\rho}}{\\rho}\\right).
+\\pi' \\rightarrow \\pi' - \\alpha_\\mathrm{R} \\Delta t P \\frac{\\partial \\pi'}{\\partial P} \\left(1 - \\frac{\\bar{\\rho}}{\\rho}\\right).
 ```
 
 ```julia
@@ -195,7 +195,7 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the thermo
 The update is given by
 
 ```math
-P \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} P \\left(1 + \\alpha_\\mathrm{R} \\Delta t \\frac{\\overline{\\rho}}{\\rho}\\right).
+P \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} P \\left(1 + \\alpha_\\mathrm{R} \\Delta t \\frac{\\bar{\\rho}}{\\rho}\\right).
 ```
 
 ```julia

@@ -31,12 +31,12 @@ The updates of the RK tendencies for the phase-space position of each ray volume
 
 ```math
 \\begin{align*}
-    q_r^x & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r} + k_r \\frac{N_r^2 - \\widehat{\\omega}_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^x,\\\\
-    q_r^y & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r} + l_r \\frac{N_r^2 - \\widehat{\\omega}_r^2}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^y,\\\\
-    q_r^z & \\rightarrow - \\Delta t \\frac{m_r \\left(\\widehat{\\omega}_r^2 - f^2\\right)}{\\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} + \\alpha_\\mathrm{RK} q_r^z,\\\\
+    q_r^x & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r} + k_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^x,\\\\
+    q_r^y & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r} + l_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^y,\\\\
+    q_r^z & \\rightarrow - \\Delta t \\frac{m_r \\left(\\hat{\\omega}_r^2 - f^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} + \\alpha_\\mathrm{RK} q_r^z,\\\\
     q_r^k & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^k,\\\\
     q_r^l & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^l,\\\\
-    q_r^m & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_r - \\frac{k_r^2 + l_r^2}{2 \\widehat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^m
+    q_r^m & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_r - \\frac{k_r^2 + l_r^2}{2 \\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^m
 \\end{align*}
 ```
 
@@ -83,10 +83,10 @@ Update the vertical wavenumber and wave-action density, using steady-state WKB t
 In steady-state mode, the ray volumes are stationary in physical space. In mountain-wave simulations, this method first updates the ray volumes in the launch layer by calling `activate_orographic_source!`. Subsequently, it performs a vertical sweep to update all other ray volumes. Therein, the vertical wavenumber is set to
 
 ```math
-m_r = - \\sigma \\sqrt{\\frac{\\left(k_r^2 + l_r^2\\right) \\left(N_r^2 - \\widehat{\\omega}_r^2\\right)}{\\widehat{\\omega}_r^2 - f^2}},
+m_r = - \\sigma \\sqrt{\\frac{\\left(k_r^2 + l_r^2\\right) \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r^2 - f^2}},
 ```
 
-where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume position (with `interpolate_stratification`) and ``\\widehat{\\omega}_r = - k_r u_\\mathrm{b} - l_r v_\\mathrm{b}`` (in the case of mountain waves, for which ``\\omega_r = 0``). The new wave-action-density field is obtained by integrating
+where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume position (with `interpolate_stratification`) and ``\\hat{\\omega}_r = - k_r u_\\mathrm{b} - l_r v_\\mathrm{b}`` (in the case of mountain waves, for which ``\\omega_r = 0``). The new wave-action-density field is obtained by integrating
 
 ```math
 \\frac{\\partial}{\\partial z} \\left(c_{\\mathrm{g} z, r} \\mathcal{A}_r\\right) = - 2 \\alpha_{\\mathrm{R}, r} \\mathcal{A}_r - 2 K \\left|\\boldsymbol{k}_r\\right|^2 \\mathcal{A}_r,
@@ -95,7 +95,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 where ``\\alpha_{\\mathrm{R}, r}`` is the Rayleigh-damping coefficient interpolated to the ray-volume position (using `interpolate_sponge`) and
 
 ```math
-K = \\left[2 \\sum\\limits_r \\frac{J \\Delta \\widehat{z}}{c_{\\mathrm{g}, z, r}} \\left(m_r \\left|b_{\\mathrm{w}, r}\\right| \\left|\\boldsymbol{k}_r\\right|\\right)^2 f_r\\right]^{- 1} \\max \\left[0, \\sum_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right|\\right)^2 f_r - \\alpha_\\mathrm{s}^2 N^4\\right]
+K = \\left[2 \\sum\\limits_r \\frac{J \\Delta \\hat{z}}{c_{\\mathrm{g}, z, r}} \\left(m_r \\left|b_{\\mathrm{w}, r}\\right| \\left|\\boldsymbol{k}_r\\right|\\right)^2 f_r\\right]^{- 1} \\max \\left[0, \\sum_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right|\\right)^2 f_r - \\alpha_\\mathrm{s}^2 N^4\\right]
 ```
 
 is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.MSGWaM.RayUpdate.apply_saturation_scheme!`](@ref) for more details). After the first right-hand-side term has been integrated with the implicit step
@@ -104,7 +104,7 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 \\mathcal{A}_r = \\left[1 + \\frac{2 \\alpha_{\\mathrm{R}, r}}{c_{\\mathrm{g} z, r}} \\left(z_r - z_{r, k - 1}\\right)\\right]^{- 1} \\frac{c_{\\mathrm{g} z, r, k - 1}}{c_{\\mathrm{g} z, r}} \\mathcal{A}_{r, k - 1},
 ```
 
-the second term is integrated with the pseudo-time step ``J \\Delta \\widehat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\widehat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
+the second term is integrated with the pseudo-time step ``J \\Delta \\hat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\hat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
 
 If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
 

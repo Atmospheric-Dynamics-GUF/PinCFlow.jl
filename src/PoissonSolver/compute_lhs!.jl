@@ -18,19 +18,19 @@ The scaled left-hand side is given by
 
 ```math
 \\begin{align*}
-    b & = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left\\{\\frac{1}{\\Delta \\widehat{x}} \\left[\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2} - \\left(J P\\right)_{i - 1 / 2} u_{i - 1 / 2}\\right]\\right.\\\\
-    & \\qquad \\qquad \\quad + \\frac{1}{\\Delta \\widehat{y}} \\left[\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2} - \\left(J P\\right)_{j - 1 / 2} v_{j - 1 / 2}\\right]\\\\
-    & \\qquad \\qquad \\quad + \\left.\\frac{1}{\\Delta \\widehat{z}} \\left[\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - \\left(J P\\right)_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right]\\right\\}
+    b & = \\frac{\\sqrt{\\bar{\\rho}}}{P} \\frac{1}{J c_p} \\left\\{\\frac{1}{\\Delta \\hat{x}} \\left[\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2} - \\left(J P\\right)_{i - 1 / 2} u_{i - 1 / 2}\\right]\\right.\\\\
+    & \\qquad \\qquad \\quad + \\frac{1}{\\Delta \\hat{y}} \\left[\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2} - \\left(J P\\right)_{j - 1 / 2} v_{j - 1 / 2}\\right]\\\\
+    & \\qquad \\qquad \\quad + \\left.\\frac{1}{\\Delta \\hat{z}} \\left[\\left(J P\\right)_{k + 1 / 2} \\hat{w}_{k + 1 / 2} - \\left(J P\\right)_{k - 1 / 2} \\hat{w}_{k - 1 / 2}\\right]\\right\\}
 \\end{align*}
 ```
 
 and the reference tolerance is given by
 
 ```math
-\\tau_\\mathrm{ref} = \\frac{\\sum_{i, j, k} b_{i, j, k}^2}{\\sum_{i, j, k} \\left(b_{u, i, j, k}^2 + b_{v, i, j, k}^2 + b_{\\widehat{w}, i, j, k}^2\\right)},
+\\tau_\\mathrm{ref} = \\frac{\\sum_{i, j, k} b_{i, j, k}^2}{\\sum_{i, j, k} \\left(b_{u, i, j, k}^2 + b_{v, i, j, k}^2 + b_{\\hat{w}, i, j, k}^2\\right)},
 ```
 
-where ``b_u``, ``b_v`` and ``b_{\\widehat{w}}`` are the zonal, meridional and vertical parts of ``b``, respectively. Note that in Boussinesq mode, ``P = P_0`` will cancel out, so that the appropriate divergence constraint remains.
+where ``b_u``, ``b_v`` and ``b_{\\hat{w}}`` are the zonal, meridional and vertical parts of ``b``, respectively. Note that in Boussinesq mode, ``P = P_0`` will cancel out, so that the appropriate divergence constraint remains.
 
 ```julia
 compute_lhs!(state::State, model::Compressible)::AbstractFloat
@@ -42,7 +42,7 @@ The scaled left-hand side is given by
 
 ```math
 \\begin{align*}
-    b & = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left(\\frac{U_{i + 1 / 2} - U_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{V_{j + 1 / 2} - V_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\widehat{W}_{k + 1 / 2} - \\widehat{W}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) - \\frac{\\sqrt{\\overline{\\rho}}}{P} F^P,
+    b & = \\frac{\\sqrt{\\bar{\\rho}}}{P} \\frac{1}{J c_p} \\left(\\frac{U_{i + 1 / 2} - U_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{V_{j + 1 / 2} - V_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\hat{W}_{k + 1 / 2} - \\hat{W}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) - \\frac{\\sqrt{\\bar{\\rho}}}{P} F^P,
 \\end{align*}
 ```
 

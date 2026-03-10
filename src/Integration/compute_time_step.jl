@@ -18,19 +18,19 @@ The individual stability criteria are as follows.
   - CFL condition with respect to the resolved flow (where ``w`` is computed with `compute_vertical_wind`):
 
     ```math
-    \\Delta t_\\mathrm{CFL} = \\mu_\\mathrm{CFL} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\widehat{x}}{u_{\\max}}, \\frac{\\Delta \\widehat{y}}{v_{\\max}}, \\min \\left(\\frac{J \\Delta \\widehat{z}}{w}\\right)\\right]
+    \\Delta t_\\mathrm{CFL} = \\mu_\\mathrm{CFL} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\hat{x}}{u_{\\max}}, \\frac{\\Delta \\hat{y}}{v_{\\max}}, \\min \\left(\\frac{J \\Delta \\hat{z}}{w}\\right)\\right]
     ```
 
   - CFL condition with respect to the group velocities of unresolved gravity waves (where ``J_{\\min}`` is the minimum Jacobian in a one-grid-cell radius and ``c_{\\mathrm{g} z}`` is the maximum vertical group velocity within a grid cell):
 
     ```math
-    \\Delta t_\\mathrm{WKB} = \\mu_\\mathrm{WKB} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\widehat{x}}{c_{\\mathrm{g} x, \\max}}, \\frac{\\Delta \\widehat{y}}{c_{\\mathrm{g} y, \\max}}, \\min \\left(\\frac{J_{\\min} \\Delta \\widehat{z}}{c_{\\mathrm{g} z}}\\right)\\right]
+    \\Delta t_\\mathrm{WKB} = \\mu_\\mathrm{WKB} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\hat{x}}{c_{\\mathrm{g} x, \\max}}, \\frac{\\Delta \\hat{y}}{c_{\\mathrm{g} y, \\max}}, \\min \\left(\\frac{J_{\\min} \\Delta \\hat{z}}{c_{\\mathrm{g} z}}\\right)\\right]
     ```
 
   - Von Neumann condition (with ``\\mathrm{Re}`` being the Reynolds number):
 
     ```math
-    \\Delta t_\\mathrm{viscous} = \\frac{\\mathrm{Re}}{2} \\min\\limits_\\mathrm{global} \\left[\\left(\\Delta \\widehat{x}\\right)^2, \\left(\\Delta \\widehat{y}\\right)^2, \\left(J \\Delta \\widehat{z}\\right)^2\\right]
+    \\Delta t_\\mathrm{viscous} = \\frac{\\mathrm{Re}}{2} \\min\\limits_\\mathrm{global} \\left[\\left(\\Delta \\hat{x}\\right)^2, \\left(\\Delta \\hat{y}\\right)^2, \\left(J \\Delta \\hat{z}\\right)^2\\right]
     ```
 
   - CFL condition with respect to the turbulent kinetic energy:

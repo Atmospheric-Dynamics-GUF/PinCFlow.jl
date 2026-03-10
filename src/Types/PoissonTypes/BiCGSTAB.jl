@@ -1,9 +1,6 @@
 """
 ```julia
-BiCGSTAB{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    A <: AbstractArray{<:AbstractFloat, 3},
-}
+BiCGSTAB{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Workspace arrays used by [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
