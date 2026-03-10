@@ -105,19 +105,7 @@ function compute_time_step(state::State)::AbstractFloat
         #----------------------------------
 
         if wkb_mode in (SingleColumn(), MultiColumn())
-            dtwkb = jac[i0, j0, k0] * dz / (cgz_max[] + eps())
-
-            kmin = ko == 0 ? k0 - 1 : k0
-            kmax = k1
-
-            for k in kmin:kmax, j in j0:j1, i in i0:i1
-                dtwkb = min(
-                    dtwkb,
-                    minimum(
-                        jac[(i - 1):(i + 1), (j - 1):(j + 1), (k - 1):(k + 1)],
-                    ) * dz / (cgz_max[] + eps()),
-                )
-            end
+            dtwkb = dz / (cgz_max[] + eps())
 
             if x_size > 1
                 dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))
@@ -127,8 +115,6 @@ function compute_time_step(state::State)::AbstractFloat
             end
 
             dtwkb *= wkb_cfl_number
-
-            # find global minimum
 
             dtwkb = MPI.Allreduce(dtwkb, min, comm)
         end

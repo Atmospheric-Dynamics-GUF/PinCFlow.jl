@@ -169,7 +169,7 @@ function propagate_rays!(
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde) = state.grid
+    (; lz, zctilde, jac, met) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
     (; alphar) = state.sponge
 
@@ -276,6 +276,8 @@ function propagate_rays!(
                 rays.x[r, i, j, k] += betark[rkstage] * dxray[r, i, j, k]
 
                 cgx_max[] = max(cgx_max[], abs(cgrx))
+            else
+                cgrx = 0.0
             end
 
             # Update meridional position.
@@ -295,6 +297,8 @@ function propagate_rays!(
                 rays.y[r, i, j, k] += betark[rkstage] * dyray[r, i, j, k]
 
                 cgy_max[] = max(cgy_max[], abs(cgry))
+            else
+                cgry = 0.0
             end
 
             # Update vertical position.
@@ -308,7 +312,14 @@ function propagate_rays!(
             dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
             rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-            cgz_max[] = max(cgz_max[], abs(cgrz))
+            jr = interpolate_scalar(xr, yr, zr, jac, state)
+            @ivy g13r =
+                interpolate_scalar(xr, yr, zr, met[:, :, :, 1, 3], state)
+            @ivy g23r =
+                interpolate_scalar(xr, yr, zr, met[:, :, :, 2, 3], state)
+
+            cgz_max[] =
+                max(cgz_max[], abs(g13r * cgrx + g23r * cgry + cgrz / jr))
 
             # Refraction is only allowed above impact_altitude / lref.
 
