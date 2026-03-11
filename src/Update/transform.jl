@@ -23,7 +23,7 @@ Perform the transformation of a vertical-wind-like variable from the transformed
 The discretized transformation rule for the vertical wind is given by
 
 ```math
-w_{k + 1 / 2} = J_{k + 1 / 2} \\left[- \\left(G^{1 3} u\\right)_{k + 1 / 2} - \\left(G^{2 3} v\\right)_{k + 1 / 2} + \\widehat{w}_{k + 1 / 2}\\right].
+w_{k + 1 / 2} = J_{k + 1 / 2} \\left[- \\left(G^{1 3} u\\right)_{k + 1 / 2} - \\left(G^{2 3} v\\right)_{k + 1 / 2} + \\hat{w}_{k + 1 / 2}\\right].
 ```
 
 ```julia
@@ -50,7 +50,7 @@ Perform the transformation of a vertical-wind-like variable from the Cartesian s
 The discretized transformation rule for the vertical wind is given by
 
 ```math
-\\widehat{w}_{k + 1 / 2} = \\left(G^{1 3} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2} + \\frac{w_{k + 1 / 2}}{J_{k + 1 / 2}}.
+\\hat{w}_{k + 1 / 2} = \\left(G^{1 3} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2} + \\frac{w_{k + 1 / 2}}{J_{k + 1 / 2}}.
 ```
 
 # Arguments

@@ -12,16 +12,16 @@ Compute the tensor elements of the linear operator on the right-hand side of the
 The operator is obtained by rewriting the scaled Poisson equation
 
 ```math
-\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right)
+\\frac{\\sqrt{\\bar{\\rho}}}{P} \\mathrm{LHS} = \\frac{\\sqrt{\\bar{\\rho}}}{P} \\mathrm{RHS} \\left(\\frac{\\sqrt{\\bar{\\rho}}}{P} s\\right)
 ```
 
 as
 
 ```math
-\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} = \\sum_{\\lambda, \\mu, \\nu} A_{i + \\lambda, j + \\mu, k + \\nu} s_{i + \\lambda, j + \\mu, k + \\nu},
+\\frac{\\sqrt{\\bar{\\rho}}}{P} \\mathrm{LHS} = \\sum_{\\lambda, \\mu, \\nu} A_{i + \\lambda, j + \\mu, k + \\nu} s_{i + \\lambda, j + \\mu, k + \\nu},
 ```
 
-where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt{\\overline{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
+where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt{\\bar{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
 
 # Arguments
 

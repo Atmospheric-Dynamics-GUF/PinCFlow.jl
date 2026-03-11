@@ -11,7 +11,7 @@ compute_compressible_wind_factor(
 
 Compute the factor by which the wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``, ``\\left(i, j + 1 / 2, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, by dispatching to a method specific for the dynamic equations and the component indicated by `variable`, and return the result.
 
-In compressible mode, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` instead of ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\widehat{w}_{k + 1 / 2}``.
+In compressible mode, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``\\left(J P\\right)_{k + 1 / 2} \\hat{w}_{k + 1 / 2}`` instead of ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\hat{w}_{k + 1 / 2}``.
 
 ```julia
 compute_compressible_wind_factor(

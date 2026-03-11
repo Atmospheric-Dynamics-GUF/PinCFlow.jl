@@ -13,7 +13,7 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 The reconstruction to the left is given by
 
 ```math
-{\\widetilde{\\phi}}^\\mathrm{L} = \\begin{cases}
+{\\tilde{\\phi}}^\\mathrm{L} = \\begin{cases}
     \\phi & \\mathrm{if} \\quad \\phi = \\phi_{i - 1} \\quad \\mathrm{or} \\quad \\phi = \\phi_{i + 1},\\\\
     \\phi - \\frac{1}{2} \\eta \\left(\\frac{\\phi_{i + 1} - \\phi}{\\phi - \\phi_{i - 1}}\\right) \\left(\\phi - \\phi_{i - 1}\\right) & \\mathrm{else}
 \\end{cases}
@@ -22,7 +22,7 @@ The reconstruction to the left is given by
 and that to the right is given by
 
 ```math
-{\\widetilde{\\phi}}^\\mathrm{R} = \\begin{cases}
+{\\tilde{\\phi}}^\\mathrm{R} = \\begin{cases}
     \\phi & \\mathrm{if} \\quad \\phi = \\phi_{i - 1} \\quad \\mathrm{or} \\quad \\phi = \\phi_{i + 1},\\\\
     \\phi + \\frac{1}{2} \\eta \\left(\\frac{\\phi - \\phi_{i - 1}}{\\phi_{i + 1} - \\phi}\\right) \\left(\\phi_{i + 1} - \\phi\\right) & \\mathrm{else},
 \\end{cases}

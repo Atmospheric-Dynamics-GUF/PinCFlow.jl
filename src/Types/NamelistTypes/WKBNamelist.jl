@@ -47,11 +47,11 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
 # Fields/Keywords
 
-  - `nrx::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{x}``-direction.
+  - `nrx::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{x}``-direction.
 
-  - `nry::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{y}``-direction.
+  - `nry::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{y}``-direction.
 
-  - `nrz::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{z}``-direction.
+  - `nrz::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{z}``-direction.
 
   - `nrk::A`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
 
@@ -89,11 +89,14 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `long_threshold::B`: Long-number threshold used by the blocked-layer scheme.
 
-  - `drag_coefficient::B`: Dimensionless (relative) drag coefficient used by the blocked layer scheme.
+  - `drag_coefficient::B`: Dimensionless drag coefficient used by the blocked-layer scheme.
 
   - `wave_modes::A`: Number of wave modes per grid cell.
 
   - `initial_wave_field::G`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
+
+!!! danger "Experimental"
+    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
 struct WKBNamelist{
     A <: Int,

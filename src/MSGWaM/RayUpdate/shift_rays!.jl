@@ -31,7 +31,7 @@ For each dimension in physical space (with more than one grid point), this metho
 shift_rays!(state::State, direction::X)
 ```
 
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{x}`` and, if it is not, create a copy that is and mark the original for removal.
+For each ray volume, check if it is attributed to the correct position in ``\\hat{x}`` and, if it is not, create a copy that is and mark the original for removal.
 
 Ray volumes that should be attributed to a halo cell are marked for removal but not copied, since the copies are created from the corresponding halo cell in the adjacent MPI process.
 
@@ -39,17 +39,17 @@ Ray volumes that should be attributed to a halo cell are marked for removal but 
 shift_rays!(state::State, direction::Y)
 ```
 
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{y}`` and, if it is not, create a copy that is and mark the original for removal.
+For each ray volume, check if it is attributed to the correct position in ``\\hat{y}`` and, if it is not, create a copy that is and mark the original for removal.
 
-Ray volumes in halo cells are treated in the same way as in the method for shifting in ``\\widehat{x}``.
+Ray volumes in halo cells are treated in the same way as in the method for shifting in ``\\hat{x}``.
 
 ```julia
 shift_rays!(state::State, direction::Z)
 ```
 
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{z}`` and, if it is not, create a copy that is and mark the original for removal.
+For each ray volume, check if it is attributed to the correct position in ``\\hat{z}`` and, if it is not, create a copy that is and mark the original for removal.
 
-Ray volumes in halo cells are treated in the same way as in the methods for shifting in ``\\widehat{x}`` and ``\\widehat{z}``.
+Ray volumes in halo cells are treated in the same way as in the methods for shifting in ``\\hat{x}`` and ``\\hat{z}``.
 
 # Arguments
 
