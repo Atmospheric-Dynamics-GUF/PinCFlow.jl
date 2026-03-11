@@ -75,11 +75,11 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `tendencies::H`: Gravity-wave drag and heating fields.
 
-  - `cgx_max::I`: Maximum zonal group velocities.
+  - `cgx_max::I`: Maximum zonal group velocity.
 
-  - `cgy_max::I`: Maximum meridional group velocities.
+  - `cgy_max::I`: Maximum meridional group velocity.
 
-  - `cgz_max::I`: Maximum vertical group velocities.
+  - `cgz_max::I`: Maximum transformed vertical group velocity.
 
   - `zb::J`: Upper edge of the blocked layer.
 
