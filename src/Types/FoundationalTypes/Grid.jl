@@ -21,20 +21,20 @@ This constructor creates a 3D parallelized grid for a terrain-following, vertica
 
 ```math
 \\begin{align*}
-    \\widehat{x}_i & = - L_x / 2 + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\widehat{x},\\\\
-    \\widehat{y}_j & = - L_y / 2 + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\widehat{y},\\\\
-    \\widehat{z}_k & = \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\widehat{z},\\\\
+    \\hat{x}_i & = - L_x / 2 + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\hat{x},\\\\
+    \\hat{y}_j & = - L_y / 2 + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\hat{y},\\\\
+    \\hat{z}_k & = \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\hat{z},\\\\
 \\end{align*}
 ```
 
-where ``\\left(L_x, L_y\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\widehat{x}, \\Delta \\widehat{y}, \\Delta \\widehat{z}\\right)`` are the horizontal extents of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. Throughout the documentation, the position of any variable on this grid is indicated with the indices ``\\left(i, j, k\\right)`` in its subscript. Therein, unshifted indices are omitted for the sake of brevity. The grid is staggered, i.e. the wind components are defined at the midpoints of those cell surfaces that are orthogonal to their respective directions. Interpolations are therefore necessary in many places. These are indicated as in
+where ``\\left(L_x, L_y\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\hat{x}, \\Delta \\hat{y}, \\Delta \\hat{z}\\right)`` are the horizontal extents of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. Throughout the documentation, the position of any variable on this grid is indicated with the indices ``\\left(i, j, k\\right)`` in its subscript. Therein, unshifted indices are omitted for the sake of brevity. The grid is staggered, i.e. the wind components are defined at the midpoints of those cell surfaces that are orthogonal to their respective directions. Interpolations are therefore necessary in many places. These are indicated as in
 
 ```math
 \\begin{align*}
     \\rho_{i + 1 / 2} & = \\frac{\\rho + \\rho_{i + 1}}{2}, & \\rho_{j + 1 / 2} & = \\frac{\\rho + \\rho_{j + 1}}{2}, & \\rho_{k + 1 / 2} & = \\frac{J_{k + 1} \\rho + J \\rho_{k + 1}}{J_{k + 1} + J},\\\\
     u & = \\frac{u_{i - 1 / 2} + u_{i + 1 / 2}}{2}, & u_{j + 1 / 2} & = \\frac{u + u_{j + 1}}{2}, & u_{k + 1 / 2} & = \\frac{J_{k + 1} u + J u_{k + 1}}{J_{k + 1} + J},\\\\
     v_{i + 1 / 2} & = \\frac{v + v_{i + 1}}{2}, & v & = \\frac{v_{j - 1 / 2} + v_{j + 1 / 2}}{2}, & v_{k + 1 / 2} & = \\frac{J_{k + 1} v + J v_{k + 1}}{J_{k + 1} + J},\\\\
-    \\widehat{w}_{i + 1 / 2} & = \\frac{\\widehat{w} + \\widehat{w}_{i + 1}}{2}, & \\widehat{w}_{j + 1 / 2} & = \\frac{\\widehat{w} + \\widehat{w}_{j + 1}}{2}, & \\widehat{w} & = \\frac{\\widehat{w}_{k - 1 / 2} + \\widehat{w}_{k + 1 / 2}}{2}.
+    \\hat{w}_{i + 1 / 2} & = \\frac{\\hat{w} + \\hat{w}_{i + 1}}{2}, & \\hat{w}_{j + 1 / 2} & = \\frac{\\hat{w} + \\hat{w}_{j + 1}}{2}, & \\hat{w} & = \\frac{\\hat{w}_{k - 1 / 2} + \\hat{w}_{k + 1 / 2}}{2}.
 \\end{align*}
 ```
 
@@ -42,25 +42,25 @@ The vertical layer centers and edges of the stretched and physical grids are giv
 
 ```math
 \\begin{align*}
-    \\widetilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\widetilde{z}_{k + 1 / 2} + h,\\\\
-    \\widetilde{z} & = \\frac{\\widetilde{z}_{k + 1 / 2} + \\widetilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h}{L_z} \\widetilde{z} + h,
+    \\tilde{z}_{k + 1 / 2} & = s \\left(\\hat{z}_{k + 1 / 2}\\right), & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\tilde{z}_{k + 1 / 2} + h,\\\\
+    \\tilde{z} & = \\frac{\\tilde{z}_{k + 1 / 2} + \\tilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h}{L_z} \\tilde{z} + h,
 \\end{align*}
 ```
 
-where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
+where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz`), the vertical grid stretching (`namelists.grid.vertical_grid_stretching`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
 
 ```math
-J = \\frac{L_z - h}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
+J = \\frac{L_z - h}{L_z} \\frac{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}}{\\Delta \\hat{z}}
 ```
 
 and the non-Cartesian elements of the metric tensor are
 
 ```math
 \\begin{align*}
-    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\widetilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\widetilde{z} - L_z}{L_z - h} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
-    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\}\\\\
-    & \\quad \\times \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
+    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\hat{x}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
+    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\hat{y}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
+    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\tilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\hat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\hat{y}}\\right)^2\\right]\\right\\}\\\\
+    & \\quad \\times \\left(\\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}}\\right)^2.
 \\end{align*}
 ```
 
@@ -68,25 +68,25 @@ and the non-Cartesian elements of the metric tensor are
 
 Domain extent:
 
-  - `lx::A`: Non-dimensional domain extent in ``\\widehat{x}``-direction.
+  - `lx::A`: Non-dimensional domain extent in ``\\hat{x}``-direction.
 
-  - `ly::A`: Non-dimensional domain extent in ``\\widehat{y}``-direction.
+  - `ly::A`: Non-dimensional domain extent in ``\\hat{y}``-direction.
 
-  - `lz::A`: Non-dimensional domain extent in ``\\widehat{z}``-direction.
+  - `lz::A`: Non-dimensional domain extent in ``\\hat{z}``-direction.
 
 Grid spacing:
 
-  - `dx::A`: Grid spacing ``\\Delta \\widehat{x}``.
+  - `dx::A`: Grid spacing ``\\Delta \\hat{x}``.
 
-  - `dy::A`: Grid spacing ``\\Delta \\widehat{y}``.
+  - `dy::A`: Grid spacing ``\\Delta \\hat{y}``.
 
-  - `dz::A`: Grid spacing ``\\Delta \\widehat{z}``.
+  - `dz::A`: Grid spacing ``\\Delta \\hat{z}``.
 
 Horizontal coordinates:
 
-  - `x::B`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
+  - `x::B`: Cell-centered ``\\hat{x}``-coordinate of the entire domain.
 
-  - `y::B`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
+  - `y::B`: Cell-centered ``\\hat{y}``-coordinate of the entire domain.
 
 Topography:
 
@@ -165,7 +165,7 @@ end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; x_size, y_size, z_size, nbz) = namelists.domain
-    (; stretch_exponent) = namelists.grid
+    (; vertical_grid_stretching) = namelists.grid
     (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0) = domain
     (; lref) = constants
 
@@ -204,13 +204,17 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     @ivy for k in 1:(z_size + 2 * nbz)
         level = z[k] + 0.5 * dz
         if level < 0
-            ztildes[k] = -lz * (-level / lz)^stretch_exponent
+            ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
         elseif level > lz
-            ztildes[k] = 2 * lz - lz * ((2 * lz - level) / lz)^stretch_exponent
+            ztildes[k] =
+                2 * lz -
+                vertical_grid_stretching((2 * lz - level) * lref) / lref
         else
-            ztildes[k] = lz * (level / lz)^stretch_exponent
+            ztildes[k] = vertical_grid_stretching(level * lref) / lref
         end
     end
+    @ivy !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = <=) &&
+         error("Error in Grid: Impossible vertical grid stretching!")
     @ivy for k in 2:(z_size + 2 * nbz)
         zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
     end

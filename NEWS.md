@@ -3,6 +3,40 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 2.0.0
+
+  - The auxiliary states in the wave-packet examples have been parallelized.
+
+  - The examples now use fewer MPI processes.
+
+  - In the documentation of the function `correct!`, the vertical indices of the buoyancy frequency were incorrect. This has been rectified.
+
+  - Some methods of the functions `apply_blocked_layer_scheme!`, `compute_gw_integrals!`, `compute_gw_tendencies!`, and `activate_orographic_source!` did not return `nothing`, due to missing return statements. The latter have been added.
+
+  - The mind maps in the developer guide have been updated.
+
+  - Objects involved in PinCFlow.jl's implementation of the BiCGSTAB algorithm have been renamed to respect its correct modern spelling ("BiCGSTAB" instead of "BicGStab"). The documentation has also been adjusted accordingly.
+
+  - A precompilation block has been added. This block precompiles the model for a one-time-step simulation in its default configuration, thus reducing the compilation time later on.
+
+  - PinCFlow.jl's implementation of the BiCGSTAB algorithm had a convergence criterion dependent on two different averages of the residual, namely a global RMS and a global RMS of a global vertical mean. The latter prevented convergence in very specific configurations (e.g., a Boussinesq gravity-wave packet), even though it is not actually needed. It has therefore been removed from the criterion. This change has also made the code significantly more efficient.
+
+  - Experimental features are now being tagged in the documentation.
+
+  - There were two bugs in the computation of background fields for the following combinations of atmosphere-namelist parameters.
+
+    ```julia
+    background == LapseRates() && (troposphere_lapse_rate != 0 || stratosphere_lapse_rate != 0)
+    ```
+
+    The bugs were as follows.
+
+     1. The computation of the mass-weighted potential temperature was actually a computation of the pressure.
+
+     1. Two different potential temperature profiles were computed for the troposphere and stratosphere, leading to a discontinuity at the tropopause.
+
+    Both bugs have been fixed.
+
 ## Release 1.1.1
 
   - A bug has been fixed where `uold` was not being assigned correctly in `update`.
@@ -99,7 +133,7 @@ PinCFlow.jl follows the interpretation of
 
       - `initial_thetap`
 
-    The initial potential-temperature fluctuations are now always such that $P = \overline{\rho} \overline{\theta}$.
+    The initial potential-temperature fluctuations are now always such that $P = \bar{\rho} \bar{\theta}$.
 
   - The visualization function `plot_contours` of PinCFlow.jl's `CairoMakie` extension has been replaced with the function `plot_output`, with the following changes.
 

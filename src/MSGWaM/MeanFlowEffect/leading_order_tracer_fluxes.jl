@@ -15,12 +15,12 @@ leading_order_tracer_fluxes(
 )::AbstractFloat
 ```
 
-Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the zonal leading-order gravity-wave tracer fluxes ``\\overline{\\rho}\\langle u'\\chi'\\rangle``.
+Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the zonal leading-order gravity-wave tracer fluxes ``\\bar{\\rho}\\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle``.
 
-The flux-contributions are given by
+The flux contributions are given by
 
 ```math
-\\overline{\\rho} u_{\\mathrm{w}, r}\\chi^*_{\\mathrm{w}, r} = \\frac{f}{\\widehat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r - m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r\\right].
+\\frac{\\bar{\\rho}}{2} \\Re \\left(u_{\\mathrm{w}, r}\\chi^*_{\\mathrm{w}, r}\\right) = \\frac{f}{\\hat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r - m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r\\right].
 ```
 
 ```julia
@@ -39,12 +39,12 @@ leading_order_tracer_fluxes(
 )::AbstractFloat
 ```
 
-Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the meridional leading-order gravity-wave tracer fluxes ``\\overline{\\rho}\\langle v'\\chi'\\rangle``.
+Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the meridional leading-order gravity-wave tracer fluxes ``\\bar{\\rho}\\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle``.
 
-The fluxes are given by
+The flux contributions are given by
 
 ```math
-\\overline{\\rho} v_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r} = \\frac{f}{\\widehat{\\omega}_{r}} \\frac{m_r}{\\left|\\boldsymbol{k}_{r}\\right|^2} \\mathcal{A}_r \\left[m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r - k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r\\right].
+\\frac{\\bar{\\rho}}{2} \\Re \\left(v_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r}\\right) = \\frac{f}{\\hat{\\omega}_{r}} \\frac{m_r}{\\left|\\boldsymbol{k}_{r}\\right|^2} \\mathcal{A}_r \\left[m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r - k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r\\right].
 ```
 
 ```julia
@@ -63,12 +63,12 @@ leading_order_tracer_fluxes(
 )::AbstractFloat
 ```
 
-Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the vertical leading-order gravity-wave tracer fluxes ``\\overline{\\rho}\\langle w'\\chi'\\rangle``.
+Compute and return the contribution of a ray volume located at `(xlc,ylc,zlc)` to the vertical leading-order gravity-wave tracer fluxes ``\\bar{\\rho}\\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle``.
 
-The fluxes are given by
+The flux contributions are given by
 
 ```math
-\\overline{\\rho} w_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r} = \\frac{f}{\\widehat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r\\right].
+\\frac{\\bar{\\rho}}{2} \\Re \\left(w_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r}\\right) = \\frac{f}{\\hat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r\\right].
 ```
 """
 function leading_order_tracer_fluxes end

@@ -15,7 +15,7 @@ Compute and return the zonal derivative of the zonal wind (``\\partial u_\\mathr
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right) = \\frac{u_{\\mathrm{b}, i + 1 / 2} - u_{\\mathrm{b}, i - 1 / 2}}{\\Delta \\widehat{x}} + G^{13} \\frac{u_{\\mathrm{b}, k + 1} - u_{\\mathrm{b}, k - 1}}{2 \\Delta \\widehat{z}}.
+\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right) = \\frac{u_{\\mathrm{b}, i + 1 / 2} - u_{\\mathrm{b}, i - 1 / 2}}{\\Delta \\hat{x}} + G^{13} \\frac{u_{\\mathrm{b}, k + 1} - u_{\\mathrm{b}, k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -35,7 +35,7 @@ The derivative is given by
 
 ```math
 \\begin{align*}
-    \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_{i + 1 / 2, j + 1 / 2} & = \\frac{u_{\\mathrm{b}, i + 1 / 2, j + 1} - u_{\\mathrm{b}, i + 1 / 2}}{\\Delta \\widehat{y}} + G_{i + 1 / 2, j + 1 / 2}^{23} \\frac{u_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
+    \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_{i + 1 / 2, j + 1 / 2} & = \\frac{u_{\\mathrm{b}, i + 1 / 2, j + 1} - u_{\\mathrm{b}, i + 1 / 2}}{\\Delta \\hat{y}} + G_{i + 1 / 2, j + 1 / 2}^{23} \\frac{u_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
 \\end{align*}
 ```
 
@@ -55,7 +55,7 @@ Compute and return the vertical derivative of the zonal wind (``\\partial u_\\ma
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_{i + 1 / 2, k + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2}}{J_{i + 1 / 2, k + 1 / 2} \\Delta \\widehat{z}}.
+\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_{i + 1 / 2, k + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2}}{J_{i + 1 / 2, k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
 At grid points beyond the vertical boundaries, it is set to zero.
@@ -76,7 +76,7 @@ Compute and return the zonal derivative of the meridional wind (``\\partial v_\\
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2, j + 1 / 2} = \\frac{v_{\\mathrm{b}, i + 1, j + 1 / 2} - v_{\\mathrm{b}, j + 1 / 2}}{\\Delta \\widehat{x}} + G_{i + 1 / 2, j + 1 / 2}^{13} \\frac{v_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k + 1} - v_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
+\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2, j + 1 / 2} = \\frac{v_{\\mathrm{b}, i + 1, j + 1 / 2} - v_{\\mathrm{b}, j + 1 / 2}}{\\Delta \\hat{x}} + G_{i + 1 / 2, j + 1 / 2}^{13} \\frac{v_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k + 1} - v_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -95,7 +95,7 @@ Compute and return the meridional derivative of the meridional wind (``\\partial
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right) = \\frac{v_{\\mathrm{b}, j + 1 / 2} - v_{\\mathrm{b}, j - 1 / 2}}{\\Delta \\widehat{y}} + G^{23} \\frac{v_{\\mathrm{b}, k + 1} - v_{\\mathrm{b}, k - 1} }{2 \\Delta \\widehat{z}}.
+\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right) = \\frac{v_{\\mathrm{b}, j + 1 / 2} - v_{\\mathrm{b}, j - 1 / 2}}{\\Delta \\hat{y}} + G^{23} \\frac{v_{\\mathrm{b}, k + 1} - v_{\\mathrm{b}, k - 1} }{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -114,7 +114,7 @@ Compute and return the vertical derivative of the meridional wind (``\\partial v
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_{j + 1 / 2, k + 1 / 2} = \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2}}{J_{j + 1 / 2, k + 1 / 2} \\Delta \\widehat{z}}.
+\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_{j + 1 / 2, k + 1 / 2} = \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2}}{J_{j + 1 / 2, k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
 At grid points beyond the vertical boundaries, it is set to zero.
@@ -135,7 +135,7 @@ Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, i + 1} - \\chi_\\mathrm{b}}{\\Delta \\widehat{x}} + G_{i + 1 / 2}^{13} \\frac{\\chi_{\\mathrm{b}, i + 1 / 2, k + 1} - \\chi_{\\mathrm{b}, i + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
+\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, i + 1} - \\chi_\\mathrm{b}}{\\Delta \\hat{x}} + G_{i + 1 / 2}^{13} \\frac{\\chi_{\\mathrm{b}, i + 1 / 2, k + 1} - \\chi_{\\mathrm{b}, i + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -154,7 +154,7 @@ Compute and return the meridional derivative of the tracer field (``\\partial \\
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_{j + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, j + 1} - \\chi_\\mathrm{b}}{\\Delta \\widehat{y}} + G_{j + 1 / 2}^{23} \\frac{\\chi_{\\mathrm{b}, j + 1 / 2, k + 1} - \\chi_{\\mathrm{b}, j + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
+\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_{j + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, j + 1} - \\chi_\\mathrm{b}}{\\Delta \\hat{y}} + G_{j + 1 / 2}^{23} \\frac{\\chi_{\\mathrm{b}, j + 1 / 2, k + 1} - \\chi_{\\mathrm{b}, j + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -173,7 +173,7 @@ Compute and return the vertical derivative of the tracer field (``\\partial \\ch
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_{k + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, k + 1} - \\chi_\\mathrm{b}}{J_{k + 1 / 2} \\Delta \\widehat{z}}.
+\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_{k + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, k + 1} - \\chi_\\mathrm{b}}{J_{k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
 At grid points beyond the vertical boundaries, it is set to zero.
