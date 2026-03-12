@@ -39,8 +39,6 @@ Construct a `Rays` instance, with arrays sized according to the given dimensions
 
   - `dens::A`: Phase-space wave-action density.
 
-  - `dphi::A`: Phase.
-
 # Arguments
 
   - `nray_wrk`: Size of the spectral dimension of ray-volume arrays.
@@ -65,9 +63,8 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     dlray::A
     dmray::A
     dens::A
-    dphi::A
 end
 
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
-    return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:14]...)
+    return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13]...)
 end

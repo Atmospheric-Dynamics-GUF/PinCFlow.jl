@@ -1,13 +1,17 @@
 """
 ```julia
-TurbulenceNamelist{A <: AbstractTurbulence}
+TurbulenceNamelist{A <: AbstractTurbulence, B <: Bool, C <: Function}
 ```
 
-Namelist for the inclusion of a turbulence parameterization.
+Namelist for the inclusion of a turbulence parameterization and the turbulent diffusion of momentum, mass-weighted potential temperature, and tracers.
 
 ```julia
 TurbulenceNamelist(;
     turbulence_scheme::AbstractTurbulence = NoTurbulence(),
+    momentum_coupling::Bool = true,
+    entropy_coupling::Bool = true,
+    tracer_coupling::Bool = true,
+    initial_tke::Function = (x, y, z) -> 5e-5,
 )::TurbulenceNamelist
 ```
 
@@ -15,7 +19,15 @@ Construct a `TurbulenceNamelist` instance with the given keyword arguments as pr
 
 # Fields/Keywords
 
-  - `turbulence_scheme::A`: Turbulence parameterization scheme.
+  - `turbulence_scheme::A`: General turbulence parameterization configuration.
+
+  - `momentum_coupling::B`: Switch for turbulent diffusion of momentum.
+
+  - `entropy_coupling::B`: Switch for turbulent diffusion of the the mass-specific potential temperature.
+
+  - `tracer_coupling::B`: Switch for turbulent diffusion of tracers.
+
+  - `initial_tke::C`: Function used to initialize the mass-specific turbulent kinetic energy.
 """
 struct TurbulenceNamelist{A <: AbstractTurbulence, B <: Bool, C <: Function}
     turbulence_scheme::A

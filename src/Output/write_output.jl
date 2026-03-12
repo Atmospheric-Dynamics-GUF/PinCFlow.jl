@@ -421,13 +421,6 @@ function write_output(
                 file["nr"][1:nray_max, iid, jjd, kkrd, iout] =
                     rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
                     lref .^ dim
-
-                HDF5.set_extent_dims(
-                    file["phase"],
-                    (nray_max, x_size, y_size, z_size + 1, iout),
-                )
-                file["phase"][1:nray_max, iid, jjd, kkrd, iout] =
-                    rays.dphi[rr, ii, jj, kkr]
             end
 
             # Write GW tendencies.

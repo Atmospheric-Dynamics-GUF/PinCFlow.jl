@@ -36,9 +36,6 @@ Construct an `WKBIncrements` instance, with arrays sized according to the given 
 
   - `ddzray::A`: WKBIncrements for the extent in ``z``.
 
-  - `dpray::A`: Increments for the phase ``dphi``.
-
-
 # Arguments
 
   - `nray_wrk`: Size of the spectral dimension of ray-volume arrays.

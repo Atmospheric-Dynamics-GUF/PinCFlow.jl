@@ -440,11 +440,6 @@ function propagate_rays!(
                 end
 
                 rays.dmray[r, i, j, k] = azm / rays.dzray[r, i, j, k]
-
-                # Update phase
-                dpray[r, i, j, k] =
-                    -dt * omir + alphark[rkstage] * dpray[r, i, j, k]
-                rays.dphi[r, i, j, k] += betark[rkstage] * dpray[r, i, j, k]
             end
         end
 
