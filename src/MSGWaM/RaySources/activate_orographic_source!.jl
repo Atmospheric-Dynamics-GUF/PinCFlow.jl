@@ -70,6 +70,8 @@ The launch algorithm distinguishes between the following situations (regarding p
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
+  - [`PinCFlow.MSGWaM.RayOperations.copy_increments!`](@ref)
+
 !!! danger "Experimental"
     The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
