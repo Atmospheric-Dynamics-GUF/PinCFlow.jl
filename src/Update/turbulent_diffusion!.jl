@@ -3,7 +3,7 @@
 turbulent_diffusion!(state::State, dt::AbstractFloat)
 ```
 
-Apply diffusion by dispatching to turbulence scheme-specific method.
+Apply diffusion to the momentum, mass-weighted potential temperature, and tracers by dispatching to turbulence parameterization-specific method.
 
 ```julia 
 turbulent_diffusion!(
@@ -23,7 +23,101 @@ turbulent_diffusion!(
 )
 ```
 
-Apply diffusion by dispatching to specialized methods for momentum, mass-weighted potential temperature, and tracers.
+Apply diffusion by dispatching to specialized methods for momentum, mass-weighted potential temperature, and tracers, according to configurations set by `state.namelist.turbulence.momentum_coupling`, `state.namelist.turbulence.entropy_coupling`, and `state.namelist.turbulence.tracer_coupling`, respectively.
+
+```julia 
+turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
+```
+
+Apply diffusion to the zonal momentum. 
+
+```julia 
+turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
+```
+
+Apply diffusion to the meridional momentum. 
+
+```julia 
+turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
+```
+
+Apply diffusion to the vertical momentum. 
+
+```julia 
+turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Theta)
+```
+
+Apply diffusion to the mass-weighted potential temperature by dispatching to model-specific methods.
+
+```julia 
+turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    variable::Theta,
+    model::Union{PseudoIncompressible, Boussinesq},
+)
+```
+
+Return for configurations in Boussinesq and pseudo-incompressible mode.
+
+```julia 
+turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    variable::Theta,
+    model::Compressible,
+)
+```
+
+Apply diffusion to the mass-weighted potential temperature for configurations in Compressible mode.
+
+```julia 
+turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Chi)
+```
+
+Apply diffusion to tracers by dispatching to tracer-setup-specific configurations.
+
+```julia 
+turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    variable::Chi,
+    tracer_setup::NoTracer,
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia 
+turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    variable::Chi,
+    tracer_setup::TracerOn,
+)
+```
+
+Apply diffusion to the tracers variables.
+
+# Arguments
+
+  - `state`: Model state. 
+
+  - `dt`: Time step.
+
+  - `turbulence_scheme`: General turbulence parameterization configuration.
+
+  - `variable`: Variable (equation) of choice.
+
+  - `model`: Dynamic equations.
+
+  - `tracer_setup`: General tracer-transport configuration.
+
+# See also 
+
+  - [`PinCFlow.Update.reset_thomas!`](@ref)
+
+  - [`PinCFlow.Update.thomas_algorithm!`](@ref)
 """
 function turbulent_diffusion! end
 

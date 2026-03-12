@@ -6,7 +6,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for turbulences by dispatching to a turbulence-configuration-specific method.
+Enforce vertical boundary conditions for turbulence energies by dispatching to a turbulence-configuration-specific method.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -16,7 +16,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Return for configurations without turbulence scheme.
+Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -36,7 +36,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Return for configurations without turbulence scheme.
+Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -56,7 +56,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Return for configurations without turbulence scheme.
+Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -84,7 +84,7 @@ Return for WKB-variables.
 
   - `variables`: Boundary-variable category.
 
-  - `turbulence_scheme`: General turbulence-transport configuration.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
 # See also
 

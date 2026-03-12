@@ -1,19 +1,39 @@
 """
 ```julia
-Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
+Auxiliaries{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractMatrix{<:AbstractFloat},
+}
 ```
 
-Auxiliary array used in the reconstruction of prognostic variables.
+Container for the auxiliary array used in the reconstruction of prognostic variables and arrays used in the Thomas tridiagonal solver.
 
 ```julia
 Auxiliaries(domain::Domain)::Auxiliaries
 ```
 
-Construct an `Auxiliaries` instance with a zero-initialized auxiliary array sized according to the MPI subdomain dimensions.
+Construct an `Auxiliaries` instance with zero-initialized auxiliary arrays.
 
 # Fields
 
   - `phi::A`: Auxiliary array used as input for [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref).
+
+  - `ath::B`: Sub (lower) diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+
+  - `bth::B`: Center diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+
+  - `cth::B`: Super (upper) diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+
+  - `fth::B`: Right-hand side array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+
+  - `qth::B`: Work array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+
+  - `pth::C`: Auxiliary array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+
+  - `fth_bc::C`: Auxiliary right-hand side array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+
+  - `qth_bc::C`: Auxiliary work array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
 # Arguments
 

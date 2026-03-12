@@ -6,7 +6,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Enforce zonal boundary conditions for turbulences by dispatching to a turbulence-configuration-specific method.
+Enforce zonal boundary conditions for turbulence energies by dispatching to a turbulence-configuration-specific method.
 
 ```julia
 set_turbulence_zonal_boundaries!(
@@ -16,7 +16,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Return for configurations without turbulence scheme.
+Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_zonal_boundaries!(
@@ -36,7 +36,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Return for configurations without turbulence scheme.
+Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_zonal_boundaries!(
@@ -64,7 +64,7 @@ Return for WKB-variables.
 
   - `variables`: Boundary-variable category.
 
-  - `turbulence_scheme`: General turbulence scheme configuration.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
 # See also
 

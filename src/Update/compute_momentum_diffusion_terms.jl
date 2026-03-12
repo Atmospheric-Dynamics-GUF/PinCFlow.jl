@@ -152,6 +152,34 @@ Compute and return the diffusive vertical momentum fluxes in ``\\hat{z}``-direct
 \\Xi_w^{\\hat{z}} = G^{13} \\frac{w_{i + 1} - w_{i - 1}}{2 \\Delta \\hat{x}} + G^{23} \\frac{w_{j + 1} - w_{j - 1}}{2 \\Delta \\hat{y}} + G^{33} \\frac{w_{k + 1 / 2} - w_{k - 1 / 2}}{\\Delta \\hat{z}}.
 ```
 
+```julia 
+compute_momentum_diffusion_terms(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::U,
+    direction::Z,
+)::AbstractFloat
+```
+
+Compute and return the diffusive zonal momentum fluxes in ``\\hat{z}``-direction from the wind provided by `p0`. 
+
+```julia 
+compute_momentum_diffusion_terms(
+    state::State,
+    p0::Predictands,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::V,
+    direction::Z,
+)::AbstractFloat
+```
+
+Compute and return the diffusive meridional momentum fluxes in ``\\hat{z}``-direction from the wind provided by `p0`. 
+
 # Arguments
 
   - `state`: Model state.
@@ -166,6 +194,7 @@ Compute and return the diffusive vertical momentum fluxes in ``\\hat{z}``-direct
 
   - `direction`: Direction of the flux.
 
+  - `p0`: The predictands that are used to compute the diffusive fluxes.
 """
 function compute_momentum_diffusion_terms end
 

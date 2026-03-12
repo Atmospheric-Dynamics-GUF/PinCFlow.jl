@@ -1,3 +1,40 @@
+"""
+```julia 
+thomas_algorithm!(
+    state::State,
+    ath::AbstractArray{<:AbstractFloat, 3},
+    bth::AbstractArray{<:AbstractFloat, 3},
+    cth::AbstractArray{<:AbstractFloat, 3},
+    fth::AbstractArray{<:AbstractFloat, 3},
+    qth::AbstractArray{<:AbstractFloat, 3},
+    pth::AbstractMatrix{<:AbstractFloat},
+    fth_bc::AbstractMatrix{<:AbstractFloat},
+    qth_bc::AbstractMatrix{<:AbstractFloat},
+)
+```
+
+Solves a tridiagonal system in `\\hat{z}`-direction using the Thomas tridiagonal algorithm. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
+
+# Arguments 
+
+  - `state`: Model state.
+
+  - `ath`: Sub (lower) diagonal.
+
+  - `bth`: Center diagonal 
+
+  - `cth`: Super (upper diagonal)
+
+  - `fth`: Right-hand side.
+
+  - `qth`: Work array.
+
+  - `pth`: Auxiliary array. 
+
+  - `fth_bc`: Auxiliary right-hand side array for MPI-communications.
+
+  - `qth_bc`: Auxiliary work array for MPI-communications.
+"""
 function thomas_algorithm! end
 
 function thomas_algorithm!(

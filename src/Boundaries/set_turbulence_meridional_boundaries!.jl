@@ -6,7 +6,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Enforce meridional boundary conditions for turbulences by dispatching to a turbulence-configuration-specific method.
+Enforce meridional boundary conditions for turbulence energies by dispatching to a turbulence-configuration-specific method.
 
 ```julia
 set_turbulence_meridional_boundaries!(
@@ -16,7 +16,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Return for configurations without turbulence scheme.
+Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_meridional_boundaries!(
@@ -36,7 +36,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Return for configurations without turbulence scheme.
+Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_meridional_boundaries!(

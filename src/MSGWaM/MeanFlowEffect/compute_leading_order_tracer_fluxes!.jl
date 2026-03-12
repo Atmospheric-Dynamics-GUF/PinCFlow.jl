@@ -18,6 +18,27 @@ compute_leading_order_tracer_fluxes!(
 )
 ```
 
+Compute the leading-order gravity-wave tracer fluxes by dispatching to the tracer-setup-specific method.
+
+```julia
+compute_leading_order_tracer_fluxes!(
+    state::State,
+    tracer_setup::NoTracer,
+    fc::AbstractFloat,
+    omir::AbstractFloat,
+    wnrk::AbstractFloat,
+    wnrl::AbstractFloat,
+    wnrm::AbstractFloat,
+    wadr::AbstractFloat,
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)
+```
+
 Return for configurations without tracer transport.
 
 ```julia

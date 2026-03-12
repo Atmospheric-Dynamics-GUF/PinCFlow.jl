@@ -96,7 +96,7 @@ Integrate the turbulent diffusion term in the prognostic equation for the turbul
 
   - `dt`: Time step.
 
-  - `turbulence_scheme`: General turbulence parameterization setup.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
   - `process`: Terms in the prognostic equations.
 
@@ -229,7 +229,7 @@ function turbulence_integration!(
     (; turbulence_scheme) = state.namelists.turbulence
 
     for rkstage in 1:nstages
-        reconstruct!(state, turbulence_scheme)
+        reconstruct!(state, TKE())
         set_boundaries!(state, BoundaryReconstructions())
 
         compute_fluxes!(state, p0, turbulence_scheme)

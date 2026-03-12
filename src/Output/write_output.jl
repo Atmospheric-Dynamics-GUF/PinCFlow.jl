@@ -50,6 +50,8 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:wchi`: Vertical tracer fluxes due to unresolved gravity waves.
 
+  - `:e`: Wave energy of unresolved gravity waves.
+
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
 All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.
@@ -83,7 +85,7 @@ function write_output(
     (; model) = state.namelists.atmosphere
     (; wkb_mode) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; tref, lref, rhoref, thetaref, uref, g_ndim) = state.constants
+    (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
@@ -426,16 +428,6 @@ function write_output(
                 )
                 file["phase"][1:nray_max, iid, jjd, kkrd, iout] =
                     rays.dphi[rr, ii, jj, kkr]
-
-                for (output_name, field_name) in
-                    zip(("q00", "q10", "q20"), (:q00, :q10, :q20))
-                    HDF5.set_extent_dims(
-                        file[output_name],
-                        (nray_max, x_size, y_size, z_size + 1, iout),
-                    )
-                    file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
-                        getfield(rays, field_name)[rr, ii, jj, kkr] .* uref
-                end
             end
 
             # Write GW tendencies.

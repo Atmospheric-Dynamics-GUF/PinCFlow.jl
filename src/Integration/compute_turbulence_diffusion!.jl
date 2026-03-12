@@ -18,7 +18,7 @@ compute_turbulence_diffusion!(
 )
 ```
 
-Compute the turbulent eddy diffusivity coefficients for turbulence parameterization using a TKE-Scheme by dispatching over a model-specific method.
+Compute the eddy diffusion coefficients for turbulence parameterization using a TKE-Scheme by dispatching to a model-specific method.
 
 ```julia 
 compute_turbulence_diffusion!(
@@ -39,7 +39,7 @@ The eddy diffusion coefficients for momentum, heat, and turbulent kinetic energy
     K_{e_\\mathrm{k}} & = l_t \\sqrt{2 e_\\mathrm{k}} \\;, \\\\
 \\end{align*}
 ```
-respectively, with turbulence length scales `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_\\mathrm{k}`.
+respectively, with turbulence mixing lengths `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_\\mathrm{k}`.
 
 ```julia 
 compute_turbulence_diffusion!(
@@ -60,7 +60,7 @@ The eddy diffusion coefficients for momentum, heat, and turbulent kinetic energy
     K_{e_\\mathrm{k}} & = l_t \\sqrt{2 e_\\mathrm{k}} \\;, \\\\
 \\end{align*}
 ```
-respectively, with turbulence length scales `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_\\mathrm{k}`.
+respectively, with turbulence mixing lengths `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_\\mathrm{k}`.
 
 # Arguements:
 

@@ -449,6 +449,27 @@ The update is given by
 \\end{align*}
 ```
 
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, turbulence_scheme::NoTurbulence)
+```
+
+Return for configurations without tracer transport.
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, turbulence_scheme::TKEScheme)
+```
+
+Update the turbulent kinetic energy with a Runge-Kutta step on the left-hand sides of the equations with shear and buoyancy production terms.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho e_\\mathrm{k}} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^{\\rho e_\\mathrm{k}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho e_\\mathrm{k}},\\\\
+    \\left(\\rho e_\\mathrm{k}\\right) & \\rightarrow \\left(\\rho e_\\mathrm{k}\\right) + \\beta_\\mathrm{RK} q^{\\rho e_\\mathrm{k}}.
+\\end{align*}
+```
+
 # Arguments
 
   - `state`: Model state.
@@ -468,6 +489,8 @@ The update is given by
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
   - `tracer_setup`: General tracer-transport configuration.
+
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
 # See also
 

@@ -355,9 +355,6 @@ function create_output(state::State, machine_start_time::DateTime)
                     "dmr",
                     "nr",
                     "phase",
-                    "q00",
-                    "q10",
-                    "q20"
                 )
                     create_dataset(
                         file,

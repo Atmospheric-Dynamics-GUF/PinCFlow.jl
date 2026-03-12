@@ -76,18 +76,12 @@ reconstruct!(state::State, tracer_setup::TracerOn)
 Reconstruct the tracers.
 
 ```julia
-reconstruct!(state::State, turbulence_scheme::NoTurbulence)
-```
-
-Return for configurations without turbulence_scheme.
-
-```julia
-reconstruct!(state::State, turbulence_scheme::TKEScheme)
+reconstruct!(state::State, variable::TKE)
 ```
 
 Reconstruct the turbulent kinetic energy.
 
-Similar to the density, the turbulence kinetic energy is divided by ``P`` before reconstruction.
+Similar to the density, the turbulent kinetic energy is divided by ``P`` before reconstruction.
 
 # Arguments
 
@@ -291,11 +285,7 @@ function reconstruct!(state::State, tracer_setup::TracerOn)
     return
 end
 
-function reconstruct!(state::State, turbulence_scheme::NoTurbulence)
-    return
-end
-
-function reconstruct!(state::State, turbulence_scheme::TKEScheme)
+function reconstruct!(state::State, variable::TKE)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries

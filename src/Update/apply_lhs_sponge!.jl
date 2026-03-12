@@ -226,6 +226,23 @@ In each tracer equation, the update is given by
 \\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
 ```
 
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulence_scheme::TKEScheme,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the turbulent kinetic energy equation.
+
+In the equation for the turbulent kinetic energy, the update is given by
+
+```math
+\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho e_\\mathrm{k}\\right)^{\\left(0\\right)}\\right].
+```
+
 # Arguments
 
   - `state`: Model state.
@@ -239,6 +256,8 @@ In each tracer equation, the update is given by
   - `model`: Dynamic equations.
 
   - `tracer_setup`: General tracer-transport configuration.
+
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 """
 function apply_lhs_sponge! end
 

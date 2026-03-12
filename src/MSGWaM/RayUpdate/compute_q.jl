@@ -6,7 +6,7 @@ function compute_q(
     i::Integer,
     j::Integer,
     k::Integer,
-)::Tuple{<:AbstractFloat, <:AbstractFloat, <:AbstractFloat}
+)::Tuple{<:Complex, <:Complex, <:Complex}
     (; rays) = state.wkb
 
     if rays.dens[r, i, j, k] == 0.0
@@ -27,7 +27,7 @@ function compute_q(
     j::Integer,
     k::Integer,
     beta::AbstractFloat,
-)::AbstractFloat
+)::Complex
     (; rays) = state.wkb
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref, g_ndim) = state.constants
@@ -72,13 +72,13 @@ function compute_q(
     end
     if beta == 0.0
         integral /= (2 * pi)
-        return real(integral)
+        return integral
     elseif beta == 1.0
         integral /= pi
-        return real(1im * integral)
+        return integral
     else
         integral /= pi
-        return real(integral)
+        return integral
     end
 end
 

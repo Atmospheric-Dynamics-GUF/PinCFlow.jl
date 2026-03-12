@@ -41,26 +41,19 @@ function compute_turbulent_damping(
 
     q00, q10, q20 = compute_q(state, r, i, j, k)
 
-    rays.q00[r, i, j, k] = q00
-    rays.q10[r, i, j, k] = q10
-    rays.q20[r, i, j, k] = q20
-
     delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
-    gammas = mr^2 * q00 * (lv * (1 - delta) + lb * delta)
+    gammas = mr^2 * real(q00) * (lv * (1 - delta) + lb * delta)
 
     gammaw =
         mr^2 / 4 * n2r * kh2 / (n2r * kh2 + fc^2 * mr^2) *
         (lv * (1 - fc^2 / n2r) / (1 + kh2 / mr^2) - lb) *
-        q20
+        real(q20)
 
     gammawp =
         lb * mr / omir *
-        sqrt(
-            n2r^2 * kh2 / (kh2 + mr^2) * rhob / 2 / omir /
-            wadr,
-        ) *
-        q10
+        sqrt(n2r^2 * kh2 / (kh2 + mr^2) * rhob / 2 / omir / wadr) *
+        real(1im * q10)
 
     return gammas, gammaw, gammawp
 end

@@ -146,8 +146,6 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            phi = rays.dphi[r, i, j, k]
-
             cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))

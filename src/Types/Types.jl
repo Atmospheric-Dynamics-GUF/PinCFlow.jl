@@ -116,7 +116,7 @@ struct Chi end
 TKE
 ```
 
-Singleton that represents the turbulence kinetic energy.
+Singleton that represents the turbulent kinetic energy.
 """
 struct TKE end
 

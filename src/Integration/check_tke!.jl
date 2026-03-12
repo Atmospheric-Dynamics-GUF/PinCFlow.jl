@@ -3,7 +3,7 @@
 check_tke!(state::State)
 ```
 
-Enforce a minimum mass-specific turbulent kinetic energy value set by `tkemin`.
+Enforce a minimum mass-specific turbulent kinetic energy value set by `state.turbulence.turbulenceconstants.tkemin`.
 
 # Arguments 
 

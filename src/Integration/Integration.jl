@@ -41,7 +41,7 @@ using ..PinCFlow
 Dissipation
 ```
 
-Singleton for the dissipation step of the turbulence computation.
+Singleton for the integration of the dissipation term in the turbulence equation.
 """
 struct Dissipation end
 
@@ -50,7 +50,7 @@ struct Dissipation end
 Advection
 ```
 
-Singleton for the advection step of the turbulence computation.
+Singleton for the integration of the advection term in the turbulence equation.
 """
 struct Advection end
 
@@ -59,7 +59,7 @@ struct Advection end
 Diffusion
 ```
 
-Singleton for the diffusion step of the turbulence computation.
+Singleton for the integration of the diffusion term in the turbulence equation.
 """
 struct Diffusion end
 
