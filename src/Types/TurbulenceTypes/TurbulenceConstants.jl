@@ -3,66 +3,55 @@
 TurbulenceConstants{A <: AbstractFloat}
 ```
 
-Composite type for the turbulence constants like the dissipation and diffusion co-efficients, closure and calibration constants, and the stability functions.
+Composite type for the dimensional and non-dimensional turbulence length scales and the minimum turbulent kinetic energy.
 
 ```julia
-TurbulenceConstants(namelists::Namelists)::TurbulenceConstants
+TurbulenceConstants(
+    namelists::Namelists,
+    constants::Constants,
+)::TurbulenceConstants
 ```
 
-Construct a `TurbulenceConstants` instance, using the model parameters in `namelists`.
-
-This constructor creates an instance with all the turbulence constants.
+Construct a `TurbulenceConstants` instance.
 
 # Fields
 
-Free parameters:
+  - `lturb::A`: Characteristic turbulence length scale ``L = 30 \\ \\mathrm{m}``.
 
-  - `cepsilon::A`: Closure constant controlling the intensity of turbulent dissipation.
+  - `ld::A`: Non-dimensional turbulent mixing length for dissipation ``l_\\mathrm{d} = \\sqrt{2} L/L_\\mathrm{ref}``.
+
+  - `lv::A`: Non-dimensional turbulent mixing length for momentum diffusion ``l_\\mathrm{d} = L/L_\\mathrm{ref}/\\sqrt{2}``.
+
+  - `lb::A`: Non-dimensional turbulent mixing length for entropy diffusion ``l_\\mathrm{b} =  L/L_\\mathrm{ref}/\\sqrt{2}``.
+
+  - `lt::A`: Non-dimensional turbulent mixing length for turbulence diffusion ``l_\\mathrm{t} = L/L_\\mathrm{ref}/\\sqrt{2}``.
+
+  - `tkemin::A`: Minimum turbulent kinetic energy value ``e_\\mathrm{k} = 5\\times 10^{-5} \\ \\mathrm{m^2 \\ s^{-2}}``.
   
-
 # Arguments
 
-  - `namelists`: Namelists with all model parameters.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
+  - `constants`: Physical constsants and reference values.
 """
 struct TurbulenceConstants{A <: AbstractFloat}
 
     # Dissipation constant
     lturb::A
-    lturb_ndim::A
     ld::A
     lv::A
     lb::A
     lt::A
     tkemin::A
-    prandtl::A
-    prandtlinv::A
 end
 
 function TurbulenceConstants(
-    namelists::Namelists,
     constants::Constants,
 )::TurbulenceConstants
     (; lref, tref) = constants
 
     lturb = 30.0
-    lturb_ndim = lturb / lref
-    ld = sqrt(2) * lturb_ndim
-    lv = lb = lt = lturb_ndim / sqrt(2)
+    ld = sqrt(2) * lturb / lref
+    lv = lb = lt = lturb / lref / sqrt(2)
     tkemin = 5.E-5 * tref^2.0 / lref^2.0
-    prandtl = 0.85
-    prandtlinv = 1.0 / prandtl
 
-    return TurbulenceConstants(
-        lturb,
-        lturb_ndim,
-        ld,
-        lv,
-        lb,
-        lt,
-        tkemin,
-        prandtl,
-        prandtlinv,
-    )
+    return TurbulenceConstants(lturb, ld, lv, lb, lt, tkemin)
 end

@@ -1,3 +1,30 @@
+"""
+```julia 
+turbulent_diffusion!(state::State, dt::AbstractFloat)
+```
+
+Apply diffusion by dispatching to turbulence scheme-specific method.
+
+```julia 
+turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    turbulence_scheme::NoTurbulence,
+)
+```
+
+Return for configurations without turbulence parameterization.
+
+```julia 
+turbulent_diffusion!(
+    state::State,
+    dt::AbstractFloat,
+    turbulence_scheme::TKEScheme,
+)
+```
+
+Apply diffusion by dispatching to specialized methods for momentum, mass-weighted potential temperature, and tracers.
+"""
 function turbulent_diffusion! end
 
 function turbulent_diffusion!(state::State, dt::AbstractFloat)

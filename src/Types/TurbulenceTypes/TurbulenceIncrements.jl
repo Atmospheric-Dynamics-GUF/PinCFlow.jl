@@ -6,10 +6,13 @@ TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
 Arrays for the Runge-Kutta updates of turbulence variables.
 
 ```julia
-TurbulenceIncrements(namelists::Namelists, domain::Domain)::TurbulenceIncrements
+TurbulenceIncrements(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceIncrements
 ```
 
-Construct a `TurbulenceIncrements` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
+Construct a `TurbulenceIncrements` instance with dimensions depending on the turbulence paramterization configuration, by dispatching to the appropriate method.
 
 ```julia
 TurbulenceIncrements(
@@ -18,7 +21,7 @@ TurbulenceIncrements(
 )::TurbulenceIncrements
 ```
 
-Construct a `TurbulenceIncrements` instance with zero-size arrays for configurations without turbulence physics.
+Construct a `TurbulenceIncrements` instance with zero-size arrays for configurations without turbulence paramterization.
 
 ```julia
 TurbulenceIncrements(
@@ -39,7 +42,7 @@ Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulence_scheme`: General turbulence-physics configuration.
+  - `turbulence_scheme`: General turbulence paramterization configuration.
 """
 struct TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dtke::A

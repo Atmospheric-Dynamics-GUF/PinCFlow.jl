@@ -8,10 +8,13 @@ Arrays for fluxes of turbulence variables.
 The first three dimensions represent physical space and the fourth dimension represents the flux direction.
 
 ```julia
-TurbulenceFluxes(namelists::Namelists, domain::Domain)::TurbulenceFluxes
+TurbulenceFluxes(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceFluxes
 ```
 
-Construct a `TurbulenceFluxes` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
+Construct a `TurbulenceFluxes` instance with dimensions depending on the general turbulence parameterization configuration, by dispatching to the appropriate method.
 
 ```julia
 TurbulenceFluxes(
@@ -20,10 +23,13 @@ TurbulenceFluxes(
 )::TurbulenceFluxes
 ```
 
-Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations without turbulence physics.
+Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations without turbulence parameterization.
 
 ```julia
-TurbulenceFluxes(domain::Domain, turbulence_scheme::TKEScheme)::TurbulenceFluxes
+TurbulenceFluxes(
+    domain::Domain,
+    turbulence_scheme::TKEScheme,
+)::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
@@ -38,7 +44,7 @@ Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulence_scheme`: General turbulence-physics configuration.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 """
 struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitke::A

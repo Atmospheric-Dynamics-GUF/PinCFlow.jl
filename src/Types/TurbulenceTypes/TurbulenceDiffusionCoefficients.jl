@@ -1,23 +1,29 @@
 """
 ```julia
-TurbulenceDiffusionCoefficients{A <: AbstractFloat}
+TurbulenceDiffusionCoefficients{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Background values for turbulence variables.
+Composite type for eddy diffusion coefficients.
 
 ```julia
 TurbulenceDiffusionCoefficients(
-    constants::Constants,
+    turbulencepredictands::TurbulencePredictands,
 )::TurbulenceDiffusionCoefficients
 ```
 
-Construct a `TurbulenceDiffusionCoefficients` instance with both fields set to ``t_\\mathrm{ref}^2 / \\left(10 L_\\mathrm{ref}^2\\right)``, where ``t_\\mathrm{ref}`` and ``L_\\mathrm{ref}`` are given by the properties `tref` and `lref` of `constants`, respectively.
+Construct a `TurbulenceDiffusionCoefficients` instance with zero-initialized arrays.
 
 # Fields
 
+  - `km::A`: Eddy diffusion coefficient for momentum ``K_\\mathrm{M}``.
+
+  - `kh::A`: Eddy diffusion coefficient for heat ``K_\\mathrm{H}``.
+
+  - `kek::A`: Turbulent diffusion coefficient ``K_{e_\\mathrm{k}}``.
+
 # Arguments
 
-  - `constants`: Physical constants and reference values.
+  - `turbulencepredictands`: Turbulence prognostic variables.
 """
 struct TurbulenceDiffusionCoefficients{A <: AbstractArray{<:AbstractFloat, 3}}
     km::A

@@ -7,10 +7,11 @@ Turbulence{
     D <: TurbulenceReconstructions,
     E <: TurbulenceFluxes,
     F <: TurbulenceConstants,
+    G <: TurbulenceDiffusionCoefficients,
 }
 ```
 
-Container for arrays and constants needed by the turbulence scheme.
+Container for arrays and constants needed for turbulence parameterization.
 
 ```julia
 Turbulence(
@@ -23,7 +24,7 @@ Turbulence(
 )::Turbulence
 ```
 
-Construct a `Turbulence` instance, with array dimensions, initial values and constants set according to the model configuration.
+Construct a `Turbulence` instance, with array dimensions, initial values, and constants set according to the model configuration.
 
 # Fields
 
@@ -31,13 +32,13 @@ Construct a `Turbulence` instance, with array dimensions, initial values and con
 
   - `turbulenceincrements::B`: Runge-Kutta updates of the turbulence variables.
 
-  - `turbulenceauxiliaries::C`: Background values.
+  - `turbulenceauxiliaries::C`: Shear and buoyancy production terms.
 
   - `turbulencereconstructions::D`: Reconstructions of the turbulence variables.
 
   - `turbulencefluxes::E`: Fluxes of the turbulence variables.
 
-  - `turbulenceconstants::F`: Constants used in the turbulence calculation
+  - `turbulenceconstants::F`: Constants used for the turbulence parameterization.
 
 # Arguments
 
@@ -105,7 +106,7 @@ function Turbulence(
     turbulenceauxiliaries = TurbulenceAuxiliaries(namelists, domain)
     turbulencereconstructions = TurbulenceReconstructions(namelists, domain)
     turbulencefluxes = TurbulenceFluxes(namelists, domain)
-    turbulenceconstants = TurbulenceConstants(namelists, constants)
+    turbulenceconstants = TurbulenceConstants(constants)
     turbulencediffusioncoefficients =
         TurbulenceDiffusionCoefficients(turbulencepredictands)
 

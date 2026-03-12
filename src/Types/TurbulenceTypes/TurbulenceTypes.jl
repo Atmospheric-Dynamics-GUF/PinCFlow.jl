@@ -3,7 +3,7 @@
 TurbulenceTypes
 ```
 
-Module for composite types needed by the turbulence scheme.
+Module for composite types needed for turbulence parameterization.
 
 # See also
 

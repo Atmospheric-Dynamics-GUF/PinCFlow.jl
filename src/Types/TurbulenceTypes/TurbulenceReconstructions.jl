@@ -5,7 +5,7 @@ TurbulenceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
 
 Arrays for the reconstruction of turbulence variables.
 
-The first three dimensions represent physical space, the fourth dimension represents the direction in which the reconstruction was performed and the fifth dimension represents the two cell edges of the reconstruction.
+The first three dimensions represent physical space, the fourth represents the physical-space dimension of the reconstruction and the fifth the two directions in which it is computed.
 
 ```julia
 TurbulenceReconstructions(
@@ -14,7 +14,7 @@ TurbulenceReconstructions(
 )::TurbulenceReconstructions
 ```
 
-Construct a `TurbulenceReconstructions` instance with dimensions depending on the general turbulence-physics configuration, by dispatching to the appropriate method.
+Construct a `TurbulenceReconstructions` instance with dimensions depending on the general turbulence parameterization configuration, by dispatching to the appropriate method.
 
 ```julia
 TurbulenceReconstructions(
@@ -23,7 +23,7 @@ TurbulenceReconstructions(
 )::TurbulenceReconstructions
 ```
 
-Construct a `TurbulenceReconstructions` instance with zero-size arrays for configurations without turbulence physics.
+Construct a `TurbulenceReconstructions` instance with zero-size arrays for configurations without turbulence parameterization.
 
 ```julia
 TurbulenceReconstructions(
@@ -36,7 +36,7 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 
 # Fields
 
-  - `tketilde::A`: Reconstructions of the turbulent kinetic energy.
+  - `tketilde::A`: Reconstructions of the non-dimensional turbulent kinetic energy.
 
 # Arguments
 
@@ -44,7 +44,7 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `turbulence_scheme`: General turbulence-physics configuration.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 """
 struct TurbulenceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     tketilde::A

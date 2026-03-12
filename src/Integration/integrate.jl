@@ -67,7 +67,7 @@ In the case of turbulence parameterization: momentum and mass-weighted potential
 
   - [`PinCFlow.Integration.compute_turbulence_diffusion!`](@ref)
 
-  - [`PinCFlow.Update.turbulence_diffusion!`](@ref)
+  - [`PinCFlow.Update.turbulent_diffusion!`](@ref)
 
   - [`PinCFlow.Integration.turbulence_integration!`](@ref)
 """

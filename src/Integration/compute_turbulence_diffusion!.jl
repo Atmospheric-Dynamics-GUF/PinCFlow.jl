@@ -34,12 +34,12 @@ The eddy diffusion coefficients for momentum, heat, and turbulent kinetic energy
 
 ```math 
 \\begin{align*}
-    K_M & = l_v \\sqrt{2 e_k} \\;, \\\\
-    K_H & = l_h \\sqrt{2 e_k} \\;, \\\\
-    K_{e_k} & = l_t \\sqrt{2 e_k} \\;, \\\\
+    K_M & = l_v \\sqrt{2 e_\\mathrm{k}} \\;, \\\\
+    K_H & = l_h \\sqrt{2 e_\\mathrm{k}} \\;, \\\\
+    K_{e_\\mathrm{k}} & = l_t \\sqrt{2 e_\\mathrm{k}} \\;, \\\\
 \\end{align*}
 ```
-respectively, with turbulence length scales `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_k`.
+respectively, with turbulence length scales `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_\\mathrm{k}`.
 
 ```julia 
 compute_turbulence_diffusion!(
@@ -55,12 +55,12 @@ The eddy diffusion coefficients for momentum, heat, and turbulent kinetic energy
 
 ```math 
 \\begin{align*}
-    K_M & = l_v \\sqrt{2 e_k} \\;, \\\\
-    K_H & = l_h \\sqrt{2 e_k} \\;, \\\\
-    K_{e_k} & = l_t \\sqrt{2 e_k} \\;, \\\\
+    K_M & = l_v \\sqrt{2 e_\\mathrm{k}} \\;, \\\\
+    K_H & = l_h \\sqrt{2 e_\\mathrm{k}} \\;, \\\\
+    K_{e_\\mathrm{k}} & = l_t \\sqrt{2 e_\\mathrm{k}} \\;, \\\\
 \\end{align*}
 ```
-respectively, with turbulence length scales `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_k`.
+respectively, with turbulence length scales `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_\\mathrm{k}`.
 
 # Arguements:
 

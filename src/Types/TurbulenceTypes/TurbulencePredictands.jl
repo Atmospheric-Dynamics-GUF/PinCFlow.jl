@@ -16,7 +16,7 @@ TurbulencePredictands(
 )::TurbulencePredictands
 ```
 
-Construct a `TurbulencePredictands` instance with dimensions and initial values depending on the general configuration of turbulence physics, by dispatching to the appropriate method.
+Construct a `TurbulencePredictands` instance with dimensions and initial values depending on the general turbulence parameterization configuration, by dispatching to the appropriate method.
 
 ```julia
 TurbulencePredictands(
@@ -30,7 +30,7 @@ TurbulencePredictands(
 )::TurbulencePredictands
 ```
 
-Construct a `TurbulencePredictands` instance with zero-size arrays for configurations without turbulence physics.
+Construct a `TurbulencePredictands` instance with zero-size arrays for configurations without turbulence parameterization.
 
 ```julia
 TurbulencePredictands(
@@ -44,11 +44,41 @@ TurbulencePredictands(
 )::TurbulencePredictands
 ```
 
-Construct a `TurbulencePredictands` instance with both arrays initialized as ``t_\\mathrm{ref}^2 / \\left(10 L_\\mathrm{ref}^2\\right) \\rho`` (non-dimensionalized), where ``t_\\mathrm{ref}`` and ``L_\\mathrm{ref}`` are given by the properties `tref` and `lref` of `constants`, respectively.
+Construct a `TurbulencePredictands` instance for configurations with turbulence parameterization, by dispatching to the model specific method.
+
+```julia 
+TurbulencePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    turbulence_scheme::TKEScheme,
+    variables::Variables,
+    model::Union{PseudoIncompressible, Compressible},
+)::TurbulencePredictands
+```
+
+Construct a `TurbulencePredictands` instance for configurations in pseudo-incompressible or compressible mode, with the turbulent kinetic energy initialized by the function `initial_tke` in `namelists.turbulence`. The turbulence field is multiplied by the density.
+
+```julia 
+TurbulencePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    turbulence_scheme::TKEScheme,
+    variables::Variables,
+    model::Boussinesq,
+)::TurbulencePredictands
+```
+
+Construct a `TurbulencePredictands` instance for configurations in Boussinesq mode, with the turbulent kinetic energy initialized by the function `initial_tke` in `namelists.turbulence`. The turbulence field is multiplied by the density.
 
 # Fields
 
-  - `tke::A`: Turbulent kinetic energy.
+  - `tke::A`: Non-dimensional turbulent kinetic energy.
 
 # Arguments
 
@@ -62,9 +92,15 @@ Construct a `TurbulencePredictands` instance with both arrays initialized as ``t
 
   - `grid`: Collection of parameters and fields describing the grid.
 
-  - `turbulence_scheme`: General turbulence-physics configuration.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
 struct TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     tke::A

@@ -170,8 +170,6 @@ Return the mass-weighted shear-, buoyancy-, and gravity wave-impact on the TKE i
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
 
   - [`PinCFlow.Update.buoyancy_term`](@ref)
-
-  - [`PinCFlow.Update.wkb_term`](@ref)
 """
 function compute_volume_force end
 
