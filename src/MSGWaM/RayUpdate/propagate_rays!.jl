@@ -195,7 +195,8 @@ function propagate_rays!(
     kmin = ko == 0 ? k0 - 1 : k0
     kmax = k1
 
-    # Initialize WKB increments at the first RK stage.
+    # Initialize the WKB increments and maximum group velocities at the first
+    # RK stage.
     @ivy if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
@@ -210,11 +211,11 @@ function propagate_rays!(
                 ddzray[r, i, j, k] = 0.0
             end
         end
-    end
 
-    cgx_max[] = 0.0
-    cgy_max[] = 0.0
-    cgz_max[] = 0.0
+        cgx_max[] = 0.0
+        cgy_max[] = 0.0
+        cgz_max[] = 0.0
+    end
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
         nskip = 0
