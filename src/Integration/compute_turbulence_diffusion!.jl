@@ -62,7 +62,7 @@ The eddy diffusion coefficients for momentum, heat, and turbulent kinetic energy
 ```
 respectively, with turbulence mixing lengths `l_v`, `l_h`, and `l_t` and mass-specific turbulent kinetic energy `e_\\mathrm{k}`.
 
-# Arguements:
+# Arguments:
 
   - `state`: Model state. 
 

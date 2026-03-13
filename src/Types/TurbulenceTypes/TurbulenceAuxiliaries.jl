@@ -40,9 +40,9 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 
 # Arguments
 
-  - `namelists`: Namelists with all model paramters.
+  - `namelists`: Namelists with all model parameters.
 
-  - `domain`: Collection of domain-decomposition and MPI-communication paramters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
   - `turbulence_scheme`: General turbulence parameterization configuration.
 """

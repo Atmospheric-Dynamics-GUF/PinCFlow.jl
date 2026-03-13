@@ -73,7 +73,7 @@ turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
 
 Integrate the turbulent diffusion term in the prognostic equation for the turbulent kinetic energy.
 
-# Arguements:
+# Arguments:
 
   - `state`: Model state. 
 
