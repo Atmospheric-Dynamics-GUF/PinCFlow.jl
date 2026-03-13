@@ -100,32 +100,27 @@ function compute_turbulence_diffusion!(
     turbulence_scheme::TKEScheme,
     model::Union{PseudoIncompressible, Compressible},
 )
-    (; lv, lb, lt, prandtlinv) = state.turbulence.turbulenceconstants
+    (; lv, lb, lt) = state.turbulence.turbulenceconstants
     (; kh, km, kek) = state.turbulence.turbulencediffusioncoefficients
     (; tke) = state.turbulence.turbulencepredictands
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; k0, k1, j0, j1, i0, i1) = state.domain
 
+    ii = i0:i1
+    jj = j0:j1
+    kk = k0:k1
+
     check_tke!(state)
-    kh[i0:i1, j0:j1, k0:k1] .=
+    kh[ii, jj, kk] .=
         lb .*
-        sqrt.(
-            2.0 * tke[i0:i1, j0:j1, k0:k1] ./
-            (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
-        )
-    km[i0:i1, j0:j1, k0:k1] .=
+        sqrt.(2.0 * tke[ii, jj, kk] ./ (rho[ii, jj, kk] .+ rhobar[ii, jj, kk]))
+    km[ii, jj, kk] .=
         lv .*
-        sqrt.(
-            2.0 * tke[i0:i1, j0:j1, k0:k1] ./
-            (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
-        )
-    kek[i0:i1, j0:j1, k0:k1] .=
+        sqrt.(2.0 * tke[ii, jj, kk] ./ (rho[ii, jj, kk] .+ rhobar[ii, jj, kk]))
+    kek[ii, jj, kk] .=
         lt .*
-        sqrt.(
-            2.0 * tke[i0:i1, j0:j1, k0:k1] ./
-            (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
-        )
+        sqrt.(2.0 * tke[ii, jj, kk] ./ (rho[ii, jj, kk] .+ rhobar[ii, jj, kk]))
 
     set_boundaries!(state, BoundaryDiffusionCoefficients())
     return
@@ -136,31 +131,32 @@ function compute_turbulence_diffusion!(
     turbulence_scheme::TKEScheme,
     model::Boussinesq,
 )
-    (; lb, lv, lt, prandtlinv) = state.turbulence.turbulenceconstants
+    (; lb, lv, lt) = state.turbulence.turbulenceconstants
     (; kh, km, kek) = state.turbulence.turbulencediffusioncoefficients
     (; tke) = state.turbulence.turbulencepredictands
     (; rhop) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; k0, k1, j0, j1, i0, i1) = state.domain
 
+    ii = i0:i1
+    jj = j0:j1
+    kk = k0:k1
+
     check_tke!(state)
-    kh[i0:i1, j0:j1, k0:k1] .=
+    kh[ii, jj, kk] .=
         lb .*
         sqrt.(
-            2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
-            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+            2.0 .* tke[ii, jj, kk] ./ (rhop[ii, jj, kk] .+ rhobar[ii, jj, kk])
         )
-    km[i0:i1, j0:j1, k0:k1] .=
+    km[ii, jj, kk] .=
         lv .*
         sqrt.(
-            2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
-            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+            2.0 .* tke[ii, jj, kk] ./ (rhop[ii, jj, kk] .+ rhobar[ii, jj, kk])
         )
-    kek[i0:i1, j0:j1, k0:k1] .=
+    kek[ii, jj, kk] .=
         lt .*
         sqrt.(
-            2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
-            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+            2.0 .* tke[ii, jj, kk] ./ (rhop[ii, jj, kk] .+ rhobar[ii, jj, kk])
         )
 
     set_boundaries!(state, BoundaryDiffusionCoefficients())

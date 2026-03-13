@@ -98,7 +98,6 @@ include("compute_momentum_diffusion_terms.jl")
 include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
 include("turbulent_diffusion!.jl")
-include("buoyancy_term.jl")
 
 export LHS, RHS, X, Y, Z
 

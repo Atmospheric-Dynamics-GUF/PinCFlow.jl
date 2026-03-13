@@ -2,7 +2,6 @@
 ```julia
 turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
 ) 
 ```
@@ -12,7 +11,6 @@ Integrate the turbulence energies by dispatching to the scheme-specific method.
 ```julia 
 turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     turbulence_scheme::NoTurbulence,
 )
@@ -23,7 +21,6 @@ Return for configurations without turbulence parameterization.
 ```julia 
 turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     turbulence_scheme::TKEScheme,
 )
@@ -34,7 +31,6 @@ Integrate the turbulent kinetic energy by dispatching to the specific operations
 ```julia 
 turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Dissipation,
 )
@@ -45,7 +41,6 @@ Integrate the dissipation contribution of the prognostic equation for the turbul
 ```julia 
 turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Dissipation,
     model::Union{PseudoIncompressible, Compressible},
@@ -57,7 +52,6 @@ Integrate the dissipation contribution of the prognostic equation for the turbul
 ```julia 
 turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Dissipation,
     model::Boussinesq,
@@ -69,7 +63,6 @@ Integrate the dissipation contribution of the prognostic equation for the turbul
 ```julia 
 turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Advection,
 )
@@ -80,7 +73,6 @@ Integrate the advection, shear production, and buoyancy contribution terms in th
 ```julia
 turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Diffusion,
 )
@@ -91,8 +83,6 @@ Integrate the turbulent diffusion term in the prognostic equation for the turbul
 # Arguements:
 
   - `state`: Model state. 
-
-  - `p0`: The predictands that are used to compute the transporting velocities in the computation of the fluxes and the shear and buyoancy contribution terms.
 
   - `dt`: Time step.
 
@@ -106,19 +96,17 @@ function turbulence_integration! end
 
 function turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
 )
     (; turbulence_scheme) = state.namelists.turbulence
 
-    turbulence_integration!(state, p0, dt, turbulence_scheme)
+    turbulence_integration!(state, dt, turbulence_scheme)
 
     return
 end
 
 function turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     turbulence_scheme::NoTurbulence,
 )
@@ -127,29 +115,28 @@ end
 
 function turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     turbulence_scheme::TKEScheme,
 )
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
 
-    turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+    turbulence_integration!(state, dt * 0.5, Dissipation())
 
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
 
-    turbulence_integration!(state, p0, dt, Advection())
+    turbulence_integration!(state, dt, Advection())
 
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
 
-    turbulence_integration!(state, p0, dt, Diffusion())
+    turbulence_integration!(state, dt, Diffusion())
 
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
 
-    turbulence_integration!(state, p0, dt * 0.5, Dissipation())
+    turbulence_integration!(state, dt * 0.5, Dissipation())
 
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
@@ -159,19 +146,17 @@ end
 
 function turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Dissipation,
 )
     (; model) = state.namelists.atmosphere
 
-    turbulence_integration!(state, p0, dt, process, model)
+    turbulence_integration!(state, dt, process, model)
     return
 end
 
 function turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Dissipation,
     model::Union{PseudoIncompressible, Compressible},
@@ -196,7 +181,6 @@ end
 
 function turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Dissipation,
     model::Boussinesq,
@@ -221,7 +205,6 @@ end
 
 function turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Advection,
 )
@@ -230,14 +213,17 @@ function turbulence_integration!(
 
     for rkstage in 1:nstages
         reconstruct!(state, TKE())
+
         set_boundaries!(state, BoundaryReconstructions())
 
-        compute_fluxes!(state, p0, turbulence_scheme)
+        compute_fluxes!(state, TKE())
 
         set_boundaries!(state, BoundaryFluxes())
 
-        update!(state, p0, dt, rkstage, turbulence_scheme)
+        update!(state, dt, rkstage, TKE())
+
         apply_lhs_sponge!(state, dt, stepfrac[rkstage] * dt, turbulence_scheme)
+
         set_boundaries!(state, BoundaryPredictands())
     end
 
@@ -246,12 +232,11 @@ end
 
 function turbulence_integration!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     process::Diffusion,
 )
     (; tke) = state.turbulence.turbulencepredictands
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nz, i0, i1, j0, j1, k0, k1) = state.domain
     (; nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; kek) = state.turbulence.turbulencediffusioncoefficients

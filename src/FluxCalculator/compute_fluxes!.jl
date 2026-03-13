@@ -1769,16 +1769,7 @@ end
 
 function compute_fluxes!(
     state::State,
-    predictands::Predictands,
-    turbulence_scheme::NoTurbulence,
-)
-    return
-end
-
-function compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    turbulence_scheme::TKEScheme,
+    variable::TKE,
 )
 
     # Get all necessary fields.
@@ -1786,9 +1777,7 @@ function compute_fluxes!(
     (; jac) = state.grid
     (; pbar) = state.atmosphere
     (; turbulencereconstructions, turbulencefluxes) = state.turbulence
-
-    # Get old wind.
-    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
+    (; u, v, w) = state.variables.predictands
 
     @ivy for field in 1:fieldcount(TurbulencePredictands)
         chir = getfield(turbulencereconstructions, field)[2:end, :, :, 1, 1]
@@ -1800,7 +1789,7 @@ function compute_fluxes!(
                     jac[i, j, k] * pbar[i, j, k] +
                     jac[i + 1, j, k] * pbar[i + 1, j, k]
                 )
-            usurf = pedger * u0[i, j, k]
+            usurf = pedger * u[i, j, k]
 
             fchi[i, j, k] = compute_flux(usurf, chil[i, j, k], chir[i, j, k])
         end
@@ -1814,7 +1803,7 @@ function compute_fluxes!(
                     jac[i, j, k] * pbar[i, j, k] +
                     jac[i, j + 1, k] * pbar[i, j + 1, k]
                 )
-            vsurf = pedgef * v0[i, j, k]
+            vsurf = pedgef * v[i, j, k]
 
             gchi[i, j, k] = compute_flux(vsurf, chib[i, j, k], chif[i, j, k])
         end
@@ -1828,7 +1817,7 @@ function compute_fluxes!(
                 jac[i, j, k + 1] *
                 (pbar[i, j, k] + pbar[i, j, k + 1]) /
                 (jac[i, j, k] + jac[i, j, k + 1])
-            wsurf = pedgeu * w0[i, j, k]
+            wsurf = pedgeu * w[i, j, k]
 
             hchi[i, j, k] = compute_flux(wsurf, chid[i, j, k], chiu[i, j, k])
         end

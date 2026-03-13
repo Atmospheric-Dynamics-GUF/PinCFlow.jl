@@ -265,8 +265,6 @@ function integrate(namelists::Namelists)
         #                         Turbulence 
         #-----------------------------------------------------------------
 
-        pturb = deepcopy(state.variables.predictands)
-
         compute_turbulence_diffusion!(state)
 
         turbulent_diffusion!(state, dt)
@@ -326,6 +324,8 @@ function integrate(namelists::Namelists)
 
         explicit_integration!(state, p0, 0.5 * dt, time, RHS())
 
+        turbulence_integration!(state, dt)
+
         if master
             println("(4) Explicit integration of LHS over dt...")
             println("")
@@ -334,8 +334,6 @@ function integrate(namelists::Namelists)
         p0 = deepcopy(p1)
 
         synchronize_compressible_atmosphere!(state, p0)
-
-        turbulence_integration!(state, pturb, dt)
 
         explicit_integration!(state, p0, dt, time, LHS())
 

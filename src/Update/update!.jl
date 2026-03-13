@@ -1509,20 +1509,9 @@ end
 
 function update!(
     state::State,
-    p0::Predictands,
     dt::AbstractFloat,
     m::Integer,
-    turbulence_scheme::NoTurbulence,
-)
-    return
-end
-
-function update!(
-    state::State,
-    p0::Predictands,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulence_scheme::TKEScheme,
+    variable::TKE,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1546,7 +1535,7 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        f = -fluxdiff + compute_volume_force(state, p0, i, j, k, TKE())
+        f = -fluxdiff + compute_volume_force(state, i, j, k, TKE())
 
         dtke[i, j, k] = dt * f + alphark[m] * dtke[i, j, k]
         tke[i, j, k] += betark[m] * dtke[i, j, k]
