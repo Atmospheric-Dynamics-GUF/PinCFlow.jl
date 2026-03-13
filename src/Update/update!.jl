@@ -450,13 +450,23 @@ The update is given by
 ```
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, turbulence_scheme::NoTurbulence)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulence_scheme::NoTurbulence,
+)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, turbulence_scheme::TKEScheme)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulence_scheme::TKEScheme,
+)
 ```
 
 Update the turbulent kinetic energy with a Runge-Kutta step on the left-hand sides of the equations with shear and buoyancy production terms.
@@ -1507,12 +1517,7 @@ function update!(
     return
 end
 
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    variable::TKE,
-)
+function update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time

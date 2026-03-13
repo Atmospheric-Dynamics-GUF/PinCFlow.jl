@@ -324,7 +324,6 @@ function create_output(state::State, machine_start_time::DateTime)
 
         # Create datasets for WKB variables.
         if wkb_mode != NoWKB()
-
             if :e in output_variables
                 create_dataset(
                     file,

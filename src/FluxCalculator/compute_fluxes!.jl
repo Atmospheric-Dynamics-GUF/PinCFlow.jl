@@ -1767,10 +1767,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
-    state::State,
-    variable::TKE,
-)
+function compute_fluxes!(state::State, variable::TKE)
 
     # Get all necessary fields.
     (; i0, i1, j0, j1, k0, k1) = state.domain

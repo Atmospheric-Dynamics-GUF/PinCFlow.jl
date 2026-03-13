@@ -214,11 +214,10 @@ end
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u) = state.variables.predictands
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; km) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
+    (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -302,8 +301,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; km) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
+    (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -385,11 +383,10 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
     (; nbx, nby, nbz) = state.namelists.domain
     (; u, v, w) = state.variables.predictands
     (; uold, vold) = state.variables.backups
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; km) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
+    (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -482,14 +479,12 @@ function turbulent_diffusion!(
     variable::Theta,
     model::Compressible,
 )
-    (; p, rho) = state.variables.predictands
-    (; rhobar) = state.atmosphere
-    (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; p) = state.variables.predictands
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; nbx, nby, nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; kh) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
+    (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -550,8 +545,7 @@ function turbulent_diffusion!(
     (; nbx, nby, nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; kh) = state.turbulence.turbulencediffusioncoefficients
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) =
-        state.variables.auxiliaries
+    (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -587,7 +581,7 @@ function turbulent_diffusion!(
 
         thomas_algorithm!(state)
 
-        chi[ii, jj, kk] .= fth
+        chi[i0:i1, j0:j1, k0:k1] .= fth
     end
     return
 end

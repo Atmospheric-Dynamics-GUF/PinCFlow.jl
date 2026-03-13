@@ -7,7 +7,7 @@ Namelist for the inclusion of a turbulence parameterization and the turbulent di
 
 ```julia
 TurbulenceNamelist(;
-    turbulence_scheme::AbstractTurbulence = NoTurbulence(),
+    turbulence_scheme::AbstractTurbulence = TKEScheme(),
     momentum_coupling::Bool = true,
     entropy_coupling::Bool = true,
     tracer_coupling::Bool = true,
@@ -38,7 +38,7 @@ struct TurbulenceNamelist{A <: AbstractTurbulence, B <: Bool, C <: Function}
 end
 
 function TurbulenceNamelist(;
-    turbulence_scheme::AbstractTurbulence = NoTurbulence(),
+    turbulence_scheme::AbstractTurbulence = TKEScheme(),
     momentum_coupling::Bool = true,
     entropy_coupling::Bool = true,
     tracer_coupling::Bool = true,

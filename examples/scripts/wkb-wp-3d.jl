@@ -78,6 +78,4 @@ wkb = WKBNamelist(;
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
 
-integrate(
-    Namelists(; atmosphere, domain, output, discretization, wkb),
-)
+integrate(Namelists(; atmosphere, domain, output, discretization, wkb))

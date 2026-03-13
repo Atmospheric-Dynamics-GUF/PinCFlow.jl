@@ -43,9 +43,7 @@ struct TurbulenceConstants{A <: AbstractFloat}
     tkemin::A
 end
 
-function TurbulenceConstants(
-    constants::Constants,
-)::TurbulenceConstants
+function TurbulenceConstants(constants::Constants)::TurbulenceConstants
     (; lref, tref) = constants
 
     lturb = 30.0

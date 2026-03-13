@@ -153,10 +153,7 @@ set_vertical_boundaries!(
 Enforce vertical boundary conditions for WKB tendencies needed in `MultiColumn` configurations, using line reflection.
 
 ```julia
-set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryDiffusionCoefficients,
-)
+set_vertical_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
 ```
 
 Enforce vertical boundary conditions for eddy diffusion coefficients.
@@ -393,16 +390,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (
-        :uu,
-        :uv,
-        :uw,
-        :vv,
-        :vw,
-        :utheta,
-        :vtheta,
-        :e,
-    )
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
         set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -455,10 +443,7 @@ function set_vertical_boundaries!(
     return
 end
 
-function set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryDiffusionCoefficients,
-)
+function set_vertical_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
     (; namelists, domain) = state
     (; turbulencediffusioncoefficients) = state.turbulence
 

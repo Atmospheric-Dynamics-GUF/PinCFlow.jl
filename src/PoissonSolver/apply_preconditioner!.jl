@@ -49,7 +49,7 @@ function apply_preconditioner!(
     (; dtau, preconditioner_iterations) = state.namelists.poisson
     (; dx, dy) = state.grid
     (; au_b, ac_b, ad_b) = state.poisson.tensor
-    (; ath, bth, cth, fth, qth, pth, qth_bc, fth_bc) = state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth) = state.variables.auxiliaries
 
     reset_thomas!(state)
 

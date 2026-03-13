@@ -105,10 +105,7 @@ set_zonal_boundaries!(
 Enforce zonal boundary conditions for WKB tendencies needed in `MultiColumn` configurations.
 
 ```julia
-set_zonal_boundaries!(
-    state::State,
-    variables::BoundaryDiffusionCoefficients,
-)
+set_zonal_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
 ```
 
 Enforce zonal boundary conditions for eddy diffusion coefficients.
@@ -268,16 +265,7 @@ function set_zonal_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (
-        :uu,
-        :uv,
-        :uw,
-        :vv,
-        :vw,
-        :utheta,
-        :vtheta,
-        :e,
-    )
+    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
         set_zonal_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -327,10 +315,7 @@ function set_zonal_boundaries!(
     return
 end
 
-function set_zonal_boundaries!(
-    state::State,
-    variables::BoundaryDiffusionCoefficients,
-)
+function set_zonal_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
     (; namelists, domain) = state
     (; turbulencediffusioncoefficients) = state.turbulence
     for field in (:kh, :km, :kek)

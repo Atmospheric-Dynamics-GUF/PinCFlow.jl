@@ -20,9 +20,9 @@ Enforce vertical boundary conditions for flux fields (horizontal boundaries are 
 
 ```julia
 set_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
-    set_zonal_boundaries!(state, variables)
-    set_meridional_boundaries!(state, variables)
-    set_vertical_boundaries!(state, variables)
+set_zonal_boundaries!(state, variables)
+set_meridional_boundaries!(state, variables)
+set_vertical_boundaries!(state, variables)
 ```
 
 Enforce all boundary conditions for eddy diffusion coefficients.
@@ -89,8 +89,8 @@ function set_boundaries!(state::State, variables::BoundaryFluxes)
 end
 
 function set_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
-    set_zonal_boundaries!(state, variables)
-    set_meridional_boundaries!(state, variables)
-    set_vertical_boundaries!(state, variables)
+set_zonal_boundaries!(state, variables)
+set_meridional_boundaries!(state, variables)
+set_vertical_boundaries!(state, variables)
     return
 end
