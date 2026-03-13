@@ -33,6 +33,12 @@ The individual stability criteria are as follows.
     \\Delta t_\\mathrm{viscous} = \\frac{\\mathrm{Re}}{2} \\min\\limits_\\mathrm{global} \\left[\\left(\\Delta \\hat{x}\\right)^2, \\left(\\Delta \\hat{y}\\right)^2, \\left(J \\Delta \\hat{z}\\right)^2\\right]
     ```
 
+  - CFL condition with respect to the turbulent kinetic energy:
+
+    ```math 
+    \\Delta t_\\mathrm{TKE} = 
+    ```
+
 # Arguments
 
   - `state`: Model state.
@@ -51,10 +57,14 @@ function compute_time_step(state::State)::AbstractFloat
     (; master, comm, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = grid
     (; predictands) = state.variables
-    (; u, v, w) = predictands
+    (; u, v, w, rho) = predictands
     (; x_size, y_size) = state.namelists.domain
     (; wkb_mode) = state.namelists.wkb
     (; cgx_max, cgy_max, cgz_max) = state.wkb
+    (; tke) = state.turbulence.turbulencepredictands
+    (; rhobar) = state.atmosphere
+    (; turbulence_scheme) = state.namelists.turbulence
+    (; km, kh, kek) = state.turbulence.turbulencediffusioncoefficients
 
     @ivy if !adaptive_time_step
         dt = dtmax / tref
@@ -132,6 +142,42 @@ function compute_time_step(state::State)::AbstractFloat
 
             dtwkb = MPI.Allreduce(dtwkb, min, comm)
         end
+
+        #-------------------------------
+        #     Turbulence criterion 
+        #---------------------
+
+        if turbulence_scheme != NoTurbulence()
+            uturb =
+                maximum(
+                    abs,
+                    sqrt.(
+                        tke[i0:i1, j0:j1, k0:k1] ./ (
+                            rho[i0:i1, j0:j1, k0:k1] .+
+                            rhobar[i0:i1, j0:j1, k0:k1]
+                        )
+                    ),
+                ) + eps()
+
+            dtturb = cfl_number * min(dx / uturb, dy / uturb, dz / uturb)
+
+            #dtturb = MPI.Allreduce(dtturb, min, comm)
+            for k in k0:k1, j in j0:j1, i in i0:i1
+                dtturbkm = 0.5 * min(dx^2, dy^2, dz^2) / km[i, j, k]
+                dtturbkm =
+                    min(dtturbkm, 0.5 * (jac[i, j, k] * dz)^2.0 / km[i, j, k])
+                dtturbkh = 0.5 * min(dx^2, dy^2, dz^2) / kh[i, j, k]
+                dtturbkh =
+                    min(dtturbkh, 0.5 * (jac[i, j, k] * dz)^2.0 / km[i, j, k])
+                dtturbkek = 0.5 * min(dx^2, dy^2, dz^2) / kek[i, j, k]
+                dtturbkek =
+                    min(dtturbkek, 0.5 * (jac[i, j, k] * dz)^2.0 / km[i, j, k])
+
+                dtturb = min(dtturb, dtturbkm, dtturbkh, dtturbkek)
+            end
+
+            dtturb = MPI.Allreduce(dtturb, min, comm)
+        end
         #-------------------------------
         #        Make your choice
         #-------------------------------
@@ -140,6 +186,10 @@ function compute_time_step(state::State)::AbstractFloat
             dt = min(dtvisc, dtconv, dtmax / tref, dtwkb)
         else
             dt = min(dtvisc, dtconv, dtmax / tref)
+        end
+
+        if turbulence_scheme != NoTurbulence()
+            dt = min(dt, dtturb)
         end
 
         #-----------------------------------------
@@ -153,6 +203,9 @@ function compute_time_step(state::State)::AbstractFloat
             if wkb_mode != NoWKB()
                 println("dtwkb = ", dtwkb * tref, " seconds")
             end
+            if turbulence_scheme != NoTurbulence()
+                println("dtturb = ", dtturb * tref, " seconds")
+            end
             println("")
 
             if dt == dtmax / tref
@@ -163,6 +216,8 @@ function compute_time_step(state::State)::AbstractFloat
                 println("=> dt = dtvisc = ", dt * tref, " seconds")
             elseif wkb_mode != NoWKB() && dt == dtwkb
                 println("=> dt = dtwkb = ", dt * tref, " seconds")
+            elseif turbulence_scheme != NoTurbulence() && dt == dtturb
+                println("=> dt = dtturb = ", dt * tref, " seconds")
             else
                 println("=> dt = ??? = ", dt * tref, " seconds")
             end

@@ -449,6 +449,37 @@ The update is given by
 \\end{align*}
 ```
 
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulence_scheme::NoTurbulence,
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulence_scheme::TKEScheme,
+)
+```
+
+Update the turbulent kinetic energy with a Runge-Kutta step on the left-hand sides of the equations with shear and buoyancy production terms.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho e_\\mathrm{k}} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^{\\rho e_\\mathrm{k}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho e_\\mathrm{k}},\\\\
+    \\left(\\rho e_\\mathrm{k}\\right) & \\rightarrow \\left(\\rho e_\\mathrm{k}\\right) + \\beta_\\mathrm{RK} q^{\\rho e_\\mathrm{k}}.
+\\end{align*}
+```
+
 # Arguments
 
   - `state`: Model state.
@@ -468,6 +499,8 @@ The update is given by
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
   - `tracer_setup`: General tracer-transport configuration.
+
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
 # See also
 
@@ -1479,6 +1512,38 @@ function update!(
             dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]
             chi[i, j, k] += betark[m] * dchi[i, j, k]
         end
+    end
+
+    return
+end
+
+function update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; dtke) = state.turbulence.turbulenceincrements
+    (; phitke) = state.turbulence.turbulencefluxes
+    (; tke) = state.turbulence.turbulencepredictands
+
+    if m == 1
+        dtke .= 0.0
+    end
+
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        fl = phitke[i - 1, j, k, 1]
+        fr = phitke[i, j, k, 1]
+        gb = phitke[i, j - 1, k, 2]
+        gf = phitke[i, j, k, 2]
+        hd = phitke[i, j, k - 1, 3]
+        hu = phitke[i, j, k, 3]
+
+        fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+        fluxdiff /= jac[i, j, k]
+
+        f = -fluxdiff + compute_volume_force(state, i, j, k, TKE())
+
+        dtke[i, j, k] = dt * f + alphark[m] * dtke[i, j, k]
+        tke[i, j, k] += betark[m] * dtke[i, j, k]
     end
 
     return

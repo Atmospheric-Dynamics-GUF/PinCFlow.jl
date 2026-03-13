@@ -64,6 +64,7 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    TurbulenceNamelist,
     Namelists
 
 # Export singletons needed in namelists.
@@ -75,6 +76,7 @@ export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn
 export NoTracer, TracerOn
+export NoTurbulence, TKEScheme
 
 # Export model-state constructor.
 export State
