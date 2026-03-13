@@ -65,7 +65,7 @@ function apply_preconditioner!(
         apply_operator!(fth, qth, Horizontal(), state)
         fth .+= deta .* (qth .- sin)
 
-        thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+        thomas_algorithm!(state)
     end
 
     sout .= fth

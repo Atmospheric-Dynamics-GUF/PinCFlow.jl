@@ -31,17 +31,66 @@ turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
 
 Apply diffusion to the zonal momentum. 
 
+The prognostic equation
+
+```math
+\\frac{\\partial u}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(J K_\\mathrm{M}G^{33}\\frac{\\partial u}{\\partial \\hat{z}}\\right)
+```
+
+is solved over one time step ``\\Delta t`` using the Crank-Nicolson scheme, where the system 
+
+```math 
+\\begin{align*}
+        &-\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}}u_{i+1/2,k+1}^{n+1}
+        +\\left(1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}\\right)u_{i+1/2}^{n+1}
+        -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}u_{i+1/2,k-1}^{n+1} \\\\
+        &= \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}}u_{i+1/2,k+1}^{n}
+        +\\left(1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}\\right)u_{i+1/2}^{n}
+        +\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}u_{i+1/2,k-1}^{n}
+\\end{align*}
+```
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}``.
+
 ```julia 
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
 ```
 
 Apply diffusion to the meridional momentum. 
 
+The prognostic equation
+
+```math
+\\frac{\\partial v}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(J K_\\mathrm{M}G^{33}\\frac{\\partial v}{\\partial \\hat{z}}\\right)
+```
+
+is solved over one time step ``\\Delta t`` using the Crank-Nicolson scheme, where the system 
+
+```math 
+\\begin{align*}
+        &-\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}}v_{j+1/2,k+1}^{n+1}
+        +\\left(1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} 
+        + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}\\right)v_{j+1/2}^{n+1}
+        -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}v_{j+1/2,k-1}^{n+1} \\\\
+        &= \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}}v_{j+1/2,k+1}^{n}
+        +\\left(1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} 
+        - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}\\right)v_{j+1/2}^{n}
+        +\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}v_{j+1/2,k-1}^{n}
+\\end{align*}
+```
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}``.
+
 ```julia 
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
 ```
 
 Apply diffusion to the vertical momentum. 
+The prognostic equation
+
+```math
+\\frac{\\partial \\hat{w}}{\\partial t} = G^{13}\\frac{\\partial u}{\\partial t} + G^{23}\\frac{\\partial v}{\\partial t} + \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(K_\\mathrm{M}\\frac{\\partial w}{\\partial \\hat{z}}\\right)
+```
 
 ```julia 
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Theta)
@@ -241,7 +290,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
             dtdz2 * k33d / jacc * u[i, j, k - 1]
     end
 
-    thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+    thomas_algorithm!(state)
 
     u[i0:i1, j0:j1, k0:k1] .= fth
     return
@@ -326,7 +375,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
             dtdz2 * k33d / jacc * v[i, j, k - 1]
     end
 
-    thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+    thomas_algorithm!(state)
 
     v[i0:i1, j0:j1, k0:k1] .= fth
     return
@@ -405,7 +454,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
             dvdtc23
     end
 
-    thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+    thomas_algorithm!(state)
 
     w[i0:i1, j0:j1, k0:k1] .= fth
     return
@@ -468,7 +517,7 @@ function turbulent_diffusion!(
             dtdz2 * khd * p[i, j, k - 1]
     end
 
-    thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+    thomas_algorithm!(state)
 
     p[i0:i1, j0:j1, k0:k1] .= fth
     return
@@ -536,7 +585,7 @@ function turbulent_diffusion!(
                 dtdz2 * khd * chi[i, j, k - 1]
         end
 
-        thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+        thomas_algorithm!(state)
 
         chi[ii, jj, kk] .= fth
     end

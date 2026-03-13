@@ -273,7 +273,7 @@ function turbulence_integration!(
             dtdz2 .* kekd .* tke[ii, jj, knbz - 1]
     end
 
-    thomas_algorithm!(state, ath, bth, cth, fth, qth, pth, fth_bc, qth_bc)
+    thomas_algorithm!(state)
 
     tke[ii, jj, kk] .= fth
 
