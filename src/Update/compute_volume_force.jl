@@ -117,7 +117,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted shear-, buoyancy-, and gravity wave-impact on the TKE by dispatching to the appropriate method.
+Return the mass-weighted impact of shear and buoyancy on the TKE by dispatching to the appropriate method.
 
 ```julia
 compute_volume_force(
@@ -131,7 +131,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted shear-, buoyancy-, and gravity wave-impact on the TKE in pseudo-incompressible and compressible mode.
+Return the mass-weighted impact of shear and buoyancy on the TKE in pseudo-incompressible and compressible mode.
 
 ```julia
 compute_volume_force(
@@ -145,7 +145,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted shear-, buoyancy-, and gravity wave-impact on the TKE in Boussinesq mode.
+Return the mass-weighted impact of shear and buoyancy on the TKE in Boussinesq mode.
 
 # Arguments
 

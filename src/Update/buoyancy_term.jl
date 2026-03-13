@@ -9,12 +9,12 @@ buoyancy_term(
 )::AbstractFloat
 ```
 
-Compute the buoyancy term in the prognostic equation for the TKE by dispatching to the appropriate model-specific method.
+Compute and return the buoyancy production for a cell with indices ``\\left(i, j, k\\right)`` in the prognostic equation for the TKE by dispatching to the appropriate model-specific method.
 
 The buoyancy term is given by 
 
 ```math 
-\\mathcal{B} = -K_H \\left(N^2 + \\frac{\\partial b}{\\partial z}\\right)
+\\mathcal{B} = -K_H \\left(N^2 + \\frac{\\partial b}{\\partial z}\\right).
 ```
 
 ```julia 
