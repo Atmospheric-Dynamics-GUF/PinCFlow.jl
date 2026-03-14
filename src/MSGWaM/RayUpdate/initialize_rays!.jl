@@ -71,7 +71,7 @@ function initialize_rays!(
     ) = state.namelists.wkb
     (; lref, tref, rhoref, uref) = state.constants
     (; comm, master, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, x, y, zc, jac, met) = state.grid
+    (; dx, dy, dz, x, y, zc, jac) = state.grid
     (;
         nray_max,
         nray_wrk,
@@ -262,14 +262,6 @@ function initialize_rays!(
             wnrm = rays.m[r, i, j, k]
             wnrh = sqrt(wnrk^2 + wnrl^2)
             omir = omi_ini[alpha, i, j, k]
-
-            # Interpolate the Jacobian and metric-tensor elements to ray-volume
-            # positions.
-            jr = interpolate_scalar(xr, yr, zr, jac, state)
-            @ivy g13r =
-                interpolate_scalar(xr, yr, zr, met[:, :, :, 1, 3], state)
-            @ivy g23r =
-                interpolate_scalar(xr, yr, zr, met[:, :, :, 2, 3], state)
 
             # Compute maximum group velocities.
             cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
