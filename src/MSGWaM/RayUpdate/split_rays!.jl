@@ -45,7 +45,7 @@ The splitting is analogous to that in ``\\hat{x}``.
 split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
 ```
 
-In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta z_r > J_{\\min} \\Delta \\hat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
+In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta z_r > \\Delta z_{\\min}``.
 
 The splitting is analogous to that in ``\\hat{x}`` and ``\\hat{y}``.
 
@@ -219,7 +219,7 @@ end
 function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
     (; domain, grid) = state
     (; io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, dz, jac) = grid
+    (; lx, ly, dx, dy, dzcmin) = grid
     (; nray_wrk, nray, rays) = state.wkb
 
     @ivy local_count = nray[i, j, k]
@@ -235,13 +235,8 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
         kmin = get_next_half_level(iray, jray, zr - 0.5 * dzr, state)
         kmax = get_next_half_level(iray, jray, zr + 0.5 * dzr, state)
 
-        dzmin = dz
-        for kray in kmin:kmax
-            dzmin = min(dzmin, jac[iray, jray, kray] * dz)
-        end
-
-        if dzr > dzmin
-            factor = ceil(Int, dzr / dzmin)
+        if dzr > dzcmin
+            factor = ceil(Int, dzr / dzcmin)
             if factor > 2
                 error("Error in split_rays!: Ray volume is too large in z!")
             end
