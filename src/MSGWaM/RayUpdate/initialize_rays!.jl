@@ -256,7 +256,6 @@ function initialize_rays!(
             # Interpolate winds to ray-volume position.
             uxr = interpolate_mean_flow(xr, yr, zr, state, U())
             vyr = interpolate_mean_flow(xr, yr, zr, state, V())
-            wzr = interpolate_mean_flow(xr, yr, zr, state, W())
 
             wnrk = rays.k[r, i, j, k]
             wnrl = rays.l[r, i, j, k]
@@ -278,14 +277,7 @@ function initialize_rays!(
             cgiry = wnrl * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
             cgy_max[] = max(cgy_max[], abs(vyr + cgiry))
             cgirz = -wnrm * (omir^2 - fc^2) / (omir * (wnrh^2 + wnrm^2))
-            cgz_max[] = max(
-                cgz_max[],
-                abs(
-                    g13r * (uxr + cgirx) +
-                    g23r * (vyr + cgiry) +
-                    (wzr + cgirz) / jr,
-                ),
-            )
+            cgz_max[] = max(cgz_max[], abs(cgirz))
         end
 
         # Set ray-volume count.

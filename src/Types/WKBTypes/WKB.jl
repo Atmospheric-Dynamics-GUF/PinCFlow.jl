@@ -79,7 +79,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `cgy_max::I`: Maximum meridional group velocity.
 
-  - `cgz_max::I`: Maximum transformed vertical group velocity.
+  - `cgz_max::I`: Maximum vertical group velocity.
 
   - `zb::J`: Upper edge of the blocked layer.
 

@@ -81,7 +81,7 @@ The group velocities that are calculated for the propagation in physical space a
 \\begin{align*}
     c_{\\mathrm{g}, x, \\max} & = \\max\\limits_{i, j, k, r} \\left(\\frac{c_{\\mathrm{g}, x, r+} + c_{\\mathrm{g}, x, r-}}{2}\\right),\\\\
     c_{\\mathrm{g}, y, \\max} & = \\max\\limits_{i, j, k, r} \\left(\\frac{c_{\\mathrm{g}, y, r+} + c_{\\mathrm{g}, y, r-}}{2}\\right),\\\\
-    c_{\\mathrm{g}, \\hat{z}, \\max} & = \\max\\limits_{i, j, k, r} \\left(G^{13}_r \\frac{c_{\\mathrm{g}, x, r+} + c_{\\mathrm{g}, x, r-}}{2} + G^{23}_r \\frac{c_{\\mathrm{g}, y, r+} + c_{\\mathrm{g}, y, r-}}{2} + \\frac{c_{\\mathrm{g}, z, r+} + c_{\\mathrm{g}, z, r-}}{2 J_r}\\right).
+    c_{\\mathrm{g}, z, \\max} & = \\max\\limits_{i, j, k, r} \\left(\\frac{c_{\\mathrm{g}, z, r+} + c_{\\mathrm{g}, z, r-}}{2}\\right).
 \\end{align*}
 ```
 
@@ -185,7 +185,7 @@ function propagate_rays!(
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde, jac, met) = state.grid
+    (; lz, zctilde, dx, dy, dzcmin) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
     (; alphar) = state.sponge
 
@@ -297,6 +297,10 @@ function propagate_rays!(
                 cgrx = 0.0
             end
 
+            if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx
+                error("Error in propagate_rays!: Propagation is too fast in x!")
+            end
+
             # Update meridional position.
 
             if y_size > 1 && k >= k0 && wkb_mode != SingleColumn()
@@ -318,6 +322,10 @@ function propagate_rays!(
                 cgry = 0.0
             end
 
+            if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy
+                error("Error in propagate_rays!: Propagation is too fast in y!")
+            end
+
             # Update vertical position.
 
             cgrz1 = cgirz1
@@ -329,14 +337,11 @@ function propagate_rays!(
             dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
             rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-            jr = interpolate_scalar(xr, yr, zr, jac, state)
-            @ivy g13r =
-                interpolate_scalar(xr, yr, zr, met[:, :, :, 1, 3], state)
-            @ivy g23r =
-                interpolate_scalar(xr, yr, zr, met[:, :, :, 2, 3], state)
+            cgz_max[] = max(cgz_max[], abs(cgrz))
 
-            cgz_max[] =
-                max(cgz_max[], abs(g13r * cgrx + g23r * cgry + cgrz / jr))
+            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin
+                error("Error in propagate_rays!: Propagation is too fast in z!")
+            end
 
             # Refraction is only allowed above impact_altitude / lref.
 

@@ -18,19 +18,19 @@ The individual stability criteria are as follows.
   - CFL condition with respect to the resolved flow (where ``u_{\\max}``, ``v_{\\max}``, and ``\\hat{w}_{\\max}`` are the maximum absolute velocities in zonal, meridional and transformed vertical direction, respectively):
 
     ```math
-    \\Delta t_\\mathrm{CFL} = \\mu_\\mathrm{CFL} \\min\\limits_\\mathrm{global} \\left(\\frac{\\Delta \\hat{x}}{u_{\\max}}, \\frac{\\Delta \\hat{y}}{v_{\\max}}, \\frac{\\Delta \\hat{z}}{\\hat{w}_{\\max}}\\right)
+    \\Delta t_\\mathrm{CFL} = \\mu_\\mathrm{CFL} \\min \\left(\\frac{\\Delta \\hat{x}}{u_{\\max}}, \\frac{\\Delta \\hat{y}}{v_{\\max}}, \\frac{\\Delta \\hat{z}}{\\hat{w}_{\\max}}\\right)
     ```
 
-  - CFL condition with respect to the group velocities of unresolved gravity waves (where ``c_{\\mathrm{g}, x, \\max}``, ``c_{\\mathrm{g}, y, \\max}``, and ``c_{\\mathrm{g}, \\hat{z}, \\max}`` are the maximum absolute group velocities in zonal, meridional, and transformed vertical direction, respectively):
+  - CFL condition with respect to the group velocities of unresolved gravity waves (where ``c_{\\mathrm{g}, x, \\max}``, ``c_{\\mathrm{g}, y, \\max}``, and ``c_{\\mathrm{g}, z, \\max}`` are the maximum absolute group velocities in zonal, meridional, and vertical direction, respectively, and ``\\Delta z_{\\min}`` is the minimum layer depth):
 
     ```math
-    \\Delta t_\\mathrm{WKB} = \\mu_\\mathrm{WKB} \\min\\limits_\\mathrm{global} \\left(\\frac{\\Delta \\hat{x}}{c_{\\mathrm{g}, x, \\max}}, \\frac{\\Delta \\hat{y}}{c_{\\mathrm{g}, y, \\max}}, \\frac{\\Delta \\hat{z}}{c_{\\mathrm{g}, \\hat{z}, \\max}}\\right)
+    \\Delta t_\\mathrm{WKB} = \\mu_\\mathrm{WKB} \\min \\left(\\frac{\\Delta \\hat{x}}{c_{\\mathrm{g}, x, \\max}}, \\frac{\\Delta \\hat{y}}{c_{\\mathrm{g}, y, \\max}}, \\frac{\\Delta z_{\\min}}{c_{\\mathrm{g}, z, \\max}}\\right)
     ```
 
   - Von Neumann condition (with ``\\mathrm{Re}`` being the Reynolds number):
 
     ```math
-    \\Delta t_\\mathrm{viscous} = \\frac{\\mathrm{Re}}{2} \\min\\limits_\\mathrm{global} \\left[\\left(\\Delta \\hat{x}\\right)^2, \\left(\\Delta \\hat{y}\\right)^2, \\left(J \\Delta \\hat{z}\\right)^2\\right]
+    \\Delta t_\\mathrm{viscous} = \\frac{\\mathrm{Re}}{2} \\min \\left[\\left(\\Delta \\hat{x}\\right)^2, \\left(\\Delta \\hat{y}\\right)^2, \\left(\\Delta z_{\\min}\\right)^2\\right]
     ```
 
 # Arguments
@@ -49,7 +49,7 @@ function compute_time_step(state::State)::AbstractFloat
         state.namelists.discretization
     (; tref, re) = state.constants
     (; master, comm, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac) = grid
+    (; dx, dy, dz, dzcmin) = grid
     (; predictands) = state.variables
     (; u, v, w) = predictands
     (; x_size, y_size) = state.namelists.domain
@@ -80,19 +80,14 @@ function compute_time_step(state::State)::AbstractFloat
         #   von Neumann condition
         #----------------------------
 
-        dtvisc = 0.5 * min(dx^2, dy^2, dz^2) * re
-
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            dtvisc = min(dtvisc, 0.5 * (jac[i, j, k] * dz)^2.0 * re)
-        end
-        dtvisc = MPI.Allreduce(dtvisc, min, comm)
+        dtvisc = 0.5 * min(dx^2, dy^2, dzcmin^2) * re
 
         #----------------------------------
         #         WKB-CFL criterion
         #----------------------------------
 
         if wkb_mode in (SingleColumn(), MultiColumn())
-            dtwkb = dz / (cgz_max[] + eps())
+            dtwkb = dzcmin / (cgz_max[] + eps())
 
             if x_size > 1
                 dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))
