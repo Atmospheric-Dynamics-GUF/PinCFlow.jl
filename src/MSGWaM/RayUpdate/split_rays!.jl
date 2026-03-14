@@ -147,9 +147,6 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
 
         if dxr > dx
             factor = ceil(Int, dxr / dx)
-            if factor > 2
-                error("Error in split_rays!: Ray volume is too large in x!")
-            end
             rays.x[r, i, j, k] = xr + (1 / factor - 1) * dxr / 2
             rays.dxray[r, i, j, k] = dxr / factor
             for rray in (local_count + 1):(local_count + factor - 1)
@@ -187,9 +184,6 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
 
         if dyr > dy
             factor = ceil(Int, dyr / dy)
-            if factor > 2
-                error("Error in split_rays!: Ray volume is too large in y!")
-            end
             rays.y[r, i, j, k] = yr + (1 / factor - 1) * dyr / 2
             rays.dyray[r, i, j, k] = dyr / factor
             for rray in (local_count + 1):(local_count + factor - 1)
@@ -237,9 +231,6 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
 
         if dzr > dzcmin
             factor = ceil(Int, dzr / dzcmin)
-            if factor > 2
-                error("Error in split_rays!: Ray volume is too large in z!")
-            end
             rays.z[r, i, j, k] = zr + (1 / factor - 1) * dzr / 2
             rays.dzray[r, i, j, k] = dzr / factor
             for rray in (local_count + 1):(local_count + factor - 1)
