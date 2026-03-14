@@ -73,7 +73,7 @@ The update of the spectral ray-volume extents uses the fact that the surfaces in
 \\mathcal{N}_r \\rightarrow \\left(1 + 2 \\alpha_{\\mathrm{R}, r} f_\\mathrm{RK} \\Delta t\\right)^{- 1} \\mathcal{N}_r,
 ```
 
-where ``\\alpha_{\\mathrm{R}, r}`` is the interpolation of the Rayleigh-damping coefficient to the updated ray-volume position, obtained with `interpolate_scalar`.
+where ``\\alpha_{\\mathrm{R}, r}`` is the interpolation of the Rayleigh-damping coefficient to the updated ray-volume position, obtained from `interpolate_sponge`.
 
 The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation, following
 
@@ -108,7 +108,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 \\frac{\\partial}{\\partial z} \\left(c_{\\mathrm{g} z, r} \\mathcal{A}_r\\right) = - 2 \\alpha_{\\mathrm{R}, r} \\mathcal{A}_r - 2 K \\left|\\boldsymbol{k}_r\\right|^2 \\mathcal{A}_r,
 ```
 
-where ``\\alpha_{\\mathrm{R}, r}`` is the Rayleigh-damping coefficient interpolated to the ray-volume position (using `interpolate_scalar`) and
+where ``\\alpha_{\\mathrm{R}, r}`` is the Rayleigh-damping coefficient interpolated to the ray-volume position (using `interpolate_sponge`) and
 
 ```math
 K = \\left[2 \\sum\\limits_r \\frac{J \\Delta \\hat{z}}{c_{\\mathrm{g}, z, r}} \\left(m_r \\left|b_{\\mathrm{w}, r}\\right| \\left|\\boldsymbol{k}_r\\right|\\right)^2 f_r\\right]^{- 1} \\max \\left[0, \\sum_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right|\\right)^2 f_r - \\alpha_\\mathrm{s}^2 N^4\\right]
@@ -148,7 +148,7 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
 
@@ -187,7 +187,6 @@ function propagate_rays!(
     (; alphark, betark, stepfrac, nstages) = state.time
     (; lz, zctilde, dx, dy, dzcmin) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
-    (; alphar) = state.sponge
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -453,7 +452,7 @@ function propagate_rays!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-            alphasponge = 2 * interpolate_scalar(xr, yr, zr, alphar, state)
+            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
             rays.dens[r, i, j, k] *= betasponge
         end
@@ -480,7 +479,6 @@ function propagate_rays!(
     (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; nray, rays) = state.wkb
-    (; alphar) = state.sponge
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -575,7 +573,7 @@ function propagate_rays!(
 
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-            alphasponge = 2 * interpolate_scalar(xr, yr, zr, alphar, state)
+            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             rays.dens[r, i, j, k] =
                 1 / (
                     1 +

@@ -1,15 +1,14 @@
 """
 ```julia
-interpolate_scalar(
+interpolate_sponge(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    scalar::AbstractArray{<:AbstractFloat, 3},
     state::State,
 )::AbstractFloat
 ```
 
-Interpolate `scalar` to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+Interpolate the Rayleigh-damping coefficient of the LHS sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\alpha_\\mathrm{R}`` to the location of interest, using `interpolate`.
 
@@ -23,27 +22,25 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 
   - `state`: Model state.
 
-  - `scalar`: Array representing a scalar quantity.
-
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
-function interpolate_scalar end
+function interpolate_sponge end
 
-function interpolate_scalar(
+function interpolate_sponge(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    scalar::AbstractArray{<:AbstractFloat, 3},
     state::State,
 )::AbstractFloat
     (; namelists, domain, grid) = state
     (; x_size, y_size) = namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, zc) = grid
+    (; alphar) = state.sponge
 
     # Determine closest points in horizontal direction.
     if x_size > 1
@@ -90,17 +87,17 @@ function interpolate_scalar(
     @ivy zrfd = zc[ir, jf, krfd]
     @ivy zrfu = zc[ir, jf, krfu]
 
-    @ivy philbd = scalar[il, jb, klbd]
-    @ivy philbu = scalar[il, jb, klbu]
+    @ivy philbd = alphar[il, jb, klbd]
+    @ivy philbu = alphar[il, jb, klbu]
 
-    @ivy philfd = scalar[il, jf, klfd]
-    @ivy philfu = scalar[il, jf, klfu]
+    @ivy philfd = alphar[il, jf, klfd]
+    @ivy philfu = alphar[il, jf, klfu]
 
-    @ivy phirbd = scalar[ir, jb, krbd]
-    @ivy phirbu = scalar[ir, jb, krbu]
+    @ivy phirbd = alphar[ir, jb, krbd]
+    @ivy phirbu = alphar[ir, jb, krbu]
 
-    @ivy phirfd = scalar[ir, jf, krfd]
-    @ivy phirfu = scalar[ir, jf, krfu]
+    @ivy phirfd = alphar[ir, jf, krfd]
+    @ivy phirfu = alphar[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(
