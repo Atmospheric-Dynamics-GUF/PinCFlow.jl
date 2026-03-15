@@ -13,6 +13,9 @@ set -x
 julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/home/atmodynamics/public/hdf5-1.14.4-3/src/.libs/libhdf5.so", "/home/atmodynamics/public/hdf5-1.14.4-3/hl/src/.libs/libhdf5_hl.so")'
 
+# Precompile.
+julia --project=examples -e 'using Pkg; Pkg.precompile()'
+
 # Run the model.
 mpiexec -n 27 julia examples/scripts/wkb_wave_packet.jl 3 3 3 1>wkb_wave_packet.log 2>&1
 
