@@ -79,9 +79,9 @@ The group velocities that are calculated for the propagation in physical space a
 
 ```math
 \\begin{align*}
-    c_{\\mathrm{g}, x, \\max} & = \\max\\limits_{i, j, k, r} \\left(\\frac{c_{\\mathrm{g}, x, r+} + c_{\\mathrm{g}, x, r-}}{2}\\right),\\\\
-    c_{\\mathrm{g}, y, \\max} & = \\max\\limits_{i, j, k, r} \\left(\\frac{c_{\\mathrm{g}, y, r+} + c_{\\mathrm{g}, y, r-}}{2}\\right),\\\\
-    c_{\\mathrm{g}, z, \\max} & = \\max\\limits_{i, j, k, r} \\left(\\frac{c_{\\mathrm{g}, z, r+} + c_{\\mathrm{g}, z, r-}}{2}\\right).
+    c_{\\mathrm{g}, x, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, x, r+},  c_{\\mathrm{g}, x, r-}\\right\\},\\\\
+    c_{\\mathrm{g}, y, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, y, r+}, c_{\\mathrm{g}, y, r-}\\right\\},\\\\
+    c_{\\mathrm{g}, z, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, z, r+}, c_{\\mathrm{g}, z, r-}\\right\\}.
 \\end{align*}
 ```
 
@@ -297,7 +297,7 @@ function propagate_rays!(
             end
 
             if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
-                abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
+               abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
                 error("Error in propagate_rays!: Rays travel too far in x!")
             end
 
@@ -323,7 +323,7 @@ function propagate_rays!(
             end
 
             if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
-                abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
+               abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
                 error("Error in propagate_rays!: Rays travel too far in y!")
             end
 
@@ -341,7 +341,7 @@ function propagate_rays!(
             cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
 
             if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
-                abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
+               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
                 error("Error in propagate_rays!: Rays travel too far in z!")
             end
 
