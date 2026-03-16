@@ -292,8 +292,6 @@ function propagate_rays!(
                 rays.x[r, i, j, k] += betark[rkstage] * dxray[r, i, j, k]
 
                 cgx_max[] = max(cgx_max[], abs(cgrx1), abs(cgrx2))
-            else
-                cgrx = 0.0
             end
 
             if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
@@ -318,8 +316,6 @@ function propagate_rays!(
                 rays.y[r, i, j, k] += betark[rkstage] * dyray[r, i, j, k]
 
                 cgy_max[] = max(cgy_max[], abs(cgry1), abs(cgry2))
-            else
-                cgry = 0.0
             end
 
             if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
