@@ -165,7 +165,6 @@ Compute and return the diffusive vertical momentum fluxes in ``\\hat{z}``-direct
   - `variable`: Wind direction.
 
   - `direction`: Direction of the flux.
-
 """
 function compute_momentum_diffusion_terms end
 
