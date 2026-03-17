@@ -75,6 +75,7 @@ function compute_turbulent_tracer_fluxes!(
     (; rhobar) = state.atmosphere
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
+    (; lb) = state.turbulence.turbulenceconstants
 
     rhob = rhobar[iray, jray, kray]
     kr = rays.k[r, i, j, k]
@@ -109,17 +110,17 @@ function compute_turbulent_tracer_fluxes!(
     dchidz = interpolate_mean_flow(xr, yr, zr, state, DChiDZ())
 
     uhat =
-        1im / mr / n2r / (omir^2 - n2r) / (omir^2 - fc^2) *
+        1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
         (kr * omir + 1im * fc * lr) *
         bhat
     vhat =
-        1im / mr / n2r / (omir^2 - n2r) / (omir^2 - fc^2) *
+        1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
         (lr * omir - 1im * fc * kr) *
         bhat
     what = 1im * omir / n2r * bhat
     chihat = -1im / omir * (uhat * dchidx + vhat * dchidy + what * dchidz)
-
-    qchi[iray, jray, kray] += imag(mr * conj(q10) * chihat) * factor
+    
+    qchi[iray, jray, kray] += lb * imag(mr * conj(q10) * chihat) * factor
 
     return
 end

@@ -300,7 +300,7 @@ function write_output(
                             kk,
                         ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
                 end
-                for field in fieldnames(TracerWKBIntegrals)
+                for field in (:uchi0, :vchi0, :wchi0, :uchi1, :vchi1, :wchi1)
                     HDF5.set_extent_dims(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
@@ -312,6 +312,12 @@ function write_output(
                             kk,
                         ] .* uref ./ rhobar[ii, jj, kk]
                 end
+                HDF5.set_extent_dims(
+                    file["qchi"],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file["qchi"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.qchi[ii, jj, kk] .* uref
             end
         end
 

@@ -527,28 +527,28 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(file[string(field)])["long_name"] = "tracer mixing ratio"
             end
 
-            if :dchidt in output_variables
-                for (field, units, label, long_name) in zip(
-                    fieldnames(TracerWKBImpact),
-                    ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
-                    (
-                        L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]",
-                    ),
-                    (
-                        "zonal GW-tracer flux",
-                        "meridional GW-tracer flux",
-                        "vertical GW-tracer flux",
-                        "GW-tracer flux convergence",
-                    ),
-                )
-                    attributes(file[string(field)])["units"] = units
-                    attributes(file[string(field)])["label"] = label
-                    attributes(file[string(field)])["long_name"] = long_name
-                end
-            end
+            # if :dchidt in output_variables
+            #     for (field, units, label, long_name) in zip(
+            #         fieldnames(TracerWKBImpact),
+            #         ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
+            #         (
+            #             L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
+            #             L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
+            #             L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
+            #             L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]",
+            #         ),
+            #         (
+            #             "zonal GW-tracer flux",
+            #             "meridional GW-tracer flux",
+            #             "vertical GW-tracer flux",
+            #             "GW-tracer flux convergence",
+            #         ),
+            #     )
+            #         attributes(file[string(field)])["units"] = units
+            #         attributes(file[string(field)])["label"] = label
+            #         attributes(file[string(field)])["long_name"] = long_name
+            #     end
+            # end
         end
 
         if wkb_mode != NoWKB()
