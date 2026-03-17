@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 32
-y_size = 1
-z_size = 100
+x_size = 516
+y_size = 16
+z_size = 1000
 
 lx = 9000e3
 ly = 300e3
@@ -62,23 +62,15 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
     save_ray_volumes = false,
-    output_variables = (:u, :v, :w, :rhop, :dchidt0, :e),
-    output_file = "wkb-wp-3d-qchi.h5",
+    output_variables = (:u, :v, :w, :rhop),
+    output_file = "wp-3d-qchi.h5",
     tmax = 1,
     output_interval = 1,
 )
 
-wkb = WKBNamelist(;
-    use_saturation = false,
-    nrz = 1,
-    wkb_mode = MultiColumn(),
-    initial_wave_field = (alpha, x, y, z) ->
-        (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
-)
-
 discretization = DiscretizationNamelist(; dtmax = 100)
 
-turbulence = TurbulenceNamelist(; turbulence_scheme = NoTurbulence())
+turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
 
 tracer = TracerNamelist(;
     tracer_setup = TracerOn(),
@@ -87,13 +79,5 @@ tracer = TracerNamelist(;
 )
 
 integrate(
-    Namelists(;
-        atmosphere,
-        domain,
-        output,
-        wkb,
-        tracer,
-        turbulence,
-        discretization,
-    ),
+    Namelists(; atmosphere, domain, output, tracer, turbulence, discretization),
 )

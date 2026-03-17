@@ -2,7 +2,6 @@
 ```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
-    tracer_setup::NoTracer,
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,

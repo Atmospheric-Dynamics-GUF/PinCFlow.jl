@@ -154,7 +154,7 @@ function set_tracer_zonal_boundaries!(
     (; namelists, domain) = state
     (; tracerwkbintegrals) = state.tracer
 
-    for field in (:uchi0, :vchi0, :wchi0)
+    for field in fieldnames(TracerWKBIntegrals)
         set_zonal_boundaries_of_field!(
             getfield(tracerwkbintegrals, field),
             namelists,
@@ -174,7 +174,7 @@ function set_tracer_zonal_boundaries!(
     (; namelists, domain) = state
     (; tracerwkbtendencies) = state.tracer
 
-    for field in (:dchidt0, :dchidt1, :dchidtq)
+    for field in fieldnames(TracerWKBTendencies)
         set_zonal_boundaries_of_field!(
             getfield(tracerwkbtendencies, field),
             namelists,

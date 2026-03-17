@@ -161,8 +161,10 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                     )
 
                     fcpspx = dkr * dxi / dx
+                    factorx = dxi / dx
                 else
                     fcpspx = 1.0
+                    factorx = 1.0
                 end
 
                 for jray in jmin:jmax
@@ -173,8 +175,10 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         )
 
                         fcpspy = dlr * dyi / dy
+                        factory = dyi / dy
                     else
                         fcpspy = 1.0
+                        factory = 1.0
                     end
 
                     kmin = get_next_half_level(
@@ -198,6 +202,9 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
+                        factorz = dzi / jac[iray, jray, kray] / dz
+
+                        factor = factorx * factory * factorz
 
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
@@ -268,6 +275,21 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         end
 
                         integrals.e[iray, jray, kray] += wadr * omir
+
+                        compute_turbulent_tracer_fluxes!(
+                            state,
+                            factor,
+                            r,
+                            i,
+                            j,
+                            k,
+                            xr,
+                            yr,
+                            zr,
+                            iray,
+                            jray,
+                            kray,
+                        )
 
                         compute_leading_order_tracer_fluxes!(
                             state,

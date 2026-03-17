@@ -148,7 +148,7 @@ function compute_gw_tendencies!(state::State)
             end
         end
 
-        compute_leading_order_tracer_forcing!(state, i, j, k)
+        compute_gw_tracer_tendencies!(state, i, j, k)
     end
 
     return

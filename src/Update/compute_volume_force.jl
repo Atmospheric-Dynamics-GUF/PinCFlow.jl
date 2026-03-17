@@ -276,14 +276,16 @@ function compute_volume_force(
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )::AbstractFloat
     (; leading_order_impact) = state.namelists.tracer
-    (; dchidt0) = state.tracer.tracerwkbtendencies
+    (; dchidt0, dchidtq) = state.tracer.tracerwkbtendencies
     (; model) = state.namelists.atmosphere
 
+    impact = 0.0
+
     @ivy if leading_order_impact && model == Compressible()
-        return dchidt0[i, j, k]
-    else
-        return 0.0
+        impact += dchidt0[i, j, k]
     end
+    impact += dchidtq[i, j, k]
+    return impact
 end
 
 function compute_volume_force(

@@ -261,8 +261,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               :dchidt0 in output_variables
+            if :dchidt in output_variables
                 for field in fieldnames(TracerWKBTendencies)
                     create_dataset(
                         file,
@@ -528,8 +527,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(file[string(field)])["long_name"] = "tracer mixing ratio"
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               :dchidt in output_variables
+            if :dchidt in output_variables
                 for (field, units, label, long_name) in zip(
                     fieldnames(TracerWKBImpact),
                     ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),

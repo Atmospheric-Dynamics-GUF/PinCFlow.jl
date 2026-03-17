@@ -54,7 +54,7 @@ struct WChi end
 
 include("compute_leading_order_tracer_fluxes!.jl")
 include("leading_order_tracer_fluxes.jl")
-include("compute_leading_order_tracer_forcing!.jl")
+include("compute_gw_tracer_tendencies!.jl")
 include("set_tracer_fields_zero!.jl")
 include("apply_blocked_layer_scheme!.jl")
 include("apply_shapiro_filter!.jl")
@@ -63,6 +63,7 @@ include("compute_gw_tendencies!.jl")
 include("compute_horizontal_cell_indices.jl")
 include("compute_mean_flow_effect!.jl")
 include("smooth_gw_tendencies!.jl")
+include("compute_turbulent_tracer_fluxes!.jl")
 
 export compute_mean_flow_effect!
 

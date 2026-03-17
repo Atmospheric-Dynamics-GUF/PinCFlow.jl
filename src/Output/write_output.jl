@@ -287,9 +287,8 @@ function write_output(
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               :dchidt0 in output_variables
-                for field in (:dchidt0,)
+            if :dchidt in output_variables
+                for field in fieldnames(TracerWKBTendencies)
                     HDF5.set_extent_dims(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
