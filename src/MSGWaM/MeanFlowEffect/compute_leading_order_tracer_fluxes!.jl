@@ -180,13 +180,13 @@ function compute_leading_order_tracer_fluxes!(
     j::Integer,
     k::Integer,
 )
-    (; uchi, vchi, wchi) = state.tracer.tracerforcings.chiq0
+    (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
 
     if fc == 0.0
         return
     end
 
-    @ivy uchi[i, j, k] += leading_order_tracer_fluxes(
+    @ivy uchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -200,7 +200,7 @@ function compute_leading_order_tracer_fluxes!(
         UChi(),
     )
 
-    @ivy vchi[i, j, k] += leading_order_tracer_fluxes(
+    @ivy vchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -214,7 +214,7 @@ function compute_leading_order_tracer_fluxes!(
         VChi(),
     )
 
-    @ivy wchi[i, j, k] += leading_order_tracer_fluxes(
+    @ivy wchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,

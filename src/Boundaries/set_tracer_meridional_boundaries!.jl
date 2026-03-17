@@ -155,11 +155,11 @@ function set_tracer_meridional_boundaries!(
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )
     (; namelists, domain) = state
-    (; chiq0) = state.tracer.tracerforcings
+    (; tracerwkbintegrals) = state.tracer
 
-    for field in (:uchi, :vchi, :wchi)
+    for field in (:uchi0, :vchi0, :wchi0)
         set_meridional_boundaries_of_field!(
-            getfield(chiq0, field),
+            getfield(tracerwkbintegrals, field),
             namelists,
             domain;
             layers = (1, 1, 1),
@@ -175,11 +175,11 @@ function set_tracer_meridional_boundaries!(
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )
     (; namelists, domain) = state
-    (; chiq0) = state.tracer.tracerforcings
+    (; tracerwkbtendencies) = state.tracer
 
-    for field in (:dchidt,)
+    for field in (:dchidt0, :dchidt1, :dchidtq)
         set_meridional_boundaries_of_field!(
-            getfield(chiq0, field),
+            getfield(tracerwkbtendencies, field),
             namelists,
             domain;
             layers = (1, 1, 1),

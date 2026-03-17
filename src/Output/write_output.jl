@@ -44,11 +44,11 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:dchidt`: Leading-order tracer impact of unresolved gravity waves.
 
-  - `:uchi`: Zonal tracer fluxes due to unresolved gravity waves.
+  - `:uchi0`: Leading-order zonal tracer fluxes due to unresolved gravity waves.
 
-  - `:vchi`: Meridional tracer fluxes due to unresolved gravity waves.
+  - `:vchi0`: Leading-order meridional tracer fluxes due to unresolved gravity waves.
 
-  - `:wchi`: Vertical tracer fluxes due to unresolved gravity waves.
+  - `:wchi0`: Leading-order vertical tracer fluxes due to unresolved gravity waves.
 
   - `:e`: Wave energy of unresolved gravity waves.
 
@@ -288,26 +288,26 @@ function write_output(
             end
 
             if state.namelists.tracer.leading_order_impact &&
-               :dchidt in output_variables
-                for field in (:dchidt,)
+               :dchidt0 in output_variables
+                for field in (:dchidt0,)
                     HDF5.set_extent_dims(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
                     )
                     @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerforcings.chiq0, field)[
+                        getfield(state.tracer.tracerwkbtendencies, field)[
                             ii,
                             jj,
                             kk,
                         ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
                 end
-                for field in (:uchi, :vchi, :wchi)
+                for field in fieldnames(TracerWKBIntegrals)
                     HDF5.set_extent_dims(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
                     )
                     @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerforcings.chiq0, field)[
+                        getfield(state.tracer.tracerwkbintegrals, field)[
                             ii,
                             jj,
                             kk,

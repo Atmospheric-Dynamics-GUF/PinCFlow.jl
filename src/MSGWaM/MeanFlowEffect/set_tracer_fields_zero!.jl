@@ -38,10 +38,13 @@ function set_tracer_field_zero!(state::State, tracer_setup::NoTracer)
 end
 
 function set_tracer_field_zero!(state::State, tracer_setup::TracerOn)
-    (; chiq0) = state.tracer.tracerforcings
+    (; tracerwkbtendencies, tracerwkbintegrals) = state.tracer
 
-    for field in fieldnames(TracerWKBImpact)
-        getfield(chiq0, field) .= 0.0
+    for field in fieldnames(TracerWKBTendencies)
+        getfield(tracerwkbtendencies, field) .= 0.0
+    end
+    for field in fieldnames(TracerWKBIntegrals)
+        getfield(tracerwkbintegrals, field) .= 0.0
     end
 
     return
