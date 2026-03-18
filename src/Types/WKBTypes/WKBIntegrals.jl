@@ -37,7 +37,10 @@ Construct a `WKBIntegrals` instance, with arrays sized according to the given di
 
   - `nzz`: Number of subdomain grid points in ``\\hat{z}``-direction.
 """
-struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+struct WKBIntegrals{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:Complex, 3},
+}
     uu::A
     uv::A
     uw::A
@@ -46,8 +49,16 @@ struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     utheta::A
     vtheta::A
     e::A
+    uhat::B
+    vhat::B
+    what::B
+    bhat::B
+    pihat::B
 end
 
 function WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
-    return WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:8]...)
+    return WKBIntegrals(
+        [zeros(nxx, nyy, nzz) for i in 1:8]...,
+        [zeros(Complex, nxx, nyy, nzz) for i in 1:5]...,
+    )
 end

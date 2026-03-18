@@ -68,12 +68,12 @@ function compute_turbulent_tracer_fluxes!(
     jray::Integer,
     kray::Integer,
 )
-    (; rays) = state.wkb
+    (; rays, integrals) = state.wkb
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tracer_setup) = state.namelists.tracer
     (; qchi) = state.tracer.tracerwkbintegrals
-    (; rhobar) = state.atmosphere
-    (; tref) = state.constants
+    (; rhobar, thetabar) = state.atmosphere
+    (; tref, kappa) = state.constants
     (; x_size, y_size) = state.namelists.domain
     (; lb) = state.turbulence.turbulenceconstants
 
@@ -102,25 +102,34 @@ function compute_turbulent_tracer_fluxes!(
 
     n2r = interpolate_stratification(zr, state, N2())
     q10 = compute_q(state, r, i, j, k, 1.0)
-    bhat = sqrt(
+    bhat0 = sqrt(
         n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * wadr / omir / rhob,
     )
+    uhat0 =
+        1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
+        (kr * omir + 1im * fc * lr) *
+        bhat0
+    vhat0 =
+        1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
+        (lr * omir - 1im * fc * kr) *
+        bhat0
+    what0 = 1im * omir / n2r * bhat0
+    pihat0 =
+        1im / mr * (omir^2 - n2r^2) / n2r / thetabar[iray, jray, kray] / kappa
+
     dchidx = interpolate_mean_flow(xr, yr, zr, state, DChiDX())
     dchidy = interpolate_mean_flow(xr, yr, zr, state, DChiDY())
     dchidz = interpolate_mean_flow(xr, yr, zr, state, DChiDZ())
 
-    uhat =
-        1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
-        (kr * omir + 1im * fc * lr) *
-        bhat
-    vhat =
-        1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
-        (lr * omir - 1im * fc * kr) *
-        bhat
-    what = 1im * omir / n2r * bhat
-    chihat = -1im / omir * (uhat * dchidx + vhat * dchidy + what * dchidz)
-    
+    chihat = -1im / omir * (uhat0 * dchidx + vhat0 * dchidy + what0 * dchidz)
+
     qchi[iray, jray, kray] += lb * imag(mr * conj(q10) * chihat) * factor
+
+    integrals.uhat[iray, jray, kray] += uhat0 * factor
+    integrals.vhat[iray, jray, kray] += vhat0 * factor
+    integrals.what[iray, jray, kray] += what0 * factor
+    integrals.bhat[iray, jray, kray] += bhat0 * factor
+    integrals.pihat[iray, jray, kray] += pihat0 * factor
 
     return
 end

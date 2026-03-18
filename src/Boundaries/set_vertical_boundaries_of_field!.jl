@@ -50,13 +50,13 @@ This method is applied to reconstruction arrays. Vertical boundary conditions ar
 function set_vertical_boundaries_of_field! end
 
 function set_vertical_boundaries_of_field!(
-    field::AbstractArray{<:Real, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain,
     mode::Function;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+) where {T <: Real}
     (; z_size, npz) = namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
 

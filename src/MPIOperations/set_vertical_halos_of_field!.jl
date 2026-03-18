@@ -40,11 +40,11 @@ The vertical domain boundaries are treated as described above. The first three d
 function set_vertical_halos_of_field! end
 
 function set_vertical_halos_of_field!(
-    field::AbstractArray{<:Real, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+) where {T <: Real}
     (; z_size, nbz) = namelists.domain
     (; comm, nz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 

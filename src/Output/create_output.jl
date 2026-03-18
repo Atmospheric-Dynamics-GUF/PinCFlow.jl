@@ -348,6 +348,19 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
+            if :uhat in output_variables
+                create_dataset(
+                    file,
+                    "uhat",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
                 for field in (
