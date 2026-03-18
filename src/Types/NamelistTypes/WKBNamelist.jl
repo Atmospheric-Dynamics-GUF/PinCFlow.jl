@@ -131,6 +131,7 @@ struct WKBNamelist{
     drag_coefficient::B
     wave_modes::A
     initial_wave_field::G
+    turbulence_damping::D
 end
 
 function WKBNamelist(;
@@ -159,6 +160,7 @@ function WKBNamelist(;
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
+    turbulence_damping::Bool = true,
 )::WKBNamelist
     return WKBNamelist(
         Int(nrx),
@@ -185,5 +187,6 @@ function WKBNamelist(;
         Float64(drag_coefficient),
         Int(wave_modes),
         initial_wave_field,
+        turbulence_damping,
     )
 end

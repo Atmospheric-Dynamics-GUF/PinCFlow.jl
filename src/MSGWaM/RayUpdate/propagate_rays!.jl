@@ -161,7 +161,7 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::Union{SingleColumn, MultiColumn},
 )
-    (; branch, impact_altitude) = state.namelists.wkb
+    (; branch, impact_altitude, turbulence_damping) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
@@ -225,29 +225,22 @@ function propagate_rays!(
             dlr = rays.dlray[r, i, j, k]
             dmr = rays.dmray[r, i, j, k]
 
-            wadr = rays.dens[r, i, j, k] * dmr
+            if turbulence_damping
+                factor = dmr
+                if x_size > 1
+                    factor *= dkr
+                end
+                if y_size > 1
+                    factor *= dlr
+                end
+                wadr = rays.dens[r, i, j, k] * factor
+                wadr *= (
+                    1 +
+                    stepfrac[rkstage] * dt * (-2 * (gammas + gammaw) + gammawp)
+                )
 
-            if x_size > 1
-                wadr *= dkr
+                rays.dens[r, i, j, k] = wadr / factor
             end
-            if y_size > 1
-                wadr *= dlr
-            end
-
-            wadr =
-                wadr +
-                stepfrac[rkstage] *
-                dt *
-                (-2 * (gammas + gammaw) * wadr + gammawp * wadr)
-
-            densr = wadr / dmr
-            if x_size > 1
-                densr /= dkr
-            end
-            if y_size > 1
-                densr /= dlr
-            end
-            rays.dens[r, i, j, k] = densr
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
