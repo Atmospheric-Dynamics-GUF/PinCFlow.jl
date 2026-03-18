@@ -39,7 +39,7 @@ Construct a `WKBIntegrals` instance, with arrays sized according to the given di
 """
 struct WKBIntegrals{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:Complex, 3},
+    B <: AbstractArray{<:ComplexF64, 3},
 }
     uu::A
     uv::A
@@ -59,6 +59,6 @@ end
 function WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
     return WKBIntegrals(
         [zeros(nxx, nyy, nzz) for i in 1:8]...,
-        [zeros(Complex, nxx, nyy, nzz) for i in 1:5]...,
+        [zeros(ComplexF64, nxx, nyy, nzz) for i in 1:5]...,
     )
 end

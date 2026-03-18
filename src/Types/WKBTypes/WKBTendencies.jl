@@ -27,12 +27,23 @@ Construct a `WKBTendencies` instance, with arrays sized according to the given d
 
   - `nzz`: Number of subdomain grid points in ``\\hat{z}``-direction.
 """
-struct WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+struct WKBTendencies{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:ComplexF64, 3},
+}
     dudt::A
     dvdt::A
     dthetadt::A
+    ru::B
+    rv::B
+    rw::B
+    rb::B
+    rpi::B
 end
 
 function WKBTendencies(nxx::Integer, nyy::Integer, nzz::Integer)::WKBTendencies
-    return WKBTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)
+    return WKBTendencies(
+        [zeros(nxx, nyy, nzz) for i in 1:3]...,
+        [zeros(ComplexF64, nxx, nyy, nzz) for i in 1:5]...,
+    )
 end

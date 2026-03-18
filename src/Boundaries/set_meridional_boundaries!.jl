@@ -291,7 +291,7 @@ function set_meridional_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt)
+    for field in (:dudt, :dvdt, :ru, :rv, :rw, :rb, :rpi)
         set_meridional_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,
@@ -310,7 +310,7 @@ function set_meridional_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt, :dthetadt)
+    for field in (:dudt, :dvdt, :dthetadt, :ru, :rv, :rw, :rb, :rpi)
         set_meridional_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,
