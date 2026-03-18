@@ -32,10 +32,8 @@ function copy_rays!(
     j::Pair{<:Integer, <:Integer},
     k::Pair{<:Integer, <:Integer},
 )
-    @ivy for field in fieldnames(Rays)
-        getfield(rays, field)[r[2], i[2], j[2], k[2]] =
-            getfield(rays, field)[r[1], i[1], j[1], k[1]]
-    end
+    @ivy rays.data[:, r[2], i[2], j[2], k[2]] .=
+        rays.data[:, r[1], i[1], j[1], k[1]]
 
     return
 end
