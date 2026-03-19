@@ -217,7 +217,6 @@ function propagate_rays!(
     end
 
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
-        nskip = 0
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
@@ -431,16 +430,6 @@ function propagate_rays!(
 
                 rays.dmray[r, i, j, k] = azm / rays.dzray[r, i, j, k]
             end
-        end
-
-        if nskip > 0
-            println(
-                nskip,
-                " out of ",
-                nray[i, j, k],
-                " ray volumes have been skipped in propagate_rays!!",
-            )
-            println("")
         end
     end
 
