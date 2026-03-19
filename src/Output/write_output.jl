@@ -388,7 +388,7 @@ function write_output(
                 )
                 file["wavespectrum"][iid, jjd, kkd, kpr, mr, iout] = 
                     spec_tend.wavespectrum[ii, jj, kk, kpr, mr] .* rhoref .* uref .^ 2 .* tref .*
-                    lref .^ 3
+                    lref .^ dim
             end
             if :stk in output_variables && triad_mode != NoTriad()
                 HDF5.set_extent_dims(
@@ -397,7 +397,7 @@ function write_output(
                 )
                 file["stk"][iid, jjd, kkd, kpr, mr, iout] = 
                     spec_tend.col_int[ii, jj, kk, kpr, mr] .* rhoref .* uref .^ 2 .* tref .^2 .*
-                    lref .^ 3
+                    lref .^ dim
             end
         end
 
