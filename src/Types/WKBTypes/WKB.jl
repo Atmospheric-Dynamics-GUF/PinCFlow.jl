@@ -121,6 +121,7 @@ struct WKB{
     I <: Ref{<:AbstractFloat},
     J <: AbstractArray{<:AbstractFloat, 3},
     K <: AbstractMatrix{<:AbstractFloat},
+    L <: Spectrum,
 }
     nxray::A
     nyray::A
@@ -143,6 +144,7 @@ struct WKB{
     cgz_max::J
     zb::K
     diffusion::J
+    spectrum::L
 end
 
 function WKB(namelists::Namelists, domain::Domain)::WKB
@@ -165,6 +167,7 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
         zeros(0, 0, 0),
         zeros(0, 0),
         zeros(0, 0, 0),
+        Spectrum(0, 0, 0, 0),
     )
 end
 
@@ -263,6 +266,7 @@ function WKB(
     cgz_max = zeros(nxx, nyy, nzz)
     zb = zeros(nxx, nyy)
     diffusion = zeros(nxx, nyy, nzz)
+    spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
 
     return WKB(
         nxray,
@@ -286,5 +290,6 @@ function WKB(
         cgz_max,
         zb,
         diffusion,
+        spectrum,
     )
 end

@@ -82,21 +82,15 @@ function initialize_rays!(
         cgx_max,
         cgy_max,
         cgz_max,
+        spectrum,
     ) = state.wkb
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    # Initialize local arrays.
-    omi_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnk_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnl_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnm_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wad_ini = zeros(wave_modes, nxx, nyy, nzz)
-
     # Compute initial wavenumbers, intrinsic frequencies and wave-action
     # densities with initial_wave_field.
-    if wkb_mode != SteadyState()
+    @ivy if wkb_mode != SteadyState()
         for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
                 alpha,
@@ -104,11 +98,12 @@ function initialize_rays!(
                 y[j] * lref,
                 zc[i, j, k] * lref,
             )
-            wnk_ini[alpha, i, j, k] = kdim * lref
-            wnl_ini[alpha, i, j, k] = ldim * lref
-            wnm_ini[alpha, i, j, k] = mdim * lref
-            omi_ini[alpha, i, j, k] = omegadim * tref
-            wad_ini[alpha, i, j, k] = adim / rhoref / uref^2 / tref
+
+            spectrum.k[alpha, i, j, k] = kdim * lref
+            spectrum.l[alpha, i, j, k] = ldim * lref
+            spectrum.m[alpha, i, j, k] = mdim * lref
+            spectrum.omega[alpha, i, j, k] = omegadim * tref
+            spectrum.a[alpha, i, j, k] = adim / rhoref / uref^2 / tref
         end
     else
         println(
@@ -120,11 +115,11 @@ function initialize_rays!(
     # Add orographic wave modes.
     activate_orographic_source!(
         state,
-        omi_ini,
-        wnk_ini,
-        wnl_ini,
-        wnm_ini,
-        wad_ini,
+        spectrum.omega,
+        spectrum.k,
+        spectrum.l,
+        spectrum.m,
+        spectrum.a,
     )
 
     # Set initial spectral extents (these will be overwritten in the loop).
@@ -164,7 +159,7 @@ function initialize_rays!(
                 surface_indices.alphas[s] = alpha
 
                 # Set surface ray-volume index.
-                if wad_ini[alpha, i, j, k] == 0.0
+                if spectrum.a[alpha, i, j, k] == 0.0
                     surface_indices.rs[s, i, j] = -1
                     continue
                 else
@@ -172,7 +167,7 @@ function initialize_rays!(
                     surface_indices.rs[s, i, j] = r
                 end
             else
-                if wad_ini[alpha, i, j, k] == 0.0
+                if spectrum.a[alpha, i, j, k] == 0.0
                     continue
                 end
                 r += 1
@@ -211,9 +206,9 @@ function initialize_rays!(
             rays.dyray[r, i, j, k] = dy / nry
             rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrz
 
-            wnk0 = wnk_ini[alpha, i, j, k]
-            wnl0 = wnl_ini[alpha, i, j, k]
-            wnm0 = wnm_ini[alpha, i, j, k]
+            wnk0 = spectrum.k[alpha, i, j, k]
+            wnl0 = spectrum.l[alpha, i, j, k]
+            wnm0 = spectrum.m[alpha, i, j, k]
 
             # Ensure correct wavenumber extents.
             if x_size > 1
@@ -251,7 +246,7 @@ function initialize_rays!(
             end
 
             # Set phase-space wave-action density.
-            rays.dens[r, i, j, k] = wad_ini[alpha, i, j, k] / pspvol
+            rays.dens[r, i, j, k] = spectrum.a[alpha, i, j, k] / pspvol
 
             # Interpolate winds to ray-volume position.
             uxr = interpolate_mean_flow(xr, yr, zr, state, U())
@@ -262,7 +257,7 @@ function initialize_rays!(
             wnrl = rays.l[r, i, j, k]
             wnrm = rays.m[r, i, j, k]
             wnrh = sqrt(wnrk^2 + wnrl^2)
-            omir = omi_ini[alpha, i, j, k]
+            omir = spectrum.omega[alpha, i, j, k]
 
             # Compute maximum group velocities.
             cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
