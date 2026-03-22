@@ -113,14 +113,7 @@ function initialize_rays!(
     end
 
     # Add orographic wave modes.
-    activate_orographic_source!(
-        state,
-        spectrum.omega,
-        spectrum.k,
-        spectrum.l,
-        spectrum.m,
-        spectrum.a,
-    )
+    compute_orographic_modes!(state)
 
     # Set initial spectral extents (these will be overwritten in the loop).
     dk_ini_nd = 0.0

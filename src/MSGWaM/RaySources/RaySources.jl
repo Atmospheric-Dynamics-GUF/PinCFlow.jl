@@ -21,9 +21,9 @@ using ...Types
 using ...PinCFlow
 
 include("activate_orographic_source!.jl")
-include("compute_orographic_mode.jl")
+include("compute_orographic_modes!.jl")
 include("compute_vertical_averages.jl")
 
-export activate_orographic_source!
+export activate_orographic_source!, compute_orographic_modes!
 
 end

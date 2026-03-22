@@ -1,28 +1,11 @@
 """
 ```julia
-activate_orographic_source!(
-    state::State,
-    omi_ini::AbstractArray{<:AbstractFloat, 4},
-    wnk_ini::AbstractArray{<:AbstractFloat, 4},
-    wnl_ini::AbstractArray{<:AbstractFloat, 4},
-    wnm_ini::AbstractArray{<:AbstractFloat, 4},
-    wad_ini::AbstractArray{<:AbstractFloat, 4},
-)
-```
-
-Compute ray-volume properties in the launch layer (i.e. at `k = k0 - 1`) for the initialization of MS-GWaM.
-
-Sets the launch-layer values of arrays for initial ray-volume properties (intrinsic frequencies, wavenumbers and wave-action densities). For this purpose, the horizontal components of the resolved wind, the background density and the squared buoyancy frequency are vertically averaged between the surface and an approximation for the summits of the unresolved orography (using `compute_vertical_averages`). The vertical averages are then used to determine the upper edge of the blocked layer and the corresponding reduction of the wave amplitude (using `compute_blocked_layer!`). Afterwards, the ray-volume properties are obtained by calling `compute_orographic_mode` with the scaled mode of the orographic spectrum and the vertical averages as arguments.
-
-```julia
 activate_orographic_source!(state::State)
 ```
 
 Launch ray volumes that represent unresolved orographic gravity waves.
 
-This method loops over surface grid cells and starts each iteration with the same steps that are performed by the first method. A loop over the spectral modes of the unresolved orography follows, in which the properties of each mode are computed, using `compute_orographic_mode` with the scaled mode of the orographic spectrum and vertical averages as arguments, and corresponding ray volumes are launched at `k = k0 - 1`.
-
-The launch algorithm distinguishes between the following situations (regarding previously launched ray volumes).
+This method first calls `compute_orographic_modes!` and then launches corresponding ray volumes. The launch algorithm distinguishes between the following situations (regarding previously launched ray volumes).
 
  1. There is no ray volume with nonzero wave-action density. A new ray volume is launched.
 
@@ -34,97 +17,16 @@ The launch algorithm distinguishes between the following situations (regarding p
 
   - `state`: Model state.
 
-  - `omi_ini`: Array for intrinsic frequencies.
-
-  - `wnk_ini`: Array for zonal wavenumbers.
-
-  - `wnl_ini`: Array for meridional wavenumbers.
-
-  - `wnm_ini`: Array for vertical wavenumbers.
-
-  - `wad_ini`: Array for wave-action densities.
-
 # See also
 
-  - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
-
-  - [`PinCFlow.MSGWaM.RaySources.compute_vertical_averages`](@ref)
-
-  - [`PinCFlow.MSGWaM.BlockedLayer.compute_blocked_layer!`](@ref)
-
-  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_mode`](@ref)
+  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
-
-!!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
 function activate_orographic_source! end
 
-function activate_orographic_source!(
-    state::State,
-    omi_ini::AbstractArray{<:AbstractFloat, 4},
-    wnk_ini::AbstractArray{<:AbstractFloat, 4},
-    wnl_ini::AbstractArray{<:AbstractFloat, 4},
-    wnm_ini::AbstractArray{<:AbstractFloat, 4},
-    wad_ini::AbstractArray{<:AbstractFloat, 4},
-)
-    (; coriolis_frequency) = state.namelists.atmosphere
-    (; branch, blocking, long_threshold, wave_modes) = state.namelists.wkb
-    (; tref) = state.constants
-    (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dz, jac, zctilde, kh, lh, hw) = state.grid
-    (; rhobar, n2) = state.atmosphere
-    (; u, v) = state.variables.predictands
-    (; zb) = state.wkb
-
-    if ko != 0
-        return
-    end
-
-    fc = coriolis_frequency * tref
-
-    @ivy for j in j0:j1, i in i0:i1
-        deltah = compute_elevation_difference(state, i, j)
-
-        (rhoh, n2h, uh, vh) = compute_vertical_averages(state, deltah, i, j)
-
-        ratio = compute_blocked_layer!(state, deltah, n2h, uh, vh, i, j)
-
-        # Set launch level.
-        k = k0 - 1
-
-        # Iterate over wave modes.
-        for alpha in 1:wave_modes
-
-            # Compute intrinsic frequency, wavenumbers and wave-action density.
-            (omi, wnk, wnl, wnm, wad) = compute_orographic_mode(
-                ratio * hw[alpha, i, j],
-                kh[alpha, i, j],
-                lh[alpha, i, j],
-                uh,
-                vh,
-                rhoh,
-                n2h,
-                fc,
-                branch,
-            )
-
-            # Save the results.
-            omi_ini[alpha, i, j, k] = omi
-            wnk_ini[alpha, i, j, k] = wnk
-            wnl_ini[alpha, i, j, k] = wnl
-            wnm_ini[alpha, i, j, k] = wnm
-            wad_ini[alpha, i, j, k] = wad
-        end
-    end
-
-    return
-end
-
 function activate_orographic_source!(state::State)
     (; x_size, y_size) = state.namelists.domain
-    (; coriolis_frequency) = state.namelists.atmosphere
     (;
         nrx,
         nry,
@@ -135,31 +37,21 @@ function activate_orographic_source!(state::State)
         dkr_factor,
         dlr_factor,
         dmr_factor,
-        branch,
-        blocking,
-        long_threshold,
         wkb_mode,
     ) = state.namelists.wkb
-    (; tref) = state.constants
-    (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, x, y, zc, jac, zctilde, kh, lh, hw) = state.grid
-    (; rhobar, n2) = state.atmosphere
-    (; u, v) = state.variables.predictands
+    (; ko, i0, i1, j0, j1, k0) = state.domain
+    (; dx, dy, dz, x, y, zc, jac, zctilde) = state.grid
     (; rs, ixs, jys, kzs, iks, jls, kms, alphas) = state.wkb.surface_indices
-    (; nray_wrk, n_sfc, nray, rays, zb, increments) = state.wkb
+    (; nray_wrk, n_sfc, nray, rays, increments, spectrum) = state.wkb
 
     if ko != 0
         return
     end
 
-    fc = coriolis_frequency * tref
+    compute_orographic_modes!(state)
 
+    # Loop over surface grid cells.
     @ivy for j in j0:j1, i in i0:i1
-        deltah = compute_elevation_difference(state, i, j)
-
-        (rhoh, n2h, uh, vh) = compute_vertical_averages(state, deltah, i, j)
-
-        ratio = compute_blocked_layer!(state, deltah, n2h, uh, vh, i, j)
 
         # Set launch level.
         k = k0 - 1
@@ -178,17 +70,11 @@ function activate_orographic_source!(state::State)
             alpha = alphas[s]
 
             # Compute intrinsic frequency, wavenumbers and wave-action density.
-            (omir, wnrk, wnrl, wnrm, wadr) = compute_orographic_mode(
-                ratio * hw[alpha, i, j],
-                kh[alpha, i, j],
-                lh[alpha, i, j],
-                uh,
-                vh,
-                rhoh,
-                n2h,
-                fc,
-                branch,
-            )
+            wnrk = spectrum.k[alpha, i, j, k]
+            wnrl = spectrum.l[alpha, i, j, k]
+            wnrm = spectrum.m[alpha, i, j, k]
+            omir = spectrum.omega[alpha, i, j, k]
+            wadr = spectrum.a[alpha, i, j, k]
 
             # Get vertical position and extent of old ray volume.
             if r > 0
