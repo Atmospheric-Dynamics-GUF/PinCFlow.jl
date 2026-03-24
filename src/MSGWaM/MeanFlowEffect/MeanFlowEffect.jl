@@ -63,7 +63,7 @@ include("compute_gw_tendencies!.jl")
 include("compute_horizontal_cell_indices.jl")
 include("compute_mean_flow_effect!.jl")
 include("smooth_gw_tendencies!.jl")
-include("compute_turbulent_tracer_fluxes!.jl")
+include("backup_wave_amplitudes!.jl")
 
 export compute_mean_flow_effect!
 

@@ -114,6 +114,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     end
 
     set_tracer_field_zero!(state)
+    backup_wave_amplitudes!(state)
 
     @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),

@@ -26,9 +26,11 @@ include("Rays.jl")
 include("MergedRays.jl")
 include("WKBIncrements.jl")
 include("SurfaceIndices.jl")
+include("WKBAuxiliaries.jl")
 include("WKB.jl")
 
 export WKBIntegrals,
-    WKBTendencies, Rays, MergedRays, WKBIncrements, SurfaceIndices, WKB
+    WKBTendencies, Rays, MergedRays, WKBIncrements, SurfaceIndices, WKBAuxiliaries,
+    WKB
 
 end

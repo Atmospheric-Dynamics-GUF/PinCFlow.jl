@@ -215,12 +215,16 @@ function initialize_rays!(
             wnl0 = wnl_ini[alpha, i, j, k]
             wnm0 = wnm_ini[alpha, i, j, k]
 
+            factor = jac[i, j, k] / nrz
+
             # Ensure correct wavenumber extents.
             if x_size > 1
                 dk_ini_nd = dkr_factor * sqrt(wnk0^2 + wnl0^2)
+                factor *= 1 / nrx
             end
             if y_size > 1
                 dl_ini_nd = dlr_factor * sqrt(wnk0^2 + wnl0^2)
+                factor *= 1 / nry
             end
             if wnm0 == 0.0
                 error("Error in WKB: wnm0 = 0!")
@@ -263,6 +267,21 @@ function initialize_rays!(
             wnrm = rays.m[r, i, j, k]
             wnrh = sqrt(wnrk^2 + wnrl^2)
             omir = omi_ini[alpha, i, j, k]
+
+            compute_turbulent_tracer_fluxes!(
+                state,
+                factor,
+                r,
+                i,
+                j,
+                k,
+                xr,
+                yr,
+                zr,
+                i,
+                j,
+                k,
+            )
 
             # Compute maximum group velocities.
             cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
