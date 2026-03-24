@@ -76,35 +76,7 @@ function set_meridional_boundaries_of_field!(
 end
 
 function set_meridional_boundaries_of_field!(
-    field::AbstractArray{T, 3},
-    namelists::Namelists,
-    domain::Domain;
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-) where {T <: Real}
-    (; npy) = namelists.domain
-    (; i0, i1, j0, j1, k0, k1) = domain
-
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
-
-    @ivy if npy > 1
-        set_meridional_halos_of_field!(field, namelists, domain; layers)
-    else
-        ii = (i0 - nbx):(i1 + nbx)
-        kk = (k0 - nbz):(k1 + nbz)
-
-        for j in 1:nby
-            field[ii, j0 - j, kk] .= field[ii, j1 - j + 1, kk]
-            field[ii, j1 + j, kk] .= field[ii, j0 + j - 1, kk]
-        end
-    end
-
-    return
-end
-
-function set_meridional_boundaries_of_field!(
-    field::AbstractArray{Complex{T}, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),

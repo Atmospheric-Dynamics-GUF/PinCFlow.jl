@@ -42,23 +42,25 @@ This method first computes several spectral integrals (using `compute_gw_integra
 """
 function compute_mean_flow_effect! end
 
-function compute_mean_flow_effect!(state::State)
+function compute_mean_flow_effect!(state::State, dtstage::AbstractFloat)
     (; wkb_mode) = state.namelists.wkb
-    compute_mean_flow_effect!(state, wkb_mode)
+    compute_mean_flow_effect!(state, dtstage, wkb_mode)
     return
 end
 
-function compute_mean_flow_effect!(state::State, wkb_mode::NoWKB)
+function compute_mean_flow_effect!(state::State, dtstage::AbstractFloat, wkb_mode::NoWKB)
     return
 end
 
 function compute_mean_flow_effect!(
-    state::State,
+    state::State, dtstage::AbstractFloat,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
 )
     compute_gw_integrals!(state)
 
     set_boundaries!(state, BoundaryWKBIntegrals())
+
+    compute_next_order_tracer_fluxes!(state, dtstage)
 
     compute_gw_tendencies!(state)
 

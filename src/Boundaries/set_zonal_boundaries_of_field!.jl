@@ -76,35 +76,7 @@ function set_zonal_boundaries_of_field!(
 end
 
 function set_zonal_boundaries_of_field!(
-    field::AbstractArray{T, 3},
-    namelists::Namelists,
-    domain::Domain;
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-) where {T <: Real}
-    (; npx) = namelists.domain
-    (; i0, i1, j0, j1, k0, k1) = domain
-
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
-
-    @ivy if npx > 1
-        set_zonal_halos_of_field!(field, namelists, domain; layers)
-    else
-        jj = (j0 - nby):(j1 + nby)
-        kk = (k0 - nbz):(k1 + nbz)
-
-        for i in 1:nbx
-            field[i0 - i, jj, kk] .= field[i1 - i + 1, jj, kk]
-            field[i1 + i, jj, kk] .= field[i0 + i - 1, jj, kk]
-        end
-    end
-
-    return
-end
-
-function set_zonal_boundaries_of_field!(
-    field::AbstractArray{Complex{T}, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),

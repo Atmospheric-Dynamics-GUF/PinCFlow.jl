@@ -29,7 +29,7 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
     merge_rays!(state)
     set_boundary_rays!(state)
 
-    compute_mean_flow_effect!(state)
+    compute_mean_flow_effect!(state, dtstage)
 
     return
 end

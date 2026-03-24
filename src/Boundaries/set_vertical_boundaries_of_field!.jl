@@ -50,58 +50,7 @@ This method is applied to reconstruction arrays. Vertical boundary conditions ar
 function set_vertical_boundaries_of_field! end
 
 function set_vertical_boundaries_of_field!(
-    field::AbstractArray{T, 3},
-    namelists::Namelists,
-    domain::Domain,
-    mode::Function;
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-    staggered = false,
-) where {T <: Real}
-    (; z_size, npz) = namelists.domain
-    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
-
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
-
-    if npz > 1
-        set_vertical_halos_of_field!(field, namelists, domain; layers)
-    end
-
-    ii = (i0 - nbx):(i1 + nbx)
-    jj = (j0 - nby):(j1 + nby)
-
-    @ivy if ko == 0
-        if staggered
-            field[ii, jj, k0 - 1] .= 0.0
-            for k in 1:nbz
-                field[ii, jj, k0 - k] .= mode.(field[ii, jj, k0 + k - 2])
-            end
-        else
-            for k in 1:nbz
-                field[ii, jj, k0 - k] .= mode.(field[ii, jj, k0 + k - 1])
-            end
-        end
-    end
-
-    @ivy if ko + nz == z_size
-        if staggered
-            field[ii, jj, k1] .= 0.0
-            for k in 1:nbz
-                field[ii, jj, k1 + k] .= mode.(field[ii, jj, k1 - k])
-            end
-        else
-            for k in 1:nbz
-                field[ii, jj, k1 + k] .= mode.(field[ii, jj, k1 - k + 1])
-            end
-        end
-    end
-
-    return
-end
-
-function set_vertical_boundaries_of_field!(
-    field::AbstractArray{Complex{T}, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain,
     mode::Function;

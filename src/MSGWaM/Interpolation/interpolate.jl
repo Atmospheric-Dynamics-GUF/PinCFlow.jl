@@ -131,14 +131,14 @@ function interpolate end
 
 function interpolate(
     state::State;
-    philbd::AbstractFloat = NaN,
-    philbu::AbstractFloat = NaN,
-    philfd::AbstractFloat = NaN,
-    philfu::AbstractFloat = NaN,
-    phirbd::AbstractFloat = NaN,
-    phirbu::AbstractFloat = NaN,
-    phirfd::AbstractFloat = NaN,
-    phirfu::AbstractFloat = NaN,
+    philbd::Union{T, Complex{T}} = NaN,
+    philbu::Union{T, Complex{T}} = NaN,
+    philfd::Union{T, Complex{T}} = NaN,
+    philfu::Union{T, Complex{T}} = NaN,
+    phirbd::Union{T, Complex{T}} = NaN,
+    phirbu::Union{T, Complex{T}} = NaN,
+    phirfd::Union{T, Complex{T}} = NaN,
+    phirfu::Union{T, Complex{T}} = NaN,
     zlbd::AbstractFloat = NaN,
     zlbu::AbstractFloat = NaN,
     zlfd::AbstractFloat = NaN,
@@ -154,7 +154,7 @@ function interpolate(
     xl::AbstractFloat = NaN,
     xr::AbstractFloat = NaN,
     xlc::AbstractFloat = NaN,
-)::AbstractFloat
+)::Union{T, Complex{T}} where {T <: Real}
     (; x_size, y_size) = state.namelists.domain
 
     # Interpolate in x.

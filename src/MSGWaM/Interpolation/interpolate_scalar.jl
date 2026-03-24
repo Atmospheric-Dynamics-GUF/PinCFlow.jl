@@ -1,18 +1,20 @@
 """
 ```julia
-interpolate_sponge(
+interpolate_scalar(
+    state::State,
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    state::State,
-)::AbstractFloat
+    field::Union{AbstractArray{T, 3}, Abst
 ```
 
-Interpolate the Rayleigh-damping coefficient of the LHS sponge (``\\alpha_\\mathrm{R}``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
+Interpolate a scalar field to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
 
 This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` that are closest to `xlc` and `ylc`, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\alpha_\\mathrm{R}`` to the location of interest, using `interpolate`.
 
 # Arguments
+
+  - `state`: Model state.
 
   - `xlc`: Zonal position of interest.
 
@@ -20,7 +22,7 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 
   - `zlc`: Vertical position of interest.
 
-  - `state`: Model state.
+  - `field`: Scalar field to be interpolated.
 
 # See also
 
@@ -28,20 +30,19 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
-function interpolate_sponge end
+function interpolate_scalar end
 
-function interpolate_sponge(
+function interpolate_scalar(
+    state::State,
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    state::State,
-)::AbstractFloat
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
+)::Union{T, Complex{T}} where {T <: Real}
     (; namelists, domain, grid) = state
     (; x_size, y_size) = namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, zc) = grid
-    (; alphar) = state.sponge
-
     # Determine closest points in horizontal direction.
     if x_size > 1
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
@@ -87,17 +88,17 @@ function interpolate_sponge(
     @ivy zrfd = zc[ir, jf, krfd]
     @ivy zrfu = zc[ir, jf, krfu]
 
-    @ivy philbd = alphar[il, jb, klbd]
-    @ivy philbu = alphar[il, jb, klbu]
+    @ivy philbd = field[il, jb, klbd]
+    @ivy philbu = field[il, jb, klbu]
 
-    @ivy philfd = alphar[il, jf, klfd]
-    @ivy philfu = alphar[il, jf, klfu]
+    @ivy philfd = field[il, jf, klfd]
+    @ivy philfu = field[il, jf, klfu]
 
-    @ivy phirbd = alphar[ir, jb, krbd]
-    @ivy phirbu = alphar[ir, jb, krbu]
+    @ivy phirbd = field[ir, jb, krbd]
+    @ivy phirbu = field[ir, jb, krbu]
 
-    @ivy phirfd = alphar[ir, jf, krfd]
-    @ivy phirfu = alphar[ir, jf, krfu]
+    @ivy phirfd = field[ir, jf, krfd]
+    @ivy phirfu = field[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(
