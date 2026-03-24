@@ -4,6 +4,10 @@
 ```
 
 Return the expression `x` with `@inbounds` and `@views` in front of it.
+
+# Arguments
+
+  - `x`: Input expression.
 """
 macro ivy end
 
