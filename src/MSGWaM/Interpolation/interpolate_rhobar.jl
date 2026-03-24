@@ -1,10 +1,6 @@
 """
 ```julia
-interpolate_rhobar(
-    zlc::AbstractFloat,
-    state::State,
-    strtype::N2,
-)::AbstractFloat
+interpolate_rhobar(zlc::AbstractFloat, state::State, strtype::N2)::AbstractFloat
 ```
 
 Interpolate the background density (``\\overline{\\rho}``) to `zlc` and return the result.
@@ -25,10 +21,7 @@ This method first determines the two points in ``z`` that are closest to `zlc`. 
 """
 function interpolate_rhobar end
 
-function interpolate_rhobar(
-    zlc::AbstractFloat,
-    state::State,
-)::AbstractFloat
+function interpolate_rhobar(zlc::AbstractFloat, state::State)::AbstractFloat
     (; domain, grid) = state
     (; rhobar) = state.atmosphere
     (; i0, j0) = domain
@@ -43,12 +36,7 @@ function interpolate_rhobar(
     @ivy rhou = rhobar[i0, j0, ku]
 
     if zu < zd
-        error(
-            "Error in interpolate_rhobar (rhobar): zu = ",
-            zu,
-            " < zd = ",
-            zd,
-        )
+        error("Error in interpolate_rhobar (rhobar): zu = ", zu, " < zd = ", zd)
     elseif zu == zd
         factor = 0.0
     elseif zlc > zu

@@ -30,7 +30,12 @@ include("WKBAuxiliaries.jl")
 include("WKB.jl")
 
 export WKBIntegrals,
-    WKBTendencies, Rays, MergedRays, WKBIncrements, SurfaceIndices, WKBAuxiliaries,
+    WKBTendencies,
+    Rays,
+    MergedRays,
+    WKBIncrements,
+    SurfaceIndices,
+    WKBAuxiliaries,
     WKB
 
 end

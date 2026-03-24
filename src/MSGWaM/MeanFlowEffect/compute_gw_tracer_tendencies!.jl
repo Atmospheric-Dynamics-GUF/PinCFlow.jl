@@ -1,11 +1,6 @@
 """
 ```julia
-compute_gw_tracer_tendencies!(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-)
+compute_gw_tracer_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
 ```
 
 Compute the leading-order tracer forcing by dispatching to the tracer-setup-specific method.
@@ -48,12 +43,7 @@ Compute the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
 """
 function compute_gw_tracer_tendencies! end
 
-function compute_gw_tracer_tendencies!(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-)
+function compute_gw_tracer_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
     (; tracer_setup) = state.namelists.tracer
 
     compute_gw_tracer_tendencies!(state, i, j, k, tracer_setup)

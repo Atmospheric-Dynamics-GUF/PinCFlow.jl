@@ -394,7 +394,10 @@ function write_output(
             end
 
             if :uhat in output_variables
-                HDF5.set_extent_dims(file["uhat"], (x_size, y_size, z_size, iout))
+                HDF5.set_extent_dims(
+                    file["uhat"],
+                    (x_size, y_size, z_size, iout),
+                )
                 file["uhat"][iid, jjd, kkd, iout] =
                     abs.(state.wkb.integrals.uhat[ii, jj, kk]) .* uref
             end

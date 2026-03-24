@@ -2,7 +2,6 @@ function compute_next_order_tracer_fluxes! end
 
 function compute_next_order_tracer_fluxes!(
     state::State,
-    
     factor::AbstractFloat,
     r::Integer,
     i::Integer,
@@ -33,7 +32,7 @@ function compute_next_order_tracer_fluxes!(
         kray,
     )
 
-    return 
+    return
 end
 
 function compute_next_order_tracer_fluxes!(

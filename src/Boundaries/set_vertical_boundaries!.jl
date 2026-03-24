@@ -390,7 +390,21 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
-    for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e, :uhat, :vhat, :what, :bhat, :pihat)
+    for field in (
+        :uu,
+        :uv,
+        :uw,
+        :vv,
+        :vw,
+        :utheta,
+        :vtheta,
+        :e,
+        :uhat,
+        :vhat,
+        :what,
+        :bhat,
+        :pihat,
+    )
         set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
@@ -411,7 +425,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt, :ru, :rv, :rw, :rb, :rpi)
+    for field in (:dudt, :dvdt)
         set_vertical_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,
@@ -431,7 +445,7 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
-    for field in (:dudt, :dvdt, :dthetadt, :ru, :rv, :rw, :rb, :rpi)
+    for field in (:dudt, :dvdt, :dthetadt)
         set_vertical_boundaries_of_field!(
             getfield(tendencies, field),
             namelists,
@@ -443,7 +457,10 @@ function set_vertical_boundaries!(
     return
 end
 
-function set_vertical_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryDiffusionCoefficients,
+)
     (; namelists, domain) = state
     (; turbulencediffusioncoefficients) = state.turbulence
 

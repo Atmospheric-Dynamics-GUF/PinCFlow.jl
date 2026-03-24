@@ -45,7 +45,10 @@ struct TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dtke::A
 end
 
-function TurbulenceIncrements(namelists::Namelists, domain::Domain)::TurbulenceIncrements
+function TurbulenceIncrements(
+    namelists::Namelists,
+    domain::Domain,
+)::TurbulenceIncrements
     (; turbulence_scheme) = namelists.turbulence
 
     return TurbulenceIncrements(domain, turbulence_scheme)

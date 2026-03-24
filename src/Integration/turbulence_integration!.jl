@@ -219,7 +219,11 @@ function turbulence_integration!(
     return
 end
 
-function turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
+function turbulence_integration!(
+    state::State,
+    dt::AbstractFloat,
+    process::Diffusion,
+)
     (; tke) = state.turbulence.turbulencepredictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; nbx, nby, nbz) = state.namelists.domain

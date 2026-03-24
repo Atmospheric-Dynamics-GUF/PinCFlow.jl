@@ -36,5 +36,10 @@ function TracerNamelist(;
     turbulence_impact::Bool = true,
     initial_tracer::Function = (x, y, z) -> 0.0,
 )::TracerNamelist
-    return TracerNamelist(tracer_setup, leading_order_impact, turbulence_impact, initial_tracer)
+    return TracerNamelist(
+        tracer_setup,
+        leading_order_impact,
+        turbulence_impact,
+        initial_tracer,
+    )
 end
