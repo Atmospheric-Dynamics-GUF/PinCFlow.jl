@@ -35,7 +35,6 @@ export WKBIntegrals,
     MergedRays,
     WKBIncrements,
     SurfaceIndices,
-    Spectrum,
     WKB
 
 end
