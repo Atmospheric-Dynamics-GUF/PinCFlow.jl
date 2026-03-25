@@ -81,7 +81,7 @@ function write_output(
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
+    (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, zc, zctilde) = grid
@@ -368,6 +368,23 @@ function write_output(
                     )
                     file[string(field)][iid, jjd, kkd, iout] =
                         getfield(tendencies, field)[ii, jj, kk] .* scaling
+                end
+            end
+
+            # Write elastic-mode-selection data.
+            if elastic_mode_selection && ko == 0
+                for field in (:launch_mode_count, :launch_power_fraction)
+                    if field in output_variables
+                        HDF5.set_extent_dims(
+                            file[string(field)],
+                            (x_size, y_size, iout),
+                        )
+                        file[string(field)][iid, jjd, iout] =
+                            getfield(state.wkb.elastic_mode_selection, field)[
+                                ii,
+                                jj,
+                            ]
+                    end
                 end
             end
         end

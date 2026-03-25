@@ -61,11 +61,13 @@ function compute_orographic_modes! end
 
 function compute_orographic_modes!(state::State)
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branch, wave_modes) = state.namelists.wkb
+    (; branch, wave_modes, elastic_mode_selection) = state.namelists.wkb
     (; tref) = state.constants
     (; ko, i0, i1, j0, j1, k0) = state.domain
     (; kh, lh, hw) = state.grid
     (; spectrum) = state.wkb
+    (; launch_mode_count, launch_power_fraction) =
+        state.wkb.elastic_mode_selection
 
     if ko != 0
         return
@@ -135,6 +137,14 @@ function compute_orographic_modes!(state::State)
             spectrum.m[alpha, i, j, k] = m
             spectrum.omega[alpha, i, j, k] = omega
             spectrum.a[alpha, i, j, k] = a
+        end
+
+        if elastic_mode_selection
+            (count, fraction) =
+                apply_elastic_mode_selection!(state, spectrum.a[:, i, j, k])
+
+            launch_mode_count[i, j] = count
+            launch_power_fraction[i, j] = fraction
         end
     end
 
