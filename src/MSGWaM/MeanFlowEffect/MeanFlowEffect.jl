@@ -19,6 +19,7 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 """
 module MeanFlowEffect
 
+using LinearAlgebra
 using ..Interpolation
 using ..RayUpdate
 using ...Types

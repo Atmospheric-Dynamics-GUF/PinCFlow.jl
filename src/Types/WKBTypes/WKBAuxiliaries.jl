@@ -7,6 +7,7 @@ struct WKBAuxiliaries{
     whatold::A
     bhatold::A
     pihatold::A
+    chihatold::A
     mat::B
 end
 
@@ -16,7 +17,7 @@ function WKBAuxiliaries(
     nzz::Integer,
 )::WKBAuxiliaries
     return WKBAuxiliaries(
-        [zeros(ComplexF64, nxx, nyy, nzz) for i in 1:5]...,
+        [zeros(ComplexF64, nxx, nyy, nzz) for i in 1:6]...,
         zeros(ComplexF64, 5, 5),
     )
 end

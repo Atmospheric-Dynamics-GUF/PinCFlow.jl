@@ -54,11 +54,12 @@ struct WKBIntegrals{
     what::B
     bhat::B
     pihat::B
+    chihat::B
 end
 
 function WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
     return WKBIntegrals(
         [zeros(nxx, nyy, nzz) for i in 1:8]...,
-        [zeros(ComplexF64, nxx, nyy, nzz) for i in 1:5]...,
+        [zeros(ComplexF64, nxx, nyy, nzz) for i in 1:6]...,
     )
 end

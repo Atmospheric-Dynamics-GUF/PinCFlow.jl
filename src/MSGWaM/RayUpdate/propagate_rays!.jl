@@ -455,7 +455,7 @@ function propagate_rays!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-            alphasponge = 2 * interpolate_scalar(state, xr, yr, zr, alphar)
+            alphasponge = 2 * interpolate_scalar(xr, yr, zr, state, alphar, None())
             betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
             rays.dens[r, i, j, k] *= betasponge
         end
@@ -576,7 +576,7 @@ function propagate_rays!(
 
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-            alphasponge = 2 * interpolate_scalar(state, xr, yr, zr, alphar)
+            alphasponge = 2 * interpolate_scalar(xr, yr, zr, state, alphar, None())
             rays.dens[r, i, j, k] =
                 1 / (
                     1 +

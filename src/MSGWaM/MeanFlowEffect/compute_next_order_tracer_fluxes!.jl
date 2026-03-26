@@ -25,14 +25,16 @@ function compute_next_order_tracer_fluxes!(
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
-    (; tref, g_ndim) = state.constants
+    (; tref, g_ndim, kappa, uref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; rhobar, thetabar) = state.atmosphere
+    (; rhobar, thetabar, pbar) = state.atmosphere
     (; nray, rays) = state.wkb
-    (; uhat, vhat, what, bhat, pihat) = state.wkb.integrals
-    (; uhatold, vhatold, whatold, bhatold, pihatold, mat) =
+    (; uhat, vhat, what, bhat, pihat, chihat) = state.wkb.integrals
+    (; uhatold, vhatold, whatold, bhatold, chihatold, mat) =
         state.wkb.wkbauxiliaries
+    (; rho, pip) = state.variables.predictands
+    (; uchi1, vchi1, wchi1) = state.tracer.tracerwkbintegrals
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -67,10 +69,6 @@ function compute_next_order_tracer_fluxes!(
             n2r = interpolate_stratification(zr, state, N2())
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
-
-            cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-            cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-            cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
             (imin, imax, jmin, jmax) =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
@@ -136,23 +134,260 @@ function compute_next_order_tracer_fluxes!(
                             1im*kr 1im*lr 1im*mr 0 0
                         ]
 
-                        uhatr = interpolate_scalar(state, xr, yr, zr, uhat)
-                        uhatoldr =
-                            interpolate_scalar(state, xr, yr, zr, uhatold)
-                        vhatr = interpolate_scalar(state, xr, yr, zr, vhat)
-                        vhatoldr =
-                            interpolate_scalar(state, xr, yr, zr, vhatold)
-                        whatr = interpolate_scalar(state, xr, yr, zr, what)
-                        whatoldr =
-                            interpolate_scalar(state, xr, yr, zr, whatold)
-                        bhatr = interpolate_scalar(state, xr, yr, zr, bhat)
-                        bhatoldr =
-                            interpolate_scalar(state, xr, yr, zr, bhatold)
-                        pihatr = interpolate_scalar(state, xr, yr, zr, pihat)
-                        pihatoldr =
-                            interpolate_scalar(state, xr, yr, zr, pihatold)
+                        F = svd(mat)
+
+                        matinv = F.V * inv(Diagonal(F.S)) * F.U'
+
+                        uhatr =
+                            interpolate_scalar(xr, yr, zr, state, uhat, None())
+                        vhatr =
+                            interpolate_scalar(xr, yr, zr, state, vhat, None())
+                        whatr =
+                            interpolate_scalar(xr, yr, zr, state, what, None())
+                        pihatr =
+                            interpolate_scalar(xr, yr, zr, state, pihat, None())
+                        bhatr =
+                            interpolate_scalar(xr, yr, zr, state, bhat, None())
+                        chihatr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            chihat,
+                            None(),
+                        )
+
+                        uhatoldr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            uhatold,
+                            None(),
+                        )
+                        vhatoldr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            vhatold,
+                            None(),
+                        )
+                        whatoldr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            whatold,
+                            None(),
+                        )
+                        bhatoldr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            bhatold,
+                            None(),
+                        )
+                        chihatoldr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            chihatold,
+                            None(),
+                        )
+
+                        ur = interpolate_mean_flow(xr, yr, zr, state, U())
+                        vr = interpolate_mean_flow(xr, yr, zr, state, V())
+                        rhor =
+                            interpolate_scalar(xr, yr, zr, state, rho, None())
+
+                        rhobarr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            rhobar,
+                            None(),
+                        )
+                        pbarr =
+                            interpolate_scalar(xr, yr, zr, state, pbar, None())
+                        thetabarr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            thetabar,
+                            None(),
+                        )
+
+                        thetar = pbarr / (rhor + rhobarr) - thetabarr
+
+                        dthetadxr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            pbar ./ (rho .+ rhobar) .- thetabar,
+                            DX(),
+                        )
+                        dthetadyr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            pbar ./ (rho .+ rhobar) .- thetabar,
+                            DY(),
+                        )
+                        dthetadzr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            pbar ./ (rho .+ rhobar) .- thetabar,
+                            DZ(),
+                        )
+
+                        thetahatr = bhatr * thetabarr / g_ndim
+
+                        dupdxr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            rhobar .* thetabar .* uhat,
+                            DX(),
+                        )
+                        dvpdyr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            rhobar .* thetabar .* vhat,
+                            DY(),
+                        )
+                        dwpdzr = interpolate_scalar(
+                            xr,
+                            yr,
+                            zr,
+                            state,
+                            rhobar .* thetabar .* what,
+                            DZ(),
+                        )
+
+                        dudxr = interpolate_mean_flow(xr, yr, zr, state, DUDX())
+                        dudyr = interpolate_mean_flow(xr, yr, zr, state, DUDY())
+                        dudzr = interpolate_mean_flow(xr, yr, zr, state, DUDZ())
+                        dvdxr = interpolate_mean_flow(xr, yr, zr, state, DVDX())
+                        dvdyr = interpolate_mean_flow(xr, yr, zr, state, DVDY())
+                        dvdzr = interpolate_mean_flow(xr, yr, zr, state, DVDZ())
+                        dpidxr =
+                            interpolate_scalar(xr, yr, zr, state, pip, DX())
+                        dpidyr =
+                            interpolate_scalar(xr, yr, zr, state, pip, DY())
+                        dpidzr =
+                            interpolate_scalar(xr, yr, zr, state, pip, DZ())
+                        dchidxr =
+                            interpolate_mean_flow(xr, yr, zr, state, DChiDX())
+                        dchidyr =
+                            interpolate_mean_flow(xr, yr, zr, state, DChiDY())
+                        dchidzr =
+                            interpolate_mean_flow(xr, yr, zr, state, DChiDZ())
+
+                        duhatdxr =
+                            interpolate_scalar(xr, yr, zr, state, uhat, DX())
+                        duhatdyr =
+                            interpolate_scalar(xr, yr, zr, state, uhat, DY())
+                        dvhatdxr =
+                            interpolate_scalar(xr, yr, zr, state, vhat, DX())
+                        dvhatdyr =
+                            interpolate_scalar(xr, yr, zr, state, vhat, DY())
+                        dwhatdxr =
+                            interpolate_scalar(xr, yr, zr, state, what, DX())
+                        dwhatdyr =
+                            interpolate_scalar(xr, yr, zr, state, what, DY())
+                        dpihatdxr =
+                            interpolate_scalar(xr, yr, zr, state, pihat, DX())
+                        dpihatdyr =
+                            interpolate_scalar(xr, yr, zr, state, pihat, DY())
+                        dpihatdzr =
+                            interpolate_scalar(xr, yr, zr, state, pihat, DZ())
+                        dbhatdxr =
+                            interpolate_scalar(xr, yr, zr, state, bhat, DX())
+                        dbhatdyr =
+                            interpolate_scalar(xr, yr, zr, state, bhat, DY())
+                        dchihatdxr =
+                            interpolate_scalar(xr, yr, zr, state, chihat, DX())
+                        dchihatdyr =
+                            interpolate_scalar(xr, yr, zr, state, chihat, DY())
 
                         duhatdt = (uhatr - uhatoldr) / dt
+                        dvhatdt = (vhatr - vhatoldr) / dt
+                        dwhatdt = (whatr - whatoldr) / dt
+                        dbhatdt = (bhatr - bhatoldr) / dt
+
+                        ru =
+                            -(duhatdt + ur * duhatdxr + vr * duhatdyr) -
+                            (uhatr * dudxr + vhatr * dudyr + whatr * dudzr) -
+                            1 / kappa * (
+                                thetabarr * dpihatdxr +
+                                1im * kr * thetar * pihatr +
+                                thetahatr * dpidxr
+                            )
+                        rv =
+                            -(dvhatdt + ur * dvhatdxr + vr * dvhatdyr) -
+                            (uhatr * dvdxr + vhatr * dvdyr + whatr * dvdzr) -
+                            1 / kappa * (
+                                thetabarr * dpihatdyr +
+                                1im * lr * thetar * pihatr +
+                                thetahatr * dpidyr
+                            )
+                        rw =
+                            -(dwhatdt + ur * dwhatdxr + vr * dwhatdyr) -
+                            1 / kappa * (
+                                thetabarr * dpihatdzr +
+                                1im * mr * thetar * pihatr +
+                                thetahatr * dpidzr
+                            )
+                        rb =
+                            -(dbhatdt + ur * dbhatdxr + vr * dbhatdyr) - (
+                                uhatr / thetabarr * dthetadxr +
+                                vhatr / thetabarr * dthetadyr +
+                                whatr / thetabarr * dthetadzr
+                            )
+
+                        rpi =
+                            -1 / (rhobarr * thetabarr) *
+                            (dupdxr + dvpdyr + dwpdzr)
+
+                        next_order_wave_amplitudes =
+                            matinv * [ru, rv, rw, rb / sqrt(n2r), rpi]
+
+                        dchihatdt = (chihatr - chihatoldr) / dt
+
+                        uhatr2 = next_order_wave_amplitudes[1]
+                        vhatr2 = next_order_wave_amplitudes[2]
+                        whatr2 = next_order_wave_amplitudes[3]
+
+                        chihatr2 =
+                            -1im / omir * (
+                                -(
+                                    dchihatdt +
+                                    ur * dchihatdxr +
+                                    vr * dchihatdyr
+                                ) +
+                                uhatr2 * dchidxr +
+                                vhatr2 * dchidyr +
+                                whatr2 * dchidzr
+                            )
+
+                        uchi1[iray, jray, kray] +=
+                            real(uhatr * chihatr2' + uhatr2 * chihatr') * factor
+                        vchi1[iray, jray, kray] +=
+                            real(vhatr * chihatr2' + vhatr2 * chihatr') * factor
+                        wchi1[iray, jray, kray] +=
+                            real(whatr * chihatr2' + whatr2 * chihatr') * factor
                     end
                 end
             end

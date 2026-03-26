@@ -115,21 +115,22 @@ function compute_turbulent_tracer_fluxes!(
         bhat0
     what0 = 1im * omir / n2r * bhat0
     pihat0 =
-        1im / mr * (omir^2 - n2r^2) / n2r / thetabar[iray, jray, kray] / kappa
+        1im / mr * (omir^2 - n2r^2) / n2r * bhat0 / thetabar[iray, jray, kray] * kappa
 
     dchidx = interpolate_mean_flow(xr, yr, zr, state, DChiDX())
     dchidy = interpolate_mean_flow(xr, yr, zr, state, DChiDY())
     dchidz = interpolate_mean_flow(xr, yr, zr, state, DChiDZ())
 
-    chihat = -1im / omir * (uhat0 * dchidx + vhat0 * dchidy + what0 * dchidz)
+    chihat1 = -1im / omir * (uhat0 * dchidx + vhat0 * dchidy + what0 * dchidz)
 
-    qchi[iray, jray, kray] += lb * imag(mr * conj(q10) * chihat) * factor
+    qchi[iray, jray, kray] += lb * imag(mr * conj(q10) * chihat1) * factor
 
     integrals.uhat[iray, jray, kray] += uhat0 * factor
     integrals.vhat[iray, jray, kray] += vhat0 * factor
     integrals.what[iray, jray, kray] += what0 * factor
     integrals.bhat[iray, jray, kray] += bhat0 * factor
     integrals.pihat[iray, jray, kray] += pihat0 * factor
+    integrals.chihat[iray, jray, kray] += chihat1 * factor
 
     return
 end

@@ -32,7 +32,6 @@ include("MSGWaM/MSGWaM.jl")
 include("Integration/Integration.jl")
 
 using PrecompileTools
-using LinearAlgebra
 using .Types
 using .Integration
 

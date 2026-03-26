@@ -26,6 +26,7 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 struct TracerNamelist{A <: AbstractTracer, B <: Bool, C <: Function}
     tracer_setup::A
     leading_order_impact::B
+    next_order_impact::B
     turbulence_impact::B
     initial_tracer::C
 end
@@ -33,12 +34,14 @@ end
 function TracerNamelist(;
     tracer_setup::AbstractTracer = NoTracer(),
     leading_order_impact::Bool = true,
+    next_order_impact::Bool = true,
     turbulence_impact::Bool = true,
     initial_tracer::Function = (x, y, z) -> 0.0,
 )::TracerNamelist
     return TracerNamelist(
         tracer_setup,
         leading_order_impact,
+        next_order_impact,
         turbulence_impact,
         initial_tracer,
     )

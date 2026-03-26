@@ -615,3 +615,155 @@ function compute_derivatives(
 
     return (phid, phiu)
 end
+
+function compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
+    phitype::DX,
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
+    (; dx, dz, met) = state.grid
+
+    @ivy cc = field[i, j, kd]
+    @ivy cr = field[i + 1, j, kd]
+    @ivy cu = field[i, j, kd + 1]
+    @ivy cd = field[i, j, kd - 1]
+    @ivy cru = field[i + 1, j, kd + 1]
+    @ivy crd = field[i + 1, j, kd - 1]
+
+    @ivy phid =
+        (cr - cc) / dx +
+        0.5 *
+        (met[i, j, kd, 1, 3] + met[i + 1, j, kd, 1, 3]) *
+        0.25 *
+        (cu + cru - cd - crd) / dz
+
+    @ivy cc = field[i, j, ku]
+    @ivy cr = field[i + 1, j, ku]
+    @ivy cu = field[i, j, ku + 1]
+    @ivy cd = field[i, j, ku - 1]
+    @ivy cru = field[i + 1, j, ku + 1]
+    @ivy crd = field[i + 1, j, ku - 1]
+
+    @ivy phiu =
+        (cr - cc) / dx +
+        0.5 *
+        (met[i, j, ku, 1, 3] + met[i + 1, j, ku, 1, 3]) *
+        0.25 *
+        (cu + cru - cd - crd) / dz
+
+    return (phid, phiu)
+end
+
+function compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
+    phitype::DY,
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
+    (; dy, dz, met) = state.grid
+
+    @ivy cc = field[i, j, kd]
+    @ivy cf = field[i, j + 1, kd]
+    @ivy cu = field[i, j, kd + 1]
+    @ivy cd = field[i, j, kd - 1]
+    @ivy cfu = field[i, j + 1, kd + 1]
+    @ivy cfd = field[i, j + 1, kd - 1]
+
+    @ivy phid =
+        (cf - cc) / dy +
+        0.5 *
+        (met[i, j, kd, 2, 3] + met[i, j + 1, kd, 2, 3]) *
+        0.25 *
+        (cu + cfu - cd - cfd) / dz
+
+    @ivy cc = field[i, j, ku]
+    @ivy cf = field[i, j + 1, ku]
+    @ivy cu = field[i, j, ku + 1]
+    @ivy cd = field[i, j, ku - 1]
+    @ivy cfu = field[i, j + 1, ku + 1]
+    @ivy cfd = field[i, j + 1, ku - 1]
+    @ivy phiu =
+        (cf - cc) / dy +
+        0.5 *
+        (met[i, j, ku, 2, 3] + met[i, j + 1, ku, 2, 3]) *
+        0.25 *
+        (cu + cfu - cd - cfd) / dz
+
+    return (phid, phiu)
+end
+
+function compute_derivatives(
+    state::State,
+    i::Integer,
+    j::Integer,
+    kd::Integer,
+    ku::Integer,
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
+    phitype::DZ,
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
+    (; lz, dz, zctilde, jac, hb) = state.grid
+
+    @ivy cuc = field[i, j, ku]
+    @ivy cdc = field[i, j, kd]
+    @ivy cuu = field[i, j, ku + 1]
+    @ivy cdu = field[i, j, kd + 1]
+
+    @ivy if zctilde[i, j, ku] < hb[i, j]
+        phid = 0.0
+        phiu = 0.0
+    elseif zctilde[i, j, kd] < hb[i, j]
+        phid = 0.0
+        phiu =
+            (cuu - cuc) / dz / (
+                2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
+                (jac[i, j, ku] + jac[i, j, ku + 1])
+            )
+    else
+        if zctilde[i, j, ku] < lz
+            phid =
+                (cdu - cdc) / dz / (
+                    2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
+                    (jac[i, j, kd] + jac[i, j, kd + 1])
+                )
+            phiu =
+                (cuu - cuc) / dz / (
+                    2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
+                    (jac[i, j, ku] + jac[i, j, ku + 1])
+                )
+        elseif zctilde[i, j, kd] < lz
+            phid =
+                (cdu - cdc) / dz / (
+                    2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
+                    (jac[i, j, kd] + jac[i, j, kd + 1])
+                )
+            phiu = 0.0
+        else
+            phid = 0.0
+            phiu = 0.0
+        end
+    end
+
+    return (phid, phiu)
+end

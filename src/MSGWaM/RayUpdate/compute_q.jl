@@ -36,7 +36,7 @@ function compute_q(
 
     (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
-    rhob = interpolate_scalar(state, xr, yr, zr, rhobar)
+    rhob = interpolate_scalar(xr, yr, zr, state, rhobar, None())
     kr = rays.k[r, i, j, k]
     lr = rays.l[r, i, j, k]
     mr = rays.m[r, i, j, k]
