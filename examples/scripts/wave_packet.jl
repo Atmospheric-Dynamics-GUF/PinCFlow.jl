@@ -56,7 +56,7 @@ atmosphere = AtmosphereNamelist(;
         real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
     initial_thetap = (x, y, z) ->
         real(bhat(x, y, z) * exp(1im * phi(x, y, z))) / g * thetabar(x, y, z),
-    buoyancy_initialization = :thetap,
+    buoyancy_initialization = :initial_thetap,
 )
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),

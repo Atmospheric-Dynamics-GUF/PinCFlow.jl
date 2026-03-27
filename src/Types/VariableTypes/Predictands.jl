@@ -96,9 +96,9 @@ function Predictands(
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
 
-        if buoyancy_initialization == :rhop
+        if buoyancy_initialization == :initial_rhop
             rhop[i, j, k] = initial_rhop(xdim, ydim, zcdim) / rhoref
-        elseif buoyancy_initialization == :thetap
+        elseif buoyancy_initialization == :initial_thetap
             rhop[i, j, k] =
                 rhobar[i, j, k] * (
                     1 / (

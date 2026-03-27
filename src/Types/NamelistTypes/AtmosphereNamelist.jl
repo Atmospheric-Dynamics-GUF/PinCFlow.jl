@@ -40,7 +40,7 @@ AtmosphereNamelist(;
     initial_w::Function = (x, y, z) -> 0.0,
     initial_pip::Function = (x, y, z) -> 0.0,
     initial_thetap::Function = (x, y, z) -> 0.0,
-    buoyancy_initialization::Symbol = :rhop,
+    buoyancy_initialization::Symbol = :initial_rhop,
 )::AtmosphereNamelist
 ```
 
@@ -78,7 +78,7 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `stratosphere_lapse_rate::C`: Lapse rate in the stratosphere for `background == LapseRates()`.
 
-  - `initial_rhop::E`: Function used to initialize the density fluctuations if `buoyancy_initialization == :rhop`.
+  - `initial_rhop::E`: Function used to initialize the density fluctuations if `buoyancy_initialization == :initial_rhop`.
 
   - `initial_u::F`: Function used to initialize the zonal wind.
 
@@ -88,9 +88,9 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `initial_pip::I`: Function used to initialize the Exner-pressure fluctuations.
 
-  - `initial_thetap::J`: Function used to initialize the density fluctuations if `buoyancy_initialization == :thetap`.
+  - `initial_thetap::J`: Function used to initialize the density fluctuations if `buoyancy_initialization == :initial_thetap`.
 
-  - `buoyancy_initialization::K`: Switch for using `initial_rhop` (if set to `:rhop`) or `initial_thetap` (if set to `:thetap`) to initialize the buoyancy.
+  - `buoyancy_initialization::K`: Switch for using `initial_rhop` (if set to `:initial_rhop`) or `initial_thetap` (if set to `:initial_thetap`) to initialize the buoyancy.
 """
 struct AtmosphereNamelist{
     A <: AbstractModel,
@@ -151,7 +151,7 @@ function AtmosphereNamelist(;
     initial_w::Function = (x, y, z) -> 0.0,
     initial_pip::Function = (x, y, z) -> 0.0,
     initial_thetap::Function = (x, y, z) -> 0.0,
-    buoyancy_initialization::Symbol = :rhop,
+    buoyancy_initialization::Symbol = :initial_rhop,
 )::AtmosphereNamelist
     return AtmosphereNamelist(
         model,
