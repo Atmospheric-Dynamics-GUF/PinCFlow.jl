@@ -50,6 +50,10 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:wchi`: Vertical tracer fluxes due to unresolved gravity waves.
 
+  - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
+
+  - `:launch_power_fraction`: Power fractions retained by the elastic-mode-selection algorithm.
+
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
 All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.

@@ -12,6 +12,8 @@ WKB{
     I <: Ref{<:AbstractFloat},
     J <: AbstractArray{<:AbstractFloat, 3},
     K <: AbstractMatrix{<:AbstractFloat},
+    L <: Spectrum,
+    M <: ElasticModeSelection,
 }
 ```
 
@@ -85,6 +87,10 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `diffusion::J`: Diffusion induced by wave breaking.
 
+  - `spectrum::L`: Wave field for initialization and sources.
+
+  - `elastic_mode_selection::M`: Elastic-mode-selection data.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -108,6 +114,10 @@ This method primarily determines the size of the spectral dimension of ray-volum
   - [`PinCFlow.Types.WKBTypes.WKBIntegrals`](@ref)
 
   - [`PinCFlow.Types.WKBTypes.WKBTendencies`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.Spectrum`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.ElasticModeSelection`](@ref)
 """
 struct WKB{
     A <: Integer,
