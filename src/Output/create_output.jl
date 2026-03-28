@@ -18,7 +18,7 @@ function create_output(state::State, machine_start_time::DateTime)
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
+    (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master) = state.domain
     (; nray_max) = state.wkb
 
@@ -326,6 +326,27 @@ function create_output(state::State, machine_start_time::DateTime)
                     )
                 end
             end
+
+            # Create datasets for elastic-mode-selection data.
+            if elastic_mode_selection
+                for (field, type) in zip(
+                    (:launch_mode_count, :launch_power_fraction),
+                    (Int32, Float32),
+                )
+                    if field in output_variables
+                        create_dataset(
+                            file,
+                            string(field),
+                            datatype(type),
+                            dataspace(
+                                (x_size, y_size, 0),
+                                (x_size, y_size, -1),
+                            );
+                            chunk = (cx, cy, ct),
+                        )
+                    end
+                end
+            end
         end
 
         return
@@ -584,6 +605,19 @@ function create_output(state::State, machine_start_time::DateTime)
                     attributes(file[string(field)])["units"] = units
                     attributes(file[string(field)])["label"] = label
                     attributes(file[string(field)])["long_name"] = long_name
+                end
+            end
+
+            if elastic_mode_selection
+                for (field, label) in zip(
+                    (:launch_mode_count, :launch_power_fraction),
+                    ("Launch-mode count", "Launch-power fraction"),
+                )
+                    if field in output_variables
+                        attributes(file[string(field)])["units"] = "1"
+                        attributes(file[string(field)])["label"] = label
+                        attributes(file[string(field)])["long_name"] = label
+                    end
                 end
             end
         end
