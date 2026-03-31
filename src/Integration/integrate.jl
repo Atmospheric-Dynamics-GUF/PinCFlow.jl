@@ -100,7 +100,7 @@ function integrate(namelists::Namelists)
     (; restart, tmax, output_interval, output_steps, iterations, nout) =
         state.namelists.output
     (; tref) = state.constants
-    (; master) = state.domain
+    (; master, comm) = state.domain
 
     # Print information.
     if master
@@ -382,6 +382,14 @@ function integrate(namelists::Namelists)
             println(repeat("-", 80))
             println("")
         end
+    end
+
+    peak_rss = MPI.Allreduce(Sys.maxrss(), +, comm) / 1024^3
+    if master
+        println(repeat("-", 80))
+        println("Approximate peak memory usage: ", peak_rss, " GB")
+        println(repeat("-", 80))
+        println("")
     end
 
     if master
