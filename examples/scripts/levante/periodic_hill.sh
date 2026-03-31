@@ -5,6 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=9
 #SBATCH --hint=nomultithread
+#SBATCH --mem=15G
 #SBATCH --time=0-00:15:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
