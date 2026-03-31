@@ -138,10 +138,16 @@ julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!()'
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```shell
+julia --project=examples -e 'using Pkg; Pkg.precompile()'
+```
+
+to precompile your project (this must be done before starting MPI jobs) and
+
+```shell
 mpiexec -n 16 julia examples/scripts/periodic_hill.jl 4 4
 ```
 
-with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl on [Goethe](https://csc.uni-frankfurt.de/wiki/doku.php?id=public:usage:goethe) or [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/scripts` of the repository.
+with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/scripts/levante` of the repository.
 
 ## List of publications
 
