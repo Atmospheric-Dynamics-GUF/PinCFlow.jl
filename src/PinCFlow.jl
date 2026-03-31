@@ -15,16 +15,19 @@ module PinCFlow
 
 using MPI
 
-include("@ensemble.jl")
 include("@ivy.jl")
+include("ensemble.jl")
 include("plot_output.jl")
 include("replace_assignments.jl")
 include("set_visualization_theme!.jl")
 include("symmetric_contours.jl")
 
-export @ensemble, @ivy
-export plot_output,
-    replace_assignments, set_visualization_theme!, symmetric_contours
+export @ivy
+export ensemble,
+    plot_output,
+    replace_assignments,
+    set_visualization_theme!,
+    symmetric_contours
 
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
