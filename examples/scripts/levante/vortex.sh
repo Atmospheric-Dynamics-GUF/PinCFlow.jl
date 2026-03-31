@@ -16,13 +16,6 @@ set -x
 # export I_MPI_PMI=pmi
 # export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
-# Configure MPI and HDF5.
-julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"])'
-julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
-
-# Precompile.
-julia --project=examples -e 'using Pkg; Pkg.precompile()'
-
 # Run the model on compute partition.
 # srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/vortex.jl 4 4 1>vortex.log 2>&1
 
