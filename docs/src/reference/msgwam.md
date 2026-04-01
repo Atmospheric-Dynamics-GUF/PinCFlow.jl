@@ -4,6 +4,12 @@
 Modules = [PinCFlow.MSGWaM]
 ```
 
+## BlockedLayer
+
+```@autodocs
+Modules = [PinCFlow.MSGWaM.BlockedLayer]
+```
+
 ## Interpolation
 
 ```@autodocs

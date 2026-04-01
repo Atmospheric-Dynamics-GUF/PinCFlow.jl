@@ -12,7 +12,7 @@ activate_orographic_source!(
 
 Compute ray-volume properties in the launch layer (i.e. at `k = k0 - 1`) for the initialization of MS-GWaM.
 
-Sets the launch-layer values of arrays for initial ray-volume properties (intrinsic frequencies, wavenumbers and wave-action densities). For this purpose, the horizontal components of the resolved wind, the background density and the squared buoyancy frequency are vertically averaged between the surface and an approximation for the summits of the unresolved orography. The vertical averages are then used to compute a non-dimensionalized mountain wave amplitude, from which an approximate reduction of the generated wave amplitude due to blocking is inferred (see below). Afterwards, the ray-volume properties are obtained by calling `compute_orographic_mode` with the correspondingly scaled mode of the orographic spectrum and the vertical averages as arguments.
+Sets the launch-layer values of arrays for initial ray-volume properties (intrinsic frequencies, wavenumbers and wave-action densities). For this purpose, the horizontal components of the resolved wind, the background density and the squared buoyancy frequency are vertically averaged between the surface and an approximation for the summits of the unresolved orography (using `compute_vertical_averages`). The vertical averages are then used to determine the upper edge of the blocked layer and the corresponding reduction of the wave amplitude (using `compute_blocked_layer!`). Afterwards, the ray-volume properties are obtained by calling `compute_orographic_mode` with the scaled mode of the orographic spectrum and the vertical averages as arguments.
 
 ```julia
 activate_orographic_source!(state::State)
@@ -20,27 +20,7 @@ activate_orographic_source!(state::State)
 
 Launch ray volumes that represent unresolved orographic gravity waves.
 
-In each column of MPI processes at the lower boundary, this method first computes vertical averages of the horizontal components of the resolved wind, the background density and the squared buoyancy frequency between ``h_\\mathrm{b}`` (the surface) and ``h_\\mathrm{b} + \\Delta h`` (an approximation for the summits of the unresolved orography, with ``\\Delta h = \\sum_\\alpha \\left|h_{\\mathrm{w}, \\alpha}\\right|``). The vertical averages are then used to compute a non-dimensionalized mountain wave amplitude, from which an approximate reduction of the generated wave amplitude due to blocking, as well as the depth of the blocked layer, is inferred. A loop over the spectral modes of the unresolved orography follows, in which the properties of each mode are computed, using `compute_orographic_mode` with the scaled mode of the orographic spectrum and vertical averages as arguments, and corresponding ray volumes are launched at `k = k0 - 1`.
-
-The parameterization of blocking is built around the non-dimensionalized mountain wave amplitude, or Long number,
-
-```math
-\\mathrm{Lo} = \\frac{N_h \\Delta h}{\\left|\\boldsymbol{u}_h\\right|},
-```
-
-where ``N_h`` is the square root of the vertically averaged squared buoyancy frequency and ``\\boldsymbol{u}_h`` is the vertically averaged resolved horizontal wind. This number is used to estimate the depth of the blocked layer as
-
-```math
-\\Delta z_\\mathrm{B} = 2 \\Delta h \\max \\left(0, \\frac{\\mathrm{Lo} - C}{\\mathrm{Lo}}\\right),
-```
-
-where ``C`` is a critical value represented by the model parameter `state.namelists.wkb.long_threshold`. The corresponding scaling of the orographic spectrum is given by
-
-```math
-r \\left(\\mathrm{Lo}\\right) = \\frac{2 \\Delta h - \\Delta z_\\mathrm{B}}{2 \\Delta h} = \\min \\left(1, \\frac{C}{\\mathrm{Lo}}\\right),
-```
-
-so that ``\\Delta z_\\mathrm{B} = 2 \\Delta h \\left(1 - r\\right)``. In addition to the reduction of the mountain-wave amplitude, the present blocked-layer scheme adds a blocked-flow drag to the mean-flow impact. This is implemented in [`PinCFlow.MSGWaM.MeanFlowEffect.apply_blocked_layer_scheme!`](@ref).
+This method loops over surface grid cells and starts each iteration with the same steps that are performed by the first method. A loop over the spectral modes of the unresolved orography follows, in which the properties of each mode are computed, using `compute_orographic_mode` with the scaled mode of the orographic spectrum and vertical averages as arguments, and corresponding ray volumes are launched at `k = k0 - 1`.
 
 The launch algorithm distinguishes between the following situations (regarding previously launched ray volumes).
 
@@ -65,6 +45,12 @@ The launch algorithm distinguishes between the following situations (regarding p
   - `wad_ini`: Array for wave-action densities.
 
 # See also
+
+  - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
+
+  - [`PinCFlow.MSGWaM.RaySources.compute_vertical_averages`](@ref)
+
+  - [`PinCFlow.MSGWaM.BlockedLayer.compute_blocked_layer!`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.compute_orographic_mode`](@ref)
 
@@ -96,47 +82,14 @@ function activate_orographic_source!(
         return
     end
 
-    # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    # Iterate over surface grid cells.
     @ivy for j in j0:j1, i in i0:i1
+        deltah = compute_elevation_difference(state, i, j)
 
-        # Sum the magnitudes of the spectrum.
-        hsum = sum(abs, hw[:, i, j])
+        (rhoh, n2h, uh, vh) = compute_vertical_averages(state, deltah, i, j)
 
-        # Average mean wind, reference density and buoyancy frequency.
-        uavg = 0.0
-        vavg = 0.0
-        rhoavg = 0.0
-        bvsavg = 0.0
-        dzsum = 0.0
-        for k in k0:k1
-            uavg += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
-            vavg += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
-            rhoavg += rhobar[i, j, k] * jac[i, j, k] * dz
-            bvsavg += n2[i, j, k] * jac[i, j, k] * dz
-            dzsum += jac[i, j, k] * dz
-            if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + hsum
-                break
-            end
-        end
-        uavg /= dzsum
-        vavg /= dzsum
-        rhoavg /= dzsum
-        bvsavg /= dzsum
-
-        # Determine the blocked layer.
-        if blocking && hsum > 0
-            long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
-            ratio = min(1, long_threshold / long)
-            zb[i, j] = zctilde[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
-        elseif blocking
-            ratio = 1
-            zb[i, j] = zctilde[i, j, k0 - 1]
-        else
-            ratio = 1
-        end
+        ratio = compute_blocked_layer!(state, deltah, n2h, uh, vh, i, j)
 
         # Set launch level.
         k = k0 - 1
@@ -149,10 +102,10 @@ function activate_orographic_source!(
                 ratio * hw[alpha, i, j],
                 kh[alpha, i, j],
                 lh[alpha, i, j],
-                uavg,
-                vavg,
-                rhoavg,
-                bvsavg,
+                uh,
+                vh,
+                rhoh,
+                n2h,
                 fc,
                 branch,
             )
@@ -199,47 +152,14 @@ function activate_orographic_source!(state::State)
         return
     end
 
-    # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    # Iterate over surface grid cells.
     @ivy for j in j0:j1, i in i0:i1
+        deltah = compute_elevation_difference(state, i, j)
 
-        # Sum the magnitudes of the spectrum.
-        hsum = sum(abs, hw[:, i, j])
+        (rhoh, n2h, uh, vh) = compute_vertical_averages(state, deltah, i, j)
 
-        # Average mean wind, reference density and buoyancy frequency.
-        uavg = 0.0
-        vavg = 0.0
-        rhoavg = 0.0
-        bvsavg = 0.0
-        dzsum = 0.0
-        for k in k0:k1
-            uavg += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
-            vavg += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
-            rhoavg += rhobar[i, j, k] * jac[i, j, k] * dz
-            bvsavg += n2[i, j, k] * jac[i, j, k] * dz
-            dzsum += jac[i, j, k] * dz
-            if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + hsum
-                break
-            end
-        end
-        uavg /= dzsum
-        vavg /= dzsum
-        rhoavg /= dzsum
-        bvsavg /= dzsum
-
-        # Determine the blocked layer.
-        if blocking && hsum > 0
-            long = sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) * hsum
-            ratio = min(1, long_threshold / long)
-            zb[i, j] = zctilde[i, j, k0 - 1] + hsum * (1 - 2 * ratio)
-        elseif blocking
-            ratio = 1.0
-            zb[i, j] = zctilde[i, j, k0 - 1]
-        else
-            ratio = 1.0
-        end
+        ratio = compute_blocked_layer!(state, deltah, n2h, uh, vh, i, j)
 
         # Set launch level.
         k = k0 - 1
@@ -262,10 +182,10 @@ function activate_orographic_source!(state::State)
                 ratio * hw[alpha, i, j],
                 kh[alpha, i, j],
                 lh[alpha, i, j],
-                uavg,
-                vavg,
-                rhoavg,
-                bvsavg,
+                uh,
+                vh,
+                rhoh,
+                n2h,
                 fc,
                 branch,
             )
