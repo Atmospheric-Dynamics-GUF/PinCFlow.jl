@@ -44,14 +44,18 @@ function ensemble(
         allow_missing_assignments = false,
     )
 
-    # Wrap the code in a function.
+    # Create a block expression from the modified code.
+    expression = Meta.parseall(modified_code)
+    expression.head = :block
+
+    # Wrap the block expression in a function expression.
     @gensym failure exception
     expression = quote
         $(Expr(:tuple, parameters...)) -> begin
             $(failure) = false
             try
                 open(
-                    replace(output_file[$(color)], r"\\.h5\$" => ".log"),
+                    replace(output_file[$(color)], r"\.h5$" => ".log"),
                     "w",
                 ) do file
                     redirect_stdout(file) do
@@ -60,7 +64,7 @@ function ensemble(
                             $(color),
                             $(rank),
                         )
-                        $(modified_code)
+                        $(expression)
                         return
                     end
                     return
