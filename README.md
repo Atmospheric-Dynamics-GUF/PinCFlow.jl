@@ -157,23 +157,23 @@ PinCFlow.jl has been used and/or developed in the following publications.
 
  1. [Rieper et al. (2013): Range of validity of an extended WKB theory for atmospheric gravity waves: One-dimensional and two-dimensional case](https://doi.org/10.1017/jfm.2013.307)
 
- 1. [Muraschko et al. (2014): On the application of Wentzel-Kramer-Brillouin theory for the simulation of the weakly nonlinear dynamics of gravity waves](https://doi.org/10.1002/qj.2381)
-
  1. [Borchert et al. (2014): Gravity wave emission in an atmosphere-like configuration of the differentially heated rotating annulus experiment](https://doi.org/10.1017/jfm.2014.528)
 
  1. [Borchert et al. (2015): Finite-volume models with implicit subgrid-scale parameterization for the differentially heated rotating annulus](https://doi.org/10.1127/metz/2014/0548)
+
+ 1. [Muraschko et al. (2015): On the application of Wentzel-Kramer-Brillouin theory for the simulation of the weakly nonlinear dynamics of gravity waves](https://doi.org/10.1002/qj.2381)
 
  1. [Boeloeni et al. (2016): The interaction between atmospheric gravity waves and large-scale flows: An efficient description beyond the nonacceleration paradigm](https://doi.org/10.1175/JAS-D-16-0069.1)
 
  1. [Achatz et al. (2017): The interaction between synoptic-scale balanced flow and a finite-amplitude mesoscale wave field throughout all atmospheric layers: Weak and moderately strong stratification](https://doi.org/10.1002/qj.2926)
 
- 1. [Wilhelm et al. (2018): Interactions between mesoscale and submesoscale gravity waves and their efficient representation in mesoscale-resolving models](https://doi.org/10.1175/JAS-D-17-0289.1)
+ 1. [Hien et al. (2018): Spontaneous inertia–gravity wave emission in the differentially heated rotating annulus experiment](https://doi.org/10.1017/jfm.2017.883)
 
- 1. [Eden et al. (2019): Gravity wave emission by shear instability](https://doi.org/10.1175/JPO-D-19-0029.1)
+ 1. [Wilhelm et al. (2018): Interactions between mesoscale and submesoscale gravity waves and their efficient representation in mesoscale-resolving models](https://doi.org/10.1175/JAS-D-17-0289.1)
 
  1. [Wei et al. (2019): Efficient modeling of the interaction of mesoscale gravity waves with unbalanced large-scale flows: Pseudomomentum-flux convergence versus direct approach](https://doi.org/10.1175/JAS-D-18-0337.1)
 
- 1. [Voelker et al. (2020): An application of WKBJ theory for triad interactions of internal gravity waves in varying background flows](https://doi.org/10.1002/qj.3962)
+ 1. [Voelker et al. (2021): An application of WKBJ theory for triad interactions of internal gravity waves in varying background flows](https://doi.org/10.1002/qj.3962)
 
  1. [Schmid et al. (2021): Toward a numerical laboratory for investigations of gravity wave-mean flow interactions in the atmosphere](https://doi.org/10.1175/MWR-D-21-0126.1)
 
