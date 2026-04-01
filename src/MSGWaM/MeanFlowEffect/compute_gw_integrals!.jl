@@ -109,12 +109,13 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
+    backup_wave_amplitudes!(state)
+    
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
 
     set_tracer_field_zero!(state)
-    backup_wave_amplitudes!(state)
 
     @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),

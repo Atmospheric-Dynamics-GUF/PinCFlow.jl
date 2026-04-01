@@ -13,23 +13,76 @@ Construct a `TracerAuxiliaries` instance by copying the arrays in `tracerpredict
 
 # Fields
 
-  - `initialtracer::A`: Initial state of a non-dimensional tracer.
+  - `backgroundtracer::A`: Initial state of a non-dimensional tracer.
 
 # Arguments
 
   - `tracerpredictands`: Tracers.
 """
 struct TracerAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
-    initialtracer::A
+    backgroundtracer::A
 end
 
 function TracerAuxiliaries(
-    tracerpredictands::TracerPredictands,
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    variables::Variables,
+)::TracerAuxiliaries
+    (; tracer_setup) = namelists.tracer
+
+    return TracerAuxiliaries(
+        namelists,
+        constants,
+        domain,
+        atmosphere,
+        grid,
+        tracer_setup,
+        variables,
+    )
+end
+function TracerAuxiliaries(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    tracer_setup::NoTracer,
+    variables::Variables,
 )::TracerAuxiliaries
     return TracerAuxiliaries(
-        [
-            copy(getfield(tracerpredictands, field)) for
-            field in 1:fieldcount(TracerAuxiliaries)
-        ]...,
+        [zeros(0, 0, 0) for field in fieldnames(TracerAuxiliaries)]...,
     )
+end
+
+function TracerAuxiliaries(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    tracer_setup::TracerOn,
+    variables::Variables,
+)::TracerAuxiliaries
+    (; nxx, nyy, nzz, i0, i1, j0, j1) = domain
+    (; x, y, zc) = grid
+    (; lref) = constants
+    (; rhobar) = atmosphere
+    (; rho) = variables.predictands
+    (; lref) = constants
+    (; background_tracer) = namelists.tracer
+
+    backgroundtracer = zeros(nxx, nyy, nzz)
+    @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
+        backgroundtracer[i, j, k] =
+            background_tracer(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
+    end
+    set_zonal_boundaries_of_field!(backgroundtracer, namelists, domain)
+    set_meridional_boundaries_of_field!(backgroundtracer, namelists, domain)
+
+    backgroundtracer .*= rho .+ rhobar
+
+    return TracerAuxiliaries(backgroundtracer)
 end

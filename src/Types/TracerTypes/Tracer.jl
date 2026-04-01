@@ -104,7 +104,14 @@ function Tracer(
         variables,
     )
     tracerincrements = TracerIncrements(namelists, domain)
-    tracerauxiliaries = TracerAuxiliaries(tracerpredictands)
+    tracerauxiliaries = TracerAuxiliaries(
+        namelists,
+        constants,
+        domain,
+        atmosphere,
+        grid,
+        variables,
+    )
     tracerreconstructions = TracerReconstructions(namelists, domain)
     tracerfluxes = TracerFluxes(namelists, domain)
     tracerwkbintegrals = TracerWKBIntegrals(namelists, domain)

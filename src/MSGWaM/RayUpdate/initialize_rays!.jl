@@ -324,6 +324,8 @@ function initialize_rays!(
         end
     end
 
+    smooth_gw_amplitudes!(state)
+
     # Compute global ray-volume count.
     @ivy local_sum = sum(nray[i0:i1, j0:j1, kmin:kmax])
     global_sum = MPI.Allreduce(local_sum, +, comm)

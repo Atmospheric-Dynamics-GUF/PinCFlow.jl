@@ -300,7 +300,8 @@ function write_output(
                             kk,
                         ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
                 end
-                for field in (:uchi0, :vchi0, :wchi0, :uchi1, :vchi1, :wchi1)
+
+                for field in (:uchi0, :vchi0, :wchi0)
                     HDF5.set_extent_dims(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
@@ -312,12 +313,19 @@ function write_output(
                             kk,
                         ] .* uref ./ rhobar[ii, jj, kk]
                 end
-                HDF5.set_extent_dims(
-                    file["qchi"],
-                    (x_size, y_size, z_size, iout),
-                )
-                @views file["qchi"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbintegrals.qchi[ii, jj, kk] .* uref
+                
+                for field in (:uchi1, :vchi1, :wchi1, :qchi)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    @views file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(state.tracer.tracerwkbintegrals, field)[
+                            ii,
+                            jj,
+                            kk,
+                        ] .* uref
+                end
             end
         end
 
@@ -400,6 +408,25 @@ function write_output(
                 )
                 file["uhat"][iid, jjd, kkd, iout] =
                     abs.(state.wkb.integrals.uhat[ii, jj, kk]) .* uref
+            end
+
+
+            if :what in output_variables
+                HDF5.set_extent_dims(
+                    file["what"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["what"][iid, jjd, kkd, iout] =
+                    abs.(state.wkb.integrals.what[ii, jj, kk]) .* uref
+            end
+
+            if :chihat in output_variables
+                HDF5.set_extent_dims(
+                    file["chihat"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["chihat"][iid, jjd, kkd, iout] =
+                    abs.(state.wkb.integrals.chihat[ii, jj, kk])
             end
 
             # Write ray-volume properties.

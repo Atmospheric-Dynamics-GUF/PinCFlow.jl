@@ -227,21 +227,21 @@ struct MultiColumn <: AbstractWKBMode end
 
 """
 ```julia
-Box <: AbstractWKBFilter
+BoxFilter <: AbstractWKBFilter
 ```
 
 Singleton for a box filter as smoothing method applied to mean-flow tendencies.
 """
-struct Box <: AbstractWKBFilter end
+struct BoxFilter <: AbstractWKBFilter end
 
 """
 ```julia
-Shapiro <: AbstractWKBFilter
+ShapiroFilter <: AbstractWKBFilter
 ```
 
 Singleton for a Shapiro filter as smoothing method applied to mean-flow tendencies.
 """
-struct Shapiro <: AbstractWKBFilter end
+struct ShapiroFilter <: AbstractWKBFilter end
 
 """
 ```julia
@@ -319,8 +319,8 @@ export NeutralStratification,
     SteadyState,
     SingleColumn,
     MultiColumn,
-    Box,
-    Shapiro,
+    BoxFilter,
+    ShapiroFilter,
     NoTracer,
     TracerOn,
     NoTurbulence,

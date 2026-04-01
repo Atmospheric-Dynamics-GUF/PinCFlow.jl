@@ -60,6 +60,8 @@ function compute_mean_flow_effect!(
 
     set_boundaries!(state, BoundaryWKBIntegrals())
 
+    smooth_gw_amplitudes!(state)
+
     compute_next_order_tracer_fluxes!(state, dtstage)
 
     compute_gw_tendencies!(state)
