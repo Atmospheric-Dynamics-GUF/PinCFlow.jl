@@ -72,7 +72,9 @@ function ensemble(
             catch $(exception)
                 $(failure) = true
                 println(
-                    "Ensemble member $(color) failed with the following exception:",
+                    "Ensemble member ",
+                    $(color),
+                    " failed with the following exception:",
                 )
                 println($(exception))
             end
