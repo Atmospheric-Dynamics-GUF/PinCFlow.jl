@@ -527,51 +527,51 @@
 )::AbstractFloat</code></pre><p>Compute and return the contribution of a ray volume located at <code>(xlc,ylc,zlc)</code> to the vertical leading-order gravity-wave tracer fluxes <span>$\bar{\rho}\left\langle \tilde{w} \tilde{\chi} \right\rangle$</span>.</p><p>The flux contributions are given by</p><p class="math-container">\[\frac{\bar{\rho}}{2} \Re \left(w_{\mathrm{w}, r} \chi^*_{\mathrm{w}, r}\right) = \frac{f}{\hat{\omega}_r} \frac{m_r}{\left|\boldsymbol{k}_r\right|^2} \mathcal{A}_r \left[k_r \left(\frac{\partial \chi_\mathrm{b}}{\partial y}\right)_r - l_r \left(\frac{\partial \chi_\mathrm{b}}{\partial x}\right)_r\right].\]</p></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_field_zero!"><a class="docstring-binding" href="#PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_field_zero!"><code>PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_field_zero!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">set_tracer_field_zero!(state)</code></pre><p>Reset the gravity-wave-induced tracer fluxes to zero by dispatching over tracer configurations.</p><pre><code class="language-julia hljs">set_tracer_field_zero!(state::State, tracer_setup::NoTracer)</code></pre><p>Return for configurations without tracer transport.</p><pre><code class="language-julia hljs">set_tracer_field_zero!(state::State, tracer_setup::TracerOn)</code></pre><p>Set the gravity-wave-induced tracer fluxes to zero.</p><p><strong>Arguments:</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>tracer_setup</code>: General tracer-transport configuration.</p></li></ul></div></section></details></article><article><details class="docstring" open="true"><summary id="PinCFlow.MSGWaM.MeanFlowEffect.smooth_gw_tendencies!"><a class="docstring-binding" href="#PinCFlow.MSGWaM.MeanFlowEffect.smooth_gw_tendencies!"><code>PinCFlow.MSGWaM.MeanFlowEffect.smooth_gw_tendencies!</code></a> — <span class="docstring-category">Function</span></summary><section><div><pre><code class="language-julia hljs">smooth_gw_tendencies!(state::State)</code></pre><p>Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (<code>state.namelists.wkb.filter_type</code>) and dimensionality of the domain.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::XYZ,
 )</code></pre><p>Apply a 3D box filter to smooth in all spatial directions.</p><p>Applies the moving average</p><p class="math-container">\[\tilde{\phi}_{i, j, k} = \left(2 N_\mathrm{s} + 1\right)^{- 3} \sum\limits_{\lambda = i - N_\mathrm{s}}^{i + N_\mathrm{s}} \sum\limits_{\mu = j - N_\mathrm{s}}^{j + N_\mathrm{s}} \sum\limits_{\nu = k - N_\mathrm{s}}^{k + N_\mathrm{s}} \phi_{\lambda, \mu, \nu},\]</p><p>where <span>$N_\mathrm{s}$</span> is the order of the filter (<code>state.namelists.wkb.filter_order</code>).</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::XZ,
 )</code></pre><p>Apply a 2D box filter to smooth in <span>$\hat{x}$</span> and <span>$\hat{z}$</span>.</p><p>Applies the moving average</p><p class="math-container">\[\tilde{\phi}_{i, j, k} = \left(2 N_\mathrm{s} + 1\right)^{- 2} \sum\limits_{\lambda = i - N_\mathrm{s}}^{i + N_\mathrm{s}} \sum\limits_{\nu = k - N_\mathrm{s}}^{k + N_\mathrm{s}} \phi_{\lambda, j, \nu},\]</p><p>where <span>$N_\mathrm{s}$</span> is the order of the filter (<code>state.namelists.wkb.filter_order</code>).</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::YZ,
 )</code></pre><p>Apply a 2D box filter to smooth in <span>$\hat{y}$</span> and <span>$\hat{z}$</span>.</p><p>Applies the moving average</p><p class="math-container">\[\tilde{\phi}_{i, j, k} = \left(2 N_\mathrm{s} + 1\right)^{- 2} \sum\limits_{\mu = j - N_\mathrm{s}}^{j + N_\mathrm{s}} \sum\limits_{\nu = k - N_\mathrm{s}}^{k + N_\mathrm{s}} \phi_{i, \mu, \nu},\]</p><p>where <span>$N_\mathrm{s}$</span> is the order of the filter (<code>state.namelists.wkb.filter_order</code>).</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::Z,
 )</code></pre><p>Apply a 1D box filter to smooth in <span>$\hat{z}$</span>.</p><p>Applies the moving average</p><p class="math-container">\[\tilde{\phi}_{i, j, k} = \left(2 N_\mathrm{s} + 1\right)^{- 1} \sum\limits_{\nu = k - N_\mathrm{s}}^{k + N_\mathrm{s}} \phi_{i, j, \nu},\]</p><p>where <span>$N_\mathrm{s}$</span> is the order of the filter (<code>state.namelists.wkb.filter_order</code>).</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::XYZ,
 )</code></pre><p>Apply a 3D Shapiro filter to smooth in all spatial directions.</p><p>A 1D Shapiro filter is applied sequentially in <span>$\hat{x}$</span>, <span>$\hat{y}$</span> and <span>$\hat{z}$</span>.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::XZ,
 )</code></pre><p>Apply a 2D Shapiro filter to smooth in <span>$\hat{x}$</span> and <span>$\hat{z}$</span>.</p><p>A 1D Shapiro filter is applied sequentially in <span>$\hat{x}$</span> and <span>$\hat{z}$</span>.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::YZ,
 )</code></pre><p>Apply a 2D Shapiro filter to smooth in <span>$\hat{y}$</span> and <span>$\hat{z}$</span>.</p><p>A 1D Shapiro filter is applied sequentially in <span>$\hat{y}$</span> and <span>$\hat{z}$</span>.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::Z,
 )</code></pre><p>Apply a 1D Shapiro filter to smooth in <span>$\hat{z}$</span>.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::Y,
 )</code></pre><p>Apply a 1D Shapiro filter to smooth in <span>$\hat{y}$</span>.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(
     output::AbstractArray{&lt;:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::X,
-)</code></pre><p>Apply a 1D Shapiro filter to smooth in <span>$\hat{x}$</span>.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)</code></pre><p>Apply smoothing to tracer tendencies.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(state::State, tracer_setup::NoTracer)</code></pre><p>Return for configurations without tracer transport.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>output</code>: Field to smooth.</p></li><li><p><code>filter_type</code>: Filter type.</p></li><li><p><code>direction</code>: Directions to smooth in.</p></li><li><p><code>tracer_setup</code>: General tracer-transport configuration.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!"><code>PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!</code></a></li></ul></div></section></details></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../update/">« Update</a><a class="docs-footer-nextpage" href="../integration/">Integration »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 1 April 2026 16:38">Wednesday 1 April 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+)</code></pre><p>Apply a 1D Shapiro filter to smooth in <span>$\hat{x}$</span>.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)</code></pre><p>Apply smoothing to tracer tendencies.</p><pre><code class="language-julia hljs">smooth_gw_tendencies!(state::State, tracer_setup::NoTracer)</code></pre><p>Return for configurations without tracer transport.</p><p><strong>Arguments</strong></p><ul><li><p><code>state</code>: Model state.</p></li><li><p><code>output</code>: Field to smooth.</p></li><li><p><code>filter_type</code>: Filter type.</p></li><li><p><code>direction</code>: Directions to smooth in.</p></li><li><p><code>tracer_setup</code>: General tracer-transport configuration.</p></li></ul><p><strong>See also</strong></p><ul><li><a href="#PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!"><code>PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!</code></a></li></ul></div></section></details></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../update/">« Update</a><a class="docs-footer-nextpage" href="../integration/">Integration »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 2 April 2026 07:38">Thursday 2 April 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
