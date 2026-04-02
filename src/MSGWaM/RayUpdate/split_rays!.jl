@@ -3,7 +3,7 @@
 split_rays!(state::State)
 ```
 
-Split ray volumes that have become larger than the local grid cell by dispatching to a WKB-mode-specific method.
+Split ray volumes that have become larger than the smallest grid cell by dispatching to a WKB-mode-specific method.
 
 ```julia
 split_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
@@ -15,13 +15,13 @@ Return for configurations without WKB / with steady-state WKB.
 split_rays!(state::State, wkb_mode::SingleColumn)
 ```
 
-Split ray volumes which have a vertical extent larger than the local vertical grid spacing.
+Split ray volumes which have a vertical extent larger than the smallest vertical grid spacing.
 
 ```julia
 split_rays!(state::State, wkb_mode::MultiColumn)
 ```
 
-In each dimension of physical space, split ray volumes which have an extent larger than the local grid spacing.
+In each dimension of physical space, split ray volumes which have an extent larger than the smallest grid spacing.
 
 The splitting is performed sequentially, such that a ray volume with extents that are all between once and twice as large as allowed is split into exactly eight smaller ray volumes (all of which have the same size).
 
@@ -45,7 +45,7 @@ The splitting is analogous to that in ``\\hat{x}``.
 split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
 ```
 
-In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta z_r > J_{\\min} \\Delta \\hat{z}``, with ``J_{\\min}`` being the minimum value of the Jacobian in all grid cells that are at least partially covered by the ray volume (at its true horizontal position on the grid).
+In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta z_r > \\Delta z_{\\min}``.
 
 The splitting is analogous to that in ``\\hat{x}`` and ``\\hat{y}``.
 
@@ -213,7 +213,7 @@ end
 function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
     (; domain, grid) = state
     (; io, jo, i0, j0) = domain
-    (; lx, ly, dx, dy, dz, jac) = grid
+    (; lx, ly, dx, dy, dzcmin) = grid
     (; nray_wrk, nray, rays) = state.wkb
 
     @ivy local_count = nray[i, j, k]
@@ -229,13 +229,8 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
         kmin = get_next_half_level(iray, jray, zr - 0.5 * dzr, state)
         kmax = get_next_half_level(iray, jray, zr + 0.5 * dzr, state)
 
-        dzmin = dz
-        for kray in kmin:kmax
-            dzmin = min(dzmin, jac[iray, jray, kray] * dz)
-        end
-
-        if dzr > dzmin
-            factor = ceil(Int, dzr / dzmin)
+        if dzr > dzcmin
+            factor = ceil(Int, dzr / dzcmin)
             rays.z[r, i, j, k] = zr + (1 / factor - 1) * dzr / 2
             rays.dzray[r, i, j, k] = dzr / factor
             for rray in (local_count + 1):(local_count + factor - 1)
