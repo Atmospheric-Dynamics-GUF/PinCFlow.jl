@@ -9,7 +9,7 @@ Apply spatial smoothing to gravity-wave tendency fields by dispatching to a meth
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::XYZ,
 )
 ```
@@ -28,7 +28,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::XZ,
 )
 ```
@@ -47,7 +47,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::YZ,
 )
 ```
@@ -66,7 +66,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::Z,
 )
 ```
@@ -85,7 +85,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::XYZ,
 )
 ```
@@ -98,7 +98,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{x}``, ``\\hat{y}`` and ``
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::XZ,
 )
 ```
@@ -111,7 +111,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{x}`` and ``\\hat{z}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::YZ,
 )
 ```
@@ -124,7 +124,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{y}`` and ``\\hat{z}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::Z,
 )
 ```
@@ -135,7 +135,7 @@ Apply a 1D Shapiro filter to smooth in ``\\hat{z}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::Y,
 )
 ```
@@ -146,7 +146,7 @@ Apply a 1D Shapiro filter to smooth in ``\\hat{y}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::X,
 )
 ```
@@ -219,7 +219,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::XYZ,
 )
     (; nbx, nby, nbz) = state.namelists.domain
@@ -254,7 +254,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::XZ,
 )
     (; nbx, nbz) = state.namelists.domain
@@ -286,7 +286,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::YZ,
 )
     (; nby, nbz) = state.namelists.domain
@@ -318,7 +318,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::BoxFilter,
     direction::Z,
 )
     (; nbz) = state.namelists.domain
@@ -342,7 +342,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::XYZ,
 )
     smooth_gw_tendencies!(output, state, filter_type, X())
@@ -354,7 +354,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::XZ,
 )
     smooth_gw_tendencies!(output, state, filter_type, X())
@@ -365,7 +365,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::YZ,
 )
     smooth_gw_tendencies!(output, state, filter_type, Y())
@@ -376,7 +376,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::Z,
 )
     (; nbz) = state.namelists.domain
@@ -403,7 +403,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::Y,
 )
     (; nby) = state.namelists.domain
@@ -430,7 +430,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::ShapiroFilter,
     direction::X,
 )
     (; nbx) = state.namelists.domain
