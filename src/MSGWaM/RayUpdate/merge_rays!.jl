@@ -210,9 +210,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
         end
 
         # Reset the old ray volumes.
-        for field in fieldnames(Rays)
-            getfield(rays, field)[:, i, j, k] .= 0.0
-        end
+        rays.data[:, :, i, j, k] .= 0.0
 
         # Construct the merged ray volumes.
         r = 0
