@@ -75,7 +75,13 @@ reconstruct!(state::State, tracer_setup::TracerOn)
 
 Reconstruct the tracers.
 
-Similar to the density, the tracers are divided by ``P`` before reconstruction.
+```julia
+reconstruct!(state::State, variable::TKE)
+```
+
+Reconstruct the turbulent kinetic energy.
+
+Similar to the density, the turbulent kinetic energy is divided by ``P`` before reconstruction.
 
 # Arguments
 
@@ -269,6 +275,31 @@ function reconstruct!(state::State, tracer_setup::TracerOn)
         apply_3d_muscl!(
             phi,
             getfield(tracerreconstructions, field),
+            nxx,
+            nyy,
+            nzz,
+            limiter_type,
+        )
+    end
+
+    return
+end
+
+function reconstruct!(state::State, variable::TKE)
+    (; limiter_type) = state.namelists.discretization
+    (; k0, k1, nxx, nyy, nzz) = state.domain
+    (; phi) = state.variables.auxiliaries
+    (; pbar) = state.atmosphere
+    (; turbulencereconstructions, turbulencepredictands) = state.turbulence
+
+    @ivy for field in 1:fieldcount(TurbulencePredictands)
+        chi = getfield(turbulencepredictands, field)[:, :, :]
+        for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+            phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
+        end
+        apply_3d_muscl!(
+            phi,
+            getfield(turbulencereconstructions, field),
             nxx,
             nyy,
             nzz,
