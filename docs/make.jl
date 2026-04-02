@@ -1,7 +1,3 @@
-using Pkg
-
-Pkg.activate("docs")
-
 using Changelog: Changelog
 using Documenter
 using Revise

@@ -1,9 +1,5 @@
 # examples/scripts/periodic_hill.jl
 
-using Pkg
-
-Pkg.activate("examples")
-
 using MPI
 using HDF5
 using CairoMakie

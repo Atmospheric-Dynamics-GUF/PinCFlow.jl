@@ -17,9 +17,9 @@ set -x
 # export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/periodic_hill.jl 4 4 1>periodic_hill.log 2>&1
+# srun --cpu_bind=verbose --distribution=block:cyclic julia --project=examples examples/scripts/periodic_hill.jl 3 3 1>periodic_hill.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 9 julia examples/scripts/periodic_hill.jl 3 3 1>periodic_hill.log 2>&1
+mpiexec -n 9 julia --project=examples examples/scripts/periodic_hill.jl 3 3 1>periodic_hill.log 2>&1
 
 exit 0

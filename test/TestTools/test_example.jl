@@ -45,8 +45,6 @@ function test_example(
     script = script[1:stop]
     script = replace(
         script,
-        r"(?m)^ *using +Pkg *\n+" => "",
-        r"(?m)^ *Pkg.activate\( *\"examples\" *\) *\n+" => "",
         r"(?m)^ *using +HDF5 *\n+" => "",
         r"(?m)^ *using +CairoMakie *\n+" => "",
     )

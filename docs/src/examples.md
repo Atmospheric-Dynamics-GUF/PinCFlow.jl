@@ -7,10 +7,6 @@ The script
 ```julia
 # examples/scripts/cold_bubble.jl
 
-using Pkg
-
-Pkg.activate("examples")
-
 using MPI
 using HDF5
 using CairoMakie
@@ -69,10 +65,6 @@ The script
 
 ```julia
 # examples/scripts/hot_bubble.jl
-
-using Pkg
-
-Pkg.activate("examples")
 
 using MPI
 using HDF5
@@ -133,10 +125,6 @@ The script
 
 ```julia
 # examples/scripts/mountain_wave.jl
-
-using Pkg
-
-Pkg.activate("examples")
 
 using MPI
 using HDF5
@@ -249,10 +237,6 @@ The script
 ```julia
 # examples/scripts/vortex.jl
 
-using Pkg
-
-Pkg.activate("examples")
-
 using MPI
 using HDF5
 using CairoMakie
@@ -326,10 +310,6 @@ The script
 
 ```julia
 # examples/scripts/wave_packet.jl
-
-using Pkg
-
-Pkg.activate("examples")
 
 using MPI
 using HDF5
@@ -420,10 +400,6 @@ The script
 
 ```julia
 # examples/scripts/wkb_mountain_wave.jl
-
-using Pkg
-
-Pkg.activate("examples")
 
 using MPI
 using HDF5
@@ -545,10 +521,6 @@ The script
 
 ```julia
 # examples/scripts/wkb_wave_packet.jl
-
-using Pkg
-
-Pkg.activate("examples")
 
 using MPI
 using HDF5

@@ -1,9 +1,5 @@
 # examples/scripts/mountain_wave.jl
 
-using Pkg
-
-Pkg.activate("examples")
-
 using MPI
 using HDF5
 using CairoMakie

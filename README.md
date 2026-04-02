@@ -53,10 +53,6 @@ Having done this, you can easily run any of the example scripts without needing 
 ```julia
 # examples/scripts/periodic_hill.jl
 
-using Pkg
-
-Pkg.activate("examples")
-
 using MPI
 using HDF5
 using CairoMakie
@@ -116,7 +112,7 @@ If you want to run PinCFlow.jl in parallel, make sure you are using the correct 
 
 ```shell
 mpiexec=$(julia --project=examples -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 9 julia examples/scripts/periodic_hill.jl 3 3
+${mpiexec} -n 9 julia --project=examples examples/scripts/periodic_hill.jl 3 3
 ```
 
 you can run the above simulation in 9 MPI processes. Note that by passing extra arguments to the script, you set the parameters `npx` and `npz` of the namelist `domain`, which represent the number of MPI processes in $\hat{x}$ and $\hat{z}$. Their product must be equal to the total number of processes, otherwise PinCFlow.jl will throw an error.
@@ -144,7 +140,7 @@ julia --project=examples -e 'using Pkg; Pkg.precompile()'
 to precompile your project (this must be done before starting MPI jobs) and
 
 ```shell
-mpiexec -n 16 julia examples/scripts/periodic_hill.jl 4 4
+mpiexec -n 16 julia --project=examples examples/scripts/periodic_hill.jl 4 4
 ```
 
 with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/scripts/levante` of the repository.

@@ -1,7 +1,3 @@
-using Pkg
-
-Pkg.activate("format")
-
 using JuliaFormatter
 using Revise
 

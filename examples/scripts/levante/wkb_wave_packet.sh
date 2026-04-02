@@ -17,9 +17,9 @@ set -x
 # export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/wkb_wave_packet.jl 4 4 4 1>wkb_wave_packet.log 2>&1
+# srun --cpu_bind=verbose --distribution=block:cyclic julia --project=examples examples/scripts/wkb_wave_packet.jl 3 3 3 1>wkb_wave_packet.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 27 julia examples/scripts/wkb_wave_packet.jl 3 3 3 1>wkb_wave_packet.log 2>&1
+mpiexec -n 27 julia --project=examples examples/scripts/wkb_wave_packet.jl 3 3 3 1>wkb_wave_packet.log 2>&1
 
 exit 0
