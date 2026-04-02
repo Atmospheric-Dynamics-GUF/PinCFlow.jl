@@ -15,7 +15,7 @@ MSGWaM
 
 # External links
 
- 1. [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381)
+ 1. [Muraschko et al. (2015)](https://doi.org/10.1002/qj.2381)
 
  1. [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1)
 

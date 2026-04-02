@@ -12,7 +12,7 @@
 
 PinCFlow.jl (*P*seudo-*inC*ompressible *Flow* solver) is an atmospheric-flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form ([Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)), using a semi-implicit method that combines explicit and implicit time-stepping schemes ([Benacchio & Klein, 2019](https://doi.org/10.1175/MWR-D-19-0073.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1); [Chew et al., 2022](https://doi.org/10.1175/MWR-D-21-0175.1)). Spatially, the equations are discretized with a finite-volume method, such that all quantities are represented by averages over grid cells and fluxes are computed on the respective cell interfaces. The grid is staggered ([Arakawa & Lamb, 1977](https://doi.org/10.1016/b978-0-12-460817-7.50009-4)) so that the velocity components are defined at the same points as the corresponding fluxes of scalar quantities. PinCFlow.jl operates in a vertically stretched terrain-following coordinate system based on [Gal-Chen and Somerville (1975a)](https://doi.org/10.1016/0021-9991(75)90037-6), [Gal-Chen and Somerville (1975b)](https://doi.org/10.1016/0021-9991(75)90054-6) and [Clark (1977)](https://doi.org/10.1016/0021-9991(77)90057-2).
 
-The Lagrangian gravity-wave parameterization MS-GWaM (*M*ulti-*S*cale *G*ravity-*Wa*ve *M*odel) is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transient wave-mean-flow interaction and horizontal wave propagation. The resolved fields are updated with tendencies computed by MS-GWaM at the beginning of every time step. A description of the theory behind MS-GWaM can be found in [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926) and [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180). For a numerical perspective and more information on the development, see [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
+The Lagrangian gravity-wave parameterization MS-GWaM (*M*ulti-*S*cale *G*ravity-*Wa*ve *M*odel) is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transient wave-mean-flow interaction and horizontal wave propagation. The resolved fields are updated with tendencies computed by MS-GWaM at the beginning of every time step. A description of the theory behind MS-GWaM can be found in [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926) and [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180). For a numerical perspective and more information on the development, see [Muraschko et al. (2015)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
 
 ## User guide
 
@@ -151,20 +151,34 @@ with `mpiexec` being your chosen system binary. For users who would like to run 
 
 ## List of publications
 
- 1. Initial flow solver: [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1)
+PinCFlow.jl has been used and/or developed in the following publications.
 
- 1. Initial gravity-wave scheme: [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381)
+ 1. [Rieper et al. (2013): A conservative integration of the pseudo-incompressible equations with implicit turbulence parameterization](https://doi.org/10.1175/mwr-d-12-00026.1)
 
- 1. Gravity-wave breaking scheme: [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1)
+ 1. [Rieper et al. (2013): Range of validity of an extended WKB theory for atmospheric gravity waves: One-dimensional and two-dimensional case](https://doi.org/10.1017/jfm.2013.307)
 
- 1. Gravity-wave theory: [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926)
+ 1. [Borchert et al. (2014): Gravity wave emission in an atmosphere-like configuration of the differentially heated rotating annulus experiment](https://doi.org/10.1017/jfm.2014.528)
 
- 1. Coupling of the flow solver and gravity-wave scheme: [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1)
+ 1. [Borchert et al. (2015): Finite-volume models with implicit subgrid-scale parameterization for the differentially heated rotating annulus](https://doi.org/10.1127/metz/2014/0548)
 
- 1. Horizontal propagation and direct approach in the gravity-wave scheme: [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1)
+ 1. [Muraschko et al. (2015): On the application of Wentzel-Kramer-Brillouin theory for the simulation of the weakly nonlinear dynamics of gravity waves](https://doi.org/10.1002/qj.2381)
 
- 1. Semi-implicit time scheme: [Schmid et al. (2021)](https://doi.org/10.1175/MWR-D-21-0126.1)
+ 1. [Boeloeni et al. (2016): The interaction between atmospheric gravity waves and large-scale flows: An efficient description beyond the nonacceleration paradigm](https://doi.org/10.1175/JAS-D-16-0069.1)
 
- 1. Extended gravity-wave theory: [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180)
+ 1. [Achatz et al. (2017): The interaction between synoptic-scale balanced flow and a finite-amplitude mesoscale wave field throughout all atmospheric layers: Weak and moderately strong stratification](https://doi.org/10.1002/qj.2926)
 
- 1. Terrain-following coordinates & orographic source: [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1)
+ 1. [Hien et al. (2018): Spontaneous inertia–gravity wave emission in the differentially heated rotating annulus experiment](https://doi.org/10.1017/jfm.2017.883)
+
+ 1. [Wilhelm et al. (2018): Interactions between mesoscale and submesoscale gravity waves and their efficient representation in mesoscale-resolving models](https://doi.org/10.1175/JAS-D-17-0289.1)
+
+ 1. [Wei et al. (2019): Efficient modeling of the interaction of mesoscale gravity waves with unbalanced large-scale flows: Pseudomomentum-flux convergence versus direct approach](https://doi.org/10.1175/JAS-D-18-0337.1)
+
+ 1. [Voelker et al. (2021): An application of WKBJ theory for triad interactions of internal gravity waves in varying background flows](https://doi.org/10.1002/qj.3962)
+
+ 1. [Schmid et al. (2021): Toward a numerical laboratory for investigations of gravity wave-mean flow interactions in the atmosphere](https://doi.org/10.1175/MWR-D-21-0126.1)
+
+ 1. [Achatz et al. (2023): Multi-scale dynamics of the interaction between waves and mean flows: From nonlinear WKB theory to gravity-wave parameterizations in weather and climate models](https://doi.org/10.1063/5.0165180)
+
+ 1. [Jochum et al. (2025): The impact of transience in the interaction between orographic gravity waves and mean flow](https://doi.org/10.1175/JAS-D-24-0158.1)
+
+ 1. [Knop et al. (2026): Impact of small-scale gravity waves on tracer transport](https://doi.org/10.1002/qj.70091)
