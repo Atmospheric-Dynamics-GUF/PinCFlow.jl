@@ -1,91 +1,68 @@
 """
 ```julia
 ensemble(
-    code::AbstractString,
-    ensemble_size::Integer,
-    parameters::Vararg{Symbol};
-)::Function
+    simulation::Function,
+    parameters::NamedTuple,
+    keywords::NamedTuple,
+)
 ```
 
-Create and return an anonymous function, which can be used to run `code` in an ensemble of size `ensemble_size`, with different values for `parameters` between members.
-
-The returned function takes tuples as arguments which contain the values for each of the parameters. These tuples must be as many and in the same order as the parameters, and each tuple must have the length `ensemble_size`.
+Run `simulation` in an ensemble.
 
 # Arguments
 
-  - `code`: Code to be run in the ensemble.
+  - `simulation`: Function to be run in the ensemble. For each key in `parameters` and `keywords`, `simulation` must have a matching keyword argument. In addition, it must have the keyword argument `base_comm`.
 
-  - `ensemble_size`: Number of ensemble members
+  - `parameters`: Keyword arguments for `simulation`, which have different values for different ensemble members. Each entry of `parameters` must be a tuple of ensemble values for the keyword argument represented by the key. One of the keys must be `:output_file`.
 
-  - `parameters`: Variables defined in `code`, which are to be assigned different values for each ensemble member.
+  - `keywords`: Keyword arguments for `simulation`, which have the same values for all ensemble members.
 """
 function ensemble end
 
 function ensemble(
-    code::AbstractString,
-    ensemble_size::Integer,
-    parameters::Vararg{Symbol},
-)::Function
+    simulation::Function,
+    parameters::NamedTuple,
+    keywords::NamedTuple,
+)
 
     # Check if the output file is one of the parameters.
-    !(:output_file in parameters) &&
+    !(:output_file in keys(parameters)) &&
         error("The parameter output_file must be assigned in ensembles!")
 
     # Initialize MPI and get the rank and split color.
     MPI.Init()
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
-    color = rank % ensemble_size + 1
+    color = rank % length(parameters[keys(parameters)[1]]) + 1
+    base_comm = MPI.Comm_split(MPI.COMM_WORLD, color, rank)
 
-    # Modify the variable assignments.
-    modified_code = replace_assignments(
-        code,
-        [name => Symbol("$(name)[$(color)]") for name in parameters]...,
-        :base_comm => :base_comm;
-        allow_missing_assignments = false,
-    )
-
-    # Create a block expression from the modified code.
-    expression = Meta.parseall(modified_code)
-    expression.head = :block
-
-    # Wrap the block expression in a function expression.
-    @gensym failure exception
-    expression = quote
-        $(Expr(:tuple, parameters...)) -> begin
-            $(failure) = false
-            try
-                open(
-                    replace(output_file[$(color)], r"\.h5$" => ".log"),
-                    "w",
-                ) do file
-                    redirect_stdout(file) do
-                        base_comm = MPI.Comm_split(
-                            MPI.COMM_WORLD,
-                            $(color),
-                            $(rank),
-                        )
-                        $(expression)
-                        return
-                    end
-                    return
-                end
-            catch $(exception)
-                $(failure) = true
-                println(
-                    "Ensemble member ",
-                    $(color),
-                    " failed with the following exception:",
+    # Run the simulations.
+    failure = false
+    try
+        open(
+            replace(parameters[:output_file][color], r"\.h5$" => ".log"),
+            "w",
+        ) do file
+            redirect_stdout(file) do
+                simulation(;
+                    NamedTuple(
+                        key => parameters[key][color] for
+                        key in keys(parameters)
+                    )...,
+                    keywords...,
+                    base_comm,
                 )
-                println($(exception))
+                return
             end
-
-            MPI.Barrier(MPI.COMM_WORLD)
-            $(failure) &&
-                error("At least one ensemble member had an error!")
-
             return
         end
+    catch exception
+        failure = true
+        println("Ensemble member $(color) failed with the following exception:")
+        println(exception)
     end
 
-    return Core.eval(@__MODULE__, expression)
+    MPI.Barrier(MPI.COMM_WORLD)
+    failure && error("At least one ensemble member had an error!")
+
+    return
 end
