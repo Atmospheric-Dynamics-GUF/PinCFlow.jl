@@ -7,10 +7,12 @@ function wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output_file::AbstractString = "wave_packet.h5",
-    output_steps::Bool = false,
-    output_variables::Tuple{Vararg{Symbol}} = (:u, :v, :w),
-    prepare_restart::Bool = false,
+    output::OutputNamelist = OutputNamelist(;
+        output_file = "wave_packet.h5",
+        output_variables = (:u, :v, :w),
+        output_interval = 900,
+        tmax = 900,
+    ),
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -65,15 +67,6 @@ function wave_packet(;
                 exp(1im * phi(parameters, x, y, z)),
             ) / g * thetabar(state, x, y, z),
         buoyancy_initialization = :initial_thetap,
-    )
-
-    output = OutputNamelist(;
-        output_file,
-        output_steps,
-        output_interval = 900,
-        tmax = 900,
-        output_variables,
-        prepare_restart,
     )
 
     integrate(Namelists(; atmosphere, domain, output))

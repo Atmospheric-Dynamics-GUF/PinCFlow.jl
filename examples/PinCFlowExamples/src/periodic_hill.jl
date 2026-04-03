@@ -5,10 +5,10 @@ function periodic_hill(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
-    output_file::AbstractString = "periodic_hill.h5",
-    output_steps::Bool = false,
-    output_variables::Tuple{Vararg{Symbol}} = (:w,),
-    prepare_restart::Bool = false,
+    output::OutputNamelist = OutputNamelist(;
+        output_file = "periodic_hill.h5",
+        output_variables = (:w,),
+    ),
     visualize::Bool = true,
 )
     h0 = 500.0
@@ -28,13 +28,6 @@ function periodic_hill(;
 
     grid = GridNamelist(;
         resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
-    )
-
-    output = OutputNamelist(;
-        output_file,
-        output_steps,
-        output_variables,
-        prepare_restart,
     )
 
     sponge = SpongeNamelist(;

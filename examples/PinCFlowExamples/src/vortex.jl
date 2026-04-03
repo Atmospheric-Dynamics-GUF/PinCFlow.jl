@@ -5,10 +5,10 @@ function vortex(;
     y_size::Integer = 40,
     npx::Integer = 3,
     npy::Integer = 3,
-    output_file::AbstractString = "vortex.h5",
-    output_steps::Bool = false,
-    output_variables::Tuple{Vararg{Symbol}} = (:chi,),
-    prepare_restart::Bool = false,
+    output::OutputNamelist = OutputNamelist(;
+        output_file = "vortex.h5",
+        output_variables = (:chi, :u, :v),
+    ),
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -39,13 +39,6 @@ function vortex(;
     )
 
     domain = DomainNamelist(; x_size, y_size, lx, ly, npx, npy)
-
-    output = OutputNamelist(;
-        output_file,
-        output_steps,
-        output_variables,
-        prepare_restart,
-    )
 
     tracer = TracerNamelist(;
         tracer_setup = TracerOn(),

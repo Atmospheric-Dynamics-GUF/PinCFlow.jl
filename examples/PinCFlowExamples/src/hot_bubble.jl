@@ -5,10 +5,10 @@ function hot_bubble(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
-    output_file::AbstractString = "hot_bubble.h5",
-    output_steps::Bool = false,
-    output_variables::Tuple{Vararg{Symbol}} = (:thetap,),
-    prepare_restart::Bool = false,
+    output::OutputNamelist = OutputNamelist(;
+        output_file = "hot_bubble.h5",
+        output_variables = (:thetap,),
+    ),
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -33,13 +33,6 @@ function hot_bubble(;
     discretization = DiscretizationNamelist(; dtmax = 60.0)
 
     domain = DomainNamelist(; x_size, z_size, lx, lz, npx, npz)
-
-    output = OutputNamelist(;
-        output_file,
-        output_steps,
-        output_variables,
-        prepare_restart,
-    )
 
     integrate(Namelists(; atmosphere, discretization, domain, output))
 

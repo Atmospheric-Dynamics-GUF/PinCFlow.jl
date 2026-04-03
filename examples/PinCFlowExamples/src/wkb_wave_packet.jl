@@ -7,10 +7,12 @@ function wkb_wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output_file::AbstractString = "wkb_wave_packet.h5",
-    output_steps::Bool = false,
-    save_ray_volumes::Bool = true,
-    prepare_restart::Bool = false,
+    output = OutputNamelist(;
+        output_file = "wkb_wave_packet.h5",
+        save_ray_volumes = true,
+        output_interval = 900,
+        tmax = 900,
+    ),
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -40,15 +42,6 @@ function wkb_wave_packet(;
     domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
     state = State(Namelists(; atmosphere, domain))
-
-    output = OutputNamelist(;
-        output_file,
-        output_steps,
-        output_interval = 900,
-        tmax = 900,
-        save_ray_volumes,
-        prepare_restart,
-    )
 
     wkb = WKBNamelist(;
         wkb_mode = MultiColumn(),

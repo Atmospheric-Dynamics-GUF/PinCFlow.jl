@@ -7,10 +7,10 @@ function wkb_mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output_file::AbstractString = "wkb_mountain_wave.h5",
-    output_steps::Bool = false,
-    save_ray_volumes::Bool = true,
-    prepare_restart::Bool = false,
+    output::OutputNamelist = OutputNamelist(;
+        output_file = "wkb_mountain_wave.h5",
+        save_ray_volumes = true,
+    ),
     visualize::Bool = true,
 )
     h0 = 150.0
@@ -46,13 +46,6 @@ function wkb_mountain_wave(;
                 0.0,
                 h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) / (rh + 1),
             ) : (0.0, 0.0, 0.0),
-    )
-
-    output = OutputNamelist(;
-        output_file,
-        output_steps,
-        save_ray_volumes,
-        prepare_restart,
     )
 
     sponge = SpongeNamelist(;

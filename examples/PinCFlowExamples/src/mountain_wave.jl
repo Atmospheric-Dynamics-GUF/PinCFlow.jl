@@ -7,10 +7,10 @@ function mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output_file::AbstractString = "mountain_wave.h5",
-    output_steps::Bool = false,
-    output_variables::Tuple{Vararg{Symbol}} = (:w,),
-    prepare_restart::Bool = false,
+    output::OutputNamelist = OutputNamelist(;
+        output_file = "mountain_wave.h5",
+        output_variables = (:w,),
+    ),
     visualize::Bool = true,
 )
     h0 = 100.0
@@ -33,13 +33,6 @@ function mountain_wave(;
 
     grid = GridNamelist(;
         resolved_topography = (x, y) -> h0 / (1 + (x^2 + y^2) / l0^2),
-    )
-
-    output = OutputNamelist(;
-        output_file,
-        output_steps,
-        output_variables,
-        prepare_restart,
     )
 
     sponge = SpongeNamelist(;

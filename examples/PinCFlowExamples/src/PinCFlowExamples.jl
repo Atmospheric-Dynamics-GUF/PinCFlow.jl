@@ -32,30 +32,16 @@ include("wkb_wave_packet.jl")
                 npy = 1
                 npz = 1
 
-                output_file = directory * "/output.h5"
-                output_steps = true
+                output = OutputNamelist(;
+                    output_file = directory * "/output.h5",
+                    output_steps = true,
+                )
 
                 visualize = false
 
-                cold_bubble(;
-                    x_size,
-                    z_size,
-                    npx,
-                    npz,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
+                cold_bubble(; x_size, z_size, npx, npz, output, visualize)
 
-                hot_bubble(;
-                    x_size,
-                    z_size,
-                    npx,
-                    npz,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
+                hot_bubble(; x_size, z_size, npx, npz, output, visualize)
 
                 mountain_wave(;
                     x_size,
@@ -64,30 +50,13 @@ include("wkb_wave_packet.jl")
                     npx,
                     npy,
                     npz,
-                    output_file,
-                    output_steps,
+                    output,
                     visualize,
                 )
 
-                periodic_hill(;
-                    x_size,
-                    z_size,
-                    npx,
-                    npz,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
+                periodic_hill(; x_size, z_size, npx, npz, output, visualize)
 
-                vortex(;
-                    x_size,
-                    y_size,
-                    npx,
-                    npy,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
+                vortex(; x_size, y_size, npx, npy, output, visualize)
 
                 wave_packet(;
                     x_size,
@@ -96,8 +65,7 @@ include("wkb_wave_packet.jl")
                     npx,
                     npy,
                     npz,
-                    output_file,
-                    output_steps,
+                    output,
                     visualize,
                 )
 
@@ -108,8 +76,7 @@ include("wkb_wave_packet.jl")
                     npx,
                     npy,
                     npz,
-                    output_file,
-                    output_steps,
+                    output,
                     visualize,
                 )
 
@@ -120,8 +87,7 @@ include("wkb_wave_packet.jl")
                     npx,
                     npy,
                     npz,
-                    output_file,
-                    output_steps,
+                    output,
                     visualize,
                 )
 
