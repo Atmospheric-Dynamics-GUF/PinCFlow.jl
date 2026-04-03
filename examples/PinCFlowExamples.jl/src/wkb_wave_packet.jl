@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/wkb_wave_packet.jl
+# examples/PinCFlowExamples.jl/src/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
     x_size::Integer = 16,

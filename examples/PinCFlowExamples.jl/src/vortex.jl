@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/vortex.jl
+# examples/PinCFlowExamples.jl/src/vortex.jl
 
 function vortex(;
     x_size::Integer = 40,

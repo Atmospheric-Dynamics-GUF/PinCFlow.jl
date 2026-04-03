@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/mountain_wave.jl
+# examples/PinCFlowExamples.jl/src/mountain_wave.jl
 
 function mountain_wave(;
     x_size::Integer = 40,

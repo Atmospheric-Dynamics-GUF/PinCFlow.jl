@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/WavePacketTools/bhat.jl
+# examples/PinCFlowExamples.jl/src/WavePacketTools/bhat.jl
 
 function bhat(
     state::State,

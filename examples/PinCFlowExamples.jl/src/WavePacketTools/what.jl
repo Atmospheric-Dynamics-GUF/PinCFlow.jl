@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/WavePacketTools/what.jl
+# examples/PinCFlowExamples.jl/src/WavePacketTools/what.jl
 
 function what(
     state::State,

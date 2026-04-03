@@ -1,4 +1,6 @@
-include("../examples/PinCFlowExamples/src/WavePacketTools/WavePacketTools.jl")
+include(
+    "../examples/PinCFlowExamples.jl/src/WavePacketTools/WavePacketTools.jl",
+)
 include("TestTools/TestTools.jl")
 
 using Test
@@ -6,7 +8,7 @@ using PinCFlow
 using .WavePacketTools
 using .TestTools
 
-const examples_directory = "../examples/PinCFlowExamples/src/"
+const examples_directory = "../examples/PinCFlowExamples.jl/src/"
 const update_references = false
 
 for file in readdir(examples_directory)

@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/WavePacketTools/rhobar.jl
+# examples/PinCFlowExamples.jl/src/WavePacketTools/rhobar.jl
 
 function rhobar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state

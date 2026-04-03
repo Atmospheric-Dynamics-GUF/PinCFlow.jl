@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/periodic_hill.jl
+# examples/PinCFlowExamples.jl/src/periodic_hill.jl
 
 function periodic_hill(;
     x_size::Integer = 40,

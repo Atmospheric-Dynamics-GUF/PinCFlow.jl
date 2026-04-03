@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/WavePacketTools/ijk.jl
+# examples/PinCFlowExamples.jl/src/WavePacketTools/ijk.jl
 
 function ijk(state::State, x::Real, y::Real, z::Real)::CartesianIndex
     (; lref) = state.constants

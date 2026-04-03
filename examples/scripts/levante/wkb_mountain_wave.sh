@@ -17,9 +17,9 @@ set -x
 # export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia --project=examples/PinCFlowExamples -e 'using PinCFlowExamples; wkb_mountain_wave()' 1>wkb_mountain_wave.log 2>&1
+# srun --cpu_bind=verbose --distribution=block:cyclic julia --project=examples/PinCFlowExamples.jl -e 'using PinCFlowExamples.jl; wkb_mountain_wave()' 1>wkb_mountain_wave.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 27 julia --project=examples/PinCFlowExamples -e 'using PinCFlowExamples; wkb_mountain_wave()' 1>wkb_mountain_wave.log 2>&1
+mpiexec -n 27 julia --project=examples/PinCFlowExamples.jl -e 'using PinCFlowExamples.jl; wkb_mountain_wave()' 1>wkb_mountain_wave.log 2>&1
 
 exit 0

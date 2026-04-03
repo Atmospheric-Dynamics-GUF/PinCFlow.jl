@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/WavePacketTools/pihat.jl
+# examples/PinCFlowExamples.jl/src/WavePacketTools/pihat.jl
 
 function pihat(
     state::State,

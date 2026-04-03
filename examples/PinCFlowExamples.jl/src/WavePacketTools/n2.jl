@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/WavePacketTools/n2.jl
+# examples/PinCFlowExamples.jl/src/WavePacketTools/n2.jl
 
 function n2(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state

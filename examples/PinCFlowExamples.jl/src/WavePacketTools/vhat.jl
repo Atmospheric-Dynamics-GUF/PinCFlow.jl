@@ -1,4 +1,4 @@
-# examples/PinCFlowExamples/src/WavePacketTools/vhat.jl
+# examples/PinCFlowExamples.jl/src/WavePacketTools/vhat.jl
 
 function vhat(
     state::State,
