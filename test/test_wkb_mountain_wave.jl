@@ -66,7 +66,7 @@ function test_wkb_mountain_wave()
         npx = 1,
         npy = 1,
         npz = 1,
-        output = OutputNamelist(; prepare_restart = true),
+        prepare_restart = true,
         visualize = false,
     )
 

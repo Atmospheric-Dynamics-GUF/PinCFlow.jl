@@ -5,10 +5,8 @@ function vortex(;
     y_size::Integer = 40,
     npx::Integer = 3,
     npy::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "vortex.h5",
-        output_variables = (:chi, :u, :v),
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -40,6 +38,13 @@ function vortex(;
 
     domain = DomainNamelist(; x_size, y_size, lx, ly, npx, npy)
 
+    output = OutputNamelist(;
+        output_file = "vortex.h5",
+        output_variables = (:chi, :u, :v),
+        prepare_restart,
+        output_steps,
+    )
+
     tracer = TracerNamelist(;
         tracer_setup = TracerOn(),
         initial_tracer = (x, y, z) -> begin
@@ -55,7 +60,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("vortex.h5") do data
             plot_output(
                 "examples/results/vortex.svg",
                 data,

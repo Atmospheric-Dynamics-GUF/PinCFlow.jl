@@ -7,10 +7,8 @@ function mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "mountain_wave.h5",
-        output_variables = (:w,),
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     h0 = 100.0
@@ -35,6 +33,13 @@ function mountain_wave(;
         resolved_topography = (x, y) -> h0 / (1 + (x^2 + y^2) / l0^2),
     )
 
+    output = OutputNamelist(;
+        output_file = "mountain_wave.h5",
+        output_variables = (:w,),
+        prepare_restart,
+        output_steps,
+    )
+
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) -> begin
             alpharx =
@@ -53,7 +58,7 @@ function mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("mountain_wave.h5") do data
             plot_output(
                 "examples/results/mountain_wave.svg",
                 data,

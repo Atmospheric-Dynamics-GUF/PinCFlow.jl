@@ -38,7 +38,7 @@ function test_cold_bubble()
         z_size = 10,
         npx = 1,
         npz = 1,
-        output = OutputNamelist(; prepare_restart = true),
+        prepare_restart = true,
         visualize = false,
     )
 

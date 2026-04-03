@@ -7,12 +7,8 @@ function wkb_wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output = OutputNamelist(;
-        output_file = "wkb_wave_packet.h5",
-        save_ray_volumes = true,
-        output_interval = 900,
-        tmax = 900,
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -41,6 +37,15 @@ function wkb_wave_packet(;
 
     domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
+    output = OutputNamelist(;
+        output_file = "wkb_wave_packet.h5",
+        save_ray_volumes = true,
+        prepare_restart,
+        output_steps,
+        # output_interval = 900,
+        # tmax = 900,
+    )
+
     state = State(Namelists(; atmosphere, domain))
 
     wkb = WKBNamelist(;
@@ -57,7 +62,7 @@ function wkb_wave_packet(;
     integrate(Namelists(; atmosphere, domain, output, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("wkb_wave_packet.h5") do data
             plot_output(
                 "examples/results/wkb_wave_packet.svg",
                 data,

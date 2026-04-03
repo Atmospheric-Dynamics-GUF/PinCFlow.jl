@@ -7,12 +7,8 @@ function wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "wave_packet.h5",
-        output_variables = (:u, :v, :w),
-        output_interval = 900,
-        tmax = 900,
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -69,10 +65,19 @@ function wave_packet(;
         buoyancy_initialization = :initial_thetap,
     )
 
+    output = OutputNamelist(;
+        output_file = "wave_packet.h5",
+        output_variables = (:u, :v, :w),
+        prepare_restart,
+        output_steps,
+        # output_interval = 900,
+        # tmax = 900,
+    )
+
     integrate(Namelists(; atmosphere, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("wave_packet.h5") do data
             plot_output(
                 "examples/results/wave_packet.svg",
                 data,

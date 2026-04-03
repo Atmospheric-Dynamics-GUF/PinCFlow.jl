@@ -5,10 +5,8 @@ function periodic_hill(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "periodic_hill.h5",
-        output_variables = (:w,),
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     h0 = 500.0
@@ -30,6 +28,13 @@ function periodic_hill(;
         resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
     )
 
+    output = OutputNamelist(;
+        output_file = "periodic_hill.h5",
+        output_variables = (:w,),
+        prepare_restart,
+        output_steps,
+    )
+
     sponge = SpongeNamelist(;
         rhs_sponge = (x, y, z, t, dt) ->
             z >= zr ? sin(pi / 2 * (z - zr) / (lz - zr))^2 / dt : 0.0,
@@ -38,7 +43,7 @@ function periodic_hill(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("periodic_hill.h5") do data
             plot_output(
                 "examples/results/periodic_hill.svg",
                 data,

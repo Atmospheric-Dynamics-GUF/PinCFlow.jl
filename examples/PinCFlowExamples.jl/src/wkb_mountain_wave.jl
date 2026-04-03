@@ -7,10 +7,8 @@ function wkb_mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "wkb_mountain_wave.h5",
-        save_ray_volumes = true,
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     h0 = 150.0
@@ -48,6 +46,13 @@ function wkb_mountain_wave(;
             ) : (0.0, 0.0, 0.0),
     )
 
+    output = OutputNamelist(;
+        output_file = "wkb_mountain_wave.h5",
+        save_ray_volumes = true,
+        prepare_restart,
+        output_steps,
+    )
+
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) ->
             alpharmax / 3 * (
@@ -63,7 +68,7 @@ function wkb_mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("wkb_mountain_wave.h5") do data
             plot_output(
                 "examples/results/wkb_mountain_wave.svg",
                 data,

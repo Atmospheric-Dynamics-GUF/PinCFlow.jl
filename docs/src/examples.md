@@ -14,10 +14,8 @@ function cold_bubble(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "cold_bubble.h5",
-        output_variables = (:thetap,),
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -42,10 +40,17 @@ function cold_bubble(;
 
     domain = DomainNamelist(; x_size, z_size, lx, lz, npx, npz)
 
+    output = OutputNamelist(;
+        output_file = "cold_bubble.h5",
+        output_variables = (:thetap,),
+        prepare_restart,
+        output_steps,
+    )
+
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("cold_bubble.h5") do data
             plot_output(
                 "examples/results/cold_bubble.svg",
                 data,
@@ -76,10 +81,8 @@ function hot_bubble(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "hot_bubble.h5",
-        output_variables = (:thetap,),
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -105,10 +108,17 @@ function hot_bubble(;
 
     domain = DomainNamelist(; x_size, z_size, lx, lz, npx, npz)
 
+    output = OutputNamelist(;
+        output_file = "hot_bubble.h5",
+        output_variables = (:thetap,),
+        prepare_restart,
+        output_steps,
+    )
+
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("hot_bubble.h5") do data
             plot_output(
                 "examples/results/hot_bubble.svg",
                 data,
@@ -141,10 +151,8 @@ function mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "mountain_wave.h5",
-        output_variables = (:w,),
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     h0 = 100.0
@@ -169,6 +177,13 @@ function mountain_wave(;
         resolved_topography = (x, y) -> h0 / (1 + (x^2 + y^2) / l0^2),
     )
 
+    output = OutputNamelist(;
+        output_file = "mountain_wave.h5",
+        output_variables = (:w,),
+        prepare_restart,
+        output_steps,
+    )
+
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) -> begin
             alpharx =
@@ -187,7 +202,7 @@ function mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("mountain_wave.h5") do data
             plot_output(
                 "examples/results/mountain_wave.svg",
                 data,
@@ -247,10 +262,8 @@ function vortex(;
     y_size::Integer = 40,
     npx::Integer = 3,
     npy::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "vortex.h5",
-        output_variables = (:chi, :u, :v),
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -282,6 +295,13 @@ function vortex(;
 
     domain = DomainNamelist(; x_size, y_size, lx, ly, npx, npy)
 
+    output = OutputNamelist(;
+        output_file = "vortex.h5",
+        output_variables = (:chi, :u, :v),
+        prepare_restart,
+        output_steps,
+    )
+
     tracer = TracerNamelist(;
         tracer_setup = TracerOn(),
         initial_tracer = (x, y, z) -> begin
@@ -297,7 +317,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("vortex.h5") do data
             plot_output(
                 "examples/results/vortex.svg",
                 data,
@@ -330,12 +350,8 @@ function wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "wave_packet.h5",
-        output_variables = (:u, :v, :w),
-        output_interval = 900,
-        tmax = 900,
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -392,10 +408,19 @@ function wave_packet(;
         buoyancy_initialization = :initial_thetap,
     )
 
+    output = OutputNamelist(;
+        output_file = "wave_packet.h5",
+        output_variables = (:u, :v, :w),
+        prepare_restart,
+        output_steps,
+        # output_interval = 900,
+        # tmax = 900,
+    )
+
     integrate(Namelists(; atmosphere, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("wave_packet.h5") do data
             plot_output(
                 "examples/results/wave_packet.svg",
                 data,
@@ -431,10 +456,8 @@ function wkb_mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output::OutputNamelist = OutputNamelist(;
-        output_file = "wkb_mountain_wave.h5",
-        save_ray_volumes = true,
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     h0 = 150.0
@@ -472,6 +495,13 @@ function wkb_mountain_wave(;
             ) : (0.0, 0.0, 0.0),
     )
 
+    output = OutputNamelist(;
+        output_file = "wkb_mountain_wave.h5",
+        save_ray_volumes = true,
+        prepare_restart,
+        output_steps,
+    )
+
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) ->
             alpharmax / 3 * (
@@ -487,7 +517,7 @@ function wkb_mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("wkb_mountain_wave.h5") do data
             plot_output(
                 "examples/results/wkb_mountain_wave.svg",
                 data,
@@ -549,12 +579,8 @@ function wkb_wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
-    output = OutputNamelist(;
-        output_file = "wkb_wave_packet.h5",
-        save_ray_volumes = true,
-        output_interval = 900,
-        tmax = 900,
-    ),
+    prepare_restart::Bool = false,
+    output_steps::Bool = false,
     visualize::Bool = true,
 )
     lx = 20000.0
@@ -583,6 +609,15 @@ function wkb_wave_packet(;
 
     domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
+    output = OutputNamelist(;
+        output_file = "wkb_wave_packet.h5",
+        save_ray_volumes = true,
+        prepare_restart,
+        output_steps,
+        # output_interval = 900,
+        # tmax = 900,
+    )
+
     state = State(Namelists(; atmosphere, domain))
 
     wkb = WKBNamelist(;
@@ -599,7 +634,7 @@ function wkb_wave_packet(;
     integrate(Namelists(; atmosphere, domain, output, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
+        h5open("wkb_wave_packet.h5") do data
             plot_output(
                 "examples/results/wkb_wave_packet.svg",
                 data,
