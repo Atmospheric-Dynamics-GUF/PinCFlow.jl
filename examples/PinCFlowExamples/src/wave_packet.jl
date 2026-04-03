@@ -1,4 +1,4 @@
-function wave_packet end
+# examples/PinCFlowExamples/src/wave_packet.jl
 
 function wave_packet(;
     x_size::Integer = 40,

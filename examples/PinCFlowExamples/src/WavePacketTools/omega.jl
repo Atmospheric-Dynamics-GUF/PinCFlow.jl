@@ -1,4 +1,4 @@
-function omega end
+# examples/PinCFlowExamples/src/WavePacketTools/omega.jl
 
 function omega(
     state::State,

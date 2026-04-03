@@ -1,4 +1,4 @@
-function wkb_mountain_wave end
+# examples/PinCFlowExamples/src/wkb_mountain_wave.jl
 
 function wkb_mountain_wave(;
     x_size::Integer = 40,

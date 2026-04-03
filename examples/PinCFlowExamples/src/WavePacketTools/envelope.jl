@@ -1,4 +1,4 @@
-function envelope end
+# examples/PinCFlowExamples/src/WavePacketTools/envelope.jl
 
 function envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
     (; k, l, m, rx, ry, rz, x0, y0, z0) = parameters

@@ -1,4 +1,4 @@
-function wave_action_density end
+# examples/PinCFlowExamples/src/WavePacketTools/wave_action_density.jl
 
 function wave_action_density(
     state::State,

@@ -1,4 +1,4 @@
-function hot_bubble end
+# examples/PinCFlowExamples/src/hot_bubble.jl
 
 function hot_bubble(;
     x_size::Integer = 40,

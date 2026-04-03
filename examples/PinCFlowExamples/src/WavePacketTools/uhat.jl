@@ -1,4 +1,4 @@
-function uhat end
+# examples/PinCFlowExamples/src/WavePacketTools/uhat.jl
 
 function uhat(
     state::State,

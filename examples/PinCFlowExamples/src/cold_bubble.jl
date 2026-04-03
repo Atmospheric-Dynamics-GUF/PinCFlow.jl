@@ -1,4 +1,4 @@
-function cold_bubble end
+# examples/PinCFlowExamples/src/cold_bubble.jl
 
 function cold_bubble(;
     x_size::Integer = 40,

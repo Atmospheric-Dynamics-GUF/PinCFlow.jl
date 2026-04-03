@@ -1,4 +1,4 @@
-function thetabar end
+# examples/PinCFlowExamples/src/WavePacketTools/thetabar.jl
 
 function thetabar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
