@@ -40,7 +40,7 @@ function vortex(;
 
     output = OutputNamelist(;
         output_file = "vortex.h5",
-        output_variables = (:chi, :u, :v),
+        output_variables = (:chi,),
         prepare_restart,
         output_steps,
     )
