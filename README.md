@@ -108,7 +108,7 @@ end
 
 ```
 
-performs a 2D simulation with an initial wind of $10 \ \mathrm{m \ s^{- 1}}$ that generates a mountain wave above a periodic hill and visualizes the results. Note that with its default keyword arguments, this function attempts to run PinCFlow.jl in nine MPI processes (see below). You can run it in a single process with
+performs a 2D simulation with an initial wind of $10 \ \mathrm{m \ s^{- 1}}$ that generates a mountain wave above a periodic hill, and visualizes the results. Note that with its default keyword arguments, this function attempts to run PinCFlow.jl in nine MPI processes (see below). You can run it in a single process with
 
 ```julia
 periodic_hill(; npx = 1, npz = 1)
@@ -129,7 +129,7 @@ mpiexec=$(julia --project=examples/PinCFlowExamples.jl -e 'using MPICH_jll; prin
 ${mpiexec} -n 9 julia --project=examples/PinCFlowExamples.jl -e 'using PinCFlowExamples; periodic_hill()'
 ```
 
-in your shell, you can run the above simulation in 9 MPI processes. Note that `npx * npz` must be equal to the total number of processes, otherwise PinCFlow.jl will throw an error.
+in your shell, you can run the above simulation in 9 MPI processes. Note that `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
 
 However, if you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 
