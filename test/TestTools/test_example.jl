@@ -51,7 +51,7 @@ function test_example(
 
     # Update the references or test against them.
     if update_references
-        test_file = string(nameof(example)) * ".jl"
+        test_file = "test_" * string(nameof(example)) * ".jl"
         script = replace_assignments(
             read(test_file, String),
             :l2 => l2,

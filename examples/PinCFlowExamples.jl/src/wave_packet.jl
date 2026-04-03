@@ -70,8 +70,8 @@ function wave_packet(;
         output_variables = (:u, :v, :w),
         prepare_restart,
         output_steps,
-        # output_interval = 900,
-        # tmax = 900,
+        output_interval = 900,
+        tmax = 900,
     )
 
     integrate(Namelists(; atmosphere, domain, output))

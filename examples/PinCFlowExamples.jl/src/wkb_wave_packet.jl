@@ -42,8 +42,8 @@ function wkb_wave_packet(;
         save_ray_volumes = true,
         prepare_restart,
         output_steps,
-        # output_interval = 900,
-        # tmax = 900,
+        output_interval = 900,
+        tmax = 900,
     )
 
     state = State(Namelists(; atmosphere, domain))
