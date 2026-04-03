@@ -297,7 +297,7 @@ function vortex(;
 
     output = OutputNamelist(;
         output_file = "vortex.h5",
-        output_variables = (:chi, :u, :v),
+        output_variables = (:chi,),
         prepare_restart,
         output_steps,
     )
@@ -413,8 +413,8 @@ function wave_packet(;
         output_variables = (:u, :v, :w),
         prepare_restart,
         output_steps,
-        # output_interval = 900,
-        # tmax = 900,
+        output_interval = 900,
+        tmax = 900,
     )
 
     integrate(Namelists(; atmosphere, domain, output))
@@ -614,8 +614,8 @@ function wkb_wave_packet(;
         save_ray_volumes = true,
         prepare_restart,
         output_steps,
-        # output_interval = 900,
-        # tmax = 900,
+        output_interval = 900,
+        tmax = 900,
     )
 
     state = State(Namelists(; atmosphere, domain))
