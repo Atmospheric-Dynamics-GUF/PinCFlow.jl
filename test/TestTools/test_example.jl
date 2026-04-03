@@ -1,24 +1,24 @@
 """
 ```julia
 test_example(
-    file::AbstractString,
-    reference::NTuple{2, <:NamedTuple},
-    assignments::Vararg{Pair{Symbol, <:Any}};
+    example::Function,
+    keywords::NamedTuple,
+    reference::NTuple{2, <:NamedTuple};
     update_references::Bool = false,
     atol::Real = 0,
     rtol::Real = 0,
 )
 ```
 
-Run an example simulation with modified `assignments`, compute the ``L_2`` and ``L_\\infty`` norms of each output variable and test them against the `reference`.
+Run an example simulation with `keywords`, compute the ``L_2`` and ``L_\\infty`` norms of each output variable and test them against the `reference`.
 
 # Arguments
 
-  - `file`: Example run script.
+  - `example`: Example simulation function.
+
+  - `keywords`: Keyword arguments to pass to `example`.
 
   - `reference`: Reference ``L_2`` and ``L_\\infty`` norms.
-
-  - `assignments`: Replacements for assignments in the example run script.
 
 # Keywords
 
@@ -31,27 +31,19 @@ Run an example simulation with modified `assignments`, compute the ``L_2`` and `
 function test_example end
 
 function test_example(
-    file::AbstractString,
-    reference::NTuple{2, <:NamedTuple},
-    assignments::Vararg{Pair{Symbol, <:Any}};
+    example::Function,
+    keywords::NamedTuple,
+    reference::NTuple{2, <:NamedTuple};
     update_references::Bool = false,
     atol::Real = 0,
     rtol::Real = 0,
 )
-    # Read the example script and modify it.
-    script = read(file, String)
-    start = findfirst(r"(?m)^ *integrate\(", script)[1]
-    stop = Meta.parse(script, start)[2] - 1
-    script = script[1:stop]
-    script = replace(
-        script,
-        r"(?m)^ *using +HDF5 *\n+" => "",
-        r"(?m)^ *using +CairoMakie *\n+" => "",
-    )
-    script = replace_assignments(script, assignments...)
 
-    # Run the modified script.
-    eval(Meta.parseall(script))
+    # Call the example function with the provided keywords.
+    redirect_stdout(devnull) do
+        example(; keywords...)
+        return
+    end
 
     # Get the norms.
     (l2ref, linfref) = reference
@@ -59,7 +51,7 @@ function test_example(
 
     # Update the references or test against them.
     if update_references
-        test_file = splitpath(file)[end]
+        test_file = string(nameof(example)) * ".jl"
         script = replace_assignments(
             read(test_file, String),
             :l2 => l2,
