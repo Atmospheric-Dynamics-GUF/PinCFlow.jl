@@ -1,11 +1,11 @@
 # PinCFlowExamples.jl/src/hot_bubble.jl
 
 function hot_bubble(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
-    npx::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "hot_bubble.h5",
+    x_size::Int64 = 40,
+    z_size::Int64 = 40,
+    npx::Int64 = 3,
+    npz::Int64 = 3,
+    output_file::String = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,

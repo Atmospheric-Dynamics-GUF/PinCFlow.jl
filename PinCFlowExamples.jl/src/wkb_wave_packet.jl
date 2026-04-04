@@ -1,13 +1,13 @@
 # PinCFlowExamples.jl/src/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
-    x_size::Integer = 16,
-    y_size::Integer = 16,
-    z_size::Integer = 32,
-    npx::Integer = 3,
-    npy::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "wkb_wave_packet.h5",
+    x_size::Int64 = 16,
+    y_size::Int64 = 16,
+    z_size::Int64 = 32,
+    npx::Int64 = 3,
+    npy::Int64 = 3,
+    npz::Int64 = 3,
+    output_file::String = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,

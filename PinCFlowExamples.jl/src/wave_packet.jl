@@ -1,13 +1,13 @@
 # PinCFlowExamples.jl/src/wave_packet.jl
 
 function wave_packet(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
-    z_size::Integer = 80,
-    npx::Integer = 3,
-    npy::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "wave_packet.h5",
+    x_size::Int64 = 40,
+    y_size::Int64 = 40,
+    z_size::Int64 = 80,
+    npx::Int64 = 3,
+    npy::Int64 = 3,
+    npz::Int64 = 3,
+    output_file::String = "wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,

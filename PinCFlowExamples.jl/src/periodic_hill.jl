@@ -1,11 +1,11 @@
 # PinCFlowExamples.jl/src/periodic_hill.jl
 
 function periodic_hill(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
-    npx::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "periodic_hill.h5",
+    x_size::Int64 = 40,
+    z_size::Int64 = 40,
+    npx::Int64 = 3,
+    npz::Int64 = 3,
+    output_file::String = "periodic_hill.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
