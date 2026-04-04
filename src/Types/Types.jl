@@ -182,8 +182,8 @@ export Rho,
     SteadyState,
     SingleColumn,
     MultiColumn,
-    Box,
-    Shapiro
+    BoxFilter,
+    ShapiroFilter
 
 export DomainNamelist,
     OutputNamelist,

@@ -75,7 +75,7 @@ export MCVariant
 export NeutralStratification,
     StableStratification, Isothermal, Isentropic, Realistic, LapseRates
 export ConstantWaveAction, ConstantWaveEnergy
-export Box, Shapiro
+export BoxFilter, ShapiroFilter
 export NoWKB, SteadyState, SingleColumn, MultiColumn
 export NoTracer, TracerOn
 
