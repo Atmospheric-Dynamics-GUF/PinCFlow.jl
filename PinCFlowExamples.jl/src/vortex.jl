@@ -5,6 +5,7 @@ function vortex(;
     y_size::Integer = 40,
     npx::Integer = 3,
     npy::Integer = 3,
+    output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -39,7 +40,7 @@ function vortex(;
     domain = DomainNamelist(; x_size, y_size, lx, ly, npx, npy)
 
     output = OutputNamelist(;
-        output_file = "vortex.h5",
+        output_file,
         output_variables = (:chi,),
         prepare_restart,
         output_steps,
@@ -60,7 +61,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("vortex.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/vortex.svg",
                 data,

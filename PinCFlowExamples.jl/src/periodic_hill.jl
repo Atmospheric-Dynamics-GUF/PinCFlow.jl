@@ -5,6 +5,7 @@ function periodic_hill(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "periodic_hill.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -29,7 +30,7 @@ function periodic_hill(;
     )
 
     output = OutputNamelist(;
-        output_file = "periodic_hill.h5",
+        output_file,
         output_variables = (:w,),
         prepare_restart,
         output_steps,
@@ -43,7 +44,7 @@ function periodic_hill(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("periodic_hill.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/periodic_hill.svg",
                 data,

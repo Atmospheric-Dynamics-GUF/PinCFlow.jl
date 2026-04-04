@@ -14,6 +14,7 @@ function cold_bubble(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "cold_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -41,7 +42,7 @@ function cold_bubble(;
     domain = DomainNamelist(; x_size, z_size, lx, lz, npx, npz)
 
     output = OutputNamelist(;
-        output_file = "cold_bubble.h5",
+        output_file,
         output_variables = (:thetap,),
         prepare_restart,
         output_steps,
@@ -50,7 +51,7 @@ function cold_bubble(;
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("cold_bubble.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/cold_bubble.svg",
                 data,
@@ -81,6 +82,7 @@ function hot_bubble(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -109,7 +111,7 @@ function hot_bubble(;
     domain = DomainNamelist(; x_size, z_size, lx, lz, npx, npz)
 
     output = OutputNamelist(;
-        output_file = "hot_bubble.h5",
+        output_file,
         output_variables = (:thetap,),
         prepare_restart,
         output_steps,
@@ -118,7 +120,7 @@ function hot_bubble(;
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("hot_bubble.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/hot_bubble.svg",
                 data,
@@ -151,6 +153,7 @@ function mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -178,7 +181,7 @@ function mountain_wave(;
     )
 
     output = OutputNamelist(;
-        output_file = "mountain_wave.h5",
+        output_file,
         output_variables = (:w,),
         prepare_restart,
         output_steps,
@@ -202,7 +205,7 @@ function mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("mountain_wave.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/mountain_wave.svg",
                 data,
@@ -262,6 +265,7 @@ function vortex(;
     y_size::Integer = 40,
     npx::Integer = 3,
     npy::Integer = 3,
+    output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -296,7 +300,7 @@ function vortex(;
     domain = DomainNamelist(; x_size, y_size, lx, ly, npx, npy)
 
     output = OutputNamelist(;
-        output_file = "vortex.h5",
+        output_file,
         output_variables = (:chi,),
         prepare_restart,
         output_steps,
@@ -317,7 +321,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("vortex.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/vortex.svg",
                 data,
@@ -350,6 +354,7 @@ function wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -409,7 +414,7 @@ function wave_packet(;
     )
 
     output = OutputNamelist(;
-        output_file = "wave_packet.h5",
+        output_file,
         output_variables = (:u, :v, :w),
         prepare_restart,
         output_steps,
@@ -420,7 +425,7 @@ function wave_packet(;
     integrate(Namelists(; atmosphere, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("wave_packet.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/wave_packet.svg",
                 data,
@@ -456,6 +461,7 @@ function wkb_mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -496,7 +502,7 @@ function wkb_mountain_wave(;
     )
 
     output = OutputNamelist(;
-        output_file = "wkb_mountain_wave.h5",
+        output_file,
         save_ray_volumes = true,
         prepare_restart,
         output_steps,
@@ -517,7 +523,7 @@ function wkb_mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("wkb_mountain_wave.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/wkb_mountain_wave.svg",
                 data,
@@ -579,6 +585,7 @@ function wkb_wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -610,7 +617,7 @@ function wkb_wave_packet(;
     domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
     output = OutputNamelist(;
-        output_file = "wkb_wave_packet.h5",
+        output_file,
         save_ray_volumes = true,
         prepare_restart,
         output_steps,
@@ -634,7 +641,7 @@ function wkb_wave_packet(;
     integrate(Namelists(; atmosphere, domain, output, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("wkb_wave_packet.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/wkb_wave_packet.svg",
                 data,

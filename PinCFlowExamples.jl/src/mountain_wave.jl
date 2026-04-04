@@ -7,6 +7,7 @@ function mountain_wave(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -34,7 +35,7 @@ function mountain_wave(;
     )
 
     output = OutputNamelist(;
-        output_file = "mountain_wave.h5",
+        output_file,
         output_variables = (:w,),
         prepare_restart,
         output_steps,
@@ -58,7 +59,7 @@ function mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("mountain_wave.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/mountain_wave.svg",
                 data,

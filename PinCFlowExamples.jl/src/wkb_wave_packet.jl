@@ -7,6 +7,7 @@ function wkb_wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -38,7 +39,7 @@ function wkb_wave_packet(;
     domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
     output = OutputNamelist(;
-        output_file = "wkb_wave_packet.h5",
+        output_file,
         save_ray_volumes = true,
         prepare_restart,
         output_steps,
@@ -62,7 +63,7 @@ function wkb_wave_packet(;
     integrate(Namelists(; atmosphere, domain, output, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("wkb_wave_packet.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/wkb_wave_packet.svg",
                 data,

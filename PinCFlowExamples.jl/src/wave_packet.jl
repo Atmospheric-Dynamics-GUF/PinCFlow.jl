@@ -7,6 +7,7 @@ function wave_packet(;
     npx::Integer = 3,
     npy::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -66,7 +67,7 @@ function wave_packet(;
     )
 
     output = OutputNamelist(;
-        output_file = "wave_packet.h5",
+        output_file,
         output_variables = (:u, :v, :w),
         prepare_restart,
         output_steps,
@@ -77,7 +78,7 @@ function wave_packet(;
     integrate(Namelists(; atmosphere, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("wave_packet.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/wave_packet.svg",
                 data,

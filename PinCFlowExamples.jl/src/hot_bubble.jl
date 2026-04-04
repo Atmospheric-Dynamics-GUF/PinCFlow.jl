@@ -5,6 +5,7 @@ function hot_bubble(;
     z_size::Integer = 40,
     npx::Integer = 3,
     npz::Integer = 3,
+    output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -33,7 +34,7 @@ function hot_bubble(;
     domain = DomainNamelist(; x_size, z_size, lx, lz, npx, npz)
 
     output = OutputNamelist(;
-        output_file = "hot_bubble.h5",
+        output_file,
         output_variables = (:thetap,),
         prepare_restart,
         output_steps,
@@ -42,7 +43,7 @@ function hot_bubble(;
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open("hot_bubble.h5") do data
+        h5open(output_file) do data
             plot_output(
                 "PinCFlowExamples.jl/results/hot_bubble.svg",
                 data,
