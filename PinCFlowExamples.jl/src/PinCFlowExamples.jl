@@ -21,18 +21,18 @@ include("wkb_mountain_wave.jl")
 include("wkb_wave_packet.jl")
 
 @setup_workload begin
-    @compile_workload begin
-        redirect_stdout(devnull) do
-            mktempdir() do directory
-                x_size = 5
-                y_size = 5
-                z_size = 5
+    redirect_stdout(devnull) do
+        mktempdir() do directory
+            x_size = 5
+            y_size = 5
+            z_size = 5
 
-                output_file = directory * "/pincflow_output.h5"
-                output_steps = true
+            output_file = directory * "/pincflow_output.h5"
+            output_steps = true
 
-                visualize = false
+            visualize = false
 
+            @compile_workload begin
                 cold_bubble(;
                     x_size,
                     z_size,
@@ -94,11 +94,10 @@ include("wkb_wave_packet.jl")
                     output_steps,
                     visualize,
                 )
-
-                return
             end
             return
         end
+        return
     end
 end
 
