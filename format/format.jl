@@ -1,7 +1,4 @@
 using JuliaFormatter
-using Revise
-
-format(".")
 
 for (root, directories, files) in walkdir(".")
     for file in files
@@ -37,3 +34,5 @@ for (root, directories, files) in walkdir(".")
         end
     end
 end
+
+format(".")
