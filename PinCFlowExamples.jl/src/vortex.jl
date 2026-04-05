@@ -3,8 +3,8 @@
 function vortex(;
     x_size::Int64 = 40,
     y_size::Int64 = 40,
-    npx::Int64 = 3,
-    npy::Int64 = 3,
+    npx::Int64 = 1,
+    npy::Int64 = 1,
     output_file::String = "vortex.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,

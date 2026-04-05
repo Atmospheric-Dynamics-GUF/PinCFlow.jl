@@ -45,17 +45,17 @@ Pkg.activate("PinCFlowExamples.jl")
 Pkg.instantiate()
 ```
 
-to install the package's dependencies. Having done this, you can easily run any of the example simulations without needing to worry about extra packages. For instance, the function
+to install the package's dependencies. Having done this, you can easily run any of the example simulations without needing to worry about extra packages. For instance, calling the function
 
 ```julia
 # PinCFlowExamples.jl/src/periodic_hill.jl
 
 function periodic_hill(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
-    npx::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "periodic_hill.h5",
+    x_size::Int64 = 40,
+    z_size::Int64 = 40,
+    npx::Int64 = 1,
+    npz::Int64 = 1,
+    output_file::String = "periodic_hill.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -109,13 +109,13 @@ end
 
 ```
 
-performs a 2D simulation with an initial wind of $10 \ \mathrm{m \ s^{- 1}}$ that generates a mountain wave above a periodic hill, and visualizes the results. Note that with its default keyword arguments, this function attempts to run PinCFlow.jl in nine MPI processes (see below). You can run it in a single process with
+with
 
 ```julia
-periodic_hill(; npx = 1, npz = 1)
+periodic_hill()
 ```
 
-where `npx = 1` and `npz = 1` tell PinCFlow.jl to use only one MPI subdomain in the horizontal and vertical (this is actually the default configuration of the domain namelist).
+performs a 2D simulation with an initial wind of $10 \ \mathrm{m \ s^{- 1}}$ that generates a mountain wave above a periodic hill, and visualizes the results.
 
 PinCFlow.jl uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5`. This may be changed by setting the parameter `output_file` of the output namelist accordingly (as illustrated above). The dimensions of most output fields are (in order) $\hat{x}$ (zonal axis), $\hat{y}$ (meridional axis), $\hat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume-property fields differ slightly in that they have an additional dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the output namelist accordingly. A description of all namelists and their parameters is provided in the "Reference" section of the documentation.
 
@@ -127,12 +127,12 @@ If you want to run PinCFlow.jl in parallel, make sure you are using the correct 
 
 ```shell
 mpiexec=$(julia --project=PinCFlowExamples.jl -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; periodic_hill()'
+${mpiexec} -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; periodic_hill(; npx = 3, npz = 3)'
 ```
 
-in your shell, you can run the above simulation in 9 MPI processes. Note that `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
+in your shell, you can run the above simulation in 9 MPI processes. Note that `npx` and `npz` configure the number of MPI subdomains in $\hat{x}$ and $\hat{z}$, respectively. Thus, `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
 
-However, if you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
+If you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 
 ```shell
 julia --project=PinCFlowExamples.jl -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names = ["/path/to/mpi/library/"])'
@@ -149,7 +149,7 @@ julia --project=PinCFlowExamples.jl -e 'using HDF5; HDF5.API.set_libraries!()'
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```shell
-mpiexec -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; periodic_hill()'
+mpiexec -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; periodic_hill(; npx = 3, npz = 3)'
 ```
 
 with `mpiexec` being your chosen system binary. If you make changes to the package, make sure to precompile the project with

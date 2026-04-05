@@ -35,14 +35,8 @@ function test_hot_bubble()
     )
     reference = (l2, linf)
 
-    keywords = (
-        x_size = 10,
-        z_size = 10,
-        npx = 1,
-        npz = 1,
-        prepare_restart = true,
-        visualize = false,
-    )
+    keywords =
+        (x_size = 10, z_size = 10, prepare_restart = true, visualize = false)
 
     @testset "Hot bubble" begin
         test_example(hot_bubble, keywords, reference; update_references)

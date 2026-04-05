@@ -10,11 +10,11 @@ The function
 # PinCFlowExamples.jl/src/cold_bubble.jl
 
 function cold_bubble(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
-    npx::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "cold_bubble.h5",
+    x_size::Int64 = 40,
+    z_size::Int64 = 40,
+    npx::Int64 = 1,
+    npz::Int64 = 1,
+    output_file::String = "cold_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -78,11 +78,11 @@ The function
 # PinCFlowExamples.jl/src/hot_bubble.jl
 
 function hot_bubble(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
-    npx::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "hot_bubble.h5",
+    x_size::Int64 = 40,
+    z_size::Int64 = 40,
+    npx::Int64 = 1,
+    npz::Int64 = 1,
+    output_file::String = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -147,13 +147,13 @@ The function
 # PinCFlowExamples.jl/src/mountain_wave.jl
 
 function mountain_wave(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
-    z_size::Integer = 40,
-    npx::Integer = 3,
-    npy::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "mountain_wave.h5",
+    x_size::Int64 = 40,
+    y_size::Int64 = 40,
+    z_size::Int64 = 40,
+    npx::Int64 = 1,
+    npy::Int64 = 1,
+    npz::Int64 = 1,
+    output_file::String = "mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -261,11 +261,11 @@ The function
 # PinCFlowExamples.jl/src/vortex.jl
 
 function vortex(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
-    npx::Integer = 3,
-    npy::Integer = 3,
-    output_file::AbstractString = "vortex.h5",
+    x_size::Int64 = 40,
+    y_size::Int64 = 40,
+    npx::Int64 = 1,
+    npy::Int64 = 1,
+    output_file::String = "vortex.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -348,13 +348,13 @@ The function
 # PinCFlowExamples.jl/src/wave_packet.jl
 
 function wave_packet(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
-    z_size::Integer = 80,
-    npx::Integer = 3,
-    npy::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "wave_packet.h5",
+    x_size::Int64 = 40,
+    y_size::Int64 = 40,
+    z_size::Int64 = 80,
+    npx::Int64 = 1,
+    npy::Int64 = 1,
+    npz::Int64 = 1,
+    output_file::String = "wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -455,13 +455,13 @@ The function
 # PinCFlowExamples.jl/src/wkb_mountain_wave.jl
 
 function wkb_mountain_wave(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
-    z_size::Integer = 40,
-    npx::Integer = 3,
-    npy::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "wkb_mountain_wave.h5",
+    x_size::Int64 = 40,
+    y_size::Int64 = 40,
+    z_size::Int64 = 40,
+    npx::Int64 = 1,
+    npy::Int64 = 1,
+    npz::Int64 = 1,
+    output_file::String = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
@@ -579,13 +579,13 @@ The function
 # PinCFlowExamples.jl/src/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
-    x_size::Integer = 16,
-    y_size::Integer = 16,
-    z_size::Integer = 32,
-    npx::Integer = 3,
-    npy::Integer = 3,
-    npz::Integer = 3,
-    output_file::AbstractString = "wkb_wave_packet.h5",
+    x_size::Int64 = 16,
+    y_size::Int64 = 16,
+    z_size::Int64 = 32,
+    npx::Int64 = 1,
+    npy::Int64 = 1,
+    npz::Int64 = 1,
+    output_file::String = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,

@@ -17,9 +17,9 @@ set -x
 # export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; hot_bubble()' 1>hot_bubble.log 2>&1
+# srun --cpu_bind=verbose --distribution=block:cyclic julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; hot_bubble(; npx = 3, npz = 3)' 1>hot_bubble.log 2>&1
 
 # Run the model on interactive partition.
-mpiexec -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; hot_bubble()' 1>hot_bubble.log 2>&1
+mpiexec -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; hot_bubble(; npx = 3, npz = 3)' 1>hot_bubble.log 2>&1
 
 exit 0

@@ -3,8 +3,8 @@
 function hot_bubble(;
     x_size::Int64 = 40,
     z_size::Int64 = 40,
-    npx::Int64 = 3,
-    npz::Int64 = 3,
+    npx::Int64 = 1,
+    npz::Int64 = 1,
     output_file::String = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,

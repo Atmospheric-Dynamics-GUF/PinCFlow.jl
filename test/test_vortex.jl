@@ -27,14 +27,8 @@ function test_vortex()
     )
     reference = (l2, linf)
 
-    keywords = (
-        x_size = 10,
-        y_size = 10,
-        npx = 1,
-        npy = 1,
-        prepare_restart = true,
-        visualize = false,
-    )
+    keywords =
+        (x_size = 10, y_size = 10, prepare_restart = true, visualize = false)
 
     @testset "Vortex" begin
         test_example(vortex, keywords, reference; update_references)

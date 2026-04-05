@@ -27,14 +27,8 @@ function test_periodic_hill()
     )
     reference = (l2, linf)
 
-    keywords = (
-        x_size = 10,
-        z_size = 10,
-        npx = 1,
-        npz = 1,
-        prepare_restart = true,
-        visualize = false,
-    )
+    keywords =
+        (x_size = 10, z_size = 10, prepare_restart = true, visualize = false)
 
     @testset "Periodic hill" begin
         test_example(periodic_hill, keywords, reference; update_references)

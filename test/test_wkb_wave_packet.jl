@@ -63,9 +63,6 @@ function test_wkb_wave_packet()
         x_size = 10,
         y_size = 10,
         z_size = 10,
-        npx = 1,
-        npy = 1,
-        npz = 1,
         prepare_restart = true,
         visualize = false,
     )

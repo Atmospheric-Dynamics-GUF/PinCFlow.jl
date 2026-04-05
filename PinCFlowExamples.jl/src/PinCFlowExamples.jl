@@ -28,10 +28,6 @@ include("wkb_wave_packet.jl")
                 y_size = 5
                 z_size = 5
 
-                npx = 1
-                npy = 1
-                npz = 1
-
                 output_file = directory * "/pincflow_output.h5"
                 output_steps = true
 
@@ -40,8 +36,6 @@ include("wkb_wave_packet.jl")
                 cold_bubble(;
                     x_size,
                     z_size,
-                    npx,
-                    npz,
                     output_file,
                     output_steps,
                     visualize,
@@ -50,8 +44,6 @@ include("wkb_wave_packet.jl")
                 hot_bubble(;
                     x_size,
                     z_size,
-                    npx,
-                    npz,
                     output_file,
                     output_steps,
                     visualize,
@@ -61,9 +53,6 @@ include("wkb_wave_packet.jl")
                     x_size,
                     y_size,
                     z_size,
-                    npx,
-                    npy,
-                    npz,
                     output_file,
                     output_steps,
                     visualize,
@@ -72,30 +61,17 @@ include("wkb_wave_packet.jl")
                 periodic_hill(;
                     x_size,
                     z_size,
-                    npx,
-                    npz,
                     output_file,
                     output_steps,
                     visualize,
                 )
 
-                vortex(;
-                    x_size,
-                    y_size,
-                    npx,
-                    npy,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
+                vortex(; x_size, y_size, output_file, output_steps, visualize)
 
                 wave_packet(;
                     x_size,
                     y_size,
                     z_size,
-                    npx,
-                    npy,
-                    npz,
                     output_file,
                     output_steps,
                     visualize,
@@ -105,9 +81,6 @@ include("wkb_wave_packet.jl")
                     x_size,
                     y_size,
                     z_size,
-                    npx,
-                    npy,
-                    npz,
                     output_file,
                     output_steps,
                     visualize,
@@ -117,9 +90,6 @@ include("wkb_wave_packet.jl")
                     x_size,
                     y_size,
                     z_size,
-                    npx,
-                    npy,
-                    npz,
                     output_file,
                     output_steps,
                     visualize,
