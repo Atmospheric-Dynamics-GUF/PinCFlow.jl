@@ -1,7 +1,7 @@
 """
 ```julia
 OutputNamelist{
-    A <: Tuple{Vararg{Symbol}},
+    A <: Vector{Symbol},
     B <: Bool,
     C <: Int,
     D <: Float64,
@@ -13,7 +13,7 @@ Namelist for I/O parameters.
 
 ```julia
 OutputNamelist(;
-    output_variables::Tuple{Vararg{Symbol}} = (),
+    output_variables::Vector{Symbol} = Symbol[],
     save_ray_volumes::Bool = false,
     prepare_restart::Bool = false,
     restart::Bool = false,
@@ -32,7 +32,7 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
 
 # Fields/Keywords
 
-  - `output_variables::A`: A tuple of symbols representing the variables that should be written to the output file.
+  - `output_variables::A`: A vector of symbols representing the variables that should be written to the output file.
 
   - `save_ray_volumes::B`: A boolean indicating whether to write ray-volume data.
 
@@ -57,7 +57,7 @@ Construct an `OutputNamelist` instance with the given keyword arguments as prope
   - `output_file::E`: File to which output data is written.
 """
 struct OutputNamelist{
-    A <: Tuple{Vararg{Symbol}},
+    A <: Vector{Symbol},
     B <: Bool,
     C <: Int,
     D <: Float64,
@@ -78,7 +78,7 @@ struct OutputNamelist{
 end
 
 function OutputNamelist(;
-    output_variables::Tuple{Vararg{Symbol}} = (),
+    output_variables::Vector{Symbol} = Symbol[],
     save_ray_volumes::Bool = false,
     prepare_restart::Bool = false,
     restart::Bool = false,
