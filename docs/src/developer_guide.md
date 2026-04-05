@@ -278,7 +278,7 @@ PinCFlow.jl uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To b
 
 ```shell
 julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
-julia docs/make.jl
+julia --project=docs docs/make.jl
 ```
 
 in the root directory of the repository. The documentation will be generated in the `docs/build` directory. To view it, open `docs/build/index.html` in a web browser or preview the file in Visual Studio Code with [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server).
@@ -296,4 +296,4 @@ When you need to update the reference norms, please remember to also update the 
 
 ## Creating new releases
 
-The creation of a new release must not be attempted without the express permission of one of PinCFlow.jl's maintainers. To create a new release, first update the version numbers in `Project.toml`, `docs/Project.toml` and `examples/Project.toml` (following the interpretation of [semantic versioning](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1)) and add the release notes to `NEWS.md`, documenting all relevant changes that have been implemented since the last release. Push your commit, navigate to it on GitHub and add the comment `@JuliaRegistrator register()`. If the release includes breaking changes, the comment must mention where they are documented (an example of this can be found [here](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/commit/6049b83416104195e0575516d4d12f5614a6e0b1#commitcomment-170569001)).
+The creation of a new release must not be attempted without the express permission of one of PinCFlow.jl's maintainers. To create a new release, first update the version numbers in `Project.toml`, `docs/Project.toml` and `PinCFlowExamples.jl/Project.toml` (following the interpretation of [semantic versioning](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1)) and add the release notes to `NEWS.md`, documenting all relevant changes that have been implemented since the last release. Push your commit, navigate to it on GitHub and add the comment `@JuliaRegistrator register()`. If the release includes breaking changes, the comment must mention where they are documented (an example of this can be found [here](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/commit/6049b83416104195e0575516d4d12f5614a6e0b1#commitcomment-170569001)).
