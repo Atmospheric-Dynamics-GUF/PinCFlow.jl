@@ -8,10 +8,11 @@ for (root, directories, files) in walkdir(".")
         if endswith(joinpath(root, file), r"\.(jl|md)")
             script = read(joinpath(root, file), String)
 
+            modified_script = script
             for code_block in
                 eachmatch(r"(?sm)(?<=^```julia\n)(.(?!^```\n))*", script)
-                script = replace(
-                    script,
+                modified_script = replace(
+                    modified_script,
                     code_block.match => format_text(
                         string(code_block.match);
                         margin = 80,
@@ -29,8 +30,8 @@ for (root, directories, files) in walkdir(".")
                 )
             end
 
-            open(joinpath(root, file), "w") do io
-                write(io, script)
+            modified_script != script && open(joinpath(root, file), "w") do io
+                write(io, modified_script)
                 return
             end
         end
