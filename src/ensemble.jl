@@ -1,10 +1,6 @@
 """
 ```julia
-ensemble(
-    simulation::Function,
-    parameters::NamedTuple,
-    keywords::NamedTuple,
-)
+ensemble(simulation::Function, parameters::NamedTuple, keywords::NamedTuple)
 ```
 
 Run `simulation` in an ensemble.
