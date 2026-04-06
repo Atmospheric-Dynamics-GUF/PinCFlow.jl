@@ -14,13 +14,13 @@ TracerFluxes(namelists::Namelists, domain::Domain)::TracerFluxes
 Construct a `TracerFluxes` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
 
 ```julia
-TracerFluxes(domain::Domain, tracer_setup::Val{:no_tracer})::TracerFluxes
+TracerFluxes(domain::Domain, tracer_setup::Val{:NoTracer})::TracerFluxes
 ```
 
 Construct a `TracerFluxes` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerFluxes(domain::Domain, tracer_setup::Val{:tracer_on})::TracerFluxes
+TracerFluxes(domain::Domain, tracer_setup::Val{:TracerOn})::TracerFluxes
 ```
 
 Construct a `TracerFluxes` instance with zero-initialized arrays.
@@ -49,7 +49,7 @@ end
 
 function TracerFluxes(
     domain::Domain,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )::TracerFluxes
     return TracerFluxes(
         [zeros(0, 0, 0, 0) for field in fieldnames(TracerFluxes)]...,
@@ -58,7 +58,7 @@ end
 
 function TracerFluxes(
     domain::Domain,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )::TracerFluxes
     (; nxx, nyy, nzz) = domain
 

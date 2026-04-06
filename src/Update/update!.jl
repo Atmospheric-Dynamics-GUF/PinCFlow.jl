@@ -433,7 +433,7 @@ update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )
 ```
 
@@ -444,7 +444,7 @@ update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -1446,7 +1446,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -1455,7 +1455,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid

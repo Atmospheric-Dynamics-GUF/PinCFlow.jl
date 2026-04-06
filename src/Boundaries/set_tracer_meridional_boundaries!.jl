@@ -12,7 +12,7 @@ Enforce meridional boundary conditions for tracers by dispatching to the appropr
 set_tracer_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )
 ```
 
@@ -22,7 +22,7 @@ Return for configurations without tracer transport.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -32,7 +32,7 @@ Enforce meridional boundary conditions for tracer predictands.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -42,7 +42,7 @@ Enforce meridional boundary conditions for tracer reconstructions.
 set_tracer_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -100,7 +100,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -108,7 +108,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
@@ -127,7 +127,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
@@ -146,7 +146,7 @@ end
 function set_tracer_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
     (; wkb_mode) = state.namelists.wkb
     set_tracer_meridional_boundaries!(state, variables, wkb_mode)

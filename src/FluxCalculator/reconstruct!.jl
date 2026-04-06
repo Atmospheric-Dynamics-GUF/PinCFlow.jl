@@ -64,13 +64,13 @@ Reconstruct the vertical momentum.
 The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Similar to the zonal and meridional momenta, the vertical momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
-reconstruct!(state::State, tracer_setup::Val{:no_tracer})
+reconstruct!(state::State, tracer_setup::Val{:NoTracer})
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-reconstruct!(state::State, tracer_setup::Val{:tracer_on})
+reconstruct!(state::State, tracer_setup::Val{:TracerOn})
 ```
 
 Reconstruct the tracers.
@@ -285,11 +285,11 @@ function reconstruct!(state::State, variable::W)
     return
 end
 
-function reconstruct!(state::State, tracer_setup::Val{:no_tracer})
+function reconstruct!(state::State, tracer_setup::Val{:NoTracer})
     return
 end
 
-function reconstruct!(state::State, tracer_setup::Val{:tracer_on})
+function reconstruct!(state::State, tracer_setup::Val{:TracerOn})
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries

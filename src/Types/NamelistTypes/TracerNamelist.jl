@@ -7,7 +7,7 @@ Namelist for the inclusion of a tracer and the calculation of the leading-order 
 
 ```julia
 TracerNamelist(;
-    tracer_setup::Symbol = :no_tracer,
+    tracer_setup::Symbol = :NoTracer,
     leading_order_impact::Bool = false,
     initial_tracer::Function = (x, y, z) -> 0.0,
 )::TracerNamelist
@@ -30,7 +30,7 @@ struct TracerNamelist
 end
 
 function TracerNamelist(;
-    tracer_setup::Symbol = :no_tracer,
+    tracer_setup::Symbol = :NoTracer,
     leading_order_impact::Bool = false,
     initial_tracer::Function = (x, y, z) -> 0.0,
 )::TracerNamelist

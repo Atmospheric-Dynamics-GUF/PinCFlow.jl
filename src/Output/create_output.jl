@@ -247,7 +247,7 @@ function create_output(state::State, machine_start_time::DateTime)
             )
         end
 
-        if state.namelists.tracer.tracer_setup != :no_tracer
+        if state.namelists.tracer.tracer_setup != :NoTracer
             for field in fieldnames(TracerPredictands)
                 create_dataset(
                     file,
@@ -453,7 +453,7 @@ function create_output(state::State, machine_start_time::DateTime)
             attributes(file["pip"])["long_name"] = "Exner-pressure fluctuations"
         end
 
-        if state.namelists.tracer.tracer_setup != :no_tracer
+        if state.namelists.tracer.tracer_setup != :NoTracer
             for field in fieldnames(TracerPredictands)
                 attributes(file[string(field)])["units"] = "1"
                 attributes(file[string(field)])["label"] = L"\chi"

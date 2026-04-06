@@ -76,7 +76,7 @@ function read_input!(state::State)
                 thetaref
         end
 
-        if state.namelists.tracer.tracer_setup != :no_tracer
+        if state.namelists.tracer.tracer_setup != :NoTracer
             for field in fieldnames(TracerPredictands)
                 getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
                     file[string(field)][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])

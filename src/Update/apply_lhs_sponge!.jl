@@ -203,7 +203,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )
 ```
 
@@ -214,7 +214,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -581,7 +581,7 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -590,7 +590,7 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge

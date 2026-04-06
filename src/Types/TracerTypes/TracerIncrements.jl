@@ -14,7 +14,7 @@ Construct a `TracerIncrements` instance with dimensions depending on the general
 ```julia
 TracerIncrements(
     domain::Domain,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )::TracerIncrements
 ```
 
@@ -23,7 +23,7 @@ Construct a `TracerIncrements` instance with zero-size arrays for configurations
 ```julia
 TracerIncrements(
     domain::Domain,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )::TracerIncrements
 ```
 
@@ -56,7 +56,7 @@ end
 
 function TracerIncrements(
     domain::Domain,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )::TracerIncrements
     return TracerIncrements(
         [zeros(0, 0, 0) for field in fieldnames(TracerIncrements)]...,
@@ -65,7 +65,7 @@ end
 
 function TracerIncrements(
     domain::Domain,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )::TracerIncrements
     (; nxx, nyy, nzz) = domain
 

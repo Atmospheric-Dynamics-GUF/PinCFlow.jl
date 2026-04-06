@@ -239,7 +239,7 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )
 ```
 
@@ -249,7 +249,7 @@ Return for configurations without tracer transport.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -1505,7 +1505,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::Val{:no_tracer},
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -1513,7 +1513,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::Val{:tracer_on},
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid

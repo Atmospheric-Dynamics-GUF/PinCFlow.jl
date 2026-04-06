@@ -13,6 +13,6 @@ macro dispatch_tracer_setup end
 
 macro dispatch_tracer_setup(input::Expr)
     return esc(quote
-        @dispatch (:no_tracer, :tracer_on) $(input)
+        @dispatch (:NoTracer, :TracerOn) $(input)
     end)
 end
