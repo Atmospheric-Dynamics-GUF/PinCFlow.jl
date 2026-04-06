@@ -19,7 +19,7 @@ Construct a `TracerReconstructions` instance with dimensions depending on the ge
 ```julia
 TracerReconstructions(
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )::TracerReconstructions
 ```
 
@@ -28,7 +28,7 @@ Construct a `TracerReconstructions` instance with zero-size arrays for configura
 ```julia
 TracerReconstructions(
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )::TracerReconstructions
 ```
 
@@ -56,12 +56,15 @@ function TracerReconstructions(
 )::TracerReconstructions
     (; tracer_setup) = namelists.tracer
 
-    return TracerReconstructions(domain, tracer_setup)
+    @dispatch_tracer_setup return TracerReconstructions(
+        domain,
+        Val(tracer_setup),
+    )
 end
 
 function TracerReconstructions(
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )::TracerReconstructions
     return TracerReconstructions(
         [
@@ -72,7 +75,7 @@ end
 
 function TracerReconstructions(
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )::TracerReconstructions
     (; nxx, nyy, nzz) = domain
 

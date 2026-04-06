@@ -56,15 +56,6 @@ abstract type AbstractWKBFilter end
 
 """
 ```julia
-AbstractTracer
-```
-
-Abstract type for the inclusion of a tracer.
-"""
-abstract type AbstractTracer end
-
-"""
-```julia
 NeutralStratification <: AbstractBackground
 ```
 
@@ -216,24 +207,6 @@ Singleton for a Shapiro filter as smoothing method applied to mean-flow tendenci
 """
 struct ShapiroFilter <: AbstractWKBFilter end
 
-"""
-```julia
-NoTracer <: AbstractTracer
-```
-
-Singleton for model configurations without a tracer.
-"""
-struct NoTracer <: AbstractTracer end
-
-"""
-```julia
-TracerOn <: AbstractTracer
-```
-
-Singleton for model configurations with an initially linear tracer.
-"""
-struct TracerOn <: AbstractTracer end
-
 using MPI
 using FunctionWrappers
 using ...PinCFlow
@@ -241,6 +214,7 @@ using ...PinCFlow
 import FunctionWrappers: FunctionWrapper
 
 include("@dispatch_limiter_type.jl")
+include("@dispatch_tracer_setup.jl")
 include("@dispatch.jl")
 
 include("DomainNamelist.jl")
@@ -254,14 +228,10 @@ include("WKBNamelist.jl")
 include("TracerNamelist.jl")
 include("Namelists.jl")
 
-export @dispatch_limiter_type, @dispatch
+export @dispatch_limiter_type, @dispatch_tracer_setup, @dispatch
 
 export AbstractBackground,
-    AbstractModel,
-    AbstractMergeMode,
-    AbstractWKBMode,
-    AbstractWKBFilter,
-    AbstractTracer
+    AbstractModel, AbstractMergeMode, AbstractWKBMode, AbstractWKBFilter
 
 export NeutralStratification,
     StableStratification,
@@ -279,9 +249,7 @@ export NeutralStratification,
     SingleColumn,
     MultiColumn,
     BoxFilter,
-    ShapiroFilter,
-    NoTracer,
-    TracerOn
+    ShapiroFilter
 
 export DomainNamelist,
     OutputNamelist,

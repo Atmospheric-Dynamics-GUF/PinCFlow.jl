@@ -15,7 +15,7 @@ Construct a `TracerForcings` instance set according to the model configuration.
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )::TracerForcings
 ```
 
@@ -25,7 +25,7 @@ Construct a `TracerForcings` instance for configurations without tracer transpor
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )::TracerForcings
 ```
 
@@ -71,13 +71,17 @@ end
 function TracerForcings(namelists::Namelists, domain::Domain)::TracerForcings
     (; tracer_setup) = namelists.tracer
 
-    return TracerForcings(namelists, domain, tracer_setup)
+    @dispatch_tracer_setup return TracerForcings(
+        namelists,
+        domain,
+        Val(tracer_setup),
+    )
 end
 
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )::TracerForcings
     return TracerForcings(
         [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
@@ -87,7 +91,7 @@ end
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )::TracerForcings
     (; wkb_mode) = namelists.wkb
 

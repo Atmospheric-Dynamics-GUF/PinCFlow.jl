@@ -5,7 +5,7 @@ compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
 ```
 
@@ -17,7 +17,7 @@ compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )
 ```
 
@@ -40,7 +40,7 @@ function compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
@@ -83,7 +83,7 @@ function compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )
     return
 end

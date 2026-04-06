@@ -236,13 +236,21 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, tracer_setup::NoTracer)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracer_setup::Val{:no_tracer},
+)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, tracer_setup::TracerOn)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracer_setup::Val{:tracer_on},
+)
 ```
 
 Compute the tracer fluxes in all three directions.
@@ -325,7 +333,11 @@ function compute_fluxes!(state::State, predictands::Predictands)
     compute_fluxes!(state, predictands, W())
 
     compute_fluxes!(state, predictands, model, P())
-    compute_fluxes!(state, predictands, state.namelists.tracer.tracer_setup)
+    @dispatch_tracer_setup compute_fluxes!(
+        state,
+        predictands,
+        Val(state.namelists.tracer.tracer_setup),
+    )
     return
 end
 
@@ -1493,7 +1505,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )
     return
 end
@@ -1501,7 +1513,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid

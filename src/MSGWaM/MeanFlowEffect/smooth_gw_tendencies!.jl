@@ -154,13 +154,13 @@ smooth_gw_tendencies!(
 Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
 
 ```julia
-smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)
+smooth_gw_tendencies!(state::State, tracer_setup::Val{:tracer_on})
 ```
 
 Apply smoothing to tracer tendencies.
 
 ```julia
-smooth_gw_tendencies!(state::State, tracer_setup::NoTracer)
+smooth_gw_tendencies!(state::State, tracer_setup::Val{:no_tracer})
 ```
 
 Return for configurations without tracer transport.
@@ -211,7 +211,7 @@ function smooth_gw_tendencies!(state::State)
         smooth_gw_tendencies!(dthetadt, state, filter_type, XYZ())
     end
 
-    smooth_gw_tendencies!(state, tracer_setup)
+    @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
 
     return
 end
@@ -454,7 +454,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)
+function smooth_gw_tendencies!(state::State, tracer_setup::Val{:tracer_on})
     (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dchidt) = state.tracer.tracerforcings.chiq0
@@ -476,6 +476,6 @@ function smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)
     return
 end
 
-function smooth_gw_tendencies!(state::State, tracer_setup::NoTracer)
+function smooth_gw_tendencies!(state::State, tracer_setup::Val{:no_tracer})
     return
 end

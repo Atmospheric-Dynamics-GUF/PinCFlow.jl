@@ -146,15 +146,14 @@ using ..PinCFlow
 
 include("State.jl")
 
-export @dispatch_limiter_type, @dispatch
+export @dispatch_limiter_type, @dispatch_tracer_setup, @dispatch
 
 export AbstractBackground,
     AbstractPredictand,
     AbstractModel,
     AbstractMergeMode,
     AbstractWKBMode,
-    AbstractWKBFilter,
-    AbstractTracer
+    AbstractWKBFilter
 
 export Rho,
     RhoP,
@@ -223,8 +222,6 @@ export DomainNamelist,
     WKB,
     Tracer,
     State,
-    NoTracer,
-    TracerOn,
     TracerPredictands,
     TracerAuxiliaries,
     TracerIncrements,

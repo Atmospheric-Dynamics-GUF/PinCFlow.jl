@@ -269,9 +269,9 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_leading_order_tracer_fluxes!(
+                        @dispatch_tracer_setup compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracer_setup,
+                            Val(state.namelists.tracer.tracer_setup),
                             fc,
                             omir,
                             kr,
@@ -432,9 +432,9 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_leading_order_tracer_fluxes!(
+                        @dispatch_tracer_setup compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracer_setup,
+                            Val(state.namelists.tracer.tracer_setup),
                             fc,
                             omir,
                             kr,
@@ -562,9 +562,9 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
 
-                        compute_leading_order_tracer_fluxes!(
+                        @dispatch_tracer_setup compute_leading_order_tracer_fluxes!(
                             state,
-                            state.namelists.tracer.tracer_setup,
+                            Val(state.namelists.tracer.tracer_setup),
                             fc,
                             omir,
                             kr,

@@ -271,7 +271,7 @@ function write_output(
             file["pip"][iid, jjd, kkd, iout] = pip[ii, jj, kk]
         end
 
-        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
+        if state.namelists.tracer.tracer_setup != :no_tracer
             for field in fieldnames(TracerPredictands)
                 HDF5.set_extent_dims(
                     file[string(field)],

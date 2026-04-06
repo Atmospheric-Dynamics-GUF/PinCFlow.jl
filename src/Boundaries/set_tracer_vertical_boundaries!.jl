@@ -12,7 +12,7 @@ Enforce vertical boundary conditions for tracers by dispatching to the appropria
 set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )
 ```
 
@@ -22,7 +22,7 @@ Return for configurations without tracer transport.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
 ```
 
@@ -32,7 +32,7 @@ Enforce vertical boundary conditions for tracer predictands.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
 ```
 
@@ -42,7 +42,7 @@ Enforce vertical boundary conditions for tracer reconstructions.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
 ```
 
@@ -52,7 +52,7 @@ Enforce vertical boundary conditions for vertical tracer fluxes.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
 ```
 
@@ -99,14 +99,18 @@ function set_tracer_vertical_boundaries!(
     variables::AbstractBoundaryVariables,
 )
     (; tracer_setup) = state.namelists.tracer
-    set_tracer_vertical_boundaries!(state, variables, tracer_setup)
+    @dispatch_tracer_setup set_tracer_vertical_boundaries!(
+        state,
+        variables,
+        Val(tracer_setup),
+    )
     return
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )
     return
 end
@@ -114,7 +118,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
@@ -134,7 +138,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
@@ -153,7 +157,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
@@ -177,7 +181,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; wkb_mode) = state.namelists.wkb
     set_tracer_vertical_boundaries!(state, variables, wkb_mode)

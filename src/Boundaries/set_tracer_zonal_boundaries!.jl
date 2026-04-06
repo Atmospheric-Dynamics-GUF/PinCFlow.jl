@@ -9,7 +9,7 @@ Enforce zonal boundary conditions for tracers by dispatching to the appropriate 
 set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )
 ```
 
@@ -19,7 +19,7 @@ Return for configurations without tracer transport.
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
 ```
 
@@ -29,7 +29,7 @@ Enforce zonal boundary conditions for tracer predictands.
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
 ```
 
@@ -39,7 +39,7 @@ Enforce zonal boundary conditions for tracer reconstructions.
 set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
 ```
 
@@ -86,14 +86,18 @@ function set_tracer_zonal_boundaries!(
     variables::AbstractBoundaryVariables,
 )
     (; tracer_setup) = state.namelists.tracer
-    set_tracer_zonal_boundaries!(state, variables, tracer_setup)
+    @dispatch_tracer_setup set_tracer_zonal_boundaries!(
+        state,
+        variables,
+        Val(tracer_setup),
+    )
     return
 end
 
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:no_tracer},
 )
     return
 end
@@ -101,7 +105,7 @@ end
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
@@ -120,7 +124,7 @@ end
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
@@ -139,7 +143,7 @@ end
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:tracer_on},
 )
     (; wkb_mode) = state.namelists.wkb
     set_tracer_zonal_boundaries!(state, variables, wkb_mode)

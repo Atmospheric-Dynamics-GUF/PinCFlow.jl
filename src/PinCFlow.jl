@@ -53,7 +53,6 @@ export NeutralStratification,
 export ConstantWaveAction, ConstantWaveEnergy
 export BoxFilter, ShapiroFilter
 export NoWKB, SteadyState, SingleColumn, MultiColumn
-export NoTracer, TracerOn
 
 # Export model-state constructor.
 export State
