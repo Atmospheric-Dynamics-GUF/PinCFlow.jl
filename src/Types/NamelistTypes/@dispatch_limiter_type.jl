@@ -13,6 +13,6 @@ macro dispatch_limiter_type end
 
 macro dispatch_limiter_type(input::Expr)
     return esc(quote
-        @dispatch (:monotone_centered_variant,) $(input)
+        @dispatch (:MCVariant,) $(input)
     end)
 end

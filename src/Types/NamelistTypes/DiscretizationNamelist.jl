@@ -12,7 +12,7 @@ DiscretizationNamelist(;
     dtmin::Real = 1.0E-6,
     dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
-    limiter_type::Symbol = :monotone_centered_variant,
+    limiter_type::Symbol = :MCVariant,
 )::DiscretizationNamelist
 ```
 
@@ -47,7 +47,7 @@ function DiscretizationNamelist(;
     dtmin::Real = 1.0E-6,
     dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
-    limiter_type::Symbol = :monotone_centered_variant,
+    limiter_type::Symbol = :MCVariant,
 )::DiscretizationNamelist
     return DiscretizationNamelist(
         Float64(cfl_number),
