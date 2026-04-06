@@ -17,7 +17,7 @@ macro dispatch(values::Expr, input::Expr)
     code = string(input)
     range = findfirst(r"\bVal\((?!\s*(:\w+\b|\d+\b|true\b|false\b))", code)
 
-    if range !== nothing
+    @ivy if range !== nothing
         start = first(range) + 4
         stop = Meta.parse(code, start - 1; greedy = false)[2] - 2
         parameter = code[start:stop]
