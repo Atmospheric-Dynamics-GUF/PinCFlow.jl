@@ -38,7 +38,7 @@ using PinCFlow
 integrate(Namelists())
 ```
 
-runs PinCFlow.jl in its default configuration. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \ \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by constructing namelists with changed parameters. This is illustrated in the example functions provided in the repository. These are organized in a local package called PinCFlowExamples.jl. To use the functions, we recommend downloading it from the repository and running
+runs PinCFlow.jl in its default configuration. This simulation will finish almost instantly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \ \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by constructing namelists with changed parameters. This is illustrated in the example functions provided in the repository. These are organized in a local package called PinCFlowExamples.jl. To use the functions, we recommend downloading it from the repository and running
 
 ```julia
 Pkg.activate("PinCFlowExamples.jl")
@@ -51,10 +51,10 @@ to install the package's dependencies. Having done this, you can easily run any 
 # PinCFlowExamples.jl/src/periodic_hill.jl
 
 function periodic_hill(;
-    x_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "periodic_hill.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -67,8 +67,8 @@ function periodic_hill(;
     zr = 10000.0
 
     atmosphere = AtmosphereNamelist(;
-        model = Boussinesq(),
-        background = StableStratification(),
+        model = :Boussinesq,
+        background = :StableStratification,
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
     )
@@ -81,7 +81,7 @@ function periodic_hill(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:w,),
+        output_variables = [:w],
         prepare_restart,
         output_steps,
     )
@@ -152,19 +152,7 @@ you can restore the default backends. Having configured MPI.jl and HDF5.jl to us
 mpiexec -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; periodic_hill(; npx = 3, npz = 3)'
 ```
 
-with `mpiexec` being your chosen system binary. If you make changes to the package, make sure to precompile the project with
-
-```shell
-julia --project=PinCFlowExamples.jl -e 'using Pkg; Pkg.precompile()'
-```
-
-before starting an MPI job, to avoid race conditions. Because PinCFlowExamples.jl uses [PrecompileTools.jl](https://julialang.github.io/PrecompileTools.jl/stable/) to run cheap serial versions of the example simulations during precompilation, this can take a while. You can run
-
-```shell
-julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples, Preferences; set_preferences!(PinCFlowExamples, "precompile_workload" => false; force = true)'
-```
-
-to reduce the precompilation time, however, this will result in a longer compilation time in the example simulations. For users who would like to run PinCFlow.jl on [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `PinCFlowExamples.jl/levante` of the repository.
+with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl on [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `PinCFlowExamples.jl/levante` of the repository.
 
 ## List of publications
 

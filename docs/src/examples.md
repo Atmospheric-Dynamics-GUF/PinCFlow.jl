@@ -1,6 +1,6 @@
 # Examples
 
-PinCFlow.jl's examples are organized in functions which are part of a local package (PinCFlowExamples.jl) in the repository. This package runs cheap serial versions of the example simulations during precompilation, so that the compilation in parallelized simulations is reduced to the necessary minimum.
+PinCFlow.jl's examples are organized in functions which are part of a local package (PinCFlowExamples.jl) in the repository.
 
 ## Cold bubble
 
@@ -10,10 +10,10 @@ The function
 # PinCFlowExamples.jl/src/cold_bubble.jl
 
 function cold_bubble(;
-    x_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "cold_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -26,7 +26,7 @@ function cold_bubble(;
     rz = lz / 8
 
     atmosphere = AtmosphereNamelist(;
-        background = Isentropic(),
+        background = :Isentropic,
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + ((z - 3 * rz) / rz)^2)
             if r <= 1
@@ -43,7 +43,7 @@ function cold_bubble(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:thetap,),
+        output_variables = [:thetap],
         prepare_restart,
         output_steps,
     )
@@ -78,10 +78,10 @@ The function
 # PinCFlowExamples.jl/src/hot_bubble.jl
 
 function hot_bubble(;
-    x_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -94,8 +94,8 @@ function hot_bubble(;
     rz = lz / 8
 
     atmosphere = AtmosphereNamelist(;
-        model = Compressible(),
-        background = Isentropic(),
+        model = :Compressible,
+        background = :Isentropic,
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + ((z - 5 * rz) / rz)^2)
             if r <= 1
@@ -112,7 +112,7 @@ function hot_bubble(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:thetap,),
+        output_variables = [:thetap],
         prepare_restart,
         output_steps,
     )
@@ -147,12 +147,12 @@ The function
 # PinCFlowExamples.jl/src/mountain_wave.jl
 
 function mountain_wave(;
-    x_size::Int64 = 40,
-    y_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    y_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -182,7 +182,7 @@ function mountain_wave(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:w,),
+        output_variables = [:w],
         prepare_restart,
         output_steps,
     )
@@ -261,10 +261,10 @@ The function
 # PinCFlowExamples.jl/src/vortex.jl
 
 function vortex(;
-    x_size::Int64 = 40,
-    y_size::Int64 = 40,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
+    x_size::Integer = 40,
+    y_size::Integer = 40,
+    npx::Integer = 1,
+    npy::Integer = 1,
     output_file::String = "vortex.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -277,8 +277,8 @@ function vortex(;
     ry = ly / 4
 
     atmosphere = AtmosphereNamelist(;
-        model = Boussinesq(),
-        background = NeutralStratification(),
+        model = :Boussinesq,
+        background = :NeutralStratification,
         initial_u = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2)
             if r <= 1
@@ -301,13 +301,13 @@ function vortex(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:chi,),
+        output_variables = [:chi],
         prepare_restart,
         output_steps,
     )
 
     tracer = TracerNamelist(;
-        tracer_setup = TracerOn(),
+        tracer_setup = :TracerOn,
         initial_tracer = (x, y, z) -> begin
             r = sqrt(((abs(x) - rx) / rx)^2 + (y / ry)^2)
             if r <= 1
@@ -348,12 +348,12 @@ The function
 # PinCFlowExamples.jl/src/wave_packet.jl
 
 function wave_packet(;
-    x_size::Int64 = 40,
-    y_size::Int64 = 40,
-    z_size::Int64 = 80,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    y_size::Integer = 40,
+    z_size::Integer = 80,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -376,7 +376,7 @@ function wave_packet(;
         a0 = 0.05,
     )
 
-    background = Realistic()
+    background = :Realistic
     coriolis_frequency = 0.0001
 
     atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
@@ -415,7 +415,7 @@ function wave_packet(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:u, :v, :w),
+        output_variables = [:u, :v, :w],
         prepare_restart,
         output_steps,
         output_interval = 900,
@@ -455,12 +455,12 @@ The function
 # PinCFlowExamples.jl/src/wkb_mountain_wave.jl
 
 function wkb_mountain_wave(;
-    x_size::Int64 = 40,
-    y_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    y_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -480,7 +480,7 @@ function wkb_mountain_wave(;
     alpharmax = 0.0179
 
     atmosphere = AtmosphereNamelist(;
-        background = LapseRates(),
+        background = :LapseRates,
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
     )
@@ -518,7 +518,7 @@ function wkb_mountain_wave(;
         relaxed_u = (x, y, z, t, dt) -> 10.0,
     )
 
-    wkb = WKBNamelist(; wkb_mode = MultiColumn())
+    wkb = WKBNamelist(; wkb_mode = :MultiColumn)
 
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
@@ -579,12 +579,12 @@ The function
 # PinCFlowExamples.jl/src/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
-    x_size::Int64 = 16,
-    y_size::Int64 = 16,
-    z_size::Int64 = 32,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 16,
+    y_size::Integer = 16,
+    z_size::Integer = 32,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -608,8 +608,8 @@ function wkb_wave_packet(;
     )
     (; k, l, m) = parameters
 
-    model = Compressible()
-    background = Realistic()
+    model = :Compressible
+    background = :Realistic
     coriolis_frequency = 0.0001
 
     atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
@@ -628,7 +628,7 @@ function wkb_wave_packet(;
     state = State(Namelists(; atmosphere, domain))
 
     wkb = WKBNamelist(;
-        wkb_mode = MultiColumn(),
+        wkb_mode = :MultiColumn,
         initial_wave_field = (alpha, x, y, z) -> (
             k,
             l,
