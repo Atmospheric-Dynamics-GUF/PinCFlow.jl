@@ -146,14 +146,15 @@ using ..PinCFlow
 
 include("State.jl")
 
-export @dispatch_limiter_type, @dispatch_tracer_setup, @dispatch
+export @dispatch_filter_order,
+    @dispatch_filter_type,
+    @dispatch_limiter_type,
+    @dispatch_merge_mode,
+    @dispatch_tracer_setup,
+    @dispatch_wkb_mode,
+    @dispatch
 
-export AbstractBackground,
-    AbstractPredictand,
-    AbstractModel,
-    AbstractMergeMode,
-    AbstractWKBMode,
-    AbstractWKBFilter
+export AbstractBackground, AbstractPredictand, AbstractModel
 
 export Rho,
     RhoP,
@@ -174,15 +175,7 @@ export Rho,
     LapseRates,
     Boussinesq,
     PseudoIncompressible,
-    Compressible,
-    ConstantWaveAction,
-    ConstantWaveEnergy,
-    NoWKB,
-    SteadyState,
-    SingleColumn,
-    MultiColumn,
-    BoxFilter,
-    ShapiroFilter
+    Compressible
 
 export DomainNamelist,
     OutputNamelist,

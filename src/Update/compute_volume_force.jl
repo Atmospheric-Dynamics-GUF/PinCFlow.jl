@@ -18,7 +18,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::Union{U, V, W, Chi},
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::AbstractFloat
 ```
 
@@ -31,7 +31,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::U,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
 ```
 
@@ -44,7 +44,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::V,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
 ```
 
@@ -57,7 +57,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::W,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
 ```
 
@@ -74,7 +74,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::AbstractFloat
 ```
 
@@ -87,7 +87,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
 ```
 
@@ -100,7 +100,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variables::Chi,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
 ```
 
@@ -135,7 +135,14 @@ function compute_volume_force(
 )::AbstractFloat
     (; wkb_mode) = state.namelists.wkb
 
-    return compute_volume_force(state, i, j, k, variable, wkb_mode)
+    @dispatch_wkb_mode return compute_volume_force(
+        state,
+        i,
+        j,
+        k,
+        variable,
+        Val(wkb_mode),
+    )
 end
 
 function compute_volume_force(
@@ -144,7 +151,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::Union{U, V, W, Chi},
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     return 0.0
 end
@@ -155,7 +162,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::U,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; dudt) = state.wkb.tendencies
 
@@ -168,7 +175,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::V,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; dvdt) = state.wkb.tendencies
 
@@ -181,7 +188,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::W,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; jac, met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
@@ -204,7 +211,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     return conductive_heating(state, i, j, k)
 end
@@ -215,7 +222,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variable::P,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
 
@@ -228,7 +235,7 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variables::Chi,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; leading_order_impact) = state.namelists.tracer
     (; chiq0) = state.tracer.tracerforcings

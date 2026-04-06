@@ -315,7 +315,7 @@ function write_output(
         end
 
         # Write WKB variables.
-        if wkb_mode != NoWKB()
+        if wkb_mode != :NoWKB
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes

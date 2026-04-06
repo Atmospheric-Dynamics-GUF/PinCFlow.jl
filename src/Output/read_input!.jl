@@ -84,7 +84,7 @@ function read_input!(state::State)
         end
 
         # Read ray-volume properties.
-        if wkb_mode != NoWKB()
+        if wkb_mode != :NoWKB
             for (output_name, field_name) in zip(
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),

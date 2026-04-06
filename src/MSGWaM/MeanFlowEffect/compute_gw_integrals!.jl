@@ -6,7 +6,7 @@ compute_gw_integrals!(state::State)
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact by dispatching to a WKB-mode-specific method.
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in multi-column mode.
@@ -51,7 +51,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 ```
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
@@ -59,7 +59,7 @@ Compute the gravity-wave integrals needed for the computation of the mean-flow i
 This method computes ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle`` and ``\\mathcal{E}`` (see above for details).
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
@@ -91,11 +91,11 @@ function compute_gw_integrals! end
 
 function compute_gw_integrals!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    compute_gw_integrals!(state, wkb_mode)
+    @dispatch_wkb_mode compute_gw_integrals!(state, Val(wkb_mode))
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -294,7 +294,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -457,7 +457,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants

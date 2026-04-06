@@ -116,41 +116,41 @@ Enforce vertical boundary conditions for WKB variables by dispatching to the app
 set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
 )
 ```
 
-Enforce vertical boundary conditions for WKB integrals needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
+Enforce vertical boundary conditions for WKB integrals needed in `:SingleColumn` and `:SteadyState` configurations, using line reflection.
 
 ```julia
 set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::MultiColumn,
+    wkb_mode::Val{:MultiColumn},
 )
 ```
 
-Enforce vertical boundary conditions for WKB integrals needed in `MultiColumn` configurations, using line reflection.
+Enforce vertical boundary conditions for WKB integrals needed in `:MultiColumn` configurations, using line reflection.
 
 ```julia
 set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
 )
 ```
 
-Enforce vertical boundary conditions for WKB tendencies needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
+Enforce vertical boundary conditions for WKB tendencies needed in `:SingleColumn` and `:SteadyState` configurations, using line reflection.
 
 ```julia
 set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::MultiColumn,
+    wkb_mode::Val{:MultiColumn},
 )
 ```
 
-Enforce vertical boundary conditions for WKB tendencies needed in `MultiColumn` configurations, using line reflection.
+Enforce vertical boundary conditions for WKB tendencies needed in `:MultiColumn` configurations, using line reflection.
 
 # Arguments
 
@@ -351,14 +351,14 @@ function set_vertical_boundaries!(
     variables::AbstractBoundaryWKBVariables,
 )
     (; wkb_mode) = state.namelists.wkb
-    set_vertical_boundaries!(state, variables, wkb_mode)
+    @dispatch_wkb_mode set_vertical_boundaries!(state, variables, Val(wkb_mode))
     return
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
 )
     (; namelists, domain) = state
     (; integrals) = state.wkb
@@ -379,7 +379,7 @@ end
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::MultiColumn,
+    wkb_mode::Val{:MultiColumn},
 )
     (; namelists, domain) = state
     (; integrals) = state.wkb
@@ -400,7 +400,7 @@ end
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
 )
     (; namelists, domain) = state
     (; tendencies) = state.wkb
@@ -420,7 +420,7 @@ end
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::MultiColumn,
+    wkb_mode::Val{:MultiColumn},
 )
     (; namelists, domain) = state
     (; tendencies) = state.wkb

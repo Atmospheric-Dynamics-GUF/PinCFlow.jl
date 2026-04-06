@@ -29,33 +29,6 @@ abstract type AbstractModel end
 
 """
 ```julia
-AbstractMergeMode
-```
-
-Abstract type for ray-volume merge algorithms.
-"""
-abstract type AbstractMergeMode end
-
-"""
-```julia
-AbstractWKBMode
-```
-
-Abstract type for approximations in WKB theory.
-"""
-abstract type AbstractWKBMode end
-
-"""
-```julia
-AbstractWKBFilter
-```
-
-Abstract type for filtering methods applied to mean-flow tendencies.
-"""
-abstract type AbstractWKBFilter end
-
-"""
-```julia
 NeutralStratification <: AbstractBackground
 ```
 
@@ -135,86 +108,18 @@ Singleton for compressible dynamics.
 """
 struct Compressible <: AbstractModel end
 
-"""
-```julia
-ConstantWaveAction <: AbstractMergeMode
-```
-
-Singleton for the constant-wave-action ray-volume merging algorithm.
-"""
-struct ConstantWaveAction <: AbstractMergeMode end
-
-"""
-```julia
-ConstantWaveEnergy <: AbstractMergeMode
-```
-
-Singleton for the constant-wave-energy ray-volume merging algorithm.
-"""
-struct ConstantWaveEnergy <: AbstractMergeMode end
-
-"""
-```julia
-NoWKB <: AbstractWKBMode
-```
-
-Singleton for switching off MS-GWaM.
-"""
-struct NoWKB <: AbstractWKBMode end
-
-"""
-```julia
-SteadyState <: AbstractWKBMode
-```
-
-Singleton for the steady-state approximation in MS-GWaM.
-"""
-struct SteadyState <: AbstractWKBMode end
-
-"""
-```julia
-SingleColumn <: AbstractWKBMode
-```
-
-Singleton for the single-column approximation in MS-GWaM.
-"""
-struct SingleColumn <: AbstractWKBMode end
-
-"""
-```julia
-MultiColumn <: AbstractWKBMode
-```
-
-Singleton for the multi-column approximation in MS-GWaM.
-"""
-struct MultiColumn <: AbstractWKBMode end
-
-"""
-```julia
-BoxFilter <: AbstractWKBFilter
-```
-
-Singleton for a box filter as smoothing method applied to mean-flow tendencies.
-"""
-struct BoxFilter <: AbstractWKBFilter end
-
-"""
-```julia
-ShapiroFilter <: AbstractWKBFilter
-```
-
-Singleton for a Shapiro filter as smoothing method applied to mean-flow tendencies.
-"""
-struct ShapiroFilter <: AbstractWKBFilter end
-
 using MPI
 using FunctionWrappers
 using ...PinCFlow
 
 import FunctionWrappers: FunctionWrapper
 
+include("@dispatch_filter_order.jl")
+include("@dispatch_filter_type.jl")
 include("@dispatch_limiter_type.jl")
+include("@dispatch_merge_mode.jl")
 include("@dispatch_tracer_setup.jl")
+include("@dispatch_wkb_mode.jl")
 include("@dispatch.jl")
 
 include("DomainNamelist.jl")
@@ -228,10 +133,15 @@ include("WKBNamelist.jl")
 include("TracerNamelist.jl")
 include("Namelists.jl")
 
-export @dispatch_limiter_type, @dispatch_tracer_setup, @dispatch
+export @dispatch_filter_order,
+    @dispatch_filter_type,
+    @dispatch_limiter_type,
+    @dispatch_merge_mode,
+    @dispatch_tracer_setup,
+    @dispatch_wkb_mode,
+    @dispatch
 
-export AbstractBackground,
-    AbstractModel, AbstractMergeMode, AbstractWKBMode, AbstractWKBFilter
+export AbstractBackground, AbstractModel
 
 export NeutralStratification,
     StableStratification,
@@ -241,15 +151,7 @@ export NeutralStratification,
     LapseRates,
     Boussinesq,
     PseudoIncompressible,
-    Compressible,
-    ConstantWaveAction,
-    ConstantWaveEnergy,
-    NoWKB,
-    SteadyState,
-    SingleColumn,
-    MultiColumn,
-    BoxFilter,
-    ShapiroFilter
+    Compressible
 
 export DomainNamelist,
     OutputNamelist,

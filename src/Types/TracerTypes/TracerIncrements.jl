@@ -12,19 +12,13 @@ TracerIncrements(namelists::Namelists, domain::Domain)::TracerIncrements
 Construct a `TracerIncrements` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
 
 ```julia
-TracerIncrements(
-    domain::Domain,
-    tracer_setup::Val{:NoTracer},
-)::TracerIncrements
+TracerIncrements(domain::Domain, tracer_setup::Val{:NoTracer})::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerIncrements(
-    domain::Domain,
-    tracer_setup::Val{:TracerOn},
-)::TracerIncrements
+TracerIncrements(domain::Domain, tracer_setup::Val{:TracerOn})::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-initialized arrays.

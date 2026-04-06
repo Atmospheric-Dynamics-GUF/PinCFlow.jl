@@ -32,7 +32,7 @@ TracerForcings(
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
+TracerForcings(domain::Domain, wkb_mode::Val{:NoWKB})::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.
@@ -40,7 +40,7 @@ Construct a `TracerForcings` instance for configurations without WKB model.
 ```julia
 TracerForcings(
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerForcings
 ```
 
@@ -95,10 +95,10 @@ function TracerForcings(
 )::TracerForcings
     (; wkb_mode) = namelists.wkb
 
-    return TracerForcings(domain, wkb_mode)
+    @dispatch_wkb_mode return TracerForcings(domain, Val(wkb_mode))
 end
 
-function TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
+function TracerForcings(domain::Domain, wkb_mode::Val{:NoWKB})::TracerForcings
     return TracerForcings(
         [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
     )
@@ -106,7 +106,7 @@ end
 
 function TracerForcings(
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerForcings
     (; nxx, nyy, nzz) = domain
 

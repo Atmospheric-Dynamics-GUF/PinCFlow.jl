@@ -50,9 +50,6 @@ export DomainNamelist,
 export Boussinesq, PseudoIncompressible, Compressible
 export NeutralStratification,
     StableStratification, Isothermal, Isentropic, Realistic, LapseRates
-export ConstantWaveAction, ConstantWaveEnergy
-export BoxFilter, ShapiroFilter
-export NoWKB, SteadyState, SingleColumn, MultiColumn
 
 # Export model-state constructor.
 export State

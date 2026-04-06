@@ -49,7 +49,7 @@ Enforce zonal boundary conditions for tracer WKB quantities by dispatching to th
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
@@ -59,7 +59,7 @@ Enforce zonal boundary conditions for tracer WKB integrals.
 set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
@@ -146,14 +146,18 @@ function set_tracer_zonal_boundaries!(
     tracer_setup::Val{:TracerOn},
 )
     (; wkb_mode) = state.namelists.wkb
-    set_tracer_zonal_boundaries!(state, variables, wkb_mode)
+    @dispatch_wkb_mode set_tracer_zonal_boundaries!(
+        state,
+        variables,
+        Val(wkb_mode),
+    )
     return
 end
 
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
     (; chiq0) = state.tracer.tracerforcings
@@ -173,7 +177,7 @@ end
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
     (; chiq0) = state.tracer.tracerforcings

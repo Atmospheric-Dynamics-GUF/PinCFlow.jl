@@ -1,7 +1,7 @@
 """
 ```julia
 compute_wave_action_integral(
-    merge_mode::ConstantWaveAction,
+    merge_mode::Val{:ConstantWaveAction},
     nr::AbstractFloat,
     omegar::AbstractFloat,
     fxk::AbstractFloat,
@@ -16,7 +16,7 @@ This method is used to implement conservation of wave action in ray-volume mergi
 
 ```julia
 compute_wave_action_integral(
-    merge_mode::ConstantWaveEnergy,
+    merge_mode::Val{:ConstantWaveEnergy},
     nr::AbstractFloat,
     omegar::AbstractFloat,
     fxk::AbstractFloat,
@@ -46,7 +46,7 @@ This method is used to implement conservation of wave energy in ray-volume mergi
 function compute_wave_action_integral end
 
 function compute_wave_action_integral(
-    merge_mode::ConstantWaveAction,
+    merge_mode::Val{:ConstantWaveAction},
     nr::AbstractFloat,
     omegar::AbstractFloat,
     fxk::AbstractFloat,
@@ -57,7 +57,7 @@ function compute_wave_action_integral(
 end
 
 function compute_wave_action_integral(
-    merge_mode::ConstantWaveEnergy,
+    merge_mode::Val{:ConstantWaveEnergy},
     nr::AbstractFloat,
     omegar::AbstractFloat,
     fxk::AbstractFloat,

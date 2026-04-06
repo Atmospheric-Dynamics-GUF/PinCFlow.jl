@@ -279,7 +279,7 @@ function create_output(state::State, machine_start_time::DateTime)
         end
 
         # Create datasets for WKB variables.
-        if wkb_mode != NoWKB()
+        if wkb_mode != :NoWKB
 
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
@@ -485,7 +485,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        if wkb_mode != NoWKB()
+        if wkb_mode != :NoWKB
             if prepare_restart || save_ray_volumes
                 if x_size == 1 && y_size == 1
                     nr_units = "kg*s^-1"
