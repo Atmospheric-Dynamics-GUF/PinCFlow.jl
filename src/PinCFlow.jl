@@ -48,7 +48,6 @@ export DomainNamelist,
 
 # Export singletons needed in namelists.
 export Boussinesq, PseudoIncompressible, Compressible
-export MCVariant
 export NeutralStratification,
     StableStratification, Isothermal, Isentropic, Realistic, LapseRates
 export ConstantWaveAction, ConstantWaveEnergy

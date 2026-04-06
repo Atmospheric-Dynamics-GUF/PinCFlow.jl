@@ -146,8 +146,9 @@ using ..PinCFlow
 
 include("State.jl")
 
+export @dispatch
+
 export AbstractBackground,
-    AbstractLimiter,
     AbstractPredictand,
     AbstractModel,
     AbstractMergeMode,
@@ -172,7 +173,6 @@ export Rho,
     Isentropic,
     Realistic,
     LapseRates,
-    MCVariant,
     Boussinesq,
     PseudoIncompressible,
     Compressible,

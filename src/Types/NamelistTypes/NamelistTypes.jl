@@ -20,15 +20,6 @@ abstract type AbstractBackground end
 
 """
 ```julia
-AbstractLimiter
-```
-
-Abstract type for flux limiters used in the reconstruction.
-"""
-abstract type AbstractLimiter end
-
-"""
-```julia
 AbstractModel
 ```
 
@@ -125,15 +116,6 @@ LapseRates <: AbstractBackground
 Singleton for an atmosphere with different lapse rates in the troposphere and stratosphere in pseudo-incompressible or compressible mode.
 """
 struct LapseRates <: AbstractBackground end
-
-"""
-```julia
-MCVariant <: AbstractLimiter
-```
-
-Singleton for the MC-Variant limiter function (used in reconstruction).
-"""
-struct MCVariant <: AbstractLimiter end
 
 """
 ```julia
@@ -255,6 +237,8 @@ struct TracerOn <: AbstractTracer end
 using MPI
 using ...PinCFlow
 
+include("@dispatch.jl")
+
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
 include("DiscretizationNamelist.jl")
@@ -266,8 +250,9 @@ include("WKBNamelist.jl")
 include("TracerNamelist.jl")
 include("Namelists.jl")
 
+export @dispatch
+
 export AbstractBackground,
-    AbstractLimiter,
     AbstractModel,
     AbstractMergeMode,
     AbstractWKBMode,
@@ -280,7 +265,6 @@ export NeutralStratification,
     Isentropic,
     Realistic,
     LapseRates,
-    MCVariant,
     Boussinesq,
     PseudoIncompressible,
     Compressible,

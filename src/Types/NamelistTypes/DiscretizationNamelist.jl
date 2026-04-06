@@ -1,6 +1,6 @@
 """
 ```julia
-DiscretizationNamelist{A <: Float64, B <: Bool, C <: AbstractLimiter}
+DiscretizationNamelist
 ```
 
 Namelist for parameters describing the discretization.
@@ -12,7 +12,7 @@ DiscretizationNamelist(;
     dtmin::Real = 1.0E-6,
     dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
-    limiter_type::AbstractLimiter = MCVariant(),
+    limiter_type::Symbol = :monotone_centered_variant,
 )::DiscretizationNamelist
 ```
 
@@ -20,25 +20,25 @@ Construct a `DiscretizationNamelist` instance with the given keyword arguments a
 
 # Fields/Keywords
 
-  - `cfl_number::A`: Number used for the CFL condition in the time step computation.
+  - `cfl_number::Float64`: Number used for the CFL condition in the time step computation.
 
-  - `wkb_cfl_number::A`: Number used for the WKB-CFL condition in the time step computation.
+  - `wkb_cfl_number::Float64`: Number used for the WKB-CFL condition in the time step computation.
 
-  - `dtmin::A`: Minimum time step allowed for the integration.
+  - `dtmin::Float64`: Minimum time step allowed for the integration.
 
-  - `dtmax::A`: Maximum time step allowed for the integration.
+  - `dtmax::Float64`: Maximum time step allowed for the integration.
 
-  - `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
+  - `adaptive_time_step::Bool`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
 
-  - `limiter_type::C`: Flux limiter used by the MUSCL scheme.
+  - `limiter_type::Symbol`: Flux limiter used by the MUSCL scheme.
 """
-struct DiscretizationNamelist{A <: Float64, B <: Bool, C <: AbstractLimiter}
-    cfl_number::A
-    wkb_cfl_number::A
-    dtmin::A
-    dtmax::A
-    adaptive_time_step::B
-    limiter_type::C
+struct DiscretizationNamelist
+    cfl_number::Float64
+    wkb_cfl_number::Float64
+    dtmin::Float64
+    dtmax::Float64
+    adaptive_time_step::Bool
+    limiter_type::Symbol
 end
 
 function DiscretizationNamelist(;
@@ -47,7 +47,7 @@ function DiscretizationNamelist(;
     dtmin::Real = 1.0E-6,
     dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
-    limiter_type::AbstractLimiter = MCVariant(),
+    limiter_type::Symbol = :monotone_centered_variant,
 )::DiscretizationNamelist
     return DiscretizationNamelist(
         Float64(cfl_number),
