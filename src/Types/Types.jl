@@ -146,36 +146,19 @@ using ..PinCFlow
 
 include("State.jl")
 
-export @dispatch_filter_order,
+export @dispatch_background,
+    @dispatch_filter_order,
     @dispatch_filter_type,
     @dispatch_limiter_type,
     @dispatch_merge_mode,
+    @dispatch_model,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
     @dispatch
 
-export AbstractBackground, AbstractPredictand, AbstractModel
+export AbstractPredictand
 
-export Rho,
-    RhoP,
-    U,
-    V,
-    W,
-    PiP,
-    P,
-    Theta,
-    Chi,
-    Explicit,
-    Implicit,
-    NeutralStratification,
-    StableStratification,
-    Isothermal,
-    Isentropic,
-    Realistic,
-    LapseRates,
-    Boussinesq,
-    PseudoIncompressible,
-    Compressible
+export Rho, RhoP, U, V, W, PiP, P, Theta, Chi, Explicit, Implicit
 
 export DomainNamelist,
     OutputNamelist,
