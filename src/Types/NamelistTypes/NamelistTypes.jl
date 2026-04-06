@@ -235,7 +235,10 @@ Singleton for model configurations with an initially linear tracer.
 struct TracerOn <: AbstractTracer end
 
 using MPI
+using FunctionWrappers
 using ...PinCFlow
+
+import FunctionWrappers: FunctionWrapper
 
 include("@dispatch_limiter_type.jl")
 include("@dispatch.jl")
