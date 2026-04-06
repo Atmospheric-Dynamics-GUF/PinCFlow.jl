@@ -1,12 +1,12 @@
 # PinCFlowExamples.jl/src/wave_packet.jl
 
 function wave_packet(;
-    x_size::Int64 = 40,
-    y_size::Int64 = 40,
-    z_size::Int64 = 80,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    y_size::Integer = 40,
+    z_size::Integer = 80,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -29,7 +29,7 @@ function wave_packet(;
         a0 = 0.05,
     )
 
-    background = Realistic()
+    background = :Realistic
     coriolis_frequency = 0.0001
 
     atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
@@ -68,7 +68,7 @@ function wave_packet(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:u, :v, :w),
+        output_variables = [:u, :v, :w],
         prepare_restart,
         output_steps,
         output_interval = 900,

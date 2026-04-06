@@ -1,10 +1,10 @@
 # PinCFlowExamples.jl/src/vortex.jl
 
 function vortex(;
-    x_size::Int64 = 40,
-    y_size::Int64 = 40,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
+    x_size::Integer = 40,
+    y_size::Integer = 40,
+    npx::Integer = 1,
+    npy::Integer = 1,
     output_file::String = "vortex.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -17,8 +17,8 @@ function vortex(;
     ry = ly / 4
 
     atmosphere = AtmosphereNamelist(;
-        model = Boussinesq(),
-        background = NeutralStratification(),
+        model = :Boussinesq,
+        background = :NeutralStratification,
         initial_u = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2)
             if r <= 1
@@ -41,13 +41,13 @@ function vortex(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:chi,),
+        output_variables = [:chi],
         prepare_restart,
         output_steps,
     )
 
     tracer = TracerNamelist(;
-        tracer_setup = TracerOn(),
+        tracer_setup = :TracerOn,
         initial_tracer = (x, y, z) -> begin
             r = sqrt(((abs(x) - rx) / rx)^2 + (y / ry)^2)
             if r <= 1

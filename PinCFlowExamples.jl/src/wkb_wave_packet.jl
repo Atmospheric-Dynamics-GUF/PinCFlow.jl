@@ -1,12 +1,12 @@
 # PinCFlowExamples.jl/src/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
-    x_size::Int64 = 16,
-    y_size::Int64 = 16,
-    z_size::Int64 = 32,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 16,
+    y_size::Integer = 16,
+    z_size::Integer = 32,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -30,8 +30,8 @@ function wkb_wave_packet(;
     )
     (; k, l, m) = parameters
 
-    model = Compressible()
-    background = Realistic()
+    model = :Compressible
+    background = :Realistic
     coriolis_frequency = 0.0001
 
     atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
@@ -50,7 +50,7 @@ function wkb_wave_packet(;
     state = State(Namelists(; atmosphere, domain))
 
     wkb = WKBNamelist(;
-        wkb_mode = MultiColumn(),
+        wkb_mode = :MultiColumn,
         initial_wave_field = (alpha, x, y, z) -> (
             k,
             l,

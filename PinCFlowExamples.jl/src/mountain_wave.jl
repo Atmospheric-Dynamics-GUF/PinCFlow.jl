@@ -1,12 +1,12 @@
 # PinCFlowExamples.jl/src/mountain_wave.jl
 
 function mountain_wave(;
-    x_size::Int64 = 40,
-    y_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    y_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -36,7 +36,7 @@ function mountain_wave(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:w,),
+        output_variables = [:w],
         prepare_restart,
         output_steps,
     )

@@ -1,10 +1,10 @@
 # PinCFlowExamples.jl/src/periodic_hill.jl
 
 function periodic_hill(;
-    x_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "periodic_hill.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -17,8 +17,8 @@ function periodic_hill(;
     zr = 10000.0
 
     atmosphere = AtmosphereNamelist(;
-        model = Boussinesq(),
-        background = StableStratification(),
+        model = :Boussinesq,
+        background = :StableStratification,
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
     )
@@ -31,7 +31,7 @@ function periodic_hill(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:w,),
+        output_variables = [:w],
         prepare_restart,
         output_steps,
     )

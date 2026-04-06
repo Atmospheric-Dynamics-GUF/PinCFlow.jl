@@ -1,10 +1,10 @@
 # PinCFlowExamples.jl/src/cold_bubble.jl
 
 function cold_bubble(;
-    x_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "cold_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -17,7 +17,7 @@ function cold_bubble(;
     rz = lz / 8
 
     atmosphere = AtmosphereNamelist(;
-        background = Isentropic(),
+        background = :Isentropic,
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + ((z - 3 * rz) / rz)^2)
             if r <= 1
@@ -34,7 +34,7 @@ function cold_bubble(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:thetap,),
+        output_variables = [:thetap],
         prepare_restart,
         output_steps,
     )

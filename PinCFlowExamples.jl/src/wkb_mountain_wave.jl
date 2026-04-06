@@ -1,12 +1,12 @@
 # PinCFlowExamples.jl/src/wkb_mountain_wave.jl
 
 function wkb_mountain_wave(;
-    x_size::Int64 = 40,
-    y_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npy::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    y_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -26,7 +26,7 @@ function wkb_mountain_wave(;
     alpharmax = 0.0179
 
     atmosphere = AtmosphereNamelist(;
-        background = LapseRates(),
+        background = :LapseRates,
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
     )
@@ -64,7 +64,7 @@ function wkb_mountain_wave(;
         relaxed_u = (x, y, z, t, dt) -> 10.0,
     )
 
-    wkb = WKBNamelist(; wkb_mode = MultiColumn())
+    wkb = WKBNamelist(; wkb_mode = :MultiColumn)
 
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 

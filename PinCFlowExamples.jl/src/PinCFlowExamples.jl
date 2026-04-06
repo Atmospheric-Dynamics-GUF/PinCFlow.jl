@@ -3,7 +3,6 @@ module PinCFlowExamples
 using MPI
 using HDF5
 using CairoMakie
-using PrecompileTools
 using Revise
 using PinCFlow
 
@@ -19,87 +18,6 @@ include("vortex.jl")
 include("wave_packet.jl")
 include("wkb_mountain_wave.jl")
 include("wkb_wave_packet.jl")
-
-@setup_workload begin
-    redirect_stdout(devnull) do
-        mktempdir() do directory
-            x_size = 5
-            y_size = 5
-            z_size = 5
-
-            output_file = directory * "/pincflow_output.h5"
-            output_steps = true
-
-            visualize = false
-
-            @compile_workload begin
-                cold_bubble(;
-                    x_size,
-                    z_size,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
-
-                hot_bubble(;
-                    x_size,
-                    z_size,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
-
-                mountain_wave(;
-                    x_size,
-                    y_size,
-                    z_size,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
-
-                periodic_hill(;
-                    x_size,
-                    z_size,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
-
-                vortex(; x_size, y_size, output_file, output_steps, visualize)
-
-                wave_packet(;
-                    x_size,
-                    y_size,
-                    z_size,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
-
-                wkb_mountain_wave(;
-                    x_size,
-                    y_size,
-                    z_size,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
-
-                wkb_wave_packet(;
-                    x_size,
-                    y_size,
-                    z_size,
-                    output_file,
-                    output_steps,
-                    visualize,
-                )
-            end
-            return
-        end
-        return
-    end
-end
 
 export cold_bubble,
     hot_bubble,

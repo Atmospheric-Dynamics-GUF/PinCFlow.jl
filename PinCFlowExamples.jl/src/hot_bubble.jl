@@ -1,10 +1,10 @@
 # PinCFlowExamples.jl/src/hot_bubble.jl
 
 function hot_bubble(;
-    x_size::Int64 = 40,
-    z_size::Int64 = 40,
-    npx::Int64 = 1,
-    npz::Int64 = 1,
+    x_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npz::Integer = 1,
     output_file::String = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
@@ -17,8 +17,8 @@ function hot_bubble(;
     rz = lz / 8
 
     atmosphere = AtmosphereNamelist(;
-        model = Compressible(),
-        background = Isentropic(),
+        model = :Compressible,
+        background = :Isentropic,
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + ((z - 5 * rz) / rz)^2)
             if r <= 1
@@ -35,7 +35,7 @@ function hot_bubble(;
 
     output = OutputNamelist(;
         output_file,
-        output_variables = (:thetap,),
+        output_variables = [:thetap],
         prepare_restart,
         output_steps,
     )
