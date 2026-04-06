@@ -1,6 +1,6 @@
 """
 ```julia
-DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
+DomainNamelist
 ```
 
 Namelist for parameters describing the model domain.
@@ -27,46 +27,46 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
 # Fields/Keywords
 
-  - `x_size::A`: Number of grid cells in ``\\hat{x}``-direction.
+  - `x_size::Int`: Number of grid cells in ``\\hat{x}``-direction.
 
-  - `y_size::A`: Number of grid cells in ``\\hat{y}``-direction.
+  - `y_size::Int`: Number of grid cells in ``\\hat{y}``-direction.
 
-  - `z_size::A`: Number of grid cells in ``\\hat{z}``-direction.
+  - `z_size::Int`: Number of grid cells in ``\\hat{z}``-direction.
 
-  - `nbx::A`: Number of boundary/halo cells in ``\\hat{x}``-direction.
+  - `nbx::Int`: Number of boundary/halo cells in ``\\hat{x}``-direction.
 
-  - `nby::A`: Number of boundary/halo cells in ``\\hat{y}``-direction.
+  - `nby::Int`: Number of boundary/halo cells in ``\\hat{y}``-direction.
 
-  - `nbz::A`: Number of boundary/halo cells in ``\\hat{z}``-direction.
+  - `nbz::Int`: Number of boundary/halo cells in ``\\hat{z}``-direction.
 
-  - `lx::B`: Domain extent in ``\\hat{x}``-direction.
+  - `lx::Float64`: Domain extent in ``\\hat{x}``-direction.
 
-  - `ly::B`: Domain extent in ``\\hat{y}``-direction.
+  - `ly::Float64`: Domain extent in ``\\hat{y}``-direction.
 
-  - `lz::B`: Domain extent in ``\\hat{z}``-direction.
+  - `lz::Float64`: Domain extent in ``\\hat{z}``-direction.
 
-  - `npx::A`: Number of MPI processes in ``\\hat{x}``-direction.
+  - `npx::Int`: Number of MPI processes in ``\\hat{x}``-direction.
 
-  - `npy::A`: Number of MPI processes in ``\\hat{y}``-direction.
+  - `npy::Int`: Number of MPI processes in ``\\hat{y}``-direction.
 
-  - `npz::A`: Number of MPI processes in ``\\hat{z}``-direction.
+  - `npz::Int`: Number of MPI processes in ``\\hat{z}``-direction.
 
   - `base_comm::C`: MPI base communicator.
 """
-struct DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
-    x_size::A
-    y_size::A
-    z_size::A
-    nbx::A
-    nby::A
-    nbz::A
-    lx::B
-    ly::B
-    lz::B
-    npx::A
-    npy::A
-    npz::A
-    base_comm::C
+struct DomainNamelist
+    x_size::Int
+    y_size::Int
+    z_size::Int
+    nbx::Int
+    nby::Int
+    nbz::Int
+    lx::Float64
+    ly::Float64
+    lz::Float64
+    npx::Int
+    npy::Int
+    npz::Int
+    base_comm::MPI.Comm
 end
 
 function DomainNamelist(;
