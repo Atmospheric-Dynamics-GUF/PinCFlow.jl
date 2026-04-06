@@ -1,45 +1,53 @@
 """
 ```julia
-@dispatch(input::Expr)
+@dispatch(values::Expr, input::Expr)
 ```
 
-Macro that makes value dispatch static for a predefined list of symbols.
-
-# Symbols
-
-  - `:monotone_centered_variant`
+Macro that makes value dispatch static for a the given list of values.
 
 # Arguments
 
-  - `input`: Input expression with a `Val` call.
+  - `values`: Expression of a tuple of allowed values.
+
+  - `input`: Input expression with `Val` calls.
 """
 macro dispatch end
 
-macro dispatch(input::Expr)
-    symbols = (:monotone_centered_variant,)
-
+macro dispatch(values::Expr, input::Expr)
     code = string(input)
-    calls = match(r"\bVal\(", code)
+    range = findfirst(r"\bVal\((?!\s*(:\w+\b|\d+\b|true\b|false\b))", code)
 
-    modified_code = ""
-    if calls !== nothing
-        length(calls.offsets) > 1 &&
-            error("@dispatch is not ready for multiple Val calls yet!")
-
-        start = calls.offset + 4
+    if range !== nothing
+        start = first(range) + 4
         stop = Meta.parse(code, start - 1; greedy = false)[2] - 2
         parameter = code[start:stop]
 
-        for (index, symbol) in enumerate(symbols)
-            index > 1 && (modified_code *= "else")
+        startswith(parameter, r"\s*\W") &&
+            error("Invalid Val call for @dispatch!")
+
+        modified_code = ""
+        for (index, value) in enumerate(Core.eval(@__MODULE__, values))
+            if typeof(value) <: Symbol
+                literal = ":$(value)"
+            elseif typeof(value) <: AbstractString
+                literal = "\"$(value)\""
+            else
+                literal = "$(value)"
+            end
+            prefix = index == 1 ? "if" : "elseif"
             modified_code *=
-                "if $(parameter) == :$(symbol)\n" *
-                code[1:(start - 1)] *
-                ":$(symbol)" *
-                code[(stop + 1):end] *
+                "$(prefix) $(parameter) === $(literal)\n" *
+                replace(
+                    code,
+                    Regex(
+                        "\\bVal\\(\\s*$(parameter)\\s*\\)",
+                    ) => "Val($(literal))",
+                ) *
                 "\n"
         end
-        modified_code *= "else\nerror(\"Unknown option!\")\nend"
+        modified_code *= "else\nerror(\"Invalid $(parameter) option!\")\nend"
+    else
+        modified_code = code
     end
 
     return esc(Meta.parse(modified_code))

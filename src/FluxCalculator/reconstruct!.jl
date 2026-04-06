@@ -139,7 +139,14 @@ function reconstruct!(
 
     @ivy phi[:, :, kk] .= rho[:, :, kk] ./ pbar[:, :, kk]
 
-    @dispatch apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, Val(limiter_type))
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        rhotilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -156,7 +163,14 @@ function reconstruct!(state::State, variable::RhoP)
 
     @ivy phi[:, :, kk] .= rhop[:, :, kk] ./ pbar[:, :, kk]
 
-    @dispatch apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, Val(limiter_type))
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        rhoptilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -181,7 +195,14 @@ function reconstruct!(state::State, variable::U)
         phi[i, j, k] = u[i, j, k] * rhoedge / pedge
     end
 
-    @dispatch apply_3d_muscl!(phi, utilde, nxx, nyy, nzz, Val(limiter_type))
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        utilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -206,7 +227,14 @@ function reconstruct!(state::State, variable::V)
         phi[i, j, k] = v[i, j, k] * rhoedge / pedge
     end
 
-    @dispatch apply_3d_muscl!(phi, vtilde, nxx, nyy, nzz, Val(limiter_type))
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        vtilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -245,7 +273,14 @@ function reconstruct!(state::State, variable::W)
         phi[i, j, k] *= rhoedgeu / pedgeu
     end
 
-    @dispatch apply_3d_muscl!(phi, wtilde, nxx, nyy, nzz, Val(limiter_type))
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        wtilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -261,7 +296,7 @@ function reconstruct!(state::State, tracer_setup::TracerOn)
     (; pbar) = state.atmosphere
     (; tracerreconstructions, tracerpredictands) = state.tracer
 
-    @dispatch @ivy for field in 1:fieldcount(TracerPredictands)
+    @dispatch_limiter_type @ivy for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
             phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]

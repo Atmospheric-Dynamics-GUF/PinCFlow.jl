@@ -146,7 +146,7 @@ using ..PinCFlow
 
 include("State.jl")
 
-export @dispatch
+export @dispatch_limiter_type, @dispatch
 
 export AbstractBackground,
     AbstractPredictand,

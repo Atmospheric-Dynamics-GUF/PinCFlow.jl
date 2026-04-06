@@ -237,6 +237,7 @@ struct TracerOn <: AbstractTracer end
 using MPI
 using ...PinCFlow
 
+include("@dispatch_limiter_type.jl")
 include("@dispatch.jl")
 
 include("DomainNamelist.jl")
@@ -250,7 +251,7 @@ include("WKBNamelist.jl")
 include("TracerNamelist.jl")
 include("Namelists.jl")
 
-export @dispatch
+export @dispatch_limiter_type, @dispatch
 
 export AbstractBackground,
     AbstractModel,
