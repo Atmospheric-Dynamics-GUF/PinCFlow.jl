@@ -3,7 +3,11 @@
 @dispatch_limiter_type(input::Expr)
 ```
 
-Macro that makes value dispatch for the `limiter_type` parameter static.
+Macro that makes value dispatch static for the `limiter_type` parameter of `DiscretizationNamelist`.
+
+The parameter can take any of the following values:
+
+  - `:MCVariant`
 
 # Arguments
 

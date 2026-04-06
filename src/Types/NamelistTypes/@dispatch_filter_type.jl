@@ -3,7 +3,13 @@
 @dispatch_filter_type(input::Expr)
 ```
 
-Macro that makes value dispatch for the `filter_type` parameter static.
+Macro that makes value dispatch static for the `filter_type` parameter of `WKBNamelist`.
+
+The parameter can take any of the following values:
+
+  - `:BoxFilter`
+
+  - `:ShapiroFilter`
 
 # Arguments
 

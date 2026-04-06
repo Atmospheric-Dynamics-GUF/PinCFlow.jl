@@ -3,7 +3,15 @@
 @dispatch_model(input::Expr)
 ```
 
-Macro that makes value dispatch for the `model` parameter static.
+Macro that makes value dispatch static for the `model` parameter of `AtmosphereNamelist`.
+
+The parameter can take any of the following values:
+
+  - `:Boussinesq`
+
+  - `:PseudoIncompressible`
+
+  - `:Compressible`
 
 # Arguments
 

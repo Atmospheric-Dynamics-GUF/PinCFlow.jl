@@ -3,7 +3,13 @@
 @dispatch_merge_mode(input::Expr)
 ```
 
-Macro that makes value dispatch for the `merge_mode` parameter static.
+Macro that makes value dispatch static for the `merge_mode` parameter of `WKBNamelist`.
+
+The parameter can take any of the following values:
+
+  - `:ConstantWaveAction`
+
+  - `:ConstantWaveEnergy`
 
 # Arguments
 

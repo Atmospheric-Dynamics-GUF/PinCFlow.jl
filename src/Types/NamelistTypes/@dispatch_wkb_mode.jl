@@ -3,7 +3,17 @@
 @dispatch_wkb_mode(input::Expr)
 ```
 
-Macro that makes value dispatch for the `wkb_mode` parameter static.
+Macro that makes value dispatch static for the `wkb_mode` parameter of `WKBNamelist`.
+
+The parameter can take any of the following values:
+
+  - `:NoWKB`
+
+  - `:SteadyState`
+
+  - `:SingleColumn`
+
+  - `:MultiColumn`
 
 # Arguments
 

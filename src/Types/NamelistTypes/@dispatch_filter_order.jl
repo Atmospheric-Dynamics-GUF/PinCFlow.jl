@@ -3,7 +3,17 @@
 @dispatch_filter_order(input::Expr)
 ```
 
-Macro that makes value dispatch for the `filter_order` parameter static.
+Macro that makes value dispatch static for the `filter_order` parameter of `WKBNamelist`.
+
+The parameter can take any of the following values:
+
+  - `1`
+
+  - `2`
+
+  - `3`
+
+  - `4`
 
 # Arguments
 

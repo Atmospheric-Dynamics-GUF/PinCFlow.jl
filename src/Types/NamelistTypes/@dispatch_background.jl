@@ -3,7 +3,21 @@
 @dispatch_background(input::Expr)
 ```
 
-Macro that makes value dispatch for the `background` parameter static.
+Macro that makes value dispatch static for the `background` parameter of `AtmosphereNamelist`.
+
+The parameter can take any of the following values:
+
+  - `:NeutralStratification`
+
+  - `:StableStratification`
+
+  - `:Isothermal`
+
+  - `:Isentropic`
+
+  - `:Realistic`
+
+  - `:LapseRates`
 
 # Arguments
 

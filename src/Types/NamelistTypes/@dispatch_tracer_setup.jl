@@ -3,7 +3,13 @@
 @dispatch_tracer_setup(input::Expr)
 ```
 
-Macro that makes value dispatch for the `tracer_setup` parameter static.
+Macro that makes value dispatch static for the `tracer_setup` parameter of `TracerNamelist`.
+
+The parameter can take any of the following values:
+
+  - `:NoTracer`
+
+  - `:TracerOn`
 
 # Arguments
 
