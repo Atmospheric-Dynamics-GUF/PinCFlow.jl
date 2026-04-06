@@ -58,7 +58,7 @@ function create_output(state::State, machine_start_time::DateTime)
         )
 
         # Create datasets for the background.
-        if model != Boussinesq()
+        if model != :Boussinesq
             create_dataset(
                 file,
                 "rhobar",
@@ -80,7 +80,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 dataspace((x_size, y_size, z_size));
                 chunk = (cx, cy, cz),
             )
-            if model == Compressible()
+            if model == :Compressible
                 create_dataset(
                     file,
                     "p",
@@ -361,7 +361,7 @@ function create_output(state::State, machine_start_time::DateTime)
         attributes(file["t"])["label"] = L"t\ [\mathrm{s}]"
         attributes(file["t"])["long_name"] = "time"
 
-        if model != Boussinesq()
+        if model != :Boussinesq
             attributes(file["rhobar"])["units"] = "kg*m^-3"
             attributes(file["rhobar"])["label"] =
                 L"\bar{\rho}\ [\mathrm{kg\ m^{-3}}]"

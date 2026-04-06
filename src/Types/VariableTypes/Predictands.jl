@@ -126,7 +126,7 @@ function Predictands(
         f!(pip, namelists, domain)
     end
 
-    if model != Boussinesq()
+    if model != :Boussinesq
         rho .= rhop
     end
 
@@ -151,7 +151,7 @@ function Predictands(
     end
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
 
-    p = set_p(model, pbar)
+    @dispatch_model p = set_p(Val(model), pbar)
 
     return Predictands(rho, rhop, u, v, w, pip, p)
 end

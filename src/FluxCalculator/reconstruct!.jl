@@ -14,7 +14,7 @@ reconstruct!(state::State, variable::Rho)
 Reconstruct the density by dispatching to a model-specific method.
 
 ```julia
-reconstruct!(state::State, variable::Rho, model::Boussinesq)
+reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})
 ```
 
 Return in Boussinesq mode.
@@ -23,7 +23,7 @@ Return in Boussinesq mode.
 reconstruct!(
     state::State,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -115,18 +115,18 @@ end
 
 function reconstruct!(state::State, variable::Rho)
     (; model) = state.namelists.atmosphere
-    reconstruct!(state, variable, model)
+    @dispatch_model reconstruct!(state, variable, Val(model))
     return
 end
 
-function reconstruct!(state::State, variable::Rho, model::Boussinesq)
+function reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})
     return
 end
 
 function reconstruct!(
     state::State,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain

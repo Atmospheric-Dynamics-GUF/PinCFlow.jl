@@ -46,11 +46,6 @@ export DomainNamelist,
     TracerNamelist,
     Namelists
 
-# Export singletons needed in namelists.
-export Boussinesq, PseudoIncompressible, Compressible
-export NeutralStratification,
-    StableStratification, Isothermal, Isentropic, Realistic, LapseRates
-
 # Export model-state constructor.
 export State
 

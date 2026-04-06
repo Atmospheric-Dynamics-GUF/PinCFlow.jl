@@ -12,7 +12,7 @@ Enforce zonal boundary conditions for predictands or reconstructions by dispatch
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -22,7 +22,7 @@ Enforce zonal boundary conditions for predictands in Boussinesq mode.
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )
 ```
 
@@ -32,7 +32,7 @@ Enforce zonal boundary conditions for predictands in pseudo-incompressible mode.
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -42,7 +42,7 @@ Enforce zonal boundary conditions for predictands in compressible mode.
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -52,7 +52,7 @@ Enforce zonal boundary conditions for reconstructionss in Boussinesq mode.
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -123,14 +123,14 @@ function set_zonal_boundaries!(
     variables::Union{BoundaryPredictands, BoundaryReconstructions},
 )
     (; model) = state.namelists.atmosphere
-    set_zonal_boundaries!(state, variables, model)
+    @dispatch_model set_zonal_boundaries!(state, variables, Val(model))
     return
 end
 
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -149,7 +149,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -168,7 +168,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -187,7 +187,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables
@@ -206,7 +206,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables

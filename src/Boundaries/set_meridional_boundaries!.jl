@@ -12,7 +12,7 @@ Enforce meridional boundary conditions for predictands or reconstructions by dis
 set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -22,7 +22,7 @@ Enforce meridional boundary conditions for predictands in Boussinesq mode.
 set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )
 ```
 
@@ -32,7 +32,7 @@ Enforce meridional boundary conditions for predictands in pseudo-incompressible 
 set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -42,7 +42,7 @@ Enforce meridional boundary conditions for predictands in compressible mode.
 set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -52,7 +52,7 @@ Enforce meridional boundary conditions for reconstructions in Boussinesq mode.
 set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -126,14 +126,14 @@ function set_meridional_boundaries!(
     variables::Union{BoundaryPredictands, BoundaryReconstructions},
 )
     (; model) = state.namelists.atmosphere
-    set_meridional_boundaries!(state, variables, model)
+    @dispatch_model set_meridional_boundaries!(state, variables, Val(model))
     return
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -152,7 +152,7 @@ end
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -171,7 +171,7 @@ end
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -190,7 +190,7 @@ end
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables
@@ -209,7 +209,7 @@ end
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables

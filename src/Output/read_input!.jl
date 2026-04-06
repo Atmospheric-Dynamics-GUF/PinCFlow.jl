@@ -50,7 +50,7 @@ function read_input!(state::State)
         # Read the density fluctuations.
         rhop[ii, jj, kk] =
             file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref
-        if model != Boussinesq()
+        if model != :Boussinesq
             rho[ii, jj, kk] .= rhop[ii, jj, kk]
         end
 
@@ -70,7 +70,7 @@ function read_input!(state::State)
         pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin == -1 ? end : iin]
 
         # Read the mass-weighted potential temperature.
-        if model == Compressible()
+        if model == :Compressible
             p[ii, jj, kk] =
                 file["p"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref ./
                 thetaref

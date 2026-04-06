@@ -241,7 +241,7 @@ function compute_volume_force(
     (; chiq0) = state.tracer.tracerforcings
     (; model) = state.namelists.atmosphere
 
-    @ivy if leading_order_impact && model == Compressible()
+    @ivy if leading_order_impact && model == :Compressible
         return chiq0.dchidt[i, j, k]
     else
         return 0.0
