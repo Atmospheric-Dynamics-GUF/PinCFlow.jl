@@ -328,7 +328,7 @@ function write_output(
                         (nray_max, x_size, y_size, z_size + 1, iout),
                     )
                     file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
-                        getfield(rays, field_name)[rr, ii, jj, kkr] .* lref
+                        getproperty(rays, field_name)[rr, ii, jj, kkr] .* lref
                 end
 
                 for (output_name, field_name) in zip(
@@ -340,7 +340,7 @@ function write_output(
                         (nray_max, x_size, y_size, z_size + 1, iout),
                     )
                     file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
-                        getfield(rays, field_name)[rr, ii, jj, kkr] ./ lref
+                        getproperty(rays, field_name)[rr, ii, jj, kkr] ./ lref
                 end
 
                 HDF5.set_extent_dims(
