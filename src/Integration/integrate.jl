@@ -126,7 +126,7 @@ function integrate(namelists::Namelists)
         println("")
     end
 
-    report_error(comm) do
+    reduce_exceptions(comm) do
 
         #---------------------------------------------
         #        Initial divergence cleaning

@@ -1,9 +1,13 @@
 """
 ```julia
-report_error(operation::Function, comm::MPI.Comm; info::AbstractString = "")
+reduce_exceptions(
+    operation::Function,
+    comm::MPI.Comm;
+    info::AbstractString = "",
+)
 ```
 
-Execute `operation`, catch exceptions in them, create a race between processes that threw exceptions, and rethrow the exception in the fastest process.
+Execute `operation`, catch exceptions in it, and rethrow the exception in the fastest process.
 
 # Arguments
 
@@ -11,11 +15,11 @@ Execute `operation`, catch exceptions in them, create a race between processes t
 
   - `comm`: MPI communicator containing all processes participating in `operation`.
 
-  - `info`: String to print just before a caught exception is rethrown.
+  - `info`: String to print just before the caught exception is rethrown.
 """
-function report_error end
+function reduce_exceptions end
 
-function report_error(
+function reduce_exceptions(
     operation::Function,
     comm::MPI.Comm;
     info::AbstractString = "",

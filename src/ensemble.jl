@@ -32,7 +32,7 @@ function ensemble(
     base_comm = MPI.Comm_split(MPI.COMM_WORLD, color, rank)
 
     # Run the simulations.
-    report_error(
+    reduce_exceptions(
         MPI.COMM_WORLD;
         info = "Ensemble member $(color) has thrown the following exception:",
     ) do
