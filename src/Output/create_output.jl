@@ -29,6 +29,11 @@ function create_output(state::State, machine_start_time::DateTime)
     cz = div(z_size, npz)
     ct = 1
 
+    # Create the directory if it doesn't exist.
+    master && mkpath(dirname(output_file))
+
+    MPI.Barrier(comm)
+
     # Create the output file and the datasets.
     h5open(output_file, "w", comm) do file
 
