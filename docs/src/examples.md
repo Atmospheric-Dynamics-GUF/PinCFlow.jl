@@ -376,14 +376,14 @@ include("wave_packet_tools.jl")
 atmosphere = AtmosphereNamelist(;
     background,
     coriolis_frequency,
-    initial_rhop = (x, y, z) ->
-        rhobar(x, y, z) *
-        (1 / (1 + real(bhat(x, y, z) * exp(1im * phi(x, y, z))) / g) - 1),
     initial_u = (x, y, z) -> real(uhat(x, y, z) * exp(1im * phi(x, y, z))),
     initial_v = (x, y, z) -> real(vhat(x, y, z) * exp(1im * phi(x, y, z))),
     initial_w = (x, y, z) -> real(what(x, y, z) * exp(1im * phi(x, y, z))),
     initial_pip = (x, y, z) ->
         real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
+    initial_thetap = (x, y, z) ->
+        real(bhat(x, y, z) * exp(1im * phi(x, y, z))) / g * thetabar(x, y, z),
+    buoyancy_initialization = :initial_thetap,
 )
 output = OutputNamelist(;
     output_variables = (:u, :v, :w),

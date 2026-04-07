@@ -11,6 +11,7 @@ AtmosphereNamelist{
     H <: Function,
     I <: Function,
     J <: Function,
+    K <: Function,
 }
 ```
 
@@ -38,6 +39,8 @@ AtmosphereNamelist(;
     initial_v::Function = (x, y, z) -> 0.0,
     initial_w::Function = (x, y, z) -> 0.0,
     initial_pip::Function = (x, y, z) -> 0.0,
+    initial_thetap::Function = (x, y, z) -> 0.0,
+    buoyancy_initialization::Symbol = :initial_rhop,
 )::AtmosphereNamelist
 ```
 
@@ -75,7 +78,7 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `stratosphere_lapse_rate::C`: Lapse rate in the stratosphere for `background == LapseRates()`.
 
-  - `initial_rhop::E`: Function used to initialize the density fluctuations.
+  - `initial_rhop::E`: Function used to initialize the density fluctuations if `buoyancy_initialization == :initial_rhop`.
 
   - `initial_u::F`: Function used to initialize the zonal wind.
 
@@ -84,6 +87,10 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
   - `initial_w::H`: Function used to initialize the vertical wind.
 
   - `initial_pip::I`: Function used to initialize the Exner-pressure fluctuations.
+
+  - `initial_thetap::J`: Function used to initialize the density fluctuations if `buoyancy_initialization == :initial_thetap`.
+
+  - `buoyancy_initialization::K`: Switch for using `initial_rhop` (if set to `:initial_rhop`) or `initial_thetap` (if set to `:initial_thetap`) to initialize the buoyancy.
 """
 struct AtmosphereNamelist{
     A <: AbstractModel,
@@ -95,6 +102,8 @@ struct AtmosphereNamelist{
     G <: Function,
     H <: Function,
     I <: Function,
+    J <: Function,
+    K <: Symbol,
 }
     model::A
     specify_reynolds_number::B
@@ -116,6 +125,8 @@ struct AtmosphereNamelist{
     initial_v::G
     initial_w::H
     initial_pip::I
+    initial_thetap::J
+    buoyancy_initialization::K
 end
 
 function AtmosphereNamelist(;
@@ -139,6 +150,8 @@ function AtmosphereNamelist(;
     initial_v::Function = (x, y, z) -> 0.0,
     initial_w::Function = (x, y, z) -> 0.0,
     initial_pip::Function = (x, y, z) -> 0.0,
+    initial_thetap::Function = (x, y, z) -> 0.0,
+    buoyancy_initialization::Symbol = :initial_rhop,
 )::AtmosphereNamelist
     return AtmosphereNamelist(
         model,
@@ -161,5 +174,7 @@ function AtmosphereNamelist(;
         initial_v,
         initial_w,
         initial_pip,
+        initial_thetap,
+        buoyancy_initialization,
     )
 end
