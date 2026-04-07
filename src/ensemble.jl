@@ -32,33 +32,22 @@ function ensemble(
     base_comm = MPI.Comm_split(MPI.COMM_WORLD, color, rank)
 
     # Run the simulations.
-    failure = false
-    try
-        open(
-            replace(parameters[:output_file][color], r"\.h5$" => ".log"),
-            "w",
-        ) do file
-            redirect_stdout(file) do
-                simulation(;
-                    NamedTuple(
-                        key => parameters[key][color] for
-                        key in keys(parameters)
-                    )...,
-                    keywords...,
-                    base_comm,
-                )
-                return
-            end
+    open(
+        replace(parameters[:output_file][color], r"\.h5$" => ".log"),
+        "w",
+    ) do io
+        redirect_stdio(; stderr = io, stdout = io) do
+            simulation(;
+                NamedTuple(
+                    key => parameters[key][color] for key in keys(parameters)
+                )...,
+                keywords...,
+                base_comm,
+            )
             return
         end
-    catch exception
-        failure = true
-        println("Ensemble member $(color) failed with the following exception:")
-        println(exception)
+        return
     end
-
-    MPI.Barrier(MPI.COMM_WORLD)
-    failure && error("At least one ensemble member had an error!")
 
     return
 end
