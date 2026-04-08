@@ -5,10 +5,11 @@ function vortex(;
     y_size::Integer = 40,
     npx::Integer = 1,
     npy::Integer = 1,
-    output_file::String = "vortex.h5",
+    output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/vortex.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -62,11 +63,7 @@ function vortex(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/vortex.svg",
-                data,
-                ("chi", 1, 1, 1, 2);
-            )
+            plot_output(plot_file, data, ("chi", 1, 1, 1, 2))
             return
         end
     end

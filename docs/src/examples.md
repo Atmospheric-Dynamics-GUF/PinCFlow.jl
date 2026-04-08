@@ -12,10 +12,11 @@ function cold_bubble(;
     z_size::Integer = 40,
     npx::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "cold_bubble.h5",
+    output_file::AbstractString = "cold_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/cold_bubble.svg",
 )
     lx = 20000.0
     lz = 20000.0
@@ -50,11 +51,7 @@ function cold_bubble(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/cold_bubble.svg",
-                data,
-                ("thetap", 1, 1, 1, 2);
-            )
+            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
             return
         end
     end
@@ -80,10 +77,11 @@ function hot_bubble(;
     z_size::Integer = 40,
     npx::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "hot_bubble.h5",
+    output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/hot_bubble.svg",
 )
     lx = 20000.0
     lz = 20000.0
@@ -119,11 +117,7 @@ function hot_bubble(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/hot_bubble.svg",
-                data,
-                ("thetap", 1, 1, 1, 2);
-            )
+            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
             return
         end
     end
@@ -151,10 +145,11 @@ function mountain_wave(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "mountain_wave.h5",
+    output_file::AbstractString = "mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/mountain_wave.svg",
 )
     h0 = 100.0
     l0 = 1000.0
@@ -204,11 +199,7 @@ function mountain_wave(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/mountain_wave.svg",
-                data,
-                ("w", 20, 20, 10, 2);
-            )
+            plot_output(plot_file, data, ("w", 20, 20, 10, 2))
             return
         end
     end
@@ -263,10 +254,11 @@ function vortex(;
     y_size::Integer = 40,
     npx::Integer = 1,
     npy::Integer = 1,
-    output_file::String = "vortex.h5",
+    output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/vortex.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -320,11 +312,7 @@ function vortex(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/vortex.svg",
-                data,
-                ("chi", 1, 1, 1, 2);
-            )
+            plot_output(plot_file, data, ("chi", 1, 1, 1, 2))
             return
         end
     end
@@ -352,10 +340,11 @@ function wave_packet(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "wave_packet.h5",
+    output_file::AbstractString = "wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/wave_packet.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -425,7 +414,7 @@ function wave_packet(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "examples/results/wave_packet.svg",
+                plot_file,
                 data,
                 ("u", 20, 20, 40, 2),
                 ("v", 20, 20, 40, 2),
@@ -459,10 +448,11 @@ function wkb_mountain_wave(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "wkb_mountain_wave.h5",
+    output_file::AbstractString = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/wkb_mountain_wave.svg",
 )
     h0 = 150.0
     l0 = 5000.0
@@ -522,11 +512,7 @@ function wkb_mountain_wave(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/wkb_mountain_wave.svg",
-                data,
-                ("nr", 20, 20, 10, 2);
-            )
+            plot_output(plot_file, data, ("nr", 20, 20, 10, 2))
             return
         end
     end
@@ -583,10 +569,11 @@ function wkb_wave_packet(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "wkb_wave_packet.h5",
+    output_file::AbstractString = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/wkb_wave_packet.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -640,12 +627,7 @@ function wkb_wave_packet(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/wkb_wave_packet.svg",
-                data,
-                ("nr", 8, 8, 16, 2);
-                time_unit = "min",
-            )
+            plot_output(plot_file, data, ("nr", 8, 8, 16, 2); time_unit = "min")
             return
         end
     end
@@ -672,7 +654,7 @@ function ijk(state::State, x::Real, y::Real, z::Real)::CartesianIndex
 
     i = argmin(abs.(x .- grid.x .* lref))
     j = argmin(abs.(y .- grid.y .* lref))
-    k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
+    @ivy k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
 
     return CartesianIndex(i, j, k)
 end
@@ -686,7 +668,7 @@ function rhobar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; rhoref) = state.constants
 
-    return atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
+    @ivy return atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
 end
 
 ```
@@ -698,7 +680,7 @@ function thetabar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; thetaref) = state.constants
 
-    return atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
+    @ivy return atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
 end
 
 ```
@@ -710,7 +692,7 @@ function n2(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; tref) = state.constants
 
-    return atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
+    @ivy return atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
 end
 
 ```

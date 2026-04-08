@@ -7,10 +7,11 @@ function wkb_wave_packet(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "wkb_wave_packet.h5",
+    output_file::AbstractString = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/wkb_wave_packet.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -64,12 +65,7 @@ function wkb_wave_packet(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/wkb_wave_packet.svg",
-                data,
-                ("nr", 8, 8, 16, 2);
-                time_unit = "min",
-            )
+            plot_output(plot_file, data, ("nr", 8, 8, 16, 2); time_unit = "min")
             return
         end
     end

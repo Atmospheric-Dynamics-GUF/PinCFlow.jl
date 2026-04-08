@@ -5,10 +5,11 @@ function periodic_hill(;
     z_size::Integer = 40,
     npx::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "periodic_hill.h5",
+    output_file::AbstractString = "periodic_hill.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/periodic_hill.svg",
 )
     h0 = 500.0
     l0 = 10000.0
@@ -45,11 +46,7 @@ function periodic_hill(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/periodic_hill.svg",
-                data,
-                ("w", 1, 1, 1, 2);
-            )
+            plot_output(plot_file, data, ("w", 1, 1, 1, 2))
             return
         end
     end

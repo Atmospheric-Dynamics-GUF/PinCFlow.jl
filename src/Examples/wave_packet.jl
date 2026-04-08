@@ -7,10 +7,11 @@ function wave_packet(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "wave_packet.h5",
+    output_file::AbstractString = "wave_packet.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/wave_packet.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -80,7 +81,7 @@ function wave_packet(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "examples/results/wave_packet.svg",
+                plot_file,
                 data,
                 ("u", 20, 20, 40, 2),
                 ("v", 20, 20, 40, 2),

@@ -5,10 +5,11 @@ function hot_bubble(;
     z_size::Integer = 40,
     npx::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "hot_bubble.h5",
+    output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/hot_bubble.svg",
 )
     lx = 20000.0
     lz = 20000.0
@@ -44,11 +45,7 @@ function hot_bubble(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/hot_bubble.svg",
-                data,
-                ("thetap", 1, 1, 1, 2);
-            )
+            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
             return
         end
     end

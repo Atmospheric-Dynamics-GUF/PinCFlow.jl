@@ -7,10 +7,11 @@ function mountain_wave(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "mountain_wave.h5",
+    output_file::AbstractString = "mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/mountain_wave.svg",
 )
     h0 = 100.0
     l0 = 1000.0
@@ -60,11 +61,7 @@ function mountain_wave(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/mountain_wave.svg",
-                data,
-                ("w", 20, 20, 10, 2);
-            )
+            plot_output(plot_file, data, ("w", 20, 20, 10, 2))
             return
         end
     end

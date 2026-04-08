@@ -7,10 +7,11 @@ function wkb_mountain_wave(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::String = "wkb_mountain_wave.h5",
+    output_file::AbstractString = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
     output_steps::Bool = false,
     visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/wkb_mountain_wave.svg",
 )
     h0 = 150.0
     l0 = 5000.0
@@ -70,11 +71,7 @@ function wkb_mountain_wave(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(
-                "examples/results/wkb_mountain_wave.svg",
-                data,
-                ("nr", 20, 20, 10, 2);
-            )
+            plot_output(plot_file, data, ("nr", 20, 20, 10, 2))
             return
         end
     end
