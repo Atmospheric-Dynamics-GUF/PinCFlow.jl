@@ -12,6 +12,8 @@ WKB{
     I <: Ref{<:AbstractFloat},
     J <: AbstractArray{<:AbstractFloat, 3},
     K <: AbstractMatrix{<:AbstractFloat},
+    L <: Spectrum,
+    M <: ElasticModeSelection,
 }
 ```
 
@@ -85,6 +87,10 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `diffusion::J`: Diffusion induced by wave breaking.
 
+  - `spectrum::L`: Wave field for initialization and sources.
+
+  - `elastic_mode_selection::M`: Elastic-mode-selection data.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -108,6 +114,10 @@ This method primarily determines the size of the spectral dimension of ray-volum
   - [`PinCFlow.Types.WKBTypes.WKBIntegrals`](@ref)
 
   - [`PinCFlow.Types.WKBTypes.WKBTendencies`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.Spectrum`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.ElasticModeSelection`](@ref)
 """
 struct WKB{
     A <: Integer,
@@ -121,6 +131,8 @@ struct WKB{
     I <: Ref{<:AbstractFloat},
     J <: AbstractArray{<:AbstractFloat, 3},
     K <: AbstractMatrix{<:AbstractFloat},
+    L <: Spectrum,
+    M <: ElasticModeSelection,
 }
     nxray::A
     nyray::A
@@ -143,6 +155,8 @@ struct WKB{
     cgz_max::J
     zb::K
     diffusion::J
+    spectrum::L
+    elastic_mode_selection::M
 end
 
 function WKB(namelists::Namelists, domain::Domain)::WKB
@@ -165,6 +179,8 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
         zeros(0, 0, 0),
         zeros(0, 0),
         zeros(0, 0, 0),
+        Spectrum(0, 0, 0, 0),
+        ElasticModeSelection(0, 0, 0),
     )
 end
 
@@ -263,6 +279,8 @@ function WKB(
     cgz_max = zeros(nxx, nyy, nzz)
     zb = zeros(nxx, nyy)
     diffusion = zeros(nxx, nyy, nzz)
+    spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
+    elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
 
     return WKB(
         nxray,
@@ -286,5 +304,7 @@ function WKB(
         cgz_max,
         zb,
         diffusion,
+        spectrum,
+        elastic_mode_selection,
     )
 end
