@@ -11,7 +11,12 @@ time stepping and output of the simulation data.
 
 The initialization begins with the construction of the model state (an instance of the composite type `State`), which involves the setup of the MPI parallelization and the definition of all arrays that are needed repeatedly during the simulation. This is followed by an (optional) initial cleaning, in which the Poisson solver is called to ensure that the initial dynamic fields satisfy the divergence constraint imposed by the thermodynamic energy equation. Afterwards, the initialization of MS-GWaM is completed by adding ray volumes to the previously defined arrays. If the simulation is supposed to start from a previous model state, the fields are then overwritten with the data in the corresponding input file. Finally, the output file is created and the initial state is written into it.
 
-At the beginning of each time-loop iteration, the time step is determined from several stability criteria, using `compute_time_step`. In case the updated simulation time is later than the next output time, the time step is corrected accordingly. Subsequently, the damping coefficients of the sponges (which may depend on the time step) are calculated. Following this, MS-GWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
+At the beginning of each time-loop iteration, the time step is determined from several stability criteria, using `compute_time_step`. 
+In case the updated simulation time is later than the next output time, the time step is corrected accordingly. 
+Subsequently, the damping coefficients of the sponges (which may depend on the time step) are calculated. 
+Following this, MS-GWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. 
+Then, the diffusion of momentum, mass-weighted potential temperature, and tracers is applied.
+Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
 
  1. Explicit RK3 integration of LHS over ``\\Delta t / 2``.
 
@@ -24,6 +29,8 @@ At the beginning of each time-loop iteration, the time step is determined from s
  1. Implicit Euler integration of RHS over ``\\Delta t / 2``.
 
 Therein, the left-hand sides of the equations include advective fluxes, diffusion terms, rotation and heating, whereas the pressure gradient, buoyancy term and momentum-flux divergence due to unresolved gravity waves are on the right-hand sides. Boundary conditions are enforced continuously. At the end of the time step, the updated fields are written into the output file if the next output time has been reached.
+
+In the case of turbulence parameterization, the turbulence variables are integrated after step 3.
 
 # Arguments
 
@@ -62,6 +69,12 @@ Therein, the left-hand sides of the equations include advective fluxes, diffusio
   - [`PinCFlow.Integration.implicit_integration!`](@ref)
 
   - [`PinCFlow.Integration.reset_predictands!`](@ref)
+
+  - [`PinCFlow.Integration.compute_turbulence_diffusion!`](@ref)
+
+  - [`PinCFlow.Update.turbulent_diffusion!`](@ref)
+
+  - [`PinCFlow.Integration.turbulence_integration!`](@ref)
 """
 function integrate end
 
@@ -73,7 +86,6 @@ function integrate(namelists::Namelists)
 
     # Initialize time variables.
     itime = 0
-    rkstage = 0
     time = 0.0
     dt = 0.0
 
@@ -249,6 +261,18 @@ function integrate(namelists::Namelists)
 
         wkb_integration!(state, dt)
 
+        #-----------------------------------------------------------------
+        #                         Turbulence 
+        #-----------------------------------------------------------------
+
+        compute_turbulence_diffusion!(state)
+
+        turbulent_diffusion!(state, dt)
+
+        set_boundaries!(state, BoundaryPredictands())
+
+        synchronize_compressible_atmosphere!(state, state.variables.predictands)
+
         #---------------------------------------------------------------
         #                   Semi-implicit time scheme
         #---------------------------------------------------------------
@@ -299,6 +323,8 @@ function integrate(namelists::Namelists)
         reset_predictands!(state, p0, chi0)
 
         explicit_integration!(state, p0, 0.5 * dt, time, RHS())
+
+        turbulence_integration!(state, dt)
 
         if master
             println("(4) Explicit integration of LHS over dt...")

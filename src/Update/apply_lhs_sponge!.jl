@@ -226,6 +226,23 @@ In each tracer equation, the update is given by
 \\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
 ```
 
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulence_scheme::TKEScheme,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the turbulent kinetic energy equation.
+
+In the equation for the turbulent kinetic energy, the update is given by
+
+```math
+\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho e_\\mathrm{k}\\right)^{\\left(0\\right)}\\right].
+```
+
 # Arguments
 
   - `state`: Model state.
@@ -239,6 +256,8 @@ In each tracer equation, the update is given by
   - `model`: Dynamic equations.
 
   - `tracer_setup`: General tracer-transport configuration.
+
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 """
 function apply_lhs_sponge! end
 
@@ -606,6 +625,29 @@ function apply_lhs_sponge!(
             chi_new = (1.0 - beta) * initialtracer[i, j, k] + beta * chi_old
             chi[i, j, k] = chi_new
         end
+    end
+
+    return
+end
+
+function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::TKE,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphar) = state.sponge
+    (; tke) = state.turbulence.turbulencepredictands
+    (; tkemin) = state.turbulence.turbulenceconstants
+    (; rhobar) = state.atmosphere
+
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+        alpha = alphar[i, j, k]
+        tke_old = tke[i, j, k]
+        beta = 1.0 / (1.0 + alpha * dt)
+        tke_new = (1.0 - beta) * tkemin * rhobar[i, j, k] + beta * tke_old
+        tke[i, j, k] = tke_new
     end
 
     return

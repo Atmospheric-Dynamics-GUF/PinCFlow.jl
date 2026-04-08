@@ -56,6 +56,7 @@ struct WKBIncrements{A <: AbstractArray{<:AbstractFloat, 4}}
     ddxray::A
     ddyray::A
     ddzray::A
+    dpray::A
 end
 
 function WKBIncrements(
@@ -64,5 +65,5 @@ function WKBIncrements(
     nyy::Integer,
     nzz::Integer,
 )::WKBIncrements
-    return WKBIncrements([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:9]...)
+    return WKBIncrements([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:10]...)
 end

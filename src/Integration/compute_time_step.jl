@@ -132,6 +132,7 @@ function compute_time_step(state::State)::AbstractFloat
 
             dtwkb = MPI.Allreduce(dtwkb, min, comm)
         end
+
         #-------------------------------
         #        Make your choice
         #-------------------------------

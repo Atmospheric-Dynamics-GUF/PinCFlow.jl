@@ -113,6 +113,15 @@ struct Chi end
 
 """
 ```julia
+TKE
+```
+
+Singleton that represents the turbulent kinetic energy.
+"""
+struct TKE end
+
+"""
+```julia
 Explicit
 ```
 
@@ -135,6 +144,7 @@ include("PoissonTypes/PoissonTypes.jl")
 include("VariableTypes/VariableTypes.jl")
 include("WKBTypes/WKBTypes.jl")
 include("TracerTypes/TracerTypes.jl")
+include("TurbulenceTypes/TurbulenceTypes.jl")
 
 using .NamelistTypes
 using .FoundationalTypes
@@ -142,6 +152,7 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
+using .TurbulenceTypes
 using ..PinCFlow
 
 include("State.jl")
@@ -153,7 +164,8 @@ export AbstractBackground,
     AbstractMergeMode,
     AbstractWKBMode,
     AbstractWKBFilter,
-    AbstractTracer
+    AbstractTracer,
+    AbstractTurbulence
 
 export Rho,
     RhoP,
@@ -164,6 +176,7 @@ export Rho,
     P,
     Theta,
     Chi,
+    TKE,
     Explicit,
     Implicit,
     NeutralStratification,
@@ -194,6 +207,7 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    TurbulenceNamelist,
     Namelists,
     Time,
     Constants,
@@ -222,6 +236,7 @@ export DomainNamelist,
     SurfaceIndices,
     WKB,
     Tracer,
+    Turbulence,
     State,
     NoTracer,
     TracerOn,
@@ -231,6 +246,14 @@ export DomainNamelist,
     TracerReconstructions,
     TracerFluxes,
     TracerForcings,
-    TracerWKBImpact
+    TracerWKBImpact,
+    NoTurbulence,
+    TKEScheme,
+    TurbulencePredictands,
+    TurbulenceAuxiliaries,
+    TurbulenceIncrements,
+    TurbulenceReconstructions,
+    TurbulenceDiffusionCoefficients,
+    TurbulenceFluxes
 
 end

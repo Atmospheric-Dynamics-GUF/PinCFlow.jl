@@ -250,6 +250,28 @@ Compute the tracer fluxes in all three directions.
 The computation is analogous to that of the density fluxes.
 
 ```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    turbulence_scheme::NoTurbulence,
+)
+```
+
+Return for configurations without turbulence scheme.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    turbulence_scheme::TKEScheme,
+)
+```
+
+Compute the turbulence fluxes in all three directions.
+
+The computation is analogous to that of the density fluxes.
+
+```julia
 compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
 ```
 
@@ -304,6 +326,8 @@ where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.a
   - `variable`: Flux variable.
 
   - `tracer_setup`: General tracer-transport configuration.
+
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
 # See also
 
@@ -1738,6 +1762,62 @@ function compute_fluxes!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
+    end
+
+    return
+end
+
+function compute_fluxes!(state::State, variable::TKE)
+
+    # Get all necessary fields.
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac) = state.grid
+    (; pbar) = state.atmosphere
+    (; turbulencereconstructions, turbulencefluxes) = state.turbulence
+    (; u, v, w) = state.variables.predictands
+
+    @ivy for field in 1:fieldcount(TurbulencePredictands)
+        chir = getfield(turbulencereconstructions, field)[2:end, :, :, 1, 1]
+        chil = getfield(turbulencereconstructions, field)[:, :, :, 1, 2]
+        fchi = getfield(turbulencefluxes, field)[:, :, :, 1]
+        for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+            pedger =
+                0.5 * (
+                    jac[i, j, k] * pbar[i, j, k] +
+                    jac[i + 1, j, k] * pbar[i + 1, j, k]
+                )
+            usurf = pedger * u[i, j, k]
+
+            fchi[i, j, k] = compute_flux(usurf, chil[i, j, k], chir[i, j, k])
+        end
+
+        chif = getfield(turbulencereconstructions, field)[:, 2:end, :, 2, 1]
+        chib = getfield(turbulencereconstructions, field)[:, :, :, 2, 2]
+        gchi = getfield(turbulencefluxes, field)[:, :, :, 2]
+        for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+            pedgef =
+                0.5 * (
+                    jac[i, j, k] * pbar[i, j, k] +
+                    jac[i, j + 1, k] * pbar[i, j + 1, k]
+                )
+            vsurf = pedgef * v[i, j, k]
+
+            gchi[i, j, k] = compute_flux(vsurf, chib[i, j, k], chif[i, j, k])
+        end
+
+        chiu = getfield(turbulencereconstructions, field)[:, :, 2:end, 3, 1]
+        chid = getfield(turbulencereconstructions, field)[:, :, :, 3, 2]
+        hchi = getfield(turbulencefluxes, field)[:, :, :, 3]
+        for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+            pedgeu =
+                jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (pbar[i, j, k] + pbar[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
+            wsurf = pedgeu * w[i, j, k]
+
+            hchi[i, j, k] = compute_flux(wsurf, chid[i, j, k], chiu[i, j, k])
+        end
     end
 
     return

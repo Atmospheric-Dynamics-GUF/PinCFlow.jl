@@ -50,6 +50,8 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:wchi`: Vertical tracer fluxes due to unresolved gravity waves.
 
+  - `:e`: Wave energy of unresolved gravity waves.
+
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
 All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.
@@ -314,8 +316,77 @@ function write_output(
             end
         end
 
+        if !(
+            typeof(state.namelists.turbulence.turbulence_scheme) <:
+            NoTurbulence
+        )
+            if model == Boussinesq()
+                for field in fieldnames(TurbulencePredictands)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    @views file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(state.turbulence.turbulencepredictands, field)[
+                            ii,
+                            jj,
+                            kk,
+                        ] ./ (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .*
+                        (lref .^ 2.0) ./ (tref .^ 2.0)
+                end
+            else
+                for field in fieldnames(TurbulencePredictands)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    @views file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(state.turbulence.turbulencepredictands, field)[
+                            ii,
+                            jj,
+                            kk,
+                        ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
+                        (lref .^ 2.0) ./ (tref .^ 2.0)
+                end
+            end
+
+            for field in fieldnames(TurbulenceAuxiliaries)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file[string(field)][iid, jjd, kkd, iout] =
+                    getfield(state.turbulence.turbulenceauxiliaries, field)[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+
+            for field in fieldnames(TurbulenceDiffusionCoefficients)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file[string(field)][iid, jjd, kkd, iout] =
+                    getfield(
+                        state.turbulence.turbulencediffusioncoefficients,
+                        field,
+                    )[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* lref .^ 2 / tref
+            end
+        end
+
         # Write WKB variables.
         if wkb_mode != NoWKB()
+            if :e in output_variables
+                HDF5.set_extent_dims(file["e"], (x_size, y_size, z_size, iout))
+                file["e"][iid, jjd, kkd, iout] =
+                    state.wkb.integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2.0
+            end
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes

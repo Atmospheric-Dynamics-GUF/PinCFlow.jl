@@ -5,11 +5,22 @@ compute_leading_order_tracer_forcing!(
     i::Integer,
     j::Integer,
     k::Integer,
+)
+```
+
+Compute the leading-order tracer forcing by dispatching to the tracer-setup-specific method.
+
+```julia
+compute_leading_order_tracer_forcing!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
     tracer_setup::TracerOn,
 )
 ```
 
-Compute and return the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
+Compute the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
 
 ```julia
 compute_leading_order_tracer_forcing!(
@@ -35,6 +46,20 @@ Return for configurations without tracer transport.
 
   - `tracer_setup`: General tracer-transport configuration.
 """
+function compute_leading_order_tracer_forcing! end
+
+function compute_leading_order_tracer_forcing!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)
+    (; tracer_setup) = state.namelists.tracer
+
+    compute_leading_order_tracer_forcing!(state, i, j, k, tracer_setup)
+    return
+end
+
 function compute_leading_order_tracer_forcing!(
     state::State,
     i::Integer,
