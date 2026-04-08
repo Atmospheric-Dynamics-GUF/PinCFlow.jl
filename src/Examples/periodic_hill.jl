@@ -7,7 +7,6 @@ function periodic_hill(;
     npz::Integer = 1,
     output_file::AbstractString = "periodic_hill.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/periodic_hill.svg",
 )
@@ -30,12 +29,8 @@ function periodic_hill(;
         resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
     )
 
-    output = OutputNamelist(;
-        output_file,
-        output_variables = [:w],
-        prepare_restart,
-        output_steps,
-    )
+    output =
+        OutputNamelist(; output_file, output_variables = [:w], prepare_restart)
 
     sponge = SpongeNamelist(;
         rhs_sponge = (x, y, z, t, dt) ->

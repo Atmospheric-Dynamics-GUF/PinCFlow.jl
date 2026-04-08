@@ -7,7 +7,6 @@ function hot_bubble(;
     npz::Integer = 1,
     output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/hot_bubble.svg",
 )
@@ -38,7 +37,6 @@ function hot_bubble(;
         output_file,
         output_variables = [:thetap],
         prepare_restart,
-        output_steps,
     )
 
     integrate(Namelists(; atmosphere, discretization, domain, output))

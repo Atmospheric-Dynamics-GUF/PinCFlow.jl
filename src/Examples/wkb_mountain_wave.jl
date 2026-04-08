@@ -9,7 +9,6 @@ function wkb_mountain_wave(;
     npz::Integer = 1,
     output_file::AbstractString = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/wkb_mountain_wave.svg",
 )
@@ -48,12 +47,8 @@ function wkb_mountain_wave(;
             ) : (0.0, 0.0, 0.0),
     )
 
-    output = OutputNamelist(;
-        output_file,
-        save_ray_volumes = true,
-        prepare_restart,
-        output_steps,
-    )
+    output =
+        OutputNamelist(; output_file, save_ray_volumes = true, prepare_restart)
 
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) ->

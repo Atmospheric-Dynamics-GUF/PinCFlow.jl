@@ -9,7 +9,6 @@ function wkb_wave_packet(;
     npz::Integer = 1,
     output_file::AbstractString = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/wkb_wave_packet.svg",
 )
@@ -43,7 +42,6 @@ function wkb_wave_packet(;
         output_file,
         save_ray_volumes = true,
         prepare_restart,
-        output_steps,
         output_interval = 900,
         tmax = 900,
     )

@@ -9,7 +9,6 @@ function mountain_wave(;
     npz::Integer = 1,
     output_file::AbstractString = "mountain_wave.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/mountain_wave.svg",
 )
@@ -35,12 +34,8 @@ function mountain_wave(;
         resolved_topography = (x, y) -> h0 / (1 + (x^2 + y^2) / l0^2),
     )
 
-    output = OutputNamelist(;
-        output_file,
-        output_variables = [:w],
-        prepare_restart,
-        output_steps,
-    )
+    output =
+        OutputNamelist(; output_file, output_variables = [:w], prepare_restart)
 
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) -> begin

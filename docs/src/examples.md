@@ -14,7 +14,6 @@ function cold_bubble(;
     npz::Integer = 1,
     output_file::AbstractString = "cold_bubble.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/cold_bubble.svg",
 )
@@ -44,7 +43,6 @@ function cold_bubble(;
         output_file,
         output_variables = [:thetap],
         prepare_restart,
-        output_steps,
     )
 
     integrate(Namelists(; atmosphere, discretization, domain, output))
@@ -79,7 +77,6 @@ function hot_bubble(;
     npz::Integer = 1,
     output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/hot_bubble.svg",
 )
@@ -110,7 +107,6 @@ function hot_bubble(;
         output_file,
         output_variables = [:thetap],
         prepare_restart,
-        output_steps,
     )
 
     integrate(Namelists(; atmosphere, discretization, domain, output))
@@ -147,7 +143,6 @@ function mountain_wave(;
     npz::Integer = 1,
     output_file::AbstractString = "mountain_wave.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/mountain_wave.svg",
 )
@@ -173,12 +168,8 @@ function mountain_wave(;
         resolved_topography = (x, y) -> h0 / (1 + (x^2 + y^2) / l0^2),
     )
 
-    output = OutputNamelist(;
-        output_file,
-        output_variables = [:w],
-        prepare_restart,
-        output_steps,
-    )
+    output =
+        OutputNamelist(; output_file, output_variables = [:w], prepare_restart)
 
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) -> begin
@@ -256,7 +247,6 @@ function vortex(;
     npy::Integer = 1,
     output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/vortex.svg",
 )
@@ -293,7 +283,6 @@ function vortex(;
         output_file,
         output_variables = [:chi],
         prepare_restart,
-        output_steps,
     )
 
     tracer = TracerNamelist(;
@@ -342,7 +331,6 @@ function wave_packet(;
     npz::Integer = 1,
     output_file::AbstractString = "wave_packet.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/wave_packet.svg",
 )
@@ -404,7 +392,6 @@ function wave_packet(;
         output_file,
         output_variables = [:u, :v, :w],
         prepare_restart,
-        output_steps,
         output_interval = 900,
         tmax = 900,
     )
@@ -450,7 +437,6 @@ function wkb_mountain_wave(;
     npz::Integer = 1,
     output_file::AbstractString = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/wkb_mountain_wave.svg",
 )
@@ -489,12 +475,8 @@ function wkb_mountain_wave(;
             ) : (0.0, 0.0, 0.0),
     )
 
-    output = OutputNamelist(;
-        output_file,
-        save_ray_volumes = true,
-        prepare_restart,
-        output_steps,
-    )
+    output =
+        OutputNamelist(; output_file, save_ray_volumes = true, prepare_restart)
 
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) ->
@@ -571,7 +553,6 @@ function wkb_wave_packet(;
     npz::Integer = 1,
     output_file::AbstractString = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/wkb_wave_packet.svg",
 )
@@ -605,7 +586,6 @@ function wkb_wave_packet(;
         output_file,
         save_ray_volumes = true,
         prepare_restart,
-        output_steps,
         output_interval = 900,
         tmax = 900,
     )

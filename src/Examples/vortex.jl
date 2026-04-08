@@ -7,7 +7,6 @@ function vortex(;
     npy::Integer = 1,
     output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
-    output_steps::Bool = false,
     visualize::Bool = true,
     plot_file::AbstractString = "examples/results/vortex.svg",
 )
@@ -44,7 +43,6 @@ function vortex(;
         output_file,
         output_variables = [:chi],
         prepare_restart,
-        output_steps,
     )
 
     tracer = TracerNamelist(;
