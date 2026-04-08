@@ -38,17 +38,17 @@ using PinCFlow
 integrate(Namelists())
 ```
 
-runs PinCFlow.jl in its default configuration. This simulation will finish almost instantly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \ \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by constructing namelists with changed parameters. This is illustrated in the example functions provided in the repository. These are organized in a local package called PinCFlowExamples.jl. To use the functions, we recommend downloading it from the repository and running
+runs PinCFlow.jl in its default configuration. This simulation will finish almost instantly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \ \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by constructing namelists with changed parameters. This is illustrated in PinCFlow.jl's example functions, which are defined in its `Examples` module. To use the functions, we recommend downloading the examples folder from the repository and running
 
 ```julia
-Pkg.activate("PinCFlowExamples.jl")
+Pkg.activate("examples")
 Pkg.instantiate()
 ```
 
-to install the package's dependencies. Having done this, you can easily run any of the example simulations without needing to worry about extra packages. For instance, calling the function
+to install the dependencies of its project. Having done this, you can easily run any of the example simulations without needing to worry about extra packages. For instance, calling the function
 
 ```julia
-# PinCFlowExamples.jl/src/periodic_hill.jl
+# src/Examples/periodic_hill.jl
 
 function periodic_hill(;
     x_size::Integer = 40,
@@ -96,7 +96,7 @@ function periodic_hill(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "PinCFlowExamples.jl/results/periodic_hill.svg",
+                "examples/results/periodic_hill.svg",
                 data,
                 ("w", 1, 1, 1, 2);
             )
@@ -112,6 +112,8 @@ end
 with
 
 ```julia
+using PinCFlow, CairoMakie
+
 periodic_hill()
 ```
 
@@ -121,13 +123,13 @@ PinCFlow.jl uses parallel HDF5 to write simulation data. By default, the path to
 
 For the visualization of simulation results, we recommend using [Makie.jl](https://docs.makie.org/stable/) with the `CairoMakie` backend. PinCFlow.jl has an extension which exports a few convenience functions if `CairoMakie` is loaded. This is utilized in the above function, yielding a plot of the vertical wind at the end of the simulation (see below).
 
-![](PinCFlowExamples.jl/results/periodic_hill.svg)
+![](examples/results/periodic_hill.svg)
 
 If you want to run PinCFlow.jl in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). For example, by executing
 
 ```shell
-mpiexec=$(julia --project=PinCFlowExamples.jl -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; periodic_hill(; npx = 3, npz = 3)'
+mpiexec=$(julia --project=examples -e 'using MPICH_jll; print(MPICH_jll.mpiexec_path)')
+${mpiexec} -n 9 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 3, npz = 3)'
 ```
 
 in your shell, you can run the above simulation in 9 MPI processes. Note that `npx` and `npz` configure the number of MPI subdomains in $\hat{x}$ and $\hat{z}$, respectively. Thus, `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
@@ -135,24 +137,24 @@ in your shell, you can run the above simulation in 9 MPI processes. Note that `n
 If you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 
 ```shell
-julia --project=PinCFlowExamples.jl -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names = ["/path/to/mpi/library/"])'
-julia --project=PinCFlowExamples.jl -e 'using HDF5; HDF5.API.set_libraries!("/path/to/libhdf5.so", "/path/to/libhdf5_hl.so")'
+julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names = ["/path/to/mpi/library/"])'
+julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/path/to/libhdf5.so", "/path/to/libhdf5_hl.so")'
 ```
 
-with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `PinCFlowExamples.jl/LocalPreferences.toml`, so that the new backends will be used by all future scripts run in this project. By running
+with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `examples/LocalPreferences.toml`, so that the new backends will be used by all future scripts run in this project. By running
 
 ```shell
-julia --project=PinCFlowExamples.jl -e 'using MPIPreferences; MPIPreferences.use_jll_binary()'
-julia --project=PinCFlowExamples.jl -e 'using HDF5; HDF5.API.set_libraries!()'
+julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_jll_binary()'
+julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!()'
 ```
 
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```shell
-mpiexec -n 9 julia --project=PinCFlowExamples.jl -e 'using PinCFlowExamples; periodic_hill(; npx = 3, npz = 3)'
+mpiexec -n 9 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 3, npz = 3)'
 ```
 
-with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl on [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `PinCFlowExamples.jl/levante` of the repository.
+with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl on [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/levante` of the repository.
 
 ## List of publications
 

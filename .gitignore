@@ -7,7 +7,7 @@ docs/src/code_of_conduct.md
 docs/src/contributing.md
 docs/src/index.md
 docs/src/license.md
-docs/src/PinCFlowExamples.jl/results
+docs/src/examples/results
 LocalPreferences.toml
 Manifest.toml
 *.code-workspace

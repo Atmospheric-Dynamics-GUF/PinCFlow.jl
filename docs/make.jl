@@ -5,8 +5,8 @@ using PinCFlow
 
 # Insert the example functions.
 @ivy for folder in (
-    "PinCFlowExamples.jl/src/",
-    "PinCFlowExamples.jl/src/WavePacketTools/",
+    "src/Examples/",
+    "src/Examples/WavePacketTools/",
 )
     for script_file in readdir(folder)
         if endswith(script_file, ".jl")
@@ -34,8 +34,8 @@ using PinCFlow
 end
 
 # Copy the example plots.
-mkpath("docs/src/PinCFlowExamples.jl/results/")
-for file in readdir("PinCFlowExamples.jl/results/"; join = true)
+mkpath("docs/src/examples/results/")
+for file in readdir("examples/results/"; join = true)
     cp(file, "docs/src/" * file; force = true)
 end
 

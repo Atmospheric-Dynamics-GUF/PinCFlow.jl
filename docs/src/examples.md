@@ -1,13 +1,11 @@
 # Examples
 
-PinCFlow.jl's examples are organized in functions which are part of a local package (PinCFlowExamples.jl) in the repository.
-
 ## Cold bubble
 
 The function
 
 ```julia
-# PinCFlowExamples.jl/src/cold_bubble.jl
+# src/Examples/cold_bubble.jl
 
 function cold_bubble(;
     x_size::Integer = 40,
@@ -53,7 +51,7 @@ function cold_bubble(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "PinCFlowExamples.jl/results/cold_bubble.svg",
+                "examples/results/cold_bubble.svg",
                 data,
                 ("thetap", 1, 1, 1, 2);
             )
@@ -68,14 +66,14 @@ end
 
 simulates a cold bubble in a 2D pseudo-incompressible isentropic atmosphere and visualizes the potential-temperature fluctuations after one hour integration time (see below).
 
-![](PinCFlowExamples.jl/results/cold_bubble.svg)
+![](examples/results/cold_bubble.svg)
 
 ## Hot bubble
 
 The function
 
 ```julia
-# PinCFlowExamples.jl/src/hot_bubble.jl
+# src/Examples/hot_bubble.jl
 
 function hot_bubble(;
     x_size::Integer = 40,
@@ -122,7 +120,7 @@ function hot_bubble(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "PinCFlowExamples.jl/results/hot_bubble.svg",
+                "examples/results/hot_bubble.svg",
                 data,
                 ("thetap", 1, 1, 1, 2);
             )
@@ -137,14 +135,14 @@ end
 
 simulates a hot bubble in a 2D compressible isentropic atmosphere and visualizes the potential-temperature fluctuations after one hour integration time (see below).
 
-![](PinCFlowExamples.jl/results/hot_bubble.svg)
+![](examples/results/hot_bubble.svg)
 
 ## Mountain wave
 
 The function
 
 ```julia
-# PinCFlowExamples.jl/src/mountain_wave.jl
+# src/Examples/mountain_wave.jl
 
 function mountain_wave(;
     x_size::Integer = 40,
@@ -207,7 +205,7 @@ function mountain_wave(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "PinCFlowExamples.jl/results/mountain_wave.svg",
+                "examples/results/mountain_wave.svg",
                 data,
                 ("w", 20, 20, 10, 2);
             )
@@ -251,14 +249,14 @@ where $\alpha_{\mathrm{R}, \max} = 0.0179 \ \mathrm{s^{- 1}}$, $\Delta x_\mathrm
 
 After the simulation has finished, the vertical wind is visualized in three cross sections of the domain (see below).
 
-![](PinCFlowExamples.jl/results/mountain_wave.svg)
+![](examples/results/mountain_wave.svg)
 
 ## Vortex
 
 The function
 
 ```julia
-# PinCFlowExamples.jl/src/vortex.jl
+# src/Examples/vortex.jl
 
 function vortex(;
     x_size::Integer = 40,
@@ -323,7 +321,7 @@ function vortex(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "PinCFlowExamples.jl/results/vortex.svg",
+                "examples/results/vortex.svg",
                 data,
                 ("chi", 1, 1, 1, 2);
             )
@@ -338,14 +336,14 @@ end
 
 initializes two tracer disks and a vortex in a 2D horizontal Boussinesq atmosphere, integrates over one hour and visualizes the resulting tracer distribution (see below).
 
-![](PinCFlowExamples.jl/results/vortex.svg)
+![](examples/results/vortex.svg)
 
 ## Wave packet
 
 The function
 
 ```julia
-# PinCFlowExamples.jl/src/wave_packet.jl
+# src/Examples/wave_packet.jl
 
 function wave_packet(;
     x_size::Integer = 40,
@@ -427,7 +425,7 @@ function wave_packet(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "PinCFlowExamples.jl/results/wave_packet.svg",
+                "examples/results/wave_packet.svg",
                 data,
                 ("u", 20, 20, 40, 2),
                 ("v", 20, 20, 40, 2),
@@ -443,16 +441,16 @@ end
 
 ```
 
-initializes a resolved gravity-wave packet in the stratosphere of a "realistic" atmosphere (isentropic troposphere and isothermal stratosphere) and visualizes the resulting wind after fifteen minutes integration time (see below). For the relatively complex initialization, this script first constructs an auxiliary state that contains the necessary background fields and then uses helper functions that implement the gravity-wave dispersion and polarization relations (organized in PinCFlowExamples.jl's submodule `WavePacketTools` and included in a section below).
+initializes a resolved gravity-wave packet in the stratosphere of a "realistic" atmosphere (isentropic troposphere and isothermal stratosphere) and visualizes the resulting wind after fifteen minutes integration time (see below). For the relatively complex initialization, this script first constructs an auxiliary state that contains the necessary background fields and then uses helper functions that implement the gravity-wave dispersion and polarization relations (organized in the module `WavePacketTools` and included in a section below).
 
-![](PinCFlowExamples.jl/results/wave_packet.svg)
+![](examples/results/wave_packet.svg)
 
 ## WKB mountain wave
 
 The function
 
 ```julia
-# PinCFlowExamples.jl/src/wkb_mountain_wave.jl
+# src/Examples/wkb_mountain_wave.jl
 
 function wkb_mountain_wave(;
     x_size::Integer = 40,
@@ -525,7 +523,7 @@ function wkb_mountain_wave(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "PinCFlowExamples.jl/results/wkb_mountain_wave.svg",
+                "examples/results/wkb_mountain_wave.svg",
                 data,
                 ("nr", 20, 20, 10, 2);
             )
@@ -569,14 +567,14 @@ MS-GWaM is used with most of its parameters set to their default values. This me
 
 Instead of a contour plot, the above script generates a scatter plot that visualizes the ray volumes, with the color representing the value of the phase-space wave-action density (see below).
 
-![](PinCFlowExamples.jl/results/wkb_mountain_wave.svg)
+![](examples/results/wkb_mountain_wave.svg)
 
 ## WKB wave packet
 
 The function
 
 ```julia
-# PinCFlowExamples.jl/src/wkb_wave_packet.jl
+# src/Examples/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
     x_size::Integer = 16,
@@ -643,7 +641,7 @@ function wkb_wave_packet(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(
-                "PinCFlowExamples.jl/results/wkb_wave_packet.svg",
+                "examples/results/wkb_wave_packet.svg",
                 data,
                 ("nr", 8, 8, 16, 2);
                 time_unit = "min",
@@ -659,14 +657,14 @@ end
 
 initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a "realistic" compressible atmosphere (isentropic troposphere and isothermal stratosphere) and visualizes the resulting ray-volume distribution after fifteen minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
 
-![](PinCFlowExamples.jl/results/wkb_wave_packet.svg)
+![](examples/results/wkb_wave_packet.svg)
 
 ## Wave-packet helper functions
 
-The PinCFlowExamples.jl package contains a submodule called `WavePacketTools`, which provides the helper functions
+The `Examples` module contains another module called `WavePacketTools`, which provides the helper functions
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/ijk.jl
+# src/Examples/WavePacketTools/ijk.jl
 
 function ijk(state::State, x::Real, y::Real, z::Real)::CartesianIndex
     (; lref) = state.constants
@@ -682,7 +680,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/rhobar.jl
+# src/Examples/WavePacketTools/rhobar.jl
 
 function rhobar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
@@ -694,7 +692,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/thetabar.jl
+# src/Examples/WavePacketTools/thetabar.jl
 
 function thetabar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
@@ -706,7 +704,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/n2.jl
+# src/Examples/WavePacketTools/n2.jl
 
 function n2(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
@@ -718,7 +716,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/envelope.jl
+# src/Examples/WavePacketTools/envelope.jl
 
 function envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
     (; k, l, m, rx, ry, rz, x0, y0, z0) = parameters
@@ -739,7 +737,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/phi.jl
+# src/Examples/WavePacketTools/phi.jl
 
 function phi(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
     (; k, l, m) = parameters
@@ -750,7 +748,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/omega.jl
+# src/Examples/WavePacketTools/omega.jl
 
 function omega(
     state::State,
@@ -771,7 +769,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/bhat.jl
+# src/Examples/WavePacketTools/bhat.jl
 
 function bhat(
     state::State,
@@ -788,7 +786,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/uhat.jl
+# src/Examples/WavePacketTools/uhat.jl
 
 function uhat(
     state::State,
@@ -814,7 +812,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/vhat.jl
+# src/Examples/WavePacketTools/vhat.jl
 
 function vhat(
     state::State,
@@ -840,7 +838,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/what.jl
+# src/Examples/WavePacketTools/what.jl
 
 function what(
     state::State,
@@ -857,7 +855,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/pihat.jl
+# src/Examples/WavePacketTools/pihat.jl
 
 function pihat(
     state::State,
@@ -878,7 +876,7 @@ end
 ```
 
 ```julia
-# PinCFlowExamples.jl/src/WavePacketTools/wave_action_density.jl
+# src/Examples/WavePacketTools/wave_action_density.jl
 
 function wave_action_density(
     state::State,
