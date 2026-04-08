@@ -30,21 +30,44 @@ include("FluxCalculator/FluxCalculator.jl")
 include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
 include("Integration/Integration.jl")
+include("Examples/Examples.jl")
 
 using PrecompileTools
 using .Types
 using .Integration
+using .Examples
 
 @setup_workload begin
-    redirect_stdout(devnull) do
+    redirect_stdio(; stderr = devnull, stdout = devnull) do
         mktempdir() do directory
+            x_size = 5
+            y_size = 5
+            z_size = 5
+
+            output_file = directory * "pincflow_output.h5"
+
+            visualize = false
+
             @compile_workload begin
-                integrate(
-                    Namelists(;
-                        output = OutputNamelist(;
-                            output_file = directory * "pincflow_output.h5",
-                        ),
-                    ),
+                cold_bubble(; x_size, z_size, output_file, visualize)
+                hot_bubble(; x_size, z_size, output_file, visualize)
+                mountain_wave(; x_size, y_size, z_size, output_file, visualize)
+                periodic_hill(; x_size, z_size, output_file, visualize)
+                vortex(; x_size, y_size, output_file, visualize)
+                wave_packet(; x_size, y_size, z_size, output_file, visualize)
+                wkb_mountain_wave(;
+                    x_size,
+                    y_size,
+                    z_size,
+                    output_file,
+                    visualize,
+                )
+                wkb_wave_packet(;
+                    x_size,
+                    y_size,
+                    z_size,
+                    output_file,
+                    visualize,
                 )
             end
             return
@@ -70,5 +93,15 @@ export State
 
 # Export integration function.
 export integrate
+
+# Export example functions.
+export cold_bubble,
+    hot_bubble,
+    mountain_wave,
+    periodic_hill,
+    vortex,
+    wave_packet,
+    wkb_mountain_wave,
+    wkb_wave_packet
 
 end
