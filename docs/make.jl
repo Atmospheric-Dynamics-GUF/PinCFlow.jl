@@ -4,10 +4,7 @@ using Revise
 using PinCFlow
 
 # Insert the example functions.
-@ivy for folder in (
-    "src/Examples/",
-    "src/Examples/WavePacketTools/",
-)
+@ivy for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
     for script_file in readdir(folder)
         if endswith(script_file, ".jl")
             script = read(folder * script_file, String)
