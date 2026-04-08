@@ -234,11 +234,8 @@ function propagate_rays!(
                 wadr *= dlr
             end
 
-            wadr =
-                wadr +
-                stepfrac[rkstage] *
-                dt *
-                (-2 * (gammas + gammaw) * wadr + gammawp * wadr)
+            wadr *= 1 - 2
+            stepfrac[rkstage] * dt * (gammas + gammaw + gammawp)
 
             densr = wadr / dmr
             if x_size > 1

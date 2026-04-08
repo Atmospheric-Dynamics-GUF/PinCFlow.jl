@@ -40,22 +40,10 @@ turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     process::Dissipation,
-    model::Union{PseudoIncompressible, Compressible},
 )
 ```
 
-Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy for configurations in psueod-incompressible or compressible mode.
-
-```julia 
-turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-    model::Boussinesq,
-)
-```
-
-Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy for configurations in Boussinesq mode.
+Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy.
 
 ```julia 
 turbulence_integration!(
@@ -82,8 +70,6 @@ Integrate the turbulent diffusion term in the prognostic equation for the turbul
   - `turbulence_scheme`: General turbulence parameterization configuration.
 
   - `process`: Terms in the prognostic equations.
-
-  - `model`: Dynamic equations.
 """
 function turbulence_integration! end
 
@@ -139,18 +125,6 @@ function turbulence_integration!(
     dt::AbstractFloat,
     process::Dissipation,
 )
-    (; model) = state.namelists.atmosphere
-
-    turbulence_integration!(state, dt, process, model)
-    return
-end
-
-function turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-    model::Union{PseudoIncompressible, Compressible},
-)
     (; tke) = state.turbulence.turbulencepredictands
     (; ld) = state.turbulence.turbulenceconstants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -162,30 +136,6 @@ function turbulence_integration!(
             1 /
             (
                 sqrt(2) * dt / (ld * sqrt(rho[i, j, k] + rhobar[i, j, k])) +
-                1 / sqrt(tke[i, j, k])
-            )^2.0
-    end
-
-    return
-end
-
-function turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-    model::Boussinesq,
-)
-    (; tke) = state.turbulence.turbulencepredictands
-    (; ld) = state.turbulence.turbulenceconstants
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhobar) = state.atmosphere
-    (; rhop) = state.variables.predictands
-
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        tke[i, j, k] =
-            1 /
-            (
-                sqrt(2) * dt / (ld * sqrt(rhop[i, j, k] + rhobar[i, j, k])) +
                 1 / sqrt(tke[i, j, k])
             )^2.0
     end
@@ -219,7 +169,11 @@ function turbulence_integration!(
     return
 end
 
-function turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
+function turbulence_integration!(
+    state::State,
+    dt::AbstractFloat,
+    process::Diffusion,
+)
     (; tke) = state.turbulence.turbulencepredictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; nbx, nby, nbz) = state.namelists.domain
