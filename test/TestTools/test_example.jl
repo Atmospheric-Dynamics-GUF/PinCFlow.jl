@@ -40,7 +40,7 @@ function test_example(
 )
 
     # Call the example function with the provided keywords.
-    redirect_stdout(devnull) do
+    redirect_stdio(; stderr = devnull, stdout = devnull) do
         example(; keywords...)
         return
     end

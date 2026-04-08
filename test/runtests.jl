@@ -1,21 +1,19 @@
-include("../PinCFlowExamples.jl/src/WavePacketTools/WavePacketTools.jl")
 include("TestTools/TestTools.jl")
 
 using Test
 using PinCFlow
-using .WavePacketTools
 using .TestTools
 
-const examples_directory = "../PinCFlowExamples.jl/src/"
 const update_references = false
 
-for file in readdir(examples_directory)
-    test_file = "test_" * file
-    if isfile(test_file)
-        include(examples_directory * file)
-        include(test_file)
-    end
-end
+include("test_cold_bubble.jl")
+include("test_hot_bubble.jl")
+include("test_mountain_wave.jl")
+include("test_periodic_hill.jl")
+include("test_vortex.jl")
+include("test_wave_packet.jl")
+include("test_wkb_mountain_wave.jl")
+include("test_wkb_wave_packet.jl")
 
 @testset verbose = true "PinCFlow tests" begin
     test_cold_bubble()
