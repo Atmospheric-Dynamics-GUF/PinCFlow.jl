@@ -35,15 +35,11 @@ turbulence_integration!(
 
 Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy by dispatching to the model-specific method.
 
-```julia 
-turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-)
-```
+The dissipation step is given by 
 
-Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy.
+```math 
+\\left(\\rho e_k\\right) \\rightarrow \\left[\\frac{\\sqrt{2}\\Delta t}{l_d \\sqrt{\\rho}} + \\frac{1}{\\sqrt{\\rho e_k}} \\right]^{-2}
+```
 
 ```julia 
 turbulence_integration!(
@@ -55,11 +51,13 @@ turbulence_integration!(
 
 Integrate the advection, shear production, and buoyancy contribution terms in the prognostic equation for the turbulent kinetic energy with a Runge-Kutta time step.
 
+At each Runge-Kutta stage, the mass-weighted turbulent kinetic energy is first reconstructed and its advectice fluxes are calculated. Subsequently, the TKE is updated with its shear and buoyancy production terms, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the LHS sponge. 
+
 ```julia
 turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
 ```
 
-Integrate the turbulent diffusion term in the prognostic equation for the turbulent kinetic energy.
+Integrate the turbulent diffusion term in the prognostic equation for the turbulent kinetic energy using a Thomas algorithm.
 
 # Arguments:
 

@@ -709,10 +709,6 @@ function pihat(x, y, z)
            (omega(x, y, z)^2 - n2(x, y, z)) / n2(x, y, z) * bhat(x, y, z)
 end
 
-function chihat(x, y, z)
-    return n2(x, y, z) == 0.0 ? 0.0 : bhat(x, y, z) / n2(x, y, z)
-end
-
 function wave_action_density(x, y, z)
     return n2(x, y, z) == 0.0 ? 0.0 :
            rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
@@ -737,19 +733,6 @@ function qtilde(x, y, z)
         ),
     )
 end
-
-function qtilde_wkb(x, y, z)
-    return max(
-        10.e-5,
-        real(
-            lturb^2.0 * (
-                m^2 / 2 * (abs(uhat(x, y, z))^2 + abs(vhat(x, y, z))^2) -
-                n2(x, y, z)
-            ),
-        ),
-    )
-end
-
 ```
 
 provides helper functions that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets. It is to be included below the construction of a corresponding auxiliary state and the extraction of $\kappa = R / c_p$, $R$ and $g$ from its `Constants` instance.

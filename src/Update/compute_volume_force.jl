@@ -117,7 +117,22 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted impact of shear and buoyancy on the TKE.
+Return the mass-weighted impact of shear ``\\mathcal{S}`` and buoyancy ``\\mathcal{B}`` on the TKE, given by 
+
+```math
+\\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\mathcal{S} + \\rho\\mathcal{B}
+```
+
+where 
+
+```math 
+\\begin{align*}
+\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2\\right] \\;, \\\\
+\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
+\\end{align*}
+```
+
+and the eddy diffusion coefficients ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` obtained from `state.turbulence.turbulencediffusioncoefficients.km` and `state.turbulence.turbulencediffusioncoefficients.kh`, respectively.
 
 # Arguments
 
