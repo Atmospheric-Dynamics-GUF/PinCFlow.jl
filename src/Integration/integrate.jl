@@ -100,7 +100,7 @@ function integrate(namelists::Namelists)
     (; restart, tmax, output_interval, output_steps, iterations, nout) =
         state.namelists.output
     (; tref) = state.constants
-    (; master, rank, comm) = state.domain
+    (; master, comm) = state.domain
 
     # Print information.
     if master
