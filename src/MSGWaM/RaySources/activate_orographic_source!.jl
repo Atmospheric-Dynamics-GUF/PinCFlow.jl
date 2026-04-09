@@ -210,7 +210,7 @@ function activate_orographic_source!(state::State)
             # (3) There is a ray volume with nonzero wave-action density, which
             #     has not yet crossed the lower boundary. It is replaced with a
             #     new one.
-            if wkb_mode == SteadyState()
+            if wkb_mode == :SteadyState
                 if r < 0
                     if wadr == 0
                         continue

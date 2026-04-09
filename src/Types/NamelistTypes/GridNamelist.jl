@@ -1,6 +1,6 @@
 """
 ```julia
-GridNamelist{A <: Function, B <: Function, C <: Function}
+GridNamelist
 ```
 
 Namelist for parameters describing the grid.
@@ -17,16 +17,19 @@ Construct a `GridNamelist` instance with the given keyword arguments as properti
 
 # Fields/Keywords
 
-  - `vertical_grid_stretching::A`: Function that defines the vertical grid stretching ``\\tilde{z} \\left(\\hat{z}\\right)``.
+  - `vertical_grid_stretching::FunctionWrapper{Float64, Tuple{Float64}}`: Function that defines the vertical grid stretching ``\\tilde{z} \\left(\\hat{z}\\right)``.
 
-  - `resolved_topography::B`: Function that returns the resolved topography at a specified horizontal position.
+  - `resolved_topography::FunctionWrapper{Float64, NTuple{2, Float64}}`: Function that returns the resolved topography at a specified horizontal position.
 
-  - `resolved_topography::C`: Function that returns a specified spectral mode of the unresolved topography at a specified horizontal position.
+  - `unresolved_topography::FunctionWrapper{NTuple{3, Float64}, Tuple{Int, Float64, Float64}}`: Function that returns a specified spectral mode of the unresolved topography at a specified horizontal position.
 """
-struct GridNamelist{A <: Function, B <: Function, C <: Function}
-    vertical_grid_stretching::A
-    resolved_topography::B
-    unresolved_topography::C
+struct GridNamelist
+    vertical_grid_stretching::FunctionWrapper{Float64, Tuple{Float64}}
+    resolved_topography::FunctionWrapper{Float64, NTuple{2, Float64}}
+    unresolved_topography::FunctionWrapper{
+        NTuple{3, Float64},
+        Tuple{Int, Float64, Float64},
+    }
 end
 
 function GridNamelist(;

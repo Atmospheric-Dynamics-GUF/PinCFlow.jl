@@ -278,7 +278,7 @@ PinCFlow.jl uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To b
 
 ```shell
 julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
-julia docs/make.jl
+julia --project=docs docs/make.jl
 ```
 
 in the root directory of the repository. The documentation will be generated in the `docs/build` directory. To view it, open `docs/build/index.html` in a web browser or preview the file in Visual Studio Code with [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server).

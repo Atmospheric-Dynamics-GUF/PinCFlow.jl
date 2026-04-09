@@ -6,13 +6,13 @@ shift_rays!(state::State)
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a WKB-mode-specific method.
 
 ```julia
-shift_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
+shift_rays!(state::State, wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}})
 ```
 
 Return for configurations without WKB / with steady-state WKB.
 
 ```julia
-shift_rays!(state::State, wkb_mode::SingleColumn)
+shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
 ```
 
 Shift the vertical array positions of ray volumes such that they are attributed to the correct grid cells.
@@ -20,7 +20,7 @@ Shift the vertical array positions of ray volumes such that they are attributed 
 This method enforces the vertical boundary conditions (via `set_vertical_boundary_rays!`), checks if ray volumes need to be shifted and, if they do, copies them to the correct grid cells and marks them for removal (by dispatching to the appropriate method). A second call of `set_vertical_boundary_rays!` ensures that ray volumes that have moved across MPI processes are included in the appropriate halo cells. Finally, the gaps that were created by marking ray volumes for removal are filled (via `remove_rays!`).
 
 ```julia
-shift_rays!(state::State, wkb_mode::MultiColumn)
+shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
 ```
 
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells.
@@ -79,15 +79,18 @@ function shift_rays! end
 
 function shift_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    shift_rays!(state, wkb_mode)
+    @dispatch_wkb_mode shift_rays!(state, Val(wkb_mode))
     return
 end
 
-function shift_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
+function shift_rays!(
+    state::State,
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
+)
     return
 end
 
-function shift_rays!(state::State, wkb_mode::SingleColumn)
+function shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
     set_vertical_boundary_rays!(state)
     shift_rays!(state, Z())
     set_vertical_boundary_rays!(state)
@@ -98,7 +101,7 @@ function shift_rays!(state::State, wkb_mode::SingleColumn)
     return
 end
 
-function shift_rays!(state::State, wkb_mode::MultiColumn)
+function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
     (; x_size, y_size) = state.namelists.domain
 
     if x_size > 1

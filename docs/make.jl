@@ -1,33 +1,30 @@
-using Pkg
-
-Pkg.activate("docs")
-
 using Changelog: Changelog
 using Documenter
 using Revise
 using PinCFlow
 
-# Insert the example scripts.
-folder = "examples/scripts/"
-@ivy for script_file in readdir(folder)
-    if endswith(script_file, ".jl")
-        script = read(folder * script_file, String)
-        code = Regex(
-            "(?sm)(?<=^```julia\\n)# " *
-            folder *
-            script_file *
-            "(.(?!^```\\n))*",
-        )
-        if script_file == "periodic_hill.jl"
-            page_file = "README.md"
-        else
-            page_file = "docs/src/examples.md"
-        end
-        if isfile(page_file)
-            page = replace(read(page_file, String), code => script)
-            open(page_file, "w") do io
-                write(io, page)
-                return
+# Insert the example functions.
+@ivy for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
+    for script_file in readdir(folder)
+        if endswith(script_file, ".jl")
+            script = read(folder * script_file, String)
+            code = Regex(
+                "(?sm)(?<=^```julia\\n)# " *
+                folder *
+                script_file *
+                "(.(?!^```\\n))*",
+            )
+            if script_file == "periodic_hill.jl"
+                page_file = "README.md"
+            else
+                page_file = "docs/src/examples.md"
+            end
+            if isfile(page_file)
+                page = replace(read(page_file, String), code => script)
+                open(page_file, "w") do io
+                    write(io, page)
+                    return
+                end
             end
         end
     end
@@ -173,10 +170,10 @@ makedocs(;
     ),
 )
 
+# Only push previews if all the relevant environment variables are non-empty.
 deploydocs(;
     repo = "github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl",
     devbranch = "main",
-    # Only push previews if all the relevant environment variables are non-empty.
     push_preview = all(
         !isempty,
         (get(ENV, "GITHUB_TOKEN", ""), get(ENV, "DOCUMENTER_KEY", "")),

@@ -6,19 +6,19 @@ split_rays!(state::State)
 Split ray volumes that have become larger than the local grid cell by dispatching to a WKB-mode-specific method.
 
 ```julia
-split_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
+split_rays!(state::State, wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}})
 ```
 
 Return for configurations without WKB / with steady-state WKB.
 
 ```julia
-split_rays!(state::State, wkb_mode::SingleColumn)
+split_rays!(state::State, wkb_mode::Val{:SingleColumn})
 ```
 
 Split ray volumes which have a vertical extent larger than the local vertical grid spacing.
 
 ```julia
-split_rays!(state::State, wkb_mode::MultiColumn)
+split_rays!(state::State, wkb_mode::Val{:MultiColumn})
 ```
 
 In each dimension of physical space, split ray volumes which have an extent larger than the local grid spacing.
@@ -73,15 +73,18 @@ function split_rays! end
 
 function split_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    split_rays!(state, wkb_mode)
+    @dispatch_wkb_mode split_rays!(state, Val(wkb_mode))
     return
 end
 
-function split_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
+function split_rays!(
+    state::State,
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
+)
     return
 end
 
-function split_rays!(state::State, wkb_mode::SingleColumn)
+function split_rays!(state::State, wkb_mode::Val{:SingleColumn})
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
@@ -104,7 +107,7 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
     return
 end
 
-function split_rays!(state::State, wkb_mode::MultiColumn)
+function split_rays!(state::State, wkb_mode::Val{:MultiColumn})
     (; x_size, y_size) = state.namelists.domain
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
