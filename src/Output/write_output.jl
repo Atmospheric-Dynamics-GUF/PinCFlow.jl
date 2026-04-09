@@ -142,32 +142,32 @@ function write_output(
         end
 
         # Write the background density.
-        if model != Boussinesq() && iout == 1
+        if model != :Boussinesq && iout == 1
             file["rhobar"][iid, jjd, kkd] = rhobar[ii, jj, kk] .* rhoref
         end
 
         # Write the background potential temperature.
-        if model != Boussinesq() && iout == 1
+        if model != :Boussinesq && iout == 1
             file["thetabar"][iid, jjd, kkd] = thetabar[ii, jj, kk] .* thetaref
         end
 
         # Write the squared buoyancy frequency.
-        if model != Boussinesq() && iout == 1
+        if model != :Boussinesq && iout == 1
             file["n2"][iid, jjd, kkd] = n2[ii, jj, kk] ./ tref .^ 2
         end
 
         # Write the mass-weighted potential temperature.
-        if model == Compressible()
+        if model == :Compressible
             HDF5.set_extent_dims(file["p"], (x_size, y_size, z_size, iout))
             file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
-        elseif model != Boussinesq() && iout == 1
+        elseif model != :Boussinesq && iout == 1
             file["p"][iid, jjd, kkd] = pbar[ii, jj, kk] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.
         if prepare_restart || :rhop in output_variables
             HDF5.set_extent_dims(file["rhop"], (x_size, y_size, z_size, iout))
-            if model == Boussinesq()
+            if model == :Boussinesq
                 file["rhop"][iid, jjd, kkd, iout] = rhop[ii, jj, kk] .* rhoref
             else
                 file["rhop"][iid, jjd, kkd, iout] = rho[ii, jj, kk] .* rhoref
@@ -248,7 +248,7 @@ function write_output(
         # Write the potential-temperature fluctuations.
         if :thetap in output_variables
             HDF5.set_extent_dims(file["thetap"], (x_size, y_size, z_size, iout))
-            if model == Boussinesq()
+            if model == :Boussinesq
                 file["thetap"][iid, jjd, kkd, iout] =
                     (
                         pbar[ii, jj, kk] ./
@@ -271,7 +271,7 @@ function write_output(
             file["pip"][iid, jjd, kkd, iout] = pip[ii, jj, kk]
         end
 
-        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
+        if state.namelists.tracer.tracer_setup != :NoTracer
             for field in fieldnames(TracerPredictands)
                 HDF5.set_extent_dims(
                     file[string(field)],
@@ -315,7 +315,7 @@ function write_output(
         end
 
         # Write WKB variables.
-        if wkb_mode != NoWKB()
+        if wkb_mode != :NoWKB
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes

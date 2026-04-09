@@ -16,7 +16,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -27,7 +27,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -69,7 +69,7 @@ The computation is analogous to that of the density fluxes.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
 )
 ```
@@ -80,7 +80,7 @@ Return in non-compressible modes.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::Compressible,
+    model::Val{:Compressible},
     variable::P,
 )
 ```
@@ -236,13 +236,21 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, tracer_setup::NoTracer)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracer_setup::Val{:NoTracer},
+)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, tracer_setup::TracerOn)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracer_setup::Val{:TracerOn},
+)
 ```
 
 Compute the tracer fluxes in all three directions.
@@ -260,7 +268,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -271,7 +279,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -324,14 +332,18 @@ function compute_fluxes!(state::State, predictands::Predictands)
     compute_fluxes!(state, predictands, V())
     compute_fluxes!(state, predictands, W())
 
-    compute_fluxes!(state, predictands, model, P())
-    compute_fluxes!(state, predictands, state.namelists.tracer.tracer_setup)
+    @dispatch_model compute_fluxes!(state, predictands, Val(model), P())
+    @dispatch_tracer_setup compute_fluxes!(
+        state,
+        predictands,
+        Val(state.namelists.tracer.tracer_setup),
+    )
     return
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     (; model) = state.namelists.atmosphere
-    compute_fluxes!(state, predictands, variable, model)
+    @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
     return
 end
 
@@ -339,7 +351,7 @@ function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     return
 end
@@ -348,7 +360,7 @@ function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
@@ -510,7 +522,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
 )
     return
@@ -519,7 +531,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::Compressible,
+    model::Val{:Compressible},
     variable::P,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -1493,7 +1505,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -1501,7 +1513,7 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
@@ -1564,7 +1576,7 @@ function compute_fluxes!(
 )
     (; model) = state.namelists.atmosphere
 
-    compute_fluxes!(state, predictands, variable, model)
+    @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
     return
 end
 
@@ -1572,7 +1584,7 @@ function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
@@ -1581,7 +1593,7 @@ function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dx, dy, dz, met) = state.grid

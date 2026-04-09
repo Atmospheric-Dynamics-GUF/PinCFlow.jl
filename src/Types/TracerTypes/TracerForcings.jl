@@ -15,7 +15,7 @@ Construct a `TracerForcings` instance set according to the model configuration.
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )::TracerForcings
 ```
 
@@ -25,14 +25,14 @@ Construct a `TracerForcings` instance for configurations without tracer transpor
 TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations with tracer transport.
 
 ```julia
-TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
+TracerForcings(domain::Domain, wkb_mode::Val{:NoWKB})::TracerForcings
 ```
 
 Construct a `TracerForcings` instance for configurations without WKB model.
@@ -40,7 +40,7 @@ Construct a `TracerForcings` instance for configurations without WKB model.
 ```julia
 TracerForcings(
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerForcings
 ```
 
@@ -71,13 +71,17 @@ end
 function TracerForcings(namelists::Namelists, domain::Domain)::TracerForcings
     (; tracer_setup) = namelists.tracer
 
-    return TracerForcings(namelists, domain, tracer_setup)
+    @dispatch_tracer_setup return TracerForcings(
+        namelists,
+        domain,
+        Val(tracer_setup),
+    )
 end
 
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )::TracerForcings
     return TracerForcings(
         [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
@@ -87,14 +91,14 @@ end
 function TracerForcings(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )::TracerForcings
     (; wkb_mode) = namelists.wkb
 
-    return TracerForcings(domain, wkb_mode)
+    @dispatch_wkb_mode return TracerForcings(domain, Val(wkb_mode))
 end
 
-function TracerForcings(domain::Domain, wkb_mode::NoWKB)::TracerForcings
+function TracerForcings(domain::Domain, wkb_mode::Val{:NoWKB})::TracerForcings
     return TracerForcings(
         [TracerWKBImpact(0, 0, 0) for field in fieldnames(TracerForcings)]...,
     )
@@ -102,7 +106,7 @@ end
 
 function TracerForcings(
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerForcings
     (; nxx, nyy, nzz) = domain
 
