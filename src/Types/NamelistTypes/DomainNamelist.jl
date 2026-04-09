@@ -51,7 +51,7 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
 
   - `npz::Int`: Number of MPI processes in ``\\hat{z}``-direction.
 
-  - `base_comm::C`: MPI base communicator.
+  - `base_comm::MPI.Comm`: MPI base communicator.
 """
 struct DomainNamelist
     x_size::Int
