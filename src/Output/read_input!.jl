@@ -89,7 +89,7 @@ function read_input!(state::State)
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
-                getfield(rays, field_name)[rr, ii, jj, kkr] =
+                getproperty(rays, field_name)[rr, ii, jj, kkr] =
                     file[output_name][
                         rr,
                         iid,
@@ -103,7 +103,7 @@ function read_input!(state::State)
                 ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
-                getfield(rays, field_name)[rr, ii, jj, kkr] =
+                getproperty(rays, field_name)[rr, ii, jj, kkr] =
                     file[output_name][
                         rr,
                         iid,

@@ -219,9 +219,7 @@ function merge_rays!(
         end
 
         # Reset the old ray volumes.
-        for field in fieldnames(Rays)
-            getfield(rays, field)[:, i, j, k] .= 0.0
-        end
+        rays.data[:, :, i, j, k] .= 0.0
 
         # Construct the merged ray volumes.
         r = 0
