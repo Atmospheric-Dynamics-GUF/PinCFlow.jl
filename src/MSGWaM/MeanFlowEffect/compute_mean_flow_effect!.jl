@@ -6,7 +6,7 @@ compute_mean_flow_effect!(state::State)
 Calculate the mean-flow impact of unresolved gravity waves by dispatching to a WKB-mode-specific method.
 
 ```julia
-compute_mean_flow_effect!(state::State, wkb_mode::NoWKB)
+compute_mean_flow_effect!(state::State, wkb_mode::Val{:NoWKB})
 ```
 
 Return for non-WKB configurations.
@@ -14,7 +14,7 @@ Return for non-WKB configurations.
 ```julia
 compute_mean_flow_effect!(
     state::State,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
@@ -44,17 +44,17 @@ function compute_mean_flow_effect! end
 
 function compute_mean_flow_effect!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    compute_mean_flow_effect!(state, wkb_mode)
+    @dispatch_wkb_mode compute_mean_flow_effect!(state, Val(wkb_mode))
     return
 end
 
-function compute_mean_flow_effect!(state::State, wkb_mode::NoWKB)
+function compute_mean_flow_effect!(state::State, wkb_mode::Val{:NoWKB})
     return
 end
 
 function compute_mean_flow_effect!(
     state::State,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     compute_gw_integrals!(state)
 

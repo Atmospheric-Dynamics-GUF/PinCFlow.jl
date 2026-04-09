@@ -6,13 +6,13 @@ set_boundary_rays!(state::State)
 Enforce boundary conditions for ray volumes by dispatching to a WKB-mode-specific method.
 
 ```julia
-set_boundary_rays!(state::State, wkb_mode::NoWKB)
+set_boundary_rays!(state::State, wkb_mode::Val{:NoWKB})
 ```
 
 Return for non-WKB configurations.
 
 ```julia
-set_boundary_rays!(state::State, wkb_mode::SteadyState)
+set_boundary_rays!(state::State, wkb_mode::Val{:SteadyState})
 ```
 
 Enforce horizontal boundary conditions for "ray volumes" in steady-state mode.
@@ -20,7 +20,10 @@ Enforce horizontal boundary conditions for "ray volumes" in steady-state mode.
 Zonal (meridional) boundary conditions are only enforced if `state.namelists.domain.x_size > 1` (`state.namelists.domain.y_size > 1`).
 
 ```julia
-set_boundary_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
+set_boundary_rays!(
+    state::State,
+    wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
+)
 ```
 
 Enforce horizontal and vertical boundary conditions for ray volumes in single-column or multi-column mode.
@@ -45,15 +48,15 @@ function set_boundary_rays! end
 
 function set_boundary_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    set_boundary_rays!(state, wkb_mode)
+    @dispatch_wkb_mode set_boundary_rays!(state, Val(wkb_mode))
     return
 end
 
-function set_boundary_rays!(state::State, wkb_mode::NoWKB)
+function set_boundary_rays!(state::State, wkb_mode::Val{:NoWKB})
     return
 end
 
-function set_boundary_rays!(state::State, wkb_mode::SteadyState)
+function set_boundary_rays!(state::State, wkb_mode::Val{:SteadyState})
     (; x_size, y_size) = state.namelists.domain
 
     if x_size > 1
@@ -68,7 +71,7 @@ end
 
 function set_boundary_rays!(
     state::State,
-    wkb_mode::Union{SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; x_size, y_size) = state.namelists.domain
 
