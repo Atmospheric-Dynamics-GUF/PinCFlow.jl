@@ -22,7 +22,7 @@ Compute the leading-order gravity-wave tracer fluxes by dispatching to the trace
 ```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -43,7 +43,7 @@ Return for configurations without tracer transport.
 ```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -146,7 +146,7 @@ end
 
 function compute_leading_order_tracer_fluxes!(
     state::State,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -165,7 +165,7 @@ end
 
 function compute_leading_order_tracer_fluxes!(
     state::State,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,

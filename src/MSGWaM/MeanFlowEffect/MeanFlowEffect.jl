@@ -20,6 +20,7 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 module MeanFlowEffect
 
 using LinearAlgebra
+using ..BlockedLayer
 using ..Interpolation
 using ..RayUpdate
 using ...Types
@@ -57,7 +58,6 @@ include("compute_leading_order_tracer_fluxes!.jl")
 include("leading_order_tracer_fluxes.jl")
 include("compute_gw_tracer_tendencies!.jl")
 include("set_tracer_fields_zero!.jl")
-include("apply_blocked_layer_scheme!.jl")
 include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")
 include("compute_horizontal_cell_indices.jl")

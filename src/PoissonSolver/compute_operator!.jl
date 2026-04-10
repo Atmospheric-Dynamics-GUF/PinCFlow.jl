@@ -851,7 +851,7 @@ function compute_operator!(
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
         end
 
-        if model == Compressible()
+        if model == :Compressible
             dpdpi =
                 1 / (gamma - 1) *
                 (rsp / pref)^(1 - gamma) *

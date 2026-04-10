@@ -24,7 +24,7 @@ WKB(namelists::Namelists, domain::Domain)::WKB
 Construct a `WKB` instance by dispatching to a test-case-specific method.
 
 ```julia
-WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
+WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
 ```
 
 Construct a `WKB` instance with zero-size arrays for non-WKB configurations.
@@ -33,7 +33,7 @@ Construct a `WKB` instance with zero-size arrays for non-WKB configurations.
 WKB(
     namelists::Namelists,
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::WKB
 ```
 
@@ -150,10 +150,10 @@ end
 function WKB(namelists::Namelists, domain::Domain)::WKB
     (; wkb_mode) = namelists.wkb
 
-    return WKB(namelists, domain, wkb_mode)
+    @dispatch_wkb_mode return WKB(namelists, domain, Val(wkb_mode))
 end
 
-function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
+function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
@@ -174,7 +174,7 @@ end
 function WKB(
     namelists::Namelists,
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::WKB
     (;
         nrx,

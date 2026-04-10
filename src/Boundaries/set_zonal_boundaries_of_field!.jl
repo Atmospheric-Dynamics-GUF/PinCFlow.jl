@@ -60,10 +60,10 @@ function set_zonal_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain,
 )
-    (; npx, nbx) = namelists.domain
+    (; x_size, nbx) = namelists.domain
     (; i0, i1) = domain
 
-    @ivy if npx > 1
+    @ivy if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain)
     else
         for i in 1:nbx
@@ -81,14 +81,14 @@ function set_zonal_boundaries_of_field!(
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 ) where {T <: Real}
-    (; npx) = namelists.domain
+    (; x_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
     @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
     @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    @ivy if npx > 1
+    @ivy if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
         jj = (j0 - nby):(j1 + nby)
@@ -109,14 +109,14 @@ function set_zonal_boundaries_of_field!(
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; npx) = namelists.domain
+    (; x_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
     @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
     @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    @ivy if npx > 1
+    @ivy if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
         jj = (j0 - nby):(j1 + nby)

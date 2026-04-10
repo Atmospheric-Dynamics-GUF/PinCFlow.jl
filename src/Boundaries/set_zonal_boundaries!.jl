@@ -12,7 +12,7 @@ Enforce zonal boundary conditions for predictands or reconstructions by dispatch
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -22,7 +22,7 @@ Enforce zonal boundary conditions for predictands in Boussinesq mode.
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )
 ```
 
@@ -32,7 +32,7 @@ Enforce zonal boundary conditions for predictands in pseudo-incompressible mode.
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -42,7 +42,7 @@ Enforce zonal boundary conditions for predictands in compressible mode.
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -52,7 +52,7 @@ Enforce zonal boundary conditions for reconstructionss in Boussinesq mode.
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -68,41 +68,41 @@ Enforce zonal boundary conditions for WKB variables by dispatching to the approp
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
 )
 ```
 
-Enforce zonal boundary conditions for WKB integrals needed in `SingleColumn` and `SteadyState` configurations.
+Enforce zonal boundary conditions for WKB integrals needed in `:SingleColumn` and `:SteadyState` configurations.
 
 ```julia
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::MultiColumn,
+    wkb_mode::Val{:MultiColumn},
 )
 ```
 
-Enforce zonal boundary conditions for WKB integrals needed in `MultiColumn` configurations.
+Enforce zonal boundary conditions for WKB integrals needed in `:MultiColumn` configurations.
 
 ```julia
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
 )
 ```
 
-Enforce zonal boundary conditions for WKB tendencies needed in `SingleColumn` and `SteadyState` configurations.
+Enforce zonal boundary conditions for WKB tendencies needed in `:SingleColumn` and `:SteadyState` configurations.
 
 ```julia
 set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::MultiColumn,
+    wkb_mode::Val{:MultiColumn},
 )
 ```
 
-Enforce zonal boundary conditions for WKB tendencies needed in `MultiColumn` configurations.
+Enforce zonal boundary conditions for WKB tendencies needed in `:MultiColumn` configurations.
 
 ```julia
 set_zonal_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
@@ -129,14 +129,14 @@ function set_zonal_boundaries!(
     variables::Union{BoundaryPredictands, BoundaryReconstructions},
 )
     (; model) = state.namelists.atmosphere
-    set_zonal_boundaries!(state, variables, model)
+    @dispatch_model set_zonal_boundaries!(state, variables, Val(model))
     return
 end
 
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -155,7 +155,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -174,7 +174,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; namelists, domain) = state
     (; predictands) = state.variables
@@ -193,7 +193,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables
@@ -212,7 +212,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables
@@ -233,14 +233,14 @@ function set_zonal_boundaries!(
     variables::AbstractBoundaryWKBVariables,
 )
     (; wkb_mode) = state.namelists.wkb
-    set_zonal_boundaries!(state, variables, wkb_mode)
+    @dispatch_wkb_mode set_zonal_boundaries!(state, variables, Val(wkb_mode))
     return
 end
 
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
 )
     (; namelists, domain) = state
     (; integrals) = state.wkb
@@ -260,7 +260,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::MultiColumn,
+    wkb_mode::Val{:MultiColumn},
 )
     (; namelists, domain) = state
     (; integrals) = state.wkb
@@ -289,7 +289,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
 )
     (; namelists, domain) = state
     (; tendencies) = state.wkb
@@ -308,7 +308,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::MultiColumn,
+    wkb_mode::Val{:MultiColumn},
 )
     (; namelists, domain) = state
     (; tendencies) = state.wkb

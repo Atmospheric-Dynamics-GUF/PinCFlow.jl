@@ -12,7 +12,7 @@ Enforce vertical boundary conditions for tracers by dispatching to the appropria
 set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
 ```
 
@@ -22,7 +22,7 @@ Return for configurations without tracer transport.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -32,7 +32,7 @@ Enforce vertical boundary conditions for tracer predictands.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -42,7 +42,7 @@ Enforce vertical boundary conditions for tracer reconstructions.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -52,7 +52,7 @@ Enforce vertical boundary conditions for vertical tracer fluxes.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -62,7 +62,7 @@ Enforce vertical boundary conditions for tracer WKB quantities by dispatching to
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
@@ -72,7 +72,7 @@ Enforce vertical boundary conditions for tracer WKB integrals.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
@@ -99,14 +99,18 @@ function set_tracer_vertical_boundaries!(
     variables::AbstractBoundaryVariables,
 )
     (; tracer_setup) = state.namelists.tracer
-    set_tracer_vertical_boundaries!(state, variables, tracer_setup)
+    @dispatch_tracer_setup set_tracer_vertical_boundaries!(
+        state,
+        variables,
+        Val(tracer_setup),
+    )
     return
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -114,7 +118,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
@@ -134,7 +138,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
@@ -153,7 +157,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
@@ -177,17 +181,21 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; wkb_mode) = state.namelists.wkb
-    set_tracer_vertical_boundaries!(state, variables, wkb_mode)
+    @dispatch_wkb_mode set_tracer_vertical_boundaries!(
+        state,
+        variables,
+        Val(wkb_mode),
+    )
     return
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
     (; tracerwkbintegrals) = state.tracer
@@ -208,7 +216,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
     (; tracerwkbtendencies) = state.tracer

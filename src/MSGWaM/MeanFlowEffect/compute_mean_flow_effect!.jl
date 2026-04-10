@@ -6,7 +6,7 @@ compute_mean_flow_effect!(state::State)
 Calculate the mean-flow impact of unresolved gravity waves by dispatching to a WKB-mode-specific method.
 
 ```julia
-compute_mean_flow_effect!(state::State, wkb_mode::NoWKB)
+compute_mean_flow_effect!(state::State, wkb_mode::Val{:NoWKB})
 ```
 
 Return for non-WKB configurations.
@@ -14,13 +14,13 @@ Return for non-WKB configurations.
 ```julia
 compute_mean_flow_effect!(
     state::State,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
 Calculate the mean-flow impact of unresolved gravity waves.
 
-This method first computes several spectral integrals (using `compute_gw_integrals!`), most of which represent gravity-wave fluxes. After the boundary conditions for these have been enforced (using `set_boundaries!`), the corresponding tendencies are calculated (using `compute_gw_tendencies!`). These also have boundary conditions that need to be enforced (once again using `set_boundaries!`) before they are smoothed to remove small-scale features that may occur due to a coarse ray-volume distribution (using `smooth_gw_tendencies!`). Afterwards, if MS-GWaM parameterizes mountain waves, the tendencies are adjusted to account for the formation of blocked layers (using `apply_blocked_layer_scheme!`), before the boundary conditions are enforced again.
+This method first computes several spectral integrals (using `compute_gw_integrals!`), most of which represent gravity-wave fluxes. After the boundary conditions for these have been enforced (using `set_boundaries!`), the corresponding tendencies are calculated (using `compute_gw_tendencies!`). These also have boundary conditions that need to be enforced (once again using `set_boundaries!`) before they are smoothed to remove small-scale features that may occur due to a coarse ray-volume distribution (using `smooth_gw_tendencies!`). Afterwards, if MS-GWaM parameterizes mountain waves, the tendencies are adjusted to account for the formation of blocked layers (using `include_blocked_flow_drag!`), before the boundary conditions are enforced again.
 
 # Arguments
 
@@ -38,23 +38,23 @@ This method first computes several spectral integrals (using `compute_gw_integra
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.smooth_gw_tendencies!`](@ref)
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_blocked_layer_scheme!`](@ref)
+  - [`PinCFlow.MSGWaM.BlockedLayer.include_blocked_flow_drag!`](@ref)
 """
 function compute_mean_flow_effect! end
 
 function compute_mean_flow_effect!(state::State, dtstage::AbstractFloat)
     (; wkb_mode) = state.namelists.wkb
-    compute_mean_flow_effect!(state, dtstage, wkb_mode)
+    @dispatch_wkb_mode compute_mean_flow_effect!(state, dtstage, Val(wkb_mode))
     return
 end
 
-function compute_mean_flow_effect!(state::State, dtstage::AbstractFloat, wkb_mode::NoWKB)
+function compute_mean_flow_effect!(state::State, dtstage::AbstractFloat, wkb_mode::Val{:NoWKB})
     return
 end
 
 function compute_mean_flow_effect!(
     state::State, dtstage::AbstractFloat,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     compute_gw_integrals!(state)
 
@@ -70,7 +70,7 @@ function compute_mean_flow_effect!(
 
     smooth_gw_tendencies!(state)
 
-    apply_blocked_layer_scheme!(state)
+    include_blocked_flow_drag!(state)
 
     set_boundaries!(state, BoundaryWKBTendencies())
 

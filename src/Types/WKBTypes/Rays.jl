@@ -1,43 +1,53 @@
 """
 ```julia
-Rays{A <: AbstractArray{<:AbstractFloat, 4}}
+Rays{A <: AbstractArray{<:AbstractFloat, 5}}
 ```
 
 Container for prognostic ray-volume properties.
+
+The field `data` is an array, the dimensions of which represent (in order) the ray-volume properties, the ray volumes within a grid cell, and the three dimensions of the physical grid. The elements of this array can be accessed in two ways:
+
+  - Indexing the field, e.g., `rays.data[1, 1, 1, 1, 1]`.
+
+  - Extracting a property, e.g., `rays.x[1, 1, 1, 1]`.
+
+The property names for the second way are the following:
+
+  - `x`: Position in ``x``.
+
+  - `y`: Position in ``y``.
+
+  - `z`: Position in ``z``.
+
+  - `k`: Position in ``k``.
+
+  - `l`: Position in ``l``.
+
+  - `m`: Position in ``m``.
+
+  - `dxray`: Extent in ``x``.
+
+  - `dyray`: Extent in ``y``.
+
+  - `dzray`: Extent in ``z``.
+
+  - `dkray`: Extent in ``k``.
+
+  - `dlray`: Extent in ``l``.
+
+  - `dmray`: Extent in ``m``.
+
+  - `dens`: Phase-space wave-action density.
 
 ```julia
 Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
 ```
 
-Construct a `Rays` instance, with arrays sized according to the given dimensions.
+Construct a `Rays` instance, with an array sized according to the given dimensions.
 
 # Fields
 
-  - `x::A`: Position in ``x``.
-
-  - `y::A`: Position in ``y``.
-
-  - `z::A`: Position in ``z``.
-
-  - `k::A`: Position in ``k``.
-
-  - `l::A`: Position in ``l``.
-
-  - `m::A`: Position in ``m``.
-
-  - `dxray::A`: Extent in ``x``.
-
-  - `dyray::A`: Extent in ``y``.
-
-  - `dzray::A`: Extent in ``z``.
-
-  - `dkray::A`: Extent in ``k``.
-
-  - `dlray::A`: Extent in ``l``.
-
-  - `dmray::A`: Extent in ``m``.
-
-  - `dens::A`: Phase-space wave-action density.
+  - `data::A`: Ray-volume data.
 
 # Arguments
 
@@ -49,22 +59,10 @@ Construct a `Rays` instance, with arrays sized according to the given dimensions
 
   - `nzz`: Number of subdomain grid points in ``\\hat{z}``-direction.
 """
-struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
-    x::A
-    y::A
-    z::A
-    k::A
-    l::A
-    m::A
-    dxray::A
-    dyray::A
-    dzray::A
-    dkray::A
-    dlray::A
-    dmray::A
-    dens::A
+struct Rays{A <: AbstractArray{<:AbstractFloat, 5}}
+    data::A
 end
 
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
-    return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13]...)
+    return Rays(zeros(13, nray_wrk, nxx, nyy, nzz))
 end

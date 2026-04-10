@@ -1,13 +1,13 @@
 """
 ```julia
-TracerNamelist{A <: AbstractTracer, B <: Bool, C <: Function}
+TracerNamelist
 ```
 
 Namelist for the inclusion of a tracer and the calculation of the leading-order gravity-wave impact.
 
 ```julia
 TracerNamelist(;
-    tracer_setup::AbstractTracer = NoTracer(),
+    tracer_setup::Symbol = :NoTracer,
     leading_order_impact::Bool = false,
     initial_tracer::Function = (x, y, z) -> 0.0,
     background_tracer::Function = (x, y, z) -> 0.0,
@@ -18,21 +18,20 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 
 # Fields/Keywords
 
-  - `tracer_setup::A`: General tracer configuration.
+  - `tracer_setup::Symbol`: General tracer configuration.
 
-  - `leading_order_impact::B`: Flag to include the leading-order impact of gravity waves when parameterizing waves with the WKB model.
+  - `leading_order_impact::Bool`: Flag to include the leading-order impact of gravity waves when parameterizing waves with the WKB model.
 
-  - `initial_tracer::C`: Function used to initialize the tracer.
+  - `initial_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to initialize the tracer.
 
-  - `background_tracer::C`: Function used to set the background tracer distribution.
+  - `background_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to set the background tracer distribution.
 """
-struct TracerNamelist{A <: AbstractTracer, B <: Bool, C <: Function, D <: Function}
-    tracer_setup::A
-    leading_order_impact::B
-    next_order_impact::B
-    turbulence_impact::B
-    initial_tracer::C
-    background_tracer::D
+struct TracerNamelist
+    tracer_setup::Symbol
+    leading_order_impact::Bool
+    next_order_impact::Bool 
+    turbulence_impact::Bool
+    initial_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
 end
 
 function TracerNamelist(;

@@ -11,7 +11,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -23,7 +23,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -366,14 +366,19 @@ update!(
     state::State,
     dt::AbstractFloat,
     variable::PiP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
 Return in non-compressible modes.
 
 ```julia
-update!(state::State, dt::AbstractFloat, variable::PiP, model::Compressible)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::PiP,
+    model::Val{:Compressible},
+)
 ```
 
 Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.
@@ -401,7 +406,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -413,7 +418,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -429,13 +434,23 @@ The update is given by
 ```
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::NoTracer)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracer_setup::Val{:NoTracer},
+)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::TracerOn)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracer_setup::Val{:TracerOn},
+)
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
@@ -522,7 +537,7 @@ function update! end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
     (; model) = state.namelists.atmosphere
-    update!(state, dt, m, variable, model)
+    @dispatch_model update!(state, dt, m, variable, Val(model))
     return
 end
 
@@ -531,7 +546,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     return
 end
@@ -541,7 +556,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1362,7 +1377,7 @@ end
 
 function update!(state::State, dt::AbstractFloat, variable::PiP)
     (; model) = state.namelists.atmosphere
-    update!(state, dt, variable, model)
+    @dispatch_model update!(state, dt, variable, Val(model))
     return
 end
 
@@ -1370,7 +1385,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     variable::PiP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
@@ -1379,7 +1394,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     variable::PiP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -1411,7 +1426,7 @@ end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
     (; model) = state.namelists.atmosphere
-    update!(state, dt, m, variable, model)
+    @dispatch_model update!(state, dt, m, variable, Val(model))
     return
 end
 
@@ -1420,7 +1435,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
@@ -1430,7 +1445,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1469,7 +1484,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -1478,7 +1493,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid

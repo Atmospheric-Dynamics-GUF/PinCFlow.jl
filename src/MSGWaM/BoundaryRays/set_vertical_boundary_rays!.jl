@@ -23,13 +23,13 @@ function set_vertical_boundary_rays! end
 
 function set_vertical_boundary_rays!(state::State)
     (; namelists, domain) = state
-    (; z_size, npz) = namelists.domain
+    (; z_size) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lx, ly, lz, dx, dy, hb) = state.grid
     (; nray, rays) = state.wkb
 
     # Set ray-volume count and ray-volumes properties.
-    if npz > 1
+    if z_size > 1
         set_vertical_halos_of_field!(
             nray,
             namelists,

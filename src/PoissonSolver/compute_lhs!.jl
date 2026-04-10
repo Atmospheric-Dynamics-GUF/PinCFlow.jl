@@ -8,7 +8,7 @@ Compute the scaled left-hand side of the Poisson equation and return a reference
 ```julia
 compute_lhs!(
     state::State,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
 ```
 
@@ -33,7 +33,7 @@ and the reference tolerance is given by
 where ``b_u``, ``b_v`` and ``b_{\\hat{w}}`` are the zonal, meridional and vertical parts of ``b``, respectively. Note that in Boussinesq mode, ``P = P_0`` will cancel out, so that the appropriate divergence constraint remains.
 
 ```julia
-compute_lhs!(state::State, model::Compressible)::AbstractFloat
+compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
 ```
 
 Compute the scaled left-hand side of the Poisson equation in compressible mode and return a reference tolerance for the convergence criterion.
@@ -62,12 +62,12 @@ function compute_lhs! end
 
 function compute_lhs!(state::State)::AbstractFloat
     (; model) = state.namelists.atmosphere
-    return compute_lhs!(state, model)
+    @dispatch_model return compute_lhs!(state, Val(model))
 end
 
 function compute_lhs!(
     state::State,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
     (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
@@ -159,7 +159,7 @@ function compute_lhs!(
     return tolref
 end
 
-function compute_lhs!(state::State, model::Compressible)::AbstractFloat
+function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
     (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
