@@ -81,9 +81,9 @@ function wave_packet(;
             plot_output(
                 plot_file,
                 data,
-                ("u", 20, 20, 40, 2),
-                ("v", 20, 20, 40, 2),
-                ("w", 20, 20, 40, 2);
+                ("u", 0, 20, 20, 40, 2),
+                ("v", 0, 20, 20, 40, 2),
+                ("w", 0, 20, 20, 40, 2);
                 time_unit = "min",
             )
             return

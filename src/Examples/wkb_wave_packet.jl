@@ -63,7 +63,12 @@ function wkb_wave_packet(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, ("nr", 8, 8, 16, 2); time_unit = "min")
+            plot_output(
+                plot_file,
+                data,
+                ("nr", 0, 8, 8, 16, 2);
+                time_unit = "min",
+            )
             return
         end
     end
