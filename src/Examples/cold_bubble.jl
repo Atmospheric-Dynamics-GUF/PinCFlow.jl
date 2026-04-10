@@ -42,7 +42,7 @@ function cold_bubble(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
+            plot_output(plot_file, data, ("thetap", 0, 1, 1, 1, 2))
             return
         end
     end

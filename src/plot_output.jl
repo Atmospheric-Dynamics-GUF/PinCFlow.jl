@@ -4,7 +4,14 @@ plot_output(
     file::AbstractString,
     data::HDF5.File,
     fields::Vararg{
-        Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
+        Tuple{
+            <:AbstractString,
+            <:Real,
+            <:Integer,
+            <:Integer,
+            <:Integer,
+            <:Integer,
+        },
     };
     animate::Bool = false,
     framerate::Real = 1,
@@ -15,7 +22,7 @@ plot_output(
 )
 ```
 
-Create contour plots or an animation of the dataset slices `fields` in `data`, display the figure (if not animated) and save it to `file`.
+Create contour plots or an animation of the dataset slices specified by `fields` in `data`, display the figure (if not animated) and save it to `file`.
 
 # Arguments
 
@@ -23,7 +30,7 @@ Create contour plots or an animation of the dataset slices `fields` in `data`, d
 
   - `data`: PinCFlow.jl output data.
 
-  - `fields`: Tuples of a variable name and four indices. The first three indices of each tuple define the planes in which the contours are to be plotted, whereas the fourth is the temporal index.
+  - `fields`: Tuples of a variable name, and offset, and four indices. The first three indices of each tuple define the planes in which the contours are to be plotted, whereas the fourth is the temporal index.
 
 # Keywords
 

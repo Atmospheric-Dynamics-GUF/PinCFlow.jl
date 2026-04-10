@@ -2,7 +2,14 @@ function plot_output(
     file::AbstractString,
     data::HDF5.File,
     fields::Vararg{
-        Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
+        Tuple{
+            <:AbstractString,
+            <:Real,
+            <:Integer,
+            <:Integer,
+            <:Integer,
+            <:Integer,
+        },
     };
     animate::Bool = false,
     framerate::Real = 1,
@@ -13,6 +20,7 @@ function plot_output(
 )
     function plot_snapshot!(
         variable::AbstractString,
+        offset::Real,
         i::Integer,
         j::Integer,
         k::Integer,
@@ -47,7 +55,7 @@ function plot_output(
             dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
             dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
             nr = data["nr"][:, :, :, :, n]
-            phi = data[variable][:, :, :, :, n]
+            phi = data[variable][:, :, :, :, n] .- offset
 
             # Get the label.
             label = LaTeXString(attrs(data[variable])["label"])
@@ -176,7 +184,7 @@ function plot_output(
             end
         else
             # Get the variable.
-            phi = data[variable][:, :, :, n]
+            phi = data[variable][:, :, :, n] .- offset
 
             # Get the label.
             label = LaTeXString(attrs(data[variable])["label"])
@@ -341,15 +349,20 @@ function plot_output(
         row = 1
         plot_snapshot!(fields[1]...)
         resize_to_layout!(figure)
-        record(figure, file, fields; framerate) do (variable, i, j, k, n)
-            plot_snapshot!(variable, i, j, k, n)
+        record(
+            figure,
+            file,
+            fields;
+            framerate,
+        ) do (variable, offset, i, j, k, n)
+            plot_snapshot!(variable, offset, i, j, k, n)
             return
         end
     else
         row = 0
-        for (variable, i, j, k, n) in fields
+        for (variable, offset, i, j, k, n) in fields
             row += 1
-            plot_snapshot!(variable, i, j, k, n)
+            plot_snapshot!(variable, offset, i, j, k, n)
         end
         resize_to_layout!(figure)
         display(figure)
