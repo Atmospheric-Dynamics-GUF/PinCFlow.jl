@@ -66,8 +66,8 @@ function plot_output(
                 )
                 @ivy nonzero = nr[:, :, :, k] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, :, k][nonzero]),
-                    maximum(phi[:, :, :, k][nonzero]);
+                    minimum(phi[:, :, :, k][nonzero]; init = 0),
+                    maximum(phi[:, :, :, k][nonzero]; init = 0);
                     number,
                     colormap_name,
                 )
@@ -107,8 +107,8 @@ function plot_output(
                 )
                 @ivy nonzero = phi[:, :, j, :] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, j, :][nonzero]),
-                    maximum(phi[:, :, j, :][nonzero]);
+                    minimum(phi[:, :, j, :][nonzero]; init = 0),
+                    maximum(phi[:, :, j, :][nonzero]; init = 0);
                     number,
                     colormap_name,
                 )
@@ -148,8 +148,8 @@ function plot_output(
                 )
                 @ivy nonzero = phi[:, i, :, :] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, i, :, :][nonzero]),
-                    maximum(phi[:, i, :, :][nonzero]);
+                    minimum(phi[:, i, :, :][nonzero]; init = 0),
+                    maximum(phi[:, i, :, :][nonzero]; init = 0);
                     number,
                     colormap_name,
                 )
