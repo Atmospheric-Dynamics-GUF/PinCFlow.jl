@@ -469,7 +469,7 @@ update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -480,7 +480,7 @@ update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 

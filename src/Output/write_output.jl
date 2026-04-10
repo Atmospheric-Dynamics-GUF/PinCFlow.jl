@@ -338,7 +338,7 @@ function write_output(
 
         if !(
             typeof(state.namelists.turbulence.turbulence_scheme) <:
-            NoTurbulence
+            :NoTurbulence
         )
             if model == Boussinesq()
                 for field in fieldnames(TurbulencePredictands)

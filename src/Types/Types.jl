@@ -165,6 +165,7 @@ export @dispatch_background,
     @dispatch_model,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
+    @dispatch_turbulence_scheme,
     @dispatch
 
 export AbstractPredictand

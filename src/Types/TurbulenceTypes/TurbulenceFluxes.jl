@@ -16,14 +16,14 @@ Construct a `TurbulenceFluxes` instance with dimensions depending on the general
 ```julia
 TurbulenceFluxes(
     domain::Domain,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations without turbulence parameterization.
 
 ```julia
-TurbulenceFluxes(domain::Domain, turbulence_scheme::TKEScheme)::TurbulenceFluxes
+TurbulenceFluxes(domain::Domain, turbulence_scheme::Val{:TKEScheme})::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
@@ -50,12 +50,12 @@ function TurbulenceFluxes(
 )::TurbulenceFluxes
     (; turbulence_scheme) = namelists.turbulence
 
-    return TurbulenceFluxes(domain, turbulence_scheme)
+    @dispatch_turbulence_scheme return TurbulenceFluxes(domain, Val(turbulence_scheme))
 end
 
 function TurbulenceFluxes(
     domain::Domain,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceFluxes
     phitke = zeros(0, 0, 0, 0)
 
@@ -64,7 +64,7 @@ end
 
 function TurbulenceFluxes(
     domain::Domain,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceFluxes
     (; nxx, nyy, nzz) = domain
 

@@ -309,7 +309,7 @@ function create_output(state::State, machine_start_time::DateTime)
 
         if !(
             typeof(state.namelists.turbulence.turbulence_scheme) <:
-            NoTurbulence
+            :NoTurbulence
         )
             for field in fieldnames(TurbulencePredictands)
                 create_dataset(

@@ -33,13 +33,13 @@ function TracerAuxiliaries(
 )::TracerAuxiliaries
     (; tracer_setup) = namelists.tracer
 
-    return TracerAuxiliaries(
+    @dispatch_tracer_setup return TracerAuxiliaries(
         namelists,
         constants,
         domain,
         atmosphere,
         grid,
-        tracer_setup,
+        Val(tracer_setup),
         variables,
     )
 end

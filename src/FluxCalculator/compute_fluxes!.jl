@@ -261,7 +261,7 @@ The computation is analogous to that of the density fluxes.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -271,7 +271,7 @@ Return for configurations without turbulence scheme.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 

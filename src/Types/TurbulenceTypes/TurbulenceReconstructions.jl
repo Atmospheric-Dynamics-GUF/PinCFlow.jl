@@ -19,7 +19,7 @@ Construct a `TurbulenceReconstructions` instance with dimensions depending on th
 ```julia
 TurbulenceReconstructions(
     domain::Domain,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceReconstructions
 ```
 
@@ -28,7 +28,7 @@ Construct a `TurbulenceReconstructions` instance with zero-size arrays for confi
 ```julia
 TurbulenceReconstructions(
     domain::Domain,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceReconstructions
 ```
 
@@ -56,12 +56,12 @@ function TurbulenceReconstructions(
 )::TurbulenceReconstructions
     (; turbulence_scheme) = namelists.turbulence
 
-    return TurbulenceReconstructions(domain, turbulence_scheme)
+    @dispatch_turbulence_scheme return TurbulenceReconstructions(domain, Val(turbulence_scheme))
 end
 
 function TurbulenceReconstructions(
     domain::Domain,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceReconstructions
     tketilde = zeros(0, 0, 0, 0, 0)
 
@@ -70,7 +70,7 @@ end
 
 function TurbulenceReconstructions(
     domain::Domain,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceReconstructions
     (; nxx, nyy, nzz) = domain
 

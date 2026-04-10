@@ -14,7 +14,7 @@ Construct a `TurbulenceIncrements` instance with dimensions depending on the tur
 ```julia
 TurbulenceIncrements(
     domain::Domain,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceIncrements
 ```
 
@@ -23,7 +23,7 @@ Construct a `TurbulenceIncrements` instance with zero-size arrays for configurat
 ```julia
 TurbulenceIncrements(
     domain::Domain,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceIncrements
 ```
 
@@ -51,12 +51,12 @@ function TurbulenceIncrements(
 )::TurbulenceIncrements
     (; turbulence_scheme) = namelists.turbulence
 
-    return TurbulenceIncrements(domain, turbulence_scheme)
+    @dispatch_turbulence_scheme return TurbulenceIncrements(domain, Val(turbulence_scheme))
 end
 
 function TurbulenceIncrements(
     domain::Domain,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceIncrements
     dtke = zeros(0, 0, 0)
 
@@ -65,7 +65,7 @@ end
 
 function TurbulenceIncrements(
     domain::Domain,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceIncrements
     (; nxx, nyy, nzz) = domain
 

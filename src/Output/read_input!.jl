@@ -85,7 +85,7 @@ function read_input!(state::State)
 
         if !(
             typeof(state.namelists.turbulence.turbulence_scheme) <:
-            NoTurbulence
+            :NoTurbulence
         )
             for field in fieldnames(TurbulencePredictands)
                 getfield(state.turbulence.turbulencepredictands, field)[

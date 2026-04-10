@@ -9,7 +9,7 @@ Integrate the turbulence energies by dispatching to the scheme-specific method.
 turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -19,7 +19,7 @@ Return for configurations without turbulence parameterization.
 turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -33,29 +33,7 @@ turbulence_integration!(
 )
 ```
 
-Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy by dispatching to the model-specific method.
-
-```julia 
-turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-    model::Union{PseudoIncompressible, Compressible},
-)
-```
-
-Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy for configurations in psueod-incompressible or compressible mode.
-
-```julia 
-turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-    model::Boussinesq,
-)
-```
-
-Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy for configurations in Boussinesq mode.
+Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy.
 
 ```julia 
 turbulence_integration!(
@@ -90,7 +68,7 @@ function turbulence_integration! end
 function turbulence_integration!(state::State, dt::AbstractFloat)
     (; turbulence_scheme) = state.namelists.turbulence
 
-    turbulence_integration!(state, dt, turbulence_scheme)
+    @dispatch_turbulence_scheme turbulence_integration!(state, dt, Val(turbulence_scheme))
 
     return
 end
@@ -98,7 +76,7 @@ end
 function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
@@ -106,7 +84,7 @@ end
 function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())
@@ -139,18 +117,6 @@ function turbulence_integration!(
     dt::AbstractFloat,
     process::Dissipation,
 )
-    (; model) = state.namelists.atmosphere
-
-    turbulence_integration!(state, dt, process, model)
-    return
-end
-
-function turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-    model::Union{PseudoIncompressible, Compressible},
-)
     (; tke) = state.turbulence.turbulencepredictands
     (; ld) = state.turbulence.turbulenceconstants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -162,30 +128,6 @@ function turbulence_integration!(
             1 /
             (
                 sqrt(2) * dt / (ld * sqrt(rho[i, j, k] + rhobar[i, j, k])) +
-                1 / sqrt(tke[i, j, k])
-            )^2.0
-    end
-
-    return
-end
-
-function turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-    model::Boussinesq,
-)
-    (; tke) = state.turbulence.turbulencepredictands
-    (; ld) = state.turbulence.turbulenceconstants
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; rhobar) = state.atmosphere
-    (; rhop) = state.variables.predictands
-
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        tke[i, j, k] =
-            1 /
-            (
-                sqrt(2) * dt / (ld * sqrt(rhop[i, j, k] + rhobar[i, j, k])) +
                 1 / sqrt(tke[i, j, k])
             )^2.0
     end

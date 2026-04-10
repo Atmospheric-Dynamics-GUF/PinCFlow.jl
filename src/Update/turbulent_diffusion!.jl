@@ -9,7 +9,7 @@ Apply diffusion to the momentum, mass-weighted potential temperature, and tracer
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -19,7 +19,7 @@ Return for configurations without turbulence parameterization.
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -103,7 +103,7 @@ turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Theta,
-    model::Union{PseudoIncompressible, Boussinesq},
+    model::Union{Val{:PseudoIncompressible}, Val{:Boussinesq}},
 )
 ```
 
@@ -114,7 +114,7 @@ turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Theta,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -173,14 +173,14 @@ function turbulent_diffusion! end
 function turbulent_diffusion!(state::State, dt::AbstractFloat)
     (; turbulence_scheme) = state.namelists.turbulence
 
-    turbulent_diffusion!(state, dt, turbulence_scheme)
+    @dispatch_turbulence_scheme turbulent_diffusion!(state, dt, Val(turbulence_scheme))
     return
 end
 
 function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
@@ -188,7 +188,7 @@ end
 function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
     (; momentum_coupling, entropy_coupling, tracer_coupling) =
         state.namelists.turbulence
@@ -468,7 +468,7 @@ function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Theta,
-    model::Union{PseudoIncompressible, Boussinesq},
+    model::Union{Val{:PseudoIncompressible}, Val{:Boussinesq}},
 )
     return
 end
@@ -477,7 +477,7 @@ function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Theta,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; p) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain

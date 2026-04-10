@@ -12,7 +12,7 @@ Enforce vertical boundary conditions for turbulence energies by dispatching to a
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -22,7 +22,7 @@ Return for configurations without turbulence parameterization.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -32,7 +32,7 @@ Enforce vertical boundary conditions for turbulent kinetic energy.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -42,7 +42,7 @@ Return for configurations without turbulence parameterization.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -52,7 +52,7 @@ Enforce vertical boundary conditions for reconstructions of turbulent kinetic en
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -62,7 +62,7 @@ Return for configurations without turbulence parameterization.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -72,7 +72,7 @@ Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to z
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{NoTurbulence, TKEScheme},
+    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
 )
 ```
 
@@ -97,14 +97,14 @@ function set_turbulence_vertical_boundaries!(
     variables::AbstractBoundaryVariables,
 )
     (; turbulence_scheme) = state.namelists.turbulence
-    set_turbulence_vertical_boundaries!(state, variables, turbulence_scheme)
+    @dispatch_turbulence_scheme set_turbulence_vertical_boundaries!(state, variables, Val(turbulence_scheme))
     return
 end
 
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
@@ -112,7 +112,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
     (; turbulencepredictands) = state.turbulence
@@ -132,7 +132,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
@@ -140,7 +140,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
@@ -159,7 +159,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
@@ -167,7 +167,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
     (; nz, ko, k0, k1) = state.domain
     (; z_size) = state.namelists.domain
@@ -191,7 +191,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{NoTurbulence, TKEScheme},
+    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
 )
     return
 end

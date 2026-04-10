@@ -243,7 +243,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 

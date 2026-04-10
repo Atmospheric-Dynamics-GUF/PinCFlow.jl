@@ -117,35 +117,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted impact of shear and buoyancy on the TKE by dispatching to the appropriate method.
-
-```julia
-compute_volume_force(
-    state::State,
-    p0::Predictands,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Union{PseudoIncompressible, Compressible},
-)::AbstractFloat
-```
-
-Return the mass-weighted impact of shear and buoyancy on the TKE in pseudo-incompressible and compressible mode.
-
-```julia
-compute_volume_force(
-    state::State,
-    p0::Predictands,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Boussinesq,
-)::AbstractFloat
-```
-
-Return the mass-weighted impact of shear and buoyancy on the TKE in Boussinesq mode.
+Return the mass-weighted impact of shear and buoyancy on the TKE.
 
 # Arguments
 
@@ -308,19 +280,6 @@ function compute_volume_force(
     k::Integer,
     variables::TKE,
 )::AbstractFloat
-    (; model) = state.namelists.atmosphere
-
-    return compute_volume_force(state, i, j, k, variables, model)
-end
-
-function compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Union{PseudoIncompressible, Compressible},
-)::AbstractFloat
     (; shearproduction, buoyancyproduction) =
         state.turbulence.turbulenceauxiliaries
     (; km, kh) = state.turbulence.turbulencediffusioncoefficients
@@ -346,39 +305,4 @@ function compute_volume_force(
     buoyancyproduction[i, j, k] = buoyancy
 
     return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
-end
-
-function compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Boussinesq,
-)::AbstractFloat
-    (; shearproduction, buoyancyproduction) =
-        state.turbulence.turbulenceauxiliaries
-    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
-    (; rhop) = state.variables.predictands
-    (; rhobar, n2) = state.atmosphere
-    (; jac, dz) = state.grid
-    (; g_ndim) = state.constants
-
-    shear =
-        km[i, j, k] * (
-            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
-            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
-        )
-
-    shearproduction[i, j, k] = shear
-
-    bu = g_ndim * (1 / (rhop[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    bd = g_ndim * (1 / (rhop[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
-
-    buoyancy =
-        -kh[i, j, k] * (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2 * dz))
-
-    buoyancyproduction[i, j, k] = buoyancy
-
-    return (rhop[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end

@@ -17,7 +17,7 @@ Construct a `TurbulenceAuxiliaries` instance with dimensions depending on the ge
 ```julia 
 TurbulenceAuxiliaries(
     domain::Domain,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceAuxiliaries
 ```
 
@@ -26,7 +26,7 @@ Construct a `TurbulenceAuxiliaries` instance with zero-size arrays for configura
 ```julia 
 TurbulenceAuxiliaries(
     domain::Domain,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceAuxiliaries
 ```
 
@@ -57,19 +57,19 @@ function TurbulenceAuxiliaries(
 )::TurbulenceAuxiliaries
     (; turbulence_scheme) = namelists.turbulence
 
-    return TurbulenceAuxiliaries(domain, turbulence_scheme)
+    @dispatch_turbulence_scheme return TurbulenceAuxiliaries(domain, Val(turbulence_scheme))
 end
 
 function TurbulenceAuxiliaries(
     domain::Domain,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceAuxiliaries
     return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:2]...)
 end
 
 function TurbulenceAuxiliaries(
     domain::Domain,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceAuxiliaries
     (; nxx, nyy, nzz) = domain
     return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:2]...)
