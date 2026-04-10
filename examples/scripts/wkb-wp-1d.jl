@@ -36,8 +36,8 @@ k = 2 * pi / 30e3
 l = 2 * pi / 30e3
 m = 2 * pi / 3e3
 
-background = Isothermal()
-model = Compressible()
+background = :Isothermal
+model = :Compressible
 coriolis_frequency = 1e-4
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency, model)

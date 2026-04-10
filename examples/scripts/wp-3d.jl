@@ -36,8 +36,8 @@ k = 0
 l = 2 * pi / 300e3
 m = 2 * pi / 3e3
 
-background = Isothermal()
-model = Compressible()
+background = :Isothermal
+model = :Compressible
 coriolis_frequency = 1e-4
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency, model)
@@ -82,12 +82,12 @@ output = OutputNamelist(;
 discretization = DiscretizationNamelist(; dtmax = 100)
 
 turbulence = TurbulenceNamelist(;
-    turbulence_scheme = TKEScheme(),
+    turbulence_scheme = :TKEScheme,
     initial_tke = (x, y, z) -> 0, #qtilde(x, y, z) / 2,
 )
 
 tracer = TracerNamelist(;
-    tracer_setup = TracerOn(),
+    tracer_setup = :TracerOn,
     leading_order_impact = true,
     initial_tracer = (x, y, z) ->
         real(chihat(x, y, z) * exp(1im * phi(x, y, z))) + z,
