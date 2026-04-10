@@ -91,6 +91,7 @@ function write_output(
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
     (; nray_max, rays, tendencies) = state.wkb
+    (; chihat) = state.wkb.integrals
 
     # Print information.
     if master
@@ -273,6 +274,12 @@ function write_output(
             file["pip"][iid, jjd, kkd, iout] = pip[ii, jj, kk]
         end
 
+        # Write the Exner-pressure fluctuations.
+        if :chihat in output_variables
+            HDF5.set_extent_dims(file["chihat"], (x_size, y_size, z_size, iout))
+            file["chihat"][iid, jjd, kkd, iout] = abs.(chihat[ii, jj, kk])
+        end
+
         if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
                 HDF5.set_extent_dims(
@@ -399,34 +406,6 @@ function write_output(
                 HDF5.set_extent_dims(file["e"], (x_size, y_size, z_size, iout))
                 file["e"][iid, jjd, kkd, iout] =
                     state.wkb.integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2.0
-            end
-
-            if :uhat in output_variables
-                HDF5.set_extent_dims(
-                    file["uhat"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["uhat"][iid, jjd, kkd, iout] =
-                    abs.(state.wkb.integrals.uhat[ii, jj, kk]) .* uref
-            end
-
-
-            if :what in output_variables
-                HDF5.set_extent_dims(
-                    file["what"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["what"][iid, jjd, kkd, iout] =
-                    abs.(state.wkb.integrals.what[ii, jj, kk]) .* uref
-            end
-
-            if :chihat in output_variables
-                HDF5.set_extent_dims(
-                    file["chihat"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["chihat"][iid, jjd, kkd, iout] =
-                    abs.(state.wkb.integrals.chihat[ii, jj, kk])
             end
 
             # Write ray-volume properties.

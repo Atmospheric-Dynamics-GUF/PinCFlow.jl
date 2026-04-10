@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 16
-y_size = 16
-z_size = 960
+x_size = 32
+y_size = 32
+z_size = 1066
 
 lx = 30e3
 ly = 30e3
@@ -65,8 +65,8 @@ turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :rhop),
     output_file = "wp-1d-turbulence.h5",
-    tmax = 360,
-    output_interval = 36,
+    tmax = 3600 * 5,
+    output_interval = 360,
 )
 
 tracer = TracerNamelist(;

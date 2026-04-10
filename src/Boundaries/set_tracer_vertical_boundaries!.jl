@@ -124,7 +124,7 @@ function set_tracer_vertical_boundaries!(
             getfield(tracerpredictands, field),
             namelists,
             domain,
-            -,
+            +,
         )
     end
 

@@ -14,7 +14,7 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 32
+x_size = 52
 y_size = 1
 z_size = 100
 
@@ -30,11 +30,11 @@ x0 = 0.0
 y0 = 0.0
 z0 = 30e3
 
-a0 = 2
+a0 = 0.5
 
 k = 0
 l = 2 * pi / 300e3
-m = 2 * pi / 1e3
+m = 2 * pi / 3e3
 
 background = Isothermal()
 model = Compressible()
@@ -54,7 +54,7 @@ auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 (; lturb) = auxiliary_state.turbulence.turbulenceconstants
 
-include("wave_packet_tools.jl")
+include("wave_packet_tools-3d.jl")
 
 atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 
@@ -62,10 +62,10 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
     save_ray_volumes = false,
-    output_variables = (:u, :v, :w, :rhop, :dchidt, :e, :uhat),
-    output_file = "wkb-wp-3d-nextorder.h5",
-    tmax = 1,
-    output_interval = 1,
+    output_variables = (:u, :v, :w, :rhop, :dchidt, :e),
+    output_file = "wkb-wp-3d.h5",
+    tmax = 1000.0,
+    output_interval = 1000.0,
 )
 
 wkb = WKBNamelist(;
@@ -74,16 +74,18 @@ wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
+    turbulence_damping = true,
 )
 
 discretization = DiscretizationNamelist(; dtmax = 100)
 
-turbulence = TurbulenceNamelist(; turbulence_scheme = NoTurbulence())
+turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
 
 tracer = TracerNamelist(;
     tracer_setup = TracerOn(),
     leading_order_impact = true,
-    turbulence_impact = true,
+    next_order_impact = false,
+    turbulence_impact = false,
     initial_tracer = (x, y, z) -> z,
 )
 

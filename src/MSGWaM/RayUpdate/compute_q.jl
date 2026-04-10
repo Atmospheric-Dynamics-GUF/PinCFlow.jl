@@ -70,7 +70,11 @@ function compute_q(
         integral += sqrt(qtilde2) * exp(-1im * beta * phi) * dphi
         phi += dphi
     end
-    return integral / (2 * pi)
+    if beta == 0.0
+        return integral / (2 * pi)
+    else
+        return integral / pi
+    end
 end
 
 function compute_q(

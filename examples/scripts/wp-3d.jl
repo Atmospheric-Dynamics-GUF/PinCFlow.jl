@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 516
+x_size = 512
 y_size = 16
-z_size = 1000
+z_size = 1600
 
 lx = 9000e3
 ly = 300e3
@@ -30,11 +30,11 @@ x0 = 0.0
 y0 = 0.0
 z0 = 30e3
 
-a0 = 2
+a0 = 0.5
 
 k = 0
 l = 2 * pi / 300e3
-m = 2 * pi / 1e3
+m = 2 * pi / 3e3
 
 background = Isothermal()
 model = Compressible()
@@ -54,28 +54,43 @@ auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 (; lturb) = auxiliary_state.turbulence.turbulenceconstants
 
-include("wave_packet_tools.jl")
+include("wave_packet_tools-3d.jl")
 
-atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
+atmosphere = AtmosphereNamelist(;
+    background,
+    model,
+    coriolis_frequency,
+    initial_rhop = (x, y, z) ->
+        rhobar(x, y, z) *
+        (1 / (1 + real(bhat(x, y, z) * exp(1im * phi(x, y, z))) / g) - 1),
+    initial_u = (x, y, z) -> real(uhat(x, y, z) * exp(1im * phi(x, y, z))),
+    initial_v = (x, y, z) -> real(vhat(x, y, z) * exp(1im * phi(x, y, z))),
+    initial_w = (x, y, z) -> real(what(x, y, z) * exp(1im * phi(x, y, z))),
+    initial_pip = (x, y, z) ->
+        real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
+)
 
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    save_ray_volumes = false,
     output_variables = (:u, :v, :w, :rhop),
-    output_file = "wp-3d-qchi.h5",
-    tmax = 1,
-    output_interval = 1,
+    output_file = "wp-3d.h5",
+    tmax = 1000.0,
+    output_interval = 1000.0,
 )
 
 discretization = DiscretizationNamelist(; dtmax = 100)
 
-turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
+turbulence = TurbulenceNamelist(;
+    turbulence_scheme = TKEScheme(),
+    initial_tke = (x, y, z) -> 0, #qtilde(x, y, z) / 2,
+)
 
 tracer = TracerNamelist(;
     tracer_setup = TracerOn(),
     leading_order_impact = true,
-    initial_tracer = (x, y, z) -> z,
+    initial_tracer = (x, y, z) ->
+        real(chihat(x, y, z) * exp(1im * phi(x, y, z))) + z,
 )
 
 integrate(

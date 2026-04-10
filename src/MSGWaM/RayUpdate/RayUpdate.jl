@@ -93,6 +93,7 @@ include("compute_turbulent_damping.jl")
 include("compute_q.jl")
 include("compute_turbulent_tracer_fluxes!.jl")
 include("smooth_gw_amplitudes!.jl")
+include("apply_shapiro_filter!.jl")
 
 export X, Y, Z, XZ, YZ, XYZ
 
@@ -104,6 +105,7 @@ export apply_saturation_scheme!,
     split_rays!,
     compute_q,
     compute_turbulent_tracer_fluxes!,
-    smooth_gw_amplitudes!
+    smooth_gw_amplitudes!,
+    apply_shapiro_filter!
 
 end

@@ -247,6 +247,19 @@ function create_output(state::State, machine_start_time::DateTime)
             )
         end
 
+        if :chihat in output_variables
+            create_dataset(
+                file,
+                "chihat",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
+            )
+        end
+
         if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
                 create_dataset(

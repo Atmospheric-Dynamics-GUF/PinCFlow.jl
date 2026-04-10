@@ -16,7 +16,7 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 1
 y_size = 1
-z_size = 50
+z_size = 33
 
 lx = 30e3
 ly = 30e3
@@ -63,17 +63,19 @@ domain =
 
 output = OutputNamelist(;
     save_ray_volumes = true,
-    output_variables = (:u, :v, :w, :rhop, :dchidt, :e, :uhat, :chihat),
-    output_file = "wkb-wp-1d-turbulence.h5",
+    output_variables = (:u, :v, :w, :rhop, :dchidt, :e, :chihat),
+    output_file = "wkb-wp-1d.h5",
     tmax = 3600 * 5,
     output_interval = 360,
 )
 
+# discretization = DiscretizationNamelist(; dtmax = 100)
+
 wkb = WKBNamelist(;
     use_saturation = false,
-    nrz = 20,
+    nrz = 80,
     wkb_mode = MultiColumn(),
-    filter_order = 4,
+    filter_order = 2,
     filter_type = BoxFilter(),
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
@@ -88,4 +90,14 @@ tracer = TracerNamelist(;
     initial_tracer = (x, y, z) -> z,
 )
 
-integrate(Namelists(; atmosphere, domain, output, wkb, tracer, turbulence))
+integrate(
+    Namelists(;
+        atmosphere,
+        domain,
+        output,
+        wkb,
+        tracer,
+        turbulence,
+        #discretization,
+    ),
+)
