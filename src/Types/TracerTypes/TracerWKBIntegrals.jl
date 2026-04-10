@@ -14,13 +14,13 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; tracer_setup) = namelists.tracer
 
-    return TracerWKBIntegrals(namelists, domain, tracer_setup)
+    @dispatch_tracer_setup return TracerWKBIntegrals(namelists, domain, Val(tracer_setup))
 end
 
 function TracerWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )::TracerWKBIntegrals
     return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:7]...)
 end
@@ -28,20 +28,20 @@ end
 function TracerWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )::TracerWKBIntegrals
     (; wkb_mode) = namelists.wkb
 
-    return TracerWKBIntegrals(domain, wkb_mode)
+    @dispatch_wkb_mode return TracerWKBIntegrals(domain, Val(wkb_mode))
 end
 
-function TracerWKBIntegrals(domain::Domain, wkb_mode::NoWKB)::TracerWKBIntegrals
+function TracerWKBIntegrals(domain::Domain, wkb_mode::Val{:NoWKB})::TracerWKBIntegrals
     return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:7]...)
 end
 
 function TracerWKBIntegrals(
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBIntegrals
     (; nxx, nyy, nzz) = domain
 

@@ -9,7 +9,7 @@ Apply spatial smoothing to gravity-wave tendency fields by dispatching to a meth
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::BoxFilter,
+    filter_type::Val{:BoxFilter},
     direction::XYZ,
 )
 ```
@@ -28,7 +28,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::BoxFilter,
+    filter_type::Val{:BoxFilter},
     direction::XZ,
 )
 ```
@@ -47,7 +47,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::BoxFilter,
+    filter_type::Val{:BoxFilter},
     direction::YZ,
 )
 ```
@@ -66,7 +66,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::BoxFilter,
+    filter_type::Val{:BoxFilter},
     direction::Z,
 )
 ```
@@ -85,7 +85,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::XYZ,
 )
 ```
@@ -98,7 +98,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{x}``, ``\\hat{y}`` and ``
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::XZ,
 )
 ```
@@ -111,7 +111,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{x}`` and ``\\hat{z}``.
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::YZ,
 )
 ```
@@ -124,7 +124,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{y}`` and ``\\hat{z}``.
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::Z,
 )
 ```
@@ -135,7 +135,7 @@ Apply a 1D Shapiro filter to smooth in ``\\hat{z}``.
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::Y,
 )
 ```
@@ -146,7 +146,7 @@ Apply a 1D Shapiro filter to smooth in ``\\hat{y}``.
 smooth_gw_amplitudes!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::X,
 )
 ```
@@ -191,7 +191,7 @@ function smooth_gw_amplitudes!(state::State)
         return
     end
 
-    smooth_gw_amplitudes!(state, tracer_setup)
+    @dispatch_tracer_setup smooth_gw_amplitudes!(state, Val(tracer_setup))
 
     return
 end
@@ -199,7 +199,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::BoxFilter,
+    filter_type::Val{:BoxFilter},
     direction::XYZ,
 ) where {T <: Real}
     (; nbx, nby, nbz) = state.namelists.domain
@@ -234,7 +234,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::BoxFilter,
+    filter_type::Val{:BoxFilter},
     direction::XZ,
 ) where {T <: Real}
     (; nbx, nbz) = state.namelists.domain
@@ -266,7 +266,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::BoxFilter,
+    filter_type::Val{:BoxFilter},
     direction::YZ,
 ) where {T <: Real}
     (; nby, nbz) = state.namelists.domain
@@ -298,7 +298,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::BoxFilter,
+    filter_type::Val{:BoxFilter},
     direction::Z,
 ) where {T <: Real}
     (; nbz) = state.namelists.domain
@@ -322,7 +322,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::XYZ,
 ) where {T <: Real}
     smooth_gw_amplitudes!(output, state, filter_type, X())
@@ -334,7 +334,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::XZ,
 ) where {T <: Real}
     smooth_gw_amplitudes!(output, state, filter_type, X())
@@ -345,7 +345,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::YZ,
 ) where {T <: Real}
     smooth_gw_amplitudes!(output, state, filter_type, Y())
@@ -356,7 +356,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::Z,
 ) where {T <: Real}
     (; nbz) = state.namelists.domain
@@ -368,7 +368,7 @@ function smooth_gw_amplitudes!(
     end
 
     input = copy(output)
-    @ivy for j in 1:nyy, i in 1:nxx
+    @dispatch_filter_order @ivy for j in 1:nyy, i in 1:nxx
         apply_shapiro_filter!(
             output[i, j, :],
             input[i, j, :],
@@ -383,7 +383,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::Y,
 ) where {T <: Real}
     (; nby) = state.namelists.domain
@@ -395,7 +395,7 @@ function smooth_gw_amplitudes!(
     end
 
     input = copy(output)
-    @ivy for k in 1:nzz, i in 1:nxx
+    @dispatch_filter_order @ivy for k in 1:nzz, i in 1:nxx
         apply_shapiro_filter!(
             output[i, :, k],
             input[i, :, k],
@@ -410,7 +410,7 @@ end
 function smooth_gw_amplitudes!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
-    filter_type::ShapiroFilter,
+    filter_type::Val{:ShapiroFilter},
     direction::X,
 ) where {T <: Real}
     (; nbx) = state.namelists.domain
@@ -422,7 +422,7 @@ function smooth_gw_amplitudes!(
     end
 
     input = copy(output)
-    @ivy for k in 1:nzz, j in 1:nyy
+    @dispatch_filter_order @ivy for k in 1:nzz, j in 1:nyy
         apply_shapiro_filter!(
             output[:, j, k],
             input[:, j, k],
@@ -434,7 +434,7 @@ function smooth_gw_amplitudes!(
     return
 end
 
-function smooth_gw_amplitudes!(state::State, tracer_setup::TracerOn)
+function smooth_gw_amplitudes!(state::State, tracer_setup::Val{:TracerOn})
     (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; uhat, vhat, what, bhat, pihat, chihat) = state.wkb.integrals
@@ -443,39 +443,39 @@ function smooth_gw_amplitudes!(state::State, tracer_setup::TracerOn)
         return
     end
 
-    if x_size == y_size == 1
-        smooth_gw_amplitudes!(uhat, state, filter_type, Z())
-        smooth_gw_amplitudes!(vhat, state, filter_type, Z())
-        smooth_gw_amplitudes!(what, state, filter_type, Z())
-        smooth_gw_amplitudes!(bhat, state, filter_type, Z())
-        smooth_gw_amplitudes!(pihat, state, filter_type, Z())
-        smooth_gw_amplitudes!(chihat, state, filter_type, Z())
+    @dispatch_filter_type if x_size == y_size == 1
+        smooth_gw_amplitudes!(uhat, state, Val(filter_type), Z())
+        smooth_gw_amplitudes!(vhat, state, Val(filter_type), Z())
+        smooth_gw_amplitudes!(what, state, Val(filter_type), Z())
+        smooth_gw_amplitudes!(bhat, state, Val(filter_type), Z())
+        smooth_gw_amplitudes!(pihat, state, Val(filter_type), Z())
+        smooth_gw_amplitudes!(chihat, state, Val(filter_type), Z())
     elseif x_size == 1
-        smooth_gw_amplitudes!(uhat, state, filter_type, YZ())
-        smooth_gw_amplitudes!(vhat, state, filter_type, YZ())
-        smooth_gw_amplitudes!(what, state, filter_type, YZ())
-        smooth_gw_amplitudes!(bhat, state, filter_type, YZ())
-        smooth_gw_amplitudes!(pihat, state, filter_type, YZ())
-        smooth_gw_amplitudes!(chihat, state, filter_type, YZ())
+        smooth_gw_amplitudes!(uhat, state, Val(filter_type), YZ())
+        smooth_gw_amplitudes!(vhat, state, Val(filter_type), YZ())
+        smooth_gw_amplitudes!(what, state, Val(filter_type), YZ())
+        smooth_gw_amplitudes!(bhat, state, Val(filter_type), YZ())
+        smooth_gw_amplitudes!(pihat, state, Val(filter_type), YZ())
+        smooth_gw_amplitudes!(chihat, state, Val(filter_type), YZ())
     elseif y_size == 1
-        smooth_gw_amplitudes!(uhat, state, filter_type, XZ())
-        smooth_gw_amplitudes!(vhat, state, filter_type, XZ())
-        smooth_gw_amplitudes!(what, state, filter_type, XZ())
-        smooth_gw_amplitudes!(bhat, state, filter_type, XZ())
-        smooth_gw_amplitudes!(pihat, state, filter_type, XZ())
-        smooth_gw_amplitudes!(chihat, state, filter_type, XZ())
+        smooth_gw_amplitudes!(uhat, state, Val(filter_type), XZ())
+        smooth_gw_amplitudes!(vhat, state, Val(filter_type), XZ())
+        smooth_gw_amplitudes!(what, state, Val(filter_type), XZ())
+        smooth_gw_amplitudes!(bhat, state, Val(filter_type), XZ())
+        smooth_gw_amplitudes!(pihat, state, Val(filter_type), XZ())
+        smooth_gw_amplitudes!(chihat, state, Val(filter_type), XZ())
     else
-        smooth_gw_amplitudes!(uhat, state, filter_type, XYZ())
-        smooth_gw_amplitudes!(vhat, state, filter_type, XYZ())
-        smooth_gw_amplitudes!(what, state, filter_type, XYZ())
-        smooth_gw_amplitudes!(bhat, state, filter_type, XYZ())
-        smooth_gw_amplitudes!(pihat, state, filter_type, XYZ())
-        smooth_gw_amplitudes!(chihat, state, filter_type, XYZ())
+        smooth_gw_amplitudes!(uhat, state, Val(filter_type), XYZ())
+        smooth_gw_amplitudes!(vhat, state, Val(filter_type), XYZ())
+        smooth_gw_amplitudes!(what, state, Val(filter_type), XYZ())
+        smooth_gw_amplitudes!(bhat, state, Val(filter_type), XYZ())
+        smooth_gw_amplitudes!(pihat, state, Val(filter_type), XYZ())
+        smooth_gw_amplitudes!(chihat, state, Val(filter_type), XYZ())
     end
 
     return
 end
 
-function smooth_gw_amplitudes!(state::State, tracer_setup::NoTracer)
+function smooth_gw_amplitudes!(state::State, tracer_setup::Val{:NoTracer})
     return
 end

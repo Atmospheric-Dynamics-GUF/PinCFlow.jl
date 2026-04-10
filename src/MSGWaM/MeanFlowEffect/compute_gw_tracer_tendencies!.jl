@@ -51,7 +51,7 @@ function compute_gw_tracer_tendencies!(
 )
     (; tracer_setup) = state.namelists.tracer
 
-    compute_gw_tracer_tendencies!(state, i, j, k, tracer_setup)
+    @dispatch_tracer_setup compute_gw_tracer_tendencies!(state, i, j, k, Val(tracer_setup))
     return
 end
 
@@ -60,7 +60,7 @@ function compute_gw_tracer_tendencies!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -70,7 +70,7 @@ function compute_gw_tracer_tendencies!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid

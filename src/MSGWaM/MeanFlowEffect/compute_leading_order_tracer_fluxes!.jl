@@ -125,9 +125,9 @@ function compute_leading_order_tracer_fluxes!(
 )
     (; tracer_setup) = state.namelists.tracer
 
-    compute_leading_order_tracer_fluxes!(
+    @dispatch_tracer_setup compute_leading_order_tracer_fluxes!(
         state,
-        tracer_setup,
+        Val(tracer_setup),
         fc,
         omir,
         wnrk,

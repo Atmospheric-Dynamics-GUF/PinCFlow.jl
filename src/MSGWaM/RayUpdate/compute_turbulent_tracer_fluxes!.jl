@@ -16,9 +16,9 @@ function compute_turbulent_tracer_fluxes!(
 )
     (; tracer_setup) = state.namelists.tracer
 
-    compute_turbulent_tracer_fluxes!(
+    @dispatch_tracer_setup compute_turbulent_tracer_fluxes!(
         state,
-        tracer_setup,
+        Val(tracer_setup),
         factor,
         r,
         i,
@@ -37,7 +37,7 @@ end
 
 function compute_turbulent_tracer_fluxes!(
     state::State,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
     factor::AbstractFloat,
     r::Integer,
     i::Integer,
@@ -55,7 +55,7 @@ end
 
 function compute_turbulent_tracer_fluxes!(
     state::State,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
     factor::AbstractFloat,
     r::Integer,
     i::Integer,

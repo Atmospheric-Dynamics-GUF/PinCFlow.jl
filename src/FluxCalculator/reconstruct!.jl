@@ -338,7 +338,7 @@ function reconstruct!(state::State, variable::TKE)
             nxx,
             nyy,
             nzz,
-            limiter_type,
+            Val(limiter_type),
         )
     end
 

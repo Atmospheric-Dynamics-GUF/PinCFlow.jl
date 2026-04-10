@@ -32,10 +32,11 @@ struct TracerNamelist
     next_order_impact::Bool 
     turbulence_impact::Bool
     initial_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
+    background_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
 end
 
 function TracerNamelist(;
-    tracer_setup::AbstractTracer = NoTracer(),
+    tracer_setup::Symbol = :NoTracer,
     leading_order_impact::Bool = true,
     next_order_impact::Bool = true,
     turbulence_impact::Bool = true,

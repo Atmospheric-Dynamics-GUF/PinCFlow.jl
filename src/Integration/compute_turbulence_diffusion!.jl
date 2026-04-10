@@ -6,7 +6,10 @@ compute_turbulence_diffusion!(state::State)
 Compute the turbulent eddy diffusivity coefficients by dispatching to a turbulence-scheme-specific method.
 
 ```julia
-compute_turbulence_diffusion!(state::State, turbulence_scheme::Val{:NoTurbulence})
+compute_turbulence_diffusion!(
+    state::State,
+    turbulence_scheme::Val{:NoTurbulence},
+)
 ```
 
 Return in case of no turbulence parameterization.

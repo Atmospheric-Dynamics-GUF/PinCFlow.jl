@@ -49,7 +49,7 @@ function TracerAuxiliaries(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
     variables::Variables,
 )::TracerAuxiliaries
     return TracerAuxiliaries(
@@ -63,7 +63,7 @@ function TracerAuxiliaries(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
     variables::Variables,
 )::TracerAuxiliaries
     (; nxx, nyy, nzz, i0, i1, j0, j1) = domain

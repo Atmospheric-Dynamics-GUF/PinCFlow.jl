@@ -320,7 +320,7 @@ function write_output(
                             kk,
                         ] .* uref ./ rhobar[ii, jj, kk]
                 end
-                
+
                 for field in (:uchi1, :vchi1, :wchi1, :qchi)
                     HDF5.set_extent_dims(
                         file[string(field)],
@@ -336,38 +336,19 @@ function write_output(
             end
         end
 
-        if !(
-            typeof(state.namelists.turbulence.turbulence_scheme) <:
-            :NoTurbulence
-        )
-            if model == Boussinesq()
-                for field in fieldnames(TurbulencePredictands)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.turbulence.turbulencepredictands, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] ./ (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .*
-                        (lref .^ 2.0) ./ (tref .^ 2.0)
-                end
-            else
-                for field in fieldnames(TurbulencePredictands)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.turbulence.turbulencepredictands, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
-                        (lref .^ 2.0) ./ (tref .^ 2.0)
-                end
+        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            for field in fieldnames(TurbulencePredictands)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file[string(field)][iid, jjd, kkd, iout] =
+                    getfield(state.turbulence.turbulencepredictands, field)[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
+                    (lref .^ 2.0) ./ (tref .^ 2.0)
             end
 
             for field in fieldnames(TurbulenceAuxiliaries)

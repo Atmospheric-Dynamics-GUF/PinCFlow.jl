@@ -170,7 +170,7 @@ export @dispatch_background,
 
 export AbstractPredictand
 
-export Rho, RhoP, U, V, W, PiP, P, Theta, Chi, Explicit, Implicit
+export Rho, RhoP, U, V, W, PiP, P, Theta, Chi, TKE, Explicit, Implicit
 
 export DomainNamelist,
     OutputNamelist,

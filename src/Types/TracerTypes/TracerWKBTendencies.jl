@@ -10,13 +10,17 @@ function TracerWKBTendencies(
 )::TracerWKBTendencies
     (; tracer_setup) = namelists.tracer
 
-    return TracerWKBTendencies(namelists, domain, tracer_setup)
+    @dispatch_tracer_setup return TracerWKBTendencies(
+        namelists,
+        domain,
+        Val(tracer_setup),
+    )
 end
 
 function TracerWKBTendencies(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )::TracerWKBTendencies
     return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:3]...)
 end
@@ -24,23 +28,23 @@ end
 function TracerWKBTendencies(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )::TracerWKBTendencies
     (; wkb_mode) = namelists.wkb
 
-    return TracerWKBTendencies(domain, wkb_mode)
+    @dispatch_wkb_mode return TracerWKBTendencies(domain, Val(wkb_mode))
 end
 
 function TracerWKBTendencies(
     domain::Domain,
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::TracerWKBTendencies
     return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TracerWKBTendencies(
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBTendencies
     (; nxx, nyy, nzz) = domain
 

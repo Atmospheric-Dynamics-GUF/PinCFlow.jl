@@ -460,7 +460,7 @@ end
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Theta)
     (; model) = state.namelists.atmosphere
 
-    turbulent_diffusion!(state, dt, variable, model)
+    @dispatch_model turbulent_diffusion!(state, dt, variable, Val(model))
     return
 end
 
@@ -521,7 +521,7 @@ end
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Chi)
     (; tracer_setup) = state.namelists.tracer
 
-    turbulent_diffusion!(state, dt, variable, tracer_setup)
+    @dispatch_tracer_setup turbulent_diffusion!(state, dt, variable, Val(tracer_setup))
     return
 end
 
@@ -529,7 +529,7 @@ function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Chi,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -538,7 +538,7 @@ function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Chi,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; tracerpredictands) = state.tracer
     (; i0, i1, j0, j1, k0, k1) = state.domain
