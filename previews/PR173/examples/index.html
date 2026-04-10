@@ -43,7 +43,7 @@ function cold_bubble(;
 
     if visualize &amp;&amp; MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, (&quot;thetap&quot;, 1, 1, 1, 2))
+            plot_output(plot_file, data, (&quot;thetap&quot;, 0, 1, 1, 1, 2))
             return
         end
     end
@@ -95,7 +95,7 @@ function hot_bubble(;
 
     if visualize &amp;&amp; MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, (&quot;thetap&quot;, 1, 1, 1, 2))
+            plot_output(plot_file, data, (&quot;thetap&quot;, 0, 1, 1, 1, 2))
             return
         end
     end
@@ -160,7 +160,7 @@ function mountain_wave(;
 
     if visualize &amp;&amp; MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, (&quot;w&quot;, 20, 20, 10, 2))
+            plot_output(plot_file, data, (&quot;w&quot;, 0, 20, 20, 10, 2))
             return
         end
     end
@@ -243,7 +243,7 @@ function vortex(;
 
     if visualize &amp;&amp; MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, (&quot;chi&quot;, 1, 1, 1, 2))
+            plot_output(plot_file, data, (&quot;chi&quot;, 0, 1, 1, 1, 2))
             return
         end
     end
@@ -333,9 +333,9 @@ function wave_packet(;
             plot_output(
                 plot_file,
                 data,
-                (&quot;u&quot;, 20, 20, 40, 2),
-                (&quot;v&quot;, 20, 20, 40, 2),
-                (&quot;w&quot;, 20, 20, 40, 2);
+                (&quot;u&quot;, 0, 20, 20, 40, 2),
+                (&quot;v&quot;, 0, 20, 20, 40, 2),
+                (&quot;w&quot;, 0, 20, 20, 40, 2);
                 time_unit = &quot;min&quot;,
             )
             return
@@ -412,7 +412,7 @@ function wkb_mountain_wave(;
 
     if visualize &amp;&amp; MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, (&quot;nr&quot;, 20, 20, 10, 2))
+            plot_output(plot_file, data, (&quot;nr&quot;, 0, 20, 20, 10, 2))
             return
         end
     end
@@ -495,7 +495,12 @@ function wkb_wave_packet(;
 
     if visualize &amp;&amp; MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, (&quot;nr&quot;, 8, 8, 16, 2); time_unit = &quot;min&quot;)
+            plot_output(
+                plot_file,
+                data,
+                (&quot;nr&quot;, 0, 8, 8, 16, 2);
+                time_unit = &quot;min&quot;,
+            )
             return
         end
     end
@@ -683,4 +688,4 @@ function wave_action_density(
            (k^2 + l^2 + m^2) / n2(state, x, y, z)^2 / (k^2 + l^2) *
            bhat(state, parameters, x, y, z)^2
 end
-</code></pre><p>that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 10 April 2026 09:50">Friday 10 April 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre><p>that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 10 April 2026 10:05">Friday 10 April 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
