@@ -6,7 +6,7 @@ initialize_rays!(state::State)
 Complete the initialization of MS-GWaM by dispatching to a WKB-mode-specific method.
 
 ```julia
-initialize_rays!(state::State, wkb_mode::NoWKB)
+initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
 ```
 
 Return for non-WKB configurations.
@@ -14,7 +14,7 @@ Return for non-WKB configurations.
 ```julia
 initialize_rays!(
     state::State,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
@@ -40,17 +40,17 @@ function initialize_rays! end
 
 function initialize_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    initialize_rays!(state, wkb_mode)
+    @dispatch_wkb_mode initialize_rays!(state, Val(wkb_mode))
     return
 end
 
-function initialize_rays!(state::State, wkb_mode::NoWKB)
+function initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
     return
 end
 
 function initialize_rays!(
     state::State,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -96,7 +96,7 @@ function initialize_rays!(
 
     # Compute initial wavenumbers, intrinsic frequencies and wave-action
     # densities with initial_wave_field.
-    if wkb_mode != SteadyState()
+    if wkb_mode != :SteadyState
         for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
                 alpha,

@@ -23,7 +23,7 @@ function set_meridional_boundary_rays! end
 
 function set_meridional_boundary_rays!(state::State)
     (; namelists, domain) = state
-    (; y_size, npy) = namelists.domain
+    (; y_size) = namelists.domain
     (; ny, jo, i0, i1, j0, j1, k0, k1) = domain
     (; ly, y) = state.grid
     (; nray, rays) = state.wkb
@@ -37,7 +37,7 @@ function set_meridional_boundary_rays!(state::State)
     )
 
     # Set ray-volumes properties.
-    @ivy if npy > 1
+    @ivy if y_size > 1
         set_meridional_halo_rays!(state)
     else
         for k in (k0 - 1):(k1 + 1), i in (i0 - 1):(i1 + 1)

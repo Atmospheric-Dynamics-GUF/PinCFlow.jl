@@ -14,7 +14,7 @@ reconstruct!(state::State, variable::Rho)
 Reconstruct the density by dispatching to a model-specific method.
 
 ```julia
-reconstruct!(state::State, variable::Rho, model::Boussinesq)
+reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})
 ```
 
 Return in Boussinesq mode.
@@ -23,7 +23,7 @@ Return in Boussinesq mode.
 reconstruct!(
     state::State,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -64,13 +64,13 @@ Reconstruct the vertical momentum.
 The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Similar to the zonal and meridional momenta, the vertical momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
-reconstruct!(state::State, tracer_setup::NoTracer)
+reconstruct!(state::State, tracer_setup::Val{:NoTracer})
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-reconstruct!(state::State, tracer_setup::TracerOn)
+reconstruct!(state::State, tracer_setup::Val{:TracerOn})
 ```
 
 Reconstruct the tracers.
@@ -108,25 +108,25 @@ function reconstruct!(state::State)
     reconstruct!(state, V())
     reconstruct!(state, W())
 
-    reconstruct!(state, tracer_setup)
+    @dispatch_tracer_setup reconstruct!(state, Val(tracer_setup))
 
     return
 end
 
 function reconstruct!(state::State, variable::Rho)
     (; model) = state.namelists.atmosphere
-    reconstruct!(state, variable, model)
+    @dispatch_model reconstruct!(state, variable, Val(model))
     return
 end
 
-function reconstruct!(state::State, variable::Rho, model::Boussinesq)
+function reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})
     return
 end
 
 function reconstruct!(
     state::State,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
@@ -139,7 +139,14 @@ function reconstruct!(
 
     @ivy phi[:, :, kk] .= rho[:, :, kk] ./ pbar[:, :, kk]
 
-    apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, limiter_type)
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        rhotilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -156,7 +163,14 @@ function reconstruct!(state::State, variable::RhoP)
 
     @ivy phi[:, :, kk] .= rhop[:, :, kk] ./ pbar[:, :, kk]
 
-    apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, limiter_type)
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        rhoptilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -181,7 +195,14 @@ function reconstruct!(state::State, variable::U)
         phi[i, j, k] = u[i, j, k] * rhoedge / pedge
     end
 
-    apply_3d_muscl!(phi, utilde, nxx, nyy, nzz, limiter_type)
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        utilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -206,7 +227,14 @@ function reconstruct!(state::State, variable::V)
         phi[i, j, k] = v[i, j, k] * rhoedge / pedge
     end
 
-    apply_3d_muscl!(phi, vtilde, nxx, nyy, nzz, limiter_type)
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        vtilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
@@ -245,23 +273,30 @@ function reconstruct!(state::State, variable::W)
         phi[i, j, k] *= rhoedgeu / pedgeu
     end
 
-    apply_3d_muscl!(phi, wtilde, nxx, nyy, nzz, limiter_type)
+    @dispatch_limiter_type apply_3d_muscl!(
+        phi,
+        wtilde,
+        nxx,
+        nyy,
+        nzz,
+        Val(limiter_type),
+    )
 
     return
 end
 
-function reconstruct!(state::State, tracer_setup::NoTracer)
+function reconstruct!(state::State, tracer_setup::Val{:NoTracer})
     return
 end
 
-function reconstruct!(state::State, tracer_setup::TracerOn)
+function reconstruct!(state::State, tracer_setup::Val{:TracerOn})
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries
     (; pbar) = state.atmosphere
     (; tracerreconstructions, tracerpredictands) = state.tracer
 
-    @ivy for field in 1:fieldcount(TracerPredictands)
+    @dispatch_limiter_type @ivy for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
             phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
@@ -272,7 +307,7 @@ function reconstruct!(state::State, tracer_setup::TracerOn)
             nxx,
             nyy,
             nzz,
-            limiter_type,
+            Val(limiter_type),
         )
     end
 

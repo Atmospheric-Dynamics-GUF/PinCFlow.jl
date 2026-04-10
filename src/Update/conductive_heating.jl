@@ -16,7 +16,7 @@ conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )::AbstractFloat
 ```
 
@@ -28,7 +28,7 @@ conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )::AbstractFloat
 ```
 
@@ -40,7 +40,7 @@ conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
 ```
 
@@ -72,7 +72,7 @@ function conductive_heating(
 )::AbstractFloat
     (; model) = state.namelists.atmosphere
 
-    return conductive_heating(state, i, j, k, model)
+    @dispatch_model return conductive_heating(state, i, j, k, Val(model))
 end
 
 function conductive_heating(
@@ -80,7 +80,7 @@ function conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )::AbstractFloat
     return 0.0
 end
@@ -90,7 +90,7 @@ function conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )::AbstractFloat
     return 0.0
 end
@@ -100,7 +100,7 @@ function conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
     (; phitheta) = state.variables.fluxes
     (; rho) = state.variables.predictands

@@ -29,7 +29,7 @@ function set_vertical_boundary_rays!(state::State)
     (; nray, rays) = state.wkb
 
     # Set ray-volume count and ray-volumes properties.
-    if npz > 1
+    if z_size > 1
         set_vertical_halos_of_field!(
             nray,
             namelists,
