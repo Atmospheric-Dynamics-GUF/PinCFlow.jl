@@ -19,14 +19,18 @@ Reset fields in `state.tracer.tracerpredictands` to those in `tracerpredictands`
 reset_predictands!(
     state::State,
     predictands::Predictands,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
 Reset the density, density fluctuations and wind components in `state.variables.predictands` to those in `predictands`.
 
 ```julia
-reset_predictands!(state::State, predictands::Predictands, model::Compressible)
+reset_predictands!(
+    state::State,
+    predictands::Predictands,
+    model::Val{:Compressible},
+)
 ```
 
 Reset the density, density fluctuations, wind components, Exner pressure and mass-weighted potential temperature (i.e. all fields) in `state.variables.predictands` to those in `predictands`.
@@ -50,7 +54,7 @@ function reset_predictands!(
 )
     (; model) = state.namelists.atmosphere
 
-    reset_predictands!(state, predictands, model)
+    @dispatch_model reset_predictands!(state, predictands, Val(model))
     reset_predictands!(state, tracerpredictands)
 
     return
@@ -67,7 +71,7 @@ end
 function reset_predictands!(
     state::State,
     predictands::Predictands,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     (; rhop, u, v, w) = state.variables.predictands
 
@@ -82,7 +86,7 @@ end
 function reset_predictands!(
     state::State,
     predictands::Predictands,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )
     (; rho, rhop, u, v, w) = state.variables.predictands
 
@@ -98,7 +102,7 @@ end
 function reset_predictands!(
     state::State,
     predictands::Predictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 

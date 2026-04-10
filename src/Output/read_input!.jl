@@ -50,7 +50,7 @@ function read_input!(state::State)
         # Read the density fluctuations.
         rhop[ii, jj, kk] =
             file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref
-        if model != Boussinesq()
+        if model != :Boussinesq
             rho[ii, jj, kk] .= rhop[ii, jj, kk]
         end
 
@@ -70,13 +70,13 @@ function read_input!(state::State)
         pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin == -1 ? end : iin]
 
         # Read the mass-weighted potential temperature.
-        if model == Compressible()
+        if model == :Compressible
             p[ii, jj, kk] =
                 file["p"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref ./
                 thetaref
         end
 
-        if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
+        if state.namelists.tracer.tracer_setup != :NoTracer
             for field in fieldnames(TracerPredictands)
                 getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
                     file[string(field)][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
@@ -84,12 +84,12 @@ function read_input!(state::State)
         end
 
         # Read ray-volume properties.
-        if wkb_mode != NoWKB()
+        if wkb_mode != :NoWKB
             for (output_name, field_name) in zip(
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
-                getfield(rays, field_name)[rr, ii, jj, kkr] =
+                getproperty(rays, field_name)[rr, ii, jj, kkr] =
                     file[output_name][
                         rr,
                         iid,
@@ -103,7 +103,7 @@ function read_input!(state::State)
                 ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
-                getfield(rays, field_name)[rr, ii, jj, kkr] =
+                getproperty(rays, field_name)[rr, ii, jj, kkr] =
                     file[output_name][
                         rr,
                         iid,

@@ -9,7 +9,7 @@ Apply spatial smoothing to gravity-wave tendency fields by dispatching to a meth
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::Val{:BoxFilter},
     direction::XYZ,
 )
 ```
@@ -28,7 +28,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::Val{:BoxFilter},
     direction::XZ,
 )
 ```
@@ -47,7 +47,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::Val{:BoxFilter},
     direction::YZ,
 )
 ```
@@ -66,7 +66,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::Val{:BoxFilter},
     direction::Z,
 )
 ```
@@ -85,7 +85,7 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::XYZ,
 )
 ```
@@ -98,7 +98,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{x}``, ``\\hat{y}`` and ``
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::XZ,
 )
 ```
@@ -111,7 +111,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{x}`` and ``\\hat{z}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::YZ,
 )
 ```
@@ -124,7 +124,7 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{y}`` and ``\\hat{z}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::Z,
 )
 ```
@@ -135,7 +135,7 @@ Apply a 1D Shapiro filter to smooth in ``\\hat{z}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::Y,
 )
 ```
@@ -146,7 +146,7 @@ Apply a 1D Shapiro filter to smooth in ``\\hat{y}``.
 smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::X,
 )
 ```
@@ -154,13 +154,13 @@ smooth_gw_tendencies!(
 Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
 
 ```julia
-smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)
+smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
 ```
 
 Apply smoothing to tracer tendencies.
 
 ```julia
-smooth_gw_tendencies!(state::State, tracer_setup::NoTracer)
+smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})
 ```
 
 Return for configurations without tracer transport.
@@ -193,25 +193,25 @@ function smooth_gw_tendencies!(state::State)
         return
     end
 
-    if x_size == y_size == 1
-        smooth_gw_tendencies!(dudt, state, filter_type, Z())
-        smooth_gw_tendencies!(dvdt, state, filter_type, Z())
-        smooth_gw_tendencies!(dthetadt, state, filter_type, Z())
+    @dispatch_filter_type if x_size == y_size == 1
+        smooth_gw_tendencies!(dudt, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(dvdt, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(dthetadt, state, Val(filter_type), Z())
     elseif x_size == 1
-        smooth_gw_tendencies!(dudt, state, filter_type, YZ())
-        smooth_gw_tendencies!(dvdt, state, filter_type, YZ())
-        smooth_gw_tendencies!(dthetadt, state, filter_type, YZ())
+        smooth_gw_tendencies!(dudt, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(dvdt, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(dthetadt, state, Val(filter_type), YZ())
     elseif y_size == 1
-        smooth_gw_tendencies!(dudt, state, filter_type, XZ())
-        smooth_gw_tendencies!(dvdt, state, filter_type, XZ())
-        smooth_gw_tendencies!(dthetadt, state, filter_type, XZ())
+        smooth_gw_tendencies!(dudt, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(dvdt, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(dthetadt, state, Val(filter_type), XZ())
     else
-        smooth_gw_tendencies!(dudt, state, filter_type, XYZ())
-        smooth_gw_tendencies!(dvdt, state, filter_type, XYZ())
-        smooth_gw_tendencies!(dthetadt, state, filter_type, XYZ())
+        smooth_gw_tendencies!(dudt, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(dvdt, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(dthetadt, state, Val(filter_type), XYZ())
     end
 
-    smooth_gw_tendencies!(state, tracer_setup)
+    @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
 
     return
 end
@@ -219,7 +219,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::Val{:BoxFilter},
     direction::XYZ,
 )
     (; nbx, nby, nbz) = state.namelists.domain
@@ -254,7 +254,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::Val{:BoxFilter},
     direction::XZ,
 )
     (; nbx, nbz) = state.namelists.domain
@@ -286,7 +286,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::Val{:BoxFilter},
     direction::YZ,
 )
     (; nby, nbz) = state.namelists.domain
@@ -318,7 +318,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Box,
+    filter_type::Val{:BoxFilter},
     direction::Z,
 )
     (; nbz) = state.namelists.domain
@@ -342,7 +342,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::XYZ,
 )
     smooth_gw_tendencies!(output, state, filter_type, X())
@@ -354,7 +354,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::XZ,
 )
     smooth_gw_tendencies!(output, state, filter_type, X())
@@ -365,7 +365,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::YZ,
 )
     smooth_gw_tendencies!(output, state, filter_type, Y())
@@ -376,7 +376,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::Z,
 )
     (; nbz) = state.namelists.domain
@@ -388,7 +388,7 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    @ivy for j in 1:nyy, i in 1:nxx
+    @dispatch_filter_order @ivy for j in 1:nyy, i in 1:nxx
         apply_shapiro_filter!(
             output[i, j, :],
             input[i, j, :],
@@ -403,7 +403,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::Y,
 )
     (; nby) = state.namelists.domain
@@ -415,7 +415,7 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    @ivy for k in 1:nzz, i in 1:nxx
+    @dispatch_filter_order @ivy for k in 1:nzz, i in 1:nxx
         apply_shapiro_filter!(
             output[i, :, k],
             input[i, :, k],
@@ -430,7 +430,7 @@ end
 function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
-    filter_type::Shapiro,
+    filter_type::Val{:ShapiroFilter},
     direction::X,
 )
     (; nbx) = state.namelists.domain
@@ -442,7 +442,7 @@ function smooth_gw_tendencies!(
     end
 
     input = copy(output)
-    @ivy for k in 1:nzz, j in 1:nyy
+    @dispatch_filter_order @ivy for k in 1:nzz, j in 1:nyy
         apply_shapiro_filter!(
             output[:, j, k],
             input[:, j, k],
@@ -454,7 +454,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)
+function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
     (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dchidt) = state.tracer.tracerforcings.chiq0
@@ -463,19 +463,19 @@ function smooth_gw_tendencies!(state::State, tracer_setup::TracerOn)
         return
     end
 
-    if x_size == y_size == 1
-        smooth_gw_tendencies!(dchidt, state, filter_type, Z())
+    @dispatch_filter_type if x_size == y_size == 1
+        smooth_gw_tendencies!(dchidt, state, Val(filter_type), Z())
     elseif x_size == 1
-        smooth_gw_tendencies!(dchidt, state, filter_type, YZ())
+        smooth_gw_tendencies!(dchidt, state, Val(filter_type), YZ())
     elseif y_size == 1
-        smooth_gw_tendencies!(dchidt, state, filter_type, XZ())
+        smooth_gw_tendencies!(dchidt, state, Val(filter_type), XZ())
     else
-        smooth_gw_tendencies!(dchidt, state, filter_type, XYZ())
+        smooth_gw_tendencies!(dchidt, state, Val(filter_type), XYZ())
     end
 
     return
 end
 
-function smooth_gw_tendencies!(state::State, tracer_setup::NoTracer)
+function smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})
     return
 end

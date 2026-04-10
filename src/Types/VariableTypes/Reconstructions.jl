@@ -14,7 +14,7 @@ Reconstructions(namelists::Namelists, domain::Domain)::Reconstructions
 Construct a `Reconstructions` instance with dimensions depending on whether or not the model is Boussinesq, by dispatching to the appropriate method.
 
 ```julia
-Reconstructions(domain::Domain, model::Boussinesq)::Reconstructions
+Reconstructions(domain::Domain, model::Val{:Boussinesq})::Reconstructions
 ```
 
 Construct a `Reconstructions` instance in Boussinesq mode, with a zero-size array for density reconstructions.
@@ -22,7 +22,7 @@ Construct a `Reconstructions` instance in Boussinesq mode, with a zero-size arra
 ```julia
 Reconstructions(
     domain::Domain,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )::Reconstructions
 ```
 
@@ -59,10 +59,13 @@ end
 function Reconstructions(namelists::Namelists, domain::Domain)::Reconstructions
     (; model) = namelists.atmosphere
 
-    return Reconstructions(domain, model)
+    @dispatch_model return Reconstructions(domain, Val(model))
 end
 
-function Reconstructions(domain::Domain, model::Boussinesq)::Reconstructions
+function Reconstructions(
+    domain::Domain,
+    model::Val{:Boussinesq},
+)::Reconstructions
     (; nxx, nyy, nzz) = domain
 
     return Reconstructions(
@@ -73,7 +76,7 @@ end
 
 function Reconstructions(
     domain::Domain,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )::Reconstructions
     (; nxx, nyy, nzz) = domain
 

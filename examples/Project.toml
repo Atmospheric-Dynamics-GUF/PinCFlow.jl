@@ -6,6 +6,7 @@ MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 MPICH_jll = "7cb0a576-ebde-5e09-9194-50597f1243b4"
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 PinCFlow = "230a4047-f24c-41d9-8d93-b3b8a5ef3847"
+Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 
 [compat]
@@ -16,8 +17,9 @@ MPI = "0.20.23"
 MPICH_jll = "4.3.1"
 MPIPreferences = "0.1.11"
 PinCFlow = "2.0.0"
+Preferences = "1.5.2"
 Revise = "3.9.0"
-julia = "1.10.10"
+julia = "1.10.11"
 
 [sources.PinCFlow]
 path = ".."

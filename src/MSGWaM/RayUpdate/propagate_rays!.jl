@@ -10,7 +10,7 @@ propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )
 ```
 
@@ -21,7 +21,7 @@ propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::Union{SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
@@ -74,7 +74,7 @@ propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::SteadyState,
+    wkb_mode::Val{:SteadyState},
 )
 ```
 
@@ -142,7 +142,7 @@ function propagate_rays! end
 
 function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
     (; wkb_mode) = state.namelists.wkb
-    propagate_rays!(state, dt, rkstage, wkb_mode)
+    @dispatch_wkb_mode propagate_rays!(state, dt, rkstage, Val(wkb_mode))
     return
 end
 
@@ -150,7 +150,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )
     return
 end
@@ -159,7 +159,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::Union{SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; branch, impact_altitude) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
@@ -260,7 +260,7 @@ function propagate_rays!(
 
             # Update zonal position.
 
-            if x_size > 1 && k >= k0 && wkb_mode != SingleColumn()
+            if x_size > 1 && k >= k0 && wkb_mode != :SingleColumn
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -279,7 +279,7 @@ function propagate_rays!(
 
             # Update meridional position.
 
-            if y_size > 1 && k >= k0 && wkb_mode != SingleColumn()
+            if y_size > 1 && k >= k0 && wkb_mode != :SingleColumn
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -350,7 +350,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if x_size > 1 && k >= k0 && wkb_mode != SingleColumn()
+                if x_size > 1 && k >= k0 && wkb_mode != :SingleColumn
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[r, i, j, k] =
@@ -368,7 +368,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if y_size > 1 && k >= k0 && wkb_mode != SingleColumn()
+                if y_size > 1 && k >= k0 && wkb_mode != :SingleColumn
                     ddydt = cgry2 - cgry1
 
                     ddyray[r, i, j, k] =
@@ -434,7 +434,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::SteadyState,
+    wkb_mode::Val{:SteadyState},
 )
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere

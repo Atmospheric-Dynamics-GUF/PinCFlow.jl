@@ -26,7 +26,7 @@ compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::RhoP,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
 ```
 
@@ -39,7 +39,7 @@ compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::RhoP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
 ```
 
@@ -52,7 +52,7 @@ compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::W,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
 ```
 
@@ -65,7 +65,7 @@ compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::W,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
 ```
 
@@ -95,7 +95,14 @@ function compute_buoyancy_factor(
     variable::Union{RhoP, W},
 )::AbstractFloat
     (; model) = state.namelists.atmosphere
-    return compute_buoyancy_factor(state, i, j, k, variable, model)
+    @dispatch_model return compute_buoyancy_factor(
+        state,
+        i,
+        j,
+        k,
+        variable,
+        Val(model),
+    )
 end
 
 function compute_buoyancy_factor(
@@ -104,7 +111,7 @@ function compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::RhoP,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
     (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
@@ -118,7 +125,7 @@ function compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::RhoP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
@@ -131,7 +138,7 @@ function compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::W,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
     (; jac) = state.grid
     (; rhobar, thetabar, pbar) = state.atmosphere
@@ -151,7 +158,7 @@ function compute_buoyancy_factor(
     j::Integer,
     k::Integer,
     variable::W,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
     (; jac) = state.grid
     (; rhobar) = state.atmosphere
