@@ -159,13 +159,13 @@ function Domain(namelists::Namelists)::Domain
     if master && npx * npy * npz != np
         error("Error in Domain: npx * npy * npz != np!")
     end
-    if master && npx > 1 && nbx > div(x_size, npx)
+    if master && x_size > 1 && nbx > div(x_size, npx)
         error("Error in Domain: npx > 1 && nbx > div(x_size, npx)!")
     end
-    if master && npy > 1 && nby > div(y_size, npy)
+    if master && y_size > 1 && nby > div(y_size, npy)
         error("Error in Domain: npy > 1 && nby > div(y_size, npy)!")
     end
-    if master && npz > 1 && nbz > div(z_size, npz)
+    if master && z_size > 1 && nbz > div(z_size, npz)
         error("Error in Domain: npz > 1 && nbz > div(z_size, npz)!")
     end
 
