@@ -121,10 +121,10 @@ If you want to run PinCFlow.jl in parallel, make sure you are using the correct 
 
 ```shell
 mpiexec=$(julia --project=examples -e 'using MPICH_jll; print(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 9 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 3, npz = 3)'
+${mpiexec} -n 64 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8)'
 ```
 
-in your shell, you can run the above simulation in 9 MPI processes. Note that `npx` and `npz` configure the number of MPI subdomains in $\hat{x}$ and $\hat{z}$, respectively. Thus, `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
+in your shell, you can run the above simulation in 64 MPI processes. Note that `npx` and `npz` configure the number of MPI subdomains in $\hat{x}$ and $\hat{z}$, respectively. Thus, `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
 
 If you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 
@@ -143,7 +143,7 @@ julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!()'
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```shell
-mpiexec -n 9 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 3, npz = 3)'
+mpiexec -n 64 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8)'
 ```
 
 with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl on [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/levante` of the repository.
