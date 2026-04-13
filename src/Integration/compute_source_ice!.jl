@@ -149,6 +149,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 						else
 							if tau > 0.0 && q[ii2, jj2, kk2] > 0.0 && n[ii2, jj2, kk2] > 0.0
 								sgstendencies.dn[ii2, jj2, kk2] = dot_n(sice, rhoMean, iceconstants) - 0.5 / tau * q[ii2, jj2, kk2]^(2. / 3.) * n[ii2, jj2, kk2]^(1. / 3.) # added sink term
+
 							else
 								sgstendencies.dn[ii2, jj2, kk2] = dot_n(sice, rhoMean, iceconstants)
 							end
@@ -391,7 +392,7 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 		#changes
 		iceauxiliaries.iaux1[i, j, k] = sice	
 
-		if sice >= iceconstants.S_c
+		if sice >= iceconstants.S_c && temp < 235.0 # only allow nucleation if temperature is below 235 K
 
 			sice = iceconstants.S_c #set to critical value
 
@@ -426,20 +427,24 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 				icesource.nsource[i, j, k] = 0.0 # \dot N_ice=0.
 			else
 				if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-					nsink = - 1.0 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
+					#nsink = - 0.5 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
+					nsink = -0.5 / tau * n[i, j, k] # simpler sink term that does not depend on q
 				else
 					nsink = 0.0
 				end
-
-				icesource.nsource[i, j, k] = dot_n(sice, rhoMean, iceconstants) + nsink # added sink term
+				
+				dn = dot_n(sice, rhoMean, iceconstants)
+				icesource.nsource[i, j, k] = dn + nsink # added sink term
 			end
 		else
 			if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-				nsink = - 1.0 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
+				#nsink = - 0.5 / tau * q[i, j, k]^(2. / 3.) * n[i, j, k]^(1. / 3.) # added sink term
+				nsink = -0.5 / tau * n[i, j, k] # simpler sink term that does not depend on q
 			else
 				nsink = 0.0
 			end
 
+			dn = 0.0
 			icesource.nsource[i, j, k] = nsink # added sink term
 		end
 
@@ -465,17 +470,21 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOff)
 		icesource.qvsource[i, j, k] = dqv + qv_forcing # hier quelle ergänzt
 		
 		if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-			qsink = - 1.0 / tau * q[i, j, k]^(5. / 3.) * n[i, j, k]^(-2. / 3.) # added sink term
+			#qsink = - 1.0 / tau * q[i, j, k]^(5. / 3.) * n[i, j, k]^(-2. / 3.) # added sink term
+			qsink = - 1.0 / tau * q[i, j, k] # simpler sink term that does not depend on n
 		else
 			qsink = 0.0
 		end
 
 		icesource.qsource[i, j, k] = -dqv + qsink # added sink term
 
-		iceauxiliaries.iaux2[i, j, k] = icesource.nsource[i, j, k]
+		iceauxiliaries.iaux2[i, j, k] = dn
 		iceauxiliaries.iaux3[i, j, k] = dqv
 		iceauxiliaries.iaux4[i, j, k] = qv_forcing
 		iceauxiliaries.iaux5[i, j, k] = qsink
+		iceauxiliaries.iaux6[i, j, k] = nsink
+
+		icesource.nNucsource[i, j, k] = dn # added to seperate nucleation source term from sink
 
 		#icesource.qvsource[i, j, k] = qv_forcing # debug without dqv
 		#icesource.nsource[i, j, k] = nsink # debug with only n sink

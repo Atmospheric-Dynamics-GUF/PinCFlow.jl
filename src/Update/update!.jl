@@ -1501,6 +1501,11 @@ function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn)
     #println("Ice Advection Update Step")
 
 	for (fd, field) in enumerate(fieldnames(IcePredictands))
+        # Compute advection tendencies if field != nNuc
+        if field == :nNuc
+            continue
+        end
+
 		if m == 1
 			getfield(iceincrements, fd) .= 0.0
 		end
@@ -1539,6 +1544,11 @@ function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn, 
 	(; iceincrements, icepredictands, icefluxes) = state.ice
 
 	for (fd, field) in enumerate(fieldnames(IcePredictands))
+        # Compute advection tendencies if field != nNuc
+        if field == :nNuc
+            continue
+        end
+
 		if m == 1
 			getfield(iceincrements, fd) .= 0.0
 		end
@@ -1569,7 +1579,7 @@ end
 function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUpdatePhy, cloudcover::CloudCoverOff)
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; alphark, betark) = state.time
-	(; iceincrements, icepredictands, icesource, icefluxes) = state.ice
+	(; iceauxiliaries, iceincrements, icepredictands, icesource, icefluxes) = state.ice
 
 	for (fd, field) in enumerate(fieldnames(IcePredictands))
 		if m == 1
@@ -1584,7 +1594,7 @@ function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUp
 				dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
 			getfield(icepredictands, fd)[i, j, k] +=
 				betark[m] * getfield(iceincrements, fd)[i, j, k]
-            getfield(icepredictands, fd)[i, j, k] = max.(
+            getfield(icepredictands, fd)[i, j, k] = max(
                 getfield(icepredictands, fd)[i, j, k],
                 0.0
             )

@@ -152,7 +152,7 @@ function Constants(namelists::Namelists)::Constants
     fr = uref / sqrt(g * lref) # Fr = 1
     frinv2 = 1.0 / fr^2
     fr2 = fr^2
-    sig = ma^2 / fr^2
+    sig = ma^2 / fr^2 # sigma = 1 (???)
 
     return Constants(
         gamma,

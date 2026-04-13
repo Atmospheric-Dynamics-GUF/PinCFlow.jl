@@ -7,7 +7,7 @@
 #SBATCH --time=0-04:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
-#SBATCH --array=1
+#SBATCH --array=2-3
 
 set -euo pipefail
 set -x
@@ -22,16 +22,16 @@ export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 case "${SLURM_ARRAY_TASK_ID}" in
   0) TAUQ=0.0
      TAUQV=0.0
-     RUN=2801_;;
+     RUN=x;;
   1) TAUQ=0.00000000001
      TAUQV=3000.0
-     RUN=2801_02;;
+     RUN=x;;
   2) TAUQ=0.0
      TAUQV=3000.0
-     RUN=2801_11;;
+     RUN=2901_08;;
   3) TAUQ=0.00000000001
      TAUQV=0.0
-     RUN=2801_12;;
+     RUN=2901_07;;
   *)
     echo "Invalid SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID}"
     exit 1

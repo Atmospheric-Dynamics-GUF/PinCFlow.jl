@@ -1,10 +1,10 @@
 # RUN in PinCFlow/PinCFlow.jl directory:
-# julia --project=examples test/fast_plot_gif_q.jl
+# julia --project=examples test/plot_gif_ags.jl
 
 using HDF5
 using CairoMakie
 
-run = "0202_01"
+run = "2202_01"
 
 directory = "adv"
 
@@ -13,6 +13,7 @@ input_file = "/work/bb1097/b383844/PinCFlow/$directory/results/ice_mountain_wave
 data = h5open(input_file, "r")
 
 output_file = "../$directory/visualization/ice_mountain_2D_$(run)_tau.mp4"
+#output_file = "/work/bb1097/b383844/PinCFlow/$directory/ice_mountain_2D_$(run)_tau.gif"
 
 x = data["x"][:] .* 0.001
 z = data["z"][1, 1, :] .* 0.001
@@ -28,16 +29,10 @@ println("tmax = ", tmax)
 q_obs  = Observable(data["q"][:, iy, :, 1])
 qv_obs = Observable(data["qv"][:, iy, :, 1])
 n_obs  = Observable(data["n"][:, iy, :, 1])
-dqv_obs = Observable(data["iaux3"][:, iy, :, 1])
-qv_forcing_obs = Observable(data["iaux4"][:, iy, :, 1])
-q_sink_obs = Observable(data["iaux5"][:, iy, :, 1])
 w_obs  = Observable(data["w"][:, iy, :, 1])
 
 q_vals  = data["q"][:, iy, :, 1:tmax]
 qv_vals = data["qv"][:, iy, :, 1:tmax]
-dqv_vals = data["iaux3"][:, iy, :, 1:tmax]
-qv_forcing_vals = data["iaux4"][:, iy, :, 1:tmax]
-q_sink_vals = data["iaux5"][:, iy, :, 1:tmax]
 w_vals  = data["w"][:, iy, :, 1:tmax]
 
 n_vals = data["n"][:, iy, :, 1:tmax]
@@ -69,67 +64,36 @@ w_max = w_abs_max
 
 println("w min/max  = ", w_min, " ", w_max)
 
-dqv_min = minimum(skipmissing(filter(isfinite, dqv_vals)))
-dqv_max = maximum(skipmissing(filter(isfinite, dqv_vals)))  
-
-println("dqv min/max  = ", dqv_min, " ", dqv_max)
-
-qv_forcing_min = minimum(skipmissing(filter(isfinite, qv_forcing_vals)))
-qv_forcing_max = maximum(skipmissing(filter(isfinite, qv_forcing_vals)))
-
-println("qv forcing min/max  = ", qv_forcing_min, " ", qv_forcing_max)
-
-q_sink_min = minimum(skipmissing(filter(isfinite, q_sink_vals)))
-q_sink_max = maximum(skipmissing(filter(isfinite, q_sink_vals)))
-
-println("q sink min/max  = ", q_sink_min, " ", q_sink_max)
-
-fig = Figure(size = (1200, 2400))
+fig = Figure(size = (1200, 800))
 
 ax1 = Axis(fig[1,1], xlabel="x (km)", ylabel="z (km)", title="q")
 ax2 = Axis(fig[2,1], xlabel="x (km)", ylabel="z (km)", title="qv")
-ax3 = Axis(fig[3,1], xlabel="x (km)", ylabel="z (km)", title="n")
-ax4 = Axis(fig[4,1], xlabel="x (km)", ylabel="z (km)", title="dqv")
-ax5 = Axis(fig[5,1], xlabel="x (km)", ylabel="z (km)", title="qv forcing")
-ax6 = Axis(fig[6,1], xlabel="x (km)", ylabel="z (km)", title="q sink")
-ax7 = Axis(fig[7,1], xlabel="x (km)", ylabel="z (km)", title="w")
+ax3 = Axis(fig[1,3], xlabel="x (km)", ylabel="z (km)", title="n")
+ax4 = Axis(fig[2,3], xlabel="x (km)", ylabel="z (km)", title="w")
 
 hm1 = heatmap!(ax1, x, z, q_obs; colormap=:blues, colorrange=(q_min, q_max))
 hm2 = heatmap!(ax2, x, z, qv_obs; colormap=:blues, colorrange=(qv_min, qv_max))
 hm3 = heatmap!(ax3, x, z, n_obs; colormap=:blues, colorrange=(n_min, n_max))
-hm4 = heatmap!(ax4, x, z, dqv_obs; colormap=:blues, colorrange=(dqv_min, dqv_max))
-hm5 = heatmap!(ax5, x, z, qv_forcing_obs; colormap=:blues, colorrange=(qv_forcing_min, qv_forcing_max))
-hm6 = heatmap!(ax6, x, z, q_sink_obs; colormap=:blues, colorrange=(q_sink_min, q_sink_max))
-hm7 = heatmap!(ax7, x, z, w_obs; colormap=:seismic, colorrange=(w_min, w_max))
+hm4 = heatmap!(ax4, x, z, w_obs; colormap=:seismic, colorrange=(w_min, w_max))
 
 Colorbar(fig[1,2], hm1, label="q [kg/kg]")
 Colorbar(fig[2,2], hm2, label="qv [kg/kg]")
-Colorbar(fig[3,2], hm3, label="n [#/kg]")
-Colorbar(fig[4,2], hm4, label="dqv [kg/kg/s]")
-Colorbar(fig[5,2], hm5, label="qv forcing [kg/kg/s]")
-Colorbar(fig[6,2], hm6, label="q sink [kg/kg/s]")
-Colorbar(fig[7,2], hm7, label="w [m/s]")    
+Colorbar(fig[1,4], hm3, label="n [#/kg]")
+Colorbar(fig[2,4], hm4, label="w [m/s]")    
 record(fig,
        output_file,
        1:tmax;
-       framerate = 10,
-       format = "mp4") do t
+       framerate = 10) do t
 
     q_obs[]  = data["q"][:, iy, :, t]
     qv_obs[] = data["qv"][:, iy, :, t]
     n_obs[]  = data["n"][:, iy, :, t]
-    dqv_obs[] = data["iaux3"][:, iy, :, t]
-    qv_forcing_obs[] = data["iaux4"][:, iy, :, t]
-    q_sink_obs[] = data["iaux5"][:, iy, :, t]
     w_obs[]  = data["w"][:, iy, :, t]
     
     ax1.title = "q at t = $t"
     ax2.title = "qv at t = $t"
     ax3.title = "n at t = $t"
-    ax4.title = "dqv at t = $t"
-    ax5.title = "qv forcing at t = $t"
-    ax6.title = "q sink at t = $t"
-    ax7.title = "w at t = $t"
+    ax4.title = "w at t = $t"
 end
 
 close(data)

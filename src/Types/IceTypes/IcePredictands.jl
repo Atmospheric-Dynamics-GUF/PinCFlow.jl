@@ -72,6 +72,7 @@ Construct an `IcePredictands` instance with all arrays initialized as ``z \\rho`
 """
 struct IcePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
 	n::A
+	nNuc::A
 	q::A
 	qv::A
 end
@@ -112,10 +113,11 @@ function IcePredictands(
 	iceconstants::IceConstants,
 )
 	n = zeros(0, 0, 0)
+	nNuc = zeros(0, 0, 0)
 	q = zeros(0, 0, 0)
 	qv = zeros(0, 0, 0)
 
-	return IcePredictands(n, q, qv)
+	return IcePredictands(n, nNuc, q, qv)
 end
 
 function IcePredictands(
@@ -152,6 +154,7 @@ function IcePredictands(
 	# **********************
 
 	n = zeros(nxx, nyy, nzz)
+	nNuc = zeros(nxx, nyy, nzz)
 	q = zeros(nxx, nyy, nzz)
 	qv = zeros(nxx, nyy, nzz)
 	qv_profile = zeros(nzz)
@@ -201,19 +204,20 @@ function IcePredictands(
 		#  !S_i = q_v(0)* p/p_si
 
 		#z_factor = 1.0 / 2.0 * (tanh( (zc[i, j, k] - zMin_issr) / (0.1 * sig_issr) ) - tanh( (zc[i, j, k] - zMax_issr) / (0.1 * sig_issr) ) )
-		S0 = S_issr * exp(- (zc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2) # full gaussian profile
+		#S0 = S_issr * exp(- (zc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2) # full gaussian profile
 
-		#if ((zc[i, j, k] >= zMin_issr) && (zc[i, j, k] <= zMax_issr))
-		#	S0 = S_issr * exp(- (zc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2)
-		#else
-		#	S0 = S0_ini
-		#end
+		if ((zc[i, j, k] >= zMin_issr) && (zc[i, j, k] <= zMax_issr))
+			S0 = S_issr * exp(- (zc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2)
+		else
+			S0 = S0_ini
+		end
 
 		qv0 = epsil0hat * S0 * psiMean / presMean # [kg/kg]
 
 		q0 = meanMassIce * n0
 
 		n[i, j, k] = rhoMean * n0 * mRef #\hat N = \hat \rho \hat n
+		nNuc[i, j, k] = rhoMean * n0 * mRef
 		qv[i, j, k] = rhoMean * qv0
 		q[i, j, k] = rhoMean * q0
 
@@ -226,12 +230,7 @@ function IcePredictands(
 
 	end
 
-	# print max value in vertical profile of qv
-	println("Max initial qv profile = ", maximum(qv[:,:,:]))
-	println("Max initial n profile = ", maximum(n[:,:,:]))
-	println("Max initial q profile = ", maximum(q[:,:,:]))
-
-	qv_profile .= qv[i0, j0, :]
+		qv_profile .= qv[i0, j0, :]
 
 	# safe vertical profile of qv
 	@views iceforcing.qv_ref .=  qv_profile
@@ -239,7 +238,5 @@ function IcePredictands(
 	# qv = 0 for debugging
 	#qv .= 0.0
 
-	#println("Initialized IcePredictands with ISSR as IC.")
-
-	return IcePredictands(n, q, qv)
+	return IcePredictands(n, nNuc, q, qv)
 end

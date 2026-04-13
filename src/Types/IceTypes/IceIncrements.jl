@@ -41,6 +41,7 @@ Construct an `IceIncrements` instance with zero-initialized arrays.
 """
 struct IceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dn::A
+    dnNuc::A
     dq::A
     dqv::A
 end
@@ -52,18 +53,20 @@ end
 
 function IceIncrements(domain::Domain, ice_setup::NoIce)::IceIncrements
     dn = zeros(0, 0, 0)
+    dnNuc = zeros(0, 0, 0)
     dq = zeros(0, 0, 0)
     dqv = zeros(0, 0, 0)
 
-    return IceIncrements(dn, dq, dqv)
+    return IceIncrements(dn, dnNuc, dq, dqv)
 end
 
 function IceIncrements(domain::Domain, ice_setup::AbstractIce)::IceIncrements
     (; nxx, nyy, nzz) = domain
 
     dn = zeros(nxx, nyy, nzz)
+    dnNuc = zeros(nxx, nyy, nzz)
     dq = zeros(nxx, nyy, nzz)
     dqv = zeros(nxx, nyy, nzz)
 
-    return IceIncrements(dn, dq, dqv)
+    return IceIncrements(dn, dnNuc, dq, dqv)
 end

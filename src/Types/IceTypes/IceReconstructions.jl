@@ -49,6 +49,7 @@ Construct an `IceReconstructions` instance with zero-initialized arrays.
 """
 struct IceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     ntilde::A
+    nNuctilde::A
     qtilde::A
     qvtilde::A
 end
@@ -64,10 +65,11 @@ end
 
 function IceReconstructions(domain::Domain, ice_setup::NoIce)::IceReconstructions
     ntilde = zeros(0, 0, 0, 0, 0)
+    nNuctilde = zeros(0, 0, 0, 0, 0)
     qtilde = zeros(0, 0, 0, 0, 0)
     qvtilde = zeros(0, 0, 0, 0, 0)
 
-    return IceReconstructions(ntilde, qtilde, qvtilde)
+    return IceReconstructions(ntilde, nNuctilde, qtilde, qvtilde)
 end
 
 function IceReconstructions(
@@ -77,8 +79,9 @@ function IceReconstructions(
     (; nxx, nyy, nzz) = domain
 
     ntilde = zeros(nxx, nyy, nzz, 3, 2)
+    nNuctilde = zeros(nxx, nyy, nzz, 3, 2)
     qtilde = zeros(nxx, nyy, nzz, 3, 2)
     qvtilde = zeros(nxx, nyy, nzz, 3, 2)
 
-    return IceReconstructions(ntilde, qtilde, qvtilde)
+    return IceReconstructions(ntilde, nNuctilde, qtilde, qvtilde)
 end

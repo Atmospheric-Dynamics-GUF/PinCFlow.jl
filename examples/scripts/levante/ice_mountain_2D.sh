@@ -4,15 +4,20 @@
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=64
 #SBATCH --hint=nomultithread
-#SBATCH --time=0-03:00:00
+#SBATCH --time=0-02:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
+##SBATCH --array=0-1
 
 set -euo pipefail
 set -x
 
+export HDF5_USE_FILE_LOCKING=FALSE
+export ROMIO_LUSTRE_LOCKING=0
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
+
+RUN="1004_04"
 
 # Julia environment
 julia --project -e 'import Pkg; Pkg.instantiate()'
@@ -36,6 +41,6 @@ HDF5.API.set_libraries!(
 
 # Run
 srun --cpu_bind=verbose \
-     julia --project examples/scripts/ice_mountain_2D_u.jl \
-     8 1 16 1 \
-     > ice_mountain_2D_u.log 2>&1
+     julia --project exp/ice_mountain_2D.jl \
+     8 1 16 1\
+     > ice_mountain_2D_${RUN}.log 2>&1

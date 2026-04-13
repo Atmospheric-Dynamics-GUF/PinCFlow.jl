@@ -11,5 +11,5 @@ function IceTendencies2(domain::Domain, ice_setup::AbstractIce)
     dq2 = zeros(nxx, nyy, nzz)
     dqv2 = zeros(nxx, nyy, nzz)
 
-    return IceTendencies2(dn, dq, dqv)
+    return IceTendencies2(dn2, dq2, dqv2)
 end

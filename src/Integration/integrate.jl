@@ -101,6 +101,8 @@ function integrate(namelists::Namelists)
         state.namelists.output
     (; tref) = state.constants
     (; master) = state.domain
+    (; rhobar) = state.atmosphere
+    (; rho) = state.variables.predictands
 
     # Print information.
     if master
@@ -317,6 +319,7 @@ function integrate(namelists::Namelists)
 
         explicit_integration!(state, p0, 0.5 * dt, time, RHS())
 
+
         if master
             println("(4) Explicit integration of LHS over dt...")
             println("")
@@ -327,6 +330,7 @@ function integrate(namelists::Namelists)
         synchronize_compressible_atmosphere!(state, p0)
 
         explicit_integration!(state, p0, dt, time, LHS())
+
 
         if master
             println("(5) Implicit integration of RHS over dt/2...")
@@ -353,9 +357,10 @@ function integrate(namelists::Namelists)
         #               Enforce non-negativity of ice variables
         # --------------------------------------------------------------
 
-        (; n, q, qv) = state.ice.icepredictands
+        (; n, nNuc, q, qv) = state.ice.icepredictands
         
         clamp!(n, 0.0, Inf)
+        clamp!(nNuc, 0.0, Inf)
         clamp!(q, 0.0, Inf)
         clamp!(qv, 0.0, Inf)
 
@@ -379,7 +384,6 @@ function integrate(namelists::Namelists)
         #    println("")
         #end
 
-
         #--------------------------------------------------------------
         #                           Output
         #--------------------------------------------------------------
@@ -398,6 +402,20 @@ function integrate(namelists::Namelists)
                 end
             end
         end
+
+        #-------------------------------------------------------------
+        #              Adjust output interval
+        #-------------------------------------------------------------
+
+        #if !output_steps
+        #    if maximum(state.ice.iceauxiliaries.iaux2) > 1.0e-4
+        #        output_interval = 10.0
+        #        println("Output interval adjusted to ", output_interval, " seconds.")
+        #        println("")
+        #    else
+        #        (; output_interval) = state.namelists.output
+        #    end
+        #end
 
         #-------------------------------------------
         #              Abort criteria

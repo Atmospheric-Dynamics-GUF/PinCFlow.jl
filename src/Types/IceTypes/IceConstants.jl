@@ -24,6 +24,7 @@ struct IceConstants{A <: AbstractFloat}
     Li_hat:: A
 
     n :: A
+    nNuc :: A
     q :: A
     qv :: A
 
@@ -62,6 +63,7 @@ function IceConstants(constants::Constants)
     
     # units for dimensionalization predictands
     n = 1. / mRef 
+    nNuc = 1. / mRef
     q = 1.
     qv = 1.
 
@@ -84,6 +86,7 @@ function IceConstants(constants::Constants)
     L_hat,
     Li_hat,
     n,
+    nNuc,
     q,
     qv
     )

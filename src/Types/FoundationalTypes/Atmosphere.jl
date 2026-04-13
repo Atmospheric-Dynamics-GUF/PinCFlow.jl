@@ -464,8 +464,8 @@ function Atmosphere(
 			tbar = t0 - gamma_t * zc[i, j, k]
 
 			if gamma_t != 0.0
-				pbar[i, j, k] = p0 * (1.0 - gamma_t * zc[i, j, k] / t0)^power_t
-				thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(1 / power_t)
+				pbar[i, j, k] = p0 * (1.0 - gamma_t * zc[i, j, k] / t0)^power_t # pbar is here pressure
+				thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^kappa # changed to kappa
 			else
 				pbar[i, j, k] = p0 * exp(-zc[i, j, k] * sig / gamma / t0)
 				thetabar[i, j, k] = t0 * exp(kappa * sig / t0 * zc[i, j, k])
@@ -477,8 +477,8 @@ function Atmosphere(
 			if gamma_s != 0.0
 				pbar[i, j, k] =
 					ptrop *
-					(1.0 - gamma_s * (zc[i, j, k] - ztrop) / ttrop)^power_s
-				thetabar[i, j, k] = tbar * (ptrop / pbar[i, j, k])^(1 / power_s)
+					(1.0 - gamma_s * (zc[i, j, k] - ztrop) / ttrop)^power_s # pbar is here pressure
+				thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^kappa # changed to kappa and p0
 			else
 				pbar[i, j, k] =
 					ptrop * exp(-(zc[i, j, k] - ztrop) * sig / gamma / ttrop)
@@ -488,6 +488,7 @@ function Atmosphere(
 		end
 	end
 
+	pbar .= pbar.^(1.0 / gamma) # convert to mass-weighted potential temperature
 	rhobar .= pbar ./ thetabar
 
 	compute_n2!(namelists, constants, domain, grid, thetabar, n2)

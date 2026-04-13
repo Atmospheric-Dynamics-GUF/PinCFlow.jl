@@ -51,7 +51,7 @@ grid = GridNamelist(;
 )
 ice = IceNamelist(;
     tau_q_sink = tau_q_sink,
-	icesetup = IceOn(),
+	ice_setup = IceOn(),
 #	ice_test_case = MultipleWavePackets(),
 	dt_ice = 2.0,
 	nscx = 1,
