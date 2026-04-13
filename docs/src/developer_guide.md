@@ -294,7 +294,7 @@ in the root directory of the repository. To update the reference values for the 
 
 When you need to update the reference norms, please remember to also update the plots of the corresponding examples. Note that the exact results depend on the system and the level of parallelism you use. You may choose these freely.
 
-On [Levante](https://docs.dkrz.de/doc/levante/index.html), the default backend for HDF5.jl clashes with the file system. To run tests there, execute
+On [Levante](https://docs.dkrz.de/doc/levante/index.html), the default backend for HDF5.jl clashes with the file system. To run the tests there, execute
 
 ```shell
 julia --project=examples -e 'using Pkg; Pkg.develop(; path = ".")'
