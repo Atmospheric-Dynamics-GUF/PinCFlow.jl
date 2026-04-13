@@ -276,7 +276,7 @@ function propagate_rays!(
 
             # Update zonal position.
 
-            if x_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+            if x_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -300,7 +300,7 @@ function propagate_rays!(
 
             # Update meridional position.
 
-            if y_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+            if y_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -381,7 +381,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if x_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+                if x_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[r, i, j, k] =
@@ -399,7 +399,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if y_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+                if y_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
                     ddydt = cgry2 - cgry1
 
                     ddyray[r, i, j, k] =
