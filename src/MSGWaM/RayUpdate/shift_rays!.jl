@@ -198,7 +198,7 @@ end
 
 function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
-    (; z_size) = state.namelists.domain
+    (; z_size, npz) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; nray_wrk, nray, rays) = state.wkb
 
@@ -211,8 +211,8 @@ function shift_rays!(state::State, direction::Z)
             kray = get_next_half_level(i, j, zr, state)
 
             if kray != k
-                if abs(kray - k) > 1
-                    error("Error in shift_rays!: abs(kray - k) > 1!")
+                if abs(kray - k) > 1 && npz > 1
+                    error("Error in shift_rays!: abs(kray - k) > 1 && npz > 1!")
                 end
                 if k0 <= kray <= k1
                     nray[i, j, kray] += 1
