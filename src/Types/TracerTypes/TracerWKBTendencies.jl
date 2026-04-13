@@ -1,3 +1,10 @@
+"""
+```julia
+TracerWKBTendencies
+```
+
+Tracer tendencies due to gravity waves and turbulence.
+"""
 struct TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dchidt0::A
     dchidt1::A

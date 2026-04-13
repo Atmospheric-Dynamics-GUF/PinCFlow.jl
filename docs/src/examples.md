@@ -856,68 +856,6 @@ function wave_action_density(
            bhat(state, parameters, x, y, z)^2
 end
 
-function qtilde(x, y, z)
-    return max(
-        10.e-5,
-        real(
-            lturb^2.0 * (
-                m^2 / 2 * (
-                    abs(uhat(x, y, z))^2 + abs(vhat(x, y, z))^2 - real(
-                        (uhat(x, y, z)^2 + vhat(x, y, z)^2) *
-                        exp(2im * phi(x, y, z)),
-                    )
-                ) - (
-                    n2(x, y, z) +
-                    real(1im * m * bhat(x, y, z) * exp(1im * phi(x, y, z)))
-                )
-            ),
-        ),
-    )
-end
-
-function qtilde_wkb(x, y, z)
-    return max(
-        10.e-5,
-        real(
-            lturb^2.0 * (
-                m^2 / 2 * (abs(uhat(x, y, z))^2 + abs(vhat(x, y, z))^2) -
-                n2(x, y, z)
-            ),
-        ),
-    )
-end
-
-function qtilde(x, y, z)
-    return max(
-        10.e-5,
-        real(
-            lturb^2.0 * (
-                m^2 / 2 * (
-                    abs(uhat(x, y, z))^2 + abs(vhat(x, y, z))^2 - real(
-                        (uhat(x, y, z)^2 + vhat(x, y, z)^2) *
-                        exp(2im * phi(x, y, z)),
-                    )
-                ) - (
-                    n2(x, y, z) +
-                    real(1im * m * bhat(x, y, z) * exp(1im * phi(x, y, z)))
-                )
-            ),
-        ),
-    )
-end
-
-function qtilde_wkb(x, y, z)
-    return max(
-        10.e-5,
-        real(
-            lturb^2.0 * (
-                m^2 / 2 * (abs(uhat(x, y, z))^2 + abs(vhat(x, y, z))^2) -
-                n2(x, y, z)
-            ),
-        ),
-    )
-end
-
 ```
 
 that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets.

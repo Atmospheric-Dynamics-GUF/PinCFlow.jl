@@ -2,8 +2,6 @@
 
 using Pkg
 
-Pkg.activate("examples")
-
 using MPI
 using HDF5
 using CairoMakie
@@ -60,17 +58,17 @@ atmosphere = AtmosphereNamelist(;
         real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
 )
 
-turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
+turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme)
 
 output = OutputNamelist(;
-    output_variables = (:u, :v, :w, :rhop),
+    output_variables = [:u, :v, :w, :rhop],
     output_file = "wp-1d-turbulence.h5",
     tmax = 3600 * 5,
     output_interval = 360,
 )
 
 tracer = TracerNamelist(;
-    tracer_setup = TracerOn(),
+    tracer_setup = :TracerOn,
     initial_tracer = (x, y, z) ->
         real(chihat(x, y, z) * exp(1im * phi(x, y, z))) + z,
 )

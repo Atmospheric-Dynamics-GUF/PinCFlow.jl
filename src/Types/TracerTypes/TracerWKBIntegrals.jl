@@ -1,3 +1,10 @@
+"""
+```julia
+TracerWKBIntegrals
+```
+
+Integrals of ray-volume properties for tracer fluxes.
+"""
 struct TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     uchi0::A
     vchi0::A

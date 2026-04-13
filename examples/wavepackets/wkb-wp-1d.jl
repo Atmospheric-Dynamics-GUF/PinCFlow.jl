@@ -40,7 +40,7 @@ background = :Isothermal
 model = :Compressible
 coriolis_frequency = 1e-4
 
-atmosphere = AtmosphereNamelist(; background, coriolis_frequency, model)
+atmosphere = AtmosphereNamelist(; model, coriolis_frequency, background)
 domain = DomainNamelist(;
     x_size,
     y_size,
@@ -59,14 +59,14 @@ include("wave_packet_tools.jl")
 atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 
 domain =
-    DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz, nbz = 5)
+    DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
     save_ray_volumes = true,
-    output_variables = (:u, :v, :w, :rhop, :dchidt, :e, :chihat),
+    output_variables = [:u, :v, :w, :rhop, :dchidt, :e, :chihat],
     output_file = "wkb-wp-1d.h5",
-    tmax = 3600 * 5,
-    output_interval = 360,
+    tmax = 1., #3600 * 5,
+    output_interval = 1., #360,
 )
 
 # discretization = DiscretizationNamelist(; dtmax = 100)
@@ -74,16 +74,16 @@ output = OutputNamelist(;
 wkb = WKBNamelist(;
     use_saturation = false,
     nrz = 80,
-    wkb_mode = MultiColumn(),
+    wkb_mode = :MultiColumn,
     filter_order = 2,
-    filter_type = BoxFilter(),
+    filter_type = :BoxFilter,
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
-turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
+turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme)
 
 tracer = TracerNamelist(;
-    tracer_setup = TracerOn(),
+    tracer_setup = :TracerOn,
     leading_order_impact = true,
     next_order_impact = true,
     turbulence_impact = true,
