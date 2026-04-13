@@ -277,7 +277,7 @@ Moreover, every backslash used for LaTeX commands in equations has to be doubled
 PinCFlow.jl uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
 
 ```shell
-julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
+julia --project=docs -e 'using Pkg; Pkg.develop(; path = ".")'
 julia --project=docs docs/make.jl
 ```
 
@@ -288,11 +288,21 @@ in the root directory of the repository. The documentation will be generated in 
 PinCFlow.jl's tests run the example simulations with a few modified parameters (most notably a lower resolution) and check if the $L_2$ and $L_\infty$ norms of the resulting outputs agree with reference values (given a certain tolerance). For this purpose, the example scripts are directly read, modified and evaluated in the test environment. To run the tests, execute
 
 ```shell
-julia --project -e 'using Pkg; Pkg.test(; julia_args = `--check-bounds=auto`)'
+julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.test(; julia_args = `--check-bounds=auto`)'
 ```
 in the root directory of the repository. To update the reference values for the norms, run the tests after setting the variable `update_references` in `test/runtests.jl` to `true`.
 
 When you need to update the reference norms, please remember to also update the plots of the corresponding examples. Note that the exact results depend on the system and the level of parallelism you use. You may choose these freely.
+
+On [Levante](https://docs.dkrz.de/doc/levante/index.html), the default backend for HDF5.jl clashes with the file system. To run tests there, execute
+
+```shell
+julia --project=examples -e 'using Pkg; Pkg.develop(; path = ".")'
+source examples/levante/setup.sh
+julia --project=examples -e 'using Pkg; Pkg.test("PinCFlow"; julia_args = `--check-bounds=auto`)'
+```
+
+in the root directory of the repository.
 
 ## Creating new releases
 
