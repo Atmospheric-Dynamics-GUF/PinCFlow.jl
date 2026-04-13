@@ -50,7 +50,7 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `background::Symbol`: Atmospheric background.
 
-  - `buoyancy_frequency::Float64`: Buoyancy frequency if `background == StableStratification()`.
+  - `buoyancy_frequency::Float64`: Buoyancy frequency if `background == :StableStratification`.
 
   - `potential_temperature::Float64`: Reference potential temperature.
 
@@ -60,11 +60,11 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `coriolis_frequency::Float64`: Coriolis frequency of the ``f``-plane.
 
-  - `tropopause_height::Float64`: Height of the tropopause for `background == Realistic()` or `background == LapseRates()`.
+  - `tropopause_height::Float64`: Height of the tropopause for `background == :Realistic` or `background == :LapseRates`.
 
-  - `troposphere_lapse_rate::Float64`: Lapse rate in the troposphere for `background == LapseRates()`.
+  - `troposphere_lapse_rate::Float64`: Lapse rate in the troposphere for `background == :LapseRates`.
 
-  - `stratosphere_lapse_rate::Float64`: Lapse rate in the stratosphere for `background == LapseRates()`.
+  - `stratosphere_lapse_rate::Float64`: Lapse rate in the stratosphere for `background == :LapseRates`.
 
   - `initial_rhop::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to initialize the density fluctuations if `buoyancy_initialization == :initial_rhop`.
 
