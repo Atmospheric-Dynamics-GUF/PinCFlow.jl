@@ -27,6 +27,7 @@ function wave_packet(;
         y0 = 0.0,
         z0 = 20000.0,
         a0 = 0.05,
+        threedim = false,
     )
 
     background = :Realistic

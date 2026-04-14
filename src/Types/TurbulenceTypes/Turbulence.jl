@@ -76,6 +76,8 @@ struct Turbulence{
     E <: TurbulenceFluxes,
     F <: TurbulenceConstants,
     G <: TurbulenceDiffusionCoefficients,
+    H <: TurbulenceWKBIntegrals,
+    I <: TurbulenceWKBTendencies,
 }
     turbulencepredictands::A
     turbulenceincrements::B
@@ -84,6 +86,8 @@ struct Turbulence{
     turbulencefluxes::E
     turbulenceconstants::F
     turbulencediffusioncoefficients::G
+    turbulencewkbintegrals::H
+    turbulencewkbtendencies::I
 end
 
 function Turbulence(
@@ -109,6 +113,8 @@ function Turbulence(
     turbulenceconstants = TurbulenceConstants(constants)
     turbulencediffusioncoefficients =
         TurbulenceDiffusionCoefficients(turbulencepredictands)
+    turbulencewkbintegrals = TurbulenceWKBIntegrals(namelists, domain)
+    turbulencewkbtendencies = TurbulenceWKBTendencies(namelists, domain)
 
     return Turbulence(
         turbulencepredictands,
@@ -118,5 +124,7 @@ function Turbulence(
         turbulencefluxes,
         turbulenceconstants,
         turbulencediffusioncoefficients,
+        turbulencewkbintegrals,
+        turbulencewkbtendencies,
     )
 end

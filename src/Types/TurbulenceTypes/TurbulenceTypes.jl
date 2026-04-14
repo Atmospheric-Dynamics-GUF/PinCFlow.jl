@@ -27,6 +27,8 @@ include("TurbulenceReconstructions.jl")
 include("TurbulenceFluxes.jl")
 include("TurbulenceConstants.jl")
 include("TurbulenceDiffusionCoefficients.jl")
+include("TurbulenceWKBIntegrals.jl")
+include("TurbulenceWKBTendencies.jl")
 include("Turbulence.jl")
 
 export TurbulencePredictands,
@@ -36,5 +38,7 @@ export TurbulencePredictands,
     TurbulenceFluxes,
     TurbulenceConstants,
     TurbulenceDiffusionCoefficients,
+    TurbulenceWKBIntegrals,
+    TurbulenceWKBTendencies,
     Turbulence
 end

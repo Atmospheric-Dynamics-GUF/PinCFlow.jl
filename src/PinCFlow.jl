@@ -63,6 +63,7 @@ using .Examples
                 wave_packet(; x_size, y_size, z_size, keywords...)
                 wkb_mountain_wave(; x_size, y_size, z_size, keywords...)
                 wkb_wave_packet(; x_size, y_size, z_size, keywords...)
+                wp_3d(; x_size, y_size, z_size, keywords...)
             end
             return
         end
@@ -97,6 +98,7 @@ export cold_bubble,
     vortex,
     wave_packet,
     wkb_mountain_wave,
-    wkb_wave_packet
+    wkb_wave_packet,
+    wp_3d
 
 end

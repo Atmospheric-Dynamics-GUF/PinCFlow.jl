@@ -227,6 +227,8 @@ export DomainNamelist,
     TurbulenceIncrements,
     TurbulenceReconstructions,
     TurbulenceDiffusionCoefficients,
-    TurbulenceFluxes
+    TurbulenceFluxes,
+    TurbulenceWKBIntegrals,
+    TurbulenceWKBTendencies
 
 end

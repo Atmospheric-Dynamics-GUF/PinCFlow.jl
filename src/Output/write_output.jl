@@ -379,6 +379,25 @@ function write_output(
                         kk,
                     ] .* lref .^ 2 / tref
             end
+
+            if :dtkedt in output_variables
+                for field in fieldnames(TurbulenceWKBTendencies)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    @views file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(
+                            state.turbulence.turbulencewkbtendencies,
+                            field,
+                        )[
+                            ii,
+                            jj,
+                            kk,
+                        ] ./ tref .* uref .^ 2 ./
+                        (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                end
+            end
         end
 
         # Write WKB variables.

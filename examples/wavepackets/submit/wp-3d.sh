@@ -17,7 +17,7 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/wp-3d.jl 16 2 1 1>wp-3d.log 2>&1
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; wp_3d(; npx = 16, npy = 2, npz = 1)' &> wp-3d.log
 
 # Run the model on interactive partition.
 # mpiexec -n 27 julia examples/scripts/wp-3d.jl 3 3 3 1>wp-3d.log 2>&1

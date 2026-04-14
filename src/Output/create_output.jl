@@ -346,6 +346,21 @@ function create_output(state::State, machine_start_time::DateTime)
                     chunk = (cx, cy, cz, ct),
                 )
             end
+
+            if :dtkedt in output_variables
+                for field in fieldnames(TurbulenceWKBTendencies)
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
         end
 
         # Create datasets for WKB variables.

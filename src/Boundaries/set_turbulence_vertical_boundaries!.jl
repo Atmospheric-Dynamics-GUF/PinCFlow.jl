@@ -122,7 +122,7 @@ function set_turbulence_vertical_boundaries!(
             getfield(turbulencepredictands, field),
             namelists,
             domain,
-            -,
+            +,
         )
     end
 
@@ -191,7 +191,54 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
+    turbulence_scheme::Val{:TKEScheme},
 )
+    (; wkb_mode) = state.namelists.wkb
+    @dispatch_wkb_mode set_turbulence_vertical_boundaries!(
+        state,
+        variables,
+        Val(wkb_mode),
+    )
+    return
+end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)
+    (; namelists, domain) = state
+    (; turbulencewkbintegrals) = state.turbulence
+
+    for field in fieldnames(TurbulenceWKBIntegrals)
+        set_vertical_boundaries_of_field!(
+            getfield(turbulencewkbintegrals, field),
+            namelists,
+            domain,
+            +;
+            layers = (1, 1, 1),
+        )
+    end
+
+    return
+end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)
+    (; namelists, domain) = state
+    (; turbulencewkbtendencies) = state.turbulence
+
+    for field in fieldnames(TurbulenceWKBTendencies)
+        set_vertical_boundaries_of_field!(
+            getfield(turbulencewkbtendencies, field),
+            namelists,
+            domain,
+            +,
+        )
+    end
+
     return
 end

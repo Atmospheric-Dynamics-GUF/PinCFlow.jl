@@ -113,15 +113,3 @@ function qtilde(x, y, z)
         ),
     )
 end
-
-function qtilde_wkb(x, y, z)
-    return max(
-        10.e-5,
-        real(
-            lturb^2.0 * (
-                m^2 / 2 * (abs(uhat(x, y, z))^2 + abs(vhat(x, y, z))^2) -
-                n2(x, y, z)
-            ),
-        ),
-    )
-end

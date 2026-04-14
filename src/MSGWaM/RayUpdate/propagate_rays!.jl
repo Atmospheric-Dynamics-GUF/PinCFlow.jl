@@ -27,39 +27,47 @@ propagate_rays!(
 
 Integrate the wave-action-density and ray equations derived from 1D or 3D transient WKB theory.
 
-The updates of the RK tendencies for the phase-space position of each ray volume are given by
+The updates of the RK tendencies for the phase-space position and physical-space extents of each ray volume are given by
 
 ```math
 \\begin{align*}
-    q_r^x & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r} + k_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^x,\\\\
-    q_r^y & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r} + l_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^y,\\\\
-    q_r^z & \\rightarrow - \\Delta t \\frac{m_r \\left(\\hat{\\omega}_r^2 - f^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} + \\alpha_\\mathrm{RK} q_r^z,\\\\
-    q_r^k & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^k,\\\\
-    q_r^l & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^l,\\\\
-    q_r^m & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_r - \\frac{k_r^2 + l_r^2}{2 \\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^m
+    q_r^x & \\rightarrow \\Delta t \\frac{c_{\\mathrm{g}, x, r+} + c_{\\mathrm{g}, x, r-}}{2} + \\alpha_\\mathrm{RK} q_r^x,\\\\
+    q_r^y & \\rightarrow \\Delta t \\frac{c_{\\mathrm{g}, y, r+} + c_{\\mathrm{g}, y, r-}}{2} + \\alpha_\\mathrm{RK} q_r^y,\\\\
+    q_r^z & \\rightarrow \\Delta t \\frac{c_{\\mathrm{g}, z, r+} + c_{\\mathrm{g}, z, r-}}{2} + \\alpha_\\mathrm{RK} q_r^z,\\\\
+    q_r^k & \\rightarrow \\Delta t \\dot{k}_r + \\alpha_\\mathrm{RK} q_r^k,\\\\
+    q_r^l & \\rightarrow \\Delta t \\dot{l}_r + \\alpha_\\mathrm{RK} q_r^l,\\\\
+    q_r^m & \\rightarrow \\Delta t \\dot{m}_r + \\alpha_\\mathrm{RK} q_r^m,\\\\
+    q_r^{\\Delta x} & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r+} - u_{\\mathrm{b}, r-}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta x},\\\\
+    q_r^{\\Delta y} & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r+} - v_{\\mathrm{b}, r-}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta y},\\\\
+    q_r^{\\Delta z} & \\rightarrow \\Delta t \\left(c_{\\mathrm{g} z, r+} - c_{\\mathrm{g} z, r-}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta z},
 \\end{align*}
 ```
 
-and the position update is
+with
+
+
+```math
+\\begin{align*}
+    c_{\\mathrm{g}, x, r\\pm} & = u_{\\mathrm{b}, r\\pm} + k_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    c_{\\mathrm{g}, y, r\\pm} & = v_{\\mathrm{b}, r\\pm} + l_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    c_{\\mathrm{g}, z, r\\pm} & = - \\frac{m_r \\left(\\hat{\\omega}_{r\\pm}^2 - f^2\\right)}{\\hat{\\omega}_{r\\pm} \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    \\dot{k}_r & = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_r,\\\\
+    \\dot{l}_r & = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_r,\\\\
+    \\dot{m}_r & = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_r + \\frac{k_r^2 + l_r^2}{2 \\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_r.
+\\end{align*}
+```
+
+Therein, ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. More specifically, ``u_{\\mathrm{b}, r\\pm}``, ``v_{\\mathrm{b}, \\pm}``, and ``\\hat{\\omega}_{r\\pm}`` represent ``u_{\\mathrm{b}}`` interpolated to ``x_r \\pm \\Delta x_r / 2``, ``v_{\\mathrm{b}}`` interpolated to ``y_r \\pm \\Delta y_r / 2``, and ``\\hat{\\omega} \\left(\\boldsymbol{k}_r, N_{r\\pm}^2\\right)``, respectively, where ``N_{r\\pm}^2`` denotes ``N^2`` interpolated to ``z_r \\pm \\Delta z_r / 2``. The updates for the phase-space positions and physical-space extents are then given by
 
 ```math
 \\begin{align*}
     x_r & = x_r + \\beta_\\mathrm{RK} q_r^x, & y_r & \\rightarrow y_r + \\beta_\\mathrm{RK} q_r^y, & z_r & \\rightarrow z_r + \\beta_\\mathrm{RK} q_r^z,\\\\
-    k_r & \\rightarrow k_r + \\beta_\\mathrm{RK} q_r^k, & l_r & \\rightarrow l_r + \\beta_\\mathrm{RK} q_r^l, & m_r & \\rightarrow m_r + \\beta_\\mathrm{RK} q_r^m,
+    k_r & \\rightarrow k_r + \\beta_\\mathrm{RK} q_r^k, & l_r & \\rightarrow l_r + \\beta_\\mathrm{RK} q_r^l, & m_r & \\rightarrow m_r + \\beta_\\mathrm{RK} q_r^m,\\\\
+    \\Delta x_r & \\rightarrow \\Delta x_r + \\beta_\\mathrm{RK} q_r^{\\Delta x}, & \\Delta y_r & \\rightarrow \\Delta y_r + \\beta_\\mathrm{RK} q_r^{\\Delta y}, & \\Delta z_r & \\rightarrow \\Delta z_r + \\beta_\\mathrm{RK} q_r^{\\Delta z}.
 \\end{align*}
 ```
 
-where the subscript ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition, MS-GWaM updates the ray-volume extents, following
-
-```math
-\\begin{align*}
-    q_r^{\\Delta x} & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r, +} - u_{\\mathrm{b}, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta x}, & \\Delta x_r & \\rightarrow \\Delta x_r + \\beta_\\mathrm{RK} q_r^{\\Delta x},\\\\
-    q_r^{\\Delta y} & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r, +} - v_{\\mathrm{b}, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta y}, & \\Delta y_r & \\rightarrow \\Delta y_r + \\beta_\\mathrm{RK} q_r^{\\Delta y},\\\\
-    q_r^{\\Delta z} & \\rightarrow \\Delta t \\left(c_{\\mathrm{g} z, r, +} - c_{\\mathrm{g} z, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta z}, & \\Delta z_r & \\rightarrow \\Delta z_r + \\beta_\\mathrm{RK} q_r^{\\Delta z},
-\\end{align*}
-```
-
-where ``u_{\\mathrm{b}, r, \\pm}`` is the interpolation of ``u_\\mathrm{b}`` to ``x_{r, \\pm} = x_r \\pm \\Delta x_r / 2`` (from before the position update) and ``v_{\\mathrm{b}, r, \\pm}`` is the equivalent for ``v_\\mathrm{b}`` in ``y``-direction. In the computation of ``c_{\\mathrm{g} z, r, \\pm}``, the intrinsic frequency and squared buoyancy frequency are interpolated to ``z_{r, \\pm} = z_r \\pm \\Delta z_r / 2`` (also from before the position update). The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the update of the phase-space wave-action density reads
+The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the update of the phase-space wave-action density reads
 
 ```math
 \\mathcal{N}_r \\rightarrow \\left(1 + 2 \\alpha_{\\mathrm{R}, r} f_\\mathrm{RK} \\Delta t\\right)^{- 1} \\mathcal{N}_r,
@@ -67,7 +75,15 @@ where ``u_{\\mathrm{b}, r, \\pm}`` is the interpolation of ``u_\\mathrm{b}`` to 
 
 where ``\\alpha_{\\mathrm{R}, r}`` is the interpolation of the Rayleigh-damping coefficient to the updated ray-volume position, obtained from `interpolate_scalar`.
 
-The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation.
+The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation, following
+
+```math
+\\begin{align*}
+    c_{\\mathrm{g}, x, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, x, r+},  c_{\\mathrm{g}, x, r-}\\right\\},\\\\
+    c_{\\mathrm{g}, y, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, y, r+}, c_{\\mathrm{g}, y, r-}\\right\\},\\\\
+    c_{\\mathrm{g}, z, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, z, r+}, c_{\\mathrm{g}, z, r-}\\right\\}.
+\\end{align*}
+```
 
 ```julia
 propagate_rays!(
@@ -179,7 +195,7 @@ function propagate_rays!(
         dpray,
     ) = state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde) = state.grid
+    (; lz, zctilde, dx, dy, dzcmin) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
     (; alphar) = state.sponge
 
@@ -189,7 +205,8 @@ function propagate_rays!(
     kmin = ko == 0 ? k0 - 1 : k0
     kmax = k1
 
-    # Initialize WKB increments at the first RK stage.
+    # Initialize the WKB increments and maximum group velocities at the first
+    # RK stage.
     @ivy if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
@@ -205,14 +222,13 @@ function propagate_rays!(
                 dpray[r, i, j, k] = 0.0
             end
         end
+
+        cgx_max[] = 0.0
+        cgy_max[] = 0.0
+        cgz_max[] = 0.0
     end
 
-    cgx_max[] = 0.0
-    cgy_max[] = 0.0
-    @ivy cgz_max[i0:i1, j0:j1, kmin:kmax] .= 0.0
-
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
-        nskip = 0
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
@@ -310,7 +326,12 @@ function propagate_rays!(
                     dt * f + alphark[rkstage] * dxray[r, i, j, k]
                 rays.x[r, i, j, k] += betark[rkstage] * dxray[r, i, j, k]
 
-                cgx_max[] = max(cgx_max[], abs(cgrx))
+                cgx_max[] = max(cgx_max[], abs(cgrx1), abs(cgrx2))
+            end
+
+            if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
+               abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
+                error("Error in propagate_rays!: Rays travel too far in x!")
             end
 
             # Update meridional position.
@@ -329,7 +350,12 @@ function propagate_rays!(
                     dt * f + alphark[rkstage] * dyray[r, i, j, k]
                 rays.y[r, i, j, k] += betark[rkstage] * dyray[r, i, j, k]
 
-                cgy_max[] = max(cgy_max[], abs(cgry))
+                cgy_max[] = max(cgy_max[], abs(cgry1), abs(cgry2))
+            end
+
+            if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
+               abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
+                error("Error in propagate_rays!: Rays travel too far in y!")
             end
 
             # Update vertical position.
@@ -343,7 +369,12 @@ function propagate_rays!(
             dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
             rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-            cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(cgrz))
+            cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
+
+            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
+               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
+                error("Error in propagate_rays!: Rays travel too far in z!")
+            end
 
             # Refraction is only allowed above impact_altitude / lref.
 
@@ -435,16 +466,6 @@ function propagate_rays!(
 
                 rays.dmray[r, i, j, k] = azm / rays.dzray[r, i, j, k]
             end
-        end
-
-        if nskip > 0
-            println(
-                nskip,
-                " out of ",
-                nray[i, j, k],
-                " ray volumes have been skipped in propagate_rays!!",
-            )
-            println("")
         end
     end
 
