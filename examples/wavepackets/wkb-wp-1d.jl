@@ -2,11 +2,8 @@
 
 using Pkg
 
-Pkg.activate("examples")
-
 using MPI
 using HDF5
-using CairoMakie
 using Revise
 using PinCFlow
 
@@ -30,7 +27,7 @@ x0 = 0.0
 y0 = 0.0
 z0 = 20e3
 
-a0 = 0.9
+a0 = 2.0
 
 k = 2 * pi / 30e3
 l = 2 * pi / 30e3
@@ -63,10 +60,10 @@ domain =
 
 output = OutputNamelist(;
     save_ray_volumes = true,
-    output_variables = [:u, :v, :w, :rhop, :dchidt, :e, :chihat],
+    output_variables = [:u, :v, :w, :rhop, :e, :dtkedt, :dchidt],
     output_file = "wkb-wp-1d.h5",
-    tmax = 1., #3600 * 5,
-    output_interval = 1., #360,
+    tmax = 3600,
+    output_interval = 360,
 )
 
 # discretization = DiscretizationNamelist(; dtmax = 100)

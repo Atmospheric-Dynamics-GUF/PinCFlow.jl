@@ -1,6 +1,6 @@
-function compute_turbulent_tracer_fluxes! end
+function compute_gw_turbulence_integrals! end
 
-function compute_turbulent_tracer_fluxes!(
+function compute_gw_turbulence_integrals!(
     state::State,
     factor::AbstractFloat,
     r::Integer,
@@ -14,11 +14,11 @@ function compute_turbulent_tracer_fluxes!(
     jray::Integer,
     kray::Integer,
 )
-    (; tracer_setup) = state.namelists.tracer
+    (; turbulence_scheme) = state.namelists.turbulence
 
-    @dispatch_tracer_setup compute_turbulent_tracer_fluxes!(
+    @dispatch_turbulence_scheme compute_gw_turbulence_integrals!(
         state,
-        Val(tracer_setup),
+        Val(turbulence_scheme),
         factor,
         r,
         i,
@@ -35,9 +35,9 @@ function compute_turbulent_tracer_fluxes!(
     return
 end
 
-function compute_turbulent_tracer_fluxes!(
+function compute_gw_turbulence_integrals!(
     state::State,
-    tracer_setup::Val{:NoTracer},
+    turbulence_scheme::Val{:NoTurbulence},
     factor::AbstractFloat,
     r::Integer,
     i::Integer,
@@ -53,9 +53,9 @@ function compute_turbulent_tracer_fluxes!(
     return
 end
 
-function compute_turbulent_tracer_fluxes!(
+function compute_gw_turbulence_integrals!(
     state::State,
-    tracer_setup::Val{:TracerOn},
+    turbulence_scheme::Val{:TKEScheme},
     factor::AbstractFloat,
     r::Integer,
     i::Integer,
@@ -68,13 +68,13 @@ function compute_turbulent_tracer_fluxes!(
     jray::Integer,
     kray::Integer,
 )
-    (; rays, integrals) = state.wkb
+    (; rays) = state.wkb
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; qchi) = state.tracer.tracerwkbintegrals
-    (; rhobar, thetabar) = state.atmosphere
-    (; tref, kappa) = state.constants
+    (; shear) = state.turbulence.turbulencewkbintegrals
+    (; rhobar) = state.atmosphere
+    (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
-    (; lb) = state.turbulence.turbulenceconstants
+    (; lv) = state.turbulence.turbulenceconstants
 
     rhob = rhobar[iray, jray, kray]
     kr = rays.k[r, i, j, k]
@@ -100,7 +100,7 @@ function compute_turbulent_tracer_fluxes!(
     end
 
     n2r = interpolate_stratification(zr, state, N2())
-    q10 = compute_q(state, r, i, j, k, 1.0)
+    q00 = compute_q(state, r, i, j, k, 0.0)
     bhat0 = sqrt(
         n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * wadr / omir / rhob,
     )
@@ -108,28 +108,8 @@ function compute_turbulent_tracer_fluxes!(
         1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
         (kr * omir + 1im * fc * lr) *
         bhat0
-    vhat0 =
-        1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
-        (lr * omir - 1im * fc * kr) *
-        bhat0
-    what0 = 1im * omir / n2r * bhat0
-    pihat0 =
-        1im / mr * (omir^2 - n2r^2) / n2r * bhat0 / thetabar[iray, jray, kray] * kappa
 
-    dchidx = interpolate_mean_flow(xr, yr, zr, state, DChiDX())
-    dchidy = interpolate_mean_flow(xr, yr, zr, state, DChiDY())
-    dchidz = interpolate_mean_flow(xr, yr, zr, state, DChiDZ())
-
-    chihat1 = -1im / omir * (uhat0 * dchidx + vhat0 * dchidy + what0 * dchidz)
-
-    qchi[iray, jray, kray] += lb * imag(mr * conj(q10) * chihat1) * factor
-
-    integrals.uhat[iray, jray, kray] += uhat0 * factor
-    integrals.vhat[iray, jray, kray] += vhat0 * factor
-    integrals.what[iray, jray, kray] += what0 * factor
-    integrals.bhat[iray, jray, kray] += bhat0 * factor
-    integrals.pihat[iray, jray, kray] += pihat0 * factor
-    integrals.chihat[iray, jray, kray] += chihat1 * factor
-
+    shear[iray, jray, kray] += lv * abs(q00) * mr^2 * abs(uhat0)^2 / 2 * factor
+ 
     return
 end

@@ -26,6 +26,7 @@ using ..RayUpdate
 using ...Types
 using ...Boundaries
 using ...PinCFlow
+using ..Smoothing
 
 """
 ```julia
@@ -62,9 +63,10 @@ include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")
 include("compute_horizontal_cell_indices.jl")
 include("compute_mean_flow_effect!.jl")
-include("smooth_gw_tendencies!.jl")
 include("backup_wave_amplitudes!.jl")
 include("compute_next_order_tracer_fluxes!.jl")
+include("set_turbulence_fields_zero!.jl")
+include("compute_gw_turbulence_tendencies!.jl")
 
 export compute_mean_flow_effect!
 

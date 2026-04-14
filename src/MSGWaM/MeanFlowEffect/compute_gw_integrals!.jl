@@ -116,8 +116,9 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     end
 
     set_tracer_field_zero!(state)
+    set_turbulence_field_zero!(state)
 
-    @dispatch_tracer_setup @ivy for k in (k0 - 1):(k1 + 1),
+    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -275,6 +276,21 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
                         end
 
                         integrals.e[iray, jray, kray] += wadr * omir
+
+                        compute_gw_turbulence_integrals!(
+                            state,
+                            factor,
+                            r,
+                            i,
+                            j,
+                            k,
+                            xr,
+                            yr,
+                            zr,
+                            iray,
+                            jray,
+                            kray,
+                        )
 
                         compute_turbulent_tracer_fluxes!(
                             state,

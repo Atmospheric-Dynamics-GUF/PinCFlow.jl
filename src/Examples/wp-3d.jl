@@ -75,11 +75,15 @@ function wp_3d(;
         output_variables = [:u, :v, :w, :rhop],
         output_file,
         prepare_restart,
-        tmax = 100.0,
-        output_interval = 100.0,
+        tmax = 1000.0,
+        output_interval = 1000.0,
     )
 
     discretization = DiscretizationNamelist(; dtmax = 100)
+
+    sponge = SpongeNamelist(;
+        lhs_sponge = (x, y, z, t, dt) -> alpharmax * exp((z - lz) / dzr),
+    )
 
     turbulence = TurbulenceNamelist(;
         turbulence_scheme = :NoTurbulence,
@@ -93,8 +97,7 @@ function wp_3d(;
                             (
                                 uhat(state, parameters, x, y, z)^2 +
                                 vhat(state, parameters, x, y, z)^2
-                            ) *
-                            exp(2im * phi(parameters, x, y, z)),
+                            ) * exp(2im * phi(parameters, x, y, z)),
                         )
                     ) - (
                         n2(state, x, y, z) + real(
@@ -127,7 +130,7 @@ function wp_3d(;
             domain,
             output,
             tracer,
-            # sponge,
+            sponge,
             turbulence,
             discretization,
         ),

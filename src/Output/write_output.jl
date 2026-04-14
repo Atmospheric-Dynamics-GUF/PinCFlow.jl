@@ -394,8 +394,7 @@ function write_output(
                             ii,
                             jj,
                             kk,
-                        ] ./ tref .* uref .^ 2 ./
-                        (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                        ] .* uref .^ 2 ./ tref
                 end
             end
         end
@@ -406,6 +405,12 @@ function write_output(
                 HDF5.set_extent_dims(file["e"], (x_size, y_size, z_size, iout))
                 file["e"][iid, jjd, kkd, iout] =
                     state.wkb.integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2.0
+            end
+
+            if :uhat in output_variables
+                HDF5.set_extent_dims(file["uhat"], (x_size, y_size, z_size, iout))
+                file["uhat"][iid, jjd, kkd, iout] =
+                    abs.(state.wkb.integrals.uhat[ii, jj, kk]) .* uref
             end
 
             # Write ray-volume properties.

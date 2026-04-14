@@ -2,8 +2,6 @@
 
 using Pkg
 
-Pkg.activate("examples")
-
 using MPI
 using HDF5
 using CairoMakie
@@ -30,11 +28,14 @@ x0 = 0.0
 y0 = 0.0
 z0 = 30e3
 
-a0 = 0.5
+a0 = 2
 
 k = 0
 l = 2 * pi / 300e3
 m = 2 * pi / 3e3
+
+dzr = lz / 10
+alpharmax = 0.0179
 
 background = :Isothermal
 model = :Compressible
@@ -62,16 +63,20 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
     save_ray_volumes = false,
-    output_variables = (:u, :v, :w, :rhop, :dchidt, :e),
+    output_variables = [:u, :v, :w, :rhop, :dchidt, :e, :dtkedt],
     output_file = "wkb-wp-3d.h5",
     tmax = 1000.0,
     output_interval = 1000.0,
 )
 
+ sponge = SpongeNamelist(;
+    lhs_sponge = (x, y, z, t, dt) -> alpharmax * exp((z - lz) / dzr),
+)
+
 wkb = WKBNamelist(;
     use_saturation = false,
     nrz = 1,
-    wkb_mode = MultiColumn(),
+    wkb_mode = :MultiColumn,
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
     turbulence_damping = true,
@@ -79,14 +84,15 @@ wkb = WKBNamelist(;
 
 discretization = DiscretizationNamelist(; dtmax = 100)
 
-turbulence = TurbulenceNamelist(; turbulence_scheme = TKEScheme())
+turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme)
 
 tracer = TracerNamelist(;
-    tracer_setup = TracerOn(),
+    tracer_setup = :TracerOn,
     leading_order_impact = true,
     next_order_impact = false,
-    turbulence_impact = false,
+    turbulence_impact = true,
     initial_tracer = (x, y, z) -> z,
+    background_tracer = (x, y, z) -> z,
 )
 
 integrate(
@@ -98,5 +104,6 @@ integrate(
         tracer,
         turbulence,
         discretization,
+        sponge,
     ),
 )

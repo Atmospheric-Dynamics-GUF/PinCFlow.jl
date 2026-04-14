@@ -188,6 +188,7 @@ function smooth_gw_tendencies!(state::State)
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
+    (; turbulence_scheme) = state.namelists.turbulence
 
     if !smooth_tendencies
         return
@@ -212,6 +213,7 @@ function smooth_gw_tendencies!(state::State)
     end
 
     @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
+    @dispatch_turbulence_scheme smooth_gw_tendencies!(state, Val(turbulence_scheme))
 
     return
 end
@@ -485,5 +487,32 @@ function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
 end
 
 function smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})
+    return
+end
+
+
+function smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:TKEScheme})
+    (; x_size, y_size) = state.namelists.domain
+    (; smooth_tendencies, filter_type) = state.namelists.wkb
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+
+    if !smooth_tendencies
+        return
+    end
+
+    @dispatch_filter_type if x_size == y_size == 1
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), Z())
+    elseif x_size == 1
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), YZ())
+    elseif y_size == 1
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XZ())
+    else
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XYZ())
+    end
+
+    return
+end
+
+function smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:NoTurbulence})
     return
 end

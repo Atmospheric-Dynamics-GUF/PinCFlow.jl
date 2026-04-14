@@ -148,7 +148,7 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, P, Chi},
+    variable::Union{U, V, W, P, Chi, TKE},
 )::AbstractFloat
     (; wkb_mode) = state.namelists.wkb
 
@@ -279,6 +279,44 @@ function compute_volume_force(
     j::Integer,
     k::Integer,
     variables::TKE,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)::AbstractFloat
+    (; shearproduction, buoyancyproduction) =
+        state.turbulence.turbulenceauxiliaries
+    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
+    (; rho) = state.variables.predictands
+    (; rhobar, n2) = state.atmosphere
+    (; jac, dz) = state.grid
+    (; g_ndim) = state.constants
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+
+    shear =
+        km[i, j, k] * (
+            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
+            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
+        )
+
+    shearproduction[i, j, k] = shear
+
+    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
+    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
+
+    buoyancy =
+        -kh[i, j, k] * (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+
+    buoyancyproduction[i, j, k] = buoyancy
+
+    return (rho[i, j, k] + rhobar[i, j, k]) *
+           (shear + buoyancy + dtkedt[i, j, k])
+end
+
+function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     (; shearproduction, buoyancyproduction) =
         state.turbulence.turbulenceauxiliaries

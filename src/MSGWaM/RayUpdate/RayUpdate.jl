@@ -26,62 +26,9 @@ using ..BoundaryRays
 using ..Interpolation
 using ..RayOperations
 using ..RaySources
+using ..Smoothing
 using ...Types
 using ...PinCFlow
-
-"""
-```julia
-X
-```
-
-Singleton for dispatch to operations in ``x``-direction.
-"""
-struct X end
-
-"""
-```julia
-Y
-```
-
-Singleton for dispatch to operations in ``y``-direction.
-"""
-struct Y end
-
-"""
-```julia
-Z
-```
-
-Singleton for dispatch to operations in ``z``-direction.
-"""
-struct Z end
-
-"""
-```julia
-XZ
-```
-
-Singleton for dispatch to operations in ``x``- and ``z``-direction.
-"""
-struct XZ end
-
-"""
-```julia
-YZ
-```
-
-Singleton for dispatch to operations in ``y``- and ``z``-direction.
-"""
-struct YZ end
-
-"""
-```julia
-XYZ
-```
-
-Singleton for dispatch to operations in all directions.
-"""
-struct XYZ end
 
 include("apply_saturation_scheme!.jl")
 include("initialize_rays!.jl")
@@ -92,10 +39,7 @@ include("split_rays!.jl")
 include("compute_turbulent_damping.jl")
 include("compute_q.jl")
 include("compute_turbulent_tracer_fluxes!.jl")
-include("smooth_gw_amplitudes!.jl")
-include("apply_shapiro_filter!.jl")
-
-export X, Y, Z, XZ, YZ, XYZ
+include("compute_gw_turbulence_integrals!.jl")
 
 export apply_saturation_scheme!,
     initialize_rays!,
@@ -105,7 +49,6 @@ export apply_saturation_scheme!,
     split_rays!,
     compute_q,
     compute_turbulent_tracer_fluxes!,
-    smooth_gw_amplitudes!,
-    apply_shapiro_filter!
+    compute_gw_turbulence_integrals!
 
 end

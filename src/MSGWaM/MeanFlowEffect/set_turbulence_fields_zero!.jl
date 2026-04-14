@@ -3,7 +3,7 @@
 set_turbulence_field_zero!(state)
 ```
 
-Reset the gravity-wave-induced tracer fluxes to zero by dispatching over tracer configurations.
+Reset the gravity-wave-induced turbulence fluxes to zero by dispatching over turbulence configurations.
 
 ```julia
 set_turbulence_field_zero!(state::State, tracer_setup::Val{:NoTracer})
@@ -26,7 +26,7 @@ Set the gravity-wave-induced tracer fluxes to zero.
 function set_turbulence_field_zero! end
 
 function set_turbulence_field_zero!(state::State)
-    (; turbulence_scheme) = state.namelists.tracer
+    (; turbulence_scheme) = state.namelists.turbulence
 
     @dispatch_turbulence_scheme set_turbulence_field_zero!(state, Val(turbulence_scheme))
 
@@ -38,7 +38,7 @@ function set_turbulence_field_zero!(state::State, turbulence_scheme::Val{:NoTurb
 end
 
 function set_turbulence_field_zero!(state::State, turbulence_scheme::Val{:TKEScheme})
-    (; turbulencewkbtendencies, turbulencewkbintegrals) = state.tracer
+    (; turbulencewkbtendencies, turbulencewkbintegrals) = state.turbulence
 
     for field in fieldnames(TurbulenceWKBTendencies)
         getfield(turbulencewkbtendencies, field) .= 0.0

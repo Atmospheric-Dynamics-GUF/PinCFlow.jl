@@ -167,7 +167,7 @@ function set_turbulence_zonal_boundaries!(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
-    (; turbulencewkbintegrals) = state.tracer
+    (; turbulencewkbintegrals) = state.turbulence
 
     for field in fieldnames(TurbulenceWKBIntegrals)
         set_zonal_boundaries_of_field!(

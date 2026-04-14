@@ -76,8 +76,8 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = [:u, :v, :w, :rhop],
     output_file = "wp-3d.h5",
-    tmax = 100.0,
-    output_interval = 100.0,
+    tmax = 1000.0,
+    output_interval = 1000.0,
 )
 
 discretization = DiscretizationNamelist(; dtmax = 100)
@@ -87,9 +87,9 @@ turbulence = TurbulenceNamelist(;
     initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
 )
 
-# sponge = SpongeNamelist(;
-#     lhs_sponge = (x, y, z, t, dt) -> alpharmax * exp((z - lz) / dzr),
-# )
+sponge = SpongeNamelist(;
+    lhs_sponge = (x, y, z, t, dt) -> alpharmax * exp((z - lz) / dzr),
+)
 
 tracer = TracerNamelist(;
     tracer_setup = :TracerOn,
@@ -105,7 +105,7 @@ integrate(
         domain,
         output,
         tracer,
-        # sponge,
+        sponge,
         turbulence,
         discretization,
     ),

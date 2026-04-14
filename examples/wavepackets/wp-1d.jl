@@ -28,7 +28,7 @@ x0 = 0.0
 y0 = 0.0
 z0 = 20e3
 
-a0 = 0.9
+a0 = 2.0
 
 k = 2 * pi / 30e3
 l = 2 * pi / 30e3
@@ -42,6 +42,7 @@ atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
+(; lturb) = auxiliary_state.turbulence.turbulenceconstants
 
 include("wave_packet_tools.jl")
 
@@ -58,12 +59,15 @@ atmosphere = AtmosphereNamelist(;
         real(pihat(x, y, z) * exp(1im * phi(x, y, z))),
 )
 
-turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme)
+turbulence = TurbulenceNamelist(;
+    turbulence_scheme = :TKEScheme,
+    initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
+)
 
 output = OutputNamelist(;
     output_variables = [:u, :v, :w, :rhop],
-    output_file = "wp-1d-turbulence.h5",
-    tmax = 3600 * 5,
+    output_file = "wp-1d.h5",
+    tmax = 3600,
     output_interval = 360,
 )
 
@@ -73,6 +77,4 @@ tracer = TracerNamelist(;
         real(chihat(x, y, z) * exp(1im * phi(x, y, z))) + z,
 )
 
-integrate(
-    Namelists(; atmosphere, domain, output, tracer, turbulence),
-)
+integrate(Namelists(; atmosphere, domain, output, tracer, turbulence))
