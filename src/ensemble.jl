@@ -12,13 +12,16 @@ Run `simulation` in an ensemble.
   - `parameters`: Keyword arguments for `simulation`, which have different values for different ensemble members. Each entry of `parameters` must be a tuple of ensemble values for the keyword argument represented by the key. One of the keys must be `:output_file`.
 
   - `keywords`: Keyword arguments for `simulation`, which have the same values for all ensemble members.
+
+  - `delay`: Delay (in seconds) before the first exception is rethrown.
 """
 function ensemble end
 
 function ensemble(
     simulation::Function,
     parameters::NamedTuple,
-    keywords::NamedTuple,
+    keywords::NamedTuple;
+    delay::Real = 0,
 )
 
     # Check if the output file is one of the parameters.
@@ -34,6 +37,7 @@ function ensemble(
     # Run the simulations.
     reduce_exceptions(
         MPI.COMM_WORLD;
+        delay,
         info = "Ensemble member $(color) has thrown the following exception:",
     ) do
         open(
