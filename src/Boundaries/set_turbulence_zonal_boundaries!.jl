@@ -142,6 +142,14 @@ end
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Val{:NoTurbulence},
+)
+    return
+end
+
+function set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
     turbulence_scheme::Val{:TKEScheme},
 )
     (; wkb_mode) = state.namelists.wkb
@@ -150,14 +158,6 @@ function set_turbulence_zonal_boundaries!(
         variables,
         Val(wkb_mode),
     )
-    return
-end
-
-function set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
-)
     return
 end
 

@@ -97,7 +97,11 @@ function set_turbulence_vertical_boundaries!(
     variables::AbstractBoundaryVariables,
 )
     (; turbulence_scheme) = state.namelists.turbulence
-    @dispatch_turbulence_scheme set_turbulence_vertical_boundaries!(state, variables, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme set_turbulence_vertical_boundaries!(
+        state,
+        variables,
+        Val(turbulence_scheme),
+    )
     return
 end
 
@@ -185,6 +189,14 @@ function set_turbulence_vertical_boundaries!(
         end
     end
 
+    return
+end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Val{:NoTurbulence},
+)
     return
 end
 

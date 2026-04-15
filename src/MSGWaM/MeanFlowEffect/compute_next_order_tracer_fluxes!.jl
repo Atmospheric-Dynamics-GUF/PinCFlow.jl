@@ -35,6 +35,11 @@ function compute_next_order_tracer_fluxes!(
         state.wkb.wkbauxiliaries
     (; rho, pip) = state.variables.predictands
     (; uchi1, vchi1, wchi1) = state.tracer.tracerwkbintegrals
+    (; next_order_impact) = state.namelists.tracer
+
+    if next_order_impact == false
+        return
+    end
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref

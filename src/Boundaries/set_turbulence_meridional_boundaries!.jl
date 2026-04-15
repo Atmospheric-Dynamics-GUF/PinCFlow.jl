@@ -77,7 +77,11 @@ function set_turbulence_meridional_boundaries!(
     variables::AbstractBoundaryVariables,
 )
     (; turbulence_scheme) = state.namelists.turbulence
-    @dispatch_turbulence_scheme set_turbulence_meridional_boundaries!(state, variables, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme set_turbulence_meridional_boundaries!(
+        state,
+        variables,
+        Val(turbulence_scheme),
+    )
     return
 end
 
@@ -138,18 +142,18 @@ end
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
 
-function set_turbulence_meridionalboundaries!(
+function set_turbulence_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
     turbulence_scheme::Val{:TKEScheme},
 )
     (; wkb_mode) = state.namelists.wkb
-    @dispatch_wkb_mode set_turbulence_meridionalboundaries!(
+    @dispatch_wkb_mode set_turbulence_meridional_boundaries!(
         state,
         variables,
         Val(wkb_mode),
@@ -157,24 +161,16 @@ function set_turbulence_meridionalboundaries!(
     return
 end
 
-function set_turbulence_meridionalboundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
-)
-    return
-end
-
-function set_turbulence_meridionalboundaries!(
+function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
-    (; turbulencewkbintegrals) = state.tracer
+    (; turbulencewkbintegrals) = state.turbulence
 
     for field in fieldnames(TurbulenceWKBIntegrals)
-        set_meridionalboundaries_of_field!(
+        set_meridional_boundaries_of_field!(
             getfield(turbulencewkbintegrals, field),
             namelists,
             domain;
@@ -185,7 +181,7 @@ function set_turbulence_meridionalboundaries!(
     return
 end
 
-function set_turbulence_meridionalboundaries!(
+function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
@@ -194,7 +190,7 @@ function set_turbulence_meridionalboundaries!(
     (; turbulencewkbtendencies) = state.turbulence
 
     for field in fieldnames(TurbulenceWKBTendencies)
-        set_meridionalboundaries_of_field!(
+        set_meridional_boundaries_of_field!(
             getfield(turbulencewkbtendencies, field),
             namelists,
             domain;
