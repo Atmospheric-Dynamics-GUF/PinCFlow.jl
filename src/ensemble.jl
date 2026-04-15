@@ -28,11 +28,20 @@ function ensemble(
     !(:output_file in keys(parameters)) &&
         error("The parameter output_file must be assigned in ensembles!")
 
+    (; output_file) = parameters
+
+    # Check if there are duplicate output files.
+    for entry in output_file
+        sum(1 for other_entry in output_file if other_entry == entry) != 1 &&
+            error("There are duplicate output files!")
+    end
+
     # Initialize MPI and get the rank and split color.
     MPI.Init()
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
     color = rank % length(parameters[keys(parameters)[1]]) + 1
     base_comm = MPI.Comm_split(MPI.COMM_WORLD, color, rank)
+    child_rank = MPI.Comm_rank(base_comm)
 
     # Run the simulations.
     reduce_exceptions(
@@ -40,10 +49,11 @@ function ensemble(
         delay,
         info = "Ensemble member $(color) has thrown the following exception:",
     ) do
-        open(
-            replace(parameters[:output_file][color], r"\.h5$" => ".log"),
-            "w",
-        ) do io
+        child_rank == 0 && mkpath(dirname(output_file[color]))
+
+        MPI.Barrier(base_comm)
+
+        open(replace(output_file[color], r"\.h5$" => ".log"), "w") do io
             redirect_stdio(; stderr = io, stdout = io) do
                 simulation(;
                     NamedTuple(
