@@ -4,7 +4,7 @@ apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
-    limiter_type::MCVariant,
+    limiter_type::Val{:MCVariant},
 )
 ```
 
@@ -52,7 +52,7 @@ function apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
-    limiter_type::MCVariant,
+    limiter_type::Val{:MCVariant},
 )
 
     # Initialize phitilde.

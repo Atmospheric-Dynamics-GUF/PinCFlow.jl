@@ -13,7 +13,7 @@ function check_rays end
 
 function check_rays(state::State)
     (; x_size, y_size) = state.namelists.domain
-    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+    (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, x, y, zctilde) = state.grid
     (; nray, rays) = state.wkb
 

@@ -1,7 +1,7 @@
 """
 ```julia
 set_p(
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
 ```
@@ -12,7 +12,7 @@ In these cases, the mass-weighted potential temperature is a background field: c
 
 ```julia
 set_p(
-    model::Compressible,
+    model::Val{:Compressible},
     pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
 ```
@@ -30,14 +30,14 @@ In compressible mode, the mass-weighted potential temperature is a prognostic va
 function set_p end
 
 function set_p(
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
     return zeros(0, 0, 0)
 end
 
 function set_p(
-    model::Compressible,
+    model::Val{:Compressible},
     pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
     return copy(pbar)
