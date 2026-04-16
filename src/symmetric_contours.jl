@@ -1,11 +1,11 @@
 """
 ```julia
 symmetric_contours(
-    minimum::AbstractFloat,
-    maximum::AbstractFloat;
+    minimum::Real,
+    maximum::Real;
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
-)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
+)::Tuple{<:LinRange{<:Real, <:Integer}, <:Any}
 ```
 
 Compute symmetric contours levels and return them and a correspondingly indexed colormap.

@@ -66,7 +66,7 @@ function wkb_mountain_wave(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, ("nr", 20, 20, 10, 2))
+            plot_output(plot_file, data, ("nr", 0, 20, 20, 10, 2))
             return
         end
     end
