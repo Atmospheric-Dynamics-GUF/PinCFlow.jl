@@ -160,11 +160,11 @@ function set_tracer_zonal_boundaries!(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
-    (; chiq0) = state.tracer.tracerforcings
+    (; tracerwkbintegrals) = state.tracer
 
-    for field in (:uchi, :vchi, :wchi)
+    for field in fieldnames(TracerWKBIntegrals)
         set_zonal_boundaries_of_field!(
-            getfield(chiq0, field),
+            getfield(tracerwkbintegrals, field),
             namelists,
             domain;
             layers = (1, 1, 1),
@@ -180,11 +180,11 @@ function set_tracer_zonal_boundaries!(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
-    (; chiq0) = state.tracer.tracerforcings
+    (; tracerwkbtendencies) = state.tracer
 
-    for field in (:dchidt,)
+    for field in fieldnames(TracerWKBTendencies)
         set_zonal_boundaries_of_field!(
-            getfield(chiq0, field),
+            getfield(tracerwkbtendencies, field),
             namelists,
             domain;
             layers = (1, 1, 1),

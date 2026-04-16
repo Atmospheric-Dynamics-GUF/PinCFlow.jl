@@ -1,4 +1,24 @@
 """
+```julia 
+compute_leading_order_tracer_fluxes!(
+    state::State,
+    fc::AbstractFloat,
+    omir::AbstractFloat,
+    wnrk::AbstractFloat,
+    wnrl::AbstractFloat,
+    wnrm::AbstractFloat,
+    wadr::AbstractFloat,
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)
+```
+
+Compute the leading-order gravity-wave-tracer fluxes by dispatching to the appropriate method.
+
 ```julia
 compute_leading_order_tracer_fluxes!(
     state::State,
@@ -51,7 +71,7 @@ The zonal, meridional, and vertical fluxes are given by
 \\end{align*}
 ```
 
-# Arguments:
+# Arguments
 
   - `state`: Model state.
 
@@ -90,6 +110,42 @@ function compute_leading_order_tracer_fluxes! end
 
 function compute_leading_order_tracer_fluxes!(
     state::State,
+    fc::AbstractFloat,
+    omir::AbstractFloat,
+    wnrk::AbstractFloat,
+    wnrl::AbstractFloat,
+    wnrm::AbstractFloat,
+    wadr::AbstractFloat,
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup compute_leading_order_tracer_fluxes!(
+        state,
+        Val(tracer_setup),
+        fc,
+        omir,
+        wnrk,
+        wnrl,
+        wnrm,
+        wadr,
+        xlc,
+        ylc,
+        zlc,
+        i,
+        j,
+        k,
+    )
+    return
+end
+
+function compute_leading_order_tracer_fluxes!(
+    state::State,
     tracer_setup::Val{:NoTracer},
     fc::AbstractFloat,
     omir::AbstractFloat,
@@ -123,7 +179,7 @@ function compute_leading_order_tracer_fluxes!(
     j::Integer,
     k::Integer,
 )
-    (; uchi, vchi, wchi) = state.tracer.tracerforcings.chiq0
+    (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
 
     if fc == 0.0
         return

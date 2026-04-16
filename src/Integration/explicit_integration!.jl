@@ -47,7 +47,7 @@ function explicit_integration!(
     side::LHS,
 )
     (; nstages, stepfrac) = state.time
-    (; tracer_setup) = state.namelists.tracer
+    (; tracer_setup, apply_sponge_to_tracer) = state.namelists.tracer
 
     @ivy for rkstage in 1:nstages
         reconstruct!(state)
@@ -74,12 +74,14 @@ function explicit_integration!(
             rkstage,
             Val(tracer_setup),
         )
-        @dispatch_tracer_setup apply_lhs_sponge!(
-            state,
-            stepfrac[rkstage] * dtstage,
-            time,
-            Val(tracer_setup),
-        )
+        if apply_sponge_to_tracer
+            @dispatch_tracer_setup apply_lhs_sponge!(
+                state,
+                stepfrac[rkstage] * dtstage,
+                time,
+                Val(tracer_setup),
+            )
+        end
 
         set_boundaries!(state, BoundaryPredictands())
 

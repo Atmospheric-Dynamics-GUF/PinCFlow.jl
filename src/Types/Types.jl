@@ -203,7 +203,7 @@ export DomainNamelist,
     TracerIncrements,
     TracerReconstructions,
     TracerFluxes,
-    TracerForcings,
-    TracerWKBImpact
+    TracerWKBIntegrals,
+    TracerWKBTendencies
 
 end
