@@ -266,9 +266,20 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               :dchidt in output_variables
-                for field in fieldnames(TracerWKBImpact)
+            if :dchidt in output_variables
+                for field in fieldnames(TracerWKBTendencies)
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+                for field in fieldnames(TracerWKBIntegrals)
                     create_dataset(
                         file,
                         string(field),

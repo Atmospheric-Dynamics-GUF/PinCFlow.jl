@@ -31,13 +31,15 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
   - `tracerincrements::B`: Runge-Kutta updates of the tracers.
 
-  - `tracerauxiliaries::C`: Initial states of the tracers.
+  - `tracerauxiliaries::C`: Auxiliary tracer fields.
 
   - `tracerreconstructions::D`: Reconstructions of the tracers.
 
   - `tracerfluxes::E`: Fluxes of the tracers.
 
-  - `tracerforcings::F`: Forcing terms due to gravity-waves and turbulence.
+  - `tracerwkbintegrals::F`: Integrals of gravity-wave induced tracer fluxes.
+
+  - `tracerwkbtendencies::G`: Tracer impact of unresolved gravity waves.
 
 # Arguments
 
@@ -65,7 +67,9 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
   - [`PinCFlow.Types.TracerTypes.TracerFluxes`](@ref)
 
-  - [`PinCFlow.Types.TracerTypes.TracerForcings`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerWKBIntegrals`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerWKBTendencies`](@ref)
 """
 struct Tracer{
     A <: TracerPredictands,
@@ -73,14 +77,16 @@ struct Tracer{
     C <: TracerAuxiliaries,
     D <: TracerReconstructions,
     E <: TracerFluxes,
-    F <: TracerForcings,
+    F <: TracerWKBIntegrals,
+    G <: TracerWKBTendencies,
 }
     tracerpredictands::A
     tracerincrements::B
     tracerauxiliaries::C
     tracerreconstructions::D
     tracerfluxes::E
-    tracerforcings::F
+    tracerwkbintegrals::F
+    tracerwkbtendencies::G
 end
 
 function Tracer(
@@ -100,10 +106,18 @@ function Tracer(
         variables,
     )
     tracerincrements = TracerIncrements(namelists, domain)
-    tracerauxiliaries = TracerAuxiliaries(tracerpredictands)
+    tracerauxiliaries = TracerAuxiliaries(
+        namelists,
+        constants,
+        domain,
+        atmosphere,
+        grid,
+        variables,
+    )
     tracerreconstructions = TracerReconstructions(namelists, domain)
     tracerfluxes = TracerFluxes(namelists, domain)
-    tracerforcings = TracerForcings(namelists, domain)
+    tracerwkbintegrals = TracerWKBIntegrals(namelists, domain)
+    tracerwkbtendencies = TracerWKBTendencies(namelists, domain)
 
     return Tracer(
         tracerpredictands,
@@ -111,6 +125,7 @@ function Tracer(
         tracerauxiliaries,
         tracerreconstructions,
         tracerfluxes,
-        tracerforcings,
+        tracerwkbintegrals,
+        tracerwkbtendencies,
     )
 end

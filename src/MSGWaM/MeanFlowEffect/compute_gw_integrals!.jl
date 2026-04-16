@@ -113,9 +113,9 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
         getfield(integrals, field) .= 0.0
     end
 
-    set_tracer_field_zero!(state)
+    set_tracer_fields_zero!(state)
 
-    @dispatch_tracer_setup @ivy for k in (k0 - 1):(k1 + 1),
+    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -271,7 +271,6 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            Val(state.namelists.tracer.tracer_setup),
                             fc,
                             omir,
                             kr,
@@ -312,7 +311,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
         getfield(integrals, field) .= 0.0
     end
 
-    @dispatch_tracer_setup @ivy for k in (k0 - 1):(k1 + 1),
+    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -434,7 +433,6 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            Val(state.namelists.tracer.tracer_setup),
                             fc,
                             omir,
                             kr,
@@ -474,7 +472,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
         getfield(integrals, field) .= 0.0
     end
 
-    @dispatch_tracer_setup @ivy for k in (k0 - 1):(k1 + 1),
+    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -564,7 +562,6 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
 
                         compute_leading_order_tracer_fluxes!(
                             state,
-                            Val(state.namelists.tracer.tracer_setup),
                             fc,
                             omir,
                             kr,

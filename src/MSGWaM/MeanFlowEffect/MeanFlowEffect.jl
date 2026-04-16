@@ -55,7 +55,7 @@ struct WChi end
 
 include("compute_leading_order_tracer_fluxes!.jl")
 include("leading_order_tracer_fluxes.jl")
-include("compute_leading_order_tracer_forcing!.jl")
+include("compute_gw_tracer_tendencies!.jl")
 include("set_tracer_fields_zero!.jl")
 include("apply_shapiro_filter!.jl")
 include("compute_gw_integrals!.jl")

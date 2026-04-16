@@ -21,7 +21,7 @@ Return a copy of ``\\bar{P} = \\bar{\\rho} \\bar{\\theta}`` in compressible mode
 
 In compressible mode, the mass-weighted potential temperature is a prognostic variable. Its initialization as ``P = \\bar{\\rho} \\bar{\\theta}`` means that the initial potential temperature fluctuations are such that ``\\rho \\theta = \\bar{\\rho} \\bar{\\theta}``.
 
-# Arguments:
+# Arguments
 
   - `mode`: Dynamic equations.
 

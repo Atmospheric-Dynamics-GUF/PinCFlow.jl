@@ -285,27 +285,27 @@ function write_output(
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               :dchidt in output_variables
-                for field in (:dchidt,)
+            if :dchidt in output_variables
+                for field in fieldnames(TracerWKBTendencies)
                     HDF5.set_extent_dims(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
                     )
                     @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerforcings.chiq0, field)[
+                        getfield(state.tracer.tracerwkbtendencies, field)[
                             ii,
                             jj,
                             kk,
                         ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
                 end
-                for field in (:uchi, :vchi, :wchi)
+
+                for field in (:uchi0, :vchi0, :wchi0)
                     HDF5.set_extent_dims(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
                     )
                     @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerforcings.chiq0, field)[
+                        getfield(state.tracer.tracerwkbintegrals, field)[
                             ii,
                             jj,
                             kk,

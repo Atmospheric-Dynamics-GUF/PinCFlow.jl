@@ -1,18 +1,17 @@
 """
 ```julia
-compute_leading_order_tracer_forcing!(
+compute_gw_tracer_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::Val{:TracerOn},
 )
 ```
 
-Compute and return the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
+Compute the leading-order tracer forcing at ``\\left(i, j, k\\right)`` by dispatching to the appropriate method.
 
 ```julia
-compute_leading_order_tracer_forcing!(
+compute_gw_tracer_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
@@ -22,6 +21,18 @@ compute_leading_order_tracer_forcing!(
 ```
 
 Return for configurations without tracer transport.
+
+```julia
+compute_gw_tracer_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    tracer_setup::Val{:TracerOn},
+)
+```
+
+Compute and return the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
 
 # Arguments
 
@@ -35,7 +46,37 @@ Return for configurations without tracer transport.
 
   - `tracer_setup`: General tracer-transport configuration.
 """
-function compute_leading_order_tracer_forcing!(
+function compute_gw_tracer_tendencies! end
+
+function compute_gw_tracer_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup compute_gw_tracer_tendencies!(
+        state,
+        i,
+        j,
+        k,
+        Val(tracer_setup),
+    )
+    return
+end
+
+function compute_gw_tracer_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    tracer_setup::Val{:NoTracer},
+)
+    return
+end
+
+function compute_gw_tracer_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
@@ -44,7 +85,9 @@ function compute_leading_order_tracer_forcing!(
 )
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
-    (; uchi, vchi, wchi, dchidt) = state.tracer.tracerforcings.chiq0
+    (; uchi0, vchi0, wchi0) =
+        state.tracer.tracerwkbintegrals
+    (; dchidt0) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
 
@@ -75,15 +118,5 @@ function compute_leading_order_tracer_forcing!(
         -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
         (dchiu + dchiv + dchiw)
 
-    return
-end
-
-function compute_leading_order_tracer_forcing!(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    tracer_setup::Val{:NoTracer},
-)
     return
 end
