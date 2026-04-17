@@ -12,7 +12,7 @@ TracerWKBIntegrals(
 )::TracerWKBIntegrals
 ```
 
-Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate `tracer_setup` method.
+Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
 
 ```julia
 TracerWKBIntegrals(
@@ -32,7 +32,7 @@ TracerWKBIntegrals(
 )::TracerWKBIntegrals
 ```
 
-Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate `wkb_mode` method.
+Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
 
 ```julia 
 TracerWKBIntegrals(domain::Domain, wkb_mode::Val{:NoWKB})::TracerWKBIntegrals

@@ -230,7 +230,7 @@ apply_lhs_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations if `state.namelists.tracer.apply_lhs_sponge_to_tracer == true`.
 
 In each tracer equation, the update is given by
 
@@ -618,16 +618,29 @@ function apply_lhs_sponge!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
+    (; rhobar) = state.atmosphere
     (; tracerpredictands) = state.tracer
-    (; backgroundtracer) = state.tracer.tracerauxiliaries
+    (; background_tracer, apply_lhs_sponge_to_tracer) = state.namelists.tracer
+    (; lref) = state.constants
+    (; x, y, zc) = state.grid
+
+    if !apply_lhs_sponge_to_tracer
+        return
+    end
 
     @ivy for field in fieldnames(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in k0:k1, j in j0:j1, i in i0:i1
+            xdim = x[i] * lref
+            ydim = y[j] * lref
+            zcdim = zc[i, j, k] * lref
             alpha = alphar[i, j, k]
             chi_old = chi[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
-            chi_new = (1.0 - beta) * backgroundtracer[i, j, k] + beta * chi_old
+            chi_new =
+                (1.0 - beta) *
+                background_tracer(xdim, ydim, zcdim) *
+                rhobar[i, j, k] + beta * chi_old
             chi[i, j, k] = chi_new
         end
     end

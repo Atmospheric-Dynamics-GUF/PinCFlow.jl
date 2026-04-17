@@ -22,7 +22,6 @@ using ...PinCFlow
 
 include("TracerPredictands.jl")
 include("TracerIncrements.jl")
-include("TracerAuxiliaries.jl")
 include("TracerReconstructions.jl")
 include("TracerFluxes.jl")
 include("TracerWKBIntegrals.jl")
@@ -31,7 +30,6 @@ include("Tracer.jl")
 
 export TracerPredictands,
     TracerIncrements,
-    TracerAuxiliaries,
     TracerReconstructions,
     TracerFluxes,
     TracerWKBIntegrals,

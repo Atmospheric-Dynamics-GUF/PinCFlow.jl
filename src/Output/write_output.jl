@@ -291,7 +291,7 @@ function write_output(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
                     )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
+                    file[string(field)][iid, jjd, kkd, iout] =
                         getfield(state.tracer.tracerwkbtendencies, field)[
                             ii,
                             jj,
@@ -304,7 +304,7 @@ function write_output(
                         file[string(field)],
                         (x_size, y_size, z_size, iout),
                     )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
+                    file[string(field)][iid, jjd, kkd, iout] =
                         getfield(state.tracer.tracerwkbintegrals, field)[
                             ii,
                             jj,

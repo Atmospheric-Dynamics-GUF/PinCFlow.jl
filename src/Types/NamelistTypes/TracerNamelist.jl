@@ -11,7 +11,7 @@ TracerNamelist(;
     leading_order_impact::Bool = false,
     initial_tracer::Function = (x, y, z) -> 0.0,
     background_tracer::Function = (x, y, z) -> 0.0,
-    apply_sponge_to_tracer::Bool = true,
+    apply_lhs_sponge_to_tracer::Bool = true,
 )::TracerNamelist
 ```
 
@@ -27,14 +27,14 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 
   - `background_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to compute the background tracer.
 
-  - `apply_sponge_to_tracer::Bool`: Flag to relax the tracer fields to `backgroundtracer`.
+  - `apply_lhs_sponge_to_tracer::Bool`: Flag to relax the tracer fields to `background_tracer`.
 """
 struct TracerNamelist
     tracer_setup::Symbol
     leading_order_impact::Bool
     initial_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
     background_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
-    apply_sponge_to_tracer::Bool
+    apply_lhs_sponge_to_tracer::Bool
 end
 
 function TracerNamelist(;
@@ -42,13 +42,13 @@ function TracerNamelist(;
     leading_order_impact::Bool = false,
     initial_tracer::Function = (x, y, z) -> 0.0,
     background_tracer::Function = (x, y, z) -> 0.0,
-    apply_sponge_to_tracer::Bool = true,
+    apply_lhs_sponge_to_tracer::Bool = true,
 )::TracerNamelist
     return TracerNamelist(
         tracer_setup,
         leading_order_impact,
         initial_tracer,
         background_tracer,
-        apply_sponge_to_tracer,
+        apply_lhs_sponge_to_tracer,
     )
 end

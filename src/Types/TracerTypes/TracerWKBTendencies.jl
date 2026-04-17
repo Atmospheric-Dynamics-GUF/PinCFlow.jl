@@ -12,7 +12,7 @@ TracerWKBTendencies(
 )::TracerWKBTendencies
 ```
 
-Construct a `TracerWKBTendencies` instance by dispatching to the appropriate `tracer_setup` method.
+Construct a `TracerWKBTendencies` instance by dispatching to the appropriate method.
 
 ```julia
 TracerWKBTendencies(
@@ -32,7 +32,7 @@ TracerWKBTendencies(
 )::TracerWKBTendencies
 ```
 
-Construct a `TracerWKBTendencies` instance by dispatching to the appropriate `wkb_mode` method.
+Construct a `TracerWKBTendencies` instance by dispatching to the appropriate method.
 
 ```julia 
 TracerWKBTendencies(domain::Domain, wkb_mode::Val{:NoWKB})::TracerWKBTendencies
