@@ -1,11 +1,6 @@
 """
 ```julia
-compute_gw_tracer_tendencies!(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-)
+compute_gw_tracer_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
 ```
 
 Compute the leading-order tracer forcing at ``\\left(i, j, k\\right)`` by dispatching to the appropriate method.
@@ -85,8 +80,7 @@ function compute_gw_tracer_tendencies!(
 )
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
-    (; uchi0, vchi0, wchi0) =
-        state.tracer.tracerwkbintegrals
+    (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
     (; dchidt0) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere

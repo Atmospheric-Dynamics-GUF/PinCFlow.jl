@@ -79,7 +79,11 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerWKBIntegrals(namelists, domain, Val(tracer_setup))
+    @dispatch_tracer_setup return TracerWKBIntegrals(
+        namelists,
+        domain,
+        Val(tracer_setup),
+    )
 end
 
 function TracerWKBIntegrals(
@@ -100,7 +104,10 @@ function TracerWKBIntegrals(
     @dispatch_wkb_mode return TracerWKBIntegrals(domain, Val(wkb_mode))
 end
 
-function TracerWKBIntegrals(domain::Domain, wkb_mode::Val{:NoWKB})::TracerWKBIntegrals
+function TracerWKBIntegrals(
+    domain::Domain,
+    wkb_mode::Val{:NoWKB},
+)::TracerWKBIntegrals
     return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
 end
 

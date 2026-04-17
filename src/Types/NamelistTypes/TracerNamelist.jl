@@ -44,5 +44,11 @@ function TracerNamelist(;
     background_tracer::Function = (x, y, z) -> 0.0,
     apply_sponge_to_tracer::Bool = true,
 )::TracerNamelist
-    return TracerNamelist(tracer_setup, leading_order_impact, initial_tracer, background_tracer, apply_sponge_to_tracer)
+    return TracerNamelist(
+        tracer_setup,
+        leading_order_impact,
+        initial_tracer,
+        background_tracer,
+        apply_sponge_to_tracer,
+    )
 end
