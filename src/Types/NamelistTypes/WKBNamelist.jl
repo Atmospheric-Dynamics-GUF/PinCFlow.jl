@@ -1,14 +1,6 @@
 """
 ```julia
-WKBNamelist{
-    A <: Int,
-    B <: Float64,
-    C <: AbstractMergeMode,
-    D <: Bool,
-    E <: AbstractWKBFilter,
-    F <: AbstractWKBMode,
-    G <: Function,
-}
+WKBNamelist
 ```
 
 Namelist for parameters used by MS-GWaM.
@@ -26,14 +18,14 @@ WKBNamelist(;
     dlr_factor::Real = 1.0E-1,
     dmr_factor::Real = 1.0E-1,
     branch::Integer = -1,
-    merge_mode::AbstractMergeMode = ConstantWaveAction(),
+    merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
     smooth_tendencies::Bool = true,
-    filter_type::AbstractWKBFilter = ShapiroFilter(),
+    filter_type::Symbol = :ShapiroFilter,
     impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
     saturation_threshold::Real = 1.0E+0,
-    wkb_mode::AbstractWKBMode = NoWKB(),
+    wkb_mode::Symbol = :NoWKB,
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,
@@ -52,105 +44,100 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
 # Fields/Keywords
 
-  - `nrx::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{x}``-direction.
+  - `nrx::Int`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{x}``-direction.
 
-  - `nry::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{y}``-direction.
+  - `nry::Int`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{y}``-direction.
 
-  - `nrz::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{z}``-direction.
+  - `nrz::Int`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{z}``-direction.
 
-  - `nrk::A`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
+  - `nrk::Int`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
 
-  - `nrl::A`: Number of ray-volumes launched per grid cell and wave mode in ``l``-direction.
+  - `nrl::Int`: Number of ray-volumes launched per grid cell and wave mode in ``l``-direction.
 
-  - `nrm::A`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
+  - `nrm::Int`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
 
-  - `multiplication_factor::A`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
+  - `multiplication_factor::Int`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
 
-  - `dkr_factor::B`: Relative initial ray-volume extent in ``k``.
+  - `dkr_factor::Float64`: Relative initial ray-volume extent in ``k``.
 
-  - `dlr_factor::B`: Relative initial ray-volume extent in ``l``.
+  - `dlr_factor::Float64`: Relative initial ray-volume extent in ``l``.
 
-  - `dmr_factor::B`: Relative initial ray-volume extent in ``m``.
+  - `dmr_factor::Float64`: Relative initial ray-volume extent in ``m``.
 
-  - `branch::A`: Frequency branch.
+  - `branch::Int`: Frequency branch.
 
-  - `merge_mode::C`: Ray-volume merging strategy (conserved quantity).
+  - `merge_mode::Symbol`: Ray-volume merging strategy (conserved quantity).
 
-  - `filter_order::A`: Order of the smoothing applied to the mean-flow tendencies.
+  - `filter_order::Int`: Order of the smoothing applied to the mean-flow tendencies.
 
-  - `smooth_tendencies::D`: Switch for smoothing the mean-flow tendencies.
+  - `smooth_tendencies::Bool`: Switch for smoothing the mean-flow tendencies.
 
-  - `filter_type::E`: Filter to use for the smoothing of the mean-flow tendencies.
+  - `filter_type::Symbol`: Filter to use for the smoothing of the mean-flow tendencies.
 
-  - `impact_altitude::B`: Minimum altitude for ray-tracing and mean-flow impact.
+  - `impact_altitude::Float64`: Minimum altitude for ray-tracing and mean-flow impact.
 
-  - `use_saturation::D`: Switch for the saturation scheme.
+  - `use_saturation::Bool`: Switch for the saturation scheme.
 
-  - `saturation_threshold::B`: Relative saturation threshold.
+  - `saturation_threshold::Float64`: Relative saturation threshold.
 
-  - `wkb_mode::F`: Approximations used by MS-GWaM.
+  - `wkb_mode::Symbol`: Approximations used by MS-GWaM.
 
-  - `blocking::D`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
+  - `blocking::Bool`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
 
-  - `long_threshold::B`: Long-number threshold used by the blocked-layer scheme.
+  - `long_threshold::Float64`: Long-number threshold used by the blocked-layer scheme.
 
-  - `drag_coefficient::B`: Dimensionless drag coefficient used by the blocked-layer scheme.
+  - `drag_coefficient::Float64`: Dimensionless drag coefficient used by the blocked-layer scheme.
 
-  - `wave_modes::A`: Number of wave modes per grid cell.
+  - `wave_modes::Int`: Number of wave modes per grid cell.
 
-  - `initial_wave_field::G`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
+  - `initial_wave_field::FunctionWrapper{NTuple{5, Float64}, Tuple{Int, Float64, Float64, Float64}}`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
 
-  - `elastic_mode_selection::D`: Switch for elastic mode selection in ray-volume sources.
+  - `elastic_mode_selection::Bool`: Switch for elastic mode selection in ray-volume sources.
 
-  - `minimum_mode_count::A`: Minimum number of modes selected by the elastic-mode-selection algorithm.
+  - `minimum_mode_count::Int`: Minimum number of modes selected by the elastic-mode-selection algorithm.
 
-  - `minimum_mode_count::A`: Maximum number of modes selected by the elastic-mode-selection algorithm.
+  - `minimum_mode_count::Int`: Maximum number of modes selected by the elastic-mode-selection algorithm.
 
-  - `minimum_power_fraction::B`: Minimum power fraction retained by the elastic-mode-selection algorithm.
+  - `minimum_power_fraction::Float64`: Minimum power fraction retained by the elastic-mode-selection algorithm.
 
-  - `maximum_power_fraction::B`: Maximum power fraction retained by the elastic-mode-selection algorithm.
+  - `maximum_power_fraction::Float64`: Maximum power fraction retained by the elastic-mode-selection algorithm.
 
 !!! danger "Experimental"
     The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
-struct WKBNamelist{
-    A <: Int,
-    B <: Float64,
-    C <: AbstractMergeMode,
-    D <: Bool,
-    E <: AbstractWKBFilter,
-    F <: AbstractWKBMode,
-    G <: Function,
-}
-    nrx::A
-    nry::A
-    nrz::A
-    nrk::A
-    nrl::A
-    nrm::A
-    multiplication_factor::A
-    dkr_factor::B
-    dlr_factor::B
-    dmr_factor::B
-    branch::A
-    merge_mode::C
-    filter_order::A
-    smooth_tendencies::D
-    filter_type::E
-    impact_altitude::B
-    use_saturation::D
-    saturation_threshold::B
-    wkb_mode::F
-    blocking::D
-    long_threshold::B
-    drag_coefficient::B
-    wave_modes::A
-    initial_wave_field::G
-    elastic_mode_selection::D
-    minimum_mode_count::A
-    maximum_mode_count::A
-    minimum_power_fraction::B
-    maximum_power_fraction::B
+struct WKBNamelist
+    nrx::Int
+    nry::Int
+    nrz::Int
+    nrk::Int
+    nrl::Int
+    nrm::Int
+    multiplication_factor::Int
+    dkr_factor::Float64
+    dlr_factor::Float64
+    dmr_factor::Float64
+    branch::Int
+    merge_mode::Symbol
+    filter_order::Int
+    smooth_tendencies::Bool
+    filter_type::Symbol
+    impact_altitude::Float64
+    use_saturation::Bool
+    saturation_threshold::Float64
+    wkb_mode::Symbol
+    blocking::Bool
+    long_threshold::Float64
+    drag_coefficient::Float64
+    wave_modes::Int
+    initial_wave_field::FunctionWrapper{
+        NTuple{5, Float64},
+        Tuple{Int, Float64, Float64, Float64},
+    }
+    elastic_mode_selection::Bool
+    minimum_mode_count::Int
+    maximum_mode_count::Int
+    minimum_power_fraction::Float64
+    maximum_power_fraction::Float64
 end
 
 function WKBNamelist(;
@@ -165,14 +152,14 @@ function WKBNamelist(;
     dlr_factor::Real = 1.0E-1,
     dmr_factor::Real = 1.0E-1,
     branch::Integer = -1,
-    merge_mode::AbstractMergeMode = ConstantWaveAction(),
+    merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
     smooth_tendencies::Bool = true,
-    filter_type::AbstractWKBFilter = ShapiroFilter(),
+    filter_type::Symbol = :ShapiroFilter,
     impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
     saturation_threshold::Real = 1.0E+0,
-    wkb_mode::AbstractWKBMode = NoWKB(),
+    wkb_mode::Symbol = :NoWKB,
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,

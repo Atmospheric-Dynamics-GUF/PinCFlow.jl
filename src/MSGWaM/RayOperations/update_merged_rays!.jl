@@ -1,7 +1,7 @@
 """
 ```julia
 update_merged_rays!(
-    merge_mode::AbstractMergeMode,
+    merge_mode::Union{Val{:ConstantWaveAction}, Val{:ConstantWaveEnergy}},
     merged_rays::MergedRays,
     bin::Integer,
     xr::AbstractFloat,
@@ -77,7 +77,7 @@ This method is used to compute the properties of merged ray volumes. It is calle
 function update_merged_rays! end
 
 function update_merged_rays!(
-    merge_mode::AbstractMergeMode,
+    merge_mode::Union{Val{:ConstantWaveAction}, Val{:ConstantWaveEnergy}},
     merged_rays::MergedRays,
     bin::Integer,
     xr::AbstractFloat,

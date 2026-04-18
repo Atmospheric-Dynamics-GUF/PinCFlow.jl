@@ -15,6 +15,8 @@ Module that contains a collection of types for WKB ray tracing calculations incl
 """
 module WKBTypes
 
+import Base: getproperty
+
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
@@ -29,6 +31,8 @@ include("SurfaceIndices.jl")
 include("Spectrum.jl")
 include("ElasticModeSelection.jl")
 include("WKB.jl")
+
+include("getproperty.jl")
 
 export WKBIntegrals,
     WKBTendencies, Rays, MergedRays, WKBIncrements, SurfaceIndices, WKB

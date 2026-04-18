@@ -6,13 +6,16 @@ merge_rays!(state::State)
 Merge ray volumes by dispatching to a WKB-mode-specific method.
 
 ```julia
-merge_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
+merge_rays!(state::State, wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}})
 ```
 
 Return for configurations without WKB / with steady-state WKB.
 
 ```julia
-merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
+merge_rays!(
+    state::State,
+    wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
+)
 ```
 
 Merge ray volumes in grid cells in which their count exceeds a threshold.
@@ -51,15 +54,21 @@ function merge_rays! end
 
 function merge_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    merge_rays!(state, wkb_mode)
+    @dispatch_wkb_mode merge_rays!(state, Val(wkb_mode))
     return
 end
 
-function merge_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
+function merge_rays!(
+    state::State,
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
+)
     return
 end
 
-function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
+function merge_rays!(
+    state::State,
+    wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
+)
     (; x_size, y_size) = state.namelists.domain
     (; merge_mode) = state.namelists.wkb
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
@@ -70,7 +79,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Loop over grid cells.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    @dispatch_merge_mode @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         if nray[i, j, k] <= nray_max
             continue
         end
@@ -186,7 +195,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
 
             # Generate the merged ray volumes.
             update_merged_rays!(
-                merge_mode,
+                Val(merge_mode),
                 merged_rays,
                 bin,
                 xr,
@@ -210,9 +219,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
         end
 
         # Reset the old ray volumes.
-        for field in fieldnames(Rays)
-            getfield(rays, field)[:, i, j, k] .= 0.0
-        end
+        rays.data[:, :, i, j, k] .= 0.0
 
         # Construct the merged ray volumes.
         r = 0
@@ -258,7 +265,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
             fcpspz = azm
 
             rays.dens[r, i, j, k] = compute_wave_action_integral(
-                merge_mode,
+                Val(merge_mode),
                 merged_rays.nr[bin],
                 1 / omegar,
                 1 / fcpspx,

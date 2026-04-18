@@ -12,7 +12,7 @@
 
 PinCFlow.jl (*P*seudo-*inC*ompressible *Flow* solver) is an atmospheric-flow solver that was designed for conducting idealized simulations. It integrates the Boussinesq, pseudo-incompressible and compressible equations in a conservative flux form ([Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)), using a semi-implicit method that combines explicit and implicit time-stepping schemes ([Benacchio & Klein, 2019](https://doi.org/10.1175/MWR-D-19-0073.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1); [Chew et al., 2022](https://doi.org/10.1175/MWR-D-21-0175.1)). Spatially, the equations are discretized with a finite-volume method, such that all quantities are represented by averages over grid cells and fluxes are computed on the respective cell interfaces. The grid is staggered ([Arakawa & Lamb, 1977](https://doi.org/10.1016/b978-0-12-460817-7.50009-4)) so that the velocity components are defined at the same points as the corresponding fluxes of scalar quantities. PinCFlow.jl operates in a vertically stretched terrain-following coordinate system based on [Gal-Chen and Somerville (1975a)](https://doi.org/10.1016/0021-9991(75)90037-6), [Gal-Chen and Somerville (1975b)](https://doi.org/10.1016/0021-9991(75)90054-6) and [Clark (1977)](https://doi.org/10.1016/0021-9991(77)90057-2).
 
-The Lagrangian gravity-wave parameterization MS-GWaM (*M*ulti-*S*cale *G*ravity-*Wa*ve *M*odel) is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transient wave-mean-flow interaction and horizontal wave propagation. The resolved fields are updated with tendencies computed by MS-GWaM at the beginning of every time step. A description of the theory behind MS-GWaM can be found in [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926) and [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180). For a numerical perspective and more information on the development, see [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
+The Lagrangian gravity-wave parameterization MS-GWaM (*M*ulti-*S*cale *G*ravity-*Wa*ve *M*odel) is interactively coupled to the dynamical core of PinCFlow.jl, so that unresolved gravity waves may be parameterized in a manner that accounts for transient wave-mean-flow interaction and horizontal wave propagation. The resolved fields are updated with tendencies computed by MS-GWaM at the beginning of every time step. A description of the theory behind MS-GWaM can be found in [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926) and [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180). For a numerical perspective and more information on the development, see [Muraschko et al. (2015)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
 
 ## User guide
 
@@ -20,15 +20,17 @@ The Lagrangian gravity-wave parameterization MS-GWaM (*M*ulti-*S*cale *G*ravity-
 
 To install PinCFlow.jl, first make sure you have installed [Julia](https://docs.julialang.org/en/v1/manual/installation/). You can then run
 
-```shell
-julia --project -e 'using Pkg; Pkg.add("PinCFlow")'
+```julia
+using Pkg
+
+Pkg.add("PinCFlow")
 ```
 
-to add PinCFlow.jl to your current project environment.
+in the Julia REPL to add PinCFlow.jl to your current project environment.
 
 ### Running the model
 
-As a minimal example, the script
+As a minimal example,
 
 ```julia
 using PinCFlow
@@ -36,99 +38,102 @@ using PinCFlow
 integrate(Namelists())
 ```
 
-runs PinCFlow.jl in its default configuration, if executed with
-
-```shell
-julia --project script.jl
-```
-
-in your project's directory. This simulation will finish comparatively quickly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \ \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by providing namelists with changed parameters. This is illustrated in PinCFlow.jl's example scripts. To run them, we recommend setting up an examples project by executing
-
-```shell
-julia --project=examples -e 'using Pkg; Pkg.add(["CairoMakie", "HDF5", "HDF5_jll", "MPI", "MPICH_jll", "MPIPreferences", "PinCFlow", "Revise"])'
-```
-
-Having done this, you can easily run any of the example scripts without needing to worry about extra packages that you may need. For instance, executing the script
+runs PinCFlow.jl in its default configuration. This simulation will finish almost instantly and won't produce particularly interesting results, since PinCFlow.jl simply initializes a $1 \times 1 \times 1 \ \mathrm{km^3}$ isothermal atmosphere at rest with a single grid cell and integrates the pseudo-incompressible equations over one hour. A more complex configuration can be set up by constructing namelists with changed parameters. This is illustrated in PinCFlow.jl's example functions, which are defined in its `Examples` module. To use the functions, we recommend downloading the examples folder from the repository and running
 
 ```julia
-# examples/scripts/periodic_hill.jl
-
-using Pkg
-
 Pkg.activate("examples")
+Pkg.instantiate()
+```
 
-using MPI
-using HDF5
-using CairoMakie
-using Revise
-using PinCFlow
+to install the dependencies of its project. Having done this, you can easily run any of the example simulations without needing to worry about extra packages. For instance, calling the function
 
-npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
-npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
+```julia
+# src/Examples/periodic_hill.jl
 
-h0 = 500.0
-l0 = 10000.0
-
-lz = 20000.0
-zr = 10000.0
-
-atmosphere = AtmosphereNamelist(;
-    model = Boussinesq(),
-    background = StableStratification(),
-    coriolis_frequency = 0.0,
-    initial_u = (x, y, z) -> 10.0,
+function periodic_hill(;
+    x_size::Integer = 40,
+    z_size::Integer = 40,
+    npx::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "periodic_hill.h5",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    plot_file::AbstractString = "examples/results/periodic_hill.svg",
 )
-domain = DomainNamelist(; x_size = 40, z_size = 40, lx = 20000.0, lz, npx, npz)
-grid = GridNamelist(;
-    resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
-)
-output =
-    OutputNamelist(; output_variables = (:w,), output_file = "periodic_hill.h5")
-sponge = SpongeNamelist(;
-    rhs_sponge = (x, y, z, t, dt) ->
-        z >= zr ? sin(pi / 2 * (z - zr) / (lz - zr))^2 / dt : 0.0,
-)
+    h0 = 500.0
+    l0 = 10000.0
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+    lz = 20000.0
+    zr = 10000.0
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("periodic_hill.h5") do data
-        plot_output(
-            "examples/results/periodic_hill.svg",
-            data,
-            ("w", 1, 1, 1, 2);
-        )
-        return
+    atmosphere = AtmosphereNamelist(;
+        model = :Boussinesq,
+        background = :StableStratification,
+        coriolis_frequency = 0.0,
+        initial_u = (x, y, z) -> 10.0,
+    )
+
+    domain = DomainNamelist(; x_size, z_size, lx = 20000.0, lz, npx, npz)
+
+    grid = GridNamelist(;
+        resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
+    )
+
+    output =
+        OutputNamelist(; output_file, output_variables = [:w], prepare_restart)
+
+    sponge = SpongeNamelist(;
+        rhs_sponge = (x, y, z, t, dt) ->
+            z >= zr ? sin(pi / 2 * (z - zr) / (lz - zr))^2 / dt : 0.0,
+    )
+
+    integrate(Namelists(; atmosphere, domain, grid, output, sponge))
+
+    if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
+        h5open(output_file) do data
+            plot_output(plot_file, data, ("w", 1, 1, 1, 2))
+            return
+        end
     end
+
+    return
 end
 
 ```
 
-runs a 2D simulation with an initial wind of $10 \ \mathrm{m \ s^{- 1}}$ that generates a mountain wave above a periodic hill and visualizes the results.
+with
 
-PinCFlow.jl uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5`. This may be changed by setting the parameter `output_file` of the namelist `output` accordingly (as illustrated above). The dimensions of most output fields are (in order) $\hat{x}$ (zonal axis), $\hat{y}$ (meridional axis), $\hat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume-property fields differ slightly in that they have an additional (spectral) dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the namelist `output` accordingly (more details are given in the "Reference" section of the documentation).
+```julia
+using PinCFlow, CairoMakie
 
-For the visualization of simulation results, we recommend using [Makie.jl](https://docs.makie.org/stable/) with the `CairoMakie` backend. PinCFlow.jl has an extension which exports a few convenience functions if `CairoMakie` is loaded. This is utilized in the above script, yielding a plot of the vertical wind at the end of the simulation (see below). You can find more examples on the "Examples" page of the documentation. A description of all namelists and their parameters is provided in the "Reference" section.
+periodic_hill()
+```
+
+performs a 2D simulation with an initial wind of $10 \ \mathrm{m \ s^{- 1}}$ that generates a mountain wave above a periodic hill, and visualizes the results.
+
+PinCFlow.jl uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5`. This may be changed by setting the parameter `output_file` of the output namelist accordingly (as illustrated above). The dimensions of most output fields are (in order) $\hat{x}$ (zonal axis), $\hat{y}$ (meridional axis), $\hat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume-property fields differ slightly in that they have an additional dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the output namelist accordingly. A description of all namelists and their parameters is provided in the "Reference" section of the documentation.
+
+For the visualization of simulation results, we recommend using [Makie.jl](https://docs.makie.org/stable/) with the `CairoMakie` backend. PinCFlow.jl has an extension which exports a few convenience functions if `CairoMakie` is loaded. This is utilized in the above function, yielding a plot of the vertical wind at the end of the simulation (see below).
 
 ![](examples/results/periodic_hill.svg)
 
-If you want to run PinCFlow.jl in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). For example, with
+If you want to run PinCFlow.jl in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). For example, by executing
 
 ```shell
-mpiexec=$(julia --project=examples -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 9 julia examples/scripts/periodic_hill.jl 3 3
+mpiexec=$(julia --project=examples -e 'using MPICH_jll; print(MPICH_jll.mpiexec_path)')
+${mpiexec} -n 64 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8)'
 ```
 
-you can run the above simulation in 9 MPI processes. Note that by passing extra arguments to the script, you set the parameters `npx` and `npz` of the namelist `domain`, which represent the number of MPI processes in $\hat{x}$ and $\hat{z}$. Their product must be equal to the total number of processes, otherwise PinCFlow.jl will throw an error.
+in your shell, you can run the above simulation in 64 MPI processes. Note that `npx` and `npz` configure the number of MPI subdomains in $\hat{x}$ and $\hat{z}$, respectively. Thus, `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
 
-However, if you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
+If you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 
 ```shell
 julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names = ["/path/to/mpi/library/"])'
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/path/to/libhdf5.so", "/path/to/libhdf5_hl.so")'
 ```
 
-with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `examples/LocalPreferences.toml`, so that the new backends will be used by all future scripts run in the examples project. By running
+with the paths set appropriately (more details can be found in the documentations of MPI.jl and HDF5.jl). Note that this configuration will be saved in `examples/LocalPreferences.toml`, so that the new backends will be used by all future scripts run in this project. By running
 
 ```shell
 julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_jll_binary()'
@@ -138,33 +143,41 @@ julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!()'
 you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
 
 ```shell
-julia --project=examples -e 'using Pkg; Pkg.precompile()'
+mpiexec -n 64 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8)'
 ```
 
-to precompile your project (this must be done before starting MPI jobs) and
-
-```shell
-mpiexec -n 16 julia examples/scripts/periodic_hill.jl 4 4
-```
-
-with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/scripts/levante` of the repository.
+with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl on [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/levante` of the repository.
 
 ## List of publications
 
- 1. Initial flow solver: [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1)
+PinCFlow.jl has been used and/or developed in the following publications.
 
- 1. Initial gravity-wave scheme: [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381)
+ 1. [Rieper et al. (2013): A conservative integration of the pseudo-incompressible equations with implicit turbulence parameterization](https://doi.org/10.1175/mwr-d-12-00026.1)
 
- 1. Gravity-wave breaking scheme: [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1)
+ 1. [Rieper et al. (2013): Range of validity of an extended WKB theory for atmospheric gravity waves: One-dimensional and two-dimensional case](https://doi.org/10.1017/jfm.2013.307)
 
- 1. Gravity-wave theory: [Achatz et al. (2017)](https://doi.org/10.1002/qj.2926)
+ 1. [Borchert et al. (2014): Gravity wave emission in an atmosphere-like configuration of the differentially heated rotating annulus experiment](https://doi.org/10.1017/jfm.2014.528)
 
- 1. Coupling of the flow solver and gravity-wave scheme: [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1)
+ 1. [Borchert et al. (2015): Finite-volume models with implicit subgrid-scale parameterization for the differentially heated rotating annulus](https://doi.org/10.1127/metz/2014/0548)
 
- 1. Horizontal propagation and direct approach in the gravity-wave scheme: [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1)
+ 1. [Muraschko et al. (2015): On the application of Wentzel-Kramer-Brillouin theory for the simulation of the weakly nonlinear dynamics of gravity waves](https://doi.org/10.1002/qj.2381)
 
- 1. Semi-implicit time scheme: [Schmid et al. (2021)](https://doi.org/10.1175/MWR-D-21-0126.1)
+ 1. [Boeloeni et al. (2016): The interaction between atmospheric gravity waves and large-scale flows: An efficient description beyond the nonacceleration paradigm](https://doi.org/10.1175/JAS-D-16-0069.1)
 
- 1. Extended gravity-wave theory: [Achatz et al. (2023)](https://doi.org/10.1063/5.0165180)
+ 1. [Achatz et al. (2017): The interaction between synoptic-scale balanced flow and a finite-amplitude mesoscale wave field throughout all atmospheric layers: Weak and moderately strong stratification](https://doi.org/10.1002/qj.2926)
 
- 1. Terrain-following coordinates & orographic source: [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1)
+ 1. [Hien et al. (2018): Spontaneous inertia–gravity wave emission in the differentially heated rotating annulus experiment](https://doi.org/10.1017/jfm.2017.883)
+
+ 1. [Wilhelm et al. (2018): Interactions between mesoscale and submesoscale gravity waves and their efficient representation in mesoscale-resolving models](https://doi.org/10.1175/JAS-D-17-0289.1)
+
+ 1. [Wei et al. (2019): Efficient modeling of the interaction of mesoscale gravity waves with unbalanced large-scale flows: Pseudomomentum-flux convergence versus direct approach](https://doi.org/10.1175/JAS-D-18-0337.1)
+
+ 1. [Voelker et al. (2021): An application of WKBJ theory for triad interactions of internal gravity waves in varying background flows](https://doi.org/10.1002/qj.3962)
+
+ 1. [Schmid et al. (2021): Toward a numerical laboratory for investigations of gravity wave-mean flow interactions in the atmosphere](https://doi.org/10.1175/MWR-D-21-0126.1)
+
+ 1. [Achatz et al. (2023): Multi-scale dynamics of the interaction between waves and mean flows: From nonlinear WKB theory to gravity-wave parameterizations in weather and climate models](https://doi.org/10.1063/5.0165180)
+
+ 1. [Jochum et al. (2025): The impact of transience in the interaction between orographic gravity waves and mean flow](https://doi.org/10.1175/JAS-D-24-0158.1)
+
+ 1. [Knop et al. (2026): Impact of small-scale gravity waves on tracer transport](https://doi.org/10.1002/qj.70091)

@@ -47,7 +47,7 @@ function compute_gw_tendencies!(state::State)
         getfield(tendencies, field) .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    @dispatch_tracer_setup @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         if zc[i, j, k] < impact_altitude / lref
             continue
         end
@@ -153,7 +153,7 @@ function compute_gw_tendencies!(state::State)
             i,
             j,
             k,
-            state.namelists.tracer.tracer_setup,
+            Val(state.namelists.tracer.tracer_setup),
         )
     end
 

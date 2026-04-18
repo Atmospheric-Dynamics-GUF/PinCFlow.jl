@@ -6,7 +6,7 @@ synchronize_density_fluctuations!(state::State)
 Synchronize the density fluctuations in `state.variables.predictands.rhop` with the density in `state.variables.predictands.rho` by dispatching to a model-specific method.
 
 ```julia
-synchronize_density_fluctuations!(state::State, model::Boussinesq)
+synchronize_density_fluctuations!(state::State, model::Val{:Boussinesq})
 ```
 
 Return in Boussinesq mode.
@@ -15,7 +15,10 @@ In Boussinesq mode, density fluctuations don't require synchronization,
 since the density is assumed constant except in the buoyancy equation.
 
 ```julia
-synchronize_density_fluctuations!(state::State, model::PseudoIncompressible)
+synchronize_density_fluctuations!(
+    state::State,
+    model::Val{:PseudoIncompressible},
+)
 ```
 
 Synchronize the density fluctuations in `state.variables.predictands.rhop` with the density in `state.variables.predictands.rho`.
@@ -27,7 +30,7 @@ The density fluctuations are defined as the product of the mass-weighted potenti
 ```
 
 ```julia
-synchronize_density_fluctuations!(state::State, model::Compressible)
+synchronize_density_fluctuations!(state::State, model::Val{:Compressible})
 ```
 
 Synchronize the density fluctuations in `state.variables.predictands.rhop` with the density in `state.variables.predictands.rho`.
@@ -48,17 +51,20 @@ function synchronize_density_fluctuations! end
 
 function synchronize_density_fluctuations!(state::State)
     (; model) = state.namelists.atmosphere
-    synchronize_density_fluctuations!(state, model)
-    return
-end
-
-function synchronize_density_fluctuations!(state::State, model::Boussinesq)
+    @dispatch_model synchronize_density_fluctuations!(state, Val(model))
     return
 end
 
 function synchronize_density_fluctuations!(
     state::State,
-    model::PseudoIncompressible,
+    model::Val{:Boussinesq},
+)
+    return
+end
+
+function synchronize_density_fluctuations!(
+    state::State,
+    model::Val{:PseudoIncompressible},
 )
     (; rho, rhop) = state.variables.predictands
 
@@ -67,7 +73,10 @@ function synchronize_density_fluctuations!(
     return
 end
 
-function synchronize_density_fluctuations!(state::State, model::Compressible)
+function synchronize_density_fluctuations!(
+    state::State,
+    model::Val{:Compressible},
+)
     (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho, rhop) = state.variables.predictands
 

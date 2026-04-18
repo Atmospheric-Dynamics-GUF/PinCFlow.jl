@@ -22,6 +22,11 @@ This method first calls `compute_orographic_modes!` and then launches correspond
   - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.copy_increments!`](@ref)
+
+!!! danger "Experimental"
+    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
 function activate_orographic_source! end
 
@@ -96,7 +101,7 @@ function activate_orographic_source!(state::State)
             # (3) There is a ray volume with nonzero wave-action density, which
             #     has not yet crossed the lower boundary. It is replaced with a
             #     new one.
-            if wkb_mode == SteadyState()
+            if wkb_mode == :SteadyState
                 if r < 0
                     if wadr == 0
                         continue
@@ -132,13 +137,14 @@ function activate_orographic_source!(state::State)
                             j => j,
                             k => k + 1,
                         )
+                        copy_increments!(
+                            increments,
+                            r => local_count,
+                            i => i,
+                            j => j,
+                            k => k + 1,
+                        )
                         for field in fieldnames(WKBIncrements)
-                            getfield(increments, field)[
-                                local_count,
-                                i,
-                                j,
-                                k + 1,
-                            ] = getfield(increments, field)[r, i, j, k]
                             getfield(increments, field)[r, i, j, k] = 0.0
                         end
 

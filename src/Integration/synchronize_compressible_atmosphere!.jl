@@ -9,7 +9,7 @@ Synchronize `state.atmosphere.pbar` with `predictands.p` if the atmosphere is co
 synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -19,7 +19,7 @@ Return in non-compressible modes.
 synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -42,14 +42,18 @@ function synchronize_compressible_atmosphere!(
     predictands::Predictands,
 )
     (; model) = state.namelists.atmosphere
-    synchronize_compressible_atmosphere!(state, predictands, model)
+    @dispatch_model synchronize_compressible_atmosphere!(
+        state,
+        predictands,
+        Val(model),
+    )
     return
 end
 
 function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
@@ -57,7 +61,7 @@ end
 function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; pbar) = state.atmosphere
     (; p) = predictands

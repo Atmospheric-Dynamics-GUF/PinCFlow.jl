@@ -10,8 +10,8 @@ WKB{
     G <: WKBIntegrals,
     H <: WKBTendencies,
     I <: Ref{<:AbstractFloat},
-    J <: AbstractArray{<:AbstractFloat, 3},
-    K <: AbstractMatrix{<:AbstractFloat},
+    J <: AbstractMatrix{<:AbstractFloat},
+    K <: AbstractArray{<:AbstractFloat, 3},
     L <: Spectrum,
     M <: ElasticModeSelection,
 }
@@ -26,7 +26,7 @@ WKB(namelists::Namelists, domain::Domain)::WKB
 Construct a `WKB` instance by dispatching to a test-case-specific method.
 
 ```julia
-WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
+WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
 ```
 
 Construct a `WKB` instance with zero-size arrays for non-WKB configurations.
@@ -35,7 +35,7 @@ Construct a `WKB` instance with zero-size arrays for non-WKB configurations.
 WKB(
     namelists::Namelists,
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::WKB
 ```
 
@@ -77,15 +77,15 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `tendencies::H`: Gravity-wave drag and heating fields.
 
-  - `cgx_max::I`: Maximum zonal group velocities.
+  - `cgx_max::I`: Maximum zonal group velocity.
 
-  - `cgy_max::I`: Maximum meridional group velocities.
+  - `cgy_max::I`: Maximum meridional group velocity.
 
-  - `cgz_max::J`: Maximum vertical group velocities.
+  - `cgz_max::I`: Maximum vertical group velocity.
 
-  - `zb::K`: Upper edge of the blocked layer.
+  - `zb::J`: Upper edge of the blocked layer.
 
-  - `diffusion::J`: Diffusion induced by wave breaking.
+  - `diffusion::K`: Diffusion induced by wave breaking.
 
   - `spectrum::L`: Wave field for initialization and sources.
 
@@ -129,8 +129,8 @@ struct WKB{
     G <: WKBIntegrals,
     H <: WKBTendencies,
     I <: Ref{<:AbstractFloat},
-    J <: AbstractArray{<:AbstractFloat, 3},
-    K <: AbstractMatrix{<:AbstractFloat},
+    J <: AbstractMatrix{<:AbstractFloat},
+    K <: AbstractArray{<:AbstractFloat, 3},
     L <: Spectrum,
     M <: ElasticModeSelection,
 }
@@ -152,9 +152,9 @@ struct WKB{
     tendencies::H
     cgx_max::I
     cgy_max::I
-    cgz_max::J
-    zb::K
-    diffusion::J
+    cgz_max::I
+    zb::J
+    diffusion::K
     spectrum::L
     elastic_mode_selection::M
 end
@@ -162,10 +162,10 @@ end
 function WKB(namelists::Namelists, domain::Domain)::WKB
     (; wkb_mode) = namelists.wkb
 
-    return WKB(namelists, domain, wkb_mode)
+    @dispatch_wkb_mode return WKB(namelists, domain, Val(wkb_mode))
 end
 
-function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
+function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
@@ -175,8 +175,7 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::NoWKB)::WKB
         WKBIncrements(0, 0, 0, 0),
         WKBIntegrals(0, 0, 0),
         WKBTendencies(0, 0, 0),
-        [Ref(0.0) for i in 1:2]...,
-        zeros(0, 0, 0),
+        [Ref(0.0) for i in 1:3]...,
         zeros(0, 0),
         zeros(0, 0, 0),
         Spectrum(0, 0, 0, 0),
@@ -187,7 +186,7 @@ end
 function WKB(
     namelists::Namelists,
     domain::Domain,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::WKB
     (;
         nrx,
@@ -276,7 +275,7 @@ function WKB(
     tendencies = WKBTendencies(nxx, nyy, nzz)
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
-    cgz_max = zeros(nxx, nyy, nzz)
+    cgz_max = Ref(0.0)
     zb = zeros(nxx, nyy)
     diffusion = zeros(nxx, nyy, nzz)
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
