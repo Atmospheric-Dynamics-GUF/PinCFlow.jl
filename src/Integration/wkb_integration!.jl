@@ -19,7 +19,7 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
     (; nstages) = state.time
 
     #CHANGES 
-    #apply_saturation_scheme!(state, dtstage)
+    apply_saturation_scheme!(state, dtstage)
 
     for rkstage in 1:nstages
         propagate_rays!(state, dtstage, rkstage)
@@ -28,7 +28,7 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
     split_rays!(state)
     shift_rays!(state)
     # CHANGES
-    # merge_rays!(state)
+    merge_rays!(state)
     set_boundary_rays!(state)
 
     compute_mean_flow_effect!(state)

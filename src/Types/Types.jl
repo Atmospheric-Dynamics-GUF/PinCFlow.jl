@@ -244,6 +244,7 @@ export DomainNamelist,
     TracerFluxes,
     IceOn,
     NoIce,
+    OnlySgsGW, # added
     IcePredictands,
     IceAuxiliaries,
     IceIncrements,

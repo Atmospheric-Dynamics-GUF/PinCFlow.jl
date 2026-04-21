@@ -147,6 +147,7 @@ function shift_rays!(state::State, direction::X)
                     nray[iray, j, k] += 1
                     rray = nray[iray, j, k]
                     if rray > nray_wrk
+                        println("Error at position (i, j, k) = (", i, ", ", j, ", ", k, ")")
                         error("Error in shift_rays!: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => iray, j => j, k => k)
@@ -181,6 +182,7 @@ function shift_rays!(state::State, direction::Y)
                     nray[i, jray, k] += 1
                     rray = nray[i, jray, k]
                     if rray > nray_wrk
+                        println("Error at position (i, j, k) = (", i, ", ", j, ", ", k, ")")
                         error("Error in shift_rays!: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => i, j => jray, k => k)
@@ -215,6 +217,7 @@ function shift_rays!(state::State, direction::Z)
                     nray[i, j, kray] += 1
                     rray = nray[i, j, kray]
                     if rray > nray_wrk
+                        println("Error at position (i, j, k) = (", i, ", ", j, ", ", k, ")")
                         error("Error in shift_rays!: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => i, j => j, k => kray)

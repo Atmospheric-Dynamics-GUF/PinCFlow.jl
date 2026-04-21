@@ -1547,6 +1547,14 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
+    ice_setup::OnlySgsGW, # added
+)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
     ice_setup::IceOn,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain

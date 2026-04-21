@@ -4,16 +4,16 @@
 using HDF5
 using CairoMakie
 
-run = "2202_01"
+run = "1704_01"
 
 directory = "adv"
 
-input_file = "/work/bb1097/b383844/PinCFlow/$directory/results/ice_mountain_wave_$(run).h5"
+input_file = "/work/bb1097/b383844/PinCFlow/$directory/results/mountain_wave_$(run).h5"
 
 data = h5open(input_file, "r")
 
-output_file = "../$directory/visualization/ice_mountain_2D_$(run)_tau.mp4"
-#output_file = "/work/bb1097/b383844/PinCFlow/$directory/ice_mountain_2D_$(run)_tau.gif"
+output_file = "../$directory/visualization/mountain_wave_2D_$(run)_tau.mp4"
+#output_file = "/work/bb1097/b383844/PinCFlow/$directory/mountain_wave_2D_$(run)_tau.gif"
 
 x = data["x"][:] .* 0.001
 z = data["z"][1, 1, :] .* 0.001

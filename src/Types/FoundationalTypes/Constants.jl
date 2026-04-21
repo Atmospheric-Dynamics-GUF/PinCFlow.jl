@@ -21,7 +21,7 @@ Natural constants:
 
   - `gammainv::A`: Inverse ratio of specific heats ``1 / \\gamma``.
 
-  - `kappa::A`: Ratio between specific gas constant and specific heat capacity at constant pressure ``\\kappa = \\left(\\gamma - 1\\right) / \\gamma = R / c_p = 2 / 7``.
+  - `kappa::A`: Ratio between specific gas constant and specific heat capacity at constant pressure ``\\kappa = \\left(\\gamma - 1\\right) = 2/7 / \\gamma = R / c_p = 2 / 7``. # gamma ist cp/cv --> issue
 
   - `kappainv::A`: Ratio between specific heat capacity at constant pressure and specific gas constant ``1 / \\kappa``.
 

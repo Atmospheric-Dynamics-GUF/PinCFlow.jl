@@ -101,6 +101,15 @@ function set_ice_meridional_boundaries!(
     return
 end
 
+# added
+function set_ice_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+    ice_setup::OnlySgsGW,
+)
+    return
+end
+
 function set_ice_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,

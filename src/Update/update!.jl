@@ -1492,6 +1492,26 @@ function update!(
 	return
 end
 
+# added function for noice setup
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    ice_setup::NoIce,
+)
+	return
+end
+
+# added
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    ice_setup::OnlySgsGW,
+)
+	return
+end
+
 function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn)
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; dx, dy, dz, jac) = state.grid

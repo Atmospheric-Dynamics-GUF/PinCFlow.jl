@@ -100,6 +100,14 @@ end
 
 function set_ice_zonal_boundaries!(
     state::State,
+    variables::AbstractBoundaryVariables,
+    ice_setup::OnlySgsGW, # added
+)
+    return
+end
+
+function set_ice_zonal_boundaries!(
+    state::State,
     variables::BoundaryPredictands,
     ice_setup::IceOn,
 )

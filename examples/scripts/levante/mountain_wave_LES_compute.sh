@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=64
 #SBATCH --hint=nomultithread
-#SBATCH --time=0-02:00:00
+#SBATCH --time=0-08:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
 ##SBATCH --array=0-1
@@ -17,7 +17,7 @@ export ROMIO_LUSTRE_LOCKING=0
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
-RUN="1504_05"
+RUN="1904_11"
 
 # Julia environment
 julia --project -e 'import Pkg; Pkg.instantiate()'

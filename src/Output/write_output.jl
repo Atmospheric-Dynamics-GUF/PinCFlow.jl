@@ -431,7 +431,7 @@ function write_output(
 
 				# Write SgsGW variables.
 				for (field, scaling) in zip(fieldnames(SgsGW),
-					(uref, 1.0, thetaref))
+					(uref, 1.0, thetaref, uref, uref)) # added scaling for uup and vvp
 					HDF5.set_extent_dims(
 						file[string(field)],
 						(sizex2, sizey2, sizez2, iout),

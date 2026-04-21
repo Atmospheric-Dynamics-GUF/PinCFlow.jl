@@ -279,6 +279,15 @@ Singleton for model configurations with ice physics.
 """
 struct IceOn <: AbstractIce end
 
+"""
+```julia
+OnlySgsGW <: AbstractIce
+```
+
+Singleton for model configurations with only sub-grid scale gravity wave physics.
+"""
+struct OnlySgsGW <: AbstractIce end # added
+
 abstract type AbstractIceTestCase end
 
 struct NoIceTestCase <: AbstractIceTestCase end
@@ -351,6 +360,7 @@ export UniformBoussinesq,
     NoTracer,
     NoIce,
     IceOn,
+    OnlySgsGW, # added
     CloudCoverOff,
     CloudCoverOn,  
     RandomWavePackets,

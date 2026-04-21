@@ -13,6 +13,11 @@ function explicit_integration_rhs_ice!(state::State, dtstage::AbstractFloat, ice
 	return
 end
 
+# added
+function explicit_integration_rhs_ice!(state::State, dtstage::AbstractFloat, ice_setup::OnlySgsGW)
+	return
+end
+
 function explicit_integration_rhs_ice!(
 	state::State,
 	dtstage::AbstractFloat,

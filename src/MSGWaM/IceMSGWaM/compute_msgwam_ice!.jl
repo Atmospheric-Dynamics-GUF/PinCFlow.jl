@@ -20,7 +20,7 @@ function compute_msgwam_ice!(state::State, ice_setup::NoIce)
 	return
 end
 
-function compute_msgwam_ice!(state::State, ice_setup::IceOn)
+function compute_msgwam_ice!(state::State, ice_setup::Union{IceOn, OnlySgsGW}) # added OnlySgsGW
 	(; domain, grid) = state
 	(; x_size, y_size) = state.namelists.domain
 	(; coriolis_frequency) = state.namelists.atmosphere
@@ -103,7 +103,7 @@ function compute_msgwam_ice!(state::State, ice_setup::IceOn)
 
 									#subcell center
 									xsc = x[ix] - dx / 2.0 +
-										  (ii - 0.5) * dxsc
+										  (ii - 0.5) * dxsc # warum? das erlaubt keine position links der cell mitte
 									ysc = y[jy] - dy / 2.0 +
 										  (jj - 0.5) * dysc
 									zsc = zctilde[ix, jy, kz-1] +
@@ -163,9 +163,17 @@ function compute_msgwam_ice!(state::State, ice_setup::IceOn)
 										theta0 = thetabar[ix, jy, kz]
 										theta11 = fr2 * theta0 * b11
 
-										pi12 = Complex(0.0, kappa * ma2 *
+										pi12 = Complex(0.0, kappa * ma2 * # warum ma^2?
 															(omir * omir - n2r) / n2r / mr /
 															thetabar[ix, jy, kz]) * b11
+
+										u10 = Complex(- lr * fc, kr * omir) / # compare with non-dimensional form and LES sim
+											   			(omir * omir - fc^2) * (omir * omir - n2r) *
+														b11 / mr
+
+										v10 = Complex(kr * fc, lr * omir) /
+											   			(omir * omir - fc^2) * (omir * omir - n2r) *
+														b11 / mr
 
 										# phase at cell center
 										dphi = (rays.dphi[iray, ixrv, jyrv, kzrv] + kr * dxx + lr * dyy + mr * dzz)
@@ -174,11 +182,15 @@ function compute_msgwam_ice!(state::State, ice_setup::IceOn)
 										thetaPrime = real(theta11 * exp(dphi * 1.0im))
 										expPrime = real(pi12 * exp(dphi * 1.0im))
 										wPrime = real(w10 * exp(dphi * 1.0im))
+										uPrime = real(u10 * exp(dphi * 1.0im))
+										vPrime = real(v10 * exp(dphi * 1.0im))
 
 										#superimpose fields
 										sgs.wwp[ii2, jj2, kk2] = sgs.wwp[ii2, jj2, kk2] + wPrime
 										sgs.epp[ii2, jj2, kk2] = sgs.epp[ii2, jj2, kk2] + expPrime
 										sgs.thp[ii2, jj2, kk2] = sgs.thp[ii2, jj2, kk2] + thetaPrime
+										sgs.uup[ii2, jj2, kk2] = sgs.uup[ii2, jj2, kk2] + uPrime
+										sgs.vvp[ii2, jj2, kk2] = sgs.vvp[ii2, jj2, kk2] + vPrime
 									end
 
 								end

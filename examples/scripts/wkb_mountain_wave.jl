@@ -2,38 +2,53 @@
 
 using Pkg
 
-Pkg.activate("examples")
+#Pkg.activate("examples")
 
 using MPI
 using HDF5
-using CairoMakie
-using Revise
+#using CairoMakie
+#using Revise
 using PinCFlow
 
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
+run = "1904_04"
+
+tmax = 2.0e4
+
+#outfile = "/home/b/b383844/PinCFlow/sedimentation/results/mountain_wave_$(run).h5"
+outfile = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_$(run).h5"
+
 h0 = 150.0
 l0 = 5000.0
 rl = 10
 rh = 2
 
-lx = 400000.0
-ly = 400000.0
-lz = 20000.0
+lx = 400_000.0
+ly = 400_000.0
+lz = 20_000.0
 dxr = lx / 20
 dyr = ly / 20
 dzr = lz / 10
 alpharmax = 0.0179
 
+discretization = DiscretizationNamelist(; 
+    wkb_cfl_number = 0.1,
+)
+
 atmosphere = AtmosphereNamelist(;
+    background = LapseRates(),
+    temperature = 280.0,
+    potential_temperature = 280.0,
     coriolis_frequency = 0.0,
     initial_u = (x, y, z) -> 10.0,
 )
+
 domain = DomainNamelist(;
     x_size = 40,
-    y_size = 40,
+    y_size = 1,
     z_size = 40,
     lx,
     ly,
@@ -42,42 +57,72 @@ domain = DomainNamelist(;
     npy,
     npz,
 )
+
 grid = GridNamelist(;
     resolved_topography = (x, y) ->
-        x^2 + y^2 <= (rl * l0)^2 ?
-        h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) * rh / (rh + 1) : 0.0,
+        x^2 <= (rl * l0)^2 ?
+        h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x) ) ) * rh / (rh + 1) : 0.0,
     unresolved_topography = (alpha, x, y) ->
-        x^2 + y^2 <= (rl * l0)^2 ?
+        x^2 <= (rl * l0)^2 ?
         (
             pi / l0,
             0.0,
-            h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) / (rh + 1),
+            h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x) ) ) / (rh + 1),
         ) : (0.0, 0.0, 0.0),
 )
-output = OutputNamelist(;
-    save_ray_volumes = true,
-    output_file = "wkb_mountain_wave.h5",
+
+ice = IceNamelist(;
+	ice_setup = OnlySgsGW(),
+#	ice_test_case = MultipleWavePackets(),
+	dt_ice = 2.0,
+	nscx = 10, 
+	nscy = 1,
+	nscz = 1,
+	cloudcover = CloudCoverOn(),
 )
+
+output = OutputNamelist(; 
+    output_variables = (:w, :u, :n, :Nnuc, :qv, :q, :iaux1, :iaux2, :iaux3, :thetap, :pip, :wwp, :epp, :thp, :uup, :vvp), # added sgs variables to output
+    output_steps = false,
+	output_interval = 100.0,
+	tmax = tmax,
+    save_ray_volumes = true,
+    output_file = outfile,
+)
+
 sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) ->
         alpharmax / 3 * (
             exp((abs(x) - lx / 2) / dxr) +
-            exp((abs(y) - ly / 2) / dyr) +
+ #           exp((abs(y) - ly / 2) / dyr) +
             exp((z - lz) / dzr)
         ),
-    relaxed_u = (x, y, z, t, dt) -> 10.0,
+    relaxed_u = (x, y, z, t, dt) -> 10.0 + (10.0 * sin(2 * pi * t/ 1.0e5)),
 )
-wkb = WKBNamelist(; wkb_mode = MultiColumn())
 
-integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
+wkb = WKBNamelist(; multiplication_factor = 6, wkb_mode = MultiColumn(), filter_order = 3)
 
+# save sbatch script copy and wkb_mountain_wave.jl to output directory
+MPI.Init()
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("wkb_mountain_wave.h5") do data
-        plot_output(
-            "examples/results/wkb_mountain_wave.svg",
-            data,
-            ("nr", 20, 20, 10, 2);
-        )
-        return
-    end
+    output_dir = dirname(outfile)
+    sbatch_src = "/home/b/b383844/PinCFlow/PinCFlow.jl/examples/scripts/levante/ice_dump.sh"
+    sbatch_dst = "/work/bb1097/b383844/PinCFlow/batch/ice_dump_$(run).sbatch"
+    cp(sbatch_src, sbatch_dst; force=true)
+    script_src = "/home/b/b383844/PinCFlow/PinCFlow.jl/examples/scripts/wkb_mountain_wave.jl"
+    script_dst = "/work/bb1097/b383844/PinCFlow/julia/wkb_mountain_wave_$(run).jl"
+    cp(script_src, script_dst; force=true)
 end
+
+integrate(Namelists(; atmosphere, discretization, domain, grid, output, sponge, wkb, ice))
+
+# if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+#     h5open("wkb_mountain_wave.h5") do data
+#         plot_output(
+#             "examples/results/wkb_mountain_wave.svg",
+#             data,
+#             ("nr", 20, 20, 10, 2);
+#         )
+#         return
+#     end
+# end

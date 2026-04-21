@@ -30,7 +30,7 @@ function apply_bicgstab!(
         state.namelists.poisson
     (; master, comm, column_comm, layer_comm) = state.domain
     (; rhs, solution) = state.poisson
-    (; r_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = state.poisson.bicgstab
+    (; p, r0, rold, r, s, t, v, matvec, v_pc) = state.poisson.bicgstab
 
     # Print information.
     if master
@@ -65,15 +65,6 @@ function apply_bicgstab!(
     res = sqrt(res / x_size / y_size / z_size)
 
     b_norm = res
-
-    r_vm .= sum(a -> a / z_size, r; dims = 3)
-    MPI.Allreduce!(r_vm, +, column_comm)
-
-    res_vm = sum(a -> a^2, r_vm)
-    res_vm = MPI.Allreduce(res_vm, +, layer_comm)
-    res_vm = sqrt(res_vm / x_size / y_size)
-
-    b_vm_norm = res_vm
 
     if res == 0.0 || res / b_norm <= tol
         if master
@@ -129,14 +120,7 @@ function apply_bicgstab!(
         res = MPI.Allreduce(res, +, comm)
         res = sqrt(res / x_size / y_size / z_size)
 
-        r_vm .= sum(a -> a / z_size, r; dims = 3)
-        MPI.Allreduce!(r_vm, +, column_comm)
-
-        res_vm = sum(a -> a^2, r_vm)
-        res_vm = MPI.Allreduce(res_vm, +, layer_comm)
-        res_vm = sqrt(res_vm / x_size / y_size)
-
-        if max(res / b_norm, res_vm / b_vm_norm) <= tol
+        if res / b_norm <= tol
             if master
                 println("Iterations: ", j_b)
                 println("Final residual: ", res / b_norm)

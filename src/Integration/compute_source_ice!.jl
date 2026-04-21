@@ -15,6 +15,11 @@ function compute_source_ice!(state::State, ice_setup::NoIce)
 	return
 end
 
+# added
+function compute_source_ice!(state::State, icesetup::OnlySgsGW)
+	return
+end
+
 function compute_source_ice!(state::State, ice_setup::IceOn)
 	(; cloudcover) = state.namelists.ice
 	compute_source_ice!(state, cloudcover)
@@ -39,9 +44,8 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 
 	p0 = ground_pressure / pref
 
-	#n_min = 1.0e-8 # minimum number concentration to avoid division by zero
-	tau = state.namelists.ice.tau_q_sink
-	# tau_q_sink = 3.0 #300.0 #s timescale for the sink term
+	tau_q_sink = 3.3e2
+	tau_qv_source = 3.0e3
 
 	for k in k0:k1, j in j0:j1, i in i0:i1
 
@@ -147,12 +151,12 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 							end
 
 						else
-							if tau > 0.0 && q[ii2, jj2, kk2] > 0.0 && n[ii2, jj2, kk2] > 0.0
-								sgstendencies.dn[ii2, jj2, kk2] = dot_n(sice, rhoMean, iceconstants) - 0.5 / tau * q[ii2, jj2, kk2]^(2. / 3.) * n[ii2, jj2, kk2]^(1. / 3.) # added sink term
-
+							if tau_q_sink > 0.0 && sgspredictands.q[ii2, jj2, kk2] > 0.0 && sgspredictands.n[ii2, jj2, kk2] > 0.0
+								nsink = - 0.5 / tau_q_sink * sgspredictands.n[ii2, jj2, kk2] # added sink term
 							else
-								sgstendencies.dn[ii2, jj2, kk2] = dot_n(sice, rhoMean, iceconstants)
+								nsink = 0.0
 							end
+							sgstendencies.dn[ii2, jj2, kk2] = dot_n(sice, rhoMean, iceconstants) + nsink
 						end
 					else
 						if parameterized_sgs_q != true
@@ -166,11 +170,12 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 						dqv = dot_qv(sice, NIce, temp, pres, psi, iceconstants)
 						sgstendencies.dqv[ii2, jj2, kk2] = dqv
 
-						if tau > 0.0 && q[ii2, jj2, kk2] > 0.0 && n[ii2, jj2, kk2] > 0.0
-							sgstendencies.dq[ii2, jj2, kk2] = -dqv - 1.0 / tau * q[ii2, jj2, kk2]^(5. /3.) * n[ii2, jj2, kk2]^(-2. /3.) # added sink term
+						if tau_q_sink > 0.0 && sgspredictands.q[ii2, jj2, kk2] > 0.0 && sgspredictands.n[ii2, jj2, kk2] > 0.0
+							qsink = - 1.0 / tau_q_sink * sgspredictands.q[ii2, jj2, kk2] # added sink term
 						else
-							sgstendencies.dq[ii2, jj2, kk2] = -dqv
+							qsink = 0.0
 						end
+						sgstendencies.dq[ii2, jj2, kk2] = -dqv + qsink
 
 						#sgsauxiliaries[ii2, jj2, kk2] = sice #full SIce in RT
 					end
@@ -207,12 +212,13 @@ function compute_source_ice!(state::State, cloudcover::CloudCoverOn)
 
 		icesource.qvsource[i, j, k] = dqv # hier quelle ergänzen
 
-		if tau > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
-			icesource.qsource[i, j, k] = -dqv - 1.0 / tau * q[i, j, k]^(5. / 3.) * n[i, j, k]^(-2. / 3.) # added sink term
+		if tau_q_sink > 0.0 && q[i, j, k] > 0.0 && n[i, j, k] > 0.0
+			qsink = - 1.0 / tau_q_sink * q[i, j, k] # added sink term
 		else
-			icesource.qsource[i, j, k] = -dqv
+			qsink = 0.0
 		end
-		
+		icesource.qsource[i, j, k] = -dqv + qsink
+
 		iceauxiliaries.iaux1[i, j, k] = sice_ls
 		iceauxiliaries.iaux2[i, j, k] = icesource.nsource[i, j, k]
 		iceauxiliaries.iaux3[i, j, k] = dqv

@@ -111,6 +111,15 @@ function set_ice_vertical_boundaries!(
     return
 end
 
+# added
+function set_ice_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+    ice_setup::OnlySgsGW, # added
+)
+    return
+end
+
 function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,

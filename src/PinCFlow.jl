@@ -57,7 +57,7 @@ export UniformBoussinesq,
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn
-export NoIce, IceOn
+export NoIce, IceOn, OnlySgsGW # added OnlySgsGW
 export CloudCoverOff, CloudCoverOn
 export WKBMultipleWavePackets, MultipleWavePackets
 export RandomWavePackets
