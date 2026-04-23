@@ -42,13 +42,13 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:dthetadt`: Mass-weighted potential-temperature tendency due to unresolved gravity waves.
 
-  - `:dchidt`: Leading-order tracer impact of unresolved gravity waves.
+  - `:dchidt0`: Leading-order tracer impact of unresolved gravity waves.
 
-  - `:uchi`: Zonal tracer fluxes due to unresolved gravity waves.
+  - `:uchi0`: Zonal tracer fluxes due to unresolved gravity waves.
 
-  - `:vchi`: Meridional tracer fluxes due to unresolved gravity waves.
+  - `:vchi0`: Meridional tracer fluxes due to unresolved gravity waves.
 
-  - `:wchi`: Vertical tracer fluxes due to unresolved gravity waves.
+  - `:wchi0`: Vertical tracer fluxes due to unresolved gravity waves.
 
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
@@ -285,32 +285,44 @@ function write_output(
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if :dchidt in output_variables
-                for field in fieldnames(TracerWKBTendencies)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerwkbtendencies, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
-                end
+            if :dchidt0 in output_variables
+                HDF5.set_extent_dims(
+                    file["dchidt0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dchidt0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] ./
+                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
 
-                for field in (:uchi0, :vchi0, :wchi0)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerwkbintegrals, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] .* uref ./ rhobar[ii, jj, kk]
-                end
+            if :uchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["uchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["uchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if :vchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["vchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["vchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if :wchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["wchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["wchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
             end
         end
 
