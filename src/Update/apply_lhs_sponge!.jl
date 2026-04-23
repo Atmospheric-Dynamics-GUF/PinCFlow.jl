@@ -243,13 +243,15 @@ apply_lhs_sponge!(
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations if `state.namelists.tracer.apply_lhs_sponge_to_tracer == true`.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations if `state.namelists.tracer.apply_lhs_sponge_to_tracer` is `true`.
 
 In each tracer equation, the update is given by
 
 ```math
-\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
+\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\rho \\chi_\\mathrm{R}\\right],
 ```
+
+where ``\\chi_\\mathrm{R}`` is computed with the function `relaxed_chi` in `state.namelists.tracer`.
 
 # Arguments
 
@@ -654,7 +656,7 @@ function apply_lhs_sponge!(
     (; alphar) = state.sponge
     (; rhobar) = state.atmosphere
     (; tracerpredictands) = state.tracer
-    (; background_tracer, apply_lhs_sponge_to_tracer) = state.namelists.tracer
+    (; relaxed_chi, apply_lhs_sponge_to_tracer) = state.namelists.tracer
     (; lref) = state.constants
     (; x, y, zc) = state.grid
 
@@ -673,7 +675,7 @@ function apply_lhs_sponge!(
             beta = 1.0 / (1.0 + alpha * dt)
             chi_new =
                 (1.0 - beta) *
-                background_tracer(xdim, ydim, zcdim) *
+                relaxed_chi(xdim, ydim, zcdim) *
                 rhobar[i, j, k] + beta * chi_old
             chi[i, j, k] = chi_new
         end
