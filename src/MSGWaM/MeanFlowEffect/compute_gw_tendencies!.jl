@@ -26,6 +26,10 @@ where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are 
 # Arguments
 
   - `state::State`: Model state.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_tendencies!`](@ref)
 """
 function compute_gw_tendencies! end
 

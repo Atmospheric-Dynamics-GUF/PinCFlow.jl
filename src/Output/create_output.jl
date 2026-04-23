@@ -266,7 +266,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if :dchidt0 in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt0 in output_variables
                 create_dataset(
                     file,
                     "dchidt0",
@@ -279,7 +280,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if :uchi0 in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :uchi0 in output_variables
                 create_dataset(
                     file,
                     "uchi0",
@@ -292,7 +294,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if :vchi0 in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :vchi0 in output_variables
                 create_dataset(
                     file,
                     "vchi0",
@@ -305,7 +308,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if :wchi0 in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :wchi0 in output_variables
                 create_dataset(
                     file,
                     "wchi0",
@@ -502,27 +506,43 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
-               :dchidt in output_variables
-                for (field, units, label, long_name) in zip(
-                    fieldnames(TracerWKBImpact),
-                    ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
-                    (
-                        L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-                        L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]",
-                    ),
-                    (
-                        "zonal GW-tracer flux",
-                        "meridional GW-tracer flux",
-                        "vertical GW-tracer flux",
-                        "GW-tracer flux convergence",
-                    ),
-                )
-                    attributes(file[string(field)])["units"] = units
-                    attributes(file[string(field)])["label"] = label
-                    attributes(file[string(field)])["long_name"] = long_name
-                end
+               :dchidt0 in output_variables
+                attributes(file["dchidt0"])["units"] = "s^-1"
+                attributes(file["dchidt0"])["label"] =
+                    L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]"
+                attributes(
+                    file["dchidt0"],
+                )["long_name"] = "leading-order GW-tracer flux convergence"
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :uchi0 in output_variables
+                attributes(file["uchi0"])["units"] = "m*s^-1"
+                attributes(file["uchi0"])["label"] =
+                    L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                attributes(
+                    file["uchi0"],
+                )["long_name"] = "leading-order zonal GW-tracer flux"
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :vchi0 in output_variables
+                attributes(file["vchi0"])["units"] = "m*s^-1"
+                attributes(file["vchi0"])["label"] =
+                    L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                attributes(
+                    file["vchi0"],
+                )["long_name"] = "leading-order meridional GW-tracer flux"
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :wchi0 in output_variables
+                attributes(file["wchi0"])["units"] = "m*s^-1"
+                attributes(file["wchi0"])["label"] =
+                    L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                attributes(
+                    file["wchi0"],
+                )["long_name"] = "leading-order vertical GW-tracer flux"
             end
         end
 

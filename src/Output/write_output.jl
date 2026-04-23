@@ -285,7 +285,8 @@ function write_output(
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if :dchidt0 in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt0 in output_variables
                 HDF5.set_extent_dims(
                     file["dchidt0"],
                     (x_size, y_size, z_size, iout),
@@ -295,7 +296,8 @@ function write_output(
                     tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if :uchi0 in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :uchi0 in output_variables
                 HDF5.set_extent_dims(
                     file["uchi0"],
                     (x_size, y_size, z_size, iout),
@@ -305,7 +307,8 @@ function write_output(
                     rhobar[ii, jj, kk]
             end
 
-            if :vchi0 in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :vchi0 in output_variables
                 HDF5.set_extent_dims(
                     file["vchi0"],
                     (x_size, y_size, z_size, iout),
@@ -315,7 +318,8 @@ function write_output(
                     rhobar[ii, jj, kk]
             end
 
-            if :wchi0 in output_variables
+            if state.namelists.tracer.leading_order_impact &&
+               :wchi0 in output_variables
                 HDF5.set_extent_dims(
                     file["wchi0"],
                     (x_size, y_size, z_size, iout),

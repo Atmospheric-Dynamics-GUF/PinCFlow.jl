@@ -215,6 +215,18 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations by dispatching to the appropriate method.
+
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
 ```
@@ -226,6 +238,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
 ```
@@ -605,6 +618,26 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
+)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup apply_lhs_sponge!(
+        state,
+        dt,
+        time,
+        variable,
+        Val(tracer_setup),
+    )
+
+    return
+end
+
+function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
     return
@@ -614,6 +647,7 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain

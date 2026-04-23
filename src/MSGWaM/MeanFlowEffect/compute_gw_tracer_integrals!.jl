@@ -1,6 +1,6 @@
 """
 ```julia 
-compute_leading_order_tracer_fluxes!(
+compute_gw_tracer_integrals!(
     state::State,
     fc::AbstractFloat,
     omir::AbstractFloat,
@@ -20,7 +20,7 @@ compute_leading_order_tracer_fluxes!(
 Compute the leading-order gravity-wave-tracer fluxes by dispatching to the appropriate method.
 
 ```julia
-compute_leading_order_tracer_fluxes!(
+compute_gw_tracer_integrals!(
     state::State,
     tracer_setup::Val{:NoTracer},
     fc::AbstractFloat,
@@ -41,7 +41,7 @@ compute_leading_order_tracer_fluxes!(
 Return for configurations without tracer transport.
 
 ```julia
-compute_leading_order_tracer_fluxes!(
+compute_gw_tracer_integrals!(
     state::State,
     tracer_setup::Val{:TracerOn},
     fc::AbstractFloat,
@@ -106,9 +106,9 @@ The zonal, meridional, and vertical fluxes are given by
   - [`PinCFlow.MSGWaM.MeanFlowEffect.leading_order_tracer_fluxes`](@ref)
 
 """
-function compute_leading_order_tracer_fluxes! end
+function compute_gw_tracer_integrals! end
 
-function compute_leading_order_tracer_fluxes!(
+function compute_gw_tracer_integrals!(
     state::State,
     fc::AbstractFloat,
     omir::AbstractFloat,
@@ -125,9 +125,8 @@ function compute_leading_order_tracer_fluxes!(
 )
     (; tracer_setup) = state.namelists.tracer
 
-    @dispatch_tracer_setup compute_leading_order_tracer_fluxes!(
+    @dispatch_tracer_setup compute_gw_tracer_integrals!(
         state,
-        Val(tracer_setup),
         fc,
         omir,
         wnrk,
@@ -140,13 +139,13 @@ function compute_leading_order_tracer_fluxes!(
         i,
         j,
         k,
+        Val(tracer_setup),
     )
     return
 end
 
-function compute_leading_order_tracer_fluxes!(
+function compute_gw_tracer_integrals!(
     state::State,
-    tracer_setup::Val{:NoTracer},
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -159,13 +158,13 @@ function compute_leading_order_tracer_fluxes!(
     i::Integer,
     j::Integer,
     k::Integer,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
 
-function compute_leading_order_tracer_fluxes!(
+function compute_gw_tracer_integrals!(
     state::State,
-    tracer_setup::Val{:TracerOn},
     fc::AbstractFloat,
     omir::AbstractFloat,
     wnrk::AbstractFloat,
@@ -178,6 +177,7 @@ function compute_leading_order_tracer_fluxes!(
     i::Integer,
     j::Integer,
     k::Integer,
+    tracer_setup::Val{:TracerOn},
 )
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
 
@@ -185,7 +185,7 @@ function compute_leading_order_tracer_fluxes!(
         return
     end
 
-    @ivy uchi[i, j, k] += leading_order_tracer_fluxes(
+    @ivy uchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -199,7 +199,7 @@ function compute_leading_order_tracer_fluxes!(
         UChi(),
     )
 
-    @ivy vchi[i, j, k] += leading_order_tracer_fluxes(
+    @ivy vchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -213,7 +213,7 @@ function compute_leading_order_tracer_fluxes!(
         VChi(),
     )
 
-    @ivy wchi[i, j, k] += leading_order_tracer_fluxes(
+    @ivy wchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,

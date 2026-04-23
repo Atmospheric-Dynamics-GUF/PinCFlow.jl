@@ -86,6 +86,10 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref)
 """
 function compute_gw_integrals! end
 
@@ -269,7 +273,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_leading_order_tracer_fluxes!(
+                        compute_gw_tracer_integrals!(
                             state,
                             fc,
                             omir,
@@ -431,7 +435,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_leading_order_tracer_fluxes!(
+                        compute_gw_tracer_integrals!(
                             state,
                             fc,
                             omir,
@@ -560,7 +564,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
 
-                        compute_leading_order_tracer_fluxes!(
+                        compute_gw_tracer_integrals!(
                             state,
                             fc,
                             omir,
