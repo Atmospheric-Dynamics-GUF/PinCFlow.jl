@@ -52,7 +52,7 @@ function compute_turbulent_damping(
 
     gammawp =
         -lb * mr / omir / 2 *
-        sqrt(n2r^2 * kh2 / (kh2 + mr^2) * rhob / 2 / omir / wadr) *
+        sqrt(n2r^2 * kh2 / (kh2 + mr^2) * rhob / 2 / abs(omir / wadr)) *
         real(1im * q10)
 
     return gammas, gammaw, gammawp

@@ -132,7 +132,7 @@ where
 \\end{align*}
 ```
 
-and the eddy diffusion coefficients ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` obtained from `state.turbulence.turbulencediffusioncoefficients.km` and `state.turbulence.turbulencediffusioncoefficients.kh`, respectively.
+and the eddy diffusion coefficients ``K_\\mathrm{M}`` and ``K_\\mathrm{H}``.
 
 # Arguments
 
@@ -282,14 +282,13 @@ function compute_volume_force(
 )::AbstractFloat
     (; shearproduction, buoyancyproduction) =
         state.turbulence.turbulenceauxiliaries
-    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
     (; rho) = state.variables.predictands
     (; rhobar, n2) = state.atmosphere
     (; jac, dz) = state.grid
     (; g_ndim) = state.constants
 
     shear =
-        km[i, j, k] * (
+        turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
             compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
             compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
         )
@@ -300,7 +299,8 @@ function compute_volume_force(
     bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
     buoyancy =
-        -kh[i, j, k] * (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     buoyancyproduction[i, j, k] = buoyancy
 

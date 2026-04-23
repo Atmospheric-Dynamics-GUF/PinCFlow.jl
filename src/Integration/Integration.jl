@@ -75,8 +75,6 @@ include("implicit_integration!.jl")
 include("wkb_integration!.jl")
 include("backup_predictands.jl")
 include("turbulence_integration!.jl")
-include("compute_turbulence_diffusion!.jl")
-include("check_tke!.jl")
 
 export integrate
 

@@ -320,63 +320,44 @@ function write_output(
             typeof(state.namelists.turbulence.turbulence_scheme) <:
             NoTurbulence
         )
-            if model == Boussinesq()
-                for field in fieldnames(TurbulencePredictands)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.turbulence.turbulencepredictands, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] ./ (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .*
-                        (lref .^ 2.0) ./ (tref .^ 2.0)
-                end
-            else
-                for field in fieldnames(TurbulencePredictands)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.turbulence.turbulencepredictands, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
-                        (lref .^ 2.0) ./ (tref .^ 2.0)
-                end
-            end
-
-            for field in fieldnames(TurbulenceAuxiliaries)
+            for field in fieldnames(TurbulencePredictands)
                 HDF5.set_extent_dims(
                     file[string(field)],
                     (x_size, y_size, z_size, iout),
                 )
                 @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulenceauxiliaries, field)[
+                    getfield(state.turbulence.turbulencepredictands, field)[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
+                    (lref .^ 2.0) ./ (tref .^ 2.0)
+            end
+
+            if :shearproduction in output_variables
+                HDF5.set_extent_dims(
+                    file["shearproduction"],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file["shearproduction"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.shearproduction[
                         ii,
                         jj,
                         kk,
                     ] .* uref .^ 2 ./ tref
             end
 
-            for field in fieldnames(TurbulenceDiffusionCoefficients)
+            if :buoyancyproduction in output_variables
                 HDF5.set_extent_dims(
-                    file[string(field)],
+                    file["buoyancyproduction"],
                     (x_size, y_size, z_size, iout),
                 )
-                @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(
-                        state.turbulence.turbulencediffusioncoefficients,
-                        field,
-                    )[
+                @views file["buoyancyproduction"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.buoyancyproduction[
                         ii,
                         jj,
                         kk,
-                    ] .* lref .^ 2 / tref
+                    ] .* uref .^ 2 ./ tref
             end
         end
 

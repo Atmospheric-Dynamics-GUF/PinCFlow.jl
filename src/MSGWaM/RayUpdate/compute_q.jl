@@ -137,6 +137,7 @@ function compute_q(
     (; tref) = state.constants
     (; rhobar) = state.atmosphere
     (; x_size, y_size) = state.namelists.domain
+    (; branch) = state.namelists.wkb
 
     (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
@@ -152,7 +153,7 @@ function compute_q(
 
     khr = sqrt(kr^2 + lr^2)
 
-    omir = -sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+    omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
     wadr = rays.dens[r, i, j, k] * dmr
 
@@ -202,7 +203,7 @@ function compute_q(
         2 *
         wadr / omir / rhob
     bhat = sqrt(
-        n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * wadr / omir / rhob,
+        n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * abs(wadr / omir) / rhob,
     )
 
     sterm = mr^2 / 2 * (uhat2 - real(u01u01 * exp(2im * phi)))

@@ -70,8 +70,6 @@ In the case of turbulence parameterization, the turbulence variables are integra
 
   - [`PinCFlow.Integration.reset_predictands!`](@ref)
 
-  - [`PinCFlow.Integration.compute_turbulence_diffusion!`](@ref)
-
   - [`PinCFlow.Update.turbulent_diffusion!`](@ref)
 
   - [`PinCFlow.Integration.turbulence_integration!`](@ref)
@@ -264,8 +262,6 @@ function integrate(namelists::Namelists)
         #-----------------------------------------------------------------
         #                         Turbulence 
         #-----------------------------------------------------------------
-
-        compute_turbulence_diffusion!(state)
 
         turbulent_diffusion!(state, dt)
 

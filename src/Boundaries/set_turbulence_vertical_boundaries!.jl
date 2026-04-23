@@ -122,7 +122,7 @@ function set_turbulence_vertical_boundaries!(
             getfield(turbulencepredictands, field),
             namelists,
             domain,
-            -,
+            +,
         )
     end
 

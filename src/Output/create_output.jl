@@ -295,10 +295,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            for field in fieldnames(TurbulenceAuxiliaries)
+            if :shearproduction in output_variables
                 create_dataset(
                     file,
-                    string(field),
+                    "shearproduction",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),
@@ -308,10 +308,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            for field in fieldnames(TurbulenceDiffusionCoefficients)
+            if :buoyancyproduction in output_variables
                 create_dataset(
                     file,
-                    string(field),
+                    "buoyancyproduction",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),

@@ -26,7 +26,6 @@ include("TurbulenceAuxiliaries.jl")
 include("TurbulenceReconstructions.jl")
 include("TurbulenceFluxes.jl")
 include("TurbulenceConstants.jl")
-include("TurbulenceDiffusionCoefficients.jl")
 include("Turbulence.jl")
 
 export TurbulencePredictands,
@@ -35,6 +34,5 @@ export TurbulencePredictands,
     TurbulenceReconstructions,
     TurbulenceFluxes,
     TurbulenceConstants,
-    TurbulenceDiffusionCoefficients,
     Turbulence
 end

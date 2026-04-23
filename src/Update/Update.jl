@@ -83,6 +83,35 @@ Singleton for ``\\hat{z}``-axis along which a calculation should be performed.
 """
 struct Z end
 
+"""
+```julia
+KM
+```
+
+Singleton for the eddy diffusion coefficient for momentum.
+"""
+struct KM end 
+
+"""
+```julia
+KM
+```
+
+Singleton for the eddy diffusion coefficient for heat.
+"""
+struct KH end 
+
+"""
+```julia
+KM
+```
+
+Singleton for the eddy diffusion coefficient for turbulent kinetic energy.
+"""
+struct KEK end
+
+include("check_tke!.jl")
+include("turbulence_diffusion_coefficient.jl")
 include("apply_lhs_sponge!.jl")
 include("compute_buoyancy_factor.jl")
 include("compute_compressible_wind_factor.jl")
@@ -99,7 +128,7 @@ include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
 include("turbulent_diffusion!.jl")
 
-export LHS, RHS, X, Y, Z
+export LHS, RHS, X, Y, Z, KM, KH, KEK
 
 export apply_lhs_sponge!,
     compute_buoyancy_factor,
@@ -114,6 +143,8 @@ export apply_lhs_sponge!,
     thomas_algorithm!,
     reset_thomas!,
     turbulent_diffusion!,
+    turbulence_diffusion_coefficient,
+    check_tke!,
     update!
 
 end

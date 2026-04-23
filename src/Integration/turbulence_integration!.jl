@@ -161,6 +161,7 @@ function turbulence_integration!(
 
         apply_lhs_sponge!(state, dt, stepfrac[rkstage] * dt, TKE())
 
+        check_tke!(state)
         set_boundaries!(state, BoundaryPredictands())
     end
 
@@ -176,7 +177,6 @@ function turbulence_integration!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; nbx, nby, nbz) = state.namelists.domain
     (; jac, dz) = state.grid
-    (; kek) = state.turbulence.turbulencediffusioncoefficients
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
@@ -186,13 +186,17 @@ function turbulence_integration!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         kekd =
             (
-                jac[i, j, k - 1] * kek[i, j, k] +
-                jac[i, j, k] * kek[i, j, k - 1]
+                jac[i, j, k - 1] *
+                turbulence_diffusion_coefficient(state, i, j, k, KEK()) +
+                jac[i, j, k] *
+                turbulence_diffusion_coefficient(state, i, j, k - 1, KEK())
             ) / (jac[i, j, k - 1] + jac[i, j, k])
         keku =
             (
-                jac[i, j, k + 1] * kek[i, j, k] +
-                jac[i, j, k] * kek[i, j, k + 1]
+                jac[i, j, k + 1] *
+                turbulence_diffusion_coefficient(state, i, j, k, KEK()) +
+                jac[i, j, k] *
+                turbulence_diffusion_coefficient(state, i, j, k + 1, KEK())
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         ith = i - nbx

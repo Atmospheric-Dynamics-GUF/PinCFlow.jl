@@ -320,21 +320,3 @@ function set_meridional_boundaries!(
 
     return
 end
-
-function set_meridional_boundaries!(
-    state::State,
-    variables::BoundaryDiffusionCoefficients,
-)
-    (; namelists, domain) = state
-    (; turbulencediffusioncoefficients) = state.turbulence
-
-    for field in (:kh, :km, :kek)
-        set_meridional_boundaries_of_field!(
-            getfield(turbulencediffusioncoefficients, field),
-            namelists,
-            domain,
-        )
-    end
-
-    return
-end
