@@ -110,6 +110,11 @@ function TracerWKBTendencies(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBTendencies
     (; nxx, nyy, nzz) = domain
+    (; leading_order_impact) = state.namelists.tracer
 
-    return TracerWKBTendencies([zeros(nxx, nyy, nzz) for i in 1:1]...)
+    if leading_order_impact
+        return TracerWKBTendencies([zeros(nxx, nyy, nzz) for i in 1:1]...)
+    else
+        return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+    end
 end

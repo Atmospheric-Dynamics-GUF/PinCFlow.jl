@@ -116,6 +116,11 @@ function TracerWKBIntegrals(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBIntegrals
     (; nxx, nyy, nzz) = domain
+    (; leading_order_impact) = state.namelists.tracer
 
-    return TracerWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:3]...)
+    if leading_order_impact
+        return TracerWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:3]...)
+    else
+        return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
+    end
 end
