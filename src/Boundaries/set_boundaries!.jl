@@ -18,15 +18,6 @@ set_boundaries!(state::State, variables::BoundaryFluxes)
 
 Enforce vertical boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 
-```julia
-set_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
-set_zonal_boundaries!(state, variables)
-set_meridional_boundaries!(state, variables)
-set_vertical_boundaries!(state, variables)
-```
-
-Enforce all boundary conditions for eddy diffusion coefficients.
-
 # Arguments
 
   - `state`: Model state.
@@ -85,12 +76,5 @@ function set_boundaries!(state::State, variables::BoundaryFluxes)
 
     set_turbulence_vertical_boundaries!(state, variables)
 
-    return
-end
-
-function set_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
-set_zonal_boundaries!(state, variables)
-set_meridional_boundaries!(state, variables)
-set_vertical_boundaries!(state, variables)
     return
 end
