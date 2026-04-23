@@ -35,19 +35,24 @@ TracerWKBTendencies(
 Construct a `TracerWKBTendencies` instance by dispatching to the appropriate method.
 
 ```julia 
-TracerWKBTendencies(domain::Domain, wkb_mode::Val{:NoWKB})::TracerWKBTendencies
+TracerWKBTendencies(
+    namelists::Namelists,
+    domain::Domain,
+    wkb_mode::Val{:NoWKB},
+)::TracerWKBTendencies
 ```
 
 Construct a `TracerWKBTendencies` instance with zero-size arrays for non-WKB configurations.
 
 ```julia
 TracerWKBTendencies(
+    namelists::Namelists,
     domain::Domain,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBTendencies
 ```
 
-Construct a `TracerWKBTendencies` instance with zero-initialized arrays.
+Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `state.namelists.tracer.leading_order_impact == true`, otherwise the arrays are zero-size.
 
 # Fields 
 
@@ -95,10 +100,11 @@ function TracerWKBTendencies(
 )::TracerWKBTendencies
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_wkb_mode return TracerWKBTendencies(domain, Val(wkb_mode))
+    @dispatch_wkb_mode return TracerWKBTendencies(namelists, domain, Val(wkb_mode))
 end
 
 function TracerWKBTendencies(
+    namelists::Namelists,
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBTendencies
@@ -106,11 +112,12 @@ function TracerWKBTendencies(
 end
 
 function TracerWKBTendencies(
+    namelists::Namelists,
     domain::Domain,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBTendencies
     (; nxx, nyy, nzz) = domain
-    (; leading_order_impact) = state.namelists.tracer
+    (; leading_order_impact) = namelists.tracer
 
     if leading_order_impact
         return TracerWKBTendencies([zeros(nxx, nyy, nzz) for i in 1:1]...)

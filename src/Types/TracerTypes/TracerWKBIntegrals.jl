@@ -35,19 +35,24 @@ TracerWKBIntegrals(
 Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
 
 ```julia 
-TracerWKBIntegrals(domain::Domain, wkb_mode::Val{:NoWKB})::TracerWKBIntegrals
+TracerWKBIntegrals(
+    namelists::Namelists,
+    domain::Domain,
+    wkb_mode::Val{:NoWKB},
+)::TracerWKBIntegrals
 ```
 
 Construct a `TracerWKBIntegrals` instance with zero-size arrays for non-WKB configurations.
 
 ```julia
 TracerWKBIntegrals(
+    namelists::Namelists,
     domain::Domain,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBIntegrals
 ```
 
-Construct a `TracerWKBIntegrals` instance with zero-initialized arrays.
+Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state.namelists.tracer.leading_order_impact == true`, otherwise the arrays are zero-size.
 
 # Fields 
 
@@ -101,10 +106,15 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_wkb_mode return TracerWKBIntegrals(domain, Val(wkb_mode))
+    @dispatch_wkb_mode return TracerWKBIntegrals(
+        namelists,
+        domain,
+        Val(wkb_mode),
+    )
 end
 
 function TracerWKBIntegrals(
+    namelists::Namelists,
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBIntegrals
@@ -112,11 +122,12 @@ function TracerWKBIntegrals(
 end
 
 function TracerWKBIntegrals(
+    namelists::Namelists,
     domain::Domain,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBIntegrals
     (; nxx, nyy, nzz) = domain
-    (; leading_order_impact) = state.namelists.tracer
+    (; leading_order_impact) = namelists.tracer
 
     if leading_order_impact
         return TracerWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:3]...)
