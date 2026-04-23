@@ -22,8 +22,8 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Boussinesq,
-    background::NeutralStratification,
+    model::Val{:Boussinesq},
+    background::Val{:NeutralStratification},
 )::Atmosphere
 ```
 
@@ -45,8 +45,8 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Boussinesq,
-    background::StableStratification,
+    model::Val{:Boussinesq},
+    background::Val{:StableStratification},
 )::Atmosphere
 ```
 
@@ -68,8 +68,8 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Union{PseudoIncompressible, Compressible},
-    background::Isothermal,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Isothermal},
 )::Atmosphere
 ```
 
@@ -94,8 +94,8 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Union{PseudoIncompressible, Compressible},
-    background::Isentropic,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Isentropic},
 )::Atmosphere
 ```
 
@@ -120,8 +120,8 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Union{PseudoIncompressible, Compressible},
-    background::Realistic,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Realistic},
 )::Atmosphere
 ```
 
@@ -162,8 +162,8 @@ Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Union{PseudoIncompressible, Compressible},
-    background::LapseRates,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:LapseRates},
 )::Atmosphere
 ```
 
@@ -245,7 +245,14 @@ function Atmosphere(
     grid::Grid,
 )::Atmosphere
     (; model, background) = namelists.atmosphere
-    return Atmosphere(namelists, constants, domain, grid, model, background)
+    @dispatch_model @dispatch_background return Atmosphere(
+        namelists,
+        constants,
+        domain,
+        grid,
+        Val(model),
+        Val(background),
+    )
 end
 
 function Atmosphere(
@@ -253,8 +260,8 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Boussinesq,
-    background::NeutralStratification,
+    model::Val{:Boussinesq},
+    background::Val{:NeutralStratification},
 )::Atmosphere
     (; potential_temperature) = namelists.atmosphere
     (; thetaref) = constants
@@ -273,8 +280,8 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Boussinesq,
-    background::StableStratification,
+    model::Val{:Boussinesq},
+    background::Val{:StableStratification},
 )::Atmosphere
     (; buoyancy_frequency, potential_temperature) = namelists.atmosphere
     (; tref, thetaref) = constants
@@ -293,8 +300,8 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Union{PseudoIncompressible, Compressible},
-    background::Isothermal,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Isothermal},
 )::Atmosphere
     (; temperature, ground_pressure) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma) = constants
@@ -320,8 +327,8 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Union{PseudoIncompressible, Compressible},
-    background::Isentropic,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Isentropic},
 )::Atmosphere
     (; lz) = namelists.domain
     (; potential_temperature, ground_pressure) = namelists.atmosphere
@@ -360,8 +367,8 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Union{PseudoIncompressible, Compressible},
-    background::Realistic,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Realistic},
 )::Atmosphere
     (; potential_temperature, ground_pressure, tropopause_height) =
         namelists.atmosphere
@@ -416,8 +423,8 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::Union{PseudoIncompressible, Compressible},
-    background::LapseRates,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:LapseRates},
 )::Atmosphere
     (;
         ground_pressure,

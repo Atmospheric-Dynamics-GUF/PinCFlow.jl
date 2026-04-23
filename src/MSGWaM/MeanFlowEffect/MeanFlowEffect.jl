@@ -19,6 +19,7 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 """
 module MeanFlowEffect
 
+using ..BlockedLayer
 using ..Interpolation
 using ..RayUpdate
 using ...Types
@@ -52,11 +53,10 @@ Singleton for dispatch to calculation of vertical gravity-wave-tracer fluxes.
 """
 struct WChi end
 
-include("compute_leading_order_tracer_fluxes!.jl")
+include("compute_gw_tracer_integrals!.jl")
 include("leading_order_tracer_fluxes.jl")
-include("compute_leading_order_tracer_forcing!.jl")
+include("compute_gw_tracer_tendencies!.jl")
 include("set_tracer_fields_zero!.jl")
-include("apply_blocked_layer_scheme!.jl")
 include("apply_shapiro_filter!.jl")
 include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")

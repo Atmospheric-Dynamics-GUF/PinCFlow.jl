@@ -60,10 +60,10 @@ function set_meridional_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain,
 )
-    (; npy, nby) = namelists.domain
+    (; y_size, nby) = namelists.domain
     (; j0, j1) = domain
 
-    @ivy if npy > 1
+    @ivy if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain)
     else
         for j in 1:nby
@@ -81,14 +81,14 @@ function set_meridional_boundaries_of_field!(
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; npy) = namelists.domain
+    (; y_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
     @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
     @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    @ivy if npy > 1
+    @ivy if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
         ii = (i0 - nbx):(i1 + nbx)
@@ -109,14 +109,14 @@ function set_meridional_boundaries_of_field!(
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; npy) = namelists.domain
+    (; y_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
     @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
     @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    @ivy if npy > 1
+    @ivy if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
         ii = (i0 - nbx):(i1 + nbx)

@@ -9,7 +9,7 @@ Apply diffusion to the momentum, mass-weighted potential temperature, and tracer
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -19,7 +19,7 @@ Return for configurations without turbulence parameterization.
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -177,14 +177,18 @@ function turbulent_diffusion! end
 function turbulent_diffusion!(state::State, dt::AbstractFloat)
     (; turbulence_scheme) = state.namelists.turbulence
 
-    turbulent_diffusion!(state, dt, turbulence_scheme)
+    @dispatch_turbulence_scheme turbulent_diffusion!(
+        state,
+        dt,
+        Val(turbulence_scheme),
+    )
     return
 end
 
 function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
@@ -192,7 +196,7 @@ end
 function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
     (; momentum_coupling, entropy_coupling, tracer_coupling) =
         state.namelists.turbulence
@@ -200,7 +204,7 @@ function turbulent_diffusion!(
     (; u, v) = state.variables.predictands
 
     check_tke!(state)
-    
+
     if momentum_coupling
         uold .= copy(u)
         vold .= copy(v)
@@ -553,7 +557,7 @@ end
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Theta)
     (; model) = state.namelists.atmosphere
 
-    turbulent_diffusion!(state, dt, variable, model)
+    @dispatch_model turbulent_diffusion!(state, dt, variable, Val(model))
     return
 end
 
@@ -561,7 +565,7 @@ function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Theta,
-    model::Union{PseudoIncompressible, Boussinesq},
+    model::Union{Val{:PseudoIncompressible}, Val{:Boussinesq}},
 )
     return
 end
@@ -570,7 +574,7 @@ function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Theta,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; p) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -621,7 +625,12 @@ end
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Chi)
     (; tracer_setup) = state.namelists.tracer
 
-    turbulent_diffusion!(state, dt, variable, tracer_setup)
+    @dispatch_tracer_setup turbulent_diffusion!(
+        state,
+        dt,
+        variable,
+        Val(tracer_setup),
+    )
     return
 end
 
@@ -629,7 +638,7 @@ function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Chi,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -638,7 +647,7 @@ function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Chi,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; tracerpredictands) = state.tracer
     (; i0, i1, j0, j1, k0, k1) = state.domain

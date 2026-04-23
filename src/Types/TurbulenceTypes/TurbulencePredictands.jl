@@ -25,7 +25,7 @@ TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
     variables::Variables,
 )::TurbulencePredictands
 ```
@@ -39,7 +39,7 @@ TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
     variables::Variables,
 )::TurbulencePredictands
 ```
@@ -86,13 +86,13 @@ function TurbulencePredictands(
 )::TurbulencePredictands
     (; turbulence_scheme) = namelists.turbulence
 
-    return TurbulencePredictands(
+    @dispatch_turbulence_scheme return TurbulencePredictands(
         namelists,
         constants,
         domain,
         atmosphere,
         grid,
-        turbulence_scheme,
+        Val(turbulence_scheme),
         variables,
     )
 end
@@ -103,7 +103,7 @@ function TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
     variables::Variables,
 )::TurbulencePredictands
     tke = zeros(0, 0, 0)
@@ -117,7 +117,7 @@ function TurbulencePredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
     variables::Variables,
 )::TurbulencePredictands
     (; i0, i1, j0, j1, nxx, nyy, nzz) = domain

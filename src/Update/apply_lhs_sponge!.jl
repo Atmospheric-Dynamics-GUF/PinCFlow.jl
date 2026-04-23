@@ -16,7 +16,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -28,7 +28,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -48,7 +48,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -66,7 +66,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -84,7 +84,11 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::U,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
 ```
 
@@ -104,7 +108,11 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::V,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
 ```
 
@@ -124,7 +132,11 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::W,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
 ```
 
@@ -144,7 +156,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -156,7 +168,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -174,7 +186,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -186,7 +198,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -203,7 +215,19 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::NoTracer,
+    variable::Chi,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations by dispatching to the appropriate method.
+
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
+    tracer_setup::Val{:NoTracer},
 )
 ```
 
@@ -214,16 +238,17 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::TracerOn,
+    variable::Chi,
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations if `state.namelists.tracer.apply_lhs_sponge_to_tracer` is `true`.
 
 In each tracer equation, the update is given by
 
 ```math
-\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
+\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\rho \\chi_\\mathrm{R}\\right],
 ```
 
 ```julia
@@ -231,7 +256,7 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    variable::TKE,
 )
 ```
 
@@ -242,6 +267,8 @@ In the equation for the turbulent kinetic energy, the update is given by
 ```math
 \\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho e_\\mathrm{k}\\right)^{\\left(0\\right)}\\right].
 ```
+
+where ``\\chi_\\mathrm{R}`` is computed with the function `relaxed_chi` in `state.namelists.tracer`.
 
 # Arguments
 
@@ -256,8 +283,6 @@ In the equation for the turbulent kinetic energy, the update is given by
   - `model`: Dynamic equations.
 
   - `tracer_setup`: General tracer-transport configuration.
-
-  - `turbulence_scheme`: General turbulence parameterization configuration.
 """
 function apply_lhs_sponge! end
 
@@ -268,7 +293,7 @@ function apply_lhs_sponge!(
     variable::AbstractPredictand,
 )
     (; model) = state.namelists.atmosphere
-    apply_lhs_sponge!(state, dt, time, variable, model)
+    @dispatch_model apply_lhs_sponge!(state, dt, time, variable, Val(model))
     return
 end
 
@@ -277,7 +302,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     return
 end
@@ -287,7 +312,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
@@ -310,7 +335,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar, thetabar) = state.atmosphere
@@ -339,7 +364,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
@@ -362,7 +387,11 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::U,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_u) = state.namelists.sponge
@@ -412,7 +441,11 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::V,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_v) = state.namelists.sponge
@@ -462,7 +495,11 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::W,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_u, relaxed_v, relaxed_w) = state.namelists.sponge
@@ -529,7 +566,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
@@ -539,7 +576,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -567,7 +604,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
@@ -577,7 +614,7 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
@@ -600,7 +637,27 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::NoTracer,
+    variable::Chi,
+)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup apply_lhs_sponge!(
+        state,
+        dt,
+        time,
+        variable,
+        Val(tracer_setup),
+    )
+
+    return
+end
+
+function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
@@ -609,20 +666,34 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::TracerOn,
+    variable::Chi,
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
+    (; rhobar) = state.atmosphere
     (; tracerpredictands) = state.tracer
-    (; initialtracer) = state.tracer.tracerauxiliaries
+    (; relaxed_chi, apply_lhs_sponge_to_tracer) = state.namelists.tracer
+    (; lref) = state.constants
+    (; x, y, zc) = state.grid
+
+    if !apply_lhs_sponge_to_tracer
+        return
+    end
 
     @ivy for field in fieldnames(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in k0:k1, j in j0:j1, i in i0:i1
+            xdim = x[i] * lref
+            ydim = y[j] * lref
+            zcdim = zc[i, j, k] * lref
             alpha = alphar[i, j, k]
             chi_old = chi[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
-            chi_new = (1.0 - beta) * initialtracer[i, j, k] + beta * chi_old
+            chi_new =
+                (1.0 - beta) *
+                relaxed_chi(xdim, ydim, zcdim) *
+                rhobar[i, j, k] + beta * chi_old
             chi[i, j, k] = chi_new
         end
     end

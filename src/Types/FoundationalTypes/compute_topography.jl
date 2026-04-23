@@ -23,7 +23,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -43,7 +43,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -91,7 +91,14 @@ function compute_topography(
     <:AbstractArray{<:AbstractFloat, 3},
 }
     (; wkb_mode) = namelists.wkb
-    return compute_topography(namelists, constants, domain, x, y, wkb_mode)
+    @dispatch_wkb_mode return compute_topography(
+        namelists,
+        constants,
+        domain,
+        x,
+        y,
+        Val(wkb_mode),
+    )
 end
 
 function compute_topography(
@@ -100,7 +107,7 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -141,7 +148,7 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},

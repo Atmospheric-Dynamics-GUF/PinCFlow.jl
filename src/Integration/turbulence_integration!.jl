@@ -9,7 +9,7 @@ Integrate the turbulence energies by dispatching to the scheme-specific method.
 turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
@@ -19,7 +19,7 @@ Return for configurations without turbulence parameterization.
 turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -74,7 +74,7 @@ function turbulence_integration! end
 function turbulence_integration!(state::State, dt::AbstractFloat)
     (; turbulence_scheme) = state.namelists.turbulence
 
-    turbulence_integration!(state, dt, turbulence_scheme)
+    @dispatch_turbulence_scheme turbulence_integration!(state, dt, Val(turbulence_scheme))
 
     return
 end
@@ -82,7 +82,7 @@ end
 function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::NoTurbulence,
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
@@ -90,7 +90,7 @@ end
 function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::TKEScheme,
+    turbulence_scheme::Val{:TKEScheme},
 )
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands())

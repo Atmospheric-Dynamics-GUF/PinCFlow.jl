@@ -6,7 +6,7 @@ apply_3d_muscl!(
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    limiter_type::AbstractLimiter,
+    limiter_type::Val{:MCVariant},
 )
 ```
 
@@ -38,7 +38,7 @@ function apply_3d_muscl!(
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    limiter_type::AbstractLimiter,
+    limiter_type::Val{:MCVariant},
 )
 
     # Reconstruct in x.

@@ -20,7 +20,7 @@ compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::Union{U, V, W},
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
 ```
 
@@ -33,7 +33,7 @@ compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::U,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
 ```
 
@@ -46,7 +46,7 @@ compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::V,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
 ```
 
@@ -59,7 +59,7 @@ compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::W,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
 ```
 
@@ -89,7 +89,14 @@ function compute_compressible_wind_factor(
     variable::Union{U, V, W},
 )::AbstractFloat
     (; model) = state.namelists.atmosphere
-    return compute_compressible_wind_factor(state, i, j, k, variable, model)
+    @dispatch_model return compute_compressible_wind_factor(
+        state,
+        i,
+        j,
+        k,
+        variable,
+        Val(model),
+    )
 end
 
 function compute_compressible_wind_factor(
@@ -98,7 +105,7 @@ function compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::Union{U, V, W},
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
     return 1.0
 end
@@ -109,7 +116,7 @@ function compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::U,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
@@ -124,7 +131,7 @@ function compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::V,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
@@ -139,7 +146,7 @@ function compute_compressible_wind_factor(
     j::Integer,
     k::Integer,
     variable::W,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands

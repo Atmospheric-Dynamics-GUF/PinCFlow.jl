@@ -68,13 +68,8 @@ function explicit_integration!(
         update!(state, dtstage, rkstage, P())
         apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, P())
 
-        update!(state, dtstage, rkstage, tracer_setup)
-        apply_lhs_sponge!(
-            state,
-            stepfrac[rkstage] * dtstage,
-            time,
-            tracer_setup,
-        )
+        update!(state, dtstage, rkstage, Chi())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, Chi())
 
         set_boundaries!(state, BoundaryPredictands())
 

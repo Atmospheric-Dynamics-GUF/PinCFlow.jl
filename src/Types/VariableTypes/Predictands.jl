@@ -74,12 +74,20 @@ function Predictands(
     atmosphere::Atmosphere,
     grid::Grid,
 )::Predictands
-    (; initial_rhop, initial_u, initial_v, initial_w, initial_pip, model) =
-        namelists.atmosphere
-    (; lref, rhoref, uref) = constants
+    (;
+        initial_rhop,
+        initial_u,
+        initial_v,
+        initial_w,
+        initial_pip,
+        initial_thetap,
+        buoyancy_initialization,
+        model,
+    ) = namelists.atmosphere
+    (; lref, rhoref, thetaref, uref) = constants
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; x, y, zc, met, jac) = grid
-    (; pbar) = atmosphere
+    (; rhobar, thetabar, pbar) = atmosphere
 
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
 
@@ -88,7 +96,21 @@ function Predictands(
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
 
-        rhop[i, j, k] = initial_rhop(xdim, ydim, zcdim) / rhoref
+        if buoyancy_initialization == :initial_rhop
+            rhop[i, j, k] = initial_rhop(xdim, ydim, zcdim) / rhoref
+        elseif buoyancy_initialization == :initial_thetap
+            rhop[i, j, k] =
+                rhobar[i, j, k] * (
+                    1 / (
+                        1 +
+                        initial_thetap(xdim, ydim, zcdim) / thetaref /
+                        thetabar[i, j, k]
+                    ) - 1
+                )
+        else
+            error("Unknown buoyancy-initialization mode!")
+        end
+
         u[i, j, k] = initial_u(xdim, ydim, zcdim) / uref
         v[i, j, k] = initial_v(xdim, ydim, zcdim) / uref
         w[i, j, k] = initial_w(xdim, ydim, zcdim) / uref
@@ -104,7 +126,7 @@ function Predictands(
         f!(pip, namelists, domain)
     end
 
-    if model != Boussinesq()
+    if model != :Boussinesq
         rho .= rhop
     end
 
@@ -129,7 +151,7 @@ function Predictands(
     end
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
 
-    p = set_p(model, pbar)
+    @dispatch_model p = set_p(Val(model), pbar)
 
     return Predictands(rho, rhop, u, v, w, pip, p)
 end

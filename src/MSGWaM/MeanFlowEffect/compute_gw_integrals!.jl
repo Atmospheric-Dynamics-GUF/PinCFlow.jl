@@ -6,7 +6,7 @@ compute_gw_integrals!(state::State)
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact by dispatching to a WKB-mode-specific method.
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in multi-column mode.
@@ -50,21 +50,23 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 \\end{align*}
 ```
 
+Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref) for more details).
+
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
 
-This method computes ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle`` and ``\\mathcal{E}`` (see above for details).
+This method computes ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle``, ``\\mathcal{E}``, ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` (see above for details).
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
 
-This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle`` and ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle`` (see above for details). In contrast to the multi-column and single-column modes, the steady-state mode uses the pseudo-momentum approximation
+This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` (see above for details). In contrast to the multi-column and single-column modes, the steady-state mode uses the pseudo-momentum approximation
 
 ```math
 \\begin{align*}
@@ -86,16 +88,20 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref)
 """
 function compute_gw_integrals! end
 
 function compute_gw_integrals!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    compute_gw_integrals!(state, wkb_mode)
+    @dispatch_wkb_mode compute_gw_integrals!(state, Val(wkb_mode))
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -113,7 +119,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
         getfield(integrals, field) .= 0.0
     end
 
-    set_tracer_field_zero!(state)
+    set_tracer_fields_zero!(state)
 
     @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
@@ -269,7 +275,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_leading_order_tracer_fluxes!(
+                        compute_gw_tracer_integrals!(
                             state,
                             fc,
                             omir,
@@ -293,7 +299,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -431,9 +437,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_leading_order_tracer_fluxes!(
+                        compute_gw_tracer_integrals!(
                             state,
-                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             kr,
@@ -456,7 +461,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
@@ -561,9 +566,8 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
 
-                        compute_leading_order_tracer_fluxes!(
+                        compute_gw_tracer_integrals!(
                             state,
-                            state.namelists.tracer.tracer_setup,
                             fc,
                             omir,
                             kr,

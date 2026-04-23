@@ -21,11 +21,15 @@ Calculates the tendencies that are to be added to the equations for momentum and
 \\end{align*}
 ```
 
-where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
+where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. The tendencies to be added to the equation for the resolved tracers are computed by [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_tendencies!`](@ref). For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
 
 # Arguments
 
   - `state::State`: Model state.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_tendencies!`](@ref)
 """
 function compute_gw_tendencies! end
 
@@ -148,7 +152,7 @@ function compute_gw_tendencies!(state::State)
             end
         end
 
-        compute_leading_order_tracer_forcing!(state, i, j, k)
+        compute_gw_tracer_tendencies!(state, i, j, k)
     end
 
     return

@@ -17,8 +17,6 @@ function set_meridional_halo_rays!(state::State)
     (; comm, nx, nz, i0, i1, j0, j1, k0, k1, backward, forward) = state.domain
     (; nray, rays) = state.wkb
 
-    fields = fieldcount(Rays)
-
     ii = (i0 - 1):(i1 + 1)
     kk = (k0 - 1):(k1 + 1)
 
@@ -28,40 +26,24 @@ function set_meridional_halo_rays!(state::State)
     nray_max_backward = MPI.Allreduce(nray_max_backward, max, comm)
     nray_max_forward = MPI.Allreduce(nray_max_forward, max, comm)
 
-    send_forward = zeros(fields, nray_max_forward, nx + 2, nz + 2)
-    send_backward = zeros(fields, nray_max_backward, nx + 2, nz + 2)
-
-    receive_backward = zeros(fields, nray_max_forward, nx + 2, nz + 2)
-    receive_forward = zeros(fields, nray_max_backward, nx + 2, nz + 2)
-
-    @ivy for field in 1:fields
-        send_forward[field, :, :, :] .=
-            getfield(rays, field)[1:nray_max_forward, ii, j1, kk]
-        send_backward[field, :, :, :] .=
-            getfield(rays, field)[1:nray_max_backward, ii, j0, kk]
+    @ivy if nray_max_forward > 0
+        MPI.Sendrecv!(
+            rays.data[:, 1:nray_max_forward, ii, j1, kk],
+            rays.data[:, 1:nray_max_forward, ii, j0 - 1, kk],
+            comm;
+            dest = forward,
+            source = backward,
+        )
     end
 
-    MPI.Sendrecv!(
-        send_forward,
-        receive_backward,
-        comm;
-        dest = forward,
-        source = backward,
-    )
-
-    MPI.Sendrecv!(
-        send_backward,
-        receive_forward,
-        comm;
-        dest = backward,
-        source = forward,
-    )
-
-    @ivy for field in 1:fields
-        getfield(rays, field)[1:nray_max_forward, ii, j0 - 1, kk] .=
-            receive_backward[field, :, :, :]
-        getfield(rays, field)[1:nray_max_backward, ii, j1 + 1, kk] .=
-            receive_forward[field, :, :, :]
+    @ivy if nray_max_backward > 0
+        MPI.Sendrecv!(
+            rays.data[:, 1:nray_max_backward, ii, j0, kk],
+            rays.data[:, 1:nray_max_backward, ii, j1 + 1, kk],
+            comm;
+            dest = backward,
+            source = forward,
+        )
     end
 
     return
