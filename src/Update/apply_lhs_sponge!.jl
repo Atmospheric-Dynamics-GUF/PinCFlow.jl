@@ -267,8 +267,10 @@ Integrate the Rayleigh-damping terms that represent the LHS sponge in the turbul
 In the equation for the turbulent kinetic energy, the update is given by
 
 ```math
-\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho e_\\mathrm{k}\\right)^{\\left(0\\right)}\\right].
+\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\rho e_\\mathrm{k,\\mathrm{min}}\\right],
 ```
+
+where ``e_\\mathrm{k,\\mathrm{min}}`` represents the minimum allowed TKE value stored in `state.turbulence.turbulenceconstants.tkemin`.
 
 # Arguments
 
