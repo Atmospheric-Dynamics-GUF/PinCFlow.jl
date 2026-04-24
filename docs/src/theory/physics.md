@@ -51,9 +51,9 @@ $${\small\begin{align*}
     \frac{\partial \rho}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho u}{\partial \hat{x}} + \frac{\partial J \rho v}{\partial \hat{y}} + \frac{\partial J \rho \hat{w}}{\partial \hat{z}}\right) + \alpha_\mathrm{R} \left(\rho - \bar{\rho}\right) & = 0,\\
     \frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u}{\partial \hat{x}} + \frac{\partial J \rho' v}{\partial \hat{y}} + \frac{\partial J \rho' \hat{w}}{\partial \hat{z}}\right) + \alpha_\mathrm{R} \rho' & = \frac{N^2 \bar{\rho} w}{g},\\
     \frac{1}{J} \left(\frac{\partial J P u}{\partial \hat{x}} + \frac{\partial J P v}{\partial \hat{y}} + \frac{\partial J P \hat{w}}{\partial \hat{z}}\right) & = 0,\\
-    \frac{\partial \rho u}{\partial t} + \mathcal{A}^{\rho u} - \mathcal{V}^{\rho u} - \mathcal{X}^{\rho u} - f \rho v + \alpha_\mathrm{R} \left(u - u_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho u} - \beta_\mathrm{R} \rho u + F^{\rho u},\\
-    \frac{\partial \rho v}{\partial t} + \mathcal{A}^{\rho v} - \mathcal{V}^{\rho v} - \mathcal{X}^{\rho v} + f \rho u + \alpha_\mathrm{R} \left(v - v_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho v} - \beta_\mathrm{R} \rho v + F^{\rho v},\\
-    \frac{\partial \rho \hat{w}}{\partial t} + \mathcal{A}^{\rho \hat{w}} - \mathcal{V}^{\rho \hat{w}} - \mathcal{X}^{\rho \hat{w}} - G^{13} f \rho v + G^{23} f \rho u + \alpha_\mathrm{R} \left(\hat{w} - \hat{w}_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho \hat{w}} - \frac{g \rho'}{J} - \beta_\mathrm{R} \rho \hat{w} + F^{\rho \hat{w}},
+    \frac{\partial \rho u}{\partial t} + \mathcal{A}^{\rho u} - \mathcal{V}^{\rho u} - \mathcal{X}^{\rho u} - f \rho v + \alpha_\mathrm{R} \left(u - u_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho u} - \beta_\mathrm{R} \rho u + F^{\rho u} + \mathcal{D}^{\rho u} , \\
+    \frac{\partial \rho v}{\partial t} + \mathcal{A}^{\rho v} - \mathcal{V}^{\rho v} - \mathcal{X}^{\rho v} + f \rho u + \alpha_\mathrm{R} \left(v - v_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho v} - \beta_\mathrm{R} \rho v + F^{\rho v} + \mathcal{D}^{\rho v} ,\\
+    \frac{\partial \rho \hat{w}}{\partial t} + \mathcal{A}^{\rho \hat{w}} - \mathcal{V}^{\rho \hat{w}} - \mathcal{X}^{\rho \hat{w}} - G^{13} f \rho v + G^{23} f \rho u + \alpha_\mathrm{R} \left(\hat{w} - \hat{w}_\mathrm{R}\right) & = - c_p P \mathcal{P}^{\rho \hat{w}} - \frac{g \rho'}{J} - \beta_\mathrm{R} \rho \hat{w} + F^{\rho \hat{w}} + \mathcal{D}^{\rho \hat{w}} ,
 \end{align*}}$$
 
 where $\rho \left(\boldsymbol{x}, t\right) = \bar{\rho} \left(z\right) + \rho' \left(\boldsymbol{x}, t\right)$ is the density, $P = \rho \theta = \bar{\rho} \bar{\theta}$ is the mass-weighted potential temperature, $N^2 = \left(g / \bar{\theta}\right) \left(\mathrm{d} \bar{\theta} / \mathrm{d} z\right)$ is the squared buoyancy frequency and $f = f_0$ is the Coriolis frequency. On the left-hand sides, $\alpha_\mathrm{R}$ and $\left(u_\mathrm{R}, v_\mathrm{R}, \hat{w}_\mathrm{R}\right)^\mathrm{R}$ represent the Rayleigh-damping coefficient of a customizable sponge and the transformed wind that is to be obtained via the relaxation in it. In contrast, the Rayleigh-damping coefficient $\beta_\mathrm{R}$ on the right-hand side implements a preset sponge. The terms $\left(F^{\rho u}, F^{\rho v}, F^{\rho \hat{w}}\right)^\mathrm{T}$ represent volume forces in the momentum equation, e.g. drag imposed by unresolved gravity waves. The advective momentum-flux divergences are given by
@@ -120,6 +120,16 @@ $$\begin{align*}
 
  (see [Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1); [Schmid et al., 2021](https://doi.org/10.1175/MWR-D-21-0126.1)).
 
+Vertical turbulent diffusion based on a prgnostic turbulent kinetic energy scheme is represented by
+
+$$\begin{align*}
+    \mathcal{D}^{\rho u} &= \frac{\rho}{J}\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}G^{33}\frac{\partial u}{\partial \hat{z}}\right),\\
+    \mathcal{D}^{\rho v} &= \frac{\rho}{J}\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}G^{33}\frac{\partial v}{\partial \hat{z}}\right),\\
+    \mathcal{D}^{\rho \hat{w}} &= G^{13}\mathcal{D}^{\rho u} + G^{23}\mathcal{D}^{\rho v} + \frac{\rho}{J}\frac{\partial}{\partial \hat{z}}\left(K_\mathrm{M}\frac{\partial \hat{w}}{\partial \hat{z}}\right).\\
+\end{align*}$$
+
+See the section on turbulence parameterization below for further details.
+
 ## Boussinesq equations
 
 In Boussinesq mode, the continuity equation is removed and the density fluctuations are set to zero everywhere except in the auxiliary equation and the buoyancy term of the transformed-vertical-momentum equation. Moreover, $\bar{\rho}$, $\bar{\theta}$, $P$ and $N^2$ are replaced with the constant reference values $\rho_0$, $\theta_0$, $P_0$ and $N_0^2$.
@@ -128,7 +138,7 @@ In Boussinesq mode, the continuity equation is removed and the density fluctuati
 
 In compressible mode, the identity $P = \bar{\rho} \bar{\theta}$ no longer holds, i.e. the mass-weighted potential temperature has a spatiotemporal dependence. The divergence constraint is thus replaced with the prognostic equation
 
-$$\frac{\partial P}{\partial t} + \frac{1}{J} \left(\frac{\partial J P u}{\partial \hat{x}} + \frac{\partial J P v}{\partial \hat{y}} + \frac{\partial J P \hat{w}}{\partial \hat{z}}\right) - F^P + \alpha_\mathrm{R} P \left(1 - \frac{\bar{\rho}}{\rho}\right) = 0,$$
+$$\frac{\partial P}{\partial t} + \frac{1}{J} \left(\frac{\partial J P u}{\partial \hat{x}} + \frac{\partial J P v}{\partial \hat{y}} + \frac{\partial J P \hat{w}}{\partial \hat{z}}\right) - F^P + \alpha_\mathrm{R} P \left(1 - \frac{\bar{\rho}}{\rho}\right) - \mathcal{D}^{P}= 0,$$
 
 where the volume force $F^P$ represents a diabatic heating (e.g. due to heat conduction or unresolved gravity waves) that is not allowed in pseudo-incompressible mode. This term must also be represented in the auxiliary equation, which now reads
 
@@ -136,9 +146,35 @@ $$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u
 
 Note that in addition to the new volume-force term, $\bar{\rho}$ has been replaced with $P / \bar{\theta}$, which is due to the density fluctuations being defined as $\rho' = \rho - P / \bar{\theta}$ ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
 
+Vertical turbulent diffusion based on a prgnostic turbulent kinetic energy scheme is represented by
+
+$$\mathcal{D}^P = \frac{1}{J}\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{H}G^{33}\frac{\partial P}{\partial z}\right).$$
+
+See the section on turbulence parameterization below for further details.
+
 ## Turbulence parameterization
 
+Turbulent kinetic energy (TKE) $e_k$ is parameterized by solving the prognostic equation
 
+$$\frac{\partial \rho e_k}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho e_k u}{\partial \hat{x}} + \frac{\partial J \rho e_k v}{\partial \hat{y}} + \frac{\partial J \rho e_k \hat{w}}{\partial \hat{z}}\right) = \frac{1}{J}\frac{\partial}{\partial \hat{z}}\left(JK_{e_k}G^{33}\frac{\partial \rho e_k}{\partial \hat{z}}\right) + \rho\mathcal{S} + \rho\mathcal{B} - \frac{2\rho e_k}{\tau_k},$$
+
+where $\mathcal{S}$ and $\mathcal{B}$ represent the production/destruction of TKE due to shear and buoyancy, respectively, $K_{e_k}$ is the TKE eddy diffusivity and $\tau_k$ represents the dissipation time-scale.
+
+Using the TKE, the eddy diffusion coefficients for momentum, heat and TKE are given by
+
+$$\begin{align*}
+K_\mathrm{M} &= l_v\sqrt{2e_k} , \\
+K_\mathrm{H} &= l_b\sqrt{2e_k} , \\
+K_{e_k} = l_t\sqrt{2e_k},
+\end{align*}$$
+
+respectively. 
+
+The dissipation time-scale is given by
+
+$$\tau_k = \frac{l_d}{2\sqrt{2e_k}},$$
+
+with turbulence mixing lengths $l_v$, $l_b$ and $l_t$.
 
 ## Tracer transport
 

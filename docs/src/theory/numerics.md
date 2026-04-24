@@ -126,6 +126,15 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
 
  1. The right-hand sides are integrated over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
+
+In the case of turbulent diffusion by the turbulent kinetic energy, the momentum is updated using the Crank-Nicolson scheme before each time-step
+
+$$\begin{align*}
+    \frac{u^{n+1}-u^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \frac{v^{n+1}-v^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \frac{\hat{w}^{n+1}-\hat{w}^n}{\Delta t} &= G^{13}\frac{u^{n+1}-u^n}{\Delta t} + G^{23}\frac{v^{n+1}-v^n}{\Delta t} + \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(K_\mathrm{M}^n\frac{\partial w}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(K_\mathrm{M}^n\frac{\partial w}{\partial \hat{z}}\right)\right]^{n}\right\}.
+\end{align*}$$
+
 ### Boussinesq mode
 
 In Boussinesq mode, the time scheme remains mostly unchanged. As has been mentioned in the description of the physics, the continuity equation is removed, as are the density fluctuations everywhere except in the auxiliary equation and the buoyancy term of the transformed-vertical-momentum equation. Furthermore, $\bar{\rho}$, $\bar{\theta}$, $P$ and $N^2$ are replaced with $\rho_0$, $\theta_0$, $P_0$ and $N_0^2$, respectively.
@@ -257,6 +266,10 @@ $$\begin{align*}
  1. The left-hand sides are integrated over $\Delta t$ with the low-storage RK3 scheme. Fractional implicit Euler steps are once again used to integrate the Rayleigh-damping terms of the LHS sponge. This step is equivalent to the first one, except for the differences indicated in the compact description above.
 
  1. The right-hand sides are integrated over over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
+
+In the case of turbulent diffusion by the turbulent kinetic energy, the mass-weighted potential temperature is updated using the Crank-Nicolson scheme before each time-step
+
+$$\frac{P^{n+1}-P^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial P}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{H}^nG^{33}\frac{\partial P}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
 
 ### Tracer transport
 

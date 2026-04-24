@@ -96,10 +96,32 @@ turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
 ```
 
 Apply diffusion to the vertical momentum. 
+
 The prognostic equation
 
 ```math
 \\frac{\\partial \\hat{w}}{\\partial t} = G^{13}\\frac{\\partial u}{\\partial t} + G^{23}\\frac{\\partial v}{\\partial t} + \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(K_\\mathrm{M}\\frac{\\partial w}{\\partial \\hat{z}}\\right)
+```
+
+is solved using the Crank-Nicolson scheme, where the system 
+
+```math
+a_{k+1/2} \\hat{w}_{k-1/2}^{n+1} + b_{k+1/2} \\hat{w}_{k+1/2}^{n+1} + c_{k+1/2} \\hat{w}_{k+3/2}^{n+1} = f_{k+1/2}
+```
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}`` and
+
+```math 
+\\begin{align*}
+    a_{k+1/2} =& -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},k}}{J_{k+1/2}} ,\\\\
+    b_{k+1/2} =& \\left(1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},k+1}}{J_{k+1/2}} 
+        + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},k}}{J_{k+1/2}}\\right) ,\\\\
+    c_{k+1/2} =& -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},k+1}}{J_{k+1/2}} ,\\\\
+    f_{k+1/2} =& G_{k+1/2}^{13}\\left(\\frac{u^{n+1}-u^{n}}{\\Delta t}\\right)_{k+1/2} + G_{k+1/2}^{23}\\left(\\frac{v^{n+1}-v^{n}}{\\Delta t}\\right)_{k+1/2} + \\left(1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},k+1}}{J_{k+1/2}} 
+        - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},k}}{J_{k+1/2}}\\right)\\hat{w}_{k+1/2}^{n}\\\\
+        &+\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},k+1}}{J_{k+1/2}}\\hat{w}_{k+1}^{n}
+        &+\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},k}}{J_{k+1/2}}\\hat{w}_{k-1}^{n} .
+\\end{align*}
 ```
 
 ```julia 
