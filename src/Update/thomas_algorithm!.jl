@@ -3,7 +3,13 @@
 thomas_algorithm!(state::State)
 ```
 
-Solves a tridiagonal system in `\\hat{z}`-direction using the Thomas tridiagonal algorithm. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
+Solves a tridiagonal system in ``\\hat{z}``-direction using the [Thomas tridiagonal matrix algorithm](https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm). Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
+
+The system is defined as:
+
+```math 
+a_k \\phi_{k-1} + b_k\\phi_k + c_k\\phi_{k+1} = f_k\\;.
+```
 
 # Arguments 
 

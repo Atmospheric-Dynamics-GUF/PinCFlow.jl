@@ -1,17 +1,25 @@
-function compute_turbulent_damping(
+function compute_turbulent_damping! end
+
+function compute_turbulent_damping!(
     state::State,
     r::Integer,
     i::Integer,
     j::Integer,
     k::Integer,
     zr::AbstractFloat,
-)::Tuple{<:AbstractFloat, <:AbstractFloat, <:AbstractFloat}
+    dt::AbstractFloat,
+)
     (; rays) = state.wkb
     (; lv, lb) = state.turbulence.turbulenceconstants
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
     (; rhobar) = state.atmosphere
+    (; turbulence_damping) = state.namelists.wkb
+
+    if !turbulence_damping
+        return
+    end
 
     fc = coriolis_frequency / tref
 
@@ -30,16 +38,18 @@ function compute_turbulent_damping(
     omir = -sqrt(n2r * kh2 + fc^2 * mr^2) / sqrt(kh2 + mr^2)
     rhob = rhobar[i, j, k]
 
-    wadr = rays.dens[r, i, j, k] * dmr
+    factor = dmr
 
     if x_size > 1
-        wadr *= dkr
+        factor *= dkr
     end
     if y_size > 1
-        wadr *= dlr
+        factor *= dlr
     end
 
-    q00, q10, q20 = compute_q(state, r, i, j, k)
+    wadr = rays.dens[r, i, j, k] * factor
+
+    q00, q10, q20 = compute_turbulent_velocity(state, r, i, j, k)
 
     delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
@@ -55,5 +65,9 @@ function compute_turbulent_damping(
         sqrt(n2r^2 * kh2 / (kh2 + mr^2) * rhob / 2 / abs(omir / wadr)) *
         real(1im * q10)
 
-    return gammas, gammaw, gammawp
+    wadr *= 1 - 2 * dt * (gammas + gammaw + gammawp)
+
+    rays.dens[r, i, j, k] = wadr / factor
+
+    return
 end

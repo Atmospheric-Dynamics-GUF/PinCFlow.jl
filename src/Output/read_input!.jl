@@ -84,15 +84,9 @@ function read_input!(state::State)
         end
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
-            for field in fieldnames(TurbulencePredictands)
-                getfield(state.turbulence.turbulencepredictands, field)[
-                    ii,
-                    jj,
-                    kk,
-                ] =
-                    file[string(field)][iid, jjd, kkd, iin] .*
-                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
-            end
+            state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
+                file[string(field)][iid, jjd, kkd, iin] .*
+                (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
         end
 
         # Read ray-volume properties.

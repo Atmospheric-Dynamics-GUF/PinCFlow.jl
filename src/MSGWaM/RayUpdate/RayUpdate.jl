@@ -89,8 +89,8 @@ include("merge_rays!.jl")
 include("propagate_rays!.jl")
 include("shift_rays!.jl")
 include("split_rays!.jl")
-include("compute_turbulent_damping.jl")
-include("compute_q.jl")
+include("compute_turbulent_damping!.jl")
+include("compute_turbulent_velocity.jl")
 
 export X, Y, Z, XZ, YZ, XYZ
 
@@ -100,6 +100,6 @@ export apply_saturation_scheme!,
     propagate_rays!,
     shift_rays!,
     split_rays!,
-    compute_q
+    compute_turbulent_velocity
 
 end

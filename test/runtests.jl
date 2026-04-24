@@ -4,7 +4,7 @@ using Test
 using PinCFlow
 using .TestTools
 
-const update_references = false
+const update_references = true
 
 include("test_cold_bubble.jl")
 include("test_hot_bubble.jl")

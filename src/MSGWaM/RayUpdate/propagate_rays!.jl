@@ -234,35 +234,7 @@ function propagate_rays!(
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
-            if turbulence_damping
-                gammas, gammaw, gammawp =
-                    compute_turbulent_damping(state, r, i, j, k, zr)
-
-                dkr = rays.dkray[r, i, j, k]
-                dlr = rays.dlray[r, i, j, k]
-                dmr = rays.dmray[r, i, j, k]
-
-                wadr = rays.dens[r, i, j, k] * dmr
-
-                if x_size > 1
-                    wadr *= dkr
-                end
-                if y_size > 1
-                    wadr *= dlr
-                end
-
-                wadr *= 1 - 2
-                stepfrac[rkstage] * dt * (gammas + gammaw + gammawp)
-
-                densr = wadr / dmr
-                if x_size > 1
-                    densr /= dkr
-                end
-                if y_size > 1
-                    densr /= dlr
-                end
-                rays.dens[r, i, j, k] = densr
-            end
+            compute_turbulent_damping!(state, r, i, j, k, zr, stepfrac[rkstage] * dt)
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
