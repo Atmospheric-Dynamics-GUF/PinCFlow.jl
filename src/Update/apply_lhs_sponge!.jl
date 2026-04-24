@@ -674,7 +674,7 @@ function apply_lhs_sponge!(
     (; rhobar) = state.atmosphere
     (; tracerpredictands) = state.tracer
     (; relaxed_chi, apply_lhs_sponge_to_tracer) = state.namelists.tracer
-    (; lref) = state.constants
+    (; lref, tref) = state.constants
     (; x, y, zc) = state.grid
 
     if !apply_lhs_sponge_to_tracer
@@ -687,12 +687,14 @@ function apply_lhs_sponge!(
             xdim = x[i] * lref
             ydim = y[j] * lref
             zcdim = zc[i, j, k] * lref
+            tdim = time * tref
+            dtdim = dt * tref
             alpha = alphar[i, j, k]
             chi_old = chi[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
             chi_new =
                 (1.0 - beta) *
-                relaxed_chi(xdim, ydim, zcdim) *
+                relaxed_chi(xdim, ydim, zcdim, tdim, dtdim) *
                 rhobar[i, j, k] + beta * chi_old
             chi[i, j, k] = chi_new
         end

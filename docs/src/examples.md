@@ -287,7 +287,7 @@ function vortex(;
 
     tracer = TracerNamelist(;
         tracer_setup = :TracerOn,
-        initial_tracer = (x, y, z) -> begin
+        initial_chi = (x, y, z) -> begin
             r = sqrt(((abs(x) - rx) / rx)^2 + (y / ry)^2)
             if r <= 1
                 return sign(x) * (1 + cos(pi * r)) / 2
