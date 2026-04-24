@@ -50,6 +50,12 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:wchi0`: Vertical tracer fluxes due to unresolved gravity waves.
 
+  - `:tke`: Turbulent kinetic energy.
+
+  - `:shearproduction`: Turbulent kinetic energy production due to wind shear.
+
+  - `:buoyancyproduction`: Turbulent kinetic energy production/destruction due to buoyancy.
+
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
 All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.
@@ -331,18 +337,15 @@ function write_output(
         end
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
-            for field in fieldnames(TurbulencePredictands)
+            if prepare_restart || :tke in output_variables
                 HDF5.set_extent_dims(
-                    file[string(field)],
+                    file["tke"],
                     (x_size, y_size, z_size, iout),
                 )
-                @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulencepredictands, field)[
-                        ii,
-                        jj,
-                        kk,
-                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
-                    (lref .^ 2.0) ./ (tref .^ 2.0)
+                @views file["tke"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencepredictands.tke[ii, jj, kk] ./
+                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .* (lref .^ 2.0) ./
+                    (tref .^ 2.0)
             end
 
             if :shearproduction in output_variables

@@ -324,10 +324,10 @@ function create_output(state::State, machine_start_time::DateTime)
         end
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
-            for field in fieldnames(TurbulencePredictands)
+            if prepare_restart || :tke in output_variables
                 create_dataset(
                     file,
-                    string(field),
+                    "tke",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),
@@ -584,6 +584,26 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(
                     file["wchi0"],
                 )["long_name"] = "leading-order vertical GW-tracer flux"
+            end
+        end
+
+        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            if prepare_restart || :tke in output_variables
+                attributes(file["tke"])["unuits"] = "m^2*s^-2"
+                attributes(file["tke"])["label"] = L"e_k"
+                attributes(file["tke"])["long_name"] = "mass-specific turbulent kinetic energy"
+            end
+            
+            if :shearproduction in output_variables
+                attributes(file["shearproduction"])["unuits"] = "m^2*s^-3"
+                attributes(file["shearproduction"])["label"] = L"\mathcal{S}"
+                attributes(file["shearproduction"])["long_name"] = "shear production"
+            end
+
+            if :buoyancyproduction in output_variables
+                attributes(file["buoyancyproduction"])["unuits"] = "m^2*s^-3"
+                attributes(file["buoyancyproduction"])["label"] = L"\mathcal{B}"
+                attributes(file["buoyancyproduction"])["long_name"] = "buoyancy production"
             end
         end
 
