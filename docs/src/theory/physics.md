@@ -180,9 +180,9 @@ with turbulence mixing lengths $l_v$, $l_b$ and $l_t$.
 
 PinCFlow.jl transports a passive tracer $\chi$ governed by
 
-$$\frac{\partial \rho \chi}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho \chi u}{\partial \hat{x}} + \frac{\partial J \rho \chi v}{\partial \hat{y}} + \frac{\partial J \rho \chi \hat{w}}{\partial \hat{z}}\right) - F^{\rho \chi} + \alpha_\mathrm{R} \left[\rho \chi - \left(\rho \chi\right)^{\left(0\right)}\right] = 0,$$
+$$\frac{\partial \rho \chi}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho \chi u}{\partial \hat{x}} + \frac{\partial J \rho \chi v}{\partial \hat{y}} + \frac{\partial J \rho \chi \hat{w}}{\partial \hat{z}}\right) - F^{\rho \chi} + \alpha_\mathrm{R} \left[\rho \chi - \rho \chi_{\mathrm{R}}\right] = 0,$$
 
-where $F^{\rho \chi}$ represents another volume force, e.g. a tracer-flux divergence due to unresolved gravity waves, and $\left(\rho \chi\right)^{\left(0\right)}$ is the initial mass-weighted tracer.
+where $F^{\rho \chi}$ represents another volume force, e.g. a tracer-flux divergence due to unresolved gravity waves, and $\chi_{\mathrm{R}}$ is the tracer to be obtainecd via relaxation from Rayleigh damping.
 
 ## MS-GWaM
 

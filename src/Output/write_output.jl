@@ -375,6 +375,45 @@ function write_output(
             end
         end
 
+        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            if prepare_restart || :tke in output_variables
+                HDF5.set_extent_dims(
+                    file["tke"],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file["tke"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencepredictands.tke[ii, jj, kk] ./
+                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .* (lref .^ 2.0) ./
+                    (tref .^ 2.0)
+            end
+
+            if :shearproduction in output_variables
+                HDF5.set_extent_dims(
+                    file["shearproduction"],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file["shearproduction"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.shearproduction[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+
+            if :buoyancyproduction in output_variables
+                HDF5.set_extent_dims(
+                    file["buoyancyproduction"],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file["buoyancyproduction"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.buoyancyproduction[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+        end
+
         # Write WKB variables.
         if wkb_mode != :NoWKB
 

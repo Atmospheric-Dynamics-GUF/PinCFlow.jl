@@ -251,6 +251,8 @@ In each tracer equation, the update is given by
 \\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\rho \\chi_\\mathrm{R}\\right],
 ```
 
+where ``\\chi_\\mathrm{R}`` is computed with the function `relaxed_chi` in `state.namelists.tracer`.
+
 ```julia
 apply_lhs_sponge!(
     state::State,
@@ -267,8 +269,6 @@ In the equation for the turbulent kinetic energy, the update is given by
 ```math
 \\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho e_\\mathrm{k}\\right)^{\\left(0\\right)}\\right].
 ```
-
-where ``\\chi_\\mathrm{R}`` is computed with the function `relaxed_chi` in `state.namelists.tracer`.
 
 # Arguments
 

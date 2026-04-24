@@ -278,7 +278,7 @@ Since its equation does not have a right-hand side, the tracer is only updated i
 $$\begin{align*}
     q^{\rho \chi, m + 1} & = - \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(\rho \chi\right)^m u^n}{\partial \hat{x}} + \frac{\partial J \left(\rho \chi\right)^m v^n}{\partial \hat{y}} + \frac{\partial J \left(\rho \chi\right)^m \hat{w}^n}{\partial \hat{z}}\right] - F^{\rho \chi, n + 1}\right\} + \left(\alpha_\mathrm{RK} q^{\rho \chi}\right)^m,\\
     \left(\rho \chi\right)^{m + 1} & = \left(\rho \chi\right)^m + \beta_\mathrm{RK}^m q^{\rho \chi, m + 1},\\
-    \left(\rho \chi\right)^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left[\left(\rho \chi\right)^{m + 1} + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2} \left(\rho \chi\right)^{\left(0\right)}\right].
+    \left(\rho \chi\right)^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left[\left(\rho \chi\right)^{m + 1} + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2} \rho \chi_\mathrm{R}\right].
 \end{align*}$$
 
 ### MS-GWaM
