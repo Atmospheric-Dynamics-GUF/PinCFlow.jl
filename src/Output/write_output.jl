@@ -294,6 +294,19 @@ function write_output(
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
+            if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+                HDF5.set_extent_dims(
+                    file["tracerdiffusion"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["tracerdiffusion"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerauxiliaries.tracerdiffusion[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+
             if :dchidt in output_variables
                 for field in fieldnames(TracerWKBTendencies)
                     HDF5.set_extent_dims(
@@ -364,22 +377,6 @@ function write_output(
                     ] .* uref .^ 2 ./ tref
             end
 
-            for field in fieldnames(TurbulenceDiffusionCoefficients)
-                HDF5.set_extent_dims(
-                    file[string(field)],
-                    (x_size, y_size, z_size, iout),
-                )
-                @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(
-                        state.turbulence.turbulencediffusioncoefficients,
-                        field,
-                    )[
-                        ii,
-                        jj,
-                        kk,
-                    ] .* lref .^ 2 / tref
-            end
-
             if :dtkedt in output_variables
                 for field in fieldnames(TurbulenceWKBTendencies)
                     HDF5.set_extent_dims(
@@ -408,7 +405,10 @@ function write_output(
             end
 
             if :uhat in output_variables
-                HDF5.set_extent_dims(file["uhat"], (x_size, y_size, z_size, iout))
+                HDF5.set_extent_dims(
+                    file["uhat"],
+                    (x_size, y_size, z_size, iout),
+                )
                 file["uhat"][iid, jjd, kkd, iout] =
                     abs.(state.wkb.integrals.uhat[ii, jj, kk]) .* uref
             end

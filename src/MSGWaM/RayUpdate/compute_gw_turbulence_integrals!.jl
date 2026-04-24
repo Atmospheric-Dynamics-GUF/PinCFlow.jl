@@ -75,6 +75,7 @@ function compute_gw_turbulence_integrals!(
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
     (; lv) = state.turbulence.turbulenceconstants
+    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     rhob = rhobar[iray, jray, kray]
     kr = rays.k[r, i, j, k]
@@ -101,6 +102,9 @@ function compute_gw_turbulence_integrals!(
 
     n2r = interpolate_stratification(zr, state, N2())
     q00 = compute_q(state, r, i, j, k, 0.0)
+    q10 = compute_q(state, r, i, j, k, 1.0)
+    q20 = compute_q(state, r, i, j, k, 2.0)
+    
     bhat0 = sqrt(
         n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * wadr / omir / rhob,
     )
@@ -108,8 +112,9 @@ function compute_gw_turbulence_integrals!(
         1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
         (kr * omir + 1im * fc * lr) *
         bhat0
+    uhat2 = mr^2 / omir * (fc^2 + omir^2) / (kr^2 + lr^2 + mr^2) * wadr / rhob
 
-    shear[iray, jray, kray] += lv * abs(q00) * mr^2 * abs(uhat0)^2 / 2 * factor
- 
+    shear[iray, jray, kray] += (lv * abs(q00) + km[iray, jray, kray]) * mr^2 * uhat2 * factor #
+
     return
 end

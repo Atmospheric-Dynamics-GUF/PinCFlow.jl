@@ -6,12 +6,48 @@ function compute_turbulent_damping(
     k::Integer,
     zr::AbstractFloat,
 )::Tuple{<:AbstractFloat, <:AbstractFloat, <:AbstractFloat}
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    @dispatch_turbulence_scheme return compute_turbulent_damping(
+        state,
+        r,
+        i,
+        j,
+        k,
+        zr,
+        Val(turbulence_scheme),
+    )
+end
+
+function compute_turbulent_damping(
+    state::State,
+    r::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    zr::AbstractFloat,
+    turbulence_scheme::Val{:NoTurbulence},
+)::Tuple{<:AbstractFloat, <:AbstractFloat, <:AbstractFloat}
+    return 0.0, 0.0, 0.0
+end
+
+function compute_turbulent_damping(
+    state::State,
+    r::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    zr::AbstractFloat,
+    turbulence_scheme::Val{:TKEScheme},
+)::Tuple{<:AbstractFloat, <:AbstractFloat, <:AbstractFloat}
     (; rays) = state.wkb
     (; lv, lb) = state.turbulence.turbulenceconstants
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
     (; rhobar) = state.atmosphere
+    (; rho) = state.variables.predictands
+    (; tke) = state.turbulence.turbulencepredictands
 
     fc = coriolis_frequency / tref
 
@@ -43,7 +79,11 @@ function compute_turbulent_damping(
 
     delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
-    gammas = mr^2 * real(q00) * (lv * (1 - delta) + lb * delta)
+    # gammas = mr^2 * real(q00) * (lv * (1 - delta) + lb * delta)
+    gammas =
+        mr^2 *
+        sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])) *
+        (lv * (1 - delta) + lb * delta)
 
     gammaw =
         mr^2 / 4 * n2r * kh2 / (n2r * kh2 + fc^2 * mr^2) *

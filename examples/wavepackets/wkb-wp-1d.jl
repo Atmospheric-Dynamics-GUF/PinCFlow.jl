@@ -13,29 +13,29 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 1
 y_size = 1
-z_size = 33
+z_size = 30
 
-lx = 30e3
-ly = 30e3
-lz = 100e3
+lx = 1e3
+ly = 1e3
+lz = 30e3
 
 rx = 0.0
 ry = 0.0
-rz = 0.05
+rz = 2e3
 
 x0 = 0.0
 y0 = 0.0
-z0 = 20e3
+z0 = 10e3
 
-a0 = 2.0
+a0 = 0.9
 
-k = 2 * pi / 30e3
-l = 2 * pi / 30e3
-m = 2 * pi / 3e3
+k = 2 * pi / 1e3
+l = 0
+m = 2 * pi / 1e3
 
 background = :Isothermal
 model = :Compressible
-coriolis_frequency = 1e-4
+coriolis_frequency = 0
 
 atmosphere = AtmosphereNamelist(; model, coriolis_frequency, background)
 domain = DomainNamelist(;
@@ -51,22 +51,19 @@ auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 (; lturb) = auxiliary_state.turbulence.turbulenceconstants
 
-include("wave_packet_tools.jl")
+include("wave_packet_tools-3d.jl")
 
 atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 
-domain =
-    DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    save_ray_volumes = true,
+    save_ray_volumes = false,
     output_variables = [:u, :v, :w, :rhop, :e, :dtkedt, :dchidt],
     output_file = "wkb-wp-1d.h5",
     tmax = 3600,
-    output_interval = 360,
+    output_interval = 60,
 )
-
-# discretization = DiscretizationNamelist(; dtmax = 100)
 
 wkb = WKBNamelist(;
     use_saturation = false,
@@ -76,25 +73,26 @@ wkb = WKBNamelist(;
     filter_type = :BoxFilter,
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
+    turbulence_damping = false,
 )
-turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme)
+turbulence = TurbulenceNamelist(;
+    turbulence_scheme = :NoTurbulence,
+    tracer_coupling = true,
+)
 
 tracer = TracerNamelist(;
     tracer_setup = :TracerOn,
-    leading_order_impact = true,
+    leading_order_impact = false,
     next_order_impact = true,
-    turbulence_impact = true,
+    turbulence_impact = false,
     initial_tracer = (x, y, z) -> z,
 )
 
-integrate(
-    Namelists(;
-        atmosphere,
-        domain,
-        output,
-        wkb,
-        tracer,
-        turbulence,
-        #discretization,
-    ),
-)
+integrate(Namelists(;
+    atmosphere,
+    domain,
+    output,
+    wkb,
+    tracer,
+    turbulence,
+))

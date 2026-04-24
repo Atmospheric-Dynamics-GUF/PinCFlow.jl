@@ -13,30 +13,30 @@ npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 32
-y_size = 32
+y_size = 1
 z_size = 1066
 
-lx = 30e3
-ly = 30e3
-lz = 100e3
+lx = 1e3
+ly = 1e3
+lz = 30e3
 
 rx = 0.0
 ry = 0.0
-rz = 0.05
+rz = 2e3
 
 x0 = 0.0
 y0 = 0.0
-z0 = 20e3
+z0 = 10e3
 
-a0 = 2.0
+a0 = 0.9
 
-k = 2 * pi / 30e3
-l = 2 * pi / 30e3
-m = 2 * pi / 3e3
+k = 2 * pi / 1e3
+l = 0
+m = 2 * pi / 1e3
 
 background = :Isothermal
 model = :Compressible
-coriolis_frequency = 1e-4
+coriolis_frequency = 0
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
@@ -44,7 +44,7 @@ auxiliary_state = State(Namelists(; atmosphere, domain))
 (; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 (; lturb) = auxiliary_state.turbulence.turbulenceconstants
 
-include("wave_packet_tools.jl")
+include("wave_packet_tools-3d.jl")
 
 atmosphere = AtmosphereNamelist(;
     background,
@@ -60,7 +60,7 @@ atmosphere = AtmosphereNamelist(;
 )
 
 turbulence = TurbulenceNamelist(;
-    turbulence_scheme = :TKEScheme,
+    turbulence_scheme = :NoTurbulence,
     initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
 )
 
@@ -68,7 +68,7 @@ output = OutputNamelist(;
     output_variables = [:u, :v, :w, :rhop],
     output_file = "wp-1d.h5",
     tmax = 3600,
-    output_interval = 360,
+    output_interval = 60,
 )
 
 tracer = TracerNamelist(;

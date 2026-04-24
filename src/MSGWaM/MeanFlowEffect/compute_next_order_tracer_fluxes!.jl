@@ -377,15 +377,15 @@ function compute_next_order_tracer_fluxes!(
                         uchi1[iray, jray, kray] +=
                             real(
                                 uhatr * conj(chihatr2) + uhatr2 * conj(chihatr),
-                            ) * factor
+                            ) * factor / 2
                         vchi1[iray, jray, kray] +=
                             real(
                                 vhatr * conj(chihatr2) + vhatr2 * conj(chihatr),
-                            ) * factor
+                            ) * factor / 2
                         wchi1[iray, jray, kray] +=
                             real(
                                 whatr * conj(chihatr2) + whatr2 * conj(chihatr),
-                            ) * factor
+                            ) * factor / 2
                     end
                 end
             end

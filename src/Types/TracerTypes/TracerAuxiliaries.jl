@@ -21,6 +21,8 @@ Construct a `TracerAuxiliaries` instance by copying the arrays in `tracerpredict
 """
 struct TracerAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     backgroundtracer::A
+    tracerdiffusion::A
+    chiold::A
 end
 
 function TracerAuxiliaries(
@@ -75,6 +77,8 @@ function TracerAuxiliaries(
     (; background_tracer) = namelists.tracer
 
     backgroundtracer = zeros(nxx, nyy, nzz)
+    tracerdiffusion = zeros(nxx, nyy, nzz)
+    chiold = zeros(nxx, nyy, nzz)
     @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
         backgroundtracer[i, j, k] =
             background_tracer(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
@@ -84,5 +88,5 @@ function TracerAuxiliaries(
 
     backgroundtracer .*= rho .+ rhobar
 
-    return TracerAuxiliaries(backgroundtracer)
+    return TracerAuxiliaries(backgroundtracer, tracerdiffusion, chiold)
 end

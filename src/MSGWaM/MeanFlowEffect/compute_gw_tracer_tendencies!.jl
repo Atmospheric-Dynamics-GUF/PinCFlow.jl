@@ -152,10 +152,10 @@ function compute_gw_tracer_tendencies!(
 
     @ivy dchidt1[i, j, k] =
         -(rho[i, j, k] + rhobar[i, j, k]) /
-        (2 * rhobar[i, j, k] * thetabar[i, j, k]) * (dchiu1 + dchiv1 + dchiw1)
+        (rhobar[i, j, k] * thetabar[i, j, k]) * (dchiu1 + dchiv1 + dchiw1)
 
     @ivy dchidtq[i, j, k] =
-        -(rho[i, j, k] + rhobar[i, j, k]) / 2 *
+        -(rho[i, j, k] + rhobar[i, j, k]) *
         (qchi[i, j, k + 1] - qchi[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
 
     return

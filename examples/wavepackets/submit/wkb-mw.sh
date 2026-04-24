@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --partition=compute
 ##SBATCH --partition=interactive
-#SBATCH --job-name=wp-3d
-#SBATCH --nodes=32
-#SBATCH --ntasks-per-node=2
+#SBATCH --job-name=wkb-mw-3d
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=4
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-08:00:00
 #SBATCH --mail-type=FAIL
@@ -17,9 +17,9 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples examples/wavepackets/wp-3d.jl 16 4 1 1>wp-3d.log 2>&1
+srun --distribution=block:cyclic julia --project=examples examples/wavepackets/wkb-mw.jl 4 4 1 1>wkb-mw-3d.log 2>&1
 
 # Run the model on interactive partition.
-# mpiexec -n 27 julia examples/scripts/wp-3d.jl 3 3 3 1>wp-3d.log 2>&1
+# mpiexec -n 16 julia --project=examples examples/wavepackets/wkb-mw.jl 4 4 1 1>wkb-mw.log 2>&1
 
 exit 0

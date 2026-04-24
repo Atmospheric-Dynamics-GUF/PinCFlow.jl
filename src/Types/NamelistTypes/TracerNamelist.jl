@@ -29,10 +29,11 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 struct TracerNamelist
     tracer_setup::Symbol
     leading_order_impact::Bool
-    next_order_impact::Bool 
+    next_order_impact::Bool
     turbulence_impact::Bool
     initial_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
     background_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
+    apply_sponge_to_tracer::Bool
 end
 
 function TracerNamelist(;
@@ -42,6 +43,7 @@ function TracerNamelist(;
     turbulence_impact::Bool = true,
     initial_tracer::Function = (x, y, z) -> 0.0,
     background_tracer::Function = (x, y, z) -> 0.0,
+    apply_sponge_to_tracer::Bool = true,
 )::TracerNamelist
     return TracerNamelist(
         tracer_setup,
@@ -50,5 +52,6 @@ function TracerNamelist(;
         turbulence_impact,
         initial_tracer,
         background_tracer,
+        apply_sponge_to_tracer,
     )
 end

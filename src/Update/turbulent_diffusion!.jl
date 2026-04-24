@@ -173,7 +173,11 @@ function turbulent_diffusion! end
 function turbulent_diffusion!(state::State, dt::AbstractFloat)
     (; turbulence_scheme) = state.namelists.turbulence
 
-    @dispatch_turbulence_scheme turbulent_diffusion!(state, dt, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme turbulent_diffusion!(
+        state,
+        dt,
+        Val(turbulence_scheme),
+    )
     return
 end
 
@@ -521,7 +525,12 @@ end
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Chi)
     (; tracer_setup) = state.namelists.tracer
 
-    @dispatch_tracer_setup turbulent_diffusion!(state, dt, variable, Val(tracer_setup))
+    @dispatch_tracer_setup turbulent_diffusion!(
+        state,
+        dt,
+        variable,
+        Val(tracer_setup),
+    )
     return
 end
 
@@ -546,13 +555,20 @@ function turbulent_diffusion!(
     (; jac, dz) = state.grid
     (; kh) = state.turbulence.turbulencediffusioncoefficients
     (; ath, bth, cth, fth) = state.variables.auxiliaries
+    (; tracerdiffusion, chiold) = state.tracer.tracerauxiliaries
+    (; rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
 
+    tracerdiffusion .= 0.0
+    chiold .= 0.0
+
     for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)
+        chiold .= chi
         @ivy for k in k0:k1, j in j0:j1, i in i0:i1
             khd =
                 (
@@ -582,6 +598,8 @@ function turbulent_diffusion!(
         thomas_algorithm!(state)
 
         chi[i0:i1, j0:j1, k0:k1] .= fth
+        tracerdiffusion[i0:i1, j0:j1, k0:k1] .=
+            (chi[i0:i1, j0:j1, k0:k1] .- chiold[i0:i1, j0:j1, k0:k1]) ./ dt
     end
     return
 end

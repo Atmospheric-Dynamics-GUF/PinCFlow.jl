@@ -12,7 +12,10 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-x_size = 52
+output_file = "wkb-wp-3d-notracer.h5"
+plot_file = "wkb-wp-3d.svg"
+
+x_size = 32
 y_size = 1
 z_size = 100
 
@@ -28,14 +31,11 @@ x0 = 0.0
 y0 = 0.0
 z0 = 30e3
 
-a0 = 2
+a0 = 1
 
 k = 0
 l = 2 * pi / 300e3
-m = 2 * pi / 3e3
-
-dzr = lz / 10
-alpharmax = 0.0179
+m = 2 * pi / 2e3
 
 background = :Isothermal
 model = :Compressible
@@ -62,15 +62,11 @@ atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    save_ray_volumes = false,
-    output_variables = [:u, :v, :w, :rhop, :dchidt, :e, :dtkedt],
-    output_file = "wkb-wp-3d.h5",
-    tmax = 1000.0,
-    output_interval = 1000.0,
-)
-
- sponge = SpongeNamelist(;
-    lhs_sponge = (x, y, z, t, dt) -> alpharmax * exp((z - lz) / dzr),
+    save_ray_volumes = true,
+    output_variables = [:u, :v, :w, :dchidt, :e, :dtkedt],
+    output_file,
+    tmax = 36000.0,
+    output_interval = 360.0,
 )
 
 wkb = WKBNamelist(;
@@ -87,12 +83,11 @@ discretization = DiscretizationNamelist(; dtmax = 100)
 turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme)
 
 tracer = TracerNamelist(;
-    tracer_setup = :TracerOn,
+    tracer_setup = :NoTracer,
     leading_order_impact = true,
     next_order_impact = false,
     turbulence_impact = true,
     initial_tracer = (x, y, z) -> z,
-    background_tracer = (x, y, z) -> z,
 )
 
 integrate(
@@ -104,6 +99,12 @@ integrate(
         tracer,
         turbulence,
         discretization,
-        sponge,
     ),
 )
+
+# if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+#     h5open(output_file) do data
+#         plot_output(plot_file, data, ("nr", 16, 1, 30, 2); time_unit = "h")
+#         return
+#     end
+# end
