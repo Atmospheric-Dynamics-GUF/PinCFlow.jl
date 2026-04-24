@@ -37,20 +37,26 @@ The prognostic equation
 \\frac{\\partial u}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(J K_\\mathrm{M}G^{33}\\frac{\\partial u}{\\partial \\hat{z}}\\right)
 ```
 
-is solved over one time step ``\\Delta t`` using the Crank-Nicolson scheme, where the system 
+is solved using the Crank-Nicolson scheme, where the system 
+
+```math
+a_{i+1/2,k} u_{i+1/2,k-1}^{n+1} + b_{i+1/2,k} u_{i+1/2,k}^{n+1} + c_{i+1/2,k} u_{i+1/2,k+1}^{n+1} = f_{i+1/2,k}
+```
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}`` and
 
 ```math 
 \\begin{align*}
-        &-\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}}u_{i+1/2,k+1}^{n+1}
-        +\\left(1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}\\right)u_{i+1/2}^{n+1}
-        -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}u_{i+1/2,k-1}^{n+1} \\\\
-        &= \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}}u_{i+1/2,k+1}^{n}
-        +\\left(1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}\\right)u_{i+1/2}^{n}
-        +\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}u_{i+1/2,k-1}^{n}
+    a_{i+1/2,k} =& -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}} ,\\\\
+    b_{i+1/2,k} =& \\left(1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} 
+        + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}\\right) ,\\\\
+    c_{i+1/2,k} =& -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} ,\\\\
+    f_{i+1/2,k} =& \\left(1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} 
+        - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}\\right)v_{i+1/2}^{n} \\\\
+        &+\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}}v_{i+1/2,k+1}^{n}
+        +\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}v_{i+1/2,k-1}^{n} .
 \\end{align*}
 ```
-
-is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}``.
 
 ```julia 
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
@@ -64,22 +70,26 @@ The prognostic equation
 \\frac{\\partial v}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(J K_\\mathrm{M}G^{33}\\frac{\\partial v}{\\partial \\hat{z}}\\right)
 ```
 
-is solved over one time step ``\\Delta t`` using the Crank-Nicolson scheme, where the system 
+is solved using the Crank-Nicolson scheme, where the system 
+
+```math
+a_{j+1/2,k} v_{j+1/2,k-1}^{n+1} + b_{j+1/2,k} v_{j+1/2,k}^{n+1} + c_{j+1/2,k} v_{j+1/2,k+1}^{n+1} = f_{j+1/2,k}
+```
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}`` and
 
 ```math 
 \\begin{align*}
-        &-\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}}v_{j+1/2,k+1}^{n+1}
-        +\\left(1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} 
-        + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}\\right)v_{j+1/2}^{n+1}
-        -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}v_{j+1/2,k-1}^{n+1} \\\\
-        &= \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}}v_{j+1/2,k+1}^{n}
-        +\\left(1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} 
-        - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}\\right)v_{j+1/2}^{n}
-        +\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}v_{j+1/2,k-1}^{n}
+    a_{j+1/2,k} =& -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}} ,\\\\
+    b_{j+1/2,k} =& \\left(1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} 
+        + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}\\right) ,\\\\
+    c_{j+1/2,k} =& -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} ,\\\\
+    f_{j+1/2,k} =& \\left(1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} 
+        - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}\\right)v_{j+1/2}^{n}\\\\
+        &+\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}}v_{j+1/2,k+1}^{n}
+        &+\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}^{33}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}v_{j+1/2,k-1}^{n} .
 \\end{align*}
 ```
-
-is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}``.
 
 ```julia 
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
@@ -120,6 +130,30 @@ turbulent_diffusion!(
 
 Apply diffusion to the mass-weighted potential temperature for configurations in Compressible mode.
 
+The prognostic equation 
+
+```math 
+\\frac{\\partial P}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left[J K_H G^{33}\\frac{\\partial P}{\\partial \\hat{z}}\\right]
+```
+
+is solved using the Crank-Nicolson scheme, where the system 
+
+```math
+a_k P_{k-1}^{n+1} + b_k P_k^{n+1} + c_k P_{k+1}^{n+1} = f_k
+```
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{H}G^{33}`` and 
+
+```math 
+\\begin{align*}
+    a_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}^{33}}{J_k}  , \\\\
+    b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}^{33}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}^{33}{J_k}}, \\\\
+    c_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}^{33}}{J_k}  , \\\\
+    f_k = & \\left( 1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}^{33}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}^{33}}{J_k}\\right) \\left(\\rho\\chi\\right)_k^{n} \\\\
+    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}^{33}}{J_k} \\left(\\rho\\chi\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}^{33}}{J_k}  \\left(\\rho\\chi\\right)_{k-1}^{n}.
+\\end{align*}
+```
+
 ```julia 
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Chi)
 ```
@@ -147,6 +181,30 @@ turbulent_diffusion!(
 ```
 
 Apply diffusion to the tracers variables.
+
+The prognostic equation 
+
+```math 
+\\frac{\\partial \\rho\\chi}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left[J K_H G^{33}\\frac{\\partial \\rho\\chi}{\\partial \\hat{z}}\\right]
+```
+
+is solved using the Crank-Nicolson scheme, where the system 
+
+```math
+a_k \\left(\\rho\\chi\\right)_{k-1}^{n+1} + b_k \\left(\\rho\\chi\\right)_k^{n+1} + c_k \\left(\\rho\\chi\\right)_{k+1}^{n+1} = f_k
+```
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{H}G^{33}`` and 
+
+```math 
+\\begin{align*}
+    a_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}^{33}}{J_k}  , \\\\
+    b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}^{33}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}^{33}{J_k}}, \\\\
+    c_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}^{33}}{J_k}  , \\\\
+    f_k = & \\left( 1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}^{33}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}^{33}}{J_k}\\right) \\left(\\rho\\chi\\right)_k^{n} \\\\
+    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}^{33}}{J_k} \\left(\\rho\\chi\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}^{33}}{J_k}  \\left(\\rho\\chi\\right)_{k-1}^{n}.
+\\end{align*}
+```
 
 # Arguments
 
@@ -579,7 +637,7 @@ function turbulent_diffusion!(
     (; p) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; nbx, nby, nbz) = state.namelists.domain
-    (; jac, dz) = state.grid
+    (; jac, met, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
@@ -666,7 +724,7 @@ function turbulent_diffusion!(
     (; tracerpredictands) = state.tracer
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; nbx, nby, nbz) = state.namelists.domain
-    (; jac, dz) = state.grid
+    (; jac, met, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)

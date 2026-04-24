@@ -136,6 +136,10 @@ $$\frac{\partial \rho'}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho' u
 
 Note that in addition to the new volume-force term, $\bar{\rho}$ has been replaced with $P / \bar{\theta}$, which is due to the density fluctuations being defined as $\rho' = \rho - P / \bar{\theta}$ ([Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)).
 
+## Turbulence parameterization
+
+
+
 ## Tracer transport
 
 PinCFlow.jl transports a passive tracer $\chi$ governed by

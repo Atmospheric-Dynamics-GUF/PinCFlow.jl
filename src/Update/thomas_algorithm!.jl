@@ -11,6 +11,8 @@ The system is defined as:
 a_k \\phi_{k-1} + b_k\\phi_k + c_k\\phi_{k+1} = f_k\\;.
 ```
 
+The result is stored in `state.variables.auxiliaries.fth`.
+
 # Arguments 
 
   - `state`: Model state.

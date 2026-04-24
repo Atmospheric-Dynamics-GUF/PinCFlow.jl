@@ -69,7 +69,21 @@ The prognostic equation
 
 is solved using the Crank-Nicolson scheme, where the system 
 
-is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}``.
+```math
+a_k \\left(\\rho e_k\\right)_{k-1}^{n+1} + b_k \\left(\\rho e_k\\right)_k^{n+1} + c_k \\left(\\rho e_k\\right)_{k+1}^{n+1} = f_k
+```
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_{e_k}^{33} = J K_\\mathrm{e_k}G^{33}`` and 
+
+```math 
+\\begin{align*}
+    a_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k-1/2}^{33}}{J_k}  , \\\\
+    b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k+1/2}^{33}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k-1/2}^{33}{J_k}}, \\\\
+    c_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k+1/2}^{33}}{J_k}  , \\\\
+    f_k = & \\left( 1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k+1/2}^{33}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k-1/2}^{33}}{J_k}\\right) \\left(\\rho e_k\\right)_k^{n} \\\\
+    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k+1/2}^{33}}{J_k} \\left(\\rho e_k\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k-1/2}^{33}}{J_k}  \\left(\\rho e_k\\right)_{k-1}^{n}.
+\\end{align*}
+```
 
 # Arguments
 
