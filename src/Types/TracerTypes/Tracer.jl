@@ -3,10 +3,10 @@
 Tracer{
     A <: TracerPredictands,
     B <: TracerIncrements,
-    C <: TracerAuxiliaries,
-    D <: TracerReconstructions,
-    E <: TracerFluxes,
-    F <: TracerForcings,
+    C <: TracerReconstructions,
+    D <: TracerFluxes,
+    E <: TracerWKBIntegrals,
+    F <: TracerWKBTendencies,
 }
 ```
 
@@ -31,13 +31,13 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
   - `tracerincrements::B`: Runge-Kutta updates of the tracers.
 
-  - `tracerauxiliaries::C`: Initial states of the tracers.
+  - `tracerreconstructions::C`: Reconstructions of the tracers.
 
-  - `tracerreconstructions::D`: Reconstructions of the tracers.
+  - `tracerfluxes::D`: Fluxes of the tracers.
 
-  - `tracerfluxes::E`: Fluxes of the tracers.
+  - `tracerwkbintegrals::E`: Integrals of gravity-wave induced tracer fluxes.
 
-  - `tracerforcings::F`: Forcing terms due to gravity-waves and turbulence.
+  - `tracerwkbtendencies::F`: Tracer impact of unresolved gravity waves.
 
 # Arguments
 
@@ -59,28 +59,28 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
   - [`PinCFlow.Types.TracerTypes.TracerIncrements`](@ref)
 
-  - [`PinCFlow.Types.TracerTypes.TracerAuxiliaries`](@ref)
-
   - [`PinCFlow.Types.TracerTypes.TracerReconstructions`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.TracerFluxes`](@ref)
 
-  - [`PinCFlow.Types.TracerTypes.TracerForcings`](@ref)
+  - [`PinCFlow.Types.TracerTypes.TracerWKBIntegrals`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerWKBTendencies`](@ref)
 """
 struct Tracer{
     A <: TracerPredictands,
     B <: TracerIncrements,
-    C <: TracerAuxiliaries,
-    D <: TracerReconstructions,
-    E <: TracerFluxes,
-    F <: TracerForcings,
+    C <: TracerReconstructions,
+    D <: TracerFluxes,
+    E <: TracerWKBIntegrals,
+    F <: TracerWKBTendencies,
 }
     tracerpredictands::A
     tracerincrements::B
-    tracerauxiliaries::C
-    tracerreconstructions::D
-    tracerfluxes::E
-    tracerforcings::F
+    tracerreconstructions::C
+    tracerfluxes::D
+    tracerwkbintegrals::E
+    tracerwkbtendencies::F
 end
 
 function Tracer(
@@ -100,17 +100,17 @@ function Tracer(
         variables,
     )
     tracerincrements = TracerIncrements(namelists, domain)
-    tracerauxiliaries = TracerAuxiliaries(tracerpredictands)
     tracerreconstructions = TracerReconstructions(namelists, domain)
     tracerfluxes = TracerFluxes(namelists, domain)
-    tracerforcings = TracerForcings(namelists, domain)
+    tracerwkbintegrals = TracerWKBIntegrals(namelists, domain)
+    tracerwkbtendencies = TracerWKBTendencies(namelists, domain)
 
     return Tracer(
         tracerpredictands,
         tracerincrements,
-        tracerauxiliaries,
         tracerreconstructions,
         tracerfluxes,
-        tracerforcings,
+        tracerwkbintegrals,
+        tracerwkbtendencies,
     )
 end

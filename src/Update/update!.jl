@@ -434,10 +434,17 @@ The update is given by
 ```
 
 ```julia
+update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+```
+
+Update the tracers by dispatching to the appropriate method.
+
+```julia
 update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
+    variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
 ```
@@ -449,6 +456,7 @@ update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
 ```
@@ -1447,10 +1455,18 @@ function update!(
     return
 end
 
+function update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup update!(state, dt, m, variable, Val(tracer_setup))
+    return
+end
+
 function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
+    variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
     return
@@ -1460,6 +1476,7 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
