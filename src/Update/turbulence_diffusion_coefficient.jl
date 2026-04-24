@@ -11,7 +11,7 @@ The eddy diffusion coefficient for momentum is given by
     K_M = l_v \\sqrt{2 e_\\mathrm{k}} \\;, 
 ```
 
-with turbulence mixing length `l_v` stored in `state.turbulence.turbulenceconstants.lv`.
+with turbulence mixing length ``l_v`` stored in `state.turbulence.turbulenceconstants.lv`.
 
 ```julia 
 turbulence_diffusion_coefficient(state::State, i::Integer, j::Integer, k::Integer, variable::KH)
@@ -25,7 +25,7 @@ The eddy diffusion coefficient for heat is given by
     K_H  = l_b \\sqrt{2 e_\\mathrm{k}} \\;, 
 ```
 
-with turbulence mixing length `l_b` stored in `state.turbulence.turbulenceconstants.lb`.
+with turbulence mixing length ``l_b`` stored in `state.turbulence.turbulenceconstants.lb`.
 
 ```julia 
 turbulence_diffusion_coefficient(state::State, i::Integer, j::Integer, k::Integer, variable::KEK)
@@ -39,7 +39,7 @@ The eddy diffusion coefficient for turbulent kinetic energy is given by
     K_{e_\\mathrm{k}}  = l_t \\sqrt{2 e_\\mathrm{k}} \\;, 
 ```
 
-with turbulence mixing length `l_t` stored in `state.turbulence.turbulenceconstants.lt`.
+with turbulence mixing length ``l_t`` stored in `state.turbulence.turbulenceconstants.lt`.
 
 # Arguments
 

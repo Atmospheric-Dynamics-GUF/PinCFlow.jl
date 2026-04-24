@@ -117,11 +117,11 @@ function compute_turbulent_velocity(
         return 0.0, 0.0, 0.0
     end
 
-    q00 = compute_turbulent_velocity(state, r, i, j, k, 0.0)
-    q10 = compute_turbulent_velocity(state, r, i, j, k, 1.0)
-    q20 = compute_turbulent_velocity(state, r, i, j, k, 2.0)
+    q0r = compute_turbulent_velocity(state, r, i, j, k, 0.0)
+    q1r = compute_turbulent_velocity(state, r, i, j, k, 1.0)
+    q2r = compute_turbulent_velocity(state, r, i, j, k, 2.0)
 
-    return q00, q10, q20
+    return q0r, q1r, q2r
 end
 
 function compute_turbulent_velocity(

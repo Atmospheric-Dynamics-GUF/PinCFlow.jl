@@ -587,33 +587,47 @@ function turbulent_diffusion!(
     reset_thomas!(state)
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        khd =
+        kh33d =
             (
-                jac[i, j, k - 1] *
-                turbulence_diffusion_coefficient(state, i, j, k, KH()) +
-                jac[i, j, k] *
-                turbulence_diffusion_coefficient(state, i, j, k - 1, KH())
+                jac[i, j, k - 1] * (
+                    jac[i, j, k] *
+                    met[i, j, k, 3, 3] *
+                    turbulence_diffusion_coefficient(state, i, j, k, KH())
+                ) +
+                jac[i, j, k] * (
+                    jac[i, j, k - 1] *
+                    met[i, j, k - 1, 3, 3] *
+                    turbulence_diffusion_coefficient(state, i, j, k - 1, KH())
+                )
             ) / (jac[i, j, k - 1] + jac[i, j, k])
-        khu =
+        kh33u =
             (
-                jac[i, j, k + 1] *
-                turbulence_diffusion_coefficient(state, i, j, k, KH()) +
-                jac[i, j, k] *
-                turbulence_diffusion_coefficient(state, i, j, k + 1, KH())
+                jac[i, j, k + 1] * (
+                    jac[i, j, k] *
+                    met[i, j, k] *
+                    turbulence_diffusion_coefficient(state, i, j, k, KH())
+                ) +
+                jac[i, j, k] * (
+                    jac[i, j, k + 1] *
+                    met[i, j, k + 1, 3, 3] *
+                    turbulence_diffusion_coefficient(state, i, j, k + 1, KH())
+                )
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         ith = i - nbx
         jth = j - nby
         kth = k - nbz
 
-        ath[ith, jth, kth] = -dtdz2 * khd
-        bth[ith, jth, kth] = 1 + dtdz2 * khu + dtdz2 * khd
-        cth[ith, jth, kth] = -dtdz2 * khu
+        ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kh33d
+        bth[ith, jth, kth] =
+            1 + dtdz2 / jac[i, j, k] * kh33u + dtdz2 / jac[i, j, k] * kh33d
+        cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kh33u
 
         fth[ith, jth, kth] =
-            (1 - dtdz2 * khu - dtdz2 * khd) * p[i, j, k] +
-            dtdz2 * khu * p[i, j, k + 1] +
-            dtdz2 * khd * p[i, j, k - 1]
+            (1 - dtdz2 / jac[i, j, k] * kh33u - dtdz2 / jac[i, j, k] * kh33d) *
+            p[i, j, k] +
+            dtdz2 / jac[i, j, k] * kh33u * p[i, j, k + 1] +
+            dtdz2 / jac[i, j, k] * kh33d * p[i, j, k - 1]
     end
 
     thomas_algorithm!(state)
@@ -662,33 +676,61 @@ function turbulent_diffusion!(
     for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)
         @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-            khd =
+            kh33d =
                 (
-                    jac[i, j, k - 1] *
-                    turbulence_diffusion_coefficient(state, i, j, k, KH()) +
-                    jac[i, j, k] *
-                    turbulence_diffusion_coefficient(state, i, j, k - 1, KH())
+                    jac[i, j, k - 1] * (
+                        jac[i, j, k] *
+                        met[i, j, k, 3, 3] *
+                        turbulence_diffusion_coefficient(state, i, j, k, KH())
+                    ) +
+                    jac[i, j, k] * (
+                        jac[i, j, k - 1] *
+                        met[i, j, k - 1, 3, 3] *
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k - 1,
+                            KH(),
+                        )
+                    )
                 ) / (jac[i, j, k - 1] + jac[i, j, k])
-            khu =
+            kh33u =
                 (
-                    jac[i, j, k + 1] *
-                    turbulence_diffusion_coefficient(state, i, j, k, KH()) +
-                    jac[i, j, k] *
-                    turbulence_diffusion_coefficient(state, i, j, k + 1, KH())
+                    jac[i, j, k + 1] * (
+                        jac[i, j, k] *
+                        met[i, j, k] *
+                        turbulence_diffusion_coefficient(state, i, j, k, KH())
+                    ) +
+                    jac[i, j, k] * (
+                        jac[i, j, k + 1] *
+                        met[i, j, k + 1, 3, 3] *
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k + 1,
+                            KH(),
+                        )
+                    )
                 ) / (jac[i, j, k + 1] + jac[i, j, k])
 
             ith = i - nbx
             jth = j - nby
             kth = k - nbz
 
-            ath[ith, jth, kth] = -dtdz2 * khd
-            bth[ith, jth, kth] = 1 + dtdz2 * khu + dtdz2 * khd
-            cth[ith, jth, kth] = -dtdz2 * khu
+            ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kh33d
+            bth[ith, jth, kth] =
+                1 + dtdz2 / jac[i, j, k] * kh33u + dtdz2 / jac[i, j, k] * kh33d
+            cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kh33u
 
             fth[ith, jth, kth] =
-                (1 - dtdz2 * khu - dtdz2 * khd) * chi[i, j, k] +
-                dtdz2 * khu * chi[i, j, k + 1] +
-                dtdz2 * khd * chi[i, j, k - 1]
+                (
+                    1 - dtdz2 / jac[i, j, k] * kh33u -
+                    dtdz2 / jac[i, j, k] * kh33d
+                ) * chi[i, j, k] +
+                dtdz2 / jac[i, j, k] * kh33u * chi[i, j, k + 1] +
+                dtdz2 / jac[i, j, k] * kh33d * chi[i, j, k - 1]
         end
 
         thomas_algorithm!(state)

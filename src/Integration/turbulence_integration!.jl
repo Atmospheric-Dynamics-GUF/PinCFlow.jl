@@ -61,6 +61,16 @@ turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
 
 Integrate the turbulent diffusion term in the prognostic equation for the turbulent kinetic energy using a Thomas algorithm.
 
+The prognostic equation 
+
+```math 
+\\frac{\\partial \\rho e_k}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left[J K_H G^{33}\\frac{\\partial \\rho e_k}{\\partial \\hat{z}}\\right]
+```
+
+is solved using the Crank-Nicolson scheme, where the system 
+
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}^{33} = J K_\\mathrm{M}G^{33}``.
+
 # Arguments
 
   - `state`: Model state. 
@@ -82,7 +92,11 @@ function turbulence_integration! end
 function turbulence_integration!(state::State, dt::AbstractFloat)
     (; turbulence_scheme) = state.namelists.turbulence
 
-    @dispatch_turbulence_scheme turbulence_integration!(state, dt, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme turbulence_integration!(
+        state,
+        dt,
+        Val(turbulence_scheme),
+    )
 
     return
 end
@@ -184,7 +198,7 @@ function turbulence_integration!(
     (; tke) = state.turbulence.turbulencepredictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; nbx, nby, nbz) = state.namelists.domain
-    (; jac, dz) = state.grid
+    (; jac, met, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
@@ -192,33 +206,49 @@ function turbulence_integration!(
     reset_thomas!(state)
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        kekd =
+        kek33d =
             (
-                jac[i, j, k - 1] *
-                turbulence_diffusion_coefficient(state, i, j, k, KEK()) +
-                jac[i, j, k] *
-                turbulence_diffusion_coefficient(state, i, j, k - 1, KEK())
+                jac[i, j, k - 1] * (
+                    jac[i, j, k] *
+                    met[i, j, k, 3, 3] *
+                    turbulence_diffusion_coefficient(state, i, j, k, KEK())
+                ) +
+                jac[i, j, k] * (
+                    jac[i, j, k - 1] *
+                    met[i, j, k - 1, 3, 3] *
+                    turbulence_diffusion_coefficient(state, i, j, k - 1, KEK())
+                )
             ) / (jac[i, j, k - 1] + jac[i, j, k])
-        keku =
+        kek33u =
             (
-                jac[i, j, k + 1] *
-                turbulence_diffusion_coefficient(state, i, j, k, KEK()) +
-                jac[i, j, k] *
-                turbulence_diffusion_coefficient(state, i, j, k + 1, KEK())
+                jac[i, j, k + 1] * (
+                    jac[i, j, k] *
+                    met[i, j, k] *
+                    turbulence_diffusion_coefficient(state, i, j, k, KEK())
+                ) +
+                jac[i, j, k] * (
+                    jac[i, j, k + 1] *
+                    met[i, j, k + 1, 3, 3] *
+                    turbulence_diffusion_coefficient(state, i, j, k + 1, KEK())
+                )
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         ith = i - nbx
         jth = j - nby
         kth = k - nbz
 
-        ath[ith, jth, kth] = -dtdz2 * kekd
-        bth[ith, jth, kth] = 1 + dtdz2 * keku + dtdz2 * kekd
-        cth[ith, jth, kth] = -dtdz2 * keku
+        ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kek33d
+        bth[ith, jth, kth] =
+            1 + dtdz2 / jac[i, j, k] * kek33u + dtdz2 / jac[i, j, k] * kek33d
+        cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kek33u
 
         fth[ith, jth, kth] =
-            (1 - dtdz2 * keku - dtdz2 * kekd) * tke[i, j, k] +
-            dtdz2 * keku * tke[i, j, k + 1] +
-            dtdz2 * kekd * tke[i, j, k - 1]
+            (
+                1 - dtdz2 / jac[i, j, k] * kek33u -
+                dtdz2 / jac[i, j, k] * kek33d
+            ) * tke[i, j, k] +
+            dtdz2 / jac[i, j, k] * kek33u * tke[i, j, k + 1] +
+            dtdz2 / jac[i, j, k] * kek33d * tke[i, j, k - 1]
     end
 
     thomas_algorithm!(state)
