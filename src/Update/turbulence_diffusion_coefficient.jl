@@ -41,7 +41,7 @@ The eddy diffusion coefficient for turbulent kinetic energy is given by
 
 with turbulence mixing length `l_t` stored in `state.turbulence.turbulenceconstants.lt`.
 
-# Arguments:
+# Arguments
 
   - `state`: Model state.
 

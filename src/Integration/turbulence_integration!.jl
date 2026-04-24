@@ -33,13 +33,15 @@ turbulence_integration!(
 )
 ```
 
-Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy by dispatching to the model-specific method.
+Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy.
 
 The dissipation step is given by 
 
 ```math 
-\\left(\\rho e_k\\right) \\rightarrow \\left[\\frac{\\sqrt{2}\\Delta t}{l_d \\sqrt{\\rho}} + \\frac{1}{\\sqrt{\\rho e_k}} \\right]^{-2}
+\\left(\\rho e_k\\right) \\rightarrow \\left[\\frac{\\sqrt{2}\\Delta t}{l_d \\sqrt{\\rho}} + \\frac{1}{\\sqrt{\\rho e_k}} \\right]^{-2},
 ```
+
+with turbulent mixing length ``l_d`` stored in `state.turbulence.turbulenceconstants.ld`.
 
 ```julia 
 turbulence_integration!(
@@ -59,7 +61,7 @@ turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
 
 Integrate the turbulent diffusion term in the prognostic equation for the turbulent kinetic energy using a Thomas algorithm.
 
-# Arguments:
+# Arguments
 
   - `state`: Model state. 
 
@@ -68,6 +70,12 @@ Integrate the turbulent diffusion term in the prognostic equation for the turbul
   - `turbulence_scheme`: General turbulence parameterization configuration.
 
   - `process`: Terms in the prognostic equations.
+
+# See also
+
+  - [`PinCFlow.Update.check_tke!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_boundaries!`](@ref)
 """
 function turbulence_integration! end
 

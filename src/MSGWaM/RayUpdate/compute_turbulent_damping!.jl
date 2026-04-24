@@ -1,3 +1,67 @@
+"""
+```julia
+compute_turbulent_damping!(
+    state::State,
+    r::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    zr::AbstractFloat,
+    dt::AbstractFloat,
+)
+```
+
+Damping of the wave-action density due to turbulence.
+
+The update of the physical-space wave-action density reads 
+
+```math 
+\\mathcal{A}_r \\rightarrow \\left[1 - 2\\Delta t \\left(\\gamma_s + \\gamma_w + \\gamma_w' \\right)\\right]\\mathcal{A}_r,
+```
+
+where the turbulent damping terms are given by
+
+```math 
+\\begin{align*}
+    \\gamma_s & = m_r^2 \\left[l_v\\left(1-\\delta_r\\right) + l_b\\delta_r\\right]\\Re\\left(Q_{0,r}\\right),\\\\
+    \\gamma_w & = \\frac{m_r^2}{4} \\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{N_r^2\\left(k_r^2+l_r^2\\right)+f^2m_r^2}\\left[l_v \\left(1-\\frac{f^2}{N_r^2}\\right)\\left(1+\\frac{k_r^2+l_r^2}{m_r^2}\\right)^{-1}-l_b\\right]\\Re\\left(Q_{2,r}\\right),\\\\
+    \\gamma_w' & = -l_b\\frac{m_r}{2\\hat{\\omega}_r}\\sqrt{\\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{k_r^2+l_r^2+m_r^2}\\frac{\\bar{\\rho}\\hat{\\omega}_r}{2\\mathcal{A}_r}}\\Re\\left(iQ_{1,r}\\right),
+\\end{align*}
+```
+
+with 
+
+```math 
+\\delta_r = \\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{2\\left[N_r^2\\left(k_r^2+l_r^2\\right)+f^2m_r^2\\right]}
+```
+
+and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence.turbulenceconstants.lv` and `state.turbulence.turbulenceconstants.lb`, respectively.
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `r`: Ray-volume index.
+
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
+
+  - `zr`: Position of the ray volume in ``z``.
+
+  - `dt`: Time step.
+
+# See also 
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.compute_turbulent_velocity`](@ref)
+
+!!! danger "Experimental"
+    The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
+"""
 function compute_turbulent_damping! end
 
 function compute_turbulent_damping!(

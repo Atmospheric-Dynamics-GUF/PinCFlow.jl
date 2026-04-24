@@ -85,6 +85,8 @@ The group velocities that are calculated for the propagation in physical space a
 \\end{align*}
 ```
 
+The damping of wave-action density due to turbulence is applied via `compute_turbulent_velocity!`.
+
 ```julia
 propagate_rays!(
     state::State,
@@ -122,6 +124,8 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 
 the second term is integrated with the pseudo-time step ``J \\Delta \\hat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\hat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
 
+The damping of wave-action density due to turbulence is applied via `compute_turbulent_velocity!`.
+
 If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
 
 # Arguments
@@ -153,6 +157,8 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.compute_turbulent_damping!`](@ref)
 """
 function propagate_rays! end
 
@@ -574,6 +580,9 @@ function propagate_rays!(
 
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+
+            compute_turbulent_damping!(state, r, i, j, k, zr, stepfrac[rkstage] * dt)
+
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             rays.dens[r, i, j, k] =
                 1 / (
