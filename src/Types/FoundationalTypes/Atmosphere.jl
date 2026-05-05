@@ -288,7 +288,6 @@ function Atmosphere(
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
-
 function Atmosphere(
     namelists::Namelists,
     constants::Constants,
@@ -298,11 +297,46 @@ function Atmosphere(
     background::RadiatedBoussinesq,
 )::Atmosphere
     (; buoyancy_frequency, potential_temperature) = namelists.atmosphere
-    (; tref, thetaref, g_ndim) = constants
+    (; lref, tref, thetaref, g_ndim) = constants
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
-    M = 2 * pi/1E+4
-    z1 = 1.0E+4 
+    M = 2 * pi * lref / 2.0E+4 
+    z1 = 1.0E+4 / lref
+    aback = 0.8
+
+    rhobar = ones(nxx, nyy, nzz)
+    thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
+    pbar = rhobar .* thetabar
+    n2 = zeros(nxx, nyy, nzz) 
+   
+    @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        if (z1 <= zc[i, j, k]) && (zc[i, j, k] <= (z1 +  (2 * pi / M)))
+            n2[i, j, k] = (buoyancy_frequency * tref) ^ 2 * (1 + aback * sin(M * (zc[i, j, k] - z1)))
+        else 
+            n2[i, j, k] = (buoyancy_frequency * tref) ^ 2 
+        end
+    end
+
+    return Atmosphere(pbar, thetabar, rhobar, n2)
+end
+
+
+#=
+function Atmosphere(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    model::Boussinesq,
+    background::RadiatedBoussinesq,
+)::Atmosphere
+    (; buoyancy_frequency, potential_temperature) = namelists.atmosphere
+    (; lref, tref, thetaref, g_ndim) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
+    M = 2 * pi * lref / 2.0E+4 
+    z1 = 1.0E+4 / lref
+    aback = 0.8 
 
     rhobar = ones(nxx, nyy, nzz)
     thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
@@ -311,10 +345,12 @@ function Atmosphere(
 
     @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
         if z1 <= zc[i, j, k] && zc[i, j, k] <= z1 +  (2 * pi / M)
-            bback .= buoyancy_frequency.^2 .* zc  + (buoyancy_frequency.^2 .* 0.8 ./ (2 .* pi .* M)) .* (1 .- cos(M .* (zc .- z1)))
+            bback .= (buoyancy_frequency * tref).^2 .* zc  #+ (buoyancy_frequency.^2 .* aback ./ M) .* (1 .- cos.(M .* (zc .- z1)))
+            #bback .= bback .* tref^2 #non dimensionalization
             thetaback .= bback .* thetabar ./ g_ndim
         else 
-            bback .= buoyancy_frequency .* zc
+            bback .= (buoyancy_frequency * tref).^2 .* zc
+            #bback .= bback .* tref^2 #non dimensionalization
             thetaback .= bback .* thetabar ./ g_ndim
         end
     end
@@ -322,7 +358,7 @@ function Atmosphere(
     compute_n2!(namelists, constants, domain, grid, thetaback, n2)
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
-end
+end =#
 
 function Atmosphere(
     namelists::Namelists,
