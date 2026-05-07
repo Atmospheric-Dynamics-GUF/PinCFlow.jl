@@ -23,9 +23,9 @@ end
 x_slice = 1
 y_slize = 1
 z_slice = 110
-time_slice = 51
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("back_prop_pos.h5") do data
+time_slice = 3
+#if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open("back_propagation_pos.h5") do data
         plot_output(
             "examples/results/back_prop_pos.svg",
             data,
@@ -50,4 +50,4 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
 
         return
     end
-end
+#end
