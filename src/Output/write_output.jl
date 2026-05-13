@@ -88,7 +88,7 @@ function write_output(
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; nray_max, rays, tendencies) = state.wkb
+    (; nray_max, rays, tendencies, integrals) = state.wkb
 
     # Print information.
     if master
@@ -318,41 +318,64 @@ function write_output(
             typeof(state.namelists.turbulence.turbulence_scheme) <:
             NoTurbulence
         )
-            for field in fieldnames(TurbulencePredictands)
+            if model == Boussinesq()
+                for field in fieldnames(TurbulencePredictands)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    @views file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(state.turbulence.turbulencepredictands, field)[
+                            ii,
+                            jj,
+                            kk,
+                        ] ./ (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .*
+                        (lref .^ 2.0) ./ (tref .^ 2.0)
+                end
+            else
+                for field in fieldnames(TurbulencePredictands)
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    @views file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(state.turbulence.turbulencepredictands, field)[
+                            ii,
+                            jj,
+                            kk,
+                        ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
+                        (lref .^ 2.0) ./ (tref .^ 2.0)
+                end
+            end
+
+            for field in fieldnames(TurbulenceAuxiliaries)
                 HDF5.set_extent_dims(
                     file[string(field)],
                     (x_size, y_size, z_size, iout),
                 )
-                file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulencepredictands, field)[
+                @views file[string(field)][iid, jjd, kkd, iout] =
+                    getfield(state.turbulence.turbulenceauxiliaries, field)[
                         ii,
                         jj,
                         kk,
-                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
-                    (lref .^ 2.0) ./ (tref .^ 2.0)
+                    ] .* uref .^ 2 ./ tref
             end
 
-            HDF5.set_extent_dims(
-                file["shear-production"],
-                (x_size, y_size, z_size, iout),
-            )
-            file["shear-production"][iid, jjd, kkd, iout] =
-                state.turbulence.turbulenceauxiliaries.shearproduction[
-                    ii,
-                    jj,
-                    kk,
-                ] .* lref .^ 2 ./ tref .^ 3
-
-            HDF5.set_extent_dims(
-                file["buoyancy-production"],
-                (x_size, y_size, z_size, iout),
-            )
-            file["buoyancy-production"][iid, jjd, kkd, iout] =
-                state.turbulence.turbulenceauxiliaries.buoyancyproduction[
-                    ii,
-                    jj,
-                    kk,
-                ] .* lref .^ 2 ./ tref .^ 3
+            for field in fieldnames(TurbulenceDiffusionCoefficients)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (x_size, y_size, z_size, iout),
+                )
+                @views file[string(field)][iid, jjd, kkd, iout] =
+                    getfield(
+                        state.turbulence.turbulencediffusioncoefficients,
+                        field,
+                    )[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* lref .^ 2 / tref
+            end
         end
 
         # Write WKB variables.
@@ -393,13 +416,35 @@ function write_output(
                     lref .^ dim
             end
 
+            # Write GW integrals.
+            for (field, scaling) in zip(
+                (:wad, :qtilde2, :q00, :q10, :iq10),
+                (
+                    rhoref * uref * uref / tref,
+                    uref * uref, 
+                    uref, 
+                    uref, 
+                    uref,
+                ),
+            )
+                if field in output_variables
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(integrals, field)[ii, jj, kk] .* scaling
+                end
+            end
+
             # Write GW tendencies.
             for (field, scaling) in zip(
-                (:dudt, :dvdt, :dthetadt),
+                (:dudt, :dvdt, :dthetadt, :dtkedt),
                 (
                     rhoref * uref / tref,
                     rhoref * uref / tref,
                     rhoref * thetaref / tref,
+                    rhoref * uref * uref / tref,
                 ),
             )
                 if field in output_variables

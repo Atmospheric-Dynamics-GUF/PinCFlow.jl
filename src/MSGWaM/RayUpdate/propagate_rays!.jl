@@ -140,9 +140,14 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 """
 function propagate_rays! end
 
-function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+function propagate_rays!(
+    state::State, 
+    dt::AbstractFloat, 
+    rkstage::Integer,
+    time::AbstractFloat,
+)
     (; wkb_mode) = state.namelists.wkb
-    propagate_rays!(state, dt, rkstage, wkb_mode)
+    propagate_rays!(state, dt, rkstage, time, wkb_mode)
     return
 end
 
@@ -150,6 +155,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
+    time::AbstractFloat,
     wkb_mode::NoWKB,
 )
     return
@@ -159,15 +165,26 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
+    time::AbstractFloat,
     wkb_mode::Union{SingleColumn, MultiColumn},
 )
     (; branch, impact_altitude) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
-    (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
-    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
-        state.wkb.increments
+    (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays, integrals) = state.wkb
+    (;
+        dxray,
+        dyray,
+        dzray,
+        dkray,
+        dlray,
+        dmray,
+        ddxray,
+        ddyray,
+        ddzray,
+        dpray,
+    ) = state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
     (; lz, zctilde) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
@@ -206,6 +223,37 @@ function propagate_rays!(
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
+
+            gammas, gammaw, gammawp =
+                compute_turbulent_damping(state, r, i, j, k, zr, time)
+
+            dkr = rays.dkray[r, i, j, k]
+            dlr = rays.dlray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
+
+            wadr = rays.dens[r, i, j, k] * dmr
+
+            if x_size > 1
+                wadr *= dkr
+            end
+            if y_size > 1
+                wadr *= dlr
+            end
+
+            wadr =
+                wadr +
+                stepfrac[rkstage] *
+                dt *
+                (-2 * (gammas + gammaw) * wadr + gammawp * wadr)
+
+            densr = wadr / dmr
+            if x_size > 1
+                densr /= dkr
+            end
+            if y_size > 1
+                densr /= dlr
+            end
+            rays.dens[r, i, j, k] = densr
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2

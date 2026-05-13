@@ -199,7 +199,11 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
 
+                        wf = dzi / jac[iray, jray, kray] / dz
+
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
+
+                        qtilde2 = wf * rays.qtilde2[r, i, j, k]
 
                         if x_size > 1
                             if fc != 0
@@ -214,6 +218,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                                     wadr * kr * cgirx
                             end
                         end
+
+                        integrals.dzudzu[iray, jray, kray] = mr * mr * integrals.uu[iray, jray, kray]
 
                         if x_size > 1 || y_size > 1
                             integrals.uv[iray, jray, kray] += wadr * cgirx * lr
@@ -235,6 +241,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                                     wadr * lr * cgiry
                             end
                         end
+
+                        integrals.dzvdzv[iray, jray, kray] = mr * mr * integrals.vv[iray, jray, kray]
 
                         integrals.vw[iray, jray, kray] +=
                             wadr * lr * cgirz / (1 - (fc / omir)^2)
@@ -268,6 +276,10 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         end
 
                         integrals.e[iray, jray, kray] += wadr * omir
+
+                        integrals.wad[iray, jray, kray] += wadr
+
+                        integrals.qtilde2[iray, jray, kray] += qtilde2
 
                         compute_leading_order_tracer_fluxes!(
                             state,

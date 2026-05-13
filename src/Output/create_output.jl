@@ -21,6 +21,7 @@ function create_output(state::State, machine_start_time::DateTime)
     (; wkb_mode) = state.namelists.wkb
     (; comm, master) = state.domain
     (; nray_max) = state.wkb
+    (; dzudzu, dzvdzv,) = state.wkb.integrals
 
     # Set the chunk dimensions.
     cr = nray_max
@@ -311,8 +312,24 @@ function create_output(state::State, machine_start_time::DateTime)
                 end
             end
 
+            # Create datasets for GW integrals.
+            for field in (:wad, :qtilde2, :q00, :q10, :iq10,)
+                if field in output_variables
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
+
             # Create datasets for GW tendencies.
-            for field in (:dudt, :dvdt, :dthetadt)
+            for field in (:dudt, :dvdt, :dthetadt, :dtkedt)
                 if field in output_variables
                     create_dataset(
                         file,

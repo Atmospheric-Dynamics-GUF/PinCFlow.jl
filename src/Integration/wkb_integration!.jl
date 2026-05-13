@@ -15,13 +15,17 @@ In the first step, MS-GWaM's saturation scheme is applied to account for the imp
 """
 function wkb_integration! end
 
-function wkb_integration!(state::State, dtstage::AbstractFloat)
+function wkb_integration!(
+    state::State, 
+    dtstage::AbstractFloat, 
+    time::AbstractFloat
+)
     (; nstages) = state.time
 
     apply_saturation_scheme!(state, dtstage)
 
     for rkstage in 1:nstages
-        propagate_rays!(state, dtstage, rkstage)
+        propagate_rays!(state, dtstage, rkstage, time)
     end
 
     split_rays!(state)
@@ -29,7 +33,7 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
     merge_rays!(state)
     set_boundary_rays!(state)
 
-    compute_mean_flow_effect!(state)
+    compute_mean_flow_effect!(state, time)
 
     return
 end

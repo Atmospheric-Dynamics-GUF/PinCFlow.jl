@@ -39,6 +39,7 @@ function compute_gw_tendencies!(state::State)
     (; rhobar, thetabar) = state.atmosphere
     (; rho) = state.variables.predictands
     (; integrals, tendencies) = state.wkb
+    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     # Set the Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -148,12 +149,15 @@ function compute_gw_tendencies!(state::State)
             end
         end
 
-        compute_leading_order_tracer_forcing!(
-            state,
-            i,
-            j,
-            k,
-            state.namelists.tracer.tracer_setup,
-        )
+        compute_leading_order_tracer_forcing!(state, i, j, k)
+
+        # Compute the drag on TKE
+
+        tendencies.dtkedt[i, j, k] += 
+                    km[i, j, k] * (integrals.dzudzu[i, j, k] 
+                    + integrals.dzvdzv[i, j, k]) 
+
     end
+
+    return
 end

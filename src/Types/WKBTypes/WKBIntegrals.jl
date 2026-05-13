@@ -23,6 +23,10 @@ Construct a `WKBIntegrals` instance, with arrays sized according to the given di
 
   - `vw::A`: Vertical meridional-momentum flux.
 
+  - `dzudzu::A`: GW Turbulent shear production term.
+
+  - `dzvdzv::A`: GW Turbulent shear production term.
+
   - `utheta::A`: Zonal mass-weighted potential-temperature flux.
 
   - `vtheta::A`: Meridional mass-weighted potential-temperature flux.
@@ -43,11 +47,19 @@ struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     uw::A
     vv::A
     vw::A
+    dzudzu::A
+    dzvdzv::A
     utheta::A
     vtheta::A
     e::A
+    wad::A
+    qtilde2::A
+    q00::A
+    q10::A
+    iq10::A
+    q20::A
 end
 
 function WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
-    return WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:8]...)
+    return WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:16]...)
 end
