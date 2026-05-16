@@ -85,7 +85,7 @@ function get_ray_volumes!(state::State,
             continue
         end
 
-        for r in 1:nray[i, j, k]   #mapping existing rays with Eulerian Grid
+        for r in 1:nray[i, j, k]   #mapping existing rays on Eulerian Grid
 
             xr = rays.x[r, i, j, k]
             yr = rays.y[r, i, j, k]
@@ -208,33 +208,32 @@ function get_ray_volumes!(state::State,
 
             end
 
-            #lanching new valumes for the newly generated wave modes
-            for mi in eachindex(m),
-                kpi in eachindex(kp)
+        end
+
+        #lanching new valumes for the newly generated wave modes
+        for mi in eachindex(m),
+            kpi in eachindex(kp)
+        
+            was = wavespectrum[i, j, k, kpi, mi]
             
-                was = wavespectrum[i, j, k, kpi, mi]
-                
-                
-                was_sig = was_ray_signature[i, j, k, kpi, mi]
+            
+            was_sig = was_ray_signature[i, j, k, kpi, mi]
 
-                if was != 0 && was_sig == false
-                    #println("new ray volume loop called \n new ray volume launched at ", 
-                    #(x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
-                    kps = kp[kpi]
-                    ms = m[mi]
-                    dkps = kpc[kpi + 1] - kpc[kpi]
-                    if ms > 0 
-                        dms = mc[mi + 2] - mc[mi + 1]
-                    else
-                        dms = mc[mi + 1] - mc[mi]
-                    end
-                    launch_new_ray_vol!(state, i, j, k, kps, ms, dkps, dms, was, triad_mode)
-
+            if was != 0 && was_sig == false
+                #println("new ray volume loop called \n new ray volume launched at ", 
+                #(x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
+                kps = kp[kpi]
+                ms = m[mi]
+                dkps = kpc[kpi + 1] - kpc[kpi]
+                if ms > 0 
+                    dms = mc[mi + 2] - mc[mi + 1]
+                else
+                    dms = mc[mi + 1] - mc[mi]
                 end
+                launch_new_ray_vol!(state, i, j, k, kps, ms, dkps, dms, was, triad_mode)
 
             end
 
-        
         end
 
     end
