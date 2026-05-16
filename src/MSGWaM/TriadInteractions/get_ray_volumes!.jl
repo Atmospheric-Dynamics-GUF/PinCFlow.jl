@@ -193,7 +193,6 @@ function get_ray_volumes!(state::State,
                                 end
                                 
                                 accupied_vol = dxi * dyi * dzi * dkpi * dmi #total volume of the ray volume (r, i, j, k) accupied by the grid cell
-                                vol_ratio = fcpspx * fcpspy * fcpspz * fcpspkp * fcpspm # role of volume ratoi is doubtfull
                                 rays.dens[r, i, j, k] += wadr * accupied_vol * wavespectrum[iray, jray, kray, kpray, mray] / 
                                                         was_pred[iray, jray, kray, kpray, mray] / ray_vol
                                 #println(spec_tend.wavespectrum[iray, jray, kray, kpray, mray])
