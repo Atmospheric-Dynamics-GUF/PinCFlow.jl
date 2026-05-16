@@ -81,6 +81,9 @@ function get_ray_volumes!(state::State,
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
+        if all(iszero, wavespectrum[i, j, k, :, :])
+            continue
+        end
     
         for r in 1:nray[i, j, k]   #mapping existing rays on Eulerian Grid
 
