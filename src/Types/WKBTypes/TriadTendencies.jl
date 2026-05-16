@@ -43,8 +43,6 @@ Construct a `TriadTendencies` instance, with arrays sized according to the given
   
 """
 
-const RaySignature = Tuple{Int, Int, Int, Int, Float64, Float64, Float64}
-
 struct TriadScratch{T}
     fpl::Vector{T}
     fpr::Vector{T}
@@ -67,7 +65,6 @@ struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}, B <: AbstractArr
     wavespectrum::A
     was_pred::A
     was_ray_signature::C
-    ray_vol_signature::Array{Vector{RaySignature},5}
     col_int::A
     diag_time::B
     kin_box::KinematicBox
@@ -98,7 +95,7 @@ function TriadTendencies(namelists::Namelists,
 
     partition = UnitRange{Int}[]
     
-    return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), falses(0,0,0,0,0), Array{Vector{RaySignature}}(undef, 0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), zeros(0, 0),
+    return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), falses(0,0,0,0,0), zeros(0, 0, 0, 0, 0), zeros(0, 0),
       kin_box, interp_coef, res_manifold, scratch, partition)
 end
 
@@ -152,12 +149,6 @@ function TriadTendencies(namelists::Namelists,
     col_int = zeros(nxx, nyy, nzz, kpl, ml)
     diag_time = zeros(kpl, ml)
 
-    ray_vol_signature = Array{Vector{RaySignature},5}(undef, nxx, nyy, nzz, kpl, ml)
-
-    for idx in eachindex(ray_vol_signature)
-        ray_vol_signature[idx] = RaySignature[]
-    end
-
     max_la = maximum(kin_box.la)
     max_lq = maximum(kin_box.lq)
 
@@ -166,7 +157,7 @@ function TriadTendencies(namelists::Namelists,
     spec_l = kpl * ml
     partition = make_partition(spec_l, nthreads_triad) 
 
-    return TriadTendencies(spec_grid, wavespectrum, was_pred, was_ray_signature, ray_vol_signature, col_int, diag_time, kin_box, interp_coef, res_manifold, scratch, partition)
+    return TriadTendencies(spec_grid, wavespectrum, was_pred, was_ray_signature, col_int, diag_time, kin_box, interp_coef, res_manifold, scratch, partition)
 
 end
 
