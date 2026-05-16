@@ -62,9 +62,11 @@ end
 end
 
 
-struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}, B <: AbstractArray{<: AbstractFloat, 2}}
+struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}, B <: AbstractArray{<: AbstractFloat, 2}, C <: AbstractArray{Bool,5}}
     spec_grid::SpectralGrid
     wavespectrum::A
+    was_pred::A
+    was_ray_signature::C
     ray_vol_signature::Array{Vector{RaySignature},5}
     col_int::A
     diag_time::B
@@ -96,7 +98,7 @@ function TriadTendencies(namelists::Namelists,
 
     partition = UnitRange{Int}[]
     
-    return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), Array{Vector{RaySignature}}(undef, 0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), zeros(0, 0),
+    return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), falses(0,0,0,0,0), Array{Vector{RaySignature}}(undef, 0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), zeros(0, 0),
       kin_box, interp_coef, res_manifold, scratch, partition)
 end
 
@@ -145,6 +147,8 @@ function TriadTendencies(namelists::Namelists,
     interp_coef = InterpCoef(kp, m, wkb_mode, triad_mode)
 
     wavespectrum =  zeros(nxx, nyy, nzz, kpl, ml)
+    was_pred = zeros(nxx, nyy, nzz, kpl, ml)
+    was_ray_signature = falses(nxx, nyy, nzz, kpl, ml)
     col_int = zeros(nxx, nyy, nzz, kpl, ml)
     diag_time = zeros(kpl, ml)
 
@@ -162,7 +166,7 @@ function TriadTendencies(namelists::Namelists,
     spec_l = kpl * ml
     partition = make_partition(spec_l, nthreads_triad) 
 
-    return TriadTendencies(spec_grid, wavespectrum, ray_vol_signature, col_int, diag_time, kin_box, interp_coef, res_manifold, scratch, partition)
+    return TriadTendencies(spec_grid, wavespectrum, was_pred, was_ray_signature, ray_vol_signature, col_int, diag_time, kin_box, interp_coef, res_manifold, scratch, partition)
 
 end
 
