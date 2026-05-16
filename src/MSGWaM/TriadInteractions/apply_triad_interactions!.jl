@@ -37,7 +37,7 @@ function apply_triad_interactions!(state::State,
     end
 
     get_wave_spectrum!(state)
-    wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
+    #wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
     
     if master
         println("Updating wave action spectrum due to interactions")
@@ -52,7 +52,7 @@ function apply_triad_interactions!(state::State,
     end
     
    
-    get_ray_volumes!(state, wavespectrum_copy, triad_mode)
+    get_ray_volumes!(state, triad_mode)
 
     if master
         println("Triad interaction module successfully called")

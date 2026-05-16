@@ -70,7 +70,7 @@ function get_wave_spectrum!(state::State,
     (; i0, i1, j0, j1, k0, k1) = domain
     (; dx, dy, dz, x, y, zc, zctilde, jac) = grid
     (; nray, rays, spec_tend) = state.wkb
-    (; kp, m, kpc, mc) = spec_tend.spec_grid
+    (; kpc, mc) = spec_tend.spec_grid
 
 
 
@@ -79,13 +79,10 @@ function get_wave_spectrum!(state::State,
     fc = coriolis_frequency * tref
 
     spec_tend.wavespectrum .= 0
+    spec_tend.was_pred .= 0
     spec_tend.col_int .= 0 
 
-    #reseting the ray volume signatures
-    for idx in eachindex(spec_tend.ray_vol_signature)
-        empty!(spec_tend.ray_vol_signature[idx])
-    end
-
+    spec_tend.was_ray_signature .= false
 
 
      @ivy for k in (k0 - 1):(k1 + 1),
@@ -106,11 +103,9 @@ function get_wave_spectrum!(state::State,
             dzr = rays.dzray[r, i, j, k]
 
             kr = rays.k[r, i, j, k]
-            lr = rays.l[r, i, j, k]
             mr = rays.m[r, i, j, k]
 
             dkr = rays.dkray[r, i, j, k]
-            dlr = rays.dlray[r, i, j, k]
             dmr = rays.dmray[r, i, j, k]
 
             kpr = abs(kr)
@@ -183,7 +178,6 @@ function get_wave_spectrum!(state::State,
                                 max(kpr - dkr / 2, kpc[kpray] )
                             dkp = kpc[kpray + 1] - kpc[kpray]
                                       
-                            #fcpspkp =  dkpi / dkpr
                             fcpspkp =  dkpi / dkp
 
                              for mray in mmin:mmax
@@ -192,24 +186,21 @@ function get_wave_spectrum!(state::State,
                                         min(mr + dmr / 2, mc[mray + 2]) -
                                         max(mr - dmr / 2, mc[mray + 1])
                                     dm = mc[mray + 2] - mc[mray + 1]
-                                    #fcpspm = dmi / dmr
                                     fcpspm = dmi / dm
                                 else
                                     dmi = 
                                         min(mr + dmr / 2, mc[mray + 1]) -
                                         max(mr - dmr / 2, mc[mray])
                                     dm = mc[mray + 1] - mc[mray]
-                                    #fcpspm = dmi / dmr
                                     fcpspm = dmi / dm
                                 end
                                 
-                                accupied_vol = dxi * dyi * dzi * dkpi * dmi #total volume of the ray volume (r, i, j, k) accupied by the grid cell
                                 vol_ratio = fcpspx * fcpspy * fcpspz * fcpspkp * fcpspm # Fraction of the accupied_vol ray volume and the volume of the grid cell
-                                ray_vol = dxr * dyr * dzr * dkpr * dmr #total volume of the ray in 5D ray phase space
                                 wadr = rays.dens[r, i, j, k]
-                                wadi = vol_ratio * rays.dens[r, i, j, k]
+                                wadi = vol_ratio * wadr
                                 spec_tend.wavespectrum[iray, jray, kray, kpray, mray] += wadi
-                                push!(spec_tend.ray_vol_signature[iray, jray, kray, kpray, mray], (r, i, j, k, wadr, accupied_vol, ray_vol))
+                                spec_tend.was_pred[iray, jray, kray, kpray, mray] += wadi
+                                spec_tend.was_ray_signature[iray, jray, kray, kpray, mray] = true
                                 #println(spec_tend.wavespectrum[iray, jray, kray, kpray, mray])
 
                              end
