@@ -51,5 +51,5 @@ function test_wave_packet()
         test_example(wave_packet, keywords, reference; update_references)
     end
 
-    return
+    nothing
 end

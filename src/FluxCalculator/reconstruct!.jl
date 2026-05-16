@@ -110,17 +110,17 @@ function reconstruct!(state::State)
 
     @dispatch_tracer_setup reconstruct!(state, Val(tracer_setup))
 
-    return
+    nothing
 end
 
 function reconstruct!(state::State, variable::Rho)
     (; model) = state.namelists.atmosphere
     @dispatch_model reconstruct!(state, variable, Val(model))
-    return
+    nothing
 end
 
 function reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})
-    return
+    nothing
 end
 
 function reconstruct!(
@@ -148,7 +148,7 @@ function reconstruct!(
         Val(limiter_type),
     )
 
-    return
+    nothing
 end
 
 function reconstruct!(state::State, variable::RhoP)
@@ -172,7 +172,7 @@ function reconstruct!(state::State, variable::RhoP)
         Val(limiter_type),
     )
 
-    return
+    nothing
 end
 
 function reconstruct!(state::State, variable::U)
@@ -204,7 +204,7 @@ function reconstruct!(state::State, variable::U)
         Val(limiter_type),
     )
 
-    return
+    nothing
 end
 
 function reconstruct!(state::State, variable::V)
@@ -236,7 +236,7 @@ function reconstruct!(state::State, variable::V)
         Val(limiter_type),
     )
 
-    return
+    nothing
 end
 
 function reconstruct!(state::State, variable::W)
@@ -282,11 +282,11 @@ function reconstruct!(state::State, variable::W)
         Val(limiter_type),
     )
 
-    return
+    nothing
 end
 
 function reconstruct!(state::State, tracer_setup::Val{:NoTracer})
-    return
+    nothing
 end
 
 function reconstruct!(state::State, tracer_setup::Val{:TracerOn})
@@ -311,5 +311,5 @@ function reconstruct!(state::State, tracer_setup::Val{:TracerOn})
         )
     end
 
-    return
+    nothing
 end

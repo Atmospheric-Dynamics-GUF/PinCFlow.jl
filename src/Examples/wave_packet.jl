@@ -86,9 +86,9 @@ function wave_packet(;
                 ("w", 20, 20, 40, 2);
                 time_unit = "min",
             )
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end

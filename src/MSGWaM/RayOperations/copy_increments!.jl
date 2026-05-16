@@ -37,5 +37,5 @@ function copy_increments!(
             getfield(increments, field)[r[1], i[1], j[1], k[1]]
     end
 
-    return
+    nothing
 end

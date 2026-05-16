@@ -402,7 +402,7 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        return
+        nothing
     end
 
     if master
@@ -411,5 +411,5 @@ function integrate(namelists::Namelists)
         println(repeat("-", 80))
     end
 
-    return
+    nothing
 end

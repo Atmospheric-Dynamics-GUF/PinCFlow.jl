@@ -98,7 +98,7 @@ function compute_gw_integrals! end
 function compute_gw_integrals!(state::State)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode compute_gw_integrals!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
 function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
@@ -296,7 +296,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
         end
     end
 
-    return
+    nothing
 end
 
 function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
@@ -458,7 +458,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
         end
     end
 
-    return
+    nothing
 end
 
 function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
@@ -587,5 +587,5 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
         end
     end
 
-    return
+    nothing
 end

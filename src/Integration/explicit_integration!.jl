@@ -87,7 +87,7 @@ function explicit_integration!(
 
     apply_lhs_sponge!(state, dtstage, time, PiP())
 
-    return
+    nothing
 end
 
 function explicit_integration!(
@@ -117,5 +117,5 @@ function explicit_integration!(
 
     set_boundaries!(state, BoundaryPredictands())
 
-    return
+    nothing
 end

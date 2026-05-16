@@ -71,5 +71,5 @@ function test_wkb_mountain_wave()
         test_example(wkb_mountain_wave, keywords, reference; update_references)
     end
 
-    return
+    nothing
 end

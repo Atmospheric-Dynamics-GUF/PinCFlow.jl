@@ -30,7 +30,7 @@ function compute_slope(
     j::Integer,
 )::NTuple{2, <:AbstractFloat}
     (; hw, kh, lh) = state.grid
-    @ivy return (
+    @ivy (
         mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], kh[:, i, j]) / deltah,
         mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], lh[:, i, j]) / deltah,
     )

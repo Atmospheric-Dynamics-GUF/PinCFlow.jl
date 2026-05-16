@@ -20,5 +20,5 @@ function set_visualization_theme!()
         colormap = :seismic,
         palette = (color = color, patchcolor = color),
     )
-    return
+    nothing
 end

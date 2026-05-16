@@ -64,9 +64,9 @@ using .Examples
                 wkb_mountain_wave(; x_size, y_size, z_size, keywords...)
                 wkb_wave_packet(; x_size, y_size, z_size, keywords...)
             end
-            return
+            nothing
         end
-        return
+        nothing
     end
 end
 

@@ -32,7 +32,7 @@ function get_spectral_extent(
     j::Integer,
     k::Integer,
 )::NTuple{3, <:AbstractFloat}
-    @ivy return (
+    @ivy (
         rays.dkray[r, i, j, k],
         rays.dlray[r, i, j, k],
         rays.dmray[r, i, j, k],

@@ -120,5 +120,5 @@ function check_rays(state::State)
         end
     end
 
-    return
+    nothing
 end

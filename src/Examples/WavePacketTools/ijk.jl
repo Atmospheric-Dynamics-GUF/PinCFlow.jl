@@ -8,5 +8,5 @@ function ijk(state::State, x::Real, y::Real, z::Real)::CartesianIndex
     j = argmin(abs.(y .- grid.y .* lref))
     @ivy k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
 
-    return CartesianIndex(i, j, k)
+    CartesianIndex(i, j, k)
 end

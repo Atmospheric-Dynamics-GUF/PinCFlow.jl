@@ -32,5 +32,5 @@ function get_physical_position(
     j::Integer,
     k::Integer,
 )::NTuple{3, <:AbstractFloat}
-    @ivy return (rays.x[r, i, j, k], rays.y[r, i, j, k], rays.z[r, i, j, k])
+    @ivy (rays.x[r, i, j, k], rays.y[r, i, j, k], rays.z[r, i, j, k])
 end

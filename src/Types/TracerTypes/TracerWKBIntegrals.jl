@@ -5,11 +5,8 @@ TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Integrals of gravity-wave induced tracer fluxes.
 
-```julia 
-TracerWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
-)::TracerWKBIntegrals
+```julia
+TracerWKBIntegrals(namelists::Namelists, domain::Domain)::TracerWKBIntegrals
 ```
 
 Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
@@ -24,7 +21,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance with zero-size arrays for configurations without tracer transport.
 
-```julia 
+```julia
 TracerWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
@@ -34,7 +31,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
 
-```julia 
+```julia
 TracerWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
@@ -54,7 +51,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state.namelists.tracer.leading_order_impact == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `uchi0::A`: Leading-order zonal tracer fluxes.
 
@@ -84,7 +81,7 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerWKBIntegrals(
+    @dispatch_tracer_setup TracerWKBIntegrals(
         namelists,
         domain,
         Val(tracer_setup),
@@ -96,7 +93,7 @@ function TracerWKBIntegrals(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
+    TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TracerWKBIntegrals(
@@ -106,11 +103,7 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_wkb_mode return TracerWKBIntegrals(
-        namelists,
-        domain,
-        Val(wkb_mode),
-    )
+    @dispatch_wkb_mode TracerWKBIntegrals(namelists, domain, Val(wkb_mode))
 end
 
 function TracerWKBIntegrals(
@@ -118,7 +111,7 @@ function TracerWKBIntegrals(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
+    TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TracerWKBIntegrals(
@@ -130,8 +123,8 @@ function TracerWKBIntegrals(
     (; leading_order_impact) = namelists.tracer
 
     if leading_order_impact
-        return TracerWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:3]...)
+        TracerWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:3]...)
     else
-        return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
+        TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
     end
 end

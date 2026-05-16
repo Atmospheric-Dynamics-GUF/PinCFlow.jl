@@ -44,16 +44,14 @@ end
 function TracerFluxes(namelists::Namelists, domain::Domain)::TracerFluxes
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerFluxes(domain, Val(tracer_setup))
+    @dispatch_tracer_setup TracerFluxes(domain, Val(tracer_setup))
 end
 
 function TracerFluxes(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerFluxes
-    return TracerFluxes(
-        [zeros(0, 0, 0, 0) for field in fieldnames(TracerFluxes)]...,
-    )
+    TracerFluxes([zeros(0, 0, 0, 0) for field in fieldnames(TracerFluxes)]...)
 end
 
 function TracerFluxes(
@@ -62,7 +60,7 @@ function TracerFluxes(
 )::TracerFluxes
     (; nxx, nyy, nzz) = domain
 
-    return TracerFluxes(
+    TracerFluxes(
         [zeros(nxx, nyy, nzz, 3) for field in fieldnames(TracerFluxes)]...,
     )
 end

@@ -44,7 +44,7 @@ function compute_vertical_wind(
     @ivy vuedgeb = v[i, j - 1, k + 1]
     @ivy wedgeu = w[i, j, k]
 
-    return transform(
+    transform(
         i,
         j,
         k,

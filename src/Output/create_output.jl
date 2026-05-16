@@ -373,7 +373,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        return
+        nothing
     end
 
     # Add attributes and namelists.
@@ -661,10 +661,10 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        return
+        nothing
     end
 
     MPI.Barrier(comm)
 
-    return
+    nothing
 end

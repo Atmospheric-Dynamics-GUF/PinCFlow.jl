@@ -135,7 +135,7 @@ function compute_volume_force(
 )::AbstractFloat
     (; wkb_mode) = state.namelists.wkb
 
-    @dispatch_wkb_mode return compute_volume_force(
+    @dispatch_wkb_mode compute_volume_force(
         state,
         i,
         j,
@@ -153,7 +153,7 @@ function compute_volume_force(
     variable::Union{U, V, W, Chi},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
-    return 0.0
+    0.0
 end
 
 function compute_volume_force(
@@ -166,7 +166,7 @@ function compute_volume_force(
 )::AbstractFloat
     (; dudt) = state.wkb.tendencies
 
-    @ivy return (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
+    @ivy (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
 end
 
 function compute_volume_force(
@@ -179,7 +179,7 @@ function compute_volume_force(
 )::AbstractFloat
     (; dvdt) = state.wkb.tendencies
 
-    @ivy return (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
+    @ivy (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
 end
 
 function compute_volume_force(
@@ -193,7 +193,7 @@ function compute_volume_force(
     (; jac, met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
 
-    @ivy return (
+    @ivy (
         jac[i, j, k + 1] * (
             met[i, j, k, 1, 3] * dudt[i, j, k] +
             met[i, j, k, 2, 3] * dvdt[i, j, k]
@@ -213,7 +213,7 @@ function compute_volume_force(
     variable::P,
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
-    return conductive_heating(state, i, j, k)
+    conductive_heating(state, i, j, k)
 end
 
 function compute_volume_force(
@@ -226,7 +226,7 @@ function compute_volume_force(
 )::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
 
-    @ivy return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
+    @ivy dthetadt[i, j, k] + conductive_heating(state, i, j, k)
 end
 
 function compute_volume_force(
@@ -246,5 +246,5 @@ function compute_volume_force(
     @ivy if leading_order_impact && model == :Compressible
         impact += dchidt0[i, j, k]
     end
-    return impact
+    impact
 end

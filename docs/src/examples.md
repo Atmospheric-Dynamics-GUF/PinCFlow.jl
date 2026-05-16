@@ -28,9 +28,9 @@ function cold_bubble(;
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + ((z - 3 * rz) / rz)^2)
             if r <= 1
-                return 0.005 * (1 + cos(pi * r))
+                0.005 * (1 + cos(pi * r))
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -50,11 +50,11 @@ function cold_bubble(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 ```
@@ -92,9 +92,9 @@ function hot_bubble(;
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + ((z - 5 * rz) / rz)^2)
             if r <= 1
-                return -0.005 * (1 + cos(pi * r))
+                -0.005 * (1 + cos(pi * r))
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -114,11 +114,11 @@ function hot_bubble(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 ```
@@ -181,7 +181,7 @@ function mountain_wave(;
                 sin(pi * (abs(y) - (ly - dyr) / 2) / dyr)^2 : 0.0
             alpharz =
                 z >= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
-            return alpharmax * (alpharx + alphary + alpharz) / 3
+            alpharmax * (alpharx + alphary + alpharz) / 3
         end,
         relaxed_u = (x, y, z, t, dt) -> 10.0,
     )
@@ -191,11 +191,11 @@ function mountain_wave(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(plot_file, data, ("w", 20, 20, 10, 2))
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 ```
@@ -262,17 +262,17 @@ function vortex(;
         initial_u = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2)
             if r <= 1
-                return -5 * y / ry * (1 + cos(pi * r)) / 2
+                -5 * y / ry * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
         initial_v = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2)
             if r <= 1
-                return 5 * x / rx * (1 + cos(pi * r)) / 2
+                5 * x / rx * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -290,9 +290,9 @@ function vortex(;
         initial_chi = (x, y, z) -> begin
             r = sqrt(((abs(x) - rx) / rx)^2 + (y / ry)^2)
             if r <= 1
-                return sign(x) * (1 + cos(pi * r)) / 2
+                sign(x) * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -302,11 +302,11 @@ function vortex(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(plot_file, data, ("chi", 1, 1, 1, 2))
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 ```
@@ -408,11 +408,11 @@ function wave_packet(;
                 ("w", 20, 20, 40, 2);
                 time_unit = "min",
             )
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 ```
@@ -495,11 +495,11 @@ function wkb_mountain_wave(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(plot_file, data, ("nr", 20, 20, 10, 2))
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 ```
@@ -608,11 +608,11 @@ function wkb_wave_packet(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(plot_file, data, ("nr", 8, 8, 16, 2); time_unit = "min")
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 ```
@@ -636,7 +636,7 @@ function ijk(state::State, x::Real, y::Real, z::Real)::CartesianIndex
     j = argmin(abs.(y .- grid.y .* lref))
     @ivy k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
 
-    return CartesianIndex(i, j, k)
+    CartesianIndex(i, j, k)
 end
 
 ```
@@ -648,7 +648,7 @@ function rhobar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; rhoref) = state.constants
 
-    @ivy return atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
+    @ivy atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
 end
 
 ```
@@ -660,7 +660,7 @@ function thetabar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; thetaref) = state.constants
 
-    @ivy return atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
+    @ivy atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
 end
 
 ```
@@ -672,7 +672,7 @@ function n2(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; tref) = state.constants
 
-    @ivy return atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
+    @ivy atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
 end
 
 ```
@@ -690,9 +690,9 @@ function envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
             (rz * m * (z - z0))^2,
         ) / pi
     if r <= 1
-        return (1 + cos(pi * r)) / 2
+        (1 + cos(pi * r)) / 2
     else
-        return 0.0
+        0.0
     end
 end
 
@@ -704,7 +704,7 @@ end
 function phi(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
     (; k, l, m) = parameters
 
-    return k * x + l * y + m * z
+    k * x + l * y + m * z
 end
 
 ```
@@ -722,7 +722,7 @@ function omega(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; k, l, m) = parameters
 
-    return -sqrt(
+    -sqrt(
         (n2(state, x, y, z) * (k^2 + l^2) + coriolis_frequency^2 * m^2) /
         (k^2 + l^2 + m^2),
     )
@@ -742,7 +742,7 @@ function bhat(
 )::Real
     (; a0, m) = parameters
 
-    return a0 * n2(state, x, y, z) / m * envelope(parameters, x, y, z)
+    a0 * n2(state, x, y, z) / m * envelope(parameters, x, y, z)
 end
 
 ```
@@ -760,15 +760,12 @@ function uhat(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; k, l, m) = parameters
 
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           1im / m / n2(state, x, y, z) *
-           (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
-           (omega(state, parameters, x, y, z)^2 - coriolis_frequency^2) *
-           (
-               k * omega(state, parameters, x, y, z) +
-               1im * l * coriolis_frequency
-           ) *
-           bhat(state, parameters, x, y, z)
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    1im / m / n2(state, x, y, z) *
+    (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
+    (omega(state, parameters, x, y, z)^2 - coriolis_frequency^2) *
+    (k * omega(state, parameters, x, y, z) + 1im * l * coriolis_frequency) *
+    bhat(state, parameters, x, y, z)
 end
 
 ```
@@ -786,15 +783,12 @@ function vhat(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; k, l, m) = parameters
 
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           1im / m / n2(state, x, y, z) *
-           (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
-           (omega(state, parameters, x, y, z)^2 - coriolis_frequency^2) *
-           (
-               l * omega(state, parameters, x, y, z) -
-               1im * k * coriolis_frequency
-           ) *
-           bhat(state, parameters, x, y, z)
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    1im / m / n2(state, x, y, z) *
+    (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
+    (omega(state, parameters, x, y, z)^2 - coriolis_frequency^2) *
+    (l * omega(state, parameters, x, y, z) - 1im * k * coriolis_frequency) *
+    bhat(state, parameters, x, y, z)
 end
 
 ```
@@ -809,9 +803,9 @@ function what(
     y::Real,
     z::Real,
 )::Number
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           1im * omega(state, parameters, x, y, z) / n2(state, x, y, z) *
-           bhat(state, parameters, x, y, z)
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    1im * omega(state, parameters, x, y, z) / n2(state, x, y, z) *
+    bhat(state, parameters, x, y, z)
 end
 
 ```
@@ -829,10 +823,10 @@ function pihat(
     (; kappa, rsp) = state.constants
     (; m) = parameters
 
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           kappa / rsp / thetabar(state, x, y, z) * 1im / m *
-           (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
-           n2(state, x, y, z) * bhat(state, parameters, x, y, z)
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    kappa / rsp / thetabar(state, x, y, z) * 1im / m *
+    (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
+    n2(state, x, y, z) * bhat(state, parameters, x, y, z)
 end
 
 ```
@@ -849,11 +843,11 @@ function wave_action_density(
 )::Real
     (; k, l, m) = parameters
 
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           rhobar(state, x, y, z) / 2 *
-           omega(state, parameters, x, y, z) *
-           (k^2 + l^2 + m^2) / n2(state, x, y, z)^2 / (k^2 + l^2) *
-           bhat(state, parameters, x, y, z)^2
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    rhobar(state, x, y, z) / 2 *
+    omega(state, parameters, x, y, z) *
+    (k^2 + l^2 + m^2) / n2(state, x, y, z)^2 / (k^2 + l^2) *
+    bhat(state, parameters, x, y, z)^2
 end
 
 ```

@@ -187,7 +187,7 @@ function compute_momentum_diffusion_terms(
         (u[i, j, k] - u[i - 1, j, k]) / dx +
         met[i, j, k, 1, 3] * (uu - ud) / (2.0 * dz)
 
-    return diffux
+    diffux
 end
 
 function compute_momentum_diffusion_terms(
@@ -209,7 +209,7 @@ function compute_momentum_diffusion_terms(
     @ivy diffuy =
         (uf - ub) / (2.0 * dy) + met[i, j, k, 2, 3] * (uu - ud) / (2.0 * dz)
 
-    return diffuy
+    diffuy
 end
 
 function compute_momentum_diffusion_terms(
@@ -233,7 +233,7 @@ function compute_momentum_diffusion_terms(
         met[i, j, k, 2, 3] * (uf - ub) / (2.0 * dy) +
         met[i, j, k, 3, 3] * (uu - ud) / (2.0 * dz)
 
-    return diffuz
+    diffuz
 end
 
 function compute_momentum_diffusion_terms(
@@ -255,7 +255,7 @@ function compute_momentum_diffusion_terms(
     @ivy diffvx =
         (vr - vl) / (2.0 * dx) + met[i, j, k, 1, 3] * (vu - vd) / (2.0 * dz)
 
-    return diffvx
+    diffvx
 end
 
 function compute_momentum_diffusion_terms(
@@ -276,7 +276,7 @@ function compute_momentum_diffusion_terms(
         (v[i, j, k] - v[i, j - 1, k]) / dy +
         met[i, j, k, 2, 3] * (vu - vd) / (2.0 * dz)
 
-    return diffvy
+    diffvy
 end
 
 function compute_momentum_diffusion_terms(
@@ -300,7 +300,7 @@ function compute_momentum_diffusion_terms(
         met[i, j, k, 2, 3] * (v[i, j, k] - v[i, j - 1, k]) / dy +
         met[i, j, k, 3, 3] * (vu - vd) / (2.0 * dz)
 
-    return diffvz
+    diffvz
 end
 
 function compute_momentum_diffusion_terms(
@@ -333,7 +333,7 @@ function compute_momentum_diffusion_terms(
             compute_vertical_wind(i, j, k - 1, state)
         ) / dz
 
-    return diffwx
+    diffwx
 end
 
 function compute_momentum_diffusion_terms(
@@ -366,7 +366,7 @@ function compute_momentum_diffusion_terms(
             compute_vertical_wind(i, j, k - 1, state)
         ) / dz
 
-    return diffwy
+    diffwy
 end
 
 function compute_momentum_diffusion_terms(
@@ -410,5 +410,5 @@ function compute_momentum_diffusion_terms(
             compute_vertical_wind(i, j, k - 1, state)
         ) / dz
 
-    return diffwz
+    diffwz
 end

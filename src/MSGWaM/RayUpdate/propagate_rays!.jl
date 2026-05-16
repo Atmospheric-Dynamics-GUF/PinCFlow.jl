@@ -159,7 +159,7 @@ function propagate_rays! end
 function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode propagate_rays!(state, dt, rkstage, Val(wkb_mode))
-    return
+    nothing
 end
 
 function propagate_rays!(
@@ -168,7 +168,7 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::Val{:NoWKB},
 )
-    return
+    nothing
 end
 
 function propagate_rays!(
@@ -448,7 +448,7 @@ function propagate_rays!(
 
     activate_orographic_source!(state)
 
-    return
+    nothing
 end
 
 function propagate_rays!(
@@ -657,5 +657,5 @@ function propagate_rays!(
         end
     end
 
-    return
+    nothing
 end

@@ -31,5 +31,5 @@ function wkb_integration!(state::State, dtstage::AbstractFloat)
 
     compute_mean_flow_effect!(state)
 
-    return
+    nothing
 end

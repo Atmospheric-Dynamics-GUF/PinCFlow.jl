@@ -49,11 +49,11 @@ function set_boundary_rays! end
 function set_boundary_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode set_boundary_rays!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
 function set_boundary_rays!(state::State, wkb_mode::Val{:NoWKB})
-    return
+    nothing
 end
 
 function set_boundary_rays!(state::State, wkb_mode::Val{:SteadyState})
@@ -66,7 +66,7 @@ function set_boundary_rays!(state::State, wkb_mode::Val{:SteadyState})
         set_meridional_boundary_rays!(state)
     end
 
-    return
+    nothing
 end
 
 function set_boundary_rays!(
@@ -83,5 +83,5 @@ function set_boundary_rays!(
     end
     set_vertical_boundary_rays!(state)
 
-    return
+    nothing
 end

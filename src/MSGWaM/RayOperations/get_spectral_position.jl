@@ -32,5 +32,5 @@ function get_spectral_position(
     j::Integer,
     k::Integer,
 )::NTuple{3, <:AbstractFloat}
-    @ivy return (rays.k[r, i, j, k], rays.l[r, i, j, k], rays.m[r, i, j, k])
+    @ivy (rays.k[r, i, j, k], rays.l[r, i, j, k], rays.m[r, i, j, k])
 end

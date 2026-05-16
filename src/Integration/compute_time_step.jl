@@ -149,5 +149,5 @@ function compute_time_step(state::State)::AbstractFloat
         )
     end
 
-    return dt
+    dt
 end

@@ -120,5 +120,5 @@ function apply_preconditioner!(
 
     sout .= s_pc
 
-    return
+    nothing
 end

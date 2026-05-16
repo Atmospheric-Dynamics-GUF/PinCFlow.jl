@@ -47,7 +47,7 @@ function synchronize_compressible_atmosphere!(
         predictands,
         Val(model),
     )
-    return
+    nothing
 end
 
 function synchronize_compressible_atmosphere!(
@@ -55,7 +55,7 @@ function synchronize_compressible_atmosphere!(
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
-    return
+    nothing
 end
 
 function synchronize_compressible_atmosphere!(
@@ -68,5 +68,5 @@ function synchronize_compressible_atmosphere!(
 
     pbar .= p
 
-    return
+    nothing
 end

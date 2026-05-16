@@ -30,11 +30,11 @@ function set_tracer_fields_zero!(state::State)
 
     @dispatch_tracer_setup set_tracer_fields_zero!(state, Val(tracer_setup))
 
-    return
+    nothing
 end
 
 function set_tracer_fields_zero!(state::State, tracer_setup::Val{:NoTracer})
-    return
+    nothing
 end
 
 function set_tracer_fields_zero!(state::State, tracer_setup::Val{:TracerOn})
@@ -47,5 +47,5 @@ function set_tracer_fields_zero!(state::State, tracer_setup::Val{:TracerOn})
         getfield(tracerwkbintegrals, field) .= 0.0
     end
 
-    return
+    nothing
 end

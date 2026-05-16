@@ -62,5 +62,5 @@ function compute_merge_index(
         end
     end
 
-    return r
+    r
 end

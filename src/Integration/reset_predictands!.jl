@@ -57,7 +57,7 @@ function reset_predictands!(
     @dispatch_model reset_predictands!(state, predictands, Val(model))
     reset_predictands!(state, tracerpredictands)
 
-    return
+    nothing
 end
 
 function reset_predictands!(state::State, tracerpredictands::TracerPredictands)
@@ -65,7 +65,7 @@ function reset_predictands!(state::State, tracerpredictands::TracerPredictands)
 
     chi .= tracerpredictands.chi
 
-    return
+    nothing
 end
 
 function reset_predictands!(
@@ -80,7 +80,7 @@ function reset_predictands!(
     v .= predictands.v
     w .= predictands.w
 
-    return
+    nothing
 end
 
 function reset_predictands!(
@@ -96,7 +96,7 @@ function reset_predictands!(
     v .= predictands.v
     w .= predictands.w
 
-    return
+    nothing
 end
 
 function reset_predictands!(
@@ -114,5 +114,5 @@ function reset_predictands!(
     pip .= predictands.pip
     p .= predictands.p
 
-    return
+    nothing
 end

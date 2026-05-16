@@ -1,5 +1,5 @@
 """
-```julia 
+```julia
 compute_gw_tracer_integrals!(
     state::State,
     fc::AbstractFloat,
@@ -141,7 +141,7 @@ function compute_gw_tracer_integrals!(
         k,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function compute_gw_tracer_integrals!(
@@ -160,7 +160,7 @@ function compute_gw_tracer_integrals!(
     k::Integer,
     tracer_setup::Val{:NoTracer},
 )
-    return
+    nothing
 end
 
 function compute_gw_tracer_integrals!(
@@ -180,10 +180,10 @@ function compute_gw_tracer_integrals!(
     tracer_setup::Val{:TracerOn},
 )
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
-    (; leading_order_impact) = state.namelists.tracer 
+    (; leading_order_impact) = state.namelists.tracer
 
     if fc == 0.0 || !leading_order_impact
-        return
+        return nothing
     end
 
     @ivy uchi0[i, j, k] += leading_order_tracer_fluxes(
@@ -228,5 +228,5 @@ function compute_gw_tracer_integrals!(
         WChi(),
     )
 
-    return
+    nothing
 end

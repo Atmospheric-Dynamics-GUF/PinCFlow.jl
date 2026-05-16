@@ -513,7 +513,7 @@ function update! end
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, m, variable, Val(model))
-    return
+    nothing
 end
 
 function update!(
@@ -523,7 +523,7 @@ function update!(
     variable::Rho,
     model::Val{:Boussinesq},
 )
-    return
+    nothing
 end
 
 function update!(
@@ -561,7 +561,7 @@ function update!(
         rho[i, j, k] += betark[m] * drho[i, j, k]
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -602,7 +602,7 @@ function update!(
         rhop[i, j, k] += betark[m] * drhop[i, j, k]
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -634,7 +634,7 @@ function update!(
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhobar[i, j, k]) / g_ndim
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -732,7 +732,7 @@ function update!(
         rhop[i, j, k] = -b * (rho[i, j, k] + rhobar[i, j, k]) / g_ndim
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -811,7 +811,7 @@ function update!(
         u[i, j, k] = uast
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -839,7 +839,7 @@ function update!(
         u[i, j, k] += dt * (-gradient + force / rhoedger) * jpedger
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -886,7 +886,7 @@ function update!(
             (u[i, j, k] + dt * (-gradient + force / rhoedger) * jpedger)
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -962,7 +962,7 @@ function update!(
         v[i, j, k] = vast
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -990,7 +990,7 @@ function update!(
         v[i, j, k] += dt * (-gradient + force / rhoedgef) * jpedgef
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -1037,7 +1037,7 @@ function update!(
             (v[i, j, k] + dt * (-gradient + force / rhoedgef) * jpedgef)
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -1197,7 +1197,7 @@ function update!(
         w[i, j, k] = wast
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -1250,7 +1250,7 @@ function update!(
         w[i, j, k] += dt * (b - gradient + force / rhoedgeu) * jpedgeu
     end
 
-    return
+    nothing
 end
 
 function update!(
@@ -1347,13 +1347,13 @@ function update!(
             )
     end
 
-    return
+    nothing
 end
 
 function update!(state::State, dt::AbstractFloat, variable::PiP)
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, variable, Val(model))
-    return
+    nothing
 end
 
 function update!(
@@ -1362,7 +1362,7 @@ function update!(
     variable::PiP,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
-    return
+    nothing
 end
 
 function update!(
@@ -1396,13 +1396,13 @@ function update!(
         pip[i, j, k] -= dt * (fluxdiff - heating) / dpdpi
     end
 
-    return
+    nothing
 end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, m, variable, Val(model))
-    return
+    nothing
 end
 
 function update!(
@@ -1412,7 +1412,7 @@ function update!(
     variable::P,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
-    return
+    nothing
 end
 
 function update!(
@@ -1452,14 +1452,14 @@ function update!(
         p[i, j, k] += betark[m] * dp[i, j, k]
     end
 
-    return
+    nothing
 end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup update!(state, dt, m, variable, Val(tracer_setup))
-    return
+    nothing
 end
 
 function update!(
@@ -1469,7 +1469,7 @@ function update!(
     variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
-    return
+    nothing
 end
 
 function update!(
@@ -1513,5 +1513,5 @@ function update!(
         end
     end
 
-    return
+    nothing
 end

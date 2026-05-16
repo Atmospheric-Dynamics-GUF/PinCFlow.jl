@@ -91,7 +91,7 @@ function set_tracer_zonal_boundaries!(
         variables,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
@@ -99,7 +99,7 @@ function set_tracer_zonal_boundaries!(
     variables::AbstractBoundaryVariables,
     tracer_setup::Val{:NoTracer},
 )
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
@@ -118,7 +118,7 @@ function set_tracer_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
@@ -137,7 +137,7 @@ function set_tracer_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
@@ -151,7 +151,7 @@ function set_tracer_zonal_boundaries!(
         variables,
         Val(wkb_mode),
     )
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
@@ -174,7 +174,7 @@ function set_tracer_zonal_boundaries!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
@@ -195,5 +195,5 @@ function set_tracer_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end

@@ -45,11 +45,11 @@ function compute_mean_flow_effect! end
 function compute_mean_flow_effect!(state::State)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode compute_mean_flow_effect!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
 function compute_mean_flow_effect!(state::State, wkb_mode::Val{:NoWKB})
-    return
+    nothing
 end
 
 function compute_mean_flow_effect!(
@@ -70,5 +70,5 @@ function compute_mean_flow_effect!(
 
     set_boundaries!(state, BoundaryWKBTendencies())
 
-    return
+    nothing
 end

@@ -47,7 +47,7 @@ function mountain_wave(;
                 sin(pi * (abs(y) - (ly - dyr) / 2) / dyr)^2 : 0.0
             alpharz =
                 z >= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
-            return alpharmax * (alpharx + alphary + alpharz) / 3
+            alpharmax * (alpharx + alphary + alpharz) / 3
         end,
         relaxed_u = (x, y, z, t, dt) -> 10.0,
     )
@@ -57,9 +57,9 @@ function mountain_wave(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(plot_file, data, ("w", 20, 20, 10, 2))
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end

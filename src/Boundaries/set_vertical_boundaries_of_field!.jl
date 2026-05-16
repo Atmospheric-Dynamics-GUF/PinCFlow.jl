@@ -97,7 +97,7 @@ function set_vertical_boundaries_of_field!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries_of_field!(
@@ -112,5 +112,5 @@ function set_vertical_boundaries_of_field!(
         set_vertical_halos_of_field!(field, namelists, domain; layers)
     end
 
-    return
+    nothing
 end

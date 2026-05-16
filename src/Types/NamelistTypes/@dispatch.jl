@@ -50,5 +50,5 @@ macro dispatch(values::Expr, input::Expr)
         modified_code = code
     end
 
-    return esc(Meta.parse(modified_code))
+    esc(Meta.parse(modified_code))
 end

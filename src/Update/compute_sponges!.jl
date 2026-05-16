@@ -61,5 +61,5 @@ function compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)
         betar[:, :, k1 + 1] .= betar[:, :, k1]
     end
 
-    return
+    nothing
 end

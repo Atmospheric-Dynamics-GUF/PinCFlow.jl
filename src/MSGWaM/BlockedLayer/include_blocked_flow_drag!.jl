@@ -44,7 +44,7 @@ function include_blocked_flow_drag!(state::State)
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     if !blocking
-        return
+        return nothing
     end
 
     # Adjust the drag to account for blocking.
@@ -76,5 +76,5 @@ function include_blocked_flow_drag!(state::State)
         end
     end
 
-    return
+    nothing
 end

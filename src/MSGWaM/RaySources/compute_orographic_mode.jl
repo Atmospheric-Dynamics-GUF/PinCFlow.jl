@@ -117,5 +117,5 @@ function compute_orographic_mode(
         wnm = 0.0
     end
 
-    return (omi, wnk, wnl, wnm, wad)
+    (omi, wnk, wnl, wnm, wad)
 end

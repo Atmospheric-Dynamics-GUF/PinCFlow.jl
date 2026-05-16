@@ -155,5 +155,5 @@ function compute_gw_tendencies!(state::State)
         compute_gw_tracer_tendencies!(state, i, j, k)
     end
 
-    return
+    nothing
 end

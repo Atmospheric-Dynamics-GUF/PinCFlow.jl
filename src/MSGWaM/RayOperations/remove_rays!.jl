@@ -40,5 +40,5 @@ function remove_rays!(state::State)
         nray[i, j, k] = local_count
     end
 
-    return
+    nothing
 end

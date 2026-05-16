@@ -127,7 +127,7 @@ function set_meridional_boundaries!(
 )
     (; model) = state.namelists.atmosphere
     @dispatch_model set_meridional_boundaries!(state, variables, Val(model))
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -146,7 +146,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -165,7 +165,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -184,7 +184,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -203,7 +203,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -222,7 +222,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -235,7 +235,7 @@ function set_meridional_boundaries!(
         variables,
         Val(wkb_mode),
     )
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -255,7 +255,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -275,7 +275,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -294,7 +294,7 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
@@ -313,5 +313,5 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end

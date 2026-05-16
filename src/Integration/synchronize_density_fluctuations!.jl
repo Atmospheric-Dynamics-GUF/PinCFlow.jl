@@ -52,14 +52,14 @@ function synchronize_density_fluctuations! end
 function synchronize_density_fluctuations!(state::State)
     (; model) = state.namelists.atmosphere
     @dispatch_model synchronize_density_fluctuations!(state, Val(model))
-    return
+    nothing
 end
 
 function synchronize_density_fluctuations!(
     state::State,
     model::Val{:Boussinesq},
 )
-    return
+    nothing
 end
 
 function synchronize_density_fluctuations!(
@@ -70,7 +70,7 @@ function synchronize_density_fluctuations!(
 
     rhop .= rho
 
-    return
+    nothing
 end
 
 function synchronize_density_fluctuations!(
@@ -82,5 +82,5 @@ function synchronize_density_fluctuations!(
 
     rhop .= rho .+ rhobar .- pbar ./ thetabar
 
-    return
+    nothing
 end

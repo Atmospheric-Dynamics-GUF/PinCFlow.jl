@@ -56,7 +56,7 @@ function set_boundaries!(
     set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
 
-    return
+    nothing
 end
 
 function set_boundaries!(state::State, variables::BoundaryFluxes)
@@ -64,5 +64,5 @@ function set_boundaries!(state::State, variables::BoundaryFluxes)
 
     set_tracer_vertical_boundaries!(state, variables)
 
-    return
+    nothing
 end

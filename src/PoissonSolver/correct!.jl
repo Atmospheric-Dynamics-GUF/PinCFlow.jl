@@ -171,7 +171,7 @@ function correct!(
     correct!(state, dt, W(), rayleigh_factor)
     correct!(state, dt, RhoP(), rayleigh_factor)
     correct!(state, PiP())
-    return
+    nothing
 end
 
 function correct!(
@@ -211,7 +211,7 @@ function correct!(
         u[i, j, k] -= jpedger * corx[i, j, k]
     end
 
-    return
+    nothing
 end
 
 function correct!(
@@ -251,7 +251,7 @@ function correct!(
         v[i, j, k] -= jpedgef * cory[i, j, k]
     end
 
-    return
+    nothing
 end
 
 function correct!(
@@ -312,7 +312,7 @@ function correct!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
     end
 
-    return
+    nothing
 end
 
 function correct!(
@@ -367,7 +367,7 @@ function correct!(
         rhop[i, j, k] -= (rho[i, j, k] + rhobar[i, j, k]) / g_ndim * db
     end
 
-    return
+    nothing
 end
 
 function correct!(state::State, variable::PiP)
@@ -381,5 +381,5 @@ function correct!(state::State, variable::PiP)
 
     pip[ii, jj, kk] .+= dpip[ii, jj, kk]
 
-    return
+    nothing
 end

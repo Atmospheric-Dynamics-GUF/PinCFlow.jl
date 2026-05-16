@@ -44,7 +44,7 @@ end
 function Preconditioner(domain::Domain)::Preconditioner
     (; nx, ny, nz) = domain
 
-    return Preconditioner(
+    Preconditioner(
         [zeros(nx, ny, nz) for i in 1:2]...,
         [zeros(nx, ny) for i in 1:3]...,
     )

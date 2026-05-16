@@ -71,7 +71,7 @@ function set_meridional_halos_of_field!(
         source = forward,
     )
 
-    return
+    nothing
 end
 
 function set_meridional_halos_of_field!(
@@ -105,7 +105,7 @@ function set_meridional_halos_of_field!(
         source = forward,
     )
 
-    return
+    nothing
 end
 
 function set_meridional_halos_of_field!(
@@ -139,5 +139,5 @@ function set_meridional_halos_of_field!(
         source = forward,
     )
 
-    return
+    nothing
 end

@@ -277,7 +277,7 @@ function apply_lhs_sponge!(
 )
     (; model) = state.namelists.atmosphere
     @dispatch_model apply_lhs_sponge!(state, dt, time, variable, Val(model))
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -287,7 +287,7 @@ function apply_lhs_sponge!(
     variable::Rho,
     model::Val{:Boussinesq},
 )
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -310,7 +310,7 @@ function apply_lhs_sponge!(
         rho[i, j, k] = rhonew
     end
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -339,7 +339,7 @@ function apply_lhs_sponge!(
         rhop[i, j, k] = rhopnew
     end
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -362,7 +362,7 @@ function apply_lhs_sponge!(
         rhop[i, j, k] = rhonew
     end
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -416,7 +416,7 @@ function apply_lhs_sponge!(
         u[i, j, k] = unew
     end
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -470,7 +470,7 @@ function apply_lhs_sponge!(
         v[i, j, k] = vnew
     end
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -541,7 +541,7 @@ function apply_lhs_sponge!(
         w[i, j, k] = wnew
     end
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -551,7 +551,7 @@ function apply_lhs_sponge!(
     variable::PiP,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -579,7 +579,7 @@ function apply_lhs_sponge!(
         pip[i, j, k] = pipnew
     end
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -589,7 +589,7 @@ function apply_lhs_sponge!(
     variable::P,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -613,7 +613,7 @@ function apply_lhs_sponge!(
         p[i, j, k] = pnew
     end
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -632,7 +632,7 @@ function apply_lhs_sponge!(
         Val(tracer_setup),
     )
 
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -642,7 +642,7 @@ function apply_lhs_sponge!(
     variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
-    return
+    nothing
 end
 
 function apply_lhs_sponge!(
@@ -661,7 +661,7 @@ function apply_lhs_sponge!(
     (; x, y, zc) = state.grid
 
     if !apply_lhs_sponge_to_tracer
-        return
+        return nothing
     end
 
     @ivy for field in fieldnames(TracerPredictands)
@@ -683,5 +683,5 @@ function apply_lhs_sponge!(
         end
     end
 
-    return
+    nothing
 end

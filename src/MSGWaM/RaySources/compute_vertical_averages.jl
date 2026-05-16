@@ -53,5 +53,5 @@ function compute_vertical_averages(
     uh /= dzh
     vh /= dzh
 
-    return (rhoh, n2h, uh, vh)
+    (rhoh, n2h, uh, vh)
 end

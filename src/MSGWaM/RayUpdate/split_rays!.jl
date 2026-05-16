@@ -74,14 +74,14 @@ function split_rays! end
 function split_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode split_rays!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
 function split_rays!(
     state::State,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
 )
-    return
+    nothing
 end
 
 function split_rays!(state::State, wkb_mode::Val{:SingleColumn})
@@ -104,7 +104,7 @@ function split_rays!(state::State, wkb_mode::Val{:SingleColumn})
         println("")
     end
 
-    return
+    nothing
 end
 
 function split_rays!(state::State, wkb_mode::Val{:MultiColumn})
@@ -136,7 +136,7 @@ function split_rays!(state::State, wkb_mode::Val{:MultiColumn})
         println("")
     end
 
-    return
+    nothing
 end
 
 function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
@@ -173,7 +173,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
         end
     end
 
-    return
+    nothing
 end
 
 function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
@@ -210,7 +210,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
         end
     end
 
-    return
+    nothing
 end
 
 function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
@@ -257,5 +257,5 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
         end
     end
 
-    return
+    nothing
 end

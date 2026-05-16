@@ -72,7 +72,7 @@ function conductive_heating(
 )::AbstractFloat
     (; model) = state.namelists.atmosphere
 
-    @dispatch_model return conductive_heating(state, i, j, k, Val(model))
+    @dispatch_model conductive_heating(state, i, j, k, Val(model))
 end
 
 function conductive_heating(
@@ -82,7 +82,7 @@ function conductive_heating(
     k::Integer,
     model::Val{:Boussinesq},
 )::AbstractFloat
-    return 0.0
+    0.0
 end
 
 function conductive_heating(
@@ -92,7 +92,7 @@ function conductive_heating(
     k::Integer,
     model::Val{:PseudoIncompressible},
 )::AbstractFloat
-    return 0.0
+    0.0
 end
 
 function conductive_heating(
@@ -109,7 +109,7 @@ function conductive_heating(
 
     @ivy rhotot = (rho[i, j, k] + rhobar[i, j, k]) / jac[i, j, k]
 
-    @ivy return -rhotot * (
+    @ivy -rhotot * (
         (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
         (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +
         (phitheta[i, j, k, 3] - phitheta[i, j, k - 1, 3]) / dz

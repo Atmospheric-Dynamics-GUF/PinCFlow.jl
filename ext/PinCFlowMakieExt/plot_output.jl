@@ -330,5 +330,5 @@ function plot_output(
     display(figure)
     save(file, figure)
 
-    return
+    nothing
 end

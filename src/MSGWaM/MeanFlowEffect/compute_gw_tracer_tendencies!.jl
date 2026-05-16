@@ -31,7 +31,7 @@ Compute and return the leading-order tracer forcing at ``\\left(i, j, k\\right)`
 
 Calculates the tendency that is to be added to the tracer equations, given by
 
-```math 
+```math
 \\begin{align*}
     \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\bar{\\rho}}\\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
     & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
@@ -70,7 +70,7 @@ function compute_gw_tracer_tendencies!(
         k,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function compute_gw_tracer_tendencies!(
@@ -80,7 +80,7 @@ function compute_gw_tracer_tendencies!(
     k::Integer,
     tracer_setup::Val{:NoTracer},
 )
-    return
+    nothing
 end
 
 function compute_gw_tracer_tendencies!(
@@ -96,10 +96,10 @@ function compute_gw_tracer_tendencies!(
     (; dchidt0) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
-    (; leading_order_impact) = state.namelists.tracer 
+    (; leading_order_impact) = state.namelists.tracer
 
     if !leading_order_impact
-        return 
+        return nothing
     end
 
     @ivy dchidt0[i, j, k] = 0.0
@@ -129,5 +129,5 @@ function compute_gw_tracer_tendencies!(
         -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
         (dchiu0 + dchiv0 + dchiw0)
 
-    return
+    nothing
 end

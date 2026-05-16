@@ -38,5 +38,5 @@ end
 function Backups(domain::Domain)::Backups
     (; nxx, nyy, nzz) = domain
 
-    return Backups([zeros(nxx, nyy, nzz) for i in 1:5]...)
+    Backups([zeros(nxx, nyy, nzz) for i in 1:5]...)
 end

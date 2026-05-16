@@ -10,8 +10,8 @@ function envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
             (rz * m * (z - z0))^2,
         ) / pi
     if r <= 1
-        return (1 + cos(pi * r)) / 2
+        (1 + cos(pi * r)) / 2
     else
-        return 0.0
+        0.0
     end
 end

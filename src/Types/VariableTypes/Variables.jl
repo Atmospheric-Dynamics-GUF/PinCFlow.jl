@@ -91,7 +91,7 @@ function Variables(
     reconstructions = Reconstructions(namelists, domain)
     fluxes = Fluxes(namelists, domain)
 
-    return Variables(
+    Variables(
         predictands,
         increments,
         backups,

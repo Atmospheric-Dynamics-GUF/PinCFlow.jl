@@ -55,14 +55,14 @@ function merge_rays! end
 function merge_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode merge_rays!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
 function merge_rays!(
     state::State,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
 )
-    return
+    nothing
 end
 
 function merge_rays!(
@@ -286,5 +286,5 @@ function merge_rays!(
         println("")
     end
 
-    return
+    nothing
 end

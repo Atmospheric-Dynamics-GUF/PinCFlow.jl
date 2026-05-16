@@ -338,13 +338,13 @@ function compute_fluxes!(state::State, predictands::Predictands)
         predictands,
         Val(state.namelists.tracer.tracer_setup),
     )
-    return
+    nothing
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     (; model) = state.namelists.atmosphere
     @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -353,7 +353,7 @@ function compute_fluxes!(
     variable::Rho,
     model::Val{:Boussinesq},
 )
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -444,7 +444,7 @@ function compute_fluxes!(
         phirho[i, j, k, 3] = hrho
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
@@ -516,7 +516,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
         phirhop[i, j, k, 3] = hrhop
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -525,7 +525,7 @@ function compute_fluxes!(
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
 )
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -581,7 +581,7 @@ function compute_fluxes!(
             (jac[i, j, k] + jac[i, j, k + 1]) * w0[i, j, k]
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -684,7 +684,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if 1 / re <= eps() && kinematic_diffusivity == 0.0
-        return
+        return nothing
     end
 
     #-----------------------------------------
@@ -785,7 +785,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity == 0.0
-        return
+        return nothing
     end
 
     mu_mom_diff = kinematic_diffusivity / uref / lref
@@ -885,7 +885,7 @@ function compute_fluxes!(
         phiu[i, j, k, 3] -= hrhou_diff
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -988,7 +988,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if 1 / re <= eps() && kinematic_diffusivity == 0.0
-        return
+        return nothing
     end
 
     #-----------------------------------------
@@ -1089,7 +1089,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity == 0.0
-        return
+        return nothing
     end
 
     mu_mom_diff = kinematic_diffusivity / uref / lref
@@ -1189,7 +1189,7 @@ function compute_fluxes!(
         phiv[i, j, k, 3] -= hrhov_diff
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -1310,7 +1310,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if 1 / re <= eps() && kinematic_diffusivity == 0.0
-        return
+        return nothing
     end
 
     #-----------------------------------------
@@ -1395,7 +1395,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity == 0.0
-        return
+        return nothing
     end
 
     mu_mom_diff = kinematic_diffusivity / uref / lref
@@ -1499,7 +1499,7 @@ function compute_fluxes!(
         phiw[i, j, k, 3] -= hrhow_visc
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -1507,7 +1507,7 @@ function compute_fluxes!(
     predictands::Predictands,
     tracer_setup::Val{:NoTracer},
 )
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -1566,7 +1566,7 @@ function compute_fluxes!(
         end
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -1577,7 +1577,7 @@ function compute_fluxes!(
     (; model) = state.namelists.atmosphere
 
     @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -1586,7 +1586,7 @@ function compute_fluxes!(
     variable::Theta,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -1604,7 +1604,7 @@ function compute_fluxes!(
     (; rho) = predictands
 
     if thermal_conductivity == 0.0
-        return
+        return nothing
     end
 
     mu_conduct = thermal_conductivity / uref / lref
@@ -1752,5 +1752,5 @@ function compute_fluxes!(
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
     end
 
-    return
+    nothing
 end

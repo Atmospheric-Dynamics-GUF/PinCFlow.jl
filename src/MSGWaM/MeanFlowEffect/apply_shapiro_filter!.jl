@@ -96,7 +96,7 @@ function apply_shapiro_filter!(
     @ivy for i in scope
         output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
     end
-    return
+    nothing
 end
 
 function apply_shapiro_filter!(
@@ -113,7 +113,7 @@ function apply_shapiro_filter!(
                 10 * input[i]
             ) / 16
     end
-    return
+    nothing
 end
 
 function apply_shapiro_filter!(
@@ -131,7 +131,7 @@ function apply_shapiro_filter!(
                 44 * input[i]
             ) / 64
     end
-    return
+    nothing
 end
 
 function apply_shapiro_filter!(
@@ -150,5 +150,5 @@ function apply_shapiro_filter!(
                 186 * input[i]
             ) / 256
     end
-    return
+    nothing
 end

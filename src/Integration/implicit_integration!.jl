@@ -75,5 +75,5 @@ function implicit_integration!(
 
     set_boundaries!(state, BoundaryPredictands())
 
-    return ntotalbicg
+    ntotalbicg
 end

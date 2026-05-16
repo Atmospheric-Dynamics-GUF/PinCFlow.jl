@@ -176,7 +176,7 @@ function set_vertical_boundaries!(
 )
     (; model) = state.namelists.atmosphere
     @dispatch_model set_vertical_boundaries!(state, variables, Val(model))
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -193,7 +193,7 @@ function set_vertical_boundaries!(
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -211,7 +211,7 @@ function set_vertical_boundaries!(
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -230,7 +230,7 @@ function set_vertical_boundaries!(
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
     set_vertical_boundaries_of_field!(p, namelists, domain, +)
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -249,7 +249,7 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -268,7 +268,7 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -293,7 +293,7 @@ function set_vertical_boundaries!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -318,7 +318,7 @@ function set_vertical_boundaries!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -343,7 +343,7 @@ function set_vertical_boundaries!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -352,7 +352,7 @@ function set_vertical_boundaries!(
 )
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode set_vertical_boundaries!(state, variables, Val(wkb_mode))
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -373,7 +373,7 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -394,7 +394,7 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -414,7 +414,7 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
@@ -434,5 +434,5 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end

@@ -35,5 +35,5 @@ function copy_rays!(
     @ivy rays.data[:, r[2], i[2], j[2], k[2]] .=
         rays.data[:, r[1], i[1], j[1], k[1]]
 
-    return
+    nothing
 end

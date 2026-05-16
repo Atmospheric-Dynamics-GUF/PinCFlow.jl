@@ -78,5 +78,5 @@ function compute_n2!(
         end
     end
 
-    return
+    nothing
 end

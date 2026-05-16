@@ -42,5 +42,5 @@ function test_cold_bubble()
         test_example(cold_bubble, keywords, reference; update_references)
     end
 
-    return
+    nothing
 end

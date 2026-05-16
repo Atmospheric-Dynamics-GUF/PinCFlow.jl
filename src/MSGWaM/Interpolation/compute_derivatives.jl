@@ -222,7 +222,7 @@ function compute_derivatives(
             u[i - 1, j, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 function compute_derivatives(
@@ -265,7 +265,7 @@ function compute_derivatives(
             u[i, j + 1, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 function compute_derivatives(
@@ -322,7 +322,7 @@ function compute_derivatives(
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 function compute_derivatives(
@@ -365,7 +365,7 @@ function compute_derivatives(
             v[i + 1, j, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 function compute_derivatives(
@@ -396,7 +396,7 @@ function compute_derivatives(
             v[i, j - 1, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 function compute_derivatives(
@@ -453,7 +453,7 @@ function compute_derivatives(
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 function compute_derivatives(
@@ -505,7 +505,7 @@ function compute_derivatives(
         0.25 *
         (cu + cru - cd - crd) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 function compute_derivatives(
@@ -557,7 +557,7 @@ function compute_derivatives(
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 function compute_derivatives(
@@ -613,5 +613,5 @@ function compute_derivatives(
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end

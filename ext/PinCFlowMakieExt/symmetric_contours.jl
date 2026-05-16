@@ -40,5 +40,5 @@ function symmetric_contours(
     @ivy peak = max(abs(levels[1]), abs(levels[end]))
     indices = ceil.(Int, (1 .+ midpoints ./ peak) .* length(colormap) ./ 2)
 
-    return (levels, colormap[indices])
+    (levels, colormap[indices])
 end

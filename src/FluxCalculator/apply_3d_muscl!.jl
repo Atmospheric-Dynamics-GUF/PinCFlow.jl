@@ -71,5 +71,5 @@ function apply_3d_muscl!(
         )
     end
 
-    return
+    nothing
 end

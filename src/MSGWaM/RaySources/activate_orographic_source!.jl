@@ -81,7 +81,7 @@ function activate_orographic_source!(
     (; zb) = state.wkb
 
     if ko != 0
-        return
+        return nothing
     end
 
     fc = coriolis_frequency * tref
@@ -121,7 +121,7 @@ function activate_orographic_source!(
         end
     end
 
-    return
+    nothing
 end
 
 function activate_orographic_source!(state::State)
@@ -151,7 +151,7 @@ function activate_orographic_source!(state::State)
     (; nray_wrk, n_sfc, nray, rays, zb, increments) = state.wkb
 
     if ko != 0
-        return
+        return nothing
     end
 
     fc = coriolis_frequency * tref
@@ -347,5 +347,5 @@ function activate_orographic_source!(state::State)
         end
     end
 
-    return
+    nothing
 end

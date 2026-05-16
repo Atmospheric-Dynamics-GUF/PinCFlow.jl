@@ -76,7 +76,7 @@ function interpolate_stratification(
 
     str = factor * strd + (1.0 - factor) * stru
 
-    return str
+    str
 end
 
 function interpolate_stratification(
@@ -125,5 +125,5 @@ function interpolate_stratification(
 
     str = factor * strd + (1.0 - factor) * stru
 
-    return str
+    str
 end

@@ -77,7 +77,7 @@ function Poisson(domain::Domain)::Poisson
     bicgstab = BiCGSTAB(domain)
     correction = Correction(domain)
 
-    return Poisson(
+    Poisson(
         rhs,
         solution,
         tensor,

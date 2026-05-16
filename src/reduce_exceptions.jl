@@ -49,5 +49,5 @@ function reduce_exceptions(
 
     MPI.Barrier(comm)
 
-    return
+    nothing
 end

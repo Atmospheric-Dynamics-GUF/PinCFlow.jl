@@ -77,5 +77,5 @@ function set_vertical_halo_rays!(state::State)
         end
     end
 
-    return
+    nothing
 end

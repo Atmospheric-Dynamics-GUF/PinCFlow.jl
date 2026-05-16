@@ -68,7 +68,7 @@ function apply_saturation_scheme! end
 function apply_saturation_scheme!(state::State, dt::AbstractFloat)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode apply_saturation_scheme!(state, dt, Val(wkb_mode))
-    return
+    nothing
 end
 
 function apply_saturation_scheme!(
@@ -76,7 +76,7 @@ function apply_saturation_scheme!(
     dt::AbstractFloat,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
 )
-    return
+    nothing
 end
 
 function apply_saturation_scheme!(
@@ -92,7 +92,7 @@ function apply_saturation_scheme!(
     (; lx, ly, dx, dy, zc) = state.grid
 
     if !use_saturation
-        return
+        return nothing
     end
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
@@ -141,5 +141,5 @@ function apply_saturation_scheme!(
     # Remove rays with zero wave-action density.
     remove_rays!(state)
 
-    return
+    nothing
 end

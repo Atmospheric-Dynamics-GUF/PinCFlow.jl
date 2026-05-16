@@ -71,5 +71,5 @@ function solve_poisson!(
     # Pass solution to pressure correction.
     @ivy dpip[ii, jj, kk] .= dtinv .* solution
 
-    return (errflagbicg, niterbicg)
+    (errflagbicg, niterbicg)
 end

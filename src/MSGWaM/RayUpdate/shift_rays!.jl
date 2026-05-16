@@ -80,14 +80,14 @@ function shift_rays! end
 function shift_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode shift_rays!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
 function shift_rays!(
     state::State,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
 )
-    return
+    nothing
 end
 
 function shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
@@ -98,7 +98,7 @@ function shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
 
     check_rays(state)
 
-    return
+    nothing
 end
 
 function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
@@ -125,7 +125,7 @@ function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
 
     check_rays(state)
 
-    return
+    nothing
 end
 
 function shift_rays!(state::State, direction::X)
@@ -159,7 +159,7 @@ function shift_rays!(state::State, direction::X)
         end
     end
 
-    return
+    nothing
 end
 
 function shift_rays!(state::State, direction::Y)
@@ -193,7 +193,7 @@ function shift_rays!(state::State, direction::Y)
         end
     end
 
-    return
+    nothing
 end
 
 function shift_rays!(state::State, direction::Z)
@@ -227,5 +227,5 @@ function shift_rays!(state::State, direction::Z)
         end
     end
 
-    return
+    nothing
 end

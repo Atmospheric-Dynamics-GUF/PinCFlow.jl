@@ -161,7 +161,7 @@ function compute_pressure_gradient(
             )
     end
 
-    return gradient
+    gradient
 end
 
 function compute_pressure_gradient(
@@ -220,7 +220,7 @@ function compute_pressure_gradient(
             )
     end
 
-    return gradient
+    gradient
 end
 
 function compute_pressure_gradient(
@@ -293,5 +293,5 @@ function compute_pressure_gradient(
             met33edgeu * (pip[i, j, k + 1] - pip[i, j, k]) / dz
         )
 
-    return gradient
+    gradient
 end

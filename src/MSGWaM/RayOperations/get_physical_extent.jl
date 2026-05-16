@@ -32,7 +32,7 @@ function get_physical_extent(
     j::Integer,
     k::Integer,
 )::NTuple{3, <:AbstractFloat}
-    @ivy return (
+    @ivy (
         rays.dxray[r, i, j, k],
         rays.dyray[r, i, j, k],
         rays.dzray[r, i, j, k],

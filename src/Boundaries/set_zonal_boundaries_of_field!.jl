@@ -72,7 +72,7 @@ function set_zonal_boundaries_of_field!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries_of_field!(
@@ -100,7 +100,7 @@ function set_zonal_boundaries_of_field!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries_of_field!(
@@ -128,5 +128,5 @@ function set_zonal_boundaries_of_field!(
         end
     end
 
-    return
+    nothing
 end

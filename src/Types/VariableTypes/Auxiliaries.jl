@@ -26,5 +26,5 @@ end
 function Auxiliaries(domain::Domain)::Auxiliaries
     (; nxx, nyy, nzz) = domain
 
-    return Auxiliaries(zeros(nxx, nyy, nzz))
+    Auxiliaries(zeros(nxx, nyy, nzz))
 end

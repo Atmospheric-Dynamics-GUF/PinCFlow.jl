@@ -124,7 +124,7 @@ function set_zonal_boundaries!(
 )
     (; model) = state.namelists.atmosphere
     @dispatch_model set_zonal_boundaries!(state, variables, Val(model))
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -143,7 +143,7 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -162,7 +162,7 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -181,7 +181,7 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -200,7 +200,7 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -219,7 +219,7 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -228,7 +228,7 @@ function set_zonal_boundaries!(
 )
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode set_zonal_boundaries!(state, variables, Val(wkb_mode))
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -248,7 +248,7 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -268,7 +268,7 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -287,7 +287,7 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_zonal_boundaries!(
@@ -306,5 +306,5 @@ function set_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end

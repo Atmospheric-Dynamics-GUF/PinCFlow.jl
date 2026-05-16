@@ -89,5 +89,5 @@ function apply_1d_muscl!(
         end
     end
 
-    return
+    nothing
 end

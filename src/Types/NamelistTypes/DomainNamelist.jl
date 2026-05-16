@@ -84,7 +84,7 @@ function DomainNamelist(;
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
 )::DomainNamelist
-    return DomainNamelist(
+    DomainNamelist(
         Int(x_size),
         Int(y_size),
         Int(z_size),

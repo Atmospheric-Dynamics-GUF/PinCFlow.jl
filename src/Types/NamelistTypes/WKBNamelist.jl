@@ -147,7 +147,7 @@ function WKBNamelist(;
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
 )::WKBNamelist
-    return WKBNamelist(
+    WKBNamelist(
         Int(nrx),
         Int(nry),
         Int(nrz),

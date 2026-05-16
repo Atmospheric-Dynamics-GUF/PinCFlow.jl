@@ -20,5 +20,5 @@ function save_backups!(state::State, variables::Vararg{Symbol})
         getfield(backups, Symbol(field, :old)) .= getfield(predictands, field)
     end
 
-    return
+    nothing
 end

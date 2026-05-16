@@ -112,7 +112,7 @@ function transform(
     @ivy vc = 0.5 * (vedgef + vedgeb)
     @ivy vu = 0.5 * (vuedgef + vuedgeb)
 
-    @ivy return jacedgeu * (
+    @ivy jacedgeu * (
         -(
             jac[i, j, k + 1] *
             (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
@@ -149,7 +149,7 @@ function transform(
     @ivy vc = 0.5 * (vedgef + vedgeb)
     @ivy vu = 0.5 * (vuedgef + vuedgeb)
 
-    @ivy return (
+    @ivy (
         jac[i, j, k + 1] * (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
         jac[i, j, k] *
         (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)

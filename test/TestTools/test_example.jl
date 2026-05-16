@@ -42,7 +42,7 @@ function test_example(
     # Call the example function with the provided keywords.
     redirect_stdio(; stderr = devnull, stdout = devnull) do
         example(; keywords...)
-        return
+        nothing
     end
 
     # Get the norms.
@@ -59,7 +59,7 @@ function test_example(
         )
         open(test_file, "w") do io
             write(io, script)
-            return
+            nothing
         end
         format(test_file)
     else
@@ -81,5 +81,5 @@ function test_example(
         end
     end
 
-    return
+    nothing
 end

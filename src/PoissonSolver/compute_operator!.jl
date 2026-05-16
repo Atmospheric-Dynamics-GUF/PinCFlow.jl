@@ -1602,5 +1602,5 @@ function compute_operator!(
         abdd_b[ia, ja, ka] = abdd
     end
 
-    return
+    nothing
 end

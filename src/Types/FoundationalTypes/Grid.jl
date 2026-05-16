@@ -316,7 +316,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     dzcmin = minimum(diff(zctilde; dims = 3))
     dzcmin = MPI.Allreduce(dzcmin, min, comm)
 
-    return Grid(
+    Grid(
         lx,
         ly,
         lz,

@@ -67,13 +67,13 @@ end
 
 function Fluxes(namelists::Namelists, domain::Domain)::Fluxes
     (; model) = namelists.atmosphere
-    @dispatch_model return Fluxes(domain, Val(model))
+    @dispatch_model Fluxes(domain, Val(model))
 end
 
 function Fluxes(domain::Domain, model::Val{:Boussinesq})::Fluxes
     (; nxx, nyy, nzz) = domain
 
-    return Fluxes(
+    Fluxes(
         zeros(0, 0, 0, 0),
         [zeros(nxx, nyy, nzz, 3) for i in 1:5]...,
         zeros(0, 0, 0, 0),
@@ -83,11 +83,11 @@ end
 function Fluxes(domain::Domain, model::Val{:PseudoIncompressible})::Fluxes
     (; nxx, nyy, nzz) = domain
 
-    return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:6]..., zeros(0, 0, 0, 0))
+    Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:6]..., zeros(0, 0, 0, 0))
 end
 
 function Fluxes(domain::Domain, model::Val{:Compressible})::Fluxes
     (; nxx, nyy, nzz) = domain
 
-    return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:7]...)
+    Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:7]...)
 end

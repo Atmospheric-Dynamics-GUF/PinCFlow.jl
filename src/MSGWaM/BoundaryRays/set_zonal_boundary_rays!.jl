@@ -76,5 +76,5 @@ function set_zonal_boundary_rays!(state::State)
         end
     end
 
-    return
+    nothing
 end

@@ -104,7 +104,7 @@ function set_tracer_vertical_boundaries!(
         variables,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
@@ -112,7 +112,7 @@ function set_tracer_vertical_boundaries!(
     variables::AbstractBoundaryVariables,
     tracer_setup::Val{:NoTracer},
 )
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
@@ -132,7 +132,7 @@ function set_tracer_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
@@ -151,7 +151,7 @@ function set_tracer_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
@@ -175,7 +175,7 @@ function set_tracer_vertical_boundaries!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
@@ -189,7 +189,7 @@ function set_tracer_vertical_boundaries!(
         variables,
         Val(wkb_mode),
     )
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
@@ -213,7 +213,7 @@ function set_tracer_vertical_boundaries!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
@@ -229,5 +229,5 @@ function set_tracer_vertical_boundaries!(
         set_vertical_boundaries_of_field!(dchidt0, namelists, domain, +)
     end
 
-    return
+    nothing
 end

@@ -47,5 +47,5 @@ function test_mountain_wave()
         test_example(mountain_wave, keywords, reference; update_references)
     end
 
-    return
+    nothing
 end

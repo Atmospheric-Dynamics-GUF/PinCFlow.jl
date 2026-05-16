@@ -41,11 +41,11 @@ function initialize_rays! end
 function initialize_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode initialize_rays!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
 function initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
-    return
+    nothing
 end
 
 function initialize_rays!(
@@ -310,5 +310,5 @@ function initialize_rays!(
         println("")
     end
 
-    return
+    nothing
 end

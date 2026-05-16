@@ -46,5 +46,5 @@ function set_meridional_halo_rays!(state::State)
         )
     end
 
-    return
+    nothing
 end

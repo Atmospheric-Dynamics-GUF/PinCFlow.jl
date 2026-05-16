@@ -104,7 +104,7 @@ function Namelists(;
     wkb::WKBNamelist = WKBNamelist(),
     tracer::TracerNamelist = TracerNamelist(),
 )::Namelists
-    return Namelists(
+    Namelists(
         domain,
         output,
         discretization,

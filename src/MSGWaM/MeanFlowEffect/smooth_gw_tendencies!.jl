@@ -190,7 +190,7 @@ function smooth_gw_tendencies!(state::State)
     (; tracer_setup) = state.namelists.tracer
 
     if !smooth_tendencies
-        return
+        return nothing
     end
 
     @dispatch_filter_type if x_size == y_size == 1
@@ -213,7 +213,7 @@ function smooth_gw_tendencies!(state::State)
 
     @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
 
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -248,7 +248,7 @@ function smooth_gw_tendencies!(
             ) / (2 * filter_order + 1)^3
     end
 
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -280,7 +280,7 @@ function smooth_gw_tendencies!(
             ) / (2 * filter_order + 1)^2
     end
 
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -312,7 +312,7 @@ function smooth_gw_tendencies!(
             ) / (2 * filter_order + 1)^2
     end
 
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -336,7 +336,7 @@ function smooth_gw_tendencies!(
             (2 * filter_order + 1)
     end
 
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -348,7 +348,7 @@ function smooth_gw_tendencies!(
     smooth_gw_tendencies!(output, state, filter_type, X())
     smooth_gw_tendencies!(output, state, filter_type, Y())
     smooth_gw_tendencies!(output, state, filter_type, Z())
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -359,7 +359,7 @@ function smooth_gw_tendencies!(
 )
     smooth_gw_tendencies!(output, state, filter_type, X())
     smooth_gw_tendencies!(output, state, filter_type, Z())
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -370,7 +370,7 @@ function smooth_gw_tendencies!(
 )
     smooth_gw_tendencies!(output, state, filter_type, Y())
     smooth_gw_tendencies!(output, state, filter_type, Z())
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -397,7 +397,7 @@ function smooth_gw_tendencies!(
         )
     end
 
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -424,7 +424,7 @@ function smooth_gw_tendencies!(
         )
     end
 
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(
@@ -451,7 +451,7 @@ function smooth_gw_tendencies!(
         )
     end
 
-    return
+    nothing
 end
 
 function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
@@ -460,7 +460,7 @@ function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
     (; dchidt0) = state.tracer.tracerwkbtendencies
 
     if !smooth_tendencies
-        return
+        return nothing
     end
 
     @dispatch_filter_type if x_size == y_size == 1
@@ -472,8 +472,10 @@ function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
     else
         smooth_gw_tendencies!(dchidt0, state, Val(filter_type), XYZ())
     end
+
+    nothing
 end
 
 function smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})
-    return
+    nothing
 end

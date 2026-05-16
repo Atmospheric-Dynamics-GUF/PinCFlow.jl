@@ -269,7 +269,7 @@ function apply_operator!(
             abdd * sbdd
     end
 
-    return
+    nothing
 end
 
 function apply_operator!(
@@ -475,5 +475,5 @@ function apply_operator!(
             abdd * sbdd
     end
 
-    return
+    nothing
 end

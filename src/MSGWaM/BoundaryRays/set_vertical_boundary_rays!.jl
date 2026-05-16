@@ -89,5 +89,5 @@ function set_vertical_boundary_rays!(state::State)
         end
     end
 
-    return
+    nothing
 end

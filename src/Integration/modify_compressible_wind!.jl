@@ -38,7 +38,7 @@ function modify_compressible_wind! end
 function modify_compressible_wind!(state::State, operation::Function)
     (; model) = state.namelists.atmosphere
     @dispatch_model modify_compressible_wind!(state, operation, Val(model))
-    return
+    nothing
 end
 
 function modify_compressible_wind!(
@@ -46,7 +46,7 @@ function modify_compressible_wind!(
     operation::Function,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
-    return
+    nothing
 end
 
 function modify_compressible_wind!(
@@ -76,5 +76,5 @@ function modify_compressible_wind!(
         )
     end
 
-    return
+    nothing
 end

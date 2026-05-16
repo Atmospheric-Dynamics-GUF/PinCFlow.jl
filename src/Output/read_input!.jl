@@ -130,8 +130,8 @@ function read_input!(state::State)
             end
         end
 
-        return time
+        time
     end
 
-    return time
+    time
 end

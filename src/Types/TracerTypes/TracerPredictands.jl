@@ -86,7 +86,7 @@ function TracerPredictands(
 )::TracerPredictands
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerPredictands(
+    @dispatch_tracer_setup TracerPredictands(
         namelists,
         constants,
         domain,
@@ -106,7 +106,7 @@ function TracerPredictands(
     tracer_setup::Val{:NoTracer},
     variables::Variables,
 )::TracerPredictands
-    return TracerPredictands(
+    TracerPredictands(
         [zeros(0, 0, 0) for field in fieldnames(TracerPredictands)]...,
     )
 end
@@ -130,13 +130,12 @@ function TracerPredictands(
 
     chi = zeros(nxx, nyy, nzz)
     @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
-        chi[i, j, k] =
-            initial_chi(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
+        chi[i, j, k] = initial_chi(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
     end
     set_zonal_boundaries_of_field!(chi, namelists, domain)
     set_meridional_boundaries_of_field!(chi, namelists, domain)
 
     chi .*= rho .+ rhobar
 
-    return TracerPredictands(chi)
+    TracerPredictands(chi)
 end

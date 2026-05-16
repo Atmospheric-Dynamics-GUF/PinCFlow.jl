@@ -81,5 +81,5 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    return
+    nothing
 end

@@ -63,12 +63,12 @@ function ensemble(
                     keywords...,
                     base_comm,
                 )
-                return
+                nothing
             end
-            return
+            nothing
         end
-        return
+        nothing
     end
 
-    return
+    nothing
 end

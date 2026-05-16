@@ -22,9 +22,9 @@ function hot_bubble(;
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + ((z - 5 * rz) / rz)^2)
             if r <= 1
-                return -0.005 * (1 + cos(pi * r))
+                -0.005 * (1 + cos(pi * r))
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -44,9 +44,9 @@ function hot_bubble(;
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
             plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
