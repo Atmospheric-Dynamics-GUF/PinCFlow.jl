@@ -81,10 +81,7 @@ function get_ray_volumes!(state::State,
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
-        if all(iszero, wavespectrum[i, j, k, :, :])
-            continue
-        end
-
+    
         for r in 1:nray[i, j, k]   #mapping existing rays on Eulerian Grid
 
             xr = rays.x[r, i, j, k]
@@ -191,10 +188,15 @@ function get_ray_volumes!(state::State,
                                     #fcpspm = dmi / dmr
                                     fcpspm = dmi / dm
                                 end
-                                
+                                was0 = was_pred[iray, jray, kray, kpray, mray]
+                                was1 = wavespectrum[iray, jray, kray, kpray, mray]
+
+                                if was0 <= 0 || was1 == 0
+                                    continue
+                                end
                                 accupied_vol = dxi * dyi * dzi * dkpi * dmi #total volume of the ray volume (r, i, j, k) accupied by the grid cell
-                                rays.dens[r, i, j, k] += wadr * accupied_vol * wavespectrum[iray, jray, kray, kpray, mray] / 
-                                                        was_pred[iray, jray, kray, kpray, mray] / ray_vol
+                                rays.dens[r, i, j, k] += wadr * accupied_vol * was1 / 
+                                                        was0 / ray_vol
                                 #println(spec_tend.wavespectrum[iray, jray, kray, kpray, mray])
 
                              end
