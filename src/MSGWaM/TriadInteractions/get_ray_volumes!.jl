@@ -103,7 +103,6 @@ function get_ray_volumes!(state::State,
             kpr = abs(kr)
             dkpr = dkr
 
-            ray_vol = dxr * dyr * dzr * dkpr * dmr #total volume of the ray in 5D ray phase space
             wadr = rays.dens[r, i, j, k]
             rays.dens[r, i, j, k] = 0
 
@@ -194,6 +193,7 @@ function get_ray_volumes!(state::State,
                                 if was0 <= 0 || was1 == 0
                                     continue
                                 end
+                                ray_vol = dxr * dyr * dzr * dkpr * dmr #total volume of the ray in 5D ray phase space
                                 accupied_vol = dxi * dyi * dzi * dkpi * dmi #total volume of the ray volume (r, i, j, k) accupied by the grid cell
                                 rays.dens[r, i, j, k] += wadr * accupied_vol * was1 / 
                                                         was0 / ray_vol
