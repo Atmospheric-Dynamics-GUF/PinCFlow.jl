@@ -96,10 +96,10 @@ function compute_gw_tracer_tendencies!(
     (; dchidt0) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
-    (; leading_order_impact) = state.namelists.tracer 
+    (; leading_order_impact) = state.namelists.tracer
 
     if !leading_order_impact
-        return 
+        return
     end
 
     @ivy dchidt0[i, j, k] = 0.0

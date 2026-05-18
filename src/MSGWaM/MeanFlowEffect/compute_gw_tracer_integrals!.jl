@@ -180,7 +180,7 @@ function compute_gw_tracer_integrals!(
     tracer_setup::Val{:TracerOn},
 )
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
-    (; leading_order_impact) = state.namelists.tracer 
+    (; leading_order_impact) = state.namelists.tracer
 
     if fc == 0.0 || !leading_order_impact
         return
