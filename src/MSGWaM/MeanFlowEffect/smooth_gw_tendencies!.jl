@@ -225,6 +225,7 @@ function smooth_gw_tendencies!(
     (; nbx, nby, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac) = state.grid
 
     if nbx < filter_order
         error("Error in smooth_gw_tendencies!: nbx < filter_order!")
@@ -240,12 +241,15 @@ function smooth_gw_tendencies!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
-                input[
-                    (i - filter_order):(i + filter_order),
-                    (j - filter_order):(j + filter_order),
-                    (k - filter_order):(k + filter_order),
-                ],
-            ) / (2 * filter_order + 1)^3
+                input[ii, jj, kk] * jac[ii, jj, kk] for
+                kk in (k - filter_order):(k + filter_order),
+                jj in (j - filter_order):(j + filter_order),
+                ii in (i - filter_order):(i + filter_order)
+            ) / sum(
+                jac[ii, jj, kk] for kk in (k - filter_order):(k + filter_order),
+                jj in (j - filter_order):(j + filter_order),
+                ii in (i - filter_order):(i + filter_order)
+            )
     end
 
     return
@@ -260,6 +264,7 @@ function smooth_gw_tendencies!(
     (; nbx, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac) = state.grid
 
     if nbx < filter_order
         error("Error in smooth_gw_tendencies!: nbx < filter_order!")
@@ -272,12 +277,13 @@ function smooth_gw_tendencies!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
-                input[
-                    (i - filter_order):(i + filter_order),
-                    j,
-                    (k - filter_order):(k + filter_order),
-                ],
-            ) / (2 * filter_order + 1)^2
+                input[ii, j, kk] * jac[ii, j, kk] for
+                kk in (k - filter_order):(k + filter_order),
+                ii in (i - filter_order):(i + filter_order)
+            ) / sum(
+                jac[ii, j, kk] for kk in (k - filter_order):(k + filter_order),
+                ii in (i - filter_order):(i + filter_order)
+            )
     end
 
     return
@@ -292,6 +298,7 @@ function smooth_gw_tendencies!(
     (; nby, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac) = state.grid
 
     if nby < filter_order
         error("Error in smooth_gw_tendencies!: nby < filter_order!")
@@ -304,12 +311,13 @@ function smooth_gw_tendencies!(
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
-                input[
-                    i,
-                    (j - filter_order):(j + filter_order),
-                    (k - filter_order):(k + filter_order),
-                ],
-            ) / (2 * filter_order + 1)^2
+                input[i, jj, kk] * jac[i, jj, kk] for
+                kk in (k - filter_order):(k + filter_order),
+                jj in (j - filter_order):(j + filter_order)
+            ) / sum(
+                jac[i, jj, kk] for kk in (k - filter_order):(k + filter_order),
+                jj in (j - filter_order):(j + filter_order)
+            )
     end
 
     return
@@ -324,6 +332,7 @@ function smooth_gw_tendencies!(
     (; nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac) = state.grid
 
     if nbz < filter_order
         error("Error in smooth_gw_tendencies!: nbz < filter_order!")
@@ -332,8 +341,11 @@ function smooth_gw_tendencies!(
     input = copy(output)
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
-            sum(input[i, j, (k - filter_order):(k + filter_order)]) /
-            (2 * filter_order + 1)
+            sum(
+                input[i, j, kk] * jac[i, j, kk] for
+                kk in (k - filter_order):(k + filter_order)
+            ) /
+            sum(jac[i, j, kk] for kk in (k - filter_order):(k + filter_order))
     end
 
     return
