@@ -279,10 +279,12 @@ function compute_derivatives(
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; u) = state.variables.predictands
 
-    @ivy if (zctilde[i, j, ku] + zctilde[i + 1, j, ku]) / 2 < hb[i, j]
+    @ivy if (zctilde[i, j, ku] + zctilde[i + 1, j, ku]) / 2 <
+            (hb[i, j] + hb[i + 1, j]) / 2
         phid = 0.0
         phiu = 0.0
-    elseif (zctilde[i, j, kd] + zctilde[i + 1, j, kd]) / 2 < hb[i, j]
+    elseif (zctilde[i, j, kd] + zctilde[i + 1, j, kd]) / 2 <
+           (hb[i, j] + hb[i + 1, j]) / 2
         phid = 0.0
         phiu =
             (u[i, j, ku + 1] - u[i, j, ku]) / dz / (
@@ -410,10 +412,12 @@ function compute_derivatives(
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; v) = state.variables.predictands
 
-    @ivy if (zctilde[i, j, ku] + zctilde[i, j + 1, ku]) / 2 < hb[i, j]
+    @ivy if (zctilde[i, j, ku] + zctilde[i, j + 1, ku]) / 2 <
+            (hb[i, j] + hb[i, j + 1]) / 2
         phid = 0.0
         phiu = 0.0
-    elseif (zctilde[i, j, kd] + zctilde[i, j + 1, kd]) / 2 < hb[i, j]
+    elseif (zctilde[i, j, kd] + zctilde[i, j + 1, kd]) / 2 <
+           (hb[i, j] + hb[i, j + 1]) / 2
         phid = 0.0
         phiu =
             (v[i, j, ku + 1] - v[i, j, ku]) / dz / (
