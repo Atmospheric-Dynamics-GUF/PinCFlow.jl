@@ -248,7 +248,7 @@ Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer
 In each tracer equation, the update is given by
 
 ```math
-\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\rho \\chi_\\mathrm{R}\\right],
+\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\rho \\chi_\\mathrm{R}\\right),
 ```
 
 where ``\\chi_\\mathrm{R}`` is computed with the function `relaxed_chi` in `state.namelists.tracer`.
@@ -267,7 +267,7 @@ Integrate the Rayleigh-damping terms that represent the LHS sponge in the turbul
 In the equation for the turbulent kinetic energy, the update is given by
 
 ```math
-\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\rho e_\\mathrm{k,\\mathrm{min}}\\right],
+\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\rho e_\\mathrm{k,\\mathrm{min}}\\right),
 ```
 
 where ``e_\\mathrm{k,\\mathrm{min}}`` represents the minimum allowed TKE value stored in `state.turbulence.turbulenceconstants.tkemin`.

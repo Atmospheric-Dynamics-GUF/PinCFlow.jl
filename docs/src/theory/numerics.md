@@ -130,9 +130,9 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
 In the case of turbulent diffusion by the turbulent kinetic energy, the momentum is updated using the Crank-Nicolson scheme before each time-step
 
 $$\begin{align*}
-    \frac{u^{n+1}-u^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
-    \frac{v^{n+1}-v^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
-    \frac{\hat{w}^{n+1}-\hat{w}^n}{\Delta t} &= G^{13}\frac{u^{n+1}-u^n}{\Delta t} + G^{23}\frac{v^{n+1}-v^n}{\Delta t} + \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(K_\mathrm{M}^n\frac{\partial w}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(K_\mathrm{M}^n\frac{\partial w}{\partial \hat{z}}\right)\right]^{n}\right\}.
+    \frac{u^{n+1}-u^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \frac{v^{n+1}-v^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \frac{\hat{w}^{n+1}-\hat{w}^n}{\Delta t} &= G^{13}\frac{u^{n+1}-u^n}{\Delta t} + G^{23}\frac{v^{n+1}-v^n}{\Delta t} + \frac{1}{2J^2}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n}\right\}.
 \end{align*}$$
 
 ### Boussinesq mode
@@ -269,7 +269,7 @@ $$\begin{align*}
 
 In the case of turbulent diffusion by the turbulent kinetic energy, the mass-weighted potential temperature is updated using the Crank-Nicolson scheme before each time-step
 
-$$\frac{P^{n+1}-P^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{M}^nG^{33}\frac{\partial P}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(JK_\mathrm{H}^nG^{33}\frac{\partial P}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
+$$\frac{P^{n+1}-P^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial P}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial P}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
 
 ### Tracer transport
 

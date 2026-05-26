@@ -11,7 +11,7 @@ Enforce zonal boundary conditions for turbulence energies by dispatching to a tu
 ```julia
 set_turbulence_zonal_boundaries!(
     state::State,
-    variables::BoundaryPredictands,
+    variables::AbstractBoundaryVariables,
     turbulence_scheme::Val{:NoTurbulence},
 )
 ```
@@ -32,16 +32,6 @@ Enforce zonal boundary conditions for turbulent kinetic energy.
 set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-```
-
-Return for configurations without turbulence parameterization.
-
-```julia
-set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
     turbulence_scheme::Val{:TKEScheme},
 )
 ```
@@ -52,7 +42,7 @@ Enforce zonal boundary conditions for reconstructions of turbulent kinetic energ
 set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -87,7 +77,7 @@ end
 
 function set_turbulence_zonal_boundaries!(
     state::State,
-    variables::BoundaryPredictands,
+    variables::AbstractBoundaryVariables,
     turbulence_scheme::Val{:NoTurbulence},
 )
     return
@@ -115,14 +105,6 @@ end
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-    return
-end
-
-function set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
     turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
@@ -142,7 +124,7 @@ end
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
+    turbulence_scheme::Val{:TKEScheme},
 )
     return
 end

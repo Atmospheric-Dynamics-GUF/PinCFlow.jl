@@ -23,7 +23,7 @@ Construct a `TurbulenceNamelist` instance with the given keyword arguments as pr
 
   - `momentum_coupling::Bool`: Switch for turbulent diffusion of momentum.
 
-  - `entropy_coupling::Bool`: Switch for turbulent diffusion of the the mass-specific potential temperature.
+  - `entropy_coupling::Bool`: Switch for turbulent diffusion of the mass-specific potential temperature.
 
   - `tracer_coupling::Bool`: Switch for turbulent diffusion of tracers.
 

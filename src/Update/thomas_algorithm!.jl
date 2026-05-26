@@ -3,7 +3,7 @@
 thomas_algorithm!(state::State)
 ```
 
-Solves a tridiagonal system in ``\\hat{z}``-direction using the [Thomas tridiagonal matrix algorithm](https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm). Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
+Solves a tridiagonal system in ``\\hat{z}``-direction using the Thomas tridiagonal matrix algorithm (see [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)) . Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
 
 The system is defined as:
 
@@ -25,7 +25,7 @@ function thomas_algorithm!(state::State)
     (; ath, bth, cth, fth, qth, pth, fth_bc, qth_bc) =
         state.variables.auxiliaries
 
-    if ko == 0
+    @ivy if ko == 0
         qth[:, :, 1] .= .-cth[:, :, 1] ./ bth[:, :, 1]
         fth[:, :, 1] .= fth[:, :, 1] ./ bth[:, :, 1]
     else
@@ -37,14 +37,14 @@ function thomas_algorithm!(state::State)
         fth[:, :, 1] .= (fth[:, :, 1] .- ath[:, :, 1] .* fth_bc) .* pth
     end
 
-    for k in 2:nz
+    @ivy for k in 2:nz
         pth .= 1.0 ./ (bth[:, :, k] .+ ath[:, :, k] .* qth[:, :, k - 1])
         qth[:, :, k] .= .-cth[:, :, k] .* pth
         fth[:, :, k] .=
             (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* pth
     end
 
-    if ko + nz != z_size
+    @ivy if ko + nz != z_size
         qth_bc .= qth[:, :, nz]
         fth_bc .= fth[:, :, nz]
 
@@ -56,11 +56,11 @@ function thomas_algorithm!(state::State)
         fth[:, :, nz] .+= qth[:, :, nz] .* fth_bc
     end
 
-    for k in (nz - 1):-1:1
+    @ivy for k in (nz - 1):-1:1
         fth[:, :, k] .+= qth[:, :, k] .* fth[:, :, k + 1]
     end
 
-    if ko != 0
+    @ivy if ko != 0
         fth_bc .= fth[:, :, 1]
 
         MPI.Send(fth_bc, comm; dest = down)

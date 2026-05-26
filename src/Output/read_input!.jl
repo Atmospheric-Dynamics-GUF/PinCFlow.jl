@@ -85,7 +85,7 @@ function read_input!(state::State)
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
             state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
-                file[string(field)][iid, jjd, kkd, iin] .*
+                file["tke"][iid, jjd, kkd, iin] .*
                 (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
         end
 

@@ -2,8 +2,7 @@
 ```julia
 Auxiliaries{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractMatrix{<:AbstractFloat},
+    B <: AbstractMatrix{<:AbstractFloat},
 }
 ```
 
@@ -19,21 +18,21 @@ Construct an `Auxiliaries` instance with zero-initialized auxiliary arrays.
 
   - `phi::A`: Auxiliary array used as input for [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref).
 
-  - `ath::B`: Sub (lower) diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+  - `ath::A`: Sub (lower) diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
-  - `bth::B`: Center diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+  - `bth::A`: Center diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
-  - `cth::B`: Super (upper) diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+  - `cth::A`: Super (upper) diagonal array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
-  - `fth::B`: Right-hand side array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+  - `fth::A`: Right-hand side array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
-  - `qth::B`: Work array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+  - `qth::A`: Work array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
-  - `pth::C`: Auxiliary array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+  - `pth::B`: Auxiliary array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
-  - `fth_bc::C`: Auxiliary right-hand side array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+  - `fth_bc::B`: Auxiliary right-hand side array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
-  - `qth_bc::C`: Auxiliary work array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
+  - `qth_bc::B`: Auxiliary work array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
 # Arguments
 
@@ -41,18 +40,17 @@ Construct an `Auxiliaries` instance with zero-initialized auxiliary arrays.
 """
 struct Auxiliaries{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractMatrix{<:AbstractFloat},
+    B <: AbstractMatrix{<:AbstractFloat},
 }
     phi::A
-    ath::B
-    bth::B
-    cth::B
-    fth::B
-    qth::B
-    pth::C
-    fth_bc::C
-    qth_bc::C
+    ath::A
+    bth::A
+    cth::A
+    fth::A
+    qth::A
+    pth::B
+    fth_bc::B
+    qth_bc::B
 end
 
 function Auxiliaries(domain::Domain)::Auxiliaries

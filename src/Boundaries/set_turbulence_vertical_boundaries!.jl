@@ -11,7 +11,7 @@ Enforce vertical boundary conditions for turbulence energies by dispatching to a
 ```julia
 set_turbulence_vertical_boundaries!(
     state::State,
-    variables::BoundaryPredictands,
+    variables::AbstractBoundaryVariables,
     turbulence_scheme::Val{:NoTurbulence},
 )
 ```
@@ -32,31 +32,11 @@ Enforce vertical boundary conditions for turbulent kinetic energy.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-```
-
-Return for configurations without turbulence parameterization.
-
-```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
     turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
 Enforce vertical boundary conditions for reconstructions of turbulent kinetic energy.
-
-```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-```
-
-Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -72,7 +52,7 @@ Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to z
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -108,7 +88,7 @@ end
 
 function set_turbulence_vertical_boundaries!(
     state::State,
-    variables::BoundaryPredictands,
+    variables::AbstractBoundaryVariables,
     turbulence_scheme::Val{:NoTurbulence},
 )
     return
@@ -137,14 +117,6 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-    return
-end
-
-function set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
     turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
@@ -158,14 +130,6 @@ function set_turbulence_vertical_boundaries!(
         )
     end
 
-    return
-end
-
-function set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    turbulence_scheme::Val{:NoTurbulence},
-)
     return
 end
 
@@ -196,7 +160,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
+    turbulence_scheme::Val{:TKEScheme},
 )
     return
 end

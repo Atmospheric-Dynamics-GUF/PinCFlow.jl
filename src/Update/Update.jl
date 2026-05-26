@@ -94,7 +94,7 @@ struct KM end
 
 """
 ```julia
-KM
+KH
 ```
 
 Singleton for the eddy diffusion coefficient for heat.
@@ -103,7 +103,7 @@ struct KH end
 
 """
 ```julia
-KM
+KEK
 ```
 
 Singleton for the eddy diffusion coefficient for turbulent kinetic energy.

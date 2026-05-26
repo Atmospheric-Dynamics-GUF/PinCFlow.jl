@@ -1,6 +1,6 @@
 """
 ```julia
-compute_turbulent_damping!(
+turbulent_damping!(
     state::State,
     r::Integer,
     i::Integer,
@@ -62,9 +62,9 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
 !!! danger "Experimental"
     The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
 """
-function compute_turbulent_damping! end
+function turbulent_damping! end
 
-function compute_turbulent_damping!(
+function turbulent_damping!(
     state::State,
     r::Integer,
     i::Integer,
@@ -87,20 +87,20 @@ function compute_turbulent_damping!(
 
     fc = coriolis_frequency / tref
 
-    kr = rays.k[r, i, j, k]
-    lr = rays.l[r, i, j, k]
-    mr = rays.m[r, i, j, k]
+    @ivy kr = rays.k[r, i, j, k]
+    @ivy lr = rays.l[r, i, j, k]
+    @ivy mr = rays.m[r, i, j, k]
 
-    dkr = rays.dkray[r, i, j, k]
-    dlr = rays.dlray[r, i, j, k]
-    dmr = rays.dmray[r, i, j, k]
+    @ivy dkr = rays.dkray[r, i, j, k]
+    @ivy dlr = rays.dlray[r, i, j, k]
+    @ivy dmr = rays.dmray[r, i, j, k]
 
     kh2 = kr^2 + lr^2
 
     n2r = interpolate_stratification(zr, state, N2())
 
     omir = -sqrt(n2r * kh2 + fc^2 * mr^2) / sqrt(kh2 + mr^2)
-    rhob = rhobar[i, j, k]
+    @ivy rhob = rhobar[i, j, k]
 
     factor = dmr
 
@@ -111,7 +111,7 @@ function compute_turbulent_damping!(
         factor *= dlr
     end
 
-    wadr = rays.dens[r, i, j, k] * factor
+    @ivy wadr = rays.dens[r, i, j, k] * factor
 
     q0r, q1r, q2r = compute_turbulent_velocity(state, r, i, j, k)
 
@@ -131,7 +131,7 @@ function compute_turbulent_damping!(
 
     wadr *= 1 - 2 * dt * (gammas + gammaw + gammawp)
 
-    rays.dens[r, i, j, k] = wadr / factor
+    @ivy rays.dens[r, i, j, k] = wadr / factor
 
     return
 end

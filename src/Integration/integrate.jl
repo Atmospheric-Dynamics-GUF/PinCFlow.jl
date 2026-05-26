@@ -269,15 +269,18 @@ function integrate(namelists::Namelists)
 
             wkb_integration!(state, dt)
 
-        #-----------------------------------------------------------------
-        #                         Turbulence 
-        #-----------------------------------------------------------------
+            #-----------------------------------------------------------------
+            #                         Turbulence 
+            #-----------------------------------------------------------------
 
-        turbulent_diffusion!(state, dt)
+            turbulent_diffusion!(state, dt)
 
-        set_boundaries!(state, BoundaryPredictands())
+            set_boundaries!(state, BoundaryPredictands())
 
-        synchronize_compressible_atmosphere!(state, state.variables.predictands)
+            synchronize_compressible_atmosphere!(
+                state,
+                state.variables.predictands,
+            )
 
             #---------------------------------------------------------------
             #                   Semi-implicit time scheme

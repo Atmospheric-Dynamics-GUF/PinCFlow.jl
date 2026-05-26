@@ -75,6 +75,8 @@ reconstruct!(state::State, tracer_setup::Val{:TracerOn})
 
 Reconstruct the tracers.
 
+Similar to the density, the tracers are divided by ``P`` before reconstruction.
+
 ```julia
 reconstruct!(state::State, variable::TKE)
 ```

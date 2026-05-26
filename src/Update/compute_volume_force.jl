@@ -109,7 +109,6 @@ Return the tracer flux convergence due to gravity waves.
 ```julia
 compute_volume_force(
     state::State,
-    p0::Predictands,
     i::Integer,
     j::Integer,
     k::Integer,
@@ -132,7 +131,7 @@ where
 \\end{align*}
 ```
 
-and the eddy diffusion coefficients ``K_\\mathrm{M}`` and ``K_\\mathrm{H}``.
+and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively.
 
 # Arguments
 
@@ -147,8 +146,6 @@ and the eddy diffusion coefficients ``K_\\mathrm{M}`` and ``K_\\mathrm{H}``.
   - `variable`: Variable (equation) of choice.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
-
-  - `p0`: Predictands
 
 # See also
 
@@ -301,16 +298,16 @@ function compute_volume_force(
             compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
         )
 
-    shearproduction[i, j, k] = shear
+    @ivy shearproduction[i, j, k] = shear
 
-    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
+    @ivy bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
+    @ivy bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
-    buoyancy =
+    @ivy buoyancy =
         -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
         (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
-    buoyancyproduction[i, j, k] = buoyancy
+    @ivy buoyancyproduction[i, j, k] = buoyancy
 
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
+    @ivy return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end

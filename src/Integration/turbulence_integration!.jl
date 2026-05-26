@@ -38,7 +38,7 @@ Integrate the dissipation contribution of the prognostic equation for the turbul
 The dissipation step is given by 
 
 ```math 
-\\left(\\rho e_k\\right) \\rightarrow \\left[\\frac{\\sqrt{2}\\Delta t}{l_d \\sqrt{\\rho}} + \\frac{1}{\\sqrt{\\rho e_k}} \\right]^{-2},
+\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(\\frac{\\sqrt{2}\\Delta t}{l_d \\sqrt{\\rho}} + \\frac{1}{\\sqrt{\\rho e_\\mathrm{k}}} \\right)^{-2},
 ```
 
 with turbulent mixing length ``l_d`` stored in `state.turbulence.turbulenceconstants.ld`.
@@ -64,24 +64,24 @@ Integrate the turbulent diffusion term in the prognostic equation for the turbul
 The prognostic equation 
 
 ```math 
-\\frac{\\partial \\rho e_k}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left[J K_H G^{33}\\frac{\\partial \\rho e_k}{\\partial \\hat{z}}\\right]
+\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{e_\\mathrm{k}}}{J}\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial \\hat{z}}\\right)
 ```
 
 is solved using the Crank-Nicolson scheme, where the system 
 
 ```math
-a_k \\left(\\rho e_k\\right)_{k-1}^{n+1} + b_k \\left(\\rho e_k\\right)_k^{n+1} + c_k \\left(\\rho e_k\\right)_{k+1}^{n+1} = f_k
+a_k \\left(\\rho e_\\mathrm{k}\\right)_{k-1}^{n+1} + b_k \\left(\\rho e_\\mathrm{k}\\right)_k^{n+1} + c_k \\left(\\rho e_\\mathrm{k}\\right)_{k+1}^{n+1} = f_k
 ```
 
-is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_{e_k}^{33} = J K_\\mathrm{e_k}G^{33}`` and 
+is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\mathrm{k}} = \\frac{K_\\mathrm{e_\\mathrm{k}}}{J}`` and 
 
 ```math 
 \\begin{align*}
-    a_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k-1/2}^{33}}{J_k}  , \\\\
-    b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k+1/2}^{33}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k-1/2}^{33}{J_k}}, \\\\
-    c_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k+1/2}^{33}}{J_k}  , \\\\
-    f_k = & \\left( 1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k+1/2}^{33}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k-1/2}^{33}}{J_k}\\right) \\left(\\rho e_k\\right)_k^{n} \\\\
-    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k+1/2}^{33}}{J_k} \\left(\\rho e_k\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{e_k,k-1/2}^{33}}{J_k}  \\left(\\rho e_k\\right)_{k-1}^{n}.
+    a_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}  , \\\\
+    b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}{J_k}}, \\\\
+    c_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k}  , \\\\
+    f_k = & \\left( 1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}\\right) \\left(\\rho e_\\mathrm{k}\\right)_k^{n} \\\\
+    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} \\left(\\rho e_\\mathrm{k}\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}  \\left(\\rho e_\\mathrm{k}\\right)_{k-1}^{n}.
 \\end{align*}
 ```
 
@@ -129,27 +129,24 @@ function turbulence_integration!(
     turbulence_scheme::Val{:TKEScheme},
 )
     check_tke!(state)
-    set_boundaries!(state, BoundaryPredictands())
+    set_boundaries!(state, BoundaryPredictands(), TKE())
 
     turbulence_integration!(state, dt * 0.5, Dissipation())
 
     check_tke!(state)
-    set_boundaries!(state, BoundaryPredictands())
+    set_boundaries!(state, BoundaryPredictands(), TKE())
 
     turbulence_integration!(state, dt, Advection())
-
-    check_tke!(state)
-    set_boundaries!(state, BoundaryPredictands())
 
     turbulence_integration!(state, dt, Diffusion())
 
     check_tke!(state)
-    set_boundaries!(state, BoundaryPredictands())
+    set_boundaries!(state, BoundaryPredictands(), TKE())
 
     turbulence_integration!(state, dt * 0.5, Dissipation())
 
     check_tke!(state)
-    set_boundaries!(state, BoundaryPredictands())
+    set_boundaries!(state, BoundaryPredictands(), TKE())
 
     return
 end
@@ -165,7 +162,7 @@ function turbulence_integration!(
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
         tke[i, j, k] =
             1 /
             (
@@ -187,18 +184,18 @@ function turbulence_integration!(
     for rkstage in 1:nstages
         reconstruct!(state, TKE())
 
-        set_boundaries!(state, BoundaryReconstructions())
+        set_boundaries!(state, BoundaryReconstructions(), TKE())
 
         compute_fluxes!(state, TKE())
 
-        set_boundaries!(state, BoundaryFluxes())
+        set_boundaries!(state, BoundaryFluxes(), TKE())
 
         update!(state, dt, rkstage, TKE())
 
         apply_lhs_sponge!(state, dt, stepfrac[rkstage] * dt, TKE())
 
         check_tke!(state)
-        set_boundaries!(state, BoundaryPredictands())
+        set_boundaries!(state, BoundaryPredictands(), TKE())
     end
 
     return
@@ -211,8 +208,7 @@ function turbulence_integration!(
 )
     (; tke) = state.turbulence.turbulencepredictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; nbx, nby, nbz) = state.namelists.domain
-    (; jac, met, dz) = state.grid
+    (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
@@ -220,54 +216,58 @@ function turbulence_integration!(
     reset_thomas!(state)
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        kek33d =
+        kekd =
             (
                 jac[i, j, k - 1] * (
-                    jac[i, j, k] *
-                    met[i, j, k, 3, 3] *
-                    turbulence_diffusion_coefficient(state, i, j, k, KEK())
+                    turbulence_diffusion_coefficient(state, i, j, k, KEK()) /
+                    jac[i, j, k]
                 ) +
                 jac[i, j, k] * (
-                    jac[i, j, k - 1] *
-                    met[i, j, k - 1, 3, 3] *
-                    turbulence_diffusion_coefficient(state, i, j, k - 1, KEK())
+                    turbulence_diffusion_coefficient(
+                        state,
+                        i,
+                        j,
+                        k - 1,
+                        KEK(),
+                    ) / jac[i, j, k - 1]
                 )
             ) / (jac[i, j, k - 1] + jac[i, j, k])
-        kek33u =
+        keku =
             (
                 jac[i, j, k + 1] * (
-                    jac[i, j, k] *
-                    met[i, j, k] *
-                    turbulence_diffusion_coefficient(state, i, j, k, KEK())
+                    turbulence_diffusion_coefficient(state, i, j, k, KEK()) /
+                    jac[i, j, k]
                 ) +
                 jac[i, j, k] * (
-                    jac[i, j, k + 1] *
-                    met[i, j, k + 1, 3, 3] *
-                    turbulence_diffusion_coefficient(state, i, j, k + 1, KEK())
+                    turbulence_diffusion_coefficient(
+                        state,
+                        i,
+                        j,
+                        k + 1,
+                        KEK(),
+                    ) / jac[i, j, k + 1]
                 )
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
-        ith = i - nbx
-        jth = j - nby
-        kth = k - nbz
+        ith = i - i0 + 1
+        jth = j - j0 + 1
+        kth = k - k0 + 1
 
-        ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kek33d
+        ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kekd
         bth[ith, jth, kth] =
-            1 + dtdz2 / jac[i, j, k] * kek33u + dtdz2 / jac[i, j, k] * kek33d
-        cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kek33u
+            1 + dtdz2 / jac[i, j, k] * keku + dtdz2 / jac[i, j, k] * kekd
+        cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * keku
 
         fth[ith, jth, kth] =
-            (
-                1 - dtdz2 / jac[i, j, k] * kek33u -
-                dtdz2 / jac[i, j, k] * kek33d
-            ) * tke[i, j, k] +
-            dtdz2 / jac[i, j, k] * kek33u * tke[i, j, k + 1] +
-            dtdz2 / jac[i, j, k] * kek33d * tke[i, j, k - 1]
+            (1 - dtdz2 / jac[i, j, k] * keku - dtdz2 / jac[i, j, k] * kekd) *
+            tke[i, j, k] +
+            dtdz2 / jac[i, j, k] * keku * tke[i, j, k + 1] +
+            dtdz2 / jac[i, j, k] * kekd * tke[i, j, k - 1]
     end
 
     thomas_algorithm!(state)
 
-    tke[i0:i1, j0:j1, k0:k1] .= fth
+    @ivy tke[i0:i1, j0:j1, k0:k1] .= fth
 
     return
 end

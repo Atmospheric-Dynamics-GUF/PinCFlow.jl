@@ -93,7 +93,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 !!! danger "Experimental"
     The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 
-    !!! danger "Experimental"
+!!! danger "Experimental"
     The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
 """
 struct WKBNamelist

@@ -54,17 +54,17 @@ compute_turbulent_velocity(
 Compute and return ``\\tilde{Q}_r`` with ``\\tilde{Q}_r^2`` being the leading-order turbulence contribution by shear production and buoyancy term given by
 
 ```math 
-\\tilde{Q}_r^2 = \\max\\left\\{0,l_d\\left\\{l_v \\frac{m_r^2}{2}\\left[\\left|\\hat{\\mathbf{u}}_r\\right|^2-\\real\\left(\\hat{\\mathbf{u}}_r\\cdot\\hat{\\mathbf{u}}_r\\exp i2\\phi \\right)\\right]
--l_b\\left[N_r^2+\\real\\left(im_r\\hat{b}_r\\exp i\\phi\\right)\\right]\\right\\}\\right\\}\\;,
+\\tilde{Q}_r^2 = \\max\\left\\{0,l_d\\left\\{l_v \\frac{m_r^2}{2}\\left[\\left|\\boldsymbol{u}_{\\mathrm{w}, r}\\right|^2-\\real\\left(\\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r}e^{i2\\phi} \\right)\\right]
+-l_b\\left[N_r^2+\\real\\left(im_r b_{\\mathrm{w}, r}e^{i\\phi}\\right)\\right]\\right\\}\\right\\}\\;,
 ```
 
 with
 
 ```math 
 \\begin{align*}
-\\left|\\hat{\\mathbf{u}}_r\\right|^2 &= \\frac{m_r^2 \\left(\\hat{\\omega}_r^2-f^2\\right)}{k_r^2+l_r^2+m_r^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
-\\hat{\\mathbf{u}}_r\\cdot\\hat{\\mathbf{u}}_r &= -\\frac{\\left(N_r^2+f^2\\right)\\left(k_r^2+l_r^2\\right)m_r^2}{\\left(k_r^2+l_r^2+m_r^2\\right)^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
-\\hat{b}_r &= \\sqrt{\\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{\\left(k_r^2+l_r^2+m_r^2\\right)}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}}} \\;,
+\\left|\\boldsymbol{u}_{\\mathrm{w}, r}\\right|^2 &= \\frac{m_r^2 \\left(\\hat{\\omega}_r^2-f^2\\right)}{\\left|\\boldsymbol{k}_r\\right|^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
+\\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r} &= -\\frac{\\left(N_r^2+f^2\\right)\\left(k_r^2+l_r^2\\right)m_r^2}{\\left(\\left|\\boldsymbol{k}_r\\right|^2\\right)^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
+b_{\\mathrm{w}, r} &= \\sqrt{\\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{\\left(\\left|\\boldsymbol{k}_r\\right|^2\\right)}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}}} \\;,
 \\end{align*}
 ```
 
@@ -94,7 +94,7 @@ and turbulence mixing lengths ``l_d``, ``l_v``, and ``l_b`` stored in `state.tur
 
   - `mr`: Vertical wavenumber ``m_r``.
 
-  - `n2r`: Buoyancy frequency at the ray volume position ``N_r^2``.
+  - `n2r`: Squared buoyancy frequency at the ray volume position ``N_r^2``.
 
   - `fc`: Coriolis frequency ``f``.
 
@@ -113,7 +113,7 @@ function compute_turbulent_velocity(
 )::Tuple{<:Complex, <:Complex, <:Complex}
     (; rays) = state.wkb
 
-    if rays.dens[r, i, j, k] == 0.0
+    @ivy if rays.dens[r, i, j, k] == 0.0
         return 0.0, 0.0, 0.0
     end
 
@@ -141,13 +141,13 @@ function compute_turbulent_velocity(
 
     (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
-    rhob = rhobar[i, j, k]
-    kr = rays.k[r, i, j, k]
-    lr = rays.l[r, i, j, k]
-    mr = rays.m[r, i, j, k]
-    dkr = rays.dkray[r, i, j, k]
-    dlr = rays.dlray[r, i, j, k]
-    dmr = rays.dmray[r, i, j, k]
+    @ivy rhob = rhobar[i, j, k]
+    @ivy kr = rays.k[r, i, j, k]
+    @ivy lr = rays.l[r, i, j, k]
+    @ivy mr = rays.m[r, i, j, k]
+    @ivy dkr = rays.dkray[r, i, j, k]
+    @ivy dlr = rays.dlray[r, i, j, k]
+    @ivy dmr = rays.dmray[r, i, j, k]
     n2r = interpolate_stratification(zr, state, N2())
     fc = coriolis_frequency * tref
 
@@ -155,7 +155,7 @@ function compute_turbulent_velocity(
 
     omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-    wadr = rays.dens[r, i, j, k] * dmr
+    @ivy wadr = rays.dens[r, i, j, k] * dmr
 
     if x_size > 1
         wadr *= dkr
@@ -164,13 +164,10 @@ function compute_turbulent_velocity(
         wadr *= dlr
     end
 
-    int_min = 0.0
-    int_max = 2 * pi
-    nphi = 20
-    dphi = (int_max - int_min) / nphi
+    dphi = 2 * pi / 20
     phi = 0.0
     integral = 0.0
-    while phi <= int_max
+    while phi <= 2 * pi
         qtilde = compute_turbulent_velocity(state, rhob, wadr, kr, lr, mr, n2r, fc, omir, phi)
         integral += qtilde * exp(-1im * beta * phi) * dphi
         phi += dphi
