@@ -14,7 +14,7 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-run = "1904_11"
+run = "1805_02"
 
 #outfile = "/home/b/b383844/PinCFlow/sedimentation/results/mountain_wave_$(run).h5"
 outfile = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_$(run).h5"
@@ -33,6 +33,8 @@ dxr = lx / 20
 dyr = ly / 20
 dzr = lz / 10
 alpharmax = 0.0179
+
+
 
 atmosphere = AtmosphereNamelist(;
     background = LapseRates(),
@@ -73,7 +75,7 @@ ice = IceNamelist(;
 output = OutputNamelist(; 
     output_variables = (:w, :u, :n, :nNuc, :qv, :q, :thetap, :pip, :iaux1, :iaux2, :iaux3, :iaux4, :iaux5, :clc), 
     output_steps = false,
-	output_interval = 100.0,
+	output_interval = 10.0,
 	tmax = tmax,
     save_ray_volumes = true,
     output_file = outfile,

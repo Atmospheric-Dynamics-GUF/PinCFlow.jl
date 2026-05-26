@@ -338,6 +338,18 @@ function create_output(state::State)
 						chunk = (cr, cx, cy, cz, ct),
 					)
 				end
+
+				# create dataset for wave energy
+				create_dataset(
+					file,
+					"e",
+					datatype(Float32),
+					dataspace(
+						(x_size, y_size, z_size, 0),
+						(x_size, y_size, z_size, -1),
+					);
+					chunk = (cx, cy, cz, ct),
+				)
 			end
 
 			# Create datasets for GW tendencies.

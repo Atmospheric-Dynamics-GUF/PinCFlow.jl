@@ -88,7 +88,7 @@ function write_output(
 	(; rhobar, thetabar, n2, pbar) = state.atmosphere
 	(; predictands) = state.variables
 	(; rho, rhop, u, v, w, pip, p) = predictands
-	(; nray_max, rays, tendencies) = state.wkb
+	(; nray_max, rays, tendencies, integrals) = state.wkb
 	(; nscx, nscy, nscz) = state.namelists.ice
 	(; sizex2, sizey2, sizez2,
 		i02, j02, k02,
@@ -407,6 +407,13 @@ function write_output(
 				file["nr"][1:nray_max, iid, jjd, kkrd, iout] =
 					rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
 					lref .^ dim
+
+				HDF5.set_extent_dims(
+					file["e"],
+					(x_size, y_size, z_size, iout),
+				)
+				file["e"][iid, jjd, kkd, iout] =
+					integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2 # added output for e
 			end
 
 			# Write GW tendencies.
