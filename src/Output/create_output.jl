@@ -267,7 +267,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
-                :dchidt0 in output_variables
+               :dchidt0 in output_variables
                 create_dataset(
                     file,
                     "dchidt0",
@@ -366,7 +366,7 @@ function create_output(state::State, machine_start_time::DateTime)
 
         # Create datasets for WKB variables.
         if wkb_mode != :NoWKB
-            
+
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
                 for field in (
@@ -591,18 +591,22 @@ function create_output(state::State, machine_start_time::DateTime)
             if prepare_restart || :tke in output_variables
                 attributes(file["tke"])["unuits"] = "m^2*s^-2"
                 attributes(file["tke"])["label"] = L"e_\\mathrm{k}"
-                attributes(file["tke"])["long_name"] = "mass-specific turbulent kinetic energy"
+                attributes(
+                    file["tke"],
+                )["long_name"] = "mass-specific turbulent kinetic energy"
             end
-            
+
             if :shearproduction in output_variables
                 attributes(file["shearproduction"])["unuits"] = "m^2*s^-3"
-                attributes(file["shearproduction"])["label"] = L"\mathcal{S}"
+                attributes(file["shearproduction"])["label"] =
+                    L"\mathcal{S}"
                 attributes(file["shearproduction"])["long_name"] = "shear production"
             end
 
             if :buoyancyproduction in output_variables
                 attributes(file["buoyancyproduction"])["unuits"] = "m^2*s^-3"
-                attributes(file["buoyancyproduction"])["label"] = L"\mathcal{B}"
+                attributes(file["buoyancyproduction"])["label"] =
+                    L"\mathcal{B}"
                 attributes(file["buoyancyproduction"])["long_name"] = "buoyancy production"
             end
         end

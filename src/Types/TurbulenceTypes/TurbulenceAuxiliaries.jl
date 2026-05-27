@@ -57,7 +57,10 @@ function TurbulenceAuxiliaries(
 )::TurbulenceAuxiliaries
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulenceAuxiliaries(domain, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme return TurbulenceAuxiliaries(
+        domain,
+        Val(turbulence_scheme),
+    )
 end
 
 function TurbulenceAuxiliaries(

@@ -473,12 +473,7 @@ The update is given by
 ```
 
 ```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    variable::TKE,
-)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
 ```
 
 Update the turbulent kinetic energy with a Runge-Kutta step on the left-hand sides of the equations with shear and buoyancy production terms.

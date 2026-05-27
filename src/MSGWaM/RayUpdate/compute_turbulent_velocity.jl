@@ -168,7 +168,18 @@ function compute_turbulent_velocity(
     phi = 0.0
     integral = 0.0
     while phi <= 2 * pi
-        qtilde = compute_turbulent_velocity(state, rhob, wadr, kr, lr, mr, n2r, fc, omir, phi)
+        qtilde = compute_turbulent_velocity(
+            state,
+            rhob,
+            wadr,
+            kr,
+            lr,
+            mr,
+            n2r,
+            fc,
+            omir,
+            phi,
+        )
         integral += qtilde * exp(-1im * beta * phi) * dphi
         phi += dphi
     end

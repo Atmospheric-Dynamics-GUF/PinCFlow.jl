@@ -90,7 +90,7 @@ KM
 
 Singleton for the eddy diffusion coefficient for momentum.
 """
-struct KM end 
+struct KM end
 
 """
 ```julia
@@ -99,7 +99,7 @@ KH
 
 Singleton for the eddy diffusion coefficient for heat.
 """
-struct KH end 
+struct KH end
 
 """
 ```julia
