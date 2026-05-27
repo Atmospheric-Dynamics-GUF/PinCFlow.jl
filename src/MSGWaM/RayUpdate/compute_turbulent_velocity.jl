@@ -63,8 +63,8 @@ with
 ```math 
 \\begin{align*}
 \\left|\\boldsymbol{u}_{\\mathrm{w}, r}\\right|^2 &= \\frac{m_r^2 \\left(\\hat{\\omega}_r^2-f^2\\right)}{\\left|\\boldsymbol{k}_r\\right|^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
-\\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r} &= -\\frac{\\left(N_r^2+f^2\\right)\\left(k_r^2+l_r^2\\right)m_r^2}{\\left(\\left|\\boldsymbol{k}_r\\right|^2\\right)^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
-b_{\\mathrm{w}, r} &= \\sqrt{\\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{\\left(\\left|\\boldsymbol{k}_r\\right|^2\\right)}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}}} \\;,
+\\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r} &= -\\frac{\\left(N_r^2+f^2\\right)\\left(k_r^2+l_r^2\\right)m_r^2}{\\left|\\boldsymbol{k}_r\\right|^4}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
+b_{\\mathrm{w}, r} &= \\sqrt{\\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{\\left|\\boldsymbol{k}_r\\right|^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}}} \\;,
 \\end{align*}
 ```
 

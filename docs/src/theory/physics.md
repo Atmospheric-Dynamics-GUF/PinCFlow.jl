@@ -125,7 +125,7 @@ Vertical turbulent diffusion based on a prgnostic turbulent kinetic energy schem
 $$\begin{align*}
     \mathcal{T}^{\rho u} &= \frac{\rho}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}}{J}\frac{\partial u}{\partial \hat{z}}\right),\\
     \mathcal{T}^{\rho v} &= \frac{\rho}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}}{J}\frac{\partial v}{\partial \hat{z}}\right),\\
-    \mathcal{T}^{\rho \hat{w}} &= G^{13}\mathcal{T}^{\rho u} + G^{23}\mathcal{T}^{\rho v} + \frac{\rho}{J^2}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}}{J}\frac{\partial \hat{w}}{\partial \hat{z}}\right).\\
+    \mathcal{T}^{\rho \hat{w}} &= G^{13}\mathcal{T}^{\rho u} + G^{23}\mathcal{T}^{\rho v} + \frac{\rho}{J^2}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}}{J}\frac{\partial w}{\partial \hat{z}}\right).\\
 \end{align*}$$
 
 See the section on turbulence parameterization below for further details.
