@@ -15,7 +15,7 @@ At the beginning of each time-loop iteration, the time step is determined from s
 In case the updated simulation time is later than the next output time, the time step is corrected accordingly. 
 Subsequently, the damping coefficients of the sponges (which may depend on the time step) are calculated. 
 Following this, MS-GWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. 
-Then, the diffusion of momentum, mass-weighted potential temperature, and tracers is applied.
+Then, the diffusion of momentum, mass-weighted potential temperature and tracers is applied.
 Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
 
  1. Explicit RK3 integration of LHS over ``\\Delta t / 2``.
@@ -30,7 +30,7 @@ Afterwards, the resolved flow is updated in a semi-implicit time step, comprised
 
 Therein, the left-hand sides of the equations include advective fluxes, diffusion terms, rotation and heating, whereas the pressure gradient, buoyancy term and momentum-flux divergence due to unresolved gravity waves are on the right-hand sides. Boundary conditions are enforced continuously. At the end of the time step, the updated fields are written into the output file if the next output time has been reached.
 
-In the case of turbulence parameterization, the turbulence variables are integrated after step 3.
+In the case of turbulence parameterization, the turbulence variables are integrated after step 2.
 
 # Arguments
 
@@ -324,6 +324,8 @@ function integrate(namelists::Namelists)
 
             p1 = deepcopy(state.variables.predictands)
 
+            turbulence_integration!(state, dt)
+
             if master
                 println("(3) Explicit integration of RHS over dt/2...")
                 println("")
@@ -332,8 +334,6 @@ function integrate(namelists::Namelists)
             reset_predictands!(state, p0, chi0)
 
             explicit_integration!(state, p0, 0.5 * dt, time, RHS())
-
-            turbulence_integration!(state, dt)
 
             if master
                 println("(4) Explicit integration of LHS over dt...")

@@ -132,7 +132,8 @@ In the case of turbulent diffusion by the turbulent kinetic energy, the momentum
 $$\begin{align*}
     \frac{u^{n+1}-u^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
     \frac{v^{n+1}-v^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
-    \frac{\hat{w}^{n+1}-\hat{w}^n}{\Delta t} &= G^{13}\frac{u^{n+1}-u^n}{\Delta t} + G^{23}\frac{v^{n+1}-v^n}{\Delta t} + \frac{1}{2J^2}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n}\right\}.
+    \frac{w^{n+1}-w^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \hat{w}^{n+1} &= \hat{w}^n + G^{13}\left(u^{n+1}-u^n\right) + G^{23}\left(v^{n+1}-v^n\right) + \frac{1}{J}\left(w^{n+1}-w^n\right).
 \end{align*}$$
 
 ### Boussinesq mode

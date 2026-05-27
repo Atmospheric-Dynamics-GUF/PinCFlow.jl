@@ -285,7 +285,7 @@ function compute_volume_force(
     k::Integer,
     variables::TKE,
 )::AbstractFloat
-    (; shearproduction, buoyancyproduction) =
+    (; shear_production, buoyancy_production) =
         state.turbulence.turbulenceauxiliaries
     (; rho) = state.variables.predictands
     (; rhobar, n2) = state.atmosphere
@@ -298,7 +298,7 @@ function compute_volume_force(
             compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
         )
 
-    @ivy shearproduction[i, j, k] = shear
+    @ivy shear_production[i, j, k] = shear
 
     @ivy bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
     @ivy bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
@@ -307,7 +307,7 @@ function compute_volume_force(
         -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
         (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
-    @ivy buoyancyproduction[i, j, k] = buoyancy
+    @ivy buoyancy_production[i, j, k] = buoyancy
 
     @ivy return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end

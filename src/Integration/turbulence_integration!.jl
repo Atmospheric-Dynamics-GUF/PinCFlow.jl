@@ -78,7 +78,7 @@ is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\m
 ```math 
 \\begin{align*}
     a_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}  , \\\\
-    b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}{J_k}}, \\\\
+    b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}, \\\\
     c_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k}  , \\\\
     f_k = & \\left( 1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}\\right) \\left(\\rho e_\\mathrm{k}\\right)_k^{n} \\\\
     & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} \\left(\\rho e_\\mathrm{k}\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}  \\left(\\rho e_\\mathrm{k}\\right)_{k-1}^{n}.

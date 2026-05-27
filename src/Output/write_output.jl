@@ -52,9 +52,9 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:tke`: Turbulent kinetic energy.
 
-  - `:shearproduction`: Turbulent kinetic energy production due to wind shear.
+  - `:shear_production`: Turbulent kinetic energy production due to wind shear.
 
-  - `:buoyancyproduction`: Turbulent kinetic energy production/destruction due to buoyancy.
+  - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
 
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
@@ -348,26 +348,26 @@ function write_output(
                     (tref .^ 2.0)
             end
 
-            if :shearproduction in output_variables
+            if :shear_production in output_variables
                 HDF5.set_extent_dims(
-                    file["shearproduction"],
+                    file["shear_production"],
                     (x_size, y_size, z_size, iout),
                 )
-                file["shearproduction"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulenceauxiliaries.shearproduction[
+                file["shear_production"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.shear_production[
                         ii,
                         jj,
                         kk,
                     ] .* uref .^ 2 ./ tref
             end
 
-            if :buoyancyproduction in output_variables
+            if :buoyancy_production in output_variables
                 HDF5.set_extent_dims(
-                    file["buoyancyproduction"],
+                    file["buoyancy_production"],
                     (x_size, y_size, z_size, iout),
                 )
-                file["buoyancyproduction"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulenceauxiliaries.buoyancyproduction[
+                file["buoyancy_production"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.buoyancy_production[
                         ii,
                         jj,
                         kk,

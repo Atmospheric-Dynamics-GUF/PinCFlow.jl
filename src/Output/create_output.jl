@@ -337,10 +337,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if :shearproduction in output_variables
+            if :shear_production in output_variables
                 create_dataset(
                     file,
-                    "shearproduction",
+                    "shear_production",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),
@@ -350,10 +350,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if :buoyancyproduction in output_variables
+            if :buoyancy_production in output_variables
                 create_dataset(
                     file,
-                    "buoyancyproduction",
+                    "buoyancy_production",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),
@@ -596,18 +596,18 @@ function create_output(state::State, machine_start_time::DateTime)
                 )["long_name"] = "mass-specific turbulent kinetic energy"
             end
 
-            if :shearproduction in output_variables
-                attributes(file["shearproduction"])["unuits"] = "m^2*s^-3"
-                attributes(file["shearproduction"])["label"] =
+            if :shear_production in output_variables
+                attributes(file["shear_production"])["unuits"] = "m^2*s^-3"
+                attributes(file["shear_production"])["label"] =
                     L"\mathcal{S}"
-                attributes(file["shearproduction"])["long_name"] = "shear production"
+                attributes(file["shear_production"])["long_name"] = "shear production"
             end
 
-            if :buoyancyproduction in output_variables
-                attributes(file["buoyancyproduction"])["unuits"] = "m^2*s^-3"
-                attributes(file["buoyancyproduction"])["label"] =
+            if :buoyancy_production in output_variables
+                attributes(file["buoyancy_production"])["unuits"] = "m^2*s^-3"
+                attributes(file["buoyancy_production"])["label"] =
                     L"\mathcal{B}"
-                attributes(file["buoyancyproduction"])["long_name"] = "buoyancy production"
+                attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
             end
         end
 

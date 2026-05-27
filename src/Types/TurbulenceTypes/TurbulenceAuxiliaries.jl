@@ -34,9 +34,9 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 
 # Fields
 
-  - `shearproduction::A`: Contribution of turbulence production due to shear. 
+  - `shear_production::A`: Contribution of turbulence production due to shear. 
 
-  - `buoyancyproduction::A`: Contribution of turbulence production due to the buoyancy.
+  - `buoyancy_production::A`: Contribution of turbulence production due to the buoyancy.
 
 # Arguments
 
@@ -47,8 +47,8 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
   - `turbulence_scheme`: General turbulence parameterization configuration.
 """
 struct TurbulenceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
-    shearproduction::A
-    buoyancyproduction::A
+    shear_production::A
+    buoyancy_production::A
 end
 
 function TurbulenceAuxiliaries(

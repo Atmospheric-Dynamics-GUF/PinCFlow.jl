@@ -407,9 +407,9 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
 
         jacc = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
 
-        ith = i - nbx
-        jth = j - nby
-        kth = k - nbz
+        ith = i - i0 + 1
+        jth = j - j0 + 1
+        kth = k - k0 + 1
 
         ath[ith, jth, kth] = -dtdz2 * kmd / jacc
         bth[ith, jth, kth] = 1 + dtdz2 * kmu / jacc + dtdz2 * kmd / jacc
@@ -518,9 +518,9 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
 
         jacc = 0.5 * (jac[i, j, k] + jac[i, j + 1, k])
 
-        ith = i - nbx
-        jth = j - nby
-        kth = k - nbz
+        ith = i - i0 + 1
+        jth = j - j0 + 1
+        kth = k - k0 + 1
 
         ath[ith, jth, kth] = -dtdz2 * kmd / jacc
         bth[ith, jth, kth] = 1 + dtdz2 * kmu / jacc + dtdz2 * kmd / jacc
@@ -567,9 +567,9 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
             2.0 * jac[i, j, k] * jac[i, j, k + 1] /
             (jac[i, j, k] + jac[i, j, k + 1])
 
-        ith = i - nbx
-        jth = j - nby
-        kth = k - nbz
+        ith = i - i0 + 1
+        jth = j - j0 + 1
+        kth = k - k0 + 1
 
         ath[ith, jth, kth] = -dtdz2 / jacc * kmd
         bth[ith, jth, kth] = 1 + dtdz2 / jacc * kmu + dtdz2 / jacc^2 * kmd
@@ -619,9 +619,9 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
             2.0 * jac[i, j, k] * jac[i, j, k + 1] /
             (jac[i, j, k] + jac[i, j, k + 1])
 
-        ith = i - nbx
-        jth = j - nby
-        kth = k - nbz
+        ith = i - i0 + 1
+        jth = j - j0 + 1
+        kth = k - k0 + 1
 
         w[i, j, k] +=
             duc13 + dvc23 + (fth[ith, jth, kth] - wold[i, j, k]) / jacc
@@ -686,9 +686,9 @@ function turbulent_diffusion!(
                 )
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
-        ith = i - nbx
-        jth = j - nby
-        kth = k - nbz
+        ith = i - i0 + 1
+        jth = j - j0 + 1
+        kth = k - k0 + 1
 
         ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * khd
         bth[ith, jth, kth] =
@@ -781,9 +781,9 @@ function turbulent_diffusion!(
                     )
                 ) / (jac[i, j, k + 1] + jac[i, j, k])
 
-            ith = i - nbx
-            jth = j - nby
-            kth = k - nbz
+            ith = i - i0 + 1
+            jth = j - j0 + 1
+            kth = k - k0 + 1
 
             ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * khd
             bth[ith, jth, kth] =
