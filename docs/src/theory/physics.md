@@ -158,9 +158,9 @@ Turbulent kinetic energy (TKE) $e_\mathrm{k}$ is parameterized by solving the pr
 
 $$\frac{\partial \rho e_\mathrm{k}}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho e_\mathrm{k} u}{\partial \hat{x}} + \frac{\partial J \rho e_\mathrm{k} v}{\partial \hat{y}} + \frac{\partial J \rho e_\mathrm{k} \hat{w}}{\partial \hat{z}}\right) = \frac{1}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_{e_\mathrm{k}}}{J}\frac{\partial \rho e_\mathrm{k}}{\partial \hat{z}}\right) + \rho\mathcal{S} + \rho\mathcal{B} - \frac{2\rho e_\mathrm{k}}{\tau_\mathrm{k}},$$
 
-where $\mathcal{S}$ and $\mathcal{B}$ represent the production/destruction of TKE due to shear and buoyancy, respectively, $K_{e_\mathrm{k}}$ is the TKE eddy diffusivity and $\tau_\mathrm{k}$ represents the dissipation time-scale.
+where $\mathcal{S}$ and $\mathcal{B}$ denote the production or destruction of TKE by shear and buoyancy, respectively, $K_{e_\mathrm{k}}$ is the TKE eddy diffusivity and $\tau_\mathrm{k}$ represents the dissipation time-scale.
 
-Using the TKE, the eddy diffusion coefficients for momentum, heat and TKE are given by
+Based on the computed TKE, the eddy diffusion coefficients for momentum, heat and TKE are expressed as
 
 $$\begin{align*}
 K_\mathrm{M} &= l_v\sqrt{2e_\mathrm{k}} , \\
@@ -168,21 +168,25 @@ K_\mathrm{H} &= l_b\sqrt{2e_\mathrm{k}} , \\
 K_{e_\mathrm{k}} &= l_t\sqrt{2e_\mathrm{k}},
 \end{align*}$$
 
-respectively. 
-
-The dissipation time-scale is given by
+respectively. The dissipation time-scale is further defined as
 
 $$\tau_\mathrm{k} = \frac{l_d}{2\sqrt{2e_\mathrm{k}}},$$
 
-with turbulence mixing lengths $l_v$, $l_b$ and $l_t$.
+where $l_v$, $l_b$ and $l_t$ denote turbulence mixing lengths.
 
 ## Tracer transport
 
 PinCFlow.jl transports a passive tracer $\chi$ governed by
 
-$$\frac{\partial \rho \chi}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho \chi u}{\partial \hat{x}} + \frac{\partial J \rho \chi v}{\partial \hat{y}} + \frac{\partial J \rho \chi \hat{w}}{\partial \hat{z}}\right) - F^{\rho \chi} + \alpha_\mathrm{R} \left[\rho \chi - \rho \chi_{\mathrm{R}}\right] = 0,$$
+$$\frac{\partial \rho \chi}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho \chi u}{\partial \hat{x}} + \frac{\partial J \rho \chi v}{\partial \hat{y}} + \frac{\partial J \rho \chi \hat{w}}{\partial \hat{z}}\right) - F^{\rho \chi} + \alpha_\mathrm{R} \left[\rho \chi - \rho \chi_{\mathrm{R}}\right] - \mathcal{T}^{\rho \chi} = 0,$$
 
 where $F^{\rho \chi}$ represents another volume force, e.g. a tracer-flux divergence due to unresolved gravity waves, and $\chi_{\mathrm{R}}$ is the tracer to be obtainecd via relaxation from Rayleigh damping.
+
+Vertical turbulent diffusion based on a prgnostic turbulent kinetic energy scheme is represented by
+
+$$\mathcal{T}^{\rho \chi} = \frac{1}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}}{J}\frac{\partial \rho \chi}{\partial z}\right).$$
+
+See the section on turbulence parameterization above for further details.
 
 ## MS-GWaM
 

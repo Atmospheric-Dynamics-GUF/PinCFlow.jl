@@ -281,6 +281,10 @@ $$\begin{align*}
     \left(\rho \chi\right)^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left[\left(\rho \chi\right)^{m + 1} + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2} \rho \chi_\mathrm{R}\right].
 \end{align*}$$
 
+In the case of turbulent diffusion by the turbulent kinetic energy, the tracer is updated using the Crank-Nicolson scheme before each time-step,
+
+$$\frac{\left(\rho \chi\right)^{n+1}-\left(\rho \chi\right)^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\rho \chi\right)}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\rho \chi\right)}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
+
 ### MS-GWaM
 
 At the beginning of each time step, the saturation scheme is applied via integration of the respective term in the phase-space wave-action density equation with an explicit Euler step. i.e.
