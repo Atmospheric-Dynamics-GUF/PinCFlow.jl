@@ -132,8 +132,7 @@ the transformed wind is calculated:
 
 ```math 
 \\begin{align*}
-\\hat{w}^{n+1}_{k+1/2} &= \\hat{w}^n_{k+1/2} + G_{k+1/2}^{13}\\left(u^{n+1}-u^{n}\\right)_{k+1/2} \\\\
-&+ G_{k+1/2}^{23}\\left(v^{n+1}-v^{n}\\right)_{k+1/2} + \\frac{1}{J_{k+1/2}}\\left(w^{n+1}-w^{n}\\right)_{k+1/2}.
+\\hat{w}^{n+1}_{k+1/2} &= G_{k+1/2}^{13}u^{n+1}_{k+1/2} + G_{k+1/2}^{23}v^{n+1}_{k+1/2} + \\frac{1}{J_{k+1/2}}w^{n+1}_{k+1/2}.
 \\end{align*}
 ```
 
@@ -316,7 +315,6 @@ function turbulent_diffusion!(
 end
 
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
-    (; nbx, nby, nbz) = state.namelists.domain
     (; u) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
@@ -427,7 +425,6 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
 end
 
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
-    (; nbx, nby, nbz) = state.namelists.domain
     (; v) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
@@ -538,9 +535,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
 end
 
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
-    (; nbx, nby, nbz) = state.namelists.domain
     (; u, v, w) = state.variables.predictands
-    (; uold, vold, wold) = state.variables.backups
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
@@ -560,8 +555,6 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
         wu = compute_vertical_wind(i, j, k + 1, state)
         wc = compute_vertical_wind(i, j, k, state)
         wd = compute_vertical_wind(i, j, k - 1, state)
-
-        wold[i, j, k] = wc
 
         jacc =
             2.0 * jac[i, j, k] * jac[i, j, k + 1] /
@@ -583,36 +576,20 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
     thomas_algorithm!(state)
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        dud =
-            0.5 * (
-                (u[i - 1, j, k] - uold[i - 1, j, k]) +
-                (u[i, j, k] - uold[i, j, k])
-            )
-        duu =
-            0.5 * (
-                (u[i - 1, j, k + 1] - uold[i - 1, j, k + 1]) +
-                (u[i, j, k + 1] - uold[i, j, k + 1])
-            )
-        duc13 =
+        ud = 0.5 * (u[i - 1, j, k] + u[i, j, k])
+        uu = 0.5 * (u[i - 1, j, k + 1] + u[i, j, k + 1])
+        uc13 =
             (
-                jac[i, j, k] * met[i, j, k + 1, 1, 3] * duu +
-                jac[i, j, k + 1] * met[i, j, k, 1, 3] * dud
+                jac[i, j, k] * met[i, j, k + 1, 1, 3] * uu +
+                jac[i, j, k + 1] * met[i, j, k, 1, 3] * ud
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        dvd =
-            0.5 * (
-                (v[i, j - 1, k] - vold[i, j - 1, k]) +
-                (v[i, j, k] - vold[i, j, k])
-            )
-        dvu =
-            0.5 * (
-                (v[i, j - 1, k + 1] - vold[i, j - 1, k + 1]) +
-                (v[i, j, k + 1] - vold[i, j, k + 1])
-            )
-        dvc23 =
+        vd = 0.5 * (v[i, j - 1, k] + v[i, j, k])
+        vu = 0.5 * (v[i, j - 1, k + 1] + v[i, j, k + 1])
+        vc23 =
             (
-                jac[i, j, k] * met[i, j, k + 1, 2, 3] * dvu +
-                jac[i, j, k + 1] * met[i, j, k, 2, 3] * dvd
+                jac[i, j, k] * met[i, j, k + 1, 2, 3] * vu +
+                jac[i, j, k + 1] * met[i, j, k, 2, 3] * vd
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         jacc =
@@ -623,8 +600,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
         jth = j - j0 + 1
         kth = k - k0 + 1
 
-        w[i, j, k] +=
-            duc13 + dvc23 + (fth[ith, jth, kth] - wold[i, j, k]) / jacc
+        w[i, j, k] = uc13 + vc23 + fth[ith, jth, kth] / jacc
     end
 
     return
@@ -654,7 +630,6 @@ function turbulent_diffusion!(
 )
     (; p) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; nbx, nby, nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
@@ -737,7 +712,6 @@ function turbulent_diffusion!(
 )
     (; tracerpredictands) = state.tracer
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; nbx, nby, nbz) = state.namelists.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
