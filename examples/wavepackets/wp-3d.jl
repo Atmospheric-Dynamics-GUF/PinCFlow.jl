@@ -13,7 +13,7 @@ npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 512
-y_size = 16
+y_size = 32
 z_size = 1600
 
 lx = 9000e3
@@ -22,7 +22,7 @@ lz = 100e3
 
 rx = 1500e3
 ry = 0
-rz = 5e3
+rz = 10e3
 
 x0 = 0.0
 y0 = 0.0
@@ -71,17 +71,17 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    output_variables = [:u, :v, :w, :rhop],
-    output_file = "wp-3d.h5",
-    tmax = 36000.0,
-    output_interval = 36000.0,
+    output_variables = [:w], #[:u, :v, :w, :rhop],
+    output_file = "wp-3d-1s-0.h5",
+    tmax = 1.0,
+    output_interval = 1.0,
 )
 
 discretization = DiscretizationNamelist(; dtmax = 100)
 
 turbulence = TurbulenceNamelist(;
     turbulence_scheme = :TKEScheme,
-    initial_tke = (x, y, z) -> 0, #qtilde(x, y, z) / 2,
+    initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
 )
 
 tracer = TracerNamelist(;

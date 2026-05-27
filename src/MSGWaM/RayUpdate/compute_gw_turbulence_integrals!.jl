@@ -114,7 +114,9 @@ function compute_gw_turbulence_integrals!(
         bhat0
     uhat2 = mr^2 / omir * (fc^2 + omir^2) / (kr^2 + lr^2 + mr^2) * wadr / rhob
 
-    shear[iray, jray, kray] += (lv * abs(q00) + km[iray, jray, kray]) * mr^2 * uhat2 * factor #
-
+    # shear[iray, jray, kray] += (lv * abs(q00) + km[iray, jray, kray]) * mr^2 * uhat2 * factor #
+    # shear[iray, jray, kray] += lv * abs(q00) * mr^2 * uhat2 * factor
+    shear[iray, jray, kray] += km[iray, jray, kray] * mr^2 * uhat2 * factor
+    
     return
 end

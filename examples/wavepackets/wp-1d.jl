@@ -28,7 +28,7 @@ x0 = 0.0
 y0 = 0.0
 z0 = 10e3
 
-a0 = 0.9
+a0 = 2.0
 
 k = 2 * pi / 1e3
 l = 0
@@ -60,19 +60,19 @@ atmosphere = AtmosphereNamelist(;
 )
 
 turbulence = TurbulenceNamelist(;
-    turbulence_scheme = :NoTurbulence,
-    initial_tke = (x, y, z) -> qtilde(x, y, z) / 2,
+    turbulence_scheme = :TKEScheme,
+    initial_tke = (x, y, z) -> 0, #qtilde(x, y, z) / 2,
 )
 
 output = OutputNamelist(;
     output_variables = [:u, :v, :w, :rhop],
-    output_file = "wp-1d.h5",
-    tmax = 3600,
-    output_interval = 60,
+    output_file = "wp-1d-2s.h5",
+    tmax = 2,
+    output_interval = 1,
 )
 
 tracer = TracerNamelist(;
-    tracer_setup = :TracerOn,
+    tracer_setup = :NoTracer,
     initial_tracer = (x, y, z) ->
         real(chihat(x, y, z) * exp(1im * phi(x, y, z))) + z,
 )

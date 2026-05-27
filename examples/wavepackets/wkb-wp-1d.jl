@@ -13,7 +13,7 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
 x_size = 1
 y_size = 1
-z_size = 30
+z_size = 1066
 
 lx = 1e3
 ly = 1e3
@@ -27,7 +27,7 @@ x0 = 0.0
 y0 = 0.0
 z0 = 10e3
 
-a0 = 0.9
+a0 = 2.0
 
 k = 2 * pi / 1e3
 l = 0
@@ -60,28 +60,26 @@ domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     save_ray_volumes = false,
     output_variables = [:u, :v, :w, :rhop, :e, :dtkedt, :dchidt],
-    output_file = "wkb-wp-1d.h5",
-    tmax = 3600,
-    output_interval = 60,
+    output_file = "wkb-wp-1d-2s.h5",
+    tmax = 3,
+    output_interval = 1,
 )
 
 wkb = WKBNamelist(;
     use_saturation = false,
-    nrz = 80,
+    nrz = 1,
     wkb_mode = :MultiColumn,
-    filter_order = 2,
-    filter_type = :BoxFilter,
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
-    turbulence_damping = false,
+    turbulence_damping = true,
 )
 turbulence = TurbulenceNamelist(;
-    turbulence_scheme = :NoTurbulence,
+    turbulence_scheme = :TKEScheme,
     tracer_coupling = true,
 )
 
 tracer = TracerNamelist(;
-    tracer_setup = :TracerOn,
+    tracer_setup = :NoTracer,
     leading_order_impact = false,
     next_order_impact = true,
     turbulence_impact = false,

@@ -566,7 +566,7 @@ function turbulent_diffusion!(
     tracerdiffusion .= 0.0
     chiold .= 0.0
 
-    for field in 1:fieldcount(TracerPredictands)
+    @ivy for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)
         chiold .= chi
         @ivy for k in k0:k1, j in j0:j1, i in i0:i1

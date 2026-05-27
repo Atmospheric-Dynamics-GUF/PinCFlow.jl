@@ -12,12 +12,12 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-output_file = "wkb-wp-3d-notracer.h5"
+output_file = "wkb-wp-3d-1s-0.h5"
 plot_file = "wkb-wp-3d.svg"
 
 x_size = 32
 y_size = 1
-z_size = 100
+z_size = 1000
 
 lx = 9000e3
 ly = 300e3
@@ -25,7 +25,7 @@ lz = 100e3
 
 rx = 1500e3
 ry = 0
-rz = 5e3
+rz = 10e3
 
 x0 = 0.0
 y0 = 0.0
@@ -62,16 +62,16 @@ atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 
 output = OutputNamelist(;
-    save_ray_volumes = true,
+    save_ray_volumes = false,
     output_variables = [:u, :v, :w, :dchidt, :e, :dtkedt],
     output_file,
-    tmax = 36000.0,
-    output_interval = 360.0,
+    tmax = 1.0,
+    output_interval = 1.0,
 )
 
 wkb = WKBNamelist(;
     use_saturation = false,
-    nrz = 1,
+    nrz = 10,
     wkb_mode = :MultiColumn,
     initial_wave_field = (alpha, x, y, z) ->
         (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
@@ -83,7 +83,7 @@ discretization = DiscretizationNamelist(; dtmax = 100)
 turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme)
 
 tracer = TracerNamelist(;
-    tracer_setup = :NoTracer,
+    tracer_setup = :TracerOn,
     leading_order_impact = true,
     next_order_impact = false,
     turbulence_impact = true,

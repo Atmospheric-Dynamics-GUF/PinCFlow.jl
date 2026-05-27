@@ -122,7 +122,7 @@ function compute_turbulent_tracer_fluxes!(
 
     chihat1 = -1im / omir * (uhat0 * dchidx + vhat0 * dchidy + what0 * dchidz)
 
-    qchi[iray, jray, kray] += lb * imag(mr * conj(q10) * chihat1) * factor
+    qchi[iray, jray, kray] += lb / 2 * imag(mr * conj(q10) * chihat1) * factor
 
     integrals.uhat[iray, jray, kray] += uhat0 * factor
     integrals.vhat[iray, jray, kray] += vhat0 * factor
