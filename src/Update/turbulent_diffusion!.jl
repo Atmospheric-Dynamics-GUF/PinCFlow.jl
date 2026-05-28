@@ -163,18 +163,18 @@ turbulent_diffusion!(
 )
 ```
 
-Apply diffusion to the mass-weighted potential temperature for configurations in Compressible mode.
+Apply diffusion to the potential temperature for configurations in Compressible mode.
 
 The prognostic equation 
 
 ```math 
-\\frac{\\partial P}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{H}}{J}\\frac{\\partial P}{\\partial \\hat{z}}\\right)
+\\frac{\\partial \\theta}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{H}}{J}\\frac{\\partial \\theta}{\\partial \\hat{z}}\\right)
 ```
 
 is solved using the Crank-Nicolson scheme, where the system 
 
 ```math
-a_k P_{k-1}^{n+1} + b_k P_k^{n+1} + c_k P_{k+1}^{n+1} = f_k
+a_k \\theta_{k-1}^{n+1} + b_k \\theta_k^{n+1} + c_k \\theta_{k+1}^{n+1} = f_k
 ```
 
 is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \\frac{K_\\mathrm{H}}{J}`` and 
@@ -184,8 +184,8 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
     a_k &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}  , \\\\
     b_k &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}{J_k}}, \\\\
     c_k &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k}  , \\\\
-    f_k &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}\\right] \\left(\\rho\\chi\\right)_k^{n} \\\\
-    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k} \\left(\\rho\\chi\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}  \\left(\\rho\\chi\\right)_{k-1}^{n}.
+    f_k &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}\\right] \\left(\\theta\\right)_k^{n} \\\\
+    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k} \\left(\\theta\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}  \\left(\\theta\\right)_{k-1}^{n}.
 \\end{align*}
 ```
 
@@ -220,13 +220,13 @@ Apply diffusion to the tracers variables.
 The prognostic equation 
 
 ```math 
-\\frac{\\partial \\rho\\chi}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{H}}{J}\\frac{\\partial \\rho\\chi}{\\partial \\hat{z}}\\right)
+\\frac{\\partial \\chi}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{H}}{J}\\frac{\\partial \\chi}{\\partial \\hat{z}}\\right)
 ```
 
 is solved using the Crank-Nicolson scheme, where the system 
 
 ```math
-a_k \\left(\\rho\\chi\\right)_{k-1}^{n+1} + b_k \\left(\\rho\\chi\\right)_k^{n+1} + c_k \\left(\\rho\\chi\\right)_{k+1}^{n+1} = f_k
+a_k \\chi_{k-1}^{n+1} + b_k \\chi_k^{n+1} + c_k \\chi_{k+1}^{n+1} = f_k
 ```
 
 is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \\frac{K_\\mathrm{H}}{J}`` and 
@@ -236,8 +236,8 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
     a_k &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}  , \\\\
     b_k &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}, \\\\
     c_k &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k}  , \\\\
-    f_k &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}\\right] \\left(\\rho\\chi\\right)_k^{n} \\\\
-    &+ \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k} \\left(\\rho\\chi\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}  \\left(\\rho\\chi\\right)_{k-1}^{n}.
+    f_k &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}\\right] \\chi_k^{n} \\\\
+    &+ \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k} \\chi_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}  \\chi_{k-1}^{n}.
 \\end{align*}
 ```
 
@@ -624,10 +624,11 @@ function turbulent_diffusion!(
     variable::Theta,
     model::Val{:Compressible},
 )
-    (; p) = state.variables.predictands
+    (; p, rho) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
+    (; rhobar) = state.atmosphere
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -668,14 +669,17 @@ function turbulent_diffusion!(
 
         fth[ith, jth, kth] =
             (1 - dtdz2 / jac[i, j, k] * khu - dtdz2 / jac[i, j, k] * khd) *
-            p[i, j, k] +
-            dtdz2 / jac[i, j, k] * khu * p[i, j, k + 1] +
-            dtdz2 / jac[i, j, k] * khd * p[i, j, k - 1]
+            p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
+            dtdz2 / jac[i, j, k] * khu * p[i, j, k + 1] /
+            (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+            dtdz2 / jac[i, j, k] * khd * p[i, j, k - 1] /
+            (rho[i, j, k - 1] + rhobar[i, j, k - 1])
     end
 
     thomas_algorithm!(state)
 
-    @ivy p[i0:i1, j0:j1, k0:k1] .= fth
+    @ivy p[i0:i1, j0:j1, k0:k1] .=
+        fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
     return
 end
 
@@ -707,6 +711,8 @@ function turbulent_diffusion!(
     tracer_setup::Val{:TracerOn},
 )
     (; tracerpredictands) = state.tracer
+    (; rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
@@ -762,14 +768,17 @@ function turbulent_diffusion!(
 
             fth[ith, jth, kth] =
                 (1 - dtdz2 / jac[i, j, k] * khu - dtdz2 / jac[i, j, k] * khd) *
-                chi[i, j, k] +
-                dtdz2 / jac[i, j, k] * khu * chi[i, j, k + 1] +
-                dtdz2 / jac[i, j, k] * khd * chi[i, j, k - 1]
+                chi[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
+                dtdz2 / jac[i, j, k] * khu * chi[i, j, k + 1] /
+                (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+                dtdz2 / jac[i, j, k] * khd * chi[i, j, k - 1] /
+                (rho[i, j, k - 1] + rhobar[i, j, k - 1])
         end
 
         thomas_algorithm!(state)
 
-        chi[i0:i1, j0:j1, k0:k1] .= fth
+        chi[i0:i1, j0:j1, k0:k1] .=
+            fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
     end
     return
 end

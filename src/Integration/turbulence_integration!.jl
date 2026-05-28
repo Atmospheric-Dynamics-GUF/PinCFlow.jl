@@ -64,13 +64,13 @@ Integrate the turbulent diffusion term in the prognostic equation for the turbul
 The prognostic equation 
 
 ```math 
-\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{e_\\mathrm{k}}}{J}\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial \\hat{z}}\\right)
+\\frac{\\partial e_\\mathrm{k}}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{e_\\mathrm{k}}}{J}\\frac{\\partial e_\\mathrm{k}}{\\partial \\hat{z}}\\right)
 ```
 
 is solved using the Crank-Nicolson scheme, where the system 
 
 ```math
-a_k \\left(\\rho e_\\mathrm{k}\\right)_{k-1}^{n+1} + b_k \\left(\\rho e_\\mathrm{k}\\right)_k^{n+1} + c_k \\left(\\rho e_\\mathrm{k}\\right)_{k+1}^{n+1} = f_k
+a_k \\left(e_\\mathrm{k}\\right)_{k-1}^{n+1} + b_k \\left(e_\\mathrm{k}\\right)_k^{n+1} + c_k \\left(e_\\mathrm{k}\\right)_{k+1}^{n+1} = f_k
 ```
 
 is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\mathrm{k}} = \\frac{K_\\mathrm{e_\\mathrm{k}}}{J}`` and 
@@ -80,8 +80,8 @@ is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\m
     a_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}  , \\\\
     b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}, \\\\
     c_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k}  , \\\\
-    f_k = & \\left( 1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}\\right) \\left(\\rho e_\\mathrm{k}\\right)_k^{n} \\\\
-    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} \\left(\\rho e_\\mathrm{k}\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}  \\left(\\rho e_\\mathrm{k}\\right)_{k-1}^{n}.
+    f_k = & \\left( 1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k}  - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}\\right) \\left(e_\\mathrm{k}\\right)_k^{n} \\\\
+    & + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} \\left(e_\\mathrm{k}\\right)_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}  \\left(e_\\mathrm{k}\\right)_{k-1}^{n}.
 \\end{align*}
 ```
 
@@ -207,6 +207,8 @@ function turbulence_integration!(
     process::Diffusion,
 )
     (; tke) = state.turbulence.turbulencepredictands
+    (; rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
@@ -260,14 +262,17 @@ function turbulence_integration!(
 
         fth[ith, jth, kth] =
             (1 - dtdz2 / jac[i, j, k] * keku - dtdz2 / jac[i, j, k] * kekd) *
-            tke[i, j, k] +
-            dtdz2 / jac[i, j, k] * keku * tke[i, j, k + 1] +
-            dtdz2 / jac[i, j, k] * kekd * tke[i, j, k - 1]
+            tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
+            dtdz2 / jac[i, j, k] * keku * tke[i, j, k + 1] /
+            (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+            dtdz2 / jac[i, j, k] * kekd * tke[i, j, k - 1] /
+            (rho[i, j, k - 1] + rhobar[i, j, k - 1])
     end
 
     thomas_algorithm!(state)
 
-    @ivy tke[i0:i1, j0:j1, k0:k1] .= fth
+    @ivy tke[i0:i1, j0:j1, k0:k1] .=
+        fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
 
     return
 end
