@@ -59,7 +59,7 @@ Bug fixes and further minor improvements:
 
   - The `integrate` function now prints an approximate peak memory usage.
 
-- Documenation corrections and example test improvements:
+- Documentation corrections and example test improvements:
 
   - The example tests shell scripts have been cleaned up with MPI and HDF5 backends as well as precompilation, which is now triggered by sourcing the file `examples/scripts/levante/precompile.sh`.
 
