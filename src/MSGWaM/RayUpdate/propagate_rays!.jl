@@ -183,15 +183,15 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; branch, impact_altitude, turbulent_damping) = state.namelists.wkb
+    (; branch, impact_altitude) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
-    (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
+    (; nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
-    (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde, dx, dy, dzcmin) = state.grid
+    (; alphark, betark, stepfrac) = state.time
+    (; dx, dy, dzcmin) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
@@ -468,7 +468,6 @@ function propagate_rays!(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
-    (; stepfrac) = state.time
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid

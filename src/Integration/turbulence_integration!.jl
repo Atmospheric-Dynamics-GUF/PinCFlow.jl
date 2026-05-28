@@ -53,7 +53,7 @@ turbulence_integration!(
 
 Integrate the advection, shear production, and buoyancy contribution terms in the prognostic equation for the turbulent kinetic energy with a Runge-Kutta time step.
 
-At each Runge-Kutta stage, the mass-weighted turbulent kinetic energy is first reconstructed and its advectice fluxes are calculated. Subsequently, the TKE is updated with its shear and buoyancy production terms, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the LHS sponge. 
+At each Runge-Kutta stage, the mass-weighted turbulent kinetic energy is first reconstructed and its advective fluxes are calculated. Subsequently, the TKE is updated with its shear and buoyancy production terms, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the LHS sponge. 
 
 ```julia
 turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
