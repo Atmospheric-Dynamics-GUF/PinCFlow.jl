@@ -1,6 +1,6 @@
 """
 ```julia
-turbulent_damping!(
+apply_turbulent_damping!(
     state::State,
     r::Integer,
     i::Integer,
@@ -62,9 +62,9 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
 !!! danger "Experimental"
     The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
 """
-function turbulent_damping! end
+function apply_turbulent_damping! end
 
-function turbulent_damping!(
+function apply_turbulent_damping!(
     state::State,
     r::Integer,
     i::Integer,
@@ -79,9 +79,9 @@ function turbulent_damping!(
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
     (; rhobar) = state.atmosphere
-    (; turbulence_damping) = state.namelists.wkb
+    (; turbulent_damping) = state.namelists.wkb
 
-    if !turbulence_damping
+    if !turbulent_damping
         return
     end
 

@@ -85,7 +85,7 @@ The group velocities that are calculated for the propagation in physical space a
 \\end{align*}
 ```
 
-The damping of wave-action density due to turbulence is applied via `turbulent_damping!`.
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
 
 ```julia
 propagate_rays!(
@@ -124,7 +124,7 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 
 the second term is integrated with the pseudo-time step ``J \\Delta \\hat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\hat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
 
-The damping of wave-action density due to turbulence is applied via `turbulent_damping!`.
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
 
 If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
 
@@ -158,7 +158,7 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayUpdate.turbulent_damping!`](@ref)
+  - [`PinCFlow.MSGWaM.RayUpdate.apply_turbulent_damping!`](@ref)
 """
 function propagate_rays! end
 
@@ -183,7 +183,7 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; branch, impact_altitude, turbulence_damping) = state.namelists.wkb
+    (; branch, impact_altitude, turbulent_damping) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
@@ -229,7 +229,7 @@ function propagate_rays!(
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
-            turbulent_damping!(state, r, i, j, k, zr, stepfrac[rkstage] * dt)
+            apply_turbulent_damping!(state, r, i, j, k, zr, stepfrac[rkstage] * dt)
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -570,7 +570,7 @@ function propagate_rays!(
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
-            turbulent_damping!(state, r, i, j, k, zr, jac[i, j, k] * dz / cgirz)
+            apply_turbulent_damping!(state, r, i, j, k, zr, jac[i, j, k] * dz / cgirz)
 
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             rays.dens[r, i, j, k] =
