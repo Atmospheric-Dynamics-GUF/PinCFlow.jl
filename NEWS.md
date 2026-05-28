@@ -3,6 +3,72 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 3.0.0
+
+Breaking changes and namelist updates:
+
+  - PinCFlow.jl now requires the Julia version 1.10.11 or higher.
+
+  - To avoid a naming conflict with CairoMakie's Box, the wkb-namelist parameter `filter_type` now takes `:BoxFilter` and `:ShapiroFilter` instead of `:Box` and `:Shapiro`, respectively.
+
+  - The user can now define a vertical grid stretch function via the grid-namelist parameter `vertical_grid_stretching`.
+
+  - The initial potential temperature fluctuations can be defined by the user via the atmosphere-namelist parameter `initial_thetap` when `buoyancy_initialization == true`.
+
+  - The following changes have been made to the tracer transport:
+
+    - With future extensions in mind, the gravity wave-tracer fluxes and tendencies have been restructured by removing `TracerWKBImpact` and `TracerForcing` and adding `TracerWKBIntegrals` and `TracerWKBTendencies`, to match the structures of `WKBIntegrals` and `WKBTendencies`.
+
+    - When setting the tracer-namelist parameter `apply_sponge_to_tracer == true`, the tracer fields are relaxed to the user-defined `relaxed_chi`. 
+
+    - The tracer is now initialized via the tracer-namelist parameter `initial_chi`.
+
+Performance and compilation improvements:
+
+  - Compilation has been accelerated by: 
+    
+    - removing project activation from the scripts and instead specifying the project via the `--project` flag,
+    
+    - changing singleton parameters to `Symbol`s with new dispatch macros to avoid dynamic dispatch,
+
+    - initialization functions, such as `initial_u` in `AtmosphereNamelist`, now being of type `FunctionWrapper`.
+
+  - The communication of ray-volumes has been made more efficient. By restructuring `Rays` to use a single field, run-time allocations have been reduced drastically, which has reduced memory usage.
+
+  - Running example tests using the provided shell scripts has been accelerated by increasing the number of MPI processes.
+
+  - Precompilation in the example shell scripts is triggered before starting the MPI job to avoid the processes getting stuck in precompilation.
+
+  - Precompilation now writes to a file in a temporary directory that is removed immediately, instead of `/tmp`.
+  
+  - The performance of ensemble runs has been improved. 
+
+Bug fixes and further minor improvements:
+
+  - There was a bug in the calculation of the stratospheric mass-weighted potential temperature for the atmospheric-namelist parameter `background == Realistic()`, which has been fixed.
+
+  - There were a few dependency issues with Revise, CairoMakie, HDF5 and MPI which have been fixed.
+
+  - The handling of the propagation of ray volumes has been improved to allow for scenarios with steep topography and/or high vertical resolutions. 
+
+  - The experimental feature _blocked-layer scheme_ has been improved.
+
+  - A few checks have been added to ensure proper parallelization initialization.
+
+  - `create_output` creates the output directory if it doesn't exist yet.
+
+  - The `integrate` function now prints an approximate peak memory usage.
+
+- Documenation corrections and example test improvements:
+
+  - The example tests shell scripts have been cleaned up with MPI and HDF5 backends as well as precompilation, which is now triggered by sourcing the file `examples/scripts/levante/precompile.sh`.
+
+  - The list of publications has been updated.
+
+  - There were minor documentation errors in the gravity-wave fluxes.
+
+  - Minor aesthetic adjustments have been made to the documentation.
+
 ## Release 2.0.0
 
   - The auxiliary states in the wave-packet examples have been parallelized.
