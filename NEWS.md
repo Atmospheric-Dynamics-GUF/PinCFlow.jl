@@ -5,7 +5,7 @@ PinCFlow.jl follows the interpretation of
 
 ## Release 3.0.0
 
-Breaking changes and namelist updates:
+Breaking changes, performance improvements, and compilation acceleration:
 
   - PinCFlow.jl now requires the Julia version 1.10.11 or higher.
 
@@ -23,27 +23,23 @@ Breaking changes and namelist updates:
 
     - The tracer is now initialized via the tracer-namelist parameter `initial_chi`.
 
-Performance and compilation improvements:
+  - Namelist parameters of singleton types have been replaced with parameters of the type `Symbol` and namelist parameters that are functions are now stored in `FunctionWrapper`s to avoid massive recompilation due to a changed concrete `State` type.
 
   - Project activation has been removed from all scripts, with the project now specified via the `--project` flag.
 
-  - Compilation has been accelerated via the following changes: 
+  - The precompilation block now runs cheap versions of the examples.
 
-    - Namelist parameters of singleton types have been replaced with parameters of the type `Symbol` and namelist parameters that are functions are now stored in `FunctionWrapper`s to avoid massive recompilation due to a changed concrete `State` type.
-    
-    - The precompilation block now runs cheap versions of the examples.
-
-  - The communication of ray-volumes has been made more efficient.
+  - The communication of rayvolumes has been made more efficient.
 
   - The number of MPI processes used in the example shell scripts has been increased.
   
-  - The function `ensemble` for conducting ensemble runs has been improved. 
+  - The function `ensemble` for conducting ensemble runs has been added. 
 
-  - The example scripts have been replaced with example functions (in the new `Examples` module).
+  - The example functions are exported by the `PinCFlow` module.
 
   - The example shell scripts for the Goethe cluster have been removed.
 
-  - A setup script has been added to configure the `examples` project's backends on the Levante cluster and precompile, which can be triggered by sourcing the file `examples/levante/precompile.sh`.
+  - A setup script has been added to configure the `examples` project's backends on the Levante cluster and precompile, which can be triggered by sourcing the file `examples/levante/setup.sh`.
 
 Bug fixes and further minor improvements:
 
@@ -59,11 +55,11 @@ Bug fixes and further minor improvements:
 
   - `create_output` now creates the output directory if it doesn't exist yet.
 
-  - The `integrate` function now prints an approximate peak memory usage across all MPI processes.
+  - The `integrate` function now prints the approximate peak memory usage across all MPI processes.
 
   - Added `reduce_exceptions` to handle exceptions across MPI processes during ensemble simulations.
 
-- Documentation corrections and example test improvements:
+- Documentation corrections:
 
   - The list of publications has been updated.
 
