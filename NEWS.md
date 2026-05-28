@@ -9,7 +9,7 @@ Breaking changes and namelist updates:
 
   - PinCFlow.jl now requires the Julia version 1.10.11 or higher.
 
-  - To avoid a naming conflict with CairoMakie's Box, the wkb-namelist parameter `filter_type` now takes `:BoxFilter` and `:ShapiroFilter` instead of `:Box` and `:Shapiro`, respectively.
+  - To avoid a naming conflict with CairoMakie's `Box`, the wkb-namelist parameter `filter_type` now takes `:BoxFilter` and `:ShapiroFilter` instead of `:Box` and `:Shapiro`, respectively.
 
   - The user can now define a vertical grid stretch function via the grid-namelist parameter `vertical_grid_stretching`.
 
@@ -25,23 +25,25 @@ Breaking changes and namelist updates:
 
 Performance and compilation improvements:
 
-  - Compilation has been accelerated by: 
+  - Project activation has been removed from all scripts, with the project now specified via the `--project` flag.
+
+  - Compilation has been accelerated via the following changes: 
+
+    - Namelist parameters of singleton types have been replaced with parameters of the type `Symbol` and namelist parameters that are functions are now stored in `FunctionWrapper`s to avoid massive recompilation due to a changed concrete `State` type.
     
-    - removing project activation from the scripts and instead specifying the project via the `--project` flag,
-    
-    - changing singleton parameters to `Symbol`s with new dispatch macros to avoid dynamic dispatch,
+    - The precompilation block now runs cheap versions of the examples.
 
-    - initialization functions, such as `initial_u` in `AtmosphereNamelist`, now being of type `FunctionWrapper`.
+  - The communication of ray-volumes has been made more efficient.
 
-  - The communication of ray-volumes has been made more efficient. By restructuring `Rays` to use a single field, run-time allocations have been reduced drastically, which has reduced memory usage.
-
-  - Running example tests using the provided shell scripts has been accelerated by increasing the number of MPI processes.
-
-  - Precompilation in the example shell scripts is triggered before starting the MPI job to avoid the processes getting stuck in precompilation.
-
-  - Precompilation now writes to a file in a temporary directory that is removed immediately, instead of `/tmp`.
+  - The number of MPI processes used in the example shell scripts has been increased.
   
-  - The performance of ensemble runs has been improved. 
+  - The function `ensemble` for conducting ensemble runs has been improved. 
+
+  - The example scripts have been replaced with example functions (in the new `Examples` module).
+
+  - The example shell scripts for the Goethe cluster have been removed.
+
+  - A setup script has been added to configure the `examples` project's backends on the Levante cluster and precompile, which can be triggered by sourcing the file `examples/levante/precompile.sh`.
 
 Bug fixes and further minor improvements:
 
@@ -51,21 +53,19 @@ Bug fixes and further minor improvements:
 
   - The handling of the propagation of ray volumes has been improved to allow for scenarios with steep topography and/or high vertical resolutions. 
 
-  - The experimental feature _blocked-layer scheme_ has been improved.
+  - A bug has been fixed in the blocked-layer scheme, and it has been moved to its own submodule. The orographic source has undergone minor restructuring.
 
   - A few checks have been added to ensure proper parallelization initialization.
 
-  - `create_output` creates the output directory if it doesn't exist yet.
+  - `create_output` now creates the output directory if it doesn't exist yet.
 
-  - The `integrate` function now prints an approximate peak memory usage.
+  - The `integrate` function now prints an approximate peak memory usage across all MPI processes.
 
 - Documentation corrections and example test improvements:
 
-  - The example tests shell scripts have been cleaned up with MPI and HDF5 backends as well as precompilation, which is now triggered by sourcing the file `examples/scripts/levante/precompile.sh`.
-
   - The list of publications has been updated.
 
-  - There were minor documentation errors in the gravity-wave fluxes.
+  - There were minor errors in the documentation of gravity-wave fluxes.
 
   - Minor aesthetic adjustments have been made to the documentation.
 
