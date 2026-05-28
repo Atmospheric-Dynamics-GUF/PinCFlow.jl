@@ -51,7 +51,7 @@ compute_turbulent_velocity(
 )::AbstractFloat
 ```
 
-Compute and return ``\\tilde{Q}_r`` with ``\\tilde{Q}_r^2`` being the leading-order turbulence contribution by shear production and buoyancy term given by
+Compute and return ``\\tilde{Q}_r``. The quantity ``\\tilde{Q}_r^2`` represents the leading-order turbulence contribution originating from the balance of shear production, buoyancy forces and dissipation, and is defined as follows:
 
 ```math 
 \\tilde{Q}_r^2 = \\max\\left\\{0,l_d\\left\\{l_v \\frac{m_r^2}{2}\\left[\\left|\\boldsymbol{u}_{\\mathrm{w}, r}\\right|^2-\\real\\left(\\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r}e^{i2\\phi} \\right)\\right]
