@@ -268,9 +268,9 @@ $$\begin{align*}
 
  1. The right-hand sides are integrated over over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
-In the case of turbulent diffusion by the turbulent kinetic energy, the mass-weighted potential temperature is updated using the Crank-Nicolson scheme before each time-step
+In the case of turbulent diffusion by the turbulent kinetic energy, the potential temperature is updated using the Crank-Nicolson scheme before each time-step
 
-$$\frac{P^{n+1}-P^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial P}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial P}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
+$$\frac{\theta^{n+1}-\theta^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \theta}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \theta}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
 
 ### Tracer transport
 
@@ -284,7 +284,7 @@ $$\begin{align*}
 
 In the case of turbulent diffusion by the turbulent kinetic energy, the tracer is updated using the Crank-Nicolson scheme before each time-step,
 
-$$\frac{\left(\rho \chi\right)^{n+1}-\left(\rho \chi\right)^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\rho \chi\right)}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\rho \chi\right)}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
+$$\frac{\chi^{n+1}-\chi^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\\chi\right)}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \chi}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
 
 ### MS-GWaM
 

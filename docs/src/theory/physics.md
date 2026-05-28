@@ -148,7 +148,7 @@ Note that in addition to the new volume-force term, $\bar{\rho}$ has been replac
 
 Vertical turbulent diffusion based on a prgnostic turbulent kinetic energy scheme is represented by
 
-$$\mathcal{T}^P = \frac{1}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}}{J}\frac{\partial P}{\partial z}\right).$$
+$$\mathcal{T}^P = \frac{\rho}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}}{J}\frac{\partial \theta}{\partial z}\right).$$
 
 See the section on turbulence parameterization below for further details.
 
@@ -156,7 +156,7 @@ See the section on turbulence parameterization below for further details.
 
 Turbulent kinetic energy (TKE) $e_\mathrm{k}$ is parameterized by solving the prognostic equation
 
-$$\frac{\partial \rho e_\mathrm{k}}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho e_\mathrm{k} u}{\partial \hat{x}} + \frac{\partial J \rho e_\mathrm{k} v}{\partial \hat{y}} + \frac{\partial J \rho e_\mathrm{k} \hat{w}}{\partial \hat{z}}\right) = \frac{1}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_{e_\mathrm{k}}}{J}\frac{\partial \rho e_\mathrm{k}}{\partial \hat{z}}\right) + \rho\mathcal{S} + \rho\mathcal{B} - \frac{2\rho e_\mathrm{k}}{\tau_\mathrm{k}},$$
+$$\frac{\partial \rho e_\mathrm{k}}{\partial t} + \frac{1}{J} \left(\frac{\partial J \rho e_\mathrm{k} u}{\partial \hat{x}} + \frac{\partial J \rho e_\mathrm{k} v}{\partial \hat{y}} + \frac{\partial J \rho e_\mathrm{k} \hat{w}}{\partial \hat{z}}\right) = \frac{\rho}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_{e_\mathrm{k}}}{J}\frac{\partial e_\mathrm{k}}{\partial \hat{z}}\right) + \rho\mathcal{S} + \rho\mathcal{B} - \frac{2\rho e_\mathrm{k}}{\tau_\mathrm{k}},$$
 
 where $\mathcal{S}$ and $\mathcal{B}$ denote the production or destruction of TKE by shear and buoyancy, respectively, $K_{e_\mathrm{k}}$ is the TKE eddy diffusivity and $\tau_\mathrm{k}$ represents the dissipation time-scale.
 
@@ -184,7 +184,7 @@ where $F^{\rho \chi}$ represents another volume force, e.g. a tracer-flux diverg
 
 Vertical turbulent diffusion based on a prgnostic turbulent kinetic energy scheme is represented by
 
-$$\mathcal{T}^{\rho \chi} = \frac{1}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}}{J}\frac{\partial \rho \chi}{\partial z}\right).$$
+$$\mathcal{T}^{\rho \chi} = \frac{\rho}{J}\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}}{J}\frac{\partial \chi}{\partial z}\right).$$
 
 See the section on turbulence parameterization above for further details.
 
