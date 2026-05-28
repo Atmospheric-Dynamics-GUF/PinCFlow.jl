@@ -61,6 +61,8 @@ Bug fixes and further minor improvements:
 
   - The `integrate` function now prints an approximate peak memory usage across all MPI processes.
 
+  - Added `reduce_exceptions` to handle exceptions across MPI processes during ensemble simulations.
+
 - Documentation corrections and example test improvements:
 
   - The list of publications has been updated.
