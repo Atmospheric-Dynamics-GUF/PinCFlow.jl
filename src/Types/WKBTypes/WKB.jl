@@ -10,8 +10,8 @@ WKB{
     G <: WKBIntegrals,
     H <: WKBTendencies,
     I <: Ref{<:AbstractFloat},
-    J <: AbstractArray{<:AbstractFloat, 3},
-    K <: AbstractMatrix{<:AbstractFloat},
+    J <: AbstractMatrix{<:AbstractFloat},
+    K <: AbstractArray{<:AbstractFloat, 3},
 }
 ```
 
@@ -75,15 +75,15 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `tendencies::H`: Gravity-wave drag and heating fields.
 
-  - `cgx_max::I`: Maximum zonal group velocities.
+  - `cgx_max::I`: Maximum zonal group velocity.
 
-  - `cgy_max::I`: Maximum meridional group velocities.
+  - `cgy_max::I`: Maximum meridional group velocity.
 
-  - `cgz_max::J`: Maximum vertical group velocities.
+  - `cgz_max::I`: Maximum vertical group velocity.
 
-  - `zb::K`: Upper edge of the blocked layer.
+  - `zb::J`: Upper edge of the blocked layer.
 
-  - `diffusion::J`: Diffusion induced by wave breaking.
+  - `diffusion::K`: Diffusion induced by wave breaking.
 
 # Arguments
 
@@ -119,8 +119,8 @@ struct WKB{
     G <: WKBIntegrals,
     H <: WKBTendencies,
     I <: Ref{<:AbstractFloat},
-    J <: AbstractArray{<:AbstractFloat, 3},
-    K <: AbstractMatrix{<:AbstractFloat},
+    J <: AbstractMatrix{<:AbstractFloat},
+    K <: AbstractArray{<:AbstractFloat, 3},
 }
     nxray::A
     nyray::A
@@ -140,9 +140,9 @@ struct WKB{
     tendencies::H
     cgx_max::I
     cgy_max::I
-    cgz_max::J
-    zb::K
-    diffusion::J
+    cgz_max::I
+    zb::J
+    diffusion::K
 end
 
 function WKB(namelists::Namelists, domain::Domain)::WKB
@@ -161,8 +161,7 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
         WKBIncrements(0, 0, 0, 0),
         WKBIntegrals(0, 0, 0),
         WKBTendencies(0, 0, 0),
-        [Ref(0.0) for i in 1:2]...,
-        zeros(0, 0, 0),
+        [Ref(0.0) for i in 1:3]...,
         zeros(0, 0),
         zeros(0, 0, 0),
     )
@@ -260,7 +259,7 @@ function WKB(
     tendencies = WKBTendencies(nxx, nyy, nzz)
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
-    cgz_max = zeros(nxx, nyy, nzz)
+    cgz_max = Ref(0.0)
     zb = zeros(nxx, nyy)
     diffusion = zeros(nxx, nyy, nzz)
 

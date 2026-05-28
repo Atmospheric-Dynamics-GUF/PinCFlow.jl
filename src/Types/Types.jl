@@ -199,11 +199,10 @@ export DomainNamelist,
     Tracer,
     State,
     TracerPredictands,
-    TracerAuxiliaries,
     TracerIncrements,
     TracerReconstructions,
     TracerFluxes,
-    TracerForcings,
-    TracerWKBImpact
+    TracerWKBIntegrals,
+    TracerWKBTendencies
 
 end

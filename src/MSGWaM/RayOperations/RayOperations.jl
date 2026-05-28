@@ -23,6 +23,7 @@ include("compute_merge_index.jl")
 include("compute_saturation_integrals.jl")
 include("compute_spectral_bounds.jl")
 include("compute_wave_action_integral.jl")
+include("copy_increments!.jl")
 include("copy_rays!.jl")
 include("get_physical_extent.jl")
 include("get_physical_position.jl")
@@ -38,6 +39,7 @@ export check_rays,
     compute_saturation_integrals,
     compute_spectral_bounds,
     compute_wave_action_integral,
+    copy_increments!,
     copy_rays!,
     get_physical_extent,
     get_physical_position,

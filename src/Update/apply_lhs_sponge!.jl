@@ -215,6 +215,18 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations by dispatching to the appropriate method.
+
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
 ```
@@ -226,17 +238,20 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations if `state.namelists.tracer.apply_lhs_sponge_to_tracer` is `true`.
 
 In each tracer equation, the update is given by
 
 ```math
-\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
+\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\rho \\chi_\\mathrm{R}\\right),
 ```
+
+where ``\\chi_\\mathrm{R}`` is computed with the function `relaxed_chi` in `state.namelists.tracer`.
 
 # Arguments
 
@@ -605,6 +620,26 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
+)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup apply_lhs_sponge!(
+        state,
+        dt,
+        time,
+        variable,
+        Val(tracer_setup),
+    )
+
+    return
+end
+
+function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
     return
@@ -614,20 +649,36 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
+    (; rhobar) = state.atmosphere
     (; tracerpredictands) = state.tracer
-    (; initialtracer) = state.tracer.tracerauxiliaries
+    (; relaxed_chi, apply_lhs_sponge_to_tracer) = state.namelists.tracer
+    (; lref, tref) = state.constants
+    (; x, y, zc) = state.grid
+
+    if !apply_lhs_sponge_to_tracer
+        return
+    end
 
     @ivy for field in fieldnames(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in k0:k1, j in j0:j1, i in i0:i1
+            xdim = x[i] * lref
+            ydim = y[j] * lref
+            zcdim = zc[i, j, k] * lref
+            tdim = time * tref
+            dtdim = dt * tref
             alpha = alphar[i, j, k]
             chi_old = chi[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
-            chi_new = (1.0 - beta) * initialtracer[i, j, k] + beta * chi_old
+            chi_new =
+                (1.0 - beta) *
+                relaxed_chi(xdim, ydim, zcdim, tdim, dtdim) *
+                rhobar[i, j, k] + beta * chi_old
             chi[i, j, k] = chi_new
         end
     end

@@ -50,7 +50,7 @@ using .Examples
             z_size = 5
 
             keywords = (
-                output_file = directory * "pincflow_output.h5",
+                output_file = directory * "/pincflow_output.h5",
                 visualize = false,
             )
 
