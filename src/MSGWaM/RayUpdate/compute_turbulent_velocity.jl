@@ -6,18 +6,6 @@ compute_turbulent_velocity(
     i::Integer,
     j::Integer,
     k::Integer,
-)::Tuple{<:Complex, <:Complex, <:Complex}
-```
-
-Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{0,r}``, ``Q_{1,r}``, and ``Q_{2,r}`` for each ray volume.
-
-```julia 
-compute_turbulent_velocity(
-    state::State,
-    r::Integer,
-    i::Integer,
-    j::Integer,
-    k::Integer,
     beta::AbstractFloat,
 )::Complex
 ```
@@ -103,26 +91,6 @@ and turbulence mixing lengths ``l_d``, ``l_v``, and ``l_b`` stored in `state.tur
   - `phi`: Gravity wave phase ``\\phi``.
 """
 function compute_turbulent_velocity end
-
-function compute_turbulent_velocity(
-    state::State,
-    r::Integer,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-)::Tuple{<:Complex, <:Complex, <:Complex}
-    (; rays) = state.wkb
-
-    @ivy if rays.dens[r, i, j, k] == 0.0
-        return 0.0, 0.0, 0.0
-    end
-
-    q0r = compute_turbulent_velocity(state, r, i, j, k, 0.0)
-    q1r = compute_turbulent_velocity(state, r, i, j, k, 1.0)
-    q2r = compute_turbulent_velocity(state, r, i, j, k, 2.0)
-
-    return q0r, q1r, q2r
-end
 
 function compute_turbulent_velocity(
     state::State,

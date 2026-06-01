@@ -19,7 +19,7 @@ Module for the construction of a single composite type that contains all informa
 
   - [`PinCFlow.Types.TracerTypes`](@ref)
 
-  - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
+  - [`PinCFlow.Types.TurbulenceTypes`](@ref)
 """
 module Types
 
