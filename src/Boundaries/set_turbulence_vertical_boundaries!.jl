@@ -2,27 +2,7 @@
 ```julia
 set_turbulence_vertical_boundaries!(
     state::State,
-    variables::AbstractBoundaryVariables,
-)
-```
-
-Enforce vertical boundary conditions for turbulence energies by dispatching to a turbulence-configuration-specific method.
-
-```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::AbstractBoundaryVariables,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-```
-
-Return for configurations without turbulence parameterization.
-
-```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -32,7 +12,6 @@ Enforce vertical boundary conditions for turbulent kinetic energy.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -42,7 +21,6 @@ Enforce vertical boundary conditions for reconstructions of turbulent kinetic en
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -52,7 +30,6 @@ Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to z
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -74,30 +51,7 @@ function set_turbulence_vertical_boundaries! end
 
 function set_turbulence_vertical_boundaries!(
     state::State,
-    variables::AbstractBoundaryVariables,
-)
-    (; turbulence_scheme) = state.namelists.turbulence
-
-    @dispatch_turbulence_scheme set_turbulence_vertical_boundaries!(
-        state,
-        variables,
-        Val(turbulence_scheme),
-    )
-    return
-end
-
-function set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::AbstractBoundaryVariables,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-    return
-end
-
-function set_turbulence_vertical_boundaries!(
-    state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
     (; turbulencepredictands) = state.turbulence
@@ -117,7 +71,6 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
@@ -136,7 +89,6 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    turbulence_scheme::Val{:TKEScheme},
 )
     (; nz, ko, k0, k1) = state.domain
     (; z_size) = state.namelists.domain
@@ -160,7 +112,6 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Val{:TKEScheme},
 )
     return
 end
