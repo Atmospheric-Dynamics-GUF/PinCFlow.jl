@@ -19,7 +19,7 @@ Apply a 3D box filter to smooth in all spatial directions.
 Applies the moving average
 
 ```math
-\\tilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 3} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{\\lambda, \\mu, \\nu},
+\\tilde{\\phi}_{i, j, k} = \\left(\\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} J_{\\lambda, \\mu, \\nu}\\right)^{- 1} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} J_{\\lambda, \\mu, \\nu} \\phi_{\\lambda, \\mu, \\nu},
 ```
 
 where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_order`).
@@ -38,7 +38,7 @@ Apply a 2D box filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
 Applies the moving average
 
 ```math
-\\tilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 2} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{\\lambda, j, \\nu},
+\\tilde{\\phi}_{i, j, k} = \\left(\\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} J_{\\lambda, j, \\nu}\\right)^{- 1} \\sum\\limits_{\\lambda = i - N_\\mathrm{s}}^{i + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} J_{\\lambda, j, \\nu} \\phi_{\\lambda, j, \\nu},
 ```
 
 where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_order`).
@@ -57,7 +57,7 @@ Apply a 2D box filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
 Applies the moving average
 
 ```math
-\\tilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 2} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{i, \\mu, \\nu},
+\\tilde{\\phi}_{i, j, k} = \\left(\\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} J_{i, \\mu, \\nu}\\right)^{- 1} \\sum\\limits_{\\mu = j - N_\\mathrm{s}}^{j + N_\\mathrm{s}} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} J_{i, \\mu, \\nu} \\phi_{i, \\mu, \\nu},
 ```
 
 where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_order`).
@@ -76,7 +76,7 @@ Apply a 1D box filter to smooth in ``\\hat{z}``.
 Applies the moving average
 
 ```math
-\\tilde{\\phi}_{i, j, k} = \\left(2 N_\\mathrm{s} + 1\\right)^{- 1} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} \\phi_{i, j, \\nu},
+\\tilde{\\phi}_{i, j, k} = \\left(\\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} J_{i, j, \\nu}\\right)^{- 1} \\sum\\limits_{\\nu = k - N_\\mathrm{s}}^{k + N_\\mathrm{s}} J_{i, j, \\nu} \\phi_{i, j, \\nu},
 ```
 
 where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_order`).
