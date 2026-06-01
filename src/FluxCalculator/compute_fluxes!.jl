@@ -321,8 +321,6 @@ The computation is analogous to that of the density fluxes.
 
   - `tracer_setup`: General tracer-transport configuration.
 
-  - `turbulence_scheme`: General turbulence parameterization configuration.
-
 # See also
 
   - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
@@ -1766,8 +1764,6 @@ function compute_fluxes!(
 end
 
 function compute_fluxes!(state::State, variable::TKE)
-
-    # Get all necessary fields.
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
