@@ -134,7 +134,7 @@ The background fields are given by
     P \\left(z \\right) & =
     \\begin{cases}
         p_0 \\left( 1 - \\frac{\\kappa\\sigma z}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} & z \\leq z_{\\mathrm{TP}}\\;, \\\\
-        p_0^{\\kappa} p_{\\mathrm{TP}}^{1/\\gamma}\\exp\\left[-\\frac{\\sigma(z-z_{\\mathrm{TP}})}{\\gamma T_{\\mathrm{TP}}}\\right] & z > z_{\\mathrm{TP}} \\;,
+        p_{\\mathrm{TP}} \\exp\\left[-\\frac{\\sigma(z-z_{\\mathrm{TP}})}{\\gamma T_{\\mathrm{TP}}}\\right] & z > z_{\\mathrm{TP}} \\;,
     \\end{cases} \\\\
     \\bar{\\theta}\\left(z\\right) & =
     \\begin{cases}
@@ -406,8 +406,7 @@ function Atmosphere(
             thetabar[i, j, k] =
                 theta0 * exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop))
             pbar[i, j, k] =
-                p0^kappa *
-                ptrop^gammainv *
+                ptrop *
                 exp(-sig * gammainv / ttrop * (zc[i, j, k] - ztrop))
         end
     end
