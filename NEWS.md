@@ -7,7 +7,7 @@ PinCFlow.jl follows the interpretation of
 
   - PinCFlow.jl has been extended with a turbulence parameterization. Using the new prognostic variable turbulent kinetic energy (TKE), vertical diffusion can now be applied to momentum, potential temperature, and tracers. Configuration is provided through the `TurbulenceNamelist`. The turbulence parameterization is enabled by default.
 
-  - An experimental feature has been addd that damps the wave-action density of ray volumes through wave-induced turbulence. As this feature has not yet been thoroughly validated, it is disabled by default. It can be enabled by setting the WKB-namelist parameter `turbulent_damping = true`.
+  - An experimental feature has been added that damps the wave-action density of ray volumes through wave-induced turbulence. As this feature has not yet been thoroughly validated, it is disabled by default. It can be enabled by setting the WKB-namelist parameter `turbulent_damping = true`.
 
   - This release also includes two bug fixes:
 
