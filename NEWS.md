@@ -11,9 +11,11 @@ PinCFlow.jl follows the interpretation of
 
   - This release also includes two bug fixes:
 
-    - A correction to the documentation of `Grid`.
+      - The averaging using the box filter has been adjusted to respect the irregular grid.
 
-    - A minor correction to the mean-flow interpolation. This bug had a negligible impact over uneven terrain and no impact over flat terrain.
+      - A minor correction to the mean-flow interpolation. This bug had a negligible impact over uneven terrain and no impact over flat terrain.
+
+  - These's been a minor correction to the documentation of 'Grid'.
 
 ## Release 3.0.0
 
