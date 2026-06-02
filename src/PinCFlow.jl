@@ -80,6 +80,7 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    TurbulenceNamelist,
     Namelists
 
 # Export model-state constructor.

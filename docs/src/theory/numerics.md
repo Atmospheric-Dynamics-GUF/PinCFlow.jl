@@ -126,6 +126,16 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
 
  1. The right-hand sides are integrated over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
+
+In the case of turbulent diffusion by the turbulent kinetic energy, the momentum is updated using the Crank-Nicolson scheme before each time-step
+
+$$\begin{align*}
+    \frac{u^{n+1}-u^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \frac{v^{n+1}-v^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \frac{w^{n+1}-w^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \hat{w}^{n+1} &= G^{13}u^{n+1} + G^{23}v^{n+1} + \frac{1}{J}w^{n+1}.
+\end{align*}$$
+
 ### Boussinesq mode
 
 In Boussinesq mode, the time scheme remains mostly unchanged. As has been mentioned in the description of the physics, the continuity equation is removed, as are the density fluctuations everywhere except in the auxiliary equation and the buoyancy term of the transformed-vertical-momentum equation. Furthermore, $\bar{\rho}$, $\bar{\theta}$, $P$ and $N^2$ are replaced with $\rho_0$, $\theta_0$, $P_0$ and $N_0^2$, respectively.
@@ -258,6 +268,10 @@ $$\begin{align*}
 
  1. The right-hand sides are integrated over over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
+In the case of turbulent diffusion by the turbulent kinetic energy, the potential temperature is updated using the Crank-Nicolson scheme before each time-step
+
+$$\frac{\theta^{n+1}-\theta^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \theta}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \theta}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
+
 ### Tracer transport
 
 Since its equation does not have a right-hand side, the tracer is only updated in the second and fifth step of the time scheme, analogous to the update of the mass-weighted potential temperature in compressible mode. At each RK-stage of the second step, one has
@@ -267,6 +281,10 @@ $$\begin{align*}
     \left(\rho \chi\right)^{m + 1} & = \left(\rho \chi\right)^m + \beta_\mathrm{RK}^m q^{\rho \chi, m + 1},\\
     \left(\rho \chi\right)^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left[\left(\rho \chi\right)^{m + 1} + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2} \rho \chi_\mathrm{R}\right].
 \end{align*}$$
+
+In the case of turbulent diffusion by the turbulent kinetic energy, the tracer is updated using the Crank-Nicolson scheme before each time-step,
+
+$$\frac{\chi^{n+1}-\chi^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\\chi\right)}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \chi}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
 
 ### MS-GWaM
 
