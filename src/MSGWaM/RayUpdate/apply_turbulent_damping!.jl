@@ -88,7 +88,7 @@ function apply_turbulent_damping!(
         return
     end
 
-    fc = coriolis_frequency / tref
+    fc = coriolis_frequency * tref
 
     @ivy kr = rays.k[r, i, j, k]
     @ivy lr = rays.l[r, i, j, k]
