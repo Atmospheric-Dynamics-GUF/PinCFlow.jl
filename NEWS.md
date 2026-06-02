@@ -3,6 +3,18 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 4.0.0
+
+  - PinCFlow.jl has been extended with a turbulence parameterization. Using the new prognostic variable turbulent kinetic energy (TKE), vertical diffusion can now be applied to momentum, potential temperature, and tracers. Configuration is provided through the `TurbulenceNamelist`. The turbulence parameterization is enabled by default.
+
+  - An experimental feature has been addd that damps the wave-action density of ray volumes through wave-induced turbulence. As this feature has not yet been thoroughly validated, it is disabled by default. It can be enabled by setting the WKB-namelist parameter `turbulent_damping = true`.
+
+  - This release also includes two bug fixes:
+
+    - A correction to the documentation of `Grid`.
+
+    - A minor correction to the mean-flow interpolation. This bug had a negligible impact over uneven terrain and no impact over flat terrain.
+
 ## Release 3.0.0
 
 Breaking changes, performance improvements, and compilation acceleration:
