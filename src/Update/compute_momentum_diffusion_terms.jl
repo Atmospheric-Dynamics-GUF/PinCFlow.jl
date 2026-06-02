@@ -165,7 +165,6 @@ Compute and return the diffusive vertical momentum fluxes in ``\\hat{z}``-direct
   - `variable`: Wind direction.
 
   - `direction`: Direction of the flux.
-
 """
 function compute_momentum_diffusion_terms end
 
@@ -312,8 +311,6 @@ function compute_momentum_diffusion_terms(
     direction::X,
 )::AbstractFloat
     (; dx, dz, met) = state.grid
-    (; predictands) = state.variables
-    (; grid) = state
 
     wr =
         0.5 * (
@@ -345,8 +342,6 @@ function compute_momentum_diffusion_terms(
     direction::Y,
 )::AbstractFloat
     (; dy, dz, met) = state.grid
-    (; predictands) = state.variables
-    (; grid) = state
 
     wf =
         0.5 * (
@@ -378,8 +373,6 @@ function compute_momentum_diffusion_terms(
     direction::Z,
 )::AbstractFloat
     (; dx, dy, dz, met) = state.grid
-    (; predictands) = state.variables
-    (; grid) = state
 
     wr =
         0.5 * (

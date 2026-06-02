@@ -22,6 +22,7 @@ include("@dispatch_limiter_type.jl")
 include("@dispatch_merge_mode.jl")
 include("@dispatch_model.jl")
 include("@dispatch_tracer_setup.jl")
+include("@dispatch_turbulence_scheme.jl")
 include("@dispatch_wkb_mode.jl")
 include("@dispatch.jl")
 
@@ -34,6 +35,7 @@ include("GridNamelist.jl")
 include("SpongeNamelist.jl")
 include("WKBNamelist.jl")
 include("TracerNamelist.jl")
+include("TurbulenceNamelist.jl")
 include("Namelists.jl")
 
 export @dispatch_background,
@@ -44,6 +46,7 @@ export @dispatch_background,
     @dispatch_model,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
+    @dispatch_turbulence_scheme,
     @dispatch
 
 export DomainNamelist,
@@ -55,6 +58,7 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    TurbulenceNamelist,
     Namelists
 
 end
