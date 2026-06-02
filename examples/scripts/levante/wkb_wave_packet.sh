@@ -1,28 +1,46 @@
 #!/bin/bash
-##SBATCH --partition=compute
-#SBATCH --partition=interactive
-#SBATCH --job-name=wkb_wave_packet
+#SBATCH --partition=compute
+#SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=64
 #SBATCH --hint=nomultithread
-#SBATCH --time=0-00:15:00
+#SBATCH --time=0-08:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
+##SBATCH --array=0-1
 
+set -euo pipefail
 set -x
 
-# Set Intel MPI configuration on compute partition.
-# export I_MPI_PMI=pmi
-# export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
+export HDF5_USE_FILE_LOCKING=FALSE
+export ROMIO_LUSTRE_LOCKING=0
+export I_MPI_PMI=pmi
+export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
-# Configure MPI and HDF5.
-julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"])'
-julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
+RUN="2705_02"
 
-# Run the model on compute partition.
-# srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/wkb_wave_packet.jl 4 4 4 1>wkb_wave_packet.log 2>&1
+# Julia environment
+julia --project -e 'import Pkg; Pkg.instantiate()'
 
-# Run the model on interactive partition.
-mpiexec -n 64 julia examples/scripts/wkb_wave_packet.jl 4 4 4 1>wkb_wave_packet.log 2>&1
+# MPI
+julia --project -e '
+using MPIPreferences
+MPIPreferences.use_system_binary(
+    library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"]
+)
+'
 
-exit 0
+# HDF5
+julia --project -e '
+using HDF5
+HDF5.API.set_libraries!(
+    "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so",
+    "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so"
+)
+'
+
+# Run
+srun --cpu_bind=verbose \
+     julia --project examples/scripts/wkb_wave_packet.jl \
+     4 4 4 1\
+     > mountain_wave_${RUN}.log 2>&1

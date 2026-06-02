@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-run = "1805_01"
+run = "2605_01"
 
-tmax = 2.0e3
+tmax = 6.0e5
 
 #outfile = "/home/b/b383844/PinCFlow/sedimentation/results/mountain_wave_$(run).h5"
 outfile = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_$(run).h5"
@@ -100,7 +100,7 @@ sponge = SpongeNamelist(;
     relaxed_u = (x, y, z, t, dt) -> 10.0 + (10.0 * sin(2 * pi * t/ 1.0e5)),
 )
 
-wkb = WKBNamelist(; multiplication_factor = 6, wkb_mode = MultiColumn(), filter_order = 3)
+wkb = WKBNamelist(; multiplication_factor = 6, wkb_mode = MultiColumn(), filter_order = 3, filter_type = Box())
 
 # save sbatch script copy and wkb_mountain_wave.jl to output directory
 MPI.Init()

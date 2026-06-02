@@ -1,13 +1,13 @@
 # examples/scripts/wkb_wave_packet.jl
 
-using Pkg
+#using Pkg
 
-Pkg.activate("examples")
+#Pkg.activate("examples")
 
 using MPI
 using HDF5
-using CairoMakie
-using Revise
+#using CairoMakie
+#using Revise
 using PinCFlow
 
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
@@ -37,10 +37,10 @@ l = 16 * pi / ly
 m = 32 * pi / lz
 
 model = Compressible()
-background = Realistic()
+background = Realistic() #Isothermal()
 coriolis_frequency = 0.0001
 
-atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
+atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(;
     x_size,
     y_size,
@@ -51,17 +51,17 @@ domain = DomainNamelist(;
     base_comm = MPI.COMM_SELF,
 )
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp) = auxiliary_state.constants
+(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
 include("wave_packet_tools.jl")
 
-atmosphere = AtmosphereNamelist(; model, background, coriolis_frequency)
+atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     save_ray_volumes = true,
-    output_file = "wkb_wave_packet.h5",
+    output_file = "wkb_wave_packet5.h5",
     tmax = 900.0,
-    output_interval = 900.0,
+    output_interval = 10.0,
 )
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
@@ -70,15 +70,14 @@ wkb = WKBNamelist(;
         l,
         m,
         omega(x, y, z),
-        rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
-        n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z),
+        wave_action_density(x, y, z),
     ),
 )
 
 integrate(Namelists(; atmosphere, domain, output, wkb))
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("wkb_wave_packet.h5") do data
+#=if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open("wkb_wave_packet2.h5") do data
         plot_output(
             "examples/results/wkb_wave_packet.svg",
             data,
@@ -87,4 +86,4 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         )
         return
     end
-end
+end=#

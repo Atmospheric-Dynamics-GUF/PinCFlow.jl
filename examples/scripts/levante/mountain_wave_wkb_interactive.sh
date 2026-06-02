@@ -11,7 +11,7 @@
 
 set -x
 
-RUN="1805_01"
+RUN="2605_01"
 
 # Set Intel MPI configuration on compute partition.
 export I_MPI_PMI=pmi

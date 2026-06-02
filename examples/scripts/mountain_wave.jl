@@ -14,12 +14,12 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-run = "1805_02"
+run = "2705_01"
 
 #outfile = "/home/b/b383844/PinCFlow/sedimentation/results/mountain_wave_$(run).h5"
 outfile = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_$(run).h5"
 
-tmax = 6.0e5
+tmax = 2.0e3
 
 h0 = 150.0
 l0 = 5000.0

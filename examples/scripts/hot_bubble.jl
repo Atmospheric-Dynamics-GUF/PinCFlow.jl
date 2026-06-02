@@ -1,13 +1,13 @@
 # examples/scripts/hot_bubble.jl
 
-using Pkg
+#using Pkg
 
-Pkg.activate("examples")
+#Pkg.activate("examples")
 
 using MPI
 using HDF5
-using CairoMakie
-using Revise
+#using CairoMakie
+#using Revise
 using PinCFlow
 
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
@@ -40,7 +40,7 @@ output = OutputNamelist(;
 
 integrate(Namelists(; atmosphere, discretization, domain, output))
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+#=if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     h5open("hot_bubble.h5") do data
         plot_output(
             "examples/results/hot_bubble.svg",
@@ -49,4 +49,4 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         )
         return
     end
-end
+end=#

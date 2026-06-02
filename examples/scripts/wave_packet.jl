@@ -1,13 +1,13 @@
 # examples/scripts/wave_packet.jl
 
-using Pkg
+#using Pkg
 
-Pkg.activate("examples")
+#Pkg.activate("examples")
 
 using MPI
 using HDF5
-using CairoMakie
-using Revise
+#using CairoMakie
+#using Revise
 using PinCFlow
 
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
@@ -36,10 +36,17 @@ k = 16 * pi / lx
 l = 16 * pi / ly
 m = 32 * pi / lz
 
-background = Realistic()
+background = Realistic() #Isothermal()
 coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
+
+poisson = PoissonNamelist(; initial_cleaning = false)
+
+ice = IceNamelist(;
+    ice_setup = NoIce(),
+)
+
 domain = DomainNamelist(;
     x_size,
     y_size,
@@ -50,7 +57,7 @@ domain = DomainNamelist(;
     base_comm = MPI.COMM_SELF,
 )
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp) = auxiliary_state.constants
+(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
 
 include("wave_packet_tools.jl")
 
@@ -68,15 +75,15 @@ atmosphere = AtmosphereNamelist(;
 )
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
-    output_variables = (:u, :v, :w),
+    output_variables = (:u, :v, :w, :thetap, :pip, :us, :vs, :ws),
     output_file = "wave_packet.h5",
     tmax = 900.0,
-    output_interval = 900.0,
+    output_interval = 100.0,
 )
 
-integrate(Namelists(; atmosphere, domain, output))
+integrate(Namelists(; atmosphere, domain, output, ice, poisson))
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+#=if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     h5open("wave_packet.h5") do data
         plot_output(
             "examples/results/wave_packet.svg",
@@ -88,4 +95,4 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         )
         return
     end
-end
+end=#

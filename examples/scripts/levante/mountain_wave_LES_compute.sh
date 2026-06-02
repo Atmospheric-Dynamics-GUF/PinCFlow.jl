@@ -17,7 +17,7 @@ export ROMIO_LUSTRE_LOCKING=0
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
-RUN="1305_02"
+RUN="2705_01"
 
 # Julia environment
 julia --project -e 'import Pkg; Pkg.instantiate()'
