@@ -32,6 +32,7 @@ WKBNamelist(;
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
+    turbulent_damping::Bool = false,
 )::WKBNamelist
 ```
 
@@ -87,8 +88,13 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `initial_wave_field::FunctionWrapper{NTuple{5, Float64}, Tuple{Int, Float64, Float64, Float64}}`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
 
+  - `turbulent_damping::Bool`: Damping of wave-action density due to turbulence.
+
 !!! danger "Experimental"
     The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+
+!!! danger "Experimental"
+    The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
 """
 struct WKBNamelist
     nrx::Int
@@ -118,6 +124,7 @@ struct WKBNamelist
         NTuple{5, Float64},
         Tuple{Int, Float64, Float64, Float64},
     }
+    turbulent_damping::Bool
 end
 
 function WKBNamelist(;
@@ -146,6 +153,7 @@ function WKBNamelist(;
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
+    turbulent_damping::Bool = false,
 )::WKBNamelist
     return WKBNamelist(
         Int(nrx),
@@ -172,5 +180,6 @@ function WKBNamelist(;
         Float64(drag_coefficient),
         Int(wave_modes),
         initial_wave_field,
+        turbulent_damping,
     )
 end

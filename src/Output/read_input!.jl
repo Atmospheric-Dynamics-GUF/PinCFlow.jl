@@ -83,6 +83,12 @@ function read_input!(state::State)
             end
         end
 
+        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
+                file["tke"][iid, jjd, kkd, iin] .*
+                (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+        end
+
         # Read ray-volume properties.
         if wkb_mode != :NoWKB
             for (output_name, field_name) in zip(

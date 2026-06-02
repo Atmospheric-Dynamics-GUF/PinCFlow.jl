@@ -323,6 +323,47 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
+        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            if prepare_restart || :tke in output_variables
+                create_dataset(
+                    file,
+                    "tke",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if :shear_production in output_variables
+                create_dataset(
+                    file,
+                    "shear_production",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if :buoyancy_production in output_variables
+                create_dataset(
+                    file,
+                    "buoyancy_production",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+        end
+
         # Create datasets for WKB variables.
         if wkb_mode != :NoWKB
 
@@ -543,6 +584,30 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(
                     file["wchi0"],
                 )["long_name"] = "leading-order vertical GW-tracer flux"
+            end
+        end
+
+        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            if prepare_restart || :tke in output_variables
+                attributes(file["tke"])["unuits"] = "m^2*s^-2"
+                attributes(file["tke"])["label"] = L"e_\\mathrm{k}"
+                attributes(
+                    file["tke"],
+                )["long_name"] = "mass-specific turbulent kinetic energy"
+            end
+
+            if :shear_production in output_variables
+                attributes(file["shear_production"])["unuits"] = "m^2*s^-3"
+                attributes(file["shear_production"])["label"] =
+                    L"\mathcal{S}"
+                attributes(file["shear_production"])["long_name"] = "shear production"
+            end
+
+            if :buoyancy_production in output_variables
+                attributes(file["buoyancy_production"])["unuits"] = "m^2*s^-3"
+                attributes(file["buoyancy_production"])["label"] =
+                    L"\mathcal{B}"
+                attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
             end
         end
 
