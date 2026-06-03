@@ -199,6 +199,11 @@ function WKB(
         error("Error in WKB: z_size == 1 || dmr_factor == 0!")
     end
 
+    # Check if the multiplication factor is set correctly.
+    if multiplication_factor < 4 || multiplication_factor % 2 != 0
+        error("multiplication_factor must be a multiple of two!")
+    end
+
     # Set zonal ray-volume count.
     if x_size == 1
         nxray = 1
@@ -217,7 +222,7 @@ function WKB(
     nzray = multiplication_factor * nrz * nrm
 
     # Set maximum ray-volume count.
-    nray_max = nxray * nyray * nzray * wave_modes
+    nray_max = nxray * nyray * nzray
 
     # Set spectral dimension of ray-volume array.
     if nxray > 1
@@ -235,7 +240,7 @@ function WKB(
     else
         nzray_wrk = 1
     end
-    nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk * wave_modes
+    nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk
 
     # Set number of surface ray volumes.
     n_sfc = wave_modes

@@ -80,7 +80,7 @@ function merge_rays!(
 
     # Loop over grid cells.
     @dispatch_merge_mode @ivy for k in k0:k1, j in j0:j1, i in i0:i1
-        if nray[i, j, k] <= nray_max
+        if nray[i, j, k] < nray_max
             continue
         end
 
