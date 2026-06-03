@@ -55,7 +55,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `nzray_wrk::A`: `2 * nzray`.
 
-  - `nray_max::A`: Maximum ray-volume count allowed per grid-cell before merging is triggered (`nxray * nyray * nzray * namelists.wkb.wave_modes`).
+  - `nray_max::A`: Maximum ray-volume count allowed per grid cell before merging is triggered (`nxray * nyray * nzray`).
 
   - `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays (`nxray_wrk * nyray_wrk * nzray_wrk`).
 

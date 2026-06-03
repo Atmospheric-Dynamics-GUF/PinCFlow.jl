@@ -52,7 +52,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `nrm::Int`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
 
-  - `multiplication_factor::Int`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
+  - `multiplication_factor::Int`: Factor by which ray volumes are allowed to multiply in each dimension of physical space. The resulting threshold does not account for `wave_modes > 1`.
 
   - `dkr_factor::Float64`: Relative initial ray-volume extent in ``k``.
 
