@@ -18,10 +18,7 @@ set_turbulence_vertical_boundaries!(
 Enforce vertical boundary conditions for reconstructions of turbulent kinetic energy.
 
 ```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-)
+set_turbulence_vertical_boundaries!(state::State, variables::BoundaryFluxes)
 ```
 
 Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to zero.

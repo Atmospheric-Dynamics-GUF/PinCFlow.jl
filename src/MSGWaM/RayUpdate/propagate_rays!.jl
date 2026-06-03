@@ -229,7 +229,15 @@ function propagate_rays!(
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
-            apply_turbulent_damping!(state, r, i, j, k, zr, stepfrac[rkstage] * dt)
+            apply_turbulent_damping!(
+                state,
+                r,
+                i,
+                j,
+                k,
+                zr,
+                stepfrac[rkstage] * dt,
+            )
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -569,7 +577,15 @@ function propagate_rays!(
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
-            apply_turbulent_damping!(state, r, i, j, k, zr, jac[i, j, k] * dz / cgirz)
+            apply_turbulent_damping!(
+                state,
+                r,
+                i,
+                j,
+                k,
+                zr,
+                jac[i, j, k] * dz / cgirz,
+            )
 
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             rays.dens[r, i, j, k] =
