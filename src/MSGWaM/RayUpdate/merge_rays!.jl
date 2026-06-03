@@ -20,7 +20,7 @@ merge_rays!(
 
 Merge ray volumes in grid cells in which their count exceeds a threshold.
 
-This method checks in each grid cell if the number of ray volumes exceeds a maximum that was determined from namelist parameters (`state.wkb.nray_max`). If it does, the ray volumes in that cell are merged such that the new count is smaller or equal to the threshold. This is done by binning them on a spectral grid with logarithmic spacing, defined from the minima and maxima of the contributing negative and positive wavenumbers in all spectral dimensions. The merging is performed such that the bounds of the new ray volumes coincide with the outermost bounds of the old ray volumes and wave action (or wave energy, depending on the merging strategy) is conserved.
+This method checks in each grid cell if the number of ray volumes exceeds a maximum that was determined from namelist parameters (`state.wkb.nray_max`). If it does, the ray volumes in that cell are merged such that the new count is smaller. This is done by binning them on a spectral grid with logarithmic spacing, defined from the minima and maxima of the contributing negative and positive wavenumbers in all spectral dimensions. The merging is performed such that the bounds of the new ray volumes coincide with the outermost bounds of the old ray volumes and wave action (or wave energy, depending on the merging strategy) is conserved.
 
 # Arguments
 
