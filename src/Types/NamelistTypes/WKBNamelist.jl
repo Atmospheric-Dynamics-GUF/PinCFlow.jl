@@ -54,11 +54,11 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `nrm::Int`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
 
-  - `k_bins::Int`: Number of ``k``-bins in the merging algorithm (must be an odd number).
+  - `k_bins::Int`: Number of ``k``-bins in the merging algorithm for single-column/multi-column mode (must be an odd number).
 
-  - `l_bins::Int`: Number of ``l``-bins in the merging algorithm (must be an odd number).
+  - `l_bins::Int`: Number of ``l``-bins in the merging algorithm for single-column/multi-column mode (must be an odd number).
 
-  - `m_bins::Int`: Number of ``m``-bins in the merging algorithm (must be an odd number). Note that the total number of bins acts as the per-grid-cell ray-volume-count threshold at which merging is triggered.
+  - `m_bins::Int`: Number of ``m``-bins in the merging algorithm for single-column/multi-column mode (must be an odd number).
 
   - `dkr_factor::Float64`: Relative initial ray-volume extent in ``k``.
 

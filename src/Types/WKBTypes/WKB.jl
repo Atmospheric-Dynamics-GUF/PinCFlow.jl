@@ -43,7 +43,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
 # Fields
 
-  - `bins::A`: Maximum ray-volume count allowed per grid cell before merging is triggered (`k_bins * l_bins * m_bins`).
+  - `bins::A`: Maximum ray-volume count allowed per grid cell before merging is triggered (equal to `n_sfc` in steady-state mode and `k_bins * l_bins * m_bins` otherwise).
 
   - `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays.
 
@@ -197,20 +197,25 @@ function WKB(
     # Set the number of surface ray volumes.
     n_sfc = nrx * nrk * nry * nrl * nrz * nrm * wave_modes
 
-    # Set the total number of bins.
-    bins = k_bins * l_bins * m_bins
+    # Set the total number of bins and work size of the ray-volume array.
+    if wkb_mode == Val(:SteadyState)
+        bins = nray_wrk = n_sfc
+    else
+        # Set the total number of bins.
+        bins = k_bins * l_bins * m_bins
 
-    # Check if the number of bins is large enough.
-    if bins < n_sfc
-        error(
-            "k_bins * l_bins * m_bins must not be smaller than nrx * nrk * nry * nrl * nrz * nrm * wave_modes",
-        )
+        # Check if the number of bins is large enough.
+        if bins < n_sfc
+            error(
+                "k_bins * l_bins * m_bins must not be smaller than nrx * nrk * nry * nrl * nrz * nrm * wave_modes",
+            )
+        end
+
+        # Determine the work size of the ray-volume array.
+        nray_wrk = 2 * bins
+        y_size > 1 && (nray_wrk *= 2)
+        x_size > 1 && (nray_wrk *= 2)
     end
-
-    # Determine the work size of the ray-volume array.
-    nray_wrk = 2 * bins
-    y_size > 1 && (nray_wrk *= 2)
-    x_size > 1 && (nray_wrk *= 2)
 
     # Allocate ray-volume arrays.
     nray = zeros(Int, nxx, nyy, nzz)
