@@ -13,7 +13,9 @@ WKBNamelist(;
     nrk::Integer = 1,
     nrl::Integer = 1,
     nrm::Integer = 1,
-    multiplication_factor::Integer = 4,
+    k_bins::Integer = 3,
+    l_bins::Integer = 3,
+    m_bins::Integer = 3,
     dkr_factor::Real = 1.0E-1,
     dlr_factor::Real = 1.0E-1,
     dmr_factor::Real = 1.0E-1,
@@ -52,7 +54,11 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `nrm::Int`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
 
-  - `multiplication_factor::Int`: Factor by which ray volumes are allowed to multiply in each dimension of physical space. The resulting threshold does not account for `wave_modes > 1`.
+  - `k_bins::Int`: Number of ``k``-bins in the merging algorithm (must be an odd number).
+
+  - `l_bins::Int`: Number of ``l``-bins in the merging algorithm (must be an odd number).
+
+  - `m_bins::Int`: Number of ``m``-bins in the merging algorithm (must be an odd number). Note that the total number of bins acts as the per-grid-cell ray-volume-count threshold at which merging is triggered.
 
   - `dkr_factor::Float64`: Relative initial ray-volume extent in ``k``.
 
@@ -103,7 +109,9 @@ struct WKBNamelist
     nrk::Int
     nrl::Int
     nrm::Int
-    multiplication_factor::Int
+    k_bins::Int
+    l_bins::Int
+    m_bins::Int
     dkr_factor::Float64
     dlr_factor::Float64
     dmr_factor::Float64
@@ -134,7 +142,9 @@ function WKBNamelist(;
     nrk::Integer = 1,
     nrl::Integer = 1,
     nrm::Integer = 1,
-    multiplication_factor::Integer = 4,
+    k_bins::Integer = 3,
+    l_bins::Integer = 3,
+    m_bins::Integer = 3,
     dkr_factor::Real = 1.0E-1,
     dlr_factor::Real = 1.0E-1,
     dmr_factor::Real = 1.0E-1,
@@ -162,7 +172,9 @@ function WKBNamelist(;
         Int(nrk),
         Int(nrl),
         Int(nrm),
-        Int(multiplication_factor),
+        Int(k_bins),
+        Int(l_bins),
+        Int(m_bins),
         Float64(dkr_factor),
         Float64(dlr_factor),
         Float64(dmr_factor),
