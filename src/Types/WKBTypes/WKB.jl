@@ -183,6 +183,14 @@ function WKB(
         error("Error in WKB: z_size == 1 || dmr_factor == 0!")
     end
 
+    # Check if initialization/launch specifications are correct.
+    if x_size == 1 && nrx > 1
+        error("nrx must be one for x_size == 1!")
+    end
+    if y_size == 1 && nry > 1
+        error("nry must be one for y_size == 1!")
+    end
+
     # Check if the numbers of bins are set correctly.
     if k_bins % 2 == 0
         error("k_bins must be an odd number!")
