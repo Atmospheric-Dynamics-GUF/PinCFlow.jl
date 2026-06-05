@@ -94,7 +94,7 @@ function write_output(
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; nray_max, rays, tendencies) = state.wkb
+    (; nray_max, rays, tendencies, integrals) = state.wkb
 
     # Print information.
     if master
@@ -430,6 +430,13 @@ function write_output(
                     file[string(field)][iid, jjd, kkd, iout] =
                         getfield(tendencies, field)[ii, jj, kk] .* scaling
                 end
+            end
+
+            if :e in output_variables
+                HDF5.set_extent_dims(file["e"], (x_size, y_size, z_size, iout))
+                file["e"][iid, jjd, kkd, iout] =
+                    integrals.e[ii, jj, kk] .* rhoref .*
+                    uref .^ 2
             end
         end
 
