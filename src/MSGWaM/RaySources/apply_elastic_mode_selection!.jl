@@ -23,7 +23,7 @@ N = k_{\\max}^{- 1} \\min \\left[k_{\\max}, \\frac{\\left(\\sum_k \\left|E_{j_k}
 where ``k_{\\max}`` is the minimum between the namelist parameter `maximum_mode_count` and the number of nonzero entries in `field`. Next, the neighbor similarity
 
 ```math
-S = \\left(k_{\\max} - 1\\right)^{- 1} \\sum\\limits_{k = 1}^{k_{\\max} - 1} \\exp \\left(- \\frac{\\left|E_{j_k} / E_{j_{k + 1}}\\right| - 1}{\\delta}\\right),
+S = \\left(k_{\\max} - 1\\right)^{- 1} \\sum\\limits_{k = 1}^{k_{\\max} - 1} \\exp \\left(- \\frac{\\left|E_{j_k} / E_{j_{k + 1}}\\right| - 1}{\\delta}\\right)
 ```
 
 is determined, where ``\\delta = 0.2`` defines one of three internal parameters. These two measures are combined in
