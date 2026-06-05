@@ -74,7 +74,7 @@ function apply_elastic_mode_selection!(
     (; sorted_wave_mode_indices) = state.wkb.elastic_mode_selection
 
     # Define the internal parameters of the algorithm.
-    delta = 0.2
+    delta = 0.02
     wn = 0.5
     ws = 0.5
 
