@@ -6,8 +6,8 @@ Pkg.activate("examples")
 
 using MPI
 using HDF5
-using CairoMakie
-using Revise
+#using CairoMakie
+#using Revise
 using PinCFlow
 
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
@@ -50,7 +50,7 @@ domain = DomainNamelist(;
     base_comm = MPI.COMM_SELF,
 )
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp) = auxiliary_state.constants
+(; g, kappa, rsp, lref, rhoref, thetaref, tref) = auxiliary_state.constants
 
 include("wave_packet_tools.jl")
 
@@ -76,7 +76,7 @@ output = OutputNamelist(;
 
 integrate(Namelists(; atmosphere, domain, output))
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+#=if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     h5open("wave_packet.h5") do data
         plot_output(
             "examples/results/wave_packet.svg",
@@ -88,4 +88,4 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         )
         return
     end
-end
+end=#

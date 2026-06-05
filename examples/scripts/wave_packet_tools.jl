@@ -1,21 +1,21 @@
 function ijk(x, y, z)
-    i = argmin(abs.(x .- auxiliary_state.grid.x))
-    j = argmin(abs.(y .- auxiliary_state.grid.y))
-    k = argmin(abs.(z .- auxiliary_state.grid.zc[i, j, :]))
+    i = argmin(abs.(x .- auxiliary_state.grid.x .* lref))
+    j = argmin(abs.(y .- auxiliary_state.grid.y .* lref))
+    k = argmin(abs.(z .- auxiliary_state.grid.zc[i, j, :] .* lref))
 
     return CartesianIndex(i, j, k)
 end
 
 function rhobar(x, y, z)
-    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)] .* rhoref
 end
 
 function thetabar(x, y, z)
-    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)] .* thetaref
 end
 
 function n2(x, y, z)
-    return auxiliary_state.atmosphere.n2[ijk(x, y, z)]
+    return auxiliary_state.atmosphere.n2[ijk(x, y, z)] ./ tref.^2
 end
 
 function envelope(x, y, z)

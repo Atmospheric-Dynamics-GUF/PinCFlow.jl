@@ -8,8 +8,12 @@ MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 PinCFlow = "230a4047-f24c-41d9-8d93-b3b8a5ef3847"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+
+[sources]
+PinCFlow = {path = ".."}
 
 [compat]
 CairoMakie = "0.15.6"
