@@ -24,6 +24,7 @@ include("@dispatch_model.jl")
 include("@dispatch_tracer_setup.jl")
 include("@dispatch_turbulence_scheme.jl")
 include("@dispatch_wkb_mode.jl")
+include("@dispatch_vertical_boundary_condition.jl")
 include("@dispatch.jl")
 
 include("DomainNamelist.jl")
@@ -47,6 +48,7 @@ export @dispatch_background,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
     @dispatch_turbulence_scheme,
+    @dispatch_vertical_boundary_condition,
     @dispatch
 
 export DomainNamelist,

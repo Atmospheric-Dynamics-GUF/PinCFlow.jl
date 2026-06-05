@@ -20,6 +20,7 @@ DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
+    vertical_boundary_condition::Symbol = :SolidWall,
 )::DomainNamelist
 ```
 
@@ -52,6 +53,8 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
   - `npz::Int`: Number of MPI processes in ``\\hat{z}``-direction.
 
   - `base_comm::MPI.Comm`: MPI base communicator.
+
+  - `vertical_boundary_condition::Symbol`: Vertical boundary condition.
 """
 struct DomainNamelist
     x_size::Int
@@ -67,6 +70,7 @@ struct DomainNamelist
     npy::Int
     npz::Int
     base_comm::MPI.Comm
+    vertical_boundary_condition::Symbol
 end
 
 function DomainNamelist(;
@@ -83,6 +87,7 @@ function DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
+    vertical_boundary_condition::Symbol = :SolidWall,
 )::DomainNamelist
     return DomainNamelist(
         Int(x_size),
@@ -98,5 +103,6 @@ function DomainNamelist(;
         Int(npy),
         Int(npz),
         base_comm,
+        vertical_boundary_condition,
     )
 end
