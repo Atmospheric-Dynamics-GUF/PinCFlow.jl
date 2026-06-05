@@ -1,8 +1,8 @@
 # examples/scripts/wave_packet.jl
 
-using Pkg
+#using Pkg
 
-Pkg.activate("examples")
+#Pkg.activate("examples")
 
 using MPI
 using HDF5
@@ -23,7 +23,7 @@ ly = 20000.0
 lz = 40000.0
 
 rx = 0.25
-ry = 0.25
+ry = 0 #ry = 0.25
 rz = 0.25
 
 x0 = 0.0
@@ -68,7 +68,7 @@ atmosphere = AtmosphereNamelist(;
 )
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
-    output_variables = (:u, :v, :w),
+    output_variables = (:u, :v, :w, :us, :vs, :ws, :pip, :thetap),
     output_file = "wave_packet.h5",
     tmax = 900.0,
     output_interval = 900.0,

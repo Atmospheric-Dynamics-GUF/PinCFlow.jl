@@ -48,24 +48,34 @@ function bhat(x, y, z)
 end
 
 function uhat(x, y, z)
-    return 1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
            (omega(x, y, z)^2 - coriolis_frequency^2) *
            (k * omega(x, y, z) + 1im * l * coriolis_frequency) *
            bhat(x, y, z)
 end
 
 function vhat(x, y, z)
-    return 1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im / m / n2(x, y, z) * (omega(x, y, z)^2 - n2(x, y, z)) /
            (omega(x, y, z)^2 - coriolis_frequency^2) *
            (l * omega(x, y, z) - 1im * k * coriolis_frequency) *
            bhat(x, y, z)
 end
 
 function what(x, y, z)
-    return 1im * omega(x, y, z) / n2(x, y, z) * bhat(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           1im * omega(x, y, z) / n2(x, y, z) * bhat(x, y, z)
 end
 
 function pihat(x, y, z)
-    return kappa / rsp / thetabar(x, y, z) * 1im / m *
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           kappa / rsp / thetabar(x, y, z) * 1im / m *
            (omega(x, y, z)^2 - n2(x, y, z)) / n2(x, y, z) * bhat(x, y, z)
+end
+
+function wave_action_density(x, y, z)
+    return n2(x, y, z) == 0.0 ? 0.0 :
+           rhobar(x, y, z) / 2 * omega(x, y, z) * (k^2 + l^2 + m^2) /
+           n2(x, y, z)^2 / (k^2 + l^2) * bhat(x, y, z)^2
 end
