@@ -21,9 +21,9 @@ This constructor creates a 3D parallelized grid for a terrain-following, vertica
 
 ```math
 \\begin{align*}
-    \\hat{x}_i & = - L_x / 2 + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\hat{x},\\\\
-    \\hat{y}_j & = - L_y / 2 + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\hat{y},\\\\
-    \\hat{z}_k & = \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\hat{z},\\\\
+    \\hat{x}_i & = - \\frac{L_x}{2} + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\hat{x},\\\\
+    \\hat{y}_j & = - \\frac{L_y}{2} + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\hat{y},\\\\
+    \\hat{z}_k & = \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\hat{z},
 \\end{align*}
 ```
 
@@ -57,9 +57,9 @@ and the non-Cartesian elements of the metric tensor are
 
 ```math
 \\begin{align*}
-    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\hat{x}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
-    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\hat{y}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
-    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\tilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\hat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\hat{y}}\\right)^2\\right]\\right\\}\\\\
+    G^{1 3} & = \\frac{h_{i + 1} - h_{i - 1}}{2 \\Delta \\hat{x}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
+    G^{2 3} & = \\frac{h_{j + 1} - h_{j - 1}}{2 \\Delta \\hat{y}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
+    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\tilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{i + 1} - h_{i - 1}}{2 \\Delta \\hat{x}}\\right)^2 + \\left(\\frac{h_{j + 1} - h_{j - 1}}{2 \\Delta \\hat{y}}\\right)^2\\right]\\right\\}\\\\
     & \\quad \\times \\left(\\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}}\\right)^2.
 \\end{align*}
 ```
@@ -84,9 +84,9 @@ Grid spacing:
 
 Horizontal coordinates:
 
-  - `x::B`: Cell-centered ``\\hat{x}``-coordinate of the entire domain.
+  - `x::B`: Cell-centered ``\\hat{x}``-coordinate.
 
-  - `y::B`: Cell-centered ``\\hat{y}``-coordinate of the entire domain.
+  - `y::B`: Cell-centered ``\\hat{y}``-coordinate.
 
 Topography:
 

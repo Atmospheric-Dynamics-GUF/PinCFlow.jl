@@ -37,6 +37,7 @@ WKBNamelist(;
     maximum_mode_count::Integer = wave_modes,
     minimum_power_fraction::Real = 1.0E+0,
     maximum_power_fraction::Real = 1.0E+0,
+    turbulent_damping::Bool = false,
 )::WKBNamelist
 ```
 
@@ -102,8 +103,13 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `maximum_power_fraction::Float64`: Maximum power fraction retained by the elastic-mode-selection algorithm.
 
+  - `turbulent_damping::Bool`: Damping of wave-action density due to turbulence.
+
 !!! danger "Experimental"
     The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+
+!!! danger "Experimental"
+    The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
 """
 struct WKBNamelist
     nrx::Int
@@ -138,6 +144,7 @@ struct WKBNamelist
     maximum_mode_count::Int
     minimum_power_fraction::Float64
     maximum_power_fraction::Float64
+    turbulent_damping::Bool
 end
 
 function WKBNamelist(;
@@ -171,6 +178,7 @@ function WKBNamelist(;
     maximum_mode_count::Integer = wave_modes,
     minimum_power_fraction::Real = 1.0E+0,
     maximum_power_fraction::Real = 1.0E+0,
+    turbulent_damping::Bool = false,
 )::WKBNamelist
     return WKBNamelist(
         Int(nrx),
@@ -202,5 +210,6 @@ function WKBNamelist(;
         Int(maximum_mode_count),
         Float64(minimum_power_fraction),
         Float64(maximum_power_fraction),
+        turbulent_damping,
     )
 end

@@ -106,6 +106,33 @@ compute_volume_force(
 
 Return the tracer flux convergence due to gravity waves.
 
+```julia
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+)::AbstractFloat
+```
+
+Return the mass-weighted impact of shear ``\\mathcal{S}`` and buoyancy ``\\mathcal{B}`` on the TKE, given by 
+
+```math
+\\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\mathcal{S} + \\rho\\mathcal{B}
+```
+
+where 
+
+```math 
+\\begin{align*}
+\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2\\right] \\;, \\\\
+\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
+\\end{align*}
+```
+
+and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively.
+
 # Arguments
 
   - `state`: Model state.
@@ -123,6 +150,8 @@ Return the tracer flux convergence due to gravity waves.
 # See also
 
   - [`PinCFlow.Update.conductive_heating`](@ref)
+
+  - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
 """
 function compute_volume_force end
 
@@ -238,12 +267,47 @@ function compute_volume_force(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; leading_order_impact) = state.namelists.tracer
-    (; chiq0) = state.tracer.tracerforcings
+    (; dchidt0) = state.tracer.tracerwkbtendencies
     (; model) = state.namelists.atmosphere
 
+    impact = 0.0
+
     @ivy if leading_order_impact && model == :Compressible
-        return chiq0.dchidt[i, j, k]
-    else
-        return 0.0
+        impact += dchidt0[i, j, k]
     end
+    return impact
+end
+
+function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+)::AbstractFloat
+    (; shear_production, buoyancy_production) =
+        state.turbulence.turbulenceauxiliaries
+    (; rho) = state.variables.predictands
+    (; rhobar, n2) = state.atmosphere
+    (; jac, dz) = state.grid
+    (; g_ndim) = state.constants
+
+    shear =
+        turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
+            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
+            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
+        )
+
+    @ivy shear_production[i, j, k] = shear
+
+    @ivy bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
+    @ivy bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
+
+    @ivy buoyancy =
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+
+    @ivy buoyancy_production[i, j, k] = buoyancy
+
+    @ivy return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end

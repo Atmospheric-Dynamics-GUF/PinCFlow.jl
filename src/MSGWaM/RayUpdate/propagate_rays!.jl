@@ -85,6 +85,8 @@ The group velocities that are calculated for the propagation in physical space a
 \\end{align*}
 ```
 
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
+
 ```julia
 propagate_rays!(
     state::State,
@@ -122,6 +124,8 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 
 the second term is integrated with the pseudo-time step ``J \\Delta \\hat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\hat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
 
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
+
 If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
 
 # Arguments
@@ -153,6 +157,8 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.apply_turbulent_damping!`](@ref)
 """
 function propagate_rays! end
 
@@ -181,11 +187,11 @@ function propagate_rays!(
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
-    (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
+    (; nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
-    (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde, dx, dy, dzcmin) = state.grid
+    (; alphark, betark, stepfrac) = state.time
+    (; dx, dy, dzcmin) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
@@ -222,6 +228,8 @@ function propagate_rays!(
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
+
+            apply_turbulent_damping!(state, r, i, j, k, zr, stepfrac[rkstage] * dt)
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -460,7 +468,6 @@ function propagate_rays!(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
-    (; stepfrac) = state.time
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
@@ -561,6 +568,9 @@ function propagate_rays!(
 
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+
+            apply_turbulent_damping!(state, r, i, j, k, zr, jac[i, j, k] * dz / cgirz)
+
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             rays.dens[r, i, j, k] =
                 1 / (

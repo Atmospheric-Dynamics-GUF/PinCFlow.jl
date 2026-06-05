@@ -42,13 +42,19 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:dthetadt`: Mass-weighted potential-temperature tendency due to unresolved gravity waves.
 
-  - `:dchidt`: Leading-order tracer impact of unresolved gravity waves.
+  - `:dchidt0`: Leading-order tracer impact of unresolved gravity waves.
 
-  - `:uchi`: Zonal tracer fluxes due to unresolved gravity waves.
+  - `:uchi0`: Zonal tracer fluxes due to unresolved gravity waves.
 
-  - `:vchi`: Meridional tracer fluxes due to unresolved gravity waves.
+  - `:vchi0`: Meridional tracer fluxes due to unresolved gravity waves.
 
-  - `:wchi`: Vertical tracer fluxes due to unresolved gravity waves.
+  - `:wchi0`: Vertical tracer fluxes due to unresolved gravity waves.
+
+  - `:tke`: Turbulent kinetic energy.
+
+  - `:shear_production`: Turbulent kinetic energy production due to wind shear.
+
+  - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
 
   - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
 
@@ -290,31 +296,86 @@ function write_output(
             end
 
             if state.namelists.tracer.leading_order_impact &&
-               :dchidt in output_variables
-                for field in (:dchidt,)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerforcings.chiq0, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
-                end
-                for field in (:uchi, :vchi, :wchi)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerforcings.chiq0, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] .* uref ./ rhobar[ii, jj, kk]
-                end
+               :dchidt0 in output_variables
+                HDF5.set_extent_dims(
+                    file["dchidt0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dchidt0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] ./
+                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :uchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["uchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["uchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :vchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["vchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["vchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :wchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["wchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["wchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+        end
+
+        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            if prepare_restart || :tke in output_variables
+                HDF5.set_extent_dims(
+                    file["tke"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["tke"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencepredictands.tke[ii, jj, kk] ./
+                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .* (lref .^ 2.0) ./
+                    (tref .^ 2.0)
+            end
+
+            if :shear_production in output_variables
+                HDF5.set_extent_dims(
+                    file["shear_production"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["shear_production"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.shear_production[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+
+            if :buoyancy_production in output_variables
+                HDF5.set_extent_dims(
+                    file["buoyancy_production"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["buoyancy_production"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.buoyancy_production[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
             end
         end
 
