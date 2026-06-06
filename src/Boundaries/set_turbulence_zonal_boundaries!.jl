@@ -1,9 +1,6 @@
 """
 ```julia
-set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryPredictands,
-)
+set_turbulence_zonal_boundaries!(state::State, variables::BoundaryPredictands)
 ```
 
 Enforce zonal boundary conditions for turbulent kinetic energy.
