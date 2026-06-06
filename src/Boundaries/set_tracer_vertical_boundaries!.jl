@@ -154,7 +154,7 @@ function set_tracer_vertical_boundaries!(
     return
 end
 
-function set_tracer_vertical_boundaries!(
+@ivy function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     tracer_setup::Val{:TracerOn},
@@ -163,13 +163,13 @@ function set_tracer_vertical_boundaries!(
     (; nz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
 
-    @ivy if ko == 0
+    if ko == 0
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
-    @ivy if ko + nz == z_size
+    if ko + nz == z_size
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end

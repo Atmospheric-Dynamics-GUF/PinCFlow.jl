@@ -127,7 +127,7 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-function Domain(namelists::Namelists)::Domain
+@ivy function Domain(namelists::Namelists)::Domain
     (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz, base_comm) =
         namelists.domain
 
@@ -179,17 +179,17 @@ function Domain(namelists::Namelists)::Domain
     coords = MPI.Cart_coords(comm, rank)
 
     # Set local grid size.
-    @ivy if coords[1] == npx - 1
+    if coords[1] == npx - 1
         nx = div(x_size, npx) + x_size % npx
     else
         nx = div(x_size, npx)
     end
-    @ivy if coords[2] == npy - 1
+    if coords[2] == npy - 1
         ny = div(y_size, npy) + y_size % npy
     else
         ny = div(y_size, npy)
     end
-    @ivy if coords[3] == npz - 1
+    if coords[3] == npz - 1
         nz = div(z_size, npz) + z_size % npz
     else
         nz = div(z_size, npz)
@@ -201,9 +201,9 @@ function Domain(namelists::Namelists)::Domain
     nzz = nz + 2 * nbz
 
     # Set index offsets.
-    @ivy io = coords[1] * div(x_size, npx)
-    @ivy jo = coords[2] * div(y_size, npy)
-    @ivy ko = coords[3] * div(z_size, npz)
+    io = coords[1] * div(x_size, npx)
+    jo = coords[2] * div(y_size, npy)
+    ko = coords[3] * div(z_size, npz)
 
     # Set index bounds.
     i0 = nbx + 1
@@ -219,8 +219,8 @@ function Domain(namelists::Namelists)::Domain
     (down, up) = MPI.Cart_shift(comm, 2, 1)
 
     # Create communicators for horizontal and vertical averages.
-    @ivy layer_comm = MPI.Comm_split(comm, coords[3], rank)
-    @ivy column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
+    layer_comm = MPI.Comm_split(comm, coords[3], rank)
+    column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
 
     return Domain(
         comm,

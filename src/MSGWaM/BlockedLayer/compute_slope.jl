@@ -23,14 +23,14 @@ Return ``\\boldsymbol{k}_h = \\left(\\sum_\\alpha \\left|h_{\\mathrm{w}, \\alpha
 """
 function compute_slope end
 
-function compute_slope(
+@ivy function compute_slope(
     state::State,
     deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{2, <:AbstractFloat}
     (; hw, kh, lh) = state.grid
-    @ivy return (
+    return (
         mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], kh[:, i, j]) / deltah,
         mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], lh[:, i, j]) / deltah,
     )

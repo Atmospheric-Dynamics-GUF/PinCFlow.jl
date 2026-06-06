@@ -48,7 +48,7 @@ function initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
     return
 end
 
-function initialize_rays!(
+@ivy function initialize_rays!(
     state::State,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
@@ -137,7 +137,7 @@ function initialize_rays!(
     kmax = k1
 
     # Loop over all grid cells with ray volumes.
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         r = 0
         s = 0
 
@@ -299,7 +299,7 @@ function initialize_rays!(
     end
 
     # Compute global ray-volume count.
-    @ivy local_sum = sum(nray[i0:i1, j0:j1, kmin:kmax])
+    local_sum = sum(nray[i0:i1, j0:j1, kmin:kmax])
     global_sum = MPI.Allreduce(local_sum, +, comm)
 
     # Print information.

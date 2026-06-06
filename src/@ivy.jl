@@ -3,7 +3,9 @@
 @ivy(x::Expr)
 ```
 
-Return the expression `x` with `@inbounds` and `@views` in front of it.
+Return the expression `x` with `@inbounds` and `@views` applied to it.
+
+The `@inbounds` macro is applied to the bodies of all function definitions in `x`.
 
 # Arguments
 
@@ -12,7 +14,7 @@ Return the expression `x` with `@inbounds` and `@views` in front of it.
 macro ivy end
 
 macro ivy(x::Expr)
-    return esc(quote
-        @inbounds @views $x
-    end)
+    return quote
+        @views $(deep_inbounds(esc(x)))
+    end
 end

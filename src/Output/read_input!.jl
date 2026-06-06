@@ -11,7 +11,7 @@ Read initial values for all prognostic variables from an HDF5 input file.
 """
 function read_input! end
 
-function read_input!(state::State)
+@ivy function read_input!(state::State)
     (; x_size, y_size) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model) = state.namelists.atmosphere
@@ -42,7 +42,7 @@ function read_input!(state::State)
     )
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
-    @ivy time = h5open(input_file, "r", comm) do file
+    time = h5open(input_file, "r", comm) do file
 
         # Read the time.
         time = file["t"][iin == -1 ? end : iin] / tref

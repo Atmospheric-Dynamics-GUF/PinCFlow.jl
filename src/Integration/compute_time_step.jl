@@ -43,7 +43,7 @@ The individual stability criteria are as follows.
 """
 function compute_time_step end
 
-function compute_time_step(state::State)::AbstractFloat
+@ivy function compute_time_step(state::State)::AbstractFloat
     (; grid) = state
     (; cfl_number, wkb_cfl_number, dtmin, dtmax, adaptive_time_step) =
         state.namelists.discretization
@@ -56,7 +56,7 @@ function compute_time_step(state::State)::AbstractFloat
     (; wkb_mode) = state.namelists.wkb
     (; cgx_max, cgy_max, cgz_max) = state.wkb
 
-    @ivy if !adaptive_time_step
+    if !adaptive_time_step
         dt = dtmax / tref
 
         if master

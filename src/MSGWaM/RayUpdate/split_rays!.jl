@@ -84,18 +84,18 @@ function split_rays!(
     return
 end
 
-function split_rays!(state::State, wkb_mode::Val{:SingleColumn})
+@ivy function split_rays!(state::State, wkb_mode::Val{:SingleColumn})
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
-    @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
+    nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         split_rays!(i, j, k, state, Z())
     end
 
-    @ivy nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
+    nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after > nray_before
@@ -107,15 +107,15 @@ function split_rays!(state::State, wkb_mode::Val{:SingleColumn})
     return
 end
 
-function split_rays!(state::State, wkb_mode::Val{:MultiColumn})
+@ivy function split_rays!(state::State, wkb_mode::Val{:MultiColumn})
     (; x_size, y_size) = state.namelists.domain
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
-    @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
+    nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         if x_size > 1
             split_rays!(i, j, k, state, X())
         end
@@ -127,7 +127,7 @@ function split_rays!(state::State, wkb_mode::Val{:MultiColumn})
         split_rays!(i, j, k, state, Z())
     end
 
-    @ivy nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
+    nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after > nray_before
@@ -139,12 +139,18 @@ function split_rays!(state::State, wkb_mode::Val{:MultiColumn})
     return
 end
 
-function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
+@ivy function split_rays!(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    state::State,
+    axis::X,
+)
     (; dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    @ivy local_count = nray[i, j, k]
-    @ivy for r in 1:nray[i, j, k]
+    local_count = nray[i, j, k]
+    for r in 1:nray[i, j, k]
         xr = rays.x[r, i, j, k]
         dxr = rays.dxray[r, i, j, k]
 
@@ -160,7 +166,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
         end
     end
 
-    @ivy if local_count > nray[i, j, k]
+    if local_count > nray[i, j, k]
         nray[i, j, k] = local_count
 
         if nray[i, j, k] > nray_wrk
@@ -176,12 +182,18 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
     return
 end
 
-function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
+@ivy function split_rays!(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    state::State,
+    axis::Y,
+)
     (; dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    @ivy local_count = nray[i, j, k]
-    @ivy for r in 1:nray[i, j, k]
+    local_count = nray[i, j, k]
+    for r in 1:nray[i, j, k]
         yr = rays.y[r, i, j, k]
         dyr = rays.dyray[r, i, j, k]
 
@@ -197,7 +209,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
         end
     end
 
-    @ivy if local_count > nray[i, j, k]
+    if local_count > nray[i, j, k]
         nray[i, j, k] = local_count
 
         if nray[i, j, k] > nray_wrk
@@ -213,14 +225,20 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
     return
 end
 
-function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
+@ivy function split_rays!(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    state::State,
+    axis::Z,
+)
     (; domain, grid) = state
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dzcmin) = grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    @ivy local_count = nray[i, j, k]
-    @ivy for r in 1:nray[i, j, k]
+    local_count = nray[i, j, k]
+    for r in 1:nray[i, j, k]
         xr = rays.x[r, i, j, k]
         yr = rays.y[r, i, j, k]
         zr = rays.z[r, i, j, k]
@@ -244,7 +262,7 @@ function split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
         end
     end
 
-    @ivy if local_count > nray[i, j, k]
+    if local_count > nray[i, j, k]
         nray[i, j, k] = local_count
 
         if nray[i, j, k] > nray_wrk

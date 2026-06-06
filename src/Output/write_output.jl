@@ -76,7 +76,7 @@ All output variables are re-dimensionalized with the scale parameters stored in 
 """
 function write_output end
 
-function write_output(
+@ivy function write_output(
     state::State,
     time::AbstractFloat,
     iout::Integer,
@@ -129,7 +129,7 @@ function write_output(
     )
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
-    @ivy h5open(output_file, "r+", comm) do file
+    h5open(output_file, "r+", comm) do file
 
         # Write the time.
         HDF5.set_extent_dims(file["t"], (iout,))

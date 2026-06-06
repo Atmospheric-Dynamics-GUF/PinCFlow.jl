@@ -36,7 +36,7 @@ is solved for ``s``. The Exner-pressure differences are then given by ``\\Delta 
 """
 function solve_poisson! end
 
-function solve_poisson!(
+@ivy function solve_poisson!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
@@ -66,10 +66,10 @@ function solve_poisson!(
     jj = j0:j1
     kk = k0:k1
 
-    @ivy solution ./= sqrt.(pbar[ii, jj, kk] .^ 2 ./ rhobar[ii, jj, kk])
+    solution ./= sqrt.(pbar[ii, jj, kk] .^ 2 ./ rhobar[ii, jj, kk])
 
     # Pass solution to pressure correction.
-    @ivy dpip[ii, jj, kk] .= dtinv .* solution
+    dpip[ii, jj, kk] .= dtinv .* solution
 
     return (errflagbicg, niterbicg)
 end

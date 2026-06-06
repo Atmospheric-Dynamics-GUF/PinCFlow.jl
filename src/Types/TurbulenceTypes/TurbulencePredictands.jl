@@ -32,7 +32,7 @@ TurbulencePredictands(
 
 Construct a `TurbulencePredictands` instance with zero-size arrays for configurations without turbulence parameterization.
 
-```julia 
+```julia
 TurbulencePredictands(
     namelists::Namelists,
     constants::Constants,
@@ -111,7 +111,7 @@ function TurbulencePredictands(
     return TurbulencePredictands(tke)
 end
 
-function TurbulencePredictands(
+@ivy function TurbulencePredictands(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -129,7 +129,7 @@ function TurbulencePredictands(
 
     tke = zeros(nxx, nyy, nzz)
 
-    @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
+    for k in 1:nzz, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
