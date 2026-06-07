@@ -7,7 +7,7 @@ function ivy(x::Any)::Any
 
         if head in ("=", ".=")
             x.args[2] = ivy(x.args[2])
-        elseif endswith(head, r"[^=]=")
+        elseif endswith(head, r"[^!=]=")
             assignment = replace(head, r"[^.=]" => "")
             operation = head[1:(end - 1)]
             x = Meta.parse(
@@ -15,6 +15,9 @@ function ivy(x::Any)::Any
             )
             x.args[2] = ivy(x.args[2])
         elseif head == "ref"
+            for index in eachindex(x.args)
+                x.args[index] = ivy(x.args[index])
+            end
             x = quote
                 @inbounds @views $x
             end
