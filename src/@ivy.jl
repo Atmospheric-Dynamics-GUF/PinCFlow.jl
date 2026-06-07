@@ -14,7 +14,5 @@ The `@inbounds` macro is applied to the bodies of all function definitions in `x
 macro ivy end
 
 macro ivy(x::Expr)
-    return quote
-        @views $(deep_inbounds(esc(x)))
-    end
+    return esc(ivy(x))
 end
