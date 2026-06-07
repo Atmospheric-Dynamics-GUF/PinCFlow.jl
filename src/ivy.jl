@@ -9,7 +9,7 @@ function ivy(x::Any)::Any
             x.args[2] = ivy(x.args[2])
         elseif endswith(head, r"[^=]=")
             assignment = replace(head, r"[^.=]" => "")
-            operation = replace(head, r"[.=]" => "")
+            operation = head[1:(end - 1)]
             x = Meta.parse(
                 "$(args[1]) $assignment $(args[1]) $operation $(args[2])",
             )
