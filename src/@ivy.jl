@@ -3,13 +3,17 @@
 @ivy(x::Expr)
 ```
 
-Return the expression `x` with `@inbounds` and `@views` applied to it.
+Return the expression `x` with `@inbounds` and `@views` applied to it and all its subexpressions.
 
-The `@inbounds` macro is applied to the bodies of all function definitions in `x`.
+This macro places `@inbounds` and `@views` in front of expression arguments of any macro call. Care must therefore be taken when combining `@ivy` with other macros.
 
 # Arguments
 
   - `x`: Input expression.
+
+# See also
+
+  - [`PinCFlow.ivy`](@ref)
 """
 macro ivy end
 

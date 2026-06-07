@@ -1,3 +1,16 @@
+"""
+```julia
+ivy(x::Any; root::Bool = true)::Any
+```
+
+If `x` is an expression, climb its AST and apply `@inbounds` and `@views` to the bodies of scope blocks and macro calls that either of them is not able to pass into, apply `@inbounds` and `@views` to `x` itself if `root == true`, and return it.
+
+# Arguments
+
+  - `x`: Input expression
+
+  - `root`: Switch for applying `@inbounds` and `@views` to `x` itself.
+"""
 function ivy end
 
 function ivy(x::Any; root::Bool = true)::Any
