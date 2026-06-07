@@ -25,11 +25,11 @@ function ivy(x::Any; root::Bool = true)::Any
                ) ||
                x.head === :let
             x.args[2] = quote
-                @inbounds @views $(ivy(x.args[2]; root = false))
+                @views @inbounds $(ivy(x.args[2]; root = false))
             end
         elseif x.head === :comprehension || x.head === :generator
             x.args[1] = quote
-                @inbounds @views $(ivy(x.args[1]; root = false))
+                @views @inbounds $(ivy(x.args[1]; root = false))
             end
         else
             for index in eachindex(x.args)
@@ -40,7 +40,7 @@ function ivy(x::Any; root::Bool = true)::Any
 
     if root
         return quote
-            @inbounds @views $x
+            @views @inbounds $x
         end
     else
         return x
