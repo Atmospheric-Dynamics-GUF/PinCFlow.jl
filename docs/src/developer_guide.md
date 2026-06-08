@@ -32,7 +32,7 @@ Contributions to the code should respect the following rules.
 
   - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
-  - Use PinCFlow.jl's `@ivy` in front of expressions that access elements of arrays/tuples. Always apply this macro to the outermost expression possible but do not create new blocks for this purpose.
+  - Apply PinCFlow.jl's `@ivy` to the definitions of functions that perform indexing and/or slicing operations.
 
   - Do not use Unicode.
 
