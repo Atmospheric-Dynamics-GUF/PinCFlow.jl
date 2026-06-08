@@ -63,7 +63,7 @@ The launch algorithm distinguishes between the following situations (regarding p
 """
 function activate_orographic_source! end
 
-function activate_orographic_source!(
+@ivy function activate_orographic_source!(
     state::State,
     omi_ini::AbstractArray{<:AbstractFloat, 4},
     wnk_ini::AbstractArray{<:AbstractFloat, 4},
@@ -86,7 +86,7 @@ function activate_orographic_source!(
 
     fc = coriolis_frequency * tref
 
-    @ivy for j in j0:j1, i in i0:i1
+    for j in j0:j1, i in i0:i1
         deltah = compute_elevation_difference(state, i, j)
 
         (rhoh, n2h, uh, vh) = compute_vertical_averages(state, deltah, i, j)
@@ -124,7 +124,7 @@ function activate_orographic_source!(
     return
 end
 
-function activate_orographic_source!(state::State)
+@ivy function activate_orographic_source!(state::State)
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
@@ -156,7 +156,7 @@ function activate_orographic_source!(state::State)
 
     fc = coriolis_frequency * tref
 
-    @ivy for j in j0:j1, i in i0:i1
+    for j in j0:j1, i in i0:i1
         deltah = compute_elevation_difference(state, i, j)
 
         (rhoh, n2h, uh, vh) = compute_vertical_averages(state, deltah, i, j)

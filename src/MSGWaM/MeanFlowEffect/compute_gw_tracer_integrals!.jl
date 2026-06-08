@@ -1,5 +1,5 @@
 """
-```julia 
+```julia
 compute_gw_tracer_integrals!(
     state::State,
     fc::AbstractFloat,
@@ -163,7 +163,7 @@ function compute_gw_tracer_integrals!(
     return
 end
 
-function compute_gw_tracer_integrals!(
+@ivy function compute_gw_tracer_integrals!(
     state::State,
     fc::AbstractFloat,
     omir::AbstractFloat,
@@ -186,7 +186,7 @@ function compute_gw_tracer_integrals!(
         return
     end
 
-    @ivy uchi0[i, j, k] += leading_order_tracer_fluxes(
+    uchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -200,7 +200,7 @@ function compute_gw_tracer_integrals!(
         UChi(),
     )
 
-    @ivy vchi0[i, j, k] += leading_order_tracer_fluxes(
+    vchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -214,7 +214,7 @@ function compute_gw_tracer_integrals!(
         VChi(),
     )
 
-    @ivy wchi0[i, j, k] += leading_order_tracer_fluxes(
+    wchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,

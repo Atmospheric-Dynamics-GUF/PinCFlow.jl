@@ -65,7 +65,7 @@ function merge_rays!(
     return
 end
 
-function merge_rays!(
+@ivy function merge_rays!(
     state::State,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
@@ -75,11 +75,11 @@ function merge_rays!(
     (; bins, nray, rays, merged_rays) = state.wkb
 
     # Compute ray-volume count before merging.
-    @ivy nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
+    nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Loop over grid cells.
-    @dispatch_merge_mode @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    @dispatch_merge_mode for k in k0:k1, j in j0:j1, i in i0:i1
         if nray[i, j, k] < bins
             continue
         end
@@ -273,7 +273,7 @@ function merge_rays!(
     end
 
     # Compute ray-volume count after merging.
-    @ivy nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
+    nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after < nray_before

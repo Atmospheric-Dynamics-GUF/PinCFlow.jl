@@ -1,11 +1,11 @@
 """
-```julia 
+```julia
 turbulent_diffusion!(state::State, dt::AbstractFloat)
 ```
 
 Apply diffusion to the momentum, mass-weighted potential temperature, and tracers by dispatching to turbulence parameterization-specific method.
 
-```julia 
+```julia
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
@@ -15,7 +15,7 @@ turbulent_diffusion!(
 
 Return for configurations without turbulence parameterization.
 
-```julia 
+```julia
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
@@ -25,11 +25,11 @@ turbulent_diffusion!(
 
 Apply diffusion by dispatching to specialized methods for momentum, mass-weighted potential temperature, and tracers, according to configurations set by `state.namelist.turbulence.momentum_coupling`, `state.namelist.turbulence.entropy_coupling`, and `state.namelist.turbulence.tracer_coupling`, respectively.
 
-```julia 
+```julia
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
 ```
 
-Apply diffusion to the zonal momentum. 
+Apply diffusion to the zonal momentum.
 
 The prognostic equation
 
@@ -37,7 +37,7 @@ The prognostic equation
 \\frac{\\partial u}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{M}}{J}\\frac{\\partial u}{\\partial \\hat{z}}\\right)
 ```
 
-is solved using the Crank-Nicolson scheme, where the system 
+is solved using the Crank-Nicolson scheme, where the system
 
 ```math
 a_{i+1/2,k} u_{i+1/2,k-1}^{n+1} + b_{i+1/2,k} u_{i+1/2,k}^{n+1} + c_{i+1/2,k} u_{i+1/2,k+1}^{n+1} = f_{i+1/2,k}
@@ -45,24 +45,24 @@ a_{i+1/2,k} u_{i+1/2,k-1}^{n+1} + b_{i+1/2,k} u_{i+1/2,k}^{n+1} + c_{i+1/2,k} u_
 
 is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{M} = \\frac{K_\\mathrm{M}}{J}`` and
 
-```math 
+```math
 \\begin{align*}
     a_{i+1/2,k} &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}} ,\\\\
-    b_{i+1/2,k} &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} 
+    b_{i+1/2,k} &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}}
         + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}} ,\\\\
     c_{i+1/2,k} &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} ,\\\\
-    f_{i+1/2,k} &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}} 
+    f_{i+1/2,k} &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}}
         - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}\\right]v_{i+1/2}^{n} \\\\
         &+\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k+1/2}}{J_{i+1/2}}v_{i+1/2,k+1}^{n}
         +\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},i+1/2,k-1/2}}{J_{i+1/2}}v_{i+1/2,k-1}^{n} .
 \\end{align*}
 ```
 
-```julia 
+```julia
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
 ```
 
-Apply diffusion to the meridional momentum. 
+Apply diffusion to the meridional momentum.
 
 The prognostic equation
 
@@ -70,7 +70,7 @@ The prognostic equation
 \\frac{\\partial v}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{M}}{J}\\frac{\\partial v}{\\partial \\hat{z}}\\right)
 ```
 
-is solved using the Crank-Nicolson scheme, where the system 
+is solved using the Crank-Nicolson scheme, where the system
 
 ```math
 a_{j+1/2,k} v_{j+1/2,k-1}^{n+1} + b_{j+1/2,k} v_{j+1/2,k}^{n+1} + c_{j+1/2,k} v_{j+1/2,k+1}^{n+1} = f_{j+1/2,k}
@@ -78,23 +78,23 @@ a_{j+1/2,k} v_{j+1/2,k-1}^{n+1} + b_{j+1/2,k} v_{j+1/2,k}^{n+1} + c_{j+1/2,k} v_
 
 is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{M} = \\frac{K_\\mathrm{M}}{J}`` and
 
-```math 
+```math
 \\begin{align*}
     a_{j+1/2,k} &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}} ,\\\\
-    b_{j+1/2,k} &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} 
+    b_{j+1/2,k} &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}}
         + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}} ,\\\\
     c_{j+1/2,k} &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} ,\\\\
-    f_{j+1/2,k} &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}} 
+    f_{j+1/2,k} &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}}
         - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}\\right]v_{j+1/2}^{n}\\\\
         &+\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k+1/2}}{J_{j+1/2}}v_{j+1/2,k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},j+1/2,k-1/2}}{J_{j+1/2}}v_{j+1/2,k-1}^{n} .
 \\end{align*}
 ```
 
-```julia 
+```julia
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
 ```
 
-Apply diffusion to the vertical momentum. 
+Apply diffusion to the vertical momentum.
 
 The prognostic equation
 
@@ -102,7 +102,7 @@ The prognostic equation
 \\frac{\\partial w}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{M}}{J}\\frac{\\partial w}{\\partial \\hat{z}}\\right)
 ```
 
-is solved using the Crank-Nicolson scheme, where the system 
+is solved using the Crank-Nicolson scheme, where the system
 
 ```math
 a_{k+1/2} w_{k-1/2}^{n+1} + b_{k+1/2} w_{k+1/2}^{n+1} + c_{k+1/2} w_{k+3/2}^{n+1} = f_{k+1/2}
@@ -110,19 +110,19 @@ a_{k+1/2} w_{k-1/2}^{n+1} + b_{k+1/2} w_{k+1/2}^{n+1} + c_{k+1/2} w_{k+3/2}^{n+1
 
 is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{M} = \\frac{K_\\mathrm{M}}{J}`` and
 
-```math 
+```math
 \\begin{align*}
     a_{k+1/2} &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k}}{J_{k+1/2}^2} ,\\\\
-    b_{k+1/2} &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k+1}}{J_{k+1/2}^2} 
+    b_{k+1/2} &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k+1}}{J_{k+1/2}^2}
         + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k}}{J_{k+1/2}^2} ,\\\\
     c_{k+1/2} &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k+1}}{J_{k+1/2}^2} ,\\\\
-    f_{k+1/2} &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k+1}}{J_{k+1/2}} 
+    f_{k+1/2} &= \\left[1 - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k+1}}{J_{k+1/2}}
         - \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k}}{J_{k+1/2}}\\right]w_{k+1/2}^{n}\\\\
         &+\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k+1}}{J_{k+1/2}}w_{k+1}^{n} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{M},k}}{J_{k+1/2}}w_{k-1}^{n} .
 \\end{align*}
 ```
 
-Using the relation 
+Using the relation
 
 ```math
 \\frac{\\partial \\hat{w}}{\\partial t} = G^{13}\\frac{\\partial u}{\\partial t} + G^{23}\\frac{\\partial v}{\\partial t} + \\frac{1}{J}\\frac{\\partial w}{\\partial t} ,
@@ -130,20 +130,20 @@ Using the relation
 
 the transformed wind is calculated:
 
-```math 
+```math
 \\begin{align*}
 \\hat{w}^{n+1}_{k+1/2} &= G_{k+1/2}^{13}u^{n+1}_{k+1/2} + G_{k+1/2}^{23}v^{n+1}_{k+1/2} + \\frac{1}{J_{k+1/2}}w^{n+1}_{k+1/2}.
 \\end{align*}
 ```
 
 
-```julia 
+```julia
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Theta)
 ```
 
 Apply diffusion to the mass-weighted potential temperature by dispatching to model-specific methods.
 
-```julia 
+```julia
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
@@ -154,7 +154,7 @@ turbulent_diffusion!(
 
 Return for configurations in Boussinesq and pseudo-incompressible mode.
 
-```julia 
+```julia
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
@@ -165,21 +165,21 @@ turbulent_diffusion!(
 
 Apply diffusion to the potential temperature for configurations in Compressible mode.
 
-The prognostic equation 
+The prognostic equation
 
-```math 
+```math
 \\frac{\\partial \\theta}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{H}}{J}\\frac{\\partial \\theta}{\\partial \\hat{z}}\\right)
 ```
 
-is solved using the Crank-Nicolson scheme, where the system 
+is solved using the Crank-Nicolson scheme, where the system
 
 ```math
 a_k \\theta_{k-1}^{n+1} + b_k \\theta_k^{n+1} + c_k \\theta_{k+1}^{n+1} = f_k
 ```
 
-is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \\frac{K_\\mathrm{H}}{J}`` and 
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \\frac{K_\\mathrm{H}}{J}`` and
 
-```math 
+```math
 \\begin{align*}
     a_k &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}  , \\\\
     b_k &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}{J_k}}, \\\\
@@ -189,13 +189,13 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
 \\end{align*}
 ```
 
-```julia 
+```julia
 turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Chi)
 ```
 
 Apply diffusion to tracers by dispatching to tracer-setup-specific configurations.
 
-```julia 
+```julia
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
@@ -206,7 +206,7 @@ turbulent_diffusion!(
 
 Return for configurations without tracer transport.
 
-```julia 
+```julia
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
@@ -217,21 +217,21 @@ turbulent_diffusion!(
 
 Apply diffusion to the tracers variables.
 
-The prognostic equation 
+The prognostic equation
 
-```math 
+```math
 \\frac{\\partial \\chi}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{H}}{J}\\frac{\\partial \\chi}{\\partial \\hat{z}}\\right)
 ```
 
-is solved using the Crank-Nicolson scheme, where the system 
+is solved using the Crank-Nicolson scheme, where the system
 
 ```math
 a_k \\chi_{k-1}^{n+1} + b_k \\chi_k^{n+1} + c_k \\chi_{k+1}^{n+1} = f_k
 ```
 
-is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \\frac{K_\\mathrm{H}}{J}`` and 
+is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \\frac{K_\\mathrm{H}}{J}`` and
 
-```math 
+```math
 \\begin{align*}
     a_k &= -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}  , \\\\
     b_k &= 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\mathcal{K}_{\\mathrm{H},k-1/2}}{J_k}, \\\\
@@ -243,7 +243,7 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
 
 # Arguments
 
-  - `state`: Model state. 
+  - `state`: Model state.
 
   - `dt`: Time step.
 
@@ -255,7 +255,7 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
 
   - `tracer_setup`: General tracer-transport configuration.
 
-# See also 
+# See also
 
   - [`PinCFlow.Update.check_tke!`](@ref)
 
@@ -310,7 +310,7 @@ function turbulent_diffusion!(
     return
 end
 
-function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
+@ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
     (; u) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
@@ -320,7 +320,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
 
     reset_thomas!(state)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         kmu =
             0.5 * (
                 (
@@ -416,11 +416,11 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
 
     thomas_algorithm!(state)
 
-    @ivy u[i0:i1, j0:j1, k0:k1] .= fth
+    u[i0:i1, j0:j1, k0:k1] .= fth
     return
 end
 
-function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
+@ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
     (; v) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
@@ -430,7 +430,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
 
     reset_thomas!(state)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         kmu =
             0.5 * (
                 (
@@ -526,11 +526,11 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
 
     thomas_algorithm!(state)
 
-    @ivy v[i0:i1, j0:j1, k0:k1] .= fth
+    v[i0:i1, j0:j1, k0:k1] .= fth
     return
 end
 
-function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
+@ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
     (; u, v, w) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
@@ -540,7 +540,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
 
     reset_thomas!(state)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         kmu =
             turbulence_diffusion_coefficient(state, i, j, k + 1, KM()) /
             jac[i, j, k + 1]
@@ -571,7 +571,7 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
 
     thomas_algorithm!(state)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         ud = 0.5 * (u[i - 1, j, k] + u[i, j, k])
         uu = 0.5 * (u[i - 1, j, k + 1] + u[i, j, k + 1])
         uc13 =
@@ -618,7 +618,7 @@ function turbulent_diffusion!(
     return
 end
 
-function turbulent_diffusion!(
+@ivy function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Theta,
@@ -634,7 +634,7 @@ function turbulent_diffusion!(
 
     reset_thomas!(state)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         khd =
             (
                 jac[i, j, k - 1] * (
@@ -678,7 +678,7 @@ function turbulent_diffusion!(
 
     thomas_algorithm!(state)
 
-    @ivy p[i0:i1, j0:j1, k0:k1] .=
+    p[i0:i1, j0:j1, k0:k1] .=
         fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
     return
 end
@@ -704,7 +704,7 @@ function turbulent_diffusion!(
     return
 end
 
-function turbulent_diffusion!(
+@ivy function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
     variable::Chi,
@@ -721,7 +721,7 @@ function turbulent_diffusion!(
 
     reset_thomas!(state)
 
-    @ivy for field in 1:fieldcount(TracerPredictands)
+    for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)
         for k in k0:k1, j in j0:j1, i in i0:i1
             khd =

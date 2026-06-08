@@ -1,42 +1,60 @@
 """
-```julia 
-turbulence_diffusion_coefficient(state::State, i::Integer, j::Integer, k::Integer, variable::KM)
+```julia
+turbulence_diffusion_coefficient(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::KM,
+)
 ```
 
-Compute the eddy diffusion coefficient for momentum at ``(i, j, k)``. 
+Compute the eddy diffusion coefficient for momentum at ``(i, j, k)``.
 
-The eddy diffusion coefficient for momentum is given by 
+The eddy diffusion coefficient for momentum is given by
 
-```math 
-    K_M = l_v \\sqrt{2 e_\\mathrm{k}} \\;, 
+```math
+    K_M = l_v \\sqrt{2 e_\\mathrm{k}} \\;,
 ```
 
 with turbulence mixing length ``l_v`` stored in `state.turbulence.turbulenceconstants.lv`.
 
-```julia 
-turbulence_diffusion_coefficient(state::State, i::Integer, j::Integer, k::Integer, variable::KH)
+```julia
+turbulence_diffusion_coefficient(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::KH,
+)
 ```
 
-Compute the eddy diffusion coefficient for heat at ``(i, j, k)``. 
+Compute the eddy diffusion coefficient for heat at ``(i, j, k)``.
 
-The eddy diffusion coefficient for heat is given by 
+The eddy diffusion coefficient for heat is given by
 
-```math 
-    K_H  = l_b \\sqrt{2 e_\\mathrm{k}} \\;, 
+```math
+    K_H  = l_b \\sqrt{2 e_\\mathrm{k}} \\;,
 ```
 
 with turbulence mixing length ``l_b`` stored in `state.turbulence.turbulenceconstants.lb`.
 
-```julia 
-turbulence_diffusion_coefficient(state::State, i::Integer, j::Integer, k::Integer, variable::KEK)
+```julia
+turbulence_diffusion_coefficient(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::KEK,
+)
 ```
 
-Compute the eddy diffusion coefficient for turbulent kinetic energy at ``(i, j, k)``. 
+Compute the eddy diffusion coefficient for turbulent kinetic energy at ``(i, j, k)``.
 
-The eddy diffusion coefficient for turbulent kinetic energy is given by 
+The eddy diffusion coefficient for turbulent kinetic energy is given by
 
-```math 
-    K_{e_\\mathrm{k}}  = l_t \\sqrt{2 e_\\mathrm{k}} \\;, 
+```math
+    K_{e_\\mathrm{k}}  = l_t \\sqrt{2 e_\\mathrm{k}} \\;,
 ```
 
 with turbulence mixing length ``l_t`` stored in `state.turbulence.turbulenceconstants.lt`.
@@ -55,7 +73,7 @@ with turbulence mixing length ``l_t`` stored in `state.turbulence.turbulencecons
 """
 function turbulence_diffusion_coefficient end
 
-function turbulence_diffusion_coefficient(
+@ivy function turbulence_diffusion_coefficient(
     state::State,
     i::Integer,
     j::Integer,
@@ -69,7 +87,7 @@ function turbulence_diffusion_coefficient(
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
 
-    @ivy if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
+    if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
         km = -lv * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
         km = lv * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
@@ -78,7 +96,7 @@ function turbulence_diffusion_coefficient(
     return km
 end
 
-function turbulence_diffusion_coefficient(
+@ivy function turbulence_diffusion_coefficient(
     state::State,
     i::Integer,
     j::Integer,
@@ -92,7 +110,7 @@ function turbulence_diffusion_coefficient(
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
 
-    @ivy if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
+    if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
         kh = -lb * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
         kh = lb * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
@@ -101,7 +119,7 @@ function turbulence_diffusion_coefficient(
     return kh
 end
 
-function turbulence_diffusion_coefficient(
+@ivy function turbulence_diffusion_coefficient(
     state::State,
     i::Integer,
     j::Integer,
@@ -115,7 +133,7 @@ function turbulence_diffusion_coefficient(
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
 
-    @ivy if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
+    if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
         kek = -lt * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
         kek = lt * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))

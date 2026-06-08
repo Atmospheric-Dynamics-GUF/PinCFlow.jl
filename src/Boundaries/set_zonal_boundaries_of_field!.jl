@@ -55,7 +55,7 @@ Halo exchange is used in the same manner as in the methods for matrices and 3D a
 """
 function set_zonal_boundaries_of_field! end
 
-function set_zonal_boundaries_of_field!(
+@ivy function set_zonal_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
@@ -63,7 +63,7 @@ function set_zonal_boundaries_of_field!(
     (; x_size, nbx) = namelists.domain
     (; i0, i1) = domain
 
-    @ivy if x_size > 1
+    if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain)
     else
         for i in 1:nbx
@@ -75,7 +75,7 @@ function set_zonal_boundaries_of_field!(
     return
 end
 
-function set_zonal_boundaries_of_field!(
+@ivy function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain;
@@ -84,11 +84,11 @@ function set_zonal_boundaries_of_field!(
     (; x_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    @ivy if x_size > 1
+    if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
         jj = (j0 - nby):(j1 + nby)
@@ -103,7 +103,7 @@ function set_zonal_boundaries_of_field!(
     return
 end
 
-function set_zonal_boundaries_of_field!(
+@ivy function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
     domain::Domain;
@@ -112,11 +112,11 @@ function set_zonal_boundaries_of_field!(
     (; x_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    @ivy if x_size > 1
+    if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
         jj = (j0 - nby):(j1 + nby)

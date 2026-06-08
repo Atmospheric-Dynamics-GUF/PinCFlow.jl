@@ -13,11 +13,11 @@ Macro that makes value dispatch static for a the given list of values.
 """
 macro dispatch end
 
-macro dispatch(values::Expr, input::Expr)
+@ivy macro dispatch(values::Expr, input::Expr)
     code = string(input)
     range = findfirst(r"\bVal\((?!\s*(:\w+\b|\d+\b|true\b|false\b))", code)
 
-    @ivy if range !== nothing
+    if range !== nothing
         start = first(range) + 4
         stop = Meta.parse(code, start - 1; greedy = false)[2] - 2
         parameter = code[start:stop]

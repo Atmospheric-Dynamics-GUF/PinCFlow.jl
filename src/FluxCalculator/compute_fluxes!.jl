@@ -364,7 +364,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
@@ -382,7 +382,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
         pedger = 0.5 * (pbar[i, j, k] + pbar[i + 1, j, k])
         rhor = rhotilde[i + 1, j, k, 1, 1] + rhobaredger / pedger
@@ -404,7 +404,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
         pedgef = 0.5 * (pbar[i, j, k] + pbar[i, j + 1, k])
         rhof = rhotilde[i, j + 1, k, 2, 1] + rhobaredgef / pedgef
@@ -426,7 +426,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         rhobaredgeu =
             (
                 jac[i, j, k + 1] * rhobar[i, j, k] +
@@ -455,7 +455,11 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
+@ivy function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::RhoP,
+)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -468,7 +472,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhor = rhoptilde[i + 1, j, k, 1, 1]
         rhol = rhoptilde[i, j, k, 1, 2]
 
@@ -488,7 +492,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhof = rhoptilde[i, j + 1, k, 2, 1]
         rhob = rhoptilde[i, j, k, 2, 2]
 
@@ -508,7 +512,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         rhou = rhoptilde[i, j, k + 1, 3, 1]
         rhod = rhoptilde[i, j, k, 3, 2]
 
@@ -536,7 +540,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     model::Val{:Compressible},
@@ -553,7 +557,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         phip[i, j, k, 1] =
             0.5 *
             (
@@ -567,7 +571,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         phip[i, j, k, 2] =
             0.5 *
             (
@@ -581,7 +585,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         phip[i, j, k, 3] =
             jac[i, j, k] *
             jac[i, j, k + 1] *
@@ -592,7 +596,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::U,
@@ -616,7 +620,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         ur = utilde[i + 1, j, k, 1, 1]
         ul = utilde[i, j, k, 1, 2]
 
@@ -641,7 +645,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         uf = utilde[i, j + 1, k, 2, 1]
         ub = utilde[i, j, k, 2, 2]
 
@@ -666,7 +670,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         uu = utilde[i, j, k + 1, 3, 1]
         ud = utilde[i, j, k, 3, 2]
 
@@ -699,7 +703,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         coef_v = 1 / re * rhobar[i + 1, j, k0]
 
         frhou_visc =
@@ -714,7 +718,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -745,7 +749,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
         stresstens13 =
@@ -802,7 +806,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         coef_d = mu_mom_diff * rhobar[i + 1, j, k0]
 
         frhou_diff =
@@ -817,7 +821,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
             mu_mom_diff *
             0.25 *
@@ -855,7 +859,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
 
         coef_dl = mu_mom_diff * rhobar[i, j, k0]
@@ -896,7 +900,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::V,
@@ -920,7 +924,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         vr = vtilde[i + 1, j, k, 1, 1]
         vl = vtilde[i, j, k, 1, 2]
 
@@ -945,7 +949,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         vf = vtilde[i, j + 1, k, 2, 1]
         vb = vtilde[i, j, k, 2, 2]
 
@@ -970,7 +974,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         vu = vtilde[i, j, k + 1, 3, 1]
         vd = vtilde[i, j, k, 3, 2]
 
@@ -1003,7 +1007,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -1034,7 +1038,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         coef_v = 1 / re * rhobar[i, j + 1, k0]
 
         grhov_visc =
@@ -1049,7 +1053,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
         stresstens23 =
@@ -1106,7 +1110,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
             mu_mom_diff *
             0.25 *
@@ -1144,7 +1148,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         coef_d = mu_mom_diff * rhobar[i, j + 1, k0]
 
         grhov_diff =
@@ -1159,7 +1163,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
 
         coef_dl = mu_mom_diff * rhobar[i, j, k0]
@@ -1200,7 +1204,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::W,
@@ -1220,7 +1224,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         wr = wtilde[i + 1, j, k, 1, 1]
         wl = wtilde[i, j, k, 1, 2]
 
@@ -1256,7 +1260,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         wf = wtilde[i, j + 1, k, 2, 1]
         wb = wtilde[i, j, k, 2, 2]
 
@@ -1292,7 +1296,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         wu = wtilde[i, j, k + 1, 3, 1]
         wd = wtilde[i, j, k, 3, 2]
 
@@ -1325,7 +1329,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
         frhow_visc =
@@ -1353,7 +1357,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
         grhow_visc =
@@ -1381,7 +1385,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         coef_v = 1 / re * rhobar[i, j, k0]
 
         hrhow_visc =
@@ -1412,7 +1416,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
 
         coef_dl = mu_mom_diff * rhobar[i, j, k0]
@@ -1454,7 +1458,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
 
         coef_dl = mu_mom_diff * rhobar[i, j, k0]
@@ -1496,7 +1500,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         coef_d = mu_mom_diff * rhobar[i, j, k0]
 
         hrhow_visc =
@@ -1518,7 +1522,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:TracerOn},
@@ -1530,7 +1534,7 @@ function compute_fluxes!(
 
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
-    @ivy for field in 1:fieldcount(TracerPredictands)
+    for field in 1:fieldcount(TracerPredictands)
         chir = getfield(tracerreconstructions, field)[2:end, :, :, 1, 1]
         chil = getfield(tracerreconstructions, field)[:, :, :, 1, 2]
         fchi = getfield(tracerfluxes, field)[:, :, :, 1]
@@ -1597,7 +1601,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
@@ -1621,7 +1625,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         coef_t =
             mu_conduct *
             0.5 *
@@ -1662,7 +1666,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         coef_t =
             mu_conduct *
             0.5 *
@@ -1703,7 +1707,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         coef_t =
             mu_conduct * (
                 jac[i, j, k + 1] * rhobar[i, j, 1] / rhobar[i, j, k] +
@@ -1763,14 +1767,14 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(state::State, variable::TKE)
+@ivy function compute_fluxes!(state::State, variable::TKE)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
     (; turbulencereconstructions, turbulencefluxes) = state.turbulence
     (; u, v, w) = state.variables.predictands
 
-    @ivy for field in 1:fieldcount(TurbulencePredictands)
+    for field in 1:fieldcount(TurbulencePredictands)
         chir = getfield(turbulencereconstructions, field)[2:end, :, :, 1, 1]
         chil = getfield(turbulencereconstructions, field)[:, :, :, 1, 2]
         fchi = getfield(turbulencefluxes, field)[:, :, :, 1]

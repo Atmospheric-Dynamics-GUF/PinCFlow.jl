@@ -177,7 +177,7 @@ function propagate_rays!(
     return
 end
 
-function propagate_rays!(
+@ivy function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
@@ -202,7 +202,7 @@ function propagate_rays!(
 
     # Initialize the WKB increments and maximum group velocities at the first
     # RK stage.
-    @ivy if rkstage == 1
+    if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
@@ -222,7 +222,7 @@ function propagate_rays!(
         cgz_max[] = 0.0
     end
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
@@ -453,7 +453,7 @@ function propagate_rays!(
     #     Change of wave action
     #-------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
@@ -467,7 +467,7 @@ function propagate_rays!(
     return
 end
 
-function propagate_rays!(
+@ivy function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
@@ -488,7 +488,7 @@ function propagate_rays!(
 
     activate_orographic_source!(state)
 
-    @ivy if ko != 0
+    if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
@@ -506,7 +506,7 @@ function propagate_rays!(
     end
 
     # Loop over grid cells.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Set the ray-volume count.
         nray[i, j, k] = nray[i, j, k - 1]
@@ -667,7 +667,7 @@ function propagate_rays!(
         end
     end
 
-    @ivy if ko + nz != z_size
+    if ko + nz != z_size
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

@@ -5,7 +5,7 @@ turbulence_integration!(state::State, dt::AbstractFloat)
 
 Integrate the turbulence energies by dispatching to the scheme-specific method.
 
-```julia 
+```julia
 turbulence_integration!(
     state::State,
     dt::AbstractFloat,
@@ -15,7 +15,7 @@ turbulence_integration!(
 
 Return for configurations without turbulence parameterization.
 
-```julia 
+```julia
 turbulence_integration!(
     state::State,
     dt::AbstractFloat,
@@ -25,35 +25,27 @@ turbulence_integration!(
 
 Integrate the turbulent kinetic energy by dispatching to the specific operations.
 
-```julia 
-turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Dissipation,
-)
+```julia
+turbulence_integration!(state::State, dt::AbstractFloat, process::Dissipation)
 ```
 
 Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy.
 
-The dissipation step is given by 
+The dissipation step is given by
 
-```math 
+```math
 \\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(\\frac{\\sqrt{2}\\Delta t}{l_d \\sqrt{\\rho}} + \\frac{1}{\\sqrt{\\rho e_\\mathrm{k}}} \\right)^{-2},
 ```
 
 with turbulent mixing length ``l_d`` stored in `state.turbulence.turbulenceconstants.ld`.
 
-```julia 
-turbulence_integration!(
-    state::State,
-    dt::AbstractFloat,
-    process::Advection,
-)
+```julia
+turbulence_integration!(state::State, dt::AbstractFloat, process::Advection)
 ```
 
 Integrate the advection, shear production, and buoyancy contribution terms in the prognostic equation for the turbulent kinetic energy with a Runge-Kutta time step.
 
-At each Runge-Kutta stage, the mass-weighted turbulent kinetic energy is first reconstructed and its advective fluxes are calculated. Subsequently, the TKE is updated with its shear and buoyancy production terms, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the LHS sponge. 
+At each Runge-Kutta stage, the mass-weighted turbulent kinetic energy is first reconstructed and its advective fluxes are calculated. Subsequently, the TKE is updated with its shear and buoyancy production terms, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the LHS sponge.
 
 ```julia
 turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
@@ -61,21 +53,21 @@ turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
 
 Integrate the turbulent diffusion term in the prognostic equation for the turbulent kinetic energy using a Thomas algorithm.
 
-The prognostic equation 
+The prognostic equation
 
-```math 
+```math
 \\frac{\\partial e_\\mathrm{k}}{\\partial t} = \\frac{1}{J}\\frac{\\partial}{\\partial \\hat{z}}\\left(\\frac{K_\\mathrm{e_\\mathrm{k}}}{J}\\frac{\\partial e_\\mathrm{k}}{\\partial \\hat{z}}\\right)
 ```
 
-is solved using the Crank-Nicolson scheme, where the system 
+is solved using the Crank-Nicolson scheme, where the system
 
 ```math
 a_k \\left(e_\\mathrm{k}\\right)_{k-1}^{n+1} + b_k \\left(e_\\mathrm{k}\\right)_k^{n+1} + c_k \\left(e_\\mathrm{k}\\right)_{k+1}^{n+1} = f_k
 ```
 
-is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\mathrm{k}} = \\frac{K_\\mathrm{e_\\mathrm{k}}}{J}`` and 
+is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\mathrm{k}} = \\frac{K_\\mathrm{e_\\mathrm{k}}}{J}`` and
 
-```math 
+```math
 \\begin{align*}
     a_k = & -\\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}  , \\\\
     b_k = & 1 + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k+1/2}}{J_k} + \\frac{\\Delta t}{2(\\Delta \\hat{z})^2}\\frac{\\tilde{\\mathcal{K}}_{e_\\mathrm{k},k-1/2}}{J_k}, \\\\
@@ -87,7 +79,7 @@ is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\m
 
 # Arguments
 
-  - `state`: Model state. 
+  - `state`: Model state.
 
   - `dt`: Time step.
 
@@ -151,7 +143,7 @@ function turbulence_integration!(
     return
 end
 
-function turbulence_integration!(
+@ivy function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     process::Dissipation,
@@ -162,7 +154,7 @@ function turbulence_integration!(
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         tke[i, j, k] =
             1 /
             (
@@ -174,7 +166,7 @@ function turbulence_integration!(
     return
 end
 
-function turbulence_integration!(
+@ivy function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     process::Advection,
@@ -201,7 +193,7 @@ function turbulence_integration!(
     return
 end
 
-function turbulence_integration!(
+@ivy function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     process::Diffusion,
@@ -217,7 +209,7 @@ function turbulence_integration!(
 
     reset_thomas!(state)
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         kekd =
             (
                 jac[i, j, k - 1] * (
@@ -271,7 +263,7 @@ function turbulence_integration!(
 
     thomas_algorithm!(state)
 
-    @ivy tke[i0:i1, j0:j1, k0:k1] .=
+    tke[i0:i1, j0:j1, k0:k1] .=
         fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
 
     return

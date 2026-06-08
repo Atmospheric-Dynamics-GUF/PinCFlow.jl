@@ -309,7 +309,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -321,7 +321,7 @@ function apply_lhs_sponge!(
     (; rho) = state.variables.predictands
 
     rhobg = 0.0
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rho[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -332,7 +332,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -344,7 +344,7 @@ function apply_lhs_sponge!(
     (; alphar) = state.sponge
     (; rho, rhop, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         rhopbg =
             rhobar[i, j, k] * (
                 1.0 -
@@ -361,7 +361,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -373,7 +373,7 @@ function apply_lhs_sponge!(
     (; rhop) = state.variables.predictands
 
     rhobg = 0.0
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rhop[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -384,7 +384,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -406,14 +406,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the zonal wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xldim = x[i] * lref
         xrdim = x[i + 1] * lref
         ydim = y[j] * lref
@@ -438,7 +438,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -460,14 +460,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the meridional wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xdim = x[i] * lref
         ybdim = y[j] * lref
         yfdim = y[j + 1] * lref
@@ -492,7 +492,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -514,14 +514,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the vertical wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcddim = zc[i, j, k] * lref
@@ -573,7 +573,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -586,7 +586,7 @@ function apply_lhs_sponge!(
     (; rhobar) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
         pib =
@@ -611,7 +611,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -623,7 +623,7 @@ function apply_lhs_sponge!(
     (; rhobar) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         pb = rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         alpha = alphar[i, j, k]
         pold = p[i, j, k]
@@ -664,7 +664,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -683,7 +683,7 @@ function apply_lhs_sponge!(
         return
     end
 
-    @ivy for field in fieldnames(TracerPredictands)
+    for field in fieldnames(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in k0:k1, j in j0:j1, i in i0:i1
             xdim = x[i] * lref
@@ -705,7 +705,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -717,7 +717,7 @@ function apply_lhs_sponge!(
     (; tkemin) = state.turbulence.turbulenceconstants
     (; rhobar) = state.atmosphere
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         tke_old = tke[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)

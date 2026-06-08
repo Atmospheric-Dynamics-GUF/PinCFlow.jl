@@ -128,7 +128,7 @@ function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
     return
 end
 
-function shift_rays!(state::State, direction::X)
+@ivy function shift_rays!(state::State, direction::X)
     (; z_size) = state.namelists.domain
     (; nz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
@@ -137,7 +137,7 @@ function shift_rays!(state::State, direction::X)
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             xr = rays.x[r, i, j, k]
             iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
@@ -162,7 +162,7 @@ function shift_rays!(state::State, direction::X)
     return
 end
 
-function shift_rays!(state::State, direction::Y)
+@ivy function shift_rays!(state::State, direction::Y)
     (; z_size) = state.namelists.domain
     (; nz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
@@ -171,7 +171,7 @@ function shift_rays!(state::State, direction::Y)
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             yr = rays.y[r, i, j, k]
             jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
@@ -196,7 +196,7 @@ function shift_rays!(state::State, direction::Y)
     return
 end
 
-function shift_rays!(state::State, direction::Z)
+@ivy function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
     (; z_size, npz) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
@@ -205,7 +205,7 @@ function shift_rays!(state::State, direction::Z)
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             zr = rays.z[r, i, j, k]
             kray = get_next_half_level(i, j, zr, state)

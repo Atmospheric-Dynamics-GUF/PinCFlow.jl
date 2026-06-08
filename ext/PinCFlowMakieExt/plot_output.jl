@@ -1,4 +1,4 @@
-function plot_output(
+@ivy function plot_output(
     file::AbstractString,
     data::HDF5.File,
     fields::Vararg{
@@ -90,22 +90,21 @@ function plot_output(
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
                 column += 2
-                @ivy zk =
-                    round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
+                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
                     xlabel = L"x_r\ [\mathrm{%$space_unit}]",
                     ylabel = L"y_r\ [\mathrm{%$space_unit}]",
                 )
-                @ivy nonzero = nr[:, :, :, k] .!= 0
-                @ivy (levels, colormap) = symmetric_contours(
+                nonzero = nr[:, :, :, k] .!= 0
+                (levels, colormap) = symmetric_contours(
                     minimum(phi[:, :, :, k][nonzero]),
                     maximum(phi[:, :, :, k][nonzero]);
                     number,
                     colormap_name,
                 )
-                @ivy plot = scatter!(
+                plot = scatter!(
                     xr[:, :, :, k][nonzero],
                     yr[:, :, :, k][nonzero];
                     color = phi[:, :, :, k][nonzero],
@@ -130,22 +129,21 @@ function plot_output(
             # Plot in the x-z plane.
             if nx > 1 && nz > 1
                 column += 2
-                @ivy yj =
-                    round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
                     xlabel = L"x_r\ [\mathrm{%$space_unit}]",
                     ylabel = L"z_r\ [\mathrm{%$space_unit}]",
                 )
-                @ivy nonzero = phi[:, :, j, :] .!= 0
-                @ivy (levels, colormap) = symmetric_contours(
+                nonzero = phi[:, :, j, :] .!= 0
+                (levels, colormap) = symmetric_contours(
                     minimum(phi[:, :, j, :][nonzero]),
                     maximum(phi[:, :, j, :][nonzero]);
                     number,
                     colormap_name,
                 )
-                @ivy plot = scatter!(
+                plot = scatter!(
                     xr[:, :, j, :][nonzero],
                     zr[:, :, j, :][nonzero];
                     color = phi[:, :, j, :][nonzero],
@@ -170,22 +168,21 @@ function plot_output(
             # Plot in the y-z plane.
             if ny > 1 && nz > 1
                 column += 2
-                @ivy xi =
-                    round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
                     xlabel = L"y_r\ [\mathrm{%$space_unit}]",
                     ylabel = L"z_r\ [\mathrm{%$space_unit}]",
                 )
-                @ivy nonzero = phi[:, i, :, :] .!= 0
-                @ivy (levels, colormap) = symmetric_contours(
+                nonzero = phi[:, i, :, :] .!= 0
+                (levels, colormap) = symmetric_contours(
                     minimum(phi[:, i, :, :][nonzero]),
                     maximum(phi[:, i, :, :][nonzero]);
                     number,
                     colormap_name,
                 )
-                @ivy plot = scatter!(
+                plot = scatter!(
                     yr[:, i, :, :][nonzero],
                     zr[:, i, :, :][nonzero];
                     color = phi[:, i, :, :][nonzero],
@@ -216,21 +213,20 @@ function plot_output(
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
                 column += 2
-                @ivy zk =
-                    round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
+                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
                 axis = Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
                     xlabel = L"x\ [\mathrm{%$space_unit}]",
                     ylabel = L"y\ [\mathrm{%$space_unit}]",
                 )
-                @ivy (levels, colormap) = symmetric_contours(
+                (levels, colormap) = symmetric_contours(
                     minimum(phi[:, :, k]),
                     maximum(phi[:, :, k]);
                     number,
                     colormap_name,
                 )
-                @ivy plot = contourf!(
+                plot = contourf!(
                     x[:, :, k],
                     y[:, :, k],
                     phi[:, :, k];
@@ -252,8 +248,7 @@ function plot_output(
             # Plot in the x-z plane.
             if nx > 1 && nz > 1
                 column += 2
-                @ivy yj =
-                    round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
                 axis = Axis(
                     figure[row, column - 1];
                     backgroundcolor = :black,
@@ -261,13 +256,13 @@ function plot_output(
                     xlabel = L"x\ [\mathrm{%$space_unit}]",
                     ylabel = L"z\ [\mathrm{%$space_unit}]",
                 )
-                @ivy (levels, colormap) = symmetric_contours(
+                (levels, colormap) = symmetric_contours(
                     minimum(phi[:, j, :]),
                     maximum(phi[:, j, :]);
                     number,
                     colormap_name,
                 )
-                @ivy plot = contourf!(
+                plot = contourf!(
                     x[:, j, :],
                     z[:, j, :],
                     phi[:, j, :];
@@ -289,8 +284,7 @@ function plot_output(
             # Plot in the y-z plane.
             if ny > 1 && nz > 1
                 column += 2
-                @ivy xi =
-                    round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
                 axis = Axis(
                     figure[row, column - 1];
                     backgroundcolor = :black,
@@ -298,13 +292,13 @@ function plot_output(
                     xlabel = L"y\ [\mathrm{%$space_unit}]",
                     ylabel = L"z\ [\mathrm{%$space_unit}]",
                 )
-                @ivy (levels, colormap) = symmetric_contours(
+                (levels, colormap) = symmetric_contours(
                     minimum(phi[i, :, :]),
                     maximum(phi[i, :, :]);
                     number,
                     colormap_name,
                 )
-                @ivy plot = contourf!(
+                plot = contourf!(
                     y[i, :, :],
                     z[i, :, :],
                     phi[i, :, :];
