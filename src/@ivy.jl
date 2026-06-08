@@ -3,7 +3,7 @@
 @ivy(x::Expr)
 ```
 
-Return the expression `x` with all array slices turned into views and all bounds checks turned off.
+Return the expression `x` with all slices turned into views and all bounds checks turned off.
 
 # Arguments
 
