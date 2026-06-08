@@ -19,7 +19,7 @@ function read_input! end
     (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
-    (; nray_max, nray, rays) = state.wkb
+    (; bins, nray, rays) = state.wkb
     (; rhobar) = state.atmosphere
 
     # Determine dimensionality.
@@ -33,7 +33,7 @@ function read_input! end
 
     # Define slices.
     dk0 = ko == 0 ? 1 : 0
-    (rr, ii, jj, kk, kkr) = (1:nray_max, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),
         (jo + 1):(jo + ny),
