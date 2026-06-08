@@ -4,8 +4,17 @@ plot_output(
     file::AbstractString,
     data::HDF5.File,
     fields::Vararg{
-        Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
+        Tuple{
+            <:AbstractString,
+            <:Real,
+            <:Integer,
+            <:Integer,
+            <:Integer,
+            <:Integer,
+        },
     };
+    animate::Bool = false,
+    framerate::Real = 1,
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
     space_unit::AbstractString = "km",
@@ -13,7 +22,7 @@ plot_output(
 )
 ```
 
-Create contour plots of the dataset `variable` in `data`, display it and save it to `file`.
+Create contour plots or an animation of the dataset slices specified by `fields` in `data`, display the figure (if not animated) and save it to `file`.
 
 # Arguments
 
@@ -21,9 +30,13 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `data`: PinCFlow.jl output data.
 
-  - `fields`: Tuples of a variable name and four indices. The first three indices of each tuple define the planes in which the contours are to be plotted, whereas the fourth is the temporal index.
+  - `fields`: Tuples of a variable name, and offset, and four indices. The first three indices of each tuple define the planes in which the contours are to be plotted, whereas the fourth is the temporal index.
 
 # Keywords
+
+  - `animate`: Switch for the creation of an animation.
+
+  - `framerate`: Frames per second of the animation.
 
   - `number`: Number of contour levels.
 

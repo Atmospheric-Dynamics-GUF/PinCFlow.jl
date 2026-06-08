@@ -1,9 +1,9 @@
 function symmetric_contours(
-    minimum::AbstractFloat,
-    maximum::AbstractFloat;
+    minimum::Real,
+    maximum::Real;
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
-)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
+)::Tuple{<:LinRange{<:Real, <:Integer}, <:Any}
 
     # Get the colormap and adjust the number of levels if necessary.
     colormap = to_colormap(colormap_name)

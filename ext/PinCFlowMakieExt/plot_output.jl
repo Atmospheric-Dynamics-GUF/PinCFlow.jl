@@ -2,78 +2,51 @@ function plot_output(
     file::AbstractString,
     data::HDF5.File,
     fields::Vararg{
-        Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
+        Tuple{
+            <:AbstractString,
+            <:Real,
+            <:Integer,
+            <:Integer,
+            <:Integer,
+            <:Integer,
+        },
     };
+    animate::Bool = false,
+    framerate::Real = 1,
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
     space_unit::AbstractString = "km",
     time_unit::AbstractString = "h",
 )
-    set_visualization_theme!()
-
-    # Store the ray-volume property names.
-    ray_volume_properties = (
-        "xr",
-        "yr",
-        "zr",
-        "dxr",
-        "dyr",
-        "dzr",
-        "kr",
-        "lr",
-        "mr",
-        "dkr",
-        "dlr",
-        "dmr",
-        "nr",
+    function plot_snapshot!(
+        variable::AbstractString,
+        offset::Real,
+        i::Integer,
+        j::Integer,
+        k::Integer,
+        n::Integer,
     )
-
-    # Set the space unit factor.
-    if space_unit == "km"
-        space_unit_factor = 1000
-    elseif space_unit == "m"
-        space_unit_factor = 1
-    else
-        error("Error: Unknown space unit!")
-    end
-
-    # Set the time unit factor.
-    if time_unit == "d"
-        time_unit_factor = 86400
-    elseif time_unit == "h"
-        time_unit_factor = 3600
-    elseif time_unit == "min"
-        time_unit_factor = 60
-    elseif time_unit == "s"
-        time_unit_factor = 1
-    else
-        error("Error: Unknown time unit!")
-    end
-
-    # Set the grid.
-    x = data["x"][:] ./ space_unit_factor
-    y = data["y"][:] ./ space_unit_factor
-    z = data["z"][:, :, :] ./ space_unit_factor
-    (nx, ny, nz) = size(z)
-    x = [xi for xi in x, j in 1:ny, k in 1:nz]
-    y = [yj for i in 1:nx, yj in y, k in 1:nz]
-
-    # Get the time.
-    t = data["t"][:] ./ time_unit_factor
-
-    # Create the figure.
-    figure = Figure()
-
-    # Loop over outputs.
-    row = 0
-    for (variable, i, j, k, n) in fields
-        row += 1
+        # Initialize the column index.
         column = 0
 
         # Round the time.
         tn = round(t[n]; digits = 1)
 
-        if variable in ray_volume_properties
+        if variable in (
+            "xr",
+            "yr",
+            "zr",
+            "dxr",
+            "dyr",
+            "dzr",
+            "kr",
+            "lr",
+            "mr",
+            "dkr",
+            "dlr",
+            "dmr",
+            "nr",
+        )
             # Get the ray-volume data.
             xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
             yr = data["yr"][:, :, :, :, n] ./ space_unit_factor
@@ -82,7 +55,7 @@ function plot_output(
             dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
             dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
             nr = data["nr"][:, :, :, :, n]
-            phi = data[variable][:, :, :, :, n]
+            phi = data[variable][:, :, :, :, n] .- offset
 
             # Get the label.
             label = LaTeXString(attrs(data[variable])["label"])
@@ -92,6 +65,7 @@ function plot_output(
                 column += 2
                 @ivy zk =
                     round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
+                delete!.(contents(figure[row, (column - 1):column]))
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
@@ -100,8 +74,8 @@ function plot_output(
                 )
                 @ivy nonzero = nr[:, :, :, k] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, :, k][nonzero]),
-                    maximum(phi[:, :, :, k][nonzero]);
+                    minimum(phi[:, :, :, k][nonzero]; init = 0),
+                    maximum(phi[:, :, :, k][nonzero]; init = 0);
                     number,
                     colormap_name,
                 )
@@ -132,6 +106,7 @@ function plot_output(
                 column += 2
                 @ivy yj =
                     round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                delete!.(contents(figure[row, (column - 1):column]))
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
@@ -140,8 +115,8 @@ function plot_output(
                 )
                 @ivy nonzero = phi[:, :, j, :] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, j, :][nonzero]),
-                    maximum(phi[:, :, j, :][nonzero]);
+                    minimum(phi[:, :, j, :][nonzero]; init = 0),
+                    maximum(phi[:, :, j, :][nonzero]; init = 0);
                     number,
                     colormap_name,
                 )
@@ -172,6 +147,7 @@ function plot_output(
                 column += 2
                 @ivy xi =
                     round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+                delete!.(contents(figure[row, (column - 1):column]))
                 Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
@@ -180,8 +156,8 @@ function plot_output(
                 )
                 @ivy nonzero = phi[:, i, :, :] .!= 0
                 @ivy (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, i, :, :][nonzero]),
-                    maximum(phi[:, i, :, :][nonzero]);
+                    minimum(phi[:, i, :, :][nonzero]; init = 0),
+                    maximum(phi[:, i, :, :][nonzero]; init = 0);
                     number,
                     colormap_name,
                 )
@@ -208,7 +184,7 @@ function plot_output(
             end
         else
             # Get the variable.
-            phi = data[variable][:, :, :, n]
+            phi = data[variable][:, :, :, n] .- offset
 
             # Get the label.
             label = LaTeXString(attrs(data[variable])["label"])
@@ -218,6 +194,7 @@ function plot_output(
                 column += 2
                 @ivy zk =
                     round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
+                delete!.(contents(figure[row, (column - 1):column]))
                 axis = Axis(
                     figure[row, column - 1];
                     title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
@@ -254,6 +231,7 @@ function plot_output(
                 column += 2
                 @ivy yj =
                     round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                delete!.(contents(figure[row, (column - 1):column]))
                 axis = Axis(
                     figure[row, column - 1];
                     backgroundcolor = :black,
@@ -291,6 +269,7 @@ function plot_output(
                 column += 2
                 @ivy xi =
                     round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+                delete!.(contents(figure[row, (column - 1):column]))
                 axis = Axis(
                     figure[row, column - 1];
                     backgroundcolor = :black,
@@ -323,12 +302,72 @@ function plot_output(
                 ylims!(minimum(z), maximum(z))
             end
         end
+
+        return
     end
 
-    # Resize, display and save the figure.
-    resize_to_layout!(figure)
-    display(figure)
-    save(file, figure)
+    set_visualization_theme!()
+
+    # Set the space unit factor.
+    if space_unit == "km"
+        space_unit_factor = 1000
+    elseif space_unit == "m"
+        space_unit_factor = 1
+    else
+        error("Error: Unknown space unit!")
+    end
+
+    # Set the time unit factor.
+    if time_unit == "d"
+        time_unit_factor = 86400
+    elseif time_unit == "h"
+        time_unit_factor = 3600
+    elseif time_unit == "min"
+        time_unit_factor = 60
+    elseif time_unit == "s"
+        time_unit_factor = 1
+    else
+        error("Error: Unknown time unit!")
+    end
+
+    # Set the grid.
+    x = data["x"][:] ./ space_unit_factor
+    y = data["y"][:] ./ space_unit_factor
+    z = data["z"][:, :, :] ./ space_unit_factor
+    (nx, ny, nz) = size(z)
+    x = [xi for xi in x, j in 1:ny, k in 1:nz]
+    y = [yj for i in 1:nx, yj in y, k in 1:nz]
+
+    # Get the time.
+    t = data["t"][:] ./ time_unit_factor
+
+    # Create the figure.
+    figure = Figure()
+
+    # Create an animation or plot snapshots.
+    if animate
+        row = 1
+        plot_snapshot!(fields[1]...)
+        resize_to_layout!(figure)
+        record(
+            figure,
+            file,
+            fields;
+            framerate,
+        ) do (variable, offset, i, j, k, n)
+            plot_snapshot!(variable, offset, i, j, k, n)
+            return
+        end
+    else
+        row = 0
+        for (variable, offset, i, j, k, n) in fields
+            row += 1
+            plot_snapshot!(variable, offset, i, j, k, n)
+        end
+        resize_to_layout!(figure)
+        display(figure)
+        save(file, figure)
+    end
 
     return
 end
