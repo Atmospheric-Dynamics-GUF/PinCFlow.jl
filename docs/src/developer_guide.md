@@ -38,10 +38,6 @@ Contributions to the code should respect the following rules.
 
   - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters (in alphabetical order). For all other objects, use `snake_case`.
 
-![](pincflow_modules.svg)
-
-![](pincflow_structures.svg)
-
 ## Writing documentation
 
 Contributions to the code should always be accompanied by corresponding contributions to the documentation, respecting the following rules.
