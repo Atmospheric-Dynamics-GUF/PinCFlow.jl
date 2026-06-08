@@ -3,7 +3,7 @@
 @ivy(x::Expr)
 ```
 
-Return the expression `x` with `@inbounds` and `@views` applied to it and all its subexpressions.
+Return the expression `x` with all array slices turned into views and all bounds checks turned off.
 
 # Arguments
 

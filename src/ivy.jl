@@ -3,7 +3,7 @@
 ivy(x::Any; root::Bool = true)::Any
 ```
 
-If `x` is an expression, climb its AST and apply `@inbounds` and `@views` to the bodies of scope blocks that either of them is not able to pass into, apply `@inbounds` and `@views` to `x` itself if `root == true`, and return it.
+If `x` is an expression, climb its AST and apply `@inbounds` to the bodies of hard-local-scope blocks (i.e., `macro` and `function` definitions, `let` blocks, comprehensions, and generators), apply `@inbounds` and `@views` to `x` itself if `root == true`, and return it.
 
 # Arguments
 
@@ -25,11 +25,11 @@ function ivy(x::Any; root::Bool = true)::Any
                ) ||
                x.head === :let
             x.args[2] = quote
-                @views @inbounds $(ivy(x.args[2]; root = false))
+                @inbounds $(ivy(x.args[2]; root = false))
             end
         elseif x.head === :comprehension || x.head === :generator
             x.args[1] = quote
-                @views @inbounds $(ivy(x.args[1]; root = false))
+                @inbounds $(ivy(x.args[1]; root = false))
             end
         else
             for index in eachindex(x.args)
