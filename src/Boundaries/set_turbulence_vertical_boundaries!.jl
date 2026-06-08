@@ -83,7 +83,7 @@ function set_turbulence_vertical_boundaries!(
     return
 end
 
-function set_turbulence_vertical_boundaries!(
+@ivy function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
 )
@@ -91,13 +91,13 @@ function set_turbulence_vertical_boundaries!(
     (; z_size) = state.namelists.domain
     (; turbulencefluxes) = state.turbulence
 
-    @ivy if ko == 0
+    if ko == 0
         for field in fieldnames(TurbulenceFluxes)
             getfield(turbulencefluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
-    @ivy if ko + nz == z_size
+    if ko + nz == z_size
         for field in fieldnames(TurbulenceFluxes)
             getfield(turbulencefluxes, field)[:, :, k1, 3] .= 0.0
         end

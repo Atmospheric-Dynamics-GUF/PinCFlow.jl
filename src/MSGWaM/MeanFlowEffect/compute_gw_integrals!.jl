@@ -101,7 +101,7 @@ function compute_gw_integrals!(state::State)
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
+@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -121,10 +121,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
 
     set_tracer_fields_zero!(state)
 
-    @ivy for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -299,7 +296,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
+@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -317,10 +314,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
         getfield(integrals, field) .= 0.0
     end
 
-    @ivy for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -461,7 +455,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
+@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
@@ -478,10 +472,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
         getfield(integrals, field) .= 0.0
     end
 
-    @ivy for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
