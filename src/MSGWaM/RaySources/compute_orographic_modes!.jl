@@ -59,7 +59,7 @@ If the squared intrinsic frequency is smaller than the squared Coriolis paramete
 """
 function compute_orographic_modes! end
 
-function compute_orographic_modes!(state::State)
+@ivy function compute_orographic_modes!(state::State)
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, wave_modes, elastic_mode_selection) = state.namelists.wkb
     (; tref) = state.constants
@@ -75,7 +75,7 @@ function compute_orographic_modes!(state::State)
 
     fc = coriolis_frequency * tref
 
-    @ivy for j in j0:j1, i in i0:i1
+    for j in j0:j1, i in i0:i1
         deltah = compute_elevation_difference(state, i, j)
 
         (rhoh, n2h, uh, vh) = compute_vertical_averages(state, deltah, i, j)
