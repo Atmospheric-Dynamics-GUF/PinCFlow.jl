@@ -94,7 +94,7 @@ function write_output(
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; nray_max, rays, tendencies) = state.wkb
+    (; bins, rays, tendencies) = state.wkb
 
     # Print information.
     if master
@@ -120,7 +120,7 @@ function write_output(
 
     # Define slices.
     dk0 = ko == 0 ? 1 : 0
-    (rr, ii, jj, kk, kkr) = (1:nray_max, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),
         (jo + 1):(jo + ny),
@@ -386,9 +386,9 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, x_size, y_size, z_size + 1, iout),
+                        (bins, x_size, y_size, z_size + 1, iout),
                     )
-                    file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
+                    file[output_name][1:bins, iid, jjd, kkrd, iout] =
                         getproperty(rays, field_name)[rr, ii, jj, kkr] .* lref
                 end
 
@@ -398,17 +398,17 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, x_size, y_size, z_size + 1, iout),
+                        (bins, x_size, y_size, z_size + 1, iout),
                     )
-                    file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
+                    file[output_name][1:bins, iid, jjd, kkrd, iout] =
                         getproperty(rays, field_name)[rr, ii, jj, kkr] ./ lref
                 end
 
                 HDF5.set_extent_dims(
                     file["nr"],
-                    (nray_max, x_size, y_size, z_size + 1, iout),
+                    (bins, x_size, y_size, z_size + 1, iout),
                 )
-                file["nr"][1:nray_max, iid, jjd, kkrd, iout] =
+                file["nr"][1:bins, iid, jjd, kkrd, iout] =
                     rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
                     lref .^ dim
             end

@@ -43,21 +43,9 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
 # Fields
 
-  - `nxray::A`: Number of ray volumes allowed in ``\\hat{x}``, per grid cell and wave mode (`multiplication_factor * nrx * nrk`, taken from `namelists.wkb`).
+  - `bins::A`: Maximum ray-volume count allowed per grid cell before merging is triggered (equal to `n_sfc` in steady-state mode and `k_bins * l_bins * m_bins` otherwise).
 
-  - `nyray::A`: Number of ray volumes allowed in ``\\hat{y}``, per grid cell and wave mode (`multiplication_factor * nry * nrl`, taken from `namelists.wkb`).
-
-  - `nzray::A`: Number of ray volumes allowed in ``\\hat{z}``, per grid cell and wave mode (`multiplication_factor * nrz * nrm`, taken from `namelists.wkb`).
-
-  - `nxray_wrk::A`: `2 * nxray`.
-
-  - `nyray_wrk::A`: `2 * nyray`.
-
-  - `nzray_wrk::A`: `2 * nzray`.
-
-  - `nray_max::A`: Maximum ray-volume count allowed per grid-cell before merging is triggered (`nxray * nyray * nzray * namelists.wkb.wave_modes`).
-
-  - `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays (`nxray_wrk * nyray_wrk * nzray_wrk`).
+  - `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays.
 
   - `n_sfc::A`: Number of orographic wave modes.
 
@@ -122,13 +110,7 @@ struct WKB{
     J <: AbstractMatrix{<:AbstractFloat},
     K <: AbstractArray{<:AbstractFloat, 3},
 }
-    nxray::A
-    nyray::A
-    nzray::A
-    nxray_wrk::A
-    nyray_wrk::A
-    nzray_wrk::A
-    nray_max::A
+    bins::A
     nray_wrk::A
     n_sfc::A
     nray::B
@@ -153,7 +135,7 @@ end
 
 function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
     return WKB(
-        [0 for i in 1:9]...,
+        [0 for i in 1:3]...,
         zeros(Int, 0, 0, 0),
         Rays(0, 0, 0, 0),
         MergedRays(0, 0),
@@ -179,7 +161,9 @@ function WKB(
         nrk,
         nrl,
         nrm,
-        multiplication_factor,
+        k_bins,
+        l_bins,
+        m_bins,
         wave_modes,
         dkr_factor,
         dlr_factor,
@@ -188,7 +172,7 @@ function WKB(
     (; x_size, y_size, z_size) = namelists.domain
     (; nxx, nyy, nzz) = domain
 
-    # Check if spectral-extent factors are set correctly.
+    # Check if the spectral-extent factors are set correctly.
     if x_size > 1 && dkr_factor == 0.0
         error("Error in WKB: x_size > 1 && dkr_factor == 0!")
     end
@@ -199,60 +183,52 @@ function WKB(
         error("Error in WKB: z_size == 1 || dmr_factor == 0!")
     end
 
-    # Set zonal ray-volume count.
-    if x_size == 1
-        nxray = 1
-    else
-        nxray = multiplication_factor * nrx * nrk
+    # Check if initialization/launch specifications are correct.
+    if x_size == 1 && nrx > 1
+        error("nrx must be one for x_size == 1!")
+    end
+    if y_size == 1 && nry > 1
+        error("nry must be one for y_size == 1!")
     end
 
-    # Set meridional ray-volume count.
-    if y_size == 1
-        nyray = 1
-    else
-        nyray = multiplication_factor * nry * nrl
+    # Check if the numbers of bins are set correctly.
+    if k_bins % 2 == 0
+        error("k_bins must be an odd number!")
+    end
+    if l_bins % 2 == 0
+        error("l_bins must be an odd number!")
+    end
+    if m_bins % 2 == 0
+        error("m_bins must be an odd number!")
     end
 
-    # Set vertical ray-volume count.
-    nzray = multiplication_factor * nrz * nrm
+    # Set the number of surface ray volumes.
+    n_sfc = nrx * nrk * nry * nrl * nrz * nrm * wave_modes
 
-    # Set maximum ray-volume count.
-    nray_max = nxray * nyray * nzray * wave_modes
+    # Set the total number of bins and work size of the ray-volume array.
+    if wkb_mode == Val(:SteadyState)
+        bins = nray_wrk = n_sfc
+    else
+        # Set the total number of bins.
+        bins = k_bins * l_bins * m_bins
 
-    # Set spectral dimension of ray-volume array.
-    if nxray > 1
-        nxray_wrk = 2 * nxray
-    else
-        nxray_wrk = 1
-    end
-    if nyray > 1
-        nyray_wrk = 2 * nyray
-    else
-        nyray_wrk = 1
-    end
-    if nzray > 1
-        nzray_wrk = 2 * nzray
-    else
-        nzray_wrk = 1
-    end
-    nray_wrk = nxray_wrk * nyray_wrk * nzray_wrk * wave_modes
+        # Check if the number of bins is large enough.
+        if bins < n_sfc
+            error(
+                "k_bins * l_bins * m_bins must not be smaller than nrx * nrk * nry * nrl * nrz * nrm * wave_modes",
+            )
+        end
 
-    # Set number of surface ray volumes.
-    n_sfc = wave_modes
-    if nxray > 1
-        n_sfc *= div(nxray, multiplication_factor)
-    end
-    if nyray > 1
-        n_sfc *= div(nyray, multiplication_factor)
-    end
-    if nzray > 1
-        n_sfc *= div(nzray, multiplication_factor)
+        # Determine the work size of the ray-volume array.
+        nray_wrk = 2 * bins
+        y_size > 1 && (nray_wrk *= 2)
+        x_size > 1 && (nray_wrk *= 2)
     end
 
     # Allocate ray-volume arrays.
     nray = zeros(Int, nxx, nyy, nzz)
     rays = Rays(nray_wrk, nxx, nyy, nzz)
-    merged_rays = MergedRays(2, nray_max)
+    merged_rays = MergedRays(2, bins)
     surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
     increments = WKBIncrements(nray_wrk, nxx, nyy, nzz)
     integrals = WKBIntegrals(nxx, nyy, nzz)
@@ -264,13 +240,7 @@ function WKB(
     diffusion = zeros(nxx, nyy, nzz)
 
     return WKB(
-        nxray,
-        nyray,
-        nzray,
-        nxray_wrk,
-        nyray_wrk,
-        nzray_wrk,
-        nray_max,
+        bins,
         nray_wrk,
         n_sfc,
         nray,
