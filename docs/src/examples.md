@@ -531,7 +531,7 @@ $$\alpha_\mathrm{R} \left(x, y, z\right) = \frac{\alpha_{\mathrm{R}, \max}}{3} \
 
 where $\alpha_{\mathrm{R}, \max} = 0.0179 \ \mathrm{s^{- 1}}$, $\Delta x_\mathrm{R} = L_x / 20$, $\Delta y_\mathrm{R} = L_y / 20$ and $\Delta z_\mathrm{R} = L_z / 10$. In contrast to the sinusoidal sponge discussed in the first example, this sponge applies a damping everywhere in the domain (weakest at the center of the surface, strongest in the upper corners). Once again, the sponge relaxes the wind to its initial state.
 
-MS-GWaM is used with most of its parameters set to their default values. This means that the orographic source launches exactly one ray volume in each surface grid cell with a nonzero $h_\mathrm{w}$. Thus, the number of ray volumes allowed per grid cell (before merging is triggered) is `multiplication_factor` (a parameter of the WKB namelist) cubed, which is $4^3 = 64$.
+MS-GWaM is used with most of its parameters set to their default values. This means that the orographic source launches exactly one ray volume in each surface grid cell with a nonzero $h_\mathrm{w}$. Thus, the number of ray volumes allowed per grid cell (before merging is triggered) is `k_bins * l_bins * m_bins` (from `WKBNamelist`), which is $3^3 = 27$.
 
 Instead of a contour plot, the above script generates a scatter plot that visualizes the ray volumes, with the color representing the value of the phase-space wave-action density (see below).
 
@@ -628,13 +628,13 @@ The `Examples` module contains another module called `WavePacketTools`, which pr
 ```julia
 # src/Examples/WavePacketTools/ijk.jl
 
-function ijk(state::State, x::Real, y::Real, z::Real)::CartesianIndex
+@ivy function ijk(state::State, x::Real, y::Real, z::Real)::CartesianIndex
     (; lref) = state.constants
     (; grid) = state
 
     i = argmin(abs.(x .- grid.x .* lref))
     j = argmin(abs.(y .- grid.y .* lref))
-    @ivy k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
+    k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
 
     return CartesianIndex(i, j, k)
 end
@@ -644,11 +644,11 @@ end
 ```julia
 # src/Examples/WavePacketTools/rhobar.jl
 
-function rhobar(state::State, x::Real, y::Real, z::Real)::Real
+@ivy function rhobar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; rhoref) = state.constants
 
-    @ivy return atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
+    return atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
 end
 
 ```
@@ -656,11 +656,11 @@ end
 ```julia
 # src/Examples/WavePacketTools/thetabar.jl
 
-function thetabar(state::State, x::Real, y::Real, z::Real)::Real
+@ivy function thetabar(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; thetaref) = state.constants
 
-    @ivy return atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
+    return atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
 end
 
 ```
@@ -668,11 +668,11 @@ end
 ```julia
 # src/Examples/WavePacketTools/n2.jl
 
-function n2(state::State, x::Real, y::Real, z::Real)::Real
+@ivy function n2(state::State, x::Real, y::Real, z::Real)::Real
     (; atmosphere) = state
     (; tref) = state.constants
 
-    @ivy return atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
+    return atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
 end
 
 ```

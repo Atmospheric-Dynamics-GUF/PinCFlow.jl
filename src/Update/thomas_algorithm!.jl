@@ -1,5 +1,5 @@
 """
-```julia 
+```julia
 thomas_algorithm!(state::State)
 ```
 
@@ -7,25 +7,25 @@ Solves a tridiagonal system in ``\\hat{z}``-direction using the Thomas tridiagon
 
 The system is defined as:
 
-```math 
+```math
 a_k \\phi_{k-1} + b_k\\phi_k + c_k\\phi_{k+1} = f_k\\;.
 ```
 
 The result is stored in `state.variables.auxiliaries.fth`.
 
-# Arguments 
+# Arguments
 
   - `state`: Model state.
 """
 function thomas_algorithm! end
 
-function thomas_algorithm!(state::State)
+@ivy function thomas_algorithm!(state::State)
     (; comm, nz, ko, up, down) = state.domain
     (; z_size) = state.namelists.domain
     (; ath, bth, cth, fth, qth, pth, fth_bc, qth_bc) =
         state.variables.auxiliaries
 
-    @ivy if ko == 0
+    if ko == 0
         qth[:, :, 1] .= .-cth[:, :, 1] ./ bth[:, :, 1]
         fth[:, :, 1] .= fth[:, :, 1] ./ bth[:, :, 1]
     else
@@ -37,14 +37,14 @@ function thomas_algorithm!(state::State)
         fth[:, :, 1] .= (fth[:, :, 1] .- ath[:, :, 1] .* fth_bc) .* pth
     end
 
-    @ivy for k in 2:nz
+    for k in 2:nz
         pth .= 1.0 ./ (bth[:, :, k] .+ ath[:, :, k] .* qth[:, :, k - 1])
         qth[:, :, k] .= .-cth[:, :, k] .* pth
         fth[:, :, k] .=
             (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* pth
     end
 
-    @ivy if ko + nz != z_size
+    if ko + nz != z_size
         qth_bc .= qth[:, :, nz]
         fth_bc .= fth[:, :, nz]
 
@@ -56,11 +56,11 @@ function thomas_algorithm!(state::State)
         fth[:, :, nz] .+= qth[:, :, nz] .* fth_bc
     end
 
-    @ivy for k in (nz - 1):-1:1
+    for k in (nz - 1):-1:1
         fth[:, :, k] .+= qth[:, :, k] .* fth[:, :, k + 1]
     end
 
-    @ivy if ko != 0
+    if ko != 0
         fth_bc .= fth[:, :, 1]
 
         MPI.Send(fth_bc, comm; dest = down)

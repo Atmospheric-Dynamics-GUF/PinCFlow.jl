@@ -85,7 +85,7 @@ The discretized transformation rule for the vertical wind is given by
 """
 function transform end
 
-function transform(
+@ivy function transform(
     i::Integer,
     j::Integer,
     k::Integer,
@@ -103,16 +103,16 @@ function transform(
 )::AbstractFloat
     (; jac, met) = state.grid
 
-    @ivy jacedgeu =
+    jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
         (jac[i, j, k] + jac[i, j, k + 1])
 
-    @ivy uc = 0.5 * (uedger + uedgel)
-    @ivy uu = 0.5 * (uuedger + uuedgel)
-    @ivy vc = 0.5 * (vedgef + vedgeb)
-    @ivy vu = 0.5 * (vuedgef + vuedgeb)
+    uc = 0.5 * (uedger + uedgel)
+    uu = 0.5 * (uuedger + uuedgel)
+    vc = 0.5 * (vedgef + vedgeb)
+    vu = 0.5 * (vuedgef + vuedgeb)
 
-    @ivy return jacedgeu * (
+    return jacedgeu * (
         -(
             jac[i, j, k + 1] *
             (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
@@ -122,7 +122,7 @@ function transform(
     )
 end
 
-function transform(
+@ivy function transform(
     i::Integer,
     j::Integer,
     k::Integer,
@@ -140,16 +140,16 @@ function transform(
 )::AbstractFloat
     (; jac, met) = state.grid
 
-    @ivy jacedgeu =
+    jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
         (jac[i, j, k] + jac[i, j, k + 1])
 
-    @ivy uc = 0.5 * (uedger + uedgel)
-    @ivy uu = 0.5 * (uuedger + uuedgel)
-    @ivy vc = 0.5 * (vedgef + vedgeb)
-    @ivy vu = 0.5 * (vuedgef + vuedgeb)
+    uc = 0.5 * (uedger + uedgel)
+    uu = 0.5 * (uuedger + uuedgel)
+    vc = 0.5 * (vedgef + vedgeb)
+    vu = 0.5 * (vuedgef + vuedgeb)
 
-    @ivy return (
+    return (
         jac[i, j, k + 1] * (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
         jac[i, j, k] *
         (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)

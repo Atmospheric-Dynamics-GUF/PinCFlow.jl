@@ -362,7 +362,7 @@ function Atmosphere(
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
-function Atmosphere(
+@ivy function Atmosphere(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -396,7 +396,7 @@ function Atmosphere(
         )
     end
 
-    @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
+    for k in 1:nzz, j in 1:nyy, i in 1:nxx
         if zc[i, j, k] <= ztrop
             thetabar[i, j, k] = theta0
             pbar[i, j, k] =
@@ -416,7 +416,7 @@ function Atmosphere(
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
-function Atmosphere(
+@ivy function Atmosphere(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -456,7 +456,7 @@ function Atmosphere(
         power_s = g / rsp / stratosphere_lapse_rate / gamma
     end
 
-    @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
+    for k in 1:nzz, j in 1:nyy, i in 1:nxx
         if zc[i, j, k] <= ztrop
             tbar = t0 - gamma_t * zc[i, j, k]
 

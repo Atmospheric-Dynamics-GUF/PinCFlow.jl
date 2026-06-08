@@ -30,7 +30,7 @@ This method first calls `compute_orographic_modes!` and then launches correspond
 """
 function activate_orographic_source! end
 
-function activate_orographic_source!(state::State)
+@ivy function activate_orographic_source!(state::State)
     (; x_size, y_size) = state.namelists.domain
     (;
         nrx,
@@ -56,7 +56,7 @@ function activate_orographic_source!(state::State)
     compute_orographic_modes!(state)
 
     # Loop over surface grid cells.
-    @ivy for j in j0:j1, i in i0:i1
+    for j in j0:j1, i in i0:i1
 
         # Set launch level.
         k = k0 - 1

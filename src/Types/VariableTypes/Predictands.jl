@@ -67,7 +67,7 @@ struct Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
     p::A
 end
 
-function Predictands(
+@ivy function Predictands(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -91,7 +91,7 @@ function Predictands(
 
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
 
-    @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
+    for k in 1:nzz, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
@@ -130,19 +130,19 @@ function Predictands(
         rho .= rhop
     end
 
-    @ivy w .= met[:, :, :, 1, 3] .* u .+ met[:, :, :, 2, 3] .* v .+ w ./ jac
+    w .= met[:, :, :, 1, 3] .* u .+ met[:, :, :, 2, 3] .* v .+ w ./ jac
 
-    @ivy for i in i0:i1
+    for i in i0:i1
         u[i, :, :] .= (u[i, :, :] .+ u[i + 1, :, :]) ./ 2
     end
     set_zonal_boundaries_of_field!(u, namelists, domain)
 
-    @ivy for j in j0:j1
+    for j in j0:j1
         v[:, j, :] .= (v[:, j, :] .+ v[:, j + 1, :]) ./ 2
     end
     set_meridional_boundaries_of_field!(v, namelists, domain)
 
-    @ivy for k in k0:k1
+    for k in k0:k1
         w[:, :, k] .=
             (
                 jac[:, :, k + 1] .* w[:, :, k] .+

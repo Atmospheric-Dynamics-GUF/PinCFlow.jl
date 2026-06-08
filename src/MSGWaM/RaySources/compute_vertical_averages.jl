@@ -22,7 +22,7 @@ Compute and return the local vertical averages of ``\\bar{\\rho}``, ``N^2``, ``u
 """
 function compute_vertical_averages end
 
-function compute_vertical_averages(
+@ivy function compute_vertical_averages(
     state::State,
     deltah::AbstractFloat,
     i::Integer,
@@ -38,7 +38,7 @@ function compute_vertical_averages(
     n2h = 0.0
     uh = 0.0
     vh = 0.0
-    @ivy for k in k0:k1
+    for k in k0:k1
         dzh += jac[i, j, k] * dz
         rhoh += rhobar[i, j, k] * jac[i, j, k] * dz
         n2h += n2[i, j, k] * jac[i, j, k] * dz

@@ -38,7 +38,7 @@ In case an error is thrown, the parameter `wkb_cfl_number` of the discretization
 """
 function get_next_level end
 
-function get_next_level(
+@ivy function get_next_level(
     i::Integer,
     j::Integer,
     z::AbstractFloat,
@@ -50,8 +50,8 @@ function get_next_level(
     (; nz, nzz, ko, k0, k1) = state.domain
     (; zc) = state.grid
 
-    @ivy k = argmin(abs.(zc[i, j, :] .- z))
-    @ivy if zc[i, j, k] < z
+    k = argmin(abs.(zc[i, j, :] .- z))
+    if zc[i, j, k] < z
         k += 1
     end
 

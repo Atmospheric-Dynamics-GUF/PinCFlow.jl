@@ -16,6 +16,7 @@ module PinCFlow
 using MPI
 
 include("@ivy.jl")
+include("ivy.jl")
 include("reduce_exceptions.jl")
 include("ensemble.jl")
 include("plot_output.jl")

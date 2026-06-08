@@ -116,15 +116,15 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted impact of shear ``\\mathcal{S}`` and buoyancy ``\\mathcal{B}`` on the TKE, given by 
+Return the mass-weighted impact of shear ``\\mathcal{S}`` and buoyancy ``\\mathcal{B}`` on the TKE, given by
 
 ```math
 \\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\mathcal{S} + \\rho\\mathcal{B}
 ```
 
-where 
+where
 
-```math 
+```math
 \\begin{align*}
 \\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2\\right] \\;, \\\\
 \\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
@@ -185,7 +185,7 @@ function compute_volume_force(
     return 0.0
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -195,10 +195,10 @@ function compute_volume_force(
 )::AbstractFloat
     (; dudt) = state.wkb.tendencies
 
-    @ivy return (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
+    return (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -208,10 +208,10 @@ function compute_volume_force(
 )::AbstractFloat
     (; dvdt) = state.wkb.tendencies
 
-    @ivy return (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
+    return (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -222,7 +222,7 @@ function compute_volume_force(
     (; jac, met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
 
-    @ivy return (
+    return (
         jac[i, j, k + 1] * (
             met[i, j, k, 1, 3] * dudt[i, j, k] +
             met[i, j, k, 2, 3] * dvdt[i, j, k]
@@ -245,7 +245,7 @@ function compute_volume_force(
     return conductive_heating(state, i, j, k)
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -255,10 +255,10 @@ function compute_volume_force(
 )::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
 
-    @ivy return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
+    return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -272,13 +272,13 @@ function compute_volume_force(
 
     impact = 0.0
 
-    @ivy if leading_order_impact && model == :Compressible
+    if leading_order_impact && model == :Compressible
         impact += dchidt0[i, j, k]
     end
     return impact
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -298,16 +298,16 @@ function compute_volume_force(
             compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
         )
 
-    @ivy shear_production[i, j, k] = shear
+    shear_production[i, j, k] = shear
 
-    @ivy bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    @ivy bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
+    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
+    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
-    @ivy buoyancy =
+    buoyancy =
         -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
         (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
-    @ivy buoyancy_production[i, j, k] = buoyancy
+    buoyancy_production[i, j, k] = buoyancy
 
-    @ivy return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
+    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end

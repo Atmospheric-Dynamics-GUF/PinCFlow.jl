@@ -22,11 +22,11 @@ Return ``\\Delta h = \\sum_\\alpha \\left|h_{\\mathrm{w}, \\alpha}\\right|`` as 
 """
 function compute_elevation_difference end
 
-function compute_elevation_difference(
+@ivy function compute_elevation_difference(
     state::State,
     i::Integer,
     j::Integer,
 )::AbstractFloat
     (; hw) = state.grid
-    @ivy return sum(abs, hw[:, i, j])
+    return sum(abs, hw[:, i, j])
 end
