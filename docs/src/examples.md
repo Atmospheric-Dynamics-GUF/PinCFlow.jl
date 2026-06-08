@@ -531,7 +531,7 @@ $$\alpha_\mathrm{R} \left(x, y, z\right) = \frac{\alpha_{\mathrm{R}, \max}}{3} \
 
 where $\alpha_{\mathrm{R}, \max} = 0.0179 \ \mathrm{s^{- 1}}$, $\Delta x_\mathrm{R} = L_x / 20$, $\Delta y_\mathrm{R} = L_y / 20$ and $\Delta z_\mathrm{R} = L_z / 10$. In contrast to the sinusoidal sponge discussed in the first example, this sponge applies a damping everywhere in the domain (weakest at the center of the surface, strongest in the upper corners). Once again, the sponge relaxes the wind to its initial state.
 
-MS-GWaM is used with most of its parameters set to their default values. This means that the orographic source launches exactly one ray volume in each surface grid cell with a nonzero $h_\mathrm{w}$. Thus, the number of ray volumes allowed per grid cell (before merging is triggered) is `multiplication_factor` (a parameter of the WKB namelist) cubed, which is $4^3 = 64$.
+MS-GWaM is used with most of its parameters set to their default values. This means that the orographic source launches exactly one ray volume in each surface grid cell with a nonzero $h_\mathrm{w}$. Thus, the number of ray volumes allowed per grid cell (before merging is triggered) is `k_bins * l_bins * m_bins` (from `WKBNamelist`), which is $3^3 = 27$.
 
 Instead of a contour plot, the above script generates a scatter plot that visualizes the ray volumes, with the color representing the value of the phase-space wave-action density (see below).
 

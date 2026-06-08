@@ -118,7 +118,7 @@ function update_merged_rays!(
         end
     end
 
-    merged_rays.nr[bin] +=
+    @ivy merged_rays.nr[bin] +=
         compute_wave_action_integral(merge_mode, nr, omegar, fxk, fyl, fzm)
 
     return

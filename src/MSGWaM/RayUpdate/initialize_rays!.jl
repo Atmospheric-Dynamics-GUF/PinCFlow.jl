@@ -73,7 +73,7 @@ function initialize_rays!(
     (; comm, master, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, x, y, zc, jac) = state.grid
     (;
-        nray_max,
+        bins,
         nray_wrk,
         n_sfc,
         nray,
@@ -306,7 +306,7 @@ function initialize_rays!(
     if master
         println("MS-GWaM:")
         println("Global ray-volume count: ", global_sum)
-        println("Maximum number of ray volumes per cell: ", nray_max)
+        println("Per-grid-cell merging threshold: ", bins)
         println("")
     end
 

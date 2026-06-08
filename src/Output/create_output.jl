@@ -20,10 +20,10 @@ function create_output(state::State, machine_start_time::DateTime)
     (; model) = state.namelists.atmosphere
     (; wkb_mode) = state.namelists.wkb
     (; comm, master) = state.domain
-    (; nray_max) = state.wkb
+    (; bins) = state.wkb
 
     # Set the chunk dimensions.
-    cr = nray_max
+    cr = bins
     cx = div(x_size, npx)
     cy = div(y_size, npy)
     cz = div(z_size, npz)
@@ -389,8 +389,8 @@ function create_output(state::State, machine_start_time::DateTime)
                         field,
                         datatype(Float32),
                         dataspace(
-                            (nray_max, x_size, y_size, z_size + 1, 0),
-                            (nray_max, x_size, y_size, z_size + 1, -1),
+                            (bins, x_size, y_size, z_size + 1, 0),
+                            (bins, x_size, y_size, z_size + 1, -1),
                         );
                         chunk = (cr, cx, cy, cz, ct),
                     )
