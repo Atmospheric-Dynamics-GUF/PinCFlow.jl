@@ -60,7 +60,7 @@ the target power fraction, with ``\\alpha_{\\min}`` and ``\\alpha_{\\max}`` repr
 """
 function apply_elastic_mode_selection! end
 
-function apply_elastic_mode_selection!(
+@ivy function apply_elastic_mode_selection!(
     state::State,
     field::AbstractVector{<:AbstractFloat},
 )::Tuple{<:Integer, <:AbstractFloat}
@@ -83,7 +83,7 @@ function apply_elastic_mode_selection!(
 
     # Exclude modes that are zero.
     stop = findfirst(j -> field[j] == 0, sorted_wave_mode_indices)
-    @ivy if stop === nothing
+    if stop === nothing
         j = sorted_wave_mode_indices
     elseif stop > 1
         j = sorted_wave_mode_indices[1:(stop - 1)]
@@ -100,7 +100,7 @@ function apply_elastic_mode_selection!(
 
     # Compute the neighbor similarity.
     s = 0
-    @ivy for k in 1:(kmax - 1)
+    for k in 1:(kmax - 1)
         s += exp(-(abs(field[j[k]]) / abs(field[j[k + 1]]) - 1) / delta)
     end
     s /= kmax - 1
@@ -116,13 +116,13 @@ function apply_elastic_mode_selection!(
     # Determine the optimal number of modes.
     k = 0
     f = 0.0
-    @ivy while k < maximum_mode_count && (k < minimum_mode_count || f < alpha)
+    while k < maximum_mode_count && (k < minimum_mode_count || f < alpha)
         k += 1
         f += abs(field[j[k]]) / sum(abs, field)
     end
 
     # Discard the remaining modes.
-    @ivy field[j[(k + 1):end]] .= 0
+    field[j[(k + 1):end]] .= 0
 
     return (k, f)
 end
