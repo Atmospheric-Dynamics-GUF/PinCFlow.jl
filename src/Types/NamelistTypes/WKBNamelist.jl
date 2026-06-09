@@ -34,6 +34,11 @@ WKBNamelist(;
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
+    elastic_mode_selection::Bool = false,
+    minimum_mode_count::Integer = wave_modes,
+    maximum_mode_count::Integer = wave_modes,
+    minimum_power_fraction::Real = 1.0E+0,
+    maximum_power_fraction::Real = 1.0E+0,
     turbulent_damping::Bool = false,
 )::WKBNamelist
 ```
@@ -94,6 +99,16 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `initial_wave_field::FunctionWrapper{NTuple{5, Float64}, Tuple{Int, Float64, Float64, Float64}}`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
 
+  - `elastic_mode_selection::Bool`: Switch for elastic mode selection in ray-volume sources.
+
+  - `minimum_mode_count::Int`: Minimum number of modes selected by the elastic-mode-selection algorithm.
+
+  - `minimum_mode_count::Int`: Maximum number of modes selected by the elastic-mode-selection algorithm.
+
+  - `minimum_power_fraction::Float64`: Minimum power fraction retained by the elastic-mode-selection algorithm.
+
+  - `maximum_power_fraction::Float64`: Maximum power fraction retained by the elastic-mode-selection algorithm.
+
   - `turbulent_damping::Bool`: Damping of wave-action density due to turbulence.
 
 !!! danger "Experimental"
@@ -101,6 +116,9 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
 !!! danger "Experimental"
     The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
+
+!!! danger "Experimental"
+    The elastic mode selection is an experimental feature adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010).
 """
 struct WKBNamelist
     nrx::Int
@@ -132,6 +150,11 @@ struct WKBNamelist
         NTuple{5, Float64},
         Tuple{Int, Float64, Float64, Float64},
     }
+    elastic_mode_selection::Bool
+    minimum_mode_count::Int
+    maximum_mode_count::Int
+    minimum_power_fraction::Float64
+    maximum_power_fraction::Float64
     turbulent_damping::Bool
 end
 
@@ -163,6 +186,11 @@ function WKBNamelist(;
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
+    elastic_mode_selection::Bool = false,
+    minimum_mode_count::Integer = wave_modes,
+    maximum_mode_count::Integer = wave_modes,
+    minimum_power_fraction::Real = 1.0E+0,
+    maximum_power_fraction::Real = 1.0E+0,
     turbulent_damping::Bool = false,
 )::WKBNamelist
     return WKBNamelist(
@@ -192,6 +220,11 @@ function WKBNamelist(;
         Float64(drag_coefficient),
         Int(wave_modes),
         initial_wave_field,
+        elastic_mode_selection,
+        Int(minimum_mode_count),
+        Int(maximum_mode_count),
+        Float64(minimum_power_fraction),
+        Float64(maximum_power_fraction),
         turbulent_damping,
     )
 end
