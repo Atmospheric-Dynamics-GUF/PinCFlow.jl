@@ -40,6 +40,8 @@ Therein, ``\\bar{\\rho}_h``, ``N^2_h``, ``u_h``, and ``v_h`` are obtained by ave
 
 If the squared intrinsic frequency is smaller than the squared Coriolis parameter or larger than the squared buoyancy frequency (and thus outside of the gravity-wave spectrum), the vertical wavenumber and wave-action density are set to zero.
 
+For `state.namelists.wkb.elastic_mode_selection == true`, `apply_elastic_mode_selection!` is used on the wave-action densities in each surface grid cell.
+
 # Arguments
 
   - `state`: Model state.
@@ -54,8 +56,13 @@ If the squared intrinsic frequency is smaller than the squared Coriolis paramete
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
+  - [`PinCFlow.MSGWaM.RaySources.apply_elastic_mode_selection!`](@ref)
+
 !!! danger "Experimental"
     The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+
+!!! danger "Experimental"
+    The elastic mode selection is an experimental feature adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010).
 """
 function compute_orographic_modes! end
 

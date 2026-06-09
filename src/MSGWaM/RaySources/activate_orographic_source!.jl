@@ -24,9 +24,6 @@ This method first calls `compute_orographic_modes!` and then launches correspond
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_increments!`](@ref)
-
-!!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
 """
 function activate_orographic_source! end
 

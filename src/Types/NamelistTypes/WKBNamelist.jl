@@ -116,6 +116,9 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
 !!! danger "Experimental"
     The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
+
+!!! danger "Experimental"
+    The elastic mode selection is an experimental feature adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010).
 """
 struct WKBNamelist
     nrx::Int

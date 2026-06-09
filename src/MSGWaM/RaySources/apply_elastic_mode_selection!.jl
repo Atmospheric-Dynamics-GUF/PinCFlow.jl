@@ -57,6 +57,9 @@ the target power fraction, with ``\\alpha_{\\min}`` and ``\\alpha_{\\max}`` repr
   - `state`: Model state.
 
   - `field`: Field to be modified.
+
+!!! danger "Experimental"
+    The elastic mode selection is an experimental feature adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010).
 """
 function apply_elastic_mode_selection! end
 
