@@ -80,6 +80,8 @@ function apply_turbulent_damping! end
     (; x_size, y_size) = state.namelists.domain
     (; rhobar) = state.atmosphere
     (; turbulent_damping) = state.namelists.wkb
+    (; tke) = state.turbulence.turbulencepredictands
+    (; rho) = state.variables.predictands
 
     if !turbulent_damping
         return
@@ -116,13 +118,14 @@ function apply_turbulent_damping! end
 
     wadr = rays.dens[r, i, j, k] * factor
 
-    q0r = compute_turbulent_velocity(state, r, i, j, k, 0.0)
+    q0r = sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
+    #compute_turbulent_velocity(state, r, i, j, k, 0.0)
     q1r = compute_turbulent_velocity(state, r, i, j, k, 1.0)
     q2r = compute_turbulent_velocity(state, r, i, j, k, 2.0)
 
     delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
-    gammas = mr^2 * real(q0r) * (lv * (1 - delta) + lb * delta)
+    gammas = mr^2 * q0r * (lv * (1 - delta) + lb * delta)
 
     gammaw =
         mr^2 / 4 * n2r * kh2 / (n2r * kh2 + fc^2 * mr^2) *

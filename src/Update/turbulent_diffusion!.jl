@@ -293,8 +293,14 @@ function turbulent_diffusion!(
 )
     (; momentum_coupling, entropy_coupling, tracer_coupling) =
         state.namelists.turbulence
+    (; tke) = state.turbulence.turbulencepredictands
+    (; tkeold) = state.turbulence.turbulenceauxiliaries
+    (; rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
 
     check_tke!(state)
+
+    tkeold .= tke ./ (rho .+ rhobar)
 
     if momentum_coupling
         turbulent_diffusion!(state, dt, U())

@@ -92,7 +92,7 @@ include("split_rays!.jl")
 include("apply_turbulent_damping!.jl")
 include("compute_turbulent_velocity.jl")
 
-export X, Y, Z, XZ, YZ, XYZ
+export XZ, YZ, XYZ
 
 export apply_saturation_scheme!,
     initialize_rays!,

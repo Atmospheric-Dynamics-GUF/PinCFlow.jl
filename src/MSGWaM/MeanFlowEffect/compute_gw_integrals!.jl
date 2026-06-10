@@ -120,6 +120,7 @@ end
     end
 
     set_tracer_fields_zero!(state)
+    set_turbulence_fields_zero!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -271,6 +272,19 @@ end
                         end
 
                         integrals.e[iray, jray, kray] += wadr * omir
+
+                        compute_gw_turbulence_integrals!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
 
                         compute_gw_tracer_integrals!(
                             state,
@@ -431,6 +445,19 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
+                        compute_gw_turbulence_integrals!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
+
                         compute_gw_tracer_integrals!(
                             state,
                             fc,
@@ -556,6 +583,19 @@ end
                         integrals.uw[iray, jray, kray] += wadr * kr * cgirz
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
+
+                        compute_gw_turbulence_integrals!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
 
                         compute_gw_tracer_integrals!(
                             state,

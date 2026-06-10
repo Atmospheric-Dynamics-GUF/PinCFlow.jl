@@ -203,6 +203,8 @@ export DomainNamelist,
     TracerWKBTendencies,
     TurbulencePredictands,
     TurbulenceReconstructions,
+    TurbulenceWKBIntegrals,
+    TurbulenceWKBTendencies,
     TurbulenceFluxes
 
 end

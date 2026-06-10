@@ -153,6 +153,7 @@ function compute_gw_tendencies! end
         end
 
         compute_gw_tracer_tendencies!(state, i, j, k)
+        compute_gw_turbulence_tendencies!(state, i, j, k)
     end
 
     return

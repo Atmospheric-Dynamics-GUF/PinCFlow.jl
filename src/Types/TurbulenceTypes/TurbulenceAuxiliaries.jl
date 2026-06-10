@@ -49,6 +49,7 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 struct TurbulenceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     shear_production::A
     buoyancy_production::A
+    tkeold::A
 end
 
 function TurbulenceAuxiliaries(
@@ -67,7 +68,7 @@ function TurbulenceAuxiliaries(
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceAuxiliaries
-    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:2]...)
+    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TurbulenceAuxiliaries(
@@ -75,5 +76,5 @@ function TurbulenceAuxiliaries(
     turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceAuxiliaries
     (; nxx, nyy, nzz) = domain
-    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:2]...)
+    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:3]...)
 end

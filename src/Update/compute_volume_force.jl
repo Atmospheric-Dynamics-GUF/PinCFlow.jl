@@ -179,7 +179,7 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi},
+    variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     return 0.0
@@ -291,6 +291,7 @@ end
     (; rhobar, n2) = state.atmosphere
     (; jac, dz) = state.grid
     (; g_ndim) = state.constants
+    (; wkb_mode) = state.namelists.wkb
 
     shear =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
@@ -304,10 +305,30 @@ end
     bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
     buoyancy =
-        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
-        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) * (n2[i, j, k])# + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     buoyancy_production[i, j, k] = buoyancy
 
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
+    @dispatch_wkb_mode gw_impact =
+        compute_volume_force(state, i, j, k, variables, Val(wkb_mode))
+
+    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + gw_impact)
+end
+
+@ivy function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)::AbstractFloat
+    (; wave_impact) = state.namelists.turbulence
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+
+    if wave_impact
+        return dtkedt[i, j, k]
+    else
+        return 0.0
+    end
 end
