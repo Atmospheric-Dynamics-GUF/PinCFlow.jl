@@ -305,7 +305,8 @@ end
     bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
     buoyancy =
-        -turbulence_diffusion_coefficient(state, i, j, k, KH()) * (n2[i, j, k])# + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     buoyancy_production[i, j, k] = buoyancy
 
