@@ -34,9 +34,9 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 
 # Fields
 
-  - `shearproduction::A`: Contribution of turbulence production due to shear. 
+  - `shear_production::A`: Contribution of turbulence production due to shear. 
 
-  - `buoyancyproduction::A`: Contribution of turbulence production due to the buoyancy.
+  - `buoyancy_production::A`: Contribution of turbulence production due to the buoyancy.
 
 # Arguments
 
@@ -47,8 +47,9 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
   - `turbulence_scheme`: General turbulence parameterization configuration.
 """
 struct TurbulenceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
-    shearproduction::A
-    buoyancyproduction::A
+    shear_production::A
+    buoyancy_production::A
+    tkeold::A
 end
 
 function TurbulenceAuxiliaries(
@@ -57,14 +58,17 @@ function TurbulenceAuxiliaries(
 )::TurbulenceAuxiliaries
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulenceAuxiliaries(domain, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme return TurbulenceAuxiliaries(
+        domain,
+        Val(turbulence_scheme),
+    )
 end
 
 function TurbulenceAuxiliaries(
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceAuxiliaries
-    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:2]...)
+    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TurbulenceAuxiliaries(
@@ -72,5 +76,5 @@ function TurbulenceAuxiliaries(
     turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceAuxiliaries
     (; nxx, nyy, nzz) = domain
-    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:2]...)
+    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:3]...)
 end

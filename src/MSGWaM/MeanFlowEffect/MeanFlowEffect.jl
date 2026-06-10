@@ -25,6 +25,7 @@ using ..Interpolation
 using ..RayUpdate
 using ...Types
 using ...Boundaries
+using ...Update
 using ...PinCFlow
 using ..Smoothing
 
@@ -55,10 +56,14 @@ Singleton for dispatch to calculation of vertical gravity-wave-tracer fluxes.
 """
 struct WChi end
 
-include("compute_leading_order_tracer_fluxes!.jl")
+include("compute_gw_tracer_integrals!.jl")
 include("leading_order_tracer_fluxes.jl")
 include("compute_gw_tracer_tendencies!.jl")
+include("compute_gw_turbulence_integrals!.jl")
+include("compute_gw_turbulence_tendencies!.jl")
 include("set_tracer_fields_zero!.jl")
+include("set_turbulence_fields_zero!.jl")
+include("apply_shapiro_filter!.jl")
 include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")
 include("compute_horizontal_cell_indices.jl")

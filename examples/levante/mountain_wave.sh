@@ -2,9 +2,9 @@
 #SBATCH --partition=compute
 #SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=27
+#SBATCH --ntasks-per-node=64
 #SBATCH --hint=nomultithread
-#SBATCH --mem=40G
+#SBATCH --mem=90G
 #SBATCH --time=0-01:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
@@ -16,6 +16,6 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; mountain_wave(; npx = 3, npy = 3, npz = 3)' &> mountain_wave.log
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; mountain_wave(; npx = 4, npy = 4, npz = 4)' &> mountain_wave.log
 
 exit 0

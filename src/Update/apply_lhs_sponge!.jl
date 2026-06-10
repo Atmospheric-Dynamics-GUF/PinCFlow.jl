@@ -215,6 +215,18 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations by dispatching to the appropriate method.
+
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
 ```
@@ -226,24 +238,27 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations if `state.namelists.tracer.apply_lhs_sponge_to_tracer` is `true`.
 
 In each tracer equation, the update is given by
 
 ```math
-\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
+\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\rho \\chi_\\mathrm{R}\\right),
 ```
+
+where ``\\chi_\\mathrm{R}`` is computed with the function `relaxed_chi` in `state.namelists.tracer`.
 
 ```julia
 apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    turbulence_scheme::Val{:TKEScheme},
+    variable::TKE,
 )
 ```
 
@@ -252,8 +267,10 @@ Integrate the Rayleigh-damping terms that represent the LHS sponge in the turbul
 In the equation for the turbulent kinetic energy, the update is given by
 
 ```math
-\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho e_\\mathrm{k}\\right)^{\\left(0\\right)}\\right].
+\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\rho e_\\mathrm{k,\\mathrm{min}}\\right),
 ```
+
+where ``e_\\mathrm{k,\\mathrm{min}}`` represents the minimum allowed TKE value stored in `state.turbulence.turbulenceconstants.tkemin`.
 
 # Arguments
 
@@ -294,7 +311,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -306,7 +323,7 @@ function apply_lhs_sponge!(
     (; rho) = state.variables.predictands
 
     rhobg = 0.0
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rho[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -317,7 +334,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -329,7 +346,7 @@ function apply_lhs_sponge!(
     (; alphar) = state.sponge
     (; rho, rhop, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         rhopbg =
             rhobar[i, j, k] * (
                 1.0 -
@@ -346,7 +363,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -358,7 +375,7 @@ function apply_lhs_sponge!(
     (; rhop) = state.variables.predictands
 
     rhobg = 0.0
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rhop[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -369,7 +386,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -391,14 +408,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the zonal wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xldim = x[i] * lref
         xrdim = x[i + 1] * lref
         ydim = y[j] * lref
@@ -423,7 +440,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -445,14 +462,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the meridional wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xdim = x[i] * lref
         ybdim = y[j] * lref
         yfdim = y[j + 1] * lref
@@ -477,7 +494,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -499,14 +516,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the vertical wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcddim = zc[i, j, k] * lref
@@ -558,7 +575,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -571,7 +588,7 @@ function apply_lhs_sponge!(
     (; rhobar) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
         pib =
@@ -596,7 +613,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -608,7 +625,7 @@ function apply_lhs_sponge!(
     (; rhobar) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         pb = rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         alpha = alphar[i, j, k]
         pold = p[i, j, k]
@@ -624,8 +641,18 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::Val{:NoTracer},
+    variable::Chi,
 )
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup apply_lhs_sponge!(
+        state,
+        dt,
+        time,
+        variable,
+        Val(tracer_setup),
+    )
+
     return
 end
 
@@ -633,20 +660,46 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::Chi,
+    tracer_setup::Val{:NoTracer},
+)
+    return
+end
+
+@ivy function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
+    (; rhobar) = state.atmosphere
     (; tracerpredictands) = state.tracer
-    (; backgroundtracer) = state.tracer.tracerauxiliaries
+    (; relaxed_chi, apply_lhs_sponge_to_tracer) = state.namelists.tracer
+    (; lref, tref) = state.constants
+    (; x, y, zc) = state.grid
 
-    @ivy for field in fieldnames(TracerPredictands)
+    if !apply_lhs_sponge_to_tracer
+        return
+    end
+
+    for field in fieldnames(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in k0:k1, j in j0:j1, i in i0:i1
+            xdim = x[i] * lref
+            ydim = y[j] * lref
+            zcdim = zc[i, j, k] * lref
+            tdim = time * tref
+            dtdim = dt * tref
             alpha = alphar[i, j, k]
             chi_old = chi[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
-            chi_new = (1.0 - beta) * backgroundtracer[i, j, k] + beta * chi_old
+            chi_new =
+                (1.0 - beta) *
+                relaxed_chi(xdim, ydim, zcdim, tdim, dtdim) *
+                rhobar[i, j, k] + beta * chi_old
             chi[i, j, k] = chi_new
         end
     end
@@ -654,7 +707,7 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
@@ -666,7 +719,7 @@ function apply_lhs_sponge!(
     (; tkemin) = state.turbulence.turbulenceconstants
     (; rhobar) = state.atmosphere
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         tke_old = tke[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)

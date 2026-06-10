@@ -1,5 +1,8 @@
-function getproperty(rays::Rays, name::Symbol)::AbstractArray{<:AbstractFloat}
-    @ivy if name == :x
+@ivy function getproperty(
+    rays::Rays,
+    name::Symbol,
+)::AbstractArray{<:AbstractFloat}
+    if name == :x
         return getfield(rays, :data)[1, :, :, :, :]
     elseif name == :y
         return getfield(rays, :data)[2, :, :, :, :]

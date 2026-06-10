@@ -27,6 +27,16 @@ export cold_bubble,
     wave_packet,
     wkb_mountain_wave,
     wkb_wave_packet,
-    wp_3d
+    bhat,
+    n2,
+    omega,
+    phi,
+    pihat,
+    rhobar,
+    thetabar,
+    uhat,
+    vhat,
+    wave_action_density,
+    what
 
 end

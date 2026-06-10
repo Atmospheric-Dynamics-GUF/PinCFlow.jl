@@ -126,6 +126,16 @@ where the operators $\mathrm{L}$, $\mathrm{RI}$ and $\mathrm{RE}$ perform an exp
 
  1. The right-hand sides are integrated over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
+
+In the case of turbulent diffusion by the turbulent kinetic energy, the momentum is updated using the Crank-Nicolson scheme before each time-step
+
+$$\begin{align*}
+    \frac{u^{n+1}-u^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial u}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \frac{v^{n+1}-v^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial v}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \frac{w^{n+1}-w^n}{\Delta t} &= \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{M}^n}{J}\frac{\partial w}{\partial \hat{z}}\right)\right]^{n}\right\}, \\
+    \hat{w}^{n+1} &= G^{13}u^{n+1} + G^{23}v^{n+1} + \frac{1}{J}w^{n+1}.
+\end{align*}$$
+
 ### Boussinesq mode
 
 In Boussinesq mode, the time scheme remains mostly unchanged. As has been mentioned in the description of the physics, the continuity equation is removed, as are the density fluctuations everywhere except in the auxiliary equation and the buoyancy term of the transformed-vertical-momentum equation. Furthermore, $\bar{\rho}$, $\bar{\theta}$, $P$ and $N^2$ are replaced with $\rho_0$, $\theta_0$, $P_0$ and $N_0^2$, respectively.
@@ -258,6 +268,10 @@ $$\begin{align*}
 
  1. The right-hand sides are integrated over over $\Delta t / 2$ with an implicit Euler step, followed by the Poisson equation being solved and a correction step being performed. The Rayleigh-damping terms are doubled, since they were left out in the explicit Euler step. This step is equivalent to the second one, except for the differences indicated in the compact description above.
 
+In the case of turbulent diffusion by the turbulent kinetic energy, the potential temperature is updated using the Crank-Nicolson scheme before each time-step
+
+$$\frac{\theta^{n+1}-\theta^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \theta}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \theta}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
+
 ### Tracer transport
 
 Since its equation does not have a right-hand side, the tracer is only updated in the second and fifth step of the time scheme, analogous to the update of the mass-weighted potential temperature in compressible mode. At each RK-stage of the second step, one has
@@ -265,8 +279,12 @@ Since its equation does not have a right-hand side, the tracer is only updated i
 $$\begin{align*}
     q^{\rho \chi, m + 1} & = - \frac{\Delta t}{2} \left\{\frac{1}{J} \left[\frac{\partial J \left(\rho \chi\right)^m u^n}{\partial \hat{x}} + \frac{\partial J \left(\rho \chi\right)^m v^n}{\partial \hat{y}} + \frac{\partial J \left(\rho \chi\right)^m \hat{w}^n}{\partial \hat{z}}\right] - F^{\rho \chi, n + 1}\right\} + \left(\alpha_\mathrm{RK} q^{\rho \chi}\right)^m,\\
     \left(\rho \chi\right)^{m + 1} & = \left(\rho \chi\right)^m + \beta_\mathrm{RK}^m q^{\rho \chi, m + 1},\\
-    \left(\rho \chi\right)^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left[\left(\rho \chi\right)^{m + 1} + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2} \left(\rho \chi\right)^{\left(0\right)}\right].
+    \left(\rho \chi\right)^{m + 1} & \rightarrow \left(1 + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2}\right)^{- 1} \left[\left(\rho \chi\right)^{m + 1} + \alpha_\mathrm{R} f_\mathrm{RK}^m \frac{\Delta t}{2} \rho \chi_\mathrm{R}\right].
 \end{align*}$$
+
+In the case of turbulent diffusion by the turbulent kinetic energy, the tracer is updated using the Crank-Nicolson scheme before each time-step,
+
+$$\frac{\chi^{n+1}-\chi^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\\chi\right)}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \chi}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
 
 ### MS-GWaM
 
@@ -295,4 +313,4 @@ Note that the intrinsic frequency does not need to be updated since it is comple
 
 PinCFlow.jl is a finite-volume code that operates on a three-dimensional staggered C-grid ([Arakawa & Lamb, 1977](https://doi.org/10.1016/b978-0-12-460817-7.50009-4)), with scalar fields defined at the cell centers and velocity components defined at the respective interfaces ([Rieper et al., 2013](https://doi.org/10.1175/mwr-d-12-00026.1)). Advective-flux divergences are discretized with a monotone upwind scheme for conservation laws ([van Leer, 2003](https://doi.org/10.2514/6.2003-3559)) and a monotonized-centered variant limiter (e.g. [Kemm, 2010](https://doi.org/10.1002/fld.2357)). More specifically, the implementation is such that $P \hat{\boldsymbol{u}}$ is the carrier flux (based on [Klein, 2009](https://doi.org/10.1007/s00162-009-0104-y); [Benacchio et al., 2014](https://doi.org/10.1175/mwr-d-13-00384.1); [Smolarkiewicz et al., 2014](https://doi.org/10.1016/j.jcp.2014.01.031) and [Benacchio & Klein, 2019](https://doi.org/10.1175/mwr-d-19-0073.1)). All other terms are discretized with centered differences (e.g. [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)). A Cartesian version of this is described in [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1) and [Schmid et al. (2021)](https://doi.org/10.1175/MWR-D-21-0126.1).
 
-The spatial discretization of MS-GWaM is based on the definition of ray volumes, six-dimensional cubes in phase space. The ray equations are integrated at the center points and surface midpoints, using trilinear interpolation to get mean-flow information at the locations of interest. To prevent uninhibited growing, ray volumes are split when their extent in any dimension of physical space exceeds the corresponding grid spacing. This is counteracted by merging in spectral space to keep the number of ray volumes below a user-defined threshold. In the computation of the mean-flow impact, the contribution of each ray volume is weighted by the fraction of the local grid cell covered by it. A more detailed description of the algorithm can be found in [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).
+The spatial discretization of MS-GWaM is based on the definition of ray volumes, six-dimensional cubes in phase space. The ray equations are integrated at the center points and surface midpoints, using trilinear interpolation to get mean-flow information at the locations of interest. To prevent uninhibited growing, ray volumes are split when their extent in any dimension of physical space exceeds the corresponding grid spacing. This is counteracted by merging in spectral space to keep the number of ray volumes below a user-defined threshold. In the computation of the mean-flow impact, the contribution of each ray volume is weighted by the fraction of the local grid cell covered by it. A more detailed description of the algorithm can be found in [Muraschko et al. (2015)](https://doi.org/10.1002/qj.2381), [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1), [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1), [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1) and [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1).

@@ -46,7 +46,7 @@ where ``\\mathrm{Lo} = N_h \\Delta h \\left|\\boldsymbol{k}_h\\right| / \\left|\
 """
 function compute_blocked_layer! end
 
-function compute_blocked_layer!(
+@ivy function compute_blocked_layer!(
     state::State,
     deltah::AbstractFloat,
     n2h::AbstractFloat,
@@ -60,7 +60,7 @@ function compute_blocked_layer!(
     (; zctilde) = state.grid
     (; zb) = state.wkb
 
-    @ivy if blocking && deltah > 0
+    if blocking && deltah > 0
         kh = compute_slope(state, deltah, i, j)
         ratio = min(
             1,

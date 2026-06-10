@@ -2,9 +2,9 @@
 #SBATCH --partition=compute
 #SBATCH --job-name=periodic_hill
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=9
+#SBATCH --ntasks-per-node=64
 #SBATCH --hint=nomultithread
-#SBATCH --mem=15G
+#SBATCH --mem=90G
 #SBATCH --time=0-01:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
@@ -16,6 +16,6 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 3, npz = 3)' &> periodic_hill.log
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8)' &> periodic_hill.log
 
 exit 0

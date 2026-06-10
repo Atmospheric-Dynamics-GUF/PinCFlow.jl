@@ -18,6 +18,8 @@ Module for the construction of a single composite type that contains all informa
   - [`PinCFlow.Types.WKBTypes`](@ref)
 
   - [`PinCFlow.Types.TracerTypes`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes`](@ref)
 """
 module Types
 
@@ -183,52 +185,26 @@ export DomainNamelist,
     TracerNamelist,
     TurbulenceNamelist,
     Namelists,
-    Time,
-    Constants,
     Domain,
     Grid,
-    Atmosphere,
-    Sponge,
-    Tensor,
-    Operator,
-    Preconditioner,
-    BiCGSTAB,
-    Correction,
-    Poisson,
     Predictands,
-    Increments,
-    Backups,
-    Auxiliaries,
     Reconstructions,
     Fluxes,
-    Variables,
     WKBIntegrals,
     WKBTendencies,
     Rays,
     MergedRays,
     WKBIncrements,
-    SurfaceIndices,
-    WKBAuxiliaries,
-    WKB,
-    Tracer,
-    Turbulence,
     State,
     TracerPredictands,
-    TracerAuxiliaries,
-    TracerIncrements,
     TracerReconstructions,
     TracerFluxes,
     TracerWKBIntegrals,
     TracerWKBTendencies,
-    NoTurbulence,
-    TKEScheme,
     TurbulencePredictands,
-    TurbulenceAuxiliaries,
-    TurbulenceIncrements,
     TurbulenceReconstructions,
-    TurbulenceDiffusionCoefficients,
-    TurbulenceFluxes,
     TurbulenceWKBIntegrals,
-    TurbulenceWKBTendencies
+    TurbulenceWKBTendencies,
+    TurbulenceFluxes
 
 end

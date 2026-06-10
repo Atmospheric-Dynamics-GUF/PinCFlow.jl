@@ -9,8 +9,9 @@ Namelist for the inclusion of a tracer and the calculation of the leading-order 
 TracerNamelist(;
     tracer_setup::Symbol = :NoTracer,
     leading_order_impact::Bool = false,
-    initial_tracer::Function = (x, y, z) -> 0.0,
-    background_tracer::Function = (x, y, z) -> 0.0,
+    initial_chi::Function = (x, y, z) -> 0.0,
+    relaxed_chi::Function = (x, y, z, t, dt) -> 0.0,
+    apply_lhs_sponge_to_tracer::Bool = true,
 )::TracerNamelist
 ```
 
@@ -22,17 +23,20 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
 
   - `leading_order_impact::Bool`: Flag to include the leading-order impact of gravity waves when parameterizing waves with the WKB model.
 
-  - `initial_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to initialize the tracer.
+  - `initial_chi::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to initialize the tracer.
 
-  - `background_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to set the background tracer distribution.
+  - `relaxed_chi::FunctionWrapper{Float64, NTuple{5, Float64}}`: Function used to compute the background tracer.
+
+  - `apply_lhs_sponge_to_tracer::Bool`: Flag to relax the tracer fields to `relaxed_chi`.
 """
 struct TracerNamelist
     tracer_setup::Symbol
     leading_order_impact::Bool
     next_order_impact::Bool 
     turbulence_impact::Bool
-    initial_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
-    background_tracer::FunctionWrapper{Float64, NTuple{3, Float64}}
+    initial_chi::FunctionWrapper{Float64, NTuple{3, Float64}}
+    relaxed_chi::FunctionWrapper{Float64, NTuple{5, Float64}}
+    apply_lhs_sponge_to_tracer::Bool
 end
 
 function TracerNamelist(;
@@ -41,14 +45,14 @@ function TracerNamelist(;
     next_order_impact::Bool = true,
     turbulence_impact::Bool = true,
     initial_tracer::Function = (x, y, z) -> 0.0,
-    background_tracer::Function = (x, y, z) -> 0.0,
 )::TracerNamelist
     return TracerNamelist(
         tracer_setup,
         leading_order_impact,
         next_order_impact,
         turbulence_impact,
-        initial_tracer,
-        background_tracer,
+        initial_chi,
+        relaxed_chi,
+        apply_lhs_sponge_to_tracer,
     )
 end

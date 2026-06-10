@@ -434,10 +434,17 @@ The update is given by
 ```
 
 ```julia
+update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+```
+
+Update the tracers by dispatching to the appropriate method.
+
+```julia
 update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
+    variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
 ```
@@ -449,6 +456,7 @@ update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
 ```
@@ -465,23 +473,7 @@ The update is given by
 ```
 
 ```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-```
-
-Return for configurations without tracer transport.
-
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulence_scheme::Val{:TKEScheme},
-)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
 ```
 
 Update the turbulent kinetic energy with a Runge-Kutta step on the left-hand sides of the equations with shear and buoyancy production terms.
@@ -551,7 +543,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -569,7 +561,7 @@ function update!(
         drho .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirho[i - 1, j, k, 1]
         fr = phirho[i, j, k, 1]
         gb = phirho[i, j - 1, k, 2]
@@ -589,7 +581,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -608,7 +600,7 @@ function update!(
         drhop .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirhop[i - 1, j, k, 1]
         fr = phirhop[i, j, k, 1]
         gb = phirhop[i, j - 1, k, 2]
@@ -630,7 +622,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::RhoP,
@@ -643,7 +635,7 @@ function update!(
     (; predictands) = state.variables
     (; rho, rhop) = predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         jpu = compute_compressible_wind_factor(state, i, j, k, W())
         jpd = compute_compressible_wind_factor(state, i, j, k - 1, W())
         wvrt =
@@ -662,7 +654,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::RhoP,
@@ -679,7 +671,7 @@ function update!(
     (; rho, rhop, u, v, pip) = state.variables.predictands
     (; wold) = state.variables.backups
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k] + rhobar[i, j, k]
         rhoedgeu =
             (
@@ -760,7 +752,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -785,7 +777,7 @@ function update!(
         du .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
 
         # Compute zonal momentum flux divergence.
         fr = phiu[i, j, k, 1]
@@ -839,7 +831,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::U,
@@ -850,7 +842,7 @@ function update!(
     (; rhobar) = state.atmosphere
     (; rho, u, pip) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
         rhoedger += rhobaredger
@@ -867,7 +859,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::U,
@@ -885,7 +877,7 @@ function update!(
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
         rhoedger += rhobaredger
@@ -914,7 +906,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -939,7 +931,7 @@ function update!(
         dv .= 0.0
     end
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
 
         # Compute meridional momentum flux divergence.
         fr = phiv[i, j, k, 1]
@@ -990,7 +982,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::V,
@@ -1001,7 +993,7 @@ function update!(
     (; rhobar) = state.atmosphere
     (; rho, v, pip) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
         rhoedgef += rhobaredgef
@@ -1018,7 +1010,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::V,
@@ -1036,7 +1028,7 @@ function update!(
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
         rhoedgef += rhobaredgef
@@ -1065,7 +1057,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -1097,7 +1089,7 @@ function update!(
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
         fr = phiw[i, j, k, 1]
         fl = phiw[i - 1, j, k, 1]
@@ -1225,7 +1217,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::W,
@@ -1243,7 +1235,7 @@ function update!(
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1278,7 +1270,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::W,
@@ -1297,7 +1289,7 @@ function update!(
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1390,7 +1382,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::PiP,
@@ -1402,7 +1394,7 @@ function update!(
     (; uold, vold, wold) = state.variables.backups
     (; pip, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = uold[i - 1, j, k]
         fr = uold[i, j, k]
         gb = vold[i, j - 1, k]
@@ -1440,7 +1432,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -1458,7 +1450,7 @@ function update!(
         dp .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phip[i - 1, j, k, 1]
         fr = phip[i, j, k, 1]
         gb = phip[i, j - 1, k, 2]
@@ -1480,12 +1472,10 @@ function update!(
     return
 end
 
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracer_setup::Val{:NoTracer},
-)
+function update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup update!(state, dt, m, variable, Val(tracer_setup))
     return
 end
 
@@ -1493,6 +1483,17 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
+    variable::Chi,
+    tracer_setup::Val{:NoTracer},
+)
+    return
+end
+
+@ivy function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Chi,
     tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -1500,7 +1501,7 @@ function update!(
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
 
-    @ivy for field in 1:fieldcount(TracerPredictands)
+    for field in 1:fieldcount(TracerPredictands)
         if m == 1
             getfield(tracerincrements, field) .= 0.0
         end
@@ -1532,7 +1533,12 @@ function update!(
     return
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
+@ivy function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::TKE,
+)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
@@ -1544,7 +1550,7 @@ function update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
         dtke .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phitke[i - 1, j, k, 1]
         fr = phitke[i, j, k, 1]
         gb = phitke[i, j - 1, k, 2]

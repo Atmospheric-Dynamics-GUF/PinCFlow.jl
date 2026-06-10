@@ -56,7 +56,10 @@ function TurbulenceReconstructions(
 )::TurbulenceReconstructions
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulenceReconstructions(domain, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme return TurbulenceReconstructions(
+        domain,
+        Val(turbulence_scheme),
+    )
 end
 
 function TurbulenceReconstructions(

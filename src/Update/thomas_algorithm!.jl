@@ -1,17 +1,25 @@
 """
-```julia 
+```julia
 thomas_algorithm!(state::State)
 ```
 
-Solves a tridiagonal system in `\\hat{z}`-direction using the Thomas tridiagonal algorithm. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
+Solves a tridiagonal system in ``\\hat{z}``-direction using the Thomas tridiagonal matrix algorithm (see [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)) . Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
 
-# Arguments 
+The system is defined as:
+
+```math
+a_k \\phi_{k-1} + b_k\\phi_k + c_k\\phi_{k+1} = f_k\\;.
+```
+
+The result is stored in `state.variables.auxiliaries.fth`.
+
+# Arguments
 
   - `state`: Model state.
 """
 function thomas_algorithm! end
 
-function thomas_algorithm!(state::State)
+@ivy function thomas_algorithm!(state::State)
     (; comm, nz, ko, up, down) = state.domain
     (; z_size) = state.namelists.domain
     (; ath, bth, cth, fth, qth, pth, fth_bc, qth_bc) =

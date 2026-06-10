@@ -33,8 +33,6 @@ Construct a `TurbulenceConstants` instance.
   - `constants`: Physical constsants and reference values.
 """
 struct TurbulenceConstants{A <: AbstractFloat}
-
-    # Dissipation constant
     lturb::A
     ld::A
     lv::A

@@ -3,7 +3,7 @@
 compute_gw_tracer_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
 ```
 
-Compute the leading-order tracer forcing by dispatching to the tracer-setup-specific method.
+Compute the leading-order tracer forcing by dispatching to the appropriate method.
 
 ```julia
 compute_gw_tracer_tendencies!(
@@ -11,7 +11,7 @@ compute_gw_tracer_tendencies!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
 ```
 
@@ -23,11 +23,23 @@ compute_gw_tracer_tendencies!(
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
-Compute the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
+Compute and return the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
+
+Calculates the tendency that is to be added to the tracer equations, given by
+
+```math
+\\begin{align*}
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\bar{\\rho}}\\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
+    & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
+    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] ,
+\\end{align*}
+```
+
+where ``\\chi_\\mathrm{b}`` is the resolved tracer and ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``). For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref).
 
 # Arguments
 
@@ -51,7 +63,13 @@ function compute_gw_tracer_tendencies!(
 )
     (; tracer_setup) = state.namelists.tracer
 
-    @dispatch_tracer_setup compute_gw_tracer_tendencies!(state, i, j, k, Val(tracer_setup))
+    @dispatch_tracer_setup compute_gw_tracer_tendencies!(
+        state,
+        i,
+        j,
+        k,
+        Val(tracer_setup),
+    )
     return
 end
 
@@ -65,7 +83,7 @@ function compute_gw_tracer_tendencies!(
     return
 end
 
-function compute_gw_tracer_tendencies!(
+@ivy function compute_gw_tracer_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
@@ -80,11 +98,11 @@ function compute_gw_tracer_tendencies!(
     (; rho) = state.variables.predictands
     (; rhobar, thetabar) = state.atmosphere
 
-    @ivy dchidt0[i, j, k] = 0.0
-    @ivy dchidtq[i, j, k] = 0.0
-    @ivy dchidt1[i, j, k] = 0.0
+    dchidt0[i, j, k] = 0.0
+    dchidtq[i, j, k] = 0.0
+    dchidt1[i, j, k] = 0.0
 
-    @ivy if x_size > 1
+    if x_size > 1
         dchiu =
             (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
             met[i, j, k, 1, 3] * (uchi0[i, j, k + 1] - uchi0[i, j, k - 1]) /
@@ -111,7 +129,7 @@ function compute_gw_tracer_tendencies!(
         dchiu1 = 0.0
     end
 
-    @ivy if y_size > 1
+    if y_size > 1
         dchiv =
             (vchi0[i, j + 1, k] - vchi0[i, j - 1, k]) / (2.0 * dy) +
             met[i, j, k, 2, 3] * (vchi0[i, j, k + 1] - vchi0[i, j, k - 1]) /
@@ -138,23 +156,23 @@ function compute_gw_tracer_tendencies!(
         dchiv1 = 0.0
     end
 
-    @ivy dchiw =
+    dchiw =
         (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
-    @ivy dchiw1 =
+    dchiw1 =
         (
             rhobar[i, j, k + 1] * thetabar[i, j, k + 1] * wchi1[i, j, k + 1] -
             rhobar[i, j, k - 1] * thetabar[i, j, k - 1] * wchi1[i, j, k - 1]
         ) / (2.0 * jac[i, j, k] * dz)
 
-    @ivy dchidt0[i, j, k] =
+    dchidt0[i, j, k] =
         -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
         (dchiu + dchiv + dchiw)
 
-    @ivy dchidt1[i, j, k] =
+    dchidt1[i, j, k] =
         -(rho[i, j, k] + rhobar[i, j, k]) /
         (2 * rhobar[i, j, k] * thetabar[i, j, k]) * (dchiu1 + dchiv1 + dchiw1)
 
-    @ivy dchidtq[i, j, k] =
+    dchidtq[i, j, k] =
         -(rho[i, j, k] + rhobar[i, j, k]) / 2 *
         (qchi[i, j, k + 1] - qchi[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
 

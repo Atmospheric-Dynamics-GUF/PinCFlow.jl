@@ -277,7 +277,7 @@ function set_vertical_boundaries!(
     return
 end
 
-function set_vertical_boundaries!(
+@ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Boussinesq},
@@ -286,14 +286,14 @@ function set_vertical_boundaries!(
     (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
-    @ivy if ko == 0
+    if ko == 0
         for field in (:phirhop, :phiu, :phiv, :phitheta)
             getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nz == z_size
+    if ko + nz == z_size
         for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
@@ -302,7 +302,7 @@ function set_vertical_boundaries!(
     return
 end
 
-function set_vertical_boundaries!(
+@ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:PseudoIncompressible},
@@ -311,14 +311,14 @@ function set_vertical_boundaries!(
     (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
-    @ivy if ko == 0
+    if ko == 0
         for field in (:phirho, :phirhop, :phiu, :phiv, :phitheta)
             getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nz == z_size
+    if ko + nz == z_size
         for field in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
@@ -327,7 +327,7 @@ function set_vertical_boundaries!(
     return
 end
 
-function set_vertical_boundaries!(
+@ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Compressible},
@@ -336,14 +336,14 @@ function set_vertical_boundaries!(
     (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
-    @ivy if ko == 0
+    if ko == 0
         for field in (:phirho, :phirhop, :phiu, :phiv, :phitheta, :phip)
             getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    @ivy if ko + nz == z_size
+    if ko + nz == z_size
         for field in fieldnames(Fluxes)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end

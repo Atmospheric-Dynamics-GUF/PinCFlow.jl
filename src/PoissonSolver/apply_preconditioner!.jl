@@ -21,7 +21,7 @@ where ``s`` is the iterative solution, ``\\eta`` is a pseudo-time variable, ``\\
 \\left(1 - \\Delta \\eta \\mathcal{L}_\\mathrm{v}\\right) \\left(s^{\\left(m + 1\\right)}\\right) = \\left(1 + \\Delta \\eta \\mathcal{L}_\\mathrm{h}\\right) \\left(s^{\\left(m\\right)}\\right) - \\Delta \\eta b,
 ```
 
-where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\hat{x}\\right)^{- 2} + \\left(\\Delta \\hat{y}\\right)^{- 2}\\right]^{- 1}``, with ``\\Delta \\tau`` being a namelist parameter (`state.namelist.poisson.dtau`). Therein, the implicit problem is solved with the Thomas algorithm for tridiagonal matrices. The number of iterations is given by `state.namelist.poisson.preconditioner_iterations`. 
+where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\hat{x}\\right)^{- 2} + \\left(\\Delta \\hat{y}\\right)^{- 2}\\right]^{- 1}``, with ``\\Delta \\tau`` being a namelist parameter (`state.namelist.poisson.dtau`). Therein, the implicit problem is solved with the Thomas algorithm for tridiagonal matrices. The number of iterations is given by `state.namelist.poisson.preconditioner_iterations`.
 
 # Arguments
 
@@ -61,7 +61,7 @@ function apply_preconditioner!(
     cth .= .-deta .* au_b
 
     # Iterate.
-    @ivy for niter in 1:preconditioner_iterations
+    for niter in 1:preconditioner_iterations
         apply_operator!(fth, qth, Horizontal(), state)
         fth .+= deta .* (qth .- sin)
 

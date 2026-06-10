@@ -36,10 +36,10 @@ include("merge_rays!.jl")
 include("propagate_rays!.jl")
 include("shift_rays!.jl")
 include("split_rays!.jl")
-include("compute_turbulent_damping.jl")
-include("compute_q.jl")
-include("compute_turbulent_tracer_fluxes!.jl")
-include("compute_gw_turbulence_integrals!.jl")
+include("apply_turbulent_damping!.jl")
+include("compute_turbulent_velocity.jl")
+
+export XZ, YZ, XYZ
 
 export apply_saturation_scheme!,
     initialize_rays!,
@@ -47,8 +47,6 @@ export apply_saturation_scheme!,
     propagate_rays!,
     shift_rays!,
     split_rays!,
-    compute_q,
-    compute_turbulent_tracer_fluxes!,
-    compute_gw_turbulence_integrals!
+    compute_turbulent_velocity
 
 end

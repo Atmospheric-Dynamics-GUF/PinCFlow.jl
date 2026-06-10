@@ -55,7 +55,7 @@ Halo exchange is used in the same manner as in the methods for matrices and 3D a
 """
 function set_meridional_boundaries_of_field! end
 
-function set_meridional_boundaries_of_field!(
+@ivy function set_meridional_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
@@ -63,7 +63,7 @@ function set_meridional_boundaries_of_field!(
     (; y_size, nby) = namelists.domain
     (; j0, j1) = domain
 
-    @ivy if y_size > 1
+    if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain)
     else
         for j in 1:nby
@@ -75,7 +75,7 @@ function set_meridional_boundaries_of_field!(
     return
 end
 
-function set_meridional_boundaries_of_field!(
+@ivy function set_meridional_boundaries_of_field!(
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
@@ -84,11 +84,11 @@ function set_meridional_boundaries_of_field!(
     (; y_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    @ivy if y_size > 1
+    if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
         ii = (i0 - nbx):(i1 + nbx)
@@ -103,7 +103,7 @@ function set_meridional_boundaries_of_field!(
     return
 end
 
-function set_meridional_boundaries_of_field!(
+@ivy function set_meridional_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
     domain::Domain;
@@ -112,11 +112,11 @@ function set_meridional_boundaries_of_field!(
     (; y_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    @ivy if y_size > 1
+    if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
         ii = (i0 - nbx):(i1 + nbx)

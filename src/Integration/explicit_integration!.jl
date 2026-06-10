@@ -39,7 +39,7 @@ Perform an explicit Euler step on the right-hand sides of the prognostic equatio
 """
 function explicit_integration! end
 
-function explicit_integration!(
+@ivy function explicit_integration!(
     state::State,
     p0::Predictands,
     dtstage::AbstractFloat,
@@ -49,7 +49,7 @@ function explicit_integration!(
     (; nstages, stepfrac) = state.time
     (; tracer_setup) = state.namelists.tracer
 
-    @ivy for rkstage in 1:nstages
+    for rkstage in 1:nstages
         reconstruct!(state)
         set_boundaries!(state, BoundaryReconstructions())
 
@@ -68,18 +68,8 @@ function explicit_integration!(
         update!(state, dtstage, rkstage, P())
         apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, P())
 
-        @dispatch_tracer_setup update!(
-            state,
-            dtstage,
-            rkstage,
-            Val(tracer_setup),
-        )
-        @dispatch_tracer_setup apply_lhs_sponge!(
-            state,
-            stepfrac[rkstage] * dtstage,
-            time,
-            Val(tracer_setup),
-        )
+        update!(state, dtstage, rkstage, Chi())
+        apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, Chi())
 
         set_boundaries!(state, BoundaryPredictands())
 
