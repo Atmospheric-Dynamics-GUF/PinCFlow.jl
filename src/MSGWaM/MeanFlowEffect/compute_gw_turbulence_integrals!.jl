@@ -153,8 +153,7 @@ end
     end
 
     gwshear[i, j, k] +=
-        wnrm^4 / omir * (fc^2 + omir^2) / (wnrk^2 + wnrl^2 + wnrm^2) * wadr /
-        rhobar[i, j, k]
+        wnrm^4 / omir * (fc^2 + omir^2) / (wnrk^2 + wnrl^2 + wnrm^2) * wadr
 
     return
 end

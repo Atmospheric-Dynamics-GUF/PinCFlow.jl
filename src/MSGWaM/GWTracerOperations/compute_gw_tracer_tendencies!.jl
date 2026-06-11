@@ -97,84 +97,100 @@ end
     (; dchidt0, dchidtq, dchidt1) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar, thetabar) = state.atmosphere
+    (; leading_order_impact, next_order_impact, turbulence_impact) =
+        state.namelists.turbulence
 
-    dchidt0[i, j, k] = 0.0
-    dchidtq[i, j, k] = 0.0
-    dchidt1[i, j, k] = 0.0
+    if leading_order_impact
+        if x_size > 1
+            dchiu =
+                (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
+                met[i, j, k, 1, 3] * (uchi0[i, j, k + 1] - uchi0[i, j, k - 1]) /
+                (2.0 * dz)
+        else
+            dchiu = 0.0
+        end
 
-    if x_size > 1
-        dchiu =
-            (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
-            met[i, j, k, 1, 3] * (uchi0[i, j, k + 1] - uchi0[i, j, k - 1]) /
-            (2.0 * dz)
-        dchiu1 =
+        if y_size > 1
+            dchiv =
+                (vchi0[i, j + 1, k] - vchi0[i, j - 1, k]) / (2.0 * dy) +
+                met[i, j, k, 2, 3] * (vchi0[i, j, k + 1] - vchi0[i, j, k - 1]) /
+                (2.0 * dz)
+        else
+            dchiv = 0.0
+        end
+
+        dchiw =
+            (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) /
+            (2.0 * jac[i, j, k] * dz)
+
+        dchidt0[i, j, k] =
+            -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
+            (dchiu + dchiv + dchiw)
+    end
+    if next_order_impact
+        if x_size > 1
+            dchiu1 =
+                (
+                    rhobar[i + 1, j, k] *
+                    thetabar[i + 1, j, k] *
+                    uchi1[i + 1, j, k] -
+                    rhobar[i - 1, j, k] *
+                    thetabar[i - 1, j, k] *
+                    uchi1[i - 1, j, k]
+                ) / (2.0 * dx) +
+                met[i, j, k, 1, 3] * (
+                    rhobar[i, j, k + 1] *
+                    thetabar[i, j, k + 1] *
+                    uchi1[i, j, k + 1] -
+                    rhobar[i, j, k - 1] *
+                    thetabar[i, j, k - 1] *
+                    uchi1[i, j, k - 1]
+                ) / (2.0 * dz)
+        else
+            dchiu1 = 0.0
+        end
+
+        if y_size > 1
+            dchiv1 =
+                (
+                    rhobar[i, j + 1, k] *
+                    thetabar[i, j + 1, k] *
+                    vchi1[i, j + 1, k] -
+                    rhobar[i, j - 1, k] *
+                    thetabar[i, j - 1, k] *
+                    vchi1[i, j - 1, k]
+                ) / (2.0 * dy) +
+                met[i, j, k, 2, 3] * (
+                    rhobar[i, j, k + 1] *
+                    thetabar[i, j, k + 1] *
+                    vchi1[i, j, k + 1] -
+                    rhobar[i, j, k - 1] *
+                    thetabar[i, j, k - 1] *
+                    vchi1[i, j, k - 1]
+                ) / (2.0 * dz)
+        else
+            dchiv1 = 0.0
+        end
+
+        dchiw1 =
             (
-                rhobar[i + 1, j, k] *
-                thetabar[i + 1, j, k] *
-                uchi1[i + 1, j, k] -
-                rhobar[i - 1, j, k] *
-                thetabar[i - 1, j, k] *
-                uchi1[i - 1, j, k]
-            ) / (2.0 * dx) +
-            met[i, j, k, 1, 3] * (
                 rhobar[i, j, k + 1] *
                 thetabar[i, j, k + 1] *
-                uchi1[i, j, k + 1] -
+                wchi1[i, j, k + 1] -
                 rhobar[i, j, k - 1] *
                 thetabar[i, j, k - 1] *
-                uchi1[i, j, k - 1]
-            ) / (2.0 * dz)
-    else
-        dchiu = 0.0
-        dchiu1 = 0.0
+                wchi1[i, j, k - 1]
+            ) / (2.0 * jac[i, j, k] * dz)
+
+        dchidt1[i, j, k] =
+            -(rho[i, j, k] + rhobar[i, j, k]) /
+            (2 * rhobar[i, j, k] * thetabar[i, j, k]) *
+            (dchiu1 + dchiv1 + dchiw1)
     end
-
-    if y_size > 1
-        dchiv =
-            (vchi0[i, j + 1, k] - vchi0[i, j - 1, k]) / (2.0 * dy) +
-            met[i, j, k, 2, 3] * (vchi0[i, j, k + 1] - vchi0[i, j, k - 1]) /
-            (2.0 * dz)
-        dchiv1 =
-            (
-                rhobar[i, j + 1, k] *
-                thetabar[i, j + 1, k] *
-                vchi1[i, j + 1, k] -
-                rhobar[i, j - 1, k] *
-                thetabar[i, j - 1, k] *
-                vchi1[i, j - 1, k]
-            ) / (2.0 * dy) +
-            met[i, j, k, 2, 3] * (
-                rhobar[i, j, k + 1] *
-                thetabar[i, j, k + 1] *
-                vchi1[i, j, k + 1] -
-                rhobar[i, j, k - 1] *
-                thetabar[i, j, k - 1] *
-                vchi1[i, j, k - 1]
-            ) / (2.0 * dz)
-    else
-        dchiv = 0.0
-        dchiv1 = 0.0
+    if turbulence_impact
+        dchidtq[i, j, k] =
+            -(rho[i, j, k] + rhobar[i, j, k]) / 2 *
+            (qchi[i, j, k + 1] - qchi[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
     end
-
-    dchiw =
-        (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
-    dchiw1 =
-        (
-            rhobar[i, j, k + 1] * thetabar[i, j, k + 1] * wchi1[i, j, k + 1] -
-            rhobar[i, j, k - 1] * thetabar[i, j, k - 1] * wchi1[i, j, k - 1]
-        ) / (2.0 * jac[i, j, k] * dz)
-
-    dchidt0[i, j, k] =
-        -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
-        (dchiu + dchiv + dchiw)
-
-    dchidt1[i, j, k] =
-        -(rho[i, j, k] + rhobar[i, j, k]) /
-        (2 * rhobar[i, j, k] * thetabar[i, j, k]) * (dchiu1 + dchiv1 + dchiw1)
-
-    dchidtq[i, j, k] =
-        -(rho[i, j, k] + rhobar[i, j, k]) / 2 *
-        (qchi[i, j, k + 1] - qchi[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
-
     return
 end

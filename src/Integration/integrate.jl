@@ -277,22 +277,23 @@ function integrate(namelists::Namelists)
             )
 
             #-----------------------------------------------------------------
+            #                         Turbulence 
+            #-----------------------------------------------------------------
+
+            turbulent_diffusion!(state, dt)
+
+            set_boundaries!(state, BoundaryPredictands())
+
+            synchronize_compressible_atmosphere!(
+                state,
+                state.variables.predictands,
+            )
+
+            #-----------------------------------------------------------------
             #                           MS-GWaM
             #-----------------------------------------------------------------
 
-        wkb_integration!(state, dt)
-
-        #-----------------------------------------------------------------
-        #                         Turbulence 
-        #-----------------------------------------------------------------
-
-        compute_turbulence_diffusion!(state)
-
-        turbulent_diffusion!(state, dt)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        synchronize_compressible_atmosphere!(state, state.variables.predictands)
+            wkb_integration!(state, dt)
 
             #---------------------------------------------------------------
             #                   Semi-implicit time scheme

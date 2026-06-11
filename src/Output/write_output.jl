@@ -414,7 +414,7 @@ function write_output end
                         ii,
                         jj,
                         kk,
-                    ] ./ tref .^ 2
+                    ] ./ tref .^ 2 ./ rhobar[ii, jj, kk]
             end
         end
 
@@ -427,7 +427,10 @@ function write_output end
             end
 
             if :uhat in output_variables
-                HDF5.set_extent_dims(file["uhat"], (x_size, y_size, z_size, iout))
+                HDF5.set_extent_dims(
+                    file["uhat"],
+                    (x_size, y_size, z_size, iout),
+                )
                 file["uhat"][iid, jjd, kkd, iout] =
                     abs.(state.wkb.integrals.uhat[ii, jj, kk]) .* uref
             end
@@ -484,12 +487,6 @@ function write_output end
                     file[string(field)][iid, jjd, kkd, iout] =
                         getfield(tendencies, field)[ii, jj, kk] .* scaling
                 end
-            end
-
-            if :e in output_variables
-                HDF5.set_extent_dims(file["e"], (x_size, y_size, z_size, iout))
-                file["e"][iid, jjd, kkd, iout] =
-                    integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2
             end
 
             # Write elastic-mode-selection data.

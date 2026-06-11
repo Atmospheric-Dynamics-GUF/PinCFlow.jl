@@ -481,19 +481,6 @@ function create_output(state::State, machine_start_time::DateTime)
                 end
             end
 
-            if :e in output_variables
-                create_dataset(
-                    file,
-                    "e",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
-            end
-
             # Create datasets for elastic-mode-selection data.
             if elastic_mode_selection
                 for (field, type) in zip(

@@ -475,28 +475,47 @@ function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
     (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
-    (; leading_order_impact) = state.namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_impact) =
+        state.namelists.tracer
 
-    if !smooth_tendencies || !leading_order_impact
+    if !smooth_tendencies
         return
     end
 
-    @dispatch_filter_type if x_size == y_size == 1
-        smooth_gw_tendencies!(dchidt0, state, Val(filter_type), Z())
-        smooth_gw_tendencies!(dchidt1, state, Val(filter_type), Z())
-        smooth_gw_tendencies!(dchidtq, state, Val(filter_type), Z())
-    elseif x_size == 1
-        smooth_gw_tendencies!(dchidt0, state, Val(filter_type), YZ())
-        smooth_gw_tendencies!(dchidt1, state, Val(filter_type), YZ())
-        smooth_gw_tendencies!(dchidtq, state, Val(filter_type), YZ())
-    elseif y_size == 1
-        smooth_gw_tendencies!(dchidt0, state, Val(filter_type), XZ())
-        smooth_gw_tendencies!(dchidt1, state, Val(filter_type), XZ())
-        smooth_gw_tendencies!(dchidtq, state, Val(filter_type), XZ())
-    else
-        smooth_gw_tendencies!(dchidt0, state, Val(filter_type), XYZ())
-        smooth_gw_tendencies!(dchidt1, state, Val(filter_type), XYZ())
-        smooth_gw_tendencies!(dchidtq, state, Val(filter_type), XYZ())
+    if leading_order_impact
+        @dispatch_filter_type if x_size == y_size == 1
+            smooth_gw_tendencies!(dchidt0, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smooth_gw_tendencies!(dchidt0, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smooth_gw_tendencies!(dchidt0, state, Val(filter_type), XZ())
+        else
+            smooth_gw_tendencies!(dchidt0, state, Val(filter_type), XYZ())
+        end
+    end
+
+    if next_order_impact
+        @dispatch_filter_type if x_size == y_size == 1
+            smooth_gw_tendencies!(dchidt1, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smooth_gw_tendencies!(dchidt1, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smooth_gw_tendencies!(dchidt1, state, Val(filter_type), XZ())
+        else
+            smooth_gw_tendencies!(dchidt1, state, Val(filter_type), XYZ())
+        end
+    end
+
+    if turbulence_impact
+        @dispatch_filter_type if x_size == y_size == 1
+            smooth_gw_tendencies!(dchidtq, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smooth_gw_tendencies!(dchidtq, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smooth_gw_tendencies!(dchidtq, state, Val(filter_type), XZ())
+        else
+            smooth_gw_tendencies!(dchidtq, state, Val(filter_type), XYZ())
+        end
     end
 end
 

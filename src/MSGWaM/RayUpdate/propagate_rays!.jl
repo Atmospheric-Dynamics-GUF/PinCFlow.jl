@@ -183,7 +183,7 @@ end
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; branch, impact_altitude, turbulence_damping) = state.namelists.wkb
+    (; branch, impact_altitude, turbulent_damping) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
@@ -215,7 +215,6 @@ end
                 ddxray[r, i, j, k] = 0.0
                 ddyray[r, i, j, k] = 0.0
                 ddzray[r, i, j, k] = 0.0
-                dpray[r, i, j, k] = 0.0
             end
         end
 

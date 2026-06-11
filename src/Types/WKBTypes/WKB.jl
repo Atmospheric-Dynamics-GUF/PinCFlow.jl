@@ -121,7 +121,7 @@ struct WKB{
     K <: AbstractArray{<:AbstractFloat, 3},
     L <: Spectrum,
     M <: ElasticModeSelection,
-    N <: <: WKBAuxiliaries,
+    N <: WKBAuxiliaries,
 }
     bins::A
     nray_wrk::A

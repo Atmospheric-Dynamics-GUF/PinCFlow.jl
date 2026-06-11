@@ -33,6 +33,7 @@ include("Interpolation/Interpolation.jl")
 include("RayOperations/RayOperations.jl")
 include("RaySources/RaySources.jl")
 include("BoundaryRays/BoundaryRays.jl")
+include("GWTracerOperations/GWTracerOperations.jl")
 include("RayUpdate/RayUpdate.jl")
 include("MeanFlowEffect/MeanFlowEffect.jl")
 

@@ -91,6 +91,7 @@ end
     (; gwshear) = state.turbulence.turbulencewkbintegrals
     (; dtkedt) = state.turbulence.turbulencewkbtendencies
     (; wave_impact) = state.namelists.turbulence
+    (; rhobar) = state.atmosphere
 
     if !wave_impact
         return
@@ -98,7 +99,7 @@ end
 
     dtkedt[i, j, k] =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) *
-        gwshear[i, j, k]
+        gwshear[i, j, k] / rhobar[i, j, k]
 
     return
 end

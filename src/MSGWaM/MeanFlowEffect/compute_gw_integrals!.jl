@@ -116,8 +116,6 @@ end
     fc = coriolis_frequency * tref
 
     backup_wave_amplitudes!(state)
-
-    backup_wave_amplitudes!(state)
     
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
@@ -281,34 +279,6 @@ end
                         end
 
                         integrals.e[iray, jray, kray] += wadr * omir
-
-                        compute_gw_turbulence_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            iray,
-                            jray,
-                            kray,
-                        )
-
-                        compute_gw_tracer_integrals!(
-                            state,
-                            factor,
-                            r,
-                            i,
-                            j,
-                            k,
-                            xr,
-                            yr,
-                            zr,
-                            iray,
-                            jray,
-                            kray,
-                        )
 
                         compute_gw_turbulence_integrals!(
                             state,

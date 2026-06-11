@@ -126,6 +126,7 @@ struct DY end
 
 struct DZ end
 
+include("compute_horizontal_cell_indices.jl")
 include("compute_derivatives.jl")
 include("get_next_half_level.jl")
 include("get_next_level.jl")
@@ -140,6 +141,7 @@ export get_next_half_level,
     get_next_level,
     interpolate_mean_flow,
     interpolate_stratification,
-    interpolate_scalar
+    interpolate_scalar,
+    compute_horizontal_cell_indices
 
 end

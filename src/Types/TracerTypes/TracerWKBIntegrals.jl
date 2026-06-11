@@ -62,6 +62,14 @@ Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state
 
   - `wchi0::A`: Leading-order vertical tracer fluxes.
 
+  - `uchi1::B`: Next-order zonal tracer fluxes.
+
+  - `vchi1::B`: Next-order meridional tracer fluxes.
+
+  - `wchi1::B`: Next-order vertical tracer fluxes.
+
+  - `qchi::C`: Turbulent tracer fluxes.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -72,10 +80,18 @@ Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+struct TracerWKBIntegrals{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
+}
     uchi0::A
     vchi0::A
     wchi0::A
+    uchi1::B
+    vchi1::B
+    wchi1::B
+    qchi::C
 end
 
 function TracerWKBIntegrals(
@@ -96,7 +112,7 @@ function TracerWKBIntegrals(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
+    return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:7]...)
 end
 
 function TracerWKBIntegrals(
@@ -118,7 +134,7 @@ function TracerWKBIntegrals(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
+    return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:7]...)
 end
 
 function TracerWKBIntegrals(
@@ -127,11 +143,31 @@ function TracerWKBIntegrals(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBIntegrals
     (; nxx, nyy, nzz) = domain
-    (; leading_order_impact) = namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_impact) =
+        namelists.tracer
 
     if leading_order_impact
-        return TracerWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:3]...)
+        uchi0 = zeros(nxx, nyy, nzz)
+        vchi0 = zeros(nxx, nyy, nzz)
+        wchi0 = zeros(nxx, nyy, nzz)
     else
-        return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:3]...)
+        uchi0 = zeros(0, 0, 0)
+        vchi0 = zeros(0, 0, 0)
+        wchi0 = zeros(0, 0, 0)
     end
+    if next_order_impact
+        uchi1 = zeros(nxx, nyy, nzz)
+        vchi1 = zeros(nxx, nyy, nzz)
+        wchi1 = zeros(nxx, nyy, nzz)
+    else
+        uchi1 = zeros(0, 0, 0)
+        vchi1 = zeros(0, 0, 0)
+        wchi1 = zeros(0, 0, 0)
+    end
+    if turbulence_impact
+        qchi = zeros(nxx, nyy, nzz)
+    else
+        qchi = zeros(0, 0, 0)
+    end
+    return TracerWKBIntegrals(uchi0, vchi0, wchi0, uchi1, vchi1, wchi1, qchi)
 end

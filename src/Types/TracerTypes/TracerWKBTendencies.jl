@@ -58,6 +58,10 @@ Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `stat
 
   - `dchidt0::A`: Leading-order tracer impact of unresolved gravity waves.
 
+  - `dchidt1::B`: Next-order tracer impact of unresolved gravity waves.
+
+  - `dchidtq::C`: Tracer impact of turbulence induced by unresolved gravity waves.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -68,8 +72,14 @@ Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `stat
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+struct TracerWKBTendencies{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+    C <: AbstractArray{<:AbstractFloat, 3},
+}
     dchidt0::A
+    dchidt1::B
+    dchidtq::C
 end
 
 function TracerWKBTendencies(
@@ -90,7 +100,7 @@ function TracerWKBTendencies(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBTendencies
-    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TracerWKBTendencies(
@@ -112,7 +122,7 @@ function TracerWKBTendencies(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBTendencies
-    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TracerWKBTendencies(
@@ -121,11 +131,24 @@ function TracerWKBTendencies(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBTendencies
     (; nxx, nyy, nzz) = domain
-    (; leading_order_impact) = namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_impact) =
+        namelists.tracer
 
     if leading_order_impact
-        return TracerWKBTendencies([zeros(nxx, nyy, nzz) for i in 1:1]...)
+        dchidt0 = zeros(nxx, nyy, nzz)
     else
-        return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+        dchidt0 = zeros(0, 0, 0)
     end
+    if next_order_impact
+        dchidt1 = zeros(nxx, nyy, nzz)
+    else
+        dchidt1 = zeros(0, 0, 0)
+    end
+    if turbulence_impact
+        dchidtq = zeros(nxx, nyy, nzz)
+    else
+        dchidtq = zeros(0, 0, 0)
+    end
+
+    return TracerWKBTendencies(dchidt0, dchidt1, dchidtq)
 end

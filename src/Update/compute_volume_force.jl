@@ -315,7 +315,7 @@ end
 
     buoyancy =
         -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
-        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+        (n2[i, j, k]) #  + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     buoyancy_production[i, j, k] = buoyancy
 

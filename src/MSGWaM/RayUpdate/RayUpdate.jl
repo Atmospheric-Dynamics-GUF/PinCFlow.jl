@@ -25,6 +25,7 @@ using MPI
 using ..BoundaryRays
 using ..Interpolation
 using ..RayOperations
+using ..GWTracerOperations
 using ..RaySources
 using ..Smoothing
 using ...Types
@@ -37,7 +38,6 @@ include("propagate_rays!.jl")
 include("shift_rays!.jl")
 include("split_rays!.jl")
 include("apply_turbulent_damping!.jl")
-include("compute_turbulent_velocity.jl")
 
 export XZ, YZ, XYZ
 
@@ -46,7 +46,6 @@ export apply_saturation_scheme!,
     merge_rays!,
     propagate_rays!,
     shift_rays!,
-    split_rays!,
-    compute_turbulent_velocity
+    split_rays!
 
 end

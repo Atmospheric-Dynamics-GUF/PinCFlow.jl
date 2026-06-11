@@ -24,7 +24,6 @@ include("@dispatch_model.jl")
 include("@dispatch_tracer_setup.jl")
 include("@dispatch_turbulence_scheme.jl")
 include("@dispatch_wkb_mode.jl")
-include("@dispatch_turbulence_scheme.jl")
 include("@dispatch.jl")
 
 include("DomainNamelist.jl")

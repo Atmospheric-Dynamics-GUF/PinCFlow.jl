@@ -44,7 +44,9 @@ function TracerNamelist(;
     leading_order_impact::Bool = true,
     next_order_impact::Bool = true,
     turbulence_impact::Bool = true,
-    initial_tracer::Function = (x, y, z) -> 0.0,
+    initial_chi::Function = (x, y, z) -> 0.0,
+    relaxed_chi::Function = (x, y, z, t, dt) -> 0.0,
+    apply_lhs_sponge_to_tracer::Bool = true,
 )::TracerNamelist
     return TracerNamelist(
         tracer_setup,
