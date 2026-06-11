@@ -316,9 +316,8 @@ end
     (; shear_production, buoyancy_production) =
         state.turbulence.turbulenceauxiliaries
     (; rho) = state.variables.predictands
-    (; rhobar, n2) = state.atmosphere
-    (; jac, dz) = state.grid
-    (; g_ndim) = state.constants
+    (; rhobar) = state.atmosphere
+    (; model) = state.namelists.atmosphere
 
     shear =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
