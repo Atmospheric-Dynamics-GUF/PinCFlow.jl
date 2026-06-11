@@ -151,7 +151,7 @@ function set_turbulence_vertical_boundaries!(
     (; wave_impact) = namelists.turbulence
 
     if wave_impact
-        for field in (:gwshear,)
+        for field in (:gwshear, :gwbuoy)
             set_vertical_boundaries_of_field!(
                 getfield(turbulencewkbintegrals, field),
                 namelists,

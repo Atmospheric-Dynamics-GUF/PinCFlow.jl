@@ -8,6 +8,7 @@ compute_gw_turbulence_integrals!(
     wnrl::AbstractFloat,
     wnrm::AbstractFloat,
     wadr::AbstractFloat,
+    factor::AbstractFloat,
     i::Integer,
     j::Integer,
     k::Integer,
@@ -26,6 +27,7 @@ compute_gw_turbulence_integrals!(
     wnrl::AbstractFloat,
     wnrm::AbstractFloat,
     wadr::AbstractFloat,
+    factor::AbstractFloat,
     i::Integer,
     j::Integer,
     k::Integer,
@@ -44,6 +46,7 @@ compute_gw_turbulence_integrals!(
     wnrl::AbstractFloat,
     wnrm::AbstractFloat,
     wadr::AbstractFloat,
+    factor::AbstractFloat,
     i::Integer,
     j::Integer,
     k::Integer,
@@ -76,6 +79,8 @@ S_\\mathrm{w} = \\sum_{r, \\lambda,\\mu,\\nu} m_r^2 \\left[\\frac{\\left|u_r\\ri
 
   - `wadr`: Phase-space wave-action density.
 
+  - `n2r`: Squared buoyancy frequency at the ray volume position ``N_r^2``.
+
   - `i`: Zonal grid-cell index.
 
   - `j`: Meridional grid-cell index.
@@ -93,6 +98,8 @@ function compute_gw_turbulence_integrals!(
     wnrl::AbstractFloat,
     wnrm::AbstractFloat,
     wadr::AbstractFloat,
+    factor::AbstractFloat,
+    n2r::AbstractFloat,
     i::Integer,
     j::Integer,
     k::Integer,
@@ -107,6 +114,8 @@ function compute_gw_turbulence_integrals!(
         wnrl,
         wnrm,
         wadr,
+        factor,
+        n2r,
         i,
         j,
         k,
@@ -123,6 +132,8 @@ function compute_gw_turbulence_integrals!(
     wnrl::AbstractFloat,
     wnrm::AbstractFloat,
     wadr::AbstractFloat,
+    factor::AbstractFloat,
+    n2r::AbstractFloat,
     i::Integer,
     j::Integer,
     k::Integer,
@@ -139,12 +150,14 @@ end
     wnrl::AbstractFloat,
     wnrm::AbstractFloat,
     wadr::AbstractFloat,
+    factor::AbstractFloat,
+    n2r::AbstractFloat,
     i::Integer,
     j::Integer,
     k::Integer,
     turbulence_scheme::Val{:TKEScheme},
 )
-    (; gwshear) = state.turbulence.turbulencewkbintegrals
+    (; gwshear, gwbuoy) = state.turbulence.turbulencewkbintegrals
     (; wave_impact) = state.namelists.turbulence
     (; rhobar) = state.atmosphere
 
@@ -153,7 +166,25 @@ end
     end
 
     gwshear[i, j, k] +=
-        wnrm^4 / omir * (fc^2 + omir^2) / (wnrk^2 + wnrl^2 + wnrm^2) * wadr
+        wnrm^4 / omir * (fc^2 + omir^2) / (wnrk^2 + wnrl^2 + wnrm^2) * wadr /
+        rhobar[i, j, k]
+
+    bhat = sqrt(
+        n2r^2 * (wnrk^2 + wnrl^2) / (wnrk^2 + wnrl^2 + wnrm^2) *
+        2 *
+        abs(wadr / factor / omir) / rhobar[i, j, k],
+    )
+
+    dphi = 2 * pi / 20
+    phi = 0.0
+    integral = 0.0
+    while phi <= 2 * pi
+        integral +=
+            max(0, -(n2r + real(1im * wnrm * bhat * exp(1im * phi)))) * dphi
+        phi += dphi
+    end
+    integral /= (2 * pi)
+    gwbuoy[i, j, k] += integral * factor
 
     return
 end

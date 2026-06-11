@@ -70,6 +70,7 @@ Construct a `TurbulenceWKBIntegrals` instance with zero-initialized arrays if `s
 """
 struct TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     gwshear::A
+    gwbuoy::A
 end
 
 function TurbulenceWKBIntegrals(
@@ -90,7 +91,7 @@ function TurbulenceWKBIntegrals(
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceWKBIntegrals
-    return TurbulenceWKBIntegrals(zeros(0, 0, 0))
+    return TurbulenceWKBIntegrals([zeros(0, 0, 0) for i in 1:2]...)
 end
 
 function TurbulenceWKBIntegrals(
@@ -112,7 +113,7 @@ function TurbulenceWKBIntegrals(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TurbulenceWKBIntegrals
-    return TurbulenceWKBIntegrals(zeros(0, 0, 0))
+    return TurbulenceWKBIntegrals([zeros(0, 0, 0) for i in 1:2]...)
 end
 
 function TurbulenceWKBIntegrals(
@@ -124,8 +125,8 @@ function TurbulenceWKBIntegrals(
     (; wave_impact) = namelists.turbulence
 
     if wave_impact
-        return TurbulenceWKBIntegrals(zeros(nxx, nyy, nzz))
+        return TurbulenceWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:2]...)
     else
-        return TurbulenceWKBIntegrals(zeros(0, 0, 0))
+        return TurbulenceWKBIntegrals([zeros(0, 0, 0) for i in 1:2]...)
     end
 end

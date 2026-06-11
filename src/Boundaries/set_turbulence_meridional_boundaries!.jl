@@ -121,7 +121,7 @@ function set_turbulence_meridional_boundaries!(
     (; wave_impact) = namelists.turbulence
 
     if wave_impact
-        for field in (:gwshear,)
+        for field in (:gwshear, :gwbuoy)
             set_meridional_boundaries_of_field!(
                 getfield(turbulencewkbintegrals, field),
                 namelists,

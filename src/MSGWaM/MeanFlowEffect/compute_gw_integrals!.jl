@@ -116,7 +116,7 @@ end
     fc = coriolis_frequency * tref
 
     backup_wave_amplitudes!(state)
-    
+
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
@@ -288,6 +288,8 @@ end
                             lr,
                             mr,
                             wadr,
+                            factor,
+                            n2r,
                             iray,
                             jray,
                             kray,
@@ -301,6 +303,21 @@ end
                             lr,
                             mr,
                             wadr,
+                            xr,
+                            yr,
+                            zr,
+                            iray,
+                            jray,
+                            kray,
+                        )
+
+                        compute_turbulent_tracer_fluxes!(
+                            state,
+                            factor,
+                            r,
+                            i,
+                            j,
+                            k,
                             xr,
                             yr,
                             zr,
@@ -460,6 +477,8 @@ end
                             lr,
                             mr,
                             wadr,
+                            factor,
+                            n2r,
                             iray,
                             jray,
                             kray,
@@ -599,6 +618,8 @@ end
                             lr,
                             mr,
                             wadr,
+                            factor,
+                            n2r,
                             iray,
                             jray,
                             kray,

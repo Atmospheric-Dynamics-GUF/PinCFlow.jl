@@ -489,6 +489,21 @@ function create_output(state::State, machine_start_time::DateTime)
                     chunk = (cx, cy, cz, ct),
                 )
             end
+
+            if state.namelists.turbulence.wave_impact &&
+               :gwbuoy in output_variables &&
+               wkb_mode != :NoWKB
+                create_dataset(
+                    file,
+                    "gwbuoy",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
         end
 
         # Create datasets for WKB variables.

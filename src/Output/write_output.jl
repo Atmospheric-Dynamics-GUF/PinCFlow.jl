@@ -480,7 +480,22 @@ function write_output end
                         ii,
                         jj,
                         kk,
-                    ] ./ tref .^ 2 ./ rhobar[ii, jj, kk]
+                    ] ./ tref .^ 2
+            end
+
+            if state.namelists.turbulence.wave_impact &&
+               :gwbuoy in output_variables &&
+               wkb_mode != :NoWKB
+                HDF5.set_extent_dims(
+                    file["gwbuoy"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["gwbuoy"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbintegrals.gwbuoy[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ tref .^ 2
             end
         end
 

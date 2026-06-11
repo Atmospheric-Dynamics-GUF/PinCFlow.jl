@@ -98,7 +98,7 @@ end
     (; rho) = state.variables.predictands
     (; rhobar, thetabar) = state.atmosphere
     (; leading_order_impact, next_order_impact, turbulence_impact) =
-        state.namelists.turbulence
+        state.namelists.tracer
 
     if leading_order_impact
         if x_size > 1

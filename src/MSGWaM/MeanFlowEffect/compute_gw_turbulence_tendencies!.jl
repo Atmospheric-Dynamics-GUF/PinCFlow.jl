@@ -88,7 +88,7 @@ end
     k::Integer,
     turbulence_scheme::Val{:TKEScheme},
 )
-    (; gwshear) = state.turbulence.turbulencewkbintegrals
+    (; gwshear, gwbuoy) = state.turbulence.turbulencewkbintegrals
     (; dtkedt) = state.turbulence.turbulencewkbtendencies
     (; wave_impact) = state.namelists.turbulence
     (; rhobar) = state.atmosphere
@@ -99,7 +99,7 @@ end
 
     dtkedt[i, j, k] =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) *
-        gwshear[i, j, k] / rhobar[i, j, k]
+        gwshear[i, j, k] + turbulence_diffusion_coefficient(state, i, j, k, KH()) * gwbuoy[i, j, k]
 
     return
 end
