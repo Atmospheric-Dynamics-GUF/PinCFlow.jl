@@ -131,7 +131,33 @@ where
 \\end{align*}
 ```
 
-and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively.
+and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. The buoyancy term is calculated by dispatching to the model-specific method.
+
+```julia
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+)::AbstractFloat
+```
+
+Return the buoyancy forcing on the TKE for configurations in pseudo-incompressible and compressible mode.
+
+```julia
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    model::Val{:Boussinesq},
+)::AbstractFloat
+```
+
+Return the buoyancy forcing on the TKE for configurations in Boussinesq mode.
 
 # Arguments
 
@@ -146,6 +172,8 @@ and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coeffic
   - `variable`: Variable (equation) of choice.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
+
+  - `model`: Dynamic equations.
 
 # See also
 
