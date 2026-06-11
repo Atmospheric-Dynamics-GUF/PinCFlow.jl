@@ -347,6 +347,72 @@ function write_output end
                     state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] .* uref ./
                     rhobar[ii, jj, kk]
             end
+
+            if state.namelists.tracer.next_order_impact &&
+               :dchidt1 in output_variables
+                HDF5.set_extent_dims(
+                    file["dchidt1"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dchidt1"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbtendencies.dchidt1[ii, jj, kk] ./
+                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :uchi1 in output_variables
+                HDF5.set_extent_dims(
+                    file["uchi1"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["uchi1"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.uchi1[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :vchi1 in output_variables
+                HDF5.set_extent_dims(
+                    file["vchi1"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["vchi1"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.vchi1[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :wchi1 in output_variables
+                HDF5.set_extent_dims(
+                    file["wchi1"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["wchi1"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.wchi1[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.turbulence_impact &&
+               :dchidtq in output_variables
+                HDF5.set_extent_dims(
+                    file["dchidtq"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dchidtq"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbtendencies.dchidtq[ii, jj, kk] ./
+                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+
+            if state.namelists.tracer.turbulence_impact &&
+               :qchi in output_variables
+                HDF5.set_extent_dims(
+                    file["qchi"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["qchi"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.qchi[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
         end
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence

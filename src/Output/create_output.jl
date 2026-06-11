@@ -334,6 +334,90 @@ function create_output(state::State, machine_start_time::DateTime)
                     chunk = (cx, cy, cz, ct),
                 )
             end
+
+            if state.namelists.tracer.next_order_impact &&
+               :dchidt1 in output_variables
+                create_dataset(
+                    file,
+                    "dchidt1",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :uchi1 in output_variables
+                create_dataset(
+                    file,
+                    "uchi1",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :vchi1 in output_variables
+                create_dataset(
+                    file,
+                    "vchi1",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :wchi1 in output_variables
+                create_dataset(
+                    file,
+                    "wchi1",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.turbulence_impact &&
+               :dchidtq in output_variables
+                create_dataset(
+                    file,
+                    "dchidtq",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.turbulence_impact &&
+               :qchi in output_variables
+                create_dataset(
+                    file,
+                    "qchi",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
         end
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence

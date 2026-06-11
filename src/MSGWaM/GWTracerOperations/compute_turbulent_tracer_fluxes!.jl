@@ -75,6 +75,7 @@ function compute_turbulent_tracer_fluxes!(
     (; tref, kappa) = state.constants
     (; x_size, y_size) = state.namelists.domain
     (; lb) = state.turbulence.turbulenceconstants
+    (; turbulence_impact) = state.namelists.turbulence
 
     rhob = rhobar[iray, jray, kray]
     kr = rays.k[r, i, j, k]
