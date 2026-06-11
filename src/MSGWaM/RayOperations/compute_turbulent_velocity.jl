@@ -1,0 +1,191 @@
+"""
+```julia 
+compute_turbulent_velocity(
+    state::State,
+    r::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    beta::AbstractFloat,
+)::Complex
+```
+
+Compute and return the characteristic mean turbulent velocity amplitude ``Q_{\\beta,r}``, with ``\\beta`` given by the input parameter `beta`.
+
+The velocity amplitude is computed from the numerical phase average 
+
+```math 
+Q_{0,r} = \\frac{1}{2\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}\\Delta\\phi\\;,
+```
+
+and for ``\\beta>0``
+
+```math 
+Q_{\\beta,r} = \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-i\\beta n\\Delta\\phi}\\Delta\\phi\\;.
+```
+
+```julia 
+compute_turbulent_velocity(
+    state::State,
+    rhob::AbstractFloat,
+    wadr::AbstractFloat,
+    kr::AbstractFloat,
+    lr::AbstractFloat,
+    mr::AbstractFloat,
+    n2r::AbstractFloat,
+    fc::AbstractFloat,
+    omir::AbstractFloat,
+    phi::AbstractFloat,
+)::AbstractFloat
+```
+
+Compute and return ``\\tilde{Q}_r``. The quantity ``\\tilde{Q}_r^2`` represents the leading-order turbulence contribution originating from the balance of shear production, buoyancy forces and dissipation, and is defined as follows:
+
+```math 
+\\tilde{Q}_r^2 = \\max\\left\\{0,l_d\\left\\{l_v \\frac{m_r^2}{2}\\left[\\left|\\boldsymbol{u}_{\\mathrm{w}, r}\\right|^2-\\real\\left(\\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r}e^{i2\\phi} \\right)\\right]
+-l_b\\left[N_r^2+\\real\\left(im_r b_{\\mathrm{w}, r}e^{i\\phi}\\right)\\right]\\right\\}\\right\\}\\;,
+```
+
+with
+
+```math 
+\\begin{align*}
+\\left|\\boldsymbol{u}_{\\mathrm{w}, r}\\right|^2 &= \\frac{m_r^2 \\left(\\hat{\\omega}_r^2-f^2\\right)}{\\left|\\boldsymbol{k}_r\\right|^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
+\\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r} &= -\\frac{\\left(N_r^2+f^2\\right)\\left(k_r^2+l_r^2\\right)m_r^2}{\\left|\\boldsymbol{k}_r\\right|^4}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
+b_{\\mathrm{w}, r} &= \\sqrt{\\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{\\left|\\boldsymbol{k}_r\\right|^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}}} \\;,
+\\end{align*}
+```
+
+and turbulence mixing lengths ``l_d``, ``l_v``, and ``l_b`` stored in `state.turbulence.turbulenceconstants.ld`, `state.turbulence.turbulenceconstants.lv`, and `state.turbulence.turbulenceconstants.lb`, respectively.
+
+# Arguments 
+
+  - `state`: Model state.
+
+  - `r`: Ray-volume index. 
+
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
+
+  - `beta`: Index ``\\beta`` of ``Q_{\\beta,r}``.
+
+  - `rhob`: Background density ``\\bar{\\rho}`` located at cell index ``(i,j,k)``.
+
+  - `wadr`: Physical-space wave-action density ``\\mathcal{A}_r``. 
+
+  - `kr`: Zonal wavenumber ``k_r``.
+
+  - `lr`: Meridional wavenumber ``l_r``.
+
+  - `mr`: Vertical wavenumber ``m_r``.
+
+  - `n2r`: Squared buoyancy frequency at the ray volume position ``N_r^2``.
+
+  - `fc`: Coriolis frequency ``f``.
+
+  - `omir`: Intrinsic frequency ``\\hat{\\omega}_r``.
+
+  - `phi`: Gravity wave phase ``\\phi``.
+"""
+function compute_turbulent_velocity end
+
+function compute_turbulent_velocity(
+    state::State,
+    r::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    beta::AbstractFloat,
+)::Complex
+    (; rays) = state.wkb
+    (; coriolis_frequency) = state.namelists.atmosphere
+    (; tref) = state.constants
+    (; rhobar) = state.atmosphere
+    (; x_size, y_size) = state.namelists.domain
+    (; branch) = state.namelists.wkb
+
+    (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+
+    @ivy rhob = rhobar[i, j, k]
+    @ivy kr = rays.k[r, i, j, k]
+    @ivy lr = rays.l[r, i, j, k]
+    @ivy mr = rays.m[r, i, j, k]
+    @ivy dkr = rays.dkray[r, i, j, k]
+    @ivy dlr = rays.dlray[r, i, j, k]
+    @ivy dmr = rays.dmray[r, i, j, k]
+    n2r = interpolate_stratification(zr, state, N2())
+    fc = coriolis_frequency * tref
+
+    khr = sqrt(kr^2 + lr^2)
+
+    omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+
+    @ivy wadr = rays.dens[r, i, j, k] * dmr
+
+    if x_size > 1
+        wadr *= dkr
+    end
+    if y_size > 1
+        wadr *= dlr
+    end
+
+    dphi = 2 * pi / 20
+    phi = 0.0
+    integral = 0.0
+    while phi <= 2 * pi
+        qtilde = compute_turbulent_velocity(
+            state,
+            rhob,
+            wadr,
+            kr,
+            lr,
+            mr,
+            n2r,
+            fc,
+            omir,
+            phi,
+        )
+        integral += qtilde * exp(-1im * beta * phi) * dphi
+        phi += dphi
+    end
+    if beta == 0.0
+        return integral / (2 * pi)
+    else
+        return integral / pi
+    end
+end
+
+function compute_turbulent_velocity(
+    state::State,
+    rhob::AbstractFloat,
+    wadr::AbstractFloat,
+    kr::AbstractFloat,
+    lr::AbstractFloat,
+    mr::AbstractFloat,
+    n2r::AbstractFloat,
+    fc::AbstractFloat,
+    omir::AbstractFloat,
+    phi::AbstractFloat,
+)::AbstractFloat
+    (; ld, lv, lb) = state.turbulence.turbulenceconstants
+
+    uhat2 =
+        2 * mr^2 * wadr * (omir^2 + fc^2) / rhob / omir / (kr^2 + lr^2 + mr^2)
+    u01u01 =
+        -(n2r - fc^2) * (kr^2 + lr^2) * mr^2 / (kr^2 + lr^2 + mr^2)^2 *
+        2 *
+        wadr / omir / rhob
+    bhat = sqrt(
+        n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * abs(wadr / omir) / rhob,
+    )
+
+    sterm = mr^2 / 2 * (uhat2 - real(u01u01 * exp(2im * phi)))
+    bterm = n2r + real(1im * mr * bhat * exp(1im * phi))
+
+    qtilde = sqrt(max(0, ld * (lv * sterm - lb * bterm)))
+
+    return qtilde
+end
