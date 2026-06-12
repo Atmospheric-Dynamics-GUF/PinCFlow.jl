@@ -87,6 +87,8 @@ The group velocities that are calculated for the propagation in physical space a
 
 The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
 
+If `rkstage == nstages`, `activate_orographic_source!` is called to launch new mountain-wave ray volumes.
+
 ```julia
 propagate_rays!(
     state::State,
@@ -127,6 +129,8 @@ the second term is integrated with the pseudo-time step ``J \\Delta \\hat{z} / c
 The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
 
 If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
+
+If `rkstage != 1`, this method returns immediately.
 
 # Arguments
 
@@ -190,7 +194,7 @@ end
     (; nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
-    (; alphark, betark, stepfrac) = state.time
+    (; alphark, betark, stepfrac, nstages) = state.time
     (; dx, dy, dzcmin) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
@@ -462,7 +466,9 @@ end
         end
     end
 
-    activate_orographic_source!(state)
+    if rkstage == nstages
+        activate_orographic_source!(state)
+    end
 
     return
 end
@@ -482,6 +488,10 @@ end
     (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; nray, rays) = state.wkb
+
+    if rkstage != 1
+        return
+    end
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
