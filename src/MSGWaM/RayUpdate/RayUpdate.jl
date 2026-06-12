@@ -94,10 +94,6 @@ include("apply_turbulent_damping!.jl")
 export X, Y, Z, XZ, YZ, XYZ
 
 export apply_saturation_scheme!,
-    initialize_rays!,
-    merge_rays!,
-    propagate_rays!,
-    shift_rays!,
-    split_rays!
+    initialize_rays!, merge_rays!, propagate_rays!, shift_rays!, split_rays!
 
 end
