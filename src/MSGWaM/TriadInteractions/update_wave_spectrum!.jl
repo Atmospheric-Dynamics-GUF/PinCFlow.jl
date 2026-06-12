@@ -23,7 +23,7 @@ function update_wave_spectrum!(
     time_scheme::EulerMethod,
 )
     (; spec_tend) = state.wkb
-    (; wavespectrum, col_int) = spec_tend
+    (; wavespectrum, col_int, nl_time_scale) = spec_tend
     (; kp, m) = spec_tend.spec_grid
     (; col_int_tol) = state.namelists.triad
 
@@ -36,12 +36,12 @@ function update_wave_spectrum!(
 
     compute_scattering_integral!(state, ii, jj, kk, triad_mode)
     tau_nl = get_nl_time_scale!(spec_tend, ii, jj, kk)
+    nl_time_scale[ii, jj, kk] = tau_nl
 
     if (tau_nl * col_int_tol) > dtau
         #The nonlnear time scale is too large, interaction is not required in this grid cell
         return
     end 
-
 
     #Euler method 
     @ivy for mi in eachindex(m),

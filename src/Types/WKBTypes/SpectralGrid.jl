@@ -36,6 +36,7 @@ function SpectralGrid(namelists::Namelists,
     k_max = k_max * lref
     l_max = l_max * lref
     m_max = m_max * lref
+    m_min = m_min * lref
 
     #compute the grid in kp-direction
 
@@ -72,7 +73,8 @@ function SpectralGrid(namelists::Namelists,
         loglm = 0.0
         mc = zeros(0)
     else
-        mmin = 2 * pi / lz
+        #mmin = 2 * pi / lz
+        mmin = m_min
         mmax = m_max
         m = log_range(mmin, mmax, m_size)
         lambdam = m[2] / m[1] 
