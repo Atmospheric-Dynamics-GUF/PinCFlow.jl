@@ -64,7 +64,7 @@ function create_output(state::State, machine_start_time::DateTime)
         # Create dataset for the spectral dimensions
         create_dataset(file, "kp", datatype(Float32), dataspace((kpl,)))
         create_dataset(file, "m", datatype(Float32), dataspace((ml,)))
-
+        
         # Create datasets for the background.
         if model != Boussinesq()
             create_dataset(
@@ -363,6 +363,18 @@ function create_output(state::State, machine_start_time::DateTime)
 
                 
             end
+            if :tau_nl in output_variables && triad_mode != NoTriad()
+                create_dataset(
+                file,
+                "tau_nl",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                    );
+                chunk = (cx, cy, cz, ct),
+                )
+            end
         end
 
         return
@@ -660,6 +672,11 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(file["stk"])["units"] = stk_units
                 attributes(file["stk"])["label"] = stk_label
                 attributes(file["stk"])["long_name"] = "collision integral"
+            end
+            if :tau_nl in output_variables && triad_mode != NoTriad()
+                attributes(file["tau_nl"])["units"] = "s"
+                attributes(file["tau_nl"])["label"] = L"\T_{nl}\ [\mathrm{s}]"
+                attributes(file["tau_nl"])["long_name"] = "Non-linear time scale"
             end
         end
 

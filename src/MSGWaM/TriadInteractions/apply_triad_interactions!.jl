@@ -21,11 +21,15 @@ function apply_triad_interactions!(state::State,
     triad_mode::Union{Triad2D, Triad3DIso})
     (; master) = state.domain
 
+
+
     (; domain, grid) = state
     (; branch) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = domain
     (; spec_tend) = state.wkb
     (; nthreads_triad) = state.namelists.triad
+    (; tref) = state.constants
+    (; nl_time_scale) = spec_tend
     
     if Threads.nthreads() != nthreads_triad
         error("Julia started with Threads.nthreads()=$(Threads.nthreads()) but nthreads_triad=$nthreads_triad. Start Julia with --threads=$nthreads_triad (or set JULIA_NUM_THREADS).")
@@ -42,6 +46,8 @@ function apply_triad_interactions!(state::State,
     if master
         println("Updating wave action spectrum due to interactions")
     end
+
+    nl_time_scale .= 0.0
 
     @ivy for kk in k0:k1,
         jj in j0:j1,

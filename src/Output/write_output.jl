@@ -399,6 +399,14 @@ function write_output(
                     spec_tend.col_int[ii, jj, kk, kpr, mr] .* rhoref .* uref .^ 2 .* tref .^2 .*
                     lref .^ dim
             end
+            if :tau_nl in output_variables && triad_mode != NoTriad()
+                HDF5.set_extent_dims(
+                    file["tau_nl"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["tau_nl"][iid, jjd, kkd, iout] = 
+                    spec_tend.nl_time_scale[ii, jj, kk] .* tref
+            end
         end
 
         return
