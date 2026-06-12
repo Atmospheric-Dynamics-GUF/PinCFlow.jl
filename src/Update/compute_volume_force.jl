@@ -328,7 +328,7 @@ end
     shear_production[i, j, k] = shear
 
     @dispatch_model buoyancy =
-        compute_volume_force(state, i, j, k, variable, Val(model))
+        compute_volume_force(state, i, j, k, variables, Val(model))
 
     buoyancy_production[i, j, k] = buoyancy
 
