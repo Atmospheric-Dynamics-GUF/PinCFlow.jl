@@ -14,17 +14,17 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-run = "0906_04"
+run = "1206_04"
 
-tmax = 1.0e5
+tmax = 3600.0
 
 #outfile = "/home/b/b383844/PinCFlow/sedimentation/results/mountain_wave_$(run).h5"
-outfile = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_$(run).h5"
+outfile = "/work/bb1097/b383844/PinCFlow/adv/results/simple_wkb_mountain_wave_$(run).h5"
 
 h0 = 150.0
 l0 = 5000.0
-rl = 10
-rh = 2
+rl = 1
+rh = 1
 
 lx = 400_000.0
 ly = 400_000.0
@@ -32,16 +32,16 @@ lz = 20_000.0
 dxr = lx / 20
 dyr = ly / 20
 dzr = lz / 10
-alpharmax = 0.0179
+alpharmax = 0.0 #0.0179
 
 discretization = DiscretizationNamelist(; 
     wkb_cfl_number = 0.3,
 )
 
 atmosphere = AtmosphereNamelist(;
-    background = LapseRates(),
-    temperature = 280.0,
-    potential_temperature = 280.0,
+    background = Isothermal(), #LapseRates(),
+    #temperature = 280.0,
+    #potential_temperature = 280.0,
     coriolis_frequency = 0.0,
     initial_u = (x, y, z) -> 10.0,
 )
@@ -61,13 +61,13 @@ domain = DomainNamelist(;
 grid = GridNamelist(;
     resolved_topography = (x, y) ->
         x^2 <= (rl * l0)^2 ?
-        h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x) ) ) * rh / (rh + 1) : 0.0,
+        h0 / 2 : 0.0,
     unresolved_topography = (alpha, x, y) ->
         x^2 <= (rl * l0)^2 ?
         (
             pi / l0,
             0.0,
-            h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x) ) ) / (rh + 1),
+            h0 / 2,
         ) : (0.0, 0.0, 0.0),
 )
 
@@ -82,7 +82,7 @@ ice = IceNamelist(;
 )
 
 output = OutputNamelist(; 
-    output_variables = (:w, :u, :n, :Nnuc, :qv, :q, :iaux1, :iaux2, :iaux3, :thetap, :pip, :wwp, :epp, :thp, :uup, :vvp), # added sgs variables to output
+    output_variables = (:w, :u, :n, :Nnuc, :thetap, :pip,),
     output_steps = false,
 	output_interval = 100.0,
 	tmax = tmax,
@@ -97,10 +97,10 @@ sponge = SpongeNamelist(;
  #           exp((abs(y) - ly / 2) / dyr) +
             exp((z - lz) / dzr)
         ),
-    relaxed_u = (x, y, z, t, dt) -> 10.0 + (10.0 * sin(2 * pi * t/ 1.0e5)),
+    relaxed_u = (x, y, z, t, dt) -> 10.0 #+ (10.0 * sin(2 * pi * t/ 1.0e5)),
 )
 
-wkb = WKBNamelist(; multiplication_factor = 4, wkb_mode = MultiColumn(), filter_order = 3)
+wkb = WKBNamelist(; multiplication_factor = 6, wkb_mode = MultiColumn(), filter_order = 3)
 
 # save sbatch script copy and wkb_mountain_wave.jl to output directory
 MPI.Init()

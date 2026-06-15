@@ -290,6 +290,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 			end
 		end
 	end
+
+	return
 end
 
 function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)

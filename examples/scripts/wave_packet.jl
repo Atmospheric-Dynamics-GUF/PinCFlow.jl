@@ -39,6 +39,8 @@ m = 32 * pi / lz
 background = Realistic()
 coriolis_frequency = 0.0001
 
+poisson = PoissonNamelist(; initial_cleaning = true)
+
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
 domain = DomainNamelist(;
     x_size,
@@ -69,12 +71,12 @@ atmosphere = AtmosphereNamelist(;
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     output_variables = (:u, :v, :w, :us, :vs, :ws, :pip, :thetap),
-    output_file = "wave_packet.h5",
+    output_file = "wave_packet_error.h5",
     tmax = 900.0,
     output_interval = 900.0,
 )
 
-integrate(Namelists(; atmosphere, domain, output))
+integrate(Namelists(; atmosphere, domain, output, poisson))
 
 #=if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     h5open("wave_packet.h5") do data

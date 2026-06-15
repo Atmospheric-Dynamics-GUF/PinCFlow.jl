@@ -414,6 +414,13 @@ function write_output(
 				)
 				file["e"][iid, jjd, kkd, iout] =
 					integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2 # added output for e
+
+				HDF5.set_extent_dims(
+					file["uw"],
+					(x_size, y_size, z_size, iout),
+				)
+				file["uw"][iid, jjd, kkd, iout] =
+					integrals.uw[ii, jj, kk] .* rhoref .* uref .^ 2 # added output for uw
 			end
 
 			# Write GW tendencies.

@@ -162,6 +162,7 @@ function activate_orographic_source!(
             wad_ini[alpha, i, j, k] = wad
         end
     end
+
     return
 end
 
@@ -420,4 +421,6 @@ function activate_orographic_source!(state::State)
 
         end
     end
+
+    return
 end
