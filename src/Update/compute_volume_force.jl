@@ -131,33 +131,7 @@ where
 \\end{align*}
 ```
 
-and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. The buoyancy term is calculated by dispatching to the model-specific method.
-
-```julia
-compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)::AbstractFloat
-```
-
-Return the buoyancy forcing on the TKE for configurations in pseudo-incompressible and compressible mode.
-
-```julia
-compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Val{:Boussinesq},
-)::AbstractFloat
-```
-
-Return the buoyancy forcing on the TKE for configurations in Boussinesq mode.
+and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
 
 # Arguments
 
@@ -315,9 +289,10 @@ end
 )::AbstractFloat
     (; shear_production, buoyancy_production) =
         state.turbulence.turbulenceauxiliaries
-    (; rho) = state.variables.predictands
-    (; rhobar) = state.atmosphere
-    (; model) = state.namelists.atmosphere
+    (; rhop, rho) = state.variables.predictands
+    (; rhobar, n2) = state.atmosphere
+    (; g_ndim) = state.constants
+    (; dz, jac) = state.grid
 
     shear =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
@@ -327,56 +302,14 @@ end
 
     shear_production[i, j, k] = shear
 
-    @dispatch_model buoyancy =
-        compute_volume_force(state, i, j, k, variables, Val(model))
+    bu = -g_ndim * rhop[i, j, k + 1] / rhobar[i, j, k + 1]
+    bd = -g_ndim * rhop[i, j, k - 1] / rhobar[i, j, k - 1]
+
+    buoyancy =
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     buoyancy_production[i, j, k] = buoyancy
 
     return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
-end
-
-@ivy function compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)::AbstractFloat
-    (; rho) = state.variables.predictands
-    (; rhobar, n2) = state.atmosphere
-    (; jac, dz) = state.grid
-    (; g_ndim) = state.constants
-
-    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
-
-    buoyancy =
-        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
-        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
-
-    return buoyancy
-end
-
-@ivy function compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Val{:Boussinesq},
-)::AbstractFloat
-    (; rhop) = state.variables.predictands
-    (; rhobar, n2) = state.atmosphere
-    (; jac, dz) = state.grid
-    (; g_ndim) = state.constants
-
-    bu = g_ndim * (1 / (rhop[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    bd = g_ndim * (1 / (rhop[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
-
-    buoyancy =
-        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
-        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
-
-    return buoyancy
 end
