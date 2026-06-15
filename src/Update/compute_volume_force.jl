@@ -147,8 +147,6 @@ and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coeffic
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-  - `model`: Dynamic equations.
-
 # See also
 
   - [`PinCFlow.Update.conductive_heating`](@ref)
