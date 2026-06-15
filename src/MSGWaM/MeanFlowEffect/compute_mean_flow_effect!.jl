@@ -56,9 +56,14 @@ function compute_mean_flow_effect!(
     state::State,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
+    (; turbulence_scheme) = state.namelists.turbulence
     compute_gw_integrals!(state)
 
     set_boundaries!(state, BoundaryWKBIntegrals())
+
+    if turbulence_scheme != :NoTurbulence
+        set_boundaries!(state, BoundaryWKBAuxiliaries(), TKE())
+    end
 
     compute_gw_tendencies!(state)
 

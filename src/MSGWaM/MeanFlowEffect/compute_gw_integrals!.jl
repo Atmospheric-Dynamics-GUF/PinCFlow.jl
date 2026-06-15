@@ -110,13 +110,17 @@ end
     (; i0, i1, j0, j1, k0, k1) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
-    (; nray, rays, integrals) = state.wkb
+    (; nray, rays, integrals, auxiliaries) = state.wkb
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
+    end
+
+    for field in fieldnames(WKBAuxiliaries)
+        getfield(auxiliaries, field) .= 0.0
     end
 
     set_tracer_fields_zero!(state)
@@ -269,6 +273,11 @@ end
                                     (khr^2 + mr^2)
                                 )
                         end
+
+                        auxiliaries.shear[iray, jray, kray] +=
+                            mr^2 * mr^2 *
+                            (fc^2 + omir^2) / (omir * (kr^2 + lr^2 + mr^2)) *
+                            wadr
 
                         integrals.e[iray, jray, kray] += wadr * omir
 

@@ -77,5 +77,16 @@ function set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
 )
+    (; namelists, domain) = state
+    (; auxiliaries) = state.wkb
+
+    for field in fieldnames(WKBAuxiliaries)
+        set_zonal_boundaries_of_field!(
+            getfield(auxiliaries, field),
+            namelists,
+            domain,
+        )
+    end
+
     return
 end

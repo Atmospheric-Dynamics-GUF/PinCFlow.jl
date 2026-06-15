@@ -121,6 +121,7 @@ struct WKB{
     K <: AbstractArray{<:AbstractFloat, 3},
     L <: Spectrum,
     M <: ElasticModeSelection,
+    N <: WKBAuxiliaries,
 }
     bins::A
     nray_wrk::A
@@ -139,6 +140,7 @@ struct WKB{
     diffusion::K
     spectrum::L
     elastic_mode_selection::M
+    auxiliaries::N
 end
 
 function WKB(namelists::Namelists, domain::Domain)::WKB
@@ -162,6 +164,7 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
         zeros(0, 0, 0),
         Spectrum(0, 0, 0, 0),
         ElasticModeSelection(0, 0, 0),
+        WKBAuxiliaries(0, 0, 0),
     )
 end
 
@@ -256,6 +259,7 @@ function WKB(
     diffusion = zeros(nxx, nyy, nzz)
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
     elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
+    auxiliaries = WKBAuxiliaries(nxx, nyy, nzz)
 
     return WKB(
         bins,
@@ -275,5 +279,6 @@ function WKB(
         diffusion,
         spectrum,
         elastic_mode_selection,
+        auxiliaries,
     )
 end

@@ -27,6 +27,7 @@ include("WKBTendencies.jl")
 include("Rays.jl")
 include("MergedRays.jl")
 include("WKBIncrements.jl")
+include("WKBAuxiliaries.jl")
 include("SurfaceIndices.jl")
 include("Spectrum.jl")
 include("ElasticModeSelection.jl")
@@ -34,7 +35,7 @@ include("WKB.jl")
 
 include("getproperty.jl")
 
-export WKBIntegrals,
-    WKBTendencies, Rays, MergedRays, WKBIncrements, SurfaceIndices, WKB
+export WKBIntegrals, WKBTendencies, WKBAuxiliaries,
+    Rays, MergedRays, WKBIncrements, SurfaceIndices, WKB
 
 end
