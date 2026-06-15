@@ -63,7 +63,7 @@ function create_output(state::State, machine_start_time::DateTime)
         )
 
         # Create datasets for the background.
-        if model != :Boussinesq
+        if model !== :Boussinesq
             create_dataset(
                 file,
                 "rhobar",
@@ -85,7 +85,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 dataspace((x_size, y_size, z_size));
                 chunk = (cx, cy, cz),
             )
-            if model == :Compressible
+            if model === :Compressible
                 create_dataset(
                     file,
                     "p",
@@ -252,7 +252,7 @@ function create_output(state::State, machine_start_time::DateTime)
             )
         end
 
-        if state.namelists.tracer.tracer_setup != :NoTracer
+        if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 create_dataset(
                     file,
@@ -323,7 +323,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 create_dataset(
                     file,
@@ -365,7 +365,7 @@ function create_output(state::State, machine_start_time::DateTime)
         end
 
         # Create datasets for WKB variables.
-        if wkb_mode != :NoWKB
+        if wkb_mode !== :NoWKB
 
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
@@ -468,7 +468,7 @@ function create_output(state::State, machine_start_time::DateTime)
         attributes(file["t"])["label"] = L"t\ [\mathrm{s}]"
         attributes(file["t"])["long_name"] = "time"
 
-        if model != :Boussinesq
+        if model !== :Boussinesq
             attributes(file["rhobar"])["units"] = "kg*m^-3"
             attributes(file["rhobar"])["label"] =
                 L"\bar{\rho}\ [\mathrm{kg\ m^{-3}}]"
@@ -560,7 +560,7 @@ function create_output(state::State, machine_start_time::DateTime)
             attributes(file["pip"])["long_name"] = "Exner-pressure fluctuations"
         end
 
-        if state.namelists.tracer.tracer_setup != :NoTracer
+        if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 attributes(file[string(field)])["units"] = "1"
                 attributes(file[string(field)])["label"] = L"\chi"
@@ -608,7 +608,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 attributes(file["tke"])["unuits"] = "m^2*s^-2"
                 attributes(file["tke"])["label"] = L"e_\\mathrm{k}"
@@ -632,7 +632,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        if wkb_mode != :NoWKB
+        if wkb_mode !== :NoWKB
             if prepare_restart || save_ray_volumes
                 if x_size == 1 && y_size == 1
                     nr_units = "kg*s^-1"

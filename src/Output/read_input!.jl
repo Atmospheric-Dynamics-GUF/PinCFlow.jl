@@ -50,7 +50,7 @@ function read_input! end
         # Read the density fluctuations.
         rhop[ii, jj, kk] =
             file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref
-        if model != :Boussinesq
+        if model !== :Boussinesq
             rho[ii, jj, kk] .= rhop[ii, jj, kk]
         end
 
@@ -70,27 +70,27 @@ function read_input! end
         pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin == -1 ? end : iin]
 
         # Read the mass-weighted potential temperature.
-        if model == :Compressible
+        if model === :Compressible
             p[ii, jj, kk] =
                 file["p"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref ./
                 thetaref
         end
 
-        if state.namelists.tracer.tracer_setup != :NoTracer
+        if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
                     file[string(field)][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
                 file["tke"][iid, jjd, kkd, iin] .*
                 (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
         end
 
         # Read ray-volume properties.
-        if wkb_mode != :NoWKB
+        if wkb_mode !== :NoWKB
             for (output_name, field_name) in zip(
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),

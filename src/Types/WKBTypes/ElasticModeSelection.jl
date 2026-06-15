@@ -1,6 +1,6 @@
 """
 ```julia
-struct ElasticModeSelection{
+ElasticModeSelection{
     A <: AbstractVector{<:Integer},
     B <: AbstractMatrix{<:Integer},
     C <: AbstractMatrix{<:AbstractFloat},
