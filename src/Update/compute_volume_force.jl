@@ -131,7 +131,7 @@ where
 \\end{align*}
 ```
 
-and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively.
+and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
 
 # Arguments
 
@@ -287,10 +287,10 @@ end
 )::AbstractFloat
     (; shear_production, buoyancy_production) =
         state.turbulence.turbulenceauxiliaries
-    (; rho) = state.variables.predictands
+    (; rhop, rho) = state.variables.predictands
     (; rhobar, n2) = state.atmosphere
-    (; jac, dz) = state.grid
     (; g_ndim) = state.constants
+    (; dz, jac) = state.grid
 
     shear =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
@@ -300,8 +300,8 @@ end
 
     shear_production[i, j, k] = shear
 
-    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
+    bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
+    bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
     buoyancy =
         -turbulence_diffusion_coefficient(state, i, j, k, KH()) *

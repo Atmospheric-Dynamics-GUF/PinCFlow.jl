@@ -31,6 +31,7 @@ include("get_spectral_position.jl")
 include("get_surfaces.jl")
 include("remove_rays!.jl")
 include("update_merged_rays!.jl")
+include("compute_turbulent_velocity.jl")
 
 export check_rays,
     compute_intrinsic_frequency,
@@ -46,6 +47,7 @@ export check_rays,
     get_surfaces,
     merge_wave_action,
     remove_rays!,
-    update_merged_rays!
+    update_merged_rays!,
+    compute_turbulent_velocity
 
 end
