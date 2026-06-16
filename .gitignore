@@ -12,6 +12,6 @@ LocalPreferences.toml
 Manifest.toml
 *.code-workspace
 *.cov
-Turbulence_research
+*.py
 *.h5
 *.log
