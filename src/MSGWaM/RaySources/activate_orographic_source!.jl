@@ -22,8 +22,6 @@ This method first calls `compute_orographic_modes!` and then launches correspond
   - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
-
-  - [`PinCFlow.MSGWaM.RayOperations.copy_increments!`](@ref)
 """
 function activate_orographic_source! end
 
@@ -134,16 +132,6 @@ function activate_orographic_source! end
                             j => j,
                             k => k + 1,
                         )
-                        copy_increments!(
-                            increments,
-                            r => local_count,
-                            i => i,
-                            j => j,
-                            k => k + 1,
-                        )
-                        for field in fieldnames(WKBIncrements)
-                            getfield(increments, field)[r, i, j, k] = 0.0
-                        end
 
                         # Clip/extend the old ray volume.
                         if zr - dzr / 2 < zctilde[i, j, k] || kz == 1
