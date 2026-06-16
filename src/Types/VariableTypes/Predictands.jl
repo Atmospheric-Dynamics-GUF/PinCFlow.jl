@@ -96,9 +96,9 @@ end
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
 
-        if buoyancy_initialization == :initial_rhop
+        if buoyancy_initialization === :initial_rhop
             rhop[i, j, k] = initial_rhop(xdim, ydim, zcdim) / rhoref
-        elseif buoyancy_initialization == :initial_thetap
+        elseif buoyancy_initialization === :initial_thetap
             rhop[i, j, k] =
                 rhobar[i, j, k] * (
                     1 / (
@@ -126,7 +126,7 @@ end
         f!(pip, namelists, domain)
     end
 
-    if model != :Boussinesq
+    if model !== :Boussinesq
         rho .= rhop
     end
 
