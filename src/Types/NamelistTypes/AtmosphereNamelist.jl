@@ -60,7 +60,7 @@ Construct an `AtmosphereNamelist` instance with the given keyword arguments as p
 
   - `coriolis_frequency::Float64`: Coriolis frequency of the ``f``-plane.
 
-  - `tropopause_height::Float64`: Height of the tropopause for `background=== :Realistic` or `background === :LapseRates`.
+  - `tropopause_height::Float64`: Height of the tropopause for `background === :Realistic` or `background === :LapseRates`.
 
   - `troposphere_lapse_rate::Float64`: Lapse rate in the troposphere for `background === :LapseRates`.
 
