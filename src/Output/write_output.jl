@@ -407,6 +407,14 @@ function write_output(
                 file["tau_nl"][iid, jjd, kkd, iout] = 
                     spec_tend.nl_time_scale[ii, jj, kk] .* tref
             end
+            if :tau_pl in output_variables && triad_mode != NoTriad()
+                HDF5.set_extent_dims(
+                    file["tau_pl"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["tau_pl"][iid, jjd, kkd, iout] = 
+                    spec_tend.consistency_time[ii, jj, kk] .* tref
+            end
         end
 
         return
