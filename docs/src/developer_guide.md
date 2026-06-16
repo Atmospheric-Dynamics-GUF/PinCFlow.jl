@@ -34,6 +34,10 @@ Contributions to the code should respect the following rules.
 
   - Apply PinCFlow.jl's `@ivy` to the definitions of functions that perform indexing and/or slicing operations.
 
+  - Use PincFlow.jl's `@dispatch` for value dispatch.
+
+  - Use `===` and `!==` when comparing with literal `Symbol`s or `nothing`.
+
   - Do not use Unicode.
 
   - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters (in alphabetical order). For all other objects, use `snake_case`.
