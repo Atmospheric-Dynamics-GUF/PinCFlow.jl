@@ -277,7 +277,7 @@ end
                         auxiliaries.shear[iray, jray, kray] +=
                             mr^2 * mr^2 *
                             (fc^2 + omir^2) / (omir * (kr^2 + lr^2 + mr^2)) *
-                            wadr
+                            wadr / rhobar[iray, jray, kray]
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
