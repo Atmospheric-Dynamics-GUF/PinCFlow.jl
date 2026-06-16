@@ -32,7 +32,13 @@ Contributions to the code should respect the following rules.
 
   - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
+  - When adding namelist parameters, make sure the concrete type of a `State` instance is independent of their values.
+
+  - When adding a new feature, make sure it is covered by the examples. Add a new example (and include it in the precompilation block and the tests) if necessary.
+
   - Apply PinCFlow.jl's `@ivy` to the definitions of functions that perform indexing and/or slicing operations.
+
+  - Use PincFlow.jl's `@dispatch` for value dispatch.
 
   - Do not use Unicode.
 
