@@ -48,9 +48,16 @@ include("launch_new_ray_vol!.jl")
 include("initialize_wave_spectrum!.jl")
 include("check_resonance.jl")
 include("get_nl_time_scale.jl")
+include("compute_cz.jl")
+include("compute_dphidz_center.jl")
+include("compute_nearest_index.jl")
+include("update_consitency_time.jl")
+include("compute_consistency_time!.jl")
 
 export get_wave_spectrum!,
        apply_triad_interactions!,
-       initialize_wave_spectrum!
+       initialize_wave_spectrum!,
+       get_ray_volumes!,
+       compute_consistency_time!
 
 end

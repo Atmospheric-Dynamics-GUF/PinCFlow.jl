@@ -68,6 +68,7 @@ struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}, B <: AbstractArr
     col_int::A
     diag_time::B
     nl_time_scale::D
+    consistency_time::D
     kin_box::KinematicBox
     interp_coef::InterpCoef
     res_manifold::ResManifold
@@ -96,7 +97,7 @@ function TriadTendencies(namelists::Namelists,
 
     partition = UnitRange{Int}[]
     
-    return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), falses(0,0,0,0,0), zeros(0, 0, 0, 0, 0), zeros(0, 0), zeros(0, 0, 0),
+    return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), falses(0,0,0,0,0), zeros(0, 0, 0, 0, 0), zeros(0, 0), zeros(0, 0, 0), zeros(0, 0, 0),
       kin_box, interp_coef, res_manifold, scratch, partition)
 end
 
@@ -150,6 +151,7 @@ function TriadTendencies(namelists::Namelists,
     col_int = zeros(nxx, nyy, nzz, kpl, ml)
     diag_time = zeros(kpl, ml)
     nl_time_scale = zeros(nxx, nyy, nzz)
+    consistency_time = zeros(nxx, nyy, nzz)
 
     max_la = maximum(kin_box.la)
     max_lq = maximum(kin_box.lq)
@@ -159,7 +161,7 @@ function TriadTendencies(namelists::Namelists,
     spec_l = kpl * ml
     partition = make_partition(spec_l, nthreads_triad) 
 
-    return TriadTendencies(spec_grid, wavespectrum, was_pred, was_ray_signature, col_int, diag_time, nl_time_scale, kin_box, interp_coef, res_manifold, scratch, partition)
+    return TriadTendencies(spec_grid, wavespectrum, was_pred, was_ray_signature, col_int, diag_time, nl_time_scale, consistency_time, kin_box, interp_coef, res_manifold, scratch, partition)
 
 end
 

@@ -42,6 +42,8 @@ function apply_triad_interactions!(state::State,
 
     get_wave_spectrum!(state)
     #wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
+    spec_tend.consistency_time .= 0
+    compute_consistency_time!(state)
     
     if master
         println("Updating wave action spectrum due to interactions")

@@ -375,6 +375,18 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
                 )
             end
+            if :tau_pl in output_variables && triad_mode != NoTriad()
+                create_dataset(
+                file,
+                "tau_pl",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                    );
+                chunk = (cx, cy, cz, ct),
+                )
+            end
         end
 
         return
@@ -675,8 +687,13 @@ function create_output(state::State, machine_start_time::DateTime)
             end
             if :tau_nl in output_variables && triad_mode != NoTriad()
                 attributes(file["tau_nl"])["units"] = "s"
-                attributes(file["tau_nl"])["label"] = L"\T_{nl}\ [\mathrm{s}]"
+                attributes(file["tau_nl"])["label"] = L"\mathrm{T_{nl}}\ [\mathrm{s}]"
                 attributes(file["tau_nl"])["long_name"] = "Non-linear time scale"
+            end
+            if :tau_pl in output_variables && triad_mode != NoTriad()
+                attributes(file["tau_pl"])["units"] = "s"
+                attributes(file["tau_pl"])["label"] = L"\mathrm{T_{pl}}\ [\mathrm{s}]"
+                attributes(file["tau_pl"])["long_name"] = "Maximum planar consistency time scale"
             end
         end
 
