@@ -16,14 +16,14 @@ function ivy end
 function ivy(x::Any; root::Bool = true)::Any
     if isa(x, Expr)
         if x.head === :macro ||
-               x.head === :function ||
-               x.head === :-> ||
-               (
-                   x.head === :(=) &&
-                   isa(x.args[1], Expr) &&
-                   x.args[1].head === :call
-               ) ||
-               x.head === :let
+           x.head === :function ||
+           x.head === :-> ||
+           (
+               x.head === :(=) &&
+               isa(x.args[1], Expr) &&
+               x.args[1].head === :call
+           ) ||
+           x.head === :let
             x.args[2] = quote
                 @inbounds $(ivy(x.args[2]; root = false))
             end
