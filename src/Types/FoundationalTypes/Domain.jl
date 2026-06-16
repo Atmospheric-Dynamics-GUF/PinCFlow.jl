@@ -127,7 +127,7 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-function Domain(namelists::Namelists)::Domain
+@ivy function Domain(namelists::Namelists)::Domain
     (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz, base_comm) =
         namelists.domain
 
@@ -144,18 +144,29 @@ function Domain(namelists::Namelists)::Domain
     end
     np = MPI.Comm_size(base_comm)
 
+    # Check if there will be enough boundary cells.
+    if master && nbx < 3
+        error("Error in Domain: nbx < 3!")
+    end
+    if master && nby < 3
+        error("Error in Domain: nby < 3!")
+    end
+    if master && nbz < 3
+        error("Error in Domain: nbz < 3!")
+    end
+
     # Check if parallelization is set up correctly.
     if master && npx * npy * npz != np
         error("Error in Domain: npx * npy * npz != np!")
     end
-    if master && npx > 1 && nbx > div(x_size, npx)
-        error("Error in Domain: npx > 1 && nbx > div(x_size, npx)!")
+    if master && x_size > 1 && nbx > div(x_size, npx)
+        error("Error in Domain: x_size > 1 && nbx > div(x_size, npx)!")
     end
-    if master && npy > 1 && nby > div(y_size, npy)
-        error("Error in Domain: npy > 1 && nby > div(y_size, npy)!")
+    if master && y_size > 1 && nby > div(y_size, npy)
+        error("Error in Domain: y_size > 1 && nby > div(y_size, npy)!")
     end
-    if master && npz > 1 && nbz > div(z_size, npz)
-        error("Error in Domain: npz > 1 && nbz > div(z_size, npz)!")
+    if master && z_size > 1 && nbz > div(z_size, npz)
+        error("Error in Domain: z_size > 1 && nbz > div(z_size, npz)!")
     end
 
     # Set dimensions and periodicity.
@@ -168,17 +179,17 @@ function Domain(namelists::Namelists)::Domain
     coords = MPI.Cart_coords(comm, rank)
 
     # Set local grid size.
-    @ivy if coords[1] == npx - 1
+    if coords[1] == npx - 1
         nx = div(x_size, npx) + x_size % npx
     else
         nx = div(x_size, npx)
     end
-    @ivy if coords[2] == npy - 1
+    if coords[2] == npy - 1
         ny = div(y_size, npy) + y_size % npy
     else
         ny = div(y_size, npy)
     end
-    @ivy if coords[3] == npz - 1
+    if coords[3] == npz - 1
         nz = div(z_size, npz) + z_size % npz
     else
         nz = div(z_size, npz)
@@ -190,9 +201,9 @@ function Domain(namelists::Namelists)::Domain
     nzz = nz + 2 * nbz
 
     # Set index offsets.
-    @ivy io = coords[1] * div(x_size, npx)
-    @ivy jo = coords[2] * div(y_size, npy)
-    @ivy ko = coords[3] * div(z_size, npz)
+    io = coords[1] * div(x_size, npx)
+    jo = coords[2] * div(y_size, npy)
+    ko = coords[3] * div(z_size, npz)
 
     # Set index bounds.
     i0 = nbx + 1
@@ -202,14 +213,14 @@ function Domain(namelists::Namelists)::Domain
     k0 = nbz + 1
     k1 = k0 + nz - 1
 
-    # Find the neighbour processors.
+    # Find the neighbor processors.
     (left, right) = MPI.Cart_shift(comm, 0, 1)
     (backward, forward) = MPI.Cart_shift(comm, 1, 1)
     (down, up) = MPI.Cart_shift(comm, 2, 1)
 
     # Create communicators for horizontal and vertical averages.
-    @ivy layer_comm = MPI.Comm_split(comm, coords[3], rank)
-    @ivy column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
+    layer_comm = MPI.Comm_split(comm, coords[3], rank)
+    column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
 
     return Domain(
         comm,

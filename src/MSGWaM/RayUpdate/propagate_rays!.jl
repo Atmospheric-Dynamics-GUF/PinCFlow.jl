@@ -85,6 +85,8 @@ The group velocities that are calculated for the propagation in physical space a
 \\end{align*}
 ```
 
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
+
 ```julia
 propagate_rays!(
     state::State,
@@ -122,6 +124,8 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 
 the second term is integrated with the pseudo-time step ``J \\Delta \\hat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\hat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
 
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
+
 If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
 
 # Arguments
@@ -153,6 +157,8 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.apply_turbulent_damping!`](@ref)
 """
 function propagate_rays! end
 
@@ -171,31 +177,21 @@ function propagate_rays!(
     return
 end
 
-function propagate_rays!(
+@ivy function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; branch, impact_altitude, turbulence_damping) = state.namelists.wkb
+    (; branch, impact_altitude, turbulent_damping) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
-    (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
-    (;
-        dxray,
-        dyray,
-        dzray,
-        dkray,
-        dlray,
-        dmray,
-        ddxray,
-        ddyray,
-        ddzray,
-        dpray,
-    ) = state.wkb.increments
-    (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde, dx, dy, dzcmin) = state.grid
+    (; nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
+    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
+        state.wkb.increments
+    (; alphark, betark, stepfrac) = state.time
+    (; dx, dy, dzcmin) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
     (; alphar) = state.sponge
 
@@ -207,7 +203,7 @@ function propagate_rays!(
 
     # Initialize the WKB increments and maximum group velocities at the first
     # RK stage.
-    @ivy if rkstage == 1
+    if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
@@ -219,7 +215,6 @@ function propagate_rays!(
                 ddxray[r, i, j, k] = 0.0
                 ddyray[r, i, j, k] = 0.0
                 ddzray[r, i, j, k] = 0.0
-                dpray[r, i, j, k] = 0.0
             end
         end
 
@@ -228,36 +223,22 @@ function propagate_rays!(
         cgz_max[] = 0.0
     end
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
-            gammas, gammaw, gammawp =
-                compute_turbulent_damping(state, r, i, j, k, zr)
-
-            dkr = rays.dkray[r, i, j, k]
-            dlr = rays.dlray[r, i, j, k]
-            dmr = rays.dmray[r, i, j, k]
-
-            if turbulence_damping
-                factor = dmr
-                if x_size > 1
-                    factor *= dkr
-                end
-                if y_size > 1
-                    factor *= dlr
-                end
-                wadr = rays.dens[r, i, j, k] * factor
-                wadr *= (
-                    1 +
-                    stepfrac[rkstage] * dt * (-2 * (gammas + gammaw) + gammawp)
-                )
-
-                rays.dens[r, i, j, k] = wadr / factor
-            end
+            apply_turbulent_damping!(
+                state,
+                r,
+                i,
+                j,
+                k,
+                zr,
+                stepfrac[rkstage] * dt,
+            )
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -312,7 +293,7 @@ function propagate_rays!(
 
             # Update zonal position.
 
-            if x_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+            if x_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -336,7 +317,7 @@ function propagate_rays!(
 
             # Update meridional position.
 
-            if y_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+            if y_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -417,7 +398,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if x_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+                if x_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[r, i, j, k] =
@@ -435,7 +416,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if y_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+                if y_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
                     ddydt = cgry2 - cgry1
 
                     ddyray[r, i, j, k] =
@@ -473,7 +454,7 @@ function propagate_rays!(
     #     Change of wave action
     #-------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_scalar(xr, yr, zr, state, alphar, None())
@@ -487,7 +468,7 @@ function propagate_rays!(
     return
 end
 
-function propagate_rays!(
+@ivy function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
@@ -496,7 +477,6 @@ function propagate_rays!(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
-    (; stepfrac) = state.time
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
@@ -509,7 +489,7 @@ function propagate_rays!(
 
     activate_orographic_source!(state)
 
-    @ivy if ko != 0
+    if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
@@ -527,7 +507,7 @@ function propagate_rays!(
     end
 
     # Loop over grid cells.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Set the ray-volume count.
         nray[i, j, k] = nray[i, j, k - 1]
@@ -597,7 +577,18 @@ function propagate_rays!(
 
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-            alphasponge = 2 * interpolate_scalar(xr, yr, zr, state, alphar, None())
+
+            apply_turbulent_damping!(
+                state,
+                r,
+                i,
+                j,
+                k,
+                zr,
+                jac[i, j, k] * dz / cgirz,
+            )
+
+            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             rays.dens[r, i, j, k] =
                 1 / (
                     1 +
@@ -677,7 +668,7 @@ function propagate_rays!(
         end
     end
 
-    @ivy if ko + nz != z_size
+    if ko + nz != z_size
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

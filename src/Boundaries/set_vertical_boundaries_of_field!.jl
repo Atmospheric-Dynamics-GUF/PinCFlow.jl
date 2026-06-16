@@ -49,7 +49,7 @@ This method is applied to reconstruction arrays. Vertical boundary conditions ar
 """
 function set_vertical_boundaries_of_field! end
 
-function set_vertical_boundaries_of_field!(
+@ivy function set_vertical_boundaries_of_field!(
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain,
@@ -60,9 +60,9 @@ function set_vertical_boundaries_of_field!(
     (; z_size) = namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     if z_size > 1
         set_vertical_halos_of_field!(field, namelists, domain; layers)
@@ -71,7 +71,7 @@ function set_vertical_boundaries_of_field!(
     ii = (i0 - nbx):(i1 + nbx)
     jj = (j0 - nby):(j1 + nby)
 
-    @ivy if ko == 0
+    if ko == 0
         if staggered
             field[ii, jj, k0 - 1] .= 0.0
             for k in 1:nbz
@@ -84,7 +84,7 @@ function set_vertical_boundaries_of_field!(
         end
     end
 
-    @ivy if ko + nz == z_size
+    if ko + nz == z_size
         if staggered
             field[ii, jj, k1] .= 0.0
             for k in 1:nbz

@@ -3,7 +3,11 @@ function compute_next_order_tracer_fluxes! end
 function compute_next_order_tracer_fluxes!(state::State, dt::AbstractFloat)
     (; tracer_setup) = state.namelists.tracer
 
-    @dispatch_tracer_setup compute_next_order_tracer_fluxes!(state, dt, Val(tracer_setup))
+    @dispatch_tracer_setup compute_next_order_tracer_fluxes!(
+        state,
+        dt,
+        Val(tracer_setup),
+    )
 
     return
 end
@@ -37,11 +41,10 @@ function compute_next_order_tracer_fluxes!(
     (; uchi1, vchi1, wchi1) = state.tracer.tracerwkbintegrals
     (; next_order_impact) = state.namelists.tracer
 
-    if next_order_impact == false
+    if !next_order_impact
         return
     end
 
-    # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
     @ivy for k in (k0 - 1):(k1 + 1),

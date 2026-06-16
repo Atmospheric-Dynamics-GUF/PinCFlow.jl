@@ -48,7 +48,7 @@ is the monotonized-centered variant limiter.
 """
 function apply_1d_muscl! end
 
-function apply_1d_muscl!(
+@ivy function apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
@@ -59,7 +59,7 @@ function apply_1d_muscl!(
     phitilde .= 1000.0
 
     # Reconstruct.
-    @ivy for i in 2:(phisize - 1)
+    for i in 2:(phisize - 1)
         deltal = phi[i] - phi[i - 1]
         deltar = phi[i + 1] - phi[i]
 

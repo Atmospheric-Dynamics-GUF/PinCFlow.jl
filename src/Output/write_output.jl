@@ -42,15 +42,25 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:dthetadt`: Mass-weighted potential-temperature tendency due to unresolved gravity waves.
 
-  - `:dchidt`: Leading-order tracer impact of unresolved gravity waves.
+  - `:dchidt0`: Leading-order tracer impact of unresolved gravity waves.
 
-  - `:uchi0`: Leading-order zonal tracer fluxes due to unresolved gravity waves.
+  - `:uchi0`: Zonal tracer fluxes due to unresolved gravity waves.
 
-  - `:vchi0`: Leading-order meridional tracer fluxes due to unresolved gravity waves.
+  - `:vchi0`: Meridional tracer fluxes due to unresolved gravity waves.
 
-  - `:wchi0`: Leading-order vertical tracer fluxes due to unresolved gravity waves.
+  - `:wchi0`: Vertical tracer fluxes due to unresolved gravity waves.
 
   - `:e`: Wave energy of unresolved gravity waves.
+
+  - `:tke`: Turbulent kinetic energy.
+
+  - `:shear_production`: Turbulent kinetic energy production due to wind shear.
+
+  - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
+
+  - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
+
+  - `:launch_power_fraction`: Power fractions retained by the elastic-mode-selection algorithm.
 
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
@@ -72,7 +82,7 @@ All output variables are re-dimensionalized with the scale parameters stored in 
 """
 function write_output end
 
-function write_output(
+@ivy function write_output(
     state::State,
     time::AbstractFloat,
     iout::Integer,
@@ -83,14 +93,14 @@ function write_output(
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
+    (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; nray_max, rays, tendencies) = state.wkb
+    (; bins, rays, tendencies, integrals) = state.wkb
     (; chihat) = state.wkb.integrals
 
     # Print information.
@@ -117,7 +127,7 @@ function write_output(
 
     # Define slices.
     dk0 = ko == 0 ? 1 : 0
-    (rr, ii, jj, kk, kkr) = (1:nray_max, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),
         (jo + 1):(jo + ny),
@@ -126,7 +136,7 @@ function write_output(
     )
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
-    @ivy h5open(output_file, "r+", comm) do file
+    h5open(output_file, "r+", comm) do file
 
         # Write the time.
         HDF5.set_extent_dims(file["t"], (iout,))
@@ -294,7 +304,7 @@ function write_output(
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            if state.namelists.turbulence.turbulence_scheme != :NoTurbulence 
                 HDF5.set_extent_dims(
                     file["tracerdiffusion"],
                     (x_size, y_size, z_size, iout),
@@ -307,92 +317,198 @@ function write_output(
                     ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if :dchidt in output_variables
-                for field in fieldnames(TracerWKBTendencies)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerwkbtendencies, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
-                end
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt0 in output_variables
+                HDF5.set_extent_dims(
+                    file["dchidt0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dchidt0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] ./
+                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
 
-                for field in (:uchi0, :vchi0, :wchi0)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerwkbintegrals, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] .* uref ./ rhobar[ii, jj, kk]
-                end
+            if state.namelists.tracer.leading_order_impact &&
+               :uchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["uchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["uchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
 
-                for field in (:uchi1, :vchi1, :wchi1, :qchi)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(state.tracer.tracerwkbintegrals, field)[
-                            ii,
-                            jj,
-                            kk,
-                        ] .* uref
-                end
+            if state.namelists.tracer.leading_order_impact &&
+               :vchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["vchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["vchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :wchi0 in output_variables
+                HDF5.set_extent_dims(
+                    file["wchi0"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["wchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :dchidt1 in output_variables
+                HDF5.set_extent_dims(
+                    file["dchidt1"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dchidt1"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbtendencies.dchidt1[ii, jj, kk] ./
+                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :uchi1 in output_variables
+                HDF5.set_extent_dims(
+                    file["uchi1"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["uchi1"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.uchi1[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :vchi1 in output_variables
+                HDF5.set_extent_dims(
+                    file["vchi1"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["vchi1"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.vchi1[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :wchi1 in output_variables
+                HDF5.set_extent_dims(
+                    file["wchi1"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["wchi1"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.wchi1[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.turbulence_impact &&
+               :dchidtq in output_variables
+                HDF5.set_extent_dims(
+                    file["dchidtq"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dchidtq"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbtendencies.dchidtq[ii, jj, kk] ./
+                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+
+            if state.namelists.tracer.turbulence_impact &&
+               :qchi in output_variables
+                HDF5.set_extent_dims(
+                    file["qchi"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["qchi"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.qchi[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
             end
         end
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
-            for field in fieldnames(TurbulencePredictands)
+            if prepare_restart || :tke in output_variables
                 HDF5.set_extent_dims(
-                    file[string(field)],
+                    file["tke"],
                     (x_size, y_size, z_size, iout),
                 )
-                @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulencepredictands, field)[
-                        ii,
-                        jj,
-                        kk,
-                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
-                    (lref .^ 2.0) ./ (tref .^ 2.0)
+                file["tke"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencepredictands.tke[ii, jj, kk] ./
+                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .* (lref .^ 2.0) ./
+                    (tref .^ 2.0)
             end
 
-            for field in fieldnames(TurbulenceAuxiliaries)
+            if :shear_production in output_variables
                 HDF5.set_extent_dims(
-                    file[string(field)],
+                    file["shear_production"],
                     (x_size, y_size, z_size, iout),
                 )
-                @views file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.turbulence.turbulenceauxiliaries, field)[
+                file["shear_production"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.shear_production[
                         ii,
                         jj,
                         kk,
                     ] .* uref .^ 2 ./ tref
             end
 
-            if :dtkedt in output_variables
-                for field in fieldnames(TurbulenceWKBTendencies)
-                    HDF5.set_extent_dims(
-                        file[string(field)],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    @views file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(
-                            state.turbulence.turbulencewkbtendencies,
-                            field,
-                        )[
-                            ii,
-                            jj,
-                            kk,
-                        ] .* uref .^ 2 ./ tref
-                end
+            if :buoyancy_production in output_variables
+                HDF5.set_extent_dims(
+                    file["buoyancy_production"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["buoyancy_production"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.buoyancy_production[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+
+            if state.namelists.turbulence.wave_impact &&
+               :dtkedt in output_variables &&
+               wkb_mode != :NoWKB
+                HDF5.set_extent_dims(
+                    file["dtkedt"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dtkedt"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbtendencies.dtkedt[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+
+            if state.namelists.turbulence.wave_impact &&
+               :gwshear in output_variables &&
+               wkb_mode != :NoWKB
+                HDF5.set_extent_dims(
+                    file["gwshear"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["gwshear"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbintegrals.gwshear[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ tref .^ 2
+            end
+
+            if state.namelists.turbulence.wave_impact &&
+               :gwbuoy in output_variables &&
+               wkb_mode != :NoWKB
+                HDF5.set_extent_dims(
+                    file["gwbuoy"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["gwbuoy"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbintegrals.gwbuoy[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ tref .^ 2
             end
         end
 
@@ -421,9 +537,9 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, x_size, y_size, z_size + 1, iout),
+                        (bins, x_size, y_size, z_size + 1, iout),
                     )
-                    file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
+                    file[output_name][1:bins, iid, jjd, kkrd, iout] =
                         getproperty(rays, field_name)[rr, ii, jj, kkr] .* lref
                 end
 
@@ -433,17 +549,17 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, x_size, y_size, z_size + 1, iout),
+                        (bins, x_size, y_size, z_size + 1, iout),
                     )
-                    file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
+                    file[output_name][1:bins, iid, jjd, kkrd, iout] =
                         getproperty(rays, field_name)[rr, ii, jj, kkr] ./ lref
                 end
 
                 HDF5.set_extent_dims(
                     file["nr"],
-                    (nray_max, x_size, y_size, z_size + 1, iout),
+                    (bins, x_size, y_size, z_size + 1, iout),
                 )
-                file["nr"][1:nray_max, iid, jjd, kkrd, iout] =
+                file["nr"][1:bins, iid, jjd, kkrd, iout] =
                     rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
                     lref .^ dim
             end
@@ -464,6 +580,23 @@ function write_output(
                     )
                     file[string(field)][iid, jjd, kkd, iout] =
                         getfield(tendencies, field)[ii, jj, kk] .* scaling
+                end
+            end
+
+            # Write elastic-mode-selection data.
+            if elastic_mode_selection && ko == 0
+                for field in (:launch_mode_count, :launch_power_fraction)
+                    if field in output_variables
+                        HDF5.set_extent_dims(
+                            file[string(field)],
+                            (x_size, y_size, iout),
+                        )
+                        file[string(field)][iid, jjd, iout] =
+                            getfield(state.wkb.elastic_mode_selection, field)[
+                                ii,
+                                jj,
+                            ]
+                    end
                 end
             end
         end

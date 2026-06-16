@@ -28,6 +28,8 @@ include("Rays.jl")
 include("MergedRays.jl")
 include("WKBIncrements.jl")
 include("SurfaceIndices.jl")
+include("Spectrum.jl")
+include("ElasticModeSelection.jl")
 include("WKBAuxiliaries.jl")
 include("WKB.jl")
 

@@ -18,12 +18,12 @@ function create_output(state::State, machine_start_time::DateTime)
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
+    (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master) = state.domain
-    (; nray_max) = state.wkb
+    (; bins) = state.wkb
 
     # Set the chunk dimensions.
-    cr = nray_max
+    cr = bins
     cx = div(x_size, npx)
     cy = div(y_size, npy)
     cz = div(z_size, npz)
@@ -279,7 +279,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            if state.namelists.turbulence.turbulence_scheme != :NoTurbulence 
                 create_dataset(
                     file,
                     "tracerdiffusion",
@@ -292,39 +292,152 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if :dchidt in output_variables
-                for field in fieldnames(TracerWKBTendencies)
-                    create_dataset(
-                        file,
-                        string(field),
-                        datatype(Float32),
-                        dataspace(
-                            (x_size, y_size, z_size, 0),
-                            (x_size, y_size, z_size, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                end
-                for field in fieldnames(TracerWKBIntegrals)
-                    create_dataset(
-                        file,
-                        string(field),
-                        datatype(Float32),
-                        dataspace(
-                            (x_size, y_size, z_size, 0),
-                            (x_size, y_size, z_size, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                end
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt0 in output_variables
+                create_dataset(
+                    file,
+                    "dchidt0",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :uchi0 in output_variables
+                create_dataset(
+                    file,
+                    "uchi0",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :vchi0 in output_variables
+                create_dataset(
+                    file,
+                    "vchi0",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :wchi0 in output_variables
+                create_dataset(
+                    file,
+                    "wchi0",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :dchidt1 in output_variables
+                create_dataset(
+                    file,
+                    "dchidt1",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :uchi1 in output_variables
+                create_dataset(
+                    file,
+                    "uchi1",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :vchi1 in output_variables
+                create_dataset(
+                    file,
+                    "vchi1",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.next_order_impact &&
+               :wchi1 in output_variables
+                create_dataset(
+                    file,
+                    "wchi1",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.turbulence_impact &&
+               :dchidtq in output_variables
+                create_dataset(
+                    file,
+                    "dchidtq",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.tracer.turbulence_impact &&
+               :qchi in output_variables
+                create_dataset(
+                    file,
+                    "qchi",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
             end
         end
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
-            for field in fieldnames(TurbulencePredictands)
+            if prepare_restart || :tke in output_variables
                 create_dataset(
                     file,
-                    string(field),
+                    "tke",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),
@@ -334,10 +447,10 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            for field in fieldnames(TurbulenceAuxiliaries)
+            if :shear_production in output_variables
                 create_dataset(
                     file,
-                    string(field),
+                    "shear_production",
                     datatype(Float32),
                     dataspace(
                         (x_size, y_size, z_size, 0),
@@ -347,19 +460,62 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if :dtkedt in output_variables
-                for field in fieldnames(TurbulenceWKBTendencies)
-                    create_dataset(
-                        file,
-                        string(field),
-                        datatype(Float32),
-                        dataspace(
-                            (x_size, y_size, z_size, 0),
-                            (x_size, y_size, z_size, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                end
+            if :buoyancy_production in output_variables
+                create_dataset(
+                    file,
+                    "buoyancy_production",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.turbulence.wave_impact &&
+               :dtkedt in output_variables &&
+               wkb_mode != :NoWKB
+                create_dataset(
+                    file,
+                    "dtkedt",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.turbulence.wave_impact &&
+               :gwshear in output_variables &&
+               wkb_mode != :NoWKB
+                create_dataset(
+                    file,
+                    "gwshear",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            if state.namelists.turbulence.wave_impact &&
+               :gwbuoy in output_variables &&
+               wkb_mode != :NoWKB
+                create_dataset(
+                    file,
+                    "gwbuoy",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
             end
         end
 
@@ -413,8 +569,8 @@ function create_output(state::State, machine_start_time::DateTime)
                         field,
                         datatype(Float32),
                         dataspace(
-                            (nray_max, x_size, y_size, z_size + 1, 0),
-                            (nray_max, x_size, y_size, z_size + 1, -1),
+                            (bins, x_size, y_size, z_size + 1, 0),
+                            (bins, x_size, y_size, z_size + 1, -1),
                         );
                         chunk = (cr, cx, cy, cz, ct),
                     )
@@ -434,6 +590,27 @@ function create_output(state::State, machine_start_time::DateTime)
                         );
                         chunk = (cx, cy, cz, ct),
                     )
+                end
+            end
+
+            # Create datasets for elastic-mode-selection data.
+            if elastic_mode_selection
+                for (field, type) in zip(
+                    (:launch_mode_count, :launch_power_fraction),
+                    (Int32, Float32),
+                )
+                    if field in output_variables
+                        create_dataset(
+                            file,
+                            string(field),
+                            datatype(type),
+                            dataspace(
+                                (x_size, y_size, 0),
+                                (x_size, y_size, -1),
+                            );
+                            chunk = (cx, cy, ct),
+                        )
+                    end
                 end
             end
         end
@@ -570,28 +747,69 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(file[string(field)])["long_name"] = "tracer mixing ratio"
             end
 
-            # if :dchidt in output_variables
-            #     for (field, units, label, long_name) in zip(
-            #         fieldnames(TracerWKBImpact),
-            #         ("m*s^-1", "m*s^-1", "m*s^-1", "s^-1"),
-            #         (
-            #             L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-            #             L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-            #             L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
-            #             L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]",
-            #         ),
-            #         (
-            #             "zonal GW-tracer flux",
-            #             "meridional GW-tracer flux",
-            #             "vertical GW-tracer flux",
-            #             "GW-tracer flux convergence",
-            #         ),
-            #     )
-            #         attributes(file[string(field)])["units"] = units
-            #         attributes(file[string(field)])["label"] = label
-            #         attributes(file[string(field)])["long_name"] = long_name
-            #     end
-            # end
+            if state.namelists.tracer.leading_order_impact &&
+               :dchidt0 in output_variables
+                attributes(file["dchidt0"])["units"] = "s^-1"
+                attributes(file["dchidt0"])["label"] =
+                    L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]"
+                attributes(
+                    file["dchidt0"],
+                )["long_name"] = "leading-order GW-tracer flux convergence"
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :uchi0 in output_variables
+                attributes(file["uchi0"])["units"] = "m*s^-1"
+                attributes(file["uchi0"])["label"] =
+                    L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                attributes(
+                    file["uchi0"],
+                )["long_name"] = "leading-order zonal GW-tracer flux"
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :vchi0 in output_variables
+                attributes(file["vchi0"])["units"] = "m*s^-1"
+                attributes(file["vchi0"])["label"] =
+                    L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                attributes(
+                    file["vchi0"],
+                )["long_name"] = "leading-order meridional GW-tracer flux"
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               :wchi0 in output_variables
+                attributes(file["wchi0"])["units"] = "m*s^-1"
+                attributes(file["wchi0"])["label"] =
+                    L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                attributes(
+                    file["wchi0"],
+                )["long_name"] = "leading-order vertical GW-tracer flux"
+            end
+        end
+
+        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+            if prepare_restart || :tke in output_variables
+                attributes(file["tke"])["unuits"] = "m^2*s^-2"
+                attributes(file["tke"])["label"] = L"e_\\mathrm{k}"
+                attributes(
+                    file["tke"],
+                )["long_name"] = "mass-specific turbulent kinetic energy"
+            end
+
+            if :shear_production in output_variables
+                attributes(file["shear_production"])["unuits"] = "m^2*s^-3"
+                attributes(file["shear_production"])["label"] =
+                    L"\mathcal{S}"
+                attributes(file["shear_production"])["long_name"] = "shear production"
+            end
+
+            if :buoyancy_production in output_variables
+                attributes(file["buoyancy_production"])["unuits"] = "m^2*s^-3"
+                attributes(file["buoyancy_production"])["label"] =
+                    L"\mathcal{B}"
+                attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
+            end
         end
 
         if wkb_mode != :NoWKB
@@ -693,6 +911,19 @@ function create_output(state::State, machine_start_time::DateTime)
                     attributes(file[string(field)])["units"] = units
                     attributes(file[string(field)])["label"] = label
                     attributes(file[string(field)])["long_name"] = long_name
+                end
+            end
+
+            if elastic_mode_selection
+                for (field, label) in zip(
+                    (:launch_mode_count, :launch_power_fraction),
+                    ("Launch-mode count", "Launch-power fraction"),
+                )
+                    if field in output_variables
+                        attributes(file[string(field)])["units"] = "1"
+                        attributes(file[string(field)])["label"] = label
+                        attributes(file[string(field)])["long_name"] = label
+                    end
                 end
             end
         end

@@ -12,6 +12,6 @@ LocalPreferences.toml
 Manifest.toml
 *.code-workspace
 *.cov
+*.py
 *.h5
 *.log
-*.out

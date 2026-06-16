@@ -15,7 +15,7 @@ At the beginning of each time-loop iteration, the time step is determined from s
 In case the updated simulation time is later than the next output time, the time step is corrected accordingly. 
 Subsequently, the damping coefficients of the sponges (which may depend on the time step) are calculated. 
 Following this, MS-GWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. 
-Then, the diffusion of momentum, mass-weighted potential temperature, and tracers is applied.
+Then, the diffusion of momentum, mass-weighted potential temperature and tracers is applied.
 Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
 
  1. Explicit RK3 integration of LHS over ``\\Delta t / 2``.
@@ -30,7 +30,7 @@ Afterwards, the resolved flow is updated in a semi-implicit time step, comprised
 
 Therein, the left-hand sides of the equations include advective fluxes, diffusion terms, rotation and heating, whereas the pressure gradient, buoyancy term and momentum-flux divergence due to unresolved gravity waves are on the right-hand sides. Boundary conditions are enforced continuously. At the end of the time step, the updated fields are written into the output file if the next output time has been reached.
 
-In the case of turbulence parameterization, the turbulence variables are integrated after step 3.
+In the case of turbulence parameterization, the turbulence variables are integrated after step 2.
 
 # Arguments
 
@@ -69,8 +69,6 @@ In the case of turbulence parameterization, the turbulence variables are integra
   - [`PinCFlow.Integration.implicit_integration!`](@ref)
 
   - [`PinCFlow.Integration.reset_predictands!`](@ref)
-
-  - [`PinCFlow.Integration.compute_turbulence_diffusion!`](@ref)
 
   - [`PinCFlow.Update.turbulent_diffusion!`](@ref)
 
@@ -121,12 +119,13 @@ function integrate(namelists::Namelists)
         println("")
         println(repeat(" ", 34), "developed by")
         println(repeat(" ", 30), "Rieper et al. (2013)")
-        println(repeat(" ", 28), "Muraschko et al. (2014)")
+        println(repeat(" ", 28), "Muraschko et al. (2015)")
         println(repeat(" ", 29), "Boeloeni et al. (2016)")
         println(repeat(" ", 29), "Wilhelm et al. (2018)")
         println(repeat(" ", 31), "Wei et al. (2019)")
         println(repeat(" ", 30), "Schmid et al. (2021)")
         println(repeat(" ", 30), "Jochum et al. (2025)")
+        println(repeat(" ", 31), "Knop et al. (2026)")
         println("")
         println(repeat(" ", 28), "modified by many others")
         println(repeat("-", 80))
@@ -265,22 +264,36 @@ function integrate(namelists::Namelists)
             compute_sponges!(state, dt, time)
 
             #-----------------------------------------------------------------
+            #                         Turbulence 
+            #-----------------------------------------------------------------
+
+            turbulent_diffusion!(state, dt)
+
+            set_boundaries!(state, BoundaryPredictands())
+
+            synchronize_compressible_atmosphere!(
+                state,
+                state.variables.predictands,
+            )
+
+            #-----------------------------------------------------------------
+            #                         Turbulence 
+            #-----------------------------------------------------------------
+
+            turbulent_diffusion!(state, dt)
+
+            set_boundaries!(state, BoundaryPredictands())
+
+            synchronize_compressible_atmosphere!(
+                state,
+                state.variables.predictands,
+            )
+
+            #-----------------------------------------------------------------
             #                           MS-GWaM
             #-----------------------------------------------------------------
 
-        wkb_integration!(state, dt)
-
-        #-----------------------------------------------------------------
-        #                         Turbulence 
-        #-----------------------------------------------------------------
-
-        compute_turbulence_diffusion!(state)
-
-        turbulent_diffusion!(state, dt)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        synchronize_compressible_atmosphere!(state, state.variables.predictands)
+            wkb_integration!(state, dt)
 
             #---------------------------------------------------------------
             #                   Semi-implicit time scheme
@@ -323,6 +336,8 @@ function integrate(namelists::Namelists)
             )
 
             p1 = deepcopy(state.variables.predictands)
+
+            turbulence_integration!(state, dt)
 
             if master
                 println("(3) Explicit integration of RHS over dt/2...")

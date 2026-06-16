@@ -23,7 +23,10 @@ TurbulenceFluxes(
 Construct a `TurbulenceFluxes` instance with zero-size arrays for configurations without turbulence parameterization.
 
 ```julia
-TurbulenceFluxes(domain::Domain, turbulence_scheme::Val{:TKEScheme})::TurbulenceFluxes
+TurbulenceFluxes(
+    domain::Domain,
+    turbulence_scheme::Val{:TKEScheme},
+)::TurbulenceFluxes
 ```
 
 Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
@@ -50,7 +53,10 @@ function TurbulenceFluxes(
 )::TurbulenceFluxes
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulenceFluxes(domain, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme return TurbulenceFluxes(
+        domain,
+        Val(turbulence_scheme),
+    )
 end
 
 function TurbulenceFluxes(

@@ -101,7 +101,7 @@ function compute_topography(
     )
 end
 
-function compute_topography(
+@ivy function compute_topography(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -124,7 +124,7 @@ function compute_topography(
     kh = zeros(wave_modes, nxx, nyy)
     lh = zeros(wave_modes, nxx, nyy)
 
-    @ivy for j in j0:j1, i in i0:i1
+    for j in j0:j1, i in i0:i1
         hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
         for alpha in 1:wave_modes
@@ -142,7 +142,7 @@ function compute_topography(
     return (hb, hw, kh, lh)
 end
 
-function compute_topography(
+@ivy function compute_topography(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -164,7 +164,7 @@ function compute_topography(
     kh = zeros(0, 0, 0)
     lh = zeros(0, 0, 0)
 
-    @ivy for j in j0:j1, i in i0:i1
+    for j in j0:j1, i in i0:i1
         hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
     end

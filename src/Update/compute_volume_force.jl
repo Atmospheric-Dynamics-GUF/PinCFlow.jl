@@ -109,7 +109,6 @@ Return the tracer flux convergence due to gravity waves.
 ```julia
 compute_volume_force(
     state::State,
-    p0::Predictands,
     i::Integer,
     j::Integer,
     k::Integer,
@@ -117,7 +116,22 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted impact of shear and buoyancy on the TKE.
+Return the mass-weighted impact of shear ``\\mathcal{S}`` and buoyancy ``\\mathcal{B}`` on the TKE, given by
+
+```math
+\\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\mathcal{S} + \\rho\\mathcal{B}
+```
+
+where
+
+```math
+\\begin{align*}
+\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2\\right] \\;, \\\\
+\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
+\\end{align*}
+```
+
+and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively.
 
 # Arguments
 
@@ -167,13 +181,13 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi},
+    variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     return 0.0
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -183,10 +197,10 @@ function compute_volume_force(
 )::AbstractFloat
     (; dudt) = state.wkb.tendencies
 
-    @ivy return (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
+    return (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -196,10 +210,10 @@ function compute_volume_force(
 )::AbstractFloat
     (; dvdt) = state.wkb.tendencies
 
-    @ivy return (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
+    return (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -210,7 +224,7 @@ function compute_volume_force(
     (; jac, met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
 
-    @ivy return (
+    return (
         jac[i, j, k + 1] * (
             met[i, j, k, 1, 3] * dudt[i, j, k] +
             met[i, j, k, 2, 3] * dvdt[i, j, k]
@@ -233,7 +247,7 @@ function compute_volume_force(
     return conductive_heating(state, i, j, k)
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -243,10 +257,10 @@ function compute_volume_force(
 )::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
 
-    @ivy return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
+    return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -261,19 +275,57 @@ function compute_volume_force(
 
     impact = 0.0
 
-    @ivy if leading_order_impact && model == :Compressible
+    if leading_order_impact && model == :Compressible
         impact += dchidt0[i, j, k]
     end
-    @ivy if next_order_impact
+    if next_order_impact
         impact += dchidt1[i, j, k]
     end
-    @ivy if turbulence_impact
+    if turbulence_impact
         impact += dchidtq[i, j, k]
     end
     return impact
 end
 
-function compute_volume_force(
+@ivy function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+)::AbstractFloat
+    (; shear_production, buoyancy_production) =
+        state.turbulence.turbulenceauxiliaries
+    (; rho) = state.variables.predictands
+    (; rhobar, n2) = state.atmosphere
+    (; jac, dz) = state.grid
+    (; g_ndim) = state.constants
+    (; wkb_mode) = state.namelists.wkb
+
+    shear =
+        turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
+            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
+            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
+        )
+
+    shear_production[i, j, k] = shear
+
+    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
+    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
+
+    buoyancy =
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+
+    buoyancy_production[i, j, k] = buoyancy
+
+    @dispatch_wkb_mode gw_impact =
+        compute_volume_force(state, i, j, k, variables, Val(wkb_mode))
+
+    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + gw_impact)
+end
+
+@ivy function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
@@ -281,66 +333,12 @@ function compute_volume_force(
     variables::TKE,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; shearproduction, buoyancyproduction) =
-        state.turbulence.turbulenceauxiliaries
-    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
-    (; rho) = state.variables.predictands
-    (; rhobar, n2) = state.atmosphere
-    (; jac, dz) = state.grid
-    (; g_ndim) = state.constants
+    (; wave_impact) = state.namelists.turbulence
     (; dtkedt) = state.turbulence.turbulencewkbtendencies
 
-    shear =
-        km[i, j, k] * (
-            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
-            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
-        )
-
-    shearproduction[i, j, k] = shear
-
-    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
-
-    buoyancy =
-        -kh[i, j, k] * (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
-
-    buoyancyproduction[i, j, k] = buoyancy
-
-    return (rho[i, j, k] + rhobar[i, j, k]) *
-           (shear + buoyancy + dtkedt[i, j, k])
-end
-
-function compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    wkb_mode::Val{:NoWKB},
-)::AbstractFloat
-    (; shearproduction, buoyancyproduction) =
-        state.turbulence.turbulenceauxiliaries
-    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
-    (; rho) = state.variables.predictands
-    (; rhobar, n2) = state.atmosphere
-    (; jac, dz) = state.grid
-    (; g_ndim) = state.constants
-
-    shear =
-        km[i, j, k] * (
-            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
-            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
-        )
-
-    shearproduction[i, j, k] = shear
-
-    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
-
-    buoyancy =
-        -kh[i, j, k] * (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
-
-    buoyancyproduction[i, j, k] = buoyancy
-
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
+    if wave_impact
+        return dtkedt[i, j, k]
+    else
+        return 0.0
+    end
 end

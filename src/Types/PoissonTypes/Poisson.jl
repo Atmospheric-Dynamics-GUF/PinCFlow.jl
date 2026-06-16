@@ -4,9 +4,8 @@ Poisson{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: Tensor,
     C <: Operator,
-    D <: Preconditioner,
-    E <: BiCGSTAB,
-    F <: Correction,
+    D <: BiCGSTAB,
+    E <: Correction,
 }
 ```
 
@@ -28,11 +27,9 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 
   - `operator::C`: Workspace arrays for applying the linear operator.
 
-  - `preconditioner::D`: Workspace arrays for applying the preconditioner.
+  - `bicgstab::D`: Workspace arrays used by the BiCGSTAB algorithm.
 
-  - `bicgstab::E`: Workspace arrays used by the BiCGSTAB algorithm.
-
-  - `correction::F`: Correction terms used to update the horizontal wind in the corrector step.
+  - `correction::E`: Correction terms used to update the horizontal wind in the corrector step.
 
 # Arguments
 
@@ -44,8 +41,6 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 
   - [`PinCFlow.Types.PoissonTypes.Operator`](@ref)
 
-  - [`PinCFlow.Types.PoissonTypes.Preconditioner`](@ref)
-
   - [`PinCFlow.Types.PoissonTypes.BiCGSTAB`](@ref)
 
   - [`PinCFlow.Types.PoissonTypes.Correction`](@ref)
@@ -54,17 +49,15 @@ struct Poisson{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: Tensor,
     C <: Operator,
-    D <: Preconditioner,
-    E <: BiCGSTAB,
-    F <: Correction,
+    D <: BiCGSTAB,
+    E <: Correction,
 }
     rhs::A
     solution::A
     tensor::B
     operator::C
-    preconditioner::D
-    bicgstab::E
-    correction::F
+    bicgstab::D
+    correction::E
 end
 
 function Poisson(domain::Domain)::Poisson
@@ -73,17 +66,8 @@ function Poisson(domain::Domain)::Poisson
     (rhs, solution) = (zeros(nx, ny, nz) for i in 1:2)
     tensor = Tensor(domain)
     operator = Operator(domain)
-    preconditioner = Preconditioner(domain)
     bicgstab = BiCGSTAB(domain)
     correction = Correction(domain)
 
-    return Poisson(
-        rhs,
-        solution,
-        tensor,
-        operator,
-        preconditioner,
-        bicgstab,
-        correction,
-    )
+    return Poisson(rhs, solution, tensor, operator, bicgstab, correction)
 end

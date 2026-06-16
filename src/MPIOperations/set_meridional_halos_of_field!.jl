@@ -47,7 +47,7 @@ The first three dimensions of the array are assumed to represent the dimensions 
 """
 function set_meridional_halos_of_field! end
 
-function set_meridional_halos_of_field!(
+@ivy function set_meridional_halos_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
@@ -55,7 +55,7 @@ function set_meridional_halos_of_field!(
     (; nby) = namelists.domain
     (; comm, j0, j1, backward, forward) = domain
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[:, (j1 - nby + 1):j1],
         field[:, (j0 - nby):(j0 - 1)],
         comm;
@@ -63,7 +63,7 @@ function set_meridional_halos_of_field!(
         source = backward,
     )
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[:, j0:(j0 + nby - 1)],
         field[:, (j1 + 1):(j1 + nby)],
         comm;
@@ -74,7 +74,7 @@ function set_meridional_halos_of_field!(
     return
 end
 
-function set_meridional_halos_of_field!(
+@ivy function set_meridional_halos_of_field!(
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
@@ -82,14 +82,14 @@ function set_meridional_halos_of_field!(
 ) where {T <: Real}
     (; comm, i0, i1, j0, j1, k0, k1, backward, forward) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     ii = (i0 - nbx):(i1 + nbx)
     kk = (k0 - nbz):(k1 + nbz)
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[ii, (j1 - nby + 1):j1, kk],
         field[ii, (j0 - nby):(j0 - 1), kk],
         comm;
@@ -97,7 +97,7 @@ function set_meridional_halos_of_field!(
         source = backward,
     )
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[ii, j0:(j0 + nby - 1), kk],
         field[ii, (j1 + 1):(j1 + nby), kk],
         comm;
@@ -108,7 +108,7 @@ function set_meridional_halos_of_field!(
     return
 end
 
-function set_meridional_halos_of_field!(
+@ivy function set_meridional_halos_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
     domain::Domain;
@@ -116,14 +116,14 @@ function set_meridional_halos_of_field!(
 )
     (; comm, i0, i1, j0, j1, k0, k1, backward, forward) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     ii = (i0 - nbx):(i1 + nbx)
     kk = (k0 - nbz):(k1 + nbz)
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[ii, (j1 - nby + 1):j1, kk, :, :],
         field[ii, (j0 - nby):(j0 - 1), kk, :, :],
         comm;
@@ -131,7 +131,7 @@ function set_meridional_halos_of_field!(
         source = backward,
     )
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[ii, j0:(j0 + nby - 1), kk, :, :],
         field[ii, (j1 + 1):(j1 + nby), kk, :, :],
         comm;

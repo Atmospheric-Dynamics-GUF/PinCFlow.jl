@@ -20,7 +20,7 @@ initialize_rays!(
 
 Complete the initialization of MS-GWaM.
 
-In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.wkb.initial_wave_field`, as well as `activate_orographic_source!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step (as in `propagate_rays!`).
+In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.wkb.initial_wave_field`, as well as `compute_orographic_modes!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step (as in `propagate_rays!`).
 
 # Arguments
 
@@ -30,7 +30,7 @@ In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.
 
 # See also
 
-  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
@@ -48,7 +48,7 @@ function initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
     return
 end
 
-function initialize_rays!(
+@ivy function initialize_rays!(
     state::State,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
@@ -73,7 +73,7 @@ function initialize_rays!(
     (; comm, master, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, x, y, zc, jac) = state.grid
     (;
-        nray_max,
+        bins,
         nray_wrk,
         n_sfc,
         nray,
@@ -82,21 +82,15 @@ function initialize_rays!(
         cgx_max,
         cgy_max,
         cgz_max,
+        spectrum,
     ) = state.wkb
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    # Initialize local arrays.
-    omi_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnk_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnl_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wnm_ini = zeros(wave_modes, nxx, nyy, nzz)
-    wad_ini = zeros(wave_modes, nxx, nyy, nzz)
-
     # Compute initial wavenumbers, intrinsic frequencies and wave-action
     # densities with initial_wave_field.
-    if wkb_mode != :SteadyState
+    if wkb_mode != Val(:SteadyState)
         for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
                 alpha,
@@ -104,11 +98,12 @@ function initialize_rays!(
                 y[j] * lref,
                 zc[i, j, k] * lref,
             )
-            wnk_ini[alpha, i, j, k] = kdim * lref
-            wnl_ini[alpha, i, j, k] = ldim * lref
-            wnm_ini[alpha, i, j, k] = mdim * lref
-            omi_ini[alpha, i, j, k] = omegadim * tref
-            wad_ini[alpha, i, j, k] = adim / rhoref / uref^2 / tref
+
+            spectrum.k[alpha, i, j, k] = kdim * lref
+            spectrum.l[alpha, i, j, k] = ldim * lref
+            spectrum.m[alpha, i, j, k] = mdim * lref
+            spectrum.omega[alpha, i, j, k] = omegadim * tref
+            spectrum.a[alpha, i, j, k] = adim / rhoref / uref^2 / tref
         end
     else
         println(
@@ -118,14 +113,7 @@ function initialize_rays!(
     end
 
     # Add orographic wave modes.
-    activate_orographic_source!(
-        state,
-        omi_ini,
-        wnk_ini,
-        wnl_ini,
-        wnm_ini,
-        wad_ini,
-    )
+    compute_orographic_modes!(state)
 
     # Set initial spectral extents (these will be overwritten in the loop).
     dk_ini_nd = 0.0
@@ -137,7 +125,7 @@ function initialize_rays!(
     kmax = k1
 
     # Loop over all grid cells with ray volumes.
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         r = 0
         s = 0
 
@@ -164,7 +152,7 @@ function initialize_rays!(
                 surface_indices.alphas[s] = alpha
 
                 # Set surface ray-volume index.
-                if wad_ini[alpha, i, j, k] == 0.0
+                if spectrum.a[alpha, i, j, k] == 0.0
                     surface_indices.rs[s, i, j] = -1
                     continue
                 else
@@ -172,7 +160,7 @@ function initialize_rays!(
                     surface_indices.rs[s, i, j] = r
                 end
             else
-                if wad_ini[alpha, i, j, k] == 0.0
+                if spectrum.a[alpha, i, j, k] == 0.0
                     continue
                 end
                 r += 1
@@ -211,9 +199,9 @@ function initialize_rays!(
             rays.dyray[r, i, j, k] = dy / nry
             rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrz
 
-            wnk0 = wnk_ini[alpha, i, j, k]
-            wnl0 = wnl_ini[alpha, i, j, k]
-            wnm0 = wnm_ini[alpha, i, j, k]
+            wnk0 = spectrum.k[alpha, i, j, k]
+            wnl0 = spectrum.l[alpha, i, j, k]
+            wnm0 = spectrum.m[alpha, i, j, k]
 
             factor = jac[i, j, k] / nrz
 
@@ -255,7 +243,7 @@ function initialize_rays!(
             end
 
             # Set phase-space wave-action density.
-            rays.dens[r, i, j, k] = wad_ini[alpha, i, j, k] / pspvol
+            rays.dens[r, i, j, k] = spectrum.a[alpha, i, j, k] / pspvol
 
             # Interpolate winds to ray-volume position.
             uxr = interpolate_mean_flow(xr, yr, zr, state, U())
@@ -265,7 +253,7 @@ function initialize_rays!(
             wnrl = rays.l[r, i, j, k]
             wnrm = rays.m[r, i, j, k]
             wnrh = sqrt(wnrk^2 + wnrl^2)
-            omir = omi_ini[alpha, i, j, k]
+            omir = spectrum.omega[alpha, i, j, k]
 
             compute_turbulent_tracer_fluxes!(
                 state,
@@ -320,14 +308,14 @@ function initialize_rays!(
     smooth_gw_amplitudes!(state)
 
     # Compute global ray-volume count.
-    @ivy local_sum = sum(nray[i0:i1, j0:j1, kmin:kmax])
+    local_sum = sum(nray[i0:i1, j0:j1, kmin:kmax])
     global_sum = MPI.Allreduce(local_sum, +, comm)
 
     # Print information.
     if master
         println("MS-GWaM:")
         println("Global ray-volume count: ", global_sum)
-        println("Maximum number of ray volumes per cell: ", nray_max)
+        println("Per-grid-cell merging threshold: ", bins)
         println("")
     end
 

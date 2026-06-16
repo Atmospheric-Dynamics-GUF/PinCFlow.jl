@@ -11,7 +11,7 @@ Read initial values for all prognostic variables from an HDF5 input file.
 """
 function read_input! end
 
-function read_input!(state::State)
+@ivy function read_input!(state::State)
     (; x_size, y_size) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model) = state.namelists.atmosphere
@@ -19,7 +19,7 @@ function read_input!(state::State)
     (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
-    (; nray_max, nray, rays) = state.wkb
+    (; bins, nray, rays) = state.wkb
     (; rhobar) = state.atmosphere
 
     # Determine dimensionality.
@@ -33,7 +33,7 @@ function read_input!(state::State)
 
     # Define slices.
     dk0 = ko == 0 ? 1 : 0
-    (rr, ii, jj, kk, kkr) = (1:nray_max, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),
         (jo + 1):(jo + ny),
@@ -42,7 +42,7 @@ function read_input!(state::State)
     )
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
-    @ivy time = h5open(input_file, "r", comm) do file
+    time = h5open(input_file, "r", comm) do file
 
         # Read the time.
         time = file["t"][iin == -1 ? end : iin] / tref
@@ -84,15 +84,9 @@ function read_input!(state::State)
         end
 
         if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
-            for field in fieldnames(TurbulencePredictands)
-                getfield(state.turbulence.turbulencepredictands, field)[
-                    ii,
-                    jj,
-                    kk,
-                ] =
-                    file[string(field)][iid, jjd, kkd, iin] .*
-                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
-            end
+            state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
+                file["tke"][iid, jjd, kkd, iin] .*
+                (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
         end
 
         # Read ray-volume properties.

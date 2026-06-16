@@ -51,7 +51,10 @@ function TurbulenceIncrements(
 )::TurbulenceIncrements
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulenceIncrements(domain, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme return TurbulenceIncrements(
+        domain,
+        Val(turbulence_scheme),
+    )
 end
 
 function TurbulenceIncrements(

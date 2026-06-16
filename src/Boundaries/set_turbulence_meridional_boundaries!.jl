@@ -2,27 +2,7 @@
 ```julia
 set_turbulence_meridional_boundaries!(
     state::State,
-    variables::AbstractBoundaryVariables,
-)
-```
-
-Enforce meridional boundary conditions for turbulence energies by dispatching to a turbulence-configuration-specific method.
-
-```julia
-set_turbulence_meridional_boundaries!(
-    state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-```
-
-Return for configurations without turbulence parameterization.
-
-```julia
-set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::BoundaryPredictands,
-    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -32,17 +12,6 @@ Enforce meridional boundary conditions for turbulent kinetic energy.
 set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-```
-
-Return for configurations without turbulence parameterization.
-
-```julia
-set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
@@ -52,7 +21,6 @@ Enforce meridional boundary conditions for reconstructions of turbulent kinetic 
 set_turbulence_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
 )
 ```
 
@@ -74,29 +42,7 @@ function set_turbulence_meridional_boundaries! end
 
 function set_turbulence_meridional_boundaries!(
     state::State,
-    variables::AbstractBoundaryVariables,
-)
-    (; turbulence_scheme) = state.namelists.turbulence
-    @dispatch_turbulence_scheme set_turbulence_meridional_boundaries!(
-        state,
-        variables,
-        Val(turbulence_scheme),
-    )
-    return
-end
-
-function set_turbulence_meridional_boundaries!(
-    state::State,
     variables::BoundaryPredictands,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-    return
-end
-
-function set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::BoundaryPredictands,
-    turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
     (; turbulencepredictands) = state.turbulence
@@ -115,15 +61,6 @@ end
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-    return
-end
-
-function set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::BoundaryReconstructions,
-    turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
@@ -136,6 +73,19 @@ function set_turbulence_meridional_boundaries!(
         )
     end
 
+    return
+end
+
+function set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)
+    (; turbulence_scheme) = state.namelists.turbulence
+    @dispatch_turbulence_scheme set_turbulence_meridional_boundaries!(
+        state,
+        variables,
+        Val(turbulence_scheme),
+    )
     return
 end
 
@@ -168,14 +118,17 @@ function set_turbulence_meridional_boundaries!(
 )
     (; namelists, domain) = state
     (; turbulencewkbintegrals) = state.turbulence
+    (; wave_impact) = namelists.turbulence
 
-    for field in fieldnames(TurbulenceWKBIntegrals)
-        set_meridional_boundaries_of_field!(
-            getfield(turbulencewkbintegrals, field),
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
+    if wave_impact
+        for field in (:gwshear, :gwbuoy)
+            set_meridional_boundaries_of_field!(
+                getfield(turbulencewkbintegrals, field),
+                namelists,
+                domain;
+                layers = (1, 1, 1),
+            )
+        end
     end
 
     return
@@ -187,11 +140,12 @@ function set_turbulence_meridional_boundaries!(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
-    (; turbulencewkbtendencies) = state.turbulence
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+    (; wave_impact) = namelists.turbulence
 
-    for field in fieldnames(TurbulenceWKBTendencies)
+    if wave_impact
         set_meridional_boundaries_of_field!(
-            getfield(turbulencewkbtendencies, field),
+            dtkedt,
             namelists,
             domain;
             layers = (1, 1, 1),

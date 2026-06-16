@@ -87,25 +87,25 @@ where ``\\phi_i`` are the elements of `input`.
 """
 function apply_shapiro_filter! end
 
-function apply_shapiro_filter!(
+@ivy function apply_shapiro_filter!(
     output::Union{AbstractVector{T}, AbstractVector{Complex{T}}},
     input::Union{AbstractVector{T}, AbstractVector{Complex{T}}},
     scope::UnitRange{<:Integer},
     order::Val{1},
 ) where {T <: Real}
-    @ivy for i in scope
+    for i in scope
         output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
     end
     return
 end
 
-function apply_shapiro_filter!(
+@ivy function apply_shapiro_filter!(
     output::Union{AbstractVector{T}, AbstractVector{Complex{T}}},
     input::Union{AbstractVector{T}, AbstractVector{Complex{T}}},
     scope::UnitRange{<:Integer},
     order::Val{2},
 ) where {T <: Real}
-    @ivy for i in scope
+    for i in scope
         output[i] =
             (
                 -input[i - 2] - input[i + 2] +
@@ -116,13 +116,13 @@ function apply_shapiro_filter!(
     return
 end
 
-function apply_shapiro_filter!(
+@ivy function apply_shapiro_filter!(
     output::Union{AbstractVector{T}, AbstractVector{Complex{T}}},
     input::Union{AbstractVector{T}, AbstractVector{Complex{T}}},
     scope::UnitRange{<:Integer},
     order::Val{3},
 ) where {T <: Real}
-    @ivy for i in scope
+    for i in scope
         output[i] =
             (
                 input[i - 3] + input[i + 3] -
@@ -134,13 +134,13 @@ function apply_shapiro_filter!(
     return
 end
 
-function apply_shapiro_filter!(
+@ivy function apply_shapiro_filter!(
     output::Union{AbstractVector{T}, AbstractVector{Complex{T}}},
     input::Union{AbstractVector{T}, AbstractVector{Complex{T}}},
     scope::UnitRange{<:Integer},
     order::Val{4},
 ) where {T <: Real}
-    @ivy for i in scope
+    for i in scope
         output[i] =
             (
                 -input[i - 4] - input[i + 4] +
