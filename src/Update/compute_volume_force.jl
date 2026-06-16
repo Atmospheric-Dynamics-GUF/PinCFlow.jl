@@ -131,37 +131,7 @@ where
 \\end{align*}
 ```
 
-<<<<<<< HEAD
-and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. The buoyancy term is calculated by dispatching to the model-specific method.
-
-```julia
-compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)::AbstractFloat
-```
-
-Return the buoyancy forcing on the TKE for configurations in pseudo-incompressible and compressible mode.
-
-```julia
-compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    model::Val{:Boussinesq},
-)::AbstractFloat
-```
-
-Return the buoyancy forcing on the TKE for configurations in Boussinesq mode.
-=======
 and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
->>>>>>> 75dd0eaa6ce28f5252af4537271b35564b5e794c
 
 # Arguments
 
