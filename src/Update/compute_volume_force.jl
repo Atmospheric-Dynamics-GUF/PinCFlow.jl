@@ -311,7 +311,7 @@ end
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
     buoyancy =
-        -km[i, j, k] *
+        -kh[i, j, k] *
         (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     buoyancy_production[i, j, k] = buoyancy
