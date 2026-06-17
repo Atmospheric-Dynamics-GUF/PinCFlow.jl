@@ -55,6 +55,15 @@ struct BoundaryReconstructions <: AbstractBoundaryVariables end
 
 """
 ```julia
+BoundaryDiffusionCoefficients <: AbstractBoundaryVariables
+```
+
+Boundary-variable category for flux fields.
+"""
+struct BoundaryDiffusionCoefficients <: AbstractBoundaryVariables end
+
+"""
+```julia
 BoundaryFluxes <: AbstractBoundaryVariables
 ```
 
@@ -108,7 +117,8 @@ export BoundaryPredictands,
     BoundaryFluxes,
     BoundaryWKBIntegrals,
     BoundaryWKBTendencies,
-    BoundaryWKBAuxiliaries
+    BoundaryWKBAuxiliaries,
+    BoundaryDiffusionCoefficients
 
 export set_boundaries!,
     set_meridional_boundaries_of_field!,

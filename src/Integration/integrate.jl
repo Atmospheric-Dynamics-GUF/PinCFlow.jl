@@ -267,6 +267,8 @@ function integrate(namelists::Namelists)
             #                           MS-GWaM
             #-----------------------------------------------------------------
 
+            compute_turbulence_diffusion!(state)
+
             wkb_integration!(state, dt)
 
             #-----------------------------------------------------------------

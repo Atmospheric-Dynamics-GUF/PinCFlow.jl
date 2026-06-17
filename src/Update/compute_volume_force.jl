@@ -294,9 +294,10 @@ end
     (; g_ndim) = state.constants
     (; dz, jac) = state.grid
     (; wkb_mode) = state.namelists.wkb
+    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
 
     shear =
-        turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
+        km[i, j, k] * (
             compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
             compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
         )
@@ -310,7 +311,7 @@ end
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
     buoyancy =
-        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        -km[i, j, k] *
         (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     buoyancy_production[i, j, k] = buoyancy
@@ -339,10 +340,9 @@ end
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; shear) = state.wkb.auxiliaries
+    (; km) = state.turbulence.turbulencediffusioncoefficients
 
-    gw_shear =
-        turbulence_diffusion_coefficient(state, i, j, k, KM()) * 
-        shear[i, j, k]
+    gw_shear = km[i, j, k] * shear[i, j, k]
 
     return gw_shear
 end
