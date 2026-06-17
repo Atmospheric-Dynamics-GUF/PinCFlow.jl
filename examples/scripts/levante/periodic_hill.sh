@@ -19,12 +19,16 @@ module load intel-oneapi-mpi/2021.5.0-gcc-11.2.0
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
+project_dir="/home/b/b383844/PinCFlow/PinCFlow.jl/."
+
+julia --project=${project_dir} -e 'import Pkg; Pkg.instantiate()'
+
 # Configure MPI and HDF5.
-julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"])'
-julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
+julia --project=${project_dir} -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"])'
+julia --project=${project_dir} -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")'
 
 # Run the model on compute partition.
-srun --cpu_bind=verbose --distribution=block:cyclic julia examples/scripts/periodic_hill.jl 8 8 1>periodic_hill.log 2>&1
+srun --cpu_bind=verbose --distribution=block:cyclic julia --project=${project_dir} examples/scripts/periodic_hill.jl 8 8 1>periodic_hill.log 2>&1
 
 # Run the model on interactive partition.
 #mpiexec -n 16 julia examples/scripts/periodic_hill.jl 4 4 1>periodic_hill.log 2>&1

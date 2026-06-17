@@ -14,9 +14,9 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-run = "0906_04"
+run = "1706_02"
 
-tmax = 1.0e5
+tmax = 2.0e5
 
 #outfile = "/home/b/b383844/PinCFlow/sedimentation/results/mountain_wave_$(run).h5"
 outfile = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_$(run).h5"
@@ -24,7 +24,7 @@ outfile = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_$(run).h5"
 h0 = 150.0
 l0 = 5000.0
 rl = 10
-rh = 2
+rh = 1
 
 lx = 400_000.0
 ly = 400_000.0
@@ -39,6 +39,7 @@ discretization = DiscretizationNamelist(;
 )
 
 atmosphere = AtmosphereNamelist(;
+    tropopause_height = 2.0e4,
     background = LapseRates(),
     temperature = 280.0,
     potential_temperature = 280.0,
@@ -82,9 +83,9 @@ ice = IceNamelist(;
 )
 
 output = OutputNamelist(; 
-    output_variables = (:w, :u, :n, :Nnuc, :qv, :q, :iaux1, :iaux2, :iaux3, :thetap, :pip, :wwp, :epp, :thp, :uup, :vvp), # added sgs variables to output
+    output_variables = (:w, :u, :thetap, :pip),
     output_steps = false,
-	output_interval = 100.0,
+	output_interval = 10.0,
 	tmax = tmax,
     save_ray_volumes = true,
     output_file = outfile,
@@ -93,14 +94,11 @@ output = OutputNamelist(;
 sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) ->
         alpharmax / 3 * (
-            exp((abs(x) - lx / 2) / dxr) +
- #           exp((abs(y) - ly / 2) / dyr) +
-            exp((z - lz) / dzr)
-        ),
+            exp((abs(x) - lx / 2) / dxr) + exp((z - lz) / dzr)),
     relaxed_u = (x, y, z, t, dt) -> 10.0 + (10.0 * sin(2 * pi * t/ 1.0e5)),
 )
 
-wkb = WKBNamelist(; multiplication_factor = 4, wkb_mode = MultiColumn(), filter_order = 3)
+wkb = WKBNamelist(; multiplication_factor = 6, wkb_mode = MultiColumn(), filter_order = 3)
 
 # save sbatch script copy and wkb_mountain_wave.jl to output directory
 MPI.Init()

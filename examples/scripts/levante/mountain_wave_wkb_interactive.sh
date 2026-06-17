@@ -11,7 +11,7 @@
 
 set -x
 
-RUN="1206_02"
+RUN="1706_02"
 
 # Set Intel MPI configuration on compute partition.
 export I_MPI_PMI=pmi
@@ -25,7 +25,7 @@ julia --project=${project_dir} -e 'import Pkg; Pkg.instantiate()'
 julia --project=${project_dir} -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"])'
 julia --project=${project_dir} -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")' 
 # Run the model on compute partition.
-srun --cpu_bind=verbose julia --project=${project_dir} examples/scripts/simple_wkb_mountain_wave.jl 8 1 1 1>wkb_mountain_wave_${RUN}.log 2>&1
+srun --cpu_bind=verbose julia --project=${project_dir} examples/scripts/wkb_mountain_wave.jl 8 1 1 1>wkb_mountain_wave_${RUN}.log 2>&1
 
 # Run the model on interactive partition.
 #mpiexec -n 1 julia --project=${project_dir} ${1} 1 1 1 1>ice_dump.log 2>&1

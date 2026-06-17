@@ -14,14 +14,14 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-run = "1206_04"
+run = "1606_08"
 
 tmax = 3600.0
 
 #outfile = "/home/b/b383844/PinCFlow/sedimentation/results/mountain_wave_$(run).h5"
 outfile = "/work/bb1097/b383844/PinCFlow/adv/results/simple_wkb_mountain_wave_$(run).h5"
 
-h0 = 150.0
+h0 = 15.0
 l0 = 5000.0
 rl = 1
 rh = 1
@@ -60,15 +60,15 @@ domain = DomainNamelist(;
 
 grid = GridNamelist(;
     resolved_topography = (x, y) ->
-        x^2 <= (rl * l0)^2 ?
-        h0 / 2 : 0.0,
+        #x^2 <= (rl * l0)^2 ?
+        h0 / 2, #: 0.0,
     unresolved_topography = (alpha, x, y) ->
-        x^2 <= (rl * l0)^2 ?
+        #x^2 <= (rl * l0)^2 ?
         (
             pi / l0,
             0.0,
             h0 / 2,
-        ) : (0.0, 0.0, 0.0),
+        ) #: (0.0, 0.0, 0.0),
 )
 
 ice = IceNamelist(;

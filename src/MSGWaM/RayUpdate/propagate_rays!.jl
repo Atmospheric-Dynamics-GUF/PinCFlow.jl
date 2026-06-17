@@ -433,7 +433,9 @@ function propagate_rays!(
         end
     end
 
-    activate_orographic_source!(state)
+    if rkstage == nstages
+        activate_orographic_source!(state)
+    end
 
 	return
 end

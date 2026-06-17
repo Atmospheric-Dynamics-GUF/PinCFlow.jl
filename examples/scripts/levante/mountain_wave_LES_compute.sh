@@ -2,7 +2,7 @@
 #SBATCH --partition=compute
 #SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
+#SBATCH --ntasks-per-node=32
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-08:00:00
 #SBATCH --mail-type=FAIL
@@ -17,7 +17,7 @@ export ROMIO_LUSTRE_LOCKING=0
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
-RUN="1206_01"
+RUN="1706_03"
 
 # Julia environment
 julia --project -e 'import Pkg; Pkg.instantiate()'
@@ -41,6 +41,6 @@ HDF5.API.set_libraries!(
 
 # Run
 srun --cpu_bind=verbose \
-     julia --project examples/scripts/simple_mountain_wave.jl \
-     16 1 4 1\
+     julia --project examples/scripts/mountain_wave.jl \
+     32 1 1 1\
      > mountain_wave_${RUN}.log 2>&1

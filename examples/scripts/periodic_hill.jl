@@ -1,27 +1,26 @@
 # examples/scripts/periodic_hill.jl
 
-using Pkg
+#using Pkg
 
-Pkg.activate("examples")
+#Pkg.activate("examples")
 
 using MPI
 using HDF5
-using CairoMakie
-using Revise
+#using CairoMakie
+#using Revise
 using PinCFlow
 
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npz = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 
-h0 = 500.0
+h0 = 100.0
 l0 = 10000.0
 
 lz = 20000.0
 zr = 10000.0
 
 atmosphere = AtmosphereNamelist(;
-    model = Boussinesq(),
-    background = StableStratification(),
+    background = Isothermal(),
     coriolis_frequency = 0.0,
     initial_u = (x, y, z) -> 10.0,
 )
@@ -30,7 +29,10 @@ grid = GridNamelist(;
     resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
 )
 output =
-    OutputNamelist(; output_variables = (:w,), output_interval = 30,output_file = "periodic_hill.h5")
+    OutputNamelist(; output_variables = (:u, :w,),
+    output_steps = false,
+	output_interval = 100.0,
+	tmax = 3600.0, output_file = "periodic_hill.h5")
 sponge = SpongeNamelist(;
     rhs_sponge = (x, y, z, t, dt) ->
         z >= zr ? sin(pi / 2 * (z - zr) / (lz - zr))^2 / dt : 0.0,
@@ -38,7 +40,7 @@ sponge = SpongeNamelist(;
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+#=if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     h5open("periodic_hill.h5") do data
         plot_output(
             "examples/results/periodic_hill.svg",
@@ -47,4 +49,4 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         )
         return
     end
-end
+end=#
