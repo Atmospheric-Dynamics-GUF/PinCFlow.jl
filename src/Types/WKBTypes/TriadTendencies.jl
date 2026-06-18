@@ -122,7 +122,8 @@ function TriadTendencies(namelists::Namelists,
         kpmin = kp[1] 
         kpmax = kp[end]
           
-        amin = (kpmin / kpl) .* ones(kpl)
+        #amin = (kpmin / kpl) .* ones(kpl)
+        amin = (kpmin / (1.0 + eps())) .* ones(kpl)
         amax = Float64.(kp)
         ma = Int.(max.(8*ones(kpl), 1:kpl)) 
         if triad_mode == Triad3DIso() 
@@ -131,7 +132,8 @@ function TriadTendencies(namelists::Namelists,
             qmax = ones(kpl) .* (2.0 * kpmax)
         else
             mq = reverse(Int.(max.(8*ones(kpl), 2 .* (1:kpl))))
-            qmin = ones(kpl) .* (kpmin / mq[1])
+            #qmin = ones(kpl) .* (kpmin / mq[1])
+            qmin = ones(kpl) .* (kpmin / (1.0 + eps()))
             qmax = ones(kpl) .* (2.0 * kpmax)
         end
 
