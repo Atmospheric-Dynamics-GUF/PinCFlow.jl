@@ -368,7 +368,7 @@ end
                             state,
                             i,
                             j,
-                            k + 1,
+                            k - 1,
                             KM(),
                         ) / jac[i, j, k - 1]
                     ) +
