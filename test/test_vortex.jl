@@ -33,7 +33,7 @@ function test_vortex()
         (x_size = 10, y_size = 10, prepare_restart = true, visualize = false)
 
     @testset "Vortex" begin
-        test_example(vortex, keywords, reference; update_references)
+        test_example(vortex, keywords, reference; update)
     end
 
     return

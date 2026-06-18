@@ -50,7 +50,7 @@ function test_wave_packet()
     )
 
     @testset "Wave packet" begin
-        test_example(wave_packet, keywords, reference; update_references)
+        test_example(wave_packet, keywords, reference; update)
     end
 
     return
