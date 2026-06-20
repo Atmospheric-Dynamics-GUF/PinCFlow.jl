@@ -412,12 +412,19 @@ function integrate(namelists::Namelists)
             end
         end
 
-        peak_rss = MPI.Allreduce(Sys.maxrss(), max, comm) / 1024^3
+        rss = Sys.maxrss() / 1024^3
+        peak_process_rss = MPI.Allreduce(rss, max, comm)
+        peak_total_rss = MPI.Allreduce(rss, +, comm)
         if master
             println(repeat("-", 80))
             println(
-                "Approximate peak single-process memory usage: ",
-                peak_rss,
+                "Approximate peak process memory usage: ",
+                peak_process_rss,
+                " GB",
+            )
+            println(
+                "Approximate peak total memory usage: ",
+                peak_total_rss,
                 " GB",
             )
             println(repeat("-", 80))
