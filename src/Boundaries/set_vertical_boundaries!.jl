@@ -282,14 +282,14 @@ end
 
     if ko == 0
         for field in (:phirhop, :phiu, :phiv, :phitheta)
-            getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
+            @share $getfield(fluxes, field)[:, :, k0 - 1, 3] = 0.0
         end
-        fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
+        @share fluxes.phiw[:, :, k0 - 2, 3] = 0.0
     end
 
     if ko + nz == z_size
         for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
-            getfield(fluxes, field)[:, :, k1, 3] .= 0.0
+            @share $getfield(fluxes, field)[:, :, k1, 3] = 0.0
         end
     end
 
@@ -307,14 +307,14 @@ end
 
     if ko == 0
         for field in (:phirho, :phirhop, :phiu, :phiv, :phitheta)
-            getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
+            @share $getfield(fluxes, field)[:, :, k0 - 1, 3] = 0.0
         end
-        fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
+        @share fluxes.phiw[:, :, k0 - 2, 3] = 0.0
     end
 
     if ko + nz == z_size
         for field in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
-            getfield(fluxes, field)[:, :, k1, 3] .= 0.0
+            @share $getfield(fluxes, field)[:, :, k1, 3] = 0.0
         end
     end
 
@@ -332,14 +332,14 @@ end
 
     if ko == 0
         for field in (:phirho, :phirhop, :phiu, :phiv, :phitheta, :phip)
-            getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
+            @share $getfield(fluxes, field)[:, :, k0 - 1, 3] = 0.0
         end
-        fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
+        @share fluxes.phiw[:, :, k0 - 2, 3] = 0.0
     end
 
     if ko + nz == z_size
         for field in fieldnames(Fluxes)
-            getfield(fluxes, field)[:, :, k1, 3] .= 0.0
+            @share $getfield(fluxes, field)[:, :, k1, 3] = 0.0
         end
     end
 

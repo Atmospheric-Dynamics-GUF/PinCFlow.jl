@@ -165,13 +165,13 @@ end
 
     if ko == 0
         for field in fieldnames(TracerFluxes)
-            getfield(tracerfluxes, field)[:, :, k0 - 1, 3] .= 0.0
+            @share $getfield(tracerfluxes, field)[:, :, k0 - 1, 3] = 0.0
         end
     end
 
     if ko + nz == z_size
         for field in fieldnames(TracerFluxes)
-            getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
+            @share $getfield(tracerfluxes, field)[:, :, k1, 3] = 0.0
         end
     end
 

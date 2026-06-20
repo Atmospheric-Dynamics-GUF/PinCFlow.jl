@@ -73,26 +73,26 @@ function set_vertical_boundaries_of_field! end
 
     if ko == 0
         if staggered
-            field[ii, jj, k0 - 1] .= 0.0
+            @share field[ii, jj, k0 - 1] = 0.0
             for k in 1:nbz
-                field[ii, jj, k0 - k] .= mode.(field[ii, jj, k0 + k - 2])
+                @share field[ii, jj, k0 - k] = mode(field[ii, jj, k0 + k - 2])
             end
         else
             for k in 1:nbz
-                field[ii, jj, k0 - k] .= mode.(field[ii, jj, k0 + k - 1])
+                @share field[ii, jj, k0 - k] = mode(field[ii, jj, k0 + k - 1])
             end
         end
     end
 
     if ko + nz == z_size
         if staggered
-            field[ii, jj, k1] .= 0.0
+            @share field[ii, jj, k1] = 0.0
             for k in 1:nbz
-                field[ii, jj, k1 + k] .= mode.(field[ii, jj, k1 - k])
+                @share field[ii, jj, k1 + k] = mode(field[ii, jj, k1 - k])
             end
         else
             for k in 1:nbz
-                field[ii, jj, k1 + k] .= mode.(field[ii, jj, k1 - k + 1])
+                @share field[ii, jj, k1 + k] = mode(field[ii, jj, k1 - k + 1])
             end
         end
     end
