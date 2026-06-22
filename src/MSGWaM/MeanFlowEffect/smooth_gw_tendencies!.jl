@@ -204,14 +204,17 @@ function smooth_gw_tendencies!(state::State)
         smooth_gw_tendencies!(dudt, state, Val(filter_type), YZ())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), YZ())
         smooth_gw_tendencies!(dthetadt, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(shear, state, Val(filter_type), YZ())
     elseif y_size == 1
         smooth_gw_tendencies!(dudt, state, Val(filter_type), XZ())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), XZ())
         smooth_gw_tendencies!(dthetadt, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(shear, state, Val(filter_type), XZ())
     else
         smooth_gw_tendencies!(dudt, state, Val(filter_type), XYZ())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), XYZ())
         smooth_gw_tendencies!(dthetadt, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(shear, state, Val(filter_type), XYZ())
     end
 
     @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
