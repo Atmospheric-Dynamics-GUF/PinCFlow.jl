@@ -104,7 +104,7 @@ function compute_turbulence_diffusion!(
     (; lv, lb, lt) = state.turbulence.turbulenceconstants
     (; kh, km, kek) = state.turbulence.turbulencediffusioncoefficients
     (; tke) = state.turbulence.turbulencepredictands
-    (; rhop) = state.variables.predictands
+    (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; k0, k1, j0, j1, i0, i1) = state.domain
 
@@ -113,19 +113,19 @@ function compute_turbulence_diffusion!(
         lb .*
         sqrt.(
             2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
-            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+            (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
     km[i0:i1, j0:j1, k0:k1] .=
         lv .*
         sqrt.(
             2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
-            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+            (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
     kek[i0:i1, j0:j1, k0:k1] .=
         lt .*
         sqrt.(
             2.0 .* tke[i0:i1, j0:j1, k0:k1] ./
-            (rhop[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+            (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
         )
 
     set_boundaries!(state, BoundaryDiffusionCoefficients())
