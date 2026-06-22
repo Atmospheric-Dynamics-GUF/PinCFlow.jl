@@ -70,7 +70,7 @@ function test_wkb_wave_packet()
     )
 
     @testset "WKB Wave packet" begin
-        test_example(wkb_wave_packet, keywords, reference; update_references)
+        test_example(wkb_wave_packet, keywords, reference; update)
     end
 
     return

@@ -46,7 +46,7 @@ function test_mountain_wave()
     )
 
     @testset "Mountain wave" begin
-        test_example(mountain_wave, keywords, reference; update_references)
+        test_example(mountain_wave, keywords, reference; update)
     end
 
     return
