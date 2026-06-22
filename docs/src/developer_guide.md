@@ -290,8 +290,8 @@ PinCFlow.jl's tests run the example simulations with a few modified parameters (
 ```shell
 julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.test(; julia_args = ["--check-bounds=auto"])'
 ```
-in the root directory of the repository. To update the reference values for the norms, run
 
+in the root directory of the repository. To update the reference values for the norms, run
 
 ```shell
 julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.test(; julia_args = ["--check-bounds=auto"], test_args = ["--update"])'
