@@ -188,6 +188,8 @@ function smooth_gw_tendencies!(state::State)
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
+    (; shear) = state.wkb.auxiliaries
+
 
     if !smooth_tendencies
         return
@@ -197,6 +199,7 @@ function smooth_gw_tendencies!(state::State)
         smooth_gw_tendencies!(dudt, state, Val(filter_type), Z())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), Z())
         smooth_gw_tendencies!(dthetadt, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(shear, state, Val(filter_type), Z())
     elseif x_size == 1
         smooth_gw_tendencies!(dudt, state, Val(filter_type), YZ())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), YZ())
