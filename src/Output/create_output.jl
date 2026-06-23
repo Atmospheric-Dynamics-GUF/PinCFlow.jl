@@ -397,6 +397,22 @@ function create_output(state::State, machine_start_time::DateTime)
                 end
             end
 
+            # Create datasets for GW integrals.
+            for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
+                if field in output_variables
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
+
             # Create datasets for GW tendencies.
             for field in (:dudt, :dvdt, :dthetadt)
                 if field in output_variables
@@ -712,7 +728,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 end
             end
 
-            # Create datasets for GW integrals.
+            # Add attributes for GW integrals.
             for (field, units, label, long_name) in zip(
                 (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e),
                 (
