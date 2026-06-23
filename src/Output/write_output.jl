@@ -36,6 +36,22 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:pip`: Exner-pressure fluctuations (restart variable).
 
+  - `:uu`: Zonal zonal-momentum flux due to unresolved gravity waves.
+
+  - `:uv`: Zonal meridional-momentum flux due to unresolved gravity waves.
+
+  - `:uw`: Zonal vertical-momentum flux due to unresolved gravity waves.
+
+  - `:vv`: Meridional meridional-momentum flux due to unresolved gravity waves.
+
+  - `:vw`: Meridional vertical-momentum flux due to unresolved gravity waves.
+
+  - `:utheta`: Zonal heat flux due to unresolved gravity waves.
+
+  - `:vtheta`: Meridional heat flux due to unresolved gravity waves.
+
+  - `:e`: Energy density of unresolved gravity waves.
+
   - `:dudt`: Zonal-momentum drag due to unresolved gravity waves.
 
   - `:dvdt`: Meridional-momentum drag due to unresolved gravity waves.
@@ -98,7 +114,7 @@ function write_output end
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; bins, rays, tendencies) = state.wkb
+    (; bins, rays, tendencies, integrals) = state.wkb
 
     # Print information.
     if master
@@ -415,6 +431,26 @@ function write_output end
                 file["nr"][1:bins, iid, jjd, kkrd, iout] =
                     rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
                     lref .^ dim
+            end
+
+            # Write GW integrals.
+            for (field, scaling) in zip(
+                (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e),
+                (
+                    (rhoref * uref^2 for index in 1:5)...,
+                    rhoref * uref * thetaref,
+                    rhoref * uref * thetaref,
+                    rhoref * uref^2,
+                ),
+            )
+                if field in output_variables
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(integrals, field)[ii, jj, kk] .* scaling
+                end
             end
 
             # Write GW tendencies.
