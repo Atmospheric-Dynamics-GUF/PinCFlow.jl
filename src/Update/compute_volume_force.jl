@@ -274,7 +274,7 @@ end
 
     impact = 0.0
 
-    if leading_order_impact && model == :Compressible
+    if leading_order_impact && model === :Compressible
         impact += dchidt0[i, j, k]
     end
     return impact

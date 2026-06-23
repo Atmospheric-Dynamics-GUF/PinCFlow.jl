@@ -41,7 +41,7 @@ function test_hot_bubble()
         (x_size = 10, z_size = 10, prepare_restart = true, visualize = false)
 
     @testset "Hot bubble" begin
-        test_example(hot_bubble, keywords, reference; update_references)
+        test_example(hot_bubble, keywords, reference; update)
     end
 
     return

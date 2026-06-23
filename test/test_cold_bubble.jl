@@ -41,7 +41,7 @@ function test_cold_bubble()
         (x_size = 10, z_size = 10, prepare_restart = true, visualize = false)
 
     @testset "Cold bubble" begin
-        test_example(cold_bubble, keywords, reference; update_references)
+        test_example(cold_bubble, keywords, reference; update)
     end
 
     return

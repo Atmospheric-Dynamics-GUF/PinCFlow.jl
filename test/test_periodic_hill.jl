@@ -33,7 +33,7 @@ function test_periodic_hill()
         (x_size = 10, z_size = 10, prepare_restart = true, visualize = false)
 
     @testset "Periodic hill" begin
-        test_example(periodic_hill, keywords, reference; update_references)
+        test_example(periodic_hill, keywords, reference; update)
     end
 
     return
