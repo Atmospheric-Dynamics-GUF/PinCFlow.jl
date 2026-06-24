@@ -545,8 +545,8 @@ end
             turbulence_diffusion_coefficient(state, i, j, k + 1, KM()) /
             jac[i, j, k + 1]
         kmd =
-            turbulence_diffusion_coefficient(state, i, j, k - 1, KM()) /
-            jac[i, j, k - 1]
+            turbulence_diffusion_coefficient(state, i, j, k, KM()) /
+            jac[i, j, k]
 
         wu = compute_vertical_wind(i, j, k + 1, state)
         wc = compute_vertical_wind(i, j, k, state)

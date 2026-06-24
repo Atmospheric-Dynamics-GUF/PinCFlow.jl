@@ -86,7 +86,7 @@ function read_input! end
         if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
                 file["tke"][iid, jjd, kkd, iin] .*
-                (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) ./ uref .^ 2
         end
 
         # Read ray-volume properties.
