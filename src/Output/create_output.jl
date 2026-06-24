@@ -279,19 +279,6 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if state.namelists.turbulence.turbulence_scheme != :NoTurbulence 
-                create_dataset(
-                    file,
-                    "tracerdiffusion",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
-            end
-
             if state.namelists.tracer.leading_order_impact &&
                :dchidt0 in output_variables
                 create_dataset(

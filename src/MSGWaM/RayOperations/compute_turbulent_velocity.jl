@@ -177,7 +177,7 @@ function compute_turbulent_velocity(
     u01u01 =
         -(n2r - fc^2) * (kr^2 + lr^2) * mr^2 / (kr^2 + lr^2 + mr^2)^2 *
         2 *
-        wadr / omir / rhob
+        abs(wadr / omir) / rhob
     bhat = sqrt(
         n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * abs(wadr / omir) / rhob,
     )

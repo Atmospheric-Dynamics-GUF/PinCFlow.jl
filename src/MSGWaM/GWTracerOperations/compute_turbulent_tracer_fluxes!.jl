@@ -103,7 +103,7 @@ function compute_turbulent_tracer_fluxes!(
     n2r = interpolate_stratification(zr, state, N2())
     q10 = compute_turbulent_velocity(state, r, i, j, k, 1.0)
     bhat0 = sqrt(
-        n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * wadr / omir / rhob,
+        n2r^2 * (kr^2 + lr^2) / (kr^2 + lr^2 + mr^2) * 2 * abs(wadr / omir) / rhob,
     )
     uhat0 =
         1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *

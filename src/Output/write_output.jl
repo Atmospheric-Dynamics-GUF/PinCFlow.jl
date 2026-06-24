@@ -304,19 +304,6 @@ function write_output end
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if state.namelists.turbulence.turbulence_scheme != :NoTurbulence 
-                HDF5.set_extent_dims(
-                    file["tracerdiffusion"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["tracerdiffusion"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerauxiliaries.tracerdiffusion[
-                        ii,
-                        jj,
-                        kk,
-                    ] ./ tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
-            end
-
             if state.namelists.tracer.leading_order_impact &&
                :dchidt0 in output_variables
                 HDF5.set_extent_dims(

@@ -236,6 +236,8 @@ end
                 i,
                 j,
                 k,
+                xr, 
+                yr,
                 zr,
                 stepfrac[rkstage] * dt,
             )
@@ -584,6 +586,8 @@ end
                 i,
                 j,
                 k,
+                xr, 
+                yr,
                 zr,
                 jac[i, j, k] * dz / cgirz,
             )

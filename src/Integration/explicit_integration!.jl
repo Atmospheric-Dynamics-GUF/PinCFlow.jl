@@ -47,7 +47,6 @@ function explicit_integration! end
     side::LHS,
 )
     (; nstages, stepfrac) = state.time
-    (; tracer_setup, apply_sponge_to_tracer) = state.namelists.tracer
 
     for rkstage in 1:nstages
         reconstruct!(state)

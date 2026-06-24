@@ -64,19 +64,66 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
 """
 function apply_turbulent_damping! end
 
+function apply_turbulent_damping!(
+    state::State,
+    r::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    xr::AbstractFloat,
+    yr::AbstractFloat,
+    zr::AbstractFloat,
+    dt::AbstractFloat,
+)
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    @dispatch_turbulence_scheme apply_turbulent_damping!(
+        state,
+        r,
+        i,
+        j,
+        k,
+        xr,
+        yr,
+        zr,
+        dt,
+        Val(turbulence_scheme),
+    )
+
+    return
+end
+
 @ivy function apply_turbulent_damping!(
     state::State,
     r::Integer,
     i::Integer,
     j::Integer,
     k::Integer,
+    xr::AbstractFloat,
+    yr::AbstractFloat,
     zr::AbstractFloat,
     dt::AbstractFloat,
+    turbulence_scheme::Val{:NoTurbulence},
+)
+    return
+end
+
+@ivy function apply_turbulent_damping!(
+    state::State,
+    r::Integer,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    xr::AbstractFloat,
+    yr::AbstractFloat,
+    zr::AbstractFloat,
+    dt::AbstractFloat,
+    turbulence_scheme::Val{:TKEScheme},
 )
     (; rays) = state.wkb
     (; lv, lb) = state.turbulence.turbulenceconstants
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; tref) = state.constants
+    (; tref, uref) = state.constants
     (; x_size, y_size) = state.namelists.domain
     (; rhobar) = state.atmosphere
     (; turbulent_damping) = state.namelists.wkb
@@ -118,8 +165,15 @@ function apply_turbulent_damping! end
 
     wadr = rays.dens[r, i, j, k] * factor
 
-    q0r = sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
-    #compute_turbulent_velocity(state, r, i, j, k, 0.0)
+    q0r = interpolate_scalar(
+        xr,
+        yr,
+        zr,
+        state,
+        sqrt.(2 .* tke ./ (rho .+ rhobar)),
+        None(),
+    )
+    q0r_alter = compute_turbulent_velocity(state, r, i, j, k, 0.0)
     q1r = compute_turbulent_velocity(state, r, i, j, k, 1.0)
     q2r = compute_turbulent_velocity(state, r, i, j, k, 2.0)
 

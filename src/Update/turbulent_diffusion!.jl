@@ -374,7 +374,7 @@ end
                             state,
                             i,
                             j,
-                            k + 1,
+                            k - 1,
                             KM(),
                         ) / jac[i, j, k - 1]
                     ) +
@@ -551,8 +551,8 @@ end
             turbulence_diffusion_coefficient(state, i, j, k + 1, KM()) /
             jac[i, j, k + 1]
         kmd =
-            turbulence_diffusion_coefficient(state, i, j, k - 1, KM()) /
-            jac[i, j, k - 1]
+            turbulence_diffusion_coefficient(state, i, j, k, KM()) /
+            jac[i, j, k]
 
         wu = compute_vertical_wind(i, j, k + 1, state)
         wc = compute_vertical_wind(i, j, k, state)
@@ -722,16 +722,12 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
-    (; tracerdiffusion, chiold) = state.tracer.tracerauxiliaries
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
-
-    tracerdiffusion .= 0.0
-    chiold .= 0.0
 
     @ivy for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)

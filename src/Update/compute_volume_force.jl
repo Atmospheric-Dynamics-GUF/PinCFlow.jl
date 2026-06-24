@@ -296,7 +296,7 @@ end
 )::AbstractFloat
     (; shear_production, buoyancy_production) =
         state.turbulence.turbulenceauxiliaries
-    (; rho) = state.variables.predictands
+    (; rho, rhop) = state.variables.predictands
     (; rhobar, n2) = state.atmosphere
     (; jac, dz) = state.grid
     (; g_ndim) = state.constants
@@ -310,8 +310,8 @@ end
 
     shear_production[i, j, k] = shear
 
-    bu = g_ndim * (1 / (rho[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
-    bd = g_ndim * (1 / (rho[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
+    bu = g_ndim * (1 / (rhop[i, j, k + 1] / rhobar[i, j, k + 1] + 1) - 1)
+    bd = g_ndim * (1 / (rhop[i, j, k - 1] / rhobar[i, j, k - 1] + 1) - 1)
 
     buoyancy =
         -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
