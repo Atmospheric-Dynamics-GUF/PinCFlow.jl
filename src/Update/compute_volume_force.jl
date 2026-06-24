@@ -307,8 +307,8 @@ end
 
     shear_production[i, j, k] = shear
 
-    bu = -g_ndim * rhop[i, j, k + 1] / (rhop[i, j, k + 1] + rhobar[i, j, k + 1])
-    bd = -g_ndim * rhop[i, j, k - 1] / (rhop[i, j, k - 1] + rhobar[i, j, k - 1])
+    bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
+    bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
     buoyancy =
         -kh[i, j, k] *
