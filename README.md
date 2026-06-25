@@ -104,7 +104,7 @@ end
 with
 
 ```julia
-using PinCFlow, CairoMakie
+using CairoMakie, PinCFlow
 
 periodic_hill()
 ```
@@ -120,8 +120,7 @@ For the visualization of simulation results, we recommend using [Makie.jl](https
 If you want to run PinCFlow.jl in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). For example, by executing
 
 ```shell
-mpiexec=$(julia --project=examples -e 'using MPICH_jll; print(MPICH_jll.mpiexec_path)')
-${mpiexec} -n 64 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8)'
+julia --project=examples -e 'using MPI; run(`$(MPI.mpiexec()) -n 64 julia --project=examples -e "using CairoMakie, PinCFlow; periodic_hill(; npx = 8, npz = 8)"`)'
 ```
 
 in your shell, you can run the above simulation in 64 MPI processes. Note that `npx` and `npz` configure the number of MPI subdomains in $\hat{x}$ and $\hat{z}$, respectively. Thus, `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
@@ -140,13 +139,7 @@ julia --project=examples -e 'using MPIPreferences; MPIPreferences.use_jll_binary
 julia --project=examples -e 'using HDF5; HDF5.API.set_libraries!()'
 ```
 
-you can restore the default backends. Having configured MPI.jl and HDF5.jl to use installations on your system, you can run
-
-```shell
-mpiexec -n 64 julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8)'
-```
-
-with `mpiexec` being your chosen system binary. For users who would like to run PinCFlow.jl on [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/levante` of the repository.
+you can restore the default backends. For users who would like to run PinCFlow.jl on [Levante](https://docs.dkrz.de/doc/levante/index.html), shell-script examples are provided in the folder `examples/levante` of the repository.
 
 ## List of publications
 
