@@ -10,7 +10,7 @@ function wave_packet(;
     output_file::AbstractString = "wave_packet.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/wave_packet.svg",
+    plot_file::AbstractString = "wave_packet.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -81,9 +81,9 @@ function wave_packet(;
             plot_output(
                 plot_file,
                 data,
-                ("u", 20, 20, 40, 2),
-                ("v", 20, 20, 40, 2),
-                ("w", 20, 20, 40, 2);
+                ("u", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
+                ("v", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
+                ("w", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2);
                 time_unit = "min",
             )
             return

@@ -16,6 +16,6 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; vortex(; npx = 8, npy = 8)' &> vortex.log
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; vortex(; npx = 8, npy = 8, plot_file = "examples/results/vortex.svg")' &> vortex.log
 
 exit 0

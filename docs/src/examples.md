@@ -15,7 +15,7 @@ function cold_bubble(;
     output_file::AbstractString = "cold_bubble.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/cold_bubble.svg",
+    plot_file::AbstractString = "cold_bubble.svg",
 )
     lx = 20000.0
     lz = 20000.0
@@ -78,7 +78,7 @@ function hot_bubble(;
     output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/hot_bubble.svg",
+    plot_file::AbstractString = "hot_bubble.svg",
 )
     lx = 20000.0
     lz = 20000.0
@@ -144,7 +144,7 @@ function mountain_wave(;
     output_file::AbstractString = "mountain_wave.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/mountain_wave.svg",
+    plot_file::AbstractString = "mountain_wave.svg",
 )
     h0 = 100.0
     l0 = 1000.0
@@ -190,7 +190,11 @@ function mountain_wave(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, ("w", 20, 20, 10, 2))
+            plot_output(
+                plot_file,
+                data,
+                ("w", div(x_size, 2), div(y_size, 2), div(z_size, 4), 2),
+            )
             return
         end
     end
@@ -248,7 +252,7 @@ function vortex(;
     output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/vortex.svg",
+    plot_file::AbstractString = "vortex.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -332,7 +336,7 @@ function wave_packet(;
     output_file::AbstractString = "wave_packet.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/wave_packet.svg",
+    plot_file::AbstractString = "wave_packet.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -403,9 +407,9 @@ function wave_packet(;
             plot_output(
                 plot_file,
                 data,
-                ("u", 20, 20, 40, 2),
-                ("v", 20, 20, 40, 2),
-                ("w", 20, 20, 40, 2);
+                ("u", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
+                ("v", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
+                ("w", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2);
                 time_unit = "min",
             )
             return
@@ -438,7 +442,7 @@ function wkb_mountain_wave(;
     output_file::AbstractString = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/wkb_mountain_wave.svg",
+    plot_file::AbstractString = "wkb_mountain_wave.svg",
 )
     h0 = 150.0
     l0 = 5000.0
@@ -494,7 +498,11 @@ function wkb_mountain_wave(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, ("nr", 20, 20, 10, 2))
+            plot_output(
+                plot_file,
+                data,
+                ("nr", div(x_size, 2), div(y_size, 2), div(z_size, 4), 2),
+            )
             return
         end
     end
@@ -554,7 +562,7 @@ function wkb_wave_packet(;
     output_file::AbstractString = "wkb_wave_packet.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/wkb_wave_packet.svg",
+    plot_file::AbstractString = "wkb_wave_packet.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -607,7 +615,12 @@ function wkb_wave_packet(;
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         h5open(output_file) do data
-            plot_output(plot_file, data, ("nr", 8, 8, 16, 2); time_unit = "min")
+            plot_output(
+                plot_file,
+                data,
+                ("nr", div(x_size, 2), div(y_size, 2), div(z_size, 2), 1);
+                time_unit = "min",
+            )
             return
         end
     end

@@ -8,7 +8,7 @@ function hot_bubble(;
     output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/hot_bubble.svg",
+    plot_file::AbstractString = "hot_bubble.svg",
 )
     lx = 20000.0
     lz = 20000.0

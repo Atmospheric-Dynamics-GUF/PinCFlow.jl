@@ -16,6 +16,6 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; wkb_wave_packet(; npx = 4, npy = 4, npz = 4)' &> wkb_wave_packet.log
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; wkb_wave_packet(; npx = 4, npy = 4, npz = 4, plot_file = "examples/results/wkb_wave_packet.svg")' &> wkb_wave_packet.log
 
 exit 0

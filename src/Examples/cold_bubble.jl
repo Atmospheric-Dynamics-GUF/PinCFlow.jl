@@ -8,7 +8,7 @@ function cold_bubble(;
     output_file::AbstractString = "cold_bubble.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/cold_bubble.svg",
+    plot_file::AbstractString = "cold_bubble.svg",
 )
     lx = 20000.0
     lz = 20000.0

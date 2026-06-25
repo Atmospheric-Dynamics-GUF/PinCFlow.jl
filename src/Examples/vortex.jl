@@ -8,7 +8,7 @@ function vortex(;
     output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/vortex.svg",
+    plot_file::AbstractString = "vortex.svg",
 )
     lx = 20000.0
     ly = 20000.0

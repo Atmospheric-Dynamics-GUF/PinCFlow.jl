@@ -8,7 +8,7 @@ function periodic_hill(;
     output_file::AbstractString = "periodic_hill.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/periodic_hill.svg",
+    plot_file::AbstractString = "periodic_hill.svg",
 )
     h0 = 500.0
     l0 = 10000.0
