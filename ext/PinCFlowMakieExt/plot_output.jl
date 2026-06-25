@@ -5,6 +5,7 @@
         Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
     };
     colormap_name::Symbol = :seismic,
+    significant_digits::Integer = 2,
     number::Integer = 10,
     space_unit::Symbol = :km,
     time_unit::Symbol = :h,
@@ -71,7 +72,7 @@
         column = 0
 
         # Round the time.
-        tn = round(t[n]; digits = 1)
+        tn = round(t[n]; sigdigits = significant_digits)
 
         if variable in ray_volume_properties
             # Get the ray-volume data.
@@ -90,118 +91,98 @@
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
                 column += 2
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
-                Axis(
-                    figure[row, column - 1];
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
-                    xlabel = L"x_r\ [\mathrm{%$space_unit}]",
-                    ylabel = L"y_r\ [\mathrm{%$space_unit}]",
+                zk = round(
+                    sum(z[:, :, k]) / length(z[:, :, k]);
+                    sigdigits = significant_digits,
                 )
-                nonzero = nr[:, :, :, k] .!= 0
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, :, k][nonzero]),
-                    maximum(phi[:, :, :, k][nonzero]);
-                    number,
-                    colormap_name,
-                )
-                plot = scatter!(
-                    xr[:, :, :, k][nonzero],
-                    yr[:, :, :, k][nonzero];
-                    color = phi[:, :, :, k][nonzero],
-                    colormap = cgrad(colormap; categorical = true),
-                    marker = Rect,
-                    markersize = collect(
-                        zip(dxr[:, :, :, k][nonzero], dyr[:, :, :, k][nonzero]),
+                add_scatter_plot!(
+                    figure,
+                    (;
+                        colormap_name,
+                        colums = (column - 1):column,
+                        dx = dxr[:, :, :, k],
+                        dy = dyr[:, :, :, k],
+                        label,
+                        mask = argmax(nr[:, :, :, k]; dims = 1),
+                        number,
+                        phi = phi[:, :, :, k],
+                        row,
+                        significant_digits,
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
+                        x = xr[:, :, :, k],
+                        x_label = L"x_r\ [\mathrm{%$space_unit}]",
+                        xmax = maximum(x),
+                        xmin = minimum(x),
+                        y = yr[:, :, :, k],
+                        y_label = L"y_r\ [\mathrm{%$space_unit}]",
+                        ymax = maximum(y),
+                        ymin = minimum(y),
                     ),
-                    markerspace = :data,
                 )
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(x), maximum(x))
-                ylims!(minimum(y), maximum(y))
             end
 
             # Plot in the x-z plane.
             if nx > 1 && nz > 1
                 column += 2
-                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
-                Axis(
-                    figure[row, column - 1];
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
-                    xlabel = L"x_r\ [\mathrm{%$space_unit}]",
-                    ylabel = L"z_r\ [\mathrm{%$space_unit}]",
+                yj = round(
+                    sum(y[:, j, :]) / length(y[:, j, :]);
+                    sigdigits = significant_digits,
                 )
-                nonzero = phi[:, :, j, :] .!= 0
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, j, :][nonzero]),
-                    maximum(phi[:, :, j, :][nonzero]);
-                    number,
-                    colormap_name,
-                )
-                plot = scatter!(
-                    xr[:, :, j, :][nonzero],
-                    zr[:, :, j, :][nonzero];
-                    color = phi[:, :, j, :][nonzero],
-                    colormap = cgrad(colormap; categorical = true),
-                    marker = Rect,
-                    markersize = collect(
-                        zip(dxr[:, :, j, :][nonzero], dzr[:, :, j, :][nonzero]),
+                add_scatter_plot!(
+                    figure,
+                    (;
+                        colormap_name,
+                        colums = (column - 1):column,
+                        dx = dxr[:, :, j, :],
+                        dy = dzr[:, :, j, :],
+                        mask = argmax(nr[:, :, j, :]; dims = 1),
+                        number,
+                        phi = phi[:, :, j, :],
+                        row,
+                        significant_digits,
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
+                        x = xr[:, :, j, :],
+                        x_label = L"x_r\ [\mathrm{%$space_unit}]",
+                        xmax = maximum(x),
+                        xmin = minimum(x),
+                        y = zr[:, :, j, :],
+                        y_label = L"z_r\ [\mathrm{%$space_unit}]",
+                        ymax = maximum(z),
+                        ymin = minimum(z),
                     ),
-                    markerspace = :data,
                 )
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(x), maximum(x))
-                ylims!(minimum(z), maximum(z))
             end
 
             # Plot in the y-z plane.
             if ny > 1 && nz > 1
                 column += 2
-                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
-                Axis(
-                    figure[row, column - 1];
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
-                    xlabel = L"y_r\ [\mathrm{%$space_unit}]",
-                    ylabel = L"z_r\ [\mathrm{%$space_unit}]",
+                xi = round(
+                    sum(x[i, :, :]) / length(x[i, :, :]);
+                    sigdigits = significant_digits,
                 )
-                nonzero = phi[:, i, :, :] .!= 0
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, i, :, :][nonzero]),
-                    maximum(phi[:, i, :, :][nonzero]);
-                    number,
-                    colormap_name,
-                )
-                plot = scatter!(
-                    yr[:, i, :, :][nonzero],
-                    zr[:, i, :, :][nonzero];
-                    color = phi[:, i, :, :][nonzero],
-                    colormap = cgrad(colormap; categorical = true),
-                    marker = Rect,
-                    markersize = collect(
-                        zip(dyr[:, i, :, :][nonzero], dzr[:, i, :, :][nonzero]),
+                add_scatter_plot!(
+                    figure,
+                    (;
+                        colormap_name,
+                        colums = (column - 1):column,
+                        dx = dyr[:, i, :, :],
+                        dy = dzr[:, i, :, :],
+                        mask = argmax(nr[:, i, :, :]; dims = 1),
+                        number,
+                        phi = phi[:, i, :, :],
+                        row,
+                        significant_digits,
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
+                        x = yr[:, i, :, :],
+                        x_label = L"x_r\ [\mathrm{%$space_unit}]",
+                        xmax = maximum(y),
+                        xmin = minimum(y),
+                        y = zr[:, i, :, :],
+                        y_label = L"z_r\ [\mathrm{%$space_unit}]",
+                        ymax = maximum(z),
+                        ymin = minimum(z),
                     ),
-                    markerspace = :data,
                 )
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(y), maximum(y))
-                ylims!(minimum(z), maximum(z))
             end
         else
             # Get the variable.
@@ -213,108 +194,67 @@
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
                 column += 2
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
-                axis = Axis(
-                    figure[row, column - 1];
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
-                    xlabel = L"x\ [\mathrm{%$space_unit}]",
-                    ylabel = L"y\ [\mathrm{%$space_unit}]",
+                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); sigdigits = significant_digits)
+                add_contour_plot!(
+                    figure,
+                    (;
+                        colormap_name,
+                        columns = (column - 1):column,
+                        number,
+                        phi = phi[:, :, k],
+                        row,
+                        significant_digits,
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
+                        x = x[:, :, k],
+                        x_label = L"x\ [\mathrm{%$space_unit}]",
+                        y = y[:, :, k],
+                        y_label = L"y\ [\mathrm{%$space_unit}]",
+                    ),
                 )
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, k]),
-                    maximum(phi[:, :, k]);
-                    number,
-                    colormap_name,
-                )
-                plot = contourf!(
-                    x[:, :, k],
-                    y[:, :, k],
-                    phi[:, :, k];
-                    levels,
-                    colormap,
-                )
-                tightlimits!(axis)
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(x), maximum(x))
-                ylims!(minimum(y), maximum(y))
             end
 
             # Plot in the x-z plane.
             if nx > 1 && nz > 1
                 column += 2
-                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
-                axis = Axis(
-                    figure[row, column - 1];
-                    backgroundcolor = :black,
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
-                    xlabel = L"x\ [\mathrm{%$space_unit}]",
-                    ylabel = L"z\ [\mathrm{%$space_unit}]",
+                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); sigdigits = significant_digits)
+                add_contour_plot!(
+                    figure,
+                    (;
+                        colormap_name,
+                        columns = (column - 1):column,
+                        number,
+                        phi = phi[:, j, :],
+                        row,
+                        significant_digits,
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
+                        x = x[:, j, :],
+                        x_label = L"x\ [\mathrm{%$space_unit}]",
+                        y = z[:, j, :],
+                        y_label = L"z\ [\mathrm{%$space_unit}]",
+                    ),
                 )
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, j, :]),
-                    maximum(phi[:, j, :]);
-                    number,
-                    colormap_name,
-                )
-                plot = contourf!(
-                    x[:, j, :],
-                    z[:, j, :],
-                    phi[:, j, :];
-                    levels,
-                    colormap,
-                )
-                tightlimits!(axis)
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(x), maximum(x))
-                ylims!(minimum(z), maximum(z))
             end
 
             # Plot in the y-z plane.
             if ny > 1 && nz > 1
                 column += 2
-                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
-                axis = Axis(
-                    figure[row, column - 1];
-                    backgroundcolor = :black,
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
-                    xlabel = L"y\ [\mathrm{%$space_unit}]",
-                    ylabel = L"z\ [\mathrm{%$space_unit}]",
+                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); sigdigits = significant_digits)
+                add_contour_plot!(
+                    figure,
+                    (;
+                        colormap_name,
+                        columns = (column - 1):column,
+                        number,
+                        phi = phi[i, :, :],
+                        row,
+                        significant_digits,
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
+                        x = y[i, :, :],
+                        x_label = L"y\ [\mathrm{%$space_unit}]",
+                        y = z[i, :, :],
+                        y_label = L"z\ [\mathrm{%$space_unit}]",
+                    ),
                 )
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[i, :, :]),
-                    maximum(phi[i, :, :]);
-                    number,
-                    colormap_name,
-                )
-                plot = contourf!(
-                    y[i, :, :],
-                    z[i, :, :],
-                    phi[i, :, :];
-                    levels,
-                    colormap,
-                )
-                tightlimits!(axis)
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(y), maximum(y))
-                ylims!(minimum(z), maximum(z))
             end
         end
     end
