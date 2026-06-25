@@ -4,7 +4,6 @@
     fields::Vararg{
         Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
     };
-    number::Integer = 10,
     colormap_name::Symbol = :seismic,
     number::Integer = 10,
     space_unit::Symbol = :km,
