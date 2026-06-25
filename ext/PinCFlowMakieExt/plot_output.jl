@@ -6,8 +6,9 @@
     };
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
-    space_unit::AbstractString = "km",
-    time_unit::AbstractString = "h",
+    number::Integer = 10,
+    space_unit::Symbol = :km,
+    time_unit::Symbol = :h,
 )
     set_visualization_theme!()
 
@@ -29,22 +30,22 @@
     )
 
     # Set the space unit factor.
-    if space_unit == "km"
+    if space_unit === :km
         space_unit_factor = 1000
-    elseif space_unit == "m"
+    elseif space_unit === :m
         space_unit_factor = 1
     else
         error("Error: Unknown space unit!")
     end
 
     # Set the time unit factor.
-    if time_unit == "d"
+    if time_unit === :d
         time_unit_factor = 86400
-    elseif time_unit == "h"
+    elseif time_unit === :h
         time_unit_factor = 3600
-    elseif time_unit == "min"
+    elseif time_unit === :min
         time_unit_factor = 60
-    elseif time_unit == "s"
+    elseif time_unit === :s
         time_unit_factor = 1
     else
         error("Error: Unknown time unit!")

@@ -6,10 +6,10 @@ plot_output(
     fields::Vararg{
         Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
     };
-    number::Integer = 10,
     colormap_name::Symbol = :seismic,
-    space_unit::AbstractString = "km",
-    time_unit::AbstractString = "h",
+    number::Integer = 10,
+    space_unit::Symbol = :km,
+    time_unit::Symbol = :h,
 )
 ```
 
@@ -31,8 +31,8 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `label`: Colorbar label for the plots.
 
-  - `space_unit`: Unit used for the coordinates. Must be `"km"` or `"m"`.
+  - `space_unit`: Unit used for the coordinates. Must be `:km` or `:m`.
 
-  - `time_unit`: Unit used for the time. Must be `"d"`, `"h"`, `"min"` or `"s"`.
+  - `time_unit`: Unit used for the time. Must be `:d`, `:h`, `:min` or `:s`.
 """
 function plot_output end
