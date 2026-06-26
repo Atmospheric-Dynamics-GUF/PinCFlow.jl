@@ -80,9 +80,9 @@ function wave_packet(;
         plot_output(
             plot_file,
             output_file,
-            ("u", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
-            ("v", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
-            ("w", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2);
+            (:u, 0.5, 0.5, 0.5, 2),
+            (:v, 0.5, 0.5, 0.5, 2),
+            (:w, 0.5, 0.5, 0.5, 2);
             time_unit = :min,
         )
     end

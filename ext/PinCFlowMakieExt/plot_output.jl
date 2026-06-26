@@ -2,7 +2,10 @@
     plot_file::AbstractString,
     data_file::AbstractString,
     fields::Vararg{
-        Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
+        Union{
+            Tuple{Symbol, <:Integer},
+            Tuple{Symbol, <:Real, <:Real, <:Real, <:Integer},
+        },
     };
     colormap_name::Symbol = :seismic,
     number::Integer = 10,
@@ -13,21 +16,8 @@
     set_visualization_theme!()
 
     # Store the ray-volume property names.
-    ray_volume_properties = (
-        "xr",
-        "yr",
-        "zr",
-        "dxr",
-        "dyr",
-        "dzr",
-        "kr",
-        "lr",
-        "mr",
-        "dkr",
-        "dlr",
-        "dmr",
-        "nr",
-    )
+    ray_volume_properties =
+        (:xr, :yr, :zr, :dxr, :dyr, :dzr, :kr, :lr, :mr, :dkr, :dlr, :dmr, :nr)
 
     # Set the space unit factor.
     if space_unit === :km
@@ -72,15 +62,35 @@
 
         # Loop over outputs.
         row = 0
-        for (variable, i, j, k, n) in fields
+        for field in fields
             row += 1
             column = 0
+
+            # Check if the fields specification is correct.
+            if nx > 1 && ny > 1 && nz > 1 && length(field) != 5
+                error("Incorrect fields specification for 3D data!")
+            end
+            if length(field) == 5
+                for index in 2:4
+                    if field[index] < 0 || field[index] > 1
+                        error("Incorrect plane specification!")
+                    end
+                end
+            end
+
+            # Determine the data slices.
+            (variable, n) = (field[1], field[end])
+            if length(field) == 5
+                (i, j, k) = ceil.(Int64, field[2:4] .* (nx, ny, nz))
+            else
+                i = j = k = 1
+            end
 
             # Round the time.
             tn = round(t[n]; sigdigits)
 
             # Get the label.
-            label = LaTeXString(attrs(data[variable])["label"])
+            label = LaTeXString(attrs(data[string(variable)])["label"])
 
             if variable in ray_volume_properties
                 # Get the ray-volume data.
@@ -103,7 +113,8 @@
                     round.(data["dzr"][:, :, :, :, n]; sigdigits) ./
                     space_unit_factor
                 nr = round.(data["nr"][:, :, :, :, n]; sigdigits)
-                phi = round.(data[variable][:, :, :, :, n]; sigdigits)
+                phi =
+                    round.(data[string(variable)][:, :, :, :, n]; sigdigits)
 
                 # Plot in the x-y plane.
                 if nx > 1 && ny > 1
@@ -193,7 +204,7 @@
                 end
             else
                 # Get the variable.
-                phi = round.(data[variable][:, :, :, n]; sigdigits)
+                phi = round.(data[string(variable)][:, :, :, n]; sigdigits)
 
                 # Plot in the x-y plane.
                 if nx > 1 && ny > 1

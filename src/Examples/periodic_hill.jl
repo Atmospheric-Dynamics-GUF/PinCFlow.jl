@@ -40,7 +40,7 @@ function periodic_hill(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(plot_file, output_file, ("w", 1, 1, 1, 2))
+        plot_output(plot_file, output_file, (:w, 2))
     end
 
     return

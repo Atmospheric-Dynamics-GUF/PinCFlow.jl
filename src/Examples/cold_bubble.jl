@@ -41,7 +41,7 @@ function cold_bubble(;
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(plot_file, output_file, ("thetap", 1, 1, 1, 2))
+        plot_output(plot_file, output_file, (:thetap, 2))
     end
 
     return

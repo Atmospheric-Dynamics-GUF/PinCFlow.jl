@@ -65,7 +65,7 @@ function wkb_wave_packet(;
         plot_output(
             plot_file,
             output_file,
-            ("nr", div(x_size, 2), div(y_size, 2), div(z_size, 2), 1);
+            (:nr, 0.5, 0.5, 0.5, 2);
             time_unit = :min,
         )
     end

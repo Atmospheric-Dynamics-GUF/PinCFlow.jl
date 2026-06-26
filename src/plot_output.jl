@@ -4,7 +4,10 @@ plot_output(
     plot_file::AbstractString,
     data_file::AbstractString,
     fields::Vararg{
-        Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
+        Union{
+            Tuple{Symbol, <:Integer},
+            Tuple{Symbol, <:Real, <:Real, <:Real, <:Integer},
+        },
     };
     colormap_name::Symbol = :seismic,
     number::Integer = 10,
@@ -22,7 +25,7 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `data_file`: HDF5 file with PinCFlow.jl output data.
 
-  - `fields`: Tuples of a variable name and four indices. The first three indices of each tuple define the planes in which the contours are to be plotted, whereas the fourth is the temporal index.
+  - `fields`: Either tuples of a variable name and a temporal index (for 2D data), or tuples of a variable name, three fractions which define the relative positions of the ``\\hat{y}``-``\\hat{z}``, ``\\hat{x}``-``\\hat{z}``, and ``\\hat{x}``-``\\hat{y}`` planes, and a temporal index (for 3D data).
 
 # Keywords
 
