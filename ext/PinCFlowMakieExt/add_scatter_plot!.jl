@@ -3,6 +3,7 @@ function add_scatter_plot! end
 function add_scatter_plot!(figure::Figure, input::NamedTuple)
     (;
         colormap_name,
+        color_tick_format,
         columns,
         dx,
         dy,
@@ -16,13 +17,22 @@ function add_scatter_plot!(figure::Figure, input::NamedTuple)
         x_label,
         xmax,
         xmin,
+        x_tick_format,
         y,
         y_label,
         ymax,
         ymin,
+        y_tick_format,
     ) = input
 
-    Axis(figure[row, columns[1]]; title, xlabel = x_label, ylabel = y_label)
+    Axis(
+        figure[row, columns[1]];
+        title,
+        xlabel = x_label,
+        xtickformat = x_tick_format,
+        ylabel = y_label,
+        ytickformat = y_tick_format,
+    )
     (levels, colormap) = symmetric_contours(
         minimum(phi[mask]),
         maximum(phi[mask]);
@@ -43,7 +53,7 @@ function add_scatter_plot!(figure::Figure, input::NamedTuple)
         figure[row, columns[2]],
         plot;
         ticks = levels,
-        tickformat = "{:.2E}",
+        tickformat = color_tick_format,
         label,
     )
     xlims!(xmin, xmax)

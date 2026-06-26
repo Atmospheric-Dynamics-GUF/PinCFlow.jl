@@ -8,10 +8,14 @@
         },
     };
     colormap_name::Symbol = :seismic,
+    color_tick_format::AbstractString = "{:.2E}",
     number::Integer = 10,
     significant_digits::Integer = 3,
     space_unit::Symbol = :km,
     time_unit::Symbol = :h,
+    x_tick_format::AbstractString = "{:.0f}",
+    y_tick_format::AbstractString = "{:.0f}",
+    z_tick_format::AbstractString = "{:.0f}",
 )
     set_visualization_theme!()
 
@@ -124,6 +128,7 @@
                         figure,
                         (;
                             colormap_name,
+                            color_tick_format,
                             columns = (column - 1):column,
                             dx = dxr[:, :, :, k],
                             dy = dyr[:, :, :, k],
@@ -137,10 +142,12 @@
                             x_label = L"x_r\ [\mathrm{%$space_unit}]",
                             xmax = maximum(x),
                             xmin = minimum(x),
+                            x_tick_format,
                             y = yr[:, :, :, k],
                             y_label = L"y_r\ [\mathrm{%$space_unit}]",
                             ymax = maximum(y),
                             ymin = minimum(y),
+                            y_tick_format,
                         ),
                     )
                 end
@@ -153,6 +160,7 @@
                         figure,
                         (;
                             colormap_name,
+                            color_tick_format,
                             columns = (column - 1):column,
                             dx = dxr[:, :, j, :],
                             dy = dzr[:, :, j, :],
@@ -166,10 +174,12 @@
                             x_label = L"x_r\ [\mathrm{%$space_unit}]",
                             xmax = maximum(x),
                             xmin = minimum(x),
+                            x_tick_format,
                             y = zr[:, :, j, :],
                             y_label = L"z_r\ [\mathrm{%$space_unit}]",
                             ymax = maximum(z),
                             ymin = minimum(z),
+                            y_tick_format = z_tick_format,
                         ),
                     )
                 end
@@ -182,6 +192,7 @@
                         figure,
                         (;
                             colormap_name,
+                            color_tick_format,
                             columns = (column - 1):column,
                             dx = dyr[:, i, :, :],
                             dy = dzr[:, i, :, :],
@@ -195,10 +206,12 @@
                             x_label = L"x_r\ [\mathrm{%$space_unit}]",
                             xmax = maximum(y),
                             xmin = minimum(y),
+                            x_tick_format = y_tick_format,
                             y = zr[:, i, :, :],
                             y_label = L"z_r\ [\mathrm{%$space_unit}]",
                             ymax = maximum(z),
                             ymin = minimum(z),
+                            y_tick_format = z_tick_format,
                         ),
                     )
                 end
@@ -215,6 +228,7 @@
                         (;
                             background_color = :black,
                             colormap_name,
+                            color_tick_format,
                             columns = (column - 1):column,
                             label,
                             number,
@@ -223,8 +237,10 @@
                             title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
                             x = x[:, :, k],
                             x_label = L"x\ [\mathrm{%$space_unit}]",
+                            x_tick_format,
                             y = y[:, :, k],
                             y_label = L"y\ [\mathrm{%$space_unit}]",
+                            y_tick_format,
                         ),
                     )
                 end
@@ -238,6 +254,7 @@
                         (;
                             background_color = :black,
                             colormap_name,
+                            color_tick_format,
                             columns = (column - 1):column,
                             label,
                             number,
@@ -246,8 +263,10 @@
                             title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
                             x = x[:, j, :],
                             x_label = L"x\ [\mathrm{%$space_unit}]",
+                            x_tick_format,
                             y = z[:, j, :],
                             y_label = L"z\ [\mathrm{%$space_unit}]",
+                            y_tick_format = z_tick_format,
                         ),
                     )
                 end
@@ -261,6 +280,7 @@
                         (;
                             background_color = :black,
                             colormap_name,
+                            color_tick_format,
                             columns = (column - 1):column,
                             label,
                             number,
@@ -269,8 +289,10 @@
                             title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
                             x = y[i, :, :],
                             x_label = L"y\ [\mathrm{%$space_unit}]",
+                            x_tick_format = y_tick_format,
                             y = z[i, :, :],
                             y_label = L"z\ [\mathrm{%$space_unit}]",
+                            y_tick_format = z_tick_format,
                         ),
                     )
                 end
