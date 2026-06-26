@@ -29,8 +29,10 @@ function add_scatter_plot!(figure::Figure, input::NamedTuple)
         figure[row, columns[1]];
         title,
         xlabel = x_label,
+        xticks = xmin .+ [0.1, 0.5, 0.9] .* (xmax .- xmin),
         xtickformat = x_tick_format,
         ylabel = y_label,
+        yticks = ymin .+ [0.1, 0.5, 0.9] .* (ymax .- ymin),
         ytickformat = y_tick_format,
     )
     (levels, colormap) = symmetric_contours(
@@ -52,7 +54,7 @@ function add_scatter_plot!(figure::Figure, input::NamedTuple)
     Colorbar(
         figure[row, columns[2]],
         plot;
-        ticks = levels,
+        ticks = levels[tick_indices(levels)],
         tickformat = color_tick_format,
         label,
     )

@@ -8,7 +8,7 @@
         },
     };
     colormap_name::Symbol = :seismic,
-    color_tick_format::AbstractString = "{:.2E}",
+    color_tick_format::AbstractString = "{:.1E}",
     number::Integer = 10,
     significant_digits::Integer = 3,
     space_unit::Symbol = :km,
