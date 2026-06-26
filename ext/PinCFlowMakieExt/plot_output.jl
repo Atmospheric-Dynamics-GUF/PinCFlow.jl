@@ -91,7 +91,7 @@
             end
 
             # Round the time.
-            tn = round(t[n]; sigdigits)
+            tn = round(t[n]; digits = 1)
 
             # Get the label.
             label = LaTeXString(attrs(data[string(variable)])["label"])
@@ -123,7 +123,7 @@
                 # Plot in the x-y plane.
                 if nx > 1 && ny > 1
                     column += 2
-                    zk = round(sum(z[:, :, k]) / length(z[:, :, k]); sigdigits)
+                    zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
                     add_scatter_plot!(
                         figure,
                         (;
@@ -155,7 +155,7 @@
                 # Plot in the x-z plane.
                 if nx > 1 && nz > 1
                     column += 2
-                    yj = round(sum(y[:, j, :]) / length(y[:, j, :]); sigdigits)
+                    yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
                     add_scatter_plot!(
                         figure,
                         (;
@@ -187,7 +187,7 @@
                 # Plot in the y-z plane.
                 if ny > 1 && nz > 1
                     column += 2
-                    xi = round(sum(x[i, :, :]) / length(x[i, :, :]); sigdigits)
+                    xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
                     add_scatter_plot!(
                         figure,
                         (;
@@ -222,7 +222,7 @@
                 # Plot in the x-y plane.
                 if nx > 1 && ny > 1
                     column += 2
-                    zk = round(sum(z[:, :, k]) / length(z[:, :, k]); sigdigits)
+                    zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
                     add_contour_plot!(
                         figure,
                         (;
@@ -248,7 +248,7 @@
                 # Plot in the x-z plane.
                 if nx > 1 && nz > 1
                     column += 2
-                    yj = round(sum(y[:, j, :]) / length(y[:, j, :]); sigdigits)
+                    yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
                     add_contour_plot!(
                         figure,
                         (;
@@ -274,7 +274,7 @@
                 # Plot in the y-z plane.
                 if ny > 1 && nz > 1
                     column += 2
-                    xi = round(sum(x[i, :, :]) / length(x[i, :, :]); sigdigits)
+                    xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
                     add_contour_plot!(
                         figure,
                         (;
