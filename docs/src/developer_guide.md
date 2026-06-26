@@ -40,6 +40,8 @@ Contributions to the code should respect the following rules.
 
   - Use PincFlow.jl's `@dispatch` for value dispatch.
 
+  - Nest `for` loops in column-major order.
+
   - Do not use Unicode.
 
   - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters (in alphabetical order). For all other objects, use `snake_case`.
