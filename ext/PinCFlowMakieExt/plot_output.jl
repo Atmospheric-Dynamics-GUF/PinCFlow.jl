@@ -5,7 +5,7 @@
         Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
     };
     colormap_name::Symbol = :seismic,
-    significant_digits::Integer = 2,
+    significant_digits::Integer = 3,
     number::Integer = 10,
     space_unit::Symbol = :km,
     time_unit::Symbol = :h,
@@ -74,6 +74,9 @@
         # Round the time.
         tn = round(t[n]; sigdigits = significant_digits)
 
+        # Get the label.
+        label = LaTeXString(attrs(data[variable])["label"])
+
         if variable in ray_volume_properties
             # Get the ray-volume data.
             xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
@@ -84,9 +87,6 @@
             dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
             nr = data["nr"][:, :, :, :, n]
             phi = data[variable][:, :, :, :, n]
-
-            # Get the label.
-            label = LaTeXString(attrs(data[variable])["label"])
 
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
@@ -99,11 +99,11 @@
                     figure,
                     (;
                         colormap_name,
-                        colums = (column - 1):column,
+                        columns = (column - 1):column,
                         dx = dxr[:, :, :, k],
                         dy = dyr[:, :, :, k],
                         label,
-                        mask = argmax(nr[:, :, :, k]; dims = 1),
+                        mask = nr[:, :, :, k] .!= 0,
                         number,
                         phi = phi[:, :, :, k],
                         row,
@@ -132,10 +132,11 @@
                     figure,
                     (;
                         colormap_name,
-                        colums = (column - 1):column,
+                        columns = (column - 1):column,
                         dx = dxr[:, :, j, :],
                         dy = dzr[:, :, j, :],
-                        mask = argmax(nr[:, :, j, :]; dims = 1),
+                        label,
+                        mask = nr[:, :, j, :] .!= 0,
                         number,
                         phi = phi[:, :, j, :],
                         row,
@@ -164,10 +165,11 @@
                     figure,
                     (;
                         colormap_name,
-                        colums = (column - 1):column,
+                        columns = (column - 1):column,
                         dx = dyr[:, i, :, :],
                         dy = dzr[:, i, :, :],
-                        mask = argmax(nr[:, i, :, :]; dims = 1),
+                        label,
+                        mask = nr[:, i, :, :] .!= 0,
                         number,
                         phi = phi[:, i, :, :],
                         row,
@@ -188,18 +190,20 @@
             # Get the variable.
             phi = data[variable][:, :, :, n]
 
-            # Get the label.
-            label = LaTeXString(attrs(data[variable])["label"])
-
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
                 column += 2
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); sigdigits = significant_digits)
+                zk = round(
+                    sum(z[:, :, k]) / length(z[:, :, k]);
+                    sigdigits = significant_digits,
+                )
                 add_contour_plot!(
                     figure,
                     (;
+                        background_color = :black,
                         colormap_name,
                         columns = (column - 1):column,
+                        label,
                         number,
                         phi = phi[:, :, k],
                         row,
@@ -216,12 +220,17 @@
             # Plot in the x-z plane.
             if nx > 1 && nz > 1
                 column += 2
-                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); sigdigits = significant_digits)
+                yj = round(
+                    sum(y[:, j, :]) / length(y[:, j, :]);
+                    sigdigits = significant_digits,
+                )
                 add_contour_plot!(
                     figure,
                     (;
+                        background_color = :black,
                         colormap_name,
                         columns = (column - 1):column,
+                        label,
                         number,
                         phi = phi[:, j, :],
                         row,
@@ -238,12 +247,17 @@
             # Plot in the y-z plane.
             if ny > 1 && nz > 1
                 column += 2
-                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); sigdigits = significant_digits)
+                xi = round(
+                    sum(x[i, :, :]) / length(x[i, :, :]);
+                    sigdigits = significant_digits,
+                )
                 add_contour_plot!(
                     figure,
                     (;
+                        background_color = :black,
                         colormap_name,
                         columns = (column - 1):column,
+                        label,
                         number,
                         phi = phi[i, :, :],
                         row,

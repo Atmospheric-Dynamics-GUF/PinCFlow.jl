@@ -46,7 +46,7 @@ function add_scatter_plot!(figure::Figure, input::NamedTuple)
         figure[row, columns[2]],
         plot;
         ticks = round.(levels; sigdigits),
-        tickformat = "{:8.1E}",
+        tickformat = "{:.$(sigdigits - 1)E}",
         label,
     )
     xlims!(xmin, xmax)
