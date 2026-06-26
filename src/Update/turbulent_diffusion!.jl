@@ -315,7 +315,6 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
-    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -325,16 +324,38 @@ end
         kmu =
             0.5 * (
                 (
-                    jac[i, j, k] * (km[i, j, k + 1] / jac[i, j, k + 1]
+                    jac[i, j, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k + 1,
+                            KM(),
+                        ) / jac[i, j, k + 1]
                     ) +
-                    jac[i, j, k + 1] * (km[i, j, k]/
+                    jac[i, j, k + 1] * (
+                        turbulence_diffusion_coefficient(state, i, j, k, KM()) /
                         jac[i, j, k]
                     )
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) +
                 (
-                    jac[i + 1, j, k] * (km[i + 1, j, k + 1] / jac[i + 1, j, k + 1]
+                    jac[i + 1, j, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i + 1,
+                            j,
+                            k + 1,
+                            KM(),
+                        ) / jac[i + 1, j, k + 1]
                     ) +
-                    jac[i + 1, j, k + 1] * (km[i + 1, j, k] / jac[i + 1, j, k]
+                    jac[i + 1, j, k + 1] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i + 1,
+                            j,
+                            k,
+                            KM(),
+                        ) / jac[i + 1, j, k]
                     )
                 ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
             )
@@ -343,16 +364,37 @@ end
             0.5 * (
                 (
                     jac[i, j, k] * (
-                        km[i, j, k-1] / jac[i, j, k - 1]
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k - 1,
+                            KM(),
+                        ) / jac[i, j, k - 1]
                     ) +
-                    jac[i, j, k - 1] * ( km[i, j, k] /
+                    jac[i, j, k - 1] * (
+                        turbulence_diffusion_coefficient(state, i, j, k, KM()) /
                         jac[i, j, k]
                     )
                 ) / (jac[i, j, k] + jac[i, j, k - 1]) +
                 (
-                    jac[i + 1, j, k] * (km[i+1, j, k-1] / jac[i + 1, j, k - 1]
+                    jac[i + 1, j, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i + 1,
+                            j,
+                            k - 1,
+                            KM(),
+                        ) / jac[i + 1, j, k - 1]
                     ) +
-                    jac[i + 1, j, k - 1] * (km[i+1, j, k] / jac[i + 1, j, k]
+                    jac[i + 1, j, k - 1] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i + 1,
+                            j,
+                            k,
+                            KM(),
+                        ) / jac[i + 1, j, k]
                     )
                 ) / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
             )
@@ -383,7 +425,6 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
-    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -393,16 +434,38 @@ end
         kmu =
             0.5 * (
                 (
-                    jac[i, j, k] * (km[i, j, k+1] / jac[i, j, k + 1]
+                    jac[i, j, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k + 1,
+                            KM(),
+                        ) / jac[i, j, k + 1]
                     ) +
-                    jac[i, j, k + 1] * ( km[i, j, k] /
+                    jac[i, j, k + 1] * (
+                        turbulence_diffusion_coefficient(state, i, j, k, KM()) /
                         jac[i, j, k]
                     )
                 ) / (jac[i, j, k] + jac[i, j, k + 1]) +
                 (
-                    jac[i, j + 1, k] * (km[i, j+1, k+1] / jac[i, j + 1, k + 1]
+                    jac[i, j + 1, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j + 1,
+                            k + 1,
+                            KM(),
+                        ) / jac[i, j + 1, k + 1]
                     ) +
-                    jac[i, j + 1, k + 1] * (km[i, j+1, k] / jac[i, j + 1, k]
+                    jac[i, j + 1, k + 1] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j + 1,
+                            k,
+                            KM(),
+                        ) / jac[i, j + 1, k]
                     )
                 ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
             )
@@ -410,16 +473,38 @@ end
         kmd =
             0.5 * (
                 (
-                    jac[i, j, k] * (km[i, j, k-1] / jac[i, j, k - 1]
+                    jac[i, j, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k - 1,
+                            KM(),
+                        ) / jac[i, j, k - 1]
                     ) +
-                    jac[i, j, k - 1] * (km[i, j, k] /
+                    jac[i, j, k - 1] * (
+                        turbulence_diffusion_coefficient(state, i, j, k, KM()) /
                         jac[i, j, k]
                     )
                 ) / (jac[i, j, k] + jac[i, j, k - 1]) +
                 (
-                    jac[i, j + 1, k] * (km[i, j+1, k-1] / jac[i, j + 1, k - 1]
+                    jac[i, j + 1, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j + 1,
+                            k - 1,
+                            KM(),
+                        ) / jac[i, j + 1, k - 1]
                     ) +
-                    jac[i, j + 1, k - 1] * (km[i, j+1, k] / jac[i, j + 1, k]
+                    jac[i, j + 1, k - 1] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j + 1,
+                            k,
+                            KM(),
+                        ) / jac[i, j + 1, k]
                     )
                 ) / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
             )
@@ -450,7 +535,6 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
-    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -458,9 +542,11 @@ end
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         kmu =
-            km[i, j, k+1] / jac[i, j, k + 1]
+            turbulence_diffusion_coefficient(state, i, j, k + 1, KM()) /
+            jac[i, j, k + 1]
         kmd =
-            km[i, j, k-1] / jac[i, j, k - 1]
+            turbulence_diffusion_coefficient(state, i, j, k, KM()) /
+            jac[i, j, k]
 
         wu = compute_vertical_wind(i, j, k + 1, state)
         wc = compute_vertical_wind(i, j, k, state)
@@ -543,7 +629,6 @@ end
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
     (; rhobar) = state.atmosphere
-    (; kh) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -553,22 +638,22 @@ end
         khd =
             (
                 jac[i, j, k - 1] * (
-                    kh[i, j, k] /
+                    turbulence_diffusion_coefficient(state, i, j, k, KH()) /
                     jac[i, j, k]
                 ) +
                 jac[i, j, k] * (
-                    kh[i, j, k-1] /
+                    turbulence_diffusion_coefficient(state, i, j, k - 1, KH()) /
                     jac[i, j, k - 1]
                 )
             ) / (jac[i, j, k - 1] + jac[i, j, k])
         khu =
             (
                 jac[i, j, k + 1] * (
-                    kh[i, j, k] /
+                    turbulence_diffusion_coefficient(state, i, j, k, KH()) /
                     jac[i, j, k]
                 ) +
                 jac[i, j, k] * (
-                    kh[i, j, k+1] /
+                    turbulence_diffusion_coefficient(state, i, j, k + 1, KH()) /
                     jac[i, j, k + 1]
                 )
             ) / (jac[i, j, k + 1] + jac[i, j, k])
@@ -631,7 +716,6 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
-    (; kh) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -642,21 +726,34 @@ end
         for k in k0:k1, j in j0:j1, i in i0:i1
             khd =
                 (
-                    jac[i, j, k - 1] * (kh[i, j, k] /
+                    jac[i, j, k - 1] * (
+                        turbulence_diffusion_coefficient(state, i, j, k, KH()) /
                         jac[i, j, k]
                     ) +
                     jac[i, j, k] * (
-                        kh[i, j, k-1] / jac[i, j, k - 1]
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k - 1,
+                            KH(),
+                        ) / jac[i, j, k - 1]
                     )
                 ) / (jac[i, j, k - 1] + jac[i, j, k])
             khu =
                 (
                     jac[i, j, k + 1] * (
-                        kh[i, j, k] /
+                        turbulence_diffusion_coefficient(state, i, j, k, KH()) /
                         jac[i, j, k]
                     ) +
                     jac[i, j, k] * (
-                        kh[i, j, k+1]/ jac[i, j, k + 1]
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k + 1,
+                            KH(),
+                        ) / jac[i, j, k + 1]
                     )
                 ) / (jac[i, j, k + 1] + jac[i, j, k])
 

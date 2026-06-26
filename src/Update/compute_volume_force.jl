@@ -297,7 +297,7 @@ end
     (; km, kh) = state.turbulence.turbulencediffusioncoefficients
 
     shear =
-        km[i, j, k] * (
+        turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
             compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
             compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
         )
@@ -311,7 +311,7 @@ end
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
     buoyancy =
-        -kh[i, j, k] *
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
         (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
 
     buoyancy_production[i, j, k] = buoyancy
@@ -342,7 +342,8 @@ end
     (; shear) = state.wkb.auxiliaries
     (; km) = state.turbulence.turbulencediffusioncoefficients
 
-    gw_shear = km[i, j, k] * shear[i, j, k]
+    gw_shear = turbulence_diffusion_coefficient(state, i, j, k, KM()) * 
+        shear[i, j, k]
 
     return gw_shear
 end

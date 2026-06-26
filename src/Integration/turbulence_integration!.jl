@@ -204,7 +204,6 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
-    (; kek) = state.turbulence.turbulencediffusioncoefficients
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -214,19 +213,33 @@ end
         kekd =
             (
                 jac[i, j, k - 1] * (
-                    kek[i, j, k] / jac[i, j, k]
+                    turbulence_diffusion_coefficient(state, i, j, k, KEK()) /
+                    jac[i, j, k]
                 ) +
                 jac[i, j, k] * (
-                    kek[i, j, k-1] / jac[i, j, k - 1]
+                    turbulence_diffusion_coefficient(
+                        state,
+                        i,
+                        j,
+                        k - 1,
+                        KEK(),
+                    ) / jac[i, j, k - 1]
                 )
             ) / (jac[i, j, k - 1] + jac[i, j, k])
         keku =
             (
                 jac[i, j, k + 1] * (
-                    kek[i, j, k] / jac[i, j, k]
+                    turbulence_diffusion_coefficient(state, i, j, k, KEK()) /
+                    jac[i, j, k]
                 ) +
                 jac[i, j, k] * (
-                    kek[i, j, k+1] / jac[i, j, k + 1]
+                    turbulence_diffusion_coefficient(
+                        state,
+                        i,
+                        j,
+                        k + 1,
+                        KEK(),
+                    ) / jac[i, j, k + 1]
                 )
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
