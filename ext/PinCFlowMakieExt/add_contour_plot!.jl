@@ -41,6 +41,7 @@ function add_contour_plot!(figure::Figure, input::NamedTuple)
     tightlimits!(axis)
     Colorbar(
         figure[row, columns[2]];
+        colormap = cgrad(colormap; categorical = true),
         label,
         limits = (levels[1], levels[end]),
         tickformat = color_tick_format,
