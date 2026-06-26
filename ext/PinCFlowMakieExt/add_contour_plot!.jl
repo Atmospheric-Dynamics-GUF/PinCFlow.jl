@@ -24,7 +24,7 @@ function add_contour_plot!(figure::Figure, input::NamedTuple)
         round.(x; sigdigits),
         round.(y; sigdigits),
         round.(phi; sigdigits);
-        round.(levels; sigdigits),
+        levels = round.(levels; sigdigits),
         colormap,
     )
     tightlimits!(axis)
