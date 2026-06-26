@@ -265,6 +265,8 @@
                 end
             end
         end
+
+        return figure
     end
 
     # Resize, display and save the figure.
