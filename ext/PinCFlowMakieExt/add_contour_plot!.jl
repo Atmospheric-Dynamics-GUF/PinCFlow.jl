@@ -1,6 +1,6 @@
 function add_contour_plot! end
 
-function add_contour_plot!(figure::Figure, input::NamedTuple)
+@ivy function add_contour_plot!(figure::Figure, input::NamedTuple)
     (;
         background_color,
         colormap_name,

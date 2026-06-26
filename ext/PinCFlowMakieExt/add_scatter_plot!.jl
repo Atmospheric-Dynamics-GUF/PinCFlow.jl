@@ -1,6 +1,6 @@
 function add_scatter_plot! end
 
-function add_scatter_plot!(figure::Figure, input::NamedTuple)
+@ivy function add_scatter_plot!(figure::Figure, input::NamedTuple)
     (;
         colormap_name,
         color_tick_format,
