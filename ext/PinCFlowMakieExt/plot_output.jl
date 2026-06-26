@@ -51,16 +51,19 @@
         error("Error: Unknown time unit!")
     end
 
+    # Set the significant digits.
+    sigdigits = significant_digits
+
     # Set the grid.
-    x = data["x"][:] ./ space_unit_factor
-    y = data["y"][:] ./ space_unit_factor
-    z = data["z"][:, :, :] ./ space_unit_factor
+    x = round.(data["x"][:]; sigdigits) ./ space_unit_factor
+    y = round.(data["y"][:]; sigdigits) ./ space_unit_factor
+    z = round.(data["z"][:, :, :]; sigdigits) ./ space_unit_factor
     (nx, ny, nz) = size(z)
     x = [xi for xi in x, j in 1:ny, k in 1:nz]
     y = [yj for i in 1:nx, yj in y, k in 1:nz]
 
     # Get the time.
-    t = data["t"][:] ./ time_unit_factor
+    t = round.(data["t"][:]; sigdigits) ./ time_unit_factor
 
     # Create the figure.
     figure = Figure()
@@ -72,29 +75,38 @@
         column = 0
 
         # Round the time.
-        tn = round(t[n]; sigdigits = significant_digits)
+        tn = round(t[n]; sigdigits)
 
         # Get the label.
         label = LaTeXString(attrs(data[variable])["label"])
 
         if variable in ray_volume_properties
             # Get the ray-volume data.
-            xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
-            yr = data["yr"][:, :, :, :, n] ./ space_unit_factor
-            zr = data["zr"][:, :, :, :, n] ./ space_unit_factor
-            dxr = data["dxr"][:, :, :, :, n] ./ space_unit_factor
-            dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
-            dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
-            nr = data["nr"][:, :, :, :, n]
-            phi = data[variable][:, :, :, :, n]
+            xr =
+                round.(data["xr"][:, :, :, :, n]; sigdigits) ./
+                space_unit_factor
+            yr =
+                round.(data["yr"][:, :, :, :, n]; sigdigits) ./
+                space_unit_factor
+            zr =
+                round.(data["zr"][:, :, :, :, n]; sigdigits) ./
+                space_unit_factor
+            dxr =
+                round.(data["dxr"][:, :, :, :, n]; sigdigits) ./
+                space_unit_factor
+            dyr =
+                round.(data["dyr"][:, :, :, :, n]; sigdigits) ./
+                space_unit_factor
+            dzr =
+                round.(data["dzr"][:, :, :, :, n]; sigdigits) ./
+                space_unit_factor
+            nr = round.(data["nr"][:, :, :, :, n]; sigdigits)
+            phi = round.(data[variable][:, :, :, :, n]; sigdigits)
 
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
                 column += 2
-                zk = round(
-                    sum(z[:, :, k]) / length(z[:, :, k]);
-                    sigdigits = significant_digits,
-                )
+                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); sigdigits)
                 add_scatter_plot!(
                     figure,
                     (;
@@ -107,7 +119,6 @@
                         number,
                         phi = phi[:, :, :, k],
                         row,
-                        significant_digits,
                         title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
                         x = xr[:, :, :, k],
                         x_label = L"x_r\ [\mathrm{%$space_unit}]",
@@ -124,10 +135,7 @@
             # Plot in the x-z plane.
             if nx > 1 && nz > 1
                 column += 2
-                yj = round(
-                    sum(y[:, j, :]) / length(y[:, j, :]);
-                    sigdigits = significant_digits,
-                )
+                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); sigdigits)
                 add_scatter_plot!(
                     figure,
                     (;
@@ -140,7 +148,6 @@
                         number,
                         phi = phi[:, :, j, :],
                         row,
-                        significant_digits,
                         title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
                         x = xr[:, :, j, :],
                         x_label = L"x_r\ [\mathrm{%$space_unit}]",
@@ -157,10 +164,7 @@
             # Plot in the y-z plane.
             if ny > 1 && nz > 1
                 column += 2
-                xi = round(
-                    sum(x[i, :, :]) / length(x[i, :, :]);
-                    sigdigits = significant_digits,
-                )
+                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); sigdigits)
                 add_scatter_plot!(
                     figure,
                     (;
@@ -173,7 +177,6 @@
                         number,
                         phi = phi[:, i, :, :],
                         row,
-                        significant_digits,
                         title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
                         x = yr[:, i, :, :],
                         x_label = L"x_r\ [\mathrm{%$space_unit}]",
@@ -188,15 +191,12 @@
             end
         else
             # Get the variable.
-            phi = data[variable][:, :, :, n]
+            phi = round.(data[variable][:, :, :, n]; sigdigits)
 
             # Plot in the x-y plane.
             if nx > 1 && ny > 1
                 column += 2
-                zk = round(
-                    sum(z[:, :, k]) / length(z[:, :, k]);
-                    sigdigits = significant_digits,
-                )
+                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); sigdigits)
                 add_contour_plot!(
                     figure,
                     (;
@@ -207,7 +207,6 @@
                         number,
                         phi = phi[:, :, k],
                         row,
-                        significant_digits,
                         title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
                         x = x[:, :, k],
                         x_label = L"x\ [\mathrm{%$space_unit}]",
@@ -220,10 +219,7 @@
             # Plot in the x-z plane.
             if nx > 1 && nz > 1
                 column += 2
-                yj = round(
-                    sum(y[:, j, :]) / length(y[:, j, :]);
-                    sigdigits = significant_digits,
-                )
+                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); sigdigits)
                 add_contour_plot!(
                     figure,
                     (;
@@ -234,7 +230,6 @@
                         number,
                         phi = phi[:, j, :],
                         row,
-                        significant_digits,
                         title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
                         x = x[:, j, :],
                         x_label = L"x\ [\mathrm{%$space_unit}]",
@@ -247,10 +242,7 @@
             # Plot in the y-z plane.
             if ny > 1 && nz > 1
                 column += 2
-                xi = round(
-                    sum(x[i, :, :]) / length(x[i, :, :]);
-                    sigdigits = significant_digits,
-                )
+                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); sigdigits)
                 add_contour_plot!(
                     figure,
                     (;
@@ -261,7 +253,6 @@
                         number,
                         phi = phi[i, :, :],
                         row,
-                        significant_digits,
                         title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
                         x = y[i, :, :],
                         x_label = L"y\ [\mathrm{%$space_unit}]",

@@ -9,7 +9,6 @@ function add_contour_plot!(figure::Figure, input::NamedTuple)
         number,
         phi,
         row,
-        significant_digits,
         title,
         x,
         x_label,
@@ -17,7 +16,6 @@ function add_contour_plot!(figure::Figure, input::NamedTuple)
         y_label,
     ) = input
 
-    sigdigits = significant_digits
     axis = Axis(
         figure[row, columns[1]];
         backgroundcolor = background_color,
@@ -27,19 +25,13 @@ function add_contour_plot!(figure::Figure, input::NamedTuple)
     )
     (levels, colormap) =
         symmetric_contours(minimum(phi), maximum(phi); number, colormap_name)
-    plot = contourf!(
-        round.(x; sigdigits),
-        round.(y; sigdigits),
-        round.(phi; sigdigits);
-        levels = round.(levels; sigdigits),
-        colormap,
-    )
+    plot = contourf!(x, y, phi; levels, colormap)
     tightlimits!(axis)
     Colorbar(
         figure[row, columns[2]],
         plot;
-        ticks = round.(levels; sigdigits),
-        tickformat = "{:.$(sigdigits - 1)E}",
+        ticks = levels,
+        tickformat = "{:.2E}",
         label,
     )
     xlims!(minimum(x), maximum(x))
