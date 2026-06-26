@@ -36,13 +36,13 @@ function add_scatter_plot!(figure::Figure, input::NamedTuple)
         ytickformat = y_tick_format,
     )
     (levels, colormap) = symmetric_contours(
-        minimum(phi[mask]),
-        maximum(phi[mask]);
+        minimum(phi[mask]; init = 0.0),
+        maximum(phi[mask]; init = 0.0);
         number,
         colormap_name,
     )
     sorted = sortperm(abs.(phi[mask]))
-    plot = scatter!(
+    scatter!(
         x[mask][sorted],
         y[mask][sorted];
         color = phi[mask][sorted],
@@ -52,11 +52,12 @@ function add_scatter_plot!(figure::Figure, input::NamedTuple)
         markerspace = :data,
     )
     Colorbar(
-        figure[row, columns[2]],
-        plot;
-        ticks = levels[tick_indices(levels)],
-        tickformat = color_tick_format,
+        figure[row, columns[2]];
+        colormap = cgrad(colormap; categorical = true),
         label,
+        limits = (levels[1], levels[end]),
+        tickformat = color_tick_format,
+        ticks = levels[tick_indices(levels)],
     )
     xlims!(xmin, xmax)
     ylims!(ymin, ymax)

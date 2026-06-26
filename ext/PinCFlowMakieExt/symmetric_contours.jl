@@ -9,6 +9,12 @@
     colormap = to_colormap(colormap_name)
     (number - 1) % 2 != length(colormap) % 2 && (number += 1)
 
+    # Adjust minimum and maximum if they're the same.
+    if minimum == maximum
+        minimum -= 1
+        maximum += 1
+    end
+
     # Compute contour levels.
     if minimum == -maximum ||
        sign(minimum) == sign(maximum) ||

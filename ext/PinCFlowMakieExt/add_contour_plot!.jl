@@ -37,14 +37,14 @@ function add_contour_plot!(figure::Figure, input::NamedTuple)
     )
     (levels, colormap) =
         symmetric_contours(minimum(phi), maximum(phi); number, colormap_name)
-    plot = contourf!(x, y, phi; levels, colormap)
+    contourf!(x, y, phi; levels, colormap)
     tightlimits!(axis)
     Colorbar(
-        figure[row, columns[2]],
-        plot;
-        ticks = levels[tick_indices(levels)],
-        tickformat = color_tick_format,
+        figure[row, columns[2]];
         label,
+        limits = (levels[1], levels[end]),
+        tickformat = color_tick_format,
+        ticks = levels[tick_indices(levels)],
     )
     xlims!(xmin, xmax)
     ylims!(ymin, ymax)
