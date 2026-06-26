@@ -753,8 +753,8 @@ function create_output(state::State, machine_start_time::DateTime)
                     "zonal vertical-momentum flux due to GWs",
                     "meridional meridional-momentum flux due to GWs",
                     "meridional vertical-momentum flux due to GWs",
-                    "zonal heat flux due to GWs",
-                    "meridional heat flux due to GWs",
+                    "zonal mass-weighted potential-temperature flux due to GWs",
+                    "meridional mass-weighted potential-temperature flux due to GWs",
                     "GW energy density",
                 ),
             )

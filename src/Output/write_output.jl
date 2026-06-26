@@ -46,9 +46,9 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:vw`: Meridional vertical-momentum flux due to unresolved gravity waves.
 
-  - `:utheta`: Zonal heat flux due to unresolved gravity waves.
+  - `:utheta`: Zonal mass-weighted potential-temperature flux due to unresolved gravity waves.
 
-  - `:vtheta`: Meridional heat flux due to unresolved gravity waves.
+  - `:vtheta`: Meridional mass-weighted potential-temperature flux due to unresolved gravity waves.
 
   - `:e`: Energy density of unresolved gravity waves.
 
