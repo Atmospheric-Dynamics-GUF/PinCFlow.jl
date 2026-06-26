@@ -5,8 +5,8 @@
         Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
     };
     colormap_name::Symbol = :seismic,
-    significant_digits::Integer = 3,
     number::Integer = 10,
+    significant_digits::Integer = 3,
     space_unit::Symbol = :km,
     time_unit::Symbol = :h,
 )
