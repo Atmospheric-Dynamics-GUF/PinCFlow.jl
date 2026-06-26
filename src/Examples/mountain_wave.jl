@@ -55,14 +55,11 @@ function mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(
-                plot_file,
-                data,
-                ("w", div(x_size, 2), div(y_size, 2), div(z_size, 4), 2),
-            )
-            return
-        end
+        plot_output(
+            plot_file,
+            output_file,
+            ("w", div(x_size, 2), div(y_size, 2), div(z_size, 4), 2),
+        )
     end
 
     return

@@ -77,17 +77,14 @@ function wave_packet(;
     integrate(Namelists(; atmosphere, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(
-                plot_file,
-                data,
-                ("u", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
-                ("v", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
-                ("w", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2);
-                time_unit = :min,
-            )
-            return
-        end
+        plot_output(
+            plot_file,
+            output_file,
+            ("u", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
+            ("v", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
+            ("w", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2);
+            time_unit = :min,
+        )
     end
 
     return

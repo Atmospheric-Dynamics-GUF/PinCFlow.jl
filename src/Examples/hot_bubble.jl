@@ -42,10 +42,7 @@ function hot_bubble(;
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, ("thetap", 1, 1, 1, 2))
     end
 
     return

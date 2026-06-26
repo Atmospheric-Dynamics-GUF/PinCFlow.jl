@@ -62,15 +62,12 @@ function wkb_wave_packet(;
     integrate(Namelists(; atmosphere, domain, output, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(
-                plot_file,
-                data,
-                ("nr", div(x_size, 2), div(y_size, 2), div(z_size, 2), 1);
-                time_unit = :min,
-            )
-            return
-        end
+        plot_output(
+            plot_file,
+            output_file,
+            ("nr", div(x_size, 2), div(y_size, 2), div(z_size, 2), 1);
+            time_unit = :min,
+        )
     end
 
     return
