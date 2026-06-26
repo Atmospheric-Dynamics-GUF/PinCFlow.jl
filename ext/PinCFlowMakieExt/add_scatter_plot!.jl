@@ -1,3 +1,16 @@
+"""
+```julia
+add_scatter_plot!(figure::Figure, input::NamedTuple)
+```
+
+Add a scatter plot to `figure`, using the data in `input`.
+
+# Arguments
+
+  - `figure`: Figure to modify.
+
+  - `input`: Data and specifications for the plot.
+"""
 function add_scatter_plot! end
 
 @ivy function add_scatter_plot!(figure::Figure, input::NamedTuple)

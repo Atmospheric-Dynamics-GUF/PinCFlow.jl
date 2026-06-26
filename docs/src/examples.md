@@ -48,10 +48,7 @@ function cold_bubble(;
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:thetap, 2))
     end
 
     return
@@ -112,10 +109,7 @@ function hot_bubble(;
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:thetap, 2))
     end
 
     return
@@ -189,14 +183,7 @@ function mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(
-                plot_file,
-                data,
-                ("w", div(x_size, 2), div(y_size, 2), div(z_size, 4), 2),
-            )
-            return
-        end
+        plot_output(plot_file, output_file, (:w, 0.5, 0.5, 0.25, 2))
     end
 
     return
@@ -304,10 +291,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("chi", 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:chi, 2))
     end
 
     return
@@ -403,17 +387,14 @@ function wave_packet(;
     integrate(Namelists(; atmosphere, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(
-                plot_file,
-                data,
-                ("u", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
-                ("v", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2),
-                ("w", div(x_size, 2), div(y_size, 2), div(z_size, 2), 2);
-                time_unit = :min,
-            )
-            return
-        end
+        plot_output(
+            plot_file,
+            output_file,
+            (:u, 0.5, 0.5, 0.5, 2),
+            (:v, 0.5, 0.5, 0.5, 2),
+            (:w, 0.5, 0.5, 0.5, 2);
+            time_unit = :min,
+        )
     end
 
     return
@@ -497,14 +478,7 @@ function wkb_mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(
-                plot_file,
-                data,
-                ("nr", div(x_size, 2), div(y_size, 2), div(z_size, 4), 2),
-            )
-            return
-        end
+        plot_output(plot_file, output_file, (:nr, 0.5, 0.5, 0.25, 2))
     end
 
     return
@@ -614,15 +588,12 @@ function wkb_wave_packet(;
     integrate(Namelists(; atmosphere, domain, output, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(
-                plot_file,
-                data,
-                ("nr", div(x_size, 2), div(y_size, 2), div(z_size, 2), 1);
-                time_unit = :min,
-            )
-            return
-        end
+        plot_output(
+            plot_file,
+            output_file,
+            (:nr, 0.5, 0.5, 0.5, 2);
+            time_unit = :min,
+        )
     end
 
     return

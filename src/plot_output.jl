@@ -10,10 +10,14 @@ plot_output(
         },
     };
     colormap_name::Symbol = :seismic,
+    color_tick_format::AbstractString = "{:.1E}",
     number::Integer = 10,
     significant_digits::Integer = 3,
     space_unit::Symbol = :km,
     time_unit::Symbol = :h,
+    x_tick_format::AbstractString = "{:.0f}",
+    y_tick_format::AbstractString = "{:.0f}",
+    z_tick_format::AbstractString = "{:.0f}",
 )
 ```
 
@@ -31,6 +35,8 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `colormap_name`: Colormap of choice.
 
+  - `color_tick_format`: Format string for the ticks of the colorbars.
+
   - `number`: Number of contour levels.
 
   - `significant_digits`: Significant digits to which the output data is rounded before visualization.
@@ -38,5 +44,11 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
   - `space_unit`: Unit used for the coordinates. Must be `:km` or `:m`.
 
   - `time_unit`: Unit used for the time. Must be `:d`, `:h`, `:min` or `:s`.
+
+  - `x_tick_format`: Format string for the ticks of the ``x``-axis.
+
+  - `y_tick_format`: Format string for the ticks of the ``y``-axis.
+
+  - `z_tick_format`: Format string for the ticks of the ``z``-axis.
 """
 function plot_output end
