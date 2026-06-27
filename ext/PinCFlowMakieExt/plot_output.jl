@@ -14,9 +14,9 @@ plot_output(
     number::Integer = 10,
     space_unit::Symbol = :km,
     time_unit::Symbol = :h,
-    x_tick_format::AbstractString = "{:.0f}",
-    y_tick_format::AbstractString = "{:.0f}",
-    z_tick_format::AbstractString = "{:.0f}",
+    x_tick_format::AbstractString = "{:.1f}",
+    y_tick_format::AbstractString = "{:.1f}",
+    z_tick_format::AbstractString = "{:.1f}",
 )
 ```
 
@@ -64,9 +64,9 @@ plot_output
     number::Integer = 10,
     space_unit::Symbol = :km,
     time_unit::Symbol = :h,
-    x_tick_format::AbstractString = "{:.0f}",
-    y_tick_format::AbstractString = "{:.0f}",
-    z_tick_format::AbstractString = "{:.0f}",
+    x_tick_format::AbstractString = "{:.1f}",
+    y_tick_format::AbstractString = "{:.1f}",
+    z_tick_format::AbstractString = "{:.1f}",
 )
     set_visualization_theme!()
 
