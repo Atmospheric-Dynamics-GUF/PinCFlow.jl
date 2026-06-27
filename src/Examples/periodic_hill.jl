@@ -7,6 +7,9 @@ function periodic_hill(;
     plot_file::AbstractString = "periodic_hill.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 1,
+    z_size::Integer = 20,
 )
     h0 = 500
     l0 = 10000
@@ -22,7 +25,7 @@ function periodic_hill(;
     )
 
     domain =
-        DomainNamelist(; lx = 20000, lz, npx, npz, x_size = 20, z_size = 20)
+        DomainNamelist(; lx = 20000, lz, npx, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
         resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),

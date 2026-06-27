@@ -8,6 +8,9 @@ function mountain_wave(;
     plot_file::AbstractString = "mountain_wave.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
 )
     h0 = 100
     l0 = 1000
@@ -33,9 +36,9 @@ function mountain_wave(;
         npx,
         npy,
         npz,
-        x_size = 20,
-        y_size = 20,
-        z_size = 20,
+        x_size,
+        y_size,
+        z_size,
     )
 
     grid = GridNamelist(;

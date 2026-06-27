@@ -7,6 +7,9 @@ function vortex(;
     plot_file::AbstractString = "vortex.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 1,
 )
     lx = 20000
     ly = 20000
@@ -35,7 +38,7 @@ function vortex(;
         end,
     )
 
-    domain = DomainNamelist(; lx, ly, npx, npy, x_size = 20, y_size = 20)
+    domain = DomainNamelist(; lx, ly, npx, npy, x_size, y_size, z_size)
 
     output = OutputNamelist(;
         output_file,

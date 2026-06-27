@@ -8,6 +8,9 @@ function wkb_wave_packet(;
     plot_file::AbstractString = "wkb_wave_packet.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
 )
     z0 = 10000
 
@@ -42,9 +45,9 @@ function wkb_wave_packet(;
         npx,
         npy,
         npz,
-        x_size = 20,
-        y_size = 20,
-        z_size = 20,
+        x_size,
+        y_size,
+        z_size,
     )
 
     grid = GridNamelist(; resolved_topography = (x, y) -> z0)

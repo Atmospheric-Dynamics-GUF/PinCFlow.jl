@@ -48,24 +48,21 @@ using .Examples
 @setup_workload begin
     redirect_stdio(; stderr = devnull, stdout = devnull) do
         mktempdir() do directory
-            x_size = 3
-            y_size = 3
-            z_size = 5
-
             keywords = (
                 output_file = directory * "/pincflow_output.h5",
                 visualize = false,
+                x_size = 3,
+                y_size = 3,
+                z_size = 5,
             )
 
-            @compile_workload begin
-                cold_bubble(; x_size, z_size, keywords...)
-                hot_bubble(; x_size, z_size, keywords...)
-                mountain_wave(; x_size, y_size, z_size, keywords...)
-                periodic_hill(; x_size, z_size, keywords...)
-                vortex(; x_size, y_size, keywords...)
-                wave_packet(; x_size, y_size, z_size, keywords...)
-                wkb_mountain_wave(; x_size, y_size, z_size, keywords...)
-                wkb_wave_packet(; x_size, y_size, z_size, keywords...)
+            for name in names(Examples)
+                example = getproperty(Examples, name)
+                if example isa Function
+                    @compile_workload begin
+                        example(; keywords...)
+                    end
+                end
             end
             return
         end

@@ -8,6 +8,9 @@ function cold_bubble(;
     plot_file::AbstractString = "cold_bubble.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
 )
     lx = 10000
     ly = 10000
@@ -38,9 +41,9 @@ function cold_bubble(;
         npx,
         npy,
         npz,
-        x_size = 20,
-        y_size = 20,
-        z_size = 20,
+        x_size,
+        y_size,
+        z_size,
     )
 
     output = OutputNamelist(;
