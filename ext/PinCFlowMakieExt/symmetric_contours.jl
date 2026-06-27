@@ -41,11 +41,12 @@ symmetric_contours
         maximum += 1
     end
 
+    # Adjust minima and maxima that are zero.
+    minimum == 0 && (minimum -= eps(minimum))
+    maximum == 0 && (maximum += eps(maximum))
+
     # Compute contour levels.
-    if minimum == -maximum ||
-       sign(minimum) == sign(maximum) ||
-       minimum == 0 ||
-       maximum == 0
+    if minimum == -maximum || sign(minimum) == sign(maximum)
         levels = LinRange(minimum, maximum, number)
     else
         peak = max(abs(minimum), abs(maximum))
