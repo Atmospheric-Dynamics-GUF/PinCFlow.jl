@@ -96,6 +96,9 @@ plot_output
         error("Error: Unknown time unit!")
     end
 
+    # Set the digits for rounding the time and plane positions.
+    digits = 1
+
     # Create the figure.
     figure = h5open(data_file) do data
 
@@ -106,6 +109,9 @@ plot_output
         (nx, ny, nz) = size(z)
         x = [xi for xi in x, j in 1:ny, k in 1:nz]
         y = [yj for i in 1:nx, yj in y, k in 1:nz]
+
+        # Determine whether the plane should be included in the title.
+        plane_in_title = (nx > 1 && ny > 1 && nz > 1)
 
         # Get the time.
         t = data["t"][:] ./ time_unit_factor
@@ -139,7 +145,7 @@ plot_output
             end
 
             # Round the time.
-            tn = round(t[n]; digits = 1)
+            tn = round(t[n]; digits)
 
             # Get the label.
             label = LaTeXString(attrs(data[string(variable)])["label"])
@@ -158,7 +164,13 @@ plot_output
                 # Plot in the x-y plane.
                 if nx > 1 && ny > 1
                     column += 2
-                    zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
+                    if plane_in_title
+                        zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
                     add_scatter_plot!(
                         figure,
                         (;
@@ -172,7 +184,7 @@ plot_output
                             number,
                             phi = phi[:, :, :, k],
                             row,
-                            title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
+                            title,
                             x = xr[:, :, :, k],
                             x_label = L"x_r\ [\mathrm{%$space_unit}]",
                             xmax = maximum(x),
@@ -190,7 +202,13 @@ plot_output
                 # Plot in the x-z plane.
                 if nx > 1 && nz > 1
                     column += 2
-                    yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                    if plane_in_title
+                        yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
                     add_scatter_plot!(
                         figure,
                         (;
@@ -204,7 +222,7 @@ plot_output
                             number,
                             phi = phi[:, :, j, :],
                             row,
-                            title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
+                            title,
                             x = xr[:, :, j, :],
                             x_label = L"x_r\ [\mathrm{%$space_unit}]",
                             xmax = maximum(x),
@@ -222,7 +240,13 @@ plot_output
                 # Plot in the y-z plane.
                 if ny > 1 && nz > 1
                     column += 2
-                    xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+                    if plane_in_title
+                        xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
                     add_scatter_plot!(
                         figure,
                         (;
@@ -236,7 +260,7 @@ plot_output
                             number,
                             phi = phi[:, i, :, :],
                             row,
-                            title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
+                            title,
                             x = yr[:, i, :, :],
                             x_label = L"x_r\ [\mathrm{%$space_unit}]",
                             xmax = maximum(y),
@@ -257,7 +281,13 @@ plot_output
                 # Plot in the x-y plane.
                 if nx > 1 && ny > 1
                     column += 2
-                    zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
+                    if plane_in_title
+                        zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
                     add_contour_plot!(
                         figure,
                         (;
@@ -269,7 +299,7 @@ plot_output
                             number,
                             phi = phi[:, :, k],
                             row,
-                            title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
+                            title,
                             x = x[:, :, k],
                             x_label = L"x\ [\mathrm{%$space_unit}]",
                             x_tick_format,
@@ -283,7 +313,13 @@ plot_output
                 # Plot in the x-z plane.
                 if nx > 1 && nz > 1
                     column += 2
-                    yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
+                    if plane_in_title
+                        yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
                     add_contour_plot!(
                         figure,
                         (;
@@ -295,7 +331,7 @@ plot_output
                             number,
                             phi = phi[:, j, :],
                             row,
-                            title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
+                            title,
                             x = x[:, j, :],
                             x_label = L"x\ [\mathrm{%$space_unit}]",
                             x_tick_format,
@@ -309,7 +345,13 @@ plot_output
                 # Plot in the y-z plane.
                 if ny > 1 && nz > 1
                     column += 2
-                    xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
+                    if plane_in_title
+                        xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
                     add_contour_plot!(
                         figure,
                         (;
@@ -321,7 +363,7 @@ plot_output
                             number,
                             phi = phi[i, :, :],
                             row,
-                            title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
+                            title,
                             x = y[i, :, :],
                             x_label = L"y\ [\mathrm{%$space_unit}]",
                             x_tick_format = y_tick_format,
