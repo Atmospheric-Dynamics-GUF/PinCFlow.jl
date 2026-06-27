@@ -31,10 +31,19 @@ for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
     end
 end
 
-# Copy the example plots.
+# Create the example plots.
 mkpath("docs/src/examples/results/")
-for file in readdir("examples/results/"; join = true)
-    cp(file, "docs/src/" * file; force = true)
+for name in names(PinCFlow.Examples)
+    example = getproperty(PinCFlow.Examples, name)
+    if example isa Function
+        mktempdir() do directory
+            example(;
+                output_file = directory * "/$(example).h5",
+                plot_file = "docs/src/examples/results/$(example).svg",
+            )
+            return
+        end
+    end
 end
 
 # Copy the README file and use it as landing page of the docs.
