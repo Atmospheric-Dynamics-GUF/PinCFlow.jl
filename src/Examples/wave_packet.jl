@@ -36,17 +36,7 @@ function wave_packet(;
 
     atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
 
-    domain = DomainNamelist(;
-        lx,
-        ly,
-        lz,
-        npx,
-        npy,
-        npz,
-        x_size,
-        y_size,
-        z_size,
-    )
+    domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(; resolved_topography = (x, y) -> z0)
 

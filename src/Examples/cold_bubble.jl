@@ -34,17 +34,7 @@ function cold_bubble(;
 
     discretization = DiscretizationNamelist(; dtmax = 60)
 
-    domain = DomainNamelist(;
-        lx,
-        ly,
-        lz,
-        npx,
-        npy,
-        npz,
-        x_size,
-        y_size,
-        z_size,
-    )
+    domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     output = OutputNamelist(;
         output_file,

@@ -24,8 +24,7 @@ function periodic_hill(;
         model = :Boussinesq,
     )
 
-    domain =
-        DomainNamelist(; lx = 20000, lz, npx, npz, x_size, y_size, z_size)
+    domain = DomainNamelist(; lx = 20000, lz, npx, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
         resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),

@@ -31,17 +31,7 @@ function wkb_mountain_wave(;
         initial_u = (x, y, z) -> 10.0,
     )
 
-    domain = DomainNamelist(;
-        lx,
-        ly,
-        lz,
-        npx,
-        npy,
-        npz,
-        x_size,
-        y_size,
-        z_size,
-    )
+    domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
         resolved_topography = (x, y) ->
