@@ -1,29 +1,28 @@
 # src/Examples/periodic_hill.jl
 
 function periodic_hill(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
     npx::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "periodic_hill.h5",
+    plot_file::AbstractString = "periodic_hill.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "periodic_hill.svg",
 )
-    h0 = 500.0
-    l0 = 10000.0
+    h0 = 500
+    l0 = 10000
 
-    lz = 20000.0
-    zr = 10000.0
+    lz = 20000
+    zr = 10000
 
     atmosphere = AtmosphereNamelist(;
-        model = :Boussinesq,
         background = :StableStratification,
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        model = :Boussinesq,
     )
 
-    domain = DomainNamelist(; x_size, z_size, lx = 20000.0, lz, npx, npz)
+    domain =
+        DomainNamelist(; lx = 20000, lz, npx, npz, x_size = 20, z_size = 20)
 
     grid = GridNamelist(;
         resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),

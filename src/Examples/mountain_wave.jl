@@ -1,23 +1,21 @@
 # src/Examples/mountain_wave.jl
 
 function mountain_wave(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
-    z_size::Integer = 40,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "mountain_wave.h5",
+    plot_file::AbstractString = "mountain_wave.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "mountain_wave.svg",
 )
-    h0 = 100.0
-    l0 = 1000.0
+    h0 = 100
+    l0 = 1000
 
-    lx = 20000.0
-    ly = 20000.0
-    lz = 20000.0
+    lx = 20000
+    ly = 20000
+    lz = 5000
+
     dxr = lx / 2
     dyr = ly / 2
     dzr = lz / 2
@@ -28,14 +26,29 @@ function mountain_wave(;
         initial_u = (x, y, z) -> 10.0,
     )
 
-    domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+    domain = DomainNamelist(;
+        lx,
+        ly,
+        lz,
+        npx,
+        npy,
+        npz,
+        x_size = 20,
+        y_size = 20,
+        z_size = 20,
+    )
 
     grid = GridNamelist(;
         resolved_topography = (x, y) -> h0 / (1 + (x^2 + y^2) / l0^2),
     )
 
-    output =
-        OutputNamelist(; output_file, output_variables = [:w], prepare_restart)
+    output = OutputNamelist(;
+        output_file,
+        output_interval = 600,
+        output_variables = [:w],
+        prepare_restart,
+        tmax = 600,
+    )
 
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) -> begin
@@ -55,7 +68,12 @@ function mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(plot_file, output_file, (:w, 0.5, 0.5, 0.25, 2))
+        plot_output(
+            plot_file,
+            output_file,
+            (:w, 0.5, 0.5, 0.25, 2);
+            time_unit = :min,
+        )
     end
 
     return

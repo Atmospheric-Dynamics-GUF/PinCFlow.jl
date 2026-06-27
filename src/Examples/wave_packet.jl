@@ -1,31 +1,30 @@
 # src/Examples/wave_packet.jl
 
 function wave_packet(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
-    z_size::Integer = 80,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "wave_packet.h5",
+    plot_file::AbstractString = "wave_packet.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "wave_packet.svg",
 )
-    lx = 20000.0
-    ly = 20000.0
-    lz = 40000.0
+    z0 = 10000
+
+    lx = 20000
+    ly = 20000
+    lz = 30000
 
     parameters = (
-        k = 16 * pi / lx,
-        l = 16 * pi / ly,
-        m = 32 * pi / lz,
-        rx = 0.25,
-        ry = 0.25,
-        rz = 0.25,
+        k = 8 * pi / lx,
+        l = 8 * pi / ly,
+        m = 8 * pi / (lz - z0),
+        rx = 0.5,
+        ry = 0.5,
+        rz = 0.5,
         x0 = 0.0,
         y0 = 0.0,
-        z0 = 20000.0,
+        z0 = 20000,
         a0 = 0.05,
     )
 
@@ -34,14 +33,36 @@ function wave_packet(;
 
     atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
 
-    domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+    domain = DomainNamelist(;
+        lx,
+        ly,
+        lz,
+        npx,
+        npy,
+        npz,
+        x_size = 20,
+        y_size = 20,
+        z_size = 20,
+    )
 
-    state = State(Namelists(; atmosphere, domain))
+    grid = GridNamelist(; resolved_topography = (x, y) -> z0)
+
+    state = State(Namelists(; atmosphere, domain, grid))
     (; g) = state.constants
 
     atmosphere = AtmosphereNamelist(;
         background,
+        buoyancy_initialization = :initial_thetap,
         coriolis_frequency,
+        initial_pip = (x, y, z) -> real(
+            pihat(state, parameters, x, y, z) *
+            exp(1im * phi(parameters, x, y, z)),
+        ),
+        initial_thetap = (x, y, z) ->
+            real(
+                bhat(state, parameters, x, y, z) *
+                exp(1im * phi(parameters, x, y, z)),
+            ) / g * thetabar(state, x, y, z),
         initial_u = (x, y, z) -> real(
             uhat(state, parameters, x, y, z) *
             exp(1im * phi(parameters, x, y, z)),
@@ -54,27 +75,17 @@ function wave_packet(;
             what(state, parameters, x, y, z) *
             exp(1im * phi(parameters, x, y, z)),
         ),
-        initial_pip = (x, y, z) -> real(
-            pihat(state, parameters, x, y, z) *
-            exp(1im * phi(parameters, x, y, z)),
-        ),
-        initial_thetap = (x, y, z) ->
-            real(
-                bhat(state, parameters, x, y, z) *
-                exp(1im * phi(parameters, x, y, z)),
-            ) / g * thetabar(state, x, y, z),
-        buoyancy_initialization = :initial_thetap,
     )
 
     output = OutputNamelist(;
         output_file,
+        output_interval = 600,
         output_variables = [:u, :v, :w],
         prepare_restart,
-        output_interval = 900,
-        tmax = 900,
+        tmax = 600,
     )
 
-    integrate(Namelists(; atmosphere, domain, output))
+    integrate(Namelists(; atmosphere, domain, grid, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(

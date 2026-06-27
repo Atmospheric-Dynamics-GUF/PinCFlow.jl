@@ -1,17 +1,15 @@
 # src/Examples/vortex.jl
 
 function vortex(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
     npx::Integer = 1,
     npy::Integer = 1,
     output_file::AbstractString = "vortex.h5",
+    plot_file::AbstractString = "vortex.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "vortex.svg",
 )
-    lx = 20000.0
-    ly = 20000.0
+    lx = 20000
+    ly = 20000
 
     rx = lx / 4
     ry = ly / 4
@@ -37,7 +35,7 @@ function vortex(;
         end,
     )
 
-    domain = DomainNamelist(; x_size, y_size, lx, ly, npx, npy)
+    domain = DomainNamelist(; lx, ly, npx, npy, x_size = 20, y_size = 20)
 
     output = OutputNamelist(;
         output_file,
