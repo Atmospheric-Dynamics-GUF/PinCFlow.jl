@@ -55,19 +55,24 @@ function compute_blocked_layer! end
     i::Integer,
     j::Integer,
 )::AbstractFloat
-    (; blocking, long_threshold) = state.namelists.wkb
+    (; blocking, long_threshold, reduction_coefficient) = state.namelists.wkb
     (; k0) = state.domain
     (; zctilde) = state.grid
     (; zb) = state.wkb
 
     if blocking && deltah > 0
         kh = compute_slope(state, deltah, i, j)
-        ratio = min(
-            1,
-            long_threshold / sqrt(n2h) / deltah / sqrt(kh[1]^2 + kh[2]^2) *
-            abs(kh[1] * uh + kh[2] * vh),
-        )
-        zb[i, j] = zctilde[i, j, k0 - 1] + deltah * (1 - 2 * ratio)
+        deltazb =
+            2 *
+            deltah *
+            max(
+                0,
+                1 -
+                long_threshold / sqrt(n2h) / deltah / sqrt(kh[1]^2 + kh[2]^2) *
+                abs(kh[1] * uh + kh[2] * vh),
+            )
+        zb[i, j] = zctilde[i, j, k0 - 1] - deltah + deltazb
+        ratio = 1 - reduction_coefficient * deltazb / 2 / deltah
     elseif blocking
         ratio = 1
         zb[i, j] = zctilde[i, j, k0 - 1]

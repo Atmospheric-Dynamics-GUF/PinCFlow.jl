@@ -31,6 +31,7 @@ WKBNamelist(;
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,
+    reduction_coefficient::Real = 1.0E+0,
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
@@ -95,6 +96,8 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `drag_coefficient::Float64`: Dimensionless drag coefficient used by the blocked-layer scheme.
 
+  - `reduction_coefficient::Float64`: Dimensionless coefficient that regulates how much of the blocked layer contributes to a reduction of the wave amplitude.
+
   - `wave_modes::Int`: Number of wave modes per grid cell.
 
   - `initial_wave_field::FunctionWrapper{NTuple{5, Float64}, Tuple{Int, Float64, Float64, Float64}}`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
@@ -145,6 +148,7 @@ struct WKBNamelist
     blocking::Bool
     long_threshold::Float64
     drag_coefficient::Float64
+    reduction_coefficient::Float64
     wave_modes::Int
     initial_wave_field::FunctionWrapper{
         NTuple{5, Float64},
@@ -183,6 +187,7 @@ function WKBNamelist(;
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,
+    reduction_coefficient::Real = 1.0E+0,
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
@@ -218,6 +223,7 @@ function WKBNamelist(;
         blocking,
         Float64(long_threshold),
         Float64(drag_coefficient),
+        Float64(reduction_coefficient),
         Int(wave_modes),
         initial_wave_field,
         elastic_mode_selection,
