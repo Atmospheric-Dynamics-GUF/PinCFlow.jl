@@ -90,6 +90,8 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `wkb_mode::Symbol`: Approximations used by MS-GWaM.
 
+  - `vertical_averaging::Bool`: Switch for using vertical averages between background orography and unresolved summits in the orographic source.
+
   - `blocking::Bool`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
 
   - `long_threshold::Float64`: Long-number threshold used by the blocked-layer scheme.
@@ -145,6 +147,7 @@ struct WKBNamelist
     use_saturation::Bool
     saturation_threshold::Float64
     wkb_mode::Symbol
+    vertical_averaging::Bool
     blocking::Bool
     long_threshold::Float64
     drag_coefficient::Float64
@@ -184,6 +187,7 @@ function WKBNamelist(;
     use_saturation::Bool = true,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
+    vertical_averaging::Bool = true,
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,
@@ -220,6 +224,7 @@ function WKBNamelist(;
         use_saturation,
         Float64(saturation_threshold),
         wkb_mode,
+        vertical_averaging,
         blocking,
         Float64(long_threshold),
         Float64(drag_coefficient),

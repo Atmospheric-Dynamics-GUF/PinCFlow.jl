@@ -28,30 +28,40 @@ function compute_vertical_averages end
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
+    (; vertical_averaging) = state.namelists.wkb
     (; k0, k1) = state.domain
     (; jac, dz, zctilde) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
 
-    dzh = 0.0
-    rhoh = 0.0
-    n2h = 0.0
-    uh = 0.0
-    vh = 0.0
-    for k in k0:k1
-        dzh += jac[i, j, k] * dz
-        rhoh += rhobar[i, j, k] * jac[i, j, k] * dz
-        n2h += n2[i, j, k] * jac[i, j, k] * dz
-        uh += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
-        vh += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
-        if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + deltah
-            break
+    if vertical_averaging
+        dzh = 0.0
+        rhoh = 0.0
+        n2h = 0.0
+        uh = 0.0
+        vh = 0.0
+        for k in k0:k1
+            dzh += jac[i, j, k] * dz
+            rhoh += rhobar[i, j, k] * jac[i, j, k] * dz
+            n2h += n2[i, j, k] * jac[i, j, k] * dz
+            uh += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
+            vh += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
+            if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + deltah
+                break
+            end
         end
+        rhoh /= dzh
+        n2h /= dzh
+        uh /= dzh
+        vh /= dzh
+    else
+        k = get_next_half_level(i, j, zctilde[i, j, k0 - 1] + deltah, state)
+
+        rhoh = rhobar[i, j, k]
+        n2h = n2[i, j, k]
+        uh = (u[i, j, k] + u[i - 1, j, k]) / 2
+        vh = (v[i, j, k] + v[i, j - 1, k]) / 2
     end
-    rhoh /= dzh
-    n2h /= dzh
-    uh /= dzh
-    vh /= dzh
 
     return (rhoh, n2h, uh, vh)
 end
