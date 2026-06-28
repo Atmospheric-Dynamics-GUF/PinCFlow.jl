@@ -51,29 +51,30 @@ to install the dependencies of its project. Having done this, you can easily run
 # src/Examples/periodic_hill.jl
 
 function periodic_hill(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
     npx::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "periodic_hill.h5",
+    plot_file::AbstractString = "periodic_hill.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "periodic_hill.svg",
+    x_size::Integer = 20,
+    y_size::Integer = 1,
+    z_size::Integer = 20,
 )
-    h0 = 500.0
-    l0 = 10000.0
+    h0 = 500
+    l0 = 10000
 
-    lz = 20000.0
-    zr = 10000.0
+    lz = 20000
+    zr = 10000
 
     atmosphere = AtmosphereNamelist(;
-        model = :Boussinesq,
         background = :StableStratification,
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        model = :Boussinesq,
     )
 
-    domain = DomainNamelist(; x_size, z_size, lx = 20000.0, lz, npx, npz)
+    domain = DomainNamelist(; lx = 20000, lz, npx, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
         resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
@@ -110,17 +111,15 @@ performs a 2D simulation with an initial wind of $10 \ \mathrm{m \ s^{- 1}}$ tha
 
 PinCFlow.jl uses parallel HDF5 to write simulation data. By default, the path to the output file is `pincflow_output.h5`. This may be changed by setting the parameter `output_file` of the output namelist accordingly (as illustrated above). The dimensions of most output fields are (in order) $\hat{x}$ (zonal axis), $\hat{y}$ (meridional axis), $\hat{z}$ (axis orthogonal to the vertical coordinate surfaces) and $t$ (time). Ray-volume-property fields differ slightly in that they have an additional dimension in front and a vertical dimension that includes the first ghost layer below the surface. To specify which fields are to be written, set the parameters `output_variables`, `save_ray_volumes` and `prepare_restart` of the output namelist accordingly. A description of all namelists and their parameters is provided in the "Reference" section of the documentation.
 
-For the visualization of simulation results, we recommend using [Makie.jl](https://docs.makie.org/stable/) with the `CairoMakie` backend. PinCFlow.jl has an extension which exports a few convenience functions if `CairoMakie` is loaded. This is utilized in the above function, yielding a plot of the vertical wind at the end of the simulation (see below).
-
-![](examples/results/periodic_hill.svg)
+For the visualization of simulation results, we recommend using [Makie.jl](https://docs.makie.org/stable/) with the `CairoMakie` backend. PinCFlow.jl has an extension which exports a few convenience functions if `CairoMakie` is loaded. This is utilized in the above function, yielding a plot of the vertical wind at the end of the simulation (included in the "Examples" section of the documentation).
 
 If you want to run PinCFlow.jl in parallel, make sure you are using the correct backends for [MPI.jl](https://juliaparallel.org/MPI.jl/latest/) and [HDF5.jl](https://juliaio.github.io/HDF5.jl/stable/). By default, the two packages use JLL backends that have been automatically installed. If you want to keep this setting, you only need to make sure to use the correct MPI binary (specifically not that of a default MPI installation on your system). For example, by executing
 
 ```shell
-julia --project=examples -e 'using MPI; run(`$(MPI.mpiexec()) -n 64 julia --project=examples -e "using CairoMakie, PinCFlow; periodic_hill(; npx = 8, npz = 8)"`)'
+julia --project=examples -e 'using MPI; run(`$(MPI.mpiexec()) -n 4 julia --project=examples -e "using CairoMakie, PinCFlow; periodic_hill(; npx = 2, npz = 2)"`)'
 ```
 
-in your shell, you can run the above simulation in 64 MPI processes. Note that `npx` and `npz` configure the number of MPI subdomains in $\hat{x}$ and $\hat{z}$, respectively. Thus, `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
+in your shell, you can run the above simulation in four MPI processes. Note that `npx` and `npz` configure the number of MPI subdomains in $\hat{x}$ and $\hat{z}$, respectively. Thus, `npx * npz` must be equal to the number of processes, otherwise PinCFlow.jl will throw an error.
 
 If you plan to run PinCFlow.jl on a cluster, you may want to consider using a provided MPI installation as backend. In that case, the MPI preferences need to be updated accordingly and the HDF5 backend has to be set to a library that has been installed with parallel support, using the chosen MPI installation. This can be done by running
 

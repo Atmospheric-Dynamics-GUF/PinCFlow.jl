@@ -16,15 +16,17 @@ for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
                 "(.(?!^```\\n))*",
             )
             if script_file == "periodic_hill.jl"
-                page_file = "README.md"
+                page_files = ("README.md", "docs/src/examples.md")
             else
-                page_file = "docs/src/examples.md"
+                page_files = ("docs/src/examples.md",)
             end
-            if isfile(page_file)
-                page = replace(read(page_file, String), code => script)
-                open(page_file, "w") do io
-                    write(io, page)
-                    return
+            for page_file in page_files
+                if isfile(page_file)
+                    page = replace(read(page_file, String), code => script)
+                    open(page_file, "w") do io
+                        write(io, page)
+                        return
+                    end
                 end
             end
         end
