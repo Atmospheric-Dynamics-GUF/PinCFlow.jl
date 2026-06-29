@@ -38,6 +38,7 @@ function activate_orographic_source! end
         dlr_factor,
         dmr_factor,
         wkb_mode,
+        blocking,
     ) = state.namelists.wkb
     (; ko, i0, i1, j0, j1, k0) = state.domain
     (; dx, dy, dz, x, y, zc, jac, zctilde) = state.grid
@@ -51,10 +52,16 @@ function activate_orographic_source! end
     compute_orographic_modes!(state)
 
     # Loop over surface grid cells.
+    k = k0 - 1
     for j in j0:j1, i in i0:i1
 
         # Set launch level.
-        k = k0 - 1
+        if blocking
+            deltah = compute_elevation_difference(state, i, j)
+            kl = get_next_half_level(i, j, zctilde[i, j, k] + deltah, state)
+        else
+            kl = k
+        end
 
         # Loop over surface ray volumes.
         for s in 1:n_sfc
@@ -115,7 +122,7 @@ function activate_orographic_source! end
             else
                 if r > 0
                     # Shift and clip/extend the old ray volume.
-                    if zr + dzr / 2 > zctilde[i, j, k]
+                    if zr + dzr / 2 > zctilde[i, j, kl]
 
                         # Shift the old ray volume.
                         nray[i, j, k + 1] += 1
@@ -134,9 +141,9 @@ function activate_orographic_source! end
                         )
 
                         # Clip/extend the old ray volume.
-                        if zr - dzr / 2 < zctilde[i, j, k] || kz == 1
+                        if zr - dzr / 2 < zctilde[i, j, kl] || kz == 1
                             rays.dzray[local_count, i, j, k + 1] =
-                                zr + dzr / 2 - zctilde[i, j, k]
+                                zr + dzr / 2 - zctilde[i, j, kl]
                             rays.z[local_count, i, j, k + 1] =
                                 zr + dzr / 2 -
                                 rays.dzray[local_count, i, j, k + 1] / 2
@@ -168,14 +175,14 @@ function activate_orographic_source! end
             rays.x[r, i, j, k] = (x[i] - dx / 2 + (ix - 0.5) * dx / nrx)
             rays.y[r, i, j, k] = (y[j] - dy / 2 + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
-                zc[i, j, k] - jac[i, j, k] * dz / 2 +
-                (kz - 0.5) * jac[i, j, k] * dz / nrz
+                zc[i, j, kl] - jac[i, j, kl] * dz / 2 +
+                (kz - 0.5) * jac[i, j, kl] * dz / nrz
             )
 
             # Set physical ray-volume extent.
             rays.dxray[r, i, j, k] = dx / nrx
             rays.dyray[r, i, j, k] = dy / nry
-            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrz
+            rays.dzray[r, i, j, k] = jac[i, j, kl] * dz / nrz
 
             # Compute spectral ray-volume extent.
             if x_size == 1
