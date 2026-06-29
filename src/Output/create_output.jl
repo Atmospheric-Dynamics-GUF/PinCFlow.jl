@@ -397,6 +397,22 @@ function create_output(state::State, machine_start_time::DateTime)
                 end
             end
 
+            # Create datasets for GW integrals.
+            for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
+                if field in output_variables
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
+
             # Create datasets for GW tendencies.
             for field in (:dudt, :dvdt, :dthetadt)
                 if field in output_variables
@@ -709,6 +725,43 @@ function create_output(state::State, machine_start_time::DateTime)
                     attributes(file[field])["units"] = units
                     attributes(file[field])["label"] = label
                     attributes(file[field])["long_name"] = long_name
+                end
+            end
+
+            # Add attributes for GW integrals.
+            for (field, units, label, long_name) in zip(
+                (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e),
+                (
+                    ("kg*m^-1*s^-2" for index in 1:5)...,
+                    "kg*m^-2*s^-1*K",
+                    "kg*m^-2*s^-1*K",
+                    "kg*m^-1*s^-2",
+                ),
+                (
+                    L"\bar{\rho}\langle u'u' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'v' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'w' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle v'v' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle v'w' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'\theta' \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
+                    L"\bar{\rho}\langle v'\theta' \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
+                    L"\mathcal{E}\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                ),
+                (
+                    "zonal zonal-momentum flux due to GWs",
+                    "zonal meridional-momentum flux due to GWs",
+                    "zonal vertical-momentum flux due to GWs",
+                    "meridional meridional-momentum flux due to GWs",
+                    "meridional vertical-momentum flux due to GWs",
+                    "zonal mass-weighted potential-temperature flux due to GWs",
+                    "meridional mass-weighted potential-temperature flux due to GWs",
+                    "GW energy density",
+                ),
+            )
+                if field in output_variables
+                    attributes(file[string(field)])["units"] = units
+                    attributes(file[string(field)])["label"] = label
+                    attributes(file[string(field)])["long_name"] = long_name
                 end
             end
 
