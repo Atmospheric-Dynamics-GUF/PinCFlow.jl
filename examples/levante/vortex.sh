@@ -2,9 +2,9 @@
 #SBATCH --partition=compute
 #SBATCH --job-name=vortex
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
+#SBATCH --ntasks-per-node=4
 #SBATCH --hint=nomultithread
-#SBATCH --mem=90G
+#SBATCH --mem=10G
 #SBATCH --time=0-01:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
@@ -16,6 +16,6 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; vortex(; npx = 8, npy = 8, plot_file = "examples/results/vortex.svg")' &> vortex.log
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; vortex(; npx = 2, npy = 2)' &> vortex.log
 
 exit 0

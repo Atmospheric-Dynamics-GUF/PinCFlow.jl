@@ -16,25 +16,37 @@ for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
                 "(.(?!^```\\n))*",
             )
             if script_file == "periodic_hill.jl"
-                page_file = "README.md"
+                page_files = ("README.md", "docs/src/examples.md")
             else
-                page_file = "docs/src/examples.md"
+                page_files = ("docs/src/examples.md",)
             end
-            if isfile(page_file)
-                page = replace(read(page_file, String), code => script)
-                open(page_file, "w") do io
-                    write(io, page)
-                    return
+            for page_file in page_files
+                if isfile(page_file)
+                    page = replace(read(page_file, String), code => script)
+                    open(page_file, "w") do io
+                        write(io, page)
+                        return
+                    end
                 end
             end
         end
     end
 end
 
-# Copy the example plots.
+# Create the example plots.
 mkpath("docs/src/examples/results/")
-for file in readdir("examples/results/"; join = true)
-    cp(file, "docs/src/" * file; force = true)
+for name in names(PinCFlow.Examples)
+    example = getproperty(PinCFlow.Examples, name)
+    if example isa Function
+        mktempdir() do directory
+            example(;
+                display_figure = false,
+                output_file = directory * "/$(example).h5",
+                plot_file = "docs/src/examples/results/$(example).svg",
+            )
+            return
+        end
+    end
 end
 
 # Copy the README file and use it as landing page of the docs.

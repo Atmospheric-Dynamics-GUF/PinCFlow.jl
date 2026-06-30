@@ -35,17 +35,12 @@ symmetric_contours
     colormap = to_colormap(colormap_name)
     (number - 1) % 2 != length(colormap) % 2 && (number += 1)
 
-    # Adjust minimum and maximum if they're the same.
-    if minimum == maximum
-        minimum -= 1
-        maximum += 1
-    end
+    # Add a tiny bit of noise.
+    minimum -= eps(minimum)
+    maximum += eps(maximum)
 
     # Compute contour levels.
-    if minimum == -maximum ||
-       sign(minimum) == sign(maximum) ||
-       minimum == 0 ||
-       maximum == 0
+    if minimum == -maximum || sign(minimum) == sign(maximum)
         levels = LinRange(minimum, maximum, number)
     else
         peak = max(abs(minimum), abs(maximum))
