@@ -576,7 +576,7 @@ function wkb_mountain_wave(;
         relaxed_u = (x, y, z, t, dt) -> 10.0,
     )
 
-    wkb = WKBNamelist(; l_bins = 1, wkb_mode = :MultiColumn)
+    wkb = WKBNamelist(; wkb_mode = :MultiColumn)
 
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
