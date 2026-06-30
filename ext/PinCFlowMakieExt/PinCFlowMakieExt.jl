@@ -1,3 +1,14 @@
+"""
+```julia
+PinCFlowMakieExt
+```
+
+Makie.jl extension (using the `CairoMakie` backend).
+
+# See also
+
+  - [`PinCFlow.Macros`](@ref)
+"""
 module PinCFlowMakieExt
 
 using HDF5
