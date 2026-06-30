@@ -10,10 +10,8 @@ Provides constructors that allow setting only specific parameters and using defa
 module NamelistTypes
 
 using MPI
-using FunctionWrappers
+using FunctionWrappers: FunctionWrapper
 using ...Macros
-
-import FunctionWrappers: FunctionWrapper
 
 include("@dispatch_background.jl")
 include("@dispatch_filter_order.jl")
