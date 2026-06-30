@@ -16,6 +16,6 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; mountain_wave(; npx = 4, npy = 4, npz = 4)' &> mountain_wave.log
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; mountain_wave(; npx = 4, npy = 4, npz = 4, plot_file = "examples/results/mountain_wave.svg")' &> mountain_wave.log
 
 exit 0

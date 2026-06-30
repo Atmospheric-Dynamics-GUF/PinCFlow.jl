@@ -8,7 +8,7 @@ function vortex(;
     output_file::AbstractString = "vortex.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/vortex.svg",
+    plot_file::AbstractString = "vortex.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -60,10 +60,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("chi", 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:chi, 2))
     end
 
     return

@@ -16,6 +16,6 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; hot_bubble(; npx = 8, npz = 8)' &> hot_bubble.log
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; hot_bubble(; npx = 8, npz = 8, plot_file = "examples/results/hot_bubble.svg")' &> hot_bubble.log
 
 exit 0

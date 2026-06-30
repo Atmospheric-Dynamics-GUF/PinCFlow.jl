@@ -8,7 +8,7 @@ function hot_bubble(;
     output_file::AbstractString = "hot_bubble.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/hot_bubble.svg",
+    plot_file::AbstractString = "hot_bubble.svg",
 )
     lx = 20000.0
     lz = 20000.0
@@ -42,10 +42,7 @@ function hot_bubble(;
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:thetap, 2))
     end
 
     return

@@ -10,7 +10,7 @@ function wkb_mountain_wave(;
     output_file::AbstractString = "wkb_mountain_wave.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/wkb_mountain_wave.svg",
+    plot_file::AbstractString = "wkb_mountain_wave.svg",
 )
     h0 = 150.0
     l0 = 5000.0
@@ -65,10 +65,7 @@ function wkb_mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("nr", 20, 20, 10, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:nr, 0.5, 0.5, 0.25, 2))
     end
 
     return

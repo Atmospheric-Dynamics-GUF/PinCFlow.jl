@@ -8,7 +8,7 @@ function periodic_hill(;
     output_file::AbstractString = "periodic_hill.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/periodic_hill.svg",
+    plot_file::AbstractString = "periodic_hill.svg",
 )
     h0 = 500.0
     l0 = 10000.0
@@ -40,10 +40,7 @@ function periodic_hill(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("w", 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:w, 2))
     end
 
     return
