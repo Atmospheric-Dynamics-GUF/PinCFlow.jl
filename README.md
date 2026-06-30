@@ -51,6 +51,7 @@ to install the dependencies of its project. Having done this, you can easily run
 # src/Examples/periodic_hill.jl
 
 function periodic_hill(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "periodic_hill.h5",
@@ -91,7 +92,7 @@ function periodic_hill(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(plot_file, output_file, (:w, 2))
+        plot_output(plot_file, output_file, (:w, 2); display_figure)
     end
 
     return

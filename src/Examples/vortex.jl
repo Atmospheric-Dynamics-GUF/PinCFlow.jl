@@ -1,6 +1,7 @@
 # src/Examples/vortex.jl
 
 function vortex(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     output_file::AbstractString = "vortex.h5",
@@ -61,7 +62,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(plot_file, output_file, (:chi, 2))
+        plot_output(plot_file, output_file, (:chi, 2); display_figure)
     end
 
     return

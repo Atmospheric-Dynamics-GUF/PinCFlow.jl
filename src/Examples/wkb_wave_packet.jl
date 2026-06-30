@@ -1,6 +1,7 @@
 # src/Examples/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -70,6 +71,7 @@ function wkb_wave_packet(;
             plot_file,
             output_file,
             (:uw, 0.5, 0.5, 0.5, 2);
+            display_figure,
             time_unit = :min,
         )
     end

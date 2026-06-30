@@ -8,6 +8,7 @@ The function
 # src/Examples/cold_bubble.jl
 
 function cold_bubble(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -58,6 +59,7 @@ function cold_bubble(;
             plot_file,
             output_file,
             (:thetap, 0.5, 0.5, 0.25, 2);
+            display_figure,
             time_unit = :min,
         )
     end
@@ -79,6 +81,7 @@ The function
 # src/Examples/hot_bubble.jl
 
 function hot_bubble(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -130,6 +133,7 @@ function hot_bubble(;
             plot_file,
             output_file,
             (:thetap, 0.5, 0.5, 0.75, 2);
+            display_figure,
             time_unit = :min,
         )
     end
@@ -151,6 +155,7 @@ The function
 # src/Examples/mountain_wave.jl
 
 function mountain_wave(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -215,6 +220,7 @@ function mountain_wave(;
             plot_file,
             output_file,
             (:w, 0.5, 0.5, 0.25, 2);
+            display_figure,
             time_unit = :min,
         )
     end
@@ -265,6 +271,7 @@ The function
 # src/Examples/periodic_hill.jl
 
 function periodic_hill(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "periodic_hill.h5",
@@ -305,7 +312,7 @@ function periodic_hill(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(plot_file, output_file, (:w, 2))
+        plot_output(plot_file, output_file, (:w, 2); display_figure)
     end
 
     return
@@ -325,6 +332,7 @@ The function
 # src/Examples/vortex.jl
 
 function vortex(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     output_file::AbstractString = "vortex.h5",
@@ -385,7 +393,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(plot_file, output_file, (:chi, 2))
+        plot_output(plot_file, output_file, (:chi, 2); display_figure)
     end
 
     return
@@ -405,6 +413,7 @@ The function
 # src/Examples/wave_packet.jl
 
 function wave_packet(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -491,6 +500,7 @@ function wave_packet(;
             (:u, 0.5, 0.5, 0.5, 2),
             (:v, 0.5, 0.5, 0.5, 2),
             (:w, 0.5, 0.5, 0.5, 2);
+            display_figure,
             time_unit = :min,
         )
     end
@@ -512,6 +522,7 @@ The function
 # src/Examples/wkb_mountain_wave.jl
 
 function wkb_mountain_wave(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -585,6 +596,7 @@ function wkb_mountain_wave(;
             plot_file,
             output_file,
             (:uw, 0.5, 0.5, 0.25, 2);
+            display_figure,
             time_unit = :min,
         )
     end
@@ -635,6 +647,7 @@ The function
 # src/Examples/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -704,6 +717,7 @@ function wkb_wave_packet(;
             plot_file,
             output_file,
             (:uw, 0.5, 0.5, 0.5, 2);
+            display_figure,
             time_unit = :min,
         )
     end

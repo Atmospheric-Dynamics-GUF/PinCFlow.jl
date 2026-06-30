@@ -1,6 +1,7 @@
 # src/Examples/hot_bubble.jl
 
 function hot_bubble(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -52,6 +53,7 @@ function hot_bubble(;
             plot_file,
             output_file,
             (:thetap, 0.5, 0.5, 0.75, 2);
+            display_figure,
             time_unit = :min,
         )
     end

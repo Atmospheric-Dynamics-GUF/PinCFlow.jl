@@ -40,6 +40,7 @@ for name in names(PinCFlow.Examples)
     if example isa Function
         mktempdir() do directory
             example(;
+                display_figure = false,
                 output_file = directory * "/$(example).h5",
                 plot_file = "docs/src/examples/results/$(example).svg",
             )

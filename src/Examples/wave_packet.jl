@@ -1,6 +1,7 @@
 # src/Examples/wave_packet.jl
 
 function wave_packet(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -87,6 +88,7 @@ function wave_packet(;
             (:u, 0.5, 0.5, 0.5, 2),
             (:v, 0.5, 0.5, 0.5, 2),
             (:w, 0.5, 0.5, 0.5, 2);
+            display_figure,
             time_unit = :min,
         )
     end

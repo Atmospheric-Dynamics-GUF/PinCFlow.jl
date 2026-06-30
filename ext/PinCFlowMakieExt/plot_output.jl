@@ -36,6 +36,8 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `color_tick_format`: Format string for the ticks of the colorbars.
 
+  - `display_figure`: Switch for showing the figure wih Makie.jl's `display` function.
+
   - `number`: Number of contour levels.
 
   - `space_unit`: Unit used for the coordinates. Must be `:km` or `:m`.
@@ -61,6 +63,7 @@ plot_output
     };
     colormap_name::Symbol = :seismic,
     color_tick_format::AbstractString = "{:.1E}",
+    display_figure::Bool = true,
     number::Integer = 10,
     space_unit::Symbol = :km,
     time_unit::Symbol = :h,
@@ -381,7 +384,7 @@ plot_output
 
     # Resize, display and save the figure.
     resize_to_layout!(figure)
-    display(figure)
+    display_figure && display(figure)
     save(plot_file, figure)
 
     return

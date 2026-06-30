@@ -1,6 +1,7 @@
 # src/Examples/mountain_wave.jl
 
 function mountain_wave(;
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -65,6 +66,7 @@ function mountain_wave(;
             plot_file,
             output_file,
             (:w, 0.5, 0.5, 0.25, 2);
+            display_figure,
             time_unit = :min,
         )
     end
