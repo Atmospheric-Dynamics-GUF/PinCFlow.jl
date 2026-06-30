@@ -19,9 +19,9 @@ using LaTeXStrings
 using Dates
 using MPI
 using HDF5
+using ..Macros
 using ..Types
 using ..Update
-using ..PinCFlow
 
 include("create_output.jl")
 include("read_input!.jl")

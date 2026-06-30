@@ -21,10 +21,10 @@ module BoundaryRays
 
 using MPI
 using ..RayOperations
+using ...Macros
 using ...Types
 using ...MPIOperations
 using ...Boundaries
-using ...PinCFlow
 
 include("set_boundary_rays!.jl")
 include("set_meridional_boundary_rays!.jl")

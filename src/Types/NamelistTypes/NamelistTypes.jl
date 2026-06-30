@@ -11,13 +11,9 @@ module NamelistTypes
 
 using MPI
 using FunctionWrappers
-using ...PinCFlow
+using ...Macros
 
 import FunctionWrappers: FunctionWrapper
-
-include("dispatch.jl")
-include("find_argument.jl")
-include("replace_argument.jl")
 
 include("@dispatch_background.jl")
 include("@dispatch_filter_order.jl")
@@ -28,7 +24,6 @@ include("@dispatch_model.jl")
 include("@dispatch_tracer_setup.jl")
 include("@dispatch_turbulence_scheme.jl")
 include("@dispatch_wkb_mode.jl")
-include("@dispatch.jl")
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
@@ -50,8 +45,7 @@ export @dispatch_background,
     @dispatch_model,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
-    @dispatch_turbulence_scheme,
-    @dispatch
+    @dispatch_turbulence_scheme
 
 export DomainNamelist,
     OutputNamelist,

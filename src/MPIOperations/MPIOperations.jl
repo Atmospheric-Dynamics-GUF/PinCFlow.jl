@@ -15,8 +15,8 @@ process boundaries, as well as global reduction operations.
 module MPIOperations
 
 using MPI
+using ..Macros
 using ..Types
-using ..PinCFlow
 
 include("compute_global_dot_product.jl")
 include("set_meridional_halos_of_field!.jl")

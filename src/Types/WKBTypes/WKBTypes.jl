@@ -20,7 +20,7 @@ import Base: getproperty
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
-using ...PinCFlow
+using ...Macros
 
 include("WKBIntegrals.jl")
 include("WKBTendencies.jl")

@@ -14,8 +14,8 @@ Module for various ray-volume operations needed throughout `PinCFlow.MSGWaM`.
 module RayOperations
 
 using ..Interpolation
+using ...Macros
 using ...Types
-using ...PinCFlow
 
 include("check_rays.jl")
 include("compute_intrinsic_frequency.jl")

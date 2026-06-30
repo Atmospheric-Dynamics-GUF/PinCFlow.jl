@@ -22,9 +22,9 @@ module MeanFlowEffect
 using ..BlockedLayer
 using ..Interpolation
 using ..RayUpdate
+using ...Macros
 using ...Types
 using ...Boundaries
-using ...PinCFlow
 
 """
 ```julia

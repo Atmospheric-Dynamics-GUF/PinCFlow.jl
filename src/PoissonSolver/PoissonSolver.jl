@@ -20,11 +20,11 @@ Provides the functions needed to solve the Poisson equation of the semi-implicit
 module PoissonSolver
 
 using MPI
+using ..Macros
 using ..Types
 using ..MPIOperations
 using ..Boundaries
 using ..Update
-using ..PinCFlow
 
 """
 ```julia

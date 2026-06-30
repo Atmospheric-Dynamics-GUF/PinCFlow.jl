@@ -27,6 +27,7 @@ module Integration
 
 using MPI
 using Dates
+using ..Macros
 using ..Types
 using ..Boundaries
 using ..Update

@@ -17,8 +17,8 @@ module RaySources
 
 using ..BlockedLayer
 using ..RayOperations
+using ...Macros
 using ...Types
-using ...PinCFlow
 
 include("activate_orographic_source!.jl")
 include("apply_elastic_mode_selection!.jl")

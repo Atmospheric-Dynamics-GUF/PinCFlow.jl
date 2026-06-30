@@ -15,7 +15,7 @@ module VariableTypes
 
 using ..NamelistTypes
 using ..FoundationalTypes
-using ...PinCFlow
+using ...Macros
 
 include("set_p.jl")
 

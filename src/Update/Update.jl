@@ -16,9 +16,9 @@ Provides functions for updating the prognostic variables at the various stages o
 module Update
 
 using MPI
+using ..Macros
 using ..Types
 using ..Boundaries
-using ..PinCFlow
 
 """
 ```julia

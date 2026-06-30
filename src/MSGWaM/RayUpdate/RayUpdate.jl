@@ -26,8 +26,8 @@ using ..BoundaryRays
 using ..Interpolation
 using ..RayOperations
 using ..RaySources
+using ...Macros
 using ...Types
-using ...PinCFlow
 
 """
 ```julia

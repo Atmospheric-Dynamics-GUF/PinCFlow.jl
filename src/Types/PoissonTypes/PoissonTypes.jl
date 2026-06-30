@@ -15,7 +15,7 @@ module PoissonTypes
 
 using ..NamelistTypes
 using ..FoundationalTypes
-using ...PinCFlow
+using ...Macros
 
 include("Tensor.jl")
 include("Operator.jl")
