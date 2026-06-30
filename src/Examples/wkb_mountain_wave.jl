@@ -1,37 +1,38 @@
 # src/Examples/wkb_mountain_wave.jl
 
 function wkb_mountain_wave(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
-    z_size::Integer = 40,
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "wkb_mountain_wave.h5",
+    plot_file::AbstractString = "wkb_mountain_wave.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "wkb_mountain_wave.svg",
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
 )
-    h0 = 150.0
-    l0 = 5000.0
+    h0 = 300
+    l0 = 5000
     rl = 10
     rh = 2
 
-    lx = 400000.0
-    ly = 400000.0
-    lz = 20000.0
+    lx = 200000
+    ly = 200000
+    lz = 5000
+
     dxr = lx / 20
     dyr = ly / 20
     dzr = lz / 10
     alpharmax = 0.0179
 
     atmosphere = AtmosphereNamelist(;
-        background = :LapseRates,
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
     )
 
-    domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+    domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
         resolved_topography = (x, y) ->
@@ -47,8 +48,13 @@ function wkb_mountain_wave(;
             ) : (0.0, 0.0, 0.0),
     )
 
-    output =
-        OutputNamelist(; output_file, save_ray_volumes = true, prepare_restart)
+    output = OutputNamelist(;
+        output_file,
+        output_interval = 300,
+        output_variables = [:uw],
+        prepare_restart,
+        tmax = 300,
+    )
 
     sponge = SpongeNamelist(;
         lhs_sponge = (x, y, z, t, dt) ->
@@ -65,7 +71,13 @@ function wkb_mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(plot_file, output_file, (:nr, 0.5, 0.5, 0.25, 2))
+        plot_output(
+            plot_file,
+            output_file,
+            (:uw, 0.5, 0.5, 0.25, 2);
+            display_figure,
+            time_unit = :min,
+        )
     end
 
     return
