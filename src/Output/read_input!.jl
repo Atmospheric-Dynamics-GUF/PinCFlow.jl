@@ -19,8 +19,11 @@ function read_input!(state::State)
     (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
+    (; n, nNuc, q, qv) = state.ice.icepredictands
     (; nray_max, nray, rays) = state.wkb
     (; rhobar) = state.atmosphere
+    (; ice_setup) = state.namelists.ice
+    (; mRef) = state.ice.iceconstants
 
     # Determine dimensionality.
     dim = 1
@@ -45,35 +48,43 @@ function read_input!(state::State)
     @ivy time = h5open(input_file, "r", comm) do file
 
         # Read the time.
-        time = file["t"][iin] / tref
+        time = file["t"][iin == -1 ? end : iin] / tref
 
         # Read the density fluctuations.
-        rhop[ii, jj, kk] = file["rhop"][iid, jjd, kkd, iin] ./ rhoref
+        rhop[ii, jj, kk] = file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref
         if model != Boussinesq()
             rho[ii, jj, kk] .= rhop[ii, jj, kk]
         end
 
         # Read the staggered zonal wind.
-        u[ii, jj, kk] = file["us"][iid, jjd, kkd, iin] ./ uref
+        u[ii, jj, kk] = file["us"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
 
         # Read the staggered meridional wind.
-        v[ii, jj, kk] = file["vs"][iid, jjd, kkd, iin] ./ uref
+        v[ii, jj, kk] = file["vs"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
 
         # Read the staggered transformed vertical wind.
-        w[ii, jj, kk] = file["wts"][iid, jjd, kkd, iin] ./ uref
+        w[ii, jj, kk] = file["wts"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
 
         # Read the Exner-pressure fluctuations.
-        pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin]
+        pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin == -1 ? end : iin]
+
+        if ice_setup == IceOn()
+            # Read ice variables.
+            n[ii, jj, kk] = file["n"][iid, jjd, kkd, iin == -1 ? end : iin] .* mRef .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+            nNuc[ii, jj, kk] = file["nNuc"][iid, jjd, kkd, iin == -1 ? end : iin] .* mRef .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+            q[ii, jj, kk] = file["q"][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+            qv[ii, jj, kk] = file["qv"][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+        end
 
         # Read the mass-weighted potential temperature.
         if model == Compressible()
-            p[ii, jj, kk] = file["p"][iid, jjd, kkd, iin] ./ rhoref ./ thetaref
+            p[ii, jj, kk] = file["p"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref ./ thetaref
         end
 
         if !(typeof(state.namelists.tracer.tracer_setup) <: NoTracer)
             for field in fieldnames(TracerPredictands)
                 getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
-                    file[string(field)][iid, jjd, kkd, iin] .*
+                    file[string(field)][iid, jjd, kkd, iin == -1 ? end : iin] .*
                     (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
         end
@@ -85,7 +96,7 @@ function read_input!(state::State)
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
                 getfield(rays, field_name)[rr, ii, jj, kkr] =
-                    file[output_name][rr, iid, jjd, kkrd, iin] ./ lref
+                    file[output_name][rr, iid, jjd, kkrd, iin == -1 ? end : iin] ./ lref
             end
 
             for (output_name, field_name) in zip(
@@ -93,11 +104,11 @@ function read_input!(state::State)
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
                 getfield(rays, field_name)[rr, ii, jj, kkr] =
-                    file[output_name][rr, iid, jjd, kkrd, iin] .* lref
+                    file[output_name][rr, iid, jjd, kkrd, iin == -1 ? end : iin] .* lref
             end
 
             rays.dens[rr, ii, jj, kkr] =
-                file["nr"][rr, iid, jjd, kkrd, iin] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
+                file["nr"][rr, iid, jjd, kkrd, iin == -1 ? end : iin] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
 
             # Determine nray.
             for k in kkr, j in jj, i in ii

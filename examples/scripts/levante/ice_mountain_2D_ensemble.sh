@@ -8,8 +8,28 @@
 #SBATCH --time=0-00:15:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
+#SBATCH --array=1-6
 
 set -x
+
+case "${SLURM_ARRAY_TASK_ID}" in
+  1) URELAx=5.0
+     RUN=2506_02;;
+  2) URELAx=7.0
+     RUN=2506_03;;
+  3) URELAx=9.0
+     RUN=2506_04;;
+  4) URELAx=11.0
+     RUN=2506_05;;
+  5) URELAx=13.0
+     RUN=2506_06;;
+  6) URELAx=15.0
+     RUN=2506_07;;
+  *)
+    echo "Invalid SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID}"
+    exit 1
+    ;;
+esac
 
 
 # Set Intel MPI configuration on compute partition.

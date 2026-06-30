@@ -3,7 +3,7 @@
 ##SBATCH --partition=interactive
 #SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=8
+#SBATCH --ntasks-per-node=12
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-08:00:00
 #SBATCH --mail-type=FAIL
@@ -11,7 +11,7 @@
 
 set -x
 
-RUN="1706_02"
+RUN="1906_02"
 
 # Set Intel MPI configuration on compute partition.
 export I_MPI_PMI=pmi
@@ -25,7 +25,7 @@ julia --project=${project_dir} -e 'import Pkg; Pkg.instantiate()'
 julia --project=${project_dir} -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"])'
 julia --project=${project_dir} -e 'using HDF5; HDF5.API.set_libraries!("/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5.so", "/sw/spack-levante/hdf5-1.12.1-jmeuy3/lib/libhdf5_hl.so")' 
 # Run the model on compute partition.
-srun --cpu_bind=verbose julia --project=${project_dir} examples/scripts/wkb_mountain_wave.jl 8 1 1 1>wkb_mountain_wave_${RUN}.log 2>&1
+srun --cpu_bind=verbose julia --project=${project_dir} examples/scripts/wkb_mountain_wave.jl 12 1 1 1>wkb_mountain_wave_${RUN}.log 2>&1
 
 # Run the model on interactive partition.
 #mpiexec -n 1 julia --project=${project_dir} ${1} 1 1 1 1>ice_dump.log 2>&1

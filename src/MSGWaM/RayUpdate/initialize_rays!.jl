@@ -272,7 +272,7 @@ function initialize_rays!(
 			# Interpolate winds to ray-volume position.
 			uxr = interpolate_mean_flow(xr, yr, zr, state, U())
 			vyr = interpolate_mean_flow(xr, yr, zr, state, V())
-			wzr = interpolate_mean_flow(xr, yr, zr, state, W())
+			#wzr = interpolate_mean_flow(xr, yr, zr, state, W())
 
 			wnrk = rays.k[r, i, j, k]
 			wnrl = rays.l[r, i, j, k]
@@ -282,17 +282,11 @@ function initialize_rays!(
 
 			# Compute maximum group velocities.
 			cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
-			if abs(uxr + cgirx) > abs(cgx_max[])
-				cgx_max[] = abs(uxr + cgirx)
-			end
+			cgx_max[] = max(cgx_max[], abs(uxr + cgirx))
 			cgiry = wnrl * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
-			if abs(vyr + cgiry) > abs(cgy_max[])
-				cgy_max[] = abs(vyr + cgiry)
-			end
+			cgy_max[] = max(cgy_max[], abs(vyr + cgiry))
 			cgirz = -wnrm * (omir^2 - fc^2) / (omir * (wnrh^2 + wnrm^2))
-			if abs(wzr + cgirz) > abs(cgz_max[i, j, k])
-				cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(wzr + cgirz))
-			end
+			cgz_max[] = max(cgz_max[], abs(cgirz))
 
 			if !(ice_setup isa NoIce)
 				rays.dphi[r, i, j, k] = wnrk * xr + wnrl * yr + wnrm * zr

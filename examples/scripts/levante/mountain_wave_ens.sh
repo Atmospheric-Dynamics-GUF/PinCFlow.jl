@@ -7,7 +7,7 @@
 #SBATCH --time=0-08:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
-##SBATCH --array=0-1
+#SBATCH --array=1-6
 
 set -euo pipefail
 set -x
@@ -17,7 +17,32 @@ export ROMIO_LUSTRE_LOCKING=0
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
-RUN="2606_08"
+case "${SLURM_ARRAY_TASK_ID}" in
+  1) UINI=7.0
+     RUN=2606_02
+     UAMP=3;;
+  2) UINI=9.0
+     RUN=2606_03
+     UAMP=5;;
+  3) UINI=11.0
+     RUN=2606_03
+     UAMP=7;;
+  4) UINI=13.0
+     RUN=2606_04
+     UAMP=5;;
+  5) UINI=15.0
+     RUN=2606_05
+     UAMP=3;;
+  6) UINI=17.0
+     RUN=2606_06
+     UAMP=1;;
+  *)
+    echo "Invalid SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID}"
+    exit 1
+    ;;
+esac
+
+echo "Running with run ${RUN} with u_ini = ${UINI} and u_amp = ${UAMP}"
 
 # Julia environment
 julia --project -e 'import Pkg; Pkg.instantiate()'
@@ -41,6 +66,6 @@ HDF5.API.set_libraries!(
 
 # Run
 srun --cpu_bind=verbose \
-     julia --project examples/scripts/mountain_wave.jl \
-     128 1 1 1\
-     > mountain_wave_${RUN}.log 2>&1
+     julia --project examples/scripts/mountain_wave_ens.jl \
+     128 1 1 1 ${UINI} ${RUN} ${UAMP}\
+     > mountain_wave_ens_${RUN}.log 2>&1
