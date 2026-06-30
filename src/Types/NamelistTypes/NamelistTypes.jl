@@ -15,6 +15,10 @@ using ...PinCFlow
 
 import FunctionWrappers: FunctionWrapper
 
+include("dispatch.jl")
+include("find_argument.jl")
+include("replace_argument.jl")
+
 include("@dispatch_background.jl")
 include("@dispatch_filter_order.jl")
 include("@dispatch_filter_type.jl")
