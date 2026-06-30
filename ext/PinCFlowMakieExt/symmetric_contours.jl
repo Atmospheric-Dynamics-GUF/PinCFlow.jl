@@ -8,7 +8,7 @@ symmetric_contours(
 )::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
 ```
 
-Compute symmetric contours levels and return them and a correspondingly indexed colormap.
+Compute symmetric contour levels and return them and a correspondingly indexed colormap.
 
 # Arguments
 

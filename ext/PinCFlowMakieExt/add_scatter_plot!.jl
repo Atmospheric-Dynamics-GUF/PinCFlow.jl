@@ -3,7 +3,7 @@
 add_scatter_plot!(figure::Figure, input::NamedTuple)
 ```
 
-Add a scatter plot to `figure`, using the data in `input`.
+Add a scatter plot to `figure` using the data in `input`.
 
 # Arguments
 

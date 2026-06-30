@@ -3,7 +3,7 @@
 add_contour_plot!(figure::Figure, input::NamedTuple)
 ```
 
-Add a contour plot to `figure`, using the data in `input`.
+Add a contour plot to `figure` using the data in `input`.
 
 # Arguments
 
