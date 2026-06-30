@@ -12,8 +12,7 @@ module NamelistTypes
 using MPI
 using FunctionWrappers
 using ...PinCFlow
-
-import FunctionWrappers: FunctionWrapper
+using FunctionWrappers: FunctionWrapper
 
 include("@dispatch_background.jl")
 include("@dispatch_filter_order.jl")

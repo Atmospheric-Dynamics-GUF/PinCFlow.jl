@@ -10,7 +10,7 @@ function mountain_wave(;
     output_file::AbstractString = "mountain_wave.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/mountain_wave.svg",
+    plot_file::AbstractString = "mountain_wave.svg",
 )
     h0 = 100.0
     l0 = 1000.0
@@ -55,10 +55,7 @@ function mountain_wave(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("w", 20, 20, 10, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:w, 0.5, 0.5, 0.25, 2))
     end
 
     return

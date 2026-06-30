@@ -1,5 +1,6 @@
 using Changelog: Changelog
 using Documenter
+using CairoMakie
 using Revise
 using PinCFlow
 
@@ -154,6 +155,7 @@ makedocs(;
             "MSGWaM" => "reference/msgwam.md",
             "Integration" => "reference/integration.md",
             "Output" => "reference/output.md",
+            "PinCFlowMakieExt" => "reference/pincflow_makie_ext.md",
         ],
         "Developer guide" => "developer_guide.md",
         "Changelog" => "changelog.md",

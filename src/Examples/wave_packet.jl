@@ -10,7 +10,7 @@ function wave_packet(;
     output_file::AbstractString = "wave_packet.h5",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/wave_packet.svg",
+    plot_file::AbstractString = "wave_packet.svg",
 )
     lx = 20000.0
     ly = 20000.0
@@ -77,17 +77,14 @@ function wave_packet(;
     integrate(Namelists(; atmosphere, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(
-                plot_file,
-                data,
-                ("u", 20, 20, 40, 2),
-                ("v", 20, 20, 40, 2),
-                ("w", 20, 20, 40, 2);
-                time_unit = "min",
-            )
-            return
-        end
+        plot_output(
+            plot_file,
+            output_file,
+            (:u, 0.5, 0.5, 0.5, 2),
+            (:v, 0.5, 0.5, 0.5, 2),
+            (:w, 0.5, 0.5, 0.5, 2);
+            time_unit = :min,
+        )
     end
 
     return

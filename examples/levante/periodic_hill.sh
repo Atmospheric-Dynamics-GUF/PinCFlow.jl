@@ -16,6 +16,6 @@ export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 # Run the model on compute partition.
-srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8)' &> periodic_hill.log
+srun --distribution=block:cyclic julia --project=examples -e 'using PinCFlow, CairoMakie; periodic_hill(; npx = 8, npz = 8, plot_file = "examples/results/periodic_hill.svg")' &> periodic_hill.log
 
 exit 0

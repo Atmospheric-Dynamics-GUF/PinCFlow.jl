@@ -1,7 +1,17 @@
+"""
+```julia
+set_visualization_theme!()
+```
+
+Configure Makie to use a customized theme.
+"""
+set_visualization_theme!
+
 function set_visualization_theme!()
     color = [:blue, :red]
     set_theme!(
         theme_latexfonts();
+        fontsize = 16,
         Axis = (
             width = 200,
             height = 200,
