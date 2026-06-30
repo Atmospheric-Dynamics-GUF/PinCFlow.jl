@@ -27,27 +27,31 @@ function reduce_exceptions(
     delay::Real = 0,
     info::AbstractString = "",
 )
-    lock = MPI.bcast(tempname(), comm)
+    window = MPI.Win_create([true], comm)
+    reporter = [false]
+    rank = 0
 
     try
         operation()
-    catch exception
-        reporter = false
-        try
-            mkdir(lock)
-            reporter = true
-        catch
-        end
+    catch
+        MPI.Win_lock(window; rank, type = :exclusive)
+        MPI.Get!(reporter, window; rank)
+        MPI.Win_flush(window; rank)
+        MPI.Put!([false], window; rank)
+        MPI.Win_unlock(window; rank)
 
-        if reporter
+        if reporter[1]
             sleep(delay)
-            flush(stdout)
-            println(info)
-            rethrow(exception)
+            flush(stderr)
+            println(stderr, info)
+            Base.display_error(stderr, current_exceptions())
+            flush(stderr)
+            MPI.Abort(comm, MPI.Comm_rank(comm))
         end
     end
 
     MPI.Barrier(comm)
+    MPI.free(window)
 
     return
 end

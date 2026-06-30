@@ -44,7 +44,7 @@ using .Integration
 using .Examples
 
 @setup_workload begin
-    redirect_stdio(; stderr = devnull, stdout = devnull) do
+    redirect_stdout(devnull) do
         mktempdir() do directory
             x_size = 3
             y_size = 3
