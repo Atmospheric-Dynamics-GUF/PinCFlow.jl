@@ -7,6 +7,8 @@ Module for ray-volume sources.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.MSGWaM.BlockedLayer`](@ref)

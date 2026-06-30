@@ -10,6 +10,8 @@ process boundaries, as well as global reduction operations.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 """
 module MPIOperations

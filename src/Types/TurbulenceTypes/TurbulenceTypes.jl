@@ -7,6 +7,8 @@ Module for composite types needed for turbulence parameterization.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes`](@ref)

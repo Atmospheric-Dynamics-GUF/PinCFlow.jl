@@ -9,6 +9,8 @@ Provides functions for MUSCL reconstruction and flux computation.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.Boundaries`](@ref)

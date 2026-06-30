@@ -9,6 +9,8 @@ Provides helper functions for computing the time step, managing time levels and 
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.Boundaries`](@ref)

@@ -9,6 +9,8 @@ Provides functions for configurations that are serial or parallel in any dimensi
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.MPIOperations`](@ref)

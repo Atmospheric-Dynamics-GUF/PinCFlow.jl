@@ -7,6 +7,8 @@ Module that contains the composite types `Time`, `Constants`, `Domain`, `Grid`, 
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 """
 module FoundationalTypes

@@ -7,6 +7,8 @@ Module for composite types used by the Poisson solver.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes`](@ref)

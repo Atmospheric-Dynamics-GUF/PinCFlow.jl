@@ -9,6 +9,8 @@ Provides the functions needed to solve the Poisson equation of the semi-implicit
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.MPIOperations`](@ref)

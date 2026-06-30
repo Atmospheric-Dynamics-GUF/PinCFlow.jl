@@ -7,6 +7,8 @@ Module for various ray-volume operations needed throughout `PinCFlow.MSGWaM`.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation`](@ref)

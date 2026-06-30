@@ -12,6 +12,10 @@ The scope in which this macro is to be applied must include the argument of the 
   - `values`: Expression of a tuple of allowed values.
 
   - `input`: Input expression with dynamic value dispatches.
+
+# See also
+
+  - [`PinCFlow.Macros.dispatch`](@ref)
 """
 macro dispatch end
 

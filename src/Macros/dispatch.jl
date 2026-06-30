@@ -10,6 +10,12 @@ If `input` is an expression, find the first dynamic value dispatch in it and mak
   - `values`: Expression of a tuple of allowed values.
 
   - `input`: Input object.
+
+# See also
+
+  - [`PinCFlow.Macros.find_argument`](@ref)
+
+  - [`PinCFlow.Macros.replace_argument`](@ref)
 """
 function dispatch end
 
