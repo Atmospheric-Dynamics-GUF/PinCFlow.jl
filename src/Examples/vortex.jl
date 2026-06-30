@@ -4,6 +4,7 @@ function vortex(;
     display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
+    npz::Integer = 1,
     output_file::AbstractString = "vortex.h5",
     plot_file::AbstractString = "vortex.svg",
     prepare_restart::Bool = false,

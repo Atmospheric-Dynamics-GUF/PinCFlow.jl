@@ -3,6 +3,7 @@
 function periodic_hill(;
     display_figure::Bool = true,
     npx::Integer = 1,
+    npy::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "periodic_hill.h5",
     plot_file::AbstractString = "periodic_hill.svg",
