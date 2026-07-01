@@ -3,9 +3,9 @@
 @dispatch(values::Expr, input::Expr)
 ```
 
-Find the first dynamic value dispatch in `input` and make all similar dynamic value dispatches static.
+Find the first dynamic value dispatch in `input` and make all dynamic value dispatches with the same argument static.
 
-The scope in which this macro is to be applied must include the argument of the first dynamic value dispatch.
+The scope in which this macro is to be applied must include the argument of the first dynamic value dispatch, and the available methods of the involved functions must be covered by the options given in `values`.
 
 # Arguments
 

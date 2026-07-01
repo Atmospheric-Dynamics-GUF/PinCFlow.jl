@@ -3,7 +3,9 @@
 dispatch(values::Expr, input::Any)::Any
 ```
 
-If `input` is an expression, find the first dynamic value dispatch in it and make all similar dynamic value dispatches static by inserting `input` into an `if` block which compares the found argument to the options in `values` and replacing it accordingly in all `Val` calls.
+If `input` is an expression, find the first dynamic value dispatch in it and make all dynamic value dispatches with the same argument static.
+
+The dynamic value dispatches are made static by inserting `input` into an `if` block which compares the found argument to the options in `values` and replacing it accordingly in all `Val` calls.
 
 # Arguments
 
