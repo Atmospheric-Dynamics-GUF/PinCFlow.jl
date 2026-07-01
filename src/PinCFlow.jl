@@ -15,12 +15,9 @@ module PinCFlow
 
 using MPI
 
-include("@ivy.jl")
-include("ivy.jl")
 include("reduce_exceptions.jl")
 include("ensemble.jl")
 
-export @ivy
 export reduce_exceptions, ensemble
 
 function plot_output end
@@ -29,6 +26,7 @@ function symmetric_contours end
 
 export plot_output, set_visualization_theme!, symmetric_contours
 
+include("Macros/Macros.jl")
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
 include("Boundaries/Boundaries.jl")

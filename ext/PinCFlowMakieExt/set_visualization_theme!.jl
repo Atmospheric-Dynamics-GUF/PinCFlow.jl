@@ -3,7 +3,7 @@
 set_visualization_theme!()
 ```
 
-Configure Makie to use a customized theme.
+Configure Makie.jl to use a customized theme.
 """
 set_visualization_theme!
 

@@ -11,7 +11,7 @@ Return the expression `x` with all slices turned into views and all bounds check
 
 # See also
 
-  - [`PinCFlow.ivy`](@ref)
+  - [`PinCFlow.Macros.ivy`](@ref)
 """
 macro ivy end
 
