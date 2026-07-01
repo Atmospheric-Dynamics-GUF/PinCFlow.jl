@@ -11,7 +11,7 @@ Domain(namelists::Namelists)::Domain
 
 Construct a `Domain` instance from the model parameters in `namelists`.
 
-If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\hat{x}`` and ``\\hat{y}``) but not in the last (``\\hat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\hat{x}``, ``\\hat{y}`` and ``\\hat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
+If `namelists.domain.base_comm[] == MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\hat{x}`` and ``\\hat{y}``) but not in the last (``\\hat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\hat{x}``, ``\\hat{y}`` and ``\\hat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
 
 # Fields
 
@@ -135,14 +135,14 @@ end
     if !MPI.Initialized()
         MPI.Init()
     end
-    rank = MPI.Comm_rank(base_comm)
+    rank = MPI.Comm_rank(base_comm[])
     root = 0
     if rank == root
         master = true
     else
         master = false
     end
-    np = MPI.Comm_size(base_comm)
+    np = MPI.Comm_size(base_comm[])
 
     # Check if there will be enough boundary cells.
     if master && nbx < 3
@@ -174,7 +174,7 @@ end
     periods = [true, true, false]
 
     # Create a Cartesian topology.
-    comm = MPI.Cart_create(base_comm, dims; periodic = periods)
+    comm = MPI.Cart_create(base_comm[], dims; periodic = periods)
     rank = MPI.Comm_rank(comm)
     coords = MPI.Cart_coords(comm, rank)
 

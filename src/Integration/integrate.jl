@@ -79,18 +79,66 @@ In the case of turbulence parameterization, the turbulence variables are integra
 """
 function integrate end
 
-function integrate(namelists::Namelists; delay::Real = 0)
-    (; base_comm) = namelists.domain
-
+function integrate(namelists::Vararg{Namelists}; delay::Real = 0)
     MPI.Init()
-    rank = MPI.Comm_rank(base_comm)
+    comm = namelists[1].domain.base_comm[]
+    rank = MPI.Comm_rank(comm)
 
-    reduce_exceptions(
-        base_comm;
-        delay,
-        info = "Rank $(rank) has thrown the following exceptions:",
-    ) do
-        return integrate(namelists, ParallelExceptions())
+    if length(namelists) == 1
+        reduce_exceptions(
+            comm;
+            delay,
+            info = "Rank $(rank) has thrown the following exceptions:",
+        ) do
+            integrate(namelists[1], ParallelExceptions())
+            return
+        end
+    else
+        reduce_exceptions(comm) do
+            # Check if all base comms are the same.
+            base_comms = Tuple(entry.domain.base_comm for entry in namelists)
+            for entry in base_comms
+                entry[] != comm && error("There are different base comms!")
+            end
+
+            # Check if the ensemble is large enough.
+            MPI.Comm_size(comm) < length(namelists) &&
+                error("There are too few processes!")
+
+            # Check if there are duplicate output files.
+            output_files =
+                Tuple(entry.output.output_file for entry in namelists)
+            for entry in output_files
+                sum(
+                    1 for other_entry in output_files if other_entry == entry
+                ) != 1 && error("There are duplicate output files!")
+            end
+
+            # Split the ensemble.
+            member = rank % length(namelists) + 1
+            base_comm = MPI.Comm_split(comm, member, rank)
+            child_rank = MPI.Comm_rank(base_comm)
+            namelists[member].domain.base_comm[] = base_comm
+
+            # Integrate.
+            child_rank == 0 && mkpath(dirname(output_files[member]))
+            MPI.Barrier(base_comm)
+            open(replace(output_files[member], r"\.h5$" => ".log"), "w") do io
+                redirect_stdout(io) do
+                    reduce_exceptions(
+                        comm;
+                        delay,
+                        info = "Rank $(rank) of ensemble member $(member) has thrown the following exceptions:",
+                    ) do
+                        integrate(namelists[member], ParallelExceptions())
+                        return
+                    end
+                    return
+                end
+                return
+            end
+            return
+        end
     end
 
     return
@@ -243,8 +291,6 @@ function integrate(namelists::Namelists, ::ParallelExceptions)
             println(repeat("-", 80))
             println("")
         end
-
-        !master && error("Test!")
 
         #----------------------------------
         #         Calc time step
