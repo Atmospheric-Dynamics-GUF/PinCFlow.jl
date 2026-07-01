@@ -7,7 +7,7 @@ reduce_exceptions(
 )
 ```
 
-Execute `operation`, catch exceptions in it, and rethrow the exception in the fastest process.
+Execute `operation`, catch exceptions in it, and either rethrow the first one (if `comm` contains only one process) or print its error message and exit via `MPI.Abort` (if `comm` contains multiple processes).
 
 # Arguments
 
@@ -33,7 +33,7 @@ function reduce_exceptions(
 
     try
         operation()
-    catch
+    catch exception
         MPI.Win_lock(window; rank, type = :exclusive)
         MPI.Get!(reporter, window; rank)
         MPI.Win_flush(window; rank)
@@ -44,9 +44,13 @@ function reduce_exceptions(
             sleep(delay)
             flush(stderr)
             println(stderr, info)
-            Base.display_error(stderr, current_exceptions())
-            flush(stderr)
-            MPI.Abort(comm, MPI.Comm_rank(comm))
+            if MPI.Comm_size(comm) == 1
+                rethrow(exception)
+            else
+                Base.display_error(stderr, exception, catch_backtrace())
+                flush(stderr)
+                MPI.Abort(comm, MPI.Comm_rank(comm))
+            end
         end
     end
 
