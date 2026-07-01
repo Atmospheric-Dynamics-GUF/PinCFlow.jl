@@ -94,7 +94,10 @@ function integrate(namelists::Vararg{Namelists}; delay::Real = 0)
             return
         end
     else
-        reduce_exceptions(comm) do
+        reduce_exceptions(
+            comm;
+            info = "The ensemble could not be set up properly:",
+        ) do
             # Check if all base comms are the same.
             base_comms = Tuple(entry.domain.base_comm for entry in namelists)
             for entry in base_comms
