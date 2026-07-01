@@ -88,7 +88,7 @@ function integrate(namelists::Vararg{Namelists}; delay::Real = 0)
         reduce_exceptions(
             comm;
             delay,
-            info = "Rank $(rank) has thrown the following exceptions:",
+            info = "Rank $(rank) has thrown the following exception:",
         ) do
             integrate(namelists[1], ParallelExceptions())
             return
@@ -128,7 +128,7 @@ function integrate(namelists::Vararg{Namelists}; delay::Real = 0)
                     reduce_exceptions(
                         comm;
                         delay,
-                        info = "Rank $(rank) of ensemble member $(member) has thrown the following exceptions:",
+                        info = "Rank $(rank) of ensemble member $(member) has thrown the following exception:",
                     ) do
                         integrate(namelists[member], ParallelExceptions())
                         return
