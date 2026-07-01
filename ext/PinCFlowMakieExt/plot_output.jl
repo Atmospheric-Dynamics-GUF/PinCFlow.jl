@@ -49,6 +49,14 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
   - `y_tick_format`: Format string for the ticks of the ``y``-axis.
 
   - `z_tick_format`: Format string for the ticks of the ``z``-axis.
+
+# See also
+
+  - [`PinCFlow.set_visualization_theme!`](@ref)
+
+  - [`PinCFlowMakieExt.add_scatter_plot!`](@ref)
+
+  - [`PinCFlowMakieExt.add_contour_plot!`](@ref)
 """
 plot_output
 

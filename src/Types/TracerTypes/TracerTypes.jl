@@ -7,6 +7,8 @@ Module for composite types needed for tracer transport.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
@@ -18,7 +20,7 @@ module TracerTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
-using ...PinCFlow
+using ...Macros
 
 include("TracerPredictands.jl")
 include("TracerIncrements.jl")

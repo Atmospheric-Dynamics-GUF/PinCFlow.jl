@@ -158,6 +158,7 @@ makedocs(;
         ],
         "Reference" => [
             "PinCFlow" => "reference/pincflow.md",
+            "Macros" => "reference/macros.md",
             "Types" => "reference/types.md",
             "MPIOperations" => "reference/mpi_operations.md",
             "Boundaries" => "reference/boundaries.md",

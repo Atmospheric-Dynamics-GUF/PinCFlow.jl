@@ -1,9 +1,20 @@
+"""
+```julia
+PinCFlowMakieExt
+```
+
+Makie.jl extension (using the `CairoMakie` backend).
+
+# See also
+
+  - [`PinCFlow.Macros`](@ref)
+"""
 module PinCFlowMakieExt
 
 using HDF5
 using CairoMakie
 using LaTeXStrings
-using PinCFlow: @ivy
+using PinCFlow.Macros
 
 import PinCFlow: plot_output, set_visualization_theme!, symmetric_contours
 

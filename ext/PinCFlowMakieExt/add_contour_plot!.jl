@@ -10,6 +10,12 @@ Add a contour plot to `figure` using the data in `input`.
   - `figure`: Figure to modify.
 
   - `input`: Data and specifications for the plot.
+
+# See also
+
+  - [`PinCFlow.symmetric_contours`](@ref)
+
+  - [`PinCFlowMakieExt.tick_indices`](@ref)
 """
 function add_contour_plot! end
 
