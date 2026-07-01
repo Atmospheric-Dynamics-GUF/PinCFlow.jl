@@ -13,7 +13,7 @@ If the described pattern is not found, this function returns `nothing`.
 
 # Keywords
 
-  - `argument`: Keyword used to communicate the found argument between recursive calls of this function.
+  - `argument`: Argument found in `input`, to be communicated between recursive calls of this function. Note that if `find_argument` is called with `argument` set to any value other than `nothing`, it will always return that value.
 """
 function find_argument end
 
@@ -31,7 +31,7 @@ function find_argument(input::Any; argument::Any = nothing)::Any
                    arg.head === :call &&
                    arg.args[1] === :Val &&
                    (arg.args[2] isa Expr || arg.args[2] isa Symbol)
-                    argument = arg.args[2]
+                    argument === nothing && (argument = arg.args[2])
                     break
                 end
             end
