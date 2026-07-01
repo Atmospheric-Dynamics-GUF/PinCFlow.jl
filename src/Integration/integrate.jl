@@ -117,18 +117,18 @@ function integrate(namelists::Vararg{Namelists}; delay::Real = 0)
             # Split the ensemble.
             member = rank % length(namelists) + 1
             base_comm = MPI.Comm_split(comm, member, rank)
-            child_rank = MPI.Comm_rank(base_comm)
+            member_rank = MPI.Comm_rank(base_comm)
             namelists[member].domain.base_comm[] = base_comm
 
             # Integrate.
-            child_rank == 0 && mkpath(dirname(output_files[member]))
+            member_rank == 0 && mkpath(dirname(output_files[member]))
             MPI.Barrier(base_comm)
             open(replace(output_files[member], r"\.h5$" => ".log"), "w") do io
                 redirect_stdout(io) do
                     reduce_exceptions(
                         comm;
                         delay,
-                        info = "Rank $(rank) of ensemble member $(member) has thrown the following exception:",
+                        info = "Rank $(member_rank) of ensemble member $(member) has thrown the following exception:",
                     ) do
                         integrate(namelists[member], ParallelExceptions())
                         return
