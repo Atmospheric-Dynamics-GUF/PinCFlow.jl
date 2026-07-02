@@ -53,9 +53,9 @@ function compute_horizontal_cell_indices(
 
         if imax < i0 - 1
             error(
-                "Zonal index is too small: imax =",
+                "Zonal index is too small: imax = ",
                 imax,
-                "< i0 - 1 = ",
+                " < i0 - 1 = ",
                 i0 - 1,
             )
         else
@@ -84,9 +84,9 @@ function compute_horizontal_cell_indices(
 
         if jmax < j0 - 1
             error(
-                "Meridional index is too small: jmax =",
+                "Meridional index is too small: jmax = ",
                 jmax,
-                "< j0 - 1 = ",
+                " < j0 - 1 = ",
                 j0 - 1,
             )
         else

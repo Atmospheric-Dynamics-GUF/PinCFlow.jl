@@ -180,7 +180,7 @@ end
 
             # Check if ray volume is too low.
             if zr < -dz
-                error("Ray volume", r, "at", i, j, k, "is too low!")
+                error("Ray volume", r, "at", (i, j, k), "is too low!")
             end
 
             # Compute local stratification.
@@ -258,7 +258,7 @@ end
             error(
                 "Too many new ray volumes: nray",
                 [i, j, k],
-                " > nray_wrk =",
+                " > nray_wrk = ",
                 nray_wrk,
             )
         end
@@ -267,11 +267,11 @@ end
         if ko == 0 && k == k0 - 1
             if s != n_sfc
                 error(
-                    "Incorrect surface-ray-volume count: s =",
+                    "Incorrect surface-ray-volume count: s = ",
                     s,
-                    "/= n_sfc =",
+                    " /= n_sfc = ",
                     n_sfc,
-                    "at (i, j, k) = ",
+                    " at ",
                     (i, j, k),
                 )
             end
