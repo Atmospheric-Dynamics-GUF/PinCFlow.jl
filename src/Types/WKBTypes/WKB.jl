@@ -190,13 +190,13 @@ function WKB(
 
     # Check if the spectral-extent factors are set correctly.
     if x_size > 1 && dkr_factor == 0.0
-        error("Error in WKB: x_size > 1 && dkr_factor == 0!")
+        error("Incorrect dkr_factor: x_size > 1 && dkr_factor == 0!")
     end
     if y_size > 1 && dlr_factor == 0.0
-        error("Error in WKB: y_size > 1 && dlr_factor == 0!")
+        error("Incorrect dlr_factor: y_size > 1 && dlr_factor == 0!")
     end
     if z_size == 1 || dmr_factor == 0.0
-        error("Error in WKB: z_size == 1 || dmr_factor == 0!")
+        error("Incorrect dmr_factor: z_size == 1 || dmr_factor == 0!")
     end
 
     # Check if initialization/launch specifications are correct.

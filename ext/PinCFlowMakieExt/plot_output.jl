@@ -91,7 +91,7 @@ plot_output
     elseif space_unit === :m
         space_unit_factor = 1
     else
-        error("Error: Unknown space unit!")
+        error("Unknown space unit!")
     end
 
     # Set the time unit factor.
@@ -104,7 +104,7 @@ plot_output
     elseif time_unit === :s
         time_unit_factor = 1
     else
-        error("Error: Unknown time unit!")
+        error("Unknown time unit!")
     end
 
     # Set the digits for rounding the time and plane positions.

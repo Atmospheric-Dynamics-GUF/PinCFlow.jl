@@ -60,7 +60,7 @@ function get_next_level end
     else
         if k < 1 + dkd
             error(
-                "Error in get_next_level: k = ",
+                "Vertical index is too small: k = ",
                 k,
                 " < ",
                 1 + dkd,
@@ -75,7 +75,7 @@ function get_next_level end
     else
         if k > nzz - dku
             error(
-                "Error in get_next_level: k = ",
+                "Vertical index is too large: k = ",
                 k,
                 " > ",
                 nzz - dku,

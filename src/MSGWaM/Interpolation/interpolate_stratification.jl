@@ -59,7 +59,7 @@ function interpolate_stratification end
 
     if zu < zd
         error(
-            "Error in interpolate_stratification (N2): zu = ",
+            "Incorrect vertical-interpolation points: zu = ",
             zu,
             " < zd = ",
             zd,
@@ -108,7 +108,7 @@ end
 
     if zu < zd
         error(
-            "Error in interpolate_stratification (DN2DZ): zu = ",
+            "Incorrect vertical-interpolation points: zu = ",
             zu,
             " < zd = ",
             zd,

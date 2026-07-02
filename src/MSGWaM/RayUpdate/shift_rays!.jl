@@ -144,13 +144,13 @@ end
 
             if iray != i
                 if abs(iray - i) > 1
-                    error("Error in shift_rays!: abs(iray - i) > 1!")
+                    error("Ray-volume shift is too large: abs(iray - i) > 1!")
                 end
                 if i0 <= iray <= i1
                     nray[iray, j, k] += 1
                     rray = nray[iray, j, k]
                     if rray > nray_wrk
-                        error("Error in shift_rays!: nray > nray_wrk!")
+                        error("Too many ray-volume shifts: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => iray, j => j, k => k)
                 end
@@ -178,13 +178,13 @@ end
 
             if jray != j
                 if abs(jray - j) > 1
-                    error("Error in shift_rays!: abs(jray - j) > 1!")
+                    error("Ray-volume shift is too large: abs(jray - j) > 1!")
                 end
                 if j0 <= jray <= j1
                     nray[i, jray, k] += 1
                     rray = nray[i, jray, k]
                     if rray > nray_wrk
-                        error("Error in shift_rays!: nray > nray_wrk!")
+                        error("Too many ray-volume shifts: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => i, j => jray, k => k)
                 end
@@ -212,13 +212,15 @@ end
 
             if kray != k
                 if abs(kray - k) > 1 && npz > 1
-                    error("Error in shift_rays!: abs(kray - k) > 1 && npz > 1!")
+                    error(
+                        "Ray-volume shift is too large: abs(kray - k) > 1 && npz > 1!",
+                    )
                 end
                 if k0 <= kray <= k1
                     nray[i, j, kray] += 1
                     rray = nray[i, j, kray]
                     if rray > nray_wrk
-                        error("Error in shift_rays!: nray > nray_wrk!")
+                        error("Too many ray-volume shifts: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => i, j => j, k => kray)
                 end
