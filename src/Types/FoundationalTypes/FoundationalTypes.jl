@@ -7,13 +7,15 @@ Module that contains the composite types `Time`, `Constants`, `Domain`, `Grid`, 
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 """
 module FoundationalTypes
 
 using MPI
 using ..NamelistTypes
-using ...PinCFlow
+using ...Macros
 
 include("Time.jl")
 include("Constants.jl")

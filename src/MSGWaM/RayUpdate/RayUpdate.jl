@@ -9,6 +9,8 @@ In addition to ray-volume initialization and propagation, functions for tracking
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
@@ -27,8 +29,8 @@ using ..BoundaryRays
 using ..Interpolation
 using ..RayOperations
 using ..RaySources
+using ...Macros
 using ...Types
-using ...PinCFlow
 
 """
 ```julia
