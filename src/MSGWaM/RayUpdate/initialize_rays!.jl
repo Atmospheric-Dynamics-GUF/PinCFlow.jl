@@ -180,15 +180,7 @@ end
 
             # Check if ray volume is too low.
             if zr < -dz
-                error(
-                    "Error in initialize_rays!: Ray volume",
-                    r,
-                    "at",
-                    i,
-                    j,
-                    k,
-                    "is too low!",
-                )
+                error("Ray volume", r, "at", i, j, k, "is too low!")
             end
 
             # Compute local stratification.
@@ -211,7 +203,7 @@ end
                 dl_ini_nd = dlr_factor * sqrt(wnk0^2 + wnl0^2)
             end
             if wnm0 == 0.0
-                error("Error in WKB: wnm0 = 0!")
+                error("Impossible vertical wavenumber: wnm0 = 0!")
             else
                 dm_ini_nd = dmr_factor * abs(wnm0)
             end
@@ -264,7 +256,7 @@ end
         nray[i, j, k] = r
         if r > nray_wrk
             error(
-                "Error in initialize_rays!: nray",
+                "Too many new ray volumes: nray",
                 [i, j, k],
                 " > nray_wrk =",
                 nray_wrk,
@@ -275,7 +267,7 @@ end
         if ko == 0 && k == k0 - 1
             if s != n_sfc
                 error(
-                    "Error in initialize_rays!: s =",
+                    "Incorrect surface-ray-volume count: s =",
                     s,
                     "/= n_sfc =",
                     n_sfc,

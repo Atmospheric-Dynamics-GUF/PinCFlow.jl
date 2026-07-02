@@ -150,27 +150,27 @@ end
 
     # Check if there will be enough boundary cells.
     if master && nbx < 3
-        error("Error in Domain: nbx < 3!")
+        error("Too few boundary cells: nbx < 3!")
     end
     if master && nby < 3
-        error("Error in Domain: nby < 3!")
+        error("Too few boundary cells: nby < 3!")
     end
     if master && nbz < 3
-        error("Error in Domain: nbz < 3!")
+        error("Too few boundary cells: nbz < 3!")
     end
 
     # Check if parallelization is set up correctly.
     if master && npx * npy * npz != np
-        error("Error in Domain: npx * npy * npz != np!")
+        error("Incorrect domain decomposition: npx * npy * npz != np!")
     end
     if master && x_size > 1 && nbx > div(x_size, npx)
-        error("Error in Domain: x_size > 1 && nbx > div(x_size, npx)!")
+        error("Too many MPI subdomains: x_size > 1 && nbx > div(x_size, npx)!")
     end
     if master && y_size > 1 && nby > div(y_size, npy)
-        error("Error in Domain: y_size > 1 && nby > div(y_size, npy)!")
+        error("Too many MPI subdomains: y_size > 1 && nby > div(y_size, npy)!")
     end
     if master && z_size > 1 && nbz > div(z_size, npz)
-        error("Error in Domain: z_size > 1 && nbz > div(z_size, npz)!")
+        error("Too many MPI subdomains: z_size > 1 && nbz > div(z_size, npz)!")
     end
 
     # Set dimensions and periodicity.

@@ -42,7 +42,7 @@ function compute_horizontal_cell_indices(
 
         if imin > i1 + 1
             error(
-                "Error in meanflow_effect: imin = ",
+                "Zonal index is too large: imin = ",
                 imin,
                 " > i1 + 1 = ",
                 i1 + 1,
@@ -53,7 +53,7 @@ function compute_horizontal_cell_indices(
 
         if imax < i0 - 1
             error(
-                "Error in meanflow_effect: imax =",
+                "Zonal index is too small: imax =",
                 imax,
                 "< i0 - 1 = ",
                 i0 - 1,
@@ -73,7 +73,7 @@ function compute_horizontal_cell_indices(
 
         if jmin > j1 + 1
             error(
-                "Error in meanflow_effect: jmin = ",
+                "Meridional index is too large: jmin = ",
                 jmin,
                 " > j1 + 1 = ",
                 j1 + 1,
@@ -84,7 +84,7 @@ function compute_horizontal_cell_indices(
 
         if jmax < j0 - 1
             error(
-                "Error in meanflow_effect: jmax =",
+                "Meridional index is too small: jmax =",
                 jmax,
                 "< j0 - 1 = ",
                 j0 - 1,
