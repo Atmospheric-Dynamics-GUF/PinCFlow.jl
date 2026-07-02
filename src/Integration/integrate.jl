@@ -1,12 +1,22 @@
 """
 ```julia
-integrate(namelists::Namelists; delay::Real = 0)
+integrate(
+    namelists::Vararg{Namelists};
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+    delay::Real = 0,
+)
 ```
 
-Run `integrate(namelists, ParallelExceptions())` and reduce potential exceptions with `reduce_exceptions`.
+Call the `integrate` method below and reduce potential exceptions with `reduce_exceptions`.
+
+If `length(namelists) == 1`, the `integrate` method below is called with `integrate(namelists[1], ParallelExceptions(); base_comm)`, otherwise, it is called with `integrate(namelists[member], ParallelExceptions(); base_comm = member_comm)`, where `member` is an integer that distinguishes the members of an ensemble, and `member_comm` is the corresponding sub-communicator of `base_comm`.
 
 ```julia
-integrate(namelists::Namelists, ::ParallelExceptions)
+integrate(
+    namelists::Namelists,
+    ::ParallelExceptions;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)
 ```
 
 Initialize the model state and integrate it in time.
@@ -36,6 +46,8 @@ In the case of turbulence parameterization, the turbulence variables are integra
   - `namelists`: Namelists with all model parameters.
 
 # Keywords
+
+  - `base_comm`: MPI communicator which is used to create the Cartesian communicator for the integration.
 
   - `delay`: Delay (in seconds) between the first exception and the following MPI abort.
 

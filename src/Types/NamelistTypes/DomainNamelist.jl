@@ -19,7 +19,6 @@ DomainNamelist(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    base_comm::Ref{MPI.Comm} = Ref(MPI.COMM_WORLD),
 )::DomainNamelist
 ```
 
@@ -50,8 +49,6 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
   - `npy::Int`: Number of MPI processes in ``\\hat{y}``-direction.
 
   - `npz::Int`: Number of MPI processes in ``\\hat{z}``-direction.
-
-  - `base_comm::Ref{MPI.Comm}`: Reference to an MPI base communicator.
 """
 struct DomainNamelist
     x_size::Int
@@ -66,7 +63,6 @@ struct DomainNamelist
     npx::Int
     npy::Int
     npz::Int
-    base_comm::Ref{MPI.Comm}
 end
 
 function DomainNamelist(;
@@ -82,7 +78,6 @@ function DomainNamelist(;
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    base_comm::Ref{MPI.Comm} = Ref(MPI.COMM_WORLD),
 )::DomainNamelist
     return DomainNamelist(
         Int(x_size),
@@ -97,6 +92,5 @@ function DomainNamelist(;
         Int(npx),
         Int(npy),
         Int(npz),
-        base_comm,
     )
 end

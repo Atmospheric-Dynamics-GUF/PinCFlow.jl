@@ -21,7 +21,7 @@ Model state container.
 An instance of this composite type holds complete information about the model configuration and simulation state, so that it is sufficient as primary input to most methods. The construction of such an instance is the first operation performed in [`PinCFlow.Integration.integrate`](@ref), since it almost fully initializes the model.
 
 ```julia
-State(namelists::Namelists)::State
+State(namelists::Namelists; base_comm::MPI.Comm = MPI.COMM_WORLD)::State
 ```
 
 Construct a `State` instance and thus initialize the model.
@@ -57,6 +57,10 @@ This method first uses the parameters specified in `namelists` to construct inst
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
+# Keywords
+
+  - `base_comm`: MPI communicator which is used to create the Cartesian communicator for the integration.
 
 # See also
 
