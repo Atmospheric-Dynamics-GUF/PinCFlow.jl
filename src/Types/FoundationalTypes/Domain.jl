@@ -127,22 +127,22 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-@ivy function Domain(namelists::Namelists)::Domain
-    (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz, base_comm) =
-        namelists.domain
+@ivy function Domain(
+    namelists::Namelists;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)::Domain
+    (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz) = namelists.domain
 
     # Initialize MPI.
-    if !MPI.Initialized()
-        MPI.Init()
-    end
-    rank = MPI.Comm_rank(base_comm[])
+    !MPI.Initialized() && MPI.Init()
+    rank = MPI.Comm_rank(base_comm)
     root = 0
     if rank == root
         master = true
     else
         master = false
     end
-    np = MPI.Comm_size(base_comm[])
+    np = MPI.Comm_size(base_comm)
 
     # Check if there will be enough boundary cells.
     if master && nbx < 3
@@ -174,7 +174,7 @@ end
     periods = [true, true, false]
 
     # Create a Cartesian topology.
-    comm = MPI.Cart_create(base_comm[], dims; periodic = periods)
+    comm = MPI.Cart_create(base_comm, dims; periodic = periods)
     rank = MPI.Comm_rank(comm)
     coords = MPI.Cart_coords(comm, rank)
 

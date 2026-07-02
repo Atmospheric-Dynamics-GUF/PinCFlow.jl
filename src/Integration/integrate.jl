@@ -79,33 +79,30 @@ In the case of turbulence parameterization, the turbulence variables are integra
 """
 function integrate end
 
-function integrate(namelists::Vararg{Namelists}; delay::Real = 0)
-    MPI.Init()
-    comm = namelists[1].domain.base_comm[]
-    rank = MPI.Comm_rank(comm)
+function integrate(
+    namelists::Vararg{Namelists};
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+    delay::Real = 0,
+)
+    !MPI.Initialized() && MPI.Init()
+    rank = MPI.Comm_rank(base_comm)
 
     if length(namelists) == 1
         reduce_exceptions(
-            comm;
+            base_comm;
             delay,
             info = "Rank $(rank) has thrown the following exception:",
         ) do
-            integrate(namelists[1], ParallelExceptions())
+            integrate(namelists[1], ParallelExceptions(); base_comm)
             return
         end
     else
         reduce_exceptions(
-            comm;
+            base_comm;
             info = "The ensemble could not be set up properly:",
         ) do
-            # Check if all base comms are the same.
-            base_comms = Tuple(entry.domain.base_comm for entry in namelists)
-            for entry in base_comms
-                entry[] != comm && error("There are different base comms!")
-            end
-
             # Check if the ensemble is large enough.
-            MPI.Comm_size(comm) < length(namelists) &&
+            MPI.Comm_size(base_comm) < length(namelists) &&
                 error("There are too few processes!")
 
             # Check if there are duplicate output files.
@@ -119,21 +116,24 @@ function integrate(namelists::Vararg{Namelists}; delay::Real = 0)
 
             # Split the ensemble.
             member = rank % length(namelists) + 1
-            base_comm = MPI.Comm_split(comm, member, rank)
-            member_rank = MPI.Comm_rank(base_comm)
-            namelists[member].domain.base_comm[] = base_comm
+            member_comm = MPI.Comm_split(base_comm, member, rank)
+            member_rank = MPI.Comm_rank(member_comm)
 
             # Integrate.
             member_rank == 0 && mkpath(dirname(output_files[member]))
-            MPI.Barrier(base_comm)
+            MPI.Barrier(member_comm)
             open(replace(output_files[member], r"\.h5$" => ".log"), "w") do io
                 redirect_stdout(io) do
                     reduce_exceptions(
-                        comm;
+                        base_comm;
                         delay,
                         info = "Rank $(member_rank) of ensemble member $(member) has thrown the following exception:",
                     ) do
-                        integrate(namelists[member], ParallelExceptions())
+                        integrate(
+                            namelists[member],
+                            ParallelExceptions();
+                            base_comm = member_comm,
+                        )
                         return
                     end
                     return
@@ -147,7 +147,11 @@ function integrate(namelists::Vararg{Namelists}; delay::Real = 0)
     return
 end
 
-function integrate(namelists::Namelists, ::ParallelExceptions)
+function integrate(
+    namelists::Namelists,
+    ::ParallelExceptions;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)
 
     #-------------------------------------------------
     #                     Setup
@@ -170,7 +174,7 @@ function integrate(namelists::Namelists, ::ParallelExceptions)
     naveragebicg = 0.0
 
     # Initialize the model state.
-    state = State(namelists)
+    state = State(namelists; base_comm)
 
     # Save machine start time.
     machine_start_time = now()

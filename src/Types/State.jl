@@ -110,10 +110,13 @@ struct State{
     turbulence::L
 end
 
-function State(namelists::Namelists)::State
+function State(
+    namelists::Namelists;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)::State
     constants = Constants(namelists)
     time = Time()
-    domain = Domain(namelists)
+    domain = Domain(namelists; base_comm)
     grid = Grid(namelists, constants, domain)
     atmosphere = Atmosphere(namelists, constants, domain, grid)
     sponge = Sponge(domain)
