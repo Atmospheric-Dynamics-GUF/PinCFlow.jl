@@ -142,7 +142,7 @@ function compute_time_step end
 
     if dt * tref < dtmin
         error(
-            "Error in compute_time_step: dt = ",
+            "Time step is too small: dt = ",
             dt * tref,
             " < ",
             dtmin,

@@ -6,12 +6,12 @@ Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 Collection of domain-decomposition and MPI-communication parameters.
 
 ```julia
-Domain(namelists::Namelists)::Domain
+Domain(namelists::Namelists; base_comm::MPI.Comm = MPI.COMM_WORLD)::Domain
 ```
 
 Construct a `Domain` instance from the model parameters in `namelists`.
 
-If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\hat{x}`` and ``\\hat{y}``) but not in the last (``\\hat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\hat{x}``, ``\\hat{y}`` and ``\\hat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
+This method first creates a Cartesian topology from the base communicator `base_comm`, with periodic boundaries in the first two dimensions (``\\hat{x}`` and ``\\hat{y}``) but not in the last (``\\hat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\hat{x}``, ``\\hat{y}`` and ``\\hat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
 
 # Fields
 
@@ -82,6 +82,10 @@ Horizontal and vertical communication:
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
+# Keywords
+
+  - `base_comm`: MPI communicator which is used to create the Cartesian communicator for the integration.
 """
 struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 
@@ -127,14 +131,14 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-@ivy function Domain(namelists::Namelists)::Domain
-    (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz, base_comm) =
-        namelists.domain
+@ivy function Domain(
+    namelists::Namelists;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)::Domain
+    (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz) = namelists.domain
 
     # Initialize MPI.
-    if !MPI.Initialized()
-        MPI.Init()
-    end
+    !MPI.Initialized() && MPI.Init()
     rank = MPI.Comm_rank(base_comm)
     root = 0
     if rank == root
@@ -146,27 +150,27 @@ end
 
     # Check if there will be enough boundary cells.
     if master && nbx < 3
-        error("Error in Domain: nbx < 3!")
+        error("Too few boundary cells: nbx < 3!")
     end
     if master && nby < 3
-        error("Error in Domain: nby < 3!")
+        error("Too few boundary cells: nby < 3!")
     end
     if master && nbz < 3
-        error("Error in Domain: nbz < 3!")
+        error("Too few boundary cells: nbz < 3!")
     end
 
     # Check if parallelization is set up correctly.
     if master && npx * npy * npz != np
-        error("Error in Domain: npx * npy * npz != np!")
+        error("Incorrect domain decomposition: npx * npy * npz != np!")
     end
     if master && x_size > 1 && nbx > div(x_size, npx)
-        error("Error in Domain: x_size > 1 && nbx > div(x_size, npx)!")
+        error("Too many MPI subdomains: x_size > 1 && nbx > div(x_size, npx)!")
     end
     if master && y_size > 1 && nby > div(y_size, npy)
-        error("Error in Domain: y_size > 1 && nby > div(y_size, npy)!")
+        error("Too many MPI subdomains: y_size > 1 && nby > div(y_size, npy)!")
     end
     if master && z_size > 1 && nbz > div(z_size, npz)
-        error("Error in Domain: z_size > 1 && nbz > div(z_size, npz)!")
+        error("Too many MPI subdomains: z_size > 1 && nbz > div(z_size, npz)!")
     end
 
     # Set dimensions and periodicity.
