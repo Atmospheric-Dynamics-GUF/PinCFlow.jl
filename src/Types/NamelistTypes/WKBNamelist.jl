@@ -28,6 +28,7 @@ WKBNamelist(;
     use_saturation::Bool = true,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
+    orographic_flow::Symbol = :Average,
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,
