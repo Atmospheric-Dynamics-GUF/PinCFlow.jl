@@ -1,328 +1,399 @@
-@ivy function plot_output(
-    file::AbstractString,
-    data::HDF5.File,
+"""
+```julia
+plot_output(
+    plot_file::AbstractString,
+    data_file::AbstractString,
     fields::Vararg{
-        Tuple{<:AbstractString, <:Integer, <:Integer, <:Integer, <:Integer},
+        Union{
+            Tuple{Symbol, <:Integer},
+            Tuple{Symbol, <:Real, <:Real, <:Real, <:Integer},
+        },
     };
-    number::Integer = 10,
     colormap_name::Symbol = :seismic,
-    space_unit::AbstractString = "km",
-    time_unit::AbstractString = "h",
+    color_tick_format::AbstractString = "{:.1E}",
+    number::Integer = 10,
+    space_unit::Symbol = :km,
+    time_unit::Symbol = :h,
+    x_tick_format::AbstractString = "{:.1f}",
+    y_tick_format::AbstractString = "{:.1f}",
+    z_tick_format::AbstractString = "{:.1f}",
+)
+```
+
+Create contour plots of the dataset `variable` in `data`, display it and save it to `file`.
+
+# Arguments
+
+  - `plot_file`: File to save the plots to.
+
+  - `data_file`: HDF5 file with PinCFlow.jl output data.
+
+  - `fields`: Either tuples of a variable name and a temporal index (for 2D data), or tuples of a variable name, three fractions which define the relative positions of the ``\\hat{y}``-``\\hat{z}``, ``\\hat{x}``-``\\hat{z}``, and ``\\hat{x}``-``\\hat{y}`` planes, and a temporal index (for 3D data).
+
+# Keywords
+
+  - `colormap_name`: Colormap of choice.
+
+  - `color_tick_format`: Format string for the ticks of the colorbars.
+
+  - `display_figure`: Switch for showing the figure with Makie.jl's `display` function.
+
+  - `number`: Number of contour levels.
+
+  - `space_unit`: Unit used for the coordinates. Must be `:km` or `:m`.
+
+  - `time_unit`: Unit used for the time. Must be `:d`, `:h`, `:min` or `:s`.
+
+  - `x_tick_format`: Format string for the ticks of the ``x``-axis.
+
+  - `y_tick_format`: Format string for the ticks of the ``y``-axis.
+
+  - `z_tick_format`: Format string for the ticks of the ``z``-axis.
+
+# See also
+
+  - [`PinCFlow.set_visualization_theme!`](@ref)
+
+  - [`PinCFlowMakieExt.add_scatter_plot!`](@ref)
+
+  - [`PinCFlowMakieExt.add_contour_plot!`](@ref)
+"""
+plot_output
+
+@ivy function plot_output(
+    plot_file::AbstractString,
+    data_file::AbstractString,
+    fields::Vararg{
+        Union{
+            Tuple{Symbol, <:Integer},
+            Tuple{Symbol, <:Real, <:Real, <:Real, <:Integer},
+        },
+    };
+    colormap_name::Symbol = :seismic,
+    color_tick_format::AbstractString = "{:.1E}",
+    display_figure::Bool = true,
+    number::Integer = 10,
+    space_unit::Symbol = :km,
+    time_unit::Symbol = :h,
+    x_tick_format::AbstractString = "{:.1f}",
+    y_tick_format::AbstractString = "{:.1f}",
+    z_tick_format::AbstractString = "{:.1f}",
 )
     set_visualization_theme!()
 
     # Store the ray-volume property names.
-    ray_volume_properties = (
-        "xr",
-        "yr",
-        "zr",
-        "dxr",
-        "dyr",
-        "dzr",
-        "kr",
-        "lr",
-        "mr",
-        "dkr",
-        "dlr",
-        "dmr",
-        "nr",
-    )
+    ray_volume_properties =
+        (:xr, :yr, :zr, :dxr, :dyr, :dzr, :kr, :lr, :mr, :dkr, :dlr, :dmr, :nr)
 
     # Set the space unit factor.
-    if space_unit == "km"
+    if space_unit === :km
         space_unit_factor = 1000
-    elseif space_unit == "m"
+    elseif space_unit === :m
         space_unit_factor = 1
     else
         error("Error: Unknown space unit!")
     end
 
     # Set the time unit factor.
-    if time_unit == "d"
+    if time_unit === :d
         time_unit_factor = 86400
-    elseif time_unit == "h"
+    elseif time_unit === :h
         time_unit_factor = 3600
-    elseif time_unit == "min"
+    elseif time_unit === :min
         time_unit_factor = 60
-    elseif time_unit == "s"
+    elseif time_unit === :s
         time_unit_factor = 1
     else
         error("Error: Unknown time unit!")
     end
 
-    # Set the grid.
-    x = data["x"][:] ./ space_unit_factor
-    y = data["y"][:] ./ space_unit_factor
-    z = data["z"][:, :, :] ./ space_unit_factor
-    (nx, ny, nz) = size(z)
-    x = [xi for xi in x, j in 1:ny, k in 1:nz]
-    y = [yj for i in 1:nx, yj in y, k in 1:nz]
-
-    # Get the time.
-    t = data["t"][:] ./ time_unit_factor
+    # Set the digits for rounding the time and plane positions.
+    digits = 1
 
     # Create the figure.
-    figure = Figure()
+    figure = h5open(data_file) do data
 
-    # Loop over outputs.
-    row = 0
-    for (variable, i, j, k, n) in fields
-        row += 1
-        column = 0
+        # Set the grid.
+        x = data["x"][:] ./ space_unit_factor
+        y = data["y"][:] ./ space_unit_factor
+        z = data["z"][:, :, :] ./ space_unit_factor
+        (nx, ny, nz) = size(z)
+        x = [xi for xi in x, j in 1:ny, k in 1:nz]
+        y = [yj for i in 1:nx, yj in y, k in 1:nz]
 
-        # Round the time.
-        tn = round(t[n]; digits = 1)
+        # Determine whether the plane should be included in the title.
+        plane_in_title = (nx > 1 && ny > 1 && nz > 1)
 
-        if variable in ray_volume_properties
-            # Get the ray-volume data.
-            xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
-            yr = data["yr"][:, :, :, :, n] ./ space_unit_factor
-            zr = data["zr"][:, :, :, :, n] ./ space_unit_factor
-            dxr = data["dxr"][:, :, :, :, n] ./ space_unit_factor
-            dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
-            dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
-            nr = data["nr"][:, :, :, :, n]
-            phi = data[variable][:, :, :, :, n]
+        # Get the time.
+        t = data["t"][:] ./ time_unit_factor
+
+        figure = Figure()
+
+        # Loop over outputs.
+        row = 0
+        for field in fields
+            row += 1
+            column = 0
+
+            # Check if the fields specification is correct.
+            if nx > 1 && ny > 1 && nz > 1 && length(field) != 5
+                error("Incorrect fields specification for 3D data!")
+            end
+            if length(field) == 5
+                for index in 2:4
+                    if field[index] < 0 || field[index] > 1
+                        error("Incorrect plane specification!")
+                    end
+                end
+            end
+
+            # Determine the data slices.
+            (variable, n) = (field[1], field[end])
+            if length(field) == 5
+                (i, j, k) = ceil.(Int64, field[2:4] .* (nx, ny, nz))
+            else
+                i = j = k = 1
+            end
+
+            # Round the time.
+            tn = round(t[n]; digits)
 
             # Get the label.
-            label = LaTeXString(attrs(data[variable])["label"])
+            label = LaTeXString(attrs(data[string(variable)])["label"])
 
-            # Plot in the x-y plane.
-            if nx > 1 && ny > 1
-                column += 2
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
-                Axis(
-                    figure[row, column - 1];
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
-                    xlabel = L"x_r\ [\mathrm{%$space_unit}]",
-                    ylabel = L"y_r\ [\mathrm{%$space_unit}]",
-                )
-                nonzero = nr[:, :, :, k] .!= 0
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, :, k][nonzero]),
-                    maximum(phi[:, :, :, k][nonzero]);
-                    number,
-                    colormap_name,
-                )
-                plot = scatter!(
-                    xr[:, :, :, k][nonzero],
-                    yr[:, :, :, k][nonzero];
-                    color = phi[:, :, :, k][nonzero],
-                    colormap = cgrad(colormap; categorical = true),
-                    marker = Rect,
-                    markersize = collect(
-                        zip(dxr[:, :, :, k][nonzero], dyr[:, :, :, k][nonzero]),
-                    ),
-                    markerspace = :data,
-                )
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(x), maximum(x))
-                ylims!(minimum(y), maximum(y))
-            end
+            if variable in ray_volume_properties
+                # Get the ray-volume data.
+                xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
+                yr = data["yr"][:, :, :, :, n] ./ space_unit_factor
+                zr = data["zr"][:, :, :, :, n] ./ space_unit_factor
+                dxr = data["dxr"][:, :, :, :, n] ./ space_unit_factor
+                dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
+                dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
+                nr = data["nr"][:, :, :, :, n]
+                phi = data[string(variable)][:, :, :, :, n]
 
-            # Plot in the x-z plane.
-            if nx > 1 && nz > 1
-                column += 2
-                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
-                Axis(
-                    figure[row, column - 1];
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
-                    xlabel = L"x_r\ [\mathrm{%$space_unit}]",
-                    ylabel = L"z_r\ [\mathrm{%$space_unit}]",
-                )
-                nonzero = phi[:, :, j, :] .!= 0
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, j, :][nonzero]),
-                    maximum(phi[:, :, j, :][nonzero]);
-                    number,
-                    colormap_name,
-                )
-                plot = scatter!(
-                    xr[:, :, j, :][nonzero],
-                    zr[:, :, j, :][nonzero];
-                    color = phi[:, :, j, :][nonzero],
-                    colormap = cgrad(colormap; categorical = true),
-                    marker = Rect,
-                    markersize = collect(
-                        zip(dxr[:, :, j, :][nonzero], dzr[:, :, j, :][nonzero]),
-                    ),
-                    markerspace = :data,
-                )
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(x), maximum(x))
-                ylims!(minimum(z), maximum(z))
-            end
+                # Plot in the x-y plane.
+                if nx > 1 && ny > 1
+                    column += 2
+                    if plane_in_title
+                        zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
+                    add_scatter_plot!(
+                        figure,
+                        (;
+                            colormap_name,
+                            color_tick_format,
+                            columns = (column - 1):column,
+                            dx = dxr[:, :, :, k],
+                            dy = dyr[:, :, :, k],
+                            label,
+                            mask = nr[:, :, :, k] .!= 0,
+                            number,
+                            phi = phi[:, :, :, k],
+                            row,
+                            title,
+                            x = xr[:, :, :, k],
+                            x_label = L"x_r\ [\mathrm{%$space_unit}]",
+                            xmax = maximum(x),
+                            xmin = minimum(x),
+                            x_tick_format,
+                            y = yr[:, :, :, k],
+                            y_label = L"y_r\ [\mathrm{%$space_unit}]",
+                            ymax = maximum(y),
+                            ymin = minimum(y),
+                            y_tick_format,
+                        ),
+                    )
+                end
 
-            # Plot in the y-z plane.
-            if ny > 1 && nz > 1
-                column += 2
-                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
-                Axis(
-                    figure[row, column - 1];
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
-                    xlabel = L"y_r\ [\mathrm{%$space_unit}]",
-                    ylabel = L"z_r\ [\mathrm{%$space_unit}]",
-                )
-                nonzero = phi[:, i, :, :] .!= 0
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, i, :, :][nonzero]),
-                    maximum(phi[:, i, :, :][nonzero]);
-                    number,
-                    colormap_name,
-                )
-                plot = scatter!(
-                    yr[:, i, :, :][nonzero],
-                    zr[:, i, :, :][nonzero];
-                    color = phi[:, i, :, :][nonzero],
-                    colormap = cgrad(colormap; categorical = true),
-                    marker = Rect,
-                    markersize = collect(
-                        zip(dyr[:, i, :, :][nonzero], dzr[:, i, :, :][nonzero]),
-                    ),
-                    markerspace = :data,
-                )
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(y), maximum(y))
-                ylims!(minimum(z), maximum(z))
-            end
-        else
-            # Get the variable.
-            phi = data[variable][:, :, :, n]
+                # Plot in the x-z plane.
+                if nx > 1 && nz > 1
+                    column += 2
+                    if plane_in_title
+                        yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
+                    add_scatter_plot!(
+                        figure,
+                        (;
+                            colormap_name,
+                            color_tick_format,
+                            columns = (column - 1):column,
+                            dx = dxr[:, :, j, :],
+                            dy = dzr[:, :, j, :],
+                            label,
+                            mask = nr[:, :, j, :] .!= 0,
+                            number,
+                            phi = phi[:, :, j, :],
+                            row,
+                            title,
+                            x = xr[:, :, j, :],
+                            x_label = L"x_r\ [\mathrm{%$space_unit}]",
+                            xmax = maximum(x),
+                            xmin = minimum(x),
+                            x_tick_format,
+                            y = zr[:, :, j, :],
+                            y_label = L"z_r\ [\mathrm{%$space_unit}]",
+                            ymax = maximum(z),
+                            ymin = minimum(z),
+                            y_tick_format = z_tick_format,
+                        ),
+                    )
+                end
 
-            # Get the label.
-            label = LaTeXString(attrs(data[variable])["label"])
+                # Plot in the y-z plane.
+                if ny > 1 && nz > 1
+                    column += 2
+                    if plane_in_title
+                        xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
+                    add_scatter_plot!(
+                        figure,
+                        (;
+                            colormap_name,
+                            color_tick_format,
+                            columns = (column - 1):column,
+                            dx = dyr[:, i, :, :],
+                            dy = dzr[:, i, :, :],
+                            label,
+                            mask = nr[:, i, :, :] .!= 0,
+                            number,
+                            phi = phi[:, i, :, :],
+                            row,
+                            title,
+                            x = yr[:, i, :, :],
+                            x_label = L"x_r\ [\mathrm{%$space_unit}]",
+                            xmax = maximum(y),
+                            xmin = minimum(y),
+                            x_tick_format = y_tick_format,
+                            y = zr[:, i, :, :],
+                            y_label = L"z_r\ [\mathrm{%$space_unit}]",
+                            ymax = maximum(z),
+                            ymin = minimum(z),
+                            y_tick_format = z_tick_format,
+                        ),
+                    )
+                end
+            else
+                # Get the variable.
+                phi = data[string(variable)][:, :, :, n]
 
-            # Plot in the x-y plane.
-            if nx > 1 && ny > 1
-                column += 2
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits = 1)
-                axis = Axis(
-                    figure[row, column - 1];
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}",
-                    xlabel = L"x\ [\mathrm{%$space_unit}]",
-                    ylabel = L"y\ [\mathrm{%$space_unit}]",
-                )
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, :, k]),
-                    maximum(phi[:, :, k]);
-                    number,
-                    colormap_name,
-                )
-                plot = contourf!(
-                    x[:, :, k],
-                    y[:, :, k],
-                    phi[:, :, k];
-                    levels,
-                    colormap,
-                )
-                tightlimits!(axis)
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(x), maximum(x))
-                ylims!(minimum(y), maximum(y))
-            end
+                # Plot in the x-y plane.
+                if nx > 1 && ny > 1
+                    column += 2
+                    if plane_in_title
+                        zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
+                    add_contour_plot!(
+                        figure,
+                        (;
+                            background_color = :black,
+                            colormap_name,
+                            color_tick_format,
+                            columns = (column - 1):column,
+                            label,
+                            number,
+                            phi = phi[:, :, k],
+                            row,
+                            title,
+                            x = x[:, :, k],
+                            x_label = L"x\ [\mathrm{%$space_unit}]",
+                            x_tick_format,
+                            y = y[:, :, k],
+                            y_label = L"y\ [\mathrm{%$space_unit}]",
+                            y_tick_format,
+                        ),
+                    )
+                end
 
-            # Plot in the x-z plane.
-            if nx > 1 && nz > 1
-                column += 2
-                yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits = 1)
-                axis = Axis(
-                    figure[row, column - 1];
-                    backgroundcolor = :black,
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}",
-                    xlabel = L"x\ [\mathrm{%$space_unit}]",
-                    ylabel = L"z\ [\mathrm{%$space_unit}]",
-                )
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[:, j, :]),
-                    maximum(phi[:, j, :]);
-                    number,
-                    colormap_name,
-                )
-                plot = contourf!(
-                    x[:, j, :],
-                    z[:, j, :],
-                    phi[:, j, :];
-                    levels,
-                    colormap,
-                )
-                tightlimits!(axis)
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(x), maximum(x))
-                ylims!(minimum(z), maximum(z))
-            end
+                # Plot in the x-z plane.
+                if nx > 1 && nz > 1
+                    column += 2
+                    if plane_in_title
+                        yj = round(sum(y[:, j, :]) / length(y[:, j, :]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad y\approx%$yj\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
+                    add_contour_plot!(
+                        figure,
+                        (;
+                            background_color = :black,
+                            colormap_name,
+                            color_tick_format,
+                            columns = (column - 1):column,
+                            label,
+                            number,
+                            phi = phi[:, j, :],
+                            row,
+                            title,
+                            x = x[:, j, :],
+                            x_label = L"x\ [\mathrm{%$space_unit}]",
+                            x_tick_format,
+                            y = z[:, j, :],
+                            y_label = L"z\ [\mathrm{%$space_unit}]",
+                            y_tick_format = z_tick_format,
+                        ),
+                    )
+                end
 
-            # Plot in the y-z plane.
-            if ny > 1 && nz > 1
-                column += 2
-                xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits = 1)
-                axis = Axis(
-                    figure[row, column - 1];
-                    backgroundcolor = :black,
-                    title = L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}",
-                    xlabel = L"y\ [\mathrm{%$space_unit}]",
-                    ylabel = L"z\ [\mathrm{%$space_unit}]",
-                )
-                (levels, colormap) = symmetric_contours(
-                    minimum(phi[i, :, :]),
-                    maximum(phi[i, :, :]);
-                    number,
-                    colormap_name,
-                )
-                plot = contourf!(
-                    y[i, :, :],
-                    z[i, :, :],
-                    phi[i, :, :];
-                    levels,
-                    colormap,
-                )
-                tightlimits!(axis)
-                Colorbar(
-                    figure[row, column],
-                    plot;
-                    ticks = levels,
-                    tickformat = "{:9.2E}",
-                    label,
-                )
-                xlims!(minimum(y), maximum(y))
-                ylims!(minimum(z), maximum(z))
+                # Plot in the y-z plane.
+                if ny > 1 && nz > 1
+                    column += 2
+                    if plane_in_title
+                        xi = round(sum(x[i, :, :]) / length(x[i, :, :]); digits)
+                        title =
+                            L"t\approx%$tn\ \mathrm{%$time_unit},\quad x\approx%$xi\ \mathrm{%$space_unit}"
+                    else
+                        title = L"t\approx%$tn\ \mathrm{%$time_unit}"
+                    end
+                    add_contour_plot!(
+                        figure,
+                        (;
+                            background_color = :black,
+                            colormap_name,
+                            color_tick_format,
+                            columns = (column - 1):column,
+                            label,
+                            number,
+                            phi = phi[i, :, :],
+                            row,
+                            title,
+                            x = y[i, :, :],
+                            x_label = L"y\ [\mathrm{%$space_unit}]",
+                            x_tick_format = y_tick_format,
+                            y = z[i, :, :],
+                            y_label = L"z\ [\mathrm{%$space_unit}]",
+                            y_tick_format = z_tick_format,
+                        ),
+                    )
+                end
             end
         end
+
+        return figure
     end
 
     # Resize, display and save the figure.
     resize_to_layout!(figure)
-    display(figure)
-    save(file, figure)
+    display_figure && display(figure)
+    save(plot_file, figure)
 
     return
 end

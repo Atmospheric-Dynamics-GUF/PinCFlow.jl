@@ -14,7 +14,7 @@ If `x` is an expression, climb its AST and apply `@inbounds` to the bodies of ha
 function ivy end
 
 function ivy(x::Any; root::Bool = true)::Any
-    if isa(x, Expr)
+    if x isa Expr
         if x.head === :macro ||
            x.head === :function ||
            x.head === :-> ||

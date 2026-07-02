@@ -9,6 +9,8 @@ Provides helper functions for computing the time step, managing time levels and 
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.Boundaries`](@ref)
@@ -27,6 +29,7 @@ module Integration
 
 using MPI
 using Dates
+using ..Macros
 using ..Types
 using ..Boundaries
 using ..Update

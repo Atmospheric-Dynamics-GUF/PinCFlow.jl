@@ -9,15 +9,17 @@ Handles periodic boundaries in the horizontal and solid-wall boundaries in the v
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.MPIOperations`](@ref)
 """
 module Boundaries
 
+using ..Macros
 using ..Types
 using ..MPIOperations
-using ..PinCFlow
 
 """
 ```julia

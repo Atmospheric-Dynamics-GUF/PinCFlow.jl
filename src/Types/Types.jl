@@ -157,7 +157,6 @@ using .VariableTypes
 using .WKBTypes
 using .TracerTypes
 using .TurbulenceTypes
-using ..PinCFlow
 
 include("State.jl")
 
@@ -169,8 +168,7 @@ export @dispatch_background,
     @dispatch_model,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
-    @dispatch_turbulence_scheme,
-    @dispatch
+    @dispatch_turbulence_scheme
 
 export AbstractPredictand
 
