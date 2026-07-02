@@ -25,6 +25,6 @@ include("compute_slope.jl")
 include("include_blocked_flow_drag!.jl")
 
 export compute_blocked_layer!,
-    compute_elevation_difference, compute_slope, include_blocked_flow_drag!
+    compute_elevation_difference, include_blocked_flow_drag!
 
 end
