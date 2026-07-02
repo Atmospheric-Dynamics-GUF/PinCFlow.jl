@@ -1,6 +1,6 @@
 """
 ```julia
-compute_vertical_averages(
+compute_orographic_flow(
     state::State,
     deltah::AbstractFloat,
     i::Integer,
@@ -20,9 +20,9 @@ Compute and return the local vertical averages of ``\\bar{\\rho}``, ``N^2``, ``u
 
   - `j`: Meridional grid index.
 """
-function compute_vertical_averages end
+function compute_orographic_flow end
 
-@ivy function compute_vertical_averages(
+@ivy function compute_orographic_flow(
     state::State,
     deltah::AbstractFloat,
     i::Integer,

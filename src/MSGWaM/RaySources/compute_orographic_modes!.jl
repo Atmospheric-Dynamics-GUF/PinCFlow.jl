@@ -36,7 +36,7 @@ mountain-wave theory. The implemented formulas are as follows.
     \\mathcal{A}_\\alpha = \\frac{\\bar{\\rho}_h}{2} \\frac{\\hat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2}{k_\\alpha^2 + l_\\alpha^2} r^2 \\left|h_{\\mathrm{w}, \\alpha}\\right|^2
     ```
 
-Therein, ``\\bar{\\rho}_h``, ``N^2_h``, ``u_h``, and ``v_h`` are obtained by averaging between ``h_{\\mathrm{b}}`` and ``h_{\\mathrm{b}} + \\Delta h`` (using `compute_vertical_averages`), with ``\\Delta h`` provided by `compute_elevation_difference`. The reduction factor ``r`` is computed with `compute_blocked_layer!`.
+Therein, ``\\bar{\\rho}_h``, ``N^2_h``, ``u_h``, and ``v_h`` are obtained by averaging between ``h_{\\mathrm{b}}`` and ``h_{\\mathrm{b}} + \\Delta h`` (using `compute_orographic_flow`), with ``\\Delta h`` provided by `compute_elevation_difference`. The reduction factor ``r`` is computed with `compute_blocked_layer!`.
 
 If the squared intrinsic frequency is smaller than the squared Coriolis parameter or larger than the squared buoyancy frequency (and thus outside of the gravity-wave spectrum), the vertical wavenumber and wave-action density are set to zero.
 
@@ -50,7 +50,7 @@ For `state.namelists.wkb.elastic_mode_selection == true`, `apply_elastic_mode_se
 
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
 
-  - [`PinCFlow.MSGWaM.RaySources.compute_vertical_averages`](@ref)
+  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_flow`](@ref)
 
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_blocked_layer!`](@ref)
 
@@ -85,7 +85,7 @@ function compute_orographic_modes! end
     for j in j0:j1, i in i0:i1
         deltah = compute_elevation_difference(state, i, j)
 
-        (rhoh, n2h, uh, vh) = compute_vertical_averages(state, deltah, i, j)
+        (rhoh, n2h, uh, vh) = compute_orographic_flow(state, deltah, i, j)
 
         ratio = compute_blocked_layer!(state, deltah, n2h, uh, vh, i, j)
 

@@ -26,7 +26,7 @@ using ...Types
 include("activate_orographic_source!.jl")
 include("apply_elastic_mode_selection!.jl")
 include("compute_orographic_modes!.jl")
-include("compute_vertical_averages.jl")
+include("compute_orographic_flow.jl")
 
 export activate_orographic_source!, compute_orographic_modes!
 
