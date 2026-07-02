@@ -17,14 +17,12 @@ using MPI
 
 include("@ivy.jl")
 include("ivy.jl")
-include("reduce_exceptions.jl")
 include("plot_output.jl")
 include("set_visualization_theme!.jl")
 include("symmetric_contours.jl")
 
 export @ivy
-export reduce_exceptions,
-    plot_output, set_visualization_theme!, symmetric_contours
+export plot_output, set_visualization_theme!, symmetric_contours
 
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
