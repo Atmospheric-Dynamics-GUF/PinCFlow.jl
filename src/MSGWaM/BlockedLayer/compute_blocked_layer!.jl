@@ -2,7 +2,6 @@
 ```julia
 compute_blocked_layer!(
     state::State,
-    deltah::AbstractFloat,
     n2h::AbstractFloat,
     uh::AbstractFloat,
     vh::AbstractFloat,
@@ -11,7 +10,7 @@ compute_blocked_layer!(
 )::AbstractFloat
 ```
 
-Update the blocked-layer depth and return the ratio between the effective and total mountain-wave amplitude.
+Update the blocked-layer depth and return the ratio between the effective and total mountain-wave amplitudes.
 
 The blocked-layer depth is given by
 
@@ -19,7 +18,7 @@ The blocked-layer depth is given by
 \\Delta z_\\mathrm{B} = 2 \\Delta h \\max \\left(0, \\frac{\\mathrm{Lo} - C}{\\mathrm{Lo}}\\right),
 ```
 
-where ``\\mathrm{Lo} = N_h \\Delta h \\left|\\boldsymbol{k}_h\\right| / \\left|\\boldsymbol{k}_h \\cdot \\boldsymbol{u}_h\\right|`` represents the Long number (with ``\\boldsymbol{k}_h`` computed by `compute_slope`) and ``C`` the Long-number threshold (`state.namelists.wkb.long_threshold`). The corresponding ratio between effective and total mountain-wave amplitude is given by
+where ``\\mathrm{Lo} = N_h \\Delta h \\left|\\boldsymbol{k}_h\\right| / \\left|\\boldsymbol{k}_h \\cdot \\boldsymbol{u}_h\\right|`` represents the Long number (with ``\\Delta h`` computed by `compute_elevation_difference` and ``\\boldsymbol{k}_h`` computed by `compute_slope`) and ``C`` the Long-number threshold (`state.namelists.wkb.long_threshold`). The corresponding ratio between the effective and total mountain-wave amplitudes is given by
 
 ```math
 r \\left(\\Delta z_\\mathrm{B}\\right) = 1 - B \\frac{\\Delta z_\\mathrm{B}}{2 \\Delta h}
@@ -30,8 +29,6 @@ with ``B`` regulating how much of the blocked layer contributes to the amplitude
 # Arguments
 
   - `state`: Model state.
-
-  - `deltah`: Elevation difference between the local background orography and the summits of the true local orography.
 
   - `n2h`: Squared buoyancy frequency averaged between ``h_{\\mathrm{b}}`` and ``h_{\\mathrm{b}} + \\Delta h``.
 
@@ -45,6 +42,8 @@ with ``B`` regulating how much of the blocked layer contributes to the amplitude
 
 # See also
 
+  - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
+
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_slope`](@ref)
 
 !!! danger "Experimental"
@@ -54,7 +53,6 @@ function compute_blocked_layer! end
 
 @ivy function compute_blocked_layer!(
     state::State,
-    deltah::AbstractFloat,
     n2h::AbstractFloat,
     uh::AbstractFloat,
     vh::AbstractFloat,
@@ -66,8 +64,10 @@ function compute_blocked_layer! end
     (; zctilde) = state.grid
     (; deltazb) = state.wkb
 
+    deltah = compute_elevation_difference(state, i, j)
+
     if blocking && deltah > 0
-        kh = compute_slope(state, deltah, i, j)
+        kh = compute_slope(state, i, j)
         deltazb[i, j] =
             2 *
             deltah *

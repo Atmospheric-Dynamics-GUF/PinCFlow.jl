@@ -48,13 +48,9 @@ For `state.namelists.wkb.elastic_mode_selection == true`, `apply_elastic_mode_se
 
 # See also
 
-  - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
-
   - [`PinCFlow.MSGWaM.RaySources.compute_orographic_flow`](@ref)
 
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_blocked_layer!`](@ref)
-
-  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.apply_elastic_mode_selection!`](@ref)
 
@@ -83,11 +79,9 @@ function compute_orographic_modes! end
     fc = coriolis_frequency * tref
 
     for j in j0:j1, i in i0:i1
-        deltah = compute_elevation_difference(state, i, j)
+        (rhoh, n2h, uh, vh) = compute_orographic_flow(state, i, j)
 
-        (rhoh, n2h, uh, vh) = compute_orographic_flow(state, deltah, i, j)
-
-        ratio = compute_blocked_layer!(state, deltah, n2h, uh, vh, i, j)
+        ratio = compute_blocked_layer!(state, n2h, uh, vh, i, j)
 
         # Set launch level.
         k = k0 - 1

@@ -25,8 +25,6 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 
 # See also
 
-  - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
-
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_slope`](@ref)
 
 !!! danger "Experimental"
@@ -57,9 +55,7 @@ function include_blocked_flow_drag! end
         if fraction <= 0
             continue
         else
-            deltah = compute_elevation_difference(state, i, j)
-
-            kh = compute_slope(state, deltah, i, j)
+            kh = compute_slope(state, i, j)
 
             up =
                 (

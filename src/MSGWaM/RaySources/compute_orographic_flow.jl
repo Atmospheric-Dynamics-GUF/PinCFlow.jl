@@ -2,7 +2,6 @@
 ```julia
 compute_orographic_flow(
     state::State,
-    deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
@@ -14,7 +13,6 @@ Return estimates of the quantities ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, 
 compute_orographic_flow(
     orographic_flow::Val{:Surface},
     state::State,
-    deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
@@ -26,19 +24,17 @@ Return the values of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{b}
 compute_orographic_flow(
     orographic_flow::Val{:Summit},
     state::State,
-    deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
 ```
 
-Return the values of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{b}}\\right)`` in the first layer completely above the summit, which is assumed to be at `hb[i, j] + deltah`.
+Return the values of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{b}}\\right)`` in the first layer completely above the summit, which is assumed to be at ``h_\\mathrm{b} + \\Delta h`` (with ``\\Delta h`` computed by `compute_elevation_difference`).
 
 ```julia
 compute_orographic_flow(
     orographic_flow::Val{:Average},
     state::State,
-    deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
@@ -52,17 +48,18 @@ Return the averages of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{
 
   - `state`: Model state.
 
-  - `deltah`: Elevation difference between the local background orography and the summits of the full local orography.
-
   - `i`: Zonal grid index.
 
   - `j`: Meridional grid index.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
 """
 function compute_orographic_flow end
 
 function compute_orographic_flow(
     state::State,
-    deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
@@ -71,7 +68,6 @@ function compute_orographic_flow(
     @dispatch_orographic_flow return compute_orographic_flow(
         Val(orographic_flow),
         state,
-        deltah,
         i,
         j,
     )
@@ -80,7 +76,6 @@ end
 @ivy function compute_orographic_flow(
     orographic_flow::Val{:Surface},
     state::State,
-    deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
@@ -101,7 +96,6 @@ end
 @ivy function compute_orographic_flow(
     orographic_flow::Val{:Summit},
     state::State,
-    deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
@@ -110,6 +104,7 @@ end
     (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
 
+    deltah = compute_elevation_difference(state, i, j)
     k = get_next_half_level(i, j, hb[i, j] + deltah, state) + 1
 
     rhoh = rhobar[i, j, k]
@@ -123,7 +118,6 @@ end
 @ivy function compute_orographic_flow(
     orographic_flow::Val{:Average},
     state::State,
-    deltah::AbstractFloat,
     i::Integer,
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
@@ -131,6 +125,8 @@ end
     (; jac, dz, zctilde, hb) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
+
+    deltah = compute_elevation_difference(state, i, j)
 
     dzh = 0.0
     rhoh = 0.0
