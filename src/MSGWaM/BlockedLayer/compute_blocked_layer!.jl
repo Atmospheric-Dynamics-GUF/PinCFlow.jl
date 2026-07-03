@@ -30,11 +30,11 @@ with ``B`` regulating how much of the blocked layer contributes to the amplitude
 
   - `state`: Model state.
 
-  - `n2h`: Squared buoyancy frequency averaged between ``h_{\\mathrm{b}}`` and ``h_{\\mathrm{b}} + \\Delta h``.
+  - `n2h`: Squared buoyancy frequency.
 
-  - `uh`: Zonal wind averaged between ``h_{\\mathrm{b}}`` and ``h_{\\mathrm{b}} + \\Delta h``.
+  - `uh`: Zonal wind.
 
-  - `vh`: Meridional wind averaged between ``h_{\\mathrm{b}}`` and ``h_{\\mathrm{b}} + \\Delta h``.
+  - `vh`: Meridional wind.
 
   - `i`: Zonal grid index.
 

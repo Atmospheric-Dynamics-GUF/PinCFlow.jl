@@ -17,7 +17,7 @@ where ``\\boldsymbol{u}_\\mathrm{b} = \\left(u_\\mathrm{b}, v_\\mathrm{b}, 0\\ri
 \\boldsymbol{u}_\\mathrm{p} = \\frac{\\left(\\boldsymbol{u}_\\mathrm{b} \\cdot \\boldsymbol{k}_h\\right) \\boldsymbol{k}_h}{\\left|\\boldsymbol{k}_h\\right|^2}
 ```
 
-is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``. This drag replaces the drag due to gravity waves below ``z_\\mathrm{B}``, the upper edge of the blocked layer that has been determined by `compute_blocked_layer!`. In grid cells that contain this upper edge, blocking and gravity waves both contribute to the total drag, weighted by the corresponding grid-cell fractions. The gravity-wave heating is treated similarly, with the "blocking contribution" being zero.
+is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``. This drag replaces the drag due to gravity waves below ``h_\\mathrm{b} + \\Delta z_\\mathrm{B} / 2``, the background of the effective orography. In grid cells that contain this level, blocking and gravity waves both contribute to the total drag, weighted by the corresponding grid-cell fractions. The gravity-wave heating is treated similarly, with the "blocking contribution" being zero.
 
 # Arguments
 
