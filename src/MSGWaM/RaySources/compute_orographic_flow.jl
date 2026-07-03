@@ -32,7 +32,7 @@ compute_orographic_flow(
 )::NTuple{4, <:AbstractFloat}
 ```
 
-Return the values of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{b}}\\right)`` in the first layer completely above the summit, which is assumed to be at `zctilde[i, j, k0 - 1] + deltah`.
+Return the values of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{b}}\\right)`` in the first layer completely above the summit, which is assumed to be at `hb[i, j] + deltah`.
 
 ```julia
 compute_orographic_flow(
@@ -106,11 +106,11 @@ end
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
     (; k0) = state.domain
-    (; zctilde) = state.grid
+    (; hb) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
 
-    k = get_next_half_level(i, j, zctilde[i, j, k0 - 1] + deltah, state) + 1
+    k = get_next_half_level(i, j, hb[i, j] + deltah, state) + 1
 
     rhoh = rhobar[i, j, k]
     n2h = n2[i, j, k]
@@ -128,7 +128,7 @@ end
     j::Integer,
 )::NTuple{4, <:AbstractFloat}
     (; k0, k1) = state.domain
-    (; jac, dz, zctilde) = state.grid
+    (; jac, dz, zctilde, hb) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
 
@@ -143,7 +143,7 @@ end
         n2h += n2[i, j, k] * jac[i, j, k] * dz
         uh += (u[i, j, k] + u[i - 1, j, k]) / 2 * jac[i, j, k] * dz
         vh += (v[i, j, k] + v[i, j - 1, k]) / 2 * jac[i, j, k] * dz
-        if zctilde[i, j, k] > zctilde[i, j, k0 - 1] + deltah
+        if zctilde[i, j, k] > hb[i, j] + deltah
             break
         end
     end

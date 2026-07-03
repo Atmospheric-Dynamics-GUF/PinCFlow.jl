@@ -37,7 +37,7 @@ function include_blocked_flow_drag! end
 @ivy function include_blocked_flow_drag!(state::State)
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dz, jac, zctilde, hw, kh, lh) = state.grid
+    (; dz, jac, zctilde, hb, hw, kh, lh) = state.grid
     (; rhobar) = state.atmosphere
     (; rho, u, v) = state.variables.predictands
     (; deltazb) = state.wkb
@@ -51,10 +51,8 @@ function include_blocked_flow_drag! end
     for k in k0:k1, j in j0:j1, i in i0:i1
         fraction =
             (
-                min(
-                    zctilde[i, j, k0 - 1] + deltazb[i, j] / 2,
-                    zctilde[i, j, k],
-                ) - zctilde[i, j, k - 1]
+                min(hb[i, j] + deltazb[i, j] / 2, zctilde[i, j, k]) -
+                zctilde[i, j, k - 1]
             ) / jac[i, j, k] / dz
         if fraction <= 0
             continue
