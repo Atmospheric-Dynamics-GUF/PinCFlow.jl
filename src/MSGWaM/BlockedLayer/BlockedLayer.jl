@@ -21,10 +21,11 @@ using ...Types
 
 include("compute_blocked_layer!.jl")
 include("compute_elevation_difference.jl")
+include("compute_orographic_flow.jl")
 include("compute_slope.jl")
 include("include_blocked_flow_drag!.jl")
 
 export compute_blocked_layer!,
-    compute_elevation_difference, include_blocked_flow_drag!
+    compute_orographic_flow, include_blocked_flow_drag!
 
 end
