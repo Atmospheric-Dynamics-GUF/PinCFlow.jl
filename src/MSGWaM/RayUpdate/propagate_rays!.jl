@@ -187,15 +187,15 @@ end
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; branch, impact_altitude) = state.namelists.wkb
+    (; branch, impact_altitude, blocking) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
-    (; nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
+    (; nray, cgx_max, cgy_max, cgz_max, rays, deltazb) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
-    (; dx, dy, dzcmin) = state.grid
+    (; dx, dy, dzcmin, hb) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
@@ -276,6 +276,17 @@ end
                 )
             end
 
+            # Determine if horizontal propagation and refraction are allowed.
+            multi_column = wkb_mode == Val(:MultiColumn)
+            launch_layer = k == k0 - 1
+            blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
+            zonal_propagation =
+                x_size > 1 && multi_column && !launch_layer && !blocked_layer
+            meridional_propagation =
+                y_size > 1 && multi_column && !launch_layer && !blocked_layer
+            refraction =
+                zr > impact_altitude / lref && !launch_layer && !blocked_layer
+
             # Compute intrinsic zonal group velocity.
             if x_size > 1
                 cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
@@ -296,7 +307,7 @@ end
 
             # Update zonal position.
 
-            if x_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
+            if zonal_propagation
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -320,7 +331,7 @@ end
 
             # Update meridional position.
 
-            if y_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
+            if meridional_propagation
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -362,7 +373,7 @@ end
 
             # Refraction is only allowed above impact_altitude / lref.
 
-            if zr > impact_altitude / lref
+            if refraction
 
                 #-------------------------------
                 #      Change of wavenumber
@@ -401,7 +412,7 @@ end
 
                 # Update extents in x and k.
 
-                if x_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
+                if zonal_propagation
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[r, i, j, k] =
@@ -419,7 +430,7 @@ end
 
                 # Update extents in y and l.
 
-                if y_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
+                if meridional_propagation
                     ddydt = cgry2 - cgry1
 
                     ddyray[r, i, j, k] =
