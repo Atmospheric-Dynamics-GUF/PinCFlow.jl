@@ -152,7 +152,7 @@ end
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Incorrect L2 norm: divl2_norm = 0 while divl2 != 0!")
         end
     end
 
@@ -218,7 +218,7 @@ end
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Incorrect L2 norm: divl2_norm = 0 while divl2 != 0!")
         end
     end
 

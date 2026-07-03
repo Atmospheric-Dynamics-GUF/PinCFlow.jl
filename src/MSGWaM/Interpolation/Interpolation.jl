@@ -9,15 +9,17 @@ Provides functions that find the grid points closest to a given ray-volume posit
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.Update`](@ref)
 """
 module Interpolation
 
+using ...Macros
 using ...Types
 using ...Update
-using ...PinCFlow
 
 """
 ```julia

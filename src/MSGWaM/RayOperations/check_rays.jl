@@ -30,7 +30,7 @@ function check_rays end
 
                 if xr < x[i] - dx / 2
                     error(
-                        "Error in check_rays:\nxr = ",
+                        "Center ray is outside of the grid cell:\nxr = ",
                         xr,
                         " < x[i] - dx / 2 = ",
                         x[i] - dx / 2,
@@ -43,7 +43,7 @@ function check_rays end
 
                 if xr > x[i] + dx / 2
                     error(
-                        "Error in check_rays:\nxr = ",
+                        "Center ray is outside of the grid cell:\nxr = ",
                         xr,
                         " > x[i] + dx / 2 = ",
                         x[i] + dx / 2,
@@ -61,7 +61,7 @@ function check_rays end
 
                 if yr < y[j] - dy / 2
                     error(
-                        "Error in check_rays:\nyr = ",
+                        "Center ray is outside of the grid cell:\nyr = ",
                         yr,
                         " < y[j] - dy / 2 = ",
                         y[j] - dy / 2,
@@ -74,7 +74,7 @@ function check_rays end
 
                 if yr > y[j] + dy / 2
                     error(
-                        "Error in check_rays:\nyr = ",
+                        "Center ray is outside of the grid cell:\nyr = ",
                         yr,
                         " > y[j] + dy / 2 = ",
                         y[j] + dy / 2,
@@ -91,7 +91,7 @@ function check_rays end
 
             if zr < zctilde[i, j, k - 1]
                 error(
-                    "Error in check_rays:\nzr = ",
+                    "Center ray is outside of the grid cell:\nzr = ",
                     zr,
                     " < zctilde[i, j, k - 1] = ",
                     zctilde[i, j, k - 1],
@@ -104,7 +104,7 @@ function check_rays end
 
             if zr > zctilde[i, j, k]
                 error(
-                    "Error in check_rays:\nzr = ",
+                    "Center ray is outside of the grid cell:\nzr = ",
                     zr,
                     " > zctilde[i, j, k] = ",
                     zctilde[i, j, k],
