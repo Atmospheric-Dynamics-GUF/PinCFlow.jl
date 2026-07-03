@@ -71,7 +71,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `cgz_max::I`: Maximum vertical group velocity.
 
-  - `zb::J`: Upper edge of the blocked layer.
+  - `deltazb::J`: Blocked-layer depth.
 
   - `diffusion::K`: Diffusion induced by wave breaking.
 
@@ -135,7 +135,7 @@ struct WKB{
     cgx_max::I
     cgy_max::I
     cgz_max::I
-    zb::J
+    deltazb::J
     diffusion::K
     spectrum::L
     elastic_mode_selection::M
@@ -252,7 +252,7 @@ function WKB(
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
     cgz_max = Ref(0.0)
-    zb = zeros(nxx, nyy)
+    deltazb = zeros(nxx, nyy)
     diffusion = zeros(nxx, nyy, nzz)
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
     elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
@@ -271,7 +271,7 @@ function WKB(
         cgx_max,
         cgy_max,
         cgz_max,
-        zb,
+        deltazb,
         diffusion,
         spectrum,
         elastic_mode_selection,

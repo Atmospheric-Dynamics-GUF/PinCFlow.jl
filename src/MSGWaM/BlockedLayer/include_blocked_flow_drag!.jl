@@ -40,7 +40,7 @@ function include_blocked_flow_drag! end
     (; dz, jac, zctilde, hw, kh, lh) = state.grid
     (; rhobar) = state.atmosphere
     (; rho, u, v) = state.variables.predictands
-    (; zb) = state.wkb
+    (; deltazb) = state.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     if !blocking
@@ -50,8 +50,12 @@ function include_blocked_flow_drag! end
     # Adjust the drag to account for blocking.
     for k in k0:k1, j in j0:j1, i in i0:i1
         fraction =
-            (min(zb[i, j], zctilde[i, j, k]) - zctilde[i, j, k - 1]) /
-            jac[i, j, k] / dz
+            (
+                min(
+                    zctilde[i, j, k0 - 1] + deltazb[i, j] / 2,
+                    zctilde[i, j, k],
+                ) - zctilde[i, j, k - 1]
+            ) / jac[i, j, k] / dz
         if fraction <= 0
             continue
         else
