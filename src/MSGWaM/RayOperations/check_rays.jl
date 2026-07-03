@@ -12,16 +12,13 @@ Check if all ray volumes are assigned to the correct grid cells.
 function check_rays end
 
 @ivy function check_rays(state::State)
-    (; x_size, y_size, z_size) = state.namelists.domain
-    (; io, jo, ko, i0, i1, j0, j1, k0, k1, nz) = state.domain
+    (; x_size, y_size) = state.namelists.domain
+    (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, x, y, zctilde) = state.grid
     (; nray, rays) = state.wkb
 
-    kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nz == z_size ? k1 : k1 + 1
-
     # Loop over ray volumes.
-    for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue

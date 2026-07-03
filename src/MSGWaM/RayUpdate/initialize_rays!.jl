@@ -68,11 +68,10 @@ end
         wkb_mode,
         wave_modes,
         initial_wave_field,
-        blocking,
     ) = state.namelists.wkb
     (; lref, tref, rhoref, uref) = state.constants
     (; comm, master, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, x, y, zc, zctilde, jac) = state.grid
+    (; dx, dy, dz, x, y, zc, jac) = state.grid
     (;
         bins,
         nray_wrk,
@@ -167,20 +166,12 @@ end
                 r += 1
             end
 
-            # Set launch level.
-            if blocking && ko == 0 && k == k0 - 1
-                deltah = compute_elevation_difference(state, i, j)
-                kl = get_next_half_level(i, j, zctilde[i, j, k] + deltah, state)
-            else
-                kl = k
-            end
-
             # Set ray-volume positions.
             rays.x[r, i, j, k] = (x[i] - 0.5 * dx + (ix - 0.5) * dx / nrx)
             rays.y[r, i, j, k] = (y[j] - 0.5 * dy + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
-                zc[i, j, kl] - 0.5 * jac[i, j, kl] * dz +
-                (kz - 0.5) * jac[i, j, kl] * dz / nrz
+                zc[i, j, k] - 0.5 * jac[i, j, k] * dz +
+                (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 
             xr = rays.x[r, i, j, k]
@@ -206,7 +197,7 @@ end
             # Set spatial extents.
             rays.dxray[r, i, j, k] = dx / nrx
             rays.dyray[r, i, j, k] = dy / nry
-            rays.dzray[r, i, j, k] = jac[i, j, kl] * dz / nrz
+            rays.dzray[r, i, j, k] = jac[i, j, k] * dz / nrz
 
             wnk0 = spectrum.k[alpha, i, j, k]
             wnl0 = spectrum.l[alpha, i, j, k]
