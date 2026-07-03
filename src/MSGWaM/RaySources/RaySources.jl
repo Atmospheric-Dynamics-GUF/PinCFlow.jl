@@ -18,7 +18,6 @@ Module for ray-volume sources.
 module RaySources
 
 using ..BlockedLayer
-using ..Interpolation
 using ..RayOperations
 using ...Macros
 using ...Types

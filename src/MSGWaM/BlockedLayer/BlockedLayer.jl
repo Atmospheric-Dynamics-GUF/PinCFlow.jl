@@ -7,6 +7,8 @@ Module for the blocked-layer scheme.
 
 # See also
 
+  - [`PinCFlow.MSGWaM.Interpolation`](@ref)
+
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
@@ -16,6 +18,7 @@ Module for the blocked-layer scheme.
 """
 module BlockedLayer
 
+using ..Interpolation
 using ...Macros
 using ...Types
 
