@@ -17,9 +17,9 @@ The parameter can take any of the following values:
 
   - `input`: Input expression with `Val` calls.
 """
-macro dispatch_background end
+macro dispatch_orographic_flow end
 
-macro dispatch_background(input::Expr)
+macro dispatch_orographic_flow(input::Expr)
     return esc(quote
         @dispatch (:Surface, :Summit, :Average) $(input)
     end)
