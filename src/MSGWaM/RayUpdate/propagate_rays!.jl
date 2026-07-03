@@ -265,15 +265,11 @@ end
                 branch * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             if any((n2r1, n2r, n2r2) .< 0)
-                error(
-                    "Error in propagate_rays!: Interpolated stratification is negative!",
-                )
+                error("Interpolated stratification is negative!")
             end
 
             if khr <= 0
-                error(
-                    "Error in propagate_rays!: Horizontal wavenumber is negative!",
-                )
+                error("Horizontal wavenumber is negative!")
             end
 
             # Determine if horizontal propagation and refraction are allowed.
@@ -326,7 +322,7 @@ end
 
             if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
                abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
-                error("Error in propagate_rays!: Rays travel too far in x!")
+                error("Rays travel too far in x!")
             end
 
             # Update meridional position.
@@ -350,7 +346,7 @@ end
 
             if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
                abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
-                error("Error in propagate_rays!: Rays travel too far in y!")
+                error("Rays travel too far in y!")
             end
 
             # Update vertical position.
@@ -368,7 +364,7 @@ end
 
             if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
                abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
-                error("Error in propagate_rays!: Rays travel too far in z!")
+                error("Rays travel too far in z!")
             end
 
             # Refraction is only allowed above impact_altitude / lref.

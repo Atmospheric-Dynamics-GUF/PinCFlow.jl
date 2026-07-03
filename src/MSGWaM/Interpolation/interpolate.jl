@@ -172,7 +172,12 @@ function interpolate(
         zfu = zlfu
     else
         if xr < xl
-            error("Error in interpolate: xr = ", xr, " < xl = ", xl)
+            error(
+                "Incorrect zonal-interpolation points: xr = ",
+                xr,
+                " < xl = ",
+                xl,
+            )
         elseif xr == xl
             factor = 0.0
         elseif xlc > xr
@@ -205,7 +210,12 @@ function interpolate(
         zu = zbu
     else
         if yf < yb
-            error("Error in interpolate: yf = ", yf, " < yb = ", yb)
+            error(
+                "Incorrect meridional-interpolation points: yf = ",
+                yf,
+                " < yb = ",
+                yb,
+            )
         elseif yf == yb
             factor = 0.0
         elseif ylc > yf
@@ -225,7 +235,12 @@ function interpolate(
 
     # Interpolate in z.
     if zu < zd
-        error("Error in interpolate: zu = ", zu, " < zd = ", zd)
+        error(
+            "Incorrect vertical-interpolation points: zu = ",
+            zu,
+            " < zd = ",
+            zd,
+        )
     elseif zu == zd
         factor = 0.0
     elseif zlc > zu

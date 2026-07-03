@@ -23,6 +23,8 @@ Module for the construction of a single composite type that contains all informa
 """
 module Types
 
+using MPI
+
 """
 ```julia
 AbstractPredictand

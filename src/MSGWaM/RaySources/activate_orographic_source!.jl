@@ -122,7 +122,7 @@ function activate_orographic_source! end
                         local_count = nray[i, j, k + 1]
                         if local_count > nray_wrk
                             error(
-                                "Error in activate_orographic_source!: local_count > nray_wrk!",
+                                "Too many new ray volumes: local_count > nray_wrk!",
                             )
                         end
                         copy_rays!(
@@ -155,9 +155,7 @@ function activate_orographic_source! end
                         nray[i, j, k] += 1
                         r = nray[i, j, k]
                         if r > nray_wrk
-                            error(
-                                "Error in activate_orographic_source!: r > nray_wrk!",
-                            )
+                            error("Too many new ray volumes: r > nray_wrk!")
                         end
                         rs[s, i, j] = r
                     end
@@ -189,7 +187,7 @@ function activate_orographic_source! end
                 dl_ini_nd = dlr_factor * sqrt(wnrk^2 + wnrl^2)
             end
             if wnrm == 0.0
-                error("Error in orographic_source: wnrm = 0!")
+                error("Impossible vertical wavenumber: wnrm = 0!")
             else
                 dm_ini_nd = dmr_factor * abs(wnrm)
             end

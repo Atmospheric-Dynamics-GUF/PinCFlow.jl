@@ -66,6 +66,15 @@ Singleton for the integration of the diffusion term in the turbulence equation.
 """
 struct Diffusion end
 
+"""
+```julia
+ParallelExceptions
+```
+
+Singleton that distinguishes an `integrate` method without exception reduction.
+"""
+struct ParallelExceptions end
+
 include("compute_time_step.jl")
 include("integrate.jl")
 include("modify_compressible_wind!.jl")
@@ -78,6 +87,7 @@ include("implicit_integration!.jl")
 include("wkb_integration!.jl")
 include("backup_predictands.jl")
 include("turbulence_integration!.jl")
+include("reduce_exceptions.jl")
 
 export integrate
 

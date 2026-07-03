@@ -15,11 +15,6 @@ module PinCFlow
 
 using MPI
 
-include("reduce_exceptions.jl")
-include("ensemble.jl")
-
-export reduce_exceptions, ensemble
-
 function plot_output end
 function set_visualization_theme! end
 function symmetric_contours end
@@ -44,7 +39,7 @@ using .Integration
 using .Examples
 
 @setup_workload begin
-    redirect_stdio(; stderr = devnull, stdout = devnull) do
+    redirect_stdout(devnull) do
         mktempdir() do directory
             keywords = (
                 output_file = directory * "/pincflow_output.h5",

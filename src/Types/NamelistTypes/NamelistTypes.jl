@@ -13,7 +13,6 @@ Provides constructors that allow setting only specific parameters and using defa
 """
 module NamelistTypes
 
-using MPI
 using FunctionWrappers: FunctionWrapper
 using ...Macros
 
