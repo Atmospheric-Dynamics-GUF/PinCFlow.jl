@@ -92,14 +92,16 @@ end
     (; turbulencefluxes) = state.turbulence
 
     if ko == 0
-        for field in fieldnames(TurbulenceFluxes)
-            @share $getfield(turbulencefluxes, field)[:, :, k0 - 1, 3] = 0.0
+        for field_name in fieldnames(TurbulenceFluxes)
+            field = getfield(turbulencefluxes, field_name)
+            @share field[:, :, k0 - 1, 3] = 0.0
         end
     end
 
     if ko + nz == z_size
-        for field in fieldnames(TurbulenceFluxes)
-            @share getfield(turbulencefluxes, field)[:, :, k1, 3] = 0.0
+        for field_name in fieldnames(TurbulenceFluxes)
+            field = getfield(turbulencefluxes, field_name)
+            @share field[:, :, k1, 3] = 0.0
         end
     end
 
