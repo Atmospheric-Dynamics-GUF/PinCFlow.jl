@@ -7,6 +7,9 @@ Module that contains PinCFlow.jl's convenience macros.
 """
 module Macros
 
+import Polyester
+import FastBroadcast
+
 include("dispatch.jl")
 include("find_argument.jl")
 include("ivy.jl")
