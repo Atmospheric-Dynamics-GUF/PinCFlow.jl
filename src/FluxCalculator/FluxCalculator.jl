@@ -24,10 +24,10 @@ using ..Types
 using ..Boundaries
 using ..Update
 
-include("apply_1d_muscl!.jl")
 include("apply_3d_muscl!.jl")
 include("compute_flux.jl")
 include("compute_fluxes!.jl")
+include("muscl.jl")
 include("reconstruct!.jl")
 
 export compute_fluxes!, reconstruct!

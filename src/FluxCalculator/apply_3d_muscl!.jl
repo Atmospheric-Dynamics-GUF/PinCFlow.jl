@@ -42,31 +42,31 @@ function apply_3d_muscl! end
 )
 
     # Reconstruct in x.
-    for k in 2:(nzz - 1), j in 2:(nyy - 1)
-        apply_1d_muscl!(
-            phi[:, j, k],
-            phitilde[:, j, k, 1, :],
-            nxx,
+    @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+        phitilde[i, j, k, 1, :] .= muscl(
+            phi[i - 1, j, k],
+            phi[i, j, k],
+            phi[i + 1, j, k],
             limiter_type,
         )
     end
 
     # Reconstruct in y.
-    for k in 2:(nzz - 1), i in 2:(nxx - 1)
-        apply_1d_muscl!(
-            phi[i, :, k],
-            phitilde[i, :, k, 2, :],
-            nyy,
+    @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+        phitilde[i, j, k, 2, :] .= muscl(
+            phi[i, j - 1, k],
+            phi[i, j, k],
+            phi[i, j + 1, k],
             limiter_type,
         )
     end
 
     # Reconstruct in z.
-    for j in 2:(nyy - 1), i in 2:(nxx - 1)
-        apply_1d_muscl!(
-            phi[i, j, :],
-            phitilde[i, j, :, 3, :],
-            nzz,
+    @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+        phitilde[i, j, k, 3, :] .= muscl(
+            phi[i, j, k - 1],
+            phi[i, j, k],
+            phi[i, j, k + 1],
             limiter_type,
         )
     end
