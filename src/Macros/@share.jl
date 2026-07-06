@@ -49,103 +49,63 @@ macro share(x::Vararg{Expr})
             error("Unexpected for-loop format!")
         end
 
-        results = Tuple(gensym("result_$i") for i in eachindex(reductions))
-
-        body = replace_symbols(
-            body,
-            (
-                reduction.args[2] => result for
-                (reduction, result) in zip(reductions, results)
-            )...,
-        )
-        x[end].args[2] = body
-
-        reduction_inputs = Expr(
-            :block,
-            (
-                :($result = $(esc(reduction.args[2]))) for
-                (result, reduction) in zip(results, reductions)
-            )...,
-        )
-
         reduction_argument =
             length(reductions) > 0 ?
-            :(
-                reduction = $(Expr(
-                    :tuple,
-                    (
-                        Expr(:tuple, reduction.args[1], :($result)) for
-                        (reduction, result) in zip(reductions, results)
-                    )...,
-                ))
-            ) : :(stride = false)
-
-        reduction_outputs = Expr(
-            :block,
-            (
-                :($(esc(reduction.args[2])) = $(result)) for
-                (reduction, result) in zip(reductions, results)
-            )...,
-        )
+            :(reduction = $(Expr(:tuple, reductions...))) : :(stride = false)
 
         @gensym all_indices block blocks index indices loop_size
 
         if simd
-            output = quote
-                $all_indices = CartesianIndices(($(esc.(ranges)...),))
-                $loop_size = length($all_indices)
+            output = esc(
+                quote
+                    $all_indices = CartesianIndices(($(ranges...),))
+                    $loop_size = length($all_indices)
 
-                $reduction_inputs
+                    $blocks = 1:cld($loop_size, $block_size)
+                    $(Expr(
+                        :macrocall,
+                        GlobalRef(Polyester, Symbol("@batch")),
+                        __source__,
+                        reduction_argument,
+                        :(
+                            for $block in $blocks
+                                $indices =
+                                    $all_indices[(($block - 1) * $block_size + 1):min(
+                                        $block * $block_size,
+                                        $loop_size,
+                                    )]
 
-                $blocks = 1:cld($loop_size, $block_size)
-                $(Expr(
-                    :macrocall,
-                    GlobalRef(Polyester, Symbol("@batch")),
-                    __source__,
-                    reduction_argument,
-                    :(
-                        for $block in $blocks
-                            $indices =
-                                $all_indices[(($block - 1) * $block_size + 1):min(
-                                    $block * $block_size,
-                                    $loop_size,
-                                )]
+                                @simd for $index in $indices
+                                    $(Expr(
+                                        :block,
+                                        (
+                                            :($(index_names[i]) =
+                                                    $index[$i]) for
+                                            i in eachindex(index_names)
+                                        )...,
+                                    ))
 
-                            @simd for $index in $indices
-                                $(Expr(
-                                    :block,
-                                    (
-                                        :($(esc(index_names[i])) =
-                                                $index[$i]) for i in eachindex(index_names)
-                                    )...,
-                                ))
-
-                                $body
+                                    $body
+                                end
                             end
-                        end
-                    ),
-                ))
-
-                $reduction_outputs
-            end
+                        ),
+                    ))
+                end,
+            )
 
             println(output)
 
             return output
         else
-            output = quote
-                $reduction_inputs
-
-                $(Expr(
+            output = esc(
+                Expr(
                     :macrocall,
                     GlobalRef(Polyester, Symbol("@batch")),
                     __source__,
                     reduction_argument,
                     x[end],
-                ))
-
-                $reduction_outputs
-            end
+                ),
+            )
 
             println(output)
 
@@ -156,12 +116,14 @@ macro share(x::Vararg{Expr})
             error("Unexpected options!")
         end
 
-        output = Expr(
-            :macrocall,
-            GlobalRef(FastBroadcast, Symbol("@..")),
-            __source__,
-            :(thread = $(GlobalRef(FastBroadcast, :Threaded))()),
-            esc(x[end]),
+        output = esc(
+            Expr(
+                :macrocall,
+                GlobalRef(FastBroadcast, Symbol("@..")),
+                __source__,
+                :(thread = $(GlobalRef(FastBroadcast, :Threaded))()),
+                x[end],
+            ),
         )
 
         println(output)
