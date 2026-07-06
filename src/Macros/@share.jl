@@ -92,7 +92,7 @@ macro share(x::Vararg{Expr})
 
         if simd
             output = quote
-                $all_indices = cartesian_indices(($(esc.(ranges)...),))
+                $all_indices = CartesianIndices(($(esc.(ranges)...),))
                 $loop_size = length($all_indices)
 
                 $reduction_inputs
