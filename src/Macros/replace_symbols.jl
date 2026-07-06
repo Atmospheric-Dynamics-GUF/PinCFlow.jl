@@ -2,7 +2,8 @@ function replace_symbols end
 
 function replace_symbols(
     x::Any,
-    replacements::Vararg{Pair{Symbol, Symbol}},
+    replacements::Vararg{Pair{Symbol, Symbol}};
+    escape_others::Bool = true,
 )::Any
     if x isa Expr
         for (index, arg) in enumerate(x.args)
@@ -14,7 +15,7 @@ function replace_symbols(
                         replaced = true
                     end
                 end
-                !replaced && (x.args[index] = esc(arg))
+                !replaced && escape_others && (x.args[index] = esc(arg))
             else
                 x.args[index] = replace_symbols(arg, replacements...)
             end
