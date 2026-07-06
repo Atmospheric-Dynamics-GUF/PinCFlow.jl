@@ -82,7 +82,7 @@ end
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share (+, divl2) (+, divl2_norm) for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
@@ -176,7 +176,7 @@ end
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share (+, divl2) (+, divl2_norm) for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.

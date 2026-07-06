@@ -56,19 +56,19 @@ function apply_preconditioner!(
     # Set pseudo-time step.
     deta = dtau / (2 * (1 / dx^2 + 1 / dy^2))
 
-    ath .= .-deta .* ad_b
-    bth .= 1.0 .- deta .* ac_b
-    cth .= .-deta .* au_b
+    @share ath = -deta * ad_b
+    @share bth = 1.0 - deta * ac_b
+    @share cth = -deta * au_b
 
     # Iterate.
     for niter in 1:preconditioner_iterations
         apply_operator!(fth, qth, Horizontal(), state)
-        fth .+= deta .* (qth .- sin)
+        @share fth += deta * (qth - sin)
 
         thomas_algorithm!(state)
     end
 
-    sout .= fth
+    @share sout = fth
 
     return
 end

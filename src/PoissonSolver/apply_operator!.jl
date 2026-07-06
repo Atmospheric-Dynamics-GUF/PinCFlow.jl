@@ -84,7 +84,7 @@ function apply_operator! end
     (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    s[i0:i1, j0:j1, k0:k1] .= sin
+    @share s[i0:i1, j0:j1, k0:k1] = sin
 
     # Set boundaries of auxiliary field.
     if npz > 1
@@ -110,7 +110,7 @@ function apply_operator! end
     #         Loop over field
     #---------------------------------
 
-    for k in 1:nz, j in 1:ny, i in 1:nx
+    @share for k in 1:nz, j in 1:ny, i in 1:nx
 
         # Determine indices for s.
         is = i + i0 - 1
@@ -308,7 +308,7 @@ end
     (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    s[i0:i1, j0:j1, k0:k1] .= sin
+    @share s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
     if npz > 1
@@ -334,7 +334,7 @@ end
     #         Loop over field
     #---------------------------------
 
-    for k in 1:nz, j in 1:ny, i in 1:nx
+    @share for k in 1:nz, j in 1:ny, i in 1:nx
 
         # Determine indices for s.
         is = i + i0 - 1

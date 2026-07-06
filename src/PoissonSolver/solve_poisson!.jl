@@ -47,7 +47,7 @@ function solve_poisson! end
     (; dpip) = state.variables.increments
     (; solution) = state.poisson
 
-    solution .= 0.0
+    @share solution = 0.0
 
     if dt == 0.0
         error("Vanishing time step: dt = 0.0!")
@@ -66,10 +66,10 @@ function solve_poisson! end
     jj = j0:j1
     kk = k0:k1
 
-    solution ./= sqrt.(pbar[ii, jj, kk] .^ 2 ./ rhobar[ii, jj, kk])
+    @share solution /= sqrt(pbar[ii, jj, kk]^2 / rhobar[ii, jj, kk])
 
     # Pass solution to pressure correction.
-    dpip[ii, jj, kk] .= dtinv .* solution
+    @share dpip[ii, jj, kk] = dtinv * solution
 
     return (errflagbicg, niterbicg)
 end
