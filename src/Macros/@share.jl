@@ -41,16 +41,10 @@ macro share(x::Vararg{Expr})
 
         if loop.head === :block && all(arg.head === :(=) for arg in loop.args)
             index_names = Tuple(arg.args[1] for arg in loop.args[end:(-1):1])
-            ranges = Tuple(
-                arg.args[2] isa CartesianIndices ? arg.args[2].indices :
-                arg.args[2] for arg in loop.args[end:(-1):1]
-            )
+            ranges = Tuple(arg.args[2] for arg in loop.args[end:(-1):1])
         elseif loop.head === :(=)
             index_names = (loop.args[1],)
-            ranges = (
-                loop.args[2] isa CartesianIndices ? loop.args[2].indices :
-                loop.args[2],
-            )
+            ranges = (loop.args[2],)
         else
             error("Unexpected for-loop format!")
         end
@@ -98,7 +92,7 @@ macro share(x::Vararg{Expr})
 
         if simd
             output = quote
-                $all_indices = CartesianIndices(($(esc.(ranges)...),))
+                $all_indices = cartesian_indices(($(esc.(ranges)...),))
                 $loop_size = length($all_indices)
 
                 $reduction_inputs
