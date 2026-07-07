@@ -80,7 +80,7 @@ function turbulence_diffusion_coefficient end
     k::Integer,
     variable::KM,
 )::AbstractFloat
-    (; tke) = state.turbulence.turbulencepredictands
+    (; tkeold) = state.turbulence.turbulencebackups
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; lv) = state.turbulence.turbulenceconstants
@@ -88,9 +88,9 @@ function turbulence_diffusion_coefficient end
     (; nz, ko, k0, k1) = state.domain
 
     if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
-        km = -lv * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
+        km = -lv * sqrt(2 * tkeold[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
-        km = lv * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
+        km = lv * sqrt(2 * tkeold[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
     return km
@@ -103,7 +103,7 @@ end
     k::Integer,
     variable::KH,
 )::AbstractFloat
-    (; tke) = state.turbulence.turbulencepredictands
+    (; tkeold) = state.turbulence.turbulencebackups
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; lb) = state.turbulence.turbulenceconstants
@@ -111,9 +111,9 @@ end
     (; nz, ko, k0, k1) = state.domain
 
     if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
-        kh = -lb * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
+        kh = -lb * sqrt(2 * tkeold[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
-        kh = lb * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
+        kh = lb * sqrt(2 * tkeold[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
     return kh
@@ -126,7 +126,7 @@ end
     k::Integer,
     variable::KEK,
 )::AbstractFloat
-    (; tke) = state.turbulence.turbulencepredictands
+    (; tkeold) = state.turbulence.turbulencebackups
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; lt) = state.turbulence.turbulenceconstants
@@ -134,9 +134,9 @@ end
     (; nz, ko, k0, k1) = state.domain
 
     if (ko == 0 && k < k0) || (ko + nz == z_size && k > k1)
-        kek = -lt * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
+        kek = -lt * sqrt(2 * tkeold[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
-        kek = lt * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
+        kek = lt * sqrt(2 * tkeold[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
     return kek
