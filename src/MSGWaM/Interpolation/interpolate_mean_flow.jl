@@ -198,12 +198,12 @@ function interpolate_mean_flow end
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (U): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (U): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 "> nxx = ",
                 nxx,
@@ -220,16 +220,11 @@ function interpolate_mean_flow end
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (U): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (U): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
     yf = y[jf]
@@ -320,16 +315,11 @@ end
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (V): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (V): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
     xr = x[ir]
@@ -342,12 +332,12 @@ end
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (V): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (V): jf + 1 = ",
+                "Meridional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
@@ -442,20 +432,11 @@ end
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il - 1 < 1
-            error(
-                "Error in interpolate_mean_flow (DUDX): il - 1 = ",
-                il - 1,
-                " < 1",
-            )
+            error("Zonal index is too small: il - 1 = ", il - 1, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DUDX): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
     xr = x[ir]
@@ -468,16 +449,11 @@ end
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DUDX): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DUDX): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
     yf = y[jf]
@@ -565,12 +541,12 @@ end
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DUDY): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDY): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 " > nxx = ",
                 nxx,
@@ -587,12 +563,12 @@ end
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DUDY): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DUDY): jf + 1 = ",
+                "Meridional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
@@ -732,12 +708,12 @@ end
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DUDZ): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDZ): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 " > nxx = ",
                 nxx,
@@ -754,16 +730,11 @@ end
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DUDZ): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DUDZ): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
     yf = y[jf]
@@ -851,12 +822,12 @@ end
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DVDX): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DVDX): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 " > nxx = ",
                 nxx,
@@ -873,12 +844,12 @@ end
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DVDX): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DVDX): jf + 1 = ",
+                "Merdional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
@@ -1018,16 +989,11 @@ end
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DVDY): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DVDY): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
     xr = x[ir]
@@ -1040,20 +1006,11 @@ end
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb - 1 < 1
-            error(
-                "Error in interpolate_mean_flow (DVDY): jb - 1 = ",
-                jb - 1,
-                " < 1",
-            )
+            error("Meridional index is too small: jb - 1 = ", jb - 1, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DVDY): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
     yf = y[jf]
@@ -1141,16 +1098,11 @@ end
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DVDZ): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DVDZ): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
     xr = x[ir]
@@ -1163,12 +1115,12 @@ end
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow: jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow: jf + 1 = ",
+                "Meridional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
@@ -1260,12 +1212,12 @@ end
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DChiDX): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DChiDX): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 " > nxx = ",
                 nxx,
@@ -1282,16 +1234,11 @@ end
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DChiDX): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DChiDX): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
     yf = y[jf]
@@ -1378,16 +1325,11 @@ end
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DChiDY): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DChiDY): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
     xr = x[ir]
@@ -1400,12 +1342,12 @@ end
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DChiDY): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DChiDY): jf + 1 = ",
+                "Meridional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
@@ -1497,16 +1439,11 @@ end
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DChiDZ): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DChiDZ): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
     xr = x[ir]
@@ -1519,16 +1456,11 @@ end
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DChiDZ): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DChiDZ): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
     yf = y[jf]

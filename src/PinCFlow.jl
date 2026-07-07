@@ -15,18 +15,13 @@ module PinCFlow
 
 using MPI
 
-include("@ivy.jl")
-include("ivy.jl")
-include("reduce_exceptions.jl")
-include("ensemble.jl")
-include("plot_output.jl")
-include("set_visualization_theme!.jl")
-include("symmetric_contours.jl")
+function plot_output end
+function set_visualization_theme! end
+function symmetric_contours end
 
-export @ivy
-export reduce_exceptions,
-    ensemble, plot_output, set_visualization_theme!, symmetric_contours
+export plot_output, set_visualization_theme!, symmetric_contours
 
+include("Macros/Macros.jl")
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
 include("Boundaries/Boundaries.jl")
@@ -44,26 +39,23 @@ using .Integration
 using .Examples
 
 @setup_workload begin
-    redirect_stdio(; stderr = devnull, stdout = devnull) do
+    redirect_stdout(devnull) do
         mktempdir() do directory
-            x_size = 3
-            y_size = 3
-            z_size = 5
-
             keywords = (
                 output_file = directory * "/pincflow_output.h5",
                 visualize = false,
+                x_size = 3,
+                y_size = 3,
+                z_size = 5,
             )
 
-            @compile_workload begin
-                cold_bubble(; x_size, z_size, keywords...)
-                hot_bubble(; x_size, z_size, keywords...)
-                mountain_wave(; x_size, y_size, z_size, keywords...)
-                periodic_hill(; x_size, z_size, keywords...)
-                vortex(; x_size, y_size, keywords...)
-                wave_packet(; x_size, y_size, z_size, keywords...)
-                wkb_mountain_wave(; x_size, y_size, z_size, keywords...)
-                wkb_wave_packet(; x_size, y_size, z_size, keywords...)
+            for name in names(Examples)
+                example = getproperty(Examples, name)
+                if example isa Function
+                    @compile_workload begin
+                        example(; keywords...)
+                    end
+                end
             end
             return
         end

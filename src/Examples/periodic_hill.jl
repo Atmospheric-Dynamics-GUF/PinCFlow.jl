@@ -1,29 +1,32 @@
 # src/Examples/periodic_hill.jl
 
 function periodic_hill(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
+    display_figure::Bool = true,
     npx::Integer = 1,
+    npy::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "periodic_hill.h5",
+    plot_file::AbstractString = "periodic_hill.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/periodic_hill.svg",
+    x_size::Integer = 20,
+    y_size::Integer = 1,
+    z_size::Integer = 20,
 )
-    h0 = 500.0
-    l0 = 10000.0
+    h0 = 500
+    l0 = 10000
 
-    lz = 20000.0
-    zr = 10000.0
+    lz = 20000
+    zr = 10000
 
     atmosphere = AtmosphereNamelist(;
-        model = :Boussinesq,
         background = :StableStratification,
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        model = :Boussinesq,
     )
 
-    domain = DomainNamelist(; x_size, z_size, lx = 20000.0, lz, npx, npz)
+    domain = DomainNamelist(; lx = 20000, lz, npx, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
         resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
@@ -40,10 +43,7 @@ function periodic_hill(;
     integrate(Namelists(; atmosphere, domain, grid, output, sponge))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("w", 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:w, 2); display_figure)
     end
 
     return

@@ -50,7 +50,7 @@ function solve_poisson! end
     solution .= 0.0
 
     if dt == 0.0
-        error("Error in solve_poisson!: dt = 0.0!")
+        error("Vanishing time step: dt = 0.0!")
     end
     dtinv = 1.0 / dt
 

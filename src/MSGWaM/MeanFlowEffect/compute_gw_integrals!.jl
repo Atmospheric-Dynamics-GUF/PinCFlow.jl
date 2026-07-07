@@ -103,11 +103,11 @@ end
 
 @ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     (; domain, grid) = state
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals, auxiliaries) = state.wkb
@@ -184,20 +184,35 @@ end
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(
-                        iray,
-                        jray,
-                        zr - dzr / 2,
-                        state;
-                        dkd = 1,
+                    kmin = max(
+                        k0,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr - dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
                     )
-                    kmax = get_next_half_level(
-                        iray,
-                        jray,
-                        zr + dzr / 2,
-                        state;
-                        dkd = 1,
+                    kmax = min(
+                        k1,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr + dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
                     )
+
+                    ko != 0 &&
+                        k > k0 &&
+                        kmin < k0 &&
+                        error("Vertical index is too small!")
+                    ko + nz != z_size &&
+                        k < k1 &&
+                        kmax > k1 &&
+                        error("Vertical index is too large!")
 
                     for kray in kmin:kmax
                         dzi =
@@ -307,11 +322,11 @@ end
 
 @ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     (; domain, grid) = state
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
@@ -380,20 +395,35 @@ end
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(
-                        iray,
-                        jray,
-                        zr - dzr / 2,
-                        state;
-                        dkd = 1,
+                    kmin = max(
+                        k0,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr - dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
                     )
-                    kmax = get_next_half_level(
-                        iray,
-                        jray,
-                        zr + dzr / 2,
-                        state;
-                        dkd = 1,
+                    kmax = min(
+                        k1,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr + dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
                     )
+
+                    ko != 0 &&
+                        k > k0 &&
+                        kmin < k0 &&
+                        error("Vertical index is too small!")
+                    ko + nz != z_size &&
+                        k < k1 &&
+                        kmax > k1 &&
+                        error("Vertical index is too large!")
 
                     for kray in kmin:kmax
                         dzi =

@@ -234,13 +234,13 @@ end
     (; jac) = state.grid
 
     if nbx < filter_order
-        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
+        error("Filter order is too large: nbx < filter_order!")
     end
     if nby < filter_order
-        error("Error in smooth_gw_tendencies!: nby < filter_order!")
+        error("Filter order is too large: nby < filter_order!")
     end
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -273,10 +273,10 @@ end
     (; jac) = state.grid
 
     if nbx < filter_order
-        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
+        error("Filter order is too large: nbx < filter_order!")
     end
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -307,10 +307,10 @@ end
     (; jac) = state.grid
 
     if nby < filter_order
-        error("Error in smooth_gw_tendencies!: nby < filter_order!")
+        error("Filter order is too large: nby < filter_order!")
     end
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -341,7 +341,7 @@ end
     (; jac) = state.grid
 
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -402,7 +402,7 @@ end
     (; nxx, nyy, k0, k1) = state.domain
 
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
@@ -429,7 +429,7 @@ end
     (; nxx, nzz, j0, j1) = state.domain
 
     if nby < filter_order
-        error("Error in smooth_gw_tendencies!: nby < filter_order!")
+        error("Filter order is too large: nby < filter_order!")
     end
 
     input = copy(output)
@@ -456,7 +456,7 @@ end
     (; nyy, nzz, i0, i1) = state.domain
 
     if nbx < filter_order
-        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
+        error("Filter order is too large: nbx < filter_order!")
     end
 
     input = copy(output)

@@ -1,25 +1,30 @@
 # src/Examples/cold_bubble.jl
 
 function cold_bubble(;
-    x_size::Integer = 40,
-    z_size::Integer = 40,
+    display_figure::Bool = true,
     npx::Integer = 1,
+    npy::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "cold_bubble.h5",
+    plot_file::AbstractString = "cold_bubble.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/cold_bubble.svg",
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
 )
-    lx = 20000.0
-    lz = 20000.0
+    lx = 10000
+    ly = 10000
+    lz = 10000
 
-    rx = lx / 8
-    rz = lz / 8
+    rx = lx / 4
+    ry = ly / 4
+    rz = lz / 4
 
     atmosphere = AtmosphereNamelist(;
         background = :Isentropic,
         initial_rhop = (x, y, z) -> begin
-            r = sqrt((x / rx)^2 + ((z - 3 * rz) / rz)^2)
+            r = sqrt((x / rx)^2 + (y / ry)^2 + ((z - rz) / rz)^2)
             if r <= 1
                 return 0.005 * (1 + cos(pi * r))
             else
@@ -28,23 +33,28 @@ function cold_bubble(;
         end,
     )
 
-    discretization = DiscretizationNamelist(; dtmax = 60.0)
+    discretization = DiscretizationNamelist(; dtmax = 60)
 
-    domain = DomainNamelist(; x_size, z_size, lx, lz, npx, npz)
+    domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     output = OutputNamelist(;
         output_file,
+        output_interval = 300,
         output_variables = [:thetap],
         prepare_restart,
+        tmax = 300,
     )
 
     integrate(Namelists(; atmosphere, discretization, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("thetap", 1, 1, 1, 2))
-            return
-        end
+        plot_output(
+            plot_file,
+            output_file,
+            (:thetap, 0.5, 0.5, 0.25, 2);
+            display_figure,
+            time_unit = :min,
+        )
     end
 
     return

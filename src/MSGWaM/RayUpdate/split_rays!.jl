@@ -171,7 +171,7 @@ end
 
         if nray[i, j, k] > nray_wrk
             error(
-                "Error in split_rays!: nray",
+                "Too many ray-volume splits: nray",
                 [i, j, k],
                 " > nray_wrk = ",
                 nray_wrk,
@@ -214,7 +214,7 @@ end
 
         if nray[i, j, k] > nray_wrk
             error(
-                "Error in split_rays!: nray",
+                "Too many ray-volume splits: nray",
                 [i, j, k],
                 " > nray_wrk = ",
                 nray_wrk,
@@ -267,7 +267,7 @@ end
 
         if nray[i, j, k] > nray_wrk
             error(
-                "Error in split_rays!: nray",
+                "Too many ray-volume splits: nray",
                 [i, j, k],
                 " > nray_wrk = ",
                 nray_wrk,
