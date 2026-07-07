@@ -407,9 +407,9 @@ end
 
     # Compute the horizontal mean.
     if relax_to_mean
-        @share simd = false for k in kk
+        @share vector = false for k in kk
             horizontal_mean[k - k0 + 1] = 0.0
-            @simd for j in jj, i in ii
+            @share thread = false for j in jj, i in ii
                 horizontal_mean[k - k0 + 1] += u[i, j, k] / x_size / y_size
             end
         end
@@ -465,9 +465,9 @@ end
 
     # Compute the horizontal mean.
     if relax_to_mean
-        @share simd = false for k in kk
+        @share vector = false for k in kk
             horizontal_mean[k - k0 + 1] = 0.0
-            @simd for j in jj, i in ii
+            @share thread = false for j in jj, i in ii
                 horizontal_mean[k - k0 + 1] += v[i, j, k] / x_size / y_size
             end
         end
@@ -523,9 +523,9 @@ end
 
     # Compute the horizontal mean.
     if relax_to_mean
-        @share simd = false for k in kk
+        @share vector = false for k in kk
             horizontal_mean[k - k0 + 1] = 0.0
-            @simd for j in jj, i in ii
+            @share thread = false for j in jj, i in ii
                 horizontal_mean[k - k0 + 1] += w[i, j, k] / x_size / y_size
             end
         end

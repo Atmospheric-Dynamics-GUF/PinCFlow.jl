@@ -1499,16 +1499,17 @@ end
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
 
-    for field in 1:fieldcount(TracerPredictands)
+    for field_name in 1:fieldcount(TracerPredictands)
         if m == 1
-            @share getfield(tracerincrements, field) = 0.0
+            field = getfield(tracerincrements, field_name)
+            @share field = 0.0
         end
 
-        flr = getfield(tracerfluxes, field)[:, :, :, 1]
-        gbf = getfield(tracerfluxes, field)[:, :, :, 2]
-        hdu = getfield(tracerfluxes, field)[:, :, :, 3]
-        chi = getfield(tracerpredictands, field)[:, :, :]
-        dchi = getfield(tracerincrements, field)[:, :, :]
+        flr = getfield(tracerfluxes, field_name)[:, :, :, 1]
+        gbf = getfield(tracerfluxes, field_name)[:, :, :, 2]
+        hdu = getfield(tracerfluxes, field_name)[:, :, :, 3]
+        chi = getfield(tracerpredictands, field_name)[:, :, :]
+        dchi = getfield(tracerincrements, field_name)[:, :, :]
         @share for k in k0:k1, j in j0:j1, i in i0:i1
             fl = flr[i - 1, j, k]
             fr = flr[i, j, k]

@@ -3,8 +3,10 @@ macro share end
 macro share(x::Vararg{Expr})
     if x[end].head === :for
         block_size = 64
-        simd = true
+        thread = true
+        vector = true
 
+        # Parse the arguments.
         options = Symbol[]
         reductions = Expr[]
         for xi in x[1:(end - 1)]
@@ -15,8 +17,10 @@ macro share(x::Vararg{Expr})
 
                 if xi.args[1] === :block_size && xi.args[2] isa Integer
                     block_size = xi.args[2]
-                elseif xi.args[1] === :simd && xi.args[2] isa Bool
-                    simd = xi.args[2]
+                elseif xi.args[1] === :thread && xi.args[2] isa Bool
+                    thread = xi.args[2]
+                elseif xi.args[1] === :vector && xi.args[2] isa Bool
+                    vector = xi.args[2]
                 else
                     error("Unexpected option!")
                 end
@@ -39,6 +43,7 @@ macro share(x::Vararg{Expr})
 
         (loop, body) = x[end].args
 
+        # Extract the index names and ranges of the loop.
         if loop.head === :block && all(arg.head === :(=) for arg in loop.args)
             index_names = Tuple(arg.args[1] for arg in loop.args[end:(-1):1])
             ranges = Tuple(arg.args[2] for arg in loop.args[end:(-1):1])
@@ -49,68 +54,57 @@ macro share(x::Vararg{Expr})
             error("Unexpected for-loop format!")
         end
 
-        reduction_argument =
-            length(reductions) > 0 ?
-            :(reduction = $(Expr(:tuple, reductions...))) : :(stride = false)
-
         @gensym all_indices block blocks index indices loop_size
 
-        if simd
-            output = esc(
-                quote
-                    $all_indices = CartesianIndices(($(ranges...),))
-                    $loop_size = length($all_indices)
-
-                    $blocks = 1:cld($loop_size, $block_size)
+        vector_loop = Expr(
+            :macrocall,
+            vector ? Symbol("@simd") : GlobalRef(Macros, Symbol("@identity")),
+            __source__,
+            :(
+                for $index in $indices
                     $(Expr(
-                        :macrocall,
-                        GlobalRef(Polyester, Symbol("@batch")),
-                        __source__,
-                        reduction_argument,
-                        :(
-                            for $block in $blocks
-                                $indices =
-                                    $all_indices[(($block - 1) * $block_size + 1):min(
-                                        $block * $block_size,
-                                        $loop_size,
-                                    )]
-
-                                @simd for $index in $indices
-                                    $(Expr(
-                                        :block,
-                                        (
-                                            :($(index_names[i]) =
-                                                    $index[$i]) for
-                                            i in eachindex(index_names)
-                                        )...,
-                                    ))
-
-                                    $body
-                                end
-                            end
-                        ),
+                        :block,
+                        (
+                            :($(index_names[i]) = $index[$i]) for
+                            i in eachindex(index_names)
+                        )...,
                     ))
-                end,
-            )
+                    $body
+                end
+            ),
+        )
 
-            println(output)
+        thread_loop = Expr(
+            :macrocall,
+            thread ? GlobalRef(Polyester, Symbol("@batch")) :
+            GlobalRef(Macros, Symbol("@identity")),
+            __source__,
+            length(reductions) > 0 ?
+            :(reduction = $(Expr(:tuple, reductions...))) :
+            :(stride = false),
+            :(
+                for $block in $blocks
+                    $indices =
+                        $all_indices[(($block - 1) * $block_size + 1):min(
+                            $block * $block_size,
+                            $loop_size,
+                        )]
+                    $vector_loop
+                end
+            ),
+        )
 
-            return output
-        else
-            output = esc(
-                Expr(
-                    :macrocall,
-                    GlobalRef(Polyester, Symbol("@batch")),
-                    __source__,
-                    reduction_argument,
-                    x[end],
-                ),
-            )
+        output = esc(quote
+            $all_indices = CartesianIndices(($(ranges...),))
+            $loop_size = length($all_indices)
 
-            println(output)
+            $blocks = 1:cld($loop_size, $block_size)
+            $thread_loop
+        end)
 
-            return output
-        end
+        println(output)
+
+        return output
     else
         if length(x) > 1
             error("Unexpected options!")
