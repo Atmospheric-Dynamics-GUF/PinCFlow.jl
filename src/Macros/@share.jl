@@ -60,6 +60,7 @@ macro share(x::Vararg{Expr})
             :macrocall,
             vector ? Symbol("@simd") : GlobalRef(Macros, Symbol("@identity")),
             __source__,
+            :ivdep,
             :(
                 for $index in $indices
                     $(Expr(
