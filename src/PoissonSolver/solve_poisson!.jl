@@ -62,14 +62,14 @@ function solve_poisson! end
         return (errflagbicg, niterbicg)
     end
 
-    ii = i0:i1
-    jj = j0:j1
-    kk = k0:k1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
+        is = i - i0 + 1
+        js = j - j0 + 1
+        ks = k - k0 + 1
 
-    @share solution /= sqrt(pbar[ii, jj, kk]^2 / rhobar[ii, jj, kk])
-
-    # Pass solution to pressure correction.
-    @share dpip[ii, jj, kk] = dtinv * solution
+        solution[is, js, ks] /= sqrt(pbar[i, j, k]^2 / rhobar[i, j, k])
+        dpip[i, j, k] = dtinv * solution[is, js, ks]
+    end
 
     return (errflagbicg, niterbicg)
 end

@@ -73,12 +73,15 @@ function reset_predictands!(
     predictands::Predictands,
     model::Val{:Boussinesq},
 )
+    (; nxx, nyy, nzz) = state.domain
     (; rhop, u, v, w) = state.variables.predictands
 
-    @share rhop = predictands.rhop
-    @share u = predictands.u
-    @share v = predictands.v
-    @share w = predictands.w
+    @share for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        rhop[i, j, k] = predictands.rhop[i, j, k]
+        u[i, j, k] = predictands.u[i, j, k]
+        v[i, j, k] = predictands.v[i, j, k]
+        w[i, j, k] = predictands.w[i, j, k]
+    end
 
     return
 end
@@ -88,13 +91,16 @@ function reset_predictands!(
     predictands::Predictands,
     model::Val{:PseudoIncompressible},
 )
+    (; nxx, nyy, nzz) = state.domain
     (; rho, rhop, u, v, w) = state.variables.predictands
 
-    @share rho = predictands.rho
-    @share rhop = predictands.rhop
-    @share u = predictands.u
-    @share v = predictands.v
-    @share w = predictands.w
+    @share for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        rho[i, j, k] = predictands.rho[i, j, k]
+        rhop[i, j, k] = predictands.rhop[i, j, k]
+        u[i, j, k] = predictands.u[i, j, k]
+        v[i, j, k] = predictands.v[i, j, k]
+        w[i, j, k] = predictands.w[i, j, k]
+    end
 
     return
 end
@@ -104,15 +110,18 @@ function reset_predictands!(
     predictands::Predictands,
     model::Val{:Compressible},
 )
+    (; nxx, nyy, nzz) = state.domain
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
-    @share rho = predictands.rho
-    @share rhop = predictands.rhop
-    @share u = predictands.u
-    @share v = predictands.v
-    @share w = predictands.w
-    @share pip = predictands.pip
-    @share p = predictands.p
+    @share for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        rho[i, j, k] = predictands.rho[i, j, k]
+        rhop[i, j, k] = predictands.rhop[i, j, k]
+        u[i, j, k] = predictands.u[i, j, k]
+        v[i, j, k] = predictands.v[i, j, k]
+        w[i, j, k] = predictands.w[i, j, k]
+        pip[i, j, k] = predictands.pip[i, j, k]
+        p[i, j, k] = predictands.p[i, j, k]
+    end
 
     return
 end

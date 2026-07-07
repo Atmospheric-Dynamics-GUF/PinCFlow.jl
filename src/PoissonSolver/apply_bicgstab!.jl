@@ -28,7 +28,7 @@ function apply_bicgstab!(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; tolerance, poisson_iterations, preconditioner, tolerance_is_relative) =
         state.namelists.poisson
-    (; master, comm) = state.domain
+    (; master, comm, nx, ny, nz) = state.domain
     (; rhs, solution) = state.poisson
     (; p, r0, rold, r, s, t, v, matvec, v_pc) = state.poisson.bicgstab
 
@@ -56,13 +56,15 @@ function apply_bicgstab!(
     errflag = false
 
     apply_operator!(solution, matvec, Total(), state)
-    @share r0 = rhs - matvec
-    @share p = r0
-    @share r = r0
+    @share for k in 1:nz, j in 1:ny, i in 1:nx
+        r0[i, j, k] = rhs[i, j, k] - matvec[i, j, k]
+        p[i, j, k] = r0[i, j, k]
+        r[i, j, k] = r0[i, j, k]
+    end
 
     res = 0.0
-    @share (+, res) for ijk in eachindex(r)
-        res += r[ijk]^2
+    @share (+, res) for k in 1:nz, j in 1:ny, i in 1:nx
+        res += r[i, j, k]^2
     end
     res = MPI.Allreduce(res, +, comm)
     res = sqrt(res / x_size / y_size / z_size)
@@ -110,18 +112,19 @@ function apply_bicgstab!(
         omega =
             compute_global_dot_product(t, s, state) /
             compute_global_dot_product(t, t, state)
-        @share solution += alpha * p + omega * s
-
-        @share rold = r
-        @share r = s - omega * t
+        @share for k in 1:nz, j in 1:ny, i in 1:nx
+            solution[i, j, k] += alpha * p[i, j, k] + omega * s[i, j, k]
+            rold[i, j, k] = r[i, j, k]
+            r[i, j, k] = s[i, j, k] - omega * t[i, j, k]
+        end
 
         #-----------------------
         #   Abort criterion
         #-----------------------
 
         res = 0.0
-        @share (+, res) for ijk in eachindex(r)
-            res += r[ijk]^2
+        @share (+, res) for k in 1:nz, j in 1:ny, i in 1:nx
+            res += r[i, j, k]^2
         end
         res = MPI.Allreduce(res, +, comm)
         res = sqrt(res / x_size / y_size / z_size)

@@ -308,7 +308,7 @@ end
     (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    @share s[i0:i1, j0:j1, k0:k1] .= sin
+    @share s[i0:i1, j0:j1, k0:k1] = sin
 
     # Set boundaries of auxiliary field.
     if npz > 1

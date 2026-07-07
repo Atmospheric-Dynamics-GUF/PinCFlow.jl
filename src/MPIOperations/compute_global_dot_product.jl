@@ -24,12 +24,12 @@ function compute_global_dot_product(
     b::AbstractArray{<:AbstractFloat, 3},
     state::State,
 )::AbstractFloat
-    (; comm) = state.domain
+    (; comm, nx, ny, nz) = state.domain
 
     # Compute local dot product.
     local_dot_product = 0.0
-    @share (+, local_dot_product) for ijk in eachindex(a, b)
-        local_dot_product += a[ijk] * b[ijk]
+    @share (+, local_dot_product) for k in 1:nz, j in 1:ny, i in 1:nx
+        local_dot_product += a[i, j, k] * b[i, j, k]
     end
 
     # Sum over all processes.

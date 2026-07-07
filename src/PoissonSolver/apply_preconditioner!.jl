@@ -47,6 +47,7 @@ function apply_preconditioner!(
     state::State,
 )
     (; dtau, preconditioner_iterations) = state.namelists.poisson
+    (; nx, ny, nz) = state.domain
     (; dx, dy) = state.grid
     (; au_b, ac_b, ad_b) = state.poisson.tensor
     (; ath, bth, cth, fth, qth) = state.variables.auxiliaries
@@ -56,9 +57,11 @@ function apply_preconditioner!(
     # Set pseudo-time step.
     deta = dtau / (2 * (1 / dx^2 + 1 / dy^2))
 
-    @share ath = -deta * ad_b
-    @share bth = 1.0 - deta * ac_b
-    @share cth = -deta * au_b
+    @share for k in 1:nz, j in 1:ny, i in 1:nx
+        ath[i, j, k] = -deta * ad_b[i, j, k]
+        bth[i, j, k] = 1.0 - deta * ac_b[i, j, k]
+        cth[i, j, k] = -deta * au_b[i, j, k]
+    end
 
     # Iterate.
     for niter in 1:preconditioner_iterations

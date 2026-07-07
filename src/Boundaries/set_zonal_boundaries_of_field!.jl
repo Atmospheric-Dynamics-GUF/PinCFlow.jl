@@ -61,14 +61,16 @@ function set_zonal_boundaries_of_field! end
     domain::Domain,
 )
     (; x_size, nbx) = namelists.domain
-    (; i0, i1) = domain
+    (; i0, i1, nyy) = domain
 
     if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain)
     else
-        for i in 1:nbx
-            @share field[i0 - i, :] = field[i1 - i + 1, :]
-            @share field[i1 + i, :] = field[i0 + i - 1, :]
+        @share vector = false for j in 1:nyy
+            for i in 1:nbx
+                field[i0 - i, j] = field[i1 - i + 1, j]
+                field[i1 + i, j] = field[i0 + i - 1, j]
+            end
         end
     end
 
@@ -91,12 +93,13 @@ end
     if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
-        jj = (j0 - nby):(j1 + nby)
-        kk = (k0 - nbz):(k1 + nbz)
+        @share vector = false for k in (k0 - nbz):(k1 + nbz),
+            j in (j0 - nby):(j1 + nby)
 
-        for i in 1:nbx
-            @share field[i0 - i, jj, kk] = field[i1 - i + 1, jj, kk]
-            @share field[i1 + i, jj, kk] = field[i0 + i - 1, jj, kk]
+            for i in 1:nbx
+                field[i0 - i, j, k] = field[i1 - i + 1, j, k]
+                field[i1 + i, j, k] = field[i0 + i - 1, j, k]
+            end
         end
     end
 
@@ -119,12 +122,15 @@ end
     if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
-        jj = (j0 - nby):(j1 + nby)
-        kk = (k0 - nbz):(k1 + nbz)
+        @share vector = false for m in 1:2,
+            l in 1:3,
+            k in (k0 - nbz):(k1 + nbz),
+            j in (j0 - nby):(j1 + nby)
 
-        for i in 1:nbx
-            @share field[i0 - i, jj, kk, :, :] = field[i1 - i + 1, jj, kk, :, :]
-            @share field[i1 + i, jj, kk, :, :] = field[i0 + i - 1, jj, kk, :, :]
+            for i in 1:nbx
+                field[i0 - i, j, k, l, m] = field[i1 - i + 1, j, k, l, m]
+                field[i1 + i, j, k, l, m] = field[i0 + i - 1, j, k, l, m]
+            end
         end
     end
 
