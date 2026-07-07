@@ -63,7 +63,7 @@ end
 function reset_predictands!(state::State, tracerpredictands::TracerPredictands)
     (; chi) = state.tracer.tracerpredictands
 
-    chi .= tracerpredictands.chi
+    @share chi = tracerpredictands.chi
 
     return
 end
@@ -75,10 +75,10 @@ function reset_predictands!(
 )
     (; rhop, u, v, w) = state.variables.predictands
 
-    rhop .= predictands.rhop
-    u .= predictands.u
-    v .= predictands.v
-    w .= predictands.w
+    @share rhop = predictands.rhop
+    @share u = predictands.u
+    @share v = predictands.v
+    @share w = predictands.w
 
     return
 end
@@ -90,11 +90,11 @@ function reset_predictands!(
 )
     (; rho, rhop, u, v, w) = state.variables.predictands
 
-    rho .= predictands.rho
-    rhop .= predictands.rhop
-    u .= predictands.u
-    v .= predictands.v
-    w .= predictands.w
+    @share rho = predictands.rho
+    @share rhop = predictands.rhop
+    @share u = predictands.u
+    @share v = predictands.v
+    @share w = predictands.w
 
     return
 end
@@ -106,13 +106,13 @@ function reset_predictands!(
 )
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
-    rho .= predictands.rho
-    rhop .= predictands.rhop
-    u .= predictands.u
-    v .= predictands.v
-    w .= predictands.w
-    pip .= predictands.pip
-    p .= predictands.p
+    @share rho = predictands.rho
+    @share rhop = predictands.rhop
+    @share u = predictands.u
+    @share v = predictands.v
+    @share w = predictands.w
+    @share pip = predictands.pip
+    @share p = predictands.p
 
     return
 end

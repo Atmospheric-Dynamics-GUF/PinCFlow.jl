@@ -66,7 +66,7 @@ function synchronize_compressible_atmosphere!(
     (; pbar) = state.atmosphere
     (; p) = predictands
 
-    pbar .= p
+    @share pbar = p
 
     return
 end

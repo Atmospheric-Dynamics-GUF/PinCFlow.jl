@@ -154,7 +154,7 @@ end
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         tke[i, j, k] =
             1 /
             (
@@ -209,7 +209,7 @@ end
 
     reset_thomas!(state)
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         kekd =
             (
                 jac[i, j, k - 1] * (
@@ -263,8 +263,8 @@ end
 
     thomas_algorithm!(state)
 
-    tke[i0:i1, j0:j1, k0:k1] .=
-        fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+    @share tke[i0:i1, j0:j1, k0:k1] =
+        fth * (rho[i0:i1, j0:j1, k0:k1] + rhobar[i0:i1, j0:j1, k0:k1])
 
     return
 end

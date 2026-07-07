@@ -68,9 +68,20 @@ function compute_time_step end
         #     CFL condition
         #----------------------
 
-        umax = maximum(abs, u[i0:i1, j0:j1, k0:k1]) + eps()
-        vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps()
-        wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps()
+        umax = 0.0
+        vmax = 0.0
+        wmax = 0.0
+        @share (max, umax) (max, vmax) (max, wmax) for k in k0:k1,
+            j in j0:j1,
+            i in i0:i1
+
+            umax = max(umax, abs(u[i, j, k]))
+            vmax = max(vmax, abs(v[i, j, k]))
+            wmax = max(wmax, abs(w[i, j, k]))
+        end
+        umax += eps()
+        vmax += eps()
+        wmax += eps()
 
         dtconv = cfl_number * min(dx / umax, dy / vmax, dz / wmax)
 

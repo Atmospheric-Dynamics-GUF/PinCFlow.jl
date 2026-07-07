@@ -58,7 +58,7 @@ end
     (; jac) = state.grid
     (; u, v, w, p) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         u[i, j, k] = operation(
             u[i, j, k],
             (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k]) / 2,
