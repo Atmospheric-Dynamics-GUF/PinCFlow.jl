@@ -556,10 +556,10 @@ end
     (; rho) = state.variables.predictands
 
     if m == 1
-        drho .= 0.0
+        @share drho = 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirho[i - 1, j, k, 1]
         fr = phirho[i, j, k, 1]
         gb = phirho[i, j - 1, k, 2]
@@ -595,10 +595,10 @@ end
     (; rhop) = state.variables.predictands
 
     if m == 1
-        drhop .= 0.0
+        @share drhop = 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirhop[i - 1, j, k, 1]
         fr = phirhop[i, j, k, 1]
         gb = phirhop[i, j - 1, k, 2]
@@ -633,7 +633,7 @@ end
     (; predictands) = state.variables
     (; rho, rhop) = predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         jpu = compute_compressible_wind_factor(state, i, j, k, W())
         jpd = compute_compressible_wind_factor(state, i, j, k - 1, W())
         wvrt =
@@ -669,7 +669,7 @@ end
     (; rho, rhop, u, v, pip) = state.variables.predictands
     (; wold) = state.variables.backups
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k] + rhobar[i, j, k]
         rhoedgeu =
             (
@@ -772,10 +772,10 @@ end
     fc = coriolis_frequency * tref
 
     if m == 1
-        du .= 0.0
+        @share du = 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @share for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
 
         # Compute zonal momentum flux divergence.
         fr = phiu[i, j, k, 1]
@@ -840,7 +840,7 @@ end
     (; rhobar) = state.atmosphere
     (; rho, u, pip) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    @share for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
         rhoedger += rhobaredger
@@ -875,7 +875,7 @@ end
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
+    @share for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
         rhoedger += rhobaredger
@@ -926,10 +926,10 @@ end
     fc = coriolis_frequency * tref
 
     if m == 1
-        dv .= 0.0
+        @share dv = 0.0
     end
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @share for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
 
         # Compute meridional momentum flux divergence.
         fr = phiv[i, j, k, 1]
@@ -991,7 +991,7 @@ end
     (; rhobar) = state.atmosphere
     (; rho, v, pip) = state.variables.predictands
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    @share for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
         rhoedgef += rhobaredgef
@@ -1026,7 +1026,7 @@ end
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
+    @share for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
         rhoedgef += rhobaredgef
@@ -1081,13 +1081,13 @@ end
     (fluxdiffu, fluxdiffv) = (zeros(2, 2) for i in 1:2)
 
     if m == 1
-        dw .= 0.0
+        @share dw = 0.0
     end
 
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @share for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
         fr = phiw[i, j, k, 1]
         fl = phiw[i - 1, j, k, 1]
@@ -1233,7 +1233,7 @@ end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @share for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1287,7 +1287,7 @@ end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @share for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1392,7 +1392,7 @@ end
     (; uold, vold, wold) = state.variables.backups
     (; pip, p) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         fl = uold[i - 1, j, k]
         fr = uold[i, j, k]
         gb = vold[i, j - 1, k]
@@ -1445,10 +1445,10 @@ end
     (; p) = state.variables.predictands
 
     if m == 1
-        dp .= 0.0
+        @share dp = 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phip[i - 1, j, k, 1]
         fr = phip[i, j, k, 1]
         gb = phip[i, j - 1, k, 2]
@@ -1501,7 +1501,7 @@ end
 
     for field in 1:fieldcount(TracerPredictands)
         if m == 1
-            getfield(tracerincrements, field) .= 0.0
+            @share getfield(tracerincrements, field) = 0.0
         end
 
         flr = getfield(tracerfluxes, field)[:, :, :, 1]
@@ -1509,7 +1509,7 @@ end
         hdu = getfield(tracerfluxes, field)[:, :, :, 3]
         chi = getfield(tracerpredictands, field)[:, :, :]
         dchi = getfield(tracerincrements, field)[:, :, :]
-        for k in k0:k1, j in j0:j1, i in i0:i1
+        @share for k in k0:k1, j in j0:j1, i in i0:i1
             fl = flr[i - 1, j, k]
             fr = flr[i, j, k]
             gb = gbf[i, j - 1, k]
@@ -1545,10 +1545,10 @@ end
     (; tke) = state.turbulence.turbulencepredictands
 
     if m == 1
-        dtke .= 0.0
+        @share dtke = 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phitke[i - 1, j, k, 1]
         fr = phitke[i, j, k, 1]
         gb = phitke[i, j - 1, k, 2]

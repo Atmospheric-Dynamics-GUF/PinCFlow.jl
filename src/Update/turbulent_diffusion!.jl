@@ -320,7 +320,7 @@ end
 
     reset_thomas!(state)
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         kmu =
             0.5 * (
                 (
@@ -416,7 +416,8 @@ end
 
     thomas_algorithm!(state)
 
-    u[i0:i1, j0:j1, k0:k1] .= fth
+    @share u[i0:i1, j0:j1, k0:k1] = fth
+
     return
 end
 
@@ -430,7 +431,7 @@ end
 
     reset_thomas!(state)
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         kmu =
             0.5 * (
                 (
@@ -526,7 +527,8 @@ end
 
     thomas_algorithm!(state)
 
-    v[i0:i1, j0:j1, k0:k1] .= fth
+    @share v[i0:i1, j0:j1, k0:k1] = fth
+
     return
 end
 
@@ -540,7 +542,7 @@ end
 
     reset_thomas!(state)
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         kmu =
             turbulence_diffusion_coefficient(state, i, j, k + 1, KM()) /
             jac[i, j, k + 1]
@@ -571,7 +573,7 @@ end
 
     thomas_algorithm!(state)
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         ud = 0.5 * (u[i - 1, j, k] + u[i, j, k])
         uu = 0.5 * (u[i - 1, j, k + 1] + u[i, j, k + 1])
         uc13 =
@@ -634,7 +636,7 @@ end
 
     reset_thomas!(state)
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         khd =
             (
                 jac[i, j, k - 1] * (
@@ -678,8 +680,8 @@ end
 
     thomas_algorithm!(state)
 
-    p[i0:i1, j0:j1, k0:k1] .=
-        fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+    @share p[i0:i1, j0:j1, k0:k1] =
+        fth * (rho[i0:i1, j0:j1, k0:k1] + rhobar[i0:i1, j0:j1, k0:k1])
     return
 end
 
@@ -723,7 +725,7 @@ end
 
     for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)
-        for k in k0:k1, j in j0:j1, i in i0:i1
+        @share for k in k0:k1, j in j0:j1, i in i0:i1
             khd =
                 (
                     jac[i, j, k - 1] * (
@@ -777,8 +779,9 @@ end
 
         thomas_algorithm!(state)
 
-        chi[i0:i1, j0:j1, k0:k1] .=
-            fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
+        @share chi[i0:i1, j0:j1, k0:k1] =
+            fth * (rho[i0:i1, j0:j1, k0:k1] + rhobar[i0:i1, j0:j1, k0:k1])
     end
+
     return
 end

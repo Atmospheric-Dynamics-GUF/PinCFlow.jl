@@ -20,48 +20,55 @@ The result is stored in `state.variables.auxiliaries.fth`.
 function thomas_algorithm! end
 
 @ivy function thomas_algorithm!(state::State)
-    (; comm, nz, ko, up, down) = state.domain
+    (; comm, nx, ny, nz, ko, up, down) = state.domain
     (; z_size) = state.namelists.domain
-    (; ath, bth, cth, fth, qth, pth, fth_bc, qth_bc) =
-        state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth, fth_bc, qth_bc) = state.variables.auxiliaries
 
     if ko == 0
-        qth[:, :, 1] .= .-cth[:, :, 1] ./ bth[:, :, 1]
-        fth[:, :, 1] .= fth[:, :, 1] ./ bth[:, :, 1]
+        @share for j in 1:ny, i in 1:nx
+            qth[i, j, 1] = -cth[i, j, 1] / bth[i, j, 1]
+            fth[i, j, 1] = fth[i, j, 1] / bth[i, j, 1]
+        end
     else
         MPI.Recv!(qth_bc, comm; source = down, tag = 1)
         MPI.Recv!(fth_bc, comm; source = down, tag = 2)
 
-        pth .= 1.0 ./ (bth[:, :, 1] .+ ath[:, :, 1] .* qth_bc)
-        qth[:, :, 1] .= .-cth[:, :, 1] .* pth
-        fth[:, :, 1] .= (fth[:, :, 1] .- ath[:, :, 1] .* fth_bc) .* pth
+        @share for j in 1:ny, i in 1:nx
+            pth = 1.0 / (bth[i, j, 1] + ath[i, j, 1] * qth_bc[i, j])
+            qth[i, j, 1] = -cth[i, j, 1] * pth
+            fth[i, j, 1] = (fth[i, j, 1] - ath[i, j, 1] * fth_bc[i, j]) * pth
+        end
     end
 
     for k in 2:nz
-        pth .= 1.0 ./ (bth[:, :, k] .+ ath[:, :, k] .* qth[:, :, k - 1])
-        qth[:, :, k] .= .-cth[:, :, k] .* pth
-        fth[:, :, k] .=
-            (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* pth
+        @share for j in 1:ny, i in 1:nx
+            pth = 1.0 / (bth[i, j, k] + ath[i, j, k] * qth[i, j, k - 1])
+            qth[i, j, k] = -cth[i, j, k] * pth
+            fth[i, j, k] =
+                (fth[i, j, k] - ath[i, j, k] * fth[i, j, k - 1]) * pth
+        end
     end
 
     if ko + nz != z_size
-        qth_bc .= qth[:, :, nz]
-        fth_bc .= fth[:, :, nz]
+        @share for j in 1:ny, i in 1:nx
+            qth_bc[i, j] = qth[i, j, nz]
+            fth_bc[i, j] = fth[i, j, nz]
+        end
 
         MPI.Send(qth_bc, comm; dest = up, tag = 1)
         MPI.Send(fth_bc, comm; dest = up, tag = 2)
 
         MPI.Recv!(fth_bc, comm; source = up)
 
-        fth[:, :, nz] .+= qth[:, :, nz] .* fth_bc
+        @share fth[:, :, nz] += qth[:, :, nz] * fth_bc
     end
 
     for k in (nz - 1):-1:1
-        fth[:, :, k] .+= qth[:, :, k] .* fth[:, :, k + 1]
+        @share fth[:, :, k] += qth[:, :, k] * fth[:, :, k + 1]
     end
 
     if ko != 0
-        fth_bc .= fth[:, :, 1]
+        @share fth_bc = fth[:, :, 1]
 
         MPI.Send(fth_bc, comm; dest = down)
     end

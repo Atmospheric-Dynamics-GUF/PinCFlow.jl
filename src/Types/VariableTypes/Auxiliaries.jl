@@ -28,8 +28,6 @@ Construct an `Auxiliaries` instance with zero-initialized auxiliary arrays.
 
   - `qth::A`: Work array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
-  - `pth::B`: Auxiliary array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
-
   - `fth_bc::B`: Auxiliary right-hand side array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
   - `qth_bc::B`: Auxiliary work array used as input for [`PinCFlow.Update.thomas_algorithm!`](@ref)
@@ -48,7 +46,6 @@ struct Auxiliaries{
     cth::A
     fth::A
     qth::A
-    pth::B
     fth_bc::B
     qth_bc::B
 end
@@ -59,6 +56,6 @@ function Auxiliaries(domain::Domain)::Auxiliaries
     return Auxiliaries(
         zeros(nxx, nyy, nzz),
         [zeros(nx, ny, nz) for i in 1:5]...,
-        [zeros(nx, ny) for i in 1:3]...,
+        [zeros(nx, ny) for i in 1:2]...,
     )
 end
