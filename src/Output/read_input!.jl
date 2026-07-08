@@ -49,22 +49,22 @@ function read_input! end
 
         # Read the density fluctuations.
         rhop[ii, jj, kk] =
-            file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref
+            @share file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] / rhoref
         if model !== :Boussinesq
-            rho[ii, jj, kk] .= rhop[ii, jj, kk]
+            @share rho[ii, jj, kk] = rhop[ii, jj, kk]
         end
 
         # Read the staggered zonal wind.
         u[ii, jj, kk] =
-            file["us"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+            @share file["us"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the staggered meridional wind.
         v[ii, jj, kk] =
-            file["vs"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+            @share file["vs"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the staggered transformed vertical wind.
         w[ii, jj, kk] =
-            file["wts"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+            @share file["wts"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the Exner-pressure fluctuations.
         pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin == -1 ? end : iin]
@@ -72,21 +72,25 @@ function read_input! end
         # Read the mass-weighted potential temperature.
         if model === :Compressible
             p[ii, jj, kk] =
-                file["p"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref ./
-                thetaref
+                @share file["p"][iid, jjd, kkd, iin == -1 ? end : iin] /
+                       rhoref / thetaref
         end
 
         if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
-                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
-                    file[string(field)][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] = @share file[string(field)][
+                    iid,
+                    jjd,
+                    kkd,
+                    iin == -1 ? end : iin,
+                ] * (rhobar[ii, jj, kk] + rho[ii, jj, kk])
             end
         end
 
         if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
-                file["tke"][iid, jjd, kkd, iin == -1 ? end : iin] .*
-                (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) ./ uref .^ 2
+                @share file["tke"][iid, jjd, kkd, iin == -1 ? end : iin] *
+                       (rhobar[ii, jj, kk] + rho[ii, jj, kk]) / uref^2
         end
 
         # Read ray-volume properties.
@@ -96,13 +100,13 @@ function read_input! end
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
                 getproperty(rays, field_name)[rr, ii, jj, kkr] =
-                    file[output_name][
+                    @share file[output_name][
                         rr,
                         iid,
                         jjd,
                         kkrd,
                         iin == -1 ? end : iin,
-                    ] ./ lref
+                    ] / lref
             end
 
             for (output_name, field_name) in zip(
@@ -110,21 +114,25 @@ function read_input! end
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
                 getproperty(rays, field_name)[rr, ii, jj, kkr] =
-                    file[output_name][
+                    @share file[output_name][
                         rr,
                         iid,
                         jjd,
                         kkrd,
                         iin == -1 ? end : iin,
-                    ] .* lref
+                    ] * lref
             end
 
-            rays.dens[rr, ii, jj, kkr] =
-                file["nr"][rr, iid, jjd, kkrd, iin == -1 ? end : iin] ./
-                rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
+            rays.dens[rr, ii, jj, kkr] = @share file["nr"][
+                rr,
+                iid,
+                jjd,
+                kkrd,
+                iin == -1 ? end : iin,
+            ] / rhoref / uref^2 / tref / lref^dim
 
             # Determine nray.
-            for k in kkr, j in jj, i in ii
+            @share vector = false for k in kkr, j in jj, i in ii
                 local_count = 0
                 for r in rr
                     if rays.dens[r, i, j, k] == 0
