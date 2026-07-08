@@ -140,8 +140,6 @@ function turbulence_integration!(
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
-    save_turbulence_backups!(state)
-
     return
 end
 

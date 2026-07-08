@@ -129,7 +129,6 @@ include("compute_momentum_diffusion_terms.jl")
 include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
 include("turbulent_diffusion!.jl")
-include("save_turbulence_backups!.jl")
 
 export LHS, RHS, X, Y, Z, KM, KH, KEK
 
@@ -148,7 +147,6 @@ export apply_lhs_sponge!,
     turbulent_diffusion!,
     turbulence_diffusion_coefficient,
     check_tke!,
-    save_turbulence_backups!,
     update!
 
 end

@@ -308,3 +308,18 @@ function set_zonal_boundaries!(
 
     return
 end
+
+function set_zonal_boundaries!(state::State, variables::BoundaryDiffusionCoefficients)
+    (; namelists, domain) = state
+    (; turbulencediffusioncoefficients) = state.turbulence
+    
+    for field in (:kh, :km, :kek)
+        set_zonal_boundaries_of_field!(
+            getfield(turbulencediffusioncoefficients, field),
+            namelists,
+            domain,
+        )
+    end
+
+    return
+end
