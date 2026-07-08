@@ -96,11 +96,13 @@ macro share(x::Vararg{Expr})
         )
 
         output = esc(quote
-            $all_indices = CartesianIndices(($(ranges...),))
-            $loop_size = length($all_indices)
+            let
+                $all_indices = CartesianIndices(($(ranges...),))
+                $loop_size = length($all_indices)
 
-            $blocks = 1:cld($loop_size, $block_size)
-            $thread_loop
+                $blocks = 1:cld($loop_size, $block_size)
+                $thread_loop
+            end
         end)
 
         println(output)
