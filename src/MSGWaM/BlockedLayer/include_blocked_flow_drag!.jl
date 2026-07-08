@@ -48,13 +48,11 @@ function include_blocked_flow_drag! end
     end
 
     # Adjust the drag to account for blocking.
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         fraction =
             (min(zb[i, j], zctilde[i, j, k]) - zctilde[i, j, k - 1]) /
             jac[i, j, k] / dz
-        if fraction <= 0
-            continue
-        else
+        if fraction > 0
             deltah = compute_elevation_difference(state, i, j)
 
             kh = compute_slope(state, deltah, i, j)
