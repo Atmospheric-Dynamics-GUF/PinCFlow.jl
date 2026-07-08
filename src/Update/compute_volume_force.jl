@@ -324,7 +324,7 @@ end
     j::Integer,
     k::Integer,
     variables::TKE,
-    wkb_mode::Val{:NoWKB},
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}, Val{:SingleColumn}},
 )::AbstractFloat
 
     return 0.0
@@ -336,7 +336,7 @@ end
     j::Integer,
     k::Integer,
     variables::TKE,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+    wkb_mode::Val{:MultiColumn},
 )::AbstractFloat
     (; shear) = state.wkb.auxiliaries
 

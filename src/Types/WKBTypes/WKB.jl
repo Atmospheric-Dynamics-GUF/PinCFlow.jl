@@ -259,8 +259,13 @@ function WKB(
     diffusion = zeros(nxx, nyy, nzz)
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
     elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
-    auxiliaries = WKBAuxiliaries(nxx, nyy, nzz)
 
+    if wkb_mode != :MultiColumn
+        auxiliaries = WKBAuxiliaries(0, 0, 0)
+    else
+        auxiliaries = WKBAuxiliaries(nxx, nyy, nzz)
+    end
+    
     return WKB(
         bins,
         nray_wrk,
