@@ -80,9 +80,10 @@ macro share(x::Vararg{Expr})
             thread ? GlobalRef(Polyester, Symbol("@batch")) :
             GlobalRef(Macros, Symbol("@identity")),
             __source__,
-            length(reductions) > 0 ?
-            :(reduction = $(Expr(:tuple, reductions...))) :
-            :(stride = false),
+            (
+                :(reduction = $(Expr(:tuple, reductions...))) for
+                i in 1:1 if length(reductions) > 0
+            )...,
             :(
                 for $block in $blocks
                     $indices =
