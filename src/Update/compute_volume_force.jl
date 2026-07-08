@@ -294,7 +294,6 @@ end
     (; g_ndim) = state.constants
     (; dz, jac) = state.grid
     (; wkb_mode) = state.namelists.wkb
-    (; km, kh) = state.turbulence.turbulencediffusioncoefficients
 
     shear =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
@@ -340,7 +339,6 @@ end
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; shear) = state.wkb.auxiliaries
-    (; km) = state.turbulence.turbulencediffusioncoefficients
 
     gw_shear = turbulence_diffusion_coefficient(state, i, j, k, KM()) * 
         shear[i, j, k]
