@@ -30,7 +30,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Return for WKB-variables.
+Enforce vertical boundary conditions for gravity-wave shear.
 
 # Arguments
 

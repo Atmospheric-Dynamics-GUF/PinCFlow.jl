@@ -21,7 +21,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Return for WKB-variables.
+Enforce zonal boundary conditions for gravity-wave shear.
 
 # Arguments
 

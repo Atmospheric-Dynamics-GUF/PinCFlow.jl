@@ -87,7 +87,7 @@ struct BoundaryWKBTendencies <: AbstractBoundaryWKBVariables end
 BoundaryWKBAuxiliaries <: AbstractBoundaryWKBVariables
 ```
 
-Boundary-variable category for gravity-wave-integral fields.
+Boundary-variable category for gravity-wave-shear field.
 """
 struct BoundaryWKBAuxiliaries <: AbstractBoundaryWKBVariables end
 

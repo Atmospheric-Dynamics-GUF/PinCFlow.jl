@@ -24,7 +24,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Return for WKB-variables.
+Enforce meridional boundary conditions for gravity-wave shear.
 
 # Arguments
 
