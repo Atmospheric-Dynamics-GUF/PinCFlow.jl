@@ -58,7 +58,7 @@ macro share(x::Vararg{Expr})
 
         vector_loop = Expr(
             :macrocall,
-            vector ? Symbol("@simd") : GlobalRef(Macros, Symbol("@identity")),
+            vector ? Symbol("@simd") : GlobalRef(Macros, Symbol("@last")),
             __source__,
             :ivdep,
             :(
@@ -78,7 +78,7 @@ macro share(x::Vararg{Expr})
         thread_loop = Expr(
             :macrocall,
             thread ? GlobalRef(Polyester, Symbol("@batch")) :
-            GlobalRef(Macros, Symbol("@identity")),
+            GlobalRef(Macros, Symbol("@last")),
             __source__,
             (
                 :(reduction = $(Expr(:tuple, reductions...))) for
