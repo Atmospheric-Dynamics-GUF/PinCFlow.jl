@@ -40,20 +40,23 @@ function set_meridional_boundary_rays! end
     if y_size > 1
         set_meridional_halo_rays!(state)
     else
-        for k in (k0 - 1):(k1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j0 - 1, k]
+        @share vector = false for k in (k0 - 1):(k1 + 1), i in (i0 - 1):(i1 + 1)
+            @share thread = false for r in 1:nray[i, j0 - 1, k]
                 copy_rays!(rays, r => r, i => i, j1 => j0 - 1, k => k)
             end
 
-            for r in 1:nray[i, j1 + 1, k]
+            @share thread = false for r in 1:nray[i, j1 + 1, k]
                 copy_rays!(rays, r => r, i => i, j0 => j1 + 1, k => k)
             end
         end
     end
 
     if jo == 0
-        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):j0, i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
+        @share vector = false for k in (k0 - 1):(k1 + 1),
+            j in (j0 - 1):j0,
+            i in (i0 - 1):(i1 + 1)
+
+            @share thread = false for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]
                 yrt = yr - ly
 
@@ -67,8 +70,11 @@ function set_meridional_boundary_rays! end
     end
 
     if jo + ny == y_size
-        for k in (k0 - 1):(k1 + 1), j in j1:(j1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
+        @share vector = false for k in (k0 - 1):(k1 + 1),
+            j in j1:(j1 + 1),
+            i in (i0 - 1):(i1 + 1)
+
+            @share thread = false for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]
                 yrt = yr + ly
 

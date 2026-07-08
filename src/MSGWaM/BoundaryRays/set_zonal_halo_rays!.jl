@@ -20,8 +20,12 @@ function set_zonal_halo_rays! end
     jj = (j0 - 1):(j1 + 1)
     kk = (k0 - 1):(k1 + 1)
 
-    nray_max_left = maximum(nray[i0, jj, kk])
-    nray_max_right = maximum(nray[i1, jj, kk])
+    nray_max_left = 0
+    nray_max_right = 0
+    @share (max, nray_max_left) (max, nray_max_right) for k in kk, j in jj
+        nray_max_left = max(nray_max_left, nray[i0, j, k])
+        nray_max_right = max(nray_max_right, nray[i1, j, k])
+    end
 
     nray_max_left = MPI.Allreduce(nray_max_left, max, comm)
     nray_max_right = MPI.Allreduce(nray_max_right, max, comm)

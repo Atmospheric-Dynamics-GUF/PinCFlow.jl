@@ -20,8 +20,12 @@ function set_meridional_halo_rays! end
     ii = (i0 - 1):(i1 + 1)
     kk = (k0 - 1):(k1 + 1)
 
-    nray_max_backward = maximum(nray[ii, j0, kk])
-    nray_max_forward = maximum(nray[ii, j1, kk])
+    nray_max_backward = 0
+    nray_max_forward = 0
+    @share (max, nray_max_backward) (max, nray_max_forward) for k in kk, i in ii
+        nray_max_backward = max(nray_max_backward, nray[i, j0, k])
+        nray_max_forward = max(nray_max_forward, nray[i, j1, k])
+    end
 
     nray_max_backward = MPI.Allreduce(nray_max_backward, max, comm)
     nray_max_forward = MPI.Allreduce(nray_max_forward, max, comm)

@@ -43,8 +43,11 @@ function set_vertical_boundary_rays! end
     if ko == 0
         kmin = k0
         kmax = npz > 1 ? k0 + 1 : k1
-        for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
+        @share vector = false for k in kmin:kmax,
+            j in (j0 - 1):(j1 + 1),
+            i in (i0 - 1):(i1 + 1)
+
+            @share thread = false for r in 1:nray[i, j, k]
                 xr = rays.x[r, i, j, k]
                 yr = rays.y[r, i, j, k]
                 zr = rays.z[r, i, j, k]
@@ -65,7 +68,10 @@ function set_vertical_boundary_rays! end
     if ko + nz == z_size
         kmin = npz > 1 ? k1 - 1 : k0
         kmax = k1
-        for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+        @share vector = false for k in kmin:kmax,
+            j in (j0 - 1):(j1 + 1),
+            i in (i0 - 1):(i1 + 1)
+
             local_count = 0
             for r in 1:nray[i, j, k]
                 zr = rays.z[r, i, j, k]

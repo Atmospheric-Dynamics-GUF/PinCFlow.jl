@@ -21,8 +21,12 @@ function set_vertical_halo_rays! end
     ii = (i0 - 1):(i1 + 1)
     jj = (j0 - 1):(j1 + 1)
 
-    nray_max_down = maximum(nray[ii, jj, k0])
-    nray_max_up = maximum(nray[ii, jj, k1])
+    nray_max_down = 0
+    nray_max_up = 0
+    @share (max, nray_max_down) (max, nray_max_up) for j in jj, i in ii
+        nray_max_down = max(nray_max_down, nray[i, j, k0])
+        nray_max_up = max(nray_max_up, nray[i, j, k1])
+    end
 
     nray_max_down = MPI.Allreduce(nray_max_down, max, comm)
     nray_max_up = MPI.Allreduce(nray_max_up, max, comm)
