@@ -61,7 +61,7 @@ function compute_mean_flow_effect!(
 
     set_boundaries!(state, BoundaryWKBIntegrals())
 
-    if turbulence_scheme != :NoTurbulence
+    if turbulence_scheme != :NoTurbulence && wkb_mode == :MultiColumn
         set_boundaries!(state, BoundaryWKBAuxiliaries(), TKE())
     end
 
