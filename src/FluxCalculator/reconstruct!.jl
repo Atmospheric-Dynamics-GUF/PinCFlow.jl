@@ -131,7 +131,7 @@ function reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})
     return
 end
 
-function reconstruct!(
+@ivy function reconstruct!(
     state::State,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
@@ -145,7 +145,7 @@ function reconstruct!(
 
     kk = (k0 - 1):(k1 + 1)
 
-    @ivy phi[:, :, kk] .= rho[:, :, kk] ./ pbar[:, :, kk]
+    phi[:, :, kk] .= rho[:, :, kk] ./ pbar[:, :, kk]
 
     @dispatch_limiter_type apply_3d_muscl!(
         phi,
@@ -159,7 +159,7 @@ function reconstruct!(
     return
 end
 
-function reconstruct!(state::State, variable::RhoP)
+@ivy function reconstruct!(state::State, variable::RhoP)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rhop) = state.variables.predictands
@@ -169,7 +169,7 @@ function reconstruct!(state::State, variable::RhoP)
 
     kk = (k0 - 1):(k1 + 1)
 
-    @ivy phi[:, :, kk] .= rhop[:, :, kk] ./ pbar[:, :, kk]
+    phi[:, :, kk] .= rhop[:, :, kk] ./ pbar[:, :, kk]
 
     @dispatch_limiter_type apply_3d_muscl!(
         phi,
@@ -183,7 +183,7 @@ function reconstruct!(state::State, variable::RhoP)
     return
 end
 
-function reconstruct!(state::State, variable::U)
+@ivy function reconstruct!(state::State, variable::U)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho, u) = state.variables.predictands
@@ -191,7 +191,7 @@ function reconstruct!(state::State, variable::U)
     (; utilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
 
-    @ivy for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:(nxx - 1)
+    for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:(nxx - 1)
         rhoedge =
             0.5 * (
                 rho[i, j, k] +
@@ -215,7 +215,7 @@ function reconstruct!(state::State, variable::U)
     return
 end
 
-function reconstruct!(state::State, variable::V)
+@ivy function reconstruct!(state::State, variable::V)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho, v) = state.variables.predictands
@@ -223,7 +223,7 @@ function reconstruct!(state::State, variable::V)
     (; vtilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
 
-    @ivy for k in (k0 - 1):(k1 + 1), j in 1:(nyy - 1), i in 1:nxx
+    for k in (k0 - 1):(k1 + 1), j in 1:(nyy - 1), i in 1:nxx
         rhoedge =
             0.5 * (
                 rho[i, j, k] +
@@ -247,7 +247,7 @@ function reconstruct!(state::State, variable::V)
     return
 end
 
-function reconstruct!(state::State, variable::W)
+@ivy function reconstruct!(state::State, variable::W)
     (; namelists, domain, grid) = state
     (; limiter_type) = state.namelists.discretization
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
@@ -258,16 +258,16 @@ function reconstruct!(state::State, variable::W)
     (; wtilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
 
-    @ivy phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
+    phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
 
-    @ivy for k in (k0 - 1):(k1 + 1), j in j0:j1, i in i0:i1
+    for k in (k0 - 1):(k1 + 1), j in j0:j1, i in i0:i1
         phi[i, j, k] = compute_vertical_wind(i, j, k, state)
     end
 
     set_zonal_boundaries_of_field!(phi, namelists, domain)
     set_meridional_boundaries_of_field!(phi, namelists, domain)
 
-    @ivy for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+    for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
         rhoedgeu =
             (
                 jac[i, j, k + 1] * (rho[i, j, k] + rhobar[i, j, k]) +
@@ -297,14 +297,14 @@ function reconstruct!(state::State, tracer_setup::Val{:NoTracer})
     return
 end
 
-function reconstruct!(state::State, tracer_setup::Val{:TracerOn})
+@ivy function reconstruct!(state::State, tracer_setup::Val{:TracerOn})
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries
     (; pbar) = state.atmosphere
     (; tracerreconstructions, tracerpredictands) = state.tracer
 
-    @dispatch_limiter_type @ivy for field in 1:fieldcount(TracerPredictands)
+    @dispatch_limiter_type for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
             phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
@@ -322,14 +322,14 @@ function reconstruct!(state::State, tracer_setup::Val{:TracerOn})
     return
 end
 
-function reconstruct!(state::State, variable::TKE)
+@ivy function reconstruct!(state::State, variable::TKE)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries
     (; pbar) = state.atmosphere
     (; turbulencereconstructions, turbulencepredictands) = state.turbulence
 
-    @dispatch_limiter_type @ivy for field in 1:fieldcount(TurbulencePredictands)
+    @dispatch_limiter_type for field in 1:fieldcount(TurbulencePredictands)
         chi = getfield(turbulencepredictands, field)[:, :, :]
         for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
             phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]

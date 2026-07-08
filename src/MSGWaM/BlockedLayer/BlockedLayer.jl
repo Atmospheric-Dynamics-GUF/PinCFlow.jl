@@ -7,6 +7,8 @@ Module for the blocked-layer scheme.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
 !!! danger "Experimental"
@@ -14,8 +16,8 @@ Module for the blocked-layer scheme.
 """
 module BlockedLayer
 
+using ...Macros
 using ...Types
-using ...PinCFlow
 
 include("compute_blocked_layer!.jl")
 include("compute_elevation_difference.jl")

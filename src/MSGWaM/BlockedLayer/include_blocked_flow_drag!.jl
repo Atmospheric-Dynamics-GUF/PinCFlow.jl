@@ -34,7 +34,7 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 """
 function include_blocked_flow_drag! end
 
-function include_blocked_flow_drag!(state::State)
+@ivy function include_blocked_flow_drag!(state::State)
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dz, jac, zctilde, hw, kh, lh) = state.grid
@@ -48,7 +48,7 @@ function include_blocked_flow_drag!(state::State)
     end
 
     # Adjust the drag to account for blocking.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fraction =
             (min(zb[i, j], zctilde[i, j, k]) - zctilde[i, j, k - 1]) /
             jac[i, j, k] / dz

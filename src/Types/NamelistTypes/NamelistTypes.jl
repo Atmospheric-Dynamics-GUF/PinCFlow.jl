@@ -6,14 +6,15 @@ NamelistTypes
 Module that contains all namelist types.
 
 Provides constructors that allow setting only specific parameters and using default values for the rest.
+
+# See also
+
+  - [`PinCFlow.Macros`](@ref)
 """
 module NamelistTypes
 
-using MPI
-using FunctionWrappers
-using ...PinCFlow
-
-import FunctionWrappers: FunctionWrapper
+using FunctionWrappers: FunctionWrapper
+using ...Macros
 
 include("@dispatch_background.jl")
 include("@dispatch_filter_order.jl")
@@ -25,7 +26,6 @@ include("@dispatch_tracer_setup.jl")
 include("@dispatch_turbulence_scheme.jl")
 include("@dispatch_wkb_mode.jl")
 include("@dispatch_vertical_boundary_condition.jl")
-include("@dispatch.jl")
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
@@ -48,8 +48,7 @@ export @dispatch_background,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
     @dispatch_turbulence_scheme,
-    @dispatch_vertical_boundary_condition,
-    @dispatch
+    @dispatch_vertical_boundary_condition
 
 export DomainNamelist,
     OutputNamelist,

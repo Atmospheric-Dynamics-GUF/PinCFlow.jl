@@ -178,7 +178,7 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 """
 function interpolate_mean_flow end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -198,20 +198,20 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (U): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (U): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 "> nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ir] + dx / 2
-    @ivy xl = x[il] + dx / 2
+    xr = x[ir] + dx / 2
+    xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -220,54 +220,49 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (U): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (U): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
-    @ivy yf = y[jf]
-    @ivy yb = y[jb]
+    yf = y[jf]
+    yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
-    @ivy zlbd = (zc[il, jb, klbd] + zc[il + 1, jb, klbd]) / 2
-    @ivy zlbu = (zc[il, jb, klbu] + zc[il + 1, jb, klbu]) / 2
+    zlbd = (zc[il, jb, klbd] + zc[il + 1, jb, klbd]) / 2
+    zlbu = (zc[il, jb, klbu] + zc[il + 1, jb, klbu]) / 2
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
-    @ivy zlfd = (zc[il, jf, klfd] + zc[il + 1, jf, klfd]) / 2
-    @ivy zlfu = (zc[il, jf, klfu] + zc[il + 1, jf, klfu]) / 2
+    zlfd = (zc[il, jf, klfd] + zc[il + 1, jf, klfd]) / 2
+    zlfu = (zc[il, jf, klfu] + zc[il + 1, jf, klfu]) / 2
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
-    @ivy zrbd = (zc[ir, jb, krbd] + zc[ir + 1, jb, krbd]) / 2
-    @ivy zrbu = (zc[ir, jb, krbu] + zc[ir + 1, jb, krbu]) / 2
+    zrbd = (zc[ir, jb, krbd] + zc[ir + 1, jb, krbd]) / 2
+    zrbu = (zc[ir, jb, krbu] + zc[ir + 1, jb, krbu]) / 2
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
-    @ivy zrfd = (zc[ir, jf, krfd] + zc[ir + 1, jf, krfd]) / 2
-    @ivy zrfu = (zc[ir, jf, krfu] + zc[ir + 1, jf, krfu]) / 2
+    zrfd = (zc[ir, jf, krfd] + zc[ir + 1, jf, krfd]) / 2
+    zrfu = (zc[ir, jf, krfu] + zc[ir + 1, jf, krfu]) / 2
 
-    @ivy philbd = u[il, jb, klbd]
-    @ivy philbu = u[il, jb, klbu]
+    philbd = u[il, jb, klbd]
+    philbu = u[il, jb, klbu]
 
-    @ivy philfd = u[il, jf, klfd]
-    @ivy philfu = u[il, jf, klfu]
+    philfd = u[il, jf, klfd]
+    philfu = u[il, jf, klfu]
 
-    @ivy phirbd = u[ir, jb, krbd]
-    @ivy phirbu = u[ir, jb, krbu]
+    phirbd = u[ir, jb, krbd]
+    phirbu = u[ir, jb, krbu]
 
-    @ivy phirfd = u[ir, jf, krfd]
-    @ivy phirfu = u[ir, jf, krfu]
+    phirfd = u[ir, jf, krfd]
+    phirfu = u[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(
@@ -300,7 +295,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -320,20 +315,15 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (V): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (V): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
-    @ivy xr = x[ir]
-    @ivy xl = x[il]
+    xr = x[ir]
+    xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -342,56 +332,56 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (V): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (V): jf + 1 = ",
+                "Meridional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jf] + dy / 2
-    @ivy yb = y[jb] + dy / 2
+    yf = y[jf] + dy / 2
+    yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
-    @ivy zlbd = (zc[il, jb, klbd] + zc[il, jb + 1, klbd]) / 2
-    @ivy zlbu = (zc[il, jb, klbu] + zc[il, jb + 1, klbu]) / 2
+    zlbd = (zc[il, jb, klbd] + zc[il, jb + 1, klbd]) / 2
+    zlbu = (zc[il, jb, klbu] + zc[il, jb + 1, klbu]) / 2
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
-    @ivy zlfd = (zc[il, jf, klfd] + zc[il, jf + 1, klfd]) / 2
-    @ivy zlfu = (zc[il, jf, klfu] + zc[il, jf + 1, klfu]) / 2
+    zlfd = (zc[il, jf, klfd] + zc[il, jf + 1, klfd]) / 2
+    zlfu = (zc[il, jf, klfu] + zc[il, jf + 1, klfu]) / 2
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
-    @ivy zrbd = (zc[ir, jb, krbd] + zc[ir, jb + 1, krbd]) / 2
-    @ivy zrbu = (zc[ir, jb, krbu] + zc[ir, jb + 1, krbu]) / 2
+    zrbd = (zc[ir, jb, krbd] + zc[ir, jb + 1, krbd]) / 2
+    zrbu = (zc[ir, jb, krbu] + zc[ir, jb + 1, krbu]) / 2
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
-    @ivy zrfd = (zc[ir, jf, krfd] + zc[ir, jf + 1, krfd]) / 2
-    @ivy zrfu = (zc[ir, jf, krfu] + zc[ir, jf + 1, krfu]) / 2
+    zrfd = (zc[ir, jf, krfd] + zc[ir, jf + 1, krfd]) / 2
+    zrfu = (zc[ir, jf, krfu] + zc[ir, jf + 1, krfu]) / 2
 
     # Assign the values.
 
-    @ivy philbd = v[il, jb, klbd]
-    @ivy philbu = v[il, jb, klbu]
+    philbd = v[il, jb, klbd]
+    philbu = v[il, jb, klbu]
 
-    @ivy philfd = v[il, jf, klfd]
-    @ivy philfu = v[il, jf, klfu]
+    philfd = v[il, jf, klfd]
+    philfu = v[il, jf, klfu]
 
-    @ivy phirbd = v[ir, jb, krbd]
-    @ivy phirbu = v[ir, jb, krbu]
+    phirbd = v[ir, jb, krbd]
+    phirbu = v[ir, jb, krbu]
 
-    @ivy phirfd = v[ir, jf, krfd]
-    @ivy phirfu = v[ir, jf, krfu]
+    phirfd = v[ir, jf, krfd]
+    phirfu = v[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(
@@ -424,7 +414,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -442,24 +432,15 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il - 1 < 1
-            error(
-                "Error in interpolate_mean_flow (DUDX): il - 1 = ",
-                il - 1,
-                " < 1",
-            )
+            error("Zonal index is too small: il - 1 = ", il - 1, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DUDX): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
-    @ivy xr = x[ir]
-    @ivy xl = x[il]
+    xr = x[ir]
+    xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -468,42 +449,37 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DUDX): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DUDX): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
-    @ivy yf = y[jf]
-    @ivy yb = y[jb]
+    yf = y[jf]
+    yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = zc[il, jb, klbd]
-    @ivy zlbu = zc[il, jb, klbu]
+    zlbd = zc[il, jb, klbd]
+    zlbu = zc[il, jb, klbu]
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = zc[il, jf, klfd]
-    @ivy zlfu = zc[il, jf, klfu]
+    zlfd = zc[il, jf, klfd]
+    zlfu = zc[il, jf, klfu]
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = zc[ir, jb, krbd]
-    @ivy zrbu = zc[ir, jb, krbu]
+    zrbd = zc[ir, jb, krbd]
+    zrbu = zc[ir, jb, krbu]
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = zc[ir, jf, krfd]
-    @ivy zrfu = zc[ir, jf, krfu]
+    zrfd = zc[ir, jf, krfd]
+    zrfu = zc[ir, jf, krfu]
 
     # Assign the values.
 
@@ -546,7 +522,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -565,20 +541,20 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DUDY): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDY): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ir] + dx / 2
-    @ivy xl = x[il] + dx / 2
+    xr = x[ir] + dx / 2
+    xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -587,33 +563,33 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DUDY): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DUDY): jf + 1 = ",
+                "Meridional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jf] + dy / 2
-    @ivy yb = y[jb] + dy / 2
+    yf = y[jf] + dy / 2
+    yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd =
+    zlbd =
         (
             zc[il, jb, klbd] +
             zc[il + 1, jb, klbd] +
             zc[il, jb + 1, klbd] +
             zc[il + 1, jb + 1, klbd]
         ) / 4
-    @ivy zlbu =
+    zlbu =
         (
             zc[il, jb, klbu] +
             zc[il + 1, jb, klbu] +
@@ -623,14 +599,14 @@ function interpolate_mean_flow(
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd =
+    zlfd =
         (
             zc[il, jf, klfd] +
             zc[il + 1, jf, klfd] +
             zc[il, jf + 1, klfd] +
             zc[il + 1, jf + 1, klfd]
         ) / 4
-    @ivy zlfu =
+    zlfu =
         (
             zc[il, jf, klfu] +
             zc[il + 1, jf, klfu] +
@@ -640,14 +616,14 @@ function interpolate_mean_flow(
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd =
+    zrbd =
         (
             zc[ir, jb, krbd] +
             zc[ir + 1, jb, krbd] +
             zc[ir, jb + 1, krbd] +
             zc[ir + 1, jb + 1, krbd]
         ) / 4
-    @ivy zrbu =
+    zrbu =
         (
             zc[ir, jb, krbu] +
             zc[ir + 1, jb, krbu] +
@@ -657,14 +633,14 @@ function interpolate_mean_flow(
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd =
+    zrfd =
         (
             zc[ir, jf, krfd] +
             zc[ir + 1, jf, krfd] +
             zc[ir, jf + 1, krfd] +
             zc[ir + 1, jf + 1, krfd]
         ) / 4
-    @ivy zrfu =
+    zrfu =
         (
             zc[ir, jf, krfu] +
             zc[ir + 1, jf, krfu] +
@@ -713,7 +689,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -732,20 +708,20 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DUDZ): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDZ): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ir] + dx / 2
-    @ivy xl = x[il] + dx / 2
+    xr = x[ir] + dx / 2
+    xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -754,42 +730,37 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DUDZ): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DUDZ): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
-    @ivy yf = y[jf]
-    @ivy yb = y[jb]
+    yf = y[jf]
+    yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_half_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = (zctilde[il, jb, klbd] + zctilde[il + 1, jb, klbd]) / 2
-    @ivy zlbu = (zctilde[il, jb, klbu] + zctilde[il + 1, jb, klbu]) / 2
+    zlbd = (zctilde[il, jb, klbd] + zctilde[il + 1, jb, klbd]) / 2
+    zlbu = (zctilde[il, jb, klbu] + zctilde[il + 1, jb, klbu]) / 2
 
     klfu = get_next_half_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = (zctilde[il, jf, klfd] + zctilde[il + 1, jf, klfd]) / 2
-    @ivy zlfu = (zctilde[il, jf, klfu] + zctilde[il + 1, jf, klfu]) / 2
+    zlfd = (zctilde[il, jf, klfd] + zctilde[il + 1, jf, klfd]) / 2
+    zlfu = (zctilde[il, jf, klfu] + zctilde[il + 1, jf, klfu]) / 2
 
     krbu = get_next_half_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = (zctilde[ir, jb, krbd] + zctilde[ir + 1, jb, krbd]) / 2
-    @ivy zrbu = (zctilde[ir, jb, krbu] + zctilde[ir + 1, jb, krbu]) / 2
+    zrbd = (zctilde[ir, jb, krbd] + zctilde[ir + 1, jb, krbd]) / 2
+    zrbu = (zctilde[ir, jb, krbu] + zctilde[ir + 1, jb, krbu]) / 2
 
     krfu = get_next_half_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = (zctilde[ir, jf, krfd] + zctilde[ir + 1, jf, krfd]) / 2
-    @ivy zrfu = (zctilde[ir, jf, krfu] + zctilde[ir + 1, jf, krfu]) / 2
+    zrfd = (zctilde[ir, jf, krfd] + zctilde[ir + 1, jf, krfd]) / 2
+    zrfu = (zctilde[ir, jf, krfu] + zctilde[ir + 1, jf, krfu]) / 2
 
     # Assign the values.
 
@@ -832,7 +803,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -851,20 +822,20 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DVDX): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DVDX): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ir] + dx / 2
-    @ivy xl = x[il] + dx / 2
+    xr = x[ir] + dx / 2
+    xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -873,33 +844,33 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DVDX): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DVDX): jf + 1 = ",
+                "Merdional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jf] + dy / 2
-    @ivy yb = y[jb] + dy / 2
+    yf = y[jf] + dy / 2
+    yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd =
+    zlbd =
         (
             zc[il, jb, klbd] +
             zc[il + 1, jb, klbd] +
             zc[il, jb + 1, klbd] +
             zc[il + 1, jb + 1, klbd]
         ) / 4
-    @ivy zlbu =
+    zlbu =
         (
             zc[il, jb, klbu] +
             zc[il + 1, jb, klbu] +
@@ -909,14 +880,14 @@ function interpolate_mean_flow(
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd =
+    zlfd =
         (
             zc[il, jf, klfd] +
             zc[il + 1, jf, klfd] +
             zc[il, jf + 1, klfd] +
             zc[il + 1, jf + 1, klfd]
         ) / 4
-    @ivy zlfu =
+    zlfu =
         (
             zc[il, jf, klfu] +
             zc[il + 1, jf, klfu] +
@@ -926,14 +897,14 @@ function interpolate_mean_flow(
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd =
+    zrbd =
         (
             zc[ir, jb, krbd] +
             zc[ir + 1, jb, krbd] +
             zc[ir, jb + 1, krbd] +
             zc[ir + 1, jb + 1, krbd]
         ) / 4
-    @ivy zrbu =
+    zrbu =
         (
             zc[ir, jb, krbu] +
             zc[ir + 1, jb, krbu] +
@@ -943,14 +914,14 @@ function interpolate_mean_flow(
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd =
+    zrfd =
         (
             zc[ir, jf, krfd] +
             zc[ir + 1, jf, krfd] +
             zc[ir, jf + 1, krfd] +
             zc[ir + 1, jf + 1, krfd]
         ) / 4
-    @ivy zrfu =
+    zrfu =
         (
             zc[ir, jf, krfu] +
             zc[ir + 1, jf, krfu] +
@@ -999,7 +970,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -1018,20 +989,15 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DVDY): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DVDY): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
-    @ivy xr = x[ir]
-    @ivy xl = x[il]
+    xr = x[ir]
+    xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1040,46 +1006,37 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb - 1 < 1
-            error(
-                "Error in interpolate_mean_flow (DVDY): jb - 1 = ",
-                jb - 1,
-                " < 1",
-            )
+            error("Meridional index is too small: jb - 1 = ", jb - 1, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DVDY): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
-    @ivy yf = y[jf]
-    @ivy yb = y[jb]
+    yf = y[jf]
+    yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = zc[il, jb, klbd]
-    @ivy zlbu = zc[il, jb, klbu]
+    zlbd = zc[il, jb, klbd]
+    zlbu = zc[il, jb, klbu]
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = zc[il, jf, klfd]
-    @ivy zlfu = zc[il, jf, klfu]
+    zlfd = zc[il, jf, klfd]
+    zlfu = zc[il, jf, klfu]
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = zc[ir, jb, krbd]
-    @ivy zrbu = zc[ir, jb, krbu]
+    zrbd = zc[ir, jb, krbd]
+    zrbu = zc[ir, jb, krbu]
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = zc[ir, jf, krfd]
-    @ivy zrfu = zc[ir, jf, krfu]
+    zrfd = zc[ir, jf, krfd]
+    zrfu = zc[ir, jf, krfu]
 
     # Assign the values.
 
@@ -1122,7 +1079,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -1141,20 +1098,15 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DVDZ): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DVDZ): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
-    @ivy xr = x[ir]
-    @ivy xl = x[il]
+    xr = x[ir]
+    xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1163,42 +1115,42 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow: jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow: jf + 1 = ",
+                "Meridional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jf] + dy / 2
-    @ivy yb = y[jb] + dy / 2
+    yf = y[jf] + dy / 2
+    yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_half_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = (zctilde[il, jb, klbd] + zctilde[il, jb + 1, klbd]) / 2
-    @ivy zlbu = (zctilde[il, jb, klbu] + zctilde[il, jb + 1, klbu]) / 2
+    zlbd = (zctilde[il, jb, klbd] + zctilde[il, jb + 1, klbd]) / 2
+    zlbu = (zctilde[il, jb, klbu] + zctilde[il, jb + 1, klbu]) / 2
 
     klfu = get_next_half_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = (zctilde[il, jf, klfd] + zctilde[il, jf + 1, klfd]) / 2
-    @ivy zlfu = (zctilde[il, jf, klfu] + zctilde[il, jf + 1, klfu]) / 2
+    zlfd = (zctilde[il, jf, klfd] + zctilde[il, jf + 1, klfd]) / 2
+    zlfu = (zctilde[il, jf, klfu] + zctilde[il, jf + 1, klfu]) / 2
 
     krbu = get_next_half_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = (zctilde[ir, jb, krbd] + zctilde[ir, jb + 1, krbd]) / 2
-    @ivy zrbu = (zctilde[ir, jb, krbu] + zctilde[ir, jb + 1, krbu]) / 2
+    zrbd = (zctilde[ir, jb, krbd] + zctilde[ir, jb + 1, krbd]) / 2
+    zrbu = (zctilde[ir, jb, krbu] + zctilde[ir, jb + 1, krbu]) / 2
 
     krfu = get_next_half_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = (zctilde[ir, jf, krfd] + zctilde[ir, jf + 1, krfd]) / 2
-    @ivy zrfu = (zctilde[ir, jf, krfu] + zctilde[ir, jf + 1, krfu]) / 2
+    zrfd = (zctilde[ir, jf, krfd] + zctilde[ir, jf + 1, krfd]) / 2
+    zrfu = (zctilde[ir, jf, krfu] + zctilde[ir, jf + 1, krfu]) / 2
 
     # Assign the values.
 
@@ -1241,7 +1193,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -1260,20 +1212,20 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2) / dx) + i0 - 1 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DChiDX): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DChiDX): ir + 1 = ",
+                "Zonal index is too large: ir + 1 = ",
                 ir + 1,
                 " > nxx = ",
                 nxx,
             )
         end
     end
-    @ivy xr = x[ir] + dx / 2
-    @ivy xl = x[il] + dx / 2
+    xr = x[ir] + dx / 2
+    xl = x[il] + dx / 2
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1282,42 +1234,37 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DChiDX): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DChiDX): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
-    @ivy yf = y[jf]
-    @ivy yb = y[jb]
+    yf = y[jf]
+    yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = (zc[il, jb, klbd] + zc[il + 1, jb, klbd]) / 2
-    @ivy zlbu = (zc[il, jb, klbu] + zc[il + 1, jb, klbu]) / 2
+    zlbd = (zc[il, jb, klbd] + zc[il + 1, jb, klbd]) / 2
+    zlbu = (zc[il, jb, klbu] + zc[il + 1, jb, klbu]) / 2
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = (zc[il, jf, klfd] + zc[il + 1, jf, klfd]) / 2
-    @ivy zlfu = (zc[il, jf, klfu] + zc[il + 1, jf, klfu]) / 2
+    zlfd = (zc[il, jf, klfd] + zc[il + 1, jf, klfd]) / 2
+    zlfu = (zc[il, jf, klfu] + zc[il + 1, jf, klfu]) / 2
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = (zc[ir, jb, krbd] + zc[ir + 1, jb, krbd]) / 2
-    @ivy zrbu = (zc[ir, jb, krbu] + zc[ir + 1, jb, krbu]) / 2
+    zrbd = (zc[ir, jb, krbd] + zc[ir + 1, jb, krbd]) / 2
+    zrbu = (zc[ir, jb, krbu] + zc[ir + 1, jb, krbu]) / 2
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = (zc[ir, jf, krfd] + zc[ir + 1, jf, krfd]) / 2
-    @ivy zrfu = (zc[ir, jf, krfu] + zc[ir + 1, jf, krfu]) / 2
+    zrfd = (zc[ir, jf, krfd] + zc[ir + 1, jf, krfd]) / 2
+    zrfu = (zc[ir, jf, krfu] + zc[ir + 1, jf, krfu]) / 2
 
     # Assign the values.
 
@@ -1360,7 +1307,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -1378,20 +1325,15 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DChiDY): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DChiDY): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
-    @ivy xr = x[ir]
-    @ivy xl = x[il]
+    xr = x[ir]
+    xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1400,42 +1342,42 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2) / dy) + j0 - 1 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DChiDY): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (DChiDY): jf + 1 = ",
+                "Meridional index is too large: jf + 1 = ",
                 jf + 1,
                 " > nyy = ",
                 nyy,
             )
         end
     end
-    @ivy yf = y[jf] + dy / 2
-    @ivy yb = y[jb] + dy / 2
+    yf = y[jf] + dy / 2
+    yb = y[jb] + dy / 2
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 2, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = (zc[il, jf, klbd] + zc[il, jf + 1, klbd]) / 2
-    @ivy zlbu = (zc[il, jf, klbu] + zc[il, jf + 1, klbu]) / 2
+    zlbd = (zc[il, jf, klbd] + zc[il, jf + 1, klbd]) / 2
+    zlbu = (zc[il, jf, klbu] + zc[il, jf + 1, klbu]) / 2
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 2, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = (zc[il, jf, klfd] + zc[il, jf + 1, klfd]) / 2
-    @ivy zlfu = (zc[il, jf, klfu] + zc[il, jf + 1, klfu]) / 2
+    zlfd = (zc[il, jf, klfd] + zc[il, jf + 1, klfd]) / 2
+    zlfu = (zc[il, jf, klfu] + zc[il, jf + 1, klfu]) / 2
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 2, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = (zc[ir, jb, krbd] + zc[ir, jb + 1, krbd]) / 2
-    @ivy zrbu = (zc[ir, jb, krbu] + zc[ir, jb + 1, krbu]) / 2
+    zrbd = (zc[ir, jb, krbd] + zc[ir, jb + 1, krbd]) / 2
+    zrbu = (zc[ir, jb, krbu] + zc[ir, jb + 1, krbu]) / 2
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 2, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = (zc[ir, jf, krfd] + zc[ir, jf + 1, krfd]) / 2
-    @ivy zrfu = (zc[ir, jf, krfu] + zc[ir, jf + 1, krfu]) / 2
+    zrfd = (zc[ir, jf, krfd] + zc[ir, jf + 1, krfd]) / 2
+    zrfu = (zc[ir, jf, krfu] + zc[ir, jf + 1, krfu]) / 2
 
     # Assign the values.
 
@@ -1478,7 +1420,7 @@ function interpolate_mean_flow(
     return phi
 end
 
-function interpolate_mean_flow(
+@ivy function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -1497,20 +1439,15 @@ function interpolate_mean_flow(
     else
         il = floor(Int, (xlc + lx / 2 - dx / 2) / dx) + i0 - io
         if il < 1
-            error("Error in interpolate_mean_flow (DChiDZ): il = ", il, " < 1")
+            error("Zonal index is too small: il = ", il, " < 1")
         end
         ir = il + 1
         if ir > nxx
-            error(
-                "Error in interpolate_mean_flow (DChiDZ): ir = ",
-                ir,
-                " > nxx = ",
-                nxx,
-            )
+            error("Zonal index is too large: ir = ", ir, " > nxx = ", nxx)
         end
     end
-    @ivy xr = x[ir]
-    @ivy xl = x[il]
+    xr = x[ir]
+    xl = x[il]
 
     # Locate the closest points in meridional direction.
     if y_size == 1
@@ -1519,42 +1456,37 @@ function interpolate_mean_flow(
     else
         jb = floor(Int, (ylc + ly / 2 - dy / 2) / dy) + j0 - jo
         if jb < 1
-            error("Error in interpolate_mean_flow (DChiDZ): jb = ", jb, " < 1")
+            error("Meridional index is too small: jb = ", jb, " < 1")
         end
         jf = jb + 1
         if jf > nyy
-            error(
-                "Error in interpolate_mean_flow (DChiDZ): jf = ",
-                jf,
-                " > nyy = ",
-                nyy,
-            )
+            error("Meridional index is too large: jf = ", jf, " > nyy = ", nyy)
         end
     end
-    @ivy yf = y[jf]
-    @ivy yb = y[jb]
+    yf = y[jf]
+    yb = y[jb]
 
     # Locate the closest points in vertical direction.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 1, dku = 1)
     klbd = klbu - 1
-    @ivy zlbd = zctilde[il, jb, klbd]
-    @ivy zlbu = zctilde[il, jb, klbu]
+    zlbd = zctilde[il, jb, klbd]
+    zlbu = zctilde[il, jb, klbu]
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 1, dku = 1)
     klfd = klfu - 1
-    @ivy zlfd = zctilde[il, jf, klfd]
-    @ivy zlfu = zctilde[il, jf, klfu]
+    zlfd = zctilde[il, jf, klfd]
+    zlfu = zctilde[il, jf, klfu]
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 1, dku = 1)
     krbd = krbu - 1
-    @ivy zrbd = zctilde[ir, jb, krbd]
-    @ivy zrbu = zctilde[ir, jb, krbu]
+    zrbd = zctilde[ir, jb, krbd]
+    zrbu = zctilde[ir, jb, krbu]
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 1, dku = 1)
     krfd = krfu - 1
-    @ivy zrfd = zctilde[ir, jf, krfd]
-    @ivy zrfu = zctilde[ir, jf, krfu]
+    zrfd = zctilde[ir, jf, krfd]
+    zrfu = zctilde[ir, jf, krfu]
 
     # Assign the values.
 

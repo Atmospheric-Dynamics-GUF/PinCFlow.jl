@@ -18,12 +18,12 @@ function create_output(state::State, machine_start_time::DateTime)
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
+    (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master) = state.domain
-    (; nray_max) = state.wkb
+    (; bins) = state.wkb
 
     # Set the chunk dimensions.
-    cr = nray_max
+    cr = bins
     cx = div(x_size, npx)
     cy = div(y_size, npy)
     cz = div(z_size, npz)
@@ -63,7 +63,7 @@ function create_output(state::State, machine_start_time::DateTime)
         )
 
         # Create datasets for the background.
-        if model != :Boussinesq
+        if model !== :Boussinesq
             create_dataset(
                 file,
                 "rhobar",
@@ -85,7 +85,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 dataspace((x_size, y_size, z_size));
                 chunk = (cx, cy, cz),
             )
-            if model == :Compressible
+            if model === :Compressible
                 create_dataset(
                     file,
                     "p",
@@ -252,7 +252,7 @@ function create_output(state::State, machine_start_time::DateTime)
             )
         end
 
-        if state.namelists.tracer.tracer_setup != :NoTracer
+        if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 create_dataset(
                     file,
@@ -323,7 +323,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 create_dataset(
                     file,
@@ -365,7 +365,7 @@ function create_output(state::State, machine_start_time::DateTime)
         end
 
         # Create datasets for WKB variables.
-        if wkb_mode != :NoWKB
+        if wkb_mode !== :NoWKB
 
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
@@ -389,10 +389,26 @@ function create_output(state::State, machine_start_time::DateTime)
                         field,
                         datatype(Float32),
                         dataspace(
-                            (nray_max, x_size, y_size, z_size + 1, 0),
-                            (nray_max, x_size, y_size, z_size + 1, -1),
+                            (bins, x_size, y_size, z_size + 1, 0),
+                            (bins, x_size, y_size, z_size + 1, -1),
                         );
                         chunk = (cr, cx, cy, cz, ct),
+                    )
+                end
+            end
+
+            # Create datasets for GW integrals.
+            for field in (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e)
+                if field in output_variables
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
                     )
                 end
             end
@@ -410,6 +426,27 @@ function create_output(state::State, machine_start_time::DateTime)
                         );
                         chunk = (cx, cy, cz, ct),
                     )
+                end
+            end
+
+            # Create datasets for elastic-mode-selection data.
+            if elastic_mode_selection
+                for (field, type) in zip(
+                    (:launch_mode_count, :launch_power_fraction),
+                    (Int32, Float32),
+                )
+                    if field in output_variables
+                        create_dataset(
+                            file,
+                            string(field),
+                            datatype(type),
+                            dataspace(
+                                (x_size, y_size, 0),
+                                (x_size, y_size, -1),
+                            );
+                            chunk = (cx, cy, ct),
+                        )
+                    end
                 end
             end
         end
@@ -447,7 +484,7 @@ function create_output(state::State, machine_start_time::DateTime)
         attributes(file["t"])["label"] = L"t\ [\mathrm{s}]"
         attributes(file["t"])["long_name"] = "time"
 
-        if model != :Boussinesq
+        if model !== :Boussinesq
             attributes(file["rhobar"])["units"] = "kg*m^-3"
             attributes(file["rhobar"])["label"] =
                 L"\bar{\rho}\ [\mathrm{kg\ m^{-3}}]"
@@ -539,7 +576,7 @@ function create_output(state::State, machine_start_time::DateTime)
             attributes(file["pip"])["long_name"] = "Exner-pressure fluctuations"
         end
 
-        if state.namelists.tracer.tracer_setup != :NoTracer
+        if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 attributes(file[string(field)])["units"] = "1"
                 attributes(file[string(field)])["label"] = L"\chi"
@@ -587,7 +624,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 attributes(file["tke"])["unuits"] = "m^2*s^-2"
                 attributes(file["tke"])["label"] = L"e_\\mathrm{k}"
@@ -611,7 +648,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        if wkb_mode != :NoWKB
+        if wkb_mode !== :NoWKB
             if prepare_restart || save_ray_volumes
                 if x_size == 1 && y_size == 1
                     nr_units = "kg*s^-1"
@@ -691,6 +728,43 @@ function create_output(state::State, machine_start_time::DateTime)
                 end
             end
 
+            # Add attributes for GW integrals.
+            for (field, units, label, long_name) in zip(
+                (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e),
+                (
+                    ("kg*m^-1*s^-2" for index in 1:5)...,
+                    "kg*m^-2*s^-1*K",
+                    "kg*m^-2*s^-1*K",
+                    "kg*m^-1*s^-2",
+                ),
+                (
+                    L"\bar{\rho}\langle u'u' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'v' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'w' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle v'v' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle v'w' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'\theta' \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
+                    L"\bar{\rho}\langle v'\theta' \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
+                    L"\mathcal{E}\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                ),
+                (
+                    "zonal zonal-momentum flux due to GWs",
+                    "zonal meridional-momentum flux due to GWs",
+                    "zonal vertical-momentum flux due to GWs",
+                    "meridional meridional-momentum flux due to GWs",
+                    "meridional vertical-momentum flux due to GWs",
+                    "zonal mass-weighted potential-temperature flux due to GWs",
+                    "meridional mass-weighted potential-temperature flux due to GWs",
+                    "GW energy density",
+                ),
+            )
+                if field in output_variables
+                    attributes(file[string(field)])["units"] = units
+                    attributes(file[string(field)])["label"] = label
+                    attributes(file[string(field)])["long_name"] = long_name
+                end
+            end
+
             # Create datasets for GW tendencies.
             for (field, units, label, long_name) in zip(
                 (:dudt, :dvdt, :dthetadt),
@@ -710,6 +784,19 @@ function create_output(state::State, machine_start_time::DateTime)
                     attributes(file[string(field)])["units"] = units
                     attributes(file[string(field)])["label"] = label
                     attributes(file[string(field)])["long_name"] = long_name
+                end
+            end
+
+            if elastic_mode_selection
+                for (field, label) in zip(
+                    (:launch_mode_count, :launch_power_fraction),
+                    ("Launch-mode count", "Launch-power fraction"),
+                )
+                    if field in output_variables
+                        attributes(file[string(field)])["units"] = "1"
+                        attributes(file[string(field)])["label"] = label
+                        attributes(file[string(field)])["long_name"] = label
+                    end
                 end
             end
         end

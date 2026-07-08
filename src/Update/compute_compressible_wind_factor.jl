@@ -110,7 +110,7 @@ function compute_compressible_wind_factor(
     return 1.0
 end
 
-function compute_compressible_wind_factor(
+@ivy function compute_compressible_wind_factor(
     state::State,
     i::Integer,
     j::Integer,
@@ -120,12 +120,10 @@ function compute_compressible_wind_factor(
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    @ivy return (
-        jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k]
-    ) / 2
+    return (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k]) / 2
 end
 
-function compute_compressible_wind_factor(
+@ivy function compute_compressible_wind_factor(
     state::State,
     i::Integer,
     j::Integer,
@@ -135,12 +133,10 @@ function compute_compressible_wind_factor(
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    @ivy return (
-        jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k]
-    ) / 2
+    return (jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k]) / 2
 end
 
-function compute_compressible_wind_factor(
+@ivy function compute_compressible_wind_factor(
     state::State,
     i::Integer,
     j::Integer,
@@ -150,8 +146,6 @@ function compute_compressible_wind_factor(
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    @ivy return jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (p[i, j, k] + p[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
+    return jac[i, j, k] * jac[i, j, k + 1] * (p[i, j, k] + p[i, j, k + 1]) /
+           (jac[i, j, k] + jac[i, j, k + 1])
 end

@@ -36,6 +36,22 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:pip`: Exner-pressure fluctuations (restart variable).
 
+  - `:uu`: Zonal zonal-momentum flux due to unresolved gravity waves.
+
+  - `:uv`: Zonal meridional-momentum flux due to unresolved gravity waves.
+
+  - `:uw`: Zonal vertical-momentum flux due to unresolved gravity waves.
+
+  - `:vv`: Meridional meridional-momentum flux due to unresolved gravity waves.
+
+  - `:vw`: Meridional vertical-momentum flux due to unresolved gravity waves.
+
+  - `:utheta`: Zonal mass-weighted potential-temperature flux due to unresolved gravity waves.
+
+  - `:vtheta`: Meridional mass-weighted potential-temperature flux due to unresolved gravity waves.
+
+  - `:e`: Energy density of unresolved gravity waves.
+
   - `:dudt`: Zonal-momentum drag due to unresolved gravity waves.
 
   - `:dvdt`: Meridional-momentum drag due to unresolved gravity waves.
@@ -55,6 +71,10 @@ The list of available output variables (as specified in `state.namelists.output.
   - `:shear_production`: Turbulent kinetic energy production due to wind shear.
 
   - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
+
+  - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
+
+  - `:launch_power_fraction`: Power fractions retained by the elastic-mode-selection algorithm.
 
 An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
@@ -76,7 +96,7 @@ All output variables are re-dimensionalized with the scale parameters stored in 
 """
 function write_output end
 
-function write_output(
+@ivy function write_output(
     state::State,
     time::AbstractFloat,
     iout::Integer,
@@ -87,14 +107,14 @@ function write_output(
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
+    (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; nray_max, rays, tendencies) = state.wkb
+    (; bins, rays, tendencies, integrals) = state.wkb
 
     # Print information.
     if master
@@ -120,7 +140,7 @@ function write_output(
 
     # Define slices.
     dk0 = ko == 0 ? 1 : 0
-    (rr, ii, jj, kk, kkr) = (1:nray_max, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),
         (jo + 1):(jo + ny),
@@ -129,7 +149,7 @@ function write_output(
     )
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
-    @ivy h5open(output_file, "r+", comm) do file
+    h5open(output_file, "r+", comm) do file
 
         # Write the time.
         HDF5.set_extent_dims(file["t"], (iout,))
@@ -148,32 +168,32 @@ function write_output(
         end
 
         # Write the background density.
-        if model != :Boussinesq && iout == 1
+        if model !== :Boussinesq && iout == 1
             file["rhobar"][iid, jjd, kkd] = rhobar[ii, jj, kk] .* rhoref
         end
 
         # Write the background potential temperature.
-        if model != :Boussinesq && iout == 1
+        if model !== :Boussinesq && iout == 1
             file["thetabar"][iid, jjd, kkd] = thetabar[ii, jj, kk] .* thetaref
         end
 
         # Write the squared buoyancy frequency.
-        if model != :Boussinesq && iout == 1
+        if model !== :Boussinesq && iout == 1
             file["n2"][iid, jjd, kkd] = n2[ii, jj, kk] ./ tref .^ 2
         end
 
         # Write the mass-weighted potential temperature.
-        if model == :Compressible
+        if model === :Compressible
             HDF5.set_extent_dims(file["p"], (x_size, y_size, z_size, iout))
             file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
-        elseif model != :Boussinesq && iout == 1
+        elseif model !== :Boussinesq && iout == 1
             file["p"][iid, jjd, kkd] = pbar[ii, jj, kk] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.
         if prepare_restart || :rhop in output_variables
             HDF5.set_extent_dims(file["rhop"], (x_size, y_size, z_size, iout))
-            if model == :Boussinesq
+            if model === :Boussinesq
                 file["rhop"][iid, jjd, kkd, iout] = rhop[ii, jj, kk] .* rhoref
             else
                 file["rhop"][iid, jjd, kkd, iout] = rho[ii, jj, kk] .* rhoref
@@ -254,7 +274,7 @@ function write_output(
         # Write the potential-temperature fluctuations.
         if :thetap in output_variables
             HDF5.set_extent_dims(file["thetap"], (x_size, y_size, z_size, iout))
-            if model == :Boussinesq
+            if model === :Boussinesq
                 file["thetap"][iid, jjd, kkd, iout] =
                     (
                         pbar[ii, jj, kk] ./
@@ -277,7 +297,7 @@ function write_output(
             file["pip"][iid, jjd, kkd, iout] = pip[ii, jj, kk]
         end
 
-        if state.namelists.tracer.tracer_setup != :NoTracer
+        if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 HDF5.set_extent_dims(
                     file[string(field)],
@@ -336,7 +356,7 @@ function write_output(
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme != :NoTurbulence
+        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 HDF5.set_extent_dims(
                     file["tke"],
@@ -376,7 +396,7 @@ function write_output(
         end
 
         # Write WKB variables.
-        if wkb_mode != :NoWKB
+        if wkb_mode !== :NoWKB
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes
@@ -386,9 +406,9 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, x_size, y_size, z_size + 1, iout),
+                        (bins, x_size, y_size, z_size + 1, iout),
                     )
-                    file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
+                    file[output_name][1:bins, iid, jjd, kkrd, iout] =
                         getproperty(rays, field_name)[rr, ii, jj, kkr] .* lref
                 end
 
@@ -398,19 +418,39 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, x_size, y_size, z_size + 1, iout),
+                        (bins, x_size, y_size, z_size + 1, iout),
                     )
-                    file[output_name][1:nray_max, iid, jjd, kkrd, iout] =
+                    file[output_name][1:bins, iid, jjd, kkrd, iout] =
                         getproperty(rays, field_name)[rr, ii, jj, kkr] ./ lref
                 end
 
                 HDF5.set_extent_dims(
                     file["nr"],
-                    (nray_max, x_size, y_size, z_size + 1, iout),
+                    (bins, x_size, y_size, z_size + 1, iout),
                 )
-                file["nr"][1:nray_max, iid, jjd, kkrd, iout] =
+                file["nr"][1:bins, iid, jjd, kkrd, iout] =
                     rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
                     lref .^ dim
+            end
+
+            # Write GW integrals.
+            for (field, scaling) in zip(
+                (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e),
+                (
+                    (rhoref * uref^2 for index in 1:5)...,
+                    rhoref * uref * thetaref,
+                    rhoref * uref * thetaref,
+                    rhoref * uref^2,
+                ),
+            )
+                if field in output_variables
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(integrals, field)[ii, jj, kk] .* scaling
+                end
             end
 
             # Write GW tendencies.
@@ -429,6 +469,23 @@ function write_output(
                     )
                     file[string(field)][iid, jjd, kkd, iout] =
                         getfield(tendencies, field)[ii, jj, kk] .* scaling
+                end
+            end
+
+            # Write elastic-mode-selection data.
+            if elastic_mode_selection && ko == 0
+                for field in (:launch_mode_count, :launch_power_fraction)
+                    if field in output_variables
+                        HDF5.set_extent_dims(
+                            file[string(field)],
+                            (x_size, y_size, iout),
+                        )
+                        file[string(field)][iid, jjd, iout] =
+                            getfield(state.wkb.elastic_mode_selection, field)[
+                                ii,
+                                jj,
+                            ]
+                    end
                 end
             end
         end

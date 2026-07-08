@@ -13,15 +13,15 @@ apply_turbulent_damping!(
 
 Damping of the wave-action density due to turbulence.
 
-The update of the physical-space wave-action density reads 
+The update of the physical-space wave-action density reads
 
-```math 
+```math
 \\mathcal{A}_r \\rightarrow \\left[1 - 2\\Delta t \\left(\\gamma_s + \\gamma_w + \\gamma_w' \\right)\\right]\\mathcal{A}_r,
 ```
 
 where the turbulent damping terms are given by
 
-```math 
+```math
 \\begin{align*}
     \\gamma_s & = m_r^2 \\left[l_v\\left(1-\\delta_r\\right) + l_b\\delta_r\\right]\\Re\\left(Q_{0,r}\\right),\\\\
     \\gamma_w & = \\frac{m_r^2}{4} \\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{N_r^2\\left(k_r^2+l_r^2\\right)+f^2m_r^2}\\left[l_v \\left(1-\\frac{f^2}{N_r^2}\\right)\\left(1+\\frac{k_r^2+l_r^2}{m_r^2}\\right)^{-1}-l_b\\right]\\Re\\left(Q_{2,r}\\right),\\\\
@@ -29,13 +29,13 @@ where the turbulent damping terms are given by
 \\end{align*}
 ```
 
-with 
+with
 
-```math 
+```math
 \\delta_r = \\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{2\\left[N_r^2\\left(k_r^2+l_r^2\\right)+f^2m_r^2\\right]}
 ```
 
-and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence.turbulenceconstants.lv` and `state.turbulence.turbulenceconstants.lb`, respectively. Furthermore, the characteristic turbulent velocities ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}`` are computed with [`PinCFlow.MSGWaM.RayUpdate.compute_turbulent_velocity`](@ref).
+and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence.turbulenceconstants.lv` and `state.turbulence.turbulenceconstants.lb`, respectively. Furthermore, the characteristic turbulent velocities ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}`` are computed with `compute_turbulent_velocity`.
 
 # Arguments
 
@@ -53,18 +53,18 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
 
   - `dt`: Time step.
 
-# See also 
+# See also
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayUpdate.compute_turbulent_velocity`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.compute_turbulent_velocity`](@ref)
 
 !!! danger "Experimental"
     The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
 """
 function apply_turbulent_damping! end
 
-function apply_turbulent_damping!(
+@ivy function apply_turbulent_damping!(
     state::State,
     r::Integer,
     i::Integer,
@@ -84,26 +84,26 @@ function apply_turbulent_damping!(
     if !turbulent_damping
         return
     end
-    @ivy if rays.dens[r, i, j, k] == 0.0
+    if rays.dens[r, i, j, k] == 0.0
         return
     end
 
     fc = coriolis_frequency * tref
 
-    @ivy kr = rays.k[r, i, j, k]
-    @ivy lr = rays.l[r, i, j, k]
-    @ivy mr = rays.m[r, i, j, k]
+    kr = rays.k[r, i, j, k]
+    lr = rays.l[r, i, j, k]
+    mr = rays.m[r, i, j, k]
 
-    @ivy dkr = rays.dkray[r, i, j, k]
-    @ivy dlr = rays.dlray[r, i, j, k]
-    @ivy dmr = rays.dmray[r, i, j, k]
+    dkr = rays.dkray[r, i, j, k]
+    dlr = rays.dlray[r, i, j, k]
+    dmr = rays.dmray[r, i, j, k]
 
     kh2 = kr^2 + lr^2
 
     n2r = interpolate_stratification(zr, state, N2())
 
     omir = -sqrt(n2r * kh2 + fc^2 * mr^2) / sqrt(kh2 + mr^2)
-    @ivy rhob = rhobar[i, j, k]
+    rhob = rhobar[i, j, k]
 
     factor = dmr
 
@@ -114,7 +114,7 @@ function apply_turbulent_damping!(
         factor *= dlr
     end
 
-    @ivy wadr = rays.dens[r, i, j, k] * factor
+    wadr = rays.dens[r, i, j, k] * factor
 
     q0r = compute_turbulent_velocity(state, r, i, j, k, 0.0)
     q1r = compute_turbulent_velocity(state, r, i, j, k, 1.0)
@@ -136,7 +136,7 @@ function apply_turbulent_damping!(
 
     wadr *= 1 - 2 * dt * (gammas + gammaw + gammawp)
 
-    @ivy rays.dens[r, i, j, k] = wadr / factor
+    rays.dens[r, i, j, k] = wadr / factor
 
     return
 end

@@ -65,7 +65,7 @@ function compute_lhs!(state::State)::AbstractFloat
     @dispatch_model return compute_lhs!(state, Val(model))
 end
 
-function compute_lhs!(
+@ivy function compute_lhs!(
     state::State,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
@@ -82,7 +82,7 @@ function compute_lhs!(
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
@@ -152,14 +152,17 @@ function compute_lhs!(
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Incorrect L2 norm: divl2_norm = 0 while divl2 != 0!")
         end
     end
 
     return tolref
 end
 
-function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
+@ivy function compute_lhs!(
+    state::State,
+    model::Val{:Compressible},
+)::AbstractFloat
     (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
@@ -173,7 +176,7 @@ function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
@@ -215,7 +218,7 @@ function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Incorrect L2 norm: divl2_norm = 0 while divl2 != 0!")
         end
     end
 
