@@ -15,7 +15,7 @@ macro share(x::Vararg{Expr})
                     xi.args[1] === option && error("Duplicate option!")
                 end
 
-                if xi.args[1] === :block_size && xi.args[2] isa Integer
+                if xi.args[1] === :block_size
                     block_size = xi.args[2]
                 elseif xi.args[1] === :thread && xi.args[2] isa Bool
                     thread = xi.args[2]
