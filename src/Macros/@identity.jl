@@ -1,5 +1,5 @@
 macro identity end
 
 macro identity(x::Vararg{Any})
-    return x[end]
+    return esc(x[end])
 end
