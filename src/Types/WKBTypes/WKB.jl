@@ -190,6 +190,7 @@ function WKB(
     ) = namelists.wkb
     (; x_size, y_size, z_size) = namelists.domain
     (; nxx, nyy, nzz) = domain
+    (; turbulence_scheme) = namelists.turbulence
 
     # Check if the spectral-extent factors are set correctly.
     if x_size > 1 && dkr_factor == 0.0
@@ -260,10 +261,10 @@ function WKB(
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
     elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
 
-    if wkb_mode != :MultiColumn
-        auxiliaries = WKBAuxiliaries(0, 0, 0)
-    else
+    if turbulence_scheme != :NoTurbulence && wkb_mode == :MultiColumn
         auxiliaries = WKBAuxiliaries(nxx, nyy, nzz)
+    else
+        auxiliaries = WKBAuxiliaries(0, 0, 0)
     end
     
     return WKB(

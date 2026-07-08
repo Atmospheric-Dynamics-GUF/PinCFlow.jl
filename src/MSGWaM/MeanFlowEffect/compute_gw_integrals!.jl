@@ -52,6 +52,14 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 
 Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref) for more details).
 
+In the case of turbulence parameterization, the gravity-wave shear is calculated using
+
+```math
+\\begin{align*}
+    S_{gw} = \\frac{m_r^4}{\\bar{\\rho}} \\frac{f^2\\right) + \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
+\\end{align*}
+```
+
 ```julia
 compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
 ```
@@ -106,6 +114,7 @@ end
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
+    (; turbulence_scheme) = state.namelists.turbulence
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
@@ -289,10 +298,16 @@ end
                                 )
                         end
 
-                        auxiliaries.shear[iray, jray, kray] +=
-                            mr^2 * mr^2 *
-                            (fc^2 + omir^2) / (omir * (kr^2 + lr^2 + mr^2)) *
-                            wadr / rhobar[iray, jray, kray]
+                        if turbulence_scheme != :NoTurbulence
+                            auxiliaries.shear[iray, jray, kray] +=
+                                mr^4  * 
+                                wadr / 
+                                rhobar[iray, jray, kray] * 
+                                (fc^2 + omir^2) / (
+                                    omir * 
+                                    (kr^2 + lr^2 + mr^2)
+                                )
+                        end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
