@@ -50,8 +50,8 @@ function get_next_level end
     (; nz, nzz, ko, k0, k1) = state.domain
     (; zc) = state.grid
 
-    k = argmin(abs.(zc[i, j, :] .- z))
-    if zc[i, j, k] < z
+    k = 1
+    while zc[i, j, k] < z
         k += 1
     end
 
