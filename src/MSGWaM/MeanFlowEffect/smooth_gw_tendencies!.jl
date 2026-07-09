@@ -3,7 +3,7 @@
 smooth_gw_tendencies!(state::State)
 ```
 
-Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.filter_type`) and dimensionality of the domain.
+Apply spatial smoothing to gravity-wave tendency and shear fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.filter_type`) and dimensionality of the domain.
 
 ```julia
 smooth_gw_tendencies!(

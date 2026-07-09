@@ -14,6 +14,7 @@ WKB{
     K <: AbstractArray{<:AbstractFloat, 3},
     L <: Spectrum,
     M <: ElasticModeSelection,
+    N <: WKBAuxiliaries,
 }
 ```
 
@@ -79,15 +80,13 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `elastic_mode_selection::M`: Elastic-mode-selection data.
 
+  - `auxiliaries::N`: Gravity-wave shear field.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
 
-  - `constants`: Physical constants and reference values.
-
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 

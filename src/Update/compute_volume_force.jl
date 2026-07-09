@@ -9,7 +9,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the volume force in the equation specified by `variable`, by dispatching to an equation-and-WKB-mode specific method.
+Return the volume force in the equation specified by `variable`, by dispatching to a WKB-mode specific method.
 
 ```julia
 compute_volume_force(
@@ -126,12 +126,38 @@ where
 
 ```math
 \\begin{align*}
-\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2\\right] \\;, \\\\
+\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2 + \\mathcal{S}_{gw} \\right] \\;, \\\\
 \\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
 \\end{align*}
 ```
 
-and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
+where the shear is supplemented by a gravity-wave shear term calculated by dispatiching to a WKB-mode specific method, and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
+
+```julia
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}, Val{:SingleColumn}},
+)::AbstractFloat
+```
+
+Return ``0`` as the gravity-wave shear in non-WKB, steady state and single column modes.
+
+```julia
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    wkb_mode::Val{:MultiColumn},
+)::AbstractFloat
+```
+
+Returns the gravity-wave shear in the multi-column mode.
 
 # Arguments
 
@@ -265,7 +291,7 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-    variables::Chi,
+    variable::Chi,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; leading_order_impact) = state.namelists.tracer
@@ -285,7 +311,7 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-    variables::TKE,
+    variable::TKE,
 )::AbstractFloat
     (; shear_production, buoyancy_production) =
         state.turbulence.turbulenceauxiliaries
@@ -302,7 +328,7 @@ end
         )
     
     @dispatch_wkb_mode shear += 
-        compute_volume_force(state, i, j, k, variables, Val(wkb_mode))
+        compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
 
     shear_production[i, j, k] = shear
 
@@ -323,7 +349,7 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-    variables::TKE,
+    variable::TKE,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}, Val{:SingleColumn}},
 )::AbstractFloat
 
@@ -335,7 +361,7 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-    variables::TKE,
+    variable::TKE,
     wkb_mode::Val{:MultiColumn},
 )::AbstractFloat
     (; shear) = state.wkb.auxiliaries

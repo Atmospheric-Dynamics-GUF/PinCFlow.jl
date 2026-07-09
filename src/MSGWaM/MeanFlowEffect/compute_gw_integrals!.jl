@@ -56,7 +56,7 @@ In the case of turbulence parameterization, the gravity-wave shear is calculated
 
 ```math
 \\begin{align*}
-    S_{gw} = \\frac{m_r^4}{\\bar{\\rho}} \\frac{f^2\\right) + \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
+    \\mathcal{S}_{gw} = \\frac{m_r^4}{\\bar{\\rho}} \\frac{f^2\\right) + \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
 \\end{align*}
 ```
 
