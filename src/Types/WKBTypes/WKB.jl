@@ -260,7 +260,7 @@ function WKB(
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
     elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
 
-    if turbulence_scheme != :NoTurbulence && wkb_mode == :MultiColumn
+    if turbulence_scheme != Val(:NoTurbulence) && wkb_mode == Val(:MultiColumn)
         auxiliaries = WKBAuxiliaries(nxx, nyy, nzz)
     else
         auxiliaries = WKBAuxiliaries(0, 0, 0)
