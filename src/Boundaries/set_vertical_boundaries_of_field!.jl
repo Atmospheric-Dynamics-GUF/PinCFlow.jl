@@ -57,7 +57,7 @@ function set_vertical_boundaries_of_field! end
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
 )
-    (; z_size) = namelists.domain
+    (; z_size, vertical_boundary_condition) = namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
@@ -65,7 +65,13 @@ function set_vertical_boundaries_of_field! end
     nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     if z_size > 1
-        set_vertical_halos_of_field!(field, namelists, domain; layers)
+        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
+            field,
+            namelists,
+            domain,
+            Val(vertical_boundary_condition);
+            layers,
+        )
     end
 
     ii = (i0 - nbx):(i1 + nbx)
@@ -106,10 +112,16 @@ function set_vertical_boundaries_of_field!(
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; z_size) = namelists.domain
+    (; z_size, vertical_boundary_condition) = namelists.domain
 
     if z_size > 1
-        set_vertical_halos_of_field!(field, namelists, domain; layers)
+        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
+            field,
+            namelists,
+            domain,
+            Val(vertical_boundary_condition);
+            layers,
+        )
     end
 
     return

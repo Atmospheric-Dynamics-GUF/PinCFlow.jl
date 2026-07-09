@@ -168,7 +168,8 @@ export @dispatch_background,
     @dispatch_model,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
-    @dispatch_turbulence_scheme
+    @dispatch_turbulence_scheme,
+    @dispatch_vertical_boundary_condition
 
 export AbstractPredictand
 

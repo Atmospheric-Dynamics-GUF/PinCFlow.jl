@@ -135,7 +135,18 @@ end
     namelists::Namelists;
     base_comm::MPI.Comm = MPI.COMM_WORLD,
 )::Domain
-    (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz) = namelists.domain
+    (;
+        x_size,
+        y_size,
+        z_size,
+        nbx,
+        nby,
+        nbz,
+        npx,
+        npy,
+        npz,
+        vertical_boundary_condition,
+    ) = namelists.domain
 
     # Initialize MPI.
     !MPI.Initialized() && MPI.Init()
@@ -175,7 +186,14 @@ end
 
     # Set dimensions and periodicity.
     dims = [npx, npy, npz]
-    periods = [true, true, false]
+
+    if vertical_boundary_condition == :SolidWall
+        periods = [true, true, false]
+    elseif vertical_boundary_condition == :Periodic
+        periods = [true, true, true]
+    else 
+        error("Incorrect choice of `vertical_boundary_condition`. Must be `:SolidWall` or `:Periodic`")
+    end
 
     # Create a Cartesian topology.
     comm = MPI.Cart_create(base_comm, dims; periodic = periods)

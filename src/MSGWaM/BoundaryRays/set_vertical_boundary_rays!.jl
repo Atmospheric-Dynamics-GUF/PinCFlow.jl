@@ -21,22 +21,67 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 """
 function set_vertical_boundary_rays! end
 
-@ivy function set_vertical_boundary_rays!(state::State)
+function set_vertical_boundary_rays!(state)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition set_vertical_boundary_rays!(
+        state,
+        Val(vertical_boundary_condition),
+    )
+    return
+end
+
+@ivy function set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:Periodic},
+)
     (; namelists, domain) = state
-    (; z_size, npz) = namelists.domain
+    (; z_size, npz, vertical_boundary_condition) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lx, ly, lz, dx, dy, hb) = state.grid
     (; nray, rays) = state.wkb
 
     # Set ray-volume count and ray-volumes properties.
     if z_size > 1
-        set_vertical_halos_of_field!(
+        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
             nray,
             namelists,
-            domain;
+            domain,
+            Val(vertical_boundary_condition);
             layers = (1, 1, 1),
         )
-        set_vertical_halo_rays!(state)
+        @dispatch_vertical_boundary_condition set_vertical_halo_rays!(
+            state,
+            Val(vertical_boundary_condition),
+        )
+    end
+
+    return
+end
+
+@ivy function set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:SolidWall},
+)
+    (; namelists, domain) = state
+    (; z_size, npz, vertical_boundary_condition) = namelists.domain
+    (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; lx, ly, lz, dx, dy, hb) = state.grid
+    (; nray, rays) = state.wkb
+
+    # Set ray-volume count and ray-volumes properties.
+    if z_size > 1
+        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
+            nray,
+            namelists,
+            domain,
+            Val(vertical_boundary_condition);
+            layers = (1, 1, 1),
+        )
+        @dispatch_vertical_boundary_condition set_vertical_halo_rays!(
+            state,
+            Val(vertical_boundary_condition),
+        )
     end
 
     # Reflect ray volumes at the lower boundary.

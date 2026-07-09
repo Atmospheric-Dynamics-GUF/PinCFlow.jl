@@ -52,7 +52,7 @@ function apply_operator! end
     state::State,
 )
     (; namelists, domain) = state
-    (; npz) = state.namelists.domain
+    (; npz, vertical_boundary_condition) = state.namelists.domain
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (;
         ac_b,
@@ -95,7 +95,13 @@ function apply_operator! end
             domain;
             layers = (1, 1, 2),
         )
-        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
+        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
+            s,
+            namelists,
+            domain,
+            Val(vertical_boundary_condition);
+            layers = (1, 1, 2),
+        )
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(
@@ -279,7 +285,7 @@ end
     state::State,
 )
     (; namelists, domain) = state
-    (; npz) = state.namelists.domain
+    (; npz, vertical_boundary_condition) = state.namelists.domain
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (;
         al_b,
@@ -319,7 +325,13 @@ end
             domain;
             layers = (1, 1, 2),
         )
-        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
+        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
+            s,
+            namelists,
+            domain,
+            Val(vertical_boundary_condition);
+            layers = (1, 1, 2),
+        )
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(

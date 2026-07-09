@@ -271,10 +271,36 @@ function set_vertical_boundaries!(
     return
 end
 
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Val{:Boussinesq},
+)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition set_vertical_boundaries!(
+        state,
+        variables,
+        model,
+        Val(vertical_boundary_condition),
+    )
+    return
+end
+
 @ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Boussinesq},
+    vertical_boundary_condition::Val{:Periodic},
+)
+    return
+end
+
+@ivy function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Val{:Boussinesq},
+    vertical_boundary_condition::Val{:SolidWall},
 )
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain

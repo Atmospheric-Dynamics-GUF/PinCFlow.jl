@@ -83,9 +83,33 @@ function set_turbulence_vertical_boundaries!(
     return
 end
 
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition set_turbulence_vertical_boundaries!(
+        state,
+        variables,
+        Val(vertical_boundary_condition),
+    )
+
+    return
+end
+
 @ivy function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:Periodic},
+)
+    return
+end
+
+@ivy function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:SolidWall},
 )
     (; nz, ko, k0, k1) = state.domain
     (; z_size) = state.namelists.domain
