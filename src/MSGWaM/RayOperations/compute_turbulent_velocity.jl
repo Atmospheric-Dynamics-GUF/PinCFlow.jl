@@ -15,12 +15,6 @@ Compute and return the characteristic mean turbulent velocity amplitude ``Q_{\\b
 The velocity amplitude is computed from the numerical phase average 
 
 ```math 
-Q_{0,r} = \\frac{1}{2\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}\\Delta\\phi\\;,
-```
-
-and for ``\\beta>0``
-
-```math 
 Q_{\\beta,r} = \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-i\\beta n\\Delta\\phi}\\Delta\\phi\\;.
 ```
 
@@ -135,7 +129,7 @@ function compute_turbulent_velocity end
     dphi = 2 * pi / 20
     phi = 0.0
     integral = 0.0
-    
+
     while phi <= 2 * pi
         qtilde = compute_turbulent_velocity(
             state,
