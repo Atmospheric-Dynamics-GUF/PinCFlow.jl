@@ -57,10 +57,10 @@ function SpongeNamelist(;
     return SpongeNamelist(
         damp_horizontal_wind_on_rhs,
         relax_to_mean,
-        lhs_sponge,
-        rhs_sponge,
-        relaxed_u,
-        relaxed_v,
-        relaxed_w,
+        (x, y, z, t, dt) -> Float64(lhs_sponge(x, y, z, t, dt)),
+        (x, y, z, t, dt) -> Float64(rhs_sponge(x, y, z, t, dt)),
+        (x, y, z, t, dt) -> Float64(relaxed_u(x, y, z, t, dt)),
+        (x, y, z, t, dt) -> Float64(relaxed_v(x, y, z, t, dt)),
+        (x, y, z, t, dt) -> Float64(relaxed_w(x, y, z, t, dt)),
     )
 end

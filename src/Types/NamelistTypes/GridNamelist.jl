@@ -38,8 +38,8 @@ function GridNamelist(;
     unresolved_topography::Function = (alpha, x, y) -> (0.0, 0.0, 0.0),
 )::GridNamelist
     return GridNamelist(
-        vertical_grid_stretching,
-        resolved_topography,
-        unresolved_topography,
+        zhat -> Float64(vertical_grid_stretching(zhat)),
+        (x, y) -> Float64(resolved_topography(x, y)),
+        (alpha, x, y) -> Float64.(unresolved_topography(alpha, x, y)),
     )
 end

@@ -47,8 +47,8 @@ function TracerNamelist(;
     return TracerNamelist(
         tracer_setup,
         leading_order_impact,
-        initial_chi,
-        relaxed_chi,
+        (x, y, z) -> Float64(initial_chi(x, y, z)),
+        (x, y, z, t, dt) -> Float64(relaxed_chi(x, y, z, t, dt)),
         apply_lhs_sponge_to_tracer,
     )
 end
