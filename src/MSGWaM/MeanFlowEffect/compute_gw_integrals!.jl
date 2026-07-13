@@ -55,9 +55,11 @@ Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\
 In the case of turbulence parameterization, the gravity-wave shear is calculated using
 
 ```math
-\\begin{equation*}
-    \\mathcal{S}_{gw} = \\frac{m_r^4}{\\bar{\\rho}} \\frac{f^2\\right) + \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
-\\end{equation*}
+\\begin{align*}
+    \\hat{c}_{\\mathrm{g} x, r} & = \\frac{k_r \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    \\hat{c}_{\\mathrm{g} y, r} & = \\frac{l_r \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    \\hat{c}_{\\mathrm{g} z, r} & = - \\frac{m_r \\left(\\hat{\\omega}_r^2 - f^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
+\\end{align*}
 ```
 
 ```julia
