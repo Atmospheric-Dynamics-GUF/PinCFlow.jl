@@ -145,12 +145,12 @@ function AtmosphereNamelist(;
         Float64(tropopause_height),
         Float64(troposphere_lapse_rate),
         Float64(stratosphere_lapse_rate),
-        (x, y, z) -> Float64(initial_rhop(x, y, z)),
-        (x, y, z) -> Float64(initial_u(x, y, z)),
-        (x, y, z) -> Float64(initial_v(x, y, z)),
-        (x, y, z) -> Float64(initial_w(x, y, z)),
-        (x, y, z) -> Float64(initial_pip(x, y, z)),
-        (x, y, z) -> Float64(initial_thetap(x, y, z)),
+        initial_rhop,
+        initial_u,
+        initial_v,
+        initial_w,
+        initial_pip,
+        initial_thetap,
         buoyancy_initialization,
     )
 end

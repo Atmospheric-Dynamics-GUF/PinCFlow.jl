@@ -219,7 +219,7 @@ function WKBNamelist(;
         Float64(long_threshold),
         Float64(drag_coefficient),
         Int(wave_modes),
-        (alpha, x, y, z) -> Float64.(initial_wave_field(alpha, x, y, z)),
+        initial_wave_field,
         elastic_mode_selection,
         Int(minimum_mode_count),
         Int(maximum_mode_count),

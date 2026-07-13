@@ -49,6 +49,6 @@ function TurbulenceNamelist(;
         momentum_coupling,
         entropy_coupling,
         tracer_coupling,
-        (x, y, z) -> Float64(initial_tke(x, y, z)),
+        initial_tke,
     )
 end
