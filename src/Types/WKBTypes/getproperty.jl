@@ -1,4 +1,4 @@
-@ivy function getproperty(
+@ivy @inline function getproperty(
     rays::Rays,
     name::Symbol,
 )::AbstractArray{<:AbstractFloat}
