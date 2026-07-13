@@ -50,8 +50,8 @@ function get_next_half_level end
     (; nz, nzz, ko, k0, k1) = state.domain
     (; zctilde) = state.grid
 
-    k = argmin(abs.(zctilde[i, j, :] .- z))
-    if zctilde[i, j, k] < z
+    k = 1
+    while zctilde[i, j, k] < z
         k += 1
     end
 
