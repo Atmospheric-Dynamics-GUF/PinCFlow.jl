@@ -126,12 +126,12 @@ where
 
 ```math
 \\begin{align*}
-\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2 + \\mathcal{S}_{gw} \\right] \\;, \\\\
+\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2 + \\ \\mathcal{S}_{gw} \\ \\right] \\;, \\\\
 \\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
 \\end{align*}
 ```
 
-where the shear is supplemented by a gravity-wave shear term calculated by dispatiching to a WKB-mode specific method, and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
+where the shear is supplemented by a gravity-wave induced shear term calculated by dispatching to a WKB-mode specific method, and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
 
 ```julia
 compute_volume_force(
@@ -144,7 +144,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return ``0`` as the gravity-wave shear in non-WKB, steady state and single column modes.
+Return ``0`` as the gravity-wave induced shear in non-WKB, steady state and single column modes.
 
 ```julia
 compute_volume_force(
@@ -157,7 +157,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Returns the gravity-wave shear in the multi-column mode.
+Returns the gravity-wave induced shear in the multi-column mode.
 
 # Arguments
 
@@ -172,8 +172,6 @@ Returns the gravity-wave shear in the multi-column mode.
   - `variable`: Variable (equation) of choice.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
-
-  - `model`: Dynamic equations.
 
 # See also
 

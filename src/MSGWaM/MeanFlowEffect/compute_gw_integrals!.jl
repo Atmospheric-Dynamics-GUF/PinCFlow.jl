@@ -52,13 +52,11 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 
 Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref) for more details).
 
-In the case of turbulence parameterization, the gravity-wave shear is calculated using
+In the case of turbulence parameterization, the gravity-wave induced shear is calculated using
 
 ```math
 \\begin{align*}
-    \\hat{c}_{\\mathrm{g} x, r} & = \\frac{k_r \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
-    \\hat{c}_{\\mathrm{g} y, r} & = \\frac{l_r \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
-    \\hat{c}_{\\mathrm{g} z, r} & = - \\frac{m_r \\left(\\hat{\\omega}_r^2 - f^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
+     \\mathcal{S}_{gw} = \\frac{m_r^4}{\\bar{\\rho}} \\frac{\\left(f^2 + \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
 \\end{align*}
 ```
 

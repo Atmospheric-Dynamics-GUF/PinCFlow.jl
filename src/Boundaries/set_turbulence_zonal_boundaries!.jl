@@ -21,7 +21,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Enforce zonal boundary conditions for gravity-wave shear.
+Enforce zonal boundary conditions for gravity-wave induced shear.
 
 # Arguments
 

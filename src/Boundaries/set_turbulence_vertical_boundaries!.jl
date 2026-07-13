@@ -30,7 +30,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for gravity-wave shear.
+Enforce vertical boundary conditions for gravity-wave induced shear.
 
 # Arguments
 

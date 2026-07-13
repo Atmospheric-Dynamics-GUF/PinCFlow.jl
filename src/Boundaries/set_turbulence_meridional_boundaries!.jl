@@ -24,7 +24,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Enforce meridional boundary conditions for gravity-wave shear.
+Enforce meridional boundary conditions for gravity-wave induced shear.
 
 # Arguments
 

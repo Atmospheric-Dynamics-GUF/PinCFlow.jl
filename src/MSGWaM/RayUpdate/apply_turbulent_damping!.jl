@@ -23,7 +23,7 @@ where the turbulent damping terms are given by
 
 ```math
 \\begin{align*}
-    \\gamma_s & = m_r^2 \\left[l_v\\left(1-\\delta_r\\right) + l_b\\delta_r\\right]\\sqrt{2 e_\\mathrm{k}}} ,\\\\
+    \\gamma_s & = m_r^2 \\left[l_v\\left(1-\\delta_r\\right) + l_b\\delta_r\\right]\\sqrt{2 e_\\mathrm{k}},\\\\
     \\gamma_w & = \\frac{m_r^2}{4} \\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{N_r^2\\left(k_r^2+l_r^2\\right)+f^2m_r^2}\\left[l_v \\left(1-\\frac{f^2}{N_r^2}\\right)\\left(1+\\frac{k_r^2+l_r^2}{m_r^2}\\right)^{-1}-l_b\\right]\\Re\\left(Q_{2,r}\\right),\\\\
     \\gamma_w' & = -l_b\\frac{m_r}{2\\hat{\\omega}_r}\\sqrt{\\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{\\left|\\boldsymbol{k}_r\\right|^2}\\frac{\\bar{\\rho}\\hat{\\omega}_r}{2\\mathcal{A}_r}}\\Re\\left(iQ_{1,r}\\right),
 \\end{align*}

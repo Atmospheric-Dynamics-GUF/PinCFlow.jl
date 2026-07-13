@@ -37,7 +37,13 @@ include("WKB.jl")
 
 include("getproperty.jl")
 
-export WKBIntegrals, WKBTendencies, WKBAuxiliaries,
-    Rays, MergedRays, WKBIncrements, SurfaceIndices, WKB
+export WKBIntegrals, 
+    WKBTendencies, 
+    WKBAuxiliaries,
+    Rays, 
+    MergedRays, 
+    WKBIncrements, 
+    SurfaceIndices, 
+    WKB
 
 end

@@ -3,7 +3,7 @@
 WKBAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Auxiliary for calculating the gravity-wave shear in the turbulence scheme.
+Auxiliary for calculating the gravity-wave induced shear in the turbulence scheme.
 
 ```julia
 WKBAuxiliaries(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
