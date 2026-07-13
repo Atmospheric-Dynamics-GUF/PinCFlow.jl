@@ -13,7 +13,7 @@ Construct a `WKBAuxiliaries` instance, with an array sized according to the give
 
 # Fields
 
-  - `shear::A`: Gravity-wave shear.
+  - `shear::A`: Gravity-wave induced shear field.
 
 # Arguments
 

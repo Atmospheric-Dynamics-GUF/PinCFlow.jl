@@ -80,7 +80,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `elastic_mode_selection::M`: Elastic-mode-selection data.
 
-  - `auxiliaries::N`: Gravity-wave shear field.
+  - `auxiliaries::N`: Gravity-wave induced shear field.
 
 # Arguments
 
