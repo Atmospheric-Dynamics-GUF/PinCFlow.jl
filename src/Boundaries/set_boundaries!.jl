@@ -24,7 +24,6 @@ set_boundaries!(
     variables::Union{
         BoundaryPredictands,
         BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
     },
     turbulence::TKE,
 )

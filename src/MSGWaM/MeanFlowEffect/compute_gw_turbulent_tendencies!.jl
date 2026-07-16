@@ -1,45 +1,43 @@
 """
 ```julia
-compute_gw_tracer_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
+compute_gw_turbulent_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
 ```
 
-Compute the leading-order tracer forcing by dispatching to the appropriate method.
+Compute the gravity-wave induced shear as a tendency that is to be added to the turbulence equation, by dispatching to the appropriate method.
 
 ```julia
-compute_gw_tracer_tendencies!(
+compute_gw_turbulent_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::Val{:NoTracer},
+    turbulence_scheme::Val{:NoTurbulence},
 )
 ```
 
-Return for configurations without tracer transport.
+Return for configurations without turbulence parameterization.
 
 ```julia
-compute_gw_tracer_tendencies!(
+compute_gw_turbulent_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
     k::Integer,
-    tracer_setup::Val{:TracerOn},
+    turbulence_scheme::Val{:TKEScheme},
 )
 ```
 
-Compute and return the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
+Compute and return the gravity-wave turbulent tendencies at ``\\left(i, j, k\\right)``.
 
-Calculates the tendency that is to be added to the tracer equations, given by
+Calculates the tendency from the gravity-wave induced shear as follows,
 
 ```math
 \\begin{align*}
-    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\bar{\\rho}}\\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
-    & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
-    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] ,
+    \\mathcal{S} &= K_\\mathrm{M} \\ \\mathcal{S}_{gw} \\;,
 \\end{align*}
 ```
 
-where ``\\chi_\\mathrm{b}`` is the resolved tracer and ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``). For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref).
+where ``K_\\mathrm{H}`` represents the eddy diffusion coefficient for momentum.
 
 # Arguments
 
@@ -51,8 +49,9 @@ where ``\\chi_\\mathrm{b}`` is the resolved tracer and ``\\rho_\\mathrm{b}`` is 
 
   - `k`: Vertical grid-cell index.
 
-  - `tracer_setup`: General tracer-transport configuration.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 """
+
 function compute_gw_turbulent_tendencies! end
 
 function compute_gw_turbulent_tendencies!(

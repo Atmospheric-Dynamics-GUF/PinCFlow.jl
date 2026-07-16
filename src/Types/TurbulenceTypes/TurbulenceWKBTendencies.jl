@@ -3,7 +3,7 @@
 TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Tracer impact of unresolved gravity waves.
+Turbulence impact of unresolved gravity waves.
 
 ```julia 
 TurbulenceWKBTendencies(
@@ -18,17 +18,17 @@ Construct a `TurbulenceWKBTendencies` instance by dispatching to the appropriate
 TurbulenceWKBTendencies(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::Val{:NoTracer},
+    turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceWKBTendencies
 ```
 
-Construct a `TurbulenceWKBTendencies` instance with zero-size arrays for configurations without tracer transport.
+Construct a `TurbulenceWKBTendencies` instance with zero-size arrays for configurations without turbulence parameterization.
 
 ```julia 
 TurbulenceWKBTendencies(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::Val{:TracerOn},
+    turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceWKBTendencies
 ```
 
@@ -52,11 +52,7 @@ TurbulenceWKBTendencies(
 )::TurbulenceWKBTendencies
 ```
 
-Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `state.namelists.tracer.leading_order_impact == true`, otherwise the arrays are zero-size.
-
-# Fields 
-
-  - `dchidt0::A`: Leading-order tracer impact of unresolved gravity waves.
+Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays.
 
 # Arguments
 
@@ -64,7 +60,7 @@ Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `tracer_setup`: General tracer-transport configuration.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """

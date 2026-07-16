@@ -82,7 +82,6 @@ Boundary-variable category for gravity-wave-tendency fields.
 """
 struct BoundaryWKBTendencies <: AbstractBoundaryWKBVariables end
 
-
 include("set_boundaries!.jl")
 include("set_tracer_meridional_boundaries!.jl")
 include("set_tracer_vertical_boundaries!.jl")

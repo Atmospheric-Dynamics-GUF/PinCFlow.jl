@@ -14,7 +14,6 @@ WKB{
     K <: AbstractArray{<:AbstractFloat, 3},
     L <: Spectrum,
     M <: ElasticModeSelection,
-    N <: WKBAuxiliaries,
 }
 ```
 
@@ -79,8 +78,6 @@ This method primarily determines the size of the spectral dimension of ray-volum
   - `spectrum::L`: Wave field for initialization and sources.
 
   - `elastic_mode_selection::M`: Elastic-mode-selection data.
-
-  - `auxiliaries::N`: Gravity-wave induced shear field.
 
 # Arguments
 

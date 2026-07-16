@@ -23,15 +23,6 @@ set_turbulence_vertical_boundaries!(state::State, variables::BoundaryFluxes)
 
 Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to zero.
 
-```julia
-set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-)
-```
-
-Enforce vertical boundary conditions for gravity-wave induced shear.
-
 # Arguments
 
   - `state`: Model state.

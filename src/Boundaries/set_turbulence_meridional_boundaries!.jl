@@ -17,15 +17,6 @@ set_turbulence_meridional_boundaries!(
 
 Enforce meridional boundary conditions for reconstructions of turbulent kinetic energy.
 
-```julia
-set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-)
-```
-
-Enforce meridional boundary conditions for gravity-wave induced shear.
-
 # Arguments
 
   - `state`: Model state.

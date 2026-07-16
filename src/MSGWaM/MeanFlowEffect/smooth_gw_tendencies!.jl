@@ -3,7 +3,7 @@
 smooth_gw_tendencies!(state::State)
 ```
 
-Apply spatial smoothing to gravity-wave tendency and shear fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.filter_type`) and dimensionality of the domain.
+Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.filter_type`) and dimensionality of the domain.
 
 ```julia
 smooth_gw_tendencies!(
@@ -152,6 +152,18 @@ smooth_gw_tendencies!(
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
+
+```julia
+smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:NoTurbulence})
+```
+
+Return for configurations without turbulence parameterization.
+
+```julia
+smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:TKEScheme})
+```
+
+Apply smoothing to turbulent tendencies.
 
 ```julia
 smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})

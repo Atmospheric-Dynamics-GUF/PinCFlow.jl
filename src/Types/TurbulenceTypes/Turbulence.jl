@@ -7,6 +7,7 @@ Turbulence{
     D <: TurbulenceReconstructions,
     E <: TurbulenceFluxes,
     F <: TurbulenceConstants,
+    G <: TurbulenceWKBTendencies,
 }
 ```
 
@@ -39,6 +40,8 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
 
   - `turbulenceconstants::F`: Constants used for the turbulence parameterization.
 
+  - `turbulencewkbtendencies::G`: Turbulence impact of unresolved gravity waves.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -66,6 +69,9 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceFluxes`](@ref)
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceConstants`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceWKBTendencies`](@ref)
+
 """
 struct Turbulence{
     A <: TurbulencePredictands,
