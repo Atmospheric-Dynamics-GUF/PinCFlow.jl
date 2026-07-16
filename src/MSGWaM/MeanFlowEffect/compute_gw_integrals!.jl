@@ -119,7 +119,8 @@ end
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
-    (; nray, rays, integrals, auxiliaries) = state.wkb
+    (; nray, rays, integrals) = state.wkb
+    (; gw_shear) = state.turbulence.turbulenceauxiliaries
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -128,9 +129,7 @@ end
         getfield(integrals, field) .= 0.0
     end
 
-    for field in fieldnames(WKBAuxiliaries)
-        getfield(auxiliaries, field) .= 0.0
-    end
+    gw_shear .= 0.0
 
     set_tracer_fields_zero!(state)
 
@@ -298,16 +297,18 @@ end
                                 )
                         end
 
-                        if turbulence_scheme != :NoTurbulence
-                            auxiliaries.shear[iray, jray, kray] +=
-                                mr^4  * 
-                                wadr / 
-                                rhobar[iray, jray, kray] * 
-                                (fc^2 + omir^2) / (
-                                    omir * 
-                                    (kr^2 + lr^2 + mr^2)
-                                )
-                        end
+                        compute_gw_shear!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
 
                         integrals.e[iray, jray, kray] += wadr * omir
 

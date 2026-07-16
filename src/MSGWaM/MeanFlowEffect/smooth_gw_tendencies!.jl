@@ -188,8 +188,8 @@ function smooth_gw_tendencies!(state::State)
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
-    (; shear) = state.wkb.auxiliaries
-
+    (; turbulence_scheme) = state.namelists.turbulence
+    (; gw_shear) = state.turbulence.turbulenceauxiliaries
 
     if !smooth_tendencies
         return
@@ -199,25 +199,23 @@ function smooth_gw_tendencies!(state::State)
         smooth_gw_tendencies!(dudt, state, Val(filter_type), Z())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), Z())
         smooth_gw_tendencies!(dthetadt, state, Val(filter_type), Z())
-        smooth_gw_tendencies!(shear, state, Val(filter_type), Z())
     elseif x_size == 1
         smooth_gw_tendencies!(dudt, state, Val(filter_type), YZ())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), YZ())
         smooth_gw_tendencies!(dthetadt, state, Val(filter_type), YZ())
-        smooth_gw_tendencies!(shear, state, Val(filter_type), YZ())
     elseif y_size == 1
         smooth_gw_tendencies!(dudt, state, Val(filter_type), XZ())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), XZ())
         smooth_gw_tendencies!(dthetadt, state, Val(filter_type), XZ())
-        smooth_gw_tendencies!(shear, state, Val(filter_type), XZ())
     else
         smooth_gw_tendencies!(dudt, state, Val(filter_type), XYZ())
         smooth_gw_tendencies!(dvdt, state, Val(filter_type), XYZ())
         smooth_gw_tendencies!(dthetadt, state, Val(filter_type), XYZ())
-        smooth_gw_tendencies!(shear, state, Val(filter_type), XYZ())
     end
 
     @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
+
+    @dispatch_turbulence_scheme smooth_gw_tendencies!(state, Val(turbulence_scheme))
 
     return
 end
@@ -495,3 +493,35 @@ end
 function smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})
     return
 end
+
+function smooth_gw_tendencies!(
+    state::State, 
+    turbulence_scheme::Val{:NoTurbulence}
+)
+    return
+end
+
+function smooth_gw_tendencies!(
+    state::State, 
+    turbulence_scheme::Val{:TKEScheme}
+)
+    (; x_size, y_size) = state.namelists.domain
+    (; wkb_mode) = state.namelists.wkb
+    (; smooth_tendencies, filter_type) = state.namelists.wkb
+    (; gw_shear) = state.turbulence.turbulenceauxiliaries
+
+    if wkb_mode != :MultiColumn
+        return
+    end
+
+    @dispatch_filter_type if x_size == y_size == 1
+        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), Z())
+    elseif x_size == 1
+        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), YZ())
+    elseif y_size == 1
+        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), XZ())
+    else
+        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), XYZ())
+    end
+end
+

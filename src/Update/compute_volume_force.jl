@@ -362,10 +362,10 @@ end
     variable::TKE,
     wkb_mode::Val{:MultiColumn},
 )::AbstractFloat
-    (; shear) = state.wkb.auxiliaries
+    (; gw_shear) = state.turbulence.turbulenceauxiliaries
 
     gw_shear = turbulence_diffusion_coefficient(state, i, j, k, KM()) * 
-        shear[i, j, k]
+        gw_shear[i, j, k]
 
     return gw_shear
 end

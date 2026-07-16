@@ -105,22 +105,3 @@ end
 
     return
 end
-
-function set_turbulence_vertical_boundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-)
-    (; namelists, domain) = state
-    (; auxiliaries) = state.wkb
-
-    for field in fieldnames(WKBAuxiliaries)
-        set_vertical_boundaries_of_field!(
-            getfield(auxiliaries, field),
-            namelists,
-            domain,
-            +,
-        )
-    end
-
-    return
-end

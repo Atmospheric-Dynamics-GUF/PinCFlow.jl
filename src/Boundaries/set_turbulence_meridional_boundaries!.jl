@@ -75,21 +75,3 @@ function set_turbulence_meridional_boundaries!(
 
     return
 end
-
-function set_turbulence_meridional_boundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-)
-    (; namelists, domain) = state
-    (; auxiliaries) = state.wkb
-
-    for field in fieldnames(WKBAuxiliaries)
-        set_meridional_boundaries_of_field!(
-            getfield(auxiliaries, field),
-            namelists,
-            domain,
-        )
-    end
-
-    return
-end

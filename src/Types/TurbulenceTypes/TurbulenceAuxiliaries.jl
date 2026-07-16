@@ -38,6 +38,8 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 
   - `buoyancy_production::A`: Contribution of turbulence production due to the buoyancy.
 
+  - `gw_shear::A`: Gravity-wave induced shear field.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -49,6 +51,7 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 struct TurbulenceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     shear_production::A
     buoyancy_production::A
+    gw_shear::A
 end
 
 function TurbulenceAuxiliaries(
@@ -58,22 +61,41 @@ function TurbulenceAuxiliaries(
     (; turbulence_scheme) = namelists.turbulence
 
     @dispatch_turbulence_scheme return TurbulenceAuxiliaries(
+        namelists,
         domain,
         Val(turbulence_scheme),
     )
 end
 
 function TurbulenceAuxiliaries(
+    namelists::Namelists,
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceAuxiliaries
-    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:2]...)
+    print("No Turbulence")
+    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TurbulenceAuxiliaries(
+    namelists::Namelists,
     domain::Domain,
     turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceAuxiliaries
+    (; wkb_mode) = namelists.wkb
     (; nxx, nyy, nzz) = domain
-    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:2]...)
+
+    shear_production = zeros(nxx, nyy, nzz)
+    buoyancy_production = zeros(nxx, nyy, nzz)
+
+    if wkb_mode != :MultiColumn
+        gw_shear = zeros(0, 0, 0)
+    else
+        gw_shear = zeros(nxx, nyy, nzz)
+    end
+
+    return TurbulenceAuxiliaries(
+        shear_production,
+        buoyancy_production,
+        gw_shear,
+    )
 end
