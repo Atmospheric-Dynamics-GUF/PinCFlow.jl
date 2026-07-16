@@ -25,10 +25,12 @@ module MeanFlowEffect
 
 using ..BlockedLayer
 using ..Interpolation
-using ..RayUpdate
+using ...Update
 using ...Macros
 using ...Types
 using ...Boundaries
+
+import ..RayUpdate
 
 """
 ```julia
@@ -63,6 +65,7 @@ include("compute_gw_tracer_tendencies!.jl")
 include("set_tracer_fields_zero!.jl")
 include("apply_shapiro_filter!.jl")
 include("compute_gw_shear!.jl")
+include("compute_gw_turbulent_tendencies!.jl")
 include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")
 include("compute_horizontal_cell_indices.jl")

@@ -74,6 +74,7 @@ struct Turbulence{
     D <: TurbulenceReconstructions,
     E <: TurbulenceFluxes,
     F <: TurbulenceConstants,
+    G <: TurbulenceWKBTendencies,
 }
     turbulencepredictands::A
     turbulenceincrements::B
@@ -81,6 +82,7 @@ struct Turbulence{
     turbulencereconstructions::D
     turbulencefluxes::E
     turbulenceconstants::F
+    turbulencewkbtendencies::G
 end
 
 function Turbulence(
@@ -104,6 +106,7 @@ function Turbulence(
     turbulencereconstructions = TurbulenceReconstructions(namelists, domain)
     turbulencefluxes = TurbulenceFluxes(namelists, domain)
     turbulenceconstants = TurbulenceConstants(constants)
+    turbulencewkbtendencies = TurbulenceWKBTendencies(namelists, domain)
 
     return Turbulence(
         turbulencepredictands,
@@ -112,5 +115,6 @@ function Turbulence(
         turbulencereconstructions,
         turbulencefluxes,
         turbulenceconstants,
+        turbulencewkbtendencies,
     )
 end

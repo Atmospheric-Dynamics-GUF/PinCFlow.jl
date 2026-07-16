@@ -120,7 +120,7 @@ end
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
-    (; gw_shear) = state.turbulence.turbulenceauxiliaries
+    (; gw_shear) = state.turbulence.turbulencewkbtendencies
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -297,6 +297,8 @@ end
                                 )
                         end
 
+                        integrals.e[iray, jray, kray] += wadr * omir
+
                         compute_gw_shear!(
                             state,
                             fc,
@@ -309,8 +311,6 @@ end
                             jray,
                             kray,
                         )
-
-                        integrals.e[iray, jray, kray] += wadr * omir
 
                         compute_gw_tracer_integrals!(
                             state,
@@ -346,6 +346,7 @@ end
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
+    (; gw_shear) = state.turbulence.turbulencewkbtendencies
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -353,6 +354,8 @@ end
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
+
+    gw_shear .= 0.0
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -486,6 +489,19 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
+                        compute_gw_shear!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
+
                         compute_gw_tracer_integrals!(
                             state,
                             fc,
@@ -519,6 +535,7 @@ end
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
+    (; gw_shear) = state.turbulence.turbulencewkbtendencies
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -526,6 +543,8 @@ end
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
+
+    gw_shear .= 0.0
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -612,6 +631,19 @@ end
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
 
+                        compute_gw_shear!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
+                        
                         compute_gw_tracer_integrals!(
                             state,
                             fc,

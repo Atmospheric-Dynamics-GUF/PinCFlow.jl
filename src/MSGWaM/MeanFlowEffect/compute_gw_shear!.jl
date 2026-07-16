@@ -169,7 +169,7 @@ end
     turbulence_scheme::Val{:TKEScheme},
 )
     (; rhobar, thetabar) = state.atmosphere
-    (; gw_shear) = state.turbulence.turbulenceauxiliaries
+    (; gw_shear) = state.turbulence.turbulencewkbtendencies
 
     gw_shear[i, j, k] +=
         mr^4  * 

@@ -472,6 +472,21 @@ function write_output end
                 end
             end
 
+            # Write GW shear.
+            if :gw_shear in output_variables
+                HDF5.set_extent_dims(
+                    file["gw_shear"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["gw_shear"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbtendencies.gw_shear[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+
+
             # Write elastic-mode-selection data.
             if elastic_mode_selection && ko == 0
                 for field in (:launch_mode_count, :launch_power_fraction)

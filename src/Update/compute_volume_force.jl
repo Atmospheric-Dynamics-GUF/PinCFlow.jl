@@ -324,11 +324,11 @@ end
             compute_momentum_diffusion_terms(state, i, j, k, U(), Z())^2.0 +
             compute_momentum_diffusion_terms(state, i, j, k, V(), Z())^2.0
         )
-    
-    @dispatch_wkb_mode shear += 
-        compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
 
     shear_production[i, j, k] = shear
+
+    @dispatch_wkb_mode gw_shear = 
+        compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
 
     bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
@@ -339,7 +339,11 @@ end
 
     buoyancy_production[i, j, k] = buoyancy
 
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
+    return (rho[i, j, k] + rhobar[i, j, k]) * (
+        shear + 
+        buoyancy +
+        gw_shear
+        )
 end
 
 @ivy function compute_volume_force(
@@ -348,7 +352,7 @@ end
     j::Integer,
     k::Integer,
     variable::TKE,
-    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}, Val{:SingleColumn}},
+    wkb_mode::Val{:NoWKB},
 )::AbstractFloat
 
     return 0.0
@@ -360,12 +364,9 @@ end
     j::Integer,
     k::Integer,
     variable::TKE,
-    wkb_mode::Val{:MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; gw_shear) = state.turbulence.turbulenceauxiliaries
+    (; gw_shear) = state.turbulence.turbulencewkbtendencies
 
-    gw_shear = turbulence_diffusion_coefficient(state, i, j, k, KM()) * 
-        gw_shear[i, j, k]
-
-    return gw_shear
+    return gw_shear[i, j, k]
 end
