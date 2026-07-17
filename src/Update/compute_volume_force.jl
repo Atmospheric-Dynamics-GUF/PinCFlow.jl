@@ -158,6 +158,9 @@ compute_volume_force(
 
 Returns the turbulence impact of the gravity-wave shear.
 
+!!! danger "Experimental"
+    The gravity-wave induced shear is an experimental feature that hasn't been validated yet.
+
 # Arguments
 
   - `state`: Model state.
@@ -181,6 +184,7 @@ Returns the turbulence impact of the gravity-wave shear.
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulent_tendencies!`](@ref)
+
 """
 function compute_volume_force end
 

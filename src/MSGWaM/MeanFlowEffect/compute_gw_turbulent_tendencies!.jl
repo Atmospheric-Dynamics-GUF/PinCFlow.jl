@@ -50,6 +50,9 @@ where ``K_\\mathrm{H}`` represents the eddy diffusion coefficient for momentum. 
   - `k`: Vertical grid-cell index.
 
   - `turbulence_scheme`: General turbulence parameterization configuration.
+
+!!! danger "Experimental"
+    The gravity-wave induced shear is an experimental feature that hasn't been validated yet.
 """
 function compute_gw_turbulent_tendencies! end
 

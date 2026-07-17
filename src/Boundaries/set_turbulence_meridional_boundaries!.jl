@@ -17,6 +17,15 @@ set_turbulence_meridional_boundaries!(
 
 Enforce meridional boundary conditions for reconstructions of turbulent kinetic energy.
 
+```julia
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)
+```
+
+Enforce meridional boundary conditions for the turbulence impact of the gravity-wave shear.
+
 # Arguments
 
   - `state`: Model state.
@@ -59,6 +68,24 @@ function set_turbulence_meridional_boundaries!(
     for field in fieldnames(TurbulenceReconstructions)
         set_meridional_boundaries_of_field!(
             getfield(turbulencereconstructions, field),
+            namelists,
+            domain,
+        )
+    end
+
+    return
+end
+
+function set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)
+    (; namelists, domain) = state
+    (; turbulencewkbtendencies) = state.turbulence
+
+    for field in fieldnames(TurbulenceWKBTendencies)
+        set_meridional_boundaries_of_field!(
+            getfield(turbulencewkbtendencies, field),
             namelists,
             domain,
         )

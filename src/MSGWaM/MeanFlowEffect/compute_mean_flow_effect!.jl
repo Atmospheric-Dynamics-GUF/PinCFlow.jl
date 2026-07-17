@@ -65,6 +65,8 @@ function compute_mean_flow_effect!(
 
     set_boundaries!(state, BoundaryWKBTendencies())
 
+    set_boundaries!(state, BoundaryTurbulenceWKBTendencies(), TKE())
+
     smooth_gw_tendencies!(state)
 
     include_blocked_flow_drag!(state)

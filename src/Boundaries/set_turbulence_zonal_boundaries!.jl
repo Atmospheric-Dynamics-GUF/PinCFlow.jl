@@ -14,6 +14,16 @@ set_turbulence_zonal_boundaries!(
 
 Enforce zonal boundary conditions for reconstructions of turbulent kinetic energy.
 
+
+```julia
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)
+```
+
+Enforce zonal boundary conditions for the turbulence impact of the gravity-wave shear.
+
 # Arguments
 
   - `state`: Model state.
@@ -56,6 +66,24 @@ function set_turbulence_zonal_boundaries!(
     for field in fieldnames(TurbulenceReconstructions)
         set_zonal_boundaries_of_field!(
             getfield(turbulencereconstructions, field),
+            namelists,
+            domain,
+        )
+    end
+
+    return
+end
+
+function set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)
+    (; namelists, domain) = state
+    (; turbulencewkbtendencies) = state.turbulence
+
+    for field in fieldnames(TurbulenceWKBTendencies)
+        set_zonal_boundaries_of_field!(
+            getfield(turbulencewkbtendencies, field),
             namelists,
             domain,
         )

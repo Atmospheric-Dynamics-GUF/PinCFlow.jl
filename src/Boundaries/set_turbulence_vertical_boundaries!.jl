@@ -23,6 +23,15 @@ set_turbulence_vertical_boundaries!(state::State, variables::BoundaryFluxes)
 
 Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to zero.
 
+```julia
+set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)
+```
+
+Enforce vertical boundary conditions for the turbulence impact of the gravity-wave shear.
+    
 # Arguments
 
   - `state`: Model state.
@@ -92,6 +101,25 @@ end
         for field in fieldnames(TurbulenceFluxes)
             getfield(turbulencefluxes, field)[:, :, k1, 3] .= 0.0
         end
+    end
+
+    return
+end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)
+    (; namelists, domain) = state
+    (; turbulencewkbtendencies) = state.turbulence
+
+    for field in fieldnames(TurbulenceWKBTendencies)
+        set_vertical_boundaries_of_field!(
+            getfield(turbulencewkbtendencies, field),
+            namelists,
+            domain,
+            +,
+        )
     end
 
     return

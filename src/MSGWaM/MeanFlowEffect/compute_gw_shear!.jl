@@ -82,6 +82,8 @@ Compute the gravity-wave induced shear at ``(i, j, k)``, using
 
   - `k`: Vertical grid-cell index.
 
+!!! danger "Experimental"
+    The gravity-wave induced shear is an experimental feature that hasn't been validated yet.
 """
 function compute_gw_shear! end
 
