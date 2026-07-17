@@ -94,6 +94,8 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
   - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref)
 """
 function compute_gw_integrals! end
 

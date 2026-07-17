@@ -54,7 +54,7 @@ Compute the gravity-wave induced shear at ``(i, j, k)``, using
 
 ```math
 \\begin{align*}
-     \\mathcal{S}_{gw} = \\frac{m_r^4}{\\bar{\\rho}} \\frac{\\left(f^2 + \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
+    \\mathcal{S}_{gw} = \\frac{m_r^4}{\\bar{\\rho}} \\frac{\\left(f^2 + \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}.
 \\end{align*}
 ```
 

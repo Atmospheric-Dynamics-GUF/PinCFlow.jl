@@ -116,35 +116,21 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted impact of shear ``\\mathcal{S}`` and buoyancy ``\\mathcal{B}`` on the TKE, given by
+Return the mass-weighted impact of the large-scale shear ``\\mathcal{S}``, the buoyancy ``\\mathcal{B}`` and that of the gravity wave-shear ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}``  on the TKE, given by
 
 ```math
-\\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\mathcal{S} + \\rho\\mathcal{B}
+\\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\left[\\mathcal{S} + \\mathcal{B} + \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}\\right]
 ```
 
 where
 
 ```math
 \\begin{align*}
-\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2 + \\ \\mathcal{S}_{gw} \\ \\right] \\;, \\\\
-\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
+\\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2 \\right] \\;, \\\\
+\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;, 
 \\end{align*}
 ```
-
-where the shear is supplemented by a gravity-wave induced shear term calculated by dispatching to a WKB-mode specific method, and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
-
-```julia
-compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
-    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}, Val{:SingleColumn}},
-)::AbstractFloat
-```
-
-Return ``0`` as the gravity-wave induced shear in non-WKB, steady state and single column modes.
+where ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively, and the turbulence impact of the gravity-wave shear ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}`` is obtained by dispatching to a WKB-mode specific method. See [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulent_tendencies!`](@ref) for the documentation on the turbulence impact of the gravity-wave shear, and see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref) for the documentation on the gravity-wave induced shear.
 
 ```julia
 compute_volume_force(
@@ -153,11 +139,24 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variables::TKE,
-    wkb_mode::Val{:MultiColumn},
+    wkb_mode::Val{:NoWKB},
 )::AbstractFloat
 ```
 
-Returns the gravity-wave induced shear in the multi-column mode.
+Return ``0`` as the gravity-wave induced shear in non-WKB modes.
+
+```julia
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}}
+)::AbstractFloat
+```
+
+Returns the turbulence impact of the gravity-wave shear.
 
 # Arguments
 
@@ -178,6 +177,10 @@ Returns the gravity-wave induced shear in the multi-column mode.
   - [`PinCFlow.Update.conductive_heating`](@ref)
 
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulent_tendencies!`](@ref)
 """
 function compute_volume_force end
 

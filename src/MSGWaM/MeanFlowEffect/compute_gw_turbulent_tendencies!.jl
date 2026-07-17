@@ -3,7 +3,7 @@
 compute_gw_turbulent_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
 ```
 
-Compute the gravity-wave induced shear as a tendency that is to be added to the turbulence equation, by dispatching to the appropriate method.
+Calculates the tendency that is to be added to the turbulence equation, by dispatching to the appropriate method.
 
 ```julia
 compute_gw_turbulent_tendencies!(
@@ -29,15 +29,15 @@ compute_gw_turbulent_tendencies!(
 
 Compute and return the gravity-wave turbulent tendencies at ``\\left(i, j, k\\right)``.
 
-Calculates the tendency from the gravity-wave induced shear as follows,
+Calculates the turbulent tendency from the gravity-wave induced shear as follows,
 
 ```math
 \\begin{align*}
-    \\mathcal{S} &= K_\\mathrm{M} \\ \\mathcal{S}_{gw} \\;,
+    \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w} = K_\\mathrm{M} \\ \\mathcal{S}_{gw} \\;,
 \\end{align*}
 ```
 
-where ``K_\\mathrm{H}`` represents the eddy diffusion coefficient for momentum.
+where ``K_\\mathrm{H}`` represents the eddy diffusion coefficient for momentum. (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref) for documentation on the gravity-wave induced shear).
 
 # Arguments
 
@@ -51,7 +51,6 @@ where ``K_\\mathrm{H}`` represents the eddy diffusion coefficient for momentum.
 
   - `turbulence_scheme`: General turbulence parameterization configuration.
 """
-
 function compute_gw_turbulent_tendencies! end
 
 function compute_gw_turbulent_tendencies!(
