@@ -35,7 +35,7 @@ with
 \\delta_r = \\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{2\\left[N_r^2\\left(k_r^2+l_r^2\\right)+f^2m_r^2\\right]}
 ```
 
-and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence.turbulenceconstants.lv` and `state.turbulence.turbulenceconstants.lb`, respectively. Furthermore, the characteristic turbulent velocities ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}`` are computed with `compute_turbulent_velocity`.
+and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence.turbulenceconstants.lv` and `state.turbulence.turbulenceconstants.lb`, respectively. Furthermore, the characteristic turbulent velocity amplitudes ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}`` are computed with `compute_turbulent_velocity`.
 
 # Arguments
 
