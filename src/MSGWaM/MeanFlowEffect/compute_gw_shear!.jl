@@ -14,7 +14,7 @@ compute_gw_shear!(
 )
 ```
 
-Compute the gravity-wave induced shear by dispatching to the appropriate method.
+Compute the gravity-wave shear by dispatching to the appropriate method.
 
 ```julia
 compute_gw_shear!(
@@ -50,7 +50,7 @@ compute_gw_shear!(
 )
 ```
 
-Compute the gravity-wave induced shear at ``(i, j, k)``, using
+Compute the gravity-wave shear at ``(i, j, k)``, using
 
 ```math
 \\begin{align*}
@@ -74,7 +74,7 @@ Compute the gravity-wave induced shear at ``(i, j, k)``, using
 
   - `mr`: Vertical wavenumber.
 
-  - `wadr`: Phase-space wave-action density.
+  - `wadr`: Physical-space wave-action density.
 
   - `i`: Zonal grid-cell index.
 
@@ -83,7 +83,7 @@ Compute the gravity-wave induced shear at ``(i, j, k)``, using
   - `k`: Vertical grid-cell index.
 
 !!! danger "Experimental"
-    The gravity-wave induced shear is an experimental feature that hasn't been validated yet.
+    The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
 function compute_gw_shear! end
 
@@ -147,7 +147,7 @@ end
     j::Integer,
     k::Integer,
 )
-    (; rhobar, thetabar) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; gw_shear) = state.turbulence.turbulencewkbtendencies
 
     gw_shear[i, j, k] +=

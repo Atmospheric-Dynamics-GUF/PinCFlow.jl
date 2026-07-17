@@ -163,7 +163,7 @@ Return for configurations without turbulence parameterization.
 smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:TKEScheme})
 ```
 
-Apply smoothing to turbulent tendencies.
+Apply smoothing to turbulent kinetic energy tendencies.
 
 ```julia
 smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})

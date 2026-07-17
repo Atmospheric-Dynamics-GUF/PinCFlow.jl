@@ -87,7 +87,7 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `wnrm`: Vertical wavenumber.
 
-  - `wadr`: Phase-space wave-action density.
+  - `wadr`: Physical-space wave-action density.
 
   - `xlc`: Zonal location of the ray-volume.
 

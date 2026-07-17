@@ -54,6 +54,10 @@ TurbulenceWKBTendencies(
 
 Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays.
 
+# Fields 
+
+  - `gw_shear::A`: Turbulence impact of unresolved gravity waves.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.

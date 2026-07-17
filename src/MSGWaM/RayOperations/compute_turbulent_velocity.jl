@@ -9,7 +9,7 @@ compute_turbulent_velocity(
 )::NTuple{3, <:Complex}
 ```
 
-Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}``.
+Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{1,r}`` and ``Q_{2,r}``.
 
 The velocity amplitudes are approximated with the numerical phase averages 
 
