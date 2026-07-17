@@ -486,10 +486,6 @@ function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dchidt0) = state.tracer.tracerwkbtendencies
 
-    if !smooth_tendencies
-        return
-    end
-
     @dispatch_filter_type if x_size == y_size == 1
         smooth_gw_tendencies!(dchidt0, state, Val(filter_type), Z())
     elseif x_size == 1
