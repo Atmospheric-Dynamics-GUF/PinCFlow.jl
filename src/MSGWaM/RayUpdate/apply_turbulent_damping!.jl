@@ -35,7 +35,7 @@ with
 \\delta_r = \\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{2\\left[N_r^2\\left(k_r^2+l_r^2\\right)+f^2m_r^2\\right]}
 ```
 
-and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence.turbulenceconstants.lv` and `state.turbulence.turbulenceconstants.lb`, respectively. Furthermore, the characteristic turbulent velocities ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}`` are computed with `compute_turbulent_velocity`.
+and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence.turbulenceconstants.lv` and `state.turbulence.turbulenceconstants.lb`, respectively. Furthermore, the characteristic turbulent velocity amplitudes ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}`` are computed with `compute_turbulent_velocity`.
 
 # Arguments
 
@@ -118,8 +118,7 @@ function apply_turbulent_damping! end
 
     wadr = rays.dens[r, i, j, k] * factor
 
-    q1r = compute_turbulent_velocity(state, r, i, j, k, 1.0)
-    q2r = compute_turbulent_velocity(state, r, i, j, k, 2.0)
+    (q1r, q2r) = compute_turbulent_velocity(state, r, i, j, k)
 
     delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
