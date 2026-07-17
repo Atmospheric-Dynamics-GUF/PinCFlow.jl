@@ -325,6 +325,7 @@ end
     (; g_ndim) = state.constants
     (; dz, jac) = state.grid
     (; wkb_mode) = state.namelists.wkb
+    (; gw_coupling) = state.namelists.turbulence
 
     shear =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
@@ -334,9 +335,13 @@ end
 
     shear_production[i, j, k] = shear
 
-    @dispatch_wkb_mode gw_shear = 
-        compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
-
+    if gw_coupling
+        @dispatch_wkb_mode gw_shear = 
+            compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
+    else
+        gw_shear = 0.0
+    end
+    
     bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
