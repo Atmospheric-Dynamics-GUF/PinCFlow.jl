@@ -116,9 +116,7 @@ function apply_turbulent_damping! end
 
     wadr = rays.dens[r, i, j, k] * factor
 
-    q0r = compute_turbulent_velocity(state, r, i, j, k, 0.0)
-    q1r = compute_turbulent_velocity(state, r, i, j, k, 1.0)
-    q2r = compute_turbulent_velocity(state, r, i, j, k, 2.0)
+    (q0r, q1r, q2r) = compute_turbulent_velocity(state, r, i, j, k)
 
     delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
