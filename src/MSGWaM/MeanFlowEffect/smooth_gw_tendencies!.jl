@@ -515,16 +515,16 @@ function smooth_gw_tendencies!(
     (; x_size, y_size) = state.namelists.domain
     (; wkb_mode) = state.namelists.wkb
     (; smooth_tendencies, filter_type) = state.namelists.wkb
-    (; gw_shear) = state.turbulence.turbulencewkbtendencies
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
 
     @dispatch_filter_type if x_size == y_size == 1
-        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), Z())
     elseif x_size == 1
-        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), YZ())
     elseif y_size == 1
-        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XZ())
     else
-        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XYZ())
     end
 end
 

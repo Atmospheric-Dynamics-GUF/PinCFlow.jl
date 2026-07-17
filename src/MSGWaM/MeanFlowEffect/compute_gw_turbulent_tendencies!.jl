@@ -89,9 +89,10 @@ end
     k::Integer,
     turbulence_scheme::Val{:TKEScheme},
 )
-    (; gw_shear) = state.turbulence.turbulencewkbtendencies
+    (; gw_shear) = state.turbulence.turbulencewkbintegrals
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
 
-    gw_shear[i, j, k] = turbulence_diffusion_coefficient(state, i, j, k, KM()) * 
+    dtkedt[i, j, k] = turbulence_diffusion_coefficient(state, i, j, k, KM()) * 
         gw_shear[i, j, k]
 
     return

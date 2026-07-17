@@ -373,7 +373,7 @@ end
     variable::TKE,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; gw_shear) = state.turbulence.turbulencewkbtendencies
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
 
-    return gw_shear[i, j, k]
+    return dtkedt[i, j, k]
 end

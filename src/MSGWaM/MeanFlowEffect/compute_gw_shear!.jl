@@ -1,6 +1,6 @@
 """
 ```julia
-compute_gw_shear!(
+compute_gw_turbulence_integrals!(
     state::State,
     fc::AbstractFloat,
     omir::AbstractFloat,
@@ -17,7 +17,7 @@ compute_gw_shear!(
 Compute the gravity-wave shear by dispatching to the appropriate method.
 
 ```julia
-compute_gw_shear!(
+compute_gw_turbulence_integrals!(
     state::State,
     turbulence_scheme::Val{:NoTurbulence},
     fc::AbstractFloat,
@@ -35,7 +35,7 @@ compute_gw_shear!(
 Return for configurations without turbulence parameterization.
 
 ```julia
-compute_gw_shear!(
+compute_gw_turbulence_integrals!(
     state::State,
     turbulence_scheme::Val{:TKEScheme},
     fc::AbstractFloat,
@@ -85,9 +85,9 @@ Compute the gravity-wave shear at ``(i, j, k)``, using
 !!! danger "Experimental"
     The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
-function compute_gw_shear! end
+function compute_gw_turbulence_integrals! end
 
-function compute_gw_shear!(
+function compute_gw_turbulence_integrals!(
     state::State,
     fc::AbstractFloat,
     omir::AbstractFloat,
@@ -101,7 +101,7 @@ function compute_gw_shear!(
 )
     (; turbulence_scheme) = state.namelists.turbulence
 
-    @dispatch_turbulence_scheme compute_gw_shear!(
+    @dispatch_turbulence_scheme compute_gw_turbulence_integrals!(
         state::State,
         Val(turbulence_scheme),
         fc::AbstractFloat,
@@ -118,7 +118,7 @@ function compute_gw_shear!(
     return
 end
 
-function compute_gw_shear!(
+function compute_gw_turbulence_integrals!(
     state::State,
     turbulence_scheme::Val{:NoTurbulence},
     fc::AbstractFloat,
@@ -134,7 +134,7 @@ function compute_gw_shear!(
     return
 end
 
-@ivy function compute_gw_shear!(
+@ivy function compute_gw_turbulence_integrals!(
     state::State,
     turbulence_scheme::Val{:TKEScheme},
     fc::AbstractFloat,
@@ -148,7 +148,7 @@ end
     k::Integer,
 )
     (; rhobar) = state.atmosphere
-    (; gw_shear) = state.turbulence.turbulencewkbtendencies
+    (; gw_shear) = state.turbulence.turbulencewkbintegrals
 
     gw_shear[i, j, k] +=
         mr^4  * 

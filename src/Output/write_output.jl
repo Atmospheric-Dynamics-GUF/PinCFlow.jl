@@ -481,11 +481,11 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["gw_shear"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulencewkbtendencies.gw_shear[
+                    state.turbulence.turbulencewkbintegrals.gw_shear[
                         ii,
                         jj,
                         kk,
-                    ] .* uref .^ 2 ./ tref
+                    ] ./ tref .^ 2
             end
 
 

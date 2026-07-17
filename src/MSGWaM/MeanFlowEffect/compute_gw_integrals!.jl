@@ -52,7 +52,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 
 Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref) for more details).
 
-In the case of turbulence parameterization, the gravity-wave shear ``\\mathcal{S}_{gw}`` is calculated (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref) for more details).
+In the case of turbulence parameterization, the gravity-wave shear ``\\mathcal{S}_{gw}`` is calculated (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref) for more details).
 
 ```julia
 compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
@@ -95,7 +95,7 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref)
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref)
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref)
 """
 function compute_gw_integrals! end
 
@@ -116,7 +116,7 @@ end
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
-    (; gw_shear) = state.turbulence.turbulencewkbtendencies
+    (; turbulencewkbintegrals) = state.turbulence
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -125,7 +125,9 @@ end
         getfield(integrals, field) .= 0.0
     end
 
-    gw_shear .= 0.0
+    for field in fieldnames(TurbulenceWKBIntegrals)
+        getfield(turbulencewkbintegrals, field) .= 0.0
+    end
 
     set_tracer_fields_zero!(state)
 
@@ -295,7 +297,7 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_gw_shear!(
+                        compute_gw_turbulence_integrals!(
                             state,
                             fc,
                             omir,
@@ -342,7 +344,7 @@ end
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
-    (; gw_shear) = state.turbulence.turbulencewkbtendencies
+    (; turbulencewkbintegrals) = state.turbulence
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -351,7 +353,9 @@ end
         getfield(integrals, field) .= 0.0
     end
 
-    gw_shear .= 0.0
+    for field in fieldnames(TurbulenceWKBIntegrals)
+        getfield(turbulencewkbintegrals, field) .= 0.0
+    end
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -485,7 +489,7 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_gw_shear!(
+                        compute_gw_turbulence_integrals!(
                             state,
                             fc,
                             omir,
@@ -531,16 +535,18 @@ end
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
-    (; gw_shear) = state.turbulence.turbulencewkbtendencies
+    (; turbulencewkbintegrals) = state.turbulence
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
     for field in fieldnames(WKBIntegrals)
-        getfield(integrals, field) .= 0.0
+        getfield(turbulencewkbintegrals, field) .= 0.0
     end
 
-    gw_shear .= 0.0
+    for field in fieldnames(TurbulenceWKBIntegrals)
+        getfield(integrals, field) .= 0.0
+    end
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -627,7 +633,7 @@ end
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
 
-                        compute_gw_shear!(
+                        compute_gw_turbulence_integrals!(
                             state,
                             fc,
                             omir,

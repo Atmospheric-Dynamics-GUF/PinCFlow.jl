@@ -204,6 +204,7 @@ export DomainNamelist,
     TurbulencePredictands,
     TurbulenceReconstructions,
     TurbulenceFluxes,
+    TurbulenceWKBIntegrals,
     TurbulenceWKBTendencies
 
 end

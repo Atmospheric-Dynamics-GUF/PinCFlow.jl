@@ -56,7 +56,7 @@ Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays.
 
 # Fields 
 
-  - `gw_shear::A`: Turbulence impact of unresolved gravity waves.
+  - `dtkedt::A`: Turbulence impact of unresolved gravity waves.
 
 # Arguments
 
@@ -69,7 +69,7 @@ Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays.
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
 struct TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
-    gw_shear::A
+    dtkedt::A
 end
 
 function TurbulenceWKBTendencies(
