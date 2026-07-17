@@ -1,12 +1,12 @@
 """
 ```julia
-compute_gw_turbulent_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
+compute_gw_turbulence_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
 ```
 
 Calculates the turbulence impact of the gravity-wave shear, by dispatching to the appropriate method.
 
 ```julia
-compute_gw_turbulent_tendencies!(
+compute_gw_turbulence_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
@@ -18,7 +18,7 @@ compute_gw_turbulent_tendencies!(
 Return for configurations without turbulence parameterization.
 
 ```julia
-compute_gw_turbulent_tendencies!(
+compute_gw_turbulence_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
@@ -52,9 +52,9 @@ where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum. 
 !!! danger "Experimental"
     The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
-function compute_gw_turbulent_tendencies! end
+function compute_gw_turbulence_tendencies! end
 
-function compute_gw_turbulent_tendencies!(
+function compute_gw_turbulence_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
@@ -62,7 +62,7 @@ function compute_gw_turbulent_tendencies!(
 )
     (; turbulence_scheme) = state.namelists.turbulence
 
-    @dispatch_turbulence_scheme compute_gw_turbulent_tendencies!(
+    @dispatch_turbulence_scheme compute_gw_turbulence_tendencies!(
         state,
         i,
         j,
@@ -72,7 +72,7 @@ function compute_gw_turbulent_tendencies!(
     return
 end
 
-function compute_gw_turbulent_tendencies!(
+function compute_gw_turbulence_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
@@ -82,7 +82,7 @@ function compute_gw_turbulent_tendencies!(
     return
 end
 
-@ivy function compute_gw_turbulent_tendencies!(
+@ivy function compute_gw_turbulence_tendencies!(
     state::State,
     i::Integer,
     j::Integer,

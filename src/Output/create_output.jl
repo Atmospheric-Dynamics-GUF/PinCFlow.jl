@@ -825,7 +825,7 @@ function create_output(state::State, machine_start_time::DateTime)
             if :dtkedt in output_variables
                 attributes(file["dtkedt"])["units"] = "m^2*s^-3"
                 attributes(file["dtkedt"])["label"] =
-                    L"\mathcal{S}_{gw}"
+                    L"\left(\frac{\partial e_\mathrm{k}}{\partial t}\right)_\mathrm{w}"
                 attributes(file["dtkedt"])["long_name"] = "turbulent kinetic energy GW forcing"
             end
 

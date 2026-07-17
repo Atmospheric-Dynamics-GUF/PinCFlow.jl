@@ -130,7 +130,7 @@ where
 \\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
 \\end{align*}
 ```
-where ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively, and the turbulence impact of the gravity-wave shear ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}`` is obtained by dispatching to a WKB-mode specific method. See [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulent_tendencies!`](@ref) for the documentation on the turbulence impact of the gravity-wave shear, and see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref) for the documentation on the gravity-wave shear.
+where ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively, and the turbulence impact of the gravity-wave shear ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}`` is obtained by dispatching to a WKB-mode specific method. See [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref) for the documentation on the turbulence impact of the gravity-wave shear, and see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref) for the documentation on the gravity-wave shear.
 
 ```julia
 compute_volume_force(
@@ -183,7 +183,7 @@ Returns the turbulence impact of the gravity-wave shear.
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref)
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulent_tendencies!`](@ref)
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)
 
 """
 function compute_volume_force end
