@@ -19,7 +19,7 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 
 # Fields
 
-  - `lhs::A`: Right-hand side.
+  - `lhs::A`: Left-hand side.
 
   - `solution::A`: Solution of the Poisson problem.
 
