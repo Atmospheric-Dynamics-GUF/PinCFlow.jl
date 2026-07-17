@@ -11,15 +11,17 @@ compute_turbulent_velocity(
 
 Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}``.
 
-The velocity amplitudes are computed from the numerical phase average 
+The velocity amplitudes are approximated with the numerical phase averages 
 
 ```math 
 \\begin{align*}
 Q_{0,r} &= \\frac{1}{2\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}\\Delta\\phi\\;, \\\\
 Q_{1,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-i n\\Delta\\phi}\\Delta\\phi\\;, \\\\
-Q_{2,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-2i n\\Delta\\phi}\\Delta\\phi\\;.
+Q_{2,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-2i n\\Delta\\phi}\\Delta\\phi\\;,
 \\end{align*}
 ```
+
+where the number of subintervals is given by ``N_{\\phi}=20`` with interval size ``\\Delta\\phi=2\\pi/N_{\\phi}``.
 
 ```julia 
 compute_turbulent_velocity(
