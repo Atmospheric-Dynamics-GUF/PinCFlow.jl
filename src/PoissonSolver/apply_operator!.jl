@@ -95,13 +95,7 @@ function apply_operator! end
             domain;
             layers = (1, 1, 2),
         )
-        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
-            s,
-            namelists,
-            domain,
-            Val(vertical_boundary_condition);
-            layers = (1, 1, 2),
-        )
+        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(
@@ -325,11 +319,11 @@ end
             domain;
             layers = (1, 1, 2),
         )
-        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
+        set_vertical_boundaries_of_field!(
             s,
             namelists,
             domain,
-            Val(vertical_boundary_condition);
+            -;
             layers = (1, 1, 2),
         )
     else
@@ -339,6 +333,13 @@ end
             namelists,
             domain;
             layers = (1, 1, 1),
+        )
+        set_vertical_boundaries_of_field!(
+            s,
+            namelists,
+            domain,
+            -;
+            layers = (1, 1, 2),
         )
     end
 

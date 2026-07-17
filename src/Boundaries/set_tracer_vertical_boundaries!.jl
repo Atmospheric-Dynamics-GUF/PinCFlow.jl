@@ -154,46 +154,21 @@ function set_tracer_vertical_boundaries!(
     return
 end
 
-function set_tracer_vertical_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    tracer_setup::Val{:TracerOn},
-)
-    (; vertical_boundary_condition) = state.namelists.domain
-
-    @dispatch_vertical_boundary_condition set_tracer_vertical_boundaries!(
-        state,
-        variables,
-        Val(vertical_boundary_condition),
-    )
-
-    return
-end
-
 @ivy function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    vertical_boundary_condition::Val{:Periodic},
 )
-    return
-end
-
-@ivy function set_tracer_vertical_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    vertical_boundary_condition::Val{:SolidWall},
-)
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
 
-    if ko == 0
+    if (ko == 0 && vertical_boundary_condition == :SolidWall)
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
-    if ko + nz == z_size
+    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end

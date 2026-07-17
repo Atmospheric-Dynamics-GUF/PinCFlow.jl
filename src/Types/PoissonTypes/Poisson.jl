@@ -19,7 +19,7 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 
 # Fields
 
-  - `rhs::A`: Right-hand side.
+  - `lhs::A`: Right-hand side.
 
   - `solution::A`: Solution of the Poisson problem.
 
@@ -52,7 +52,7 @@ struct Poisson{
     D <: BiCGSTAB,
     E <: Correction,
 }
-    rhs::A
+    lhs::A
     solution::A
     tensor::B
     operator::C
@@ -63,11 +63,11 @@ end
 function Poisson(domain::Domain)::Poisson
     (; nx, ny, nz) = domain
 
-    (rhs, solution) = (zeros(nx, ny, nz) for i in 1:2)
+    (lhs, solution) = (zeros(nx, ny, nz) for i in 1:2)
     tensor = Tensor(domain)
     operator = Operator(domain)
     bicgstab = BiCGSTAB(domain)
     correction = Correction(domain)
 
-    return Poisson(rhs, solution, tensor, operator, bicgstab, correction)
+    return Poisson(lhs, solution, tensor, operator, bicgstab, correction)
 end

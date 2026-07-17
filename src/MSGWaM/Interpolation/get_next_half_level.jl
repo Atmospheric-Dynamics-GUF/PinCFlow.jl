@@ -38,7 +38,7 @@ In case an error is thrown, the parameter `wkb_cfl_number` of the discretization
 """
 function get_next_half_level end
 
-function get_next_half_level(
+@ivy function get_next_half_level(
     i::Integer,
     j::Integer,
     z::AbstractFloat,
@@ -46,31 +46,7 @@ function get_next_half_level(
     dkd::Integer = 0,
     dku::Integer = 0,
 )::Integer
-    (; vertical_boundary_condition) = state.namelists.domain
-
-    @dispatch_vertical_boundary_condition k = get_next_half_level(
-        i,
-        j,
-        z,
-        state,
-        Val(vertical_boundary_condition);
-        dkd,
-        dku,
-    )
-
-    return k
-end
-
-@ivy function get_next_half_level(
-    i::Integer,
-    j::Integer,
-    z::AbstractFloat,
-    state::State,
-    vertical_boundary_condition::Val{:Periodic};
-    dkd::Integer = 0,
-    dku::Integer = 0,
-)::Integer
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; nz, nzz, ko, k0, k1) = state.domain
     (; zctilde) = state.grid
 
@@ -79,50 +55,7 @@ end
         k += 1
     end
 
-    if k < 1 + dkd
-        error(
-            "Vertical index is too small: k = ",
-            k,
-            " < ",
-            1 + dkd,
-            " = 1 + dkd",
-            "\nPlease choose a smaller WKB-CFL number.",
-        )
-    end
-
-    if k > nzz - dku
-        error(
-            "Vertical index is too large: k = ",
-            k,
-            " > ",
-            nzz - dku,
-            " = nzz - dku",
-            "\nPlease choose a smaller WKB-CFL number.",
-        )
-    end
-
-    return k
-end
-
-@ivy function get_next_half_level(
-    i::Integer,
-    j::Integer,
-    z::AbstractFloat,
-    state::State,
-    vertical_boundary_condition::Val{:SolidWall};
-    dkd::Integer = 0,
-    dku::Integer = 0,
-)::Integer
-    (; z_size) = state.namelists.domain
-    (; nz, nzz, ko, k0, k1) = state.domain
-    (; zctilde) = state.grid
-
-    k = argmin(abs.(zctilde[i, j, :] .- z))
-    if zctilde[i, j, k] < z
-        k += 1
-    end
-
-    if ko == 0
+    if (ko == 0 && vertical_boundary_condition == :SolidWall)
         k = max(k, k0)
     else
         if k < 1 + dkd
@@ -137,7 +70,7 @@ end
         end
     end
 
-    if ko + nz == z_size
+    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
         k = min(k, k1)
     else
         if k > nzz - dku

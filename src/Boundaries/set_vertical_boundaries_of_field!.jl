@@ -65,19 +65,19 @@ function set_vertical_boundaries_of_field! end
     nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     if z_size > 1
-        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
+        set_vertical_halos_of_field!(
             field,
             namelists,
-            domain,
-            Val(vertical_boundary_condition);
+            domain;
             layers,
         )
     end
 
+
     ii = (i0 - nbx):(i1 + nbx)
     jj = (j0 - nby):(j1 + nby)
 
-    if ko == 0
+    if (ko == 0 && vertical_boundary_condition == :SolidWall)
         if staggered
             field[ii, jj, k0 - 1] .= 0.0
             for k in 1:nbz
@@ -90,7 +90,7 @@ function set_vertical_boundaries_of_field! end
         end
     end
 
-    if ko + nz == z_size
+    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
         if staggered
             field[ii, jj, k1] .= 0.0
             for k in 1:nbz
@@ -107,21 +107,18 @@ function set_vertical_boundaries_of_field! end
 end
 
 function set_vertical_boundaries_of_field!(
-    field::AbstractArray{<:AbstractFloat, 5},
+    field::Union{
+        AbstractArray{<:AbstractFloat, 4},
+        AbstractArray{<:AbstractFloat, 5},
+    },
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; z_size, vertical_boundary_condition) = namelists.domain
+    (; z_size) = namelists.domain
 
     if z_size > 1
-        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
-            field,
-            namelists,
-            domain,
-            Val(vertical_boundary_condition);
-            layers,
-        )
+        set_vertical_halos_of_field!(field, namelists, domain; layers)
     end
 
     return

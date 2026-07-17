@@ -175,7 +175,7 @@ end
     constants::Constants,
     domain::Domain,
 )::Grid
-    (; x_size, y_size, z_size, nbz) = namelists.domain
+    (; x_size, y_size, z_size, nbz, vertical_boundary_condition) = namelists.domain
     (; vertical_grid_stretching) = namelists.grid
     (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, comm) = domain
     (; lref) = constants
@@ -240,7 +240,7 @@ end
     met = zeros(nxx, nyy, nzz, 3, 3)
 
     # Set the start index for the computation of the Jacobian and metric tensor.
-    kmin = ko == 0 ? 2 : 1
+    kmin = (ko == 0 && vertical_boundary_condition == :SolidWall) ? 2 : 1
     kmax = nzz
 
     # Compute the Jacobian.
@@ -248,7 +248,7 @@ end
         jac[:, :, k] .=
             (lz .- hb) ./ lz .* (ztildes[ko + k] .- ztildes[ko + k - 1]) ./ dz
     end
-    ko == 0 && (jac[:, :, 1] .= jac[:, :, 2 * nbz])
+    (ko == 0 && vertical_boundary_condition == :SolidWall) && (jac[:, :, 1] .= jac[:, :, 2 * nbz])
 
     # Compute the metric tensor.
 
@@ -276,7 +276,7 @@ end
             (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
     end
     set_meridional_boundaries_of_field!(met23, namelists, domain)
-    ko == 0 && (
+    (ko == 0 && vertical_boundary_condition == :SolidWall) && (
         met23[:, :, 1] .=
             met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
     )
@@ -293,7 +293,7 @@ end
                 )
             ) * (dz / (ztildes[ko + k] - ztildes[ko + k - 1]))^2.0
     end
-    ko == 0 && for j in j0:j1, i in i0:i1
+    (ko == 0 && vertical_boundary_condition == :SolidWall) && for j in j0:j1, i in i0:i1
         met33[i, j, 1] =
             (
                 (lz / (lz - hb[i, j]))^2.0 +

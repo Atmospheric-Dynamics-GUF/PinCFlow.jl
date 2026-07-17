@@ -21,19 +21,8 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 """
 function set_vertical_boundary_rays! end
 
-function set_vertical_boundary_rays!(state)
-    (; vertical_boundary_condition) = state.namelists.domain
-
-    @dispatch_vertical_boundary_condition set_vertical_boundary_rays!(
-        state,
-        Val(vertical_boundary_condition),
-    )
-    return
-end
-
 @ivy function set_vertical_boundary_rays!(
     state::State,
-    vertical_boundary_condition::Val{:Periodic},
 )
     (; namelists, domain) = state
     (; z_size, npz, vertical_boundary_condition) = namelists.domain
@@ -43,49 +32,19 @@ end
 
     # Set ray-volume count and ray-volumes properties.
     if z_size > 1
-        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
+        set_vertical_halos_of_field!(
             nray,
             namelists,
-            domain,
-            Val(vertical_boundary_condition);
+            domain;
             layers = (1, 1, 1),
         )
-        @dispatch_vertical_boundary_condition set_vertical_halo_rays!(
+        set_vertical_halo_rays!(
             state,
-            Val(vertical_boundary_condition),
-        )
-    end
-
-    return
-end
-
-@ivy function set_vertical_boundary_rays!(
-    state::State,
-    vertical_boundary_condition::Val{:SolidWall},
-)
-    (; namelists, domain) = state
-    (; z_size, npz, vertical_boundary_condition) = namelists.domain
-    (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; lx, ly, lz, dx, dy, hb) = state.grid
-    (; nray, rays) = state.wkb
-
-    # Set ray-volume count and ray-volumes properties.
-    if z_size > 1
-        @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
-            nray,
-            namelists,
-            domain,
-            Val(vertical_boundary_condition);
-            layers = (1, 1, 1),
-        )
-        @dispatch_vertical_boundary_condition set_vertical_halo_rays!(
-            state,
-            Val(vertical_boundary_condition),
         )
     end
 
     # Reflect ray volumes at the lower boundary.
-    if ko == 0
+    if (ko == 0 && vertical_boundary_condition == :SolidWall)
         kmin = k0
         kmax = npz > 1 ? k0 + 1 : k1
         for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
@@ -107,7 +66,7 @@ end
     end
 
     # Cut ray volumes at the upper boundary.
-    if ko + nz == z_size
+    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
         kmin = npz > 1 ? k1 - 1 : k0
         kmax = k1
         for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)

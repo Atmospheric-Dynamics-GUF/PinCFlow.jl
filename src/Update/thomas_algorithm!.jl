@@ -19,7 +19,68 @@ The result is stored in `state.variables.auxiliaries.fth`.
 """
 function thomas_algorithm! end
 
-@ivy function thomas_algorithm!(state::State)
+function thomas_algorithm!(state::State)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition thomas_algorithm!(
+        state,
+        Val(vertical_boundary_condition),
+    )
+
+    return
+end
+
+@ivy function thomas_algorithm!(
+    state::State,
+    vertical_boundary_condition::Val{:Periodic},
+)
+    (; comm, nz, ko, up, down) = state.domain
+    (; z_size) = state.namelists.domain
+    (; ath, bth, cth, fth, qth, sth, pth, fth_bc, qth_bc, sth_bc, fthnz) =
+        state.variables.auxiliaries
+
+    fthnz .= fth[:, :, nz]
+
+    qth[:, :, 1] .= .-cth[:, :, 1] ./ bth[:, :, 1]
+    fth[:, :, 1] .= fth[:, :, 1] ./ bth[:, :, 1]
+    sth[:, :, 1] .= .-ath[:, :, 1] ./ bth[:, :, 1]
+
+    for k in 2:nz
+        pth .= 1.0 ./ (bth[:, :, k] .+ ath[:, :, k] .* qth[:, :, k - 1])
+        qth[:, :, k] .= .-cth[:, :, k] .* pth
+        fth[:, :, k] .=
+            (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* pth
+        sth[:, :, k] .= .-ath[:, :, k] .* sth[:, :, k - 1] .* pth
+    end
+
+    qth[:, :, nz] .= 0.0
+    sth[:, :, nz] .= 1.0
+
+    for k in (nz - 1):-1:1
+        sth[:, :, k] .+= qth[:, :, k] .* sth[:, :, k + 1]
+        qth[:, :, k] .= fth[:, :, k] .+ qth[:, :, k] .* qth[:, :, k + 1]
+    end
+
+    fth[:, :, nz] .=
+        (
+            fthnz .- cth[:, :, nz] .* qth[:, :, 1] .-
+            ath[:, :, nz] .* qth[:, :, nz - 1]
+        ) ./ (
+            cth[:, :, nz] .* sth[:, :, 1] .+
+            ath[:, :, nz] .* sth[:, :, nz - 1] .+ bth[:, :, nz]
+        )
+
+    for k in 1:(nz - 1)
+        fth[:, :, k] .= fthnz .* sth[:, :, k] .+ qth[:, :, k]
+    end
+
+    return
+end
+
+@ivy function thomas_algorithm!(
+    state::State,
+    vertical_boundary_condition::Val{:SolidWall},
+)
     (; comm, nz, ko, up, down) = state.domain
     (; z_size) = state.namelists.domain
     (; ath, bth, cth, fth, qth, pth, fth_bc, qth_bc) =

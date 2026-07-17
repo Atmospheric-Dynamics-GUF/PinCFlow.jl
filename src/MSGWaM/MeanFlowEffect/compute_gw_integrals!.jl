@@ -103,7 +103,7 @@ end
 
 @ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     (; domain, grid) = state
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
@@ -201,11 +201,11 @@ end
                         ),
                     )
 
-                    ko != 0 &&
+                    (ko != 0 || vertical_boundary_condition == :Periodic) &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
-                    ko + nz != z_size &&
+                    (ko + nz != z_size || vertical_boundary_condition == :Periodic) &&
                         k < k1 &&
                         kmax > k1 &&
                         error("Vertical index is too large!")
@@ -313,7 +313,7 @@ end
 
 @ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     (; domain, grid) = state
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
@@ -407,11 +407,11 @@ end
                         ),
                     )
 
-                    ko != 0 &&
+                    (ko != 0 || vertical_boundary_condition == :Periodic) &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
-                    ko + nz != z_size &&
+                    (ko + nz != z_size || vertical_boundary_condition == :Periodic) &&
                         k < k1 &&
                         kmax > k1 &&
                         error("Vertical index is too large!")

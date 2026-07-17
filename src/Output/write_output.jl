@@ -103,7 +103,7 @@ function write_output end
     machine_start_time::DateTime,
 )::Integer
     (; domain, grid) = state
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
@@ -139,7 +139,7 @@ function write_output end
     end
 
     # Define slices.
-    dk0 = ko == 0 ? 1 : 0
+    dk0 = (ko == 0 && vertical_boundary_condition == :SolidWall) ? 1 : 0
     (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),
@@ -473,7 +473,7 @@ function write_output end
             end
 
             # Write elastic-mode-selection data.
-            if elastic_mode_selection && ko == 0
+            if elastic_mode_selection && ko == 0 && vertical_boundary_condition == :SolidWall
                 for field in (:launch_mode_count, :launch_power_fraction)
                     if field in output_variables
                         HDF5.set_extent_dims(

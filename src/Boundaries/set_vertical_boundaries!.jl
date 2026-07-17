@@ -271,49 +271,34 @@ function set_vertical_boundaries!(
     return
 end
 
-function set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    model::Val{:Boussinesq},
-)
-    (; vertical_boundary_condition) = state.namelists.domain
-
-    @dispatch_vertical_boundary_condition set_vertical_boundaries!(
-        state,
-        variables,
-        model,
-        Val(vertical_boundary_condition),
-    )
-    return
-end
-
 @ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Boussinesq},
-    vertical_boundary_condition::Val{:Periodic},
 )
-    return
-end
+    (; namelists, domain, variables) = state
+    (; z_size, vertical_boundary_condition) = namelists.domain
+    (; nz, nzz, ko, i0, j0, k0, k1) = domain
+    (; fluxes) = variables
 
-@ivy function set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    model::Val{:Boussinesq},
-    vertical_boundary_condition::Val{:SolidWall},
-)
-    (; z_size) = state.namelists.domain
-    (; nz, ko, k0, k1) = state.domain
-    (; fluxes) = state.variables
+    if vertical_boundary_condition == :Periodic 
+        for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
+            set_vertical_boundaries_of_field!(
+                getfield(fluxes, field),
+                namelists,
+                domain
+            )
+        end
+    end
 
-    if ko == 0
+    if (ko == 0 && vertical_boundary_condition == :SolidWall)
         for field in (:phirhop, :phiu, :phiv, :phitheta)
             getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    if ko + nz == z_size
+    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
         for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end
