@@ -68,7 +68,11 @@ function wkb_mountain_wave(;
 
     wkb = WKBNamelist(; wkb_mode = :MultiColumn)
 
-    integrate(Namelists(; atmosphere, domain, grid, output, sponge, wkb))
+    turbulence = TurbulenceNamelist(; turbulence_scheme = :NoTurbulence)
+
+    integrate(
+        Namelists(; atmosphere, domain, grid, output, sponge, wkb, turbulence),
+    )
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
