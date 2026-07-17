@@ -183,7 +183,6 @@ function WKB(
     ) = namelists.wkb
     (; x_size, y_size, z_size) = namelists.domain
     (; nxx, nyy, nzz) = domain
-    (; turbulence_scheme) = namelists.turbulence
 
     # Check if the spectral-extent factors are set correctly.
     if x_size > 1 && dkr_factor == 0.0
@@ -253,7 +252,7 @@ function WKB(
     diffusion = zeros(nxx, nyy, nzz)
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
     elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
-    
+
     return WKB(
         bins,
         nray_wrk,

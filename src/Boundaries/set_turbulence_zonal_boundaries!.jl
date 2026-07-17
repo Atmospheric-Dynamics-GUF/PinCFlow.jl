@@ -14,7 +14,6 @@ set_turbulence_zonal_boundaries!(
 
 Enforce zonal boundary conditions for reconstructions of turbulent kinetic energy.
 
-
 ```julia
 set_turbulence_zonal_boundaries!(
     state::State,

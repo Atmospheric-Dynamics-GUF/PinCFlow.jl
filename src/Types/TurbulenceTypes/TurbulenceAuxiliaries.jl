@@ -38,8 +38,6 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 
   - `buoyancy_production::A`: Contribution of turbulence production due to the buoyancy.
 
-  - `gw_shear::A`: Gravity-wave induced shear field.
-
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
