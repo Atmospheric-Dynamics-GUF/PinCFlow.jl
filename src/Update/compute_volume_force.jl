@@ -353,7 +353,7 @@ end
         )
 end
 
-@ivy function compute_volume_force(
+function compute_volume_force(
     state::State,
     i::Integer,
     j::Integer,
