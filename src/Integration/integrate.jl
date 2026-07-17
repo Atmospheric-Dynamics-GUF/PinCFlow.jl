@@ -1,22 +1,31 @@
 """
 ```julia
-integrate(namelists::Namelists)
+integrate(
+    namelists::Vararg{Namelists};
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+    delay::Real = 0,
+)
+```
+
+Call the `integrate` method below and reduce potential exceptions with `reduce_exceptions`.
+
+If `length(namelists) == 1`, the `integrate` method below is called with `integrate(namelists[1], ParallelExceptions(); base_comm)`, otherwise, it is called with `integrate(namelists[member], ParallelExceptions(); base_comm = member_comm)`, where `member` is an integer that distinguishes the members of an ensemble, and `member_comm` is the corresponding sub-communicator of `base_comm`.
+
+```julia
+integrate(
+    namelists::Namelists,
+    ::ParallelExceptions;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)
 ```
 
 Initialize the model state and integrate it in time.
 
-This method performs the complete time integration of the governing equations,
-using a semi-implicit time stepping scheme. It handles initialization,
-time stepping and output of the simulation data.
+This method performs the complete time integration of the governing equations, using a semi-implicit time stepping scheme. It handles initialization, time stepping and output of the simulation data.
 
 The initialization begins with the construction of the model state (an instance of the composite type `State`), which involves the setup of the MPI parallelization and the definition of all arrays that are needed repeatedly during the simulation. This is followed by an (optional) initial cleaning, in which the Poisson solver is called to ensure that the initial dynamic fields satisfy the divergence constraint imposed by the thermodynamic energy equation. Afterwards, the initialization of MS-GWaM is completed by adding ray volumes to the previously defined arrays. If the simulation is supposed to start from a previous model state, the fields are then overwritten with the data in the corresponding input file. Finally, the output file is created and the initial state is written into it.
 
-At the beginning of each time-loop iteration, the time step is determined from several stability criteria, using `compute_time_step`. 
-In case the updated simulation time is later than the next output time, the time step is corrected accordingly. 
-Subsequently, the damping coefficients of the sponges (which may depend on the time step) are calculated. 
-Following this, MS-GWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. 
-Then, the diffusion of momentum, mass-weighted potential temperature and tracers is applied.
-Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
+At the beginning of each time-loop iteration, the time step is determined from several stability criteria, using `compute_time_step`. In case the updated simulation time is later than the next output time, the time step is corrected accordingly. Subsequently, the damping coefficients of the sponges (which may depend on the time step) are calculated. Following this, MS-GWaM updates the unresolved gravity-wave field and computes the corresponding mean-flow impact. Then, the diffusion of momentum, mass-weighted potential temperature and tracers is applied. Afterwards, the resolved flow is updated in a semi-implicit time step, comprised of the following stages.
 
  1. Explicit RK3 integration of LHS over ``\\Delta t / 2``.
 
@@ -35,6 +44,12 @@ In the case of turbulence parameterization, the turbulence variables are integra
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
+# Keywords
+
+  - `base_comm`: MPI communicator which is used to create the Cartesian communicator for the integration.
+
+  - `delay`: Delay (in seconds) between the first exception and the following MPI abort.
 
 # See also
 
@@ -76,7 +91,79 @@ In the case of turbulence parameterization, the turbulence variables are integra
 """
 function integrate end
 
-function integrate(namelists::Namelists)
+function integrate(
+    namelists::Vararg{Namelists};
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+    delay::Real = 0,
+)
+    !MPI.Initialized() && MPI.Init()
+    rank = MPI.Comm_rank(base_comm)
+
+    if length(namelists) == 1
+        reduce_exceptions(
+            base_comm;
+            delay,
+            info = "Rank $(rank) has thrown the following exception:",
+        ) do
+            integrate(namelists[1], ParallelExceptions(); base_comm)
+            return
+        end
+    else
+        reduce_exceptions(
+            base_comm;
+            info = "The ensemble could not be set up properly:",
+        ) do
+            # Check if the ensemble is large enough.
+            MPI.Comm_size(base_comm) < length(namelists) &&
+                error("There are too few processes!")
+
+            # Check if there are duplicate output files.
+            output_files =
+                Tuple(entry.output.output_file for entry in namelists)
+            for entry in output_files
+                sum(
+                    1 for other_entry in output_files if other_entry == entry
+                ) != 1 && error("There are duplicate output files!")
+            end
+
+            # Split the ensemble.
+            member = rank % length(namelists) + 1
+            member_comm = MPI.Comm_split(base_comm, member, rank)
+            member_rank = MPI.Comm_rank(member_comm)
+
+            # Integrate.
+            member_rank == 0 && mkpath(dirname(output_files[member]))
+            MPI.Barrier(member_comm)
+            open(replace(output_files[member], r"\.h5$" => ".log"), "w") do io
+                redirect_stdout(io) do
+                    reduce_exceptions(
+                        base_comm;
+                        delay,
+                        info = "Rank $(member_rank) of ensemble member $(member) has thrown the following exception:",
+                    ) do
+                        integrate(
+                            namelists[member],
+                            ParallelExceptions();
+                            base_comm = member_comm,
+                        )
+                        return
+                    end
+                    return
+                end
+                return
+            end
+            return
+        end
+    end
+
+    return
+end
+
+function integrate(
+    namelists::Namelists,
+    ::ParallelExceptions;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)
 
     #-------------------------------------------------
     #                     Setup
@@ -99,7 +186,7 @@ function integrate(namelists::Namelists)
     naveragebicg = 0.0
 
     # Initialize the model state.
-    state = State(namelists)
+    state = State(namelists; base_comm)
 
     # Save machine start time.
     machine_start_time = now()
@@ -137,297 +224,285 @@ function integrate(namelists::Namelists)
         println("")
     end
 
-    reduce_exceptions(comm) do
+    #---------------------------------------------
+    #        Initial divergence cleaning
+    #---------------------------------------------
 
-        #---------------------------------------------
-        #        Initial divergence cleaning
-        #---------------------------------------------
+    if initial_cleaning
+        modify_compressible_wind!(state, *)
 
-        if initial_cleaning
-            modify_compressible_wind!(state, *)
+        set_boundaries!(state, BoundaryPredictands())
 
-            set_boundaries!(state, BoundaryPredictands())
+        (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0)
 
-            (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0)
-
-            if errflagbicg
-                create_output(state, machine_start_time)
-                iout = write_output(state, time, iout, machine_start_time)
-                error(
-                    "BiCGSTAB errored! Output last state into record ",
-                    iout,
-                    ".",
-                )
-            end
-
-            modify_compressible_wind!(state, /)
-
-            set_boundaries!(state, BoundaryPredictands())
+        if errflagbicg
+            create_output(state, machine_start_time)
+            iout = write_output(state, time, iout, machine_start_time)
+            error("BiCGSTAB errored! Output last state into record ", iout, ".")
         end
 
-        #---------------------------------------------
-        #              Initialize MS-GWaM
-        #---------------------------------------------
+        modify_compressible_wind!(state, /)
 
-        initialize_rays!(state)
+        set_boundaries!(state, BoundaryPredictands())
+    end
 
-        #-------------------------------------------------
-        #              Read initial data
-        #-------------------------------------------------
+    #---------------------------------------------
+    #              Initialize MS-GWaM
+    #---------------------------------------------
 
-        if restart
-            if master
-                println("Reading restart file...")
-                println("")
-            end
+    initialize_rays!(state)
 
-            time = read_input!(state)
+    #-------------------------------------------------
+    #              Read initial data
+    #-------------------------------------------------
 
-            if tmax < time * tref
-                error("Restart error: tmax < time!")
-            end
-
-            set_boundaries!(state, BoundaryPredictands())
-
-            synchronize_compressible_atmosphere!(
-                state,
-                state.variables.predictands,
-            )
-        end
-
-        #------------------------------------------
-        #              Initial output
-        #------------------------------------------
-
-        # Create the output file.
-        create_output(state, machine_start_time)
-
-        # Write the initial state.
-        iout = write_output(state, time, iout, machine_start_time)
-
-        # Prepare the next output.
-        output = false
-        nextoutputtime = time * tref + output_interval
-
-        #-----------------------------------------------------
-        #                        Time loop
-        #-----------------------------------------------------
-
+    if restart
         if master
-            println("Starting the time loop...")
+            println("Reading restart file...")
             println("")
         end
 
-        if output_steps
-            maxiterations = iterations
-        else
-            maxiterations = 2^30
+        time = read_input!(state)
+
+        if tmax < time * tref
+            error("Restart error: tmax < time!")
         end
 
-        for itime in 1:maxiterations
-            if master
-                println(repeat("-", 80))
-                println("Time step = ", itime)
-                println("Time = ", time * tref, " seconds")
-                println(repeat("-", 80))
-                println("")
-            end
+        set_boundaries!(state, BoundaryPredictands())
 
-            #----------------------------------
-            #         Calc time step
-            #----------------------------------
+        synchronize_compressible_atmosphere!(state, state.variables.predictands)
+    end
 
-            dt = compute_time_step(state)
+    #------------------------------------------
+    #              Initial output
+    #------------------------------------------
 
-            # Correct dt to hit desired output time.
-            if !output_steps
-                if (time + dt) * tref + dtmin > nextoutputtime
-                    dt = nextoutputtime / tref - time
-                    output = true
-                    if master
-                        println(
-                            "Time step for output: dt = ",
-                            dt * tref,
-                            " seconds",
-                        )
-                        println("")
-                    end
-                end
-            end
+    # Create the output file.
+    create_output(state, machine_start_time)
 
-            time += dt
+    # Write the initial state.
+    iout = write_output(state, time, iout, machine_start_time)
 
-            #-----------------------------------------------------------------
-            #                           Sponges
-            #-----------------------------------------------------------------
+    # Prepare the next output.
+    output = false
+    nextoutputtime = time * tref + output_interval
 
-            compute_sponges!(state, dt, time)
+    #-----------------------------------------------------
+    #                        Time loop
+    #-----------------------------------------------------
 
-            #-----------------------------------------------------------------
-            #                           MS-GWaM
-            #-----------------------------------------------------------------
+    if master
+        println("Starting the time loop...")
+        println("")
+    end
 
-            wkb_integration!(state, dt)
+    if output_steps
+        maxiterations = iterations
+    else
+        maxiterations = 2^30
+    end
 
-            #-----------------------------------------------------------------
-            #                         Turbulence 
-            #-----------------------------------------------------------------
+    for itime in 1:maxiterations
+        if master
+            println(repeat("-", 80))
+            println("Time step = ", itime)
+            println("Time = ", time * tref, " seconds")
+            println(repeat("-", 80))
+            println("")
+        end
 
-            turbulent_diffusion!(state, dt)
+        #----------------------------------
+        #         Calc time step
+        #----------------------------------
 
-            set_boundaries!(state, BoundaryPredictands())
+        dt = compute_time_step(state)
 
-            synchronize_compressible_atmosphere!(
-                state,
-                state.variables.predictands,
-            )
-
-            #---------------------------------------------------------------
-            #                   Semi-implicit time scheme
-            #---------------------------------------------------------------
-
-            if master
-                println("Beginning a semi-implicit time step...")
-                println("")
-            end
-
-            synchronize_density_fluctuations!(state)
-
-            set_boundaries!(state, BoundaryPredictands())
-
-            (p0, chi0) = backup_predictands(state)
-
-            compute_fluxes!(state, p0, Theta())
-
-            if master
-                println("(1) Explicit integration of LHS over dt/2...")
-                println("")
-            end
-
-            explicit_integration!(state, p0, 0.5 * dt, time, LHS())
-
-            if master
-                println("(2) Implicit integration of RHS over dt/2...")
-                println("")
-            end
-
-            ntotalbicg = implicit_integration!(
-                state,
-                0.5 * dt,
-                time,
-                ntotalbicg,
-                RHS(),
-                1.0,
-                iout,
-                machine_start_time,
-            )
-
-            p1 = deepcopy(state.variables.predictands)
-
-            turbulence_integration!(state, dt)
-
-            if master
-                println("(3) Explicit integration of RHS over dt/2...")
-                println("")
-            end
-
-            reset_predictands!(state, p0, chi0)
-
-            explicit_integration!(state, p0, 0.5 * dt, time, RHS())
-
-            if master
-                println("(4) Explicit integration of LHS over dt...")
-                println("")
-            end
-
-            p0 = deepcopy(p1)
-
-            synchronize_compressible_atmosphere!(state, p0)
-
-            explicit_integration!(state, p0, dt, time, LHS())
-
-            if master
-                println("(5) Implicit integration of RHS over dt/2...")
-                println("")
-            end
-
-            ntotalbicg = implicit_integration!(
-                state,
-                0.5 * dt,
-                time,
-                ntotalbicg,
-                RHS(),
-                2.0,
-                iout,
-                machine_start_time,
-            )
-
-            if master
-                println("...the semi-implicit time step is done.")
-                println("")
-            end
-
-            #--------------------------------------------------------------
-            #                           Output
-            #--------------------------------------------------------------
-
-            if output_steps
-                if itime % nout == 0
-                    iout = write_output(state, time, iout, machine_start_time)
-                end
-            else
-                if output
-                    iout = write_output(state, time, iout, machine_start_time)
-                    output = false
-                    nextoutputtime = nextoutputtime + output_interval
-                    if nextoutputtime >= tmax
-                        nextoutputtime = tmax
-                    end
-                end
-            end
-
-            #-------------------------------------------
-            #              Abort criteria
-            #-------------------------------------------
-
-            if !output_steps && time * tref >= tmax
+        # Correct dt to hit desired output time.
+        if !output_steps
+            if (time + dt) * tref + dtmin > nextoutputtime
+                dt = nextoutputtime / tref - time
+                output = true
                 if master
-                    naveragebicg = ntotalbicg / itime / 2
-
-                    println(repeat("-", 80))
-                    println("Average Poisson iterations: ", naveragebicg)
-                    println(repeat("-", 80))
+                    println(
+                        "Time step for output: dt = ",
+                        dt * tref,
+                        " seconds",
+                    )
                     println("")
                 end
+            end
+        end
 
-                break
+        time += dt
+
+        #-----------------------------------------------------------------
+        #                           Sponges
+        #-----------------------------------------------------------------
+
+        compute_sponges!(state, dt, time)
+
+        #-----------------------------------------------------------------
+        #                           MS-GWaM
+        #-----------------------------------------------------------------
+
+        wkb_integration!(state, dt)
+
+        #-----------------------------------------------------------------
+        #                         Turbulence
+        #-----------------------------------------------------------------
+
+        turbulent_diffusion!(state, dt)
+
+        set_boundaries!(state, BoundaryPredictands())
+
+        synchronize_compressible_atmosphere!(state, state.variables.predictands)
+
+        #---------------------------------------------------------------
+        #                   Semi-implicit time scheme
+        #---------------------------------------------------------------
+
+        if master
+            println("Beginning a semi-implicit time step...")
+            println("")
+        end
+
+        synchronize_density_fluctuations!(state)
+
+        set_boundaries!(state, BoundaryPredictands())
+
+        (p0, chi0) = backup_predictands(state)
+
+        compute_fluxes!(state, p0, Theta())
+
+        if master
+            println("(1) Explicit integration of LHS over dt/2...")
+            println("")
+        end
+
+        explicit_integration!(state, p0, 0.5 * dt, time, LHS())
+
+        if master
+            println("(2) Implicit integration of RHS over dt/2...")
+            println("")
+        end
+
+        ntotalbicg = implicit_integration!(
+            state,
+            0.5 * dt,
+            time,
+            ntotalbicg,
+            RHS(),
+            1.0,
+            iout,
+            machine_start_time,
+        )
+
+        p1 = deepcopy(state.variables.predictands)
+
+        turbulence_integration!(state, dt)
+
+        if master
+            println("(3) Explicit integration of RHS over dt/2...")
+            println("")
+        end
+
+        reset_predictands!(state, p0, chi0)
+
+        explicit_integration!(state, p0, 0.5 * dt, time, RHS())
+
+        if master
+            println("(4) Explicit integration of LHS over dt...")
+            println("")
+        end
+
+        p0 = deepcopy(p1)
+
+        synchronize_compressible_atmosphere!(state, p0)
+
+        explicit_integration!(state, p0, dt, time, LHS())
+
+        if master
+            println("(5) Implicit integration of RHS over dt/2...")
+            println("")
+        end
+
+        ntotalbicg = implicit_integration!(
+            state,
+            0.5 * dt,
+            time,
+            ntotalbicg,
+            RHS(),
+            2.0,
+            iout,
+            machine_start_time,
+        )
+
+        if master
+            println("...the semi-implicit time step is done.")
+            println("")
+        end
+
+        #--------------------------------------------------------------
+        #                           Output
+        #--------------------------------------------------------------
+
+        if output_steps
+            if itime % nout == 0
+                iout = write_output(state, time, iout, machine_start_time)
+            end
+        else
+            if output
+                iout = write_output(state, time, iout, machine_start_time)
+                output = false
+                nextoutputtime = nextoutputtime + output_interval
+                if nextoutputtime >= tmax
+                    nextoutputtime = tmax
+                end
             end
         end
 
         #-------------------------------------------
-        #      Final output for output_steps
+        #              Abort criteria
         #-------------------------------------------
 
-        if output_steps
+        if !output_steps && time * tref >= tmax
             if master
-                naveragebicg = ntotalbicg / iterations / 2
+                naveragebicg = ntotalbicg / itime / 2
 
                 println(repeat("-", 80))
                 println("Average Poisson iterations: ", naveragebicg)
                 println(repeat("-", 80))
                 println("")
             end
-        end
 
-        peak_rss = MPI.Allreduce(Sys.maxrss(), +, comm) / 1024^3
+            break
+        end
+    end
+
+    #-------------------------------------------
+    #      Final output for output_steps
+    #-------------------------------------------
+
+    if output_steps
         if master
+            naveragebicg = ntotalbicg / iterations / 2
+
             println(repeat("-", 80))
-            println("Approximate peak memory usage: ", peak_rss, " GB")
+            println("Average Poisson iterations: ", naveragebicg)
             println(repeat("-", 80))
             println("")
         end
+    end
 
-        return
+    rss = Sys.maxrss() / 1024^3
+    peak_process_rss = MPI.Allreduce(rss, max, comm)
+    peak_total_rss = MPI.Allreduce(rss, +, comm)
+    if master
+        println(repeat("-", 80))
+        println("Peak process memory usage: ", peak_process_rss, " GB")
+        println("Approximate peak total memory usage: ", peak_total_rss, " GB")
+        println(repeat("-", 80))
+        println("")
     end
 
     if master

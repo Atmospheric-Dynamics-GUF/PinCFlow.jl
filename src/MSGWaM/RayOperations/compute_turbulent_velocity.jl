@@ -92,7 +92,7 @@ and turbulence mixing lengths ``l_d``, ``l_v``, and ``l_b`` stored in `state.tur
 """
 function compute_turbulent_velocity end
 
-function compute_turbulent_velocity(
+@ivy function compute_turbulent_velocity(
     state::State,
     r::Integer,
     i::Integer,
@@ -109,13 +109,13 @@ function compute_turbulent_velocity(
 
     (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
-    @ivy rhob = rhobar[i, j, k]
-    @ivy kr = rays.k[r, i, j, k]
-    @ivy lr = rays.l[r, i, j, k]
-    @ivy mr = rays.m[r, i, j, k]
-    @ivy dkr = rays.dkray[r, i, j, k]
-    @ivy dlr = rays.dlray[r, i, j, k]
-    @ivy dmr = rays.dmray[r, i, j, k]
+    rhob = rhobar[i, j, k]
+    kr = rays.k[r, i, j, k]
+    lr = rays.l[r, i, j, k]
+    mr = rays.m[r, i, j, k]
+    dkr = rays.dkray[r, i, j, k]
+    dlr = rays.dlray[r, i, j, k]
+    dmr = rays.dmray[r, i, j, k]
     n2r = interpolate_stratification(zr, state, N2())
     fc = coriolis_frequency * tref
 
@@ -123,7 +123,7 @@ function compute_turbulent_velocity(
 
     omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-    @ivy wadr = rays.dens[r, i, j, k] * dmr
+    wadr = rays.dens[r, i, j, k] * dmr
 
     if x_size > 1
         wadr *= dkr

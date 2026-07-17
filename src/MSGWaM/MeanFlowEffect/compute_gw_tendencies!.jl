@@ -33,7 +33,7 @@ where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are 
 """
 function compute_gw_tendencies! end
 
-function compute_gw_tendencies!(state::State)
+@ivy function compute_gw_tendencies!(state::State)
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; impact_altitude) = state.namelists.wkb
@@ -51,7 +51,7 @@ function compute_gw_tendencies!(state::State)
         getfield(tendencies, field) .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         if zc[i, j, k] < impact_altitude / lref
             continue
         end

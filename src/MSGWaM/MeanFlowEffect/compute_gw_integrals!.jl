@@ -101,13 +101,13 @@ function compute_gw_integrals!(state::State)
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
+@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     (; domain, grid) = state
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
@@ -121,10 +121,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
 
     set_tracer_fields_zero!(state)
 
-    @ivy for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -183,20 +180,35 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(
-                        iray,
-                        jray,
-                        zr - dzr / 2,
-                        state;
-                        dkd = 1,
+                    kmin = max(
+                        k0,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr - dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
                     )
-                    kmax = get_next_half_level(
-                        iray,
-                        jray,
-                        zr + dzr / 2,
-                        state;
-                        dkd = 1,
+                    kmax = min(
+                        k1,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr + dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
                     )
+
+                    ko != 0 &&
+                        k > k0 &&
+                        kmin < k0 &&
+                        error("Vertical index is too small!")
+                    ko + nz != z_size &&
+                        k < k1 &&
+                        kmax > k1 &&
+                        error("Vertical index is too large!")
 
                     for kray in kmin:kmax
                         dzi =
@@ -299,13 +311,13 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
+@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     (; domain, grid) = state
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
@@ -317,10 +329,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
         getfield(integrals, field) .= 0.0
     end
 
-    @ivy for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -377,20 +386,35 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(
-                        iray,
-                        jray,
-                        zr - dzr / 2,
-                        state;
-                        dkd = 1,
+                    kmin = max(
+                        k0,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr - dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
                     )
-                    kmax = get_next_half_level(
-                        iray,
-                        jray,
-                        zr + dzr / 2,
-                        state;
-                        dkd = 1,
+                    kmax = min(
+                        k1,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr + dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
                     )
+
+                    ko != 0 &&
+                        k > k0 &&
+                        kmin < k0 &&
+                        error("Vertical index is too small!")
+                    ko + nz != z_size &&
+                        k < k1 &&
+                        kmax > k1 &&
+                        error("Vertical index is too large!")
 
                     for kray in kmin:kmax
                         dzi =
@@ -461,7 +485,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     return
 end
 
-function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
+@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
@@ -478,10 +502,7 @@ function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
         getfield(integrals, field) .= 0.0
     end
 
-    @ivy for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue

@@ -1,49 +1,54 @@
 # src/Examples/wkb_wave_packet.jl
 
 function wkb_wave_packet(;
-    x_size::Integer = 16,
-    y_size::Integer = 16,
-    z_size::Integer = 32,
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "wkb_wave_packet.h5",
+    plot_file::AbstractString = "wkb_wave_packet.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/wkb_wave_packet.svg",
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
 )
-    lx = 20000.0
-    ly = 20000.0
-    lz = 40000.0
+    z0 = 10000
+
+    lx = 20000
+    ly = 20000
+    lz = 30000
 
     parameters = (
-        k = 16 * pi / lx,
-        l = 16 * pi / ly,
-        m = 32 * pi / lz,
-        rx = 0.25,
-        ry = 0.25,
-        rz = 0.25,
+        k = 8 * pi / lx,
+        l = 8 * pi / ly,
+        m = 8 * pi / lz,
+        rx = 0.5,
+        ry = 0.5,
+        rz = 0.5,
         x0 = 0.0,
         y0 = 0.0,
-        z0 = 20000.0,
+        z0 = 20000,
         a0 = 0.05,
     )
     (; k, l, m) = parameters
 
     model = :Compressible
-    background = :Realistic
+    background = :LapseRates
     coriolis_frequency = 0.0001
 
-    atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
+    atmosphere = AtmosphereNamelist(; background, coriolis_frequency, model)
 
-    domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
+    domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
+
+    grid = GridNamelist(; resolved_topography = (x, y) -> z0)
 
     output = OutputNamelist(;
         output_file,
-        save_ray_volumes = true,
+        output_interval = 600,
+        output_variables = [:uw],
         prepare_restart,
-        output_interval = 900,
-        tmax = 900,
+        tmax = 600,
     )
 
     state = State(Namelists(; atmosphere, domain))
@@ -59,13 +64,16 @@ function wkb_wave_packet(;
         ),
     )
 
-    integrate(Namelists(; atmosphere, domain, output, wkb))
+    integrate(Namelists(; atmosphere, domain, grid, output, wkb))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("nr", 8, 8, 16, 2); time_unit = "min")
-            return
-        end
+        plot_output(
+            plot_file,
+            output_file,
+            (:uw, 0.5, 0.5, 0.5, 2);
+            display_figure,
+            time_unit = :min,
+        )
     end
 
     return

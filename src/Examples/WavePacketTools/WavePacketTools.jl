@@ -1,7 +1,7 @@
 module WavePacketTools
 
+using ...Macros
 using ...Types
-using ...PinCFlow
 
 include("bhat.jl")
 include("envelope.jl")

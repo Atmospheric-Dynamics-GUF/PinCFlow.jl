@@ -25,14 +25,14 @@ Return the physical extents of the ray volume specified by ``\\left(r, i, j, k\\
 """
 function get_physical_extent end
 
-function get_physical_extent(
+@ivy function get_physical_extent(
     rays::Rays,
     r::Integer,
     i::Integer,
     j::Integer,
     k::Integer,
 )::NTuple{3, <:AbstractFloat}
-    @ivy return (
+    return (
         rays.dxray[r, i, j, k],
         rays.dyray[r, i, j, k],
         rays.dzray[r, i, j, k],

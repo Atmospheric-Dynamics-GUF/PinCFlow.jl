@@ -40,7 +40,7 @@ N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}
 """
 function compute_n2! end
 
-function compute_n2!(
+@ivy function compute_n2!(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -55,7 +55,7 @@ function compute_n2!(
 
     # Compute the squared buoyancy frequency.
     n2 .= 0.0
-    @ivy for k in k0:k1
+    for k in k0:k1
         n2[:, :, k] .=
             g_ndim ./ thetabar[:, :, k] ./ jac[:, :, k] .* 0.5 .*
             (thetabar[:, :, k + 1] .- thetabar[:, :, k - 1]) ./ dz
@@ -63,14 +63,14 @@ function compute_n2!(
 
     # Compute the squared buoyancy frequency at the boundaries.
     set_vertical_boundaries_of_field!(n2, namelists, domain, +)
-    @ivy if ko == 0
+    if ko == 0
         for k in 1:nbz
             n2[:, :, k] .=
                 g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
                 (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
         end
     end
-    @ivy if ko + nz == z_size
+    if ko + nz == z_size
         for k in 1:nbz
             n2[:, :, k1 + k] .=
                 g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*

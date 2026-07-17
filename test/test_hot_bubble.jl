@@ -1,47 +1,44 @@
 function test_hot_bubble()
     l2 = (
         n2 = 0.0f0,
-        p = 2484.3513f0,
-        pip = 0.0018406684f0,
-        rhobar = 5.855689f0,
-        rhop = 0.008935157f0,
-        t = 3600.0f0,
-        thetabar = 3000.0f0,
-        thetap = 9.650528f0,
-        tke = 0.019364541f0,
-        us = 20.5347f0,
-        vs = 0.83471686f0,
-        wts = 23.846718f0,
-        x = 18165.902f0,
-        y = 0.0f0,
-        z = 115325.625f0,
-        ztilde = 124096.734f0,
+        p = 30010.416f0,
+        pip = 0.004495909f0,
+        rhobar = 70.73524f0,
+        rhop = 0.08934707f0,
+        t = 300.0f0,
+        thetabar = 26832.816f0,
+        thetap = 52.045544f0,
+        tke = 0.7188447f0,
+        us = 119.88153f0,
+        vs = 119.88153f0,
+        wts = 171.93753f0,
+        x = 12893.797f0,
+        y = 12893.797f0,
+        z = 516236.38f0,
+        ztilde = 535723.8f0,
     )
     linf = (
         n2 = 0.0f0,
-        p = 320.76392f0,
-        pip = 0.00059148483f0,
-        rhobar = 1.069213f0,
-        rhop = 0.0058253715f0,
-        t = 3600.0f0,
+        p = 341.38608f0,
+        pip = 0.00070167455f0,
+        rhobar = 1.1379536f0,
+        rhop = 0.009277864f0,
+        t = 300.0f0,
         thetabar = 300.0f0,
-        thetap = 6.075528f0,
-        tke = 0.00865846f0,
-        us = 5.9315042f0,
-        vs = 0.3019324f0,
-        wts = 5.0986667f0,
-        x = 9000.0f0,
-        y = 0.0f0,
-        z = 19000.0f0,
-        ztilde = 20000.0f0,
+        thetap = 5.0405197f0,
+        tke = 0.08789462f0,
+        us = 17.522087f0,
+        vs = 17.522087f0,
+        wts = 15.267322f0,
+        x = 4750.0f0,
+        y = 4750.0f0,
+        z = 9750.0f0,
+        ztilde = 10000.0f0,
     )
     reference = (l2, linf)
 
-    keywords =
-        (x_size = 10, z_size = 10, prepare_restart = true, visualize = false)
-
     @testset "Hot bubble" begin
-        test_example(hot_bubble, keywords, reference; update_references)
+        test_example(hot_bubble, keywords, reference; update)
     end
 
     return

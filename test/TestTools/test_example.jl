@@ -4,7 +4,7 @@ test_example(
     example::Function,
     keywords::NamedTuple,
     reference::NTuple{2, <:NamedTuple};
-    update_references::Bool = false,
+    update::Bool = false,
     atol::Real = 0,
     rtol::Real = 0,
 )
@@ -22,7 +22,7 @@ Run an example simulation with `keywords`, compute the ``L_2`` and ``L_\\infty``
 
 # Keywords
 
-  - `update_references`: Switch for updating the references in the test scripts instead of testing against them.
+  - `update`: Switch for updating the references in the test scripts instead of testing against them.
 
   - `atol`: Absolute tolerance that is passed as keyword argument to `isapprox`.
 
@@ -34,13 +34,13 @@ function test_example(
     example::Function,
     keywords::NamedTuple,
     reference::NTuple{2, <:NamedTuple};
-    update_references::Bool = false,
+    update::Bool = false,
     atol::Real = 0,
     rtol::Real = 0,
 )
 
     # Call the example function with the provided keywords.
-    redirect_stdio(; stderr = devnull, stdout = devnull) do
+    redirect_stdout(devnull) do
         example(; keywords...)
         return
     end
@@ -50,7 +50,7 @@ function test_example(
     (l2, linf) = compute_norms()
 
     # Update the references or test against them.
-    if update_references
+    if update
         test_file = "test_" * string(nameof(example)) * ".jl"
         script = replace_assignments(
             read(test_file, String),

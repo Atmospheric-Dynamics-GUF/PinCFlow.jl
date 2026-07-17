@@ -39,7 +39,7 @@ This method first determines the two points in ``z + J \\Delta \\hat{z} / 2`` th
 """
 function interpolate_stratification end
 
-function interpolate_stratification(
+@ivy function interpolate_stratification(
     zlc::AbstractFloat,
     state::State,
     strtype::N2,
@@ -52,14 +52,14 @@ function interpolate_stratification(
     ku = get_next_level(i0, j0, zlc, state; dkd = 1)
     kd = ku - 1
 
-    @ivy zd = zc[i0, j0, kd]
-    @ivy zu = zc[i0, j0, ku]
-    @ivy strd = n2[i0, j0, kd]
-    @ivy stru = n2[i0, j0, ku]
+    zd = zc[i0, j0, kd]
+    zu = zc[i0, j0, ku]
+    strd = n2[i0, j0, kd]
+    stru = n2[i0, j0, ku]
 
     if zu < zd
         error(
-            "Error in interpolate_stratification (N2): zu = ",
+            "Incorrect vertical-interpolation points: zu = ",
             zu,
             " < zd = ",
             zd,
@@ -79,7 +79,7 @@ function interpolate_stratification(
     return str
 end
 
-function interpolate_stratification(
+@ivy function interpolate_stratification(
     zlc::AbstractFloat,
     state::State,
     strtype::DN2DZ,
@@ -92,15 +92,15 @@ function interpolate_stratification(
     ku = get_next_half_level(i0, j0, zlc, state; dkd = 1, dku = 1)
     kd = ku - 1
 
-    @ivy zd = zctilde[i0, j0, kd]
-    @ivy zu = zctilde[i0, j0, ku]
+    zd = zctilde[i0, j0, kd]
+    zu = zctilde[i0, j0, ku]
 
-    @ivy strd =
+    strd =
         (n2[i0, j0, kd + 1] - n2[i0, j0, kd]) / (
             2.0 * jac[i0, j0, kd] * jac[i0, j0, kd + 1] /
             (jac[i0, j0, kd] + jac[i0, j0, kd + 1])
         ) / dz
-    @ivy stru =
+    stru =
         (n2[i0, j0, ku + 1] - n2[i0, j0, ku]) / (
             2.0 * jac[i0, j0, ku] * jac[i0, j0, ku + 1] /
             (jac[i0, j0, ku] + jac[i0, j0, ku + 1])
@@ -108,7 +108,7 @@ function interpolate_stratification(
 
     if zu < zd
         error(
-            "Error in interpolate_stratification (DN2DZ): zu = ",
+            "Incorrect vertical-interpolation points: zu = ",
             zu,
             " < zd = ",
             zd,

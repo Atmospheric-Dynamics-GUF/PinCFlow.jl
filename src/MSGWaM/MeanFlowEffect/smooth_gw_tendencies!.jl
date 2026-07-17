@@ -216,7 +216,7 @@ function smooth_gw_tendencies!(state::State)
     return
 end
 
-function smooth_gw_tendencies!(
+@ivy function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     filter_type::Val{:BoxFilter},
@@ -228,17 +228,17 @@ function smooth_gw_tendencies!(
     (; jac) = state.grid
 
     if nbx < filter_order
-        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
+        error("Filter order is too large: nbx < filter_order!")
     end
     if nby < filter_order
-        error("Error in smooth_gw_tendencies!: nby < filter_order!")
+        error("Filter order is too large: nby < filter_order!")
     end
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
                 input[ii, jj, kk] * jac[ii, jj, kk] for
@@ -255,7 +255,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(
+@ivy function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     filter_type::Val{:BoxFilter},
@@ -267,14 +267,14 @@ function smooth_gw_tendencies!(
     (; jac) = state.grid
 
     if nbx < filter_order
-        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
+        error("Filter order is too large: nbx < filter_order!")
     end
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
                 input[ii, j, kk] * jac[ii, j, kk] for
@@ -289,7 +289,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(
+@ivy function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     filter_type::Val{:BoxFilter},
@@ -301,14 +301,14 @@ function smooth_gw_tendencies!(
     (; jac) = state.grid
 
     if nby < filter_order
-        error("Error in smooth_gw_tendencies!: nby < filter_order!")
+        error("Filter order is too large: nby < filter_order!")
     end
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
                 input[i, jj, kk] * jac[i, jj, kk] for
@@ -323,7 +323,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(
+@ivy function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     filter_type::Val{:BoxFilter},
@@ -335,11 +335,11 @@ function smooth_gw_tendencies!(
     (; jac) = state.grid
 
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
                 input[i, j, kk] * jac[i, j, kk] for
@@ -385,7 +385,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(
+@ivy function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     filter_type::Val{:ShapiroFilter},
@@ -396,11 +396,11 @@ function smooth_gw_tendencies!(
     (; nxx, nyy, k0, k1) = state.domain
 
     if nbz < filter_order
-        error("Error in smooth_gw_tendencies!: nbz < filter_order!")
+        error("Filter order is too large: nbz < filter_order!")
     end
 
     input = copy(output)
-    @dispatch_filter_order @ivy for j in 1:nyy, i in 1:nxx
+    @dispatch_filter_order for j in 1:nyy, i in 1:nxx
         apply_shapiro_filter!(
             output[i, j, :],
             input[i, j, :],
@@ -412,7 +412,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(
+@ivy function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     filter_type::Val{:ShapiroFilter},
@@ -423,11 +423,11 @@ function smooth_gw_tendencies!(
     (; nxx, nzz, j0, j1) = state.domain
 
     if nby < filter_order
-        error("Error in smooth_gw_tendencies!: nby < filter_order!")
+        error("Filter order is too large: nby < filter_order!")
     end
 
     input = copy(output)
-    @dispatch_filter_order @ivy for k in 1:nzz, i in 1:nxx
+    @dispatch_filter_order for k in 1:nzz, i in 1:nxx
         apply_shapiro_filter!(
             output[i, :, k],
             input[i, :, k],
@@ -439,7 +439,7 @@ function smooth_gw_tendencies!(
     return
 end
 
-function smooth_gw_tendencies!(
+@ivy function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     filter_type::Val{:ShapiroFilter},
@@ -450,11 +450,11 @@ function smooth_gw_tendencies!(
     (; nyy, nzz, i0, i1) = state.domain
 
     if nbx < filter_order
-        error("Error in smooth_gw_tendencies!: nbx < filter_order!")
+        error("Filter order is too large: nbx < filter_order!")
     end
 
     input = copy(output)
-    @dispatch_filter_order @ivy for k in 1:nzz, j in 1:nyy
+    @dispatch_filter_order for k in 1:nzz, j in 1:nyy
         apply_shapiro_filter!(
             output[:, j, k],
             input[:, j, k],

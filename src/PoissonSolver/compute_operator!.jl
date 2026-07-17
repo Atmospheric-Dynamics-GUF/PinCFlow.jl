@@ -37,7 +37,7 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 """
 function compute_operator! end
 
-function compute_operator!(
+@ivy function compute_operator!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
@@ -80,7 +80,7 @@ function compute_operator!(
     (; rho, p) = state.variables.predictands
 
     # Compute tensor elements for TFC.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         # Compute scaling factors.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         fcscal_r = sqrt(pbar[i + 1, j, k]^2.0 / rhobar[i + 1, j, k])
@@ -851,7 +851,7 @@ function compute_operator!(
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
         end
 
-        if model == :Compressible
+        if model === :Compressible
             dpdpi =
                 1 / (gamma - 1) *
                 (rsp / pref)^(1 - gamma) *
