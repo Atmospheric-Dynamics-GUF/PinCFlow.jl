@@ -489,7 +489,7 @@ function write_output end
             end
 
             # Write TKE tendency.
-            if :gw_shear in output_variables
+            if :dtkedt in output_variables
                 HDF5.set_extent_dims(
                     file["dtkedt"],
                     (x_size, y_size, z_size, iout),
