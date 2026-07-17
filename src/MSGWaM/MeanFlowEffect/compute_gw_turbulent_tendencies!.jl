@@ -35,7 +35,7 @@ Computes the turbulence impact of the gravity-wave shear, at ``\\left(i, j, k\\r
 \\end{align*}
 ```
 
-where ``K_\\mathrm{H}`` represents the eddy diffusion coefficient for momentum. (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref) for documentation on the gravity-wave shear).
+where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum. (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_shear!`](@ref) for documentation on the gravity-wave shear).
 
 # Arguments
 

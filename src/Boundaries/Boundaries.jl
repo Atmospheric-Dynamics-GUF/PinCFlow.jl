@@ -75,21 +75,12 @@ struct BoundaryWKBIntegrals <: AbstractBoundaryWKBVariables end
 
 """
 ```julia
-BoundaryWKBTendencies <: AbstractBoundaryVariables
+BoundaryWKBTendencies <: AbstractBoundaryWKBVariables
 ```
 
 Boundary-variable category for gravity-wave-tendency fields.
 """
 struct BoundaryWKBTendencies <: AbstractBoundaryWKBVariables end
-
-"""
-```julia
-BoundaryTurbulenceWKBTendencies <: AbstractBoundaryWKBVariables
-```
-
-Boundary-variable category for the turbulence impact of the gravity-wave-shear field.
-"""
-struct BoundaryTurbulenceWKBTendencies <: AbstractBoundaryWKBVariables end
 
 include("set_boundaries!.jl")
 include("set_tracer_meridional_boundaries!.jl")
@@ -109,8 +100,7 @@ export BoundaryPredictands,
     BoundaryReconstructions,
     BoundaryFluxes,
     BoundaryWKBIntegrals,
-    BoundaryWKBTendencies,
-    BoundaryTurbulenceWKBTendencies
+    BoundaryWKBTendencies
 
 export set_boundaries!,
     set_meridional_boundaries_of_field!,
