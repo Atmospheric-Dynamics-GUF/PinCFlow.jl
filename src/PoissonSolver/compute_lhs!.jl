@@ -75,7 +75,7 @@ function compute_lhs!(
     (; dx, dy, dz, jac) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
-    (; rhs) = state.poisson
+    (; lhs) = state.poisson
 
     # Initialize summation variables.
     divl2 = 0.0
@@ -134,9 +134,9 @@ function compute_lhs!(
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
-        rhs[ib, jb, kb] = bu + bv + bw
+        lhs[ib, jb, kb] = bu + bv + bw
         # Compute check sum for solvability criterion.
-        divl2 += rhs[ib, jb, kb]^2.0
+        divl2 += lhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0
     end
 
@@ -152,7 +152,7 @@ function compute_lhs!(
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Error in compute_lhs: divl2_norm = 0 while divl2 != 0!")
         end
     end
 
@@ -166,7 +166,7 @@ function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
     (; dx, dy, dz, jac) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
-    (; rhs) = state.poisson
+    (; lhs) = state.poisson
 
     # Initialize summation fields.
     divl2 = 0.0
@@ -197,9 +197,9 @@ function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
         bv /= fcscal
         bw /= fcscal
         heating /= fcscal
-        rhs[ib, jb, kb] = bu + bv + bw - heating
+        lhs[ib, jb, kb] = bu + bv + bw - heating
         # Compute check sum for solvability criterion.
-        divl2 += rhs[ib, jb, kb]^2.0
+        divl2 += lhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0
     end
 
@@ -215,7 +215,7 @@ function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Error in compute_lhs: divl2_norm = 0 while divl2 != 0!")
         end
     end
 
