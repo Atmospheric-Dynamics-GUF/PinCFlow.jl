@@ -15,7 +15,9 @@ The scope in which this macro is to be applied must include the argument of the 
 
 # See also
 
-  - [`PinCFlow.Macros.dispatch`](@ref)
+  - [`PinCFlow.Macros.find_argument`](@ref)
+
+  - [`PinCFlow.Macros.replace_argument`](@ref)
 """
 macro dispatch end
 
