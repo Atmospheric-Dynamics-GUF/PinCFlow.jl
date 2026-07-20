@@ -102,17 +102,17 @@ function compute_gw_turbulence_integrals!(
     (; turbulence_scheme) = state.namelists.turbulence
 
     @dispatch_turbulence_scheme compute_gw_turbulence_integrals!(
-        state::State,
+        state,
         Val(turbulence_scheme),
-        fc::AbstractFloat,
-        omir::AbstractFloat,
-        kr::AbstractFloat,
-        lr::AbstractFloat,
-        mr::AbstractFloat,
-        wadr::AbstractFloat,
-        i::Integer,
-        j::Integer,
-        k::Integer,
+        fc,
+        omir,
+        kr,
+        lr,
+        mr,
+        wadr,
+        i,
+        j,
+        k,
     )
 
     return

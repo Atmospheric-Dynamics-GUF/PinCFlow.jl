@@ -3,7 +3,7 @@
 compute_gw_turbulence_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
 ```
 
-Calculates the turbulence impact of the gravity-wave shear, by dispatching to the appropriate method.
+Calculates the turbulence impact of the gravity-wave shear by dispatching to the appropriate method.
 
 ```julia
 compute_gw_turbulence_tendencies!(
@@ -27,7 +27,7 @@ compute_gw_turbulence_tendencies!(
 )
 ```
 
-Computes the turbulence impact of the gravity-wave shear, at ``\\left(i, j, k\\right)`` given by
+Computes the turbulence impact of the gravity-wave shear at ``\\left(i, j, k\\right)`` given by
 
 ```math
 \\begin{align*}
@@ -35,7 +35,7 @@ Computes the turbulence impact of the gravity-wave shear, at ``\\left(i, j, k\\r
 \\end{align*}
 ```
 
-where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum. (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref) for documentation on the gravity-wave shear).
+where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref) for documentation on the gravity-wave shear).
 
 # Arguments
 

@@ -7,7 +7,8 @@ Turbulence{
     D <: TurbulenceReconstructions,
     E <: TurbulenceFluxes,
     F <: TurbulenceConstants,
-    G <: TurbulenceWKBTendencies,
+    G <: TurbulenceWKBIntegrals,
+    H <: TurbulenceWKBTendencies,
 }
 ```
 
@@ -39,7 +40,9 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
   - `turbulencefluxes::E`: Fluxes of the turbulence variables.
 
   - `turbulenceconstants::F`: Constants used for the turbulence parameterization.
-
+  
+  - `tracerwkbintegrals::E`: Gravity-wave shear term.
+  
   - `turbulencewkbtendencies::G`: Turbulence impact of unresolved gravity waves.
 
 # Arguments
@@ -69,6 +72,8 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceFluxes`](@ref)
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceConstants`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceWKBIntegrals`](@ref)
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceWKBTendencies`](@ref)
 

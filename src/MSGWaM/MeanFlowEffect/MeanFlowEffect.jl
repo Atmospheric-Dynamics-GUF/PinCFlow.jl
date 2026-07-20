@@ -31,7 +31,6 @@ using ...Types
 using ...Boundaries
 
 import ..RayUpdate
-
 """
 ```julia
 UChi
