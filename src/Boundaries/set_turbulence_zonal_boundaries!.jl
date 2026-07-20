@@ -21,7 +21,37 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Enforce zonal boundary conditions for the turbulence impact of the gravity-wave shear.
+Enforce zonal boundary conditions for turbulence WKB tendencies by dispatching to the appropriate method.
+
+```julia
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Val{:NoTurbulence},
+)
+```
+
+Return for configurations without turbulence parameterization.
+
+```julia
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBIntegrals,
+    turbulence_scheme::Val{:TKEScheme},
+)
+```
+
+Return for turbulence WKB integrals.
+
+```julia
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    turbulence_scheme::Val{:TKEScheme},
+)
+```
+
+Enforce zonal boundary conditions for turbulence WKB tendencies. by dispatching to the appropriate method.
 
 # Arguments
 
@@ -108,29 +138,6 @@ function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     turbulence_scheme::Val{:TKEScheme},
-)
-    (; wkb_mode) = state.namelists.wkb
-
-    @dispatch_wkb_mode set_turbulence_zonal_boundaries!(
-        state,
-        variables,
-        Val(wkb_mode),
-    )
-    return
-end
-
-function set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::Val{:NoWKB},
-)
-    return
-end
-
-function set_turbulence_zonal_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
     (; turbulencewkbtendencies) = state.turbulence

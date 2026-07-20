@@ -41,35 +41,6 @@ set_boundaries!(
 
 Enforce vertical boundary conditions for turbulence flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 
-```julia 
-set_turbulence_boundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-)
-```
-
-Enforce boundary conditions for the turbulence impact of the gravity-wave shear by dispatching to the appropriate method.
-
-```julia 
-set_boundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-```
-
-Return for configurations without turbulence parameterization.
-
-```julia 
-set_boundaries!(
-    state::State,
-    variables::AbstractBoundaryWKBVariables,
-    turbulence_scheme::Val{:TKEScheme},
-)
-```
-
-Enforce boundary conditions for the turbulence impact of the gravity-wave shear field.
-
 # Arguments
 
   - `state`: Model state.
@@ -108,6 +79,8 @@ function set_boundaries!(
         AbstractBoundaryWKBVariables,
     },
 )
+    (; gw_coupling) = state.namelists.turbulence
+
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
     set_vertical_boundaries!(state, variables)
@@ -116,9 +89,11 @@ function set_boundaries!(
     set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
 
-    set_turbulence_zonal_boundaries!(state, variables)
-    set_turbulence_meridional_boundaries!(state, variables)
-    set_turbulence_vertical_boundaries!(state, variables)
+    if gw_coupling
+        set_turbulence_zonal_boundaries!(state, variables)
+        set_turbulence_meridional_boundaries!(state, variables)
+        set_turbulence_vertical_boundaries!(state, variables)
+    end
 
     return
 end
