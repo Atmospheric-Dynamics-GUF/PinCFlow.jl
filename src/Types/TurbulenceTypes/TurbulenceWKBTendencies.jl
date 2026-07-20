@@ -121,11 +121,6 @@ function TurbulenceWKBTendencies(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TurbulenceWKBTendencies
     (; nxx, nyy, nzz) = domain
-    (; gw_coupling) = namelists.turbulence
 
-    if gw_coupling
-        return TurbulenceWKBTendencies([zeros(nxx, nyy, nzz) for i in 1:1]...)
-    else
-        return TurbulenceWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
-    end
+    return TurbulenceWKBTendencies([zeros(nxx, nyy, nzz) for i in 1:1]...)
 end
