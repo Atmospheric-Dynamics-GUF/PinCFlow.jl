@@ -80,6 +80,61 @@ function set_turbulence_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
 )
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    @dispatch_turbulence_scheme set_turbulence_meridional_boundaries!(
+        state::State,
+        variables::AbstractBoundaryWKBVariables,
+        Val(turbulence_scheme),
+    )
+
+    return
+end
+
+function set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Val{:NoTurbulence},
+)
+    return
+end
+
+function set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    turbulence_scheme::Val{:TKEScheme},
+)
+    return
+end
+
+function set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    turbulence_scheme::Val{:TKEScheme},
+)
+    (; wkb_mode) = state.namelists.wkb
+
+    @dispatch_wkb_mode set_turbulence_meridional_boundaries!(
+        state,
+        variables,
+        Val(wkb_mode),
+    )
+    return
+end
+
+function set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Val{:NoWKB},
+)
+    return
+end
+
+function set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)
     (; namelists, domain) = state
     (; turbulencewkbtendencies) = state.turbulence
 

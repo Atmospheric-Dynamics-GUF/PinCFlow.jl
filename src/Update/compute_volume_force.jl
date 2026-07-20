@@ -336,10 +336,10 @@ end
     shear_production[i, j, k] = shear
 
     if gw_coupling
-        @dispatch_wkb_mode gw_shear = 
+        @dispatch_wkb_mode dtkedt = 
             compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
     else
-        gw_shear = 0.0
+        dtkedt = 0.0
     end
     
     bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
@@ -354,7 +354,7 @@ end
     return (rho[i, j, k] + rhobar[i, j, k]) * (
         shear + 
         buoyancy +
-        gw_shear
+        dtkedt
         )
 end
 

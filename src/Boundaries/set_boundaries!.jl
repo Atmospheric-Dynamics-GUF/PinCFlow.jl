@@ -116,7 +116,9 @@ function set_boundaries!(
     set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
 
-    set_turbulence_boundaries!(state, variables)
+    set_turbulence_zonal_boundaries!(state, variables)
+    set_turbulence_meridional_boundaries!(state, variables)
+    set_turbulence_vertical_boundaries!(state, variables)
 
     return
 end
@@ -149,52 +151,6 @@ function set_boundaries!(
     variables::BoundaryFluxes,
     turbulence::TKE,
 )
-    set_turbulence_vertical_boundaries!(state, variables)
-
-    return
-end
-
-function set_turbulence_boundaries!(
-    state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        BoundaryWKBIntegrals,
-    },
-)
-    return
-end
-
-function set_turbulence_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-)
-    (; turbulence_scheme) = state.namelists.turbulence
-
-    @dispatch_turbulence_scheme set_boundaries!(
-        state, 
-        variables,
-        Val(turbulence_scheme),
-    )
-
-    return
-end
-
-function set_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    turbulence_scheme::Val{:NoTurbulence},
-)
-    return
-end
-
-function set_boundaries!(
-    state::State,
-    variables::BoundaryWKBTendencies,
-    turbulence_scheme::Val{:TKEScheme},
-)
-    set_turbulence_zonal_boundaries!(state, variables)
-    set_turbulence_meridional_boundaries!(state, variables)
     set_turbulence_vertical_boundaries!(state, variables)
 
     return
