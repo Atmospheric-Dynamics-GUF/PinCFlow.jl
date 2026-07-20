@@ -52,7 +52,7 @@ TurbulenceWKBTendencies(
 )::TurbulenceWKBTendencies
 ```
 
-Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays.
+Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `state.namelists.turbulence.gw_coupling == true`, otherwise the arrays are zero-size.
 
 # Fields 
 
