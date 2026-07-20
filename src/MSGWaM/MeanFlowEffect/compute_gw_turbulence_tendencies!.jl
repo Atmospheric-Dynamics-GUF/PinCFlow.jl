@@ -1,6 +1,11 @@
 """
 ```julia
-compute_gw_turbulence_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
+compute_gw_turbulence_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)
 ```
 
 Calculates the turbulence impact of the gravity-wave shear by dispatching to the appropriate method.
@@ -91,8 +96,14 @@ end
 )
     (; gw_shear) = state.turbulence.turbulencewkbintegrals
     (; dtkedt) = state.turbulence.turbulencewkbtendencies
+    (; gw_coupling) = state.namelists.turbulence
 
-    dtkedt[i, j, k] = turbulence_diffusion_coefficient(state, i, j, k, KM()) * 
+    if !gw_coupling
+        return
+    end
+
+    dtkedt[i, j, k] =
+        turbulence_diffusion_coefficient(state, i, j, k, KM()) *
         gw_shear[i, j, k]
 
     return

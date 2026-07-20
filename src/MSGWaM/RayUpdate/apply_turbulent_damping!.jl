@@ -122,8 +122,9 @@ function apply_turbulent_damping! end
 
     delta = n2r * kh2 / (2 * (n2r * kh2 + fc^2 * mr^2))
 
-    gammas = 
-        mr^2 * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])) * 
+    gammas =
+        mr^2 *
+        sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])) *
         (lv * (1 - delta) + lb * delta)
 
     gammaw =

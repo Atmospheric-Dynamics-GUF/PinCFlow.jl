@@ -149,15 +149,15 @@ end
 )
     (; rhobar) = state.atmosphere
     (; gw_shear) = state.turbulence.turbulencewkbintegrals
+    (; gw_coupling) = state.namelists.turbulence
+
+    if !gw_coupling
+        return
+    end
 
     gw_shear[i, j, k] +=
-        mr^4  * 
-        wadr / 
-        rhobar[i, j, k] * 
-        (fc^2 + omir^2) / (
-            omir * 
-            (kr^2 + lr^2 + mr^2)
-        )
-        
+        mr^4 * wadr / rhobar[i, j, k] * (fc^2 + omir^2) /
+        (omir * (kr^2 + lr^2 + mr^2))
+
     return
 end

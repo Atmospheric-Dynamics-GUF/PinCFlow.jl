@@ -817,8 +817,7 @@ function create_output(state::State, machine_start_time::DateTime)
 
             if :gw_shear in output_variables
                 attributes(file["gw_shear"])["units"] = "s^-2"
-                attributes(file["gw_shear"])["label"] =
-                    L"\mathcal{S}_{gw}"
+                attributes(file["gw_shear"])["label"] = L"\mathcal{S}_{gw}"
                 attributes(file["gw_shear"])["long_name"] = "gravity-wave shear"
             end
 
@@ -826,7 +825,9 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(file["dtkedt"])["units"] = "m^2*s^-3"
                 attributes(file["dtkedt"])["label"] =
                     L"\left(\frac{\partial e_\mathrm{k}}{\partial t}\right)_\mathrm{w}"
-                attributes(file["dtkedt"])["long_name"] = "turbulent kinetic energy GW forcing"
+                attributes(
+                    file["dtkedt"],
+                )["long_name"] = "turbulent kinetic energy GW forcing"
             end
 
             if elastic_mode_selection

@@ -133,10 +133,7 @@ end
 
 function set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-    },
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
     turbulence::TKE,
 )
     set_turbulence_zonal_boundaries!(state, variables)
@@ -155,4 +152,3 @@ function set_boundaries!(
 
     return
 end
-

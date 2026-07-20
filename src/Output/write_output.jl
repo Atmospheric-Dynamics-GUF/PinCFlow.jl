@@ -502,7 +502,6 @@ function write_output end
                     ] .* uref .^ 2 ./ tref
             end
 
-
             # Write elastic-mode-selection data.
             if elastic_mode_selection && ko == 0
                 for field in (:launch_mode_count, :launch_power_fraction)

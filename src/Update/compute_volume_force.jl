@@ -152,7 +152,7 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variables::TKE,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}}
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
 ```
 
@@ -336,12 +336,12 @@ end
     shear_production[i, j, k] = shear
 
     if gw_coupling
-        @dispatch_wkb_mode dtkedt = 
+        @dispatch_wkb_mode dtkedt =
             compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
     else
         dtkedt = 0.0
     end
-    
+
     bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
@@ -351,11 +351,7 @@ end
 
     buoyancy_production[i, j, k] = buoyancy
 
-    return (rho[i, j, k] + rhobar[i, j, k]) * (
-        shear + 
-        buoyancy +
-        dtkedt
-        )
+    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
 end
 
 function compute_volume_force(
@@ -366,7 +362,6 @@ function compute_volume_force(
     variable::TKE,
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
-
     return 0.0
 end
 

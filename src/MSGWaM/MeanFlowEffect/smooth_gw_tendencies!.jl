@@ -226,7 +226,10 @@ function smooth_gw_tendencies!(state::State)
 
     @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
 
-    @dispatch_turbulence_scheme smooth_gw_tendencies!(state, Val(turbulence_scheme))
+    @dispatch_turbulence_scheme smooth_gw_tendencies!(
+        state,
+        Val(turbulence_scheme),
+    )
 
     return
 end
@@ -502,16 +505,13 @@ function smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})
 end
 
 function smooth_gw_tendencies!(
-    state::State, 
-    turbulence_scheme::Val{:NoTurbulence}
+    state::State,
+    turbulence_scheme::Val{:NoTurbulence},
 )
     return
 end
 
-function smooth_gw_tendencies!(
-    state::State, 
-    turbulence_scheme::Val{:TKEScheme}
-)
+function smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:TKEScheme})
     (; x_size, y_size) = state.namelists.domain
     (; wkb_mode) = state.namelists.wkb
     (; smooth_tendencies, filter_type) = state.namelists.wkb
@@ -527,4 +527,3 @@ function smooth_gw_tendencies!(
         smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XYZ())
     end
 end
-

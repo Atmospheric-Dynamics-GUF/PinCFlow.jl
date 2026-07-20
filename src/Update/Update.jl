@@ -103,7 +103,6 @@ Singleton for dispatch to operations in ``y``- and ``z``-direction.
 """
 struct YZ end
 
-
 """
 ```julia
 XYZ

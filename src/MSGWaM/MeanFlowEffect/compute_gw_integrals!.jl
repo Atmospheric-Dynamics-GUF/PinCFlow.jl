@@ -645,7 +645,7 @@ end
                             jray,
                             kray,
                         )
-                        
+
                         compute_gw_tracer_integrals!(
                             state,
                             fc,
