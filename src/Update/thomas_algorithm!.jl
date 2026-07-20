@@ -71,7 +71,7 @@ end
         )
 
     for k in 1:(nz - 1)
-        fth[:, :, k] .= fthnz .* sth[:, :, k] .+ qth[:, :, k]
+        fth[:, :, k] .= fth[:, :, nz] .* sth[:, :, k] .+ qth[:, :, k]
     end
 
     return
