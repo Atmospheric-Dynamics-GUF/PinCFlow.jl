@@ -122,6 +122,11 @@ function TurbulenceWKBIntegrals(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TurbulenceWKBIntegrals
     (; nxx, nyy, nzz) = domain
+    (; gw_coupling) = namelists.turbulence
 
-    return TurbulenceWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:1]...)
+    if gw_coupling
+        return TurbulenceWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:1]...)
+    else
+        return TurbulenceWKBIntegrals([zeros(0, 0, 0) for i in 1:1]...)
+    end
 end
