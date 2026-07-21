@@ -101,6 +101,11 @@ function set_turbulence_vertical_boundaries!(
 )
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
+    (; gw_coupling) = state.namelists.turbulence
+
+    if !gw_coupling
+        return
+    end
 
     for field in fieldnames(TurbulenceReconstructions)
         set_vertical_boundaries_of_field!(
