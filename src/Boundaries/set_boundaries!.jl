@@ -79,6 +79,8 @@ function set_boundaries!(
         AbstractBoundaryWKBVariables,
     },
 )
+    (; gw_coupling) = state.namelists.turbulence
+
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
     set_vertical_boundaries!(state, variables)
@@ -87,9 +89,11 @@ function set_boundaries!(
     set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
 
-    set_turbulence_zonal_boundaries!(state, variables)
-    set_turbulence_meridional_boundaries!(state, variables)
-    set_turbulence_vertical_boundaries!(state, variables)
+    if gw_coupling
+        set_turbulence_zonal_boundaries!(state, variables)
+        set_turbulence_meridional_boundaries!(state, variables)
+        set_turbulence_vertical_boundaries!(state, variables)
+    end
 
     return
 end

@@ -141,16 +141,13 @@ function set_turbulence_zonal_boundaries!(
 )
     (; namelists, domain) = state
     (; turbulencewkbtendencies) = state.turbulence
-    (; gw_coupling) = state.namelists.turbulence
 
-    if gw_coupling
-        for field in fieldnames(TurbulenceWKBTendencies)
-            set_zonal_boundaries_of_field!(
-                getfield(turbulencewkbtendencies, field),
-                namelists,
-                domain,
-            )
-        end
+    for field in fieldnames(TurbulenceWKBTendencies)
+        set_zonal_boundaries_of_field!(
+            getfield(turbulencewkbtendencies, field),
+            namelists,
+            domain,
+        )
     end
 
     return
