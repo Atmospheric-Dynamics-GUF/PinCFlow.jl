@@ -90,7 +90,7 @@ end
 
     # Compute initial wavenumbers, intrinsic frequencies and wave-action
     # densities with initial_wave_field.
-    if wkb_mode != Val(:SteadyState)
+    if wkb_mode !== :SteadyState
         for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
                 alpha,
