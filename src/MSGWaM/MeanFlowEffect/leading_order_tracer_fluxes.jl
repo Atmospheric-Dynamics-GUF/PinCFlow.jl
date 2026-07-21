@@ -95,7 +95,7 @@ The flux contributions are given by
 
   - `direction`: Tracer-flux direction.
 
-# See also:
+# See also
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """

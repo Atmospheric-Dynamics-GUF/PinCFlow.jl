@@ -101,7 +101,7 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `k`: Vertical grid-cell index.
 
-# See also:
+# See also
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.leading_order_tracer_fluxes`](@ref)
 """
