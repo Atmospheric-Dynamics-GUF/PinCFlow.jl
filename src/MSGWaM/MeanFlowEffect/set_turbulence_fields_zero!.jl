@@ -3,25 +3,25 @@
 set_turbulence_fields_zero!(state)
 ```
 
-Reset the gravity-wave-induced turbulence fluxes and turbulence tendencies to zero by dispatching over turbulence configurations.
+Reset the gravity-wave shear and the turbulence tendencies to zero by dispatching to the appropriate method.
 
 ```julia
 set_turbulence_fields_zero!(state::State, turbulence_setup::Val{:Noturbulence})
 ```
 
-Return for configurations without turbulence transport.
+Return for configurations without turbulence parameterization.
 
 ```julia
 set_turbulence_fields_zero!(state::State, turbulence_setup::Val{:turbulenceOn})
 ```
 
-Set the gravity-wave-induced turbulence fluxes and turbulence tendencies to zero.
+Set the gravity-wave shear and turbulence tendencies to zero.
 
 # Arguments
 
   - `state`: Model state.
 
-  - `turbulence_setup`: General turbulence-transport configuration.
+  - `turbulence_scheme`: General turbulence parameterization configuration.
 """
 function set_turbulence_fields_zero! end
 
