@@ -312,7 +312,8 @@ function write_output end
             end
 
             if state.namelists.tracer.leading_order_impact &&
-               :dchidt0 in output_variables
+               :dchidt0 in output_variables &&
+               wkb_mode !== :NoWKB
                 HDF5.set_extent_dims(
                     file["dchidt0"],
                     (x_size, y_size, z_size, iout),
@@ -323,7 +324,8 @@ function write_output end
             end
 
             if state.namelists.tracer.leading_order_impact &&
-               :uchi0 in output_variables
+               :uchi0 in output_variables &&
+               wkb_mode !== :NoWKB
                 HDF5.set_extent_dims(
                     file["uchi0"],
                     (x_size, y_size, z_size, iout),
@@ -334,7 +336,8 @@ function write_output end
             end
 
             if state.namelists.tracer.leading_order_impact &&
-               :vchi0 in output_variables
+               :vchi0 in output_variables &&
+               wkb_mode !== :NoWKB
                 HDF5.set_extent_dims(
                     file["vchi0"],
                     (x_size, y_size, z_size, iout),
@@ -345,7 +348,8 @@ function write_output end
             end
 
             if state.namelists.tracer.leading_order_impact &&
-               :wchi0 in output_variables
+               :wchi0 in output_variables &&
+               wkb_mode !== :NoWKB
                 HDF5.set_extent_dims(
                     file["wchi0"],
                     (x_size, y_size, z_size, iout),
