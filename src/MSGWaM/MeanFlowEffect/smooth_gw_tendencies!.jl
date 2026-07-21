@@ -200,7 +200,7 @@ function smooth_gw_tendencies!(state::State)
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
-    (; turbulence_scheme) = state.namelists.turbulence
+    (; turbulence_scheme, gw_coupling) = state.namelists.turbulence
 
     if !smooth_tendencies
         return
@@ -226,10 +226,12 @@ function smooth_gw_tendencies!(state::State)
 
     @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
 
-    @dispatch_turbulence_scheme smooth_gw_tendencies!(
-        state,
-        Val(turbulence_scheme),
-    )
+    if gw_coupling
+        @dispatch_turbulence_scheme smooth_gw_tendencies!(
+            state,
+            Val(turbulence_scheme),
+        )
+    end
 
     return
 end
