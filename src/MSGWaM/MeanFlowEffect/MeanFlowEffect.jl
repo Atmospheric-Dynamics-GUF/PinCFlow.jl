@@ -29,7 +29,6 @@ using ...Update
 using ...Macros
 using ...Types
 using ...Boundaries
-import ..RayUpdate
 
 """
 ```julia
