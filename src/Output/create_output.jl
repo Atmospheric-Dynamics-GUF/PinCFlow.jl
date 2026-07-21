@@ -817,7 +817,7 @@ function create_output(state::State, machine_start_time::DateTime)
 
             if :gw_shear in output_variables
                 attributes(file["gw_shear"])["units"] = "s^-2"
-                attributes(file["gw_shear"])["label"] = L"\mathcal{S}_{gw}"
+                attributes(file["gw_shear"])["label"] = L"\mathcal{S}_\mathrm{w}"
                 attributes(file["gw_shear"])["long_name"] = "gravity-wave shear"
             end
 

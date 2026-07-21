@@ -36,7 +36,7 @@ Computes the turbulence impact of the gravity-wave shear at ``\\left(i, j, k\\ri
 
 ```math
 \\begin{align*}
-    \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w} = K_\\mathrm{M}\\mathcal{S}_{gw} \\;,
+    \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w} = K_\\mathrm{M}\\mathcal{S}_\\mathrm{w} \\;,
 \\end{align*}
 ```
 
