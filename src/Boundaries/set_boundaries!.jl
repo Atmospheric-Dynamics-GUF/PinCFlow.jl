@@ -90,7 +90,7 @@ function set_boundaries!(
     set_turbulence_zonal_boundaries!(state, variables)
     set_turbulence_meridional_boundaries!(state, variables)
     set_turbulence_vertical_boundaries!(state, variables)
-    
+
     return
 end
 

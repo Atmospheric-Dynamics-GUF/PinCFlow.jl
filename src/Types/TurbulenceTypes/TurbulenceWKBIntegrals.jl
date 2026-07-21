@@ -54,7 +54,6 @@ TurbulenceWKBIntegrals(
 
 Construct a `TurbulenceWKBIntegrals` instance with zero-initialized arrays if `state.namelists.turbulence.gw_coupling == true`, otherwise the arrays are zero-size.
 
-
 # Fields 
 
   - `gw_shear::A`: Gravity-wave shear field.
