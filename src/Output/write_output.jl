@@ -73,6 +73,8 @@ The list of available output variables (as specified in `state.namelists.output.
   - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
 
   - `:gw_shear::A`: Turbulent kinetic energy production due to gravity-wave shear.
+  
+  - `:dtkedt::A`: Turbulence impact of unresolved gravity waves.
 
   - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
 
