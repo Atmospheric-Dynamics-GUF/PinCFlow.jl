@@ -267,6 +267,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :dchidt0 in output_variables
                 create_dataset(
                     file,
@@ -281,6 +282,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :uchi0 in output_variables
                 create_dataset(
                     file,
@@ -295,6 +297,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :vchi0 in output_variables
                 create_dataset(
                     file,
@@ -309,6 +312,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :wchi0 in output_variables
                 create_dataset(
                     file,

@@ -488,8 +488,13 @@ end
 
 function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
     (; x_size, y_size) = state.namelists.domain
-    (; smooth_tendencies, filter_type) = state.namelists.wkb
+    (; filter_type) = state.namelists.wkb
     (; dchidt0) = state.tracer.tracerwkbtendencies
+    (; leading_order_impact) = state.namelists.tracer
+
+    if !leading_order_impact
+        return
+    end
 
     @dispatch_filter_type if x_size == y_size == 1
         smooth_gw_tendencies!(dchidt0, state, Val(filter_type), Z())

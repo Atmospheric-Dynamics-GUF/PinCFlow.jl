@@ -218,7 +218,7 @@ function WKB(
     n_sfc = nrx * nrk * nry * nrl * nrz * nrm * wave_modes
 
     # Set the total number of bins and work size of the ray-volume array.
-    if wkb_mode == Val(:SteadyState)
+    if wkb_mode === Val(:SteadyState)
         bins = nray_wrk = n_sfc
     else
         # Set the total number of bins.

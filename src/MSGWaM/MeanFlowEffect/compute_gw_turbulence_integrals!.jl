@@ -74,7 +74,7 @@ Compute the gravity-wave shear at ``(i, j, k)``, using
 
   - `mr`: Vertical wavenumber.
 
-  - `wadr`: Physical-space wave-action density.
+  - `wadr`: Contributing fraction of the physical-space wave-action density.
 
   - `i`: Zonal grid-cell index.
 

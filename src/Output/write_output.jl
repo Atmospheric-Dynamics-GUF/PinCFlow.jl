@@ -316,6 +316,7 @@ function write_output end
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :dchidt0 in output_variables
                 HDF5.set_extent_dims(
                     file["dchidt0"],
@@ -327,6 +328,7 @@ function write_output end
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :uchi0 in output_variables
                 HDF5.set_extent_dims(
                     file["uchi0"],
@@ -338,6 +340,7 @@ function write_output end
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :vchi0 in output_variables
                 HDF5.set_extent_dims(
                     file["vchi0"],
@@ -349,6 +352,7 @@ function write_output end
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :wchi0 in output_variables
                 HDF5.set_extent_dims(
                     file["wchi0"],
