@@ -85,7 +85,7 @@ The flux contributions are given by
 
   - `wnrm`: Vertical wavenumber.
 
-  - `wadr`: Physical-space wave-action density.
+  - `wadr`: Contributing fraction of the physical-space wave-action density.
 
   - `xlc`: Zonal location of the ray-volume.
 

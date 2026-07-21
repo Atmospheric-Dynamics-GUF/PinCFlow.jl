@@ -69,7 +69,7 @@ end
         initial_wave_field,
     ) = state.namelists.wkb
     (; lref, tref, rhoref, uref) = state.constants
-    (; comm, master, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; comm, master, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, x, y, zc, jac) = state.grid
     (;
         bins,
