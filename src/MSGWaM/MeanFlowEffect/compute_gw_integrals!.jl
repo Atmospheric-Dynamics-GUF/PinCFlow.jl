@@ -110,13 +110,11 @@ end
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
-    (; turbulence_scheme) = state.namelists.turbulence
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
-    (; turbulencewkbintegrals) = state.turbulence
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -342,7 +340,6 @@ end
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
-    (; turbulencewkbintegrals) = state.turbulence
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -531,7 +528,6 @@ end
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
-    (; turbulencewkbintegrals) = state.turbulence
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref

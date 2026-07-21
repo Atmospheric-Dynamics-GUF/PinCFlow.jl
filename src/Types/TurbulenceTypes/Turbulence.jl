@@ -41,9 +41,9 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
 
   - `turbulenceconstants::F`: Constants used for the turbulence parameterization.
   
-  - `tracerwkbintegrals::E`: Gravity-wave shear term.
+  - `tracerwkbintegrals::G`: Gravity-wave shear term.
   
-  - `turbulencewkbtendencies::G`: Turbulence impact of unresolved gravity waves.
+  - `turbulencewkbtendencies::H`: Turbulence impact of unresolved gravity waves.
 
 # Arguments
 
