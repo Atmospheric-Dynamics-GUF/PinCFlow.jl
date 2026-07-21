@@ -7,15 +7,15 @@ function ijk(x, y, z)
 end
 
 function rhobar(x, y, z)
-    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)] * rhoref
+    return auxiliary_state.atmosphere.rhobar[ijk(x, y, z)] .* rhoref
 end
 
 function thetabar(x, y, z)
-    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)] * thetaref
+    return auxiliary_state.atmosphere.thetabar[ijk(x, y, z)] .* thetaref
 end
 
 function n2(x, y, z)
-    return auxiliary_state.atmosphere.n2[ijk(x, y, z)] ./ tref .^ 2
+    return auxiliary_state.atmosphere.n2[ijk(x, y, z)] ./ tref.^2
 end
 
 function envelope(x, y, z)

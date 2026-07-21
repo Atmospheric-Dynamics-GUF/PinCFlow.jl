@@ -14,7 +14,7 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-run = "2705_01"
+run = "1307_02"
 
 #outfile = "/home/b/b383844/PinCFlow/sedimentation/results/mountain_wave_$(run).h5"
 outfile = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_$(run).h5"
@@ -37,7 +37,7 @@ alpharmax = 0.0179
 
 
 atmosphere = AtmosphereNamelist(;
-    tropopause_height = 2.0e4,
+    tropopause_height = 2.1e4,
     background = LapseRates(),
     temperature = 280.0,
     potential_temperature = 280.0,
@@ -46,7 +46,7 @@ atmosphere = AtmosphereNamelist(;
 )
 
 domain = DomainNamelist(;
-    x_size = 800,
+    x_size = 400,
     y_size = 1,
     z_size = 80,
     lx,
@@ -76,9 +76,9 @@ ice = IceNamelist(;
 output = OutputNamelist(; 
     output_variables = (:w, :u, :n, :nNuc, :qv, :q, :thetap, :pip, :iaux1, :iaux2, :iaux3, :iaux4, :iaux5), 
     prepare_restart = true,
-    restart = true,
+    restart = false,
     output_steps = false,
-	output_interval = 10.0,
+	output_interval = 120.0,
 	tmax = tmax,
     save_ray_volumes = true,
     input_file = "/work/bb1097/b383844/PinCFlow/adv/results/mountain_wave_1207_02.h5",

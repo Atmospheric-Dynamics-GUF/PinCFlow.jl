@@ -51,7 +51,7 @@ domain = DomainNamelist(;
     base_comm = MPI.COMM_SELF,
 )
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
+(; g, kappa, rsp, lref, rhoref, thetaref, tref) = auxiliary_state.constants
 
 include("wave_packet_tools.jl")
 
@@ -65,13 +65,8 @@ output = OutputNamelist(;
 )
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
-    initial_wave_field = (alpha, x, y, z) -> (
-        k,
-        l,
-        m,
-        omega(x, y, z),
-        wave_action_density(x, y, z),
-    ),
+    initial_wave_field = (alpha, x, y, z) ->
+        (k, l, m, omega(x, y, z), wave_action_density(x, y, z)),
 )
 
 integrate(Namelists(; atmosphere, domain, output, wkb))

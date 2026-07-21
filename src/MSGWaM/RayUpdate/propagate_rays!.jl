@@ -169,7 +169,7 @@ function propagate_rays!(
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray, dpray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde) = state.grid
+    (; lz, zctilde, dx, dy, dzcmin) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
@@ -178,7 +178,8 @@ function propagate_rays!(
     kmin = ko == 0 ? k0 - 1 : k0
     kmax = k1
 
-    # Initialize WKB increments at the first RK stage.
+    # Initialize the WKB increments and maximum group velocities at the first
+    # RK stage.
     @ivy if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
@@ -194,14 +195,13 @@ function propagate_rays!(
                 dpray[r, i, j, k] = 0.0
             end
         end
+
+        cgx_max[] = 0.0
+        cgy_max[] = 0.0
+        cgz_max[] = 0.0
     end
 
-    cgx_max[] = 0.0
-    cgy_max[] = 0.0
-    @ivy cgz_max[i0:i1, j0:j1, kmin:kmax] .= 0.0
-
     @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
-        nskip = 0
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
@@ -275,8 +275,13 @@ function propagate_rays!(
 					dt * f + alphark[rkstage] * dxray[r, i, j, k]
 				rays.x[r, i, j, k] += betark[rkstage] * dxray[r, i, j, k]
 
-				cgx_max[] = max(cgx_max[], abs(cgrx))
+				cgx_max[] = max(cgx_max[], abs(cgrx1), abs(cgrx2))
 			end
+
+            if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
+               abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
+                error("Error in propagate_rays!: Rays travel too far in x!")
+            end
 
 			# Update meridional position.
 
@@ -294,7 +299,12 @@ function propagate_rays!(
 					dt * f + alphark[rkstage] * dyray[r, i, j, k]
 				rays.y[r, i, j, k] += betark[rkstage] * dyray[r, i, j, k]
 
-				cgy_max[] = max(cgy_max[], abs(cgry))
+				cgy_max[] = max(cgy_max[], abs(cgry1), abs(cgry2))
+            end
+
+            if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
+               abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
+                error("Error in propagate_rays!: Rays travel too far in y!")
 			end
 
 			# Update vertical position.
@@ -308,7 +318,12 @@ function propagate_rays!(
 			dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
 			rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-			cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(cgrz))
+			cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
+
+            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
+               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
+                error("Error in propagate_rays!: Rays travel too far in z!")
+            end
 
             # Refraction is only allowed above impact_altitude / lref.
 
@@ -408,16 +423,6 @@ function propagate_rays!(
 
 			end
 		end
-
-		if nskip > 0
-			println(
-				nskip,
-				" out of ",
-				nray[i, j, k],
-				" ray volumes have been skipped in propagate_rays!!",
-			)
-			println("")
-		end
 	end
 
 	#-------------------------------
@@ -433,7 +438,9 @@ function propagate_rays!(
         end
     end
 
-    activate_orographic_source!(state)
+    if rkstage == nstages
+        activate_orographic_source!(state)
+    end
 
 	return
 end

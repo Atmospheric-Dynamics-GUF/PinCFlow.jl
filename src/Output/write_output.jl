@@ -357,6 +357,14 @@ function write_output(
 					file[string(field)],
 					(x_size, y_size, z_size, iout),
 				)
+				if (string(field) == "iaux2") || (string(field) == "iaux6")
+					dim_fact = 1.0 ./ (
+						rhobar[i0:i1, j0:j1, k0:k1] .+
+						rho[i0:i1, j0:j1, k0:k1]
+					) * getfield(state.ice.iceconstants, :n)
+				else
+					dim_fact = 1.0
+				end
 				@views file[string(field)][
 					(io+1):(io+nx),
 					(jo+1):(jo+ny),
@@ -367,7 +375,7 @@ function write_output(
 						i0:i1,
 						j0:j1,
 						k0:k1,
-					]
+					] .* dim_fact
 			end
 		end
 
@@ -414,6 +422,27 @@ function write_output(
 				)
 				file["e"][iid, jjd, kkd, iout] =
 					integrals.e[ii, jj, kk] .* rhoref .* uref .^ 2 # added output for e
+
+				HDF5.set_extent_dims(
+					file["uu"],
+					(x_size, y_size, z_size, iout),
+				)
+				file["uu"][iid, jjd, kkd, iout] =
+					integrals.uu[ii, jj, kk] .* rhoref .* uref .^ 2 # added output for uu
+
+				HDF5.set_extent_dims(
+					file["uw"],
+					(x_size, y_size, z_size, iout),
+				)
+				file["uw"][iid, jjd, kkd, iout] =
+					integrals.uw[ii, jj, kk] .* rhoref .* uref .^ 2 # added output for uw
+
+				HDF5.set_extent_dims(
+					file["utheta"],
+					(x_size, y_size, z_size, iout),
+				)
+				file["utheta"][iid, jjd, kkd, iout] =
+					integrals.utheta[ii, jj, kk] .* uref .* thetaref # added output for utheta
 			end
 
 			# Write GW tendencies.

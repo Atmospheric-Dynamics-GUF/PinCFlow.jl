@@ -914,7 +914,7 @@ function update!(
         #=vold[i, j, k] = v[i, j, k]
         if k == k1 && ko + nz != z_size
             vold[i, j, k + 1] = v[i, j, k + 1]
-        end=#
+        end=# # comment uold, vold out
         uc = 0.5 * (uold[i, j, k] + uold[i - 1, j, k])
         uf = 0.5 * (uold[i, j + 1, k] + uold[i - 1, j + 1, k])
 

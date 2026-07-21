@@ -163,12 +163,15 @@ struct Grid{
 	# Vertical coordinates.
 	zc::E
 	zctilde::E
+
+	# Minimum layer depth.
+    dzcmin::A
 end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
     (; x_size, y_size, z_size, nbz) = namelists.domain
     (; stretch_exponent) = namelists.grid
-    (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0) = domain
+    (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, comm) = domain
     (; lref) = constants
 
 	# Non-dimensionalize domain boundaries.
@@ -303,6 +306,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
 		zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko+k] .+ hb
 	end
 
+	# Compute the minimum layer depth.
+    dzcmin = minimum(diff(zctilde; dims = 3))
+    dzcmin = MPI.Allreduce(dzcmin, min, comm)
+
 	return Grid(
 		lx,
 		ly,
@@ -320,5 +327,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)::Grid
 		met,
 		zc,
 		zctilde,
+		dzcmin,
 	)
 end

@@ -23,7 +23,7 @@ ly = 20000.0
 lz = 40000.0
 
 rx = 0.25
-ry = 0.25
+ry = 0 #ry = 0.25
 rz = 0.25
 
 x0 = 0.0
@@ -38,6 +38,8 @@ m = 32 * pi / lz
 
 background = Realistic() #Isothermal()
 coriolis_frequency = 0.0001
+
+poisson = PoissonNamelist(; initial_cleaning = true)
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
 
@@ -57,7 +59,7 @@ domain = DomainNamelist(;
     base_comm = MPI.COMM_SELF,
 )
 auxiliary_state = State(Namelists(; atmosphere, domain))
-(; g, kappa, rsp, lref, tref, rhoref, thetaref) = auxiliary_state.constants
+(; g, kappa, rsp, lref, rhoref, thetaref, tref) = auxiliary_state.constants
 
 include("wave_packet_tools.jl")
 
@@ -75,13 +77,13 @@ atmosphere = AtmosphereNamelist(;
 )
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
-    output_variables = (:u, :v, :w, :thetap, :pip, :us, :vs, :ws),
-    output_file = "wave_packet.h5",
+    output_variables = (:u, :v, :w, :us, :vs, :ws, :pip, :thetap),
+    output_file = "wave_packet_error.h5",
     tmax = 900.0,
     output_interval = 100.0,
 )
 
-integrate(Namelists(; atmosphere, domain, output, ice, poisson))
+integrate(Namelists(; atmosphere, domain, output, poisson))
 
 #=if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     h5open("wave_packet.h5") do data

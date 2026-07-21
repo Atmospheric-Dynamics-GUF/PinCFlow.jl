@@ -162,6 +162,7 @@ function activate_orographic_source!(
             wad_ini[alpha, i, j, k] = wad
         end
     end
+
     return
 end
 
@@ -322,6 +323,7 @@ function activate_orographic_source!(state::State)
                             j => j,
                             k => k + 1,
                         )
+                        #=
                         for field in fieldnames(WKBIncrements)
                             getfield(increments, field)[
                                 local_count,
@@ -330,7 +332,7 @@ function activate_orographic_source!(state::State)
                                 k + 1,
                             ] = getfield(increments, field)[r, i, j, k]
                             getfield(increments, field)[r, i, j, k] = 0.0
-                        end
+                        end=# #entspricht copy_increments!, nicht mehr nötig
 
                         # Clip/extend the old ray volume.
                         if zr - dzr / 2 < zctilde[i, j, k] || kz == 1
@@ -420,4 +422,6 @@ function activate_orographic_source!(state::State)
 
         end
     end
+
+    return
 end

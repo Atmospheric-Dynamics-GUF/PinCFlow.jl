@@ -350,6 +350,39 @@ function create_output(state::State)
 					);
 					chunk = (cx, cy, cz, ct),
 				)
+
+				create_dataset(
+					file,
+					"uu",
+					datatype(Float32),
+					dataspace(
+						(x_size, y_size, z_size, 0),
+						(x_size, y_size, z_size, -1),
+					);
+					chunk = (cx, cy, cz, ct),
+				)
+
+				create_dataset(
+					file,
+					"uw",
+					datatype(Float32),
+					dataspace(
+						(x_size, y_size, z_size, 0),
+						(x_size, y_size, z_size, -1),
+					);
+					chunk = (cx, cy, cz, ct),
+				)
+
+				create_dataset(
+					file,
+					"utheta",
+					datatype(Float32),
+					dataspace(
+						(x_size, y_size, z_size, 0),
+						(x_size, y_size, z_size, -1),
+					);
+					chunk = (cx, cy, cz, ct),
+				)
 			end
 
 			# Create datasets for GW tendencies.
