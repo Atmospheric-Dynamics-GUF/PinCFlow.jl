@@ -476,7 +476,8 @@ function write_output end
                 end
             end
 
-            if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence && state.namelists.turbulence.gw_coupling
+            if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence &&
+               state.namelists.turbulence.gw_coupling
                 # Write GW shear.
                 if :gw_shear in output_variables
                     HDF5.set_extent_dims(

@@ -429,7 +429,8 @@ function create_output(state::State, machine_start_time::DateTime)
                 end
             end
 
-            if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence && state.namelists.turbulence.gw_coupling
+            if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence &&
+               state.namelists.turbulence.gw_coupling
                 # Create dataset for GW shear.
                 if :gw_shear in output_variables
                     create_dataset(
