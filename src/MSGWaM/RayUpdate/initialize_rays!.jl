@@ -65,12 +65,11 @@ end
         dkr_factor,
         dlr_factor,
         dmr_factor,
-        wkb_mode,
         wave_modes,
         initial_wave_field,
     ) = state.namelists.wkb
     (; lref, tref, rhoref, uref) = state.constants
-    (; comm, master, nxx, nyy, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; comm, master, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, x, y, zc, jac) = state.grid
     (;
         bins,
@@ -90,7 +89,7 @@ end
 
     # Compute initial wavenumbers, intrinsic frequencies and wave-action
     # densities with initial_wave_field.
-    if wkb_mode != Val(:SteadyState)
+    if wkb_mode !== Val(:SteadyState)
         for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
                 alpha,

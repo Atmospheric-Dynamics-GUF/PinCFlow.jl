@@ -70,6 +70,34 @@ The flux contributions are given by
 ```math
 \\frac{\\bar{\\rho}}{2} \\Re \\left(w_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r}\\right) = \\frac{f}{\\hat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r\\right].
 ```
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `fc`: Coriolis parameter.
+
+  - `omir`: Gravity-wave intrinsic frequency.
+
+  - `wnrk`: Zonal wavenumber.
+
+  - `wnrl`: Meridional wavenumber.
+
+  - `wnrm`: Vertical wavenumber.
+
+  - `wadr`: Contributing fraction of the physical-space wave-action density.
+
+  - `xlc`: Zonal location of the ray-volume.
+
+  - `ylc`: Meridional location of the ray-volume.
+
+  - `zlc`: Vertical location of the ray-volume.
+
+  - `direction`: Tracer-flux direction.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """
 function leading_order_tracer_fluxes end
 
