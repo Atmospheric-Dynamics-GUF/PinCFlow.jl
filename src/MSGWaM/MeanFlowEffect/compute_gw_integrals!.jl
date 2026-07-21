@@ -125,9 +125,7 @@ end
         getfield(integrals, field) .= 0.0
     end
 
-    for field in fieldnames(TurbulenceWKBIntegrals)
-        getfield(turbulencewkbintegrals, field) .= 0.0
-    end
+    set_turbulence_fields_zero!(state)
 
     set_tracer_fields_zero!(state)
 
@@ -353,9 +351,7 @@ end
         getfield(integrals, field) .= 0.0
     end
 
-    for field in fieldnames(TurbulenceWKBIntegrals)
-        getfield(turbulencewkbintegrals, field) .= 0.0
-    end
+    set_turbulence_fields_zero!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -541,12 +537,10 @@ end
     fc = coriolis_frequency * tref
 
     for field in fieldnames(WKBIntegrals)
-        getfield(turbulencewkbintegrals, field) .= 0.0
-    end
-
-    for field in fieldnames(TurbulenceWKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
+
+    set_turbulence_fields_zero!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
