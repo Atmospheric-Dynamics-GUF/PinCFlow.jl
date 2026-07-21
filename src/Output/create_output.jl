@@ -364,7 +364,9 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             # Create dataset for GW shear.
-            if :gw_shear in output_variables
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :gw_shear in output_variables
                 create_dataset(
                     file,
                     "gw_shear",
@@ -378,7 +380,9 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             # Create dataset for turbulence tendencies.
-            if :dtkedt in output_variables
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :dtkedt in output_variables
                 create_dataset(
                     file,
                     "dtkedt",

@@ -399,7 +399,9 @@ function write_output end
             end
 
             # Write GW shear.
-            if :gw_shear in output_variables
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :gw_shear in output_variables
                 HDF5.set_extent_dims(
                     file["gw_shear"],
                     (x_size, y_size, z_size, iout),
@@ -413,7 +415,9 @@ function write_output end
             end
 
             # Write turbulence tendencies.
-            if :dtkedt in output_variables
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :dtkedt in output_variables
                 HDF5.set_extent_dims(
                     file["dtkedt"],
                     (x_size, y_size, z_size, iout),
