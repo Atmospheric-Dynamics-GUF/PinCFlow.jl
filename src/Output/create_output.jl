@@ -362,6 +362,34 @@ function create_output(state::State, machine_start_time::DateTime)
                     chunk = (cx, cy, cz, ct),
                 )
             end
+
+            # Create dataset for GW shear.
+            if :gw_shear in output_variables
+                create_dataset(
+                    file,
+                    "gw_shear",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            # Create dataset for turbulence tendencies.
+            if :dtkedt in output_variables
+                create_dataset(
+                    file,
+                    "dtkedt",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
         end
 
         # Create datasets for WKB variables.
@@ -419,37 +447,6 @@ function create_output(state::State, machine_start_time::DateTime)
                     create_dataset(
                         file,
                         string(field),
-                        datatype(Float32),
-                        dataspace(
-                            (x_size, y_size, z_size, 0),
-                            (x_size, y_size, z_size, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                end
-            end
-
-            if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence &&
-               state.namelists.turbulence.gw_coupling
-                # Create dataset for GW shear.
-                if :gw_shear in output_variables
-                    create_dataset(
-                        file,
-                        "gw_shear",
-                        datatype(Float32),
-                        dataspace(
-                            (x_size, y_size, z_size, 0),
-                            (x_size, y_size, z_size, -1),
-                        );
-                        chunk = (cx, cy, cz, ct),
-                    )
-                end
-
-                # Create dataset for GW shear.
-                if :dtkedt in output_variables
-                    create_dataset(
-                        file,
-                        "dtkedt",
                         datatype(Float32),
                         dataspace(
                             (x_size, y_size, z_size, 0),

@@ -397,6 +397,34 @@ function write_output end
                         kk,
                     ] .* uref .^ 2 ./ tref
             end
+
+            # Write GW shear.
+            if :gw_shear in output_variables
+                HDF5.set_extent_dims(
+                    file["gw_shear"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["gw_shear"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbintegrals.gw_shear[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ tref .^ 2
+            end
+
+            # Write turbulence tendencies.
+            if :dtkedt in output_variables
+                HDF5.set_extent_dims(
+                    file["dtkedt"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dtkedt"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbtendencies.dtkedt[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
         end
 
         # Write WKB variables.
@@ -473,37 +501,6 @@ function write_output end
                     )
                     file[string(field)][iid, jjd, kkd, iout] =
                         getfield(tendencies, field)[ii, jj, kk] .* scaling
-                end
-            end
-
-            if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence &&
-               state.namelists.turbulence.gw_coupling
-                # Write GW shear.
-                if :gw_shear in output_variables
-                    HDF5.set_extent_dims(
-                        file["gw_shear"],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file["gw_shear"][iid, jjd, kkd, iout] =
-                        state.turbulence.turbulencewkbintegrals.gw_shear[
-                            ii,
-                            jj,
-                            kk,
-                        ] ./ tref .^ 2
-                end
-
-                # Write TKE tendency.
-                if :dtkedt in output_variables
-                    HDF5.set_extent_dims(
-                        file["dtkedt"],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file["dtkedt"][iid, jjd, kkd, iout] =
-                        state.turbulence.turbulencewkbtendencies.dtkedt[
-                            ii,
-                            jj,
-                            kk,
-                        ] .* uref .^ 2 ./ tref
                 end
             end
 
