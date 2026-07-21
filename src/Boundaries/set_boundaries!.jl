@@ -88,10 +88,7 @@ function set_boundaries!(
     return
 end
 
-function set_boundaries!(
-    state::State, 
-    variables::AbstractBoundaryWKBVariables,
-)
+function set_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
     set_vertical_boundaries!(state, variables)
