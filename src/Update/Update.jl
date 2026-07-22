@@ -60,60 +60,6 @@ struct RHS end
 
 """
 ```julia
-X
-```
-
-Singleton for ``\\hat{x}``-axis along which a calculation should be performed.
-"""
-struct X end
-
-"""
-```julia
-Y
-```
-
-Singleton for ``\\hat{y}``-axis along which a calculation should be performed.
-"""
-struct Y end
-
-"""
-```julia
-Z
-```
-
-Singleton for ``\\hat{z}``-axis along which a calculation should be performed.
-"""
-struct Z end
-
-"""
-```julia
-XZ
-```
-
-Singleton for dispatch to operations in ``x``- and ``z``-direction.
-"""
-struct XZ end
-
-"""
-```julia
-YZ
-```
-
-Singleton for dispatch to operations in ``y``- and ``z``-direction.
-"""
-struct YZ end
-
-"""
-```julia
-XYZ
-```
-
-Singleton for dispatch to operations in all directions.
-"""
-struct XYZ end
-
-"""
-```julia
 KM
 ```
 
@@ -157,7 +103,7 @@ include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
 include("turbulent_diffusion!.jl")
 
-export LHS, RHS, X, Y, Z, XZ, YZ, XYZ, KM, KH, KEK
+export LHS, RHS, KM, KH, KEK
 
 export apply_lhs_sponge!,
     compute_buoyancy_factor,
