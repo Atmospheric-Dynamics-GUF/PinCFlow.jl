@@ -98,7 +98,7 @@ sponge = SpongeNamelist(;
     relaxed_u = (x, y, z, t, dt) -> 10.0 + (10.0 * sin(2 * pi * t/ 1.0e5)),
 )
 
-wkb = WKBNamelist(; multiplication_factor = 6, wkb_mode = MultiColumn(), filter_order = 3)
+wkb = WKBNamelist(; multiplication_factor = 6, wkb_mode = MultiColumn(), filter_order = 3, filter_type = Box())
 
 # save sbatch script copy and wkb_mountain_wave.jl to output directory
 MPI.Init()

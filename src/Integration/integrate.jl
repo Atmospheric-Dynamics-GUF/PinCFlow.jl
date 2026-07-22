@@ -151,6 +151,7 @@ function integrate(namelists::Namelists)
         modify_compressible_wind!(state, /)
 
         set_boundaries!(state, BoundaryPredictands())
+        println("Initial divergence cleaning done.")
     end
 
     #---------------------------------------------

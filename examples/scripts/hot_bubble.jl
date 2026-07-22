@@ -1,13 +1,13 @@
 # examples/scripts/hot_bubble.jl
 
-using Pkg
+#using Pkg
 
-Pkg.activate("examples")
+#Pkg.activate("examples")
 
 using MPI
 using HDF5
-using CairoMakie
-using Revise
+#using CairoMakie
+#using Revise
 using PinCFlow
 
 npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1

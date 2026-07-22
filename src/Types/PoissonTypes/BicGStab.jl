@@ -1,6 +1,8 @@
 """
 ```julia
-BicGStab{A <: AbstractArray{<:AbstractFloat, 3},
+BicGStab{
+  A <: AbstractArray{<:AbstractFloat, 3},
+}
 ```
 
 Workspace arrays used by [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
@@ -35,7 +37,9 @@ Create a `BicGStab` instance with zero-initialized workspace arrays sized accord
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
-struct BicGStab{A <: AbstractArray{<:AbstractFloat, 3}}
+struct BicGStab{
+    A <: AbstractArray{<:AbstractFloat, 3}
+}
     p::A
     r0::A
     rold::A

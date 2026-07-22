@@ -37,7 +37,7 @@ l = 16 * pi / ly
 m = 32 * pi / lz
 
 model = Compressible()
-background = Realistic()
+background = Realistic() #Isothermal()
 coriolis_frequency = 0.0001
 
 atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
@@ -59,9 +59,9 @@ atmosphere = AtmosphereNamelist(; background, model, coriolis_frequency)
 domain = DomainNamelist(; x_size, y_size, z_size, lx, ly, lz, npx, npy, npz)
 output = OutputNamelist(;
     save_ray_volumes = true,
-    output_file = "wkb_wave_packet.h5",
+    output_file = "wkb_wave_packet5.h5",
     tmax = 900.0,
-    output_interval = 900.0,
+    output_interval = 10.0,
 )
 wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
@@ -71,8 +71,8 @@ wkb = WKBNamelist(;
 
 integrate(Namelists(; atmosphere, domain, output, wkb))
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-    h5open("wkb_wave_packet.h5") do data
+#=if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+    h5open("wkb_wave_packet2.h5") do data
         plot_output(
             "examples/results/wkb_wave_packet.svg",
             data,
@@ -81,4 +81,4 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         )
         return
     end
-end
+end=#

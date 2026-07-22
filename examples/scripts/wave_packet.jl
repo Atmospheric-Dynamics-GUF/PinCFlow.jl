@@ -36,12 +36,19 @@ k = 16 * pi / lx
 l = 16 * pi / ly
 m = 32 * pi / lz
 
-background = Realistic()
+background = Realistic() #Isothermal()
 coriolis_frequency = 0.0001
 
 poisson = PoissonNamelist(; initial_cleaning = true)
 
 atmosphere = AtmosphereNamelist(; background, coriolis_frequency)
+
+poisson = PoissonNamelist(; initial_cleaning = false)
+
+ice = IceNamelist(;
+    ice_setup = NoIce(),
+)
+
 domain = DomainNamelist(;
     x_size,
     y_size,
@@ -73,7 +80,7 @@ output = OutputNamelist(;
     output_variables = (:u, :v, :w, :us, :vs, :ws, :pip, :thetap),
     output_file = "wave_packet_error.h5",
     tmax = 900.0,
-    output_interval = 900.0,
+    output_interval = 100.0,
 )
 
 integrate(Namelists(; atmosphere, domain, output, poisson))
