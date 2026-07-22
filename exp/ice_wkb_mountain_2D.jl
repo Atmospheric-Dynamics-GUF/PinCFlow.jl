@@ -57,7 +57,7 @@ output =
     output_steps = false,
 	output_interval = 100.0,
 	tmax = 2000.0,
-    output_file = "ice_mountain_wave.h5")
+    output_file = "ice_wkb_mountain_2D.h5")
 
     sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) -> begin

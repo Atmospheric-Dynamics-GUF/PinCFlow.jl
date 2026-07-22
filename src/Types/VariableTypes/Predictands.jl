@@ -347,8 +347,8 @@ function Predictands(
 				ix in (i0-nbx):(i1+nbx)
 
 				#changes !!!
-				#n2 = n2[ix, jy, kz]
-				n2 = 0.28572434787685907
+				n2 = n2[ix, jy, kz]
+				#n2 = 0.28572434787685907
 
 				f = coriolis_frequency * tref
 				f2 = f^2.0

@@ -48,37 +48,97 @@ Construct an `IceReconstructions` instance with zero-initialized arrays.
   - `ice_setup`: General ice-physics configuration.
 """
 struct IceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
-    ntilde::A
-    qtilde::A
+    n_homtilde::A
+    q_homtilde::A
     qvtilde::A
+    n_intilde::A
+    n_hettilde::A
+    q_hettilde::A
 end
 
 function IceReconstructions(
     namelists::Namelists,
     domain::Domain,
 )::IceReconstructions
-    (; ice_setup) = namelists.ice
+    (; ice_setup, nucleation) = namelists.ice
 
-    return IceReconstructions(domain, ice_setup)
+    return IceReconstructions(domain, ice_setup, nucleation)
 end
 
-function IceReconstructions(domain::Domain, ice_setup::NoIce)::IceReconstructions
-    ntilde = zeros(0, 0, 0, 0, 0)
-    qtilde = zeros(0, 0, 0, 0, 0)
+function IceReconstructions(domain::Domain, ice_setup::NoIce, nucleation::AbstractNucleation)::IceReconstructions
+    n_homtilde = zeros(0, 0, 0, 0, 0)
+    q_homtilde = zeros(0, 0, 0, 0, 0)
     qvtilde = zeros(0, 0, 0, 0, 0)
+    n_intilde = zeros(0, 0, 0, 0, 0)
+    n_hettilde = zeros(0, 0, 0, 0, 0)
+    q_hettilde = zeros(0, 0, 0, 0, 0)
 
-    return IceReconstructions(ntilde, qtilde, qvtilde)
+    return IceReconstructions(n_homtilde, q_homtilde, qvtilde, n_intilde, n_hettilde, q_hettilde)
 end
 
 function IceReconstructions(
     domain::Domain,
     ice_setup::AbstractIce,
+    nucleation::BothNucleation,
 )::IceReconstructions
     (; nxx, nyy, nzz) = domain
 
-    ntilde = zeros(nxx, nyy, nzz, 3, 2)
-    qtilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_homtilde = zeros(nxx, nyy, nzz, 3, 2)
+    q_homtilde = zeros(nxx, nyy, nzz, 3, 2)
     qvtilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_intilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_hettilde = zeros(nxx, nyy, nzz, 3, 2)
+    q_hettilde = zeros(nxx, nyy, nzz, 3, 2)
 
-    return IceReconstructions(ntilde, qtilde, qvtilde)
+    return IceReconstructions(n_homtilde, q_homtilde, qvtilde, n_intilde, n_hettilde, q_hettilde)
+end
+
+function IceReconstructions(
+    domain::Domain,
+    ice_setup::AbstractIce,
+    nucleation::HeterogeneousOnly,
+)::IceReconstructions
+    (; nxx, nyy, nzz) = domain
+
+    n_homtilde = zeros(nxx, nyy, nzz, 3, 2)
+    q_homtilde = zeros(nxx, nyy, nzz, 3, 2)
+    qvtilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_intilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_hettilde = zeros(nxx, nyy, nzz, 3, 2)
+    q_hettilde = zeros(nxx, nyy, nzz, 3, 2)
+    #=
+    n_homtilde = zeros(0, 0, 0, 0, 0)
+    q_homtilde = zeros(0, 0, 0, 0, 0)
+    qvtilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_intilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_hettilde = zeros(nxx, nyy, nzz, 3, 2)
+    q_hettilde = zeros(nxx, nyy, nzz, 3, 2)
+    =#
+
+    return IceReconstructions(n_homtilde, q_homtilde, qvtilde, n_intilde, n_hettilde, q_hettilde)
+end
+
+function IceReconstructions(
+    domain::Domain,
+    ice_setup::AbstractIce,
+    nucleation::HomogeneousOnly,
+)::IceReconstructions
+    (; nxx, nyy, nzz) = domain
+
+    n_homtilde = zeros(nxx, nyy, nzz, 3, 2)
+    q_homtilde = zeros(nxx, nyy, nzz, 3, 2)
+    qvtilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_intilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_hettilde = zeros(nxx, nyy, nzz, 3, 2)
+    q_hettilde = zeros(nxx, nyy, nzz, 3, 2)
+    #=
+    n_homtilde = zeros(nxx, nyy, nzz, 3, 2)
+    q_homtilde = zeros(nxx, nyy, nzz, 3, 2)
+    qvtilde = zeros(nxx, nyy, nzz, 3, 2)
+    n_intilde = zeros(0, 0, 0, 0, 0)
+    n_hettilde = zeros(0, 0, 0, 0, 0)
+    q_hettilde = zeros(0, 0, 0, 0, 0)
+    =#
+
+    return IceReconstructions(n_homtilde, q_homtilde, qvtilde, n_intilde, n_hettilde, q_hettilde)
 end

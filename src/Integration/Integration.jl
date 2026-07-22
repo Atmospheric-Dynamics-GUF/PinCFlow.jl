@@ -28,6 +28,7 @@ module Integration
 using MPI
 using Dates
 using ..Types
+using ..Types.IceTypes: IceActiveVars, get_IceActiveVars, ice_active_vars_tuple
 using ..Boundaries
 using ..Update
 using ..PoissonSolver
@@ -35,6 +36,7 @@ using ..FluxCalculator
 using ..Output
 using ..MSGWaM
 using ..PinCFlow
+using ..NamelistTypes: AbstractCloudCover, AbstractNucleation, HomogeneousOnly, HeterogeneousOnly, BothNucleation
 
 include("compute_time_step.jl")
 include("integrate.jl")

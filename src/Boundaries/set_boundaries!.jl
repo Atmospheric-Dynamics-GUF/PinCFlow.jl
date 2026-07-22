@@ -56,9 +56,11 @@ function set_boundaries!(
     set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
 
-    set_ice_zonal_boundaries!(state, variables)
-    set_ice_meridional_boundaries!(state, variables)
-    set_ice_vertical_boundaries!(state, variables)
+    # changes: add active vars to the call
+    ice_active_vars = ice_active_vars_tuple(state.ice.ice_active_vars)
+    set_ice_zonal_boundaries!(state, variables, ice_active_vars)
+    set_ice_meridional_boundaries!(state, variables,ice_active_vars)
+    set_ice_vertical_boundaries!(state, variables, ice_active_vars)
 
     return
 end
@@ -67,7 +69,9 @@ function set_boundaries!(state::State, variables::BoundaryFluxes)
     set_vertical_boundaries!(state, variables)
 
     set_tracer_vertical_boundaries!(state, variables)
-    set_ice_vertical_boundaries!(state, variables)
+
+    ice_active_vars = ice_active_vars_tuple(state.ice.ice_active_vars)
+    set_ice_vertical_boundaries!(state, variables, ice_active_vars)
 
     return
 end

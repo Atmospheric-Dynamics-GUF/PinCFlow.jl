@@ -97,9 +97,10 @@ function set_ice_vertical_boundaries! end
 function set_ice_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
+    ice_active_vars::Tuple,
 )
     (; ice_setup) = state.namelists.ice
-    set_ice_vertical_boundaries!(state, variables, ice_setup)
+    set_ice_vertical_boundaries!(state, variables, ice_setup, ice_active_vars)
     return
 end
 
@@ -107,6 +108,7 @@ function set_ice_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
     ice_setup::NoIce,
+    ice_active_vars::Tuple,
 )
     return
 end
@@ -115,11 +117,12 @@ function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     ice_setup::IceOn,
+    ice_active_vars::Tuple,
 )
     (; namelists, domain) = state
     (; icepredictands) = state.ice
 
-    for field in fieldnames(IcePredictands)
+    for field in ice_active_vars
         set_vertical_boundaries_of_field!(
             getfield(icepredictands, field),
             namelists,
@@ -135,13 +138,15 @@ function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     ice_setup::IceOn,
+    ice_active_vars::Tuple,
 )
     (; namelists, domain) = state
     (; icereconstructions) = state.ice
 
-    for field in fieldnames(IceReconstructions)
+    for field in ice_active_vars
+        field_tilde = Symbol(field, "tilde")
         set_vertical_boundaries_of_field!(
-            getfield(icereconstructions, field),
+            getfield(icereconstructions, field_tilde),
             namelists,
             domain,
         )
@@ -154,19 +159,22 @@ function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     ice_setup::IceOn,
+    ice_active_vars::Tuple,
 )
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
     (; icefluxes) = state.ice
     @ivy if ko == 0
-        for field in fieldnames(IceFluxes)
-            getfield(icefluxes, field)[:, :, k0 - 1, 3] .= 0.0
+        for field in ice_active_vars
+            flux_field = Symbol("phi", field)
+            getfield(icefluxes, flux_field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
     @ivy if ko + nz == z_size
-        for field in fieldnames(IceFluxes)
-            getfield(icefluxes, field)[:, :, k1, 3] .= 0.0
+        for field in ice_active_vars
+            flux_field = Symbol("phi", field)
+            getfield(icefluxes, flux_field)[:, :, k1, 3] .= 0.0
         end
     end
 
@@ -177,9 +185,10 @@ function set_ice_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
     ice_setup::IceOn,
+    ice_active_vars::Tuple,
 )
     (; wkb_mode) = state.namelists.wkb
-    set_ice_vertical_boundaries!(state, variables, wkb_mode)
+    set_ice_vertical_boundaries!(state, variables, wkb_mode, ice_active_vars)
     return
 end
 
@@ -187,6 +196,7 @@ function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    ice_active_vars::Tuple,
 )
     println("Setting ice vertical boundaries for WKB integrals not finished")
     exit(1)
@@ -210,6 +220,7 @@ function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    ice_active_vars::Tuple,
 )
     println("Setting ice vertical boundaries for WKB integrals not finished")
     exit(1)

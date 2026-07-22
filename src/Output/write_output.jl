@@ -83,9 +83,10 @@ function write_output(
 	(; model) = state.namelists.atmosphere
 	(; wkb_mode) = state.namelists.wkb
 	(; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-	(; tref, lref, rhoref, thetaref, uref) = state.constants
+	(; tref, lref, rhoref, thetaref, uref, pref, gamma) = state.constants
 	(; x, y, zc, zctilde) = grid
 	(; rhobar, thetabar, n2, pbar) = state.atmosphere
+	(; ground_pressure) = state.namelists.atmosphere
 	(; predictands) = state.variables
 	(; rho, rhop, u, v, w, pip, p) = predictands
 	(; nray_max, rays, tendencies) = state.wkb
@@ -166,6 +167,12 @@ function write_output(
 		# Write the background potential temperature.
 		if model != Boussinesq() && iout == 1
 			file["thetabar"][iid, jjd, kkd] = thetabar[ii, jj, kk] .* thetaref
+		end
+
+		# Write the background pressure (not exactly the same as pbar from the code which is not the background pressure.)
+		if model != Boussinesq() && iout == 1
+			p0 = ground_pressure / pref
+			file["pbar"][iid, jjd, kkd] = (pbar[ii, jj, kk] ./ p0).^(gamma) .* p0 .* pref	
 		end
 
 		# Write the squared buoyancy frequency.
@@ -332,42 +339,52 @@ function write_output(
 		end
 
 		if !(typeof(state.namelists.ice.ice_setup) <: NoIce)
+			# Extract the tuple of active field names
+    		ice_active_vars = ice_active_vars_tuple(state.ice.ice_active_vars)
+
 			for field in fieldnames(IcePredictands)
-				HDF5.set_extent_dims(
-					file[string(field)],
-					(x_size, y_size, z_size, iout),
-				)
-				@views file[string(field)][
-					(io+1):(io+nx),
-					(jo+1):(jo+ny),
-					(ko+1):(ko+nz),
-					iout,
-				] =
-					getfield(state.ice.icepredictands, field)[
-						i0:i1,
-						j0:j1,
-						k0:k1,
-					] ./ (
-						rhobar[i0:i1, j0:j1, k0:k1] .+
-						rho[i0:i1, j0:j1, k0:k1]
-					) * getfield(state.ice.iceconstants, field)
+				if field in ice_active_vars
+					HDF5.set_extent_dims(
+						file[string(field)],
+						(x_size, y_size, z_size, iout),
+					)
+					@views file[string(field)][
+						(io+1):(io+nx),
+						(jo+1):(jo+ny),
+						(ko+1):(ko+nz),
+						iout,
+					] =
+						getfield(state.ice.icepredictands, field)[
+							i0:i1,
+							j0:j1,
+							k0:k1,
+						] ./ (
+							rhobar[i0:i1, j0:j1, k0:k1] .+
+							rho[i0:i1, j0:j1, k0:k1]
+						) * getfield(state.ice.iceconstants, field)
+				end
 			end
+
+			ice_active_predictands = ice_active_vars_tuple(state.ice.ice_active_vars)
+			ice_active_aux_vars = [PREDICTAND_TO_AUX[p] for p in ice_active_predictands if haskey(PREDICTAND_TO_AUX, p)]
 			for field in fieldnames(IceAuxiliaries)
-				HDF5.set_extent_dims(
-					file[string(field)],
-					(x_size, y_size, z_size, iout),
-				)
-				@views file[string(field)][
-					(io+1):(io+nx),
-					(jo+1):(jo+ny),
-					(ko+1):(ko+nz),
-					iout,
-				] =
-					getfield(state.ice.iceauxiliaries, field)[
-						i0:i1,
-						j0:j1,
-						k0:k1,
-					]
+				if field in ice_active_aux_vars
+					HDF5.set_extent_dims(
+						file[string(field)],
+						(x_size, y_size, z_size, iout),
+					)
+					@views file[string(field)][
+						(io+1):(io+nx),
+						(jo+1):(jo+ny),
+						(ko+1):(ko+nz),
+						iout,
+					] =
+						getfield(state.ice.iceauxiliaries, field)[
+							i0:i1,
+							j0:j1,
+							k0:k1,
+						]
+				end
 			end
 		end
 

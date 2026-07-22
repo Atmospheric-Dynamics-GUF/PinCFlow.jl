@@ -1492,7 +1492,166 @@ function update!(
 	return
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn)
+# IceUpdateAdv + CloudCoverOff
+function update!(
+    state::State, 
+    dt::AbstractFloat, 
+    m::Integer, 
+    update_type::IceUpdateAdv,   
+    cloudcover::CloudCoverOff,   
+    ice_active_vars::IceActiveVars{Fields}
+) where {Fields} 
+    
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; iceincrements, icepredictands, icefluxes) = state.ice
+
+    for field in Fields 
+        # Dynamically generate the prefixed field names
+        inc_field  = Symbol("d", field)
+        flux_field = Symbol("phi", field)
+
+        if m == 1
+            getfield(iceincrements, inc_field) .= 0.0
+        end
+
+        # Extract arrays using the correct prefixed symbols
+        inc_arr  = getfield(iceincrements, inc_field)
+        pred_arr = getfield(icepredictands, field)
+        flux_arr = getfield(icefluxes, flux_field)
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = flux_arr[i-1, j, k, 1]
+            fr = flux_arr[i, j, k, 1]
+            gb = flux_arr[i, j-1, k, 2]
+            gf = flux_arr[i, j, k, 2]
+            hd = flux_arr[i, j, k-1, 3]
+            hu = flux_arr[i, j, k, 3]
+
+            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+            fluxdiff /= jac[i, j, k]
+
+            f = -fluxdiff
+
+            inc_arr[i, j, k]  = dt * f + alphark[m] * inc_arr[i, j, k]
+            pred_arr[i, j, k] += betark[m] * inc_arr[i, j, k]
+        end
+    end
+
+    return
+end
+
+# IceUpdatePhy + CloudCoverOff
+function update!(
+    state::State, 
+    dt::AbstractFloat, 
+    m::Integer, 
+    update_type::IceUpdatePhy,   
+    cloudcover::CloudCoverOff,   
+    ice_active_vars::IceActiveVars{Fields}
+) where {Fields}
+
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphark, betark) = state.time
+    (; iceincrements, icepredictands, icesource) = state.ice
+    (; parameterized_nucleation) = state.namelists.ice
+
+    first_ice_field = fieldnames(IcePredictands)[1]
+
+    for field in Fields
+        if parameterized_nucleation && (field == first_ice_field)
+            continue
+        end
+
+        # Dynamically generate the increment and source field name
+        inc_field = Symbol("d", field)
+        source_field = Symbol(field, "source")
+
+        if m == 1
+            getfield(iceincrements, inc_field) .= 0.0
+        end
+
+        inc_arr    = getfield(iceincrements, inc_field)
+        pred_arr   = getfield(icepredictands, field)
+        source_arr = getfield(icesource, source_field) 
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            f = source_arr[i, j, k]
+
+            inc_arr[i, j, k]  = dt * f + alphark[m] * inc_arr[i, j, k]
+            pred_arr[i, j, k] += betark[m] * inc_arr[i, j, k]
+        end
+    end
+
+    return
+end
+
+# IceUpdatePhy + CloudCoverOn
+function update!(
+    state::State, 
+    dt::AbstractFloat, 
+    m::Integer, 
+    update_type::IceUpdatePhy,   
+    cloudcover::CloudCoverOn,    
+    ice_active_vars::IceActiveVars{Fields}
+) where {Fields}
+
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphark, betark) = state.time
+    (; iceincrements, icepredictands, icesource) = state.ice
+    (; sgsincrements, sgspredictands, sgstendencies) = state.ice
+    (; i02, j02, k02, i12, j12, k12) = state.ice.subgrid
+    (; parameterized_nucleation, parameterized_sgs_q) = state.namelists.ice
+
+    first_ice_field = fieldnames(IcePredictands)[1]
+
+    # Loop 1: Active IcePredictands
+    for field in Fields
+        if parameterized_nucleation && (field == first_ice_field)
+            continue
+        end
+
+        inc_field    = Symbol("d", field)
+        source_field = Symbol(field, "source")
+
+        if m == 1
+            getfield(iceincrements, inc_field) .= 0.0
+        end
+
+        inc_arr    = getfield(iceincrements, inc_field)
+        pred_arr   = getfield(icepredictands, field)
+        source_arr = getfield(icesource, source_field)
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            f = source_arr[i, j, k]
+            inc_arr[i, j, k]  = dt * f + alphark[m] * inc_arr[i, j, k]
+            pred_arr[i, j, k] += betark[m] * inc_arr[i, j, k]
+        end
+    end
+
+    # Loop 2: Subgrid-Scale fields (Left unoptimized for now)
+    for (fd, field) in enumerate(fieldnames(SgsPredictands))
+        if parameterized_sgs_q || (parameterized_nucleation && fd == 1)
+            continue
+        end
+
+        if m == 1
+            getfield(sgsincrements, fd) .= 0.0
+        end
+
+        for k in k02:k12, j in j02:j12, i in i02:i12
+            f = getfield(sgstendencies, fd)[i, j, k]
+            getfield(sgsincrements, fd)[i, j, k] = dt * f + alphark[m] * getfield(sgsincrements, fd)[i, j, k]
+            getfield(sgspredictands, fd)[i, j, k] += betark[m] * getfield(sgsincrements, fd)[i, j, k]
+        end
+    end
+
+    return
+end
+
+#=
+function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn, cloudcover::CloudCoverOff, ice_active_vars::IceActiveVars)
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; dx, dy, dz, jac) = state.grid
 	(; alphark, betark) = state.time
@@ -1525,8 +1684,9 @@ function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn)
 
 	return
 end
-
-function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn, update_type::IceUpdateAdv)
+=#
+#=
+function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn, cloudcover::CloudCoverOff, update_type::IceUpdateAdv)
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	(; dx, dy, dz, jac) = state.grid
 	(; alphark, betark) = state.time
@@ -1556,35 +1716,12 @@ function update!(state::State, dt::AbstractFloat, m::Integer, ice_setup::IceOn, 
 				betark[m] * getfield(ncies, fd)[i, j, k]
 		end
 	end
-
 	return
 end
+=#
 
-function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUpdatePhy, cloudcover::CloudCoverOff)
-	(; i0, i1, j0, j1, k0, k1) = state.domain
-	(; alphark, betark) = state.time
-	(; iceincrements, icepredictands, icesource, icefluxes) = state.ice
-
-	for (fd, field) in enumerate(fieldnames(IcePredictands))
-		if m == 1
-			getfield(iceincrements, fd) .= 0.0
-		end
-
-		for k in k0:k1, j in j0:j1, i in i0:i1
-
-			f = getfield(icesource, fd)[i, j, k]
-
-			getfield(iceincrements, fd)[i, j, k] =
-				dt * f + alphark[m] * getfield(iceincrements, fd)[i, j, k]
-			getfield(icepredictands, fd)[i, j, k] +=
-				betark[m] * getfield(iceincrements, fd)[i, j, k]
-		end
-	end
-
-	return
-end
-
-function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUpdatePhy, cloudcover::CloudCoverOn)
+#=
+function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUpdatePhy, cloudcover::CloudCoverOn, ice_active_vars::IceActiveVars)
 	(; i0, i1, j0, j1, k0, k1) = state.domain
 	#(; dx, dy, dz, jac) = state.grid
 	(; alphark, betark) = state.time
@@ -1640,5 +1777,5 @@ function update!(state::State, dt::AbstractFloat, m::Integer, update_type::IceUp
 
 	return
 end
-
+=#
 

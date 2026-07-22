@@ -19,8 +19,11 @@ function read_input!(state::State)
     (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
+    (; n_hom, n_het, n_in, q_hom, q_het, qv) = state.ice.icepredictands
     (; nray_max, nray, rays) = state.wkb
     (; rhobar) = state.atmosphere
+    (; ice_setup) = state.namelists.ice
+    (; mRef) = state.ice.iceconstants
 
     # Determine dimensionality.
     dim = 1
@@ -64,6 +67,17 @@ function read_input!(state::State)
 
         # Read the Exner-pressure fluctuations.
         pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin]
+
+        # changes: added ice variables
+        if ice_setup == IceOn()
+            # Read ice variables.
+            n_hom[ii, jj, kk] = file["n_hom"][iid, jjd, kkd, iin == -1 ? end : iin] .* mRef .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+            n_het[ii, jj, kk] = file["n_het"][iid, jjd, kkd, iin == -1 ? end : iin] .* mRef .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+            n_in[ii, jj, kk] = file["n_in"][iid, jjd, kkd, iin == -1 ? end : iin] .* mRef .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+            q_hom[ii, jj, kk] = file["q_hom"][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+            q_het[ii, jj, kk] = file["q_het"][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+            qv[ii, jj, kk] = file["qv"][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk])
+        end
 
         # Read the mass-weighted potential temperature.
         if model == Compressible()

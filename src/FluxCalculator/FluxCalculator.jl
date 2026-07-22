@@ -21,6 +21,7 @@ using ..Types
 using ..Boundaries
 using ..Update
 using ..PinCFlow
+using ..Types.IceTypes: ice_active_vars_tuple
 
 include("apply_1d_muscl!.jl")
 include("apply_3d_muscl!.jl")

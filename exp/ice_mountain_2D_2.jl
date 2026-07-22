@@ -12,7 +12,7 @@ npx = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 1
 npy = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 1
 npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 
-h0 = 1500.0
+h0 = 1000.0
 l0 = 5.0e3
 rl = 10
 rh = 2
@@ -27,12 +27,12 @@ alpharmax = 0.0179
 
 atmosphere = AtmosphereNamelist(;
     coriolis_frequency = 0.0,
-    initial_u = (x, y, z) -> 10.0,
+    initial_u = (x, y, z) -> 12.0,
 )
 domain = DomainNamelist(;
     x_size = 416,
     y_size = 1,
-    z_size = 40,
+    z_size = 80,
     lx,
     ly,
     lz,
@@ -45,6 +45,11 @@ grid = GridNamelist(;
         x^2 <= (rl * l0)^2 ?
         h0 / 2 * (1 + cos(pi / l0 * abs(x))) : 0.0,
 )
+#=
+ice = IceNamelist(;
+    ice_setup = PinCFlow.Types.NamelistTypes.IceOn(),
+)
+=#
 ice = IceNamelist(;
 	ice_setup = IceOn(),
 #	ice_test_case = MultipleWavePackets(),
@@ -53,14 +58,15 @@ ice = IceNamelist(;
 	nscy = 1,
 	nscz = 1,
 	cloudcover = CloudCoverOff(),
+    nucleation = BothNucleation(),
 )
 output = OutputNamelist(; 
-    output_variables = (:w, :u, :n, :qv, :q, :iaux1, :iaux2, :iaux3), 
+    output_variables = (:w, :u, :n, :qv, :q_hom, :q_het, :iaux1, :iaux2, :iaux3), 
     output_steps = false,
 	output_interval = 100.0,
-	tmax = 4000.0,
+	tmax = 2000.0,
     save_ray_volumes = true,
-    output_file = "ice_mountain_wave.h5",
+    output_file = "ice_mountain_2D_2_withclamp_bothnucl.h5",
 )
 sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) ->
@@ -69,7 +75,7 @@ sponge = SpongeNamelist(;
          #   exp((abs(y) - ly / 2) / dyr) +
             exp((z - lz) / dzr)
         ),
-    relaxed_u = (x, y, z, t, dt) -> 10.0,
+    relaxed_u = (x, y, z, t, dt) -> 12.0,
 )
 #wkb = WKBNamelist(; wkb_mode = MultiColumn())
 

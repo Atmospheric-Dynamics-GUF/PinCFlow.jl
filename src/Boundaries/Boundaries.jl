@@ -18,6 +18,7 @@ module Boundaries
 using ..Types
 using ..MPIOperations
 using ..PinCFlow
+using ..Types.IceTypes: ice_active_vars_tuple
 
 """
 ```julia

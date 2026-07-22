@@ -17,6 +17,7 @@ module Update
 
 using MPI
 using ..Types
+using ..Types.IceTypes: IceActiveVars, get_IceActiveVars
 using ..Boundaries
 using ..PinCFlow
 

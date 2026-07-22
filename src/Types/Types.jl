@@ -149,6 +149,8 @@ using ..PinCFlow
 
 include("State.jl")
 
+export NamelistTypes
+
 export AbstractBackground,
     AbstractLimiter,
     AbstractPredictand,
@@ -260,5 +262,10 @@ export DomainNamelist,
     RandomWavePackets,
     TracerForcings,
     TracerWKBImpact
+
+export AbstractNucleation,
+    HomogeneousOnly,
+    HeterogeneousOnly,
+    BothNucleation
 
 end

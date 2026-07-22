@@ -36,6 +36,8 @@ Construct an `Ice` instance, with array dimensions and initial values set accord
 
   - `icefluxes::E`: Fluxes of the ice variables.
 
+  - `ice_active_vars::O`: Active prognostic ice variables depending on the chosen nucleation type.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -76,7 +78,8 @@ struct Ice{
     K <: SubGrid,
     L <: SgsIncrements,
     M <: SgsTendencies,
-    N <: SgsAuxiliaries
+    N <: SgsAuxiliaries,
+    O <: IceActiveVars
     }
     
     icepredictands::A
@@ -93,6 +96,7 @@ struct Ice{
     sgsincrements::L 
     sgstendencies::M
     sgsauxiliaries::N
+    ice_active_vars::O
 end
 
 function Ice(
@@ -126,6 +130,7 @@ function Ice(
     sgsincrements = SgsIncrements(namelists, domain, subgrid)
     sgstendencies = SgsTendencies(namelists, subgrid)
     sgsauxiliaries = SgsAuxiliaries(namelists, domain, subgrid)
+    ice_active_vars = get_IceActiveVars(icepredictands)
     
     return Ice(
         icepredictands,
@@ -141,6 +146,7 @@ function Ice(
         subgrid,
         sgsincrements,
         sgstendencies,
-        sgsauxiliaries
+        sgsauxiliaries,
+        ice_active_vars
     )
 end

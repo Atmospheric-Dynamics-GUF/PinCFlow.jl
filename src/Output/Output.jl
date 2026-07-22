@@ -21,6 +21,7 @@ using HDF5
 using ..Types
 using ..Update
 using ..PinCFlow
+using ..Types.IceTypes: ice_active_vars_tuple, PREDICTAND_TO_AUX
 
 include("create_output.jl")
 include("read_input!.jl")

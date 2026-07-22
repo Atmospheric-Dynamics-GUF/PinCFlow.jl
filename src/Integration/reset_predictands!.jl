@@ -47,11 +47,13 @@ function reset_predictands!(
     state::State,
     predictands::Predictands,
     tracerpredictands::TracerPredictands,
+    icepredictands::IcePredictands,
 )
     (; model) = state.namelists.atmosphere
 
     reset_predictands!(state, predictands, model)
     reset_predictands!(state, tracerpredictands)
+    reset_predictands!(state, icepredictands) # added ice predictands reset
 
     return
 end
@@ -95,5 +97,23 @@ function reset_predictands!(
     pip .= predictands.pip
     p .= predictands.p
 
+    return
+end
+
+# added ice predictands (ice active vars) reset
+function reset_predictands!(state::State, source_icepredictands::IcePredictands) 
+    # Get the current active ice state descriptor
+    active_ice_descriptor = get_IceActiveVars(state.ice.icepredictands)
+    
+    # Extract the tuple of active fields
+    active_fields = ice_active_vars_tuple(active_ice_descriptor)
+    
+    # Dynamically reset only the active fields
+    for field_name in active_fields
+        target_array = getfield(state.ice.icepredictands, field_name)
+        source_array = getfield(source_icepredictands, field_name)
+        target_array .= source_array
+    end
+    
     return
 end

@@ -22,6 +22,7 @@ export @ivy
 #export plot_contours, set_visualization_theme!, symmetric_contours
 
 include("Types/Types.jl")
+using .Types
 include("MPIOperations/MPIOperations.jl")
 include("Boundaries/Boundaries.jl")
 include("Update/Update.jl")
@@ -31,8 +32,10 @@ include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
 include("Integration/Integration.jl")
 
-using .Types
+
 using .Integration
+
+import .Types.NamelistTypes: AbstractNucleation, HomogeneousOnly, HeterogeneousOnly, BothNucleation
 
 # Export namelists.
 export DomainNamelist,
@@ -49,7 +52,8 @@ export DomainNamelist,
     MultiWavePacketNamelist,
     Namelists
 
-# Export singletons needed in namelists.
+# Export singletons needed in namelists. Maybe add here the Stratification argument?
+export StableStratification # it does not solve the error in ice_periodic_hill.jl
 export Boussinesq, PseudoIncompressible, Compressible
 export MCVariant
 export UniformBoussinesq,
@@ -59,6 +63,7 @@ export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn
 export NoIce, IceOn
 export CloudCoverOff, CloudCoverOn
+export BothNucleation, HomogeneousOnly, HeterogeneousOnly
 export WKBMultipleWavePackets, MultipleWavePackets
 export RandomWavePackets
 export NoTracer, TracerOn

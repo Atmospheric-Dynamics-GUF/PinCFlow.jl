@@ -299,6 +299,42 @@ abstract type AbstractRandomWavePackets end
 
 struct RandomWavePackets <: AbstractRandomWavePackets end
 
+"""
+```julia
+AbstractNucleation
+```
+
+Abstract type for three nucleation pathways.
+"""
+abstract type AbstractNucleation end
+
+"""
+```julia
+HomogeneousOnly <: AbstractNucleation
+```
+
+Singleton that represents only homogeneous nucleation.
+"""
+struct HomogeneousOnly <: AbstractNucleation end
+
+"""
+```julia
+HeterogeneousOnly <: AbstractNucleation
+```
+
+Singleton that represents only heterogeneous nucleation.
+"""
+struct HeterogeneousOnly <: AbstractNucleation end
+
+"""
+```julia
+HeterogeneousOnly <: AbstractNucleation
+```
+
+Singleton that represents both nucleation pathways.
+"""
+struct BothNucleation <: AbstractNucleation end
+
 using MPI
 using ...PinCFlow
 
@@ -371,5 +407,10 @@ export DomainNamelist,
     IceNamelist,
     MultiWavePacketNamelist, 
     Namelists
+
+export AbstractNucleation,
+    HomogeneousOnly,
+    HeterogeneousOnly,
+    BothNucleation
 
 end

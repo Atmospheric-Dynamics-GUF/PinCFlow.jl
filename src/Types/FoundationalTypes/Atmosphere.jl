@@ -405,10 +405,16 @@ function Atmosphere(
 		else
 			thetabar[i, j, k] =
 				theta0 * exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop))
-			pbar[i, j, k] =
+			# changes: p was not continous at zc = z_trop
+			pbar[i, j, k] = 
+				ptrop *
+				exp(-sig * gammainv / ttrop * (zc[i, j, k] - ztrop))
+			#=
+				pbar[i, j, k] =
 				p0^kappa *
 				ptrop^gammainv *
 				exp(-sig * gammainv / ttrop * (zc[i, j, k] - ztrop))
+			=#
 		end
 	end
 	rhobar .= pbar ./ thetabar
@@ -443,9 +449,48 @@ function Atmosphere(
 	gamma_s = stratosphere_lapse_rate / thetaref * lref
 
 	p0 = ground_pressure / pref
-	t0 = temperature / thetaref
-	ztrop = tropopause_height / lref
+    t0 = temperature / thetaref
+    ztrop = tropopause_height / lref
 
+    ttrop = t0 - gamma_t * ztrop
+
+    if gamma_t != 0.0
+        power_t = g / rsp / troposphere_lapse_rate / gamma
+        ptrop = p0 * (ttrop / t0)^power_t
+    else
+        ptrop = p0 * exp(-ztrop * sig / gamma / t0)
+    end
+    if gamma_s != 0.0
+        power_s = g / rsp / stratosphere_lapse_rate / gamma
+    end
+
+    for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        if zc[i, j, k] <= ztrop
+            tbar = t0 - gamma_t * zc[i, j, k]
+
+            if gamma_t != 0.0
+                pbar[i, j, k] = p0 * (tbar / t0)^power_t
+            else
+                pbar[i, j, k] = p0 * exp(-zc[i, j, k] * sig / gamma / t0)
+            end
+        else
+            tbar = ttrop - gamma_s * (zc[i, j, k] - ztrop)
+
+            if gamma_s != 0.0
+                pbar[i, j, k] = ptrop * (tbar / ttrop)^power_s
+            else
+                pbar[i, j, k] =
+                    ptrop * exp(-(zc[i, j, k] - ztrop) * sig / gamma / ttrop)
+            end
+        end
+        thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(kappa * gamma)
+    end
+
+    rhobar .= pbar ./ thetabar
+
+    compute_n2!(namelists, constants, domain, grid, thetabar, n2)
+
+	#=
 	if gamma_t != 0.0
 		power_t = g / (rsp * troposphere_lapse_rate)
 		ptrop = p0 * (1.0 - gamma_t * ztrop / t0)^power_t
@@ -465,7 +510,7 @@ function Atmosphere(
 
 			if gamma_t != 0.0
 				pbar[i, j, k] = p0 * (1.0 - gamma_t * zc[i, j, k] / t0)^power_t
-				thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(1 / power_t)
+				thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^kappa # ^(1 / power_t) # changed to kappa (N. Labusch)
 			else
 				pbar[i, j, k] = p0 * exp(-zc[i, j, k] * sig / gamma / t0)
 				thetabar[i, j, k] = t0 * exp(kappa * sig / t0 * zc[i, j, k])
@@ -478,7 +523,7 @@ function Atmosphere(
 				pbar[i, j, k] =
 					ptrop *
 					(1.0 - gamma_s * (zc[i, j, k] - ztrop) / ttrop)^power_s
-				thetabar[i, j, k] = tbar * (ptrop / pbar[i, j, k])^(1 / power_s)
+				thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^kappa # tbar * (ptrop / pbar[i, j, k])^(1 / power_s) (N. Labusch)
 			else
 				pbar[i, j, k] =
 					ptrop * exp(-(zc[i, j, k] - ztrop) * sig / gamma / ttrop)
@@ -488,9 +533,50 @@ function Atmosphere(
 		end
 	end
 
+	pbar .= pbar.^(1.0 / gamma) # convert to mass-weighted potential temperature
 	rhobar .= pbar ./ thetabar
+	=#
+	#=
+	ttrop = t0 - gamma_t * ztrop
+
+    if gamma_t != 0.0
+        power_t = g / rsp / troposphere_lapse_rate / gamma
+        ptrop = p0 * (ttrop / t0)^power_t
+    else
+        ptrop = p0 * exp(-ztrop * sig / gamma / t0)
+    end
+    if gamma_s != 0.0
+        power_s = g / rsp / stratosphere_lapse_rate / gamma
+    end
+
+    @ivy for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        if zc[i, j, k] <= ztrop
+            tbar = t0 - gamma_t * zc[i, j, k]
+
+            if gamma_t != 0.0
+                pbar[i, j, k] = p0 * (tbar / t0)^power_t
+            else
+                pbar[i, j, k] = p0 * exp(-zc[i, j, k] * sig / gamma / t0)
+            end
+        else
+            tbar = ttrop - gamma_s * (zc[i, j, k] - ztrop)
+
+            if gamma_s != 0.0
+                pbar[i, j, k] = ptrop * (tbar / ttrop)^power_s
+            else
+                pbar[i, j, k] =
+                    ptrop * exp(-(zc[i, j, k] - ztrop) * sig / gamma / ttrop)
+            end
+        end
+        thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(kappa * gamma)
+    end
+
+    rhobar .= pbar ./ thetabar
+
+
 
 	compute_n2!(namelists, constants, domain, grid, thetabar, n2)
-
+	=#
 	return Atmosphere(pbar, thetabar, rhobar, n2)
 end
+

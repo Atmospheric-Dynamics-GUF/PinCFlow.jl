@@ -67,7 +67,7 @@ output = OutputNamelist(;
 	output_interval = 100.0,
 	tmax = 4000.0,
     save_ray_volumes = true,
-    output_file = "ice_mountain_wave.h5",
+    output_file = "ice_wkb_mountain_2D_2.h5",
 )
 sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) ->

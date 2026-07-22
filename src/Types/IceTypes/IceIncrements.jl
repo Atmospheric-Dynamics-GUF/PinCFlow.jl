@@ -31,6 +31,8 @@ Construct an `IceIncrements` instance with zero-initialized arrays.
 
   - `dqv::A`: Runge-Kutta update of the water-vapor mixing ratio.
 
+  - `dN_in`: Runge-Kutta update of the number contration of IN.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -40,30 +42,81 @@ Construct an `IceIncrements` instance with zero-initialized arrays.
   - `ice_setup`: General ice-physics configuration.
 """
 struct IceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
-    dn::A
-    dq::A
+    dn_hom::A
+    dq_hom::A
     dqv::A
+    dn_in::A
+    dn_het::A
+    dq_het::A
 end
 
 function IceIncrements(namelists::Namelists, domain::Domain)::IceIncrements
-    (; ice_setup) = namelists.ice
-    return IceIncrements(domain, ice_setup)
+    (; ice_setup, nucleation) = namelists.ice
+    return IceIncrements(domain, ice_setup, nucleation)
 end
 
-function IceIncrements(domain::Domain, ice_setup::NoIce)::IceIncrements
-    dn = zeros(0, 0, 0)
-    dq = zeros(0, 0, 0)
+function IceIncrements(domain::Domain, ice_setup::NoIce, nucleation::AbstractNucleation)::IceIncrements
+    dn_hom = zeros(0, 0, 0)
+    dq_hom = zeros(0, 0, 0)
     dqv = zeros(0, 0, 0)
+    dn_in = zeros(0, 0, 0)
+    dn_het = zeros(0, 0, 0)
+    dq_het = zeros(0, 0, 0)
 
-    return IceIncrements(dn, dq, dqv)
+    return IceIncrements(dn_hom, dq_hom, dqv, dn_in, dn_het, dq_het)
 end
 
-function IceIncrements(domain::Domain, ice_setup::AbstractIce)::IceIncrements
+function IceIncrements(domain::Domain, ice_setup::AbstractIce, nucleation::BothNucleation)::IceIncrements
     (; nxx, nyy, nzz) = domain
 
-    dn = zeros(nxx, nyy, nzz)
-    dq = zeros(nxx, nyy, nzz)
+    dn_hom = zeros(nxx, nyy, nzz)
+    dq_hom = zeros(nxx, nyy, nzz)
     dqv = zeros(nxx, nyy, nzz)
+    dn_in = zeros(nxx, nyy, nzz)
+    dn_het = zeros(nxx, nyy, nzz)
+    dq_het = zeros(nxx, nyy, nzz)
 
-    return IceIncrements(dn, dq, dqv)
+    return IceIncrements(dn_hom, dq_hom, dqv, dn_in, dn_het, dq_het)
+end
+
+function IceIncrements(domain::Domain, ice_setup::AbstractIce, nucleation::HomogeneousOnly)::IceIncrements
+    (; nxx, nyy, nzz) = domain
+    #=
+    dn_hom = zeros(nxx, nyy, nzz)
+    dq_hom = zeros(nxx, nyy, nzz)
+    dqv = zeros(nxx, nyy, nzz)
+    dn_in = zeros(nxx, nyy, nzz)
+    dn_het = zeros(nxx, nyy, nzz)
+    dq_het = zeros(nxx, nyy, nzz)
+    =#
+    dn_hom = zeros(nxx, nyy, nzz)
+    dq_hom = zeros(nxx, nyy, nzz)
+    dqv = zeros(nxx, nyy, nzz)
+    dn_in = zeros(0, 0, 0)
+    dn_het = zeros(0, 0, 0)
+    dq_het = zeros(0, 0, 0)
+    
+
+    return IceIncrements(dn_hom, dq_hom, dqv, dn_in, dn_het, dq_het)
+end
+
+function IceIncrements(domain::Domain, ice_setup::AbstractIce, nucleation::HeterogeneousOnly)::IceIncrements
+    (; nxx, nyy, nzz) = domain
+    #=
+    dn_hom = zeros(nxx, nyy, nzz)
+    dq_hom = zeros(nxx, nyy, nzz)
+    dqv = zeros(nxx, nyy, nzz)
+    dn_in = zeros(nxx, nyy, nzz)
+    dn_het = zeros(nxx, nyy, nzz)
+    dq_het = zeros(nxx, nyy, nzz)
+    =#
+    dn_hom = zeros(0, 0, 0)
+    dq_hom = zeros(0, 0, 0)
+    dqv = zeros(nxx, nyy, nzz)
+    dn_in = zeros(nxx, nyy, nzz)
+    dn_het = zeros(nxx, nyy, nzz)
+    dq_het = zeros(nxx, nyy, nzz)
+    
+
+    return IceIncrements(dn_hom, dq_hom, dqv, dn_in, dn_het, dq_het)
 end

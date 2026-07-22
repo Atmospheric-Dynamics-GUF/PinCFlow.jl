@@ -56,8 +56,8 @@ output =
     OutputNamelist(; output_variables = (:w, :n, :qv, :q, :iaux1, :iaux2, :iaux3), 
     output_steps = false,
 	output_interval = 50.0,
-	tmax = 100.0,
-    output_file = "test/ice_mountain_wave.h5")
+	tmax = 2000.0,
+    output_file = "ice_mountain_wave.h5")
 
     sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) -> begin
@@ -76,6 +76,7 @@ output =
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge, ice))
 
+#=
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     h5open("mountain_wave.h5") do data
         plot_output(
@@ -86,3 +87,4 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         return
     end
 end
+=#

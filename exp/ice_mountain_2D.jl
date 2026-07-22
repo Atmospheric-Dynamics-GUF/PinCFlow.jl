@@ -27,7 +27,8 @@ alpharmax = 0.0179
 
 atmosphere = AtmosphereNamelist(;
     coriolis_frequency = 0.0,
-    initial_u = (x, y, z) -> 10.0,
+    initial_u = (x, y, z) -> 5.0,
+    background = Realistic(),
 )
 domain = DomainNamelist(;
     x_size = 40,
@@ -46,18 +47,20 @@ grid = GridNamelist(;
 ice = IceNamelist(;
 	ice_setup = IceOn(),
 #	ice_test_case = MultipleWavePackets(),
+    ice_test_case = PinCFlow.Types.NamelistTypes.NoIceTestCase(), # Hier die Klammern ergänzen!
 	dt_ice = 2.0,
 	nscx = 1,
 	nscy = 1,
 	nscz = 1,
 	cloudcover = CloudCoverOff(),
+    nucleation = BothNucleation(),
 )
 output =
-    OutputNamelist(; output_variables = (:w, :u, :n, :qv, :q, :iaux1, :iaux2, :iaux3), 
+    OutputNamelist(; output_variables = (:w, :u, :n_het, :qv, :q_het, :n_hom, :q_hom, :iaux1, :thetap, :pip), 
     output_steps = false,
-	output_interval = 100.0,
+	output_interval = 50.0,
 	tmax = 2000.0,
-    output_file = "exp/results/ice_mountain_wave.h5")
+    output_file = "ice_mountain_2D_realistic.h5")
 
     sponge = SpongeNamelist(;
     lhs_sponge = (x, y, z, t, dt) -> begin
@@ -71,7 +74,8 @@ output =
             z >= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
         return alpharmax * (alpharx + alphary + alpharz) / 3
     end,
-    relaxed_u = (x, y, z, t, dt) -> 10.0 * cos(pi * t/ 1800.0),
+    #relaxed_u = (x, y, z, t, dt) -> 10.0 * cos(pi * t/ 1800.0),
+    relaxed_u = (x, y, z, t, dt) -> 0.0,
 )
 
 integrate(Namelists(; atmosphere, domain, grid, output, sponge, ice))

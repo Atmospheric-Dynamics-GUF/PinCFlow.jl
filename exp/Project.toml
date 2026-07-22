@@ -1,3 +1,11 @@
 [deps]
+ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
+FFMPEG = "c87230d0-a227-11e9-1b43-d7ebe4e7570a"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
+MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
+Measures = "442fdcdd-2543-5da2-b0f3-8c86c306513e"
+PinCFlow = "230a4047-f24c-41d9-8d93-b3b8a5ef3847"
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"

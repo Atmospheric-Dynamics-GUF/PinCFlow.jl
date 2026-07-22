@@ -79,7 +79,7 @@ function create_output(state::State)
 
 		# Create datasets for the background.
 		if model != Boussinesq()
-			for label in ("rhobar", "thetabar", "n2")
+			for label in ("rhobar", "thetabar", "n2", "pbar")
 				create_dataset(
 					file,
 					label,

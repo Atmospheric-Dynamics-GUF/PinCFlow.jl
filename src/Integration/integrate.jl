@@ -91,6 +91,9 @@ function integrate(namelists::Namelists)
     # Initialize the model state.
     state = State(namelists)
 
+    # changes: Determine the active ice variables right after the state is ready.
+    ice_active_vars = get_IceActiveVars(state.ice.icepredictands)
+
     # Save machine start time.
     machine_start_time = now()
 
@@ -246,7 +249,7 @@ function integrate(namelists::Namelists)
         #              Update RHS ice variables
         #--------------------------------------------------------------
 
-        explicit_integration_rhs_ice!(state, dt)
+        explicit_integration_rhs_ice!(state, dt, ice_active_vars)
 
         #-----------------------------------------------------------------
         #                           Sponges
@@ -273,7 +276,7 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        (p0, chi0) = backup_predictands(state)
+        (p0, chi0, ice0) = backup_predictands(state)
 
         compute_fluxes!(state, p0, Theta())
 
@@ -307,7 +310,7 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        reset_predictands!(state, p0, chi0)
+        reset_predictands!(state, p0, chi0, ice0)
 
         explicit_integration!(state, p0, 0.5 * dt, time, RHS())
 
