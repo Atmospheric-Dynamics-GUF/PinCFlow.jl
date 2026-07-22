@@ -11,6 +11,7 @@ TurbulenceNamelist(;
     momentum_coupling::Bool = true,
     entropy_coupling::Bool = true,
     tracer_coupling::Bool = true,
+    gw_coupling::Bool = false,
     initial_tke::Function = (x, y, z) -> 5e-5,
 )::TurbulenceNamelist
 ```
