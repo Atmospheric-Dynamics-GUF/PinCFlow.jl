@@ -19,6 +19,12 @@ TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
+    wkb_mode::Union{
+        Val{:NoWKB},
+        Val{:SteadyState},
+        Val{:SingleColumn},
+        Val{:MultiColumn},
+    },
 )::TurbulenceWKBIntegrals
 ```
 
@@ -29,15 +35,6 @@ TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
     turbulence_scheme::Val{:TKEScheme},
-)::TurbulenceWKBIntegrals
-```
-
-Construct a `TurbulenceWKBIntegrals` instance by dispatching to the appropriate method.
-
-```julia 
-TurbulenceWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TurbulenceWKBIntegrals
 ```
@@ -48,6 +45,7 @@ Construct a `TurbulenceWKBIntegrals` instance with zero-size arrays for non-WKB 
 TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
+    turbulence_scheme::Val{:TKEScheme},
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TurbulenceWKBIntegrals
 ```
@@ -77,32 +75,12 @@ function TurbulenceWKBIntegrals(
     domain::Domain,
 )::TurbulenceWKBIntegrals
     (; turbulence_scheme) = namelists.turbulence
+    (; wkb_mode) = namelists.wkb
 
-    @dispatch_turbulence_scheme return TurbulenceWKBIntegrals(
+    @dispatch_turbulence_scheme @dispatch_wkb_mode return TurbulenceWKBIntegrals(
         namelists,
         domain,
         Val(turbulence_scheme),
-    )
-end
-
-function TurbulenceWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
-    turbulence_scheme::Val{:NoTurbulence},
-)::TurbulenceWKBIntegrals
-    return TurbulenceWKBIntegrals([zeros(0, 0, 0) for i in 1:1]...)
-end
-
-function TurbulenceWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
-    turbulence_scheme::Val{:TKEScheme},
-)::TurbulenceWKBIntegrals
-    (; wkb_mode) = namelists.wkb
-
-    @dispatch_wkb_mode return TurbulenceWKBIntegrals(
-        namelists,
-        domain,
         Val(wkb_mode),
     )
 end
@@ -110,22 +88,38 @@ end
 function TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    wkb_mode::Val{:NoWKB},
+    turbulence_scheme::Val{:NoTurbulence},
+    wkb_mode::Union{
+        Val{:NoWKB},
+        Val{:SteadyState},
+        Val{:SingleColumn},
+        Val{:MultiColumn},
+    },
 )::TurbulenceWKBIntegrals
-    return TurbulenceWKBIntegrals([zeros(0, 0, 0) for i in 1:1]...)
+    return TurbulenceWKBIntegrals(zeros(0, 0, 0))
 end
 
 function TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
+    turbulence_scheme::Val{:TKEScheme},
+    wkb_mode::Union{Val{:NoWKB}},
+)::TurbulenceWKBIntegrals
+    return TurbulenceWKBIntegrals(zeros(0, 0, 0))
+end
+
+function TurbulenceWKBIntegrals(
+    namelists::Namelists,
+    domain::Domain,
+    turbulence_scheme::Val{:TKEScheme},
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TurbulenceWKBIntegrals
     (; nxx, nyy, nzz) = domain
     (; gw_coupling) = namelists.turbulence
 
     if gw_coupling
-        return TurbulenceWKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:1]...)
+        return TurbulenceWKBIntegrals(zeros(nxx, nyy, nzz))
     else
-        return TurbulenceWKBIntegrals([zeros(0, 0, 0) for i in 1:1]...)
+        return TurbulenceWKBIntegrals(zeros(0, 0, 0))
     end
 end

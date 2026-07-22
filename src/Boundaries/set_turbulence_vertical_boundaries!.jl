@@ -30,7 +30,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for turbulence WKB tendencies by dispatching to the appropriate method.
+Enforce vertical boundary conditions for turbulence WKB variables by dispatching to the appropriate method.
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -101,11 +101,6 @@ function set_turbulence_vertical_boundaries!(
 )
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
-    (; gw_coupling) = state.namelists.turbulence
-
-    if !gw_coupling
-        return
-    end
 
     for field in fieldnames(TurbulenceReconstructions)
         set_vertical_boundaries_of_field!(

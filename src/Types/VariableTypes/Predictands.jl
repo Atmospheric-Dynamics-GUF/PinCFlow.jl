@@ -144,8 +144,10 @@ end
 
     for k in k0:k1
         w[:, :, k] .=
-            (jac[:, :, k + 1] .* w[:, :, k] .+ jac[:, :, k] .* w[:, :, k + 1]) ./
-            (jac[:, :, k] .+ jac[:, :, k + 1])
+            (
+                jac[:, :, k + 1] .* w[:, :, k] .+
+                jac[:, :, k] .* w[:, :, k + 1]
+            ) ./ (jac[:, :, k] .+ jac[:, :, k + 1])
     end
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
 

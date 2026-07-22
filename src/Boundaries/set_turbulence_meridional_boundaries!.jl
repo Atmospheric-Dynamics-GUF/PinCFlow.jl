@@ -24,7 +24,7 @@ set_turbulence_meridional_boundaries!(
 )
 ```
 
-Enforce meridional boundary conditions for turbulence WKB tendencies by dispatching to the appropriate method.
+Enforce meridional boundary conditions for turbulence WKB variables by dispatching to the appropriate method.
 
 ```julia
 set_turbulence_meridional_boundaries!(

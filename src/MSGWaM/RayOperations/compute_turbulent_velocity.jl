@@ -6,7 +6,7 @@ compute_turbulent_velocity(
     i::Integer,
     j::Integer,
     k::Integer,
-)::NTuple{3, <:Complex}
+)::NTuple{2, <:Complex}
 ```
 
 Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{1,r}`` and ``Q_{2,r}``.

@@ -40,7 +40,7 @@ Computes the turbulence impact of the gravity-wave shear at ``\\left(i, j, k\\ri
 \\end{align*}
 ```
 
-where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref) for documentation on the gravity-wave shear).
+where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum (see [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref) for documentation on the gravity-wave shear).
 
 # Arguments
 
@@ -53,6 +53,10 @@ where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum (
   - `k`: Vertical grid-cell index.
 
   - `turbulence_scheme`: General turbulence parameterization configuration.
+
+# See also 
+
+  - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
 
 !!! danger "Experimental"
     The gravity-wave shear is an experimental feature that hasn't been validated yet.

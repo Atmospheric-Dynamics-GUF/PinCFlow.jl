@@ -122,12 +122,12 @@ Return the mass-weighted impact of the large-scale shear ``\\mathcal{S}``, the b
 \\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\left[\\mathcal{S} + \\mathcal{B} + \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}\\right]
 ```
 
-where
+with
 
 ```math
 \\begin{align*}
 \\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2\\right] \\;, \\\\
-\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
+\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{1}{J}\\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
 \\end{align*}
 ```
 where ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively, and the turbulence impact of the gravity-wave shear ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}`` is obtained by dispatching to a WKB-mode specific method. See [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref) for the documentation on the turbulence impact of the gravity-wave shear, and see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref) for the documentation on the gravity-wave shear.
@@ -180,11 +180,8 @@ Returns the turbulence impact of the gravity-wave shear.
   - [`PinCFlow.Update.conductive_heating`](@ref)
 
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
-
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref)
-
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)
-
+  
+  - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
 """
 function compute_volume_force end
 
