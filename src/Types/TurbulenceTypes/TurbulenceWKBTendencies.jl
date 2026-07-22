@@ -75,6 +75,7 @@ function TurbulenceWKBTendencies(
     domain::Domain,
 )::TurbulenceWKBTendencies
     (; turbulence_scheme) = namelists.turbulence
+    (; wkb_mode) = namelists.wkb
 
     @dispatch_turbulence_scheme @dispatch_wkb_mode return TurbulenceWKBTendencies(
         namelists,
