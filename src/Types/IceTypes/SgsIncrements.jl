@@ -48,23 +48,6 @@ function SgsIncrements(
 	)
 end
 
-# added
-function SgsIncrements(
-	namelists::Namelists,
-	domain::Domain,
-	subgrid::SubGrid,
-	ice_setup::OnlySgsGW,
-)
-	(; cloudcover) = namelists.ice
-
-	SgsIncrements(
-		namelists,
-		domain,
-		subgrid,
-		cloudcover,
-	)
-end
-
 function SgsIncrements(
 	namelists::Namelists,
 	domain::Domain,

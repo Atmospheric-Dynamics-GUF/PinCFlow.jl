@@ -46,14 +46,15 @@ include("synchronize_density_fluctuations!.jl")
 include("explicit_integration!.jl")
 include("implicit_integration!.jl")
 include("wkb_integration!.jl")
+include("iceroutinesML.jl")
 include("compute_source_ice!.jl")
 include("iceroutines.jl")
-#include("ice_processes.jl") # added
 include("explicit_integration_rhs_ice!.jl")
 include("backup_predictands.jl")
 
 export integrate
 export psat_ice, sat_ratio, dot_qv, dot_n, nIce_param_nuc 
+export Nsedimentation, Qsedimentation, Qvsource
 export compute_source_ice!, compute_msgwam_ice!
 
 end

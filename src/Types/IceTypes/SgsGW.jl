@@ -36,7 +36,7 @@ end
 function SgsGW( namelists::Namelists, 
     domain :: Domain,
     subgrid::SubGrid,
-    ice_setup :: Union{IceOn, OnlySgsGW}, # added OnlySgsGW
+    ice_setup :: IceOn,
     cloudcover :: CloudCoverOff
     )
 
@@ -54,45 +54,7 @@ end
 function SgsGW( namelists::Namelists, 
     domain :: Domain,
     subgrid::SubGrid,
-    ice_setup :: IceOn, # changed from AbstractIce to IceOn
-    cloudcover :: CloudCoverOn
-    )
-
-    (;  nxnscxx, nynscyy, nznsczz) = subgrid
-    
-    wwp = zeros(nxnscxx, nynscyy, nznsczz)
-    epp = zeros(nxnscxx, nynscyy, nznsczz)
-    thp = zeros(nxnscxx, nynscyy, nznsczz)
-    uup = zeros(nxnscxx, nynscyy, nznsczz)
-    vvp = zeros(nxnscxx, nynscyy, nznsczz)
-
-    return SgsGW(wwp, epp, thp, uup, vvp)
-end
-
-# added
-
-function SgsGW( namelists::Namelists, 
-    domain :: Domain,
-    subgrid::SubGrid,
-    ice_setup :: OnlySgsGW,
-    cloudcover :: CloudCoverOff
-    )
-
-    (;  nxx, nyy, nzz) = domain
-
-    wwp = zeros(nxx, nyy, nzz)
-    epp = zeros(nxx, nyy, nzz)
-    thp = zeros(nxx, nyy, nzz)
-    uup = zeros(nxx, nyy, nzz)
-    vvp = zeros(nxx, nyy, nzz)
-
-    return SgsGW(wwp, epp, thp, uup, vvp)
-end
-
-function SgsGW( namelists::Namelists, 
-    domain :: Domain,
-    subgrid::SubGrid,
-    ice_setup :: OnlySgsGW,
+    ice_setup :: IceOn,
     cloudcover :: CloudCoverOn
     )
 

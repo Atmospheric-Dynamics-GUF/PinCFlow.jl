@@ -244,7 +244,6 @@ export DomainNamelist,
     TracerFluxes,
     IceOn,
     NoIce,
-    OnlySgsGW, # added
     IcePredictands,
     IceAuxiliaries,
     IceIncrements,
@@ -253,6 +252,7 @@ export DomainNamelist,
     IceSource,
     IceConstants,
     IceForcing, # added
+    IceTimeScales, # added
     SgsAuxiliaries,
     SgsGW,
     SgsPredictands,

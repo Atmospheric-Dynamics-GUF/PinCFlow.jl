@@ -15,11 +15,6 @@ function compute_source_ice!(state::State, icesetup::NoIce)
 	return
 end
 
-# added
-function compute_source_ice!(state::State, icesetup::OnlySgsGW)
-	return
-end
-
 function compute_source_ice!(state::State, icesetup::IceOn)
 	(; cloudcover) = state.namelists.ice
 	compute_source_ice!(state, cloudcover)

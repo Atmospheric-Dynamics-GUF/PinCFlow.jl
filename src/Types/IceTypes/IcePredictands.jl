@@ -224,19 +224,12 @@ function IcePredictands(
 		# set initial S to zero for testing
 		#S0 = 0.0
 
-		# gaussian profile of n for debugging centered at z0_issr and x=0
-		#n[i, j, k] = rhoMean * mRef * 1.0e6 * exp(- (zc[i, j, k] - z0_issr) ^ 2 / 2.0 / sig_issr^2 / 4.0) * exp(- (x[i] ) ^ 2 / 2.0 / (sig_issr)^2 / 4.0) # [#/kg]
-		#q[i, j, k] = n[i, j, k] * meanMassIce / mRef # [kg/kg]
-
 	end
 
 		qv_profile .= qv[i0, j0, :]
 
 	# safe vertical profile of qv
 	@views iceforcing.qv_ref .=  qv_profile
-
-	# qv = 0 for debugging
-	#qv .= 0.0
 
 	return IcePredictands(n, nNuc, q, qv)
 end

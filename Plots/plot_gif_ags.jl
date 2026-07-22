@@ -1,5 +1,5 @@
 # RUN in PinCFlow/PinCFlow.jl directory:
-# julia --project=examples test/plot_gif_ags.jl
+# julia --project=examples Plots/plot_gif_ags.jl
 
 using HDF5
 using CairoMakie

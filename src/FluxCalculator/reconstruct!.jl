@@ -285,11 +285,6 @@ function reconstruct!(state::State, ice_setup::NoIce)
     return
 end
 
-# added
-function reconstruct!(state::State, ice_setup::OnlySgsGW)
-    return
-end
-
 function reconstruct!(state::State, ice_setup::IceOn)
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain

@@ -77,7 +77,8 @@ struct Ice{
     L <: SgsIncrements,
     M <: SgsTendencies,
     N <: SgsAuxiliaries,
-    O <: IceForcing # added
+    O <: IceForcing, # added
+    P <: IceTimeScales # added
     }
     
     icepredictands::A
@@ -95,6 +96,7 @@ struct Ice{
     sgstendencies::M
     sgsauxiliaries::N
     iceforcing::O # added
+    icetimescales::P # added
 
 end
 
@@ -109,6 +111,8 @@ function Ice(
     iceconstants = IceConstants(constants)
 
     iceforcing = IceForcing(constants, domain) # added
+
+    icetimescales = IceTimeScales() # added
 
     icepredictands = IcePredictands(
         namelists,
@@ -148,6 +152,7 @@ function Ice(
         sgsincrements,
         sgstendencies,
         sgsauxiliaries,
-        iceforcing # added
+        iceforcing, # added
+        icetimescales # added
     )
 end
