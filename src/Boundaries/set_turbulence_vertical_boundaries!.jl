@@ -50,7 +50,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Return for turbulence WKB integrals.
+Return for turbulence WKB integrals as these are only accessed within the grid cells. (See also [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref))
 
 ```julia
 set_turbulence_vertical_boundaries!(
@@ -60,7 +60,7 @@ set_turbulence_vertical_boundaries!(
 )
 ```
 
-Enforce vertical boundary conditions for turbulence WKB tendencies.
+Enforce vertical boundary conditions for turbulence WKB tendencies required for smoothing.
 
 # Arguments
 
@@ -73,6 +73,8 @@ Enforce vertical boundary conditions for turbulence WKB tendencies.
 # See also
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)
 """
 function set_turbulence_vertical_boundaries! end
 
