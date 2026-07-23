@@ -17,7 +17,7 @@ npz = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1
 outfile = "/home/b/b383844/PinCFlow/sedimentation/results/ice_mountain_wave_test.h5"
 
 
-tmax = 2.0e3
+tmax = 2.0e2
 
 h0 = 150.0
 l0 = 5000.0
@@ -42,7 +42,7 @@ atmosphere = AtmosphereNamelist(;
 )
 
 domain = DomainNamelist(;
-    x_size = 400,
+    x_size = 40,
     y_size = 1,
     z_size = 40,
     lx,
@@ -55,10 +55,7 @@ domain = DomainNamelist(;
 
 grid = GridNamelist(;
     resolved_topography = (x, y) ->
-        x^2 <= (rl * l0)^2 ?
-        h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x) ) ) * rh / (rh + 1) + 
-        h0 / 2 * (1 + cos(pi / (rl * l0) * abs(x) ) ) / 
-        (rh + 1) * cos(pi / l0 * abs(x) ) : 0.0,
+        h0 / (1 + x^2 / l0^2),
 )
 
 ice = IceNamelist(;
@@ -72,7 +69,7 @@ ice = IceNamelist(;
 output = OutputNamelist(; 
     output_variables = (:w, :u, :n, :nNuc, :qv, :q, :thetap, :pip, :iaux1, :iaux2, :iaux3, :iaux4, :iaux5),
     output_steps = false,
-	output_interval = 1000.0,
+	output_interval = 100.0,
 	tmax = tmax,
     save_ray_volumes = true,
     output_file = outfile,

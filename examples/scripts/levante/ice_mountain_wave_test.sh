@@ -2,7 +2,7 @@
 #SBATCH --partition=compute
 #SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
+#SBATCH --ntasks-per-node=10
 #SBATCH --hint=nomultithread
 #SBATCH --time=0-01:00:00
 #SBATCH --mail-type=FAIL
@@ -40,5 +40,5 @@ HDF5.API.set_libraries!(
 # Run
 srun --cpu_bind=verbose \
      julia --project examples/scripts/ice_mountain_wave_test.jl \
-     64 1 1 1\
+     10 1 1 1\
      > ice_mountain_wave_test.log 2>&1

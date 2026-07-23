@@ -2,7 +2,8 @@
 # julia --project=examples Plots/test_plot.jl
 
 """ Create test plot with n, q and w for the last time step of ice_mountain_wave_test.jl simulation. 
-    The maximum values of n, q and w are displayed for comparison."""
+    The maximum values of n, q and w are displayed for comparison.
+    The results were generated using S_issr = 1.45 in IcePredictans.jl"""
 
 using HDF5
 using CairoMakie
