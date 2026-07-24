@@ -475,7 +475,8 @@ end
     rkstage::Integer,
     wkb_mode::Val{:SteadyState},
 )
-    (; x_size, y_size, z_size, vertical_boundary_condition) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) =
+        state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; tref) = state.constants
@@ -547,7 +548,9 @@ end
             khr = sqrt(kr^2 + lr^2)
 
             # Set the reference level.
-            kref = (ko == 0 && vertical_boundary_condition == :SolidWall) ? max(k0, k - 1) : k - 1
+            kref =
+                (ko == 0 && vertical_boundary_condition == :SolidWall) ?
+                max(k0, k - 1) : k - 1
 
             # Compute the vertical group velocity at the level below.
             n2r = interpolate_stratification(rays.z[r, i, j, kref], state, N2())

@@ -157,6 +157,7 @@ end
 @ivy function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
+    tracer_setup::Val{:TracerOn},
 )
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain

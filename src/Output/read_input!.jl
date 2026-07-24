@@ -32,7 +32,7 @@ function read_input! end
     end
 
     # Define slices.
-    dk0 = (ko == 0 && vertical_boundary_condition == :SolidWall) ? 1 : 0
+    dk0 = (ko == 0 && vertical_boundary_condition === :SolidWall) ? 1 : 0
     (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),

@@ -19,6 +19,18 @@ include("wave_packet.jl")
 include("wkb_mountain_wave.jl")
 include("wkb_wave_packet.jl")
 
+export bhat,
+    n2,
+    omega,
+    phi,
+    pihat,
+    rhobar,
+    thetabar,
+    uhat,
+    vhat,
+    wave_action_density,
+    what
+
 export cold_bubble,
     hot_bubble,
     mountain_wave,

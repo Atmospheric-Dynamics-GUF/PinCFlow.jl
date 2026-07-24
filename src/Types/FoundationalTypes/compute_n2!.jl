@@ -48,7 +48,7 @@ function compute_n2! end
     thetabar::AbstractArray{<:AbstractFloat, 3},
     n2::AbstractArray{<:AbstractFloat, 3},
 )
-    (; z_size, nbz, vertical_boundary_condition) = namelists.domain
+    (; z_size, nbz) = namelists.domain
     (; g_ndim) = constants
     (; nz, ko, k0, k1) = domain
     (; jac, dz) = grid
@@ -63,14 +63,14 @@ function compute_n2! end
 
     # Compute the squared buoyancy frequency at the boundaries.
     set_vertical_boundaries_of_field!(n2, namelists, domain, +)
-    if (ko == 0 && vertical_boundary_condition == :SolidWall)
+    if ko == 0
         for k in 1:nbz
             n2[:, :, k] .=
                 g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
                 (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
         end
     end
-    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
+    if ko + nz == z_size
         for k in 1:nbz
             n2[:, :, k1 + k] .=
                 g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*

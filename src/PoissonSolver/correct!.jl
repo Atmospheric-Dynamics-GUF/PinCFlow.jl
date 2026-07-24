@@ -189,7 +189,9 @@ end
     (; u) = state.variables.predictands
 
     kmin = k0
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
@@ -229,7 +231,9 @@ end
     (; v) = state.variables.predictands
 
     kmin = k0
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
@@ -269,8 +273,10 @@ end
     (; dpip) = state.variables.increments
     (; w) = state.variables.predictands
 
-    kmin = (ko == 0 && vertical_boundary_condition == :SolidWall) ? k0 : k0 - 1
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 - 1 : k1
+    kmin = (ko == 0 && vertical_boundary_condition === :Solid) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
+        k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0

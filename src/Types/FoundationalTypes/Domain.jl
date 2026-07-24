@@ -187,12 +187,14 @@ end
     # Set dimensions and periodicity.
     dims = [npx, npy, npz]
 
-    if vertical_boundary_condition == :SolidWall
+    if vertical_boundary_condition === :SolidWall
         periods = [true, true, false]
-    elseif vertical_boundary_condition == :Periodic
+    elseif vertical_boundary_condition === :Periodic
         periods = [true, true, true]
-    else 
-        error("Incorrect choice of `vertical_boundary_condition`. Must be `:SolidWall` or `:Periodic`")
+    else
+        error(
+            "Incorrect choice of `vertical_boundary_condition`. Must be `:SolidWall` or `:Periodic`",
+        )
     end
 
     # Create a Cartesian topology.

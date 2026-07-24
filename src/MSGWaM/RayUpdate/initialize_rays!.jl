@@ -138,7 +138,8 @@ end
             alpha in 1:wave_modes
 
             # Set ray-volume indices.
-            if (ko == 0 && vertical_boundary_condition == :SolidWall) && k == k0 - 1
+            if (ko == 0 && vertical_boundary_condition == :SolidWall) &&
+               k == k0 - 1
                 s += 1
 
                 # Set surface indices.

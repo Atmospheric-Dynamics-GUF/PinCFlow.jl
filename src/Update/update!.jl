@@ -704,7 +704,9 @@ end
         if (ko + k == k0 && vertical_boundary_condition == :SolidWall)
             lower_gradient = 0.0
             lower_force = 0.0
-        elseif (ko + k == z_size + nbz && vertical_boundary_condition == :SolidWall)
+        elseif (
+            ko + k == z_size + nbz && vertical_boundary_condition == :SolidWall
+        )
             upper_gradient = 0.0
             upper_force = 0.0
         end
@@ -873,7 +875,9 @@ end
     (; rho, u, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -1024,7 +1028,9 @@ end
     (; rho, v, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -1084,8 +1090,10 @@ end
         dw .= 0.0
     end
 
-    kmin = (ko == 0 && vertical_boundary_condition == :SolidWall) ? k0 : k0 - 1
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 - 1 : k1
+    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
+        k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
@@ -1230,8 +1238,10 @@ end
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
-    kmin = (ko == 0 && vertical_boundary_condition == :SolidWall) ? k0 : k0 - 1
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 - 1 : k1
+    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
+        k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
@@ -1284,8 +1294,10 @@ end
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
-    kmin = (ko == 0 && vertical_boundary_condition == :SolidWall) ? k0 : k0 - 1
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 - 1 : k1
+    kmin = (ko == 0 || vertical_boundary_condition === :Periodic) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ?
+        k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]

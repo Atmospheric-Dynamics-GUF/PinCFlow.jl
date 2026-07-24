@@ -281,12 +281,12 @@ end
     (; nz, nzz, ko, i0, j0, k0, k1) = domain
     (; fluxes) = variables
 
-    if vertical_boundary_condition == :Periodic 
+    if vertical_boundary_condition == :Periodic
         for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
             set_vertical_boundaries_of_field!(
                 getfield(fluxes, field),
                 namelists,
-                domain
+                domain,
             )
         end
     end

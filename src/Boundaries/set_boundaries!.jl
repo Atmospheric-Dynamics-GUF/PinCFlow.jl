@@ -92,10 +92,13 @@ function set_boundaries!(
 end
 
 function set_boundaries!(state::State, variables::BoundaryFluxes)
-    set_vertical_boundaries!(state, variables)
+    (; vertical_boundary_condition) = state.namelists.domain
 
-    set_tracer_vertical_boundaries!(state, variables)
+    if vertical_boundary_condition === :SolidWall
+        set_vertical_boundaries!(state, variables)
 
+        set_tracer_vertical_boundaries!(state, variables)
+    end
     return
 end
 
@@ -120,7 +123,11 @@ function set_boundaries!(
     variables::BoundaryFluxes,
     turbulence::TKE,
 )
-    set_turbulence_vertical_boundaries!(state, variables)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    if vertical_boundary_condition === :SolidWall
+        set_turbulence_vertical_boundaries!(state, variables)
+    end
 
     return
 end

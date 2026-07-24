@@ -239,6 +239,19 @@ function create_output(state::State, machine_start_time::DateTime)
             )
         end
 
+        if :aux in output_variables
+            create_dataset(
+                file,
+                "aux",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
+            )
+        end
+
         if prepare_restart || :pip in output_variables
             create_dataset(
                 file,

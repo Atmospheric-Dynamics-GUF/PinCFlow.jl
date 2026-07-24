@@ -18,11 +18,7 @@ The parameter can take any of the following values:
 macro dispatch_vertical_boundary_condition end
 
 macro dispatch_vertical_boundary_condition(input::Expr)
-    return esc(
-        quote
-            @dispatch (:SolidWall, :Periodic) $(
-                input
-            )
-        end,
-    )
+    return esc(quote
+        @dispatch (:SolidWall, :Periodic) $(input)
+    end)
 end

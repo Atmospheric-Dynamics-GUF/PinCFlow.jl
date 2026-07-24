@@ -36,8 +36,10 @@ function compute_sponges! end
     (; x, y, zc) = state.grid
     (; alphar, betar) = state.sponge
 
-    kmin = (ko == 0 && vertical_boundary_condition == :SolidWall) ? k0 : k0 - 1
-    kmax = (ko + nz == z_size && vertical_boundary_condition == :SolidWall) ? k1 : k1 + 1
+    kmin = (ko == 0 || vertical_boundary_condition === :Periodic) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
@@ -56,11 +58,11 @@ function compute_sponges! end
     set_meridional_boundaries_of_field!(alphar, namelists, domain)
     set_meridional_boundaries_of_field!(betar, namelists, domain)
 
-    if (ko == 0 && vertical_boundary_condition == :SolidWall)
+    if (ko == 0 && vertical_boundary_condition === :SolidWall)
         alphar[:, :, k0 - 1] .= alphar[:, :, k0]
         betar[:, :, k0 - 1] .= betar[:, :, k0]
     end
-    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
+    if (ko + nz == z_size && vertical_boundary_condition === :SolidWall)
         alphar[:, :, k1 + 1] .= alphar[:, :, k1]
         betar[:, :, k1 + 1] .= betar[:, :, k1]
     end

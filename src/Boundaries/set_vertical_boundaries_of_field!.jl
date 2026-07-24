@@ -49,7 +49,7 @@ This method is applied to reconstruction arrays. Vertical boundary conditions ar
 """
 function set_vertical_boundaries_of_field! end
 
-@ivy function set_vertical_boundaries_of_field!(
+function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain,
@@ -57,7 +57,62 @@ function set_vertical_boundaries_of_field! end
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
 )
-    (; z_size, vertical_boundary_condition) = namelists.domain
+    (; vertical_boundary_condition) = namelists.domain
+
+    @dispatch_vertical_boundary_condition set_vertical_boundaries_of_field!(
+        field,
+        namelists,
+        domain,
+        mode,
+        Val(vertical_boundary_condition);
+        layers,
+        staggered,
+    )
+
+    return
+end
+
+@ivy function set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    mode::Function,
+    vertical_boundary_condition::Val{:Periodic};
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+    staggered = false,
+)
+    (; z_size) = namelists.domain
+    (; i0, i1, j0, j1, k0, k1) = domain
+
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+
+    if z_size > 1
+        set_vertical_halos_of_field!(field, namelists, domain; layers)
+    else
+        ii = (i0 - nbx):(i1 + nbx)
+        jj = (j0 - nby):(j1 + nby)
+
+        for k in 1:nbz
+            field[ii, jj, k0 - k] .= field[ii, jj, k1 - k + 1]
+            field[ii, jj, k1 + k] .= field[ii, jj, k0 + i - 1]
+        end
+    end
+
+    return
+end
+
+@ivy function set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    mode::Function,
+    vertical_boundary_condition::Val{:SolidWall};
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+    staggered = false,
+)
+    (; z_size) = namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
@@ -65,19 +120,13 @@ function set_vertical_boundaries_of_field! end
     nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     if z_size > 1
-        set_vertical_halos_of_field!(
-            field,
-            namelists,
-            domain;
-            layers,
-        )
+        set_vertical_halos_of_field!(field, namelists, domain; layers)
     end
-
 
     ii = (i0 - nbx):(i1 + nbx)
     jj = (j0 - nby):(j1 + nby)
 
-    if (ko == 0 && vertical_boundary_condition == :SolidWall)
+    if ko == 0
         if staggered
             field[ii, jj, k0 - 1] .= 0.0
             for k in 1:nbz
@@ -90,7 +139,7 @@ function set_vertical_boundaries_of_field! end
         end
     end
 
-    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
+    if ko + nz == z_size
         if staggered
             field[ii, jj, k1] .= 0.0
             for k in 1:nbz
@@ -107,12 +156,57 @@ function set_vertical_boundaries_of_field! end
 end
 
 function set_vertical_boundaries_of_field!(
-    field::Union{
-        AbstractArray{<:AbstractFloat, 4},
-        AbstractArray{<:AbstractFloat, 5},
-    },
+    field::Union{AbstractArray{<:AbstractFloat, 5}},
     namelists::Namelists,
     domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+    (; vertical_boundary_condition) = namelists.domain
+
+    @dispatch_vertical_boundary_condition set_vertical_boundaries_of_field!(
+        field,
+        namelists,
+        domain,
+        Val(vertical_boundary_condition);
+        layers,
+    )
+    return
+end
+
+@ivy function set_vertical_boundaries_of_field!(
+    field::Union{AbstractArray{<:AbstractFloat, 5}},
+    namelists::Namelists,
+    domain::Domain,
+    vertical_boundary_condition::Val{:Periodic};
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+    (; z_size) = namelists.domain
+    (; i0, i1, j0, j1, k0, k1) = domain
+
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+
+    if z_size > 1
+        set_vertical_halos_of_field!(field, namelists, domain; layers)
+    else
+        ii = (i0 - nbx):(i1 + nbx)
+        jj = (j0 - nby):(j1 + nby)
+
+        for k in 1:nbz
+            field[ii, jj, k0 - k, :, :] .= field[ii, jj, k1 - k + 1, :, :]
+            field[ii, jj, k1 + k, :, :] .= field[ii, jj, k0 + k - 1, :, :]
+        end
+    end
+
+    return
+end
+
+function set_vertical_boundaries_of_field!(
+    field::Union{AbstractArray{<:AbstractFloat, 5}},
+    namelists::Namelists,
+    domain::Domain,
+    vertical_boundary_condition::Val{:SolidWall};
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; z_size) = namelists.domain
