@@ -322,7 +322,8 @@ end
     @dispatch_wkb_mode gw_impact =
         compute_volume_force(state, i, j, k, variables, Val(wkb_mode))
 
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + gw_impact)
+    return (rho[i, j, k] + rhobar[i, j, k]) *
+           (shear + buoyancy + gw_impact)
 end
 
 @ivy function compute_volume_force(

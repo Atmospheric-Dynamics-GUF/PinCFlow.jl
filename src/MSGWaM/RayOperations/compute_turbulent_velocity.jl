@@ -171,6 +171,7 @@ function compute_turbulent_velocity(
     phi::AbstractFloat,
 )::AbstractFloat
     (; ld, lv, lb) = state.turbulence.turbulenceconstants
+    (; uref) = state.constants
 
     uhat2 =
         2 * mr^2 * wadr * (omir^2 + fc^2) / rhob / omir / (kr^2 + lr^2 + mr^2)
@@ -185,7 +186,10 @@ function compute_turbulent_velocity(
     sterm = mr^2 / 2 * (uhat2 - real(u01u01 * exp(2im * phi)))
     bterm = n2r + real(1im * mr * bhat * exp(1im * phi))
 
-    qtilde = sqrt(max(0, ld * (lv * sterm - lb * bterm)))
+    qtilde2 = ld * (lv * sterm - lb * bterm)
+    #qtilde = sqrt(max(0, ld * (lv * sterm - lb * bterm)))
+
+    qtilde = sqrt(1 / 100 / uref^2 * log(1 + exp(100 * uref^2 * qtilde2)))
 
     return qtilde
 end

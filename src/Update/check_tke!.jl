@@ -16,10 +16,16 @@ function check_tke! end
     (; tke) = state.turbulence.turbulencepredictands
     (; tkemin) = state.turbulence.turbulenceconstants
     (; rhobar) = state.atmosphere
+    (; rho) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
-        tke[i, j, k] = max(tke[i, j, k], tkemin * rhobar[i, j, k])
+        tke[i, j, k] =
+            max(tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]), tkemin) *
+            (rho[i, j, k] + rhobar[i, j, k])
     end
+
+    #smooth_tke!(state)
+    #smooth_tke!(state)
 
     return
 end

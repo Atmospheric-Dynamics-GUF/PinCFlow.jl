@@ -39,6 +39,7 @@ struct TurbulenceConstants{A <: AbstractFloat}
     lb::A
     lt::A
     tkemin::A
+    qcrit::A
 end
 
 function TurbulenceConstants(constants::Constants)::TurbulenceConstants
@@ -48,6 +49,7 @@ function TurbulenceConstants(constants::Constants)::TurbulenceConstants
     ld = sqrt(2) * lturb / lref
     lv = lb = lt = lturb / lref / sqrt(2)
     tkemin = 5.E-5 * tref^2.0 / lref^2.0
+    qcrit = 0.2 * tref / lref
 
-    return TurbulenceConstants(lturb, ld, lv, lb, lt, tkemin)
+    return TurbulenceConstants(lturb, ld, lv, lb, lt, tkemin, qcrit)
 end

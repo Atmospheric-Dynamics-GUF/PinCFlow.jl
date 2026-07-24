@@ -298,7 +298,7 @@ function turbulent_diffusion!(
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
 
-    #check_tke!(state)
+    check_tke!(state)
 
     tkeold .= tke ./ (rho .+ rhobar)
 
@@ -322,7 +322,7 @@ end
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
-    dtdz2 = dt / (dz^2.0)
+    dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
 
@@ -414,7 +414,10 @@ end
         ath[ith, jth, kth] = -dtdz2 * kmd / jacc
         bth[ith, jth, kth] = 1 + dtdz2 * kmu / jacc + dtdz2 * kmd / jacc
         cth[ith, jth, kth] = -dtdz2 * kmu / jacc
-        fth[ith, jth, kth] = u[i, j, k]
+        fth[ith, jth, kth] =
+            dtdz2 * kmu / jacc * u[i, j, k + 1] +
+            (1 - dtdz2 * kmu / jacc - dtdz2 * kmd / jacc) * u[i, j, k] +
+            dtdz2 * kmd / jacc * u[i, j, k - 1]
     end
 
     thomas_algorithm!(state)
@@ -429,7 +432,7 @@ end
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
-    dtdz2 = dt / (dz^2.0)
+    dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
 
@@ -521,7 +524,10 @@ end
         ath[ith, jth, kth] = -dtdz2 * kmd / jacc
         bth[ith, jth, kth] = 1 + dtdz2 * kmu / jacc + dtdz2 * kmd / jacc
         cth[ith, jth, kth] = -dtdz2 * kmu / jacc
-        fth[ith, jth, kth] = v[i, j, k]
+        fth[ith, jth, kth] =
+            dtdz2 * kmu / jacc * v[i, j, k + 1] +
+            (1 - dtdz2 * kmu / jacc - dtdz2 * kmd / jacc) * v[i, j, k] +
+            dtdz2 * kmd / jacc * v[i, j, k - 1]
     end
 
     thomas_algorithm!(state)
@@ -536,7 +542,7 @@ end
     (; jac, met, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
-    dtdz2 = dt / (dz^2.0)
+    dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
 
@@ -548,7 +554,9 @@ end
             turbulence_diffusion_coefficient(state, i, j, k, KM()) /
             jac[i, j, k]
 
+        wu = compute_vertical_wind(i, j, k + 1, state)
         wc = compute_vertical_wind(i, j, k, state)
+        wd = compute_vertical_wind(i, j, k - 1, state)
 
         jacc =
             2.0 * jac[i, j, k] * jac[i, j, k + 1] /
@@ -561,7 +569,10 @@ end
         ath[ith, jth, kth] = -dtdz2 / jacc * kmd
         bth[ith, jth, kth] = 1 + dtdz2 / jacc * kmu + dtdz2 / jacc^2 * kmd
         cth[ith, jth, kth] = -dtdz2 / jacc * kmu
-        fth[ith, jth, kth] = wc
+        fth[ith, jth, kth] =
+            dtdz2 / jacc * kmu * wu +
+            (1 - dtdz2 / jacc * kmu - dtdz2 / jacc^2 * kmd) * wc +
+            dtdz2 / jacc * kmd * wd
     end
 
     thomas_algorithm!(state)
@@ -625,7 +636,7 @@ end
     (; ath, bth, cth, fth) = state.variables.auxiliaries
     (; rhobar) = state.atmosphere
 
-    dtdz2 = dt / (dz^2.0)
+    dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
 
@@ -662,7 +673,13 @@ end
             1 + dtdz2 / jac[i, j, k] * khu + dtdz2 / jac[i, j, k] * khd
         cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * khu
 
-        fth[ith, jth, kth] = p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+        fth[ith, jth, kth] =
+            (1 - dtdz2 / jac[i, j, k] * khu - dtdz2 / jac[i, j, k] * khd) *
+            p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
+            dtdz2 / jac[i, j, k] * khu * p[i, j, k + 1] /
+            (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+            dtdz2 / jac[i, j, k] * khd * p[i, j, k - 1] /
+            (rho[i, j, k - 1] + rhobar[i, j, k - 1])
     end
 
     thomas_algorithm!(state)
@@ -708,7 +725,7 @@ end
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
 
-    dtdz2 = dt / (dz^2.0)
+    dtdz2 = dt / (2.0 * dz^2.0)
 
     reset_thomas!(state)
 
@@ -757,7 +774,13 @@ end
                 1 + dtdz2 / jac[i, j, k] * khu + dtdz2 / jac[i, j, k] * khd
             cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * khu
 
-            fth[ith, jth, kth] = chi[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+            fth[ith, jth, kth] =
+                (1 - dtdz2 / jac[i, j, k] * khu - dtdz2 / jac[i, j, k] * khd) *
+                chi[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
+                dtdz2 / jac[i, j, k] * khu * chi[i, j, k + 1] /
+                (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+                dtdz2 / jac[i, j, k] * khd * chi[i, j, k - 1] /
+                (rho[i, j, k - 1] + rhobar[i, j, k - 1])
         end
 
         thomas_algorithm!(state)

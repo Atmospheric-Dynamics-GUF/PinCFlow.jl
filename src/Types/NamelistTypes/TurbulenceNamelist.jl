@@ -39,6 +39,9 @@ struct TurbulenceNamelist
     tracer_coupling::Bool
     initial_tke::FunctionWrapper{Float64, NTuple{3, Float64}}
     wave_impact::Bool
+    turbulence_filter_order::Integer
+    turbulence_filter_type::Symbol
+    smooth_turbulence::Bool
 end
 
 function TurbulenceNamelist(;
@@ -48,6 +51,9 @@ function TurbulenceNamelist(;
     tracer_coupling::Bool = true,
     initial_tke::Function = (x, y, z) -> 5e-5,
     wave_impact::Bool = true,
+    turbulence_filter_order::Integer = 3,
+    turbulence_filter_type::Symbol = :BoxFilter,
+    smooth_turbulence::Bool = true,
 )::TurbulenceNamelist
     return TurbulenceNamelist(
         turbulence_scheme,
@@ -56,5 +62,8 @@ function TurbulenceNamelist(;
         tracer_coupling,
         initial_tke,
         wave_impact,
+        turbulence_filter_order,
+        turbulence_filter_type,
+        smooth_turbulence,
     )
 end

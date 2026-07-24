@@ -532,6 +532,7 @@ function smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:TKEScheme})
     (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dtkedt) = state.turbulence.turbulencewkbtendencies
+    (; gwshear) = state.turbulence.turbulencewkbintegrals
     (; wave_impact) = state.namelists.turbulence
 
     if !smooth_tendencies || !wave_impact
@@ -539,13 +540,13 @@ function smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:TKEScheme})
     end
 
     @dispatch_filter_type if x_size == y_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(gwshear, state, Val(filter_type), Z())
     elseif x_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(gwshear, state, Val(filter_type), YZ())
     elseif y_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(gwshear, state, Val(filter_type), XZ())
     else
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(gwshear, state, Val(filter_type), XYZ())
     end
 end
 

@@ -120,24 +120,18 @@ function turbulence_integration!(
     dt::AbstractFloat,
     turbulence_scheme::Val{:TKEScheme},
 )
-    check_tke!(state)
-    set_boundaries!(state, BoundaryPredictands(), TKE())
-
     turbulence_integration!(state, dt * 0.5, Dissipation())
 
-    check_tke!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
     turbulence_integration!(state, dt, Advection())
 
     turbulence_integration!(state, dt, Diffusion())
 
-    check_tke!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
     turbulence_integration!(state, dt * 0.5, Dissipation())
 
-    check_tke!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
     return
@@ -154,7 +148,16 @@ end
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
 
+    check_tke!(state)
+
     for k in k0:k1, j in j0:j1, i in i0:i1
+        if (rho[i, j, k] + rhobar[i, j, k]) < 0.0
+            error("Caution, total density is negative!")
+        end
+        if tke[i, j, k] < 0.0
+            error("Caution, tke is negative!")
+        end
+
         tke[i, j, k] =
             1 /
             (
@@ -205,7 +208,7 @@ end
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
-    dtdz2 = dt / (2.0 * dz^2.0)
+    dtdz2 = dt / (dz^2.0) #2.0 * 
 
     reset_thomas!(state)
 
@@ -252,13 +255,13 @@ end
             1 + dtdz2 / jac[i, j, k] * keku + dtdz2 / jac[i, j, k] * kekd
         cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * keku
 
-        fth[ith, jth, kth] =
-            (1 - dtdz2 / jac[i, j, k] * keku - dtdz2 / jac[i, j, k] * kekd) *
-            tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
-            dtdz2 / jac[i, j, k] * keku * tke[i, j, k + 1] /
-            (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
-            dtdz2 / jac[i, j, k] * kekd * tke[i, j, k - 1] /
-            (rho[i, j, k - 1] + rhobar[i, j, k - 1])
+        fth[ith, jth, kth] = tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+        # (1 - dtdz2 / jac[i, j, k] * keku - dtdz2 / jac[i, j, k] * kekd) *
+        # tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
+        # dtdz2 / jac[i, j, k] * keku * tke[i, j, k + 1] /
+        # (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+        # dtdz2 / jac[i, j, k] * kekd * tke[i, j, k - 1] /
+        # (rho[i, j, k - 1] + rhobar[i, j, k - 1])
     end
 
     thomas_algorithm!(state)

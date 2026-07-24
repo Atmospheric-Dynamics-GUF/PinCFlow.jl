@@ -277,19 +277,6 @@ function integrate(namelists::Namelists)
             )
 
             #-----------------------------------------------------------------
-            #                         Turbulence 
-            #-----------------------------------------------------------------
-
-            turbulent_diffusion!(state, dt)
-
-            set_boundaries!(state, BoundaryPredictands())
-
-            synchronize_compressible_atmosphere!(
-                state,
-                state.variables.predictands,
-            )
-
-            #-----------------------------------------------------------------
             #                           MS-GWaM
             #-----------------------------------------------------------------
 

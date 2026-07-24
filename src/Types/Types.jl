@@ -168,6 +168,8 @@ export @dispatch_background,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
     @dispatch_turbulence_scheme,
+    @dispatch_turbulence_filter_order,
+    @dispatch_turbulence_filter_type,
     @dispatch
 
 export AbstractPredictand

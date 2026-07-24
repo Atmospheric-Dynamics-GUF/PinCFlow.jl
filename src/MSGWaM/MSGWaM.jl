@@ -40,6 +40,7 @@ include("MeanFlowEffect/MeanFlowEffect.jl")
 using .BoundaryRays
 using .RayUpdate
 using .MeanFlowEffect
+using .Smoothing
 using ..PinCFlow
 
 export apply_saturation_scheme!,

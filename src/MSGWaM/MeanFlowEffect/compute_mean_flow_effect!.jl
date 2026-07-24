@@ -48,14 +48,21 @@ function compute_mean_flow_effect!(state::State, dtstage::AbstractFloat)
     return
 end
 
-function compute_mean_flow_effect!(state::State, dtstage::AbstractFloat, wkb_mode::Val{:NoWKB})
+function compute_mean_flow_effect!(
+    state::State,
+    dtstage::AbstractFloat,
+    wkb_mode::Val{:NoWKB},
+)
     return
 end
 
 function compute_mean_flow_effect!(
-    state::State, dtstage::AbstractFloat,
+    state::State,
+    dtstage::AbstractFloat,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
+    (; turbulence_scheme) = state.namelists.turbulence
+
     compute_gw_integrals!(state)
 
     set_boundaries!(state, BoundaryWKBIntegrals())
@@ -63,6 +70,11 @@ function compute_mean_flow_effect!(
     smooth_gw_amplitudes!(state)
 
     compute_next_order_tracer_fluxes!(state, dtstage)
+
+    @dispatch_turbulence_scheme smooth_gw_tendencies!(
+        state,
+        Val(turbulence_scheme),
+    )
 
     compute_gw_tendencies!(state)
 

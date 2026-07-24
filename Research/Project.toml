@@ -8,6 +8,7 @@ MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 PinCFlow = "230a4047-f24c-41d9-8d93-b3b8a5ef3847"
 Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 
 [compat]
 CairoMakie = "0.15.9"

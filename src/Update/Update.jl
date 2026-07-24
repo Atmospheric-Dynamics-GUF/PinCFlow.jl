@@ -83,6 +83,12 @@ Singleton for ``\\hat{z}``-axis along which a calculation should be performed.
 """
 struct Z end
 
+struct XZ end
+
+struct YZ end
+
+struct XYZ end
+
 """
 ```julia
 KM
@@ -126,6 +132,8 @@ include("conductive_heating.jl")
 include("compute_momentum_diffusion_terms.jl")
 include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
+include("apply_shapiro_filter!.jl")
+include("smooth_tke!.jl")
 include("turbulent_diffusion!.jl")
 
 export LHS, RHS, X, Y, Z, KM, KH, KEK
