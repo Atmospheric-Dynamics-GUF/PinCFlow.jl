@@ -35,11 +35,6 @@ function initialize_wave_spectrum!(state::State,
 
     get_wave_spectrum!(state, wkb_mode, triad_mode)
 
-    spec_tend.consistency_time .= Inf
-    if compute_dephasing_time
-        compute_consistency_time!(state)
-    end
-
     nl_time_scale .= Inf
 
     @ivy for kk in k0:k1,
@@ -60,9 +55,7 @@ function initialize_wave_spectrum!(state::State,
 
     if compute_dephasing_time
         spec_tend.consistency_time .= Inf
-        println("Computing dephasing time")
         compute_consistency_time!(state)
-        print(spec_tend.consistency_time[5, 4, :] .* tref)
     end 
 
 end
