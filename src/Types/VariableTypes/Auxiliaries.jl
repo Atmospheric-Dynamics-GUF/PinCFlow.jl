@@ -54,7 +54,6 @@ struct Auxiliaries{
     qth_bc::B
     sth_bc::B
     fthnz::B
-    auxoutput::A
 end
 
 function Auxiliaries(domain::Domain)::Auxiliaries
@@ -64,6 +63,5 @@ function Auxiliaries(domain::Domain)::Auxiliaries
         zeros(nxx, nyy, nzz),
         [zeros(nx, ny, nz) for i in 1:6]...,
         [zeros(nx, ny) for i in 1:5]...,
-        zeros(nxx, nyy, nzz),
     )
 end

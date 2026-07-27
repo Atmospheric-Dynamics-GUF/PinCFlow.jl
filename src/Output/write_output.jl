@@ -113,9 +113,8 @@ function write_output end
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
-    (; predictands, auxiliaries) = state.variables
+    (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; auxoutput) = auxiliaries
     (; bins, rays, tendencies, integrals) = state.wkb
 
     # Print information.
@@ -291,14 +290,6 @@ function write_output end
                         thetabar[ii, jj, kk]
                     ) .* thetaref
             end
-        end
-
-        if :aux in output_variables
-            HDF5.set_extent_dims(
-                file["aux"],
-                (x_size, y_size, z_size, iout),
-            )
-            file["aux"][iid, jjd, kkd, iout] = auxoutput[ii, jj, kk]
         end
 
         # Write the Exner-pressure fluctuations.

@@ -250,7 +250,7 @@ function integrate(
     #              Initialize MS-GWaM
     #---------------------------------------------
 
-    # initialize_rays!(state)
+    initialize_rays!(state)
 
     #-------------------------------------------------
     #              Read initial data
