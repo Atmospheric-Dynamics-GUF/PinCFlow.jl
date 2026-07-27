@@ -35,7 +35,7 @@ function update_wave_spectrum!(
     end
 
     compute_scattering_integral!(state, ii, jj, kk, triad_mode)
-    tau_nl = get_nl_time_scale!(spec_tend, ii, jj, kk)
+    tau_nl = get_nl_time_scale(spec_tend, ii, jj, kk)
     nl_time_scale[ii, jj, kk] = tau_nl
 
     if (tau_nl * col_int_tol) > dtau

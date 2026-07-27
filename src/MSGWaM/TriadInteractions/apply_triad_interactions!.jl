@@ -27,7 +27,7 @@ function apply_triad_interactions!(state::State,
     (; branch) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = domain
     (; spec_tend) = state.wkb
-    (; nthreads_triad) = state.namelists.triad
+    (; compute_dephasing_time, nthreads_triad) = state.namelists.triad
     (; tref) = state.constants
     (; nl_time_scale) = spec_tend
     
@@ -43,13 +43,15 @@ function apply_triad_interactions!(state::State,
     get_wave_spectrum!(state)
     #wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
     spec_tend.consistency_time .= 0
-    compute_consistency_time!(state)
+    if compute_dephasing_time
+        compute_consistency_time!(state)
+    end
     
     if master
         println("Updating wave action spectrum due to interactions")
     end
 
-    nl_time_scale .= 0.0
+    nl_time_scale .= Inf
 
     @ivy for kk in k0:k1,
         jj in j0:j1,
