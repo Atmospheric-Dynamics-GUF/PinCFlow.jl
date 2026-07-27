@@ -20,10 +20,10 @@ function get_nl_time_scale(
     spec_tend::TriadTendencies,
     ii::Integer,
     jj::Integer,
-    kk::Integer;
-    action_abs_tol::Real = 0.0,
-    action_rel_tol::Real = 1.0e-10,
-    st_abs_tol::Real = 0.0,
+    kk::Integer,
+    action_abs_tol::Float64,
+    action_rel_tol::Float64,
+    st_abs_tol::Float64,
 )::AbstractFloat
 
     (; kp, m, delkp, delm) = spec_tend.spec_grid

@@ -17,7 +17,7 @@ function compute_consistency_time!(
 
     (; spec_tend) = state.wkb
     (; consistency_time) = spec_tend
-    (; kp, m) = spec_tend.spec_grid
+    (; kp, m, delkp, delm) = spec_tend.spec_grid
     (; aa, la, qq, lq) = spec_tend.kin_box
 
     (; n2) = state.atmosphere
@@ -32,10 +32,20 @@ function compute_consistency_time!(
         dudz = compute_dphidz_center(u, state, i, j, k, identity)
         dndz = compute_dphidz_center(n2, state, i, j, k, sqrt)
 
+        max_was = maximum(wavespectrum[i, j, k, :, :])
+
+        if max_was <= 1.0E-15
+            #return if there is non significant wad in the physical grid cell
+            continue
+        end
+
         consistency_time_min = Inf
 
-        for kpi_parent in eachindex(kp), mi_parent in eachindex(m)
-            if wavespectrum[i, j, k, kpi_parent, mi_parent] > eps_denom && abs(col_int[i, j, k, kpi_parent, mi_parent]) > eps_denom
+        for mi_parent in eachindex(m), kpi_parent in eachindex(kp)
+            dkps = delkp[kpi_parent]
+            dms = delm[mi_parent]
+            wave_action = wavespectrum[i, j, k, kpi_parent, mi_parent] * dkps * dms
+            if wave_action > eps_denom && abs(col_int[i, j, k, kpi_parent, mi_parent]) > eps_denom
                 kp_parent = kp[kpi_parent]
                 m_parent = m[mi_parent]
 
@@ -52,17 +62,11 @@ function compute_consistency_time!(
                     # left branch
                     p_left = aar[ii] - kp_parent
 
-                    kp_1_res, kp_2_res =
+                    kp_1, kp_2 =
                         compute_kp1kp2(kp_parent, p_left, Sum())
 
-                    kpi_1 = compute_nearest_index(kp, kp_1_res)
-                    kpi_2 = compute_nearest_index(kp, kp_2_res)
-
-                    m_1_res, m_2_res =
-                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Sum())
-
-                    mi_1 = compute_nearest_index(m, m_1_res)
-                    mi_2 = compute_nearest_index(m, m_2_res)
+                    m_1, m_2 =
+                        compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Sum())
 
                     consistency_time_min =
                         update_consistency_time(
@@ -70,23 +74,18 @@ function compute_consistency_time!(
                             n_local,
                             dudz,
                             dndz,
-                            kp,
-                            m,
-                            kpi_parent,
-                            mi_parent,
-                            kpi_1,
-                            mi_1,
-                            kpi_2,
-                            mi_2,
+                            kp_parent,
+                            m_parent,
+                            kp_1,
+                            m_1,
+                            kp_2,
+                            m_2,
                             eps_denom,
-                            Sum(),
+                            Sum()
                         )
 
-                    m_1_res, m_2_res =
-                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Difference())
-
-                    mi_1 = compute_nearest_index(m, m_1_res)
-                    mi_2 = compute_nearest_index(m, m_2_res)
+                    m_1, m_2 =
+                        compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Difference())
 
                     consistency_time_min =
                         update_consistency_time(
@@ -94,32 +93,24 @@ function compute_consistency_time!(
                             n_local,
                             dudz,
                             dndz,
-                            kp,
-                            m,
-                            kpi_parent,
-                            mi_parent,
-                            kpi_1,
-                            mi_1,
-                            kpi_2,
-                            mi_2,
+                            kp_parent,
+                            m_parent,
+                            kp_1,
+                            m_1,
+                            kp_2,
+                            m_2,
                             eps_denom,
-                            Sum(),
+                            Sum()
                         )
-
                     # right branch
                     p_right = kp_parent - aar[ii]
 
-                    kp_1_res, kp_2_res =
+                    kp_1, kp_2 =
                         compute_kp1kp2(kp_parent, p_right, Sum())
 
-                    kpi_1 = compute_nearest_index(kp, kp_1_res)
-                    kpi_2 = compute_nearest_index(kp, kp_2_res)
+                    m_1, m_2 =
+                        compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Sum())
 
-                    m_1_res, m_2_res =
-                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Sum())
-
-                    mi_1 = compute_nearest_index(m, m_1_res)
-                    mi_2 = compute_nearest_index(m, m_2_res)
 
                     consistency_time_min =
                         update_consistency_time(
@@ -127,23 +118,18 @@ function compute_consistency_time!(
                             n_local,
                             dudz,
                             dndz,
-                            kp,
-                            m,
-                            kpi_parent,
-                            mi_parent,
-                            kpi_1,
-                            mi_1,
-                            kpi_2,
-                            mi_2,
+                            kp_parent,
+                            m_parent,
+                            kp_1,
+                            m_1,
+                            kp_2,
+                            m_2,
                             eps_denom,
-                            Sum(),
+                            Sum()
                         )
 
-                    m_1_res, m_2_res =
-                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Difference())
-
-                    mi_1 = compute_nearest_index(m, m_1_res)
-                    mi_2 = compute_nearest_index(m, m_2_res)
+                    m_1, m_2 =
+                        compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Difference())
 
                     consistency_time_min =
                         update_consistency_time(
@@ -151,16 +137,14 @@ function compute_consistency_time!(
                             n_local,
                             dudz,
                             dndz,
-                            kp,
-                            m,
-                            kpi_parent,
-                            mi_parent,
-                            kpi_1,
-                            mi_1,
-                            kpi_2,
-                            mi_2,
+                            kp_parent,
+                            m_parent,
+                            kp_1,
+                            m_1,
+                            kp_2,
+                            m_2,
                             eps_denom,
-                            Sum(),
+                            Sum()
                         )
                 end
 
@@ -171,17 +155,12 @@ function compute_consistency_time!(
 
                     q_val = qqr[jj]
 
-                    kp_1_res, kp_2_res =
+                    kp_1, kp_2 =
                         compute_kp1kp2(kp_parent, q_val, Difference())
 
-                    kpi_1 = compute_nearest_index(kp, kp_1_res)
-                    kpi_2 = compute_nearest_index(kp, kp_2_res)
+                    m_1, m_2 =
+                        compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Difference(), Sum())
 
-                    m_1_res, m_2_res =
-                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Difference(), Sum())
-
-                    mi_1 = compute_nearest_index(m, m_1_res)
-                    mi_2 = compute_nearest_index(m, m_2_res)
 
                     consistency_time_min =
                         update_consistency_time(
@@ -189,23 +168,19 @@ function compute_consistency_time!(
                             n_local,
                             dudz,
                             dndz,
-                            kp,
-                            m,
-                            kpi_parent,
-                            mi_parent,
-                            kpi_1,
-                            mi_1,
-                            kpi_2,
-                            mi_2,
+                            kp_parent,
+                            m_parent,
+                            kp_1,
+                            m_1,
+                            kp_2,
+                            m_2,
                             eps_denom,
-                            Difference(),
+                            Difference()
                         )
 
-                    m_1_res, m_2_res =
-                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Difference(), Difference())
+                    m_1, m_2 =
+                        compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Difference(), Difference())
 
-                    mi_1 = compute_nearest_index(m, m_1_res)
-                    mi_2 = compute_nearest_index(m, m_2_res)
 
                     consistency_time_min =
                         update_consistency_time(
@@ -213,21 +188,18 @@ function compute_consistency_time!(
                             n_local,
                             dudz,
                             dndz,
-                            kp,
-                            m,
-                            kpi_parent,
-                            mi_parent,
-                            kpi_1,
-                            mi_1,
-                            kpi_2,
-                            mi_2,
+                            kp_parent,
+                            m_parent,
+                            kp_1,
+                            m_1,
+                            kp_2,
+                            m_2,
                             eps_denom,
-                            Difference(),
+                            Difference()
                         )
                 end
             end
         end
-
         consistency_time[i, j, k] = mu_pl * consistency_time_min
     end
 

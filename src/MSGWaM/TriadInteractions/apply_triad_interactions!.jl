@@ -42,10 +42,6 @@ function apply_triad_interactions!(state::State,
 
     get_wave_spectrum!(state)
     #wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
-    spec_tend.consistency_time .= 0
-    if compute_dephasing_time
-        compute_consistency_time!(state)
-    end
     
     if master
         println("Updating wave action spectrum due to interactions")
@@ -60,8 +56,13 @@ function apply_triad_interactions!(state::State,
             update_wave_spectrum!(state, ii, jj, kk, dtau, triad_mode)
         
     end
+
     
-   
+    if compute_dephasing_time
+        spec_tend.consistency_time .= Inf
+        compute_consistency_time!(state)
+    end
+
     get_ray_volumes!(state, triad_mode)
 
     if master

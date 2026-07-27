@@ -19,7 +19,10 @@ function initialize_wave_spectrum!(state::State,
     triad_mode::Union{Triad2D, Triad3DIso})
 
     (; master) = state.domain
-    (; nthreads_triad) = state.namelists.triad
+    (; nthreads_triad, compute_dephasing_time, action_abs_tol, action_rel_tol, st_abs_tol) = state.namelists.triad
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; spec_tend) = state.wkb
+    (; nl_time_scale) = spec_tend
 
     if master
         println(repeat("-", 80))
@@ -31,5 +34,36 @@ function initialize_wave_spectrum!(state::State,
     end
 
     get_wave_spectrum!(state, wkb_mode, triad_mode)
+
+    spec_tend.consistency_time .= Inf
+    if compute_dephasing_time
+        compute_consistency_time!(state)
+    end
+
+    nl_time_scale .= Inf
+
+    @ivy for kk in k0:k1,
+        jj in j0:j1,
+        ii in i0:i1
+        
+            max_was = maximum(spec_tend.wavespectrum[ii, jj, kk, :, :])
+
+            if max_was <= 1.0E-40
+                #return if there is non significant wad in the physical grid cell
+                return
+            end
+
+            compute_scattering_integral!(state, ii, jj, kk, triad_mode)
+            tau_nl = get_nl_time_scale(spec_tend, ii, jj, kk, action_abs_tol, action_rel_tol, st_abs_tol)
+            nl_time_scale[ii, jj, kk] = tau_nl        
+    end
+
+    if compute_dephasing_time
+        spec_tend.consistency_time .= Inf
+        println("Computing dephasing time")
+        compute_consistency_time!(state)
+        print(spec_tend.consistency_time[5, 4, :] .* tref)
+    end 
+
 end
 
