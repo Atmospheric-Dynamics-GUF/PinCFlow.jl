@@ -25,7 +25,7 @@ function update_wave_spectrum!(
     (; spec_tend) = state.wkb
     (; wavespectrum, col_int, nl_time_scale) = spec_tend
     (; kp, m) = spec_tend.spec_grid
-    (; col_int_tol) = state.namelists.triad
+    (; col_int_tol, action_abs_tol, action_rel_tol, st_abs_tol) = state.namelists.triad
 
     max_was = maximum(spec_tend.wavespectrum[ii, jj, kk, :, :])
 
@@ -35,7 +35,7 @@ function update_wave_spectrum!(
     end
 
     compute_scattering_integral!(state, ii, jj, kk, triad_mode)
-    tau_nl = get_nl_time_scale(spec_tend, ii, jj, kk)
+    tau_nl = get_nl_time_scale(spec_tend, ii, jj, kk, action_abs_tol, action_rel_tol, st_abs_tol)
     nl_time_scale[ii, jj, kk] = tau_nl
 
     if (tau_nl * col_int_tol) > dtau
