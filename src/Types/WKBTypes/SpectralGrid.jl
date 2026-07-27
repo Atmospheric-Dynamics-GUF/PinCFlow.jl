@@ -3,6 +3,8 @@ struct SpectralGrid{A <: AbstractVector{<:AbstractFloat}, B <: Float64}
     m::A
     kpc::A  #grid edges
     mc::A
+    delkp::A
+    delm::A
     kpl::Integer
     ml::Integer
     lambdakp::B
@@ -14,7 +16,7 @@ end
 function SpectralGrid(wkb_mode::Union{NoWKB, SteadyState, SingleColumn, MultiColumn},
     triad_mode::NoTriad)::SpectralGrid
     
-    return SpectralGrid(zeros(0), zeros(0), zeros(0), zeros(0), 0, 0, 0.0, 0.0, 0.0, 0.0)
+    return SpectralGrid(zeros(0), zeros(0), zeros(0), zeros(0), zeros(0), zeros(0), 0, 0, 0.0, 0.0, 0.0, 0.0)
 
 end
 
@@ -88,8 +90,20 @@ function SpectralGrid(namelists::Namelists,
     kpc = compute_edges_centre(kp)
     kpl = length(kp)
     ml = length(m)
+    delkp = zeros(kpl)
+    delm = zeros(ml)
 
-   return SpectralGrid(kp, m, kpc, mc, kpl, ml, lambdakp, lambdam, loglkp, loglm)
+    for kpi in eachindex(kp)
+        delkp[kpi] = kpc[kpi + 1] - kpc[kpi]
+    end
+    for mi in eachindex(m)
+        if m[mi] > 0 
+            delm[mi] = mc[mi + 2] - mc[mi + 1]
+        else
+            delm[mi] = mc[mi + 1] - mc[mi]
+        end
+    end
+   return SpectralGrid(kp, m, kpc, mc, delkp, delm, kpl, ml, lambdakp, lambdam, loglkp, loglm)
 
     
 end

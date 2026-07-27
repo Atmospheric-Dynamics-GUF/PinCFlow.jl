@@ -22,7 +22,7 @@ function compute_consistency_time!(
 
     (; n2) = state.atmosphere
     (; u) = state.variables.predictands
-
+    (; wavespectrum, col_int) = spec_tend
     mu_pl = 1.0
     eps_denom = 1.0e-14
 
@@ -35,189 +35,196 @@ function compute_consistency_time!(
         consistency_time_min = Inf
 
         for kpi_parent in eachindex(kp), mi_parent in eachindex(m)
+            if wavespectrum[i, j, k, kpi_parent, mi_parent] > eps_denom && abs(col_int[i, j, k, kpi_parent, mi_parent]) > eps_denom
+                kp_parent = kp[kpi_parent]
+                m_parent = m[mi_parent]
 
-            kp_parent = kp[kpi_parent]
-            m_parent = m[mi_parent]
+                abs(m_parent) < eps_denom && continue
 
-            abs(m_parent) < eps_denom && continue
+                aar = aa[kpi_parent]
+                qqr = qq[kpi_parent]
 
-            aar = aa[kpi_parent]
-            qqr = qq[kpi_parent]
+                # -------------------------
+                # Sum interaction manifold
+                # -------------------------
+                for ii in 1:la[kpi_parent]
 
-            # -------------------------
-            # Sum interaction manifold
-            # -------------------------
-            for ii in 1:la[kpi_parent]
+                    # left branch
+                    p_left = aar[ii] - kp_parent
 
-                # left branch
-                p_left = aar[ii] - kp_parent
+                    kp_1_res, kp_2_res =
+                        compute_kp1kp2(kp_parent, p_left, Sum())
 
-                kp_1_res, kp_2_res =
-                    compute_kp1kp2(kp_parent, p_left, Sum())
+                    kpi_1 = compute_nearest_index(kp, kp_1_res)
+                    kpi_2 = compute_nearest_index(kp, kp_2_res)
 
-                kpi_1 = compute_nearest_index(kp, kp_1_res)
-                kpi_2 = compute_nearest_index(kp, kp_2_res)
+                    m_1_res, m_2_res =
+                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Sum())
 
-                m_1_res, m_2_res =
-                    compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Sum())
+                    mi_1 = compute_nearest_index(m, m_1_res)
+                    mi_2 = compute_nearest_index(m, m_2_res)
 
-                mi_1 = compute_nearest_index(m, m_1_res)
-                mi_2 = compute_nearest_index(m, m_2_res)
+                    consistency_time_min =
+                        update_consistency_time(
+                            consistency_time_min,
+                            n_local,
+                            dudz,
+                            dndz,
+                            kp,
+                            m,
+                            kpi_parent,
+                            mi_parent,
+                            kpi_1,
+                            mi_1,
+                            kpi_2,
+                            mi_2,
+                            eps_denom,
+                            Sum(),
+                        )
 
-                consistency_time_min =
-                    update_consistency_time(
-                        consistency_time_min,
-                        n_local,
-                        dudz,
-                        dndz,
-                        kp,
-                        m,
-                        kpi_parent,
-                        mi_parent,
-                        kpi_1,
-                        mi_1,
-                        kpi_2,
-                        mi_2,
-                        eps_denom,
-                    )
+                    m_1_res, m_2_res =
+                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Difference())
 
-                m_1_res, m_2_res =
-                    compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Difference())
+                    mi_1 = compute_nearest_index(m, m_1_res)
+                    mi_2 = compute_nearest_index(m, m_2_res)
 
-                mi_1 = compute_nearest_index(m, m_1_res)
-                mi_2 = compute_nearest_index(m, m_2_res)
+                    consistency_time_min =
+                        update_consistency_time(
+                            consistency_time_min,
+                            n_local,
+                            dudz,
+                            dndz,
+                            kp,
+                            m,
+                            kpi_parent,
+                            mi_parent,
+                            kpi_1,
+                            mi_1,
+                            kpi_2,
+                            mi_2,
+                            eps_denom,
+                            Sum(),
+                        )
 
-                consistency_time_min =
-                    update_consistency_time(
-                        consistency_time_min,
-                        n_local,
-                        dudz,
-                        dndz,
-                        kp,
-                        m,
-                        kpi_parent,
-                        mi_parent,
-                        kpi_1,
-                        mi_1,
-                        kpi_2,
-                        mi_2,
-                        eps_denom,
-                    )
+                    # right branch
+                    p_right = kp_parent - aar[ii]
 
-                # right branch
-                p_right = kp_parent - aar[ii]
+                    kp_1_res, kp_2_res =
+                        compute_kp1kp2(kp_parent, p_right, Sum())
 
-                kp_1_res, kp_2_res =
-                    compute_kp1kp2(kp_parent, p_right, Sum())
+                    kpi_1 = compute_nearest_index(kp, kp_1_res)
+                    kpi_2 = compute_nearest_index(kp, kp_2_res)
 
-                kpi_1 = compute_nearest_index(kp, kp_1_res)
-                kpi_2 = compute_nearest_index(kp, kp_2_res)
+                    m_1_res, m_2_res =
+                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Sum())
 
-                m_1_res, m_2_res =
-                    compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Sum())
+                    mi_1 = compute_nearest_index(m, m_1_res)
+                    mi_2 = compute_nearest_index(m, m_2_res)
 
-                mi_1 = compute_nearest_index(m, m_1_res)
-                mi_2 = compute_nearest_index(m, m_2_res)
+                    consistency_time_min =
+                        update_consistency_time(
+                            consistency_time_min,
+                            n_local,
+                            dudz,
+                            dndz,
+                            kp,
+                            m,
+                            kpi_parent,
+                            mi_parent,
+                            kpi_1,
+                            mi_1,
+                            kpi_2,
+                            mi_2,
+                            eps_denom,
+                            Sum(),
+                        )
 
-                consistency_time_min =
-                    update_consistency_time(
-                        consistency_time_min,
-                        n_local,
-                        dudz,
-                        dndz,
-                        kp,
-                        m,
-                        kpi_parent,
-                        mi_parent,
-                        kpi_1,
-                        mi_1,
-                        kpi_2,
-                        mi_2,
-                        eps_denom,
-                    )
+                    m_1_res, m_2_res =
+                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Difference())
 
-                m_1_res, m_2_res =
-                    compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Sum(), Difference())
+                    mi_1 = compute_nearest_index(m, m_1_res)
+                    mi_2 = compute_nearest_index(m, m_2_res)
 
-                mi_1 = compute_nearest_index(m, m_1_res)
-                mi_2 = compute_nearest_index(m, m_2_res)
+                    consistency_time_min =
+                        update_consistency_time(
+                            consistency_time_min,
+                            n_local,
+                            dudz,
+                            dndz,
+                            kp,
+                            m,
+                            kpi_parent,
+                            mi_parent,
+                            kpi_1,
+                            mi_1,
+                            kpi_2,
+                            mi_2,
+                            eps_denom,
+                            Sum(),
+                        )
+                end
 
-                consistency_time_min =
-                    update_consistency_time(
-                        consistency_time_min,
-                        n_local,
-                        dudz,
-                        dndz,
-                        kp,
-                        m,
-                        kpi_parent,
-                        mi_parent,
-                        kpi_1,
-                        mi_1,
-                        kpi_2,
-                        mi_2,
-                        eps_denom,
-                    )
-            end
+                # -------------------------------
+                # Difference interaction manifold
+                # -------------------------------
+                for jj in 1:lq[kpi_parent]
 
-            # -------------------------------
-            # Difference interaction manifold
-            # -------------------------------
-            for jj in 1:lq[kpi_parent]
+                    q_val = qqr[jj]
 
-                q_val = qqr[jj]
+                    kp_1_res, kp_2_res =
+                        compute_kp1kp2(kp_parent, q_val, Difference())
 
-                kp_1_res, kp_2_res =
-                    compute_kp1kp2(kp_parent, q_val, Difference())
+                    kpi_1 = compute_nearest_index(kp, kp_1_res)
+                    kpi_2 = compute_nearest_index(kp, kp_2_res)
 
-                kpi_1 = compute_nearest_index(kp, kp_1_res)
-                kpi_2 = compute_nearest_index(kp, kp_2_res)
+                    m_1_res, m_2_res =
+                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Difference(), Sum())
 
-                m_1_res, m_2_res =
-                    compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Difference(), Sum())
+                    mi_1 = compute_nearest_index(m, m_1_res)
+                    mi_2 = compute_nearest_index(m, m_2_res)
 
-                mi_1 = compute_nearest_index(m, m_1_res)
-                mi_2 = compute_nearest_index(m, m_2_res)
+                    consistency_time_min =
+                        update_consistency_time(
+                            consistency_time_min,
+                            n_local,
+                            dudz,
+                            dndz,
+                            kp,
+                            m,
+                            kpi_parent,
+                            mi_parent,
+                            kpi_1,
+                            mi_1,
+                            kpi_2,
+                            mi_2,
+                            eps_denom,
+                            Difference(),
+                        )
 
-                consistency_time_min =
-                    update_consistency_time(
-                        consistency_time_min,
-                        n_local,
-                        dudz,
-                        dndz,
-                        kp,
-                        m,
-                        kpi_parent,
-                        mi_parent,
-                        kpi_1,
-                        mi_1,
-                        kpi_2,
-                        mi_2,
-                        eps_denom,
-                    )
+                    m_1_res, m_2_res =
+                        compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Difference(), Difference())
 
-                m_1_res, m_2_res =
-                    compute_m1m2(kp_parent, kp_1_res, kp_2_res, m_parent, Difference(), Difference())
+                    mi_1 = compute_nearest_index(m, m_1_res)
+                    mi_2 = compute_nearest_index(m, m_2_res)
 
-                mi_1 = compute_nearest_index(m, m_1_res)
-                mi_2 = compute_nearest_index(m, m_2_res)
-
-                consistency_time_min =
-                    update_consistency_time(
-                        consistency_time_min,
-                        n_local,
-                        dudz,
-                        dndz,
-                        kp,
-                        m,
-                        kpi_parent,
-                        mi_parent,
-                        kpi_1,
-                        mi_1,
-                        kpi_2,
-                        mi_2,
-                        eps_denom,
-                    )
+                    consistency_time_min =
+                        update_consistency_time(
+                            consistency_time_min,
+                            n_local,
+                            dudz,
+                            dndz,
+                            kp,
+                            m,
+                            kpi_parent,
+                            mi_parent,
+                            kpi_1,
+                            mi_1,
+                            kpi_2,
+                            mi_2,
+                            eps_denom,
+                            Difference(),
+                        )
+                end
             end
         end
 

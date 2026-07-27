@@ -8,11 +8,12 @@ function get_ray_volumes!(state::State,
     (; i0, i1, j0, j1, k0, k1) = domain
     (; nray, rays, spec_tend) = state.wkb
     (; wavespectrum, was_pred, was_ray_signature) = spec_tend
-    (; kp, m, kpc, mc) = spec_tend.spec_grid
+    (; kp, m, kpc, mc, delkp, delm) = spec_tend.spec_grid
     (;lref ) = state.constants
-    (; dx, dy, dz, x, y, zc ,zctilde, jac) = state.grid
+    (; dx, dy, dz, x, y ,zctilde, jac) = state.grid
 
-    
+    ray_launch_action_tol = 1.0e-15  # Choose according to your scaling
+
    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
@@ -152,31 +153,21 @@ function get_ray_volumes!(state::State,
         #lanching new valumes for the newly generated wave modes
         for mi in eachindex(m),
             kpi in eachindex(kp)
-        
             was = wavespectrum[i, j, k, kpi, mi]
-            
-            
             was_sig = was_ray_signature[i, j, k, kpi, mi]
-
-            if was != 0 && was_sig == false
-                #println("new ray volume loop called \n new ray volume launched at ", 
-                #(x[i]*lref, y[j]*lref, zc[i, j, k]*lref, kp[kpi]/lref, m[mi]/lref))
+            dkps = delkp[kpi]
+            dms = delm[mi]
+            wave_action = was * dkps * dms
+            if wave_action > ray_launch_action_tol && !was_sig
                 kps = kp[kpi]
                 ms = m[mi]
-                dkps = kpc[kpi + 1] - kpc[kpi]
-                if ms > 0 
-                    dms = mc[mi + 2] - mc[mi + 1]
-                else
-                    dms = mc[mi + 1] - mc[mi]
-                end
                 launch_new_ray_vol!(state, i, j, k, kps, ms, dkps, dms, was, triad_mode)
-
             end
 
         end
 
     end
- 
+  
 end
 
 
