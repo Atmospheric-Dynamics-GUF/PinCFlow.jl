@@ -149,7 +149,7 @@ $$\begin{align*}
     2. && \left(\rho^\#, \rho'^\#, P^\#, \hat{\boldsymbol{u}}^\#, \pi'^\#\right) & = \mathrm{L}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \hat{\boldsymbol{u}}^n, \pi'^n, P^n, \hat{\boldsymbol{u}}^n, \alpha_\mathrm{R}^{n + 1}\right)\\
     3. && \left(\rho'^{n + 1 / 2}, \hat{\boldsymbol{u}}^{n + 1 / 2}, \pi'^{n + 1 / 2}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^\#, \rho'^\#, P^\#, \hat{\boldsymbol{u}}^\#, \pi'^\#, \beta_\mathrm{R}^{n + 1}\right)\\
     4. && \left(\rho'^*, \hat{\boldsymbol{u}}^*, \pi'^*\right) & = \mathrm{RE}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \hat{\boldsymbol{u}}^n, \pi'^n\right)\\
-    5. && \left(\rho^{**}, \rho'^{**}, P^{**}, \hat{\boldsymbol{u}}^{**}, \pi'^{**}\right) & = \mathrm{L}_{\Delta t} \left(\rho^n, \rho'^*, P^n, \hat{\boldsymbol{u}}^*, \pi'^{n + 1 / 2}, P^\#, \hat{\boldsymbol{u}}^{n + 1 / 2}, \alpha_\mathrm{R}^{n + 1}\right)\\
+    5. && \left(\rho^{**}, \rho'^{**}, P^{**}, \hat{\boldsymbol{u}}^{**}, \pi'^{**}\right) & = \mathrm{L}_{\Delta t} \left(\rho^n, \rho'^*, P^n, \hat{\boldsymbol{u}}^*, \pi'^*, P^\#, \hat{\boldsymbol{u}}^{n + 1 / 2}, \alpha_\mathrm{R}^{n + 1}\right)\\
     6. && \left(\rho'^{n + 1}, \hat{\boldsymbol{u}}^{n + 1}, \pi'^{n + 1}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^{**}, \rho'^{**}, P^{**}, \hat{\boldsymbol{u}}^{**}, \pi'^{**}, 2 \beta_\mathrm{R}^{n + 1}\right)
 \end{align*}$$
 
@@ -201,7 +201,7 @@ $$\begin{align*}
     After the last RK3 step, the Exner-pressure fluctuations are updated according to the Rayleigh damping applied to the mass-weighted potential temperature, i.e.
 
     $$\begin{align*}
-        \pi'^\# = \pi'^n - \alpha_\mathrm{R} \frac{\Delta t}{2} \left(P \frac{\partial \pi'}{\partial P}\right)^\# \left(1 - \frac{\bar{\rho}}{\rho^\#}\right),
+        \pi'^\# = \pi'^n - \alpha_\mathrm{R}^{n + 1} \frac{\Delta t}{2} \left(P \frac{\partial \pi'}{\partial P}\right)^\# \left(1 - \frac{\bar{\rho}}{\rho^\#}\right),
     \end{align*}$$
 
     where $\left(\partial P / \partial \pi'\right)^\# = \left(\gamma - 1\right)^{- 1} \left(R / p_\mathrm{ref}\right)^{1 - \gamma} \left(P^{2 - \gamma}\right)^\#$, with $\gamma$ being the ratio between the specific heat capacities and constant pressure and volume, $R$ being the specific gas constant and $p_\mathrm{ref}$ being the reference (ground) pressure.
