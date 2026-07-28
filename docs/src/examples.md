@@ -698,7 +698,7 @@ function wkb_wave_packet(;
     output = OutputNamelist(;
         output_file,
         output_interval = 600,
-        output_variables = [:uw],
+        output_variables = [:dchidt0],
         prepare_restart,
         tmax = 600,
     )
@@ -728,7 +728,7 @@ function wkb_wave_packet(;
         plot_output(
             plot_file,
             output_file,
-            (:uw, 0.5, 0.5, 0.5, 2);
+            (:dchidt0, 0.5, 0.5, 0.5, 2);
             display_figure,
             time_unit = :min,
         )
@@ -739,7 +739,7 @@ end
 
 ```
 
-initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a compressible atmosphere with two different lapse rates and visualizes the resulting zonal vertical-momentum flux after ten minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations. Furthermore, it initializes a tracer field that increases linearly with altitude, including parameterized, leading-order gravity-wave tracer fluxes.
+initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a compressible atmosphere with two different lapse rates Furthermore, it initializes a tracer field that increases linearly with altitude and visualizes the parameterized, leading-order gravity-wave tracer flux convergence (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
 
 ![](examples/results/wkb_wave_packet.svg)
 

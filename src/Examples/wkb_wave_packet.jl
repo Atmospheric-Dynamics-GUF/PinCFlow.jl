@@ -46,7 +46,7 @@ function wkb_wave_packet(;
     output = OutputNamelist(;
         output_file,
         output_interval = 600,
-        output_variables = [:uw],
+        output_variables = [:dchidt0],
         prepare_restart,
         tmax = 600,
     )
@@ -76,7 +76,7 @@ function wkb_wave_packet(;
         plot_output(
             plot_file,
             output_file,
-            (:uw, 0.5, 0.5, 0.5, 2);
+            (:dchidt0, 0.5, 0.5, 0.5, 2);
             display_figure,
             time_unit = :min,
         )
