@@ -149,7 +149,7 @@ $$\begin{align*}
     2. && \left(\rho^\#, \rho'^\#, P^\#, \hat{\boldsymbol{u}}^\#, \pi'^\#\right) & = \mathrm{L}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \hat{\boldsymbol{u}}^n, \pi'^n, P^n, \hat{\boldsymbol{u}}^n, \alpha_\mathrm{R}^{n + 1}\right)\\
     3. && \left(\rho'^{n + 1 / 2}, \hat{\boldsymbol{u}}^{n + 1 / 2}, \pi'^{n + 1 / 2}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^\#, \rho'^\#, P^\#, \hat{\boldsymbol{u}}^\#, \pi'^\#, \beta_\mathrm{R}^{n + 1}\right)\\
     4. && \left(\rho'^*, \hat{\boldsymbol{u}}^*, \pi'^*\right) & = \mathrm{RE}_{\Delta t / 2} \left(\rho^n, \rho'^n, P^n, \hat{\boldsymbol{u}}^n, \pi'^n\right)\\
-    5. && \left(\rho^{**}, \rho'^{**}, P^{**}, \hat{\boldsymbol{u}}^{**}, \pi'^{**}\right) & = \mathrm{L}_{\Delta t} \left(\rho^n, \rho'^*, P^n, \hat{\boldsymbol{u}}^*, \pi'^{*}, P^\#, \hat{\boldsymbol{u}}^{n + 1 / 2}, \alpha_\mathrm{R}^{n + 1}\right)\\
+    5. && \left(\rho^{**}, \rho'^{**}, P^{**}, \hat{\boldsymbol{u}}^{**}, \pi'^{**}\right) & = \mathrm{L}_{\Delta t} \left(\rho^n, \rho'^*, P^n, \hat{\boldsymbol{u}}^*, \pi'^*, P^\#, \hat{\boldsymbol{u}}^{n + 1 / 2}, \alpha_\mathrm{R}^{n + 1}\right)\\
     6. && \left(\rho'^{n + 1}, \hat{\boldsymbol{u}}^{n + 1}, \pi'^{n + 1}\right) & = \mathrm{RI}_{\Delta t / 2} \left(\rho^{**}, \rho'^{**}, P^{**}, \hat{\boldsymbol{u}}^{**}, \pi'^{**}, 2 \beta_\mathrm{R}^{n + 1}\right)
 \end{align*}$$
 
