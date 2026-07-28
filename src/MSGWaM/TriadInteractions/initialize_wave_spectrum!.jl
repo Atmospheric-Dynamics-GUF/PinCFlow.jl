@@ -22,7 +22,7 @@ function initialize_wave_spectrum!(state::State,
     (; nthreads_triad, compute_dephasing_time, action_abs_tol, action_rel_tol, st_abs_tol) = state.namelists.triad
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; spec_tend) = state.wkb
-    (; nl_time_scale) = spec_tend
+    (; nl_time_scale, prev_dt) = spec_tend
 
     if master
         println(repeat("-", 80))
@@ -44,19 +44,18 @@ function initialize_wave_spectrum!(state::State,
             max_was = maximum(spec_tend.wavespectrum[ii, jj, kk, :, :])
 
             if max_was <= 1.0E-40
-                #return if there is non significant wad in the physical grid cell
-                return
+                continue
             end
 
             compute_scattering_integral!(state, ii, jj, kk, triad_mode)
             tau_nl = get_nl_time_scale(spec_tend, ii, jj, kk, action_abs_tol, action_rel_tol, st_abs_tol)
             nl_time_scale[ii, jj, kk] = tau_nl        
     end
-
+    
     if compute_dephasing_time
         spec_tend.consistency_time .= Inf
         compute_consistency_time!(state)
     end 
-
+    prev_dt[] = Inf
 end
 
