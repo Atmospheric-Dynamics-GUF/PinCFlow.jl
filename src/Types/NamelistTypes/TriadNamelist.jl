@@ -43,6 +43,7 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     rm_index::E
     nthreads_triad::A
     compute_dephasing_time::F
+    triad_cfl_number::B
     action_abs_tol::B
     action_rel_tol::B
     st_abs_tol::B
@@ -64,8 +65,9 @@ function TriadNamelist(;
     rm_index::Tuple{Int, Int} = (1, 1),
     nthreads_triad::Integer = 1,
     compute_dephasing_time::Bool = false,
+    triad_cfl_number::Real = 5.0E-1,
     action_abs_tol::Real = 0.0,
-    action_rel_tol::Real = 1.0e-10,
+    action_rel_tol::Real = 1.0E-10,
     st_abs_tol::Real = 0.0,
 )::TriadNamelist
     return TriadNamelist(
@@ -84,6 +86,7 @@ function TriadNamelist(;
         rm_index,
         nthreads_triad,
         compute_dephasing_time,
+        triad_cfl_number,
         action_abs_tol,
         action_rel_tol,
         st_abs_tol,

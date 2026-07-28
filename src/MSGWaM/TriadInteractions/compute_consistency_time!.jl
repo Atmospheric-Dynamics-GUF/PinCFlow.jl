@@ -23,7 +23,8 @@ function compute_consistency_time!(
     (; n2) = state.atmosphere
     (; u) = state.variables.predictands
     (; wavespectrum, col_int) = spec_tend
-    mu_pl = 1.0
+    (; action_abs_tol, st_abs_tol) = state.namelists.triad
+
     eps_denom = 1.0e-14
 
     @ivy for k in k0:k1, j in j0:j1, i in i0:i1
@@ -41,23 +42,23 @@ function compute_consistency_time!(
 
         consistency_time_min = Inf
 
-        for mi_parent in eachindex(m), kpi_parent in eachindex(kp)
-            dkps = delkp[kpi_parent]
-            dms = delm[mi_parent]
-            wave_action = wavespectrum[i, j, k, kpi_parent, mi_parent] * dkps * dms
-            if wave_action > eps_denom && abs(col_int[i, j, k, kpi_parent, mi_parent]) > eps_denom
-                kp_parent = kp[kpi_parent]
-                m_parent = m[mi_parent]
+        for mi in eachindex(m), kpi in eachindex(kp)
+            dkps = delkp[kpi]
+            dms = delm[mi]
+            wave_action = wavespectrum[i, j, k, kpi, mi] * dkps * dms
+            if wave_action > action_abs_tol && abs(col_int[i, j, k, kpi, mi]) > st_abs_tol
+                kp_parent = kp[kpi]
+                m_parent = m[mi]
 
                 abs(m_parent) < eps_denom && continue
 
-                aar = aa[kpi_parent]
-                qqr = qq[kpi_parent]
+                aar = aa[kpi]
+                qqr = qq[kpi]
 
                 # -------------------------
                 # Sum interaction manifold
                 # -------------------------
-                for ii in 1:la[kpi_parent]
+                for ii in 1:la[kpi]
 
                     # left branch
                     p_left = aar[ii] - kp_parent
@@ -151,7 +152,7 @@ function compute_consistency_time!(
                 # -------------------------------
                 # Difference interaction manifold
                 # -------------------------------
-                for jj in 1:lq[kpi_parent]
+                for jj in 1:lq[kpi]
 
                     q_val = qqr[jj]
 
@@ -200,7 +201,7 @@ function compute_consistency_time!(
                 end
             end
         end
-        consistency_time[i, j, k] = mu_pl * consistency_time_min
+        consistency_time[i, j, k] =  consistency_time_min
     end
 
     return nothing

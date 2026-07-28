@@ -55,6 +55,8 @@ function compute_time_step(state::State)::AbstractFloat
     (; x_size, y_size) = state.namelists.domain
     (; wkb_mode) = state.namelists.wkb
     (; cgx_max, cgy_max, cgz_max) = state.wkb
+    (; triad_mode, triad_cfl_number) = state.namelists.triad
+    (; nl_time_scale, consistency_time, prev_dt) = state.wkb.spec_tend
 
     @ivy if !adaptive_time_step
         dt = dtmax / tref
@@ -132,12 +134,38 @@ function compute_time_step(state::State)::AbstractFloat
 
             dtwkb = MPI.Allreduce(dtwkb, min, comm)
         end
+
+        #----------------------------------
+        #         Triad criteria
+        #----------------------------------
+
+        if triad_mode != NoTriad() && wkb_mode != NoWKB()
+            dtnl = Inf
+            dtpl = Inf
+
+            for k in k0:k1, j in j0:j1, i in i0:i1
+                dtnl = min(dtnl, nl_time_scale[i, j, k])
+                dtpl = min(dtpl, consistency_time[i, j, k])
+            end
+
+            # Obtain global minima over all MPI subdomains
+            dtnl = MPI.Allreduce(dtnl, min, comm)
+            dtpl = MPI.Allreduce(dtpl, min, comm)
+
+            # Apply the corresponding CFL factors
+            dtnl *= triad_cfl_number
+            dtpl *= triad_cfl_number
+        end
+        
         #-------------------------------
         #        Make your choice
         #-------------------------------
 
-        if wkb_mode != NoWKB()
+        if wkb_mode != NoWKB() && triad_mode == NoTriad()
             dt = min(dtvisc, dtconv, dtmax / tref, dtwkb)
+        elseif wkb_mode != NoWKB() && triad_mode != NoTriad()
+            dt = min(dtvisc, dtconv, dtmax / tref, dtwkb, dtnl, dtpl, 1.25 * prev_dt[])
+            prev_dt[] = dt
         else
             dt = min(dtvisc, dtconv, dtmax / tref)
         end
@@ -150,8 +178,12 @@ function compute_time_step(state::State)::AbstractFloat
             println("dtvisc = ", dtvisc * tref, " seconds")
             println("dtconv = ", dtconv * tref, " seconds")
             println("dtmax = ", dtmax, " seconds")
-            if wkb_mode != NoWKB()
+            if wkb_mode != NoWKB() && triad_mode == NoTriad()
                 println("dtwkb = ", dtwkb * tref, " seconds")
+            elseif wkb_mode != NoWKB() && triad_mode != NoTriad()
+                println("dtwkb = ", dtwkb * tref, " seconds")
+                println("dtnl = ", dtnl * tref, " seconds")
+                println("dtpl = ", dtpl * tref, " seconds")
             end
             println("")
 
@@ -163,6 +195,8 @@ function compute_time_step(state::State)::AbstractFloat
                 println("=> dt = dtvisc = ", dt * tref, " seconds")
             elseif wkb_mode != NoWKB() && dt == dtwkb
                 println("=> dt = dtwkb = ", dt * tref, " seconds")
+            elseif wkb_mode != NoWKB() && triad_mode != NoTriad() && dt != dtwkb
+                println("=> dt = dttriad = ", dt * tref, " seconds")
             else
                 println("=> dt = ??? = ", dt * tref, " seconds")
             end

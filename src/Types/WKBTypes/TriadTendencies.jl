@@ -74,6 +74,7 @@ struct TriadTendencies{A <: AbstractArray{<: AbstractFloat, 5}, B <: AbstractArr
     res_manifold::ResManifold
     scratch::Vector{TriadScratch{Float64}}
     partition::Vector{UnitRange{Int}}
+    prev_dt::Ref{<:AbstractFloat}
 end
 
 
@@ -98,7 +99,7 @@ function TriadTendencies(namelists::Namelists,
     partition = UnitRange{Int}[]
     
     return TriadTendencies(spec_grid, zeros(0, 0, 0, 0, 0), zeros(0, 0, 0, 0, 0), falses(0,0,0,0,0), zeros(0, 0, 0, 0, 0), zeros(0, 0), zeros(0, 0, 0), zeros(0, 0, 0),
-      kin_box, interp_coef, res_manifold, scratch, partition)
+      kin_box, interp_coef, res_manifold, scratch, partition, Ref(0.0))
 end
 
 function TriadTendencies(namelists::Namelists,
@@ -162,8 +163,9 @@ function TriadTendencies(namelists::Namelists,
               for _ in 1:nthreads_triad]
     spec_l = kpl * ml
     partition = make_partition(spec_l, nthreads_triad) 
+    prev_dt = Ref(0.0)
 
-    return TriadTendencies(spec_grid, wavespectrum, was_pred, was_ray_signature, col_int, diag_time, nl_time_scale, consistency_time, kin_box, interp_coef, res_manifold, scratch, partition)
+    return TriadTendencies(spec_grid, wavespectrum, was_pred, was_ray_signature, col_int, diag_time, nl_time_scale, consistency_time, kin_box, interp_coef, res_manifold, scratch, partition, prev_dt)
 
 end
 
