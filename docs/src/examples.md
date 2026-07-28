@@ -739,7 +739,7 @@ end
 
 ```
 
-initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a compressible atmosphere with two different lapse rates Furthermore, it initializes a tracer field that increases linearly with altitude and visualizes the parameterized, leading-order gravity-wave tracer flux convergence after ten minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
+initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a compressible atmosphere with two different lapse rates. Furthermore, it initializes a tracer field that increases linearly with altitude and visualizes the parameterized, leading-order gravity-wave tracer flux convergence after ten minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
 
 ![](examples/results/wkb_wave_packet.svg)
 
