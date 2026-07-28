@@ -1,5 +1,6 @@
 function test_wkb_wave_packet()
     l2 = (
+        chi = 2.6328695f6,
         dkr = 0.0101921335f0,
         dlr = 0.01019214f0,
         dmr = 0.0048912093f0,
@@ -31,6 +32,7 @@ function test_wkb_wave_packet()
         ztilde = 1.9152024f6,
     )
     linf = (
+        chi = 29500.04f0,
         dkr = 0.0001834874f0,
         dlr = 0.00018348519f0,
         dmr = 9.167911f-5,

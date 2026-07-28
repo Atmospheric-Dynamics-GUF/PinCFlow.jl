@@ -716,7 +716,13 @@ function wkb_wave_packet(;
         ),
     )
 
-    integrate(Namelists(; atmosphere, domain, grid, output, wkb))
+    tracer = TracerNamelist(;
+        tracer_setup = :TracerOn,
+        leading_order_impact = true,
+        initial_chi = (x, y, z) -> z,
+    )
+
+    integrate(Namelists(; atmosphere, domain, grid, output, wkb, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
@@ -733,7 +739,7 @@ end
 
 ```
 
-initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a compressible atmosphere with two different lapse rates and visualizes the resulting zonal vertical-momentum flux after ten minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
+initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a compressible atmosphere with two different lapse rates and visualizes the resulting zonal vertical-momentum flux after ten minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations. Furthermore, it initializes a tracer field that increases linearly with altitude, including parameterized, leading-order gravity-wave tracer fluxes.
 
 ![](examples/results/wkb_wave_packet.svg)
 

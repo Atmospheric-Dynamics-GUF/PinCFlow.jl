@@ -264,6 +264,12 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
   - [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function turbulent_diffusion! end
 
@@ -311,8 +317,9 @@ function turbulent_diffusion!(
 end
 
 @ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
+    (; namelists, domain) = state
     (; u) = state.variables.predictands
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
@@ -417,12 +424,22 @@ end
     thomas_algorithm!(state)
 
     u[i0:i1, j0:j1, k0:k1] .= fth
+
+    set_zonal_boundaries_of_field!(u, namelists, domain)
+    set_vertical_boundaries_of_field!(
+        u,
+        namelists,
+        domain,
+        +;
+        layers = (1, 1, 1),
+    )
     return
 end
 
 @ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
+    (; namelists, domain) = state
     (; v) = state.variables.predictands
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
@@ -527,6 +544,15 @@ end
     thomas_algorithm!(state)
 
     v[i0:i1, j0:j1, k0:k1] .= fth
+
+    set_meridional_boundaries_of_field!(v, namelists, domain)
+    set_vertical_boundaries_of_field!(
+        v,
+        namelists,
+        domain,
+        +;
+        layers = (1, 1, 1),
+    )
     return
 end
 

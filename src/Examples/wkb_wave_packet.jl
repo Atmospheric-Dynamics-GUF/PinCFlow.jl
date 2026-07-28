@@ -64,7 +64,13 @@ function wkb_wave_packet(;
         ),
     )
 
-    integrate(Namelists(; atmosphere, domain, grid, output, wkb))
+    tracer = TracerNamelist(;
+        tracer_setup = :TracerOn,
+        leading_order_impact = true,
+        initial_chi = (x, y, z) -> z,
+    )
+
+    integrate(Namelists(; atmosphere, domain, grid, output, wkb, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
