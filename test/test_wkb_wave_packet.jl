@@ -1,5 +1,7 @@
 function test_wkb_wave_packet()
     l2 = (
+        chi = 2.6328695f6,
+        dchidt0 = 0.00021973877f0,
         dkr = 0.0101921335f0,
         dlr = 0.01019214f0,
         dmr = 0.0048912093f0,
@@ -19,7 +21,6 @@ function test_wkb_wave_packet()
         thetabar = 57527.863f0,
         tke = 0.0063245553f0,
         us = 0.2104922f0,
-        uw = 0.10633506f0,
         vs = 0.20865981f0,
         wts = 0.017459119f0,
         x = 25787.594f0,
@@ -31,6 +32,8 @@ function test_wkb_wave_packet()
         ztilde = 1.9152024f6,
     )
     linf = (
+        chi = 29500.04f0,
+        dchidt0 = 2.9074285f-5,
         dkr = 0.0001834874f0,
         dlr = 0.00018348519f0,
         dmr = 9.167911f-5,
@@ -50,7 +53,6 @@ function test_wkb_wave_packet()
         thetabar = 945.21136f0,
         tke = 5.000028f-5,
         us = 0.023524573f0,
-        uw = 0.019553408f0,
         vs = 0.02336692f0,
         wts = 0.0010166266f0,
         x = 9500.0f0,
