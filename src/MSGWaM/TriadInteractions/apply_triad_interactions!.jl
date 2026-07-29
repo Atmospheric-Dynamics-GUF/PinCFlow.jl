@@ -29,7 +29,7 @@ function apply_triad_interactions!(state::State,
     (; spec_tend) = state.wkb
     (; compute_dephasing_time, nthreads_triad) = state.namelists.triad
     (; tref) = state.constants
-    (; nl_time_scale) = spec_tend
+    (; nl_time_scale, dephasing_time, prev_dt) = spec_tend
     
     if Threads.nthreads() != nthreads_triad
         error("Julia started with Threads.nthreads()=$(Threads.nthreads()) but nthreads_triad=$nthreads_triad. Start Julia with --threads=$nthreads_triad (or set JULIA_NUM_THREADS).")
@@ -48,6 +48,7 @@ function apply_triad_interactions!(state::State,
     end
 
     nl_time_scale .= Inf
+    dephasing_time .= Inf
 
     @ivy for kk in k0:k1,
         jj in j0:j1,
@@ -58,11 +59,7 @@ function apply_triad_interactions!(state::State,
     end
 
     
-    if compute_dephasing_time
-        spec_tend.consistency_time .= Inf
-        compute_consistency_time!(state)
-    end
-
+    prev_dt[] = dtau
     get_ray_volumes!(state, triad_mode)
 
     if master

@@ -413,7 +413,7 @@ function write_output(
                     (x_size, y_size, z_size, iout),
                 )
                 file["tau_pl"][iid, jjd, kkd, iout] = 
-                    spec_tend.consistency_time[ii, jj, kk] .* tref
+                    spec_tend.dephasing_time[ii, jj, kk] .* tref
             end
         end
 

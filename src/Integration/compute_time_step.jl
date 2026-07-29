@@ -56,7 +56,7 @@ function compute_time_step(state::State)::AbstractFloat
     (; wkb_mode) = state.namelists.wkb
     (; cgx_max, cgy_max, cgz_max) = state.wkb
     (; triad_mode, triad_cfl_number) = state.namelists.triad
-    (; nl_time_scale, consistency_time, prev_dt) = state.wkb.spec_tend
+    (; nl_time_scale, dephasing_time, prev_dt) = state.wkb.spec_tend
 
     @ivy if !adaptive_time_step
         dt = dtmax / tref
@@ -145,7 +145,7 @@ function compute_time_step(state::State)::AbstractFloat
 
             for k in k0:k1, j in j0:j1, i in i0:i1
                 dtnl = min(dtnl, nl_time_scale[i, j, k])
-                dtpl = min(dtpl, consistency_time[i, j, k])
+                dtpl = min(dtpl, dephasing_time[i, j, k])
             end
 
             # Obtain global minima over all MPI subdomains
@@ -165,7 +165,6 @@ function compute_time_step(state::State)::AbstractFloat
             dt = min(dtvisc, dtconv, dtmax / tref, dtwkb)
         elseif wkb_mode != NoWKB() && triad_mode != NoTriad()
             dt = min(dtvisc, dtconv, dtmax / tref, dtwkb, dtnl, dtpl, 1.25 * prev_dt[])
-            prev_dt[] = dt
         else
             dt = min(dtvisc, dtconv, dtmax / tref)
         end

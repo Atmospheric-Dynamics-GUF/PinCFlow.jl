@@ -17,6 +17,7 @@ Provides functions that compute scattering integral by integrating the RHS of ki
 """
 module TriadInteractions
 
+using MPI
 using ..MeanFlowEffect
 using ..Interpolation
 using ..RayUpdate
@@ -51,8 +52,13 @@ include("get_nl_time_scale.jl")
 include("compute_cz.jl")
 include("compute_dphidz_center.jl")
 include("compute_nearest_index.jl")
-include("update_consitency_time.jl")
+include("update_dephasing_time.jl")
 include("compute_consistency_time!.jl")
+include("compute_action_ref!.jl")
+include("get_initial_mode_information.jl")
+include("print_initial_mode_information.jl")
+include("get_dephasing_time.jl")
+
 
 export get_wave_spectrum!,
        apply_triad_interactions!,
