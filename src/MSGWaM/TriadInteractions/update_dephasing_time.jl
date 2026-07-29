@@ -1,7 +1,7 @@
-function update_consistency_time end
+function update_dephasing_time end
 
-function update_consistency_time(
-    consistency_time_min::AbstractFloat,
+function update_dephasing_time(
+    dephasing_time_min::AbstractFloat,
     n_local::AbstractFloat,
     dudz::AbstractFloat,
     dndz::AbstractFloat,
@@ -15,9 +15,9 @@ function update_consistency_time(
     res_type::Sum
 )::AbstractFloat
 
-    abs(m_parent) < eps_denom && return consistency_time_min
-    abs(m_1) < eps_denom && return consistency_time_min
-    abs(m_2) < eps_denom && return consistency_time_min
+    abs(m_parent) < eps_denom && return dephasing_time_min
+    abs(m_1) < eps_denom && return dephasing_time_min
+    abs(m_2) < eps_denom && return dephasing_time_min
 
     cz_parent = compute_cz(n_local, kp_parent, m_parent)
     cz_1 = compute_cz(n_local, kp_1, m_1)
@@ -37,19 +37,19 @@ function update_consistency_time(
         ) * dndz
 
     if abs(d_delta_omega_dt) > eps_denom
-        consistency_time_candidate =
+        dephasing_time_candidate =
             sqrt(2.0 * abs(1 / d_delta_omega_dt))
-        if isfinite(consistency_time_candidate)
-            consistency_time_min =
-                min(consistency_time_min, consistency_time_candidate)
+        if isfinite(dephasing_time_candidate)
+            dephasing_time_min =
+                min(dephasing_time_min, dephasing_time_candidate)
         end
     end
 
-    return consistency_time_min
+    return dephasing_time_min
 end
 
-function update_consistency_time(
-    consistency_time_min::AbstractFloat,
+function update_dephasing_time(
+    dephasing_time_min::AbstractFloat,
     n_local::AbstractFloat,
     dudz::AbstractFloat,
     dndz::AbstractFloat,
@@ -63,9 +63,9 @@ function update_consistency_time(
     res_type::Difference
 )::AbstractFloat
 
-    abs(m_parent) < eps_denom && return consistency_time_min
-    abs(m_1) < eps_denom && return consistency_time_min
-    abs(m_2) < eps_denom && return consistency_time_min
+    abs(m_parent) < eps_denom && return dephasing_time_min
+    abs(m_1) < eps_denom && return dephasing_time_min
+    abs(m_2) < eps_denom && return dephasing_time_min
 
     cz_parent = compute_cz(n_local, kp_parent, m_parent)
     cz_1 = compute_cz(n_local, kp_1, m_1)
@@ -85,14 +85,14 @@ function update_consistency_time(
         ) * dndz
 
     if abs(d_delta_omega_dt) > eps_denom
-        consistency_time_candidate =
+        dephasing_time_candidate =
             sqrt(2.0 * abs(1 / d_delta_omega_dt))
 
-        if isfinite(consistency_time_candidate)
-            consistency_time_min =
-                min(consistency_time_min, consistency_time_candidate)
+        if isfinite(dephasing_time_candidate)
+            dephasing_time_min =
+                min(dephasing_time_min, dephasing_time_candidate)
         end
     end
 
-    return consistency_time_min
+    return dephasing_time_min
 end

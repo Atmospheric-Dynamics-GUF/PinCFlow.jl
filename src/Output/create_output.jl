@@ -693,7 +693,7 @@ function create_output(state::State, machine_start_time::DateTime)
             if :tau_pl in output_variables && triad_mode != NoTriad()
                 attributes(file["tau_pl"])["units"] = "s"
                 attributes(file["tau_pl"])["label"] = L"\mathrm{T_{pl}}\ [\mathrm{s}]"
-                attributes(file["tau_pl"])["long_name"] = "Maximum planar consistency time scale"
+                attributes(file["tau_pl"])["long_name"] = "Maximum planar dephasing time scale"
             end
         end
 

@@ -5,79 +5,65 @@ function get_nl_time_scale(
     ii::Integer,
     jj::Integer,
     kk::Integer,
-    action_abs_tol::Float64,
     action_rel_tol::Float64,
-    st_abs_tol::Float64,
-)::AbstractFloat
+)::Float64
 
     (; kp, m, delkp, delm) = spec_tend.spec_grid
-    (; wavespectrum, col_int) = spec_tend
-
-    @assert length(delkp) == length(kp)
-    @assert length(delm) == length(m)
+    (; wavespectrum, col_int, action_ref) = spec_tend
 
     #----------------------------------------------------------
-    # Total wave action contained in this physical grid cell
+    # Minimum significant spectral-cell action:
     #
-    # A_total = sum(N[kp, m] * Δkp * Δm)
+    # A_floor = action_rel_tol * A_ref
+    #
+    # where A_ref is the peak contained action of the weakest
+    # initialized spectral mode.
     #----------------------------------------------------------
 
-    total_action = 0.0
-
-    @ivy for mi in eachindex(m), kpi in eachindex(kp)
-        was = wavespectrum[ii, jj, kk, kpi, mi]
-        spectral_cell_width = delkp[kpi] * delm[mi]
-
-        if isfinite(was) &&
-           was > 0.0 &&
-           isfinite(spectral_cell_width) &&
-           spectral_cell_width > 0.0
-
-            total_action += was * spectral_cell_width
-        end
-    end
-
-    if !isfinite(total_action) || total_action <= action_abs_tol
-        return Inf
-    end
-
-    # A spectral cell is considered active only when its
-    # contained wave action exceeds this threshold.
-    action_cutoff = max(
-        action_abs_tol,
-        action_rel_tol * total_action,
-    )
+    action_floor =
+        action_rel_tol * action_ref[]
 
     #----------------------------------------------------------
-    # Maximum Boltzmann rate among dynamically active cells
+    # Maximum Boltzmann rate among dynamically active cells:
+    #
+    # rate = |St[kp,m]| / N[kp,m]
+    #
+    # A spectral cell is active when:
+    #
+    # N[kp,m] Δkp Δm > A_floor
     #----------------------------------------------------------
 
     max_rate = 0.0
 
-    @ivy for mi in eachindex(m), kpi in eachindex(kp)
-        was = wavespectrum[ii, jj, kk, kpi, mi]
-        st = col_int[ii, jj, kk, kpi, mi]
-        spectral_cell_width = delkp[kpi] * delm[mi]
+    @ivy for mi in eachindex(m),
+        kpi in eachindex(kp)
 
-        if isfinite(was) &&
-           isfinite(st) &&
-           was > 0.0 &&
-           isfinite(spectral_cell_width) &&
-           spectral_cell_width > 0.0
+        was =
+            wavespectrum[ii, jj, kk, kpi, mi]
 
-            cell_action = was * spectral_cell_width
+        st =
+            col_int[ii, jj, kk, kpi, mi]
 
-            if cell_action > action_cutoff &&
-               abs(st) > st_abs_tol
+        spectral_cell_width =
+            delkp[kpi] * delm[mi]
 
-                rate = abs(st) / was
+        cell_action =
+            was * spectral_cell_width
 
-                if isfinite(rate) && rate > max_rate
-                    max_rate = rate
-                end
+        if cell_action > action_floor &&
+           !iszero(st)
+
+            rate =
+                abs(st) / was
+
+            if rate > max_rate
+                max_rate =
+                    rate
             end
         end
     end
 
-    return max_rate > 0.0 ? 1.0 / max_rate : Inf
+    return max_rate > 0.0 ?
+        1.0 / max_rate :
+        Inf
 end
