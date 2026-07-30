@@ -58,8 +58,6 @@ function apply_triad_interactions!(state::State,
         
     end
 
-    
-    prev_dt[] = dtau
     get_ray_volumes!(state, triad_mode)
 
     if master
