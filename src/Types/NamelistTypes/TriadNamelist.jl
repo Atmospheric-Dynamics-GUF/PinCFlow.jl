@@ -44,9 +44,10 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     rm_index::E
     nthreads_triad::A
     compute_dephasing_time::F
-    triad_cfl_number::B
-    action_abs_tol::B
-    st_abs_tol::B
+    nl_cfl_number::B
+    pl_cfl_number::B
+    dt_growth_factor::B
+    discarded_action_fraction_tol::B
 end
 
 function TriadNamelist(;
@@ -59,16 +60,17 @@ function TriadNamelist(;
     k_min::Real = 1.0, #the dafault values of the minimum wave numbers is set in spectral grid type
     l_min::Real = 1.0,
     m_min::Real = 1.0, 
-    increment_rel_tol::Real = 1.0E-5,
-    action_rel_tol::Real = 1.0E-10,
+    increment_rel_tol::Real = 1.0E-4,
+    action_rel_tol::Real = 1.0E-8,
     triad_mode::AbstractTriad = NoTriad(),
     time_scheme::AbstractTimeStepping = EulerMethod(),
     rm_index::Tuple{Int, Int} = (1, 1),
     nthreads_triad::Integer = 1,
-    compute_dephasing_time::Bool = false,
-    triad_cfl_number::Real = 5.0E-1,
-    action_abs_tol::Real = 0.0,
-    st_abs_tol::Real = 0.0,
+    compute_dephasing_time::Bool = true,
+    nl_cfl_number::Real = 5.0E-1,
+    pl_cfl_number::Real = 5.0E-1,
+    dt_growth_factor::Real = 1.25,
+    discarded_action_fraction_tol::Real = 1.0E-5,
 )::TriadNamelist
     return TriadNamelist(
         Int(k_size),
@@ -85,10 +87,11 @@ function TriadNamelist(;
         triad_mode,
         time_scheme,
         rm_index,
-        nthreads_triad,
+        Int(nthreads_triad),
         compute_dephasing_time,
-        triad_cfl_number,
-        action_abs_tol,
-        st_abs_tol,
+        Float64(nl_cfl_number),
+        Float64(pl_cfl_number),
+        Float64(dt_growth_factor),
+        Float64(discarded_action_fraction_tol),
     )
 end

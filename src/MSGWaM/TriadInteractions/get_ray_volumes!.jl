@@ -1,29 +1,54 @@
 function get_ray_volumes! end
 
-function get_ray_volumes!(state::State,  
-    triad_mode::Triad2D)
-    (; domain, grid) = state
+function get_ray_volumes!(
+    state::State,
+    triad_mode::Triad2D;
+    print_action_diagnostic::Bool = true,
+)
+    (; domain) = state
+    (; master, comm, i0, i1, j0, j1, k0, k1) = domain
+
     (; x_size, y_size) = state.namelists.domain
-    (; branch) = state.namelists.wkb
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; action_rel_tol, discarded_action_fraction_tol) = state.namelists.triad
+
     (; nray, rays, spec_tend) = state.wkb
-    (; wavespectrum, was_pred, was_ray_signature) = spec_tend
+    (; wavespectrum, was_pred, was_ray_signature, action_ref) = spec_tend
     (; kp, m, kpc, mc, delkp, delm) = spec_tend.spec_grid
-    (;lref ) = state.constants
-    (; dx, dy, dz, x, y ,zctilde, jac) = state.grid
 
-    ray_launch_action_tol = 1.0e-15  # Choose according to your scaling
+    (; dx, dy, dz, x, y, zctilde, jac) = state.grid
 
-   @ivy for k in (k0 - 1):(k1 + 1),
+    if !(0.0 < discarded_action_fraction_tol <= 1.0)
+        throw(
+            ArgumentError(
+                "discarded_action_fraction_tol must satisfy " *
+                "0 < discarded_action_fraction_tol <= 1.",
+            ),
+        )
+    end
+
+    if !isfinite(action_ref[]) || action_ref[] <= 0.0
+        error("Invalid action_ref = ", action_ref[])
+    end
+
+    action_floor = action_rel_tol * action_ref[]
+
+    local_total_action = 0.0
+    local_discarded_action = 0.0
+
+    for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
-        if all(iszero, wavespectrum[i, j, k, :, :])
+        if all(iszero, @view wavespectrum[i, j, k, :, :])
             continue
         end
-    
-        for r in 1:nray[i, j, k]   #mapping existing rays on Eulerian Grid
 
+        #------------------------------------------------------
+        # Redistribute the updated Eulerian wave spectrum among
+        # the existing ray volumes.
+        #------------------------------------------------------
+
+        for r in 1:nray[i, j, k]
             xr = rays.x[r, i, j, k]
             yr = rays.y[r, i, j, k]
             zr = rays.z[r, i, j, k]
@@ -33,51 +58,43 @@ function get_ray_volumes!(state::State,
             dzr = rays.dzray[r, i, j, k]
 
             kr = rays.k[r, i, j, k]
-            lr = rays.l[r, i, j, k]
             mr = rays.m[r, i, j, k]
 
             dkr = rays.dkray[r, i, j, k]
-            dlr = rays.dlray[r, i, j, k]
             dmr = rays.dmray[r, i, j, k]
 
             kpr = abs(kr)
             dkpr = dkr
 
             wadr = rays.dens[r, i, j, k]
-            
-            rays.dens[r, i, j, k] = 0 #setting up wave action density equal to zero for all rays, they will be re-written in loop
 
-            
-            (imin, imax, jmin, jmax) =
+            # The density is reconstructed from the updated
+            # Eulerian wave spectrum.
+            rays.dens[r, i, j, k] = 0.0
+
+            imin, imax, jmin, jmax =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
 
-            (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
-            
+            kpmin, kpmax, mmin, mmax =
+                compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
             for iray in imin:imax
                 if x_size > 1
-                    dxi = (
+                    dxi =
                         min(xr + dxr / 2, x[iray] + dx / 2) -
                         max(xr - dxr / 2, x[iray] - dx / 2)
-                    )
-
-                    fcpspx =  dxi / dx
                 else
                     dxi = 1.0
-                    fcpspx = 1.0
                     dxr = 1.0
                 end
 
                 for jray in jmin:jmax
                     if y_size > 1
-                        dyi = (
+                        dyi =
                             min(yr + dyr / 2, y[jray] + dy / 2) -
                             max(yr - dyr / 2, y[jray] - dy / 2)
-                        )
-
-                        fcpspy =  dyi / dy
                     else
                         dyi = 1.0
-                        fcpspy = 1.0
                         dyr = 1.0
                     end
 
@@ -88,6 +105,7 @@ function get_ray_volumes!(state::State,
                         state;
                         dkd = 1,
                     )
+
                     kmax = get_next_half_level(
                         iray,
                         jray,
@@ -98,78 +116,200 @@ function get_ray_volumes!(state::State,
 
                     for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
-                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
+                            min(zr + dzr / 2, zctilde[iray, jray, kray]) -
+                            max(zr - dzr / 2, zctilde[iray, jray, kray - 1])
 
-                        fcpspz =  dzi / jac[iray, jray, kray] / dz
-                        
                         for kpray in kpmin:kpmax
-                             dkpi = 
-                                min(kpr + dkr / 2, kpc[kpray + 1]) -  #kpi_i > 0, always lies between kpc_{i+1} to kpc_{i}
-                                max(kpr - dkr / 2, kpc[kpray] )
-                            dkp = kpc[kpray + 1] - kpc[kpray]
-                                      
-                            #fcpspkp =  dkpi / dkpr
-                            fcpspkp =  dkpi / dkp
+                            dkpi =
+                                min(kpr + dkr / 2, kpc[kpray + 1]) -
+                                max(kpr - dkr / 2, kpc[kpray])
 
-                             for mray in mmin:mmax
-                                if mr >= 0       #becuase for mr > 0,  m_i > 0 always lies between mc_{i+2} to mc_{i+1}
-                                    dmi = 
+                            for mray in mmin:mmax
+                                if mr >= 0.0
+                                    dmi =
                                         min(mr + dmr / 2, mc[mray + 2]) -
                                         max(mr - dmr / 2, mc[mray + 1])
-                                    dm = mc[mray + 2] - mc[mray + 1]
-                                    #fcpspm = dmi / dmr
-                                    fcpspm = dmi / dm
                                 else
-                                    dmi = 
+                                    dmi =
                                         min(mr + dmr / 2, mc[mray + 1]) -
                                         max(mr - dmr / 2, mc[mray])
-                                    dm = mc[mray + 1] - mc[mray]
-                                    #fcpspm = dmi / dmr
-                                    fcpspm = dmi / dm
                                 end
-                                was0 = was_pred[iray, jray, kray, kpray, mray]
-                                was1 = wavespectrum[iray, jray, kray, kpray, mray]
 
-                                if was0 <= 0 || was1 == 0
+                                was0 = was_pred[
+                                    iray,
+                                    jray,
+                                    kray,
+                                    kpray,
+                                    mray,
+                                ]
+
+                                was1 = wavespectrum[
+                                    iray,
+                                    jray,
+                                    kray,
+                                    kpray,
+                                    mray,
+                                ]
+
+                                if was0 <= 0.0 || was1 == 0.0
                                     continue
                                 end
-                                ray_vol = dxr * dyr * dzr * dkpr * dmr #total volume of the ray in 5D ray phase space
-                                accupied_vol = dxi * dyi * dzi * dkpi * dmi #total volume of the ray volume (r, i, j, k) accupied by the grid cell
-                                rays.dens[r, i, j, k] += wadr * accupied_vol * was1 / was0 / ray_vol
 
-                             end
+                                # Total five-dimensional ray
+                                # phase-space volume.
+                                ray_vol = dxr * dyr * dzr * dkpr * dmr
 
+                                # Fraction of that volume overlapping
+                                # this physical-spectral grid cell.
+                                occupied_vol =
+                                    dxi * dyi * dzi * dkpi * dmi
+
+                                rays.dens[r, i, j, k] +=
+                                    wadr *
+                                    occupied_vol *
+                                    was1 /
+                                    was0 /
+                                    ray_vol
+                            end
                         end
-
                     end
-
                 end
-
             end
-
         end
 
-        #lanching new valumes for the newly generated wave modes
-        for mi in eachindex(m),
-            kpi in eachindex(kp)
+        #------------------------------------------------------
+        # Physical-cell volume for the global action diagnostic.
+        #
+        # Halo cells are needed for ray remapping and launching,
+        # but they must not be included in the global total.
+        #------------------------------------------------------
+
+        owned_cell =
+            i0 <= i <= i1 &&
+            j0 <= j <= j1 &&
+            k0 <= k <= k1
+
+        if owned_cell
+            dx_cell = x_size > 1 ? dx : 1.0
+            dy_cell = y_size > 1 ? dy : 1.0
+
+            physical_cell_volume =
+                dx_cell * dy_cell * jac[i, j, k] * dz
+        else
+            physical_cell_volume = 0.0
+        end
+
+        #------------------------------------------------------
+        # Launch new ray volumes for newly generated or
+        # spectrally dispersed wave action that is not represented
+        # by an existing ray volume.
+        #------------------------------------------------------
+
+        for mi in eachindex(m), kpi in eachindex(kp)
             was = wavespectrum[i, j, k, kpi, mi]
             was_sig = was_ray_signature[i, j, k, kpi, mi]
+
             dkps = delkp[kpi]
             dms = delm[mi]
-            wave_action = was * dkps * dms
-            if wave_action > ray_launch_action_tol && !was_sig
+
+            spectral_cell_action = was * dkps * dms
+
+            launch_new_ray =
+                !was_sig &&
+                spectral_cell_action > action_floor
+
+            discarded =
+                !was_sig &&
+                0.0 < spectral_cell_action <= action_floor
+
+            if launch_new_ray
                 kps = kp[kpi]
                 ms = m[mi]
-                launch_new_ray_vol!(state, i, j, k, kps, ms, dkps, dms, was, triad_mode)
+
+                launch_new_ray_vol!(
+                    state,
+                    i,
+                    j,
+                    k,
+                    kps,
+                    ms,
+                    dkps,
+                    dms,
+                    was,
+                    triad_mode,
+                )
             end
 
+            if owned_cell
+                integrated_action =
+                    spectral_cell_action * physical_cell_volume
+
+                local_total_action += integrated_action
+
+                if discarded
+                    local_discarded_action += integrated_action
+                end
+            end
         end
-
     end
-  
-end
 
+    #----------------------------------------------------------
+    # Obtain global totals over all MPI ranks with one collective
+    # communication operation.
+    #----------------------------------------------------------
+
+    local_action = [
+        local_total_action,
+        local_discarded_action,
+    ]
+
+    global_action = MPI.Allreduce(local_action, +, comm)
+
+    total_action = global_action[1]
+    discarded_action = global_action[2]
+
+    if !isfinite(total_action) || !isfinite(discarded_action)
+        error(
+            "Nonfinite ray-volume action diagnostic: ",
+            "total_action = ",
+            total_action,
+            ", discarded_action = ",
+            discarded_action,
+        )
+    end
+
+    if total_action < 0.0
+        error("Negative total wave action detected: ", total_action)
+    end
+
+    discarded_action_fraction =
+        total_action > 0.0 ?
+        discarded_action / total_action :
+        0.0
+
+    if master && print_action_diagnostic
+        println("")
+        println("New ray-volume launch diagnostic:")
+        println("  Total wave action              = ", total_action)
+        println("  Discarded wave action          = ", discarded_action)
+        println("  Discarded wave-action fraction = ", discarded_action_fraction)
+        println("  Allowed discarded fraction     = ", discarded_action_fraction_tol)
+        println("")
+    end
+
+    # Every rank throws the same error after the global reduction.
+    # This is safer than terminating only the master rank.
+    if discarded_action_fraction >= discarded_action_fraction_tol
+        error(
+            "Discarded wave-action fraction exceeded the allowed threshold: ",
+            discarded_action_fraction,
+            " >= ",
+            discarded_action_fraction_tol,
+        )
+    end
+
+    return nothing
+end
 
 function get_ray_volumes!(state::State, 
     wavespectrum_copy::Array{<: AbstractFloat, 5}, 

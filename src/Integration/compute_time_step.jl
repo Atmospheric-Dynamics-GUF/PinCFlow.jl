@@ -55,7 +55,7 @@ function compute_time_step(state::State)::AbstractFloat
     (; x_size, y_size) = state.namelists.domain
     (; wkb_mode) = state.namelists.wkb
     (; cgx_max, cgy_max, cgz_max) = state.wkb
-    (; triad_mode, triad_cfl_number) = state.namelists.triad
+    (; triad_mode, nl_cfl_number, pl_cfl_number, dt_growth_factor) = state.namelists.triad
     (; nl_time_scale, dephasing_time, prev_dt) = state.wkb.spec_tend
 
     @ivy if !adaptive_time_step
@@ -153,8 +153,8 @@ function compute_time_step(state::State)::AbstractFloat
             dtpl = MPI.Allreduce(dtpl, min, comm)
 
             # Apply the corresponding CFL factors
-            dtnl *= triad_cfl_number
-            dtpl *= triad_cfl_number
+            dtnl *= nl_cfl_number
+            dtpl *= pl_cfl_number
         end
         
         #-------------------------------
@@ -164,7 +164,9 @@ function compute_time_step(state::State)::AbstractFloat
         if wkb_mode != NoWKB() && triad_mode == NoTriad()
             dt = min(dtvisc, dtconv, dtmax / tref, dtwkb)
         elseif wkb_mode != NoWKB() && triad_mode != NoTriad()
-            dt = min(dtvisc, dtconv, dtmax / tref, dtwkb, dtnl, dtpl, 1.25 * prev_dt[])
+            dt = min(dtvisc, dtconv, dtmax / tref, dtwkb, dtnl, dtpl, dt_growth_factor * prev_dt[])
+            prev_dt[] = dt  #prev_dt is updated here to avoid the restricted growth in NoTriad modes and
+                            #due to the small time step choosen as per the output time
         else
             dt = min(dtvisc, dtconv, dtmax / tref)
         end
@@ -194,8 +196,12 @@ function compute_time_step(state::State)::AbstractFloat
                 println("=> dt = dtvisc = ", dt * tref, " seconds")
             elseif wkb_mode != NoWKB() && dt == dtwkb
                 println("=> dt = dtwkb = ", dt * tref, " seconds")
-            elseif wkb_mode != NoWKB() && triad_mode != NoTriad() && dt != dtwkb
-                println("=> dt = dttriad = ", dt * tref, " seconds")
+            elseif wkb_mode != NoWKB() && triad_mode != NoTriad() && dt == dtnl
+                println("=> dt = dtnl = ", dt * tref, " seconds")
+            elseif wkb_mode != NoWKB() && triad_mode != NoTriad() && dt == dtpl
+                println("=> dt = dtpl = ", dt * tref, " seconds")
+            elseif wkb_mode != NoWKB() && triad_mode != NoTriad() && dt == dt_growth_factor * prev_dt[]
+                println("=> dt = dt_prev * dt_growth_factor = ", dt * tref, " seconds")
             else
                 println("=> dt = ??? = ", dt * tref, " seconds")
             end
