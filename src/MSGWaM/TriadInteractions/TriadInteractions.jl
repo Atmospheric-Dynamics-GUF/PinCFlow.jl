@@ -57,12 +57,14 @@ include("compute_action_ref!.jl")
 include("get_initial_mode_information.jl")
 include("print_initial_mode_information.jl")
 include("get_dephasing_time.jl")
-
+include("apply_wave_spectrum_filter!.jl")
+include("smooth_wave_spectrum!.jl")
 
 export get_wave_spectrum!,
        apply_triad_interactions!,
        initialize_wave_spectrum!,
        get_ray_volumes!,
        compute_consistency_time!
+       smooth_wave_spectrum!
 
 end

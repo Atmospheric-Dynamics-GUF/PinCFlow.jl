@@ -65,6 +65,7 @@ include("compute_mean_flow_effect!.jl")
 include("smooth_gw_tendencies!.jl")
 
 export compute_mean_flow_effect!,
-        compute_horizontal_cell_indices
+        compute_horizontal_cell_indices,
+        apply_shapiro_filter!
 
 end

@@ -9,7 +9,7 @@ function get_ray_volumes!(
     (; master, comm, i0, i1, j0, j1, k0, k1) = domain
 
     (; x_size, y_size) = state.namelists.domain
-    (; action_rel_tol, discarded_action_fraction_tol) = state.namelists.triad
+    (; launch_rays_action_rel_tol, discarded_action_fraction_tol) = state.namelists.triad
 
     (; nray, rays, spec_tend) = state.wkb
     (; wavespectrum, was_pred, was_ray_signature, action_ref) = spec_tend
@@ -30,7 +30,7 @@ function get_ray_volumes!(
         error("Invalid action_ref = ", action_ref[])
     end
 
-    action_floor = action_rel_tol * action_ref[]
+    action_floor = launch_rays_action_rel_tol * action_ref[]
 
     local_total_action = 0.0
     local_discarded_action = 0.0
