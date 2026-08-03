@@ -27,7 +27,7 @@ function apply_triad_interactions!(state::State,
     (; branch) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = domain
     (; spec_tend) = state.wkb
-    (; compute_dephasing_time, nthreads_triad) = state.namelists.triad
+    (; compute_dephasing_time, nthreads_triad, smooth_wave_spectrum) = state.namelists.triad
     (; tref) = state.constants
     (; nl_time_scale, dephasing_time, prev_dt) = spec_tend
     
@@ -41,7 +41,11 @@ function apply_triad_interactions!(state::State,
     end
 
     get_wave_spectrum!(state)
-    #wavespectrum_copy = deepcopy(spec_tend.wavespectrum)
+    if smooth_wave_spectrum
+        smooth_wave_spectrum!(state)
+    else
+        copyto!(spec_tend.was_pred, spec_tend.wavespectrum)
+    end
     
     if master
         println("Updating wave action spectrum due to interactions")

@@ -44,9 +44,11 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     rm_index::E
     nthreads_triad::A
     compute_dephasing_time::F
+    smooth_wave_spectrum::F
     nl_cfl_number::B
     pl_cfl_number::B
     dt_growth_factor::B
+    launch_rays_action_rel_tol::B
     discarded_action_fraction_tol::B
 end
 
@@ -67,9 +69,11 @@ function TriadNamelist(;
     rm_index::Tuple{Int, Int} = (1, 1),
     nthreads_triad::Integer = 1,
     compute_dephasing_time::Bool = true,
+    smooth_wave_spectrum::Bool = true,
     nl_cfl_number::Real = 5.0E-1,
     pl_cfl_number::Real = 5.0E-1,
     dt_growth_factor::Real = 1.25,
+    launch_rays_action_rel_tol::Real = 1.0E-5,
     discarded_action_fraction_tol::Real = 1.0E-5,
 )::TriadNamelist
     return TriadNamelist(
@@ -89,9 +93,11 @@ function TriadNamelist(;
         rm_index,
         Int(nthreads_triad),
         compute_dephasing_time,
+        smooth_wave_spectrum,
         Float64(nl_cfl_number),
         Float64(pl_cfl_number),
         Float64(dt_growth_factor),
+        Float64(launch_rays_action_rel_tol),
         Float64(discarded_action_fraction_tol),
     )
 end

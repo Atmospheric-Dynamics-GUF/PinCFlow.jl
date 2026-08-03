@@ -79,7 +79,6 @@ function get_wave_spectrum!(state::State,
     fc = coriolis_frequency * tref
 
     spec_tend.wavespectrum .= 0
-    spec_tend.was_pred .= 0
     spec_tend.col_int .= 0 
 
     spec_tend.was_ray_signature .= false
@@ -199,7 +198,6 @@ function get_wave_spectrum!(state::State,
                                 wadr = rays.dens[r, i, j, k]
                                 wadi = vol_ratio * wadr
                                 spec_tend.wavespectrum[iray, jray, kray, kpray, mray] += wadi
-                                spec_tend.was_pred[iray, jray, kray, kpray, mray] += wadi
                                 spec_tend.was_ray_signature[iray, jray, kray, kpray, mray] = true
                                 #println(spec_tend.wavespectrum[iray, jray, kray, kpray, mray])
 
