@@ -301,6 +301,7 @@ function turbulent_diffusion!(
         state.namelists.turbulence
 
     check_tke!(state)
+    set_boundaries!(state, BoundaryPredictands(), TKE())
 
     if momentum_coupling
         turbulent_diffusion!(state, dt, U())

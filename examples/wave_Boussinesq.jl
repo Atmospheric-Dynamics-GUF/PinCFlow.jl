@@ -6,14 +6,16 @@ using PinCFlow
 
 function wave_Boussinesq(;
     output_file::AbstractString = "wave_Boussinesq.h5",
-    prepare_restart::Bool = false,
+    prepare_restart::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    x_size::Integer = 256,
-    y_size::Integer = 256,
+    x_size::Integer = 64,
+    y_size::Integer = 1,
     z_size::Integer = 64,
     vertical_boundary_condition::Symbol = :Periodic,
+    output_interval::AbstractFloat = 100.0,
+    tmax::AbstractFloat = 100.0,
 )
     lx = 30.0e3
     ly = 30.0e3
@@ -25,10 +27,10 @@ function wave_Boussinesq(;
         m = 2 * pi / lz,
         rx = 0.0,
         ry = 0.0,
-        rz = 0.0, # 5.0e3,
+        rz = 0.0,
         x0 = 0.0,
         y0 = 0.0,
-        z0 = 15.0e3,
+        z0 = 0.0,
         a0 = 0.7,
         version = 2,
     )
@@ -81,10 +83,7 @@ function wave_Boussinesq(;
             uhat(state, parameters, x, y, z) *
             exp(1im * phi(parameters, x, y, z)),
         ),
-        initial_v = (x, y, z) -> real(
-            vhat(state, parameters, x, y, z) *
-            exp(1im * phi(parameters, x, y, z)),
-        ),
+        initial_v = (x, y, z) -> 0.0,
         initial_w = (x, y, z) -> real(
             what(state, parameters, x, y, z) *
             exp(1im * phi(parameters, x, y, z)),
@@ -98,15 +97,19 @@ function wave_Boussinesq(;
 
     output = OutputNamelist(;
         output_file,
-        output_interval = 100.0,
-        output_variables = [:thetap, :w, :u, :aux],
+        output_interval,
+        output_variables = [:rhop, :w, :v, :u, :tke],
         prepare_restart,
-        tmax = 2000.0,
+        tmax,
     )
 
     poisson = PoissonNamelist(; initial_cleaning = true)
 
-    turbulence = TurbulenceNamelist(; turbulence_scheme = :NoTurbulence)
+    turbulence = TurbulenceNamelist(;
+        turbulence_scheme = :TKEScheme,
+        momentum_coupling = true,
+        entropy_coupling = true,
+    )
 
     tracer = TracerNamelist(; tracer_setup = :NoTracer)
 
@@ -124,3 +127,18 @@ function wave_Boussinesq(;
 
     return
 end
+
+x_size = 32
+y_size = 16
+z_size = 32
+output_interval = 60.0
+tmax = 60.0
+
+wave_Boussinesq(;
+    x_size = x_size,
+    y_size = y_size,
+    z_size = z_size,
+    output_interval = output_interval,
+    tmax = tmax,
+    output_file = "wave_Boussinesq.h5",
+)
