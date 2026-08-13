@@ -88,8 +88,7 @@ function turbulence_diffusion_coefficient end
     (; nz, ko, k0, k1) = state.domain
 
     if (
-        (ko == 0 && k < k0) ||
-        (ko + nz == z_size && k > k1) &&
+        ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1)) &&
         vertical_boundary_condition === :SolidWall
     )
         km = -lv * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
@@ -115,8 +114,7 @@ end
     (; nz, ko, k0, k1) = state.domain
 
     if (
-        (ko == 0 && k < k0) ||
-        (ko + nz == z_size && k > k1) &&
+        ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1)) &&
         vertical_boundary_condition === :SolidWall
     )
         kh = -lb * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
@@ -142,8 +140,7 @@ end
     (; nz, ko, k0, k1) = state.domain
 
     if (
-        (ko == 0 && k < k0) ||
-        (ko + nz == z_size && k > k1) &&
+        ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1)) &&
         vertical_boundary_condition === :SolidWall
     )
         kek = -lt * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))

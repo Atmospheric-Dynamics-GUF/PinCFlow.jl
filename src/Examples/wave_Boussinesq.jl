@@ -1,6 +1,6 @@
 function wave_Boussinesq(;
     output_file::AbstractString = "wave_Boussinesq.h5",
-    prepare_restart::Bool = false,
+    prepare_restart::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
@@ -78,10 +78,7 @@ function wave_Boussinesq(;
             uhat(state, parameters, x, y, z) *
             exp(1im * phi(parameters, x, y, z)),
         ),
-        initial_v = (x, y, z) -> real(
-            vhat(state, parameters, x, y, z) *
-            exp(1im * phi(parameters, x, y, z)),
-        ),
+        initial_v = (x, y, z) -> 0.0,
         initial_w = (x, y, z) -> real(
             what(state, parameters, x, y, z) *
             exp(1im * phi(parameters, x, y, z)),
@@ -103,55 +100,13 @@ function wave_Boussinesq(;
 
     poisson = PoissonNamelist(; initial_cleaning = true)
 
-    turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme,
-    momentum_coupling = false,
-    tracer_coupling = false,)
-
-    kenv = 2 * pi / lx
-    lenv = 0.0
-    menv = 2 * pi / lz
-
-    function chils(x::Real, y::Real, z::Real)
-        return 1/2^3 *
-               (1 + cos(kenv * x)) *
-               (1 + cos(lenv * y)) *
-               (1 + cos(menv * (z - lz / 2)))
-    end
-
-    function dxchils(x::Real, y::Real, z::Real)
-        return -kenv/2^3 *
-               sin(kenv * x) *
-               (1 + cos(lenv * y)) *
-               (1 + cos(menv * (z - lz / 2)))
-    end
-
-    function dychils(x::Real, y::Real, z::Real)
-        return -lenv/2^3 *
-               (1 + cos(kenv * x)) *
-               sin(lenv * y) *
-               (1 + cos(menv * (z - lz / 2)))
-    end
-
-    function dzchils(x::Real, y::Real, z::Real)
-        return -menv/2^3 *
-               (1 + cos(kenv * x)) *
-               (1 + cos(lenv * y)) *
-               sin(menv * z)
-    end
-
-    tracer = TracerNamelist(;
-        tracer_setup = :TracerOn,
-        initial_chi = (x, y, z) ->
-            chils(x, y, z) + real(
-                -1im/omega(state, parameters, x, y, z) *
-                (
-                    uhat(state, parameters, x, y, z) * dxchils(x, y, z) +
-                    vhat(state, parameters, x, y, z) * dychils(x, y, z) +
-                    what(state, parameters, x, y, z) * dzchils(x, y, z)
-                ) *
-                exp(1im * phi(parameters, x, y, z)),
-            ),
+    turbulence = TurbulenceNamelist(;
+        turbulence_scheme = :TKEScheme,
+        momentum_coupling = true,
+        entropy_coupling = true,
     )
+
+    tracer = TracerNamelist(; tracer_setup = :NoTracer)
 
     integrate(
         Namelists(;
@@ -167,3 +122,18 @@ function wave_Boussinesq(;
 
     return
 end
+
+x_size = 32
+y_size = 16
+z_size = 32
+output_interval = 60.0
+tmax = 60.0
+
+wave_Boussinesq(;
+    x_size = x_size,
+    y_size = y_size,
+    z_size = z_size,
+    output_interval = output_interval,
+    tmax = tmax,
+    output_file = "wave_Boussinesq.h5",
+)

@@ -190,7 +190,7 @@ end
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
@@ -232,7 +232,7 @@ end
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
@@ -327,7 +327,7 @@ end
     variable::RhoP,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size, nbz) = state.namelists.domain
+    (; z_size, nbz, vertical_boundary_condition) = state.namelists.domain
     (; g_ndim) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -346,9 +346,10 @@ end
             compute_pressure_gradient(state, dpip, i, j, k - 1, W())
         upper_gradient = compute_pressure_gradient(state, dpip, i, j, k, W())
 
-        if ko + k == k0
+        if ko + k == k0 && vertical_boundary_condition === :SolidWall
             lower_gradient = 0.0
-        elseif ko + k == z_size + nbz
+        elseif ko + k == z_size + nbz &&
+               vertical_boundary_condition === :SolidWall
             upper_gradient = 0.0
         end
 
