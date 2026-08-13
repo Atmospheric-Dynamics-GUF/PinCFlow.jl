@@ -90,19 +90,7 @@ export cold_bubble,
     vortex,
     wave_packet,
     wkb_mountain_wave,
-    wkb_wave_packet
-
-export bhat,
-    n2,
-    omega,
-    phi,
-    pihat,
-    rhobar,
-    thetabar,
-    uhat,
-    vhat,
-    wave_action_density,
-    envelope,
-    what
+    wkb_wave_packet,
+    wave_Boussinesq
 
 end

@@ -1,34 +1,31 @@
-using Pkg
-
-Pkg.activate("examples")
-
-using PinCFlow
-
 function wave_Boussinesq(;
     output_file::AbstractString = "wave_Boussinesq.h5",
     prepare_restart::Bool = false,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    x_size::Integer = 256,
-    y_size::Integer = 256,
-    z_size::Integer = 64,
+    x_size::Integer = 320,
+    y_size::Integer = 32,
+    z_size::Integer = 320,
     vertical_boundary_condition::Symbol = :Periodic,
+    visualize::Bool = false,
+    output_interval::AbstractFloat = 100.0,
+    tmax::AbstractFloat = 100.0,
 )
-    lx = 30.0e3
+    lx = 400.0e3
     ly = 30.0e3
-    lz = 1.0e3
+    lz = 10.0e3
 
     parameters = (
-        k = 2 * pi / lx,
-        l = 0.0,
-        m = 2 * pi / lz,
+        k = 0.0,
+        l = 2 * pi / ly,
+        m = 20 * pi / lz,
         rx = 0.0,
         ry = 0.0,
-        rz = 0.0, # 5.0e3,
+        rz = 0.0,
         x0 = 0.0,
         y0 = 0.0,
-        z0 = 15.0e3,
+        z0 = 0.0,
         a0 = 0.7,
         version = 2,
     )
@@ -98,17 +95,63 @@ function wave_Boussinesq(;
 
     output = OutputNamelist(;
         output_file,
-        output_interval = 100.0,
-        output_variables = [:thetap, :w, :u, :aux],
+        output_interval,
+        output_variables = [:rhop, :w, :v, :u, :tke],
         prepare_restart,
-        tmax = 2000.0,
+        tmax,
     )
 
     poisson = PoissonNamelist(; initial_cleaning = true)
 
-    turbulence = TurbulenceNamelist(; turbulence_scheme = :NoTurbulence)
+    turbulence = TurbulenceNamelist(; turbulence_scheme = :TKEScheme,
+    momentum_coupling = false,
+    tracer_coupling = false,)
 
-    tracer = TracerNamelist(; tracer_setup = :NoTracer)
+    kenv = 2 * pi / lx
+    lenv = 0.0
+    menv = 2 * pi / lz
+
+    function chils(x::Real, y::Real, z::Real)
+        return 1/2^3 *
+               (1 + cos(kenv * x)) *
+               (1 + cos(lenv * y)) *
+               (1 + cos(menv * (z - lz / 2)))
+    end
+
+    function dxchils(x::Real, y::Real, z::Real)
+        return -kenv/2^3 *
+               sin(kenv * x) *
+               (1 + cos(lenv * y)) *
+               (1 + cos(menv * (z - lz / 2)))
+    end
+
+    function dychils(x::Real, y::Real, z::Real)
+        return -lenv/2^3 *
+               (1 + cos(kenv * x)) *
+               sin(lenv * y) *
+               (1 + cos(menv * (z - lz / 2)))
+    end
+
+    function dzchils(x::Real, y::Real, z::Real)
+        return -menv/2^3 *
+               (1 + cos(kenv * x)) *
+               (1 + cos(lenv * y)) *
+               sin(menv * z)
+    end
+
+    tracer = TracerNamelist(;
+        tracer_setup = :TracerOn,
+        initial_chi = (x, y, z) ->
+            chils(x, y, z) + real(
+                -1im/omega(state, parameters, x, y, z) *
+                (
+                    uhat(state, parameters, x, y, z) * dxchils(x, y, z) +
+                    vhat(state, parameters, x, y, z) * dychils(x, y, z) +
+                    what(state, parameters, x, y, z) * dzchils(x, y, z)
+                ) *
+                exp(1im * phi(parameters, x, y, z)),
+            ),
+    )
 
     integrate(
         Namelists(;
