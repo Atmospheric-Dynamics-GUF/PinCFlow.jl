@@ -116,10 +116,42 @@ function update_wave_spectrum!(
     end
 
     #----------------------------------------------------------
+    # Diagnostic: check whether the explicit Euler update would
+    # produce negative wave-action density.
+    #----------------------------------------------------------
+
+    for mi in eachindex(m), kpi in eachindex(kp)
+        was = wavespectrum[ii, jj, kk, kpi, mi]
+        st = col_int[ii, jj, kk, kpi, mi]
+
+        was_new = was + dtau * st
+
+        if was_new < 0.0
+            relative_increment =
+                was > 0.0 ? dtau * abs(st) / was : Inf
+
+            println("")
+            println("NEGATIVE WAVE SPECTRUM PREDICTED")
+            println("  physical cell     = ", (ii, jj, kk))
+            println("  spectral index    = ", (kpi, mi))
+            println("  kp                = ", kp[kpi])
+            println("  m                 = ", m[mi])
+            println("  wavespectrum      = ", was)
+            println("  col_int           = ", st)
+            println("  dtau              = ", dtau)
+            println("  dtau*|St|/N       = ", relative_increment)
+            println("  tau_nl            = ", tau_nl)
+            println("  dtau/tau_nl       = ",
+                isfinite(tau_nl) ? dtau / tau_nl : 0.0)
+            println("  predicted spectrum = ", was_new)
+            println("")
+
+            error("Negative wave-action density predicted by triad Euler update")
+        end
+    end
+
+    #----------------------------------------------------------
     # Explicit Euler update.
-    #
-    # Apply the complete collision integral to preserve the
-    # discrete transfer structure among the spectral cells.
     #----------------------------------------------------------
 
     @ivy for mi in eachindex(m), kpi in eachindex(kp)
