@@ -5,6 +5,6 @@ function compute_omega_hat(
     mr::AbstractFloat,
     )::AbstractFloat
 
-    return  abs(kpr) / sqrt(kpr^2 + mr^2)  #the multiplication of the bruint viasala frequency have been accounted in the prefactor in compute_st_k
+    return  abs(kpr) / abs(mr)  #the multiplication of the bruint viasala frequency have been accounted in the prefactor in compute_st_k
 
 end

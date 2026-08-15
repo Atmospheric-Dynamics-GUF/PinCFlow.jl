@@ -46,8 +46,6 @@ function compute_st_k(
             stk += i_p_k12 * (n1 * n2 * i_p_k12 - nk * n1 * i_m_2k1 - nk * n2 * i_m_1k2) / abs(dg)
         end
     end
-
-    stk *= nn 
      
     return stk
 
@@ -101,7 +99,7 @@ function compute_st_k(
         end
     end   
     
-    stk *= (2 * nn) 
+    stk *= 2 
      
     return stk
 
