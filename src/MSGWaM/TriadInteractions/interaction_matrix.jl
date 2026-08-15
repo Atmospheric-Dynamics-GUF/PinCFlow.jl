@@ -11,11 +11,7 @@ function interaction_matrix(
     triad_mode::Triad2D,
     )::AbstractFloat
  
-<<<<<<< HEAD
-    v_k12 = - sqrt(kpr * kp1 * kp2 / (abs(mr * m1 * m2))) *    #for the hydrostatic case
-=======
     v_k12_p = - sqrt(kpr * kp1 * kp2 / (abs(mr * m1 * m2))) *    #for the hydrostatic case
->>>>>>> 9fc4c86c28f63b7940afe8f655ea9129a79106be
             (kp1 * m2 - kp2 * m1) * 
             (sign(kpr * kp2) * abs(mr * m2) - sign(kpr * kp1) * abs(mr * m1) - mr * m1 + mr * m2) /
             2 / sqrt(2)  / kpr / abs(m1 * m2)
@@ -26,11 +22,7 @@ function interaction_matrix(
     #           (kp1 * m2 - kp2 * m1) *
     #           (kpr * kp2 / (omegar * omega2) - kpr * kp1 / (omegar * omega1) - mr * m1 + mr * m2) /
     #           2 / sqrt(2)  / kpr / kp1 / kp2    #it has to be noted that all apearance of N is avoided here and have been explicitly included in compute_st_k
-<<<<<<< HEAD
-    return v_k12
-=======
     return v_k12_p
->>>>>>> 9fc4c86c28f63b7940afe8f655ea9129a79106be
 end
 
 function interaction_matrix(
@@ -44,11 +36,7 @@ function interaction_matrix(
     triad_mode::Triad2D,
     )::AbstractFloat
  
-<<<<<<< HEAD
-    v_k12 = - sqrt(kpr * kp1 * kp2 / (abs(mr * m1 * m2))) *
-=======
     v_k12_m = - sqrt(kpr * kp1 * kp2 / (abs(mr * m1 * m2))) *
->>>>>>> 9fc4c86c28f63b7940afe8f655ea9129a79106be
             (kp1 * m2 - kp2 * m1) * 
             (sign(kpr * kp2) * abs(mr * m2) - sign(kpr * kp1) * abs(mr * m1) - mr * m1 - mr * m2) /
             2 / sqrt(2)  / kpr / abs(m1 * m2)  
@@ -59,11 +47,7 @@ function interaction_matrix(
     #           (kp1 * m2 - kp2 * m1) *
     #           (kpr * kp2 / (omegar * omega2) - kpr * kp1 / (omegar * omega1) - mr * m1 - mr * m2 - 2) /
     #           2 / sqrt(2)  / kpr / kp1 / kp2 #it has to be noted that all apearance of N is avoided here and have been explicitly included in compute_st_k
-<<<<<<< HEAD
-    return v_k12         
-=======
     return v_k12_m         
->>>>>>> 9fc4c86c28f63b7940afe8f655ea9129a79106be
 end
 
 function interaction_matrix(
