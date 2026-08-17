@@ -11,7 +11,7 @@ function get_dephasing_time(
 
     (; spec_tend) = state.wkb
     (; wavespectrum, col_int, action_ref) = spec_tend
-    (; kp, m, delkp, delm) = spec_tend.spec_grid
+    (; kp, m, kpc, delkp, delm) = spec_tend.spec_grid
     (; aa, la, qq, lq) = spec_tend.kin_box
     (; action_rel_tol, increment_rel_tol) = state.namelists.triad
 
@@ -46,7 +46,7 @@ function get_dephasing_time(
     dephasing_time_min = Inf
     eps_denom = 1.0e-14
 
-    for mi in eachindex(m), kpi in eachindex(kp)
+    @ivy for mi in eachindex(m), kpi in eachindex(kp)
         was = wavespectrum[ii, jj, kk, kpi, mi]
         st = col_int[ii, jj, kk, kpi, mi]
 
@@ -80,133 +80,134 @@ function get_dephasing_time(
         #------------------------------------------------------
         # Sum interaction manifold
         #------------------------------------------------------
+        if kp_parent > 2.0 * kpc[1]
+            for ai in 1:la[kpi]
 
-        for ai in 1:la[kpi]
+                #--------------------------------------------------
+                # Left branch
+                #--------------------------------------------------
 
-            #--------------------------------------------------
-            # Left branch
-            #--------------------------------------------------
+                p_left = aar[ai] - kp_parent
+                kp_1, kp_2 = compute_kp1kp2(kp_parent, p_left, Sum())
 
-            p_left = aar[ai] - kp_parent
-            kp_1, kp_2 = compute_kp1kp2(kp_parent, p_left, Sum())
+                m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Sum())
 
-            m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Sum())
+                dephasing_time_min = update_dephasing_time(
+                    dephasing_time_min,
+                    n_local,
+                    dudz,
+                    dndz,
+                    kp_parent,
+                    m_parent,
+                    kp_1,
+                    m_1,
+                    kp_2,
+                    m_2,
+                    eps_denom,
+                    Sum(),
+                )
 
-            dephasing_time_min = update_dephasing_time(
-                dephasing_time_min,
-                n_local,
-                dudz,
-                dndz,
-                kp_parent,
-                m_parent,
-                kp_1,
-                m_1,
-                kp_2,
-                m_2,
-                eps_denom,
-                Sum(),
-            )
+                m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Difference())
 
-            m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Difference())
+                dephasing_time_min = update_dephasing_time(
+                    dephasing_time_min,
+                    n_local,
+                    dudz,
+                    dndz,
+                    kp_parent,
+                    m_parent,
+                    kp_1,
+                    m_1,
+                    kp_2,
+                    m_2,
+                    eps_denom,
+                    Sum(),
+                )
 
-            dephasing_time_min = update_dephasing_time(
-                dephasing_time_min,
-                n_local,
-                dudz,
-                dndz,
-                kp_parent,
-                m_parent,
-                kp_1,
-                m_1,
-                kp_2,
-                m_2,
-                eps_denom,
-                Sum(),
-            )
+                #--------------------------------------------------
+                # Right branch
+                #--------------------------------------------------
 
-            #--------------------------------------------------
-            # Right branch
-            #--------------------------------------------------
+                p_right = kp_parent - aar[ai]
+                kp_1, kp_2 = compute_kp1kp2(kp_parent, p_right, Sum())
 
-            p_right = kp_parent - aar[ai]
-            kp_1, kp_2 = compute_kp1kp2(kp_parent, p_right, Sum())
+                m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Sum())
 
-            m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Sum())
+                dephasing_time_min = update_dephasing_time(
+                    dephasing_time_min,
+                    n_local,
+                    dudz,
+                    dndz,
+                    kp_parent,
+                    m_parent,
+                    kp_1,
+                    m_1,
+                    kp_2,
+                    m_2,
+                    eps_denom,
+                    Sum(),
+                )
 
-            dephasing_time_min = update_dephasing_time(
-                dephasing_time_min,
-                n_local,
-                dudz,
-                dndz,
-                kp_parent,
-                m_parent,
-                kp_1,
-                m_1,
-                kp_2,
-                m_2,
-                eps_denom,
-                Sum(),
-            )
+                m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Difference())
 
-            m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Sum(), Difference())
-
-            dephasing_time_min = update_dephasing_time(
-                dephasing_time_min,
-                n_local,
-                dudz,
-                dndz,
-                kp_parent,
-                m_parent,
-                kp_1,
-                m_1,
-                kp_2,
-                m_2,
-                eps_denom,
-                Sum(),
-            )
+                dephasing_time_min = update_dephasing_time(
+                    dephasing_time_min,
+                    n_local,
+                    dudz,
+                    dndz,
+                    kp_parent,
+                    m_parent,
+                    kp_1,
+                    m_1,
+                    kp_2,
+                    m_2,
+                    eps_denom,
+                    Sum(),
+                )
+            end
         end
-
         #------------------------------------------------------
         # Difference interaction manifold
         #------------------------------------------------------
+        if kp_parent < kpc[end] - kpc[1]
+            for qi in 1:lq[kpi]
+                q_val = qqr[qi]
+                kp_1, kp_2 = compute_kp1kp2(kp_parent, q_val, Difference())
 
-        for qi in 1:lq[kpi]
-            q_val = qqr[qi]
-            kp_1, kp_2 = compute_kp1kp2(kp_parent, q_val, Difference())
+                m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Difference(), Sum())
 
-            m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Difference(), Sum())
+                dephasing_time_min = update_dephasing_time(
+                    dephasing_time_min,
+                    n_local,
+                    dudz,
+                    dndz,
+                    kp_parent,
+                    m_parent,
+                    kp_1,
+                    m_1,
+                    kp_2,
+                    m_2,
+                    eps_denom,
+                    Difference(),
+                )
 
-            dephasing_time_min = update_dephasing_time(
-                dephasing_time_min,
-                n_local,
-                dudz,
-                dndz,
-                kp_parent,
-                m_parent,
-                kp_1,
-                m_1,
-                kp_2,
-                m_2,
-                eps_denom,
-                Difference(),
-            )
+                m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Difference(), Difference())
 
-            m_1, m_2 = compute_m1m2(kp_parent, kp_1, kp_2, m_parent, Difference(), Difference())
-
-            dephasing_time_min = update_dephasing_time(
-                dephasing_time_min,
-                n_local,
-                dudz,
-                dndz,
-                kp_parent,
-                m_parent,
-                kp_1,
-                m_1,
-                kp_2,
-                m_2,
-                eps_denom,
-                Difference(),
-            )
+                dephasing_time_min = update_dephasing_time(
+                    dephasing_time_min,
+                    n_local,
+                    dudz,
+                    dndz,
+                    kp_parent,
+                    m_parent,
+                    kp_1,
+                    m_1,
+                    kp_2,
+                    m_2,
+                    eps_denom,
+                    Difference(),
+                )
+            end
         end
     end
 

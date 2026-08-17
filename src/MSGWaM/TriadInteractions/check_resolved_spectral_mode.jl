@@ -8,12 +8,9 @@ function check_resolved_spectral_mode(
 )::Bool
     (; kpc, mc, ml) = spec_tend.spec_grid
 
-    if kpvalue < kpc[1] || kpvalue > kpc[end]
-        return false
-    end
-
     iz2 = ml ÷ 2 + 1
 
-    return (mc[1] <= mvalue <= mc[iz2]) ||
-           (mc[iz2 + 1] <= mvalue <= mc[end])
+    return kpc[1] <= kpvalue <= kpc[end] &&
+           ((mc[1] <= mvalue <= mc[iz2]) || (mc[iz2 + 1] <= mvalue <= mc[end]))
+
 end
