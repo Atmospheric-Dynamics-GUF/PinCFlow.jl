@@ -142,6 +142,60 @@ Singleton for implicit integration in time.
 """
 struct Implicit end
 
+"""
+```julia
+X
+```
+
+Singleton for dispatch to operations in ``x``-direction.
+"""
+struct X end
+
+"""
+```julia
+Y
+```
+
+Singleton for dispatch to operations in ``y``-direction.
+"""
+struct Y end
+
+"""
+```julia
+Z
+```
+
+Singleton for dispatch to operations in ``z``-direction.
+"""
+struct Z end
+
+"""
+```julia
+XZ
+```
+
+Singleton for dispatch to operations in ``x``- and ``z``-direction.
+"""
+struct XZ end
+
+"""
+```julia
+YZ
+```
+
+Singleton for dispatch to operations in ``y``- and ``z``-direction.
+"""
+struct YZ end
+
+"""
+```julia
+XYZ
+```
+
+Singleton for dispatch to operations in all directions.
+"""
+struct XYZ end
+
 include("NamelistTypes/NamelistTypes.jl")
 include("FoundationalTypes/FoundationalTypes.jl")
 include("PoissonTypes/PoissonTypes.jl")
@@ -172,7 +226,24 @@ export @dispatch_background,
 
 export AbstractPredictand
 
-export Rho, RhoP, U, V, W, PiP, P, Theta, Chi, TKE, Explicit, Implicit
+export Rho,
+    RhoP,
+    U,
+    V,
+    W,
+    PiP,
+    P,
+    Theta,
+    Chi,
+    TKE,
+    Explicit,
+    Implicit,
+    X,
+    Y,
+    Z,
+    XZ,
+    YZ,
+    XYZ
 
 export DomainNamelist,
     OutputNamelist,
@@ -203,6 +274,8 @@ export DomainNamelist,
     TracerWKBTendencies,
     TurbulencePredictands,
     TurbulenceReconstructions,
-    TurbulenceFluxes
+    TurbulenceFluxes,
+    TurbulenceWKBIntegrals,
+    TurbulenceWKBTendencies
 
 end

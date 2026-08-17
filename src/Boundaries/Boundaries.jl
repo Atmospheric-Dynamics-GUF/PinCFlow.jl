@@ -75,7 +75,7 @@ struct BoundaryWKBIntegrals <: AbstractBoundaryWKBVariables end
 
 """
 ```julia
-BoundaryWKBTendencies <: AbstractBoundaryVariables
+BoundaryWKBTendencies <: AbstractBoundaryWKBVariables
 ```
 
 Boundary-variable category for gravity-wave-tendency fields.
