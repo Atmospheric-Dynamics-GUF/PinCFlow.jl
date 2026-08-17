@@ -65,7 +65,7 @@ function launch_new_ray_vol!(state::State, i::Integer, j::Integer, k::Integer, k
         # Set ray-volume positions.
         rays.x[ray_index, i, j, k] = (x[i] - 0.5 * dx + (ix - 0.5) * dx / nrx)
         rays.y[ray_index, i, j, k] = y[j]
-            rays.z[ray_index, i, j, k] = (
+        rays.z[ray_index, i, j, k] = (
             zc[i, j, k] - 0.5 * jac[i, j, k] * dz +
             (kz - 0.5) * jac[i, j, k] * dz / nrz
             )

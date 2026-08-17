@@ -18,35 +18,36 @@ function compute_st_k(
     # k = 1 + 2, branch +
     (m1, m2) = compute_m1m2(kpr, kp1, kp2, mr, Sum(), Sum())
     #check_resonance(kpr, mr, kp1, m1, kp2, m2, Sum())
-
-    n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
-    @ivy if nk != 0 || n1 != 0
-        n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode)
-        if (nk != 0 && n1 != 0) || (nk != 0 && n2 != 0) || (n1 != 0 && n2 != 0) 
-            i_p_k12 = interaction_matrix(kpr, kp1, kp2, mr, m1, m2, Sum(), triad_mode)
-            i_m_2k1 = interaction_matrix(kp2, kpr, kp1, m2, mr, m1, Difference(), triad_mode)
-            i_m_1k2 = interaction_matrix(kp1, kpr, kp2, m1, mr, m2, Difference(), triad_mode)
-            dg = compute_g_prime(kp1, kp2, m1, m2)
-            stk += i_p_k12 * (n1 * n2 * i_p_k12 - nk * n1 * i_m_2k1 - nk * n2 * i_m_1k2) / abs(dg)
+    @ivy if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) && check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
+        n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
+        if nk != 0 || n1 != 0
+            n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode)
+            if (nk != 0 && n1 != 0) || (nk != 0 && n2 != 0) || (n1 != 0 && n2 != 0) 
+                i_p_k12 = interaction_matrix(kpr, kp1, kp2, mr, m1, m2, Sum(), triad_mode)
+                i_m_2k1 = interaction_matrix(kp2, kpr, kp1, m2, mr, m1, Difference(), triad_mode)
+                i_m_1k2 = interaction_matrix(kp1, kpr, kp2, m1, mr, m2, Difference(), triad_mode)
+                dg = compute_g_prime(kp1, kp2, m1, m2)
+                stk += i_p_k12 * (n1 * n2 * i_p_k12 - nk * n1 * i_m_2k1 - nk * n2 * i_m_1k2) / abs(dg)
+            end
         end
     end
 
     # k = 1 + 2, branch -
     (m1, m2) = compute_m1m2(kpr, kp1, kp2, mr, Sum(), Difference())
     #check_resonance(kpr, mr, kp1, m1, kp2, m2, Sum())
-    
-    n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
-    @ivy if nk != 0 || n1 != 0
-        n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode)
-        if (nk != 0 && n1 != 0) || (nk != 0 && n2 != 0) || (n1 != 0 && n2 != 0) 
-            i_p_k12 = interaction_matrix(kpr, kp1, kp2, mr, m1, m2, Sum(), triad_mode)
-            i_m_2k1 = interaction_matrix(kp2, kpr, kp1, m2, mr, m1, Difference(), triad_mode)
-            i_m_1k2 = interaction_matrix(kp1, kpr, kp2, m1, mr, m2, Difference(), triad_mode)
-            dg = compute_g_prime(kp1, kp2, m1, m2)
-            stk += i_p_k12 * (n1 * n2 * i_p_k12 - nk * n1 * i_m_2k1 - nk * n2 * i_m_1k2) / abs(dg)
+    @ivy if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) && check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
+        n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
+        if nk != 0 || n1 != 0
+            n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode)
+            if (nk != 0 && n1 != 0) || (nk != 0 && n2 != 0) || (n1 != 0 && n2 != 0) 
+                i_p_k12 = interaction_matrix(kpr, kp1, kp2, mr, m1, m2, Sum(), triad_mode)
+                i_m_2k1 = interaction_matrix(kp2, kpr, kp1, m2, mr, m1, Difference(), triad_mode)
+                i_m_1k2 = interaction_matrix(kp1, kpr, kp2, m1, mr, m2, Difference(), triad_mode)
+                dg = compute_g_prime(kp1, kp2, m1, m2)
+                stk += i_p_k12 * (n1 * n2 * i_p_k12 - nk * n1 * i_m_2k1 - nk * n2 * i_m_1k2) / abs(dg)
+            end
         end
     end
-     
     return stk
 
 end 
@@ -70,32 +71,33 @@ function compute_st_k(
     # 1 = k + 2, branch +
     (m1, m2) = compute_m1m2(kpr, kp1, kp2, mr, Difference(), Sum())
     #check_resonance(kpr, mr, kp1, m1, kp2, m2, Difference())
-    
-    n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
-    @ivy if nk != 0.0 || n1 != 0.0
-        n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode)
-        if (nk != 0 && n1 != 0) || (nk != 0 && n2 != 0) || (n1 != 0 && n2 != 0) 
-            i_p_1k2 = interaction_matrix(kp1, kpr, kp2, m1, mr, m2, Sum(), triad_mode)
-            i_m_21k = interaction_matrix(kp2, kp1, kpr, m2, m1, mr, Difference(), triad_mode)
-            i_m_k12 = interaction_matrix(kpr, kp1, kp2, mr, m1, m2, Difference(), triad_mode)
-            dg = compute_g_prime(kp1, kp2, m1, m2)
-            stk +=  i_m_k12 * (nk * n2 * i_p_1k2 - n1 * nk * i_m_21k -  n2 * n1 * i_m_k12) / abs(dg) 
-        end
-    end   
-
+    @ivy if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) && check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
+        n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
+        if nk != 0.0 || n1 != 0.0
+            n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode)
+            if (nk != 0 && n1 != 0) || (nk != 0 && n2 != 0) || (n1 != 0 && n2 != 0) 
+                i_p_1k2 = interaction_matrix(kp1, kpr, kp2, m1, mr, m2, Sum(), triad_mode)
+                i_m_21k = interaction_matrix(kp2, kp1, kpr, m2, m1, mr, Difference(), triad_mode)
+                i_m_k12 = interaction_matrix(kpr, kp1, kp2, mr, m1, m2, Difference(), triad_mode)
+                dg = compute_g_prime(kp1, kp2, m1, m2)
+                stk +=  i_m_k12 * (nk * n2 * i_p_1k2 - n1 * nk * i_m_21k -  n2 * n1 * i_m_k12) / abs(dg) 
+            end
+        end   
+    end
     # 1 = k + 2, branch -
     (m1, m2) = compute_m1m2(kpr, kp1, kp2, mr, Difference(), Difference())
     #check_resonance(kpr, mr, kp1, m1, kp2, m2, Difference())
-    
-    n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
-    @ivy if nk != 0.0 || n1 != 0.0
-        n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode)
-        if (nk != 0 && n1 != 0) || (nk != 0 && n2 != 0) || (n1 != 0 && n2 != 0) 
-            i_p_1k2 = interaction_matrix(kp1, kpr, kp2, m1, mr, m2, Sum(), triad_mode)
-            i_m_21k = interaction_matrix(kp2, kp1, kpr, m2, m1, mr, Difference(), triad_mode)
-            i_m_k12 = interaction_matrix(kpr, kp1, kp2, mr, m1, m2, Difference(), triad_mode)
-            dg = compute_g_prime(kp1, kp2, m1, m2)
-            stk +=  i_m_k12 * (nk * n2 * i_p_1k2 - n1 * nk * i_m_21k -  n2 * n1 * i_m_k12) / abs(dg)
+    @ivy if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) && check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
+        n1 = interpolate_nk(spec_tend, kp1, m1, triad_mode)
+        if nk != 0.0 || n1 != 0.0
+            n2 = interpolate_nk(spec_tend, kp2, m2, triad_mode)
+            if (nk != 0 && n1 != 0) || (nk != 0 && n2 != 0) || (n1 != 0 && n2 != 0) 
+                i_p_1k2 = interaction_matrix(kp1, kpr, kp2, m1, mr, m2, Sum(), triad_mode)
+                i_m_21k = interaction_matrix(kp2, kp1, kpr, m2, m1, mr, Difference(), triad_mode)
+                i_m_k12 = interaction_matrix(kpr, kp1, kp2, mr, m1, m2, Difference(), triad_mode)
+                dg = compute_g_prime(kp1, kp2, m1, m2)
+                stk +=  i_m_k12 * (nk * n2 * i_p_1k2 - n1 * nk * i_m_21k -  n2 * n1 * i_m_k12) / abs(dg)
+            end
         end
     end   
     
