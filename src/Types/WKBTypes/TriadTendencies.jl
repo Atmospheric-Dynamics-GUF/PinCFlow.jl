@@ -116,31 +116,45 @@ function TriadTendencies(namelists::Namelists,
 
     spec_grid = SpectralGrid(namelists, constants, wkb_mode, triad_mode)
     
-    (; kp, m, kpl, ml) = spec_grid
+    (; kp, m, kpc, kpl, ml) = spec_grid
 
     # kinematic box and interpolation coefficients for 3D model
     #currently the model needs 
     if kpl > 1 && ml > 1
-        kpmin = kp[1] 
-        kpmax = kp[end]
-          
-        #amin = (kpmin / kpl) .* ones(kpl)
-        amin = (kpmin / (1.0 + eps())) .* ones(kpl)
         amax = Float64.(kp)
-        ma = Int.(max.(8*ones(kpl), 1:kpl)) 
-        if triad_mode == Triad3DIso() 
+        ma = Int.(max.(8 * ones(kpl), 1:kpl))
+
+        if triad_mode == Triad3DIso()
+            kpmin = kp[1]
+            kpmax = kp[end]
+
+            amin = (kpmin / (1.0 + eps())) .* ones(kpl)
             mq = Int.(2 * kpl .* ones(kpl))
             qmin = ones(kpl) .* (kpmin / mq[1])
             qmax = ones(kpl) .* (2.0 * kpmax)
+
         else
-            mq = reverse(Int.(max.(8*ones(kpl), 2 .* (1:kpl))))
-            #qmin = ones(kpl) .* (kpmin / mq[1])
-            qmin = ones(kpl) .* (kpmin / (1.0 + eps()))
-            qmax = ones(kpl) .* (2.0 * kpmax)
+            kpmin = kpc[1]
+            kpmax = kpc[end]
+
+            mq = reverse(Int.(max.(8 * ones(kpl), 2 .* (1:kpl))))
+            amin = similar(kp)
+            qmin = similar(kp)
+            qmax = similar(kp)
+
+            for kpi in eachindex(kp)
+                kr = kp[kpi]
+
+                amin[kpi] = kr > 2.0 * kpmin ? 2.0 * kpmin : 0.5 * kr
+
+                q_upper = 2.0 * (kpmax - kr)
+                qmin[kpi] = q_upper > 2.0 * kpmin ? 2.0 * kpmin : 0.5 * q_upper
+                qmax[kpi] = q_upper
+            end
         end
 
         kin_box = KinematicBox(amin, amax, ma, qmin, qmax, mq, wkb_mode, triad_mode)
-      
+        
     else
         error("Error in triad domain configurations, don't meet the specification for either 2D or 3D model")
     end

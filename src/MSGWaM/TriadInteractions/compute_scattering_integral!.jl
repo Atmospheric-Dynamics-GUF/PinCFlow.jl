@@ -10,7 +10,7 @@ function compute_scattering_integral!(
     triad_mode::Triad2D
     )
     (; spec_tend) = state.wkb
-    (; kp, m, kpl, ml) = spec_tend.spec_grid
+   (; kp, m, kpl, kpc) = spec_tend.spec_grid
     (; aa, la, qq, lq, lia, liq, loglia, logliq) = spec_tend.kin_box
     (; wavespectrum, col_int) = spec_tend
     (; n2) = state.atmosphere
@@ -25,7 +25,8 @@ function compute_scattering_integral!(
     #@assert length(spec_tend.scratch) == ntasks
     #@assert length(spec_tend.partition) == ntasks
 
-     
+    kpmin = kpc[1]
+    kpmax = kpc[end]
 
      @sync for tid in 1:ntasks
             inds = spec_tend.partition[tid]
@@ -52,32 +53,39 @@ function compute_scattering_integral!(
                     fill!(view(fpr, 1:la[kpi]), 0.0)
                     fill!(view(fq,  1:lq[kpi]), 0.0)
 
-                    for i in 1:(la[kpi]) #for p ∈ (-kr, kr)
-                        pl = aar[i] - kr  #for the left part of kinematic box, also as aar never equal to zero, so p = \pm 1 is not included here
-                        pr = kr - aar[i]  #for the right part of kinematic box
+                    sum_integral = 0.0
 
-                        if i == la[kpi] # to avoid to count p = 0 twice
+                    if kr > 2.0 * kpmin
+                        for i in 1:la[kpi]
+                            pl = aar[i] - kr
+                            pr = kr - aar[i]
+
                             fpl[i] = compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, nn, triad_mode, Sum())
-                            fpr[i] = 0.0
-                        else
-                            fpl[i] = compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, nn, triad_mode, Sum())
-                            fpr[i] = compute_st_k(spec_tend, pr, 0.0, nk, kr, mr, nn, triad_mode, Sum())
-                        end    
+
+                            if i == la[kpi]
+                                fpr[i] = fpl[i]
+                            else
+                                fpr[i] = compute_st_k(spec_tend, pr, 0.0, nk, kr, mr, nn, triad_mode, Sum())
+                            end
+                        end
+
+                        sum_integral = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) +
+                                    trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi])
                     end
-                    #if kpi == kpl
-                    #    col_int[ii, jj, kk, kpi, mi] = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) + 
-                    #                                trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi])
-                    #else
-                    for j in 1:(lq[kpi])
-                        q = qqr[j]
-                        fq[j] = compute_st_k(spec_tend, 0.0, q, nk, kr, mr, nn, triad_mode, Difference())
+                    #difference interactions
+                    difference_integral = 0.0
+
+                    if kr < kpmax - kpmin
+                        for j in 1:lq[kpi]
+                            q = qqr[j]
+                            fq[j] = compute_st_k(spec_tend, 0.0, q, nk, kr, mr, nn, triad_mode, Difference())
+                        end
+
+                        difference_integral = trapazoidal_with_logbin(fq, qqr, lq[kpi], liq[kpi], logliq[kpi])
                     end
-                    col_int[ii, jj, kk, kpi, mi] = trapazoidal_with_logbin(view(fpl,1:la[kpi]), aar, la[kpi], lia[kpi], loglia[kpi]) + 
-                                                trapazoidal_with_logbin(view(fpr,1:la[kpi]), aar, la[kpi], lia[kpi], loglia[kpi]) -
-                                                trapazoidal_with_logbin(view(fq, 1:lq[kpi]), qqr, lq[kpi], liq[kpi], logliq[kpi])
                     #end
                     # Singularities p=±kr, yet to define
-                    col_int[ii, jj, kk, kpi, mi] *= (2 * pi) 
+                    col_int[ii, jj, kk, kpi, mi] = 2.0 * pi * (sum_integral - difference_integral)
                 end
             end
                 
