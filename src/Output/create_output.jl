@@ -21,7 +21,7 @@ function create_output(state::State, machine_start_time::DateTime)
     (; wkb_mode) = state.namelists.wkb
     (; comm, master) = state.domain
     (; nray_max) = state.wkb
-    (; kpl, ml) = state.wkb.spec_tend.spec_grid
+    (; kpl, ml) = state.spec_tend.spec_grid
     (; triad_mode) = state.namelists.triad
     
 

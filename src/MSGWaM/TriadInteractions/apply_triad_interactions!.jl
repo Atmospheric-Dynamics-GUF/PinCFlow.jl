@@ -26,7 +26,7 @@ function apply_triad_interactions!(state::State,
     (; domain, grid) = state
     (; branch) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = domain
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; compute_dephasing_time, nthreads_triad, smooth_wave_spectrum) = state.namelists.triad
     (; tref) = state.constants
     (; nl_time_scale, dephasing_time, prev_dt) = spec_tend
@@ -41,6 +41,7 @@ function apply_triad_interactions!(state::State,
     end
 
     get_wave_spectrum!(state)
+    
     if smooth_wave_spectrum
         smooth_wave_spectrum!(state)
     else
@@ -53,7 +54,7 @@ function apply_triad_interactions!(state::State,
 
     nl_time_scale .= Inf
     dephasing_time .= Inf
-
+    
     @ivy for kk in k0:k1,
         jj in j0:j1,
         ii in i0:i1
@@ -63,6 +64,7 @@ function apply_triad_interactions!(state::State,
     end
     
     diagnose_triad_energy(state, triad_mode)
+    
     get_ray_volumes!(state, triad_mode)
 
     if master

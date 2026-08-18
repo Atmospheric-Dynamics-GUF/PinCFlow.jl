@@ -18,6 +18,13 @@ function KinematicBox(wkb_mode::Union{NoWKB, SteadyState, SingleColumn, MultiCol
 
 end
 
+function KinematicBox(wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    triad_mode::Union{Triad2D, Triad3DIso})::KinematicBox
+
+    return KinematicBox(Int[], Int[], Float64[], Float64[], Float64[], Float64[],
+        Vector{Vector{Float64}}(), Vector{Vector{Float64}}())
+end
+
 
 function KinematicBox(amin::Vector{Float64}, 
     amax::Vector{Float64}, la::Vector{Int}, 

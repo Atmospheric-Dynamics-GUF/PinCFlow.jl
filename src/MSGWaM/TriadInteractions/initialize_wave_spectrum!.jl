@@ -25,7 +25,7 @@ function initialize_wave_spectrum!(
     (; nthreads_triad, compute_dephasing_time, action_rel_tol) =
         state.namelists.triad
 
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, nl_time_scale, dephasing_time, prev_dt, action_ref) =
         spec_tend
 
@@ -42,7 +42,7 @@ function initialize_wave_spectrum!(
 
     # Project the initialized rays onto the wave-spectrum grid.
     get_wave_spectrum!(state, wkb_mode, triad_mode)
-
+    
     # Compute the reference action once from the initialized
     # spectral modes.
     compute_action_ref!(state; support_tol = 0.0, diagonal_connectivity = false, verify = true)
@@ -58,7 +58,7 @@ function initialize_wave_spectrum!(
     # nonlinear and dephasing times.
     nl_time_scale .= Inf
     dephasing_time .= Inf
-
+    
     if compute_dephasing_time && triad_mode isa Triad3DIso
         error("Dephasing-time calculation is currently implemented only for Triad2D.")
     end
@@ -105,7 +105,7 @@ function initialize_wave_spectrum!(
             dephasing_time[ii, jj, kk] = tau_pl
         end
     end
-
+    
     # Disable timestep-growth restriction for the first step.
     prev_dt[] = Inf
 

@@ -88,10 +88,11 @@ function write_output(
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
-    (; nray_max, rays, tendencies, spec_tend) = state.wkb
-    (; kpl, ml) = state.wkb.spec_tend.spec_grid
+    (; nray_max, rays, tendencies) = state.wkb
+    (; spec_tend) = state
+    (; kpl, ml) = state.spec_tend.spec_grid
     (; triad_mode) = state.namelists.triad
-    (; kp, m) = state.wkb.spec_tend.spec_grid
+    (; kp, m) = state.spec_tend.spec_grid
 
     # Print information.
     if master

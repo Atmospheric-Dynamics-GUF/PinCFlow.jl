@@ -11,7 +11,8 @@ function get_ray_volumes!(
     (; x_size, y_size) = state.namelists.domain
     (; launch_rays_action_rel_tol, discarded_action_fraction_tol) = state.namelists.triad
 
-    (; nray, rays, spec_tend) = state.wkb
+    (; nray, rays) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, was_pred, was_ray_signature, action_ref) = spec_tend
     (; kp, m, kpc, mc, delkp, delm) = spec_tend.spec_grid
 
@@ -120,9 +121,14 @@ function get_ray_volumes!(
                             max(zr - dzr / 2, zctilde[iray, jray, kray - 1])
 
                         for kpray in kpmin:kpmax
-                            dkpi =
-                                min(kpr + dkr / 2, kpc[kpray + 1]) -
-                                max(kpr - dkr / 2, kpc[kpray])
+                            if x_size > 1
+                                dkpi =
+                                    min(kpr + dkr / 2, kpc[kpray + 1]) -
+                                    max(kpr - dkr / 2, kpc[kpray])
+                            else
+                                dkpi = 1.0
+                                dkpr = 1.0
+                            end
 
                             for mray in mmin:mmax
                                 if mr >= 0.0
@@ -135,21 +141,8 @@ function get_ray_volumes!(
                                         max(mr - dmr / 2, mc[mray])
                                 end
 
-                                was0 = was_pred[
-                                    iray,
-                                    jray,
-                                    kray,
-                                    kpray,
-                                    mray,
-                                ]
-
-                                was1 = wavespectrum[
-                                    iray,
-                                    jray,
-                                    kray,
-                                    kpray,
-                                    mray,
-                                ]
+                                was0 = was_pred[iray, jray, kray, kpray, mray]
+                                was1 = wavespectrum[iray, jray, kray, kpray, mray]
 
                                 if was0 <= 0.0 || was1 == 0.0
                                     continue
@@ -209,6 +202,7 @@ function get_ray_volumes!(
             was = wavespectrum[i, j, k, kpi, mi]
             was_sig = was_ray_signature[i, j, k, kpi, mi]
 
+            
             dkps = delkp[kpi]
             dms = delm[mi]
 
@@ -225,7 +219,7 @@ function get_ray_volumes!(
             if launch_new_ray
                 kps = kp[kpi]
                 ms = m[mi]
-
+                dkps = x_size > 1 ? delkp[kpi] : 0.0
                 launch_new_ray_vol!(
                     state,
                     i,
@@ -317,7 +311,8 @@ function get_ray_volumes!(state::State,
     (; domain, grid) = state
     (; branch) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = domain
-    (; nray, rays, spec_tend) = state.wkb
+    (; nray, rays) = state.wkb
+    (; spec_tend) = state
     (; kp, m) = spec_tend.spec_grid
     (;lref ) = state.constants
     (; dx, dy, dz, x, y, zc ,zctilde, jac) = state.grid

@@ -5,7 +5,7 @@ function apply_wave_spectrum_filter!(
     ::Shapiro,
     ::Z,
 )
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, was_pred) = spec_tend
     (; kp, m) = spec_tend.spec_grid
 
@@ -41,7 +41,7 @@ function apply_wave_spectrum_filter!(
     ::Shapiro,
     ::X,
 )
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, was_pred) = spec_tend
     (; kp, m) = spec_tend.spec_grid
 
@@ -77,7 +77,7 @@ function apply_wave_spectrum_filter!(
     ::Shapiro,
     ::Y,
 )
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, was_pred) = spec_tend
     (; kp, m) = spec_tend.spec_grid
 

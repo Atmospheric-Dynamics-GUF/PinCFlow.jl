@@ -56,7 +56,7 @@ function compute_time_step(state::State)::AbstractFloat
     (; wkb_mode) = state.namelists.wkb
     (; cgx_max, cgy_max, cgz_max) = state.wkb
     (; triad_mode, nl_cfl_number, pl_cfl_number, dt_growth_factor) = state.namelists.triad
-    (; nl_time_scale, dephasing_time, prev_dt) = state.wkb.spec_tend
+    (; nl_time_scale, dephasing_time, prev_dt) = state.spec_tend
 
     @ivy if !adaptive_time_step
         dt = dtmax / tref

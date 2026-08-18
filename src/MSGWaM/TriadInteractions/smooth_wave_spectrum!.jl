@@ -4,7 +4,7 @@ function smooth_wave_spectrum!(state::State)
     (; x_size, y_size) = state.namelists.domain
     (; filter_type, filter_order) = state.namelists.wkb
 
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, was_pred) = spec_tend
     (; kp, m) = spec_tend.spec_grid
 

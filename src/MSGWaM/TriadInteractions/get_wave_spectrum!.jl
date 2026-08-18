@@ -69,7 +69,8 @@ function get_wave_spectrum!(state::State,
     (; lref, tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = domain
     (; dx, dy, dz, x, y, zc, zctilde, jac) = grid
-    (; nray, rays, spec_tend) = state.wkb
+    (; nray, rays) = state.wkb
+    (; spec_tend) = state
     (; kpc, mc) = spec_tend.spec_grid
 
 
@@ -172,12 +173,15 @@ function get_wave_spectrum!(state::State,
                         fcpspz =  dzi / jac[iray, jray, kray] / dz
                         
                         for kpray in kpmin:kpmax
-                             dkpi = 
-                                min(kpr + dkr / 2, kpc[kpray + 1]) -  #kpi_i > 0, always lies between kpc_{i+1} to kpc_{i}
-                                max(kpr - dkr / 2, kpc[kpray] )
-                            dkp = kpc[kpray + 1] - kpc[kpray]
-                                      
-                            fcpspkp =  dkpi / dkp
+                            if x_size > 1
+                                dkpi = min(kpr + dkr / 2, kpc[kpray + 1]) -
+                                    max(kpr - dkr / 2, kpc[kpray])
+
+                                dkp = kpc[kpray + 1] - kpc[kpray]
+                                fcpspkp = dkpi / dkp
+                            else
+                                fcpspkp = 1.0
+                            end                            
 
                              for mray in mmin:mmax
                                 if mr >= 0       #becuase for mr > 0,  m_i > 0 always lies between mc_{i+2} to mc_{i+1}
@@ -228,7 +232,8 @@ function get_wave_spectrum!(state::State,
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; nray, rays, spec_tend) = state.wkb
+    (; nray, rays) = state.wkb
+(; spec_tend) = state
     (; kp, m) = spec_tend.spec_grid
 
 

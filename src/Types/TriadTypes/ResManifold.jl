@@ -20,6 +20,13 @@ function ResManifold(wkb_mode::Union{NoWKB, SteadyState, SingleColumn, MultiColu
 
 end
 
+function ResManifold(wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    triad_mode::Union{Triad2D, Triad3DIso})::ResManifold
+
+    return ResManifold(zeros(0), zeros(0), zeros(0), zeros(0), zeros(0), zeros(0),
+        zeros(0), zeros(0), zeros(0), zeros(0), zeros(0), zeros(0))
+end
+
 
 function ResManifold(l_sum::Integer,
    l_diff::Integer,

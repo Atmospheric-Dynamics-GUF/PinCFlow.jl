@@ -40,26 +40,66 @@ function SpectralGrid(namelists::Namelists,
     m_max = m_max * lref
     m_min = m_min * lref
 
-    #compute the grid in kp-direction
+    # Compute the grid in kp-direction.
 
-    if triad_mode == Triad2D() && k_size != 1 && x_size != 1
+    if triad_mode == Triad2D() && x_size == 1
+
+        if wkb_mode != SingleColumn()
+            error("Triad2D with x_size = 1 requires SingleColumn WKB mode.")
+        end
+
         kmin = (k_min == 1) ? (2π / lx) : (k_min * lref)
         kmax = k_max
+
+        dkp = 2π / lx
+
+        nmin = ceil(Int, kmin / dkp - 100 * eps(Float64))
+        nmax = floor(Int, kmax / dkp + 100 * eps(Float64))
+
+        if nmin < 1 || nmax < nmin
+            error("No discrete horizontal wave modes lie between k_min and k_max.")
+        end
+
+        kp = dkp .* collect(nmin:nmax)
+
+        if length(kp) != k_size
+            error("For x_size = 1, k_size must equal the number of discrete Fourier modes between k_min and k_max. Expected $(length(kp)), received $k_size.")
+        end
+
+        # k is discrete, so logarithmic-k quantities are not used.
+        lambdakp = 0.0
+        loglkp = 0.0
+
+    elseif triad_mode == Triad2D() && k_size != 1 && x_size != 1
+
+        kmin = (k_min == 1) ? (2π / lx) : (k_min * lref)
+        kmax = k_max
+
         kp = log_range(kmin, kmax, k_size)
         lambdakp = kp[2] / kp[1]
         loglkp = log(lambdakp)
+
     elseif triad_mode == Triad2D() && l_size != 1 && y_size != 1
+
         lmin = (l_min == 1) ? (2π / lx) : (l_min * lref)
         lmax = l_max
+
         kp = log_range(lmin, lmax, l_size)
         lambdakp = kp[2] / kp[1]
         loglkp = log(lambdakp)
-    elseif triad_mode == Triad3DIso() && k_size != 1 && y_size != 1 
-        kpmin = (k_min == 1 && l_min == 1) ? (sqrt((2 * pi / lx)^2 + (2 * pi / ly)^2)) : (sqrt((k_min * lref)^2 + (l_min * lref)^2))
+
+    elseif triad_mode == Triad3DIso() && k_size != 1 && y_size != 1
+
+        kpmin = (k_min == 1 && l_min == 1) ?
+            sqrt((2π / lx)^2 + (2π / ly)^2) :
+            sqrt((k_min * lref)^2 + (l_min * lref)^2)
+
         kpmax = sqrt(k_max^2 + l_max^2)
+
         kp = log_range(kpmin, kpmax, k_size)
         lambdakp = kp[2] / kp[1]
-        loglkp = log(lambdakp)   
+        loglkp = log(lambdakp)
+
     else
         kp = zeros(1)
         lambdakp = 0.0
@@ -93,9 +133,14 @@ function SpectralGrid(namelists::Namelists,
     delkp = zeros(kpl)
     delm = zeros(ml)
 
-    for kpi in eachindex(kp)
-        delkp[kpi] = kpc[kpi + 1] - kpc[kpi]
+    if x_size == 1
+    delkp .= 1.0
+    else
+        for kpi in eachindex(kp)
+            delkp[kpi] = kpc[kpi + 1] - kpc[kpi]
+        end
     end
+    
     for mi in eachindex(m)
         if m[mi] > 0 
             delm[mi] = mc[mi + 2] - mc[mi + 1]

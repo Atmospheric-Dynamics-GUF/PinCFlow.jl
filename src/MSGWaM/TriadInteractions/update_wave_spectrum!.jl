@@ -22,7 +22,7 @@ function update_wave_spectrum!(
     triad_mode::Union{Triad2D, Triad3DIso},
     time_scheme::EulerMethod,
 )
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, col_int, nl_time_scale, dephasing_time, action_ref) = spec_tend
     (; kp, m, delkp, delm) = spec_tend.spec_grid
 
@@ -171,7 +171,7 @@ function update_wave_spectrum!(
     triad_mode::Union{Triad2D, Triad3DIso},
     time_scheme::EulerMethod,
 )
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, col_int, nl_time_scale) = spec_tend
     (; kp, m) = spec_tend.spec_grid
     (; increment_rel_tol, action_abs_tol, action_rel_tol, st_abs_tol) = state.namelists.triad
@@ -214,7 +214,7 @@ function update_wave_spectrum!(
     triad_mode::Union{Triad2D, Triad3DIso},
     time_scheme::Rk2Step,
 )
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, col_int) = spec_tend
     (; kp, m) = spec_tend.spec_grid
 
