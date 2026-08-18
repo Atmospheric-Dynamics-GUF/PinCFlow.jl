@@ -107,6 +107,182 @@ function compute_st_k(
 
 end 
 
+#for x_size = 1
+function compute_st_k(
+    spec_tend::TriadTendencies,
+    was::AbstractMatrix{<:AbstractFloat},
+    kp1i::Integer,
+    kp2i::Integer,
+    nk::AbstractFloat,
+    kr::AbstractFloat,
+    mr::AbstractFloat,
+    triad_mode::Triad2D,
+    res_type::Sum,
+)::AbstractFloat
+
+    (; kp) = spec_tend.spec_grid
+
+    kp1 = kp[kp1i]
+    kp2 = kp[kp2i]
+
+    stk = 0.0
+
+    #----------------------------------------------------------
+    # k = 1 + 2, branch +
+    #----------------------------------------------------------
+
+    m1, m2 = compute_m1m2(kr, kp1, kp2, mr, Sum(), Sum())
+
+    if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) &&
+       check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
+
+        n1 = interpolate_nk(spec_tend, was, kp1i, m1, triad_mode)
+
+        @ivy if nk != 0.0 || n1 != 0.0
+            n2 = interpolate_nk(spec_tend, was, kp2i, m2, triad_mode)
+
+            if (nk != 0.0 && n1 != 0.0) ||
+               (nk != 0.0 && n2 != 0.0) ||
+               (n1 != 0.0 && n2 != 0.0)
+
+                i_p_k12 = interaction_matrix(kr, kp1, kp2, mr, m1, m2, Sum(), triad_mode)
+                i_m_2k1 = interaction_matrix(kp2, kr, kp1, m2, mr, m1, Difference(), triad_mode)
+                i_m_1k2 = interaction_matrix(kp1, kr, kp2, m1, mr, m2, Difference(), triad_mode)
+
+                dg = compute_g_prime(kp1, kp2, m1, m2)
+
+                stk += i_p_k12 *
+                       (n1 * n2 * i_p_k12 -
+                        nk * n1 * i_m_2k1 -
+                        nk * n2 * i_m_1k2) / abs(dg)
+            end
+        end
+    end
+
+    #----------------------------------------------------------
+    # k = 1 + 2, branch -
+    #----------------------------------------------------------
+
+    m1, m2 = compute_m1m2(kr, kp1, kp2, mr, Sum(), Difference())
+
+    if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) &&
+       check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
+
+        n1 = interpolate_nk(spec_tend, was, kp1i, m1, triad_mode)
+
+        @ivy if nk != 0.0 || n1 != 0.0
+            n2 = interpolate_nk(spec_tend, was, kp2i, m2, triad_mode)
+
+            if (nk != 0.0 && n1 != 0.0) ||
+               (nk != 0.0 && n2 != 0.0) ||
+               (n1 != 0.0 && n2 != 0.0)
+
+                i_p_k12 = interaction_matrix(kr, kp1, kp2, mr, m1, m2, Sum(), triad_mode)
+                i_m_2k1 = interaction_matrix(kp2, kr, kp1, m2, mr, m1, Difference(), triad_mode)
+                i_m_1k2 = interaction_matrix(kp1, kr, kp2, m1, mr, m2, Difference(), triad_mode)
+
+                dg = compute_g_prime(kp1, kp2, m1, m2)
+
+                stk += i_p_k12 *
+                       (n1 * n2 * i_p_k12 -
+                        nk * n1 * i_m_2k1 -
+                        nk * n2 * i_m_1k2) / abs(dg)
+            end
+        end
+    end
+
+    return stk
+end
+#for x_size = 1
+function compute_st_k(
+    spec_tend::TriadTendencies,
+    was::AbstractMatrix{<:AbstractFloat},
+    kp1i::Integer,
+    kp2i::Integer,
+    nk::AbstractFloat,
+    kr::AbstractFloat,
+    mr::AbstractFloat,
+    triad_mode::Triad2D,
+    res_type::Difference,
+)::AbstractFloat
+
+    (; kp) = spec_tend.spec_grid
+
+    kp1 = kp[kp1i]
+    kp2 = kp[kp2i]
+
+    stk = 0.0
+
+    #----------------------------------------------------------
+    # 1 = k + 2, branch +
+    #----------------------------------------------------------
+
+    m1, m2 = compute_m1m2(kr, kp1, kp2, mr, Difference(), Sum())
+
+    if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) &&
+       check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
+
+        n1 = interpolate_nk(spec_tend, was, kp1i, m1, triad_mode)
+
+        @ivy if nk != 0.0 || n1 != 0.0
+            n2 = interpolate_nk(spec_tend, was, kp2i, m2, triad_mode)
+
+            if (nk != 0.0 && n1 != 0.0) ||
+               (nk != 0.0 && n2 != 0.0) ||
+               (n1 != 0.0 && n2 != 0.0)
+
+                i_p_1k2 = interaction_matrix(kp1, kr, kp2, m1, mr, m2, Sum(), triad_mode)
+                i_m_21k = interaction_matrix(kp2, kp1, kr, m2, m1, mr, Difference(), triad_mode)
+                i_m_k12 = interaction_matrix(kr, kp1, kp2, mr, m1, m2, Difference(), triad_mode)
+
+                dg = compute_g_prime(kp1, kp2, m1, m2)
+
+                stk += i_m_k12 *
+                       (nk * n2 * i_p_1k2 -
+                        n1 * nk * i_m_21k -
+                        n2 * n1 * i_m_k12) / abs(dg)
+            end
+        end
+    end
+
+    #----------------------------------------------------------
+    # 1 = k + 2, branch -
+    #----------------------------------------------------------
+
+    m1, m2 = compute_m1m2(kr, kp1, kp2, mr, Difference(), Difference())
+
+    if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) &&
+       check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
+
+        n1 = interpolate_nk(spec_tend, was, kp1i, m1, triad_mode)
+
+        @ivy if nk != 0.0 || n1 != 0.0
+            n2 = interpolate_nk(spec_tend, was, kp2i, m2, triad_mode)
+
+            if (nk != 0.0 && n1 != 0.0) ||
+               (nk != 0.0 && n2 != 0.0) ||
+               (n1 != 0.0 && n2 != 0.0)
+
+                i_p_1k2 = interaction_matrix(kp1, kr, kp2, m1, mr, m2, Sum(), triad_mode)
+                i_m_21k = interaction_matrix(kp2, kp1, kr, m2, m1, mr, Difference(), triad_mode)
+                i_m_k12 = interaction_matrix(kr, kp1, kp2, mr, m1, m2, Difference(), triad_mode)
+
+                dg = compute_g_prime(kp1, kp2, m1, m2)
+
+                stk += i_m_k12 *
+                       (nk * n2 * i_p_1k2 -
+                        n1 * nk * i_m_21k -
+                        n2 * n1 * i_m_k12) / abs(dg)
+            end
+        end
+    end
+
+    # The two difference permutations are equivalent under
+    # interchange of the partner modes.
+    stk *= 2.0
+
+    return stk
+end
 
 function compute_st_k(
     spec_tend::TriadTendencies,

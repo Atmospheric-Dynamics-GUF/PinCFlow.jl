@@ -121,7 +121,6 @@ struct WKB{
     I <: Ref{<:AbstractFloat},
     J <: AbstractArray{<:AbstractFloat, 3},
     K <: AbstractMatrix{<:AbstractFloat},
-    L <: TriadTendencies
 }
     nxray::A
     nyray::A
@@ -144,17 +143,15 @@ struct WKB{
     cgz_max::J
     zb::K
     diffusion::J
-    spec_tend::L
 end
 
 function WKB(namelists::Namelists, domain::Domain, constants::Constants)::WKB
     (; wkb_mode) = namelists.wkb
-    (; triad_mode) = namelists.triad
 
-    return WKB(namelists, domain, constants, wkb_mode, triad_mode)
+    return WKB(namelists, domain, constants, wkb_mode)
 end
 
-function WKB(namelists::Namelists, domain::Domain, constants::Constants, wkb_mode::NoWKB, triad_mode::NoTriad)::WKB
+function WKB(namelists::Namelists, domain::Domain, constants::Constants, wkb_mode::NoWKB)::WKB
     return WKB(
         [0 for i in 1:9]...,
         zeros(Int, 0, 0, 0),
@@ -168,7 +165,6 @@ function WKB(namelists::Namelists, domain::Domain, constants::Constants, wkb_mod
         zeros(0, 0, 0),
         zeros(0, 0),
         zeros(0, 0, 0),
-        TriadTendencies(namelists, domain, constants , wkb_mode, triad_mode),
     )
 end
 
@@ -176,8 +172,7 @@ function WKB(
     namelists::Namelists,
     domain::Domain,
     constants::Constants,
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
-    triad_mode::Union{NoTriad, Triad2D, Triad3DIso},
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn}
 )::WKB
     (;
         nrx,
@@ -266,7 +261,6 @@ function WKB(
     integrals = WKBIntegrals(nxx, nyy, nzz)
     tendencies = WKBTendencies(nxx, nyy, nzz)
 
-    spec_tend = TriadTendencies(namelists, domain, constants , wkb_mode, triad_mode)
     cgx_max = Ref(0.0)
     cgy_max = Ref(0.0)
     cgz_max = zeros(nxx, nyy, nzz)
@@ -295,6 +289,5 @@ function WKB(
         cgz_max,
         zb,
         diffusion,
-        spec_tend
     )
 end

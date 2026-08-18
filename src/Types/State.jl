@@ -89,6 +89,7 @@ struct State{
     I <: Variables,
     J <: WKB,
     K <: Tracer,
+    L <: TriadTendencies
 }
     namelists::A
     time::B
@@ -101,6 +102,7 @@ struct State{
     variables::I
     wkb::J
     tracer::K
+    spec_tend::L
 end
 
 function State(namelists::Namelists)::State
@@ -114,6 +116,7 @@ function State(namelists::Namelists)::State
     variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, domain, constants)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
+    spec_tend = TriadTendencies(namelists, domain, constants)
 
     return State(
         namelists,
@@ -127,5 +130,6 @@ function State(namelists::Namelists)::State
         variables,
         wkb,
         tracer,
+        spec_tend,
     )
 end

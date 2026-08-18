@@ -7,7 +7,7 @@ function compute_action_ref!(
     verify::Bool = true,
 )
     (; master, comm, i0, i1, j0, j1, k0, k1) = state.domain
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, action_ref) = spec_tend
     (; kp, m, delkp, delm) = spec_tend.spec_grid
     (; lref) = state.constants

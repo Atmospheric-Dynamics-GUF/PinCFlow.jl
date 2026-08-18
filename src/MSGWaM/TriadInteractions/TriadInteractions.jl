@@ -25,6 +25,7 @@ using ...Types
 using ...Boundaries
 using ...PinCFlow
 
+using Base.Threads: @spawn
 
 
 include("compute_spectral_cell_indices.jl")
@@ -43,6 +44,8 @@ include("interpolate_nk.jl")
 include("update_wave_spectrum!.jl")
 include("compute_omega_hat.jl")
 include("compute_st_k.jl")
+include("compute_scattering_integral_continuous!.jl")
+include("compute_scattering_integral_discrete!.jl")
 include("compute_scattering_integral!.jl")
 include("diagnose_triad_energy.jl")
 include("get_ray_volumes!.jl")
@@ -61,6 +64,7 @@ include("print_initial_mode_information.jl")
 include("get_dephasing_time.jl")
 include("apply_wave_spectrum_filter!.jl")
 include("smooth_wave_spectrum!.jl")
+include("compute_discrete_k_index.jl")
 
 export get_wave_spectrum!,
        apply_triad_interactions!,

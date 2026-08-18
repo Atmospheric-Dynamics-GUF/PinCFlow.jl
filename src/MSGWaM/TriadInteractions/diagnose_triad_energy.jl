@@ -7,7 +7,7 @@ function diagnose_triad_energy(
     (; master, comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; x_size, y_size) = state.namelists.domain
 
-    (; spec_tend) = state.wkb
+    (; spec_tend) = state
     (; wavespectrum, was_pred) = spec_tend
     (; kp, m, delkp, delm) = spec_tend.spec_grid
 
