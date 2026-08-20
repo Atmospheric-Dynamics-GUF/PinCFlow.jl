@@ -27,7 +27,7 @@ Construct a `TriadNamelist` instance with the given keyword arguments as propert
   - `lm::B`: Domain extent in ``\\widehat{m}``-direction.
 
 """
-struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTimeStepping, E <: Tuple{Int, Int}, F <: Bool}
+struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTimeStepping, E <: Tuple{Int, Int}, F <: Bool, G <: AbstractMergeMode}
     k_size::A
     l_size::A
     m_size::A
@@ -50,6 +50,7 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     dt_growth_factor::B
     launch_rays_action_rel_tol::B
     discarded_action_fraction_tol::B
+    projection_scheme::G
 end
 
 function TriadNamelist(;
@@ -75,6 +76,7 @@ function TriadNamelist(;
     dt_growth_factor::Real = 1.25,
     launch_rays_action_rel_tol::Real = 1.0E-5,
     discarded_action_fraction_tol::Real = 1.0E-5,
+    projection_scheme::AbstractMergeMode = ConstantWaveEnergy(),
 )::TriadNamelist
     return TriadNamelist(
         Int(k_size),
@@ -99,5 +101,6 @@ function TriadNamelist(;
         Float64(dt_growth_factor),
         Float64(launch_rays_action_rel_tol),
         Float64(discarded_action_fraction_tol),
+        projection_scheme,
     )
 end
