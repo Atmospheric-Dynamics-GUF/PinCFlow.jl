@@ -41,7 +41,7 @@ function initialize_wave_spectrum!(
     end
 
     # Project the initialized rays onto the wave-spectrum grid.
-    get_wave_spectrum!(state, wkb_mode, triad_mode)
+    get_wave_spectrum!(state)
     
     # Compute the reference action once from the initialized
     # spectral modes.
