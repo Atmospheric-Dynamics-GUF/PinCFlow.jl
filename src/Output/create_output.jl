@@ -267,6 +267,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :dchidt0 in output_variables
                 create_dataset(
                     file,
@@ -281,6 +282,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :uchi0 in output_variables
                 create_dataset(
                     file,
@@ -295,6 +297,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :vchi0 in output_variables
                 create_dataset(
                     file,
@@ -309,6 +312,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :wchi0 in output_variables
                 create_dataset(
                     file,
@@ -584,16 +588,18 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :dchidt0 in output_variables
                 attributes(file["dchidt0"])["units"] = "s^-1"
                 attributes(file["dchidt0"])["label"] =
-                    L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w},[\mathrm{s^{-1}}]"
+                    L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w}\ [\mathrm{s^{-1}}]"
                 attributes(
                     file["dchidt0"],
                 )["long_name"] = "leading-order GW-tracer flux convergence"
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :uchi0 in output_variables
                 attributes(file["uchi0"])["units"] = "m*s^-1"
                 attributes(file["uchi0"])["label"] =
@@ -604,6 +610,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :vchi0 in output_variables
                 attributes(file["vchi0"])["units"] = "m*s^-1"
                 attributes(file["vchi0"])["label"] =
@@ -614,6 +621,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
                :wchi0 in output_variables
                 attributes(file["wchi0"])["units"] = "m*s^-1"
                 attributes(file["wchi0"])["label"] =
@@ -627,7 +635,8 @@ function create_output(state::State, machine_start_time::DateTime)
         if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 attributes(file["tke"])["unuits"] = "m^2*s^-2"
-                attributes(file["tke"])["label"] = L"e_\\mathrm{k}"
+                attributes(file["tke"])["label"] =
+                    L"e_\\mathrm{k}\ [\mathrm{m^2\ s^{-2}}]"
                 attributes(
                     file["tke"],
                 )["long_name"] = "mass-specific turbulent kinetic energy"
@@ -636,14 +645,14 @@ function create_output(state::State, machine_start_time::DateTime)
             if :shear_production in output_variables
                 attributes(file["shear_production"])["unuits"] = "m^2*s^-3"
                 attributes(file["shear_production"])["label"] =
-                    L"\mathcal{S}"
+                    L"\mathcal{S}\ [\mathrm{m^2\ s^{-3}}]"
                 attributes(file["shear_production"])["long_name"] = "shear production"
             end
 
             if :buoyancy_production in output_variables
                 attributes(file["buoyancy_production"])["unuits"] = "m^2*s^-3"
                 attributes(file["buoyancy_production"])["label"] =
-                    L"\mathcal{B}"
+                    L"\mathcal{B}\ [\mathrm{m^2\ s^{-3}}]"
                 attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
             end
         end

@@ -6,23 +6,22 @@ compute_turbulent_velocity(
     i::Integer,
     j::Integer,
     k::Integer,
-    beta::AbstractFloat,
-)::Complex
+)::NTuple{3, <:Complex}
 ```
 
-Compute and return the characteristic mean turbulent velocity amplitude ``Q_{\\beta,r}``, with ``\\beta`` given by the input parameter `beta`.
+Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}``.
 
-The velocity amplitude is computed from the numerical phase average 
+The velocity amplitudes are approximated with the numerical phase averages 
 
 ```math 
-Q_{0,r} = \\frac{1}{2\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}\\Delta\\phi\\;,
+\\begin{align*}
+Q_{0,r} &= \\frac{1}{2\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}\\Delta\\phi\\;, \\\\
+Q_{1,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-i n\\Delta\\phi}\\Delta\\phi\\;, \\\\
+Q_{2,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-2i n\\Delta\\phi}\\Delta\\phi\\;,
+\\end{align*}
 ```
 
-and for ``\\beta>0``
-
-```math 
-Q_{\\beta,r} = \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-i\\beta n\\Delta\\phi}\\Delta\\phi\\;.
-```
+where the number of subintervals is given by ``N_{\\phi}=20`` with interval size ``\\Delta\\phi=2\\pi/N_{\\phi}``.
 
 ```julia 
 compute_turbulent_velocity(
@@ -70,8 +69,6 @@ and turbulence mixing lengths ``l_d``, ``l_v``, and ``l_b`` stored in `state.tur
 
   - `k`: Vertical grid-cell index.
 
-  - `beta`: Index ``\\beta`` of ``Q_{\\beta,r}``.
-
   - `rhob`: Background density ``\\bar{\\rho}`` located at cell index ``(i,j,k)``.
 
   - `wadr`: Physical-space wave-action density ``\\mathcal{A}_r``. 
@@ -98,8 +95,7 @@ function compute_turbulent_velocity end
     i::Integer,
     j::Integer,
     k::Integer,
-    beta::AbstractFloat,
-)::Complex
+)::NTuple{3, <:Complex}
     (; rays) = state.wkb
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
@@ -134,7 +130,9 @@ function compute_turbulent_velocity end
 
     dphi = 2 * pi / 20
     phi = 0.0
-    integral = 0.0
+    q0r = 0.0
+    q1r = 0.0
+    q2r = 0.0
     while phi <= 2 * pi
         qtilde = compute_turbulent_velocity(
             state,
@@ -148,14 +146,12 @@ function compute_turbulent_velocity end
             omir,
             phi,
         )
-        integral += qtilde * exp(-1im * beta * phi) * dphi
+        q0r += qtilde * dphi
+        q1r += qtilde * exp(-1im * phi) * dphi
+        q2r += qtilde * exp(-2im * phi) * dphi
         phi += dphi
     end
-    if beta == 0.0
-        return integral / (2 * pi)
-    else
-        return integral / pi
-    end
+    return (q0r / (2 * pi), q1r / pi, q2r / pi)
 end
 
 function compute_turbulent_velocity(

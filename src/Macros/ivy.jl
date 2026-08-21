@@ -7,7 +7,7 @@ If `x` is an expression, climb its AST and apply `@inbounds` to the bodies of ha
 
 # Arguments
 
-  - `x`: Input expression
+  - `x`: Input object.
 
   - `root`: Switch for applying `@inbounds` and `@views` to `x` itself.
 """

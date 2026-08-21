@@ -1710,8 +1710,8 @@ end
     for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         coef_t =
             mu_conduct * (
-                jac[i, j, k + 1] * rhobar[i, j, 1] / rhobar[i, j, k] +
-                jac[i, j, k] * rhobar[i, j, 1] / rhobar[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k0] / rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k0] / rhobar[i, j, k + 1]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         thetal =

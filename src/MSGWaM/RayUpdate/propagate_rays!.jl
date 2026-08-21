@@ -273,7 +273,7 @@ end
             end
 
             # Determine if horizontal propagation and refraction are allowed.
-            multi_column = wkb_mode == Val(:MultiColumn)
+            multi_column = wkb_mode === Val(:MultiColumn)
             launch_layer = k == k0 - 1
             blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
             zonal_propagation =
