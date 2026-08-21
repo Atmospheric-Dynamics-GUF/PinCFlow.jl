@@ -62,8 +62,8 @@ function apply_triad_interactions!(state::State,
             update_wave_spectrum!(state, ii, jj, kk, dtau, triad_mode)
         
     end
-    
-    diagnose_triad_energy(state, triad_mode)
+
+    compute_collision_energy_error(state, triad_mode)
     
     get_ray_volumes!(state, triad_mode)
 
