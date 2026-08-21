@@ -28,7 +28,7 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_slope`](@ref)
 
 !!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 """
 function include_blocked_flow_drag! end
 

@@ -118,7 +118,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
   - `turbulent_damping::Bool`: Damping of wave-action density due to turbulence.
 
 !!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 
 !!! danger "Experimental"
     The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.

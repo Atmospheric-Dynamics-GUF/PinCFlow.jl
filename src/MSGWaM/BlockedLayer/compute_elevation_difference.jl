@@ -18,7 +18,7 @@ Return ``\\Delta h = \\sum_\\alpha \\left|h_{\\mathrm{w}, \\alpha}\\right|`` as 
   - `j`: Meridional grid index.
 
 !!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 """
 function compute_elevation_difference end
 

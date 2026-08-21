@@ -57,7 +57,7 @@ Return the averages of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
 
 !!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 """
 function compute_orographic_flow end
 

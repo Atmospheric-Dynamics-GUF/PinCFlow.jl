@@ -14,7 +14,7 @@ Module for the blocked-layer scheme.
   - [`PinCFlow.Types`](@ref)
 
 !!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 """
 module BlockedLayer
 

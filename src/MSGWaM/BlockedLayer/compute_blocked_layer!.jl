@@ -47,7 +47,7 @@ with ``B`` regulating how much of the blocked layer contributes to the amplitude
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_slope`](@ref)
 
 !!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 """
 function compute_blocked_layer! end
 
