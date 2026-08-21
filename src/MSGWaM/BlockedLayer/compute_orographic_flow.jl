@@ -83,7 +83,7 @@ end
     (; rhobar, n2) = state.atmosphere
     (; u, v) = state.variables.predictands
 
-    k = k0 - 1
+    k = k0
 
     rhoh = rhobar[i, j, k]
     n2h = n2[i, j, k]
