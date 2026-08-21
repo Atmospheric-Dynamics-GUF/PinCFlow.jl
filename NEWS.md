@@ -3,6 +3,56 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 5.0.0
+
+New features:
+
+  - An experimental elastic-mode-selection algorithm, adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010), has been implemented. It can be used to reduce the number of ray volumes launched by the orographic source ([#194](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/194)).
+
+  - Output fields for WKB integrals have been added ([#236](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/236))
+
+Improvements:
+
+  - The composite type `Preconditioner` has been removed from `Types.PoissonTypes`. The corresponding field of `Types.PoissonTypes.Poisson` has also been removed ([#220](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/220)). Since the previous release, the arrays needed by the preconditioner are in `state.variables.auxiliaries`.
+
+  - The WKB-namelist parameter `multiplication_factor` has been replaced with the parameters `k_bins`, `l_bins`, and `m_bins`. These specify the exact number of bins in $k$, $l$, and $m$ in the ray-volume merging algorithm. Merging is now triggered when the ray-volume count in a grid cell exceeds `k_bins * l_bins * m_bins` ([#221](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/221)).
+
+  - The `@ivy` macro now turns off all bounds checks when applied to any expression (including, e.g., function definitions) ([#226](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/226)).
+
+  - The Makie.jl extension has been improved in several ways ([#239](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/239)).
+
+  - The examples have been modified and made cheaper. The example plots are no longer stored in `examples/results/` but generated in the documentation workflow ([#240](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/240), [#254](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/254), [#261](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/261)).
+
+  - The macros `@ivy` and `@dispatch` have been moved to their own module (`Macros`), and `@dispatch` has been made more robust - it can no longer modify expressions or strings by accident ([#241](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/241)).
+
+  - The reduction of exceptions in MPI simulations now works across nodes. The function `reduce_exceptions` has been moved to the `Integration` module ([#243](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/243)).
+
+  - The function `ensemble` has been removed. Instead, ensemble simulations can now be run by simply passing multiple namelists objects to `integrate` ([#243](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/243)).
+
+  - A few expensive runtime allocations in MS-GWaM have been removed ([#250](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/250))
+
+  - The field `rhs` of `Types.PoissonTypes.Poisson` has been renamed `lhs` ([#252](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/252))
+
+  - The calculation of turbulent velocities in MS-GWaM has been improved ([#253](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/253)).
+
+  - Refraction has been switched off for ray volumes that were launched in the previous time step. The function `compute_vertical_averages` in `MSGWaM.Raysources` has been replaced with the new function `compute_orographic_flow` in `MSGWaM.BlockedLayer`. The blocked-layer scheme has been improved ([#244](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/244)).
+
+  - Several errors in the documentation have been fixed, and it has been improved in a few places ([#225](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/225), [#241](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/241), [#258](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/258), [#261](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/261)).
+
+Bug fixes:
+
+  - MS-GWaM can no longer be initialized with multiple ray-volumes in single-grid-cell dimensions, i.e., an error is thrown for `(x_size == 1 && nrx > 1) || (y_size == 1 && nry > 1)` ([#221](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/221)).
+
+  - Several bugs related to the TKE scheme have been fixed ([#228](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/228), [#234](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/234), [#238](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/238), [#261](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/261)).
+
+  - A bug in the ray-volume launch algorithm of the orographic source has been fixed ([#229](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/229)).
+
+  - A minor bug in the calculation of WKB integrals has been fixed ([#246](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/246)).
+
+  - A bug in the calculation of heat conduction has been fixed ([#248](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/248))
+
+  - Tracer-related bugs in the I/O and `smooth_gw_tendencies!` have been fixed ([#258](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/258)).
+
 ## Release 4.0.0
 
   - PinCFlow.jl has been extended with a turbulence parameterization. Using the new prognostic variable turbulent kinetic energy (TKE), vertical diffusion can now be applied to momentum, potential temperature, and tracers. Configuration is provided through the `TurbulenceNamelist`. The turbulence parameterization is enabled by default.
