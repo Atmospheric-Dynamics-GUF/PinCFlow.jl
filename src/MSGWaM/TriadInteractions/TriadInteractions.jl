@@ -67,7 +67,7 @@ include("apply_wave_spectrum_filter!.jl")
 include("smooth_wave_spectrum!.jl")
 include("compute_discrete_k_index.jl")
 include("compute_collision_energy_error.jl")
-
+include("diagnose_triad_timescales.jl")
 export get_wave_spectrum!,
        apply_triad_interactions!,
        initialize_wave_spectrum!,
