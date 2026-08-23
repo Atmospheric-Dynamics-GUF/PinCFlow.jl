@@ -53,6 +53,8 @@ Bug fixes:
 
   - Tracer-related bugs in the I/O and `smooth_gw_tendencies!` have been fixed ([#258](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/258)).
 
+  - A bug in the calculation of bin indices in the ray-volume-merging algorithm has been fixed ([#265](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/265))
+
 ## Release 4.0.0
 
   - PinCFlow.jl has been extended with a turbulence parameterization. Using the new prognostic variable turbulent kinetic energy (TKE), vertical diffusion can now be applied to momentum, potential temperature, and tracers. Configuration is provided through the `TurbulenceNamelist`. The turbulence parameterization is enabled by default.
