@@ -21,7 +21,7 @@ The blocked-layer depth is given by
 where ``\\mathrm{Lo} = N_h \\Delta h \\left|\\boldsymbol{k}_h\\right| / \\left|\\boldsymbol{k}_h \\cdot \\boldsymbol{u}_h\\right|`` represents the Long number (with ``\\Delta h`` computed by `compute_elevation_difference` and ``\\boldsymbol{k}_h`` computed by `compute_slope`) and ``C`` the Long-number threshold (`state.namelists.wkb.long_threshold`). The corresponding ratio between the effective and total mountain-wave amplitudes is given by
 
 ```math
-r \\left(\\Delta z_\\mathrm{B}\\right) = 1 - B \\frac{\\Delta z_\\mathrm{B}}{2 \\Delta h}
+r \\left(\\Delta z_\\mathrm{B}\\right) = 1 - B \\frac{\\Delta z_\\mathrm{B}}{2 \\Delta h},
 ```
 
 with ``B`` regulating how much of the blocked layer contributes to the amplitude reduction (`state.namelists.wkb.reduction_coefficient`).
