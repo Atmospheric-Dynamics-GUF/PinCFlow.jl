@@ -50,7 +50,7 @@ function compute_merge_index(
         if abs(log(-wnr / wnr_max_n) / dwnr_mrg_n) < 1
             r = div(nray - 1, 2)
         else
-            r = round(Int, log(-wnr / wnr_min_n) / dwnr_mrg_n) + 1
+            r = trunc(Int, log(-wnr / wnr_min_n) / dwnr_mrg_n) + 1
         end
     elseif wnr == 0
         r = div(nray - 1, 2) + 1
@@ -59,7 +59,7 @@ function compute_merge_index(
             r = nray
         else
             r =
-                round(Int, log(wnr / wnr_min_p) / dwnr_mrg_p) +
+                trunc(Int, log(wnr / wnr_min_p) / dwnr_mrg_p) +
                 div(nray - 1, 2) +
                 2
         end
