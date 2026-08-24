@@ -21,9 +21,87 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 """
 function set_vertical_boundary_rays! end
 
-@ivy function set_vertical_boundary_rays!(state::State)
+function set_vertical_boundary_rays!(state::State)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition set_vertical_boundary_rays!(
+        state,
+        Val(vertical_boundary_condition),
+    )
+    return
+end
+
+@ivy function set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:Periodic},
+)
     (; namelists, domain) = state
-    (; z_size, npz, vertical_boundary_condition) = namelists.domain
+    (; z_size, npz) = namelists.domain
+    (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; lx, ly, lz, dx, dy, hb) = state.grid
+    (; nray, rays) = state.wkb
+
+    # Set ray-volume count.
+    set_vertical_boundaries_of_field!(
+        nray,
+        namelists,
+        domain;
+        layers = (1, 1, 1),
+    )
+
+    if z_size > 1
+        set_vertical_halo_rays!(state)
+    else
+        for j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k0 - 1]
+                copy_rays!(rays, r => r, i => i, j => j, k1 => k0 - 1)
+            end
+
+            for r in 1:nray[i, j, k1 + 1]
+                copy_rays!(rays, r => r, i => i, j => j, k0 => k1 + 1)
+            end
+        end
+    end
+
+    if ko == 0
+        for k in (k0 - 1):k0, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k]
+                zr = rays.z[r, i, j, k]
+                zrt = zr - lz
+
+                if abs(zrt - zc[i, j, k]) < abs(zr - zc[i, j, k])
+                    zr = zrt
+                end
+
+                rays.z[r, i, j, k] = zr
+            end
+        end
+    end
+
+    if ko + nz == z_size
+        for k in k1:(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k]
+                zr = rays.z[r, i, j, k]
+                zrt = zr + lz
+
+                if abs(zrt - zc[i, j, k]) < abs(zr - zc[i, j, k])
+                    zr = zrt
+                end
+
+                rays.z[r, i, j, k] = zr
+            end
+        end
+    end
+
+    return
+end
+
+@ivy function set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:SolidWall},
+)
+    (; namelists, domain) = state
+    (; z_size, npz) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lx, ly, lz, dx, dy, hb) = state.grid
     (; nray, rays) = state.wkb
@@ -40,7 +118,7 @@ function set_vertical_boundary_rays! end
     end
 
     # Reflect ray volumes at the lower boundary.
-    if (ko == 0 && vertical_boundary_condition == :SolidWall)
+    if ko == 0
         kmin = k0
         kmax = npz > 1 ? k0 + 1 : k1
         for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
@@ -62,7 +140,7 @@ function set_vertical_boundary_rays! end
     end
 
     # Cut ray volumes at the upper boundary.
-    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
+    if ko + nz == z_size
         kmin = npz > 1 ? k1 - 1 : k0
         kmax = k1
         for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)

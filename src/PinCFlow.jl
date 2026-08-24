@@ -91,6 +91,7 @@ export cold_bubble,
     wave_packet,
     wkb_mountain_wave,
     wkb_wave_packet,
-    wave_Boussinesq
+    wave_Boussinesq,
+    wkb_wave_Boussinesq
 
 end
