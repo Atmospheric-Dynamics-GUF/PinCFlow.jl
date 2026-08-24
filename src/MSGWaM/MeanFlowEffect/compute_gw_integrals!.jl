@@ -202,13 +202,13 @@ end
                         ),
                     )
 
-                    (ko != 0 || vertical_boundary_condition == :Periodic) &&
+                    (ko != 0 || vertical_boundary_condition === :Periodic) &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
                     (
                             ko + nz != z_size ||
-                            vertical_boundary_condition == :Periodic
+                            vertical_boundary_condition === :Periodic
                         ) &&
                         k < k1 &&
                         kmax > k1 &&
@@ -412,13 +412,13 @@ end
                         ),
                     )
 
-                    (ko != 0 || vertical_boundary_condition == :Periodic) &&
+                    (ko != 0 || vertical_boundary_condition === :Periodic) &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
                     (
                             ko + nz != z_size ||
-                            vertical_boundary_condition == :Periodic
+                            vertical_boundary_condition === :Periodic
                         ) &&
                         k < k1 &&
                         kmax > k1 &&

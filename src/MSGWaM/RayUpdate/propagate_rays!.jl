@@ -201,7 +201,7 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kmin = (ko == 0 && vertical_boundary_condition == :SolidWall) ? k0 - 1 : k0
+    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 - 1 : k0
     kmax = k1
 
     # Initialize the WKB increments and maximum group velocities at the first
@@ -495,7 +495,7 @@ end
 
     activate_orographic_source!(state)
 
-    if (ko != 0 || vertical_boundary_condition == :Periodic)
+    if ko != 0 || vertical_boundary_condition === :Periodic
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
@@ -549,7 +549,7 @@ end
 
             # Set the reference level.
             kref =
-                (ko == 0 && vertical_boundary_condition == :SolidWall) ?
+                (ko == 0 && vertical_boundary_condition === :SolidWall) ?
                 max(k0, k - 1) : k - 1
 
             # Compute the vertical group velocity at the level below.
@@ -676,7 +676,7 @@ end
         end
     end
 
-    if (ko + nz != z_size || vertical_boundary_condition == :Periodic)
+    if ko + nz != z_size || vertical_boundary_condition === :Periodic
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

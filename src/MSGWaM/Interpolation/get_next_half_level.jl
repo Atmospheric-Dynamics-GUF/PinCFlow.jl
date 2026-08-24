@@ -55,7 +55,7 @@ function get_next_half_level end
         k += 1
     end
 
-    if (ko == 0 && vertical_boundary_condition == :SolidWall)
+    if ko == 0 && vertical_boundary_condition === :SolidWall
         k = max(k, k0)
     else
         if k < 1 + dkd
@@ -70,7 +70,7 @@ function get_next_half_level end
         end
     end
 
-    if (ko + nz == z_size && vertical_boundary_condition == :SolidWall)
+    if ko + nz == z_size && vertical_boundary_condition === :SolidWall
         k = min(k, k1)
     else
         if k > nzz - dku

@@ -120,7 +120,7 @@ end
     dm_ini_nd = 0.0
 
     # Set vertical index bounds.
-    kmin = (ko == 0 && vertical_boundary_condition == :SolidWall) ? k0 - 1 : k0
+    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 - 1 : k0
     kmax = k1
 
     # Loop over all grid cells with ray volumes.
@@ -138,7 +138,7 @@ end
             alpha in 1:wave_modes
 
             # Set ray-volume indices.
-            if (ko == 0 && vertical_boundary_condition == :SolidWall) &&
+            if (ko == 0 && vertical_boundary_condition === :SolidWall) &&
                k == k0 - 1
                 s += 1
 
@@ -264,7 +264,7 @@ end
         end
 
         # Check if surface ray-volume count is correct.
-        if (ko == 0 && vertical_boundary_condition == :SolidWall) && k == k0 - 1
+        if (ko == 0 && vertical_boundary_condition === :SolidWall) && k == k0 - 1
             if s != n_sfc
                 error(
                     "Incorrect surface-ray-volume count: s = ",
