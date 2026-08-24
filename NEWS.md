@@ -3,6 +3,58 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 5.0.0
+
+New features:
+
+  - An experimental elastic-mode-selection algorithm, adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010), has been implemented. It can be used to reduce the number of ray volumes launched by the orographic source.
+
+  - Output fields for WKB integrals have been added.
+
+Improvements:
+
+  - The composite type `Preconditioner` has been removed from `Types.PoissonTypes`. The corresponding field of `Types.PoissonTypes.Poisson` has also been removed. Since the previous release, the arrays needed by the preconditioner are in `state.variables.auxiliaries`.
+
+  - The WKB-namelist parameter `multiplication_factor` has been replaced with the parameters `k_bins`, `l_bins`, and `m_bins`. These specify the exact number of bins in $k$, $l$, and $m$ in the ray-volume merging algorithm. Merging is now triggered when the ray-volume count in a grid cell exceeds `k_bins * l_bins * m_bins`.
+
+  - The `@ivy` macro now turns off all bounds checks when applied to any expression (including, e.g., function definitions).
+
+  - The Makie.jl extension has been improved in several ways.
+
+  - The examples have been modified and made cheaper. The example plots are no longer stored in `examples/results/` but generated in the documentation workflow.
+
+  - The macros `@ivy` and `@dispatch` have been moved to their own module (`Macros`), and `@dispatch` has been made more robust - it can no longer modify expressions or strings by accident.
+
+  - The reduction of exceptions in MPI simulations now works across nodes. The function `reduce_exceptions` has been moved to the `Integration` module.
+
+  - The function `ensemble` has been removed. Instead, ensemble simulations can now be run by simply passing multiple namelists objects to `integrate`.
+
+  - A few expensive runtime allocations in MS-GWaM have been removed.
+
+  - The field `rhs` of `Types.PoissonTypes.Poisson` has been renamed `lhs`.
+
+  - The calculation of turbulent velocities in MS-GWaM has been improved.
+
+  - Refraction has been switched off for ray volumes that were launched in the previous time step. The function `compute_vertical_averages` in `MSGWaM.Raysources` has been replaced with the new function `compute_orographic_flow` in `MSGWaM.BlockedLayer`. The blocked-layer scheme has been improved.
+
+  - Several errors in the documentation have been fixed, and it has been improved in a few places.
+
+Bug fixes:
+
+  - MS-GWaM can no longer be initialized with multiple ray-volumes in single-grid-cell dimensions, i.e., an error is thrown for `(x_size == 1 && nrx > 1) || (y_size == 1 && nry > 1)`.
+
+  - Several bugs related to the TKE scheme have been fixed.
+
+  - A bug in the ray-volume launch algorithm of the orographic source has been fixed.
+
+  - A minor bug in the calculation of WKB integrals has been fixed.
+
+  - A bug in the calculation of heat conduction has been fixed.
+
+  - Tracer-related bugs in the I/O and `smooth_gw_tendencies!` have been fixed.
+
+  - A bug in the calculation of bin indices in the ray-volume-merging algorithm has been fixed.
+
 ## Release 4.0.0
 
   - PinCFlow.jl has been extended with a turbulence parameterization. Using the new prognostic variable turbulent kinetic energy (TKE), vertical diffusion can now be applied to momentum, potential temperature, and tracers. Configuration is provided through the `TurbulenceNamelist`. The turbulence parameterization is enabled by default.
