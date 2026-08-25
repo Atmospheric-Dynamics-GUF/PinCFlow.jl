@@ -12,7 +12,7 @@ Check if all ray volumes are assigned to the correct grid cells.
 function check_rays end
 
 @ivy function check_rays(state::State)
-    (; x_size, y_size, z_size, vertical_boundary_condition) = state.namelists.domain
+    (; x_size, y_size) = state.namelists.domain
     (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, x, y, zctilde, zc) = state.grid
     (; nray, rays) = state.wkb
@@ -86,65 +86,33 @@ function check_rays end
                 end
             end
 
-            if vertical_boundary_condition === :Periodic
-                if z_size > 1
-                    zr = rays.x[r, i, j, k]
+            # Check vertical position.
+            zr = rays.z[r, i, j, k]
 
-                    if zr < zc[i, j, k] - dz / 2
-                        error(
-                            "Center ray is outside of the grid cell \nzr = ",
-                            zr,
-                            " < zc[i, j, k] - dz / 2 = ",
-                            zc[i, j, k] - dz / 2,
-                            "\n(io, jo, ko) = ",
-                            (io, jo, ko),
-                            "\n(r, i, j, k) = ",
-                            (r, i, j, k),
-                        )
-                    end
+            if zr < zctilde[i, j, k - 1]
+                error(
+                    "Center ray is outside of the grid cell:\nzr = ",
+                    zr,
+                    " < zctilde[i, j, k - 1] = ",
+                    zctilde[i, j, k - 1],
+                    "\n(io, jo, ko) = ",
+                    (io, jo, ko),
+                    "\n(r, i, j, k) = ",
+                    (r, i, j, k),
+                )
+            end
 
-                    if zr > zc[i, j, k] + dz / 2
-                        error(
-                            "Center ray is outside of the grid cell \nzr = ",
-                            zr,
-                            " > zc[i, j, k] + dz / 2 = ",
-                            zc[i, j, k] + dz / 2,
-                            "\n(io, jo, ko) = ",
-                            (io, jo, ko),
-                            "\n(r, i, j, k) = ",
-                            (r, i, j, k),
-                        )
-                    end
-                end
-            else
-                # Check vertical position.
-                zr = rays.z[r, i, j, k]
-
-                if zr < zctilde[i, j, k - 1]
-                    error(
-                        "Center ray is outside of the grid cell:\nzr = ",
-                        zr,
-                        " < zctilde[i, j, k - 1] = ",
-                        zctilde[i, j, k - 1],
-                        "\n(io, jo, ko) = ",
-                        (io, jo, ko),
-                        "\n(r, i, j, k) = ",
-                        (r, i, j, k),
-                    )
-                end
-
-                if zr > zctilde[i, j, k]
-                    error(
-                        "Center ray is outside of the grid cell:\nzr = ",
-                        zr,
-                        " > zctilde[i, j, k] = ",
-                        zctilde[i, j, k],
-                        "\n(io, jo, ko) = ",
-                        (io, jo, ko),
-                        "\n(r, i, j, k) = ",
-                        (r, i, j, k),
-                    )
-                end
+            if zr > zctilde[i, j, k]
+                error(
+                    "Center ray is outside of the grid cell:\nzr = ",
+                    zr,
+                    " > zctilde[i, j, k] = ",
+                    zctilde[i, j, k],
+                    "\n(io, jo, ko) = ",
+                    (io, jo, ko),
+                    "\n(r, i, j, k) = ",
+                    (r, i, j, k),
+                )
             end
         end
     end

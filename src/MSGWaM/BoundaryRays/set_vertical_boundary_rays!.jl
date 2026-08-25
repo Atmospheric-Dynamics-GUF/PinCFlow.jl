@@ -36,16 +36,17 @@ end
     vertical_boundary_condition::Val{:Periodic},
 )
     (; namelists, domain) = state
-    (; z_size, npz) = namelists.domain
-    (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; lx, ly, lz, dx, dy, hb) = state.grid
+    (; z_size) = namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; lz, zc) = state.grid
     (; nray, rays) = state.wkb
 
     # Set ray-volume count.
     set_vertical_boundaries_of_field!(
         nray,
         namelists,
-        domain;
+        domain,
+        +;
         layers = (1, 1, 1),
     )
 
