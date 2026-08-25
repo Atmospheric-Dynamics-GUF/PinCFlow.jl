@@ -22,6 +22,7 @@ include("@dispatch_filter_type.jl")
 include("@dispatch_limiter_type.jl")
 include("@dispatch_merge_mode.jl")
 include("@dispatch_model.jl")
+include("@dispatch_orographic_flow.jl")
 include("@dispatch_tracer_setup.jl")
 include("@dispatch_turbulence_scheme.jl")
 include("@dispatch_wkb_mode.jl")
@@ -45,6 +46,7 @@ export @dispatch_background,
     @dispatch_limiter_type,
     @dispatch_merge_mode,
     @dispatch_model,
+    @dispatch_orographic_flow,
     @dispatch_tracer_setup,
     @dispatch_wkb_mode,
     @dispatch_turbulence_scheme,
