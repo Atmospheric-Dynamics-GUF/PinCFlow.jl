@@ -86,7 +86,6 @@ function initialize_rays!(
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
-
     # Initialize local arrays.
     omi_ini = zeros(wave_modes, nxx, nyy, nzz)
     wnk_ini = zeros(wave_modes, nxx, nyy, nzz)
@@ -217,15 +216,15 @@ function initialize_rays!(
 
             # Ensure correct wavenumber extents.
             if x_size > 1
-                dk_ini_nd = dkr_factor * sqrt(wnk0^2 + wnl0^2)
+                dk_ini_nd = dkr_factor[alpha] * sqrt(wnk0^2 + wnl0^2)
             end
             if y_size > 1
-                dl_ini_nd = dlr_factor * sqrt(wnk0^2 + wnl0^2)
+                dl_ini_nd = dlr_factor[alpha] * sqrt(wnk0^2 + wnl0^2)
             end
             if wnm0 == 0.0
                 error("Error in WKB: wnm0 = 0!")
             else
-                dm_ini_nd = dmr_factor * abs(wnm0)
+                dm_ini_nd = dmr_factor[alpha] * abs(wnm0)
             end
 
             # Set ray-volume wavenumbers.

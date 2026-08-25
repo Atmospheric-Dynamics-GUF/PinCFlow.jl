@@ -11,9 +11,9 @@ function compute_scattering_integral_continuous!(
    (; kp, m, kpl, kpc) = spec_tend.spec_grid
     (; aa, la, qq, lq, lia, liq, loglia, logliq) = spec_tend.kin_box
     (; wavespectrum, col_int) = spec_tend
-    (; n2) = state.atmosphere
+    (; rhobar) = state.atmosphere
 
-    nn = sqrt(n2[ii, jj, kk]) ##Bruint vaisala frequency at the level (ii, jj, kk)
+    sqrtrhobar = sqrt(rhobar[ii, jj, kk]) ##background density at the level (ii, jj, kk)
 
     was = @ivy view(wavespectrum, ii, jj, kk, :, :)
 
@@ -58,12 +58,12 @@ function compute_scattering_integral_continuous!(
                             pl = aar[i] - kr
                             pr = kr - aar[i]
 
-                            fpl[i] = compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, nn, triad_mode, Sum())
+                            fpl[i] = compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, triad_mode, Sum())
 
                             if i == la[kpi]
                                 fpr[i] = fpl[i]
                             else
-                                fpr[i] = compute_st_k(spec_tend, pr, 0.0, nk, kr, mr, nn, triad_mode, Sum())
+                                fpr[i] = compute_st_k(spec_tend, pr, 0.0, nk, kr, mr, triad_mode, Sum())
                             end
                         end
 
@@ -76,14 +76,14 @@ function compute_scattering_integral_continuous!(
                     if kr < kpmax - kpmin
                         for j in 1:lq[kpi]
                             q = qqr[j]
-                            fq[j] = compute_st_k(spec_tend, 0.0, q, nk, kr, mr, nn, triad_mode, Difference())
+                            fq[j] = compute_st_k(spec_tend, 0.0, q, nk, kr, mr, triad_mode, Difference())
                         end
 
                         difference_integral = trapazoidal_with_logbin(fq, qqr, lq[kpi], liq[kpi], logliq[kpi])
                     end
                     #end
                     # Singularities p=±kr, yet to define
-                    col_int[ii, jj, kk, kpi, mi] = 2.0 * pi * (sum_integral - difference_integral)
+                    col_int[ii, jj, kk, kpi, mi] = 2.0 * pi * (sum_integral - difference_integral) / sqrtrhobar
                 end
             end
                 
