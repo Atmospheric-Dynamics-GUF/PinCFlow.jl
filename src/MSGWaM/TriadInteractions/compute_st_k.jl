@@ -7,7 +7,6 @@ function compute_st_k(
     nk::AbstractFloat,
     kpr::AbstractFloat,
     mr::AbstractFloat,
-    nn::AbstractFloat,
     triad_mode::Triad2D,
     res_type::Sum)::AbstractFloat
 
@@ -59,7 +58,6 @@ function compute_st_k(
     nk::AbstractFloat,
     kpr::AbstractFloat,
     mr::AbstractFloat,
-    nn::AbstractFloat,
     triad_mode::Triad2D,
     res_type::Difference)::AbstractFloat
 

@@ -10,8 +10,11 @@ function compute_scattering_integral_discrete!(
     (; spec_tend) = state
     (; kp, m, kpl) = spec_tend.spec_grid
     (; wavespectrum, col_int, partition) = spec_tend
+    (; rhobar) = state.atmosphere
 
     was = @ivy view(wavespectrum, ii, jj, kk, :, :)
+    sqrtrhobar = sqrt(rhobar[ii, jj, kk]) ##background density at the level (ii, jj, kk)
+
 
     # No update_interpolation_coef! here:
     # k is discrete and interpolation is only performed in m.
@@ -92,7 +95,7 @@ function compute_scattering_integral_discrete!(
                 # cancel. No horizontal quadrature weight is needed.
 
                 col_int[ii, jj, kk, kpi, mi] =
-                    4π * (stk_sum - stk_diff)
+                    4π * (stk_sum - stk_diff) / sqrtrhobar
             end
         end 
     end
