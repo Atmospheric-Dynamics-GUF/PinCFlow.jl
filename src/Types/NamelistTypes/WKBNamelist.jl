@@ -106,6 +106,7 @@ struct WKBNamelist{
     E <: AbstractWKBFilter,
     F <: AbstractWKBMode,
     G <: Function,
+    H <: AbstractVector{<:Float64},
 }
     nrx::A
     nry::A
@@ -114,9 +115,10 @@ struct WKBNamelist{
     nrl::A
     nrm::A
     multiplication_factor::A
-    dkr_factor::B
-    dlr_factor::B
-    dmr_factor::B
+    wave_modes::A
+    dkr_factor::H
+    dlr_factor::H
+    dmr_factor::H
     branch::A
     merge_mode::C
     filter_order::A
@@ -129,7 +131,6 @@ struct WKBNamelist{
     blocking::D
     long_threshold::B
     drag_coefficient::B
-    wave_modes::A
     initial_wave_field::G
 end
 
@@ -141,9 +142,10 @@ function WKBNamelist(;
     nrl::Integer = 1,
     nrm::Integer = 1,
     multiplication_factor::Integer = 4,
-    dkr_factor::Real = 1.0E-1,
-    dlr_factor::Real = 1.0E-1,
-    dmr_factor::Real = 1.0E-1,
+    wave_modes::Integer = 1,
+    dkr_factor::AbstractVector{<:Real} = fill(1.0E-1, wave_modes),
+    dlr_factor::AbstractVector{<:Real} = fill(1.0E-1, wave_modes),
+    dmr_factor::AbstractVector{<:Real} = fill(1.0E-1, wave_modes),
     branch::Integer = -1,
     merge_mode::AbstractMergeMode = ConstantWaveAction(),
     filter_order::Integer = 2,
@@ -156,10 +158,19 @@ function WKBNamelist(;
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,
-    wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
 )::WKBNamelist
+
+    length(dkr_factor) == wave_modes ||
+        error("dkr_factor must have length wave_modes = $wave_modes.")
+
+    length(dlr_factor) == wave_modes ||
+        error("dlr_factor must have length wave_modes = $wave_modes.")
+
+    length(dmr_factor) == wave_modes ||
+        error("dmr_factor must have length wave_modes = $wave_modes.")
+
     return WKBNamelist(
         Int(nrx),
         Int(nry),
@@ -168,9 +179,10 @@ function WKBNamelist(;
         Int(nrl),
         Int(nrm),
         Int(multiplication_factor),
-        Float64(dkr_factor),
-        Float64(dlr_factor),
-        Float64(dmr_factor),
+        Int(wave_modes),
+        Float64.(dkr_factor),
+        Float64.(dlr_factor),
+        Float64.(dmr_factor),
         Int(branch),
         merge_mode,
         Int(filter_order),
@@ -183,7 +195,6 @@ function WKBNamelist(;
         blocking,
         Float64(long_threshold),
         Float64(drag_coefficient),
-        Int(wave_modes),
         initial_wave_field,
     )
 end
