@@ -249,6 +249,7 @@ export DomainNamelist,
     Difference,
     SpectralGrid,
     EulerMethod,
-    Rk2Step
+    Rk2Step,
+    ConstantWaveEnergyCentre
 
 end
