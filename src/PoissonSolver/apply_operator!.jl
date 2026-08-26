@@ -320,7 +320,7 @@ end
             domain;
             layers = (1, 1, 2),
         )
-        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
+        set_vertical_boundaries_of_field!(s, namelists, domain, +; layers = (1, 1, 2))
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(
