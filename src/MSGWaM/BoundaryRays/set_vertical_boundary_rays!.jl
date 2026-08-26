@@ -3,13 +3,35 @@
 set_vertical_boundary_rays!(state::State)
 ```
 
-Enforce vertical boundary conditions for ray volumes.
+Enforce vertical boundary conditions for ray volumes by dispatching to the vertical boundary condition appropriate method.
+
+```julia 
+set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:Periodic},
+)
+```
+
+Enforce periodic vertical boundary conditions for ray volumes.
+
+This method first enforces vertical boundary conditions for `state.wkb.nray` (by applying `set_vertical_boundaries_of_field!` to it) and then sets the corresponding boundary ray volumes. If the domain is parallelized in ``\\hat{z}``, ray volumes are communicated between MPI processes, using `set_meridional_halo_rays!`. At the meridional boundaries of the domain, the ``z``-coordinates of ray volumes are adjusted such that shifting works properly.
+
+```julia 
+set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:SolidWall},
+)
+```
+
+Enforce solid wall vertical boundary conditions for ray volumes.
 
 If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray volumes themselves are first communicated between MPI processes, using `set_vertical_halos_of_field!` and `set_vertical_halo_rays!`, respectively. The vertical boundary conditions are then enforced by cutting (removing) ray volumes that have partially (fully) crossed the upper boundary and reflecting ray volumes (by adjusting the vertical position and wavenumber) that have at least partially crossed the lower boundary from above.
 
 # Arguments
 
   - `state`: Model state.
+
+  - `vertical_boundary_condition`: Vertical boundary conditions.
 
 # See also
 

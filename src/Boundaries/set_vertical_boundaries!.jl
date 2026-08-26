@@ -277,28 +277,18 @@ end
     model::Val{:Boussinesq},
 )
     (; namelists, domain, variables) = state
-    (; z_size, vertical_boundary_condition) = namelists.domain
-    (; nz, nzz, ko, i0, j0, k0, k1) = domain
+    (; z_size) = namelists.domain
+    (; nz, ko, k0, k1) = domain
     (; fluxes) = variables
 
-    if vertical_boundary_condition === :Periodic
-        for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
-            set_vertical_boundaries_of_field!(
-                getfield(fluxes, field),
-                namelists,
-                domain,
-            )
-        end
-    end
-
-    if ko == 0 && vertical_boundary_condition === :SolidWall
+    if ko == 0
         for field in (:phirhop, :phiu, :phiv, :phitheta)
             getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
-    if ko + nz == z_size && vertical_boundary_condition === :SolidWall
+    if ko + nz == z_size
         for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
         end

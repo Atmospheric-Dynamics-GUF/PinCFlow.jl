@@ -88,16 +88,16 @@ end
     variables::BoundaryFluxes,
 )
     (; nz, ko, k0, k1) = state.domain
-    (; z_size, vertical_boundary_condition) = state.namelists.domain
+    (; z_size) = state.namelists.domain
     (; turbulencefluxes) = state.turbulence
 
-    if (ko == 0 && vertical_boundary_condition === :SolidWall)
+    if ko == 0
         for field in fieldnames(TurbulenceFluxes)
             getfield(turbulencefluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
-    if (ko + nz == z_size && vertical_boundary_condition === :SolidWall)
+    if ko + nz == z_size
         for field in fieldnames(TurbulenceFluxes)
             getfield(turbulencefluxes, field)[:, :, k1, 3] .= 0.0
         end

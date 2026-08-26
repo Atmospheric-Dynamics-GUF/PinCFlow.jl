@@ -10,9 +10,64 @@ set_vertical_boundaries_of_field!(
 )
 ```
 
-Enforce vertical boundary conditions for a 3D array (assuming solid-wall boundaries).
+Enforce vertical boundary conditions by dispatching to the vertical boundary condition appropriate method.
+
+```julia 
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    mode::Function,
+    vertical_boundary_condition::Val{:Periodic};
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+    staggered = false,
+)
+```
+
+Enforce periodic vertical boundary conditions for a 3D array.
+
+Halo exchange is used for multi-process domains (`npz > 1`).
+
+```julia 
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    mode::Function,
+    vertical_boundary_condition::Val{:SolidWall};
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+    staggered = false,
+)
+```
+
+Enforce solid-wall vertical boundary conditions for a 3D array.
 
 Halo exchange is used for multi-process domains (`npz > 1`). Use `mode = +` (`mode = -`) for line-reflected (point-reflected) ghost-cell values.
+
+```julia 
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
+
+Enforce vertical boundary conditions for a 5D array by dispatching to the appropriate vertical boundary condition method.
+
+```julia
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain,
+    vertical_boundary_condition::Val{:Periodic};
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
+
+Enforce periodic vertical boundary conditions for a 5D array. 
+
+Halo exchange is used for multi-process domains (`npz > 1`).
 
 ```julia
 set_vertical_boundaries_of_field!(
@@ -36,6 +91,8 @@ This method is applied to reconstruction arrays. Vertical boundary conditions ar
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
   - `mode`: Method used for setting the boundary-cell values.
+
+  - `vertical_boundary_condition`: Vertical boundary condition.
 
 # Keywords
 
@@ -96,7 +153,7 @@ end
 
         for k in 1:nbz
             field[ii, jj, k0 - k] .= field[ii, jj, k1 - k + 1]
-            field[ii, jj, k1 + k] .= field[ii, jj, k0 + i - 1]
+            field[ii, jj, k1 + k] .= field[ii, jj, k0 + k - 1]
         end
     end
 
@@ -156,7 +213,7 @@ end
 end
 
 function set_vertical_boundaries_of_field!(
-    field::Union{AbstractArray{<:AbstractFloat, 5}},
+    field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
@@ -174,7 +231,7 @@ function set_vertical_boundaries_of_field!(
 end
 
 @ivy function set_vertical_boundaries_of_field!(
-    field::Union{AbstractArray{<:AbstractFloat, 5}},
+    field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
     domain::Domain,
     vertical_boundary_condition::Val{:Periodic};
@@ -203,7 +260,7 @@ end
 end
 
 function set_vertical_boundaries_of_field!(
-    field::Union{AbstractArray{<:AbstractFloat, 5}},
+    field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
     domain::Domain,
     vertical_boundary_condition::Val{:SolidWall};

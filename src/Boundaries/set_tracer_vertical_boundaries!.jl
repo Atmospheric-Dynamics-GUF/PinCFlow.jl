@@ -159,17 +159,17 @@ end
     variables::BoundaryFluxes,
     tracer_setup::Val{:TracerOn},
 )
-    (; z_size, vertical_boundary_condition) = state.namelists.domain
+    (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
 
-    if (ko == 0 && vertical_boundary_condition === :SolidWall)
+    if ko == 0
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
     end
 
-    if (ko + nz == z_size && vertical_boundary_condition === :SolidWall)
+    if ko + nz == z_size
         for field in fieldnames(TracerFluxes)
             getfield(tracerfluxes, field)[:, :, k1, 3] .= 0.0
         end

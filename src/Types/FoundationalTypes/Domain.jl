@@ -147,6 +147,7 @@ end
         npz,
         vertical_boundary_condition,
     ) = namelists.domain
+    (; model) = namelists.atmosphere
 
     # Initialize MPI.
     !MPI.Initialized() && MPI.Init()
@@ -190,6 +191,11 @@ end
     if vertical_boundary_condition === :SolidWall
         periods = [true, true, false]
     elseif vertical_boundary_condition === :Periodic
+        if model !== :Boussinesq
+            error(
+                "Incorrect `model` choice for `vertical_boundary_condition = :Perdiodic`. Must be `:Boussinesq`.",
+            )
+        end
         periods = [true, true, true]
     else
         error(
