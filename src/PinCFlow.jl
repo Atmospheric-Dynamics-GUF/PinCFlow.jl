@@ -78,7 +78,7 @@ export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn
 export NoTracer, TracerOn
 
-export NoTriad, Triad2D, Triad3DIso, EulerMethod, Rk2Step
+export NoTriad, Triad2D, Triad3DIso, EulerMethod, Rk2Step, ConstantWaveEnergyCentre
 
 export Sum, Difference
 
