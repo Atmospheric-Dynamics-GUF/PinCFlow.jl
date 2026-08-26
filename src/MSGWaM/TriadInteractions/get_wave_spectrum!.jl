@@ -388,6 +388,123 @@ function get_wave_spectrum!(state::State,
 
 end
 
+function get_wave_spectrum!(state::State, 
+    wkb_mode::Union{MultiColumn, SingleColumn}, 
+    triad_mode::Triad2D,
+    projection_scheme::ConstantWaveEnergyCentre)
+    (; domain, grid) = state
+    (; x_size, y_size) = state.namelists.domain
+    (; coriolis_frequency) = state.namelists.atmosphere
+    (; branch) = state.namelists.wkb
+    (; lref, tref, g_ndim) = state.constants
+    (; i0, i1, j0, j1, k0, k1) = domain
+    (; dx, dy, dz, x, y, zc, zctilde, jac) = grid
+    (; nray, rays) = state.wkb
+    (; spec_tend) = state
+    (; kp, m, kpc, mc) = spec_tend.spec_grid
+
+
+
+   #println("\n Getting wave spectrum on the Eulerian grid from the Ray volumes")
+    # Set Coriolis parameter.
+    fc = coriolis_frequency * tref
+
+    spec_tend.wavespectrum .= 0
+    spec_tend.col_int .= 0 
+
+    spec_tend.was_ray_signature .= false
+
+
+     @ivy for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
+                continue
+            end
+
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
+
+            dxr = rays.dxray[r, i, j, k]
+            dyr = rays.dyray[r, i, j, k]
+            dzr = rays.dzray[r, i, j, k]
+
+            kr = rays.k[r, i, j, k]
+            mr = rays.m[r, i, j, k]
+
+            dkr = rays.dkray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
+
+            kpr = abs(kr)
+            dkpr = dkr
+            omgar = compute_omega_hat_nhyd(kpr, mr)
+            
+            (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+            
+            if x_size > 1
+                fcpspx =  dxr / dx
+            else
+                fcpspx = 1.0
+                dxr = 1.0
+            end
+
+            if y_size > 1
+                fcpspy =  dyr / dy
+            else
+                fcpspy = 1.0
+                dyr = 1.0
+            end
+
+            fcpspz =  dzr / jac[i, j, k] / dz
+            
+            for kpray in kpmin:kpmax
+                if x_size > 1
+                    dkpi = min(kpr + dkr / 2, kpc[kpray + 1]) -
+                        max(kpr - dkr / 2, kpc[kpray])
+
+                    dkp = kpc[kpray + 1] - kpc[kpray]
+                    fcpspkp = dkpi / dkp
+                else
+                    fcpspkp = 1.0
+                end                            
+
+                for mray in mmin:mmax
+                    if mr >= 0       #becuase for mr > 0,  m_i > 0 always lies between mc_{i+2} to mc_{i+1}
+                        dmi = 
+                            min(mr + dmr / 2, mc[mray + 2]) -
+                            max(mr - dmr / 2, mc[mray + 1])
+                        dm = mc[mray + 2] - mc[mray + 1]
+                        fcpspm = dmi / dm
+                    else
+                        dmi = 
+                            min(mr + dmr / 2, mc[mray + 1]) -
+                            max(mr - dmr / 2, mc[mray])
+                        dm = mc[mray + 1] - mc[mray]
+                        fcpspm = dmi / dm
+                    end
+                    
+                    vol_ratio = fcpspx * fcpspy * fcpspz * fcpspkp * fcpspm # Fraction of the accupied_vol ray volume and the volume of the grid cell
+                    omegai = compute_omega_hat_nhyd(kp[kpray], m[mray])
+                    omgega_ratio = omgar / omegai #for the conservation of energy
+                    wadr = rays.dens[r, i, j, k]
+                    wadi = vol_ratio * wadr * omgega_ratio
+                    spec_tend.wavespectrum[i, j, k, kpray, mray] += wadi
+                    spec_tend.was_ray_signature[i, j, k, kpray, mray] = true
+                    #println(spec_tend.wavespectrum[iray, jray, kray, kpray, mray])
+
+                end
+
+            end
+        
+        end
+
+    end
+
+end
+
 
 function get_wave_spectrum!(state::State, 
     wkb_mode::Union{MultiColumn, SingleColumn}, 

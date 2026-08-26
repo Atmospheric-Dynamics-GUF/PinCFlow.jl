@@ -223,6 +223,15 @@ struct ConstantWaveEnergy <: AbstractMergeMode end
 
 """
 ```julia
+ConstantWaveEnergy <: AbstractMergeMode
+```
+
+Singleton for the centre based ray-volume projection algorithm.
+"""
+struct ConstantWaveEnergyCentre <: AbstractMergeMode end
+
+"""
+```julia
 NoWKB <: AbstractWKBMode
 ```
 
@@ -421,7 +430,8 @@ export NeutralStratification,
     Sum,
     Difference,
     EulerMethod,
-    Rk2Step
+    Rk2Step,
+    ConstantWaveEnergyCentre
 
 export DomainNamelist,
     OutputNamelist,
