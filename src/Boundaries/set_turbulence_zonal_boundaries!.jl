@@ -14,6 +14,15 @@ set_turbulence_zonal_boundaries!(
 
 Enforce zonal boundary conditions for reconstructions of turbulent kinetic energy.
 
+```julia 
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+)
+```
+
+Return for fluxes of turbulent kinetic energy, as these only need vertical boundary conditions enforced.
+
 ```julia
 set_turbulence_zonal_boundaries!(
     state::State,
@@ -70,6 +79,13 @@ function set_turbulence_zonal_boundaries!(
         )
     end
 
+    return
+end
+
+function set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+)
     return
 end
 
