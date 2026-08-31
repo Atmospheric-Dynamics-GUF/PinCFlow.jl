@@ -3,6 +3,10 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 5.1.0
+
+  - The keyword argument `parallel_exceptions` has been added to `integrate`. By default, it is set to `false`. Setting it to `true` turns off exception reduction. This can prevent out-of-memory errors in simulations with very many MPI processes.
+
 ## Release 5.0.0
 
 New features:
