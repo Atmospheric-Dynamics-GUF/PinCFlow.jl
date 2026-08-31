@@ -23,6 +23,8 @@ Run the vortex example simulation.
 
 The keywords are analogous to those of `cold_bubble`.
 """
+function vortex end
+
 function vortex(;
     display_figure::Bool = true,
     npx::Integer = 1,

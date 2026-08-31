@@ -23,6 +23,8 @@ Run the wave-packet example simulation.
 
 The keywords are analogous to those of `cold_bubble`.
 """
+function wave_packet end
+
 function wave_packet(;
     display_figure::Bool = true,
     npx::Integer = 1,

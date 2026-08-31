@@ -23,6 +23,8 @@ Run the WKB-wave-packet example simulation.
 
 The keywords are analogous to those of `cold_bubble`.
 """
+function wkb_wave_packet end
+
 function wkb_wave_packet(;
     display_figure::Bool = true,
     npx::Integer = 1,

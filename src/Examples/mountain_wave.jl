@@ -23,6 +23,8 @@ Run the mountain-wave example simulation.
 
 The keywords are analogous to those of `cold_bubble`.
 """
+function mountain_wave end
+
 function mountain_wave(;
     display_figure::Bool = true,
     npx::Integer = 1,

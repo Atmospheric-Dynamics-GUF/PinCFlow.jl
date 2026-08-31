@@ -23,6 +23,8 @@ Run the hot-bubble example simulation.
 
 The keywords are analogous to those of `cold_bubble`.
 """
+function hot_bubble end
+
 function hot_bubble(;
     display_figure::Bool = true,
     npx::Integer = 1,

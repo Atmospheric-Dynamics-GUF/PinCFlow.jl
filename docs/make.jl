@@ -10,7 +10,7 @@ for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
         if endswith(script_file, ".jl")
             script = replace(
                 read(folder * script_file, String),
-                r"(?sm)^\"{3}.*^\"{3}\n" => "",
+                r"(?sm)^\"{3}.*^\"{3}\nfunction \w+ end\n\n" => "",
             )
             code = Regex(
                 "(?sm)(?<=^```julia\\n)# " *

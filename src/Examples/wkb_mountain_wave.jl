@@ -23,6 +23,8 @@ Run the WKB-mountain-wave example simulation.
 
 The keywords are analogous to those of `cold_bubble`.
 """
+function wkb_mountain_wave end
+
 function wkb_mountain_wave(;
     display_figure::Bool = true,
     npx::Integer = 1,

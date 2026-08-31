@@ -23,6 +23,8 @@ Run the periodic-hill example simulation.
 
 The keywords are analogous to those of `cold_bubble`.
 """
+function periodic_hill end
+
 function periodic_hill(;
     display_figure::Bool = true,
     npx::Integer = 1,

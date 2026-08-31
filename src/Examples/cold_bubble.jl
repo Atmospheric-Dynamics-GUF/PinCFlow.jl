@@ -43,6 +43,8 @@ Run the cold-bubble example simulation.
 
   - `z_size`: Number of grid points in ``\\hat{z}``.
 """
+function cold_bubble end
+
 function cold_bubble(;
     display_figure::Bool = true,
     npx::Integer = 1,
