@@ -1,5 +1,48 @@
 # src/Examples/cold_bubble.jl
 
+"""
+```julia
+cold_bubble(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "cold_bubble.h5",
+    plot_file::AbstractString = "cold_bubble.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
+)
+```
+
+Run the cold-bubble example simulation.
+
+# Keywords
+
+  - `display_figure`: Switch for displaying the figure created by `plot_output`.
+
+  - `npx`: Number of MPI subdomains in ``\\hat{x}``.
+
+  - `npy`: Number of MPI subdomains in ``\\hat{y}``.
+
+  - `npz`: Number of MPI subdomains in ``\\hat{z}``.
+
+  - `output_file`: File to which to save the output data.
+
+  - `plot_file`: File to which to save the figure created by `plot_output`.
+
+  - `prepare_restart`: Switch for writing all fields necessary for a restart.
+
+  - `visualize`: Switch for visualizing the output with `plot_output`.
+
+  - `x_size`: Number of grid points in ``\\hat{x}``.
+
+  - `y_size`: Number of grid points in ``\\hat{y}``.
+
+  - `z_size`: Number of grid points in ``\\hat{z}``.
+"""
 function cold_bubble(;
     display_figure::Bool = true,
     npx::Integer = 1,

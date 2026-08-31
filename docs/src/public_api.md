@@ -31,3 +31,16 @@ State
 ```@docs; canonical = false
 integrate
 ```
+
+## Examples
+
+```@docs; canonical = false
+cold_bubble
+hot_bubble
+mountain_wave
+periodic_hill
+vortex
+wave_packet
+wkb_mountain_wave
+wkb_wave_packet
+```

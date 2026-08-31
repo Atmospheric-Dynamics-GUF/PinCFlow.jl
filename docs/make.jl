@@ -8,7 +8,10 @@ using PinCFlow
 for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
     for script_file in readdir(folder)
         if endswith(script_file, ".jl")
-            script = read(folder * script_file, String)
+            script = replace(
+                read(folder * script_file, String),
+                r"(?sm)^\"{3}.*^\"{3}\n" => "",
+            )
             code = Regex(
                 "(?sm)(?<=^```julia\\n)# " *
                 folder *
@@ -169,6 +172,7 @@ makedocs(;
             "MSGWaM" => "internal_reference/msgwam.md",
             "Integration" => "internal_reference/integration.md",
             "Output" => "internal_reference/output.md",
+            "Examples" => "internal_reference/examples.md",
             "PinCFlowMakieExt" => "internal_reference/pincflow_makie_ext.md",
         ],
         "Developer guide" => "developer_guide.md",

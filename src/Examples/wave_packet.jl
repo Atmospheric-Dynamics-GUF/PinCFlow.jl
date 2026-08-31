@@ -1,5 +1,28 @@
 # src/Examples/wave_packet.jl
 
+"""
+```julia
+wave_packet(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "wave_packet.h5",
+    plot_file::AbstractString = "wave_packet.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
+)
+```
+
+Run the wave-packet example simulation.
+
+# Keywords
+
+The keywords are analogous to those of `cold_bubble`.
+"""
 function wave_packet(;
     display_figure::Bool = true,
     npx::Integer = 1,
