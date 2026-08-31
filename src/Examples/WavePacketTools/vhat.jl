@@ -1,5 +1,34 @@
 # src/Examples/WavePacketTools/vhat.jl
 
+"""
+```julia
+vhat(state::State, parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
+```
+
+Return the meridional-wind wave amplitude at ``\\left(x, y, z\\right)``.
+
+# Arguments
+
+  - `state`: Auxiliary model state.
+
+  - `parameters`: Parameters of the wave-packet configuration.
+
+  - `x`: Zonal position.
+
+  - `y`: Meridional position.
+
+  - `z`: Vertical position.
+
+# See also
+
+  - [`PinCFlow.Examples.WavePacketTools.bhat`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.n2`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.omega`](@ref)
+"""
+function vhat end
+
 function vhat(
     state::State,
     parameters::NamedTuple,

@@ -1,5 +1,30 @@
 # src/Examples/wkb_wave_packet.jl
 
+"""
+```julia
+wkb_wave_packet(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "wkb_wave_packet.h5",
+    plot_file::AbstractString = "wkb_wave_packet.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
+)
+```
+
+Run the WKB-wave-packet example simulation.
+
+# Keywords
+
+The keywords are analogous to those of `cold_bubble`.
+"""
+function wkb_wave_packet end
+
 function wkb_wave_packet(;
     display_figure::Bool = true,
     npx::Integer = 1,
