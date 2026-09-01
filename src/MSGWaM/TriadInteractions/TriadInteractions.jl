@@ -67,7 +67,12 @@ include("apply_wave_spectrum_filter!.jl")
 include("smooth_wave_spectrum!.jl")
 include("compute_discrete_k_index.jl")
 include("compute_collision_energy_error.jl")
-include("diagnose_triad_timescales.jl")
+include("diagnose_triad_timescales!.jl")
+include("initialize_chi_parent_tracker!.jl")
+include("get_chi_cell_action.jl")
+include("get_chi_vertical_indices.jl")
+include("find_chi_parent_peak.jl")
+include("track_chi_parent_modes!.jl")
 export get_wave_spectrum!,
        apply_triad_interactions!,
        initialize_wave_spectrum!,

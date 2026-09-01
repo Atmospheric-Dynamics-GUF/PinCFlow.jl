@@ -81,7 +81,7 @@ function write_output(
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
+    (; wkb_mode, wave_modes) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, zc, zctilde) = grid
@@ -415,6 +415,16 @@ function write_output(
                 )
                 file["tau_pl"][iid, jjd, kkd, iout] = 
                     spec_tend.dephasing_time[ii, jj, kk] .* tref
+            end
+            if :chi_parent in output_variables && triad_mode != NoTriad()
+                HDF5.set_extent_dims(
+                    file["chi_parent"],
+                    (wave_modes, iout),
+                )
+
+                if master
+                    file["chi_parent"][:, iout] = spec_tend.chi_parent
+                end
             end
         end
 

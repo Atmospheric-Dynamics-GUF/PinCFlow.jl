@@ -13,7 +13,7 @@ function compute_scattering_integral_discrete!(
     (; rhobar) = state.atmosphere
 
     was = @ivy view(wavespectrum, ii, jj, kk, :, :)
-    sqrtrhobar = sqrt(rhobar[ii, jj, kk]) ##background density at the level (ii, jj, kk)
+    rhobar_local = rhobar[ii, jj, kk] ##background density at the level (ii, jj, kk)
 
 
     # No update_interpolation_coef! here:
@@ -95,7 +95,7 @@ function compute_scattering_integral_discrete!(
                 # cancel. No horizontal quadrature weight is needed.
 
                 col_int[ii, jj, kk, kpi, mi] =
-                    4π * (stk_sum - stk_diff) / sqrtrhobar
+                    4π * (stk_sum - stk_diff) / rhobar_local
             end
         end 
     end

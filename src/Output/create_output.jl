@@ -18,7 +18,7 @@ function create_output(state::State, machine_start_time::DateTime)
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
+    (; wkb_mode, wave_modes) = state.namelists.wkb
     (; comm, master) = state.domain
     (; nray_max) = state.wkb
     (; kpl, ml) = state.spec_tend.spec_grid
@@ -387,6 +387,18 @@ function create_output(state::State, machine_start_time::DateTime)
                 chunk = (cx, cy, cz, ct),
                 )
             end
+            if :chi_parent in output_variables && triad_mode != NoTriad()
+                create_dataset(
+                    file,
+                    "chi_parent",
+                    datatype(Float32),
+                    dataspace(
+                        (wave_modes, 0),
+                        (wave_modes, -1),
+                    );
+                    chunk = (wave_modes, ct),
+                )
+            end
         end
 
         return
@@ -694,6 +706,12 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(file["tau_pl"])["units"] = "s"
                 attributes(file["tau_pl"])["label"] = L"\mathrm{T_{pl}}\ [\mathrm{s}]"
                 attributes(file["tau_pl"])["long_name"] = "Maximum planar dephasing time scale"
+            end
+            if :chi_parent in output_variables && triad_mode != NoTriad()
+                attributes(file["chi_parent"])["units"] = "1"
+                attributes(file["chi_parent"])["label"] = L"\chi_{\mathrm{parent}}"
+                attributes(file["chi_parent"])["long_name"] =
+                    "Parent-mode weak-wave-turbulence nonlinearity parameter"
             end
         end
 

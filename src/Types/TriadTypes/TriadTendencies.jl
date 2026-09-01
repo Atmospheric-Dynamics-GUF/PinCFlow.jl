@@ -77,6 +77,9 @@ struct TriadTendencies{
     diag_time::B
     nl_time_scale::D
     dephasing_time::D
+    chi_parent::Vector{Float64}
+    chi_max::Ref{Float64}
+    chi_tracker::ChiParentTracker
     kin_box::KinematicBox
     interp_coef::InterpCoef
     res_manifold::ResManifold
@@ -110,6 +113,7 @@ function TriadTendencies(
     kin_box = KinematicBox(wkb_mode, triad_mode)
     interp_coef = InterpCoef(wkb_mode, triad_mode)
     res_manifold = ResManifold(wkb_mode, triad_mode)
+    chi_tracker = ChiParentTracker(wkb_mode, triad_mode)
 
     scratch = [TriadScratch(zeros(0), zeros(0), zeros(0))]
     partition = UnitRange{Int}[]
@@ -123,6 +127,9 @@ function TriadTendencies(
         zeros(0, 0),
         zeros(0, 0, 0),
         zeros(0, 0, 0),
+        zeros(0),
+        Ref(0.0),
+        chi_tracker,
         kin_box,
         interp_coef,
         res_manifold,
@@ -145,6 +152,7 @@ function TriadTendencies(
     (; nxx, nyy, nzz) = domain
     (; x_size) = namelists.domain
     (; rm_index, nthreads_triad) = namelists.triad
+    (; wave_modes) = namelists.wkb
 
     # Compute the spectral grid.
     spec_grid = SpectralGrid(namelists, constants, wkb_mode, triad_mode)
@@ -270,6 +278,10 @@ function TriadTendencies(
     nl_time_scale = zeros(nxx, nyy, nzz)
     dephasing_time = zeros(nxx, nyy, nzz)
 
+    chi_parent = fill(NaN, wave_modes)
+    chi_max = Ref(NaN)
+    chi_tracker = ChiParentTracker(namelists, domain, wkb_mode, triad_mode)
+
     # Thread partition of the complete spectral grid.
     spec_l = kpl * ml
     partition = make_partition(spec_l, nthreads_triad)
@@ -286,6 +298,9 @@ function TriadTendencies(
         diag_time,
         nl_time_scale,
         dephasing_time,
+        chi_parent,
+        chi_max,
+        chi_tracker,
         kin_box,
         interp_coef,
         res_manifold,

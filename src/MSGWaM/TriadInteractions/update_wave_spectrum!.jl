@@ -65,8 +65,6 @@ function update_wave_spectrum!(
     #----------------------------------------------------------
 
     compute_scattering_integral!(state, ii, jj, kk, triad_mode)
-    
-    diagnose_triad_timescales(state, ii, jj, kk, triad_mode)
 
     tau_nl = get_nl_time_scale(spec_tend, ii, jj, kk, action_rel_tol)
     nl_time_scale[ii, jj, kk] = tau_nl

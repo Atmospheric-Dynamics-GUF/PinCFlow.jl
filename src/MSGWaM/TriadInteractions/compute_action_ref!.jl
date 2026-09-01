@@ -90,6 +90,9 @@ function compute_action_ref!(
         )
     end
 
+    if :chi_parent in state.namelists.output.output_variables
+        initialize_chi_parent_tracker!(state, mode_information)
+    end
     #----------------------------------------------------------
     # Select the peak action of the weakest initialized mode
     #----------------------------------------------------------

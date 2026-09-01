@@ -13,7 +13,7 @@ function compute_scattering_integral_continuous!(
     (; wavespectrum, col_int) = spec_tend
     (; rhobar) = state.atmosphere
 
-    sqrtrhobar = sqrt(rhobar[ii, jj, kk]) ##background density at the level (ii, jj, kk)
+    rhobar_local = rhobar[ii, jj, kk] ##background density at the level (ii, jj, kk)
 
     was = @ivy view(wavespectrum, ii, jj, kk, :, :)
 
@@ -83,7 +83,7 @@ function compute_scattering_integral_continuous!(
                     end
                     #end
                     # Singularities p=±kr, yet to define
-                    col_int[ii, jj, kk, kpi, mi] = 2.0 * pi * (sum_integral - difference_integral) / sqrtrhobar
+                    col_int[ii, jj, kk, kpi, mi] = 2.0 * pi * (sum_integral - difference_integral) / rhobar_local
                 end
             end
                 
