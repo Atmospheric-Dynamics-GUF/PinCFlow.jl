@@ -51,6 +51,9 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     launch_rays_action_rel_tol::B
     discarded_action_fraction_tol::B
     projection_scheme::G
+    chi_z_min::Float64
+    chi_z_max::Float64
+    chi_action_rel_tol::Float64
 end
 
 function TriadNamelist(;
@@ -77,6 +80,9 @@ function TriadNamelist(;
     launch_rays_action_rel_tol::Real = 1.0E-5,
     discarded_action_fraction_tol::Real = 1.0E-5,
     projection_scheme::AbstractMergeMode = ConstantWaveEnergy(),
+    chi_z_min = 20.0E3,
+    chi_z_max = 20.0E3,
+    chi_action_rel_tol = 1.0E-2,
 )::TriadNamelist
     return TriadNamelist(
         Int(k_size),
@@ -102,5 +108,8 @@ function TriadNamelist(;
         Float64(launch_rays_action_rel_tol),
         Float64(discarded_action_fraction_tol),
         projection_scheme,
+        chi_z_min,
+        chi_z_max,
+        chi_action_rel_tol,
     )
 end

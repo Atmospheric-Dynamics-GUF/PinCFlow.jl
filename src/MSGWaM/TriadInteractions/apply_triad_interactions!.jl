@@ -30,6 +30,7 @@ function apply_triad_interactions!(state::State,
     (; compute_dephasing_time, nthreads_triad, smooth_wave_spectrum) = state.namelists.triad
     (; tref) = state.constants
     (; nl_time_scale, dephasing_time, prev_dt) = spec_tend
+    (; output_variables) = state.namelists.output
     
     if Threads.nthreads() != nthreads_triad
         error("Julia started with Threads.nthreads()=$(Threads.nthreads()) but nthreads_triad=$nthreads_triad. Start Julia with --threads=$nthreads_triad (or set JULIA_NUM_THREADS).")
@@ -47,7 +48,7 @@ function apply_triad_interactions!(state::State,
     else
         copyto!(spec_tend.was_pred, spec_tend.wavespectrum)
     end
-    
+        
     if master
         println("Updating wave action spectrum due to interactions")
     end
@@ -63,6 +64,11 @@ function apply_triad_interactions!(state::State,
         
     end
 
+    if :chi_parent in output_variables
+        track_chi_parent_modes!(state, triad_mode)
+        diagnose_triad_timescales!(state, triad_mode)
+    end
+    
     compute_collision_energy_error(state, triad_mode)
     
     get_ray_volumes!(state, triad_mode)
