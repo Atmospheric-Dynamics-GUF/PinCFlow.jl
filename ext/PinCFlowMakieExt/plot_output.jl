@@ -170,7 +170,7 @@ plot_output
                 dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
                 dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
                 nr = data["nr"][:, :, :, :, n]
-                phi = data[string(variable)][:, :, :, :, n]
+                phi = Array(data[string(variable)][:, :, :, :, n])
 
                 # Plot in the x-y plane.
                 if nx > 1 && ny > 1
