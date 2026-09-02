@@ -701,11 +701,11 @@ end
         upper_gradient = compute_pressure_gradient(state, pip, i, j, k, W())
         upper_force = compute_volume_force(state, i, j, k, W())
 
-        if (ko + k == k0 && vertical_boundary_condition == :SolidWall)
+        if (ko + k == k0 && vertical_boundary_condition === :SolidWall)
             lower_gradient = 0.0
             lower_force = 0.0
         elseif (
-            ko + k == z_size + nbz && vertical_boundary_condition == :SolidWall
+            ko + k == z_size + nbz && vertical_boundary_condition === :SolidWall
         )
             upper_gradient = 0.0
             upper_force = 0.0

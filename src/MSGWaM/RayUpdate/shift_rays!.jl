@@ -118,12 +118,10 @@ function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
         remove_rays!(state)
     end
 
-    if z_size > 1
-        set_vertical_boundary_rays!(state)
-        shift_rays!(state, Z())
-        set_vertical_boundary_rays!(state)
-        remove_rays!(state)
-    end
+    set_vertical_boundary_rays!(state)
+    shift_rays!(state, Z())
+    set_vertical_boundary_rays!(state)
+    remove_rays!(state)
 
     check_rays(state)
 

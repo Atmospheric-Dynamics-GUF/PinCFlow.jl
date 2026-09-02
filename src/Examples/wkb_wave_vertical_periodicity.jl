@@ -9,9 +9,9 @@ function wkb_wave_vertical_periodicity(;
     plot_file::AbstractString = "wkb_wave_vertical_periodicity.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    x_size::Integer = 20,
+    x_size::Integer = 40,
     y_size::Integer = 1,
-    z_size::Integer = 20,
+    z_size::Integer = 40,
 )
     lx = 300.0e3
     ly = 10.0e3

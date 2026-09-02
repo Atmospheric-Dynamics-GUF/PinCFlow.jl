@@ -480,7 +480,7 @@ function write_output end
             # Write elastic-mode-selection data.
             if elastic_mode_selection &&
                ko == 0 &&
-               vertical_boundary_condition == :SolidWall
+               vertical_boundary_condition === :SolidWall
                 for field in (:launch_mode_count, :launch_power_fraction)
                     if field in output_variables
                         HDF5.set_extent_dims(

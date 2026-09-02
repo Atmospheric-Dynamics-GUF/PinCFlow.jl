@@ -14,7 +14,7 @@ function check_rays end
 @ivy function check_rays(state::State)
     (; x_size, y_size) = state.namelists.domain
     (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, x, y, zctilde, zc) = state.grid
+    (; dx, dy, x, y, zctilde) = state.grid
     (; nray, rays) = state.wkb
 
     # Loop over ray volumes.
