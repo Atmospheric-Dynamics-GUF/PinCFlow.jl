@@ -705,7 +705,8 @@ end
             lower_gradient = 0.0
             lower_force = 0.0
         elseif (
-            ko + k == z_size + nbz && vertical_boundary_condition === :SolidWall
+            ko + k == z_size + nbz &&
+            vertical_boundary_condition === :SolidWall
         )
             upper_gradient = 0.0
             upper_force = 0.0

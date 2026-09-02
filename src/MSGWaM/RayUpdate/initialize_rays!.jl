@@ -264,7 +264,8 @@ end
         end
 
         # Check if surface ray-volume count is correct.
-        if (ko == 0 && vertical_boundary_condition === :SolidWall) && k == k0 - 1
+        if (ko == 0 && vertical_boundary_condition === :SolidWall) &&
+           k == k0 - 1
             if s != n_sfc
                 error(
                     "Incorrect surface-ray-volume count: s = ",
