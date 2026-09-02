@@ -193,7 +193,7 @@ end
     elseif vertical_boundary_condition === :Periodic
         if model !== :Boussinesq
             error(
-                "Incorrect `model` choice for `vertical_boundary_condition = :Perdiodic`. Must be `:Boussinesq`.",
+                "Incorrect `model` choice for `vertical_boundary_condition = :Periodic`. Must be `:Boussinesq`.",
             )
         end
         periods = [true, true, true]
