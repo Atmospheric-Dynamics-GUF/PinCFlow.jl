@@ -10,7 +10,7 @@ set_vertical_halos_of_field!(
 
 Exchange a specified number of vertical halo values of a 3D array by performing MPI communication between downward and upward neighbor processes.
 
-Solid walls are assumed at the vertical boundaries of the domain. The corresponding ghost-cell values are not changed.
+The corresponding ghost-cell values are not changed.
 
 ```julia
 set_vertical_halos_of_field!(
@@ -23,7 +23,7 @@ set_vertical_halos_of_field!(
 
 Exchange a specified number of vertical halo values of a 5D array with an algorithm similar to that implemented in the above method.
 
-The vertical domain boundaries are treated as described above. The first three dimensions of the array are assumed to represent the dimensions of physical space.
+The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
 # Arguments
 
@@ -39,87 +39,10 @@ The vertical domain boundaries are treated as described above. The first three d
 """
 function set_vertical_halos_of_field! end
 
-function set_vertical_halos_of_field!(
-    field::Union{
-        AbstractArray{<:Real, 3},
-        AbstractArray{<:AbstractFloat, 4},
-        AbstractArray{<:AbstractFloat, 5},
-    },
+@ivy function set_vertical_halos_of_field!(
+    field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain;
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
-    (; vertical_boundary_condition) = state.namelists.domain
-
-    @dispatch_vertical_boundary_condition set_vertical_halos_of_field!(
-        field,
-        namelists,
-        domain,
-        Val(vertical_boundary_condition);
-        layers = layers,
-    )
-    return
-end
-
-@ivy function set_vertical_halos_of_field!(
-    field::AbstractArray{<:Real, 3},
-    namelists::Namelists,
-    domain::Domain,
-    vertical_boundary_condition::Val{:SolidWall};
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
-    (; nbz) = namelists.domain
-    (; comm, i0, i1, j0, j1, k0, k1, down, up) = domain
-
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
-
-    ii = (i0 - nbx):(i1 + nbx)
-    jj = (j0 - nby):(j1 + nby)
-
-    if ko == 0
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1],
-            field[ii, jj, (k1 + 1):(k1 + nbz)],
-            comm;
-            dest = up,
-            source = up,
-        )
-    elseif ko + nz == z_size
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1)],
-            field[ii, jj, (k0 - nbz):(k0 - 1)],
-            comm;
-            dest = down,
-            source = down,
-        )
-    else
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1],
-            field[ii, jj, (k0 - nbz):(k0 - 1)],
-            comm;
-            dest = up,
-            source = down,
-        )
-
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1)],
-            field[ii, jj, (k1 + 1):(k1 + nbz)],
-            comm;
-            dest = down,
-            source = up,
-        )
-    end
-
-    return
-end
-
-@ivy function set_vertical_halos_of_field!(
-    field::AbstractArray{<:Real, 3},
-    namelists::Namelists,
-    domain::Domain,
-    vertical_boundary_condition::Val{:Periodic};
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; nbz) = namelists.domain
@@ -152,154 +75,9 @@ end
 end
 
 @ivy function set_vertical_halos_of_field!(
-    field::AbstractArray{<:AbstractFloat, 4},
-    namelists::Namelists,
-    domain::Domain,
-    vertical_boundary_condition::Val{:SolidWall};
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
-    (; nbz) = namelists.domain
-    (; comm, i0, i1, j0, j1, k0, k1, down, up) = domain
-
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
-
-    ii = (i0 - nbx):(i1 + nbx)
-    jj = (j0 - nby):(j1 + nby)
-
-    if ko == 0
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1, :],
-            field[ii, jj, (k1 + 1):(k1 + nbz), :],
-            comm;
-            dest = up,
-            source = up,
-        )
-    elseif ko + nz == z_size
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1), :],
-            field[ii, jj, (k0 - nbz):(k0 - 1), :],
-            comm;
-            dest = down,
-            source = down,
-        )
-    else
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1, :],
-            field[ii, jj, (k0 - nbz):(k0 - 1), :],
-            comm;
-            dest = up,
-            source = down,
-        )
-
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1), :],
-            field[ii, jj, (k1 + 1):(k1 + nbz), :],
-            comm;
-            dest = down,
-            source = up,
-        )
-    end
-
-    return
-end
-
-@ivy function set_vertical_halos_of_field!(
-    field::AbstractArray{<:AbstractFloat, 4},
-    namelists::Namelists,
-    domain::Domain,
-    vertical_boundary_condition::Val{:Periodic};
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
-    (; nbz) = namelists.domain
-    (; comm, i0, i1, j0, j1, k0, k1, down, up) = domain
-
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
-
-    ii = (i0 - nbx):(i1 + nbx)
-    jj = (j0 - nby):(j1 + nby)
-
-    MPI.Sendrecv!(
-        field[ii, jj, (k1 - nbz + 1):k1, :],
-        field[ii, jj, (k0 - nbz):(k0 - 1), :],
-        comm;
-        dest = up,
-        source = down,
-    )
-
-    MPI.Sendrecv!(
-        field[ii, jj, k0:(k0 + nbz - 1), :],
-        field[ii, jj, (k1 + 1):(k1 + nbz), :],
-        comm;
-        dest = down,
-        source = up,
-    )
-
-    return
-end
-
-@ivy function set_vertical_halos_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
-    domain::Domain,
-    vertical_boundary_condition::Val{:SolidWall};
-    layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
-    (; nbz) = namelists.domain
-    (; comm, i0, i1, j0, j1, k0, k1, down, up) = domain
-
-    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
-
-    ii = (i0 - nbx):(i1 + nbx)
-    jj = (j0 - nby):(j1 + nby)
-
-    if ko == 0
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1, :, :],
-            field[ii, jj, (k1 + 1):(k1 + nbz), :, :],
-            comm;
-            dest = up,
-            source = up,
-        )
-    elseif ko + nz == z_size
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1), :, :],
-            field[ii, jj, (k0 - nbz):(k0 - 1), :, :],
-            comm;
-            dest = down,
-            source = down,
-        )
-    else
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1, :, :],
-            field[ii, jj, (k0 - nbz):(k0 - 1), :, :],
-            comm;
-            dest = up,
-            source = down,
-        )
-
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1), :, :],
-            field[ii, jj, (k1 + 1):(k1 + nbz), :, :],
-            comm;
-            dest = down,
-            source = up,
-        )
-    end
-
-    return
-end
-
-@ivy function set_vertical_halos_of_field!(
-    field::AbstractArray{<:AbstractFloat, 5},
-    namelists::Namelists,
-    domain::Domain,
-    vertical_boundary_condition::Val{:Periodic};
+    domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; nbz) = namelists.domain
