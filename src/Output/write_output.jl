@@ -8,6 +8,18 @@ write_output(
 )::Integer
 ```
 
+Write the current simulation state by dispatching to an output-file-format-specific method.
+
+```julia
+write_output(
+    state::State,
+    time::AbstractFloat,
+    iout::Integer,
+    machine_start_time::DateTime,
+    output_file_format::Val{:HDF5},
+)::Integer
+```
+
 Write the current simulation state to a previously created HDF5 output file and return the advanced output counter `iout`.
 
 The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
@@ -80,6 +92,23 @@ An output of all ray-volume properties is provided if `state.namelists.output.sa
 
 All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.
 
+```julia
+write_output(
+    state::State,
+    time::AbstractFloat,
+    iout::Integer,
+    machine_start_time::DateTime,
+    output_file_format::Val{:NetCDF4},
+)::Integer
+```
+
+Write the current simulation state to a previously created NetCDF4 output file and return the advanced output counter `iout`.
+
+See documentation of HDF5-specific method for details.
+
+!!! danger "Experimental"
+    The output format `:NetCDF4` is an experimental feature that hasn't been fully validated yet.
+
 # Arguments
 
   - `state`: Model state.
@@ -90,17 +119,37 @@ All output variables are re-dimensionalized with the scale parameters stored in 
 
   - `machine_start_time`: Wall-clock start time.
 
+  - `output_file_format`: Format of the output file.
+
 # See also
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function write_output end
 
+function write_output(
+    state::State,
+    time::AbstractFloat,
+    iout::Integer,
+    machine_start_time::DateTime,
+)::Integer
+    (; output_file_format) = state.namelists.output
+
+    @dispatch_output_file_format return write_output(
+        state,
+        time,
+        iout,
+        machine_start_time,
+        Val(output_file_format),
+    )
+end
+
 @ivy function write_output(
     state::State,
     time::AbstractFloat,
     iout::Integer,
     machine_start_time::DateTime,
+    output_file_format::Val{:HDF5},
 )::Integer
     (; domain, grid) = state
     (; x_size, y_size, z_size) = state.namelists.domain
@@ -484,6 +533,335 @@ function write_output end
                             file[string(field)],
                             (x_size, y_size, iout),
                         )
+                        file[string(field)][iid, jjd, iout] =
+                            getfield(state.wkb.elastic_mode_selection, field)[
+                                ii,
+                                jj,
+                            ]
+                    end
+                end
+            end
+        end
+
+        return
+    end
+
+    return iout
+end
+
+@ivy function write_output(
+    state::State,
+    time::AbstractFloat,
+    iout::Integer,
+    machine_start_time::DateTime,
+    output_file_format::Val{:NetCDF4},
+)::Integer
+    (; domain, grid) = state
+    (; x_size, y_size, z_size) = state.namelists.domain
+    (; prepare_restart, save_ray_volumes, output_variables, output_file) =
+        state.namelists.output
+    (; model) = state.namelists.atmosphere
+    (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
+    (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; tref, lref, rhoref, thetaref, uref) = state.constants
+    (; x, y, zc, zctilde) = grid
+    (; rhobar, thetabar, n2, pbar) = state.atmosphere
+    (; predictands) = state.variables
+    (; rho, rhop, u, v, w, pip, p) = predictands
+    (; bins, rays, tendencies, integrals) = state.wkb
+
+    # Print information.
+    if master
+        println(repeat("-", 80))
+        println("Output into file ", output_file)
+        println("Physical time: ", time * tref, " s")
+        println("Machine time: ", canonicalize(now() - machine_start_time))
+        println(repeat("-", 80))
+        println("")
+    end
+
+    # Advance output counter.
+    iout += 1
+
+    # Determine dimensionality.
+    dim = 1
+    if x_size > 1
+        dim += 1
+    end
+    if y_size > 1
+        dim += 1
+    end
+
+    # Define slices.
+    dk0 = ko == 0 ? 1 : 0
+    (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (iid, jjd, kkd, kkrd) = (
+        (io + 1):(io + nx),
+        (jo + 1):(jo + ny),
+        (ko + 1):(ko + nz),
+        (ko + 2 - dk0):(ko + nz + 1),
+    )
+
+    NCDataset(comm, output_file, "a") do file
+        NCDatasets.paraccess(file, :collective)
+
+        # Write the time.
+        file["t"][iout] = time * tref
+
+        if iout == 1
+            # Write the horizontal grid.
+            file["x"][iid] = x[ii] .* lref
+            file["y"][jjd] = y[jj] .* lref
+
+            # Write the vertical grid.
+            file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
+            file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
+
+            if model !== :Boussinesq
+                # Write the background density.
+                file["rhobar"][iid, jjd, kkd] = rhobar[ii, jj, kk] .* rhoref
+                # Write the background potential temperature.
+                file["thetabar"][iid, jjd, kkd] =
+                    thetabar[ii, jj, kk] .* thetaref
+                # Write the squared buoyancy frequency.
+                file["n2"][iid, jjd, kkd] = n2[ii, jj, kk] ./ tref .^ 2
+            end
+        end
+
+        # Write the mass-weighted potential temperature.
+        if model === :Compressible
+            file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
+        elseif model !== :Boussinesq && iout == 1
+            file["p"][iid, jjd, kkd] = pbar[ii, jj, kk] .* rhoref .* thetaref
+        end
+
+        # Write the density fluctuations.
+        if prepare_restart || :rhop in output_variables
+            if model === :Boussinesq
+                file["rhop"][iid, jjd, kkd, iout] = rhop[ii, jj, kk] .* rhoref
+            else
+                file["rhop"][iid, jjd, kkd, iout] = rho[ii, jj, kk] .* rhoref
+            end
+        end
+
+        # Write the zonal winds.
+        if :u in output_variables
+            file["u"][iid, jjd, kkd, iout] =
+                map(CartesianIndices((ii, jj, kk))) do ijk
+                    (i, j, k) = Tuple(ijk)
+                    return (u[i, j, k] + u[i - 1, j, k]) / 2 * uref
+                end
+        end
+
+        # Write the staggered zonal winds.
+        if prepare_restart || :us in output_variables
+            file["us"][iid, jjd, kkd, iout] = u[ii, jj, kk] .* uref
+        end
+
+        # Write the meridional winds.
+        if :v in output_variables
+            file["v"][iid, jjd, kkd, iout] =
+                map(CartesianIndices((ii, jj, kk))) do ijk
+                    (i, j, k) = Tuple(ijk)
+                    return (v[i, j, k] + v[i, j - 1, k]) / 2 * uref
+                end
+        end
+
+        # Write the staggered meridional winds.
+        if prepare_restart || :vs in output_variables
+            file["vs"][iid, jjd, kkd, iout] = v[ii, jj, kk] .* uref
+        end
+
+        # Write the vertical winds.
+        if :w in output_variables
+            file["w"][iid, jjd, kkd, iout] =
+                map(CartesianIndices((ii, jj, kk))) do ijk
+                    (i, j, k) = Tuple(ijk)
+                    return (
+                        compute_vertical_wind(i, j, k, state) +
+                        compute_vertical_wind(i, j, k - 1, state)
+                    ) / 2 * uref
+                end
+        end
+
+        # Write the staggered vertical winds.
+        if :ws in output_variables
+            file["ws"][iid, jjd, kkd, iout] =
+                map(CartesianIndices((ii, jj, kk))) do ijk
+                    (i, j, k) = Tuple(ijk)
+                    return compute_vertical_wind(i, j, k, state) * uref
+                end
+        end
+
+        # Write the transformed vertical winds.
+        if :wt in output_variables
+            file["wt"][iid, jjd, kkd, iout] =
+                map(CartesianIndices((ii, jj, kk))) do ijk
+                    (i, j, k) = Tuple(ijk)
+                    return (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
+                end
+        end
+
+        # Write the staggered transformed vertical winds.
+        if prepare_restart || :wts in output_variables
+            file["wts"][iid, jjd, kkd, iout] = w[ii, jj, kk] .* uref
+        end
+
+        # Write the potential-temperature fluctuations.
+        if :thetap in output_variables
+            if model === :Boussinesq
+                file["thetap"][iid, jjd, kkd, iout] =
+                    (
+                        pbar[ii, jj, kk] ./
+                        (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .-
+                        thetabar[ii, jj, kk]
+                    ) .* thetaref
+            else
+                file["thetap"][iid, jjd, kkd, iout] =
+                    (
+                        pbar[ii, jj, kk] ./
+                        (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .-
+                        thetabar[ii, jj, kk]
+                    ) .* thetaref
+            end
+        end
+
+        # Write the Exner-pressure fluctuations.
+        if prepare_restart || :pip in output_variables
+            file["pip"][iid, jjd, kkd, iout] = pip[ii, jj, kk]
+        end
+
+        if state.namelists.tracer.tracer_setup !== :NoTracer
+            for field in fieldnames(TracerPredictands)
+                file[string(field)][iid, jjd, kkd, iout] =
+                    getfield(state.tracer.tracerpredictands, field)[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
+               :dchidt0 in output_variables
+                file["dchidt0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] ./
+                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
+               :uchi0 in output_variables
+                file["uchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
+               :vchi0 in output_variables
+                file["vchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+
+            if state.namelists.tracer.leading_order_impact &&
+               wkb_mode !== :NoWKB &&
+               :wchi0 in output_variables
+                file["wchi0"][iid, jjd, kkd, iout] =
+                    state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] .* uref ./
+                    rhobar[ii, jj, kk]
+            end
+        end
+
+        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
+            if prepare_restart || :tke in output_variables
+                file["tke"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencepredictands.tke[ii, jj, kk] ./
+                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .* (lref .^ 2.0) ./
+                    (tref .^ 2.0)
+            end
+
+            if :shear_production in output_variables
+                file["shear_production"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.shear_production[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+
+            if :buoyancy_production in output_variables
+                file["buoyancy_production"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulenceauxiliaries.buoyancy_production[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+        end
+
+        # Write WKB variables.
+        if wkb_mode !== :NoWKB
+
+            # Write ray-volume properties.
+            if prepare_restart || save_ray_volumes
+                for (output_name, field_name) in zip(
+                    ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
+                    (:x, :y, :z, :dxray, :dyray, :dzray),
+                )
+                    file[output_name][1:bins, iid, jjd, kkrd, iout] =
+                        getproperty(rays, field_name)[rr, ii, jj, kkr] .* lref
+                end
+
+                for (output_name, field_name) in zip(
+                    ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
+                    (:k, :l, :m, :dkray, :dlray, :dmray),
+                )
+                    file[output_name][1:bins, iid, jjd, kkrd, iout] =
+                        getproperty(rays, field_name)[rr, ii, jj, kkr] ./ lref
+                end
+
+                file["nr"][1:bins, iid, jjd, kkrd, iout] =
+                    rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
+                    lref .^ dim
+            end
+
+            # Write GW integrals.
+            for (field, scaling) in zip(
+                (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e),
+                (
+                    (rhoref * uref^2 for index in 1:5)...,
+                    rhoref * uref * thetaref,
+                    rhoref * uref * thetaref,
+                    rhoref * uref^2,
+                ),
+            )
+                if field in output_variables
+                    file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(integrals, field)[ii, jj, kk] .* scaling
+                end
+            end
+
+            # Write GW tendencies.
+            for (field, scaling) in zip(
+                (:dudt, :dvdt, :dthetadt),
+                (
+                    rhoref * uref / tref,
+                    rhoref * uref / tref,
+                    rhoref * thetaref / tref,
+                ),
+            )
+                if field in output_variables
+                    file[string(field)][iid, jjd, kkd, iout] =
+                        getfield(tendencies, field)[ii, jj, kk] .* scaling
+                end
+            end
+
+            # Write elastic-mode-selection data.
+            if elastic_mode_selection && ko == 0
+                for field in (:launch_mode_count, :launch_power_fraction)
+                    if field in output_variables
                         file[string(field)][iid, jjd, iout] =
                             getfield(state.wkb.elastic_mode_selection, field)[
                                 ii,

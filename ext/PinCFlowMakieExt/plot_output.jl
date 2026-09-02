@@ -26,7 +26,7 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `plot_file`: File to save the plots to.
 
-  - `data_file`: HDF5 file with PinCFlow.jl output data.
+  - `data_file`: HDF5 or NetCDF4 file with PinCFlow.jl output data.
 
   - `fields`: Either tuples of a variable name and a temporal index (for 2D data), or tuples of a variable name, three fractions which define the relative positions of the ``\\hat{y}``-``\\hat{z}``, ``\\hat{x}``-``\\hat{z}``, and ``\\hat{x}``-``\\hat{y}`` planes, and a temporal index (for 3D data).
 
@@ -111,7 +111,7 @@ plot_output
     digits = 1
 
     # Create the figure.
-    figure = h5open(data_file) do data
+    figure = NCDataset(data_file, "r") do data
 
         # Set the grid.
         x = data["x"][:] ./ space_unit_factor
@@ -159,7 +159,7 @@ plot_output
             tn = round(t[n]; digits)
 
             # Get the label.
-            label = LaTeXString(attrs(data[string(variable)])["label"])
+            label = LaTeXString(data[string(variable)].attrib["label"][:])
 
             if variable in ray_volume_properties
                 # Get the ray-volume data.
@@ -287,7 +287,7 @@ plot_output
                 end
             else
                 # Get the variable.
-                phi = data[string(variable)][:, :, :, n]
+                phi = Array(data[string(variable)][:, :, :, n])
 
                 # Plot in the x-y plane.
                 if nx > 1 && ny > 1
