@@ -18,8 +18,7 @@ include("vortex.jl")
 include("wave_packet.jl")
 include("wkb_mountain_wave.jl")
 include("wkb_wave_packet.jl")
-include("wave_Boussinesq.jl")
-include("wkb_wave_Boussinesq.jl")
+include("wkb_wave_vertical_periodicity.jl")
 
 export cold_bubble,
     hot_bubble,
@@ -29,7 +28,6 @@ export cold_bubble,
     wave_packet,
     wkb_mountain_wave,
     wkb_wave_packet,
-    wave_Boussinesq,
-    wkb_wave_Boussinesq
+    wkb_wave_vertical_periodicity
 
 end

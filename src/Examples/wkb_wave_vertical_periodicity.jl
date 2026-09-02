@@ -1,25 +1,27 @@
-function wkb_wave_Boussinesq(;
+# src/Examples/wkb_wave_vertical_periodicity.jl
+
+function wkb_wave_vertical_periodicity(;
     display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
-    output_file::AbstractString = "wkb_wave_periodic.h5",
-    plot_file::AbstractString = "wkb_wave_packed_periodic.svg",
+    output_file::AbstractString = "wkb_wave_vertical_periodicity.h5",
+    plot_file::AbstractString = "wkb_wave_vertical_periodicity.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    x_size::Integer = 1,
+    x_size::Integer = 20,
     y_size::Integer = 1,
-    z_size::Integer = 100,
+    z_size::Integer = 20,
 )
-    lx = 10.0e3
+    lx = 300.0e3
     ly = 10.0e3
     lz = 10.0e3
 
     parameters = (
-        k = 2 * pi / lz,
+        k = 20 * pi / lx,
         l = 0.0,
         m = 20 * pi / lz,
-        rx = 0.0,
+        rx = 0.1,
         ry = 0.0,
         rz = 0.1,
         x0 = 0.0,
@@ -62,7 +64,7 @@ function wkb_wave_Boussinesq(;
 
     output = OutputNamelist(;
         output_file,
-        output_interval = 60.0,
+        output_interval = 3600.0,
         output_variables = [:u],
         prepare_restart,
         tmax = 3600.0,
@@ -74,9 +76,9 @@ function wkb_wave_Boussinesq(;
         plot_output(
             plot_file,
             output_file,
-            (:u, 0.5, 0.5, 0.5, 2),
+            (:u, 0.5, 0.5, 0.5, 2);
             display_figure,
-            time_unit = :min,
+            time_unit = :h,
         )
     end
 
