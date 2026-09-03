@@ -15,7 +15,7 @@ Read initial values for all prognostic variables from an HDF5 input file and ret
 read_input!(state::State, input_file_format::Val{:NetCDF4})::AbstractFloat
 ```
 
-Read initial values for all prognostic variables from an NetCDF4 input file and return the simulation time.
+Read initial values for all prognostic variables from a NetCDF4 input file and return the simulation time.
 
 !!! danger "Experimental"
     The input format `:NetCDF4` is an experimental feature that hasn't been fully validated yet.
@@ -220,6 +220,8 @@ end
         # Read the staggered zonal wind.
         u[ii, jj, kk] =
             file["us"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+
+        println(typeof(u))
 
         # Read the staggered meridional wind.
         v[ii, jj, kk] =

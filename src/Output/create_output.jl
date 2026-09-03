@@ -25,7 +25,7 @@ create_output(
 )
 ```
 
-Create an NetCDF4 output file with one dataset for each variable.
+Create a NetCDF4 output file with one dataset for each variable.
 
 The dimensions of the datasets are set to those of the domain, whereas the chunks are set to the dimensions of the MPI subdomains, in preparation for parallel output. Datasets for the grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, the time and the fields of `state.atmosphere` are always created, regardless of the specifications in `state.namelists.output`. The one exception to this is the Boussinesq mode, in which no datasets are created for the fields of `state.atmosphere`, since they do not have a spatial dependence.
 
@@ -1248,7 +1248,7 @@ function create_output(
             end
 
             if leading_order_impact &&
-               wkb_mode !== :NoWkb &&
+               wkb_mode !== :NoWKB &&
                :dchidt0 in output_variables
                 defVar(
                     file,
@@ -1271,7 +1271,7 @@ function create_output(
             end
 
             if leading_order_impact &&
-               wkb_mode !== :NoWkb &&
+               wkb_mode !== :NoWKB &&
                :uchi0 in output_variables
                 defVar(
                     file,
@@ -1291,7 +1291,7 @@ function create_output(
             end
 
             if leading_order_impact &&
-               wkb_mode !== :NoWkb &&
+               wkb_mode !== :NoWKB &&
                :vchi0 in output_variables
                 defVar(
                     file,
@@ -1314,7 +1314,7 @@ function create_output(
             end
 
             if leading_order_impact &&
-               wkb_mode !== :NoWkb &&
+               wkb_mode !== :NoWKB &&
                :wchi0 in output_variables
                 defVar(
                     file,

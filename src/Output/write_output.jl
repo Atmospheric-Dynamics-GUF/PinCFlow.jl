@@ -104,7 +104,7 @@ write_output(
 
 Write the current simulation state to a previously created NetCDF4 output file and return the advanced output counter `iout`.
 
-See documentation of HDF5-specific method for details.
+See documentation of HDF5-specific method above for details.
 
 !!! danger "Experimental"
     The output format `:NetCDF4` is an experimental feature that hasn't been fully validated yet.
