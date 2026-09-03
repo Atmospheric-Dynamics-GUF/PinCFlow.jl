@@ -17,10 +17,12 @@ Provides functions for writing the model state and initializing the model with d
 """
 module Output
 
+using FunctionWrappers: FunctionWrapper
 using LaTeXStrings
 using Dates
 using MPI
 using HDF5
+using NCDatasets
 using ..Macros
 using ..Types
 using ..Update

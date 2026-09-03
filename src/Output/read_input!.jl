@@ -1,17 +1,46 @@
 """
 ```julia
-read_input!(state::State)
+read_input!(state::State)::AbstractFloat
 ```
 
-Read initial values for all prognostic variables from an HDF5 input file.
+Read initial values for all prognostic variables by dispatching to an input-file-format-specific method and return the simulation time.
+
+```julia 
+read_input!(state::State, input_file_format::Val{:HDF5})::AbstractFloat
+```
+
+Read initial values for all prognostic variables from an HDF5 input file and return the simulation time.
+
+```julia 
+read_input!(state::State, input_file_format::Val{:NetCDF4})::AbstractFloat
+```
+
+Read initial values for all prognostic variables from a NetCDF4 input file and return the simulation time.
+
+!!! danger "Experimental"
+    The input format `:NetCDF4` is an experimental feature that hasn't been fully validated yet.
 
 # Arguments
 
   - `state`: Model state.
+
+  - `input_file_format`: Format of the input file.
 """
 function read_input! end
 
-@ivy function read_input!(state::State)
+function read_input!(state::State)::AbstractFloat
+    (; input_file_format) = state.namelists.output
+
+    @dispatch_input_file_format return read_input!(
+        state,
+        Val(input_file_format),
+    )
+end
+
+@ivy function read_input!(
+    state::State,
+    input_file_format::Val{:HDF5},
+)::AbstractFloat
     (; x_size, y_size) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model) = state.namelists.atmosphere
@@ -57,6 +86,142 @@ function read_input! end
         # Read the staggered zonal wind.
         u[ii, jj, kk] =
             file["us"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+
+        # Read the staggered meridional wind.
+        v[ii, jj, kk] =
+            file["vs"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+
+        # Read the staggered transformed vertical wind.
+        w[ii, jj, kk] =
+            file["wts"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+
+        # Read the Exner-pressure fluctuations.
+        pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin == -1 ? end : iin]
+
+        # Read the mass-weighted potential temperature.
+        if model === :Compressible
+            p[ii, jj, kk] =
+                file["p"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref ./
+                thetaref
+        end
+
+        if state.namelists.tracer.tracer_setup !== :NoTracer
+            for field in fieldnames(TracerPredictands)
+                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
+                    file[string(field)][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            end
+        end
+
+        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
+            state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
+                file["tke"][iid, jjd, kkd, iin == -1 ? end : iin] .*
+                (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) ./ uref .^ 2
+        end
+
+        # Read ray-volume properties.
+        if wkb_mode !== :NoWKB
+            for (output_name, field_name) in zip(
+                ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
+                (:x, :y, :z, :dxray, :dyray, :dzray),
+            )
+                getproperty(rays, field_name)[rr, ii, jj, kkr] =
+                    file[output_name][
+                        rr,
+                        iid,
+                        jjd,
+                        kkrd,
+                        iin == -1 ? end : iin,
+                    ] ./ lref
+            end
+
+            for (output_name, field_name) in zip(
+                ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
+                (:k, :l, :m, :dkray, :dlray, :dmray),
+            )
+                getproperty(rays, field_name)[rr, ii, jj, kkr] =
+                    file[output_name][
+                        rr,
+                        iid,
+                        jjd,
+                        kkrd,
+                        iin == -1 ? end : iin,
+                    ] .* lref
+            end
+
+            rays.dens[rr, ii, jj, kkr] =
+                file["nr"][rr, iid, jjd, kkrd, iin == -1 ? end : iin] ./
+                rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
+
+            # Determine nray.
+            for k in kkr, j in jj, i in ii
+                local_count = 0
+                for r in rr
+                    if rays.dens[r, i, j, k] == 0
+                        continue
+                    end
+                    local_count += 1
+                end
+                nray[i, j, k] = local_count
+            end
+        end
+
+        return time
+    end
+
+    return time
+end
+
+@ivy function read_input!(
+    state::State,
+    input_file_format::Val{:NetCDF4},
+)::AbstractFloat
+    (; x_size, y_size) = state.namelists.domain
+    (; iin, input_file) = state.namelists.output
+    (; model) = state.namelists.atmosphere
+    (; wkb_mode) = state.namelists.wkb
+    (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; lref, tref, rhoref, uref, thetaref) = state.constants
+    (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
+    (; bins, nray, rays) = state.wkb
+    (; rhobar) = state.atmosphere
+
+    # Determine dimensionality.
+    dim = 1
+    if x_size > 1
+        dim += 1
+    end
+    if y_size > 1
+        dim += 1
+    end
+
+    # Define slices.
+    dk0 = ko == 0 ? 1 : 0
+    (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
+    (iid, jjd, kkd, kkrd) = (
+        (io + 1):(io + nx),
+        (jo + 1):(jo + ny),
+        (ko + 1):(ko + nz),
+        (ko + 2 - dk0):(ko + nz + 1),
+    )
+
+    # Open the file. Note: Fused in-place assignments cannot be used here!
+    time = NCDataset(comm, input_file, "r") do file
+
+        # Read the time.
+        time = file["t"][iin == -1 ? end : iin] / tref
+
+        # Read the density fluctuations.
+        rhop[ii, jj, kk] =
+            file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref
+        if model !== :Boussinesq
+            rho[ii, jj, kk] .= rhop[ii, jj, kk]
+        end
+
+        # Read the staggered zonal wind.
+        u[ii, jj, kk] =
+            file["us"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+
+        println(typeof(u))
 
         # Read the staggered meridional wind.
         v[ii, jj, kk] =
