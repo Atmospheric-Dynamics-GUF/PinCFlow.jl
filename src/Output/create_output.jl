@@ -21,6 +21,9 @@ function create_output(state::State, machine_start_time::DateTime)
     (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master) = state.domain
     (; bins) = state.wkb
+    (; tracer_setup, leading_order_impact, next_order_impact) =
+        state.namelists.tracer
+    (; turbulence_scheme) = state.namelists.turbulence
 
     # Set the chunk dimensions.
     cr = bins
@@ -252,7 +255,7 @@ function create_output(state::State, machine_start_time::DateTime)
             )
         end
 
-        if state.namelists.tracer.tracer_setup !== :NoTracer
+        if tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 create_dataset(
                     file,
@@ -266,68 +269,116 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :dchidt0 in output_variables
-                create_dataset(
-                    file,
-                    "dchidt0",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
+            if leading_order_impact && wkb_mode !== :NoWKB
+                if :dchidt0 in output_variables
+                    create_dataset(
+                        file,
+                        "dchidt0",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :uchi0 in output_variables
+                    create_dataset(
+                        file,
+                        "uchi0",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :vchi0 in output_variables
+                    create_dataset(
+                        file,
+                        "vchi0",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :wchi0 in output_variables
+                    create_dataset(
+                        file,
+                        "wchi0",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :uchi0 in output_variables
-                create_dataset(
-                    file,
-                    "uchi0",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
-            end
+            if next_order_impact && wkb_mode !== :NoWKB
+                if :dchidt1 in output_variables
+                    create_dataset(
+                        file,
+                        "dchidt1",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :vchi0 in output_variables
-                create_dataset(
-                    file,
-                    "vchi0",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
-            end
+                if :uchi1 in output_variables
+                    create_dataset(
+                        file,
+                        "uchi1",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :wchi0 in output_variables
-                create_dataset(
-                    file,
-                    "wchi0",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
+                if :vchi1 in output_variables
+                    create_dataset(
+                        file,
+                        "vchi1",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :wchi1 in output_variables
+                    create_dataset(
+                        file,
+                        "wchi1",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
+        if turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 create_dataset(
                     file,
@@ -580,59 +631,89 @@ function create_output(state::State, machine_start_time::DateTime)
             attributes(file["pip"])["long_name"] = "Exner-pressure fluctuations"
         end
 
-        if state.namelists.tracer.tracer_setup !== :NoTracer
+        if tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 attributes(file[string(field)])["units"] = "1"
                 attributes(file[string(field)])["label"] = L"\chi"
                 attributes(file[string(field)])["long_name"] = "tracer mixing ratio"
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :dchidt0 in output_variables
-                attributes(file["dchidt0"])["units"] = "s^-1"
-                attributes(file["dchidt0"])["label"] =
-                    L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w}\ [\mathrm{s^{-1}}]"
-                attributes(
-                    file["dchidt0"],
-                )["long_name"] = "leading-order GW-tracer flux convergence"
+            if leading_order_impact && wkb_mode !== :NoWKB
+                if :dchidt0 in output_variables
+                    attributes(file["dchidt0"])["units"] = "s^-1"
+                    attributes(file["dchidt0"])["label"] =
+                        L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w}\ [\mathrm{s^{-1}}]"
+                    attributes(
+                        file["dchidt0"],
+                    )["long_name"] = "leading-order GW-tracer flux convergence"
+                end
+                if :uchi0 in output_variables
+                    attributes(file["uchi0"])["units"] = "m*s^-1"
+                    attributes(file["uchi0"])["label"] =
+                        L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                    attributes(
+                        file["uchi0"],
+                    )["long_name"] = "leading-order zonal GW-tracer flux"
+                end
+
+                if :vchi0 in output_variables
+                    attributes(file["vchi0"])["units"] = "m*s^-1"
+                    attributes(file["vchi0"])["label"] =
+                        L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                    attributes(
+                        file["vchi0"],
+                    )["long_name"] = "leading-order meridional GW-tracer flux"
+                end
+
+                if :wchi0 in output_variables
+                    attributes(file["wchi0"])["units"] = "m*s^-1"
+                    attributes(file["wchi0"])["label"] =
+                        L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                    attributes(
+                        file["wchi0"],
+                    )["long_name"] = "leading-order vertical GW-tracer flux"
+                end
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :uchi0 in output_variables
-                attributes(file["uchi0"])["units"] = "m*s^-1"
-                attributes(file["uchi0"])["label"] =
-                    L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
-                attributes(
-                    file["uchi0"],
-                )["long_name"] = "leading-order zonal GW-tracer flux"
-            end
+            if next_order_impact && wkb_mode !== :NoWKB
+                if :dchidt1 in output_variables
+                    attributes(file["dchidt1"])["units"] = "s^-1"
+                    attributes(file["dchidt1"])["label"] =
+                        L"(\partial_t \chi_\mathrm{b})^{(1)}_\mathrm{w}\ [\mathrm{s^{-1}}]"
+                    attributes(
+                        file["dchidt1"],
+                    )["long_name"] = "next-order GW-tracer flux convergence"
+                end
+                if :uchi1 in output_variables
+                    attributes(file["uchi1"])["units"] = "m*s^-1"
+                    attributes(file["uchi1"])["label"] =
+                        L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                    attributes(
+                        file["uchi1"],
+                    )["long_name"] = "next-order zonal GW-tracer flux"
+                end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :vchi0 in output_variables
-                attributes(file["vchi0"])["units"] = "m*s^-1"
-                attributes(file["vchi0"])["label"] =
-                    L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
-                attributes(
-                    file["vchi0"],
-                )["long_name"] = "leading-order meridional GW-tracer flux"
-            end
+                if :vchi1 in output_variables
+                    attributes(file["vchi1"])["units"] = "m*s^-1"
+                    attributes(file["vchi1"])["label"] =
+                        L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                    attributes(
+                        file["vchi1"],
+                    )["long_name"] = "next-order meridional GW-tracer flux"
+                end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :wchi0 in output_variables
-                attributes(file["wchi0"])["units"] = "m*s^-1"
-                attributes(file["wchi0"])["label"] =
-                    L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
-                attributes(
-                    file["wchi0"],
-                )["long_name"] = "leading-order vertical GW-tracer flux"
+                if :wchi1 in output_variables
+                    attributes(file["wchi1"])["units"] = "m*s^-1"
+                    attributes(file["wchi1"])["label"] =
+                        L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                    attributes(
+                        file["wchi1"],
+                    )["long_name"] = "next-order vertical GW-tracer flux"
+                end
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
+        if turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 attributes(file["tke"])["unuits"] = "m^2*s^-2"
                 attributes(file["tke"])["label"] =

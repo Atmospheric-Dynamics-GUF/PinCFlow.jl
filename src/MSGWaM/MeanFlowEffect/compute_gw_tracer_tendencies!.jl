@@ -3,7 +3,7 @@
 compute_gw_tracer_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
 ```
 
-Compute the leading-order tracer forcing by dispatching to the appropriate method.
+Compute the tracer forcing by dispatching to the appropriate method.
 
 ```julia
 compute_gw_tracer_tendencies!(
@@ -27,7 +27,7 @@ compute_gw_tracer_tendencies!(
 )
 ```
 
-Compute and return the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
+Compute and return the tracer forcing at ``\\left(i, j, k\\right)``.
 
 Calculates the tendency that is to be added to the tracer equations, given by
 
@@ -92,42 +92,71 @@ end
 )
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
-    (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
-    (; dchidt0) = state.tracer.tracerwkbtendencies
+    (; uchi0, vchi0, wchi0, uchi1, vchi1, wchi1) = state.tracer.tracerwkbintegrals
+    (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
-    (; leading_order_impact) = state.namelists.tracer
+    (; leading_order_impact, next_order_impact) = state.namelists.tracer
 
-    if !leading_order_impact
-        return
+    if leading_order_impact
+
+        dchidt0[i, j, k] = 0.0
+
+        if x_size > 1
+            dchiu0 =
+                (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
+                met[i, j, k, 1, 3] * (uchi0[i, j, k + 1] - uchi0[i, j, k - 1]) /
+                (2.0 * dz)
+        else
+            dchiu0 = 0.0
+        end
+
+        if y_size > 1
+            dchiv0 =
+                (vchi0[i, j + 1, k] - vchi0[i, j - 1, k]) / (2.0 * dy) +
+                met[i, j, k, 2, 3] * (vchi0[i, j, k + 1] - vchi0[i, j, k - 1]) /
+                (2.0 * dz)
+        else
+            dchiv0 = 0.0
+        end
+
+        dchiw0 =
+            (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
+
+        dchidt0[i, j, k] =
+            -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
+            (dchiu0 + dchiv0 + dchiw0)
     end
 
-    dchidt0[i, j, k] = 0.0
+    if next_order_impact
 
-    if x_size > 1
-        dchiu0 =
-            (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
-            met[i, j, k, 1, 3] * (uchi0[i, j, k + 1] - uchi0[i, j, k - 1]) /
-            (2.0 * dz)
-    else
-        dchiu0 = 0.0
+        dchidt1[i, j, k] = 0.0
+
+        if x_size > 1
+            dchiu1 =
+                (uchi1[i + 1, j, k] - uchi1[i - 1, j, k]) / (2.0 * dx) +
+                met[i, j, k, 1, 3] * (uchi1[i, j, k + 1] - uchi1[i, j, k - 1]) /
+                (2.0 * dz)
+        else
+            dchiu0 = 0.0
+        end
+
+        if y_size > 1
+            dchiv1 =
+                (vchi1[i, j + 1, k] - vchi1[i, j - 1, k]) / (2.0 * dy) +
+                met[i, j, k, 2, 3] * (vchi1[i, j, k + 1] - vchi1[i, j, k - 1]) /
+                (2.0 * dz)
+        else
+            dchiv1 = 0.0
+        end
+
+        dchiw1 =
+            (wchi1[i, j, k + 1] - wchi1[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
+
+        dchidt1[i, j, k] =
+            -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
+            (dchiu1 + dchiv1 + dchiw1)
     end
-
-    if y_size > 1
-        dchiv0 =
-            (vchi0[i, j + 1, k] - vchi0[i, j - 1, k]) / (2.0 * dy) +
-            met[i, j, k, 2, 3] * (vchi0[i, j, k + 1] - vchi0[i, j, k - 1]) /
-            (2.0 * dz)
-    else
-        dchiv0 = 0.0
-    end
-
-    dchiw0 =
-        (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
-
-    dchidt0[i, j, k] =
-        -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
-        (dchiu0 + dchiv0 + dchiw0)
 
     return
 end

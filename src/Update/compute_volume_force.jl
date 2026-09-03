@@ -266,14 +266,17 @@ end
     variables::Chi,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; leading_order_impact) = state.namelists.tracer
-    (; dchidt0) = state.tracer.tracerwkbtendencies
+    (; leading_order_impact, next_order_impact) = state.namelists.tracer
+    (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
     (; model) = state.namelists.atmosphere
 
     impact = 0.0
 
     if leading_order_impact && model === :Compressible
         impact += dchidt0[i, j, k]
+    end
+    if next_order_impact
+        impact += dchidt1[i, j, k]
     end
     return impact
 end
