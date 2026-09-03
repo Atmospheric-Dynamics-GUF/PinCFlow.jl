@@ -12,7 +12,7 @@ Read initial values for all prognostic variables from an HDF5 input file.
 function read_input! end
 
 @ivy function read_input!(state::State)
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, vertical_boundary_condition) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model) = state.namelists.atmosphere
     (; wkb_mode) = state.namelists.wkb
@@ -32,7 +32,7 @@ function read_input! end
     end
 
     # Define slices.
-    dk0 = ko == 0 ? 1 : 0
+    dk0 = (ko == 0 && vertical_boundary_condition === :SolidWall) ? 1 : 0
     (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),

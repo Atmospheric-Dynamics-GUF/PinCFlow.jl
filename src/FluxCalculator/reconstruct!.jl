@@ -166,8 +166,17 @@ end
     (; phi) = state.variables.auxiliaries
     (; rhoptilde) = state.variables.reconstructions
     (; pbar) = state.atmosphere
+    (; vertical_boundary_condition) = state.namelists.domain
 
-    kk = (k0 - 1):(k1 + 1)
+    if vertical_boundary_condition === :Periodic
+        kmin = 1
+        kmax = nzz
+    else
+        kmin = k0 - 1
+        kmax = k1 + 1
+    end
+
+    kk = kmin:kmax
 
     phi[:, :, kk] .= rhop[:, :, kk] ./ pbar[:, :, kk]
 
@@ -190,8 +199,17 @@ end
     (; phi) = state.variables.auxiliaries
     (; utilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
+    (; vertical_boundary_condition) = state.namelists.domain
 
-    for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:(nxx - 1)
+    if vertical_boundary_condition === :Periodic
+        kmin = 1
+        kmax = nzz
+    else
+        kmin = k0 - 1
+        kmax = k1 + 1
+    end
+
+    for k in kmin:kmax, j in 1:nyy, i in 1:(nxx - 1)
         rhoedge =
             0.5 * (
                 rho[i, j, k] +
@@ -222,8 +240,17 @@ end
     (; phi) = state.variables.auxiliaries
     (; vtilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
+    (; vertical_boundary_condition) = state.namelists.domain
 
-    for k in (k0 - 1):(k1 + 1), j in 1:(nyy - 1), i in 1:nxx
+    if vertical_boundary_condition === :Periodic
+        kmin = 1
+        kmax = nzz
+    else
+        kmin = k0 - 1
+        kmax = k1 + 1
+    end
+
+    for k in kmin:kmax, j in 1:(nyy - 1), i in 1:nxx
         rhoedge =
             0.5 * (
                 rho[i, j, k] +
@@ -257,17 +284,26 @@ end
     (; phi) = state.variables.auxiliaries
     (; wtilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
+    (; vertical_boundary_condition) = state.namelists.domain
 
-    phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
+    if vertical_boundary_condition === :Periodic
+        kmin = 1
+        kmax = nzz - 1
+    else
+        kmin = k0 - 1
+        kmax = k1 + 1
+    end
 
-    for k in (k0 - 1):(k1 + 1), j in j0:j1, i in i0:i1
+    phi[:, :, kmin:kmax] .= w[:, :, kmin:kmax]
+
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         phi[i, j, k] = compute_vertical_wind(i, j, k, state)
     end
 
     set_zonal_boundaries_of_field!(phi, namelists, domain)
     set_meridional_boundaries_of_field!(phi, namelists, domain)
 
-    for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+    for k in kmin:kmax, j in 1:nyy, i in 1:nxx
         rhoedgeu =
             (
                 jac[i, j, k + 1] * (rho[i, j, k] + rhobar[i, j, k]) +
@@ -303,10 +339,19 @@ end
     (; phi) = state.variables.auxiliaries
     (; pbar) = state.atmosphere
     (; tracerreconstructions, tracerpredictands) = state.tracer
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    if vertical_boundary_condition === :Periodic
+        kmin = 1
+        kmax = nzz
+    else
+        kmin = k0 - 1
+        kmax = k1 + 1
+    end
 
     @dispatch_limiter_type for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
-        for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+        for k in kmin:kmax, j in 1:nyy, i in 1:nxx
             phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
         end
         apply_3d_muscl!(
@@ -328,10 +373,19 @@ end
     (; phi) = state.variables.auxiliaries
     (; pbar) = state.atmosphere
     (; turbulencereconstructions, turbulencepredictands) = state.turbulence
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    if vertical_boundary_condition === :Periodic
+        kmin = 1
+        kmax = nzz
+    else
+        kmin = k0 - 1
+        kmax = k1 + 1
+    end
 
     @dispatch_limiter_type for field in 1:fieldcount(TurbulencePredictands)
         chi = getfield(turbulencepredictands, field)[:, :, :]
-        for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+        for k in kmin:kmax, j in 1:nyy, i in 1:nxx
             phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
         end
         apply_3d_muscl!(
