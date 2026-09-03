@@ -11,15 +11,15 @@ function set_vertical_halo_rays!(state::State, vertical_boundary_condition::Val{
 
 Exchange ray volumes in vertical halo cells for solid wall vertical boundary conditions.
 
-Performs MPI communication between downward and upward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the downward and upward boundaries of the MPI subdomains. Solid walls are assumed at the vertical boundaries of the full domain. The corresponding ghost-cell ray volumes are not changed.
+Performs MPI communication between downward and upward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the downward and upward boundaries of the MPI subdomains. The corresponding ghost-cell ray volumes are not changed.
 
 ```julia 
 function set_vertical_halo_rays!(state::State, vertical_boundary_condition::Val{:Periodic})
 ```
 
-Exchange ray volumes in vertical halo cells for solid wall vertical boundary conditions.
+Exchange ray volumes in vertical halo cells for periodic vertical boundary conditions.
 
-Performs MPI communication between downward and upward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the downward and upward boundaries of the MPI subdomains. Solid walls are assumed at the vertical boundaries of the full domain. The corresponding ghost-cell ray volumes are not changed.
+Performs MPI communication between downward and upward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the downward and upward boundaries of the MPI subdomains. The corresponding ghost-cell ray volumes are not changed.
 
 # Arguments
 
@@ -44,7 +44,7 @@ end
     vertical_boundary_condition::Val{:SolidWall},
 )
     (; z_size) = state.namelists.domain
-    (; comm, nz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) = state.domain
+    (; comm, nz, ko, i0, i1, j0, j1, k0, k1, down, up) = state.domain
     (; nray, rays) = state.wkb
 
     ii = (i0 - 1):(i1 + 1)

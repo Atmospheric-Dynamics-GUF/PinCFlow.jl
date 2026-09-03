@@ -12,7 +12,7 @@ get_next_half_level(
 
 Determine and return the index of the next half-level above `z` at the horizontal position ``\\left(i, j\\right)``.
 
-This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
+This method is heavily used for interpolation to ray-volume positions. In the case of solid-wall vertical boundary conditions, to ensure that these boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
 
   - In MPI processes at the lower boundary of the domain, the computed index has the lower bound `state.domain.k0`. In other processes, an error is thrown if it is below `1 + dkd`.
 

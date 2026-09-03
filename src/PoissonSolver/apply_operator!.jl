@@ -95,7 +95,7 @@ function apply_operator! end
             domain;
             layers = (1, 1, 2),
         )
-        if vertical_boundary_condition === :Periodic 
+        if vertical_boundary_condition === :Periodic
             set_vertical_boundaries_of_field!(
                 s,
                 namelists,
@@ -104,7 +104,12 @@ function apply_operator! end
                 layers = (1, 1, 2),
             )
         else
-        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
+            set_vertical_halos_of_field!(
+                s,
+                namelists,
+                domain;
+                layers = (1, 1, 2),
+            )
         end
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
@@ -342,11 +347,17 @@ end
             set_vertical_boundaries_of_field!(
                 s,
                 namelists,
-                domain;
+                domain,
+                +;
                 layers = (1, 1, 2),
             )
         else
-        set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
+            set_vertical_halos_of_field!(
+                s,
+                namelists,
+                domain;
+                layers = (1, 1, 2),
+            )
         end
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
@@ -360,7 +371,8 @@ end
             set_vertical_boundaries_of_field!(
                 s,
                 namelists,
-                domain;
+                domain,
+                +;
                 layers = (1, 1, 2),
             )
         end

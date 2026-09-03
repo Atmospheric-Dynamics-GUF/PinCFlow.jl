@@ -14,7 +14,7 @@ set_vertical_boundary_rays!(
 
 Enforce periodic vertical boundary conditions for ray volumes.
 
-This method first enforces vertical boundary conditions for `state.wkb.nray` (by applying `set_vertical_boundaries_of_field!` to it) and then sets the corresponding boundary ray volumes. If the domain is parallelized in ``\\hat{z}``, ray volumes are communicated between MPI processes, using `set_meridional_halo_rays!`. At the meridional boundaries of the domain, the ``z``-coordinates of ray volumes are adjusted such that shifting works properly.
+This method first enforces vertical boundary conditions for `state.wkb.nray` (by applying `set_vertical_boundaries_of_field!` to it) and then sets the corresponding boundary ray volumes. If the domain is parallelized in ``\\hat{z}``, ray volumes are communicated between MPI processes, using `set_vertical_halo_rays!`. At the vertical boundaries of the domain, the ``z``-coordinates of ray volumes are adjusted such that shifting works properly.
 
 ```julia 
 set_vertical_boundary_rays!(
