@@ -53,7 +53,11 @@ set_boundaries!(
 Enforce all boundary conditions for turbulence non-flux fields.
 
 ```julia
-set_boundaries!(state::State, variables::BoundaryFluxes)
+set_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    turbulence::TKE,
+)
 ```
 
 Enforce boundary conditions for turbulence flux fields by dispatching to the vertical boundary condition appropriate method. 

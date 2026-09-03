@@ -10,7 +10,7 @@ apply_operator!(
 
 Apply the total linear operator to the solution array `sin`.
 
-Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is parallelized in that direction), due to the solid-wall boundaries.
+Before the operator is applied, the horizontal boundary values of `sin` are set, using `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. In the case of periodic vertical boundary conditions, the vertical boundary values are set using `set_vertical_boundaries_of_field!`, whereas for solid-wall conditions, `set_vertical_halos_of_field!` is used instead and only if the domain is parallelized in that direction.
 
 ```julia
 apply_operator!(
@@ -95,7 +95,17 @@ function apply_operator! end
             domain;
             layers = (1, 1, 2),
         )
+        if vertical_boundary_condition === :Periodic 
+            set_vertical_boundaries_of_field!(
+                s,
+                namelists,
+                domain,
+                +;
+                layers = (1, 1, 2),
+            )
+        else
         set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
+        end
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(
@@ -105,10 +115,11 @@ function apply_operator! end
             layers = (1, 1, 1),
         )
         if vertical_boundary_condition === :Periodic
-            set_vertical_halos_of_field!(
+            set_vertical_boundaries_of_field!(
                 s,
                 namelists,
-                domain;
+                domain,
+                +;
                 layers = (1, 1, 2),
             )
         end
@@ -327,7 +338,16 @@ end
             domain;
             layers = (1, 1, 2),
         )
+        if vertical_boundary_condition === :Periodic
+            set_vertical_boundaries_of_field!(
+                s,
+                namelists,
+                domain;
+                layers = (1, 1, 2),
+            )
+        else
         set_vertical_halos_of_field!(s, namelists, domain; layers = (1, 1, 2))
+        end
     else
         set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
         set_meridional_boundaries_of_field!(
@@ -337,7 +357,7 @@ end
             layers = (1, 1, 1),
         )
         if vertical_boundary_condition === :Periodic
-            set_vertical_halos_of_field!(
+            set_vertical_boundaries_of_field!(
                 s,
                 namelists,
                 domain;
