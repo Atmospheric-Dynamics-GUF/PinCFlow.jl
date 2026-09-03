@@ -5,6 +5,8 @@ compute_fluxes!(state::State, predictands::Predictands)
 
 Compute fluxes by dispatching to specialized methods for each prognostic variable.
 
+Before the computation of the fluxes, the stress tensor elements, needed for the momentum fluxes, are computed using `compute_stress_tensor!`.
+
 ```julia
 compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 ```
@@ -325,7 +327,7 @@ The computation is analogous to that of the density fluxes.
 
   - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
 
-  - [`PinCFlow.Update.compute_stress_tensor`](@ref)
+  - [`PinCFlow.Update.compute_stress_tensor!`](@ref)
 
   - [`PinCFlow.Update.conductive_heating`](@ref)
 """
@@ -333,6 +335,8 @@ function compute_fluxes! end
 
 function compute_fluxes!(state::State, predictands::Predictands)
     (; model) = state.namelists.atmosphere
+
+    compute_stress_tensor!(state)
 
     compute_fluxes!(state, predictands, Rho())
     compute_fluxes!(state, predictands, RhoP())
@@ -610,6 +614,8 @@ end
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
+    (; stress_tensor_11, stress_tensor_12, stress_tensor_13) =
+        state.variables.auxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -695,206 +701,210 @@ end
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
-        return
-    end
+    if 1 / re > eps()
 
-    #-----------------------------------------
-    #             Zonal fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #             Zonal fluxes
+        #-----------------------------------------
 
-    for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
-        coef_v = 1 / re * rhobar[i + 1, j, k0]
+        for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+            coef_v = 1 / re * rhobar[i + 1, j, k0]
 
-        frhou_visc =
-            coef_v *
-            jac[i + 1, j, k] *
-            compute_stress_tensor(i + 1, j, k, 1, 1, state)
+            frhou_visc =
+                coef_v * jac[i + 1, j, k] * stress_tensor_11[i + 1, j, k]
 
-        phiu[i, j, k, 1] -= frhou_visc
-    end
+            phiu[i, j, k, 1] -= frhou_visc
+        end
 
-    #-----------------------------------------
-    #           Meridional fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #           Meridional fluxes
+        #-----------------------------------------
 
-    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
-        coef_v =
-            1 / re *
-            0.25 *
-            (
-                rhobar[i, j, k0] +
-                rhobar[i + 1, j, k0] +
-                rhobar[i, j + 1, k0] +
-                rhobar[i + 1, j + 1, k0]
-            )
+        for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+            coef_v =
+                1 / re *
+                0.25 *
+                (
+                    rhobar[i, j, k0] +
+                    rhobar[i + 1, j, k0] +
+                    rhobar[i, j + 1, k0] +
+                    rhobar[i + 1, j + 1, k0]
+                )
 
-        grhou_visc =
-            coef_v *
-            0.25 *
-            (
-                jac[i, j, k] * compute_stress_tensor(i, j, k, 1, 2, state) +
-                jac[i + 1, j, k] *
-                compute_stress_tensor(i + 1, j, k, 1, 2, state) +
-                jac[i, j + 1, k] *
-                compute_stress_tensor(i, j + 1, k, 1, 2, state) +
-                jac[i + 1, j + 1, k] *
-                compute_stress_tensor(i + 1, j + 1, k, 1, 2, state)
-            )
+            grhou_visc =
+                coef_v *
+                0.25 *
+                (
+                    jac[i, j, k] * stress_tensor_12[i, j, k] +
+                    jac[i + 1, j, k] * stress_tensor_12[i + 1, j, k] +
+                    jac[i, j + 1, k] * stress_tensor_12[i, j + 1, k] +
+                    jac[i + 1, j + 1, k] * stress_tensor_12[i + 1, j + 1, k]
+                )
 
-        phiu[i, j, k, 2] -= grhou_visc
-    end
+            phiu[i, j, k, 2] -= grhou_visc
+        end
 
-    #-----------------------------------------
-    #            Vertical fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #            Vertical fluxes
+        #-----------------------------------------
 
-    for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
-        coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
+        for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+            coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
-        stresstens13 =
-            met[i, j, k, 1, 3] * compute_stress_tensor(i, j, k, 1, 1, state) +
-            met[i, j, k, 2, 3] * compute_stress_tensor(i, j, k, 1, 2, state) +
-            compute_stress_tensor(i, j, k, 1, 3, state) / jac[i, j, k]
-        stresstens13r =
-            met[i + 1, j, k, 1, 3] *
-            compute_stress_tensor(i + 1, j, k, 1, 1, state) +
-            met[i + 1, j, k, 2, 3] *
-            compute_stress_tensor(i + 1, j, k, 1, 2, state) +
-            compute_stress_tensor(i + 1, j, k, 1, 3, state) / jac[i + 1, j, k]
-        stresstens13u =
-            met[i, j, k + 1, 1, 3] *
-            compute_stress_tensor(i, j, k + 1, 1, 1, state) +
-            met[i, j, k + 1, 2, 3] *
-            compute_stress_tensor(i, j, k + 1, 1, 2, state) +
-            compute_stress_tensor(i, j, k + 1, 1, 3, state) / jac[i, j, k + 1]
-        stresstens13ru =
-            met[i + 1, j, k + 1, 1, 3] *
-            compute_stress_tensor(i + 1, j, k + 1, 1, 1, state) +
-            met[i + 1, j, k + 1, 2, 3] *
-            compute_stress_tensor(i + 1, j, k + 1, 1, 2, state) +
-            compute_stress_tensor(i + 1, j, k + 1, 1, 3, state) /
-            jac[i + 1, j, k + 1]
-        hrhou_visc =
-            coef_v *
-            0.5 *
-            (
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (stresstens13 + stresstens13u) /
-                (jac[i, j, k] + jac[i, j, k + 1]) +
-                jac[i + 1, j, k] *
-                jac[i + 1, j, k + 1] *
-                (stresstens13r + stresstens13ru) /
-                (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-            )
+            stresstens13 =
+                met[i, j, k, 1, 3] * stress_tensor_11[i, j, k] +
+                met[i, j, k, 2, 3] * stress_tensor_12[i, j, k] +
+                stress_tensor_13[i, j, k] / jac[i, j, k]
+            stresstens13r =
+                met[i + 1, j, k, 1, 3] * stress_tensor_11[i + 1, j, k] +
+                met[i + 1, j, k, 2, 3] * stress_tensor_12[i + 1, j, k] +
+                stress_tensor_13[i + 1, j, k] / jac[i + 1, j, k]
+            stresstens13u =
+                met[i, j, k + 1, 1, 3] * stress_tensor_11[i, j, k + 1] +
+                met[i, j, k + 1, 2, 3] * stress_tensor_12[i, j, k + 1] +
+                stress_tensor_13[i, j, k + 1] / jac[i, j, k + 1]
+            stresstens13ru =
+                met[i + 1, j, k + 1, 1, 3] * stress_tensor_11[i + 1, j, k + 1] +
+                met[i + 1, j, k + 1, 2, 3] * stress_tensor_12[i + 1, j, k + 1] +
+                stress_tensor_13[i + 1, j, k + 1] / jac[i + 1, j, k + 1]
+            hrhou_visc =
+                coef_v *
+                0.5 *
+                (
+                    jac[i, j, k] *
+                    jac[i, j, k + 1] *
+                    (stresstens13 + stresstens13u) /
+                    (jac[i, j, k] + jac[i, j, k + 1]) +
+                    jac[i + 1, j, k] *
+                    jac[i + 1, j, k + 1] *
+                    (stresstens13r + stresstens13ru) /
+                    (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+                )
 
-        phiu[i, j, k, 3] -= hrhou_visc
+            phiu[i, j, k, 3] -= hrhou_visc
+        end
     end
 
     #-------------------------------------------------------------------
     #             Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if kinematic_diffusivity == 0.0
-        return
-    end
+    if kinematic_diffusivity > 0.0
 
-    mu_mom_diff = kinematic_diffusivity / uref / lref
+        mu_mom_diff = kinematic_diffusivity / uref / lref
 
-    #-----------------------------------------
-    #             Zonal fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #             Zonal fluxes
+        #-----------------------------------------
 
-    for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
-        coef_d = mu_mom_diff * rhobar[i + 1, j, k0]
+        for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+            coef_d = mu_mom_diff * rhobar[i + 1, j, k0]
 
-        frhou_diff =
-            coef_d *
-            jac[i + 1, j, k] *
-            compute_momentum_diffusion_terms(state, i + 1, j, k, U(), X())
-
-        phiu[i, j, k, 1] -= frhou_diff
-    end
-
-    #-----------------------------------------
-    #           Meridional fluxes
-    #-----------------------------------------
-
-    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
-        coef_d =
-            mu_mom_diff *
-            0.25 *
-            (
-                rhobar[i, j, k0] +
-                rhobar[i + 1, j, k0] +
-                rhobar[i, j + 1, k0] +
-                rhobar[i + 1, j + 1, k0]
-            )
-
-        grhou_diff =
-            coef_d *
-            0.25 *
-            (
-                jac[i, j, k] *
-                compute_momentum_diffusion_terms(state, i, j, k, U(), Y()) +
+            frhou_diff =
+                coef_d *
                 jac[i + 1, j, k] *
-                compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Y()) +
-                jac[i, j + 1, k] *
-                compute_momentum_diffusion_terms(state, i, j + 1, k, U(), Y()) +
-                jac[i + 1, j + 1, k] * compute_momentum_diffusion_terms(
+                compute_momentum_diffusion_terms(state, i + 1, j, k, U(), X())
+
+            phiu[i, j, k, 1] -= frhou_diff
+        end
+
+        #-----------------------------------------
+        #           Meridional fluxes
+        #-----------------------------------------
+
+        for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+            coef_d =
+                mu_mom_diff *
+                0.25 *
+                (
+                    rhobar[i, j, k0] +
+                    rhobar[i + 1, j, k0] +
+                    rhobar[i, j + 1, k0] +
+                    rhobar[i + 1, j + 1, k0]
+                )
+
+            grhou_diff =
+                coef_d *
+                0.25 *
+                (
+                    jac[i, j, k] *
+                    compute_momentum_diffusion_terms(state, i, j, k, U(), Y()) +
+                    jac[i + 1, j, k] * compute_momentum_diffusion_terms(
+                        state,
+                        i + 1,
+                        j,
+                        k,
+                        U(),
+                        Y(),
+                    ) +
+                    jac[i, j + 1, k] * compute_momentum_diffusion_terms(
+                        state,
+                        i,
+                        j + 1,
+                        k,
+                        U(),
+                        Y(),
+                    ) +
+                    jac[i + 1, j + 1, k] * compute_momentum_diffusion_terms(
+                        state,
+                        i + 1,
+                        j + 1,
+                        k,
+                        U(),
+                        Y(),
+                    )
+                )
+
+            phiu[i, j, k, 2] -= grhou_diff
+        end
+
+        #-----------------------------------------
+        #            Vertical fluxes
+        #-----------------------------------------
+
+        for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+            coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
+
+            coef_dl = mu_mom_diff * rhobar[i, j, k0]
+
+            coef_d = 0.5 * (coef_dr + coef_dl)
+
+            mom_diff =
+                jac[i, j, k] *
+                compute_momentum_diffusion_terms(state, i, j, k, U(), Z())
+
+            mom_diff_r =
+                jac[i + 1, j, k] *
+                compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Z())
+
+            mom_diff_u =
+                jac[i, j, k + 1] *
+                compute_momentum_diffusion_terms(state, i, j, k + 1, U(), Z())
+
+            mom_diff_ru =
+                jac[i + 1, j, k + 1] * compute_momentum_diffusion_terms(
                     state,
                     i + 1,
-                    j + 1,
-                    k,
+                    j,
+                    k + 1,
                     U(),
-                    Y(),
+                    Z(),
                 )
-            )
 
-        phiu[i, j, k, 2] -= grhou_diff
-    end
+            hrhou_diff =
+                coef_d *
+                0.5 *
+                (
+                    jac[i, j, k] * jac[i, j, k + 1] * (mom_diff + mom_diff_u) /
+                    (jac[i, j, k] + jac[i, j, k + 1]) +
+                    jac[i + 1, j, k] *
+                    jac[i + 1, j, k + 1] *
+                    (mom_diff_r + mom_diff_ru) /
+                    (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+                )
 
-    #-----------------------------------------
-    #            Vertical fluxes
-    #-----------------------------------------
-
-    for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
-        coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
-
-        coef_dl = mu_mom_diff * rhobar[i, j, k0]
-
-        coef_d = 0.5 * (coef_dr + coef_dl)
-
-        mom_diff =
-            jac[i, j, k] *
-            compute_momentum_diffusion_terms(state, i, j, k, U(), Z())
-
-        mom_diff_r =
-            jac[i + 1, j, k] *
-            compute_momentum_diffusion_terms(state, i + 1, j, k, U(), Z())
-
-        mom_diff_u =
-            jac[i, j, k + 1] *
-            compute_momentum_diffusion_terms(state, i, j, k + 1, U(), Z())
-
-        mom_diff_ru =
-            jac[i + 1, j, k + 1] *
-            compute_momentum_diffusion_terms(state, i + 1, j, k + 1, U(), Z())
-
-        hrhou_diff =
-            coef_d *
-            0.5 *
-            (
-                jac[i, j, k] * jac[i, j, k + 1] * (mom_diff + mom_diff_u) /
-                (jac[i, j, k] + jac[i, j, k + 1]) +
-                jac[i + 1, j, k] *
-                jac[i + 1, j, k + 1] *
-                (mom_diff_r + mom_diff_ru) /
-                (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-            )
-
-        phiu[i, j, k, 3] -= hrhou_diff
+            phiu[i, j, k, 3] -= hrhou_diff
+        end
     end
 
     return
@@ -914,6 +924,8 @@ end
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
+    (; stress_tensor_12, stress_tensor_22, stress_tensor_23) =
+        state.variables.auxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -999,206 +1011,210 @@ end
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
-        return
-    end
+    if 1 / re > eps()
 
-    #-----------------------------------------
-    #             Zonal fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #             Zonal fluxes
+        #-----------------------------------------
 
-    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
-        coef_v =
-            1 / re *
-            0.25 *
-            (
-                rhobar[i, j, k0] +
-                rhobar[i + 1, j, k0] +
-                rhobar[i, j + 1, k0] +
-                rhobar[i + 1, j + 1, k0]
-            )
+        for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+            coef_v =
+                1 / re *
+                0.25 *
+                (
+                    rhobar[i, j, k0] +
+                    rhobar[i + 1, j, k0] +
+                    rhobar[i, j + 1, k0] +
+                    rhobar[i + 1, j + 1, k0]
+                )
 
-        frhov_visc =
-            coef_v *
-            0.25 *
-            (
-                jac[i, j, k] * compute_stress_tensor(i, j, k, 2, 1, state) +
-                jac[i + 1, j, k] *
-                compute_stress_tensor(i + 1, j, k, 2, 1, state) +
-                jac[i, j + 1, k] *
-                compute_stress_tensor(i, j + 1, k, 2, 1, state) +
-                jac[i + 1, j + 1, k] *
-                compute_stress_tensor(i + 1, j + 1, k, 2, 1, state)
-            )
+            frhov_visc =
+                coef_v *
+                0.25 *
+                (
+                    jac[i, j, k] * stress_tensor_12[i, j, k] +
+                    jac[i + 1, j, k] * stress_tensor_12[i + 1, j, k] +
+                    jac[i, j + 1, k] * stress_tensor_12[i, j + 1, k] +
+                    jac[i + 1, j + 1, k] * stress_tensor_12[i + 1, j + 1, k]
+                )
 
-        phiv[i, j, k, 1] -= frhov_visc
-    end
+            phiv[i, j, k, 1] -= frhov_visc
+        end
 
-    #-----------------------------------------
-    #           Meridional fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #           Meridional fluxes
+        #-----------------------------------------
 
-    for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
-        coef_v = 1 / re * rhobar[i, j + 1, k0]
+        for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+            coef_v = 1 / re * rhobar[i, j + 1, k0]
 
-        grhov_visc =
-            coef_v *
-            jac[i, j + 1, k] *
-            compute_stress_tensor(i, j + 1, k, 2, 2, state)
+            grhov_visc =
+                coef_v * jac[i, j + 1, k] * stress_tensor_22[i, j + 1, k]
 
-        phiv[i, j, k, 2] -= grhov_visc
-    end
+            phiv[i, j, k, 2] -= grhov_visc
+        end
 
-    #-----------------------------------------
-    #            Vertical fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #            Vertical fluxes
+        #-----------------------------------------
 
-    for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
-        coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
+        for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+            coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
-        stresstens23 =
-            met[i, j, k, 1, 3] * compute_stress_tensor(i, j, k, 2, 1, state) +
-            met[i, j, k, 2, 3] * compute_stress_tensor(i, j, k, 2, 2, state) +
-            compute_stress_tensor(i, j, k, 2, 3, state) / jac[i, j, k]
-        stresstens23f =
-            met[i, j + 1, k, 1, 3] *
-            compute_stress_tensor(i, j + 1, k, 2, 1, state) +
-            met[i, j + 1, k, 2, 3] *
-            compute_stress_tensor(i, j + 1, k, 2, 2, state) +
-            compute_stress_tensor(i, j + 1, k, 2, 3, state) / jac[i, j + 1, k]
-        stresstens23u =
-            met[i, j, k + 1, 1, 3] *
-            compute_stress_tensor(i, j, k + 1, 2, 1, state) +
-            met[i, j, k + 1, 2, 3] *
-            compute_stress_tensor(i, j, k + 1, 2, 2, state) +
-            compute_stress_tensor(i, j, k + 1, 2, 3, state) / jac[i, j, k + 1]
-        stresstens23fu =
-            met[i, j + 1, k + 1, 1, 3] *
-            compute_stress_tensor(i, j + 1, k + 1, 2, 1, state) +
-            met[i, j + 1, k + 1, 2, 3] *
-            compute_stress_tensor(i, j + 1, k + 1, 2, 2, state) +
-            compute_stress_tensor(i, j + 1, k + 1, 2, 3, state) /
-            jac[i, j + 1, k + 1]
-        hrhov_visc =
-            coef_v *
-            0.5 *
-            (
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (stresstens23 + stresstens23u) /
-                (jac[i, j, k] + jac[i, j, k + 1]) +
-                jac[i, j + 1, k] *
-                jac[i, j + 1, k + 1] *
-                (stresstens23f + stresstens23fu) /
-                (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-            )
+            stresstens23 =
+                met[i, j, k, 1, 3] * stress_tensor_12[i, j, k] +
+                met[i, j, k, 2, 3] * stress_tensor_22[i, j, k] +
+                stress_tensor_23[i, j, k] / jac[i, j, k]
+            stresstens23f =
+                met[i, j + 1, k, 1, 3] * stress_tensor_12[i, j + 1, k] +
+                met[i, j + 1, k, 2, 3] * stress_tensor_22[i, j + 1, k] +
+                stress_tensor_23[i, j + 1, k] / jac[i, j + 1, k]
+            stresstens23u =
+                met[i, j, k + 1, 1, 3] * stress_tensor_12[i, j, k + 1] +
+                met[i, j, k + 1, 2, 3] * stress_tensor_22[i, j, k + 1] +
+                stress_tensor_23[i, j, k + 1] / jac[i, j, k + 1]
+            stresstens23fu =
+                met[i, j + 1, k + 1, 1, 3] * stress_tensor_12[i, j + 1, k + 1] +
+                met[i, j + 1, k + 1, 2, 3] * stress_tensor_22[i, j + 1, k + 1] +
+                stress_tensor_23[i, j + 1, k + 1] / jac[i, j + 1, k + 1]
+            hrhov_visc =
+                coef_v *
+                0.5 *
+                (
+                    jac[i, j, k] *
+                    jac[i, j, k + 1] *
+                    (stresstens23 + stresstens23u) /
+                    (jac[i, j, k] + jac[i, j, k + 1]) +
+                    jac[i, j + 1, k] *
+                    jac[i, j + 1, k + 1] *
+                    (stresstens23f + stresstens23fu) /
+                    (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+                )
 
-        phiv[i, j, k, 3] -= hrhov_visc
+            phiv[i, j, k, 3] -= hrhov_visc
+        end
     end
 
     #-------------------------------------------------------------------
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if kinematic_diffusivity == 0.0
-        return
-    end
+    if kinematic_diffusivity > 0.0
 
-    mu_mom_diff = kinematic_diffusivity / uref / lref
+        mu_mom_diff = kinematic_diffusivity / uref / lref
 
-    #-----------------------------------------
-    #             Zonal fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #             Zonal fluxes
+        #-----------------------------------------
 
-    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
-        coef_d =
-            mu_mom_diff *
-            0.25 *
-            (
-                rhobar[i, j, k0] +
-                rhobar[i + 1, j, k0] +
-                rhobar[i, j + 1, k0] +
-                rhobar[i + 1, j + 1, k0]
-            )
-
-        frhov_diff =
-            coef_d *
-            0.25 *
-            (
-                jac[i, j, k] *
-                compute_momentum_diffusion_terms(state, i, j, k, V(), X()) +
-                jac[i + 1, j, k] *
-                compute_momentum_diffusion_terms(state, i + 1, j, k, V(), X()) +
-                jac[i, j + 1, k] *
-                compute_momentum_diffusion_terms(state, i, j + 1, k, V(), X()) +
-                jac[i + 1, j + 1, k] * compute_momentum_diffusion_terms(
-                    state,
-                    i + 1,
-                    j + 1,
-                    k,
-                    V(),
-                    X(),
+        for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+            coef_d =
+                mu_mom_diff *
+                0.25 *
+                (
+                    rhobar[i, j, k0] +
+                    rhobar[i + 1, j, k0] +
+                    rhobar[i, j + 1, k0] +
+                    rhobar[i + 1, j + 1, k0]
                 )
-            )
 
-        phiv[i, j, k, 1] -= frhov_diff
-    end
+            frhov_diff =
+                coef_d *
+                0.25 *
+                (
+                    jac[i, j, k] *
+                    compute_momentum_diffusion_terms(state, i, j, k, V(), X()) +
+                    jac[i + 1, j, k] * compute_momentum_diffusion_terms(
+                        state,
+                        i + 1,
+                        j,
+                        k,
+                        V(),
+                        X(),
+                    ) +
+                    jac[i, j + 1, k] * compute_momentum_diffusion_terms(
+                        state,
+                        i,
+                        j + 1,
+                        k,
+                        V(),
+                        X(),
+                    ) +
+                    jac[i + 1, j + 1, k] * compute_momentum_diffusion_terms(
+                        state,
+                        i + 1,
+                        j + 1,
+                        k,
+                        V(),
+                        X(),
+                    )
+                )
 
-    #-----------------------------------------
-    #           Meridional fluxes
-    #-----------------------------------------
+            phiv[i, j, k, 1] -= frhov_diff
+        end
 
-    for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
-        coef_d = mu_mom_diff * rhobar[i, j + 1, k0]
+        #-----------------------------------------
+        #           Meridional fluxes
+        #-----------------------------------------
 
-        grhov_diff =
-            coef_d *
-            jac[i, j + 1, k] *
-            compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Y())
+        for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+            coef_d = mu_mom_diff * rhobar[i, j + 1, k0]
 
-        phiv[i, j, k, 2] -= grhov_diff
-    end
-
-    #-----------------------------------------
-    #            Vertical fluxes
-    #-----------------------------------------
-
-    for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
-        coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
-
-        coef_dl = mu_mom_diff * rhobar[i, j, k0]
-
-        coef_d = 0.5 * (coef_dr + coef_dl)
-
-        u_diff =
-            jac[i, j, k] *
-            compute_momentum_diffusion_terms(state, i, j, k, V(), Z())
-
-        u_diff_f =
-            jac[i, j + 1, k] *
-            compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Z())
-
-        u_diff_u =
-            jac[i, j, k + 1] *
-            compute_momentum_diffusion_terms(state, i, j, k + 1, V(), Z())
-
-        u_diff_fu =
-            jac[i, j + 1, k + 1] *
-            compute_momentum_diffusion_terms(state, i, j + 1, k + 1, V(), Z())
-
-        hrhov_diff =
-            coef_d *
-            0.5 *
-            (
-                jac[i, j, k] * jac[i, j, k + 1] * (u_diff + u_diff_u) /
-                (jac[i, j, k] + jac[i, j, k + 1]) +
+            grhov_diff =
+                coef_d *
                 jac[i, j + 1, k] *
-                jac[i, j + 1, k + 1] *
-                (u_diff_f + u_diff_fu) /
-                (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-            )
+                compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Y())
 
-        phiv[i, j, k, 3] -= hrhov_diff
+            phiv[i, j, k, 2] -= grhov_diff
+        end
+
+        #-----------------------------------------
+        #            Vertical fluxes
+        #-----------------------------------------
+
+        for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+            coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
+
+            coef_dl = mu_mom_diff * rhobar[i, j, k0]
+
+            coef_d = 0.5 * (coef_dr + coef_dl)
+
+            u_diff =
+                jac[i, j, k] *
+                compute_momentum_diffusion_terms(state, i, j, k, V(), Z())
+
+            u_diff_f =
+                jac[i, j + 1, k] *
+                compute_momentum_diffusion_terms(state, i, j + 1, k, V(), Z())
+
+            u_diff_u =
+                jac[i, j, k + 1] *
+                compute_momentum_diffusion_terms(state, i, j, k + 1, V(), Z())
+
+            u_diff_fu =
+                jac[i, j + 1, k + 1] * compute_momentum_diffusion_terms(
+                    state,
+                    i,
+                    j + 1,
+                    k + 1,
+                    V(),
+                    Z(),
+                )
+
+            hrhov_diff =
+                coef_d *
+                0.5 *
+                (
+                    jac[i, j, k] * jac[i, j, k + 1] * (u_diff + u_diff_u) /
+                    (jac[i, j, k] + jac[i, j, k + 1]) +
+                    jac[i, j + 1, k] *
+                    jac[i, j + 1, k + 1] *
+                    (u_diff_f + u_diff_fu) /
+                    (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+                )
+
+            phiv[i, j, k, 3] -= hrhov_diff
+        end
     end
 
     return
@@ -1217,6 +1233,8 @@ end
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
+    (; stress_tensor_13, stress_tensor_23, stress_tensor_33) =
+        state.variables.auxiliaries
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1321,194 +1339,200 @@ end
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
-        return
-    end
+    if 1 / re > eps()
 
-    #-----------------------------------------
-    #             Zonal fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #             Zonal fluxes
+        #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
-        coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
+        for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+            coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
-        frhow_visc =
-            coef_v *
-            0.5 *
-            (
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
+            frhow_visc =
+                coef_v *
+                0.5 *
                 (
-                    compute_stress_tensor(i, j, k, 3, 1, state) +
-                    compute_stress_tensor(i, j, k + 1, 3, 1, state)
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) +
-                jac[i + 1, j, k] *
-                jac[i + 1, j, k + 1] *
+                    jac[i, j, k] *
+                    jac[i, j, k + 1] *
+                    (stress_tensor_13[i, j, k] + stress_tensor_13[i, j, k + 1]) /
+                    (jac[i, j, k] + jac[i, j, k + 1]) +
+                    jac[i + 1, j, k] *
+                    jac[i + 1, j, k + 1] *
+                    (
+                        stress_tensor_13[i + 1, j, k] +
+                        stress_tensor_13[i + 1, j, k + 1]
+                    ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+                )
+
+            phiw[i, j, k, 1] -= frhow_visc
+        end
+
+        #-----------------------------------------
+        #           Meridional fluxes
+        #-----------------------------------------
+
+        for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+            coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
+
+            grhow_visc =
+                coef_v *
+                0.5 *
                 (
-                    compute_stress_tensor(i + 1, j, k, 3, 1, state) +
-                    compute_stress_tensor(i + 1, j, k + 1, 3, 1, state)
-                ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-            )
+                    jac[i, j, k] *
+                    jac[i, j, k + 1] *
+                    (stress_tensor_13[i, j, k] + stress_tensor_13[i, j, k + 1]) /
+                    (jac[i, j, k] + jac[i, j, k + 1]) +
+                    jac[i, j + 1, k] *
+                    jac[i, j + 1, k + 1] *
+                    (
+                        stress_tensor_13[i, j + 1, k] +
+                        stress_tensor_13[i, j + 1, k + 1]
+                    ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+                )
 
-        phiw[i, j, k, 1] -= frhow_visc
-    end
+            phiw[i, j, k, 2] -= grhow_visc
+        end
 
-    #-----------------------------------------
-    #           Meridional fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #            Vertical fluxes
+        #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
-        coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
+        for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+            coef_v = 1 / re * rhobar[i, j, k0]
 
-        grhow_visc =
-            coef_v *
-            0.5 *
-            (
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (
-                    compute_stress_tensor(i, j, k, 3, 1, state) +
-                    compute_stress_tensor(i, j, k + 1, 3, 1, state)
-                ) / (jac[i, j, k] + jac[i, j, k + 1]) +
-                jac[i, j + 1, k] *
-                jac[i, j + 1, k + 1] *
-                (
-                    compute_stress_tensor(i, j + 1, k, 3, 1, state) +
-                    compute_stress_tensor(i, j + 1, k + 1, 3, 1, state)
-                ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-            )
+            hrhow_visc =
+                coef_v * (
+                    jac[i, j, k + 1] *
+                    met[i, j, k + 1, 1, 3] *
+                    stress_tensor_13[i, j, k + 1] +
+                    jac[i, j, k + 1] *
+                    met[i, j, k + 1, 2, 3] *
+                    stress_tensor_23[i, j, k + 1] +
+                    stress_tensor_33[i, j, k + 1]
+                )
 
-        phiw[i, j, k, 2] -= grhow_visc
-    end
-
-    #-----------------------------------------
-    #            Vertical fluxes
-    #-----------------------------------------
-
-    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        coef_v = 1 / re * rhobar[i, j, k0]
-
-        hrhow_visc =
-            coef_v * (
-                jac[i, j, k + 1] *
-                met[i, j, k + 1, 1, 3] *
-                compute_stress_tensor(i, j, k + 1, 3, 1, state) +
-                jac[i, j, k + 1] *
-                met[i, j, k + 1, 2, 3] *
-                compute_stress_tensor(i, j, k + 1, 3, 2, state) +
-                compute_stress_tensor(i, j, k + 1, 3, 3, state)
-            )
-
-        phiw[i, j, k, 3] -= hrhow_visc
+            phiw[i, j, k, 3] -= hrhow_visc
+        end
     end
 
     #-------------------------------------------------------------------
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if kinematic_diffusivity == 0.0
-        return
-    end
+    if kinematic_diffusivity > 0.0
 
-    mu_mom_diff = kinematic_diffusivity / uref / lref
+        mu_mom_diff = kinematic_diffusivity / uref / lref
 
-    #-----------------------------------------
-    #             Zonal fluxes
-    #-----------------------------------------
+        #-----------------------------------------
+        #             Zonal fluxes
+        #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
-        coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
+        for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+            coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
 
-        coef_dl = mu_mom_diff * rhobar[i, j, k0]
+            coef_dl = mu_mom_diff * rhobar[i, j, k0]
 
-        coef_d = 0.5 * (coef_dr + coef_dl)
+            coef_d = 0.5 * (coef_dr + coef_dl)
 
-        w_diff =
-            jac[i, j, k] *
-            compute_momentum_diffusion_terms(state, i, j, k, W(), X())
+            w_diff =
+                jac[i, j, k] *
+                compute_momentum_diffusion_terms(state, i, j, k, W(), X())
 
-        w_diff_r =
-            jac[i + 1, j, k] *
-            compute_momentum_diffusion_terms(state, i + 1, j, k, W(), X())
-
-        w_diff_u =
-            jac[i, j, k + 1] *
-            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), X())
-
-        w_diff_ru =
-            jac[i + 1, j, k + 1] *
-            compute_momentum_diffusion_terms(state, i + 1, j, k + 1, W(), X())
-
-        frhow_diff =
-            coef_d *
-            0.5 *
-            (
-                jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
-                (jac[i, j, k] + jac[i, j, k + 1]) +
+            w_diff_r =
                 jac[i + 1, j, k] *
-                jac[i + 1, j, k + 1] *
-                (w_diff_r + w_diff_ru) /
-                (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-            )
+                compute_momentum_diffusion_terms(state, i + 1, j, k, W(), X())
 
-        phiw[i, j, k, 1] -= frhow_diff
-    end
+            w_diff_u =
+                jac[i, j, k + 1] *
+                compute_momentum_diffusion_terms(state, i, j, k + 1, W(), X())
 
-    #-----------------------------------------
-    #           Meridional fluxes
-    #-----------------------------------------
+            w_diff_ru =
+                jac[i + 1, j, k + 1] * compute_momentum_diffusion_terms(
+                    state,
+                    i + 1,
+                    j,
+                    k + 1,
+                    W(),
+                    X(),
+                )
 
-    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
-        coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
+            frhow_diff =
+                coef_d *
+                0.5 *
+                (
+                    jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
+                    (jac[i, j, k] + jac[i, j, k + 1]) +
+                    jac[i + 1, j, k] *
+                    jac[i + 1, j, k + 1] *
+                    (w_diff_r + w_diff_ru) /
+                    (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+                )
 
-        coef_dl = mu_mom_diff * rhobar[i, j, k0]
+            phiw[i, j, k, 1] -= frhow_diff
+        end
 
-        coef_d = 0.5 * (coef_dr + coef_dl)
+        #-----------------------------------------
+        #           Meridional fluxes
+        #-----------------------------------------
 
-        w_diff =
-            jac[i, j, k] *
-            compute_momentum_diffusion_terms(state, i, j, k, W(), Y())
+        for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+            coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
 
-        w_diff_f =
-            jac[i, j + 1, k] *
-            compute_momentum_diffusion_terms(state, i, j + 1, k, W(), Y())
+            coef_dl = mu_mom_diff * rhobar[i, j, k0]
 
-        w_diff_u =
-            jac[i, j, k + 1] *
-            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Y())
+            coef_d = 0.5 * (coef_dr + coef_dl)
 
-        w_diff_fu =
-            jac[i, j + 1, k + 1] *
-            compute_momentum_diffusion_terms(state, i, j + 1, k + 1, W(), Y())
+            w_diff =
+                jac[i, j, k] *
+                compute_momentum_diffusion_terms(state, i, j, k, W(), Y())
 
-        grhow_diff =
-            coef_d *
-            0.5 *
-            (
-                jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
-                (jac[i, j, k] + jac[i, j, k + 1]) +
+            w_diff_f =
                 jac[i, j + 1, k] *
-                jac[i, j + 1, k + 1] *
-                (w_diff_f + w_diff_fu) /
-                (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-            )
+                compute_momentum_diffusion_terms(state, i, j + 1, k, W(), Y())
 
-        phiw[i, j, k, 2] -= grhow_diff
-    end
+            w_diff_u =
+                jac[i, j, k + 1] *
+                compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Y())
 
-    #-----------------------------------------
-    #            Vertical fluxes
-    #-----------------------------------------
+            w_diff_fu =
+                jac[i, j + 1, k + 1] * compute_momentum_diffusion_terms(
+                    state,
+                    i,
+                    j + 1,
+                    k + 1,
+                    W(),
+                    Y(),
+                )
 
-    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        coef_d = mu_mom_diff * rhobar[i, j, k0]
+            grhow_diff =
+                coef_d *
+                0.5 *
+                (
+                    jac[i, j, k] * jac[i, j, k + 1] * (w_diff + w_diff_u) /
+                    (jac[i, j, k] + jac[i, j, k + 1]) +
+                    jac[i, j + 1, k] *
+                    jac[i, j + 1, k + 1] *
+                    (w_diff_f + w_diff_fu) /
+                    (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+                )
 
-        hrhow_visc =
-            coef_d *
-            jac[i, j, k + 1] *
-            compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Z())
+            phiw[i, j, k, 2] -= grhow_diff
+        end
 
-        phiw[i, j, k, 3] -= hrhow_visc
+        #-----------------------------------------
+        #            Vertical fluxes
+        #-----------------------------------------
+
+        for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+            coef_d = mu_mom_diff * rhobar[i, j, k0]
+
+            hrhow_visc =
+                coef_d *
+                jac[i, j, k + 1] *
+                compute_momentum_diffusion_terms(state, i, j, k + 1, W(), Z())
+
+            phiw[i, j, k, 3] -= hrhow_visc
+        end
     end
 
     return

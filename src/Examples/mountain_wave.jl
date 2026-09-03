@@ -28,6 +28,7 @@ function mountain_wave(;
     atmosphere = AtmosphereNamelist(;
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        kinematic_diffusivity = 2.0E-9,
     )
 
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
