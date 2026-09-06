@@ -189,10 +189,9 @@ function compute_st_k(
     return stk, dephasing_time_stk
 end
 
-#for x_size = 1
+# for x_size = 1
 function compute_st_k(
     spec_tend::TriadTendencies,
-    was::AbstractMatrix{<:AbstractFloat},
     kp1i::Integer,
     kp2i::Integer,
     nk::AbstractFloat,
@@ -223,10 +222,10 @@ function compute_st_k(
     if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) &&
        check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
 
-        n1 = interpolate_nk(spec_tend, was, kp1i, m1, triad_mode)
+        n1 = interpolate_nk(spec_tend, kp1i, m1, triad_mode)
 
         @ivy if nk != 0.0 || n1 != 0.0
-            n2 = interpolate_nk(spec_tend, was, kp2i, m2, triad_mode)
+            n2 = interpolate_nk(spec_tend, kp2i, m2, triad_mode)
 
             if (nk != 0.0 && n1 != 0.0) ||
                (nk != 0.0 && n2 != 0.0) ||
@@ -258,10 +257,10 @@ function compute_st_k(
     if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) &&
        check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
 
-        n1 = interpolate_nk(spec_tend, was, kp1i, m1, triad_mode)
+        n1 = interpolate_nk(spec_tend, kp1i, m1, triad_mode)
 
         @ivy if nk != 0.0 || n1 != 0.0
-            n2 = interpolate_nk(spec_tend, was, kp2i, m2, triad_mode)
+            n2 = interpolate_nk(spec_tend, kp2i, m2, triad_mode)
 
             if (nk != 0.0 && n1 != 0.0) ||
                (nk != 0.0 && n2 != 0.0) ||
@@ -286,10 +285,9 @@ function compute_st_k(
 
     return stk, dephasing_time_stk
 end
-#for x_size = 1
+# for x_size = 1
 function compute_st_k(
     spec_tend::TriadTendencies,
-    was::AbstractMatrix{<:AbstractFloat},
     kp1i::Integer,
     kp2i::Integer,
     nk::AbstractFloat,
@@ -320,10 +318,10 @@ function compute_st_k(
     if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) &&
        check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
 
-        n1 = interpolate_nk(spec_tend, was, kp1i, m1, triad_mode)
+        n1 = interpolate_nk(spec_tend, kp1i, m1, triad_mode)
 
         @ivy if nk != 0.0 || n1 != 0.0
-            n2 = interpolate_nk(spec_tend, was, kp2i, m2, triad_mode)
+            n2 = interpolate_nk(spec_tend, kp2i, m2, triad_mode)
 
             if (nk != 0.0 && n1 != 0.0) ||
                (nk != 0.0 && n2 != 0.0) ||
@@ -355,10 +353,10 @@ function compute_st_k(
     if check_resolved_spectral_mode(spec_tend, kp1, m1, triad_mode) &&
        check_resolved_spectral_mode(spec_tend, kp2, m2, triad_mode)
 
-        n1 = interpolate_nk(spec_tend, was, kp1i, m1, triad_mode)
+        n1 = interpolate_nk(spec_tend, kp1i, m1, triad_mode)
 
         @ivy if nk != 0.0 || n1 != 0.0
-            n2 = interpolate_nk(spec_tend, was, kp2i, m2, triad_mode)
+            n2 = interpolate_nk(spec_tend, kp2i, m2, triad_mode)
 
             if (nk != 0.0 && n1 != 0.0) ||
                (nk != 0.0 && n2 != 0.0) ||

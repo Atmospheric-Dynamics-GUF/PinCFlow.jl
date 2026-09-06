@@ -16,6 +16,11 @@ function compute_scattering_integral_discrete!(
 
     was = @ivy view(wavespectrum, ii, jj, kk, :, :)
 
+    # Update the interpolation coefficients once for the current
+    # physical cell. The coefficients are then reused by all
+    # discrete-k resonance calculations below.
+    update_interpolation_coef_discrete!(spec_tend, was, triad_mode)
+
     rhobar_local = rhobar[ii, jj, kk]
 
     if compute_dephasing_time
@@ -28,11 +33,9 @@ function compute_scattering_integral_discrete!(
         dndz = 0.0
     end
 
-    # No update_interpolation_coef! here:
-    # k is discrete and interpolation is only performed in m.
-
     dkp = kp[2] - kp[1]
 
+    # Fourier-mode numbers represented by the spectral grid.
     nmin = round(Int, kp[1] / dkp)
     nmax = nmin + kpl - 1
 
@@ -55,11 +58,11 @@ function compute_scattering_integral_discrete!(
                 stk_diff = 0.0
                 dephasing_time_k = Inf
 
-                # ==========================================================
+                # ==================================================
                 # Sum interactions
                 #
                 #     nr = n1 + n2
-                # ==========================================================
+                # ==================================================
 
                 if nr >= 2 * nmin
                     for n1 in nmin:(nr - nmin)
@@ -72,18 +75,18 @@ function compute_scattering_integral_discrete!(
                         kp1i = n1 - nmin + 1
                         kp2i = n2_mode - nmin + 1
 
-                        st_value, tau_dep = compute_st_k(spec_tend, was, kp1i, kp2i, nk, kr, mr, n_local, dudz, dndz, compute_dephasing_time, triad_mode, Sum())
+                        st_value, tau_dep = compute_st_k(spec_tend, kp1i, kp2i, nk, kr, mr, n_local, dudz, dndz, compute_dephasing_time, triad_mode, Sum())
 
                         stk_sum += st_value
                         dephasing_time_k = min(dephasing_time_k, tau_dep)
                     end
                 end
 
-                # ==========================================================
+                # ==================================================
                 # Difference interactions
                 #
                 #     n1 = nr + n2
-                # ==========================================================
+                # ==================================================
 
                 if nr + nmin <= nmax
                     for n2_mode in nmin:(nmax - nr)
@@ -92,18 +95,16 @@ function compute_scattering_integral_discrete!(
                         kp1i = n1 - nmin + 1
                         kp2i = n2_mode - nmin + 1
 
-                        st_value, tau_dep = compute_st_k(spec_tend, was, kp1i, kp2i, nk, kr, mr, n_local, dudz, dndz, compute_dephasing_time, triad_mode, Difference())
+                        st_value, tau_dep = compute_st_k(spec_tend, kp1i, kp2i, nk, kr, mr, n_local, dudz, dndz, compute_dephasing_time, triad_mode, Difference())
 
                         stk_diff += st_value
                         dephasing_time_k = min(dephasing_time_k, tau_dep)
                     end
                 end
 
-                # For the discrete spectrum N_n(m), the Δk factors cancel.
-                # No horizontal quadrature weight is required.
-
-                col_int[ii, jj, kk, kpi, mi] =
-                    4π * (stk_sum - stk_diff) / rhobar_local
+                # For the discrete spectrum N_n(m), the Δk factors
+                # cancel. No horizontal quadrature weight is required.
+                col_int[ii, jj, kk, kpi, mi] = 4π * (stk_sum - stk_diff) / rhobar_local
 
                 diag_dephasing_time[kpi, mi] = dephasing_time_k
             end

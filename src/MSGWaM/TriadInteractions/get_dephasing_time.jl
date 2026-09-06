@@ -29,7 +29,7 @@ function get_dephasing_time(
 
     dephasing_time_min = Inf
 
-    for mi in axes(diag_dephasing_time, 2), kpi in axes(diag_dephasing_time, 1)
+    @ivy for mi in axes(diag_dephasing_time, 2), kpi in axes(diag_dephasing_time, 1)
 
         tau_dep = diag_dephasing_time[kpi, mi]
 

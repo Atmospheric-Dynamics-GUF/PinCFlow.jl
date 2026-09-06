@@ -73,6 +73,7 @@ include("get_chi_cell_action.jl")
 include("get_chi_vertical_indices.jl")
 include("find_chi_parent_peak.jl")
 include("track_chi_parent_modes!.jl")
+include("update_interpolation_coef_discrete!.jl")
 export get_wave_spectrum!,
        apply_triad_interactions!,
        initialize_wave_spectrum!,
