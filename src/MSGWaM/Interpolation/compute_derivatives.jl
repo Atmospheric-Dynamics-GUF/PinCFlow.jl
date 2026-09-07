@@ -126,16 +126,17 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DChiDX,
+    field::AbstractArray{<:AbstractFloat, 3},
+    phitype::DX,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the zonal derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial x``) at ``\\left(i + 1 / 2, j, k_\\mathrm{D}\\right)`` and ``\\left(i + 1 / 2, j, k_\\mathrm{U}\\right)``.
+Compute and return the zonal derivative of a scalar field (``\\partial \\psi_\\mathrm{b} / \\partial x``) at ``\\left(i + 1 / 2, j, k_\\mathrm{D}\\right)`` and ``\\left(i + 1 / 2, j, k_\\mathrm{U}\\right)``.
 
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, i + 1} - \\chi_\\mathrm{b}}{\\Delta \\hat{x}} + G_{i + 1 / 2}^{13} \\frac{\\chi_{\\mathrm{b}, i + 1 / 2, k + 1} - \\chi_{\\mathrm{b}, i + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
+\\left(\\frac{\\partial \\psi_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2} = \\frac{\\psi_{\\mathrm{b}, i + 1} - \\psi_\\mathrm{b}}{\\Delta \\hat{x}} + G_{i + 1 / 2}^{13} \\frac{\\psi_{\\mathrm{b}, i + 1 / 2, k + 1} - \\psi_{\\mathrm{b}, i + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -145,16 +146,17 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DChiDY,
+    field::AbstractArray{<:AbstractFloat, 3},
+    phitype::DY,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the meridional derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial y``) at ``\\left(i, j + 1 / 2, k_\\mathrm{D}\\right)`` and ``\\left(i, j + 1 / 2, k_\\mathrm{U}\\right)``.
+Compute and return the meridional derivative of a scalar field (``\\partial \\psi_\\mathrm{b} / \\partial y``) at ``\\left(i, j + 1 / 2, k_\\mathrm{D}\\right)`` and ``\\left(i, j + 1 / 2, k_\\mathrm{U}\\right)``.
 
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_{j + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, j + 1} - \\chi_\\mathrm{b}}{\\Delta \\hat{y}} + G_{j + 1 / 2}^{23} \\frac{\\chi_{\\mathrm{b}, j + 1 / 2, k + 1} - \\chi_{\\mathrm{b}, j + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
+\\left(\\frac{\\partial \\psi_\\mathrm{b}}{\\partial y}\\right)_{j + 1 / 2} = \\frac{\\psi_{\\mathrm{b}, j + 1} - \\psi_\\mathrm{b}}{\\Delta \\hat{y}} + G_{j + 1 / 2}^{23} \\frac{\\psi_{\\mathrm{b}, j + 1 / 2, k + 1} - \\psi_{\\mathrm{b}, j + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -164,16 +166,16 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DChiDZ,
+    field::AbstractArray{<:AbstractFloat, 3}phitype::DChiDZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
-Compute and return the vertical derivative of the tracer field (``\\partial \\chi_\\mathrm{b} / \\partial z``) at ``\\left(i, j, k_\\mathrm{D} + 1 / 2\\right)`` and ``\\left(i, j, k_\\mathrm{U} + 1 / 2\\right)``.
+Compute and return the vertical derivative of a scalar field (``\\partial \\psi_\\mathrm{b} / \\partial z``) at ``\\left(i, j, k_\\mathrm{D} + 1 / 2\\right)`` and ``\\left(i, j, k_\\mathrm{U} + 1 / 2\\right)``.
 
 The derivative is given by
 
 ```math
-\\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_{k + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, k + 1} - \\chi_\\mathrm{b}}{J_{k + 1 / 2} \\Delta \\hat{z}}.
+\\left(\\frac{\\partial \\psi_\\mathrm{b}}{\\partial z}\\right)_{k + 1 / 2} = \\frac{\\psi_{\\mathrm{b}, k + 1} - \\psi_\\mathrm{b}}{J_{k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
 At grid points beyond the vertical boundaries, it is set to zero.
@@ -189,6 +191,8 @@ At grid points beyond the vertical boundaries, it is set to zero.
   - `kd`: Lower vertical grid-cell index.
 
   - `ku`: Upper vertical grid-cell index.
+
+  - `field`: Input array.
 
   - `phitype`: Type of derivative to compute.
 """
@@ -466,23 +470,17 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DChiDX,
+    field::AbstractArray{<:AbstractFloat, 3},
+    phitype::DX,
 )::NTuple{2, <:AbstractFloat}
     (; dx, dz, met) = state.grid
-    (; chi) = state.tracer.tracerpredictands
-    (; rho) = state.variables.predictands
-    (; rhobar) = state.atmosphere
 
-    cc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
-    cr = chi[i + 1, j, kd] / (rho[i + 1, j, kd] + rhobar[i + 1, j, kd])
-    cu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
-    cd = chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhobar[i, j, kd - 1])
-    cru =
-        chi[i + 1, j, kd + 1] /
-        (rho[i + 1, j, kd + 1] + rhobar[i + 1, j, kd + 1])
-    crd =
-        chi[i + 1, j, kd - 1] /
-        (rho[i + 1, j, kd - 1] + rhobar[i + 1, j, kd - 1])
+    cc = field[i, j, kd]
+    cr = field[i + 1, j, kd]
+    cu = field[i, j, kd + 1]
+    cd = field[i, j, kd - 1]
+    cru = field[i + 1, j, kd + 1]
+    crd = field[i + 1, j, kd - 1]
 
     phid =
         (cr - cc) / dx +
@@ -491,16 +489,12 @@ end
         0.25 *
         (cu + cru - cd - crd) / dz
 
-    cc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
-    cr = chi[i + 1, j, ku] / (rho[i + 1, j, ku] + rhobar[i + 1, j, ku])
-    cu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
-    cd = chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhobar[i, j, ku - 1])
-    cru =
-        chi[i + 1, j, ku + 1] /
-        (rho[i + 1, j, ku + 1] + rhobar[i + 1, j, ku + 1])
-    crd =
-        chi[i + 1, j, ku - 1] /
-        (rho[i + 1, j, ku - 1] + rhobar[i + 1, j, ku - 1])
+    cc = field[i, j, ku]
+    cr = field[i + 1, j, ku]
+    cu = field[i, j, ku + 1]
+    cd = field[i, j, ku - 1]
+    cru = field[i + 1, j, ku + 1]
+    crd = field[i + 1, j, ku - 1]
 
     phiu =
         (cr - cc) / dx +
@@ -518,23 +512,17 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DChiDY,
+    field::AbstractArray{<:AbstractFloat, 3},
+    phitype::DY,
 )::NTuple{2, <:AbstractFloat}
     (; dy, dz, met) = state.grid
-    (; chi) = state.tracer.tracerpredictands
-    (; rho) = state.variables.predictands
-    (; rhobar) = state.atmosphere
 
-    cc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
-    cf = chi[i, j + 1, kd] / (rho[i, j + 1, kd] + rhobar[i, j + 1, kd])
-    cu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
-    cd = chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhobar[i, j, kd - 1])
-    cfu =
-        chi[i, j + 1, kd + 1] /
-        (rho[i, j + 1, kd + 1] + rhobar[i, j + 1, kd + 1])
-    cfd =
-        chi[i, j + 1, kd - 1] /
-        (rho[i, j + 1, kd - 1] + rhobar[i, j + 1, kd - 1])
+    cc = field[i, j, kd]
+    cf = field[i, j + 1, kd]
+    cu = field[i, j, kd + 1]
+    cd = field[i, j, kd - 1]
+    cfu = field[i, j + 1, kd + 1]
+    cfd = field[i, j + 1, kd - 1]
 
     phid =
         (cf - cc) / dy +
@@ -543,16 +531,12 @@ end
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
-    cc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
-    cf = chi[i, j + 1, ku] / (rho[i, j + 1, ku] + rhobar[i, j + 1, ku])
-    cu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
-    cd = chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhobar[i, j, ku - 1])
-    cfu =
-        chi[i, j + 1, ku + 1] /
-        (rho[i, j + 1, ku + 1] + rhobar[i, j + 1, ku + 1])
-    cfd =
-        chi[i, j + 1, ku - 1] /
-        (rho[i, j + 1, ku - 1] + rhobar[i, j + 1, ku - 1])
+    cc = field[i, j, ku]
+    cf = field[i, j + 1, ku]
+    cu = field[i, j, ku + 1]
+    cd = field[i, j, ku - 1]
+    cfu = field[i, j + 1, ku + 1]
+    cfd = field[i, j + 1, ku - 1]
 
     phiu =
         (cf - cc) / dy +
@@ -570,17 +554,15 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DChiDZ,
+    field::AbstractArray{<:AbstractFloat, 3},
+    phitype::DZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
-    (; chi) = state.tracer.tracerpredictands
-    (; rho) = state.variables.predictands
-    (; rhobar) = state.atmosphere
 
-    cuc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
-    cdc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
-    cuu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
-    cdu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
+    cuc = field[i, j, ku]
+    cdc = field[i, j, kd]
+    cuu = field[i, j, ku + 1]
+    cdu = field[i, j, kd + 1]
 
     if zctilde[i, j, ku] < hb[i, j]
         phid = 0.0
