@@ -32,7 +32,7 @@ In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.
 
   - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """
@@ -182,7 +182,7 @@ end
             end
 
             # Compute local stratification.
-            n2r = interpolate_scalar(state, xr, yr, zr, n2)
+            n2r = interpolate_stratification(zr, state, N2())
 
             # Set spatial extents.
             rays.dxray[r, i, j, k] = dx / nrx

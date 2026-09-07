@@ -108,7 +108,7 @@ function compute_turbulent_velocity end
     (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
 
     rhob = rhobar[i, j, k]
-    n2r = interpolate_scalar(state, xr, yr, zr, n2)
+    n2r = interpolate_stratification(zr, state, N2())
     fc = coriolis_frequency * tref
 
     khr = sqrt(kr^2 + lr^2)

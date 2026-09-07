@@ -55,7 +55,7 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_turbulent_velocity`](@ref)
 
@@ -95,7 +95,7 @@ function apply_turbulent_damping! end
 
     kh2 = kr^2 + lr^2
 
-    n2r = interpolate_scalar(state, xr, yr, zr, n2)
+    n2r = interpolate_stratification(zr, state, N2())
 
     omir = -sqrt(n2r * kh2 + fc^2 * mr^2) / sqrt(kh2 + mr^2)
     rhob = rhobar[i, j, k]
