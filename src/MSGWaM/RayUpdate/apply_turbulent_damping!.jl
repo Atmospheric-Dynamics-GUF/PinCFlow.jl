@@ -55,7 +55,7 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_turbulent_velocity`](@ref)
 
@@ -70,7 +70,6 @@ function apply_turbulent_damping! end
     i::Integer,
     j::Integer,
     k::Integer,
-    zr::AbstractFloat,
     dt::AbstractFloat,
 )
     (; rays) = state.wkb
@@ -78,7 +77,7 @@ function apply_turbulent_damping! end
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
-    (; rhobar) = state.atmosphere
+    (; n2, rhobar) = state.atmosphere
     (; turbulent_damping) = state.namelists.wkb
 
     if !turbulent_damping
@@ -90,17 +89,13 @@ function apply_turbulent_damping! end
 
     fc = coriolis_frequency * tref
 
-    kr = rays.k[r, i, j, k]
-    lr = rays.l[r, i, j, k]
-    mr = rays.m[r, i, j, k]
-
-    dkr = rays.dkray[r, i, j, k]
-    dlr = rays.dlray[r, i, j, k]
-    dmr = rays.dmray[r, i, j, k]
+    (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+    (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
+    (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
 
     kh2 = kr^2 + lr^2
 
-    n2r = interpolate_stratification(zr, state, N2())
+    n2r = interpolate_scalar(state, xr, yr, zr, n2)
 
     omir = -sqrt(n2r * kh2 + fc^2 * mr^2) / sqrt(kh2 + mr^2)
     rhob = rhobar[i, j, k]

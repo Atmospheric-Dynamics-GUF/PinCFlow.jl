@@ -99,20 +99,16 @@ function compute_turbulent_velocity end
     (; rays) = state.wkb
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
-    (; rhobar) = state.atmosphere
+    (; n2, rhobar) = state.atmosphere
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
 
     (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+    (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
+    (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
 
     rhob = rhobar[i, j, k]
-    kr = rays.k[r, i, j, k]
-    lr = rays.l[r, i, j, k]
-    mr = rays.m[r, i, j, k]
-    dkr = rays.dkray[r, i, j, k]
-    dlr = rays.dlray[r, i, j, k]
-    dmr = rays.dmray[r, i, j, k]
-    n2r = interpolate_stratification(zr, state, N2())
+    n2r = interpolate_scalar(state, xr, yr, zr, n2)
     fc = coriolis_frequency * tref
 
     khr = sqrt(kr^2 + lr^2)

@@ -83,7 +83,7 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
 
@@ -109,7 +109,7 @@ end
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; rhobar, thetabar) = state.atmosphere
+    (; n2, rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -145,7 +145,7 @@ end
 
             khr = sqrt(kr^2 + lr^2)
 
-            n2r = interpolate_stratification(zr, state, N2())
+            n2r = interpolate_scalar(state, xr, yr, zr, n2)
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
@@ -319,7 +319,7 @@ end
     (; g_ndim, tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; rhobar, thetabar) = state.atmosphere
+    (; n2, rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -353,7 +353,7 @@ end
 
             khr = sqrt(kr^2 + lr^2)
 
-            n2r = interpolate_stratification(zr, state, N2())
+            n2r = interpolate_scalar(state, xr, yr, zr, n2)
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
@@ -494,6 +494,7 @@ end
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
+    (; n2) = state.atmosphere
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -526,7 +527,7 @@ end
 
             khr = sqrt(kr^2 + lr^2)
 
-            n2r = interpolate_stratification(zr, state, N2())
+            n2r = interpolate_scalar(state, xr, yr, zr, n2)
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
