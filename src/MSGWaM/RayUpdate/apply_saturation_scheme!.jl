@@ -59,7 +59,7 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_saturation_integrals`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
 """
@@ -84,12 +84,11 @@ end
     dt::AbstractFloat,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb
-    (; x_size, y_size) = state.namelists.domain
     (; use_saturation, saturation_threshold) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; lx, ly, dx, dy, zc) = state.grid
+    (; x, y, zc) = state.grid
+    (; n2) = state.atmosphere
 
     if !use_saturation
         return
@@ -101,7 +100,7 @@ end
         (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
 
         # Calculate the turbulent eddy diffusivity.
-        n2r = interpolate_stratification(zc[i, j, k], state, N2())
+        n2r = interpolate_scalar(state, x[i], y[j], zc[i, j, k], n2)
         if mb2k2 == 0 || mb2 < saturation_threshold^2 * n2r^2
             diffusion[i, j, k] = 0
         else
@@ -125,7 +124,6 @@ end
         (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
 
         # Check if saturation is violated.
-        n2r = interpolate_stratification(zc[i, j, k], state, N2())
         if mb2 - saturation_threshold^2 * n2r^2 >
            1.0E-3 * saturation_threshold^2 * n2r^2
             println("Saturation violated at (i, j, k) = ", (i, j, k))

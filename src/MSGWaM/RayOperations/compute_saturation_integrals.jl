@@ -31,7 +31,7 @@ is the maximum grid-cell fraction that can be covered by each ray volume (with `
 \\left|b_{\\mathrm{w}, r}\\right|^2 = \\frac{2}{\\bar{\\rho}} \\frac{N_r^4 \\left(k_r^2 + l_r^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{N}_r \\Delta k_r \\Delta l_r \\Delta m_r
 ```
 
-is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`) and ``\\left(\\Delta k_r, \\Delta l_r, \\Delta m_r\\right)`` are the ray-volume extents in spectral space.
+is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_scalar`) and ``\\left(\\Delta k_r, \\Delta l_r, \\Delta m_r\\right)`` are the ray-volume extents in spectral space.
 
 # Arguments
 
@@ -49,7 +49,7 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
 """
 function compute_saturation_integrals end
 
@@ -63,7 +63,7 @@ function compute_saturation_integrals end
     (; x_size, y_size) = state.namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dz, jac) = grid
-    (; rhobar) = state.atmosphere
+    (; n2, rhobar) = state.atmosphere
     (; nray, rays) = state.wkb
 
     # Initialize Integrals.
@@ -78,13 +78,8 @@ function compute_saturation_integrals end
             continue
         end
 
-        xr = rays.x[r, i, j, k]
-        yr = rays.y[r, i, j, k]
-        zr = rays.z[r, i, j, k]
-
-        dxr = rays.dxray[r, i, j, k]
-        dyr = rays.dyray[r, i, j, k]
-        dzr = rays.dzray[r, i, j, k]
+        (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+        (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
 
         if x_size > 1
             iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
@@ -100,7 +95,7 @@ function compute_saturation_integrals end
 
         kray = get_next_half_level(iray, jray, zr, state)
 
-        n2r = interpolate_stratification(zr, state, N2())
+        n2r = interpolate_scalar(state, xr, yr, zr, n2)
 
         wnrk = rays.k[r, i, j, k]
         wnrl = rays.l[r, i, j, k]

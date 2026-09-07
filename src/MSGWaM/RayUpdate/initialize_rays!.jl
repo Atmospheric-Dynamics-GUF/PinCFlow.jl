@@ -32,7 +32,7 @@ In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.
 
   - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """
@@ -83,6 +83,7 @@ end
         cgz_max,
         spectrum,
     ) = state.wkb
+    (; n2) = state.atmosphere
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -173,9 +174,7 @@ end
                 (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 
-            xr = rays.x[r, i, j, k]
-            yr = rays.y[r, i, j, k]
-            zr = rays.z[r, i, j, k]
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
             # Check if ray volume is too low.
             if zr < -dz
@@ -183,7 +182,7 @@ end
             end
 
             # Compute local stratification.
-            n2r = interpolate_stratification(zr, state, N2())
+            n2r = interpolate_scalar(state, xr, yr, zr, n2)
 
             # Set spatial extents.
             rays.dxray[r, i, j, k] = dx / nrx
