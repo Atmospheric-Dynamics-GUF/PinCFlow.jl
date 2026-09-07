@@ -244,19 +244,19 @@ end
 
             khr = sqrt(kr^2 + lr^2)
 
-            n2r1 = interpolate_scalar(state, xr, yr, zrd, n2)
+            n2rd = interpolate_scalar(state, xr, yr, zrd, n2)
             n2r = interpolate_scalar(state, xr, yr, zr, n2)
-            n2r2 = interpolate_scalar(state, xr, yr, zru, n2)
+            n2ru = interpolate_scalar(state, xr, yr, zru, n2)
 
-            omir1 =
-                branch * sqrt(n2r1 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omird =
+                branch * sqrt(n2rd * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            omir2 =
-                branch * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omiru =
+                branch * sqrt(n2ru * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            if any((n2r1, n2r, n2r2) .< 0)
+            if any((n2rd, n2r, n2ru) .< 0)
                 error("Interpolated stratification is negative!")
             end
 
@@ -286,8 +286,8 @@ end
             end
 
             # Compute intrinsic vertical group velocities at the vertical edges.
-            cgirz1 = -mr * (omir1^2 - fc^2) / (omir1 * (khr^2 + mr^2))
-            cgirz2 = -mr * (omir2^2 - fc^2) / (omir2 * (khr^2 + mr^2))
+            cgirzd = -mr * (omird^2 - fc^2) / (omird * (khr^2 + mr^2))
+            cgirzu = -mr * (omiru^2 - fc^2) / (omiru * (khr^2 + mr^2))
 
             #-------------------------------
             #      Change of position
@@ -299,17 +299,17 @@ end
                 uxrl = interpolate_mean_flow(xrl, yr, zr, state, U())
                 uxrr = interpolate_mean_flow(xrr, yr, zr, state, U())
 
-                cgrx1 = cgirx + uxrl
-                cgrx2 = cgirx + uxrr
+                cgrxl = cgirx + uxrl
+                cgrxr = cgirx + uxrr
 
-                cgrx = (cgrx1 + cgrx2) / 2
+                cgrx = (cgrxl + cgrxr) / 2
 
                 f = cgrx
                 dxray[r, i, j, k] =
                     dt * f + alphark[rkstage] * dxray[r, i, j, k]
                 rays.x[r, i, j, k] += betark[rkstage] * dxray[r, i, j, k]
 
-                cgx_max[] = max(cgx_max[], abs(cgrx1), abs(cgrx2))
+                cgx_max[] = max(cgx_max[], abs(cgrxl), abs(cgrxr))
             end
 
             if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
@@ -323,17 +323,17 @@ end
                 vyrb = interpolate_mean_flow(xr, yrb, zr, state, V())
                 vyrf = interpolate_mean_flow(xr, yrf, zr, state, V())
 
-                cgry1 = cgiry + vyrb
-                cgry2 = cgiry + vyrf
+                cgryb = cgiry + vyrb
+                cgryf = cgiry + vyrf
 
-                cgry = (cgry1 + cgry2) / 2
+                cgry = (cgryb + cgryf) / 2
 
                 f = cgry
                 dyray[r, i, j, k] =
                     dt * f + alphark[rkstage] * dyray[r, i, j, k]
                 rays.y[r, i, j, k] += betark[rkstage] * dyray[r, i, j, k]
 
-                cgy_max[] = max(cgy_max[], abs(cgry1), abs(cgry2))
+                cgy_max[] = max(cgy_max[], abs(cgryb), abs(cgryf))
             end
 
             if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
@@ -343,16 +343,16 @@ end
 
             # Update vertical position.
 
-            cgrz1 = cgirz1
-            cgrz2 = cgirz2
+            cgrzd = cgirzd
+            cgrzu = cgirzu
 
-            cgrz = (cgrz1 + cgrz2) / 2
+            cgrz = (cgrzd + cgrzu) / 2
 
             f = cgrz
             dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
             rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-            cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
+            cgz_max[] = max(cgz_max[], abs(cgrzd), abs(cgrzu))
 
             if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
                abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
@@ -401,7 +401,7 @@ end
                 # Update extents in x and k.
 
                 if zonal_propagation
-                    ddxdt = cgrx2 - cgrx1
+                    ddxdt = cgrxr - cgrxl
 
                     ddxray[r, i, j, k] =
                         dt * ddxdt + alphark[rkstage] * ddxray[r, i, j, k]
@@ -419,7 +419,7 @@ end
                 # Update extents in y and l.
 
                 if meridional_propagation
-                    ddydt = cgry2 - cgry1
+                    ddydt = cgryf - cgryb
 
                     ddyray[r, i, j, k] =
                         dt * ddydt + alphark[rkstage] * ddyray[r, i, j, k]
@@ -436,7 +436,7 @@ end
 
                 # Update extents in z and m.
 
-                ddzdt = cgrz2 - cgrz1
+                ddzdt = cgrzu - cgrzd
 
                 ddzray[r, i, j, k] =
                     dt * ddzdt + alphark[rkstage] * ddzray[r, i, j, k]
