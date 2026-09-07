@@ -60,39 +60,30 @@ function get_wave_spectrum!(state::State)
 end
 
 
-function get_wave_spectrum!(state::State, 
-    wkb_mode::Union{MultiColumn, SingleColumn}, 
+function get_wave_spectrum!(
+    state::State,
+    wkb_mode::Union{MultiColumn, SingleColumn},
     triad_mode::Triad2D,
-    projection_scheme::ConstantWaveAction)
+    projection_scheme::ConstantWaveAction,
+)
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
-    (; coriolis_frequency) = state.namelists.atmosphere
-    (; branch) = state.namelists.wkb
-    (; lref, tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = domain
-    (; dx, dy, dz, x, y, zc, zctilde, jac) = grid
+    (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; nray, rays) = state.wkb
     (; spec_tend) = state
     (; kpc, mc) = spec_tend.spec_grid
 
-
-
-   #println("\n Getting wave spectrum on the Eulerian grid from the Ray volumes")
-    # Set Coriolis parameter.
-    fc = coriolis_frequency * tref
-
-    spec_tend.wavespectrum .= 0
-    spec_tend.col_int .= 0 
-
+    spec_tend.wavespectrum .= 0.0
+    spec_tend.col_int .= 0.0
     spec_tend.was_ray_signature .= false
 
-
-     @ivy for k in (k0 - 1):(k1 + 1),
+    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
         for r in 1:nray[i, j, k]
-            if rays.dens[r, i, j, k] == 0
+            if rays.dens[r, i, j, k] == 0.0
                 continue
             end
 
@@ -112,150 +103,133 @@ function get_wave_spectrum!(state::State,
 
             kpr = abs(kr)
             dkpr = dkr
-            #println("The ray volume with non zero wad", "Ray volume grid cell", (x[i] * lref, y[j]* lref, zc[i, j, k]*lref), 
-            #"\n Ray volume center", (xr * lref, yr * lref, zr * lref),
-            #"\n Ray volume physical extend", (dxr * lref, dyr * lref, dzr * lref),
-            # "\n Ray volume wave number", (kr / lref, lr /lref ,mr / lref),
-            #"\n Ray volume spectral extend", (dkr / lref, dlr /lref, dmr / lref))
 
             (imin, imax, jmin, jmax) =
-                compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+                compute_horizontal_cell_indices_periodic(state, xr, yr, dxr, dyr)
 
-            (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
-            
+            (kpmin, kpmax, mmin, mmax) =
+                compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            #------------------------------------------------------
+            # Physical x projection.
+            #
+            # imin:imax may include halo cells. Their coordinates
+            # x[iray] already represent the appropriate unwrapped
+            # periodic images.
+            #------------------------------------------------------
+
             for iray in imin:imax
                 if x_size > 1
-                    dxi = (
+                    dxi =
                         min(xr + dxr / 2, x[iray] + dx / 2) -
                         max(xr - dxr / 2, x[iray] - dx / 2)
-                    )
 
-                    fcpspx =  dxi / dx
+                    fcpspx = max(dxi, 0.0) / dx
                 else
-                    dxi = 1.0
                     fcpspx = 1.0
-                    dxr = 1.0
                 end
+
+                #--------------------------------------------------
+                # Physical y projection.
+                #--------------------------------------------------
 
                 for jray in jmin:jmax
                     if y_size > 1
-                        dyi = (
+                        dyi =
                             min(yr + dyr / 2, y[jray] + dy / 2) -
                             max(yr - dyr / 2, y[jray] - dy / 2)
-                        )
 
-                        fcpspy =  dyi / dy
+                        fcpspy = max(dyi, 0.0) / dy
                     else
-                        dyi = 1.0
                         fcpspy = 1.0
-                        dyr = 1.0
                     end
 
-                    kmin = get_next_half_level(
-                        iray,
-                        jray,
-                        zr - dzr / 2,
-                        state;
-                        dkd = 1,
-                    )
-                    kmax = get_next_half_level(
-                        iray,
-                        jray,
-                        zr + dzr / 2,
-                        state;
-                        dkd = 1,
-                    )
+                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state; dkd = 1)
+                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state; dkd = 1)
 
                     for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
-                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
+                            min(zr + dzr / 2, zctilde[iray, jray, kray]) -
+                            max(zr - dzr / 2, zctilde[iray, jray, kray - 1])
 
-                        fcpspz =  dzi / jac[iray, jray, kray] / dz
-                        
+                        fcpspz = dzi / jac[iray, jray, kray] / dz
+
                         for kpray in kpmin:kpmax
                             if x_size > 1
-                                dkpi = min(kpr + dkr / 2, kpc[kpray + 1]) -
+                                dkpi =
+                                    min(kpr + dkr / 2, kpc[kpray + 1]) -
                                     max(kpr - dkr / 2, kpc[kpray])
 
                                 dkp = kpc[kpray + 1] - kpc[kpray]
-                                fcpspkp = dkpi / dkp
+                                fcpspkp = max(dkpi, 0.0) / dkp
                             else
                                 fcpspkp = 1.0
-                            end                            
+                            end
 
-                             for mray in mmin:mmax
-                                if mr >= 0       #becuase for mr > 0,  m_i > 0 always lies between mc_{i+2} to mc_{i+1}
-                                    dmi = 
+                            for mray in mmin:mmax
+                                if mr >= 0.0
+                                    dmi =
                                         min(mr + dmr / 2, mc[mray + 2]) -
                                         max(mr - dmr / 2, mc[mray + 1])
+
                                     dm = mc[mray + 2] - mc[mray + 1]
-                                    fcpspm = dmi / dm
                                 else
-                                    dmi = 
+                                    dmi =
                                         min(mr + dmr / 2, mc[mray + 1]) -
                                         max(mr - dmr / 2, mc[mray])
+
                                     dm = mc[mray + 1] - mc[mray]
-                                    fcpspm = dmi / dm
                                 end
-                                
-                                vol_ratio = fcpspx * fcpspy * fcpspz * fcpspkp * fcpspm # Fraction of the accupied_vol ray volume and the volume of the grid cell
+
+                                fcpspm = max(dmi, 0.0) / dm
+
+                                vol_ratio =
+                                    fcpspx *
+                                    fcpspy *
+                                    fcpspz *
+                                    fcpspkp *
+                                    fcpspm
+
                                 wadr = rays.dens[r, i, j, k]
                                 wadi = vol_ratio * wadr
+
                                 spec_tend.wavespectrum[iray, jray, kray, kpray, mray] += wadi
                                 spec_tend.was_ray_signature[iray, jray, kray, kpray, mray] = true
-                                #println(spec_tend.wavespectrum[iray, jray, kray, kpray, mray])
-
-                             end
-
+                            end
                         end
-
                     end
-
                 end
-
             end
-        
         end
-
     end
 
+    return nothing
 end
 
-
-function get_wave_spectrum!(state::State, 
-    wkb_mode::Union{MultiColumn, SingleColumn}, 
+function get_wave_spectrum!(
+    state::State,
+    wkb_mode::Union{MultiColumn, SingleColumn},
     triad_mode::Triad2D,
-    projection_scheme::ConstantWaveEnergy)
+    projection_scheme::ConstantWaveEnergy,
+)
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
-    (; coriolis_frequency) = state.namelists.atmosphere
-    (; branch) = state.namelists.wkb
-    (; lref, tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = domain
-    (; dx, dy, dz, x, y, zc, zctilde, jac) = grid
+    (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; nray, rays) = state.wkb
     (; spec_tend) = state
     (; kp, m, kpc, mc) = spec_tend.spec_grid
 
-
-
-   #println("\n Getting wave spectrum on the Eulerian grid from the Ray volumes")
-    # Set Coriolis parameter.
-    fc = coriolis_frequency * tref
-
-    spec_tend.wavespectrum .= 0
-    spec_tend.col_int .= 0 
-
+    spec_tend.wavespectrum .= 0.0
+    spec_tend.col_int .= 0.0
     spec_tend.was_ray_signature .= false
 
-
-     @ivy for k in (k0 - 1):(k1 + 1),
+    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
         for r in 1:nray[i, j, k]
-            if rays.dens[r, i, j, k] == 0
+            if rays.dens[r, i, j, k] == 0.0
                 continue
             end
 
@@ -275,117 +249,111 @@ function get_wave_spectrum!(state::State,
 
             kpr = abs(kr)
             dkpr = dkr
+
             omgar = compute_omega_hat_nhyd(kpr, mr)
-            #println("The ray volume with non zero wad", "Ray volume grid cell", (x[i] * lref, y[j]* lref, zc[i, j, k]*lref), 
-            #"\n Ray volume center", (xr * lref, yr * lref, zr * lref),
-            #"\n Ray volume physical extend", (dxr * lref, dyr * lref, dzr * lref),
-            # "\n Ray volume wave number", (kr / lref, lr /lref ,mr / lref),
-            #"\n Ray volume spectral extend", (dkr / lref, dlr /lref, dmr / lref))
 
             (imin, imax, jmin, jmax) =
-                compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+                compute_horizontal_cell_indices_periodic(state, xr, yr, dxr, dyr)
 
-            (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
-            
+            (kpmin, kpmax, mmin, mmax) =
+                compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            #------------------------------------------------------
+            # Physical x projection.
+            #
+            # Halo coordinates contain the appropriate unwrapped
+            # periodic images.
+            #------------------------------------------------------
+
             for iray in imin:imax
                 if x_size > 1
-                    dxi = (
+                    dxi =
                         min(xr + dxr / 2, x[iray] + dx / 2) -
                         max(xr - dxr / 2, x[iray] - dx / 2)
-                    )
 
-                    fcpspx =  dxi / dx
+                    fcpspx = max(dxi, 0.0) / dx
                 else
-                    dxi = 1.0
                     fcpspx = 1.0
-                    dxr = 1.0
                 end
+
+                #--------------------------------------------------
+                # Physical y projection.
+                #--------------------------------------------------
 
                 for jray in jmin:jmax
                     if y_size > 1
-                        dyi = (
+                        dyi =
                             min(yr + dyr / 2, y[jray] + dy / 2) -
                             max(yr - dyr / 2, y[jray] - dy / 2)
-                        )
 
-                        fcpspy =  dyi / dy
+                        fcpspy = max(dyi, 0.0) / dy
                     else
-                        dyi = 1.0
                         fcpspy = 1.0
-                        dyr = 1.0
                     end
 
-                    kmin = get_next_half_level(
-                        iray,
-                        jray,
-                        zr - dzr / 2,
-                        state;
-                        dkd = 1,
-                    )
-                    kmax = get_next_half_level(
-                        iray,
-                        jray,
-                        zr + dzr / 2,
-                        state;
-                        dkd = 1,
-                    )
+                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state; dkd = 1)
+                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state; dkd = 1)
 
                     for kray in kmin:kmax
                         dzi =
-                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
-                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
+                            min(zr + dzr / 2, zctilde[iray, jray, kray]) -
+                            max(zr - dzr / 2, zctilde[iray, jray, kray - 1])
 
-                        fcpspz =  dzi / jac[iray, jray, kray] / dz
-                        
+                        fcpspz = dzi / jac[iray, jray, kray] / dz
+
                         for kpray in kpmin:kpmax
                             if x_size > 1
-                                dkpi = min(kpr + dkr / 2, kpc[kpray + 1]) -
+                                dkpi =
+                                    min(kpr + dkr / 2, kpc[kpray + 1]) -
                                     max(kpr - dkr / 2, kpc[kpray])
 
                                 dkp = kpc[kpray + 1] - kpc[kpray]
-                                fcpspkp = dkpi / dkp
+                                fcpspkp = max(dkpi, 0.0) / dkp
                             else
                                 fcpspkp = 1.0
-                            end                            
+                            end
 
-                             for mray in mmin:mmax
-                                if mr >= 0       #becuase for mr > 0,  m_i > 0 always lies between mc_{i+2} to mc_{i+1}
-                                    dmi = 
+                            for mray in mmin:mmax
+                                if mr >= 0.0
+                                    dmi =
                                         min(mr + dmr / 2, mc[mray + 2]) -
                                         max(mr - dmr / 2, mc[mray + 1])
+
                                     dm = mc[mray + 2] - mc[mray + 1]
-                                    fcpspm = dmi / dm
                                 else
-                                    dmi = 
+                                    dmi =
                                         min(mr + dmr / 2, mc[mray + 1]) -
                                         max(mr - dmr / 2, mc[mray])
+
                                     dm = mc[mray + 1] - mc[mray]
-                                    fcpspm = dmi / dm
                                 end
-                                
-                                vol_ratio = fcpspx * fcpspy * fcpspz * fcpspkp * fcpspm # Fraction of the accupied_vol ray volume and the volume of the grid cell
+
+                                fcpspm = max(dmi, 0.0) / dm
+
+                                vol_ratio =
+                                    fcpspx *
+                                    fcpspy *
+                                    fcpspz *
+                                    fcpspkp *
+                                    fcpspm
+
                                 omegai = compute_omega_hat_nhyd(kp[kpray], m[mray])
-                                omgega_ratio = omgar / omegai #for the conservation of energy
+                                omega_ratio = omgar / omegai
+
                                 wadr = rays.dens[r, i, j, k]
-                                wadi = vol_ratio * wadr * omgega_ratio
+                                wadi = vol_ratio * wadr * omega_ratio
+
                                 spec_tend.wavespectrum[iray, jray, kray, kpray, mray] += wadi
                                 spec_tend.was_ray_signature[iray, jray, kray, kpray, mray] = true
-                                #println(spec_tend.wavespectrum[iray, jray, kray, kpray, mray])
-
-                             end
-
+                            end
                         end
-
                     end
-
                 end
-
             end
-        
         end
-
     end
 
+    return nothing
 end
 
 function get_wave_spectrum!(state::State, 
@@ -572,7 +540,7 @@ function get_wave_spectrum!(state::State,
             dkpr = sqrt(dkr^2 + dlr^2)
 
             (imin, imax, jmin, jmax) =
-                compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+                compute_horizontal_cell_indices_periodic(state, xr, yr, dxr, dyr)
 
             (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
             

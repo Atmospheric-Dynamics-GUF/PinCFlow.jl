@@ -77,6 +77,13 @@ function get_ray_volumes!(
             kpr = abs(kr)
             dkpr = dkr
 
+            # Effective phase-space widths. For x_size == 1 the
+            # physical x and horizontal-spectral k dimensions are
+            # discrete and therefore carry unit measure here.
+            dxr_vol = x_size > 1 ? dxr : 1.0
+            dyr_vol = y_size > 1 ? dyr : 1.0
+            dkpr_vol = x_size > 1 ? dkpr : 1.0
+
             wadr = rays.dens[r, i, j, k]
 
             # The density is reconstructed from the updated
@@ -84,19 +91,29 @@ function get_ray_volumes!(
             rays.dens[r, i, j, k] = 0.0
 
             imin, imax, jmin, jmax =
-                compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+                compute_horizontal_cell_indices_periodic(state, xr, yr, dxr, dyr)
 
             kpmin, kpmax, mmin, mmax =
                 compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            #--------------------------------------------------
+            # Physical horizontal projection.
+            #
+            # iray and jray are allowed to be halo indices.
+            # Grid.x and Grid.y already give the appropriate
+            # unwrapped coordinates for those halo cells, including
+            # the periodic images at the global boundaries.
+            #--------------------------------------------------
 
             for iray in imin:imax
                 if x_size > 1
                     dxi =
                         min(xr + dxr / 2, x[iray] + dx / 2) -
                         max(xr - dxr / 2, x[iray] - dx / 2)
+
+                    dxi = max(dxi, 0.0)
                 else
                     dxi = 1.0
-                    dxr = 1.0
                 end
 
                 for jray in jmin:jmax
@@ -104,9 +121,10 @@ function get_ray_volumes!(
                         dyi =
                             min(yr + dyr / 2, y[jray] + dy / 2) -
                             max(yr - dyr / 2, y[jray] - dy / 2)
+
+                        dyi = max(dyi, 0.0)
                     else
                         dyi = 1.0
-                        dyr = 1.0
                     end
 
                     kmin = get_next_half_level(
@@ -135,9 +153,10 @@ function get_ray_volumes!(
                                 dkpi =
                                     min(kpr + dkr / 2, kpc[kpray + 1]) -
                                     max(kpr - dkr / 2, kpc[kpray])
+
+                                dkpi = max(dkpi, 0.0)
                             else
                                 dkpi = 1.0
-                                dkpr = 1.0
                             end
 
                             for mray in mmin:mmax
@@ -160,12 +179,22 @@ function get_ray_volumes!(
 
                                 # Total five-dimensional ray
                                 # phase-space volume.
-                                ray_vol = dxr * dyr * dzr * dkpr * dmr
+                                ray_vol =
+                                    dxr_vol *
+                                    dyr_vol *
+                                    dzr *
+                                    dkpr_vol *
+                                    dmr
 
-                                # Fraction of that volume overlapping
-                                # this physical-spectral grid cell.
+                                # Portion of the ray phase-space
+                                # volume overlapping this physical-
+                                # spectral cell.
                                 occupied_vol =
-                                    dxi * dyi * dzi * dkpi * dmi
+                                    dxi *
+                                    dyi *
+                                    dzi *
+                                    dkpi *
+                                    dmi
 
                                 rays.dens[r, i, j, k] +=
                                     wadr *
@@ -197,7 +226,10 @@ function get_ray_volumes!(
             dy_cell = y_size > 1 ? dy : 1.0
 
             physical_cell_volume =
-                dx_cell * dy_cell * jac[i, j, k] * dz
+                dx_cell *
+                dy_cell *
+                jac[i, j, k] *
+                dz
         else
             physical_cell_volume = 0.0
         end
@@ -212,7 +244,6 @@ function get_ray_volumes!(
             was = wavespectrum[i, j, k, kpi, mi]
             was_sig = was_ray_signature[i, j, k, kpi, mi]
 
-            
             dkps = delkp[kpi]
             dms = delm[mi]
 
@@ -230,6 +261,7 @@ function get_ray_volumes!(
                 kps = kp[kpi]
                 ms = m[mi]
                 dkps = x_size > 1 ? delkp[kpi] : 0.0
+
                 launch_new_ray_vol!(
                     state,
                     i,
@@ -246,7 +278,8 @@ function get_ray_volumes!(
 
             if owned_cell
                 integrated_action =
-                    spectral_cell_action * physical_cell_volume
+                    spectral_cell_action *
+                    physical_cell_volume
 
                 local_total_action += integrated_action
 
@@ -302,7 +335,6 @@ function get_ray_volumes!(
     end
 
     # Every rank throws the same error after the global reduction.
-    # This is safer than terminating only the master rank.
     if discarded_action_fraction >= discarded_action_fraction_tol
         error(
             "Discarded wave-action fraction exceeded the allowed threshold: ",
@@ -314,7 +346,6 @@ function get_ray_volumes!(
 
     return nothing
 end
-
 function get_ray_volumes!(
     state::State,
     triad_mode::Triad2D,
