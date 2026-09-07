@@ -1,20 +1,6 @@
 """
 ```julia
-compute_gw_tracer_integrals!(
-    state::State,
-    fc::AbstractFloat,
-    omir::AbstractFloat,
-    wnrk::AbstractFloat,
-    wnrl::AbstractFloat,
-    wnrm::AbstractFloat,
-    wadr::AbstractFloat,
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-)
+compute_gw_tracer_integrals!(state::State, parameters::NamedTuple)
 ```
 
 Compute the leading-order gravity-wave-tracer fluxes by dispatching to the appropriate method.
@@ -22,19 +8,8 @@ Compute the leading-order gravity-wave-tracer fluxes by dispatching to the appro
 ```julia
 compute_gw_tracer_integrals!(
     state::State,
+    parameters::NamedTuple,
     tracer_setup::Val{:NoTracer},
-    fc::AbstractFloat,
-    omir::AbstractFloat,
-    wnrk::AbstractFloat,
-    wnrl::AbstractFloat,
-    wnrm::AbstractFloat,
-    wadr::AbstractFloat,
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
-    i::Integer,
-    j::Integer,
-    k::Integer,
 )
 ```
 
@@ -43,19 +18,8 @@ Return for configurations without tracer transport.
 ```julia
 compute_gw_tracer_integrals!(
     state::State,
+    parameters::NamedTuple,
     tracer_setup::Val{:TracerOn},
-    fc::AbstractFloat,
-    omir::AbstractFloat,
-    wnrk::AbstractFloat,
-    wnrl::AbstractFloat,
-    wnrm::AbstractFloat,
-    wadr::AbstractFloat,
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
-    i::Integer,
-    j::Integer,
-    k::Integer,
 )
 ```
 
@@ -85,31 +49,9 @@ with flux contributions given by
 
   - `state`: Model state.
 
+  - `parameters`: Named tuple containing parameters used for the computations.
+
   - `tracer_setup`: General tracer-transport configuration.
-
-  - `fc`: Coriolis parameter.
-
-  - `omir`: Gravity-wave intrinsic frequency.
-
-  - `wnrk`: Zonal wavenumber.
-
-  - `wnrl`: Meridional wavenumber.
-
-  - `wnrm`: Vertical wavenumber.
-
-  - `wadr`: Contributing fraction of the physical-space wave-action density.
-
-  - `xlc`: Zonal location of the ray-volume.
-
-  - `ylc`: Meridional location of the ray-volume.
-
-  - `zlc`: Vertical location of the ray-volume.
-
-  - `i`: Zonal grid-cell index.
-
-  - `j`: Meridional grid-cell index.
-
-  - `k`: Vertical grid-cell index.
 
 # See also
 
@@ -117,37 +59,12 @@ with flux contributions given by
 """
 function compute_gw_tracer_integrals! end
 
-function compute_gw_tracer_integrals!(
-    state::State,
-    fc::AbstractFloat,
-    omir::AbstractFloat,
-    wnrk::AbstractFloat,
-    wnrl::AbstractFloat,
-    wnrm::AbstractFloat,
-    wadr::AbstractFloat,
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-)
+function compute_gw_tracer_integrals!(state::State, parameters::NamedTuple)
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup compute_gw_tracer_integrals!(
         state,
-        fc,
-        omir,
-        wnrk,
-        wnrl,
-        wnrm,
-        wadr,
-        xlc,
-        ylc,
-        zlc,
-        i,
-        j,
-        k,
+        parameters,
         Val(tracer_setup),
     )
     return
@@ -155,18 +72,7 @@ end
 
 function compute_gw_tracer_integrals!(
     state::State,
-    fc::AbstractFloat,
-    omir::AbstractFloat,
-    wnrk::AbstractFloat,
-    wnrl::AbstractFloat,
-    wnrm::AbstractFloat,
-    wadr::AbstractFloat,
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
-    i::Integer,
-    j::Integer,
-    k::Integer,
+    parameters::NamedTuple,
     tracer_setup::Val{:NoTracer},
 )
     return
@@ -174,42 +80,66 @@ end
 
 @ivy function compute_gw_tracer_integrals!(
     state::State,
-    fc::AbstractFloat,
-    omir::AbstractFloat,
-    wnrk::AbstractFloat,
-    wnrl::AbstractFloat,
-    wnrm::AbstractFloat,
-    wadr::AbstractFloat,
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
-    i::Integer,
-    j::Integer,
-    k::Integer,
+    parameters::NamedTuple,
     tracer_setup::Val{:TracerOn},
 )
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
-    (; leading_order_impact) = state.namelists.tracer
+    (; leading_order_impact, next_order_impact) = state.namelists.tracer
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
-    (; rhobar) = state.atmosphere
+    (; thetabar, rhobar) = state.atmosphere
+    (; uhat, vhat, what, bhat, pihat, chihat) = state.tracer.tracerwkbamplitudes
+    (; kr, lr, mr, fc, omir, dens, factor, xr, yr, zr, iray, jray, kray, n2r) =
+        parameters
+    (; kappa) = state.constants
 
-    if fc == 0.0 || !leading_order_impact
-        return
+    wadr = dens * factor
+
+    if (fc != 0.0 && leading_order_impact) || next_order_impact
+        dchidx =
+            interpolate_scalar(state, xr, yr, zr, chi ./ (rho .+ rhobar), DX())
+        dchidy =
+            interpolate_scalar(state, xr, yr, zr, chi ./ (rho .+ rhobar), DY())
+        dchidz =
+            interpolate_scalar(state, xr, yr, zr, chi ./ (rho .+ rhobar), DZ())
     end
 
-    coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
+    if fc != 0.0 && leading_order_impact
+        coeff = fc / omir * mr * wadr / (kr^2 + lr^2 + mr^2)
 
-    dchidx =
-        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DX())
-    dchidy =
-        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DY())
-    dchidz =
-        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DZ())
+        uchi0[iray, jray, kray] += coeff * (lr * dchidz - mr * dchidy)
+        vchi0[iray, jray, kray] += coeff * (mr * dchidx - kr * dchidz)
+        wchi0[iray, jray, kray] += coeff * (kr * dchidy - lr * dchidx)
+    end
 
-    uchi0[i, j, k] += coeff * (wnrl * dchidz - wnrm * dchidy)
-    vchi0[i, j, k] += coeff * (wnrm * dchidx - wnrk * dchidz)
-    wchi0[i, j, k] += coeff * (wnrk * dchidy - wnrl * dchidx)
+    if next_order_impact
+        bamp = sqrt(
+            dens / rhobar[iray, jray, kray] * 2 * n2r^2 * (kr^2 + lr^2) /
+            (omir * (kr^2 + lr^2 + mr^2)),
+        )
+        uamp =
+            1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
+            (kr * omir + 1im * lr * fc) *
+            bamp
+        vamp =
+            1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
+            (lr * omir - 1im * kr * fc) *
+            bamp
+        wamp = 1im * omir / n2r * bamp
+        bhat[iray, jray, kray] += bamp * factor
+        uhat[iray, jray, kray] += uamp * factor
+        vhat[iray, jray, kray] += vamp * factor
+        what[iray, jray, kray] += wamp * factor
+        pihat[iray, jray, kray] +=
+            1im / mr * (omir^2 - n2r) / n2r / thetabar[iray, jray, kray] *
+            kappa *
+            bamp *
+            factor
+        chihat[iray, jray, kray] +=
+            -1im / omir *
+            (uamp * dchidx + vamp * dchidy + wamp * dchidz) *
+            factor
+    end
 
     return
 end

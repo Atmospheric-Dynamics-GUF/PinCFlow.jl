@@ -92,14 +92,14 @@ end
 )
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
-    (; uchi0, vchi0, wchi0, uchi1, vchi1, wchi1) = state.tracer.tracerwkbintegrals
+    (; uchi0, vchi0, wchi0, uchi1, vchi1, wchi1) =
+        state.tracer.tracerwkbintegrals
     (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; leading_order_impact, next_order_impact) = state.namelists.tracer
 
     if leading_order_impact
-
         dchidt0[i, j, k] = 0.0
 
         if x_size > 1
@@ -121,7 +121,8 @@ end
         end
 
         dchiw0 =
-            (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
+            (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) /
+            (2.0 * jac[i, j, k] * dz)
 
         dchidt0[i, j, k] =
             -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
@@ -129,7 +130,6 @@ end
     end
 
     if next_order_impact
-
         dchidt1[i, j, k] = 0.0
 
         if x_size > 1
@@ -151,7 +151,8 @@ end
         end
 
         dchiw1 =
-            (wchi1[i, j, k + 1] - wchi1[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
+            (wchi1[i, j, k + 1] - wchi1[i, j, k - 1]) /
+            (2.0 * jac[i, j, k] * dz)
 
         dchidt1[i, j, k] =
             -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *

@@ -78,7 +78,10 @@ Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractArray{<:AbstractFloat, 3}}
+struct TracerWKBIntegrals{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+}
     uchi0::A
     vchi0::A
     wchi0::A
@@ -157,6 +160,6 @@ function TracerWKBIntegrals(
         vchi1 = zeros(0, 0, 0)
         wchi1 = zeros(0, 0, 0)
     end
-     
+
     return TracerWKBIntegrals(uchi0, vchi0, wchi0, uchi1, vchi1, wchi1)
 end

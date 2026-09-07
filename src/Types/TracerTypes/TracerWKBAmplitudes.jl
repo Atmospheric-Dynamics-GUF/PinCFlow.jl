@@ -5,8 +5,8 @@ TracerWKBAmplitudes{A <: AbstractArray{<:Complex, 3}}
 
 Amplitudes of the unresolved gravity waves.
 """
-struct TracerWKBAmplitudes{A <: AbstractArray{<:ComplexF64, 3},}
-    uhat::A 
+struct TracerWKBAmplitudes{A <: AbstractArray{<:ComplexF64, 3}}
+    uhat::A
     vhat::A
     what::A
     bhat::A
@@ -18,10 +18,10 @@ function TracerWKBAmplitudes(
     namelists::Namelists,
     domain::Domain,
 )::TracerWKBAmplitudes
-    (; tracer_setup) = namelists.tracer 
+    (; tracer_setup) = namelists.tracer
 
     @dispatch_tracer_setup return TracerWKBAmplitudes(
-        namelists, 
+        namelists,
         domain,
         Val(tracer_setup),
     )
@@ -54,7 +54,7 @@ function TracerWKBAmplitudes(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBAmplitudes
-    return TracerWKBAmplitudes([zeros(ComplexF64,0, 0, 0) for i in 1:6]...)
+    return TracerWKBAmplitudes([zeros(ComplexF64, 0, 0, 0) for i in 1:6]...)
 end
 
 function TracerWKBAmplitudes(
@@ -66,9 +66,10 @@ function TracerWKBAmplitudes(
     (; next_order_impact) = namelists.tracer
 
     if next_order_impact
-        return TracerWKBAmplitudes([zeros(ComplexF64, nxx, nyy, nzz) for i in 1:6]...)
-    else 
-        return TracerWKBAmplitudes([zeros(ComplexF64,0, 0, 0) for i in 1:6]...)
+        return TracerWKBAmplitudes(
+            [zeros(ComplexF64, nxx, nyy, nzz) for i in 1:6]...,
+        )
+    else
+        return TracerWKBAmplitudes([zeros(ComplexF64, 0, 0, 0) for i in 1:6]...)
     end
-
 end

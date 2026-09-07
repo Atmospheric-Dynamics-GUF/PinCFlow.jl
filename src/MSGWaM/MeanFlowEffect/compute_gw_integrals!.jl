@@ -287,21 +287,25 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_gw_tracer_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            xr,
-                            yr,
-                            zr,
-                            iray,
-                            jray,
-                            kray,
+                        parameters = (
+                            fc = fc,
+                            n2r = n2r,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            factor = fcpspx * fcpspy * fcpspz,
+                            dens = rays.dens[r, i, j, k],
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
+                            iray = iray,
+                            jray = jray,
+                            kray = kray,
                         )
+
+                        compute_gw_tracer_integrals!(state, parameters)
                     end
                 end
             end

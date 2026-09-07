@@ -123,7 +123,8 @@ function write_output end
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
     (; bins, rays, tendencies, integrals) = state.wkb
-    (; tracer_setup, leading_order_impact, next_order_impact) = state.namelists.tracer
+    (; tracer_setup, leading_order_impact, next_order_impact) =
+        state.namelists.tracer
     (; turbulence_scheme) = state.namelists.turbulence
 
     # Print information.
@@ -321,8 +322,7 @@ function write_output end
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if leading_order_impact &&
-               wkb_mode !== :NoWKB
+            if leading_order_impact && wkb_mode !== :NoWKB
                 if :dchidt0 in output_variables
                     HDF5.set_extent_dims(
                         file["dchidt0"],
@@ -364,8 +364,7 @@ function write_output end
                 end
             end
 
-            if next_order_impact &&
-               wkb_mode !== :NoWKB
+            if next_order_impact && wkb_mode !== :NoWKB
                 if :dchidt1 in output_variables
                     HDF5.set_extent_dims(
                         file["dchidt1"],
@@ -404,6 +403,64 @@ function write_output end
                     file["wchi1"][iid, jjd, kkd, iout] =
                         state.tracer.tracerwkbintegrals.wchi1[ii, jj, kk] .*
                         uref ./ rhobar[ii, jj, kk]
+                end
+
+                if :uhat in output_variables
+                    HDF5.set_extent_dims(
+                        file["uhat"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["uhat"][iid, jjd, kkd, iout] =
+                        abs(state.tracer.tracerwkbamplitude.uhat[ii, jj, kk]) .*
+                        uref
+                end
+
+                if :vhat in output_variables
+                    HDF5.set_extent_dims(
+                        file["vhat"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["vhat"][iid, jjd, kkd, iout] =
+                        abs(state.tracer.tracerwkbamplitude.vhat[ii, jj, kk]) .*
+                        uref
+                end
+
+                if :what in output_variables
+                    HDF5.set_extent_dims(
+                        file["what"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["what"][iid, jjd, kkd, iout] =
+                        abs(state.tracer.tracerwkbamplitude.what[ii, jj, kk]) .*
+                        uref
+                end
+
+                if :bhat in output_variables
+                    HDF5.set_extent_dims(
+                        file["bhat"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["bhat"][iid, jjd, kkd, iout] =
+                        abs(state.tracer.tracerwkbamplitude.bhat[ii, jj, kk]) .*
+                        lref .^ 2 ./ tref
+                end
+
+                if :pihat in output_variables
+                    HDF5.set_extent_dims(
+                        file["pihat"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["pihat"][iid, jjd, kkd, iout] =
+                        abs(state.tracer.tracerwkbamplitude.pihat[ii, jj, kk])
+                end
+
+                if :chihat in output_variables
+                    HDF5.set_extent_dims(
+                        file["chihat"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["chihat"][iid, jjd, kkd, iout] =
+                        abs(state.tracer.tracerwkbamplitude.chihat[ii, jj, kk])
                 end
             end
         end

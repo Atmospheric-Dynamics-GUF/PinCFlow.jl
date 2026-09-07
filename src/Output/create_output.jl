@@ -375,6 +375,84 @@ function create_output(state::State, machine_start_time::DateTime)
                         chunk = (cx, cy, cz, ct),
                     )
                 end
+
+                if :uhat in output_variables
+                    create_dataset(
+                        file,
+                        "uhat",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :vhat in output_variables
+                    create_dataset(
+                        file,
+                        "vhat",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :what in output_variables
+                    create_dataset(
+                        file,
+                        "what",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :bhat in output_variables
+                    create_dataset(
+                        file,
+                        "bhat",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :pihat in output_variables
+                    create_dataset(
+                        file,
+                        "pihat",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :chihat in output_variables
+                    create_dataset(
+                        file,
+                        "chihat",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
             end
         end
 

@@ -20,7 +20,7 @@ compute_mean_flow_effect!(
 
 Calculate the mean-flow impact of unresolved gravity waves.
 
-This method first computes several spectral integrals (using `compute_gw_integrals!`), most of which represent gravity-wave fluxes. After the boundary conditions for these have been enforced (using `set_boundaries!`), the corresponding tendencies are calculated (using `compute_gw_tendencies!`). These also have boundary conditions that need to be enforced (once again using `set_boundaries!`) before they are smoothed to remove small-scale features that may occur due to a coarse ray-volume distribution (using `smooth_gw_tendencies!`). Afterwards, if MS-GWaM parameterizes mountain waves, the tendencies are adjusted to account for the formation of blocked layers (using `include_blocked_flow_drag!`), before the boundary conditions are enforced again.
+This method first computes several spectral integrals (using `compute_gw_integrals!`), most of which represent gravity-wave fluxes. After the boundary conditions for these have been enforced (using `set_boundaries!`), the corresponding tendencies are calculated (using `compute_gw_tendencies!`). These also have boundary conditions that need to be enforced (once again using `set_boundaries!`) before they are smoothed to remove small-scale features that may occur due to a coarse ray-volume distribution (using `smoothing!`). Afterwards, if MS-GWaM parameterizes mountain waves, the tendencies are adjusted to account for the formation of blocked layers (using `include_blocked_flow_drag!`), before the boundary conditions are enforced again.
 
 # Arguments
 
@@ -36,7 +36,7 @@ This method first computes several spectral integrals (using `compute_gw_integra
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tendencies!`](@ref)
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.smooth_gw_tendencies!`](@ref)
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.smoothing!`](@ref)
 
   - [`PinCFlow.MSGWaM.BlockedLayer.include_blocked_flow_drag!`](@ref)
 """
@@ -64,7 +64,7 @@ function compute_mean_flow_effect!(
 
     set_boundaries!(state, BoundaryWKBTendencies())
 
-    smooth_gw_tendencies!(state)
+    smoothing!(state)
 
     include_blocked_flow_drag!(state)
 
