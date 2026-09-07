@@ -12,7 +12,7 @@ function update_dephasing_time(
     kp_2::AbstractFloat,
     m_2::AbstractFloat,
     eps_denom::AbstractFloat,
-    res_type::Sum
+    ::Sum,
 )::AbstractFloat
 
     abs(m_parent) < eps_denom && return dephasing_time_min
@@ -23,25 +23,16 @@ function update_dephasing_time(
     cz_1 = compute_cz(n_local, kp_1, m_1)
     cz_2 = compute_cz(n_local, kp_2, m_2)
 
-    
     d_delta_omega_dt =
-        -(
-            cz_1 * kp_1 +
-            cz_2 * kp_2 -
-            cz_parent * kp_parent
-        ) * dudz -
-        (
-            cz_1 * kp_1 / abs(m_1) +
-            cz_2 * kp_2 / abs(m_2) -
-            cz_parent * kp_parent / abs(m_parent)
-        ) * dndz
+        -(cz_1 * kp_1 + cz_2 * kp_2 - cz_parent * kp_parent) * dudz -
+        (cz_1 * kp_1 / abs(m_1) + cz_2 * kp_2 / abs(m_2) -
+         cz_parent * kp_parent / abs(m_parent)) * dndz
 
-    if abs(d_delta_omega_dt) > eps_denom
-        dephasing_time_candidate =
-            sqrt(2.0 * abs(1 / d_delta_omega_dt))
+    if isfinite(d_delta_omega_dt) && d_delta_omega_dt != 0.0
+        dephasing_time_candidate = sqrt(2.0 / abs(d_delta_omega_dt))
+
         if isfinite(dephasing_time_candidate)
-            dephasing_time_min =
-                min(dephasing_time_min, dephasing_time_candidate)
+            dephasing_time_min = min(dephasing_time_min, dephasing_time_candidate)
         end
     end
 
@@ -60,7 +51,7 @@ function update_dephasing_time(
     kp_2::AbstractFloat,
     m_2::AbstractFloat,
     eps_denom::AbstractFloat,
-    res_type::Difference
+    ::Difference,
 )::AbstractFloat
 
     abs(m_parent) < eps_denom && return dephasing_time_min
@@ -71,26 +62,16 @@ function update_dephasing_time(
     cz_1 = compute_cz(n_local, kp_1, m_1)
     cz_2 = compute_cz(n_local, kp_2, m_2)
 
-    
     d_delta_omega_dt =
-        -(
-            cz_1 * kp_1 -
-            cz_2 * kp_2 -
-            cz_parent * kp_parent
-        ) * dudz -
-        (
-            cz_1 * kp_1 / abs(m_1) -
-            cz_2 * kp_2 / abs(m_2) -
-            cz_parent * kp_parent / abs(m_parent)
-        ) * dndz
+        -(cz_1 * kp_1 - cz_2 * kp_2 - cz_parent * kp_parent) * dudz -
+        (cz_1 * kp_1 / abs(m_1) - cz_2 * kp_2 / abs(m_2) -
+         cz_parent * kp_parent / abs(m_parent)) * dndz
 
-    if abs(d_delta_omega_dt) > eps_denom
-        dephasing_time_candidate =
-            sqrt(2.0 * abs(1 / d_delta_omega_dt))
+    if isfinite(d_delta_omega_dt) && d_delta_omega_dt != 0.0
+        dephasing_time_candidate = sqrt(2.0 / abs(d_delta_omega_dt))
 
         if isfinite(dephasing_time_candidate)
-            dephasing_time_min =
-                min(dephasing_time_min, dephasing_time_candidate)
+            dephasing_time_min = min(dephasing_time_min, dephasing_time_candidate)
         end
     end
 

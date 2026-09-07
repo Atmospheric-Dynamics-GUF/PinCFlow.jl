@@ -77,6 +77,7 @@ struct TriadTendencies{
     diag_time::B
     nl_time_scale::D
     dephasing_time::D
+    diag_dephasing_time::B
     chi_parent::Vector{Float64}
     chi_max::Ref{Float64}
     chi_tracker::ChiParentTracker
@@ -127,6 +128,7 @@ function TriadTendencies(
         zeros(0, 0),
         zeros(0, 0, 0),
         zeros(0, 0, 0),
+        zeros(0, 0),
         zeros(0),
         Ref(0.0),
         chi_tracker,
@@ -277,6 +279,7 @@ function TriadTendencies(
     diag_time = zeros(kpl, ml)
     nl_time_scale = zeros(nxx, nyy, nzz)
     dephasing_time = zeros(nxx, nyy, nzz)
+    diag_dephasing_time = fill(Inf, kpl, ml)
 
     chi_parent = fill(NaN, wave_modes)
     chi_max = Ref(NaN)
@@ -298,6 +301,7 @@ function TriadTendencies(
         diag_time,
         nl_time_scale,
         dephasing_time,
+        diag_dephasing_time,
         chi_parent,
         chi_max,
         chi_tracker,

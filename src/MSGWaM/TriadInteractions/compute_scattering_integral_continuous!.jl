@@ -5,90 +5,121 @@ function compute_scattering_integral_continuous!(
     ii::Integer,
     jj::Integer,
     kk::Integer,
-    triad_mode::Triad2D
-    )
+    triad_mode::Triad2D,
+)
     (; spec_tend) = state
-   (; kp, m, kpl, kpc) = spec_tend.spec_grid
+    (; kp, m, kpl, kpc) = spec_tend.spec_grid
     (; aa, la, qq, lq, lia, liq, loglia, logliq) = spec_tend.kin_box
-    (; wavespectrum, col_int) = spec_tend
-    (; rhobar) = state.atmosphere
+    (; wavespectrum, col_int, diag_dephasing_time) = spec_tend
+    (; n2, rhobar) = state.atmosphere
+    (; u) = state.variables.predictands
+    (; compute_dephasing_time, nthreads_triad) = state.namelists.triad
 
-    rhobar_local = rhobar[ii, jj, kk] ##background density at the level (ii, jj, kk)
+    if compute_dephasing_time
+        n_local = sqrt(n2[ii, jj, kk])
+        dudz = compute_dphidz_center(u, state, ii, jj, kk, identity)
+        dndz = compute_dphidz_center(n2, state, ii, jj, kk, sqrt)
+    else
+        n_local = 0.0
+        dudz = 0.0
+        dndz = 0.0
+    end
+
+    rhobar_local = rhobar[ii, jj, kk]
 
     was = @ivy view(wavespectrum, ii, jj, kk, :, :)
 
     update_interpolation_coef!(spec_tend, was, triad_mode)
 
-    ntasks = state.namelists.triad.nthreads_triad
-    #@assert length(spec_tend.scratch) == ntasks
-    #@assert length(spec_tend.partition) == ntasks
-
     kpmin = kpc[1]
     kpmax = kpc[end]
 
-     @sync for tid in 1:ntasks
-            inds = spec_tend.partition[tid]
-            scr  = spec_tend.scratch[tid]
-            fpl, fpr, fq = scr.fpl, scr.fpr, scr.fq
+    @sync for tid in 1:nthreads_triad
+        inds = spec_tend.partition[tid]
+        scr = spec_tend.scratch[tid]
+        fpl, fpr, fq = scr.fpl, scr.fpr, scr.fq
 
-            @spawn begin
-                @ivy for idx in inds
-                    # map linear idx -> (kpi, mi)
-                    mi  = (idx - 1) ÷ kpl + 1
-                    kpi = (idx - 1) % kpl + 1
+        @spawn begin
+            @ivy for idx in inds
+                mi = (idx - 1) ÷ kpl + 1
+                kpi = (idx - 1) % kpl + 1
 
+                nk = was[kpi, mi]
 
+                kr = kp[kpi]
+                mr = m[mi]
 
-                    nk = was[kpi, mi]
+                aar = aa[kpi]
+                qqr = qq[kpi]
 
-                    kr = kp[kpi]  
-                    mr = m[mi]
-                    aar = aa[kpi]
-                    qqr = qq[kpi]
+                fill!(view(fpl, 1:la[kpi]), 0.0)
+                fill!(view(fpr, 1:la[kpi]), 0.0)
+                fill!(view(fq, 1:lq[kpi]), 0.0)
 
-                    # reset only the used parts
-                    fill!(view(fpl, 1:la[kpi]), 0.0)
-                    fill!(view(fpr, 1:la[kpi]), 0.0)
-                    fill!(view(fq,  1:lq[kpi]), 0.0)
+                dephasing_time_k = Inf
 
-                    sum_integral = 0.0
+                # ==========================================================
+                # Sum interactions
+                # ==========================================================
 
-                    if kr > 2.0 * kpmin
-                        for i in 1:la[kpi]
-                            pl = aar[i] - kr
-                            pr = kr - aar[i]
+                sum_integral = 0.0
 
-                            fpl[i] = compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, triad_mode, Sum())
+                if kr > 2.0 * kpmin
+                    for i in 1:la[kpi]
+                        pl = aar[i] - kr
+                        pr = kr - aar[i]
 
-                            if i == la[kpi]
-                                fpr[i] = fpl[i]
-                            else
-                                fpr[i] = compute_st_k(spec_tend, pr, 0.0, nk, kr, mr, triad_mode, Sum())
-                            end
+                        st_value, tau_dep = compute_st_k(spec_tend, pl, 0.0, nk, kr, mr, n_local, dudz, dndz, 
+                                                compute_dephasing_time, triad_mode, Sum())
+
+                        fpl[i] = st_value
+                        dephasing_time_k = min(dephasing_time_k, tau_dep)
+
+                        if i == la[kpi]
+                            fpr[i] = fpl[i]
+                        else
+                            st_value, tau_dep = compute_st_k(spec_tend, pr, 0.0, nk, kr, mr, n_local, dudz, dndz, 
+                                                                compute_dephasing_time, triad_mode, Sum())
+
+                            fpr[i] = st_value
+                            dephasing_time_k = min(dephasing_time_k, tau_dep)
                         end
-
-                        sum_integral = trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) +
-                                    trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi])
                     end
-                    #difference interactions
-                    difference_integral = 0.0
 
-                    if kr < kpmax - kpmin
-                        for j in 1:lq[kpi]
-                            q = qqr[j]
-                            fq[j] = compute_st_k(spec_tend, 0.0, q, nk, kr, mr, triad_mode, Difference())
-                        end
-
-                        difference_integral = trapazoidal_with_logbin(fq, qqr, lq[kpi], liq[kpi], logliq[kpi])
-                    end
-                    #end
-                    # Singularities p=±kr, yet to define
-                    col_int[ii, jj, kk, kpi, mi] = 2.0 * pi * (sum_integral - difference_integral) / rhobar_local
+                    sum_integral =
+                        trapazoidal_with_logbin(fpl, aar, la[kpi], lia[kpi], loglia[kpi]) +
+                        trapazoidal_with_logbin(fpr, aar, la[kpi], lia[kpi], loglia[kpi])
                 end
+
+                # ==========================================================
+                # Difference interactions
+                # ==========================================================
+
+                difference_integral = 0.0
+
+                if kr < kpmax - kpmin
+                    for j in 1:lq[kpi]
+                        q = qqr[j]
+
+                        st_value, tau_dep = compute_st_k(spec_tend, 0.0, q, nk, kr, mr, n_local, dudz, dndz, 
+                                                        compute_dephasing_time, triad_mode, Difference())
+
+                        fq[j] = st_value
+                        dephasing_time_k = min(dephasing_time_k, tau_dep)
+                    end
+
+                    difference_integral = trapazoidal_with_logbin(fq, qqr, lq[kpi], liq[kpi], logliq[kpi])
+                end
+
+                col_int[ii, jj, kk, kpi, mi] =
+                    2.0 * pi * (sum_integral - difference_integral) / rhobar_local
+
+                diag_dephasing_time[kpi, mi] = dephasing_time_k
             end
-                
         end
-   
+    end
+
+    return nothing
 end
 
 

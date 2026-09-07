@@ -26,17 +26,15 @@ function update_wave_spectrum!(
     (; wavespectrum, col_int, nl_time_scale, dephasing_time, action_ref) = spec_tend
     (; kp, m, delkp, delm) = spec_tend.spec_grid
 
-    (; action_rel_tol, increment_rel_tol, compute_dephasing_time) =
-        state.namelists.triad
+    (; x_size) = state.namelists.domain
+    (; action_rel_tol, increment_rel_tol, compute_dephasing_time) = state.namelists.triad
 
     # Reset the timescales so that an inactive physical cell does
     # not retain values calculated during an earlier timestep.
     nl_time_scale[ii, jj, kk] = Inf
     dephasing_time[ii, jj, kk] = Inf
 
-    # Minimum significant spectral-cell action:
-    #
-    # A_floor = action_rel_tol * A_ref
+    # Minimum significant spectral-cell action.
     action_floor = action_rel_tol * action_ref[]
 
     #----------------------------------------------------------
@@ -47,8 +45,8 @@ function update_wave_spectrum!(
     max_cell_action = 0.0
 
     @ivy for mi in eachindex(m), kpi in eachindex(kp)
-        spectral_cell_width = delkp[kpi] * delm[mi]
-        cell_action = wavespectrum[ii, jj, kk, kpi, mi] * spectral_cell_width
+        spectral_cell_measure = x_size == 1 ? abs(delm[mi]) : abs(delkp[kpi] * delm[mi])
+        cell_action = wavespectrum[ii, jj, kk, kpi, mi] * spectral_cell_measure
 
         if cell_action > max_cell_action
             max_cell_action = cell_action
@@ -70,11 +68,7 @@ function update_wave_spectrum!(
     nl_time_scale[ii, jj, kk] = tau_nl
 
     #----------------------------------------------------------
-    # Maximum regularized relative action increment:
-    #
-    #                  Δτ |St| Δkp Δm
-    # R = ------------------------------------------
-    #     max(N Δkp Δm, A_floor)
+    # Maximum regularized relative action increment.
     #----------------------------------------------------------
 
     max_relative_action_increment = 0.0
@@ -83,12 +77,11 @@ function update_wave_spectrum!(
         was = wavespectrum[ii, jj, kk, kpi, mi]
         st = col_int[ii, jj, kk, kpi, mi]
 
-        spectral_cell_width = delkp[kpi] * delm[mi]
-        cell_action = was * spectral_cell_width
-        predicted_action_increment = dtau * abs(st) * spectral_cell_width
+        spectral_cell_measure = x_size == 1 ? abs(delm[mi]) : abs(delkp[kpi] * delm[mi])
+        cell_action = was * spectral_cell_measure
+        predicted_action_increment = dtau * abs(st) * spectral_cell_measure
 
-        relative_action_increment =
-            predicted_action_increment / max(cell_action, action_floor)
+        relative_action_increment = predicted_action_increment / max(cell_action, action_floor)
 
         if relative_action_increment > max_relative_action_increment
             max_relative_action_increment = relative_action_increment
@@ -102,16 +95,14 @@ function update_wave_spectrum!(
     end
 
     #----------------------------------------------------------
-    # Compute the dephasing timescale only for a materially active
-    # nonlinear interaction.
+    # Compute the dephasing timescale before updating the spectrum.
     #
-    # The calculation is performed before the Euler update so that
-    # wavespectrum, col_int, tau_nl and tau_pl all correspond to the
-    # same pre-update state.
+    # diag_dephasing_time was populated by
+    # compute_scattering_integral! for this same physical cell.
     #----------------------------------------------------------
 
     if compute_dephasing_time
-       tau_pl = get_dephasing_time(state, ii, jj, kk, tau_nl, triad_mode)
+        tau_pl = get_dephasing_time(state, ii, jj, kk, tau_nl, triad_mode)
         dephasing_time[ii, jj, kk] = tau_pl
     end
 
@@ -127,22 +118,20 @@ function update_wave_spectrum!(
         was_new = was + dtau * st
 
         if was_new < 0.0
-            relative_increment =
-                was > 0.0 ? dtau * abs(st) / was : Inf
+            relative_increment = was > 0.0 ? dtau * abs(st) / was : Inf
 
             println("")
             println("NEGATIVE WAVE SPECTRUM PREDICTED")
-            println("  physical cell     = ", (ii, jj, kk))
-            println("  spectral index    = ", (kpi, mi))
-            println("  kp                = ", kp[kpi])
-            println("  m                 = ", m[mi])
-            println("  wavespectrum      = ", was)
-            println("  col_int           = ", st)
-            println("  dtau              = ", dtau)
-            println("  dtau*|St|/N       = ", relative_increment)
-            println("  tau_nl            = ", tau_nl)
-            println("  dtau/tau_nl       = ",
-                isfinite(tau_nl) ? dtau / tau_nl : 0.0)
+            println("  physical cell      = ", (ii, jj, kk))
+            println("  spectral index     = ", (kpi, mi))
+            println("  kp                 = ", kp[kpi])
+            println("  m                  = ", m[mi])
+            println("  wavespectrum       = ", was)
+            println("  col_int            = ", st)
+            println("  dtau               = ", dtau)
+            println("  dtau*|St|/N        = ", relative_increment)
+            println("  tau_nl             = ", tau_nl)
+            println("  dtau/tau_nl        = ", isfinite(tau_nl) ? dtau / tau_nl : 0.0)
             println("  predicted spectrum = ", was_new)
             println("")
 
@@ -155,8 +144,7 @@ function update_wave_spectrum!(
     #----------------------------------------------------------
 
     @ivy for mi in eachindex(m), kpi in eachindex(kp)
-        wavespectrum[ii, jj, kk, kpi, mi] +=
-            dtau * col_int[ii, jj, kk, kpi, mi]
+        wavespectrum[ii, jj, kk, kpi, mi] += dtau * col_int[ii, jj, kk, kpi, mi]
     end
 
     return nothing

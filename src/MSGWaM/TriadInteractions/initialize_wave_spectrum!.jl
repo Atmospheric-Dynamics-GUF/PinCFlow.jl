@@ -22,12 +22,11 @@ function initialize_wave_spectrum!(
     (; master) = state.domain
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
-    (; nthreads_triad, compute_dephasing_time, action_rel_tol) =
-        state.namelists.triad
+    (; x_size) = state.namelists.domain
+    (; nthreads_triad, compute_dephasing_time, action_rel_tol) = state.namelists.triad
 
     (; spec_tend) = state
-    (; wavespectrum, nl_time_scale, dephasing_time, prev_dt, action_ref) =
-        spec_tend
+    (; wavespectrum, nl_time_scale, dephasing_time, prev_dt, action_ref) = spec_tend
 
     (; kp, m, delkp, delm) = spec_tend.spec_grid
 
@@ -42,23 +41,20 @@ function initialize_wave_spectrum!(
 
     # Project the initialized rays onto the wave-spectrum grid.
     get_wave_spectrum!(state)
-    
+
     # Compute the reference action once from the initialized
     # spectral modes.
-    compute_action_ref!(state; support_tol = 0.0, diagonal_connectivity = false, verify = true)
+    compute_action_ref!(state; support_tol=0.0, diagonal_connectivity=false, verify=true)
 
     if !isfinite(action_ref[]) || action_ref[] <= 0.0
         error("Invalid action_ref = ", action_ref[])
     end
 
-    # Minimum significant spectral-cell action.
     action_floor = action_rel_tol * action_ref[]
 
-    # Reset the timescale arrays before calculating the initial
-    # nonlinear and dephasing times.
     nl_time_scale .= Inf
     dephasing_time .= Inf
-    
+
     if compute_dephasing_time && triad_mode isa Triad3DIso
         error("Dephasing-time calculation is currently implemented only for Triad2D.")
     end
@@ -73,8 +69,8 @@ function initialize_wave_spectrum!(
         max_cell_action = 0.0
 
         for mi in eachindex(m), kpi in eachindex(kp)
-            spectral_cell_width = delkp[kpi] * delm[mi]
-            cell_action = wavespectrum[ii, jj, kk, kpi, mi] * spectral_cell_width
+            spectral_cell_measure = x_size == 1 ? abs(delm[mi]) : abs(delkp[kpi] * delm[mi])
+            cell_action = wavespectrum[ii, jj, kk, kpi, mi] * spectral_cell_measure
 
             if cell_action > max_cell_action
                 max_cell_action = cell_action
@@ -96,8 +92,9 @@ function initialize_wave_spectrum!(
         nl_time_scale[ii, jj, kk] = tau_nl
 
         #------------------------------------------------------
-        # Calculate the initial dephasing timescale using the
-        # same initial wave spectrum and collision integral.
+        # Calculate the initial dephasing timescale from the
+        # dephasing values accumulated during the same collision
+        # integral evaluation.
         #------------------------------------------------------
 
         if compute_dephasing_time && triad_mode isa Triad2D
@@ -105,7 +102,7 @@ function initialize_wave_spectrum!(
             dephasing_time[ii, jj, kk] = tau_pl
         end
     end
-    
+
     # Disable timestep-growth restriction for the first step.
     prev_dt[] = Inf
 
