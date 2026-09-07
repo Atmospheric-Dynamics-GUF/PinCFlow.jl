@@ -612,6 +612,7 @@ end
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
+    (; vertical_boundary_condition) = state.namelists.domain
 
     cuc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
     cdc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
