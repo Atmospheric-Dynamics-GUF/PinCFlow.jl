@@ -7,6 +7,7 @@ Tracer{
     D <: TracerFluxes,
     E <: TracerWKBIntegrals,
     F <: TracerWKBTendencies,
+    G <: TracerWKBAmplitudes,
 }
 ```
 
@@ -39,6 +40,8 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
 
   - `tracerwkbtendencies::F`: Tracer impact of unresolved gravity waves.
 
+  - `tracerwkbamplitudes::G`: Amplitudes of the unresolved gravity waves.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -66,6 +69,8 @@ Construct a `Tracer` instance, with array dimensions and initial values set acco
   - [`PinCFlow.Types.TracerTypes.TracerWKBIntegrals`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.TracerWKBTendencies`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerWKBAmplitudes`](@ref)
 """
 struct Tracer{
     A <: TracerPredictands,
@@ -74,6 +79,7 @@ struct Tracer{
     D <: TracerFluxes,
     E <: TracerWKBIntegrals,
     F <: TracerWKBTendencies,
+    G <: TracerWKBAmplitudes,
 }
     tracerpredictands::A
     tracerincrements::B
@@ -81,6 +87,7 @@ struct Tracer{
     tracerfluxes::D
     tracerwkbintegrals::E
     tracerwkbtendencies::F
+    tracerwkbamplitudes::G
 end
 
 function Tracer(
@@ -104,6 +111,7 @@ function Tracer(
     tracerfluxes = TracerFluxes(namelists, domain)
     tracerwkbintegrals = TracerWKBIntegrals(namelists, domain)
     tracerwkbtendencies = TracerWKBTendencies(namelists, domain)
+    tracerwkbamplitudes = TracerWKBAmplitudes(namelists, domain)
 
     return Tracer(
         tracerpredictands,
@@ -112,5 +120,6 @@ function Tracer(
         tracerfluxes,
         tracerwkbintegrals,
         tracerwkbtendencies,
+        tracerwkbamplitudes,
     )
 end

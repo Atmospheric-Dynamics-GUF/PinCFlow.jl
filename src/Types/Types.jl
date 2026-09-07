@@ -202,6 +202,7 @@ export DomainNamelist,
     TracerFluxes,
     TracerWKBIntegrals,
     TracerWKBTendencies,
+    TracerWKBAmplitudes,
     TurbulencePredictands,
     TurbulenceReconstructions,
     TurbulenceFluxes

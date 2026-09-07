@@ -38,13 +38,16 @@ function set_tracer_fields_zero!(state::State, tracer_setup::Val{:NoTracer})
 end
 
 function set_tracer_fields_zero!(state::State, tracer_setup::Val{:TracerOn})
-    (; tracerwkbtendencies, tracerwkbintegrals) = state.tracer
+    (; tracerwkbtendencies, tracerwkbintegrals, tracerwkbamplitudes) = state.tracer
 
     for field in fieldnames(TracerWKBTendencies)
         getfield(tracerwkbtendencies, field) .= 0.0
     end
     for field in fieldnames(TracerWKBIntegrals)
         getfield(tracerwkbintegrals, field) .= 0.0
+    end
+    for field in fieldnames(TracerWKBAmplitudes)
+        getfield(tracerwkbamplitudes, field) .= 0.0
     end
 
     return
