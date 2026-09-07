@@ -30,35 +30,7 @@ using ...Macros
 using ...Types
 using ...Boundaries
 
-"""
-```julia
-UChi
-```
-
-Singleton for dispatch to calculation of zonal gravity-wave-tracer fluxes.
-"""
-struct UChi end
-
-"""
-```julia
-VChi
-```
-
-Singleton for dispatch to calculation of meridional gravity-wave-tracer fluxes.
-"""
-struct VChi end
-
-"""
-```julia
-WChi
-```
-
-Singleton for dispatch to calculation of vertical gravity-wave-tracer fluxes.
-"""
-struct WChi end
-
 include("compute_gw_tracer_integrals!.jl")
-include("leading_order_tracer_fluxes.jl")
 include("compute_gw_tracer_tendencies!.jl")
 include("set_tracer_fields_zero!.jl")
 include("apply_shapiro_filter!.jl")
