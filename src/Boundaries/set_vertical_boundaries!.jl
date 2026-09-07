@@ -276,9 +276,10 @@ end
     variables::BoundaryFluxes,
     model::Val{:Boussinesq},
 )
-    (; z_size) = state.namelists.domain
-    (; nz, ko, k0, k1) = state.domain
-    (; fluxes) = state.variables
+    (; namelists, domain, variables) = state
+    (; z_size) = namelists.domain
+    (; nz, ko, k0, k1) = domain
+    (; fluxes) = variables
 
     if ko == 0
         for field in (:phirhop, :phiu, :phiv, :phitheta)

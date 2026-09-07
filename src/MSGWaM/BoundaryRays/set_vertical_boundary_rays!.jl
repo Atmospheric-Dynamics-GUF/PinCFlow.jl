@@ -3,13 +3,35 @@
 set_vertical_boundary_rays!(state::State)
 ```
 
-Enforce vertical boundary conditions for ray volumes.
+Enforce vertical boundary conditions for ray volumes by dispatching to the vertical boundary condition appropriate method.
+
+```julia 
+set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:Periodic},
+)
+```
+
+Enforce periodic vertical boundary conditions for ray volumes.
+
+This method first enforces vertical boundary conditions for `state.wkb.nray` (by applying `set_vertical_boundaries_of_field!` to it) and then sets the corresponding boundary ray volumes. If the domain is parallelized in ``\\hat{z}``, ray volumes are communicated between MPI processes, using `set_vertical_halo_rays!`. At the vertical boundaries of the domain, the ``z``-coordinates of ray volumes are adjusted such that shifting works properly.
+
+```julia 
+set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:SolidWall},
+)
+```
+
+Enforce solid wall vertical boundary conditions for ray volumes.
 
 If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray volumes themselves are first communicated between MPI processes, using `set_vertical_halos_of_field!` and `set_vertical_halo_rays!`, respectively. The vertical boundary conditions are then enforced by cutting (removing) ray volumes that have partially (fully) crossed the upper boundary and reflecting ray volumes (by adjusting the vertical position and wavenumber) that have at least partially crossed the lower boundary from above.
 
 # Arguments
 
   - `state`: Model state.
+
+  - `vertical_boundary_condition`: Vertical boundary conditions.
 
 # See also
 
@@ -21,7 +43,86 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 """
 function set_vertical_boundary_rays! end
 
-@ivy function set_vertical_boundary_rays!(state::State)
+function set_vertical_boundary_rays!(state::State)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition set_vertical_boundary_rays!(
+        state,
+        Val(vertical_boundary_condition),
+    )
+    return
+end
+
+@ivy function set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:Periodic},
+)
+    (; namelists, domain) = state
+    (; z_size) = namelists.domain
+    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; lz, zc) = state.grid
+    (; nray, rays) = state.wkb
+
+    # Set ray-volume count.
+    set_vertical_boundaries_of_field!(
+        nray,
+        namelists,
+        domain,
+        +;
+        layers = (1, 1, 1),
+    )
+
+    if z_size > 1
+        set_vertical_halo_rays!(state)
+    else
+        for j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k0 - 1]
+                copy_rays!(rays, r => r, i => i, j => j, k1 => k0 - 1)
+            end
+
+            for r in 1:nray[i, j, k1 + 1]
+                copy_rays!(rays, r => r, i => i, j => j, k0 => k1 + 1)
+            end
+        end
+    end
+
+    if ko == 0
+        for k in (k0 - 1):k0, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k]
+                zr = rays.z[r, i, j, k]
+                zrt = zr - lz
+
+                if abs(zrt - zc[i, j, k]) < abs(zr - zc[i, j, k])
+                    zr = zrt
+                end
+
+                rays.z[r, i, j, k] = zr
+            end
+        end
+    end
+
+    if ko + nz == z_size
+        for k in k1:(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+            for r in 1:nray[i, j, k]
+                zr = rays.z[r, i, j, k]
+                zrt = zr + lz
+
+                if abs(zrt - zc[i, j, k]) < abs(zr - zc[i, j, k])
+                    zr = zrt
+                end
+
+                rays.z[r, i, j, k] = zr
+            end
+        end
+    end
+
+    return
+end
+
+@ivy function set_vertical_boundary_rays!(
+    state::State,
+    vertical_boundary_condition::Val{:SolidWall},
+)
     (; namelists, domain) = state
     (; z_size, npz) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
