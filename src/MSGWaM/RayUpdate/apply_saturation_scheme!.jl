@@ -59,7 +59,7 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_saturation_integrals`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
 """
@@ -87,8 +87,7 @@ end
     (; nray, rays, diffusion) = state.wkb
     (; use_saturation, saturation_threshold) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; x, y, zc) = state.grid
-    (; n2) = state.atmosphere
+    (; zc) = state.grid
 
     if !use_saturation
         return
@@ -100,7 +99,7 @@ end
         (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
 
         # Calculate the turbulent eddy diffusivity.
-        n2r = interpolate_scalar(state, x[i], y[j], zc[i, j, k], n2)
+        n2r = interpolate_stratification(zc[i, j, k], state, N2())
         if mb2k2 == 0 || mb2 < saturation_threshold^2 * n2r^2
             diffusion[i, j, k] = 0
         else

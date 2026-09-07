@@ -23,6 +23,24 @@ using ...Update
 
 """
 ```julia
+N2
+```
+
+Singleton for dispatch to interpolation of ``N^2``.
+"""
+struct N2 end
+
+"""
+```julia
+DN2DZ
+```
+
+Singleton for dispatch to interpolation of ``\\partial N^2 / \\partial z``.
+"""
+struct DN2DZ end
+
+"""
+```julia
 DUDX
 ```
 
@@ -107,11 +125,15 @@ include("get_next_half_level.jl")
 include("get_next_level.jl")
 include("interpolate_mean_flow.jl")
 include("interpolate_scalar.jl")
+include("interpolate_stratification.jl")
 include("interpolate.jl")
 
-export DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DX, DY, DZ
+export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DX, DY, DZ
 
 export get_next_half_level,
-    get_next_level, interpolate_mean_flow, interpolate_scalar
+    get_next_level,
+    interpolate_mean_flow,
+    interpolate_scalar,
+    interpolate_stratification
 
 end

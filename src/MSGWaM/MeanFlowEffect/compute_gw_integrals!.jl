@@ -83,7 +83,7 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
 
@@ -145,7 +145,7 @@ end
 
             khr = sqrt(kr^2 + lr^2)
 
-            n2r = interpolate_scalar(state, xr, yr, zr, n2)
+            n2r = interpolate_stratification(zr, state, N2())
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
@@ -353,7 +353,7 @@ end
 
             khr = sqrt(kr^2 + lr^2)
 
-            n2r = interpolate_scalar(state, xr, yr, zr, n2)
+            n2r = interpolate_stratification(zr, state, N2())
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
@@ -527,7 +527,7 @@ end
 
             khr = sqrt(kr^2 + lr^2)
 
-            n2r = interpolate_scalar(state, xr, yr, zr, n2)
+            n2r = interpolate_stratification(zr, state, N2())
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 

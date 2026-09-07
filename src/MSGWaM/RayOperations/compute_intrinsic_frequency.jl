@@ -33,7 +33,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray volume
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
 function compute_intrinsic_frequency end
 
@@ -48,14 +48,13 @@ function compute_intrinsic_frequency end
     (; branch) = state.namelists.wkb
     (; tref) = state.constants
     (; rays) = state.wkb
-    (; n2) = state.atmosphere
 
     (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
     (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
 
     khr = sqrt(kr^2 + lr^2)
 
-    n2r = interpolate_scalar(state, xr, yr, zr, n2)
+    n2r = interpolate_stratification(zr, state, N2())
     fc = coriolis_frequency * tref
 
     return branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
