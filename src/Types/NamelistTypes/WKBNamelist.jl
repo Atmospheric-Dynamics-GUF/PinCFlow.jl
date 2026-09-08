@@ -22,7 +22,7 @@ WKBNamelist(;
     branch::Integer = -1,
     merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
-    smooth_tendencies::Bool = true,
+    smoothing::Bool = true,
     filter_type::Symbol = :ShapiroFilter,
     impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
@@ -79,7 +79,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `filter_order::Int`: Order of the smoothing applied to the mean-flow tendencies.
 
-  - `smooth_tendencies::Bool`: Switch for smoothing the mean-flow tendencies.
+  - `smoothing::Bool`: Switch for smoothing the mean-flow tendencies.
 
   - `filter_type::Symbol`: Filter to use for the smoothing of the mean-flow tendencies.
 
@@ -142,7 +142,7 @@ struct WKBNamelist
     branch::Int
     merge_mode::Symbol
     filter_order::Int
-    smooth_tendencies::Bool
+    smoothing::Bool
     filter_type::Symbol
     impact_altitude::Float64
     use_saturation::Bool
@@ -182,7 +182,7 @@ function WKBNamelist(;
     branch::Integer = -1,
     merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
-    smooth_tendencies::Bool = true,
+    smoothing::Bool = true,
     filter_type::Symbol = :ShapiroFilter,
     impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
@@ -219,7 +219,7 @@ function WKBNamelist(;
         Int(branch),
         merge_mode,
         Int(filter_order),
-        smooth_tendencies,
+        smoothing,
         filter_type,
         Float64(impact_altitude),
         use_saturation,

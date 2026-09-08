@@ -60,11 +60,13 @@ function compute_mean_flow_effect!(
 
     set_boundaries!(state, BoundaryWKBIntegrals())
 
+    smoothing!(state, Integrals())
+
     compute_gw_tendencies!(state)
 
     set_boundaries!(state, BoundaryWKBTendencies())
 
-    smoothing!(state)
+    smoothing!(state, Tendencies())
 
     include_blocked_flow_drag!(state)
 

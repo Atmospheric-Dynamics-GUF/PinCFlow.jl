@@ -7,11 +7,11 @@ Apply spatial smoothing to gravity-wave tendency fields by dispatching to a meth
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XYZ,
-)
+) where {T <: Real}
 ```
 
 Apply a 3D box filter to smooth in all spatial directions.
@@ -26,11 +26,11 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XZ,
-)
+) where {T <: Real}
 ```
 
 Apply a 2D box filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
@@ -45,11 +45,11 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::YZ,
-)
+) where {T <: Real}
 ```
 
 Apply a 2D box filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
@@ -64,11 +64,11 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::Z,
-)
+) where {T <: Real}
 ```
 
 Apply a 1D box filter to smooth in ``\\hat{z}``.
@@ -83,11 +83,11 @@ where ``N_\\mathrm{s}`` is the order of the filter (`state.namelists.wkb.filter_
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XYZ,
-)
+) where {T <: Real}
 ```
 
 Apply a 3D Shapiro filter to smooth in all spatial directions.
@@ -96,11 +96,11 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{x}``, ``\\hat{y}`` and ``
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XZ,
-)
+) where {T <: Real}
 ```
 
 Apply a 2D Shapiro filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
@@ -109,11 +109,11 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{x}`` and ``\\hat{z}``.
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::YZ,
-)
+) where {T <: Real}
 ```
 
 Apply a 2D Shapiro filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
@@ -122,33 +122,33 @@ A 1D Shapiro filter is applied sequentially in ``\\hat{y}`` and ``\\hat{z}``.
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Z,
-)
+) where {T <: Real}
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{z}``.
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Y,
-)
+) where {T <: Real}
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{y}``.
 
 ```julia
 smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::X,
-)
+) where {T <: Real}
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
@@ -183,13 +183,13 @@ Return for configurations without tracer transport.
 """
 function smoothing! end
 
-function smoothing!(state::State)
+function smoothing!(state::State, variables::Tendencies)
     (; x_size, y_size) = state.namelists.domain
-    (; smooth_tendencies, filter_type) = state.namelists.wkb
+    (; smoothing, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
 
-    if !smooth_tendencies
+    if !smoothing
         return
     end
 
@@ -211,17 +211,17 @@ function smoothing!(state::State)
         smoothing!(dthetadt, state, Val(filter_type), XYZ())
     end
 
-    @dispatch_tracer_setup smoothing!(state, Val(tracer_setup))
+    @dispatch_tracer_setup smoothing!(state, variables, Val(tracer_setup))
 
     return
 end
 
 @ivy function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XYZ,
-)
+) where {T <: Real}
     (; nbx, nby, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -256,11 +256,11 @@ end
 end
 
 @ivy function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XZ,
-)
+) where {T <: Real}
     (; nbx, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -290,11 +290,11 @@ end
 end
 
 @ivy function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::YZ,
-)
+) where {T <: Real}
     (; nby, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -324,11 +324,11 @@ end
 end
 
 @ivy function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::Z,
-)
+) where {T <: Real}
     (; nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -352,11 +352,11 @@ end
 end
 
 function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XYZ,
-)
+) where {T <: Real}
     smoothing!(output, state, filter_type, X())
     smoothing!(output, state, filter_type, Y())
     smoothing!(output, state, filter_type, Z())
@@ -364,33 +364,33 @@ function smoothing!(
 end
 
 function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XZ,
-)
+) where {T <: Real}
     smoothing!(output, state, filter_type, X())
     smoothing!(output, state, filter_type, Z())
     return
 end
 
 function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::YZ,
-)
+) where {T <: Real}
     smoothing!(output, state, filter_type, Y())
     smoothing!(output, state, filter_type, Z())
     return
 end
 
 @ivy function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Z,
-)
+) where {T <: Real}
     (; nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nxx, nyy, k0, k1) = state.domain
@@ -413,11 +413,11 @@ end
 end
 
 @ivy function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Y,
-)
+) where {T <: Real}
     (; nby) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nxx, nzz, j0, j1) = state.domain
@@ -440,11 +440,11 @@ end
 end
 
 @ivy function smoothing!(
-    output::AbstractArray{<:AbstractFloat, 3},
+    output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::X,
-)
+) where {T <: Real}
     (; nbx) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nyy, nzz, i0, i1) = state.domain
@@ -466,7 +466,11 @@ end
     return
 end
 
-function smoothing!(state::State, tracer_setup::Val{:TracerOn})
+function smoothing!(
+    state::State,
+    variables::Tendencies,
+    tracer_setup::Val{:TracerOn},
+)
     (; x_size, y_size) = state.namelists.domain
     (; filter_type) = state.namelists.wkb
     (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
@@ -497,6 +501,65 @@ function smoothing!(state::State, tracer_setup::Val{:TracerOn})
     end
 end
 
-function smoothing!(state::State, tracer_setup::Val{:NoTracer})
+function smoothing!(
+    state::State,
+    variables::Union{Tendencies, Integrals},
+    tracer_setup::Val{:NoTracer},
+)
     return
+end
+
+function smoothing!(state::State, variables::Integrals)
+    (; smoothing) = state.namelists.wkb
+    (; tracer_setup) = state.namelists.tracer
+
+    if !smoothing
+        return
+    end
+
+    @dispatch_tracer_setup smoothing!(state, variables, Val(tracer_setup))
+
+    return
+end
+
+function smoothing!(state::State, variables::Integrals, tracer_setup::Val{:TracerOn})
+
+    (; x_size, y_size) = state.namelists.domain
+    (; filter_type) = state.namelists.wkb
+    (; uhat, vhat, what, bhat, pihat, chihat) = state.tracer.tracerwkbintegrals
+    (; next_order_impact) = state.namelists.tracer
+
+    if next_order_impact
+        @dispatch_filter_type if x_size == y_size == 1
+            smoothing!(uhat, state, Val(filter_type), Z())
+            smoothing!(vhat, state, Val(filter_type), Z())
+            smoothing!(what, state, Val(filter_type), Z())
+            smoothing!(bhat, state, Val(filter_type), Z())
+            smoothing!(pihat, state, Val(filter_type), Z())
+            smoothing!(chihat, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smoothing!(uhat, state, Val(filter_type), YZ())
+            smoothing!(vhat, state, Val(filter_type), YZ())
+            smoothing!(what, state, Val(filter_type), YZ())
+            smoothing!(bhat, state, Val(filter_type), YZ())
+            smoothing!(pihat, state, Val(filter_type), YZ())
+            smoothing!(chihat, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smoothing!(uhat, state, Val(filter_type), XZ())
+            smoothing!(vhat, state, Val(filter_type), XZ())
+            smoothing!(what, state, Val(filter_type), XZ())
+            smoothing!(bhat, state, Val(filter_type), XZ())
+            smoothing!(pihat, state, Val(filter_type), XZ())
+            smoothing!(chihat, state, Val(filter_type), XZ())
+        else
+            smoothing!(uhat, state, Val(filter_type), XYZ())
+            smoothing!(vhat, state, Val(filter_type), XYZ())
+            smoothing!(what, state, Val(filter_type), XYZ())
+            smoothing!(bhat, state, Val(filter_type), XYZ())
+            smoothing!(pihat, state, Val(filter_type), XYZ())
+            smoothing!(chihat, state, Val(filter_type), XYZ())
+        end
+    end
+
+    return 
 end

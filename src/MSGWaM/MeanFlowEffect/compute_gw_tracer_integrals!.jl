@@ -83,12 +83,11 @@ end
     parameters::NamedTuple,
     tracer_setup::Val{:TracerOn},
 )
-    (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
+    (; uchi0, vchi0, wchi0, uhat, vhat, what, bhat, pihat, chihat) = state.tracer.tracerwkbintegrals
     (; leading_order_impact, next_order_impact) = state.namelists.tracer
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; thetabar, rhobar) = state.atmosphere
-    (; uhat, vhat, what, bhat, pihat, chihat) = state.tracer.tracerwkbamplitudes
     (; kr, lr, mr, fc, omir, dens, factor, xr, yr, zr, iray, jray, kray, n2r) =
         parameters
     (; kappa) = state.constants

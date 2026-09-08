@@ -175,7 +175,7 @@ function set_tracer_zonal_boundaries!(
     end
 
     if next_order_impact
-        for field in (:uchi1, :vchi1, :wchi1)
+        for field in (:uchi1, :vchi1, :wchi1, :uhat, :vhat, :what, :bhat, :pihat, :chihat)
             set_zonal_boundaries_of_field!(
                 getfield(tracerwkbintegrals, field),
                 namelists,

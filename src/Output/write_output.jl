@@ -411,7 +411,7 @@ function write_output end
                         (x_size, y_size, z_size, iout),
                     )
                     file["uhat"][iid, jjd, kkd, iout] =
-                        abs(state.tracer.tracerwkbamplitude.uhat[ii, jj, kk]) .*
+                        abs.(state.tracer.tracerwkbintegrals.uhat[ii, jj, kk]) .*
                         uref
                 end
 
@@ -421,7 +421,7 @@ function write_output end
                         (x_size, y_size, z_size, iout),
                     )
                     file["vhat"][iid, jjd, kkd, iout] =
-                        abs(state.tracer.tracerwkbamplitude.vhat[ii, jj, kk]) .*
+                        abs.(state.tracer.tracerwkbintegrals.vhat[ii, jj, kk]) .*
                         uref
                 end
 
@@ -431,7 +431,7 @@ function write_output end
                         (x_size, y_size, z_size, iout),
                     )
                     file["what"][iid, jjd, kkd, iout] =
-                        abs(state.tracer.tracerwkbamplitude.what[ii, jj, kk]) .*
+                        abs.(state.tracer.tracerwkbintegrals.what[ii, jj, kk]) .*
                         uref
                 end
 
@@ -441,7 +441,7 @@ function write_output end
                         (x_size, y_size, z_size, iout),
                     )
                     file["bhat"][iid, jjd, kkd, iout] =
-                        abs(state.tracer.tracerwkbamplitude.bhat[ii, jj, kk]) .*
+                        abs.(state.tracer.tracerwkbintegrals.bhat[ii, jj, kk]) .*
                         lref .^ 2 ./ tref
                 end
 
@@ -451,7 +451,7 @@ function write_output end
                         (x_size, y_size, z_size, iout),
                     )
                     file["pihat"][iid, jjd, kkd, iout] =
-                        abs(state.tracer.tracerwkbamplitude.pihat[ii, jj, kk])
+                        abs.(state.tracer.tracerwkbintegrals.pihat[ii, jj, kk])
                 end
 
                 if :chihat in output_variables
@@ -460,7 +460,7 @@ function write_output end
                         (x_size, y_size, z_size, iout),
                     )
                     file["chihat"][iid, jjd, kkd, iout] =
-                        abs(state.tracer.tracerwkbamplitude.chihat[ii, jj, kk])
+                        abs.(state.tracer.tracerwkbintegrals.chihat[ii, jj, kk])
                 end
             end
         end

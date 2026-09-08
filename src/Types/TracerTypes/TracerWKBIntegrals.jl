@@ -80,14 +80,20 @@ Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state
 """
 struct TracerWKBIntegrals{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:ComplexF64, 3},
 }
     uchi0::A
     vchi0::A
     wchi0::A
-    uchi1::B
-    vchi1::B
-    wchi1::B
+    uchi1::A
+    vchi1::A
+    wchi1::A
+    uhat::B
+    vhat::B
+    what::B
+    bhat::B
+    pihat::B
+    chihat::B
 end
 
 function TracerWKBIntegrals(
@@ -108,7 +114,10 @@ function TracerWKBIntegrals(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:6]...)
+    return TracerWKBIntegrals(
+        [zeros(0, 0, 0) for i in 1:6]...,
+        [zeros(ComplexF64, 0, 0, 0) for i in 1:6]...,
+    )
 end
 
 function TracerWKBIntegrals(
@@ -130,7 +139,10 @@ function TracerWKBIntegrals(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals([zeros(0, 0, 0) for i in 1:6]...)
+    return TracerWKBIntegrals(
+        [zeros(0, 0, 0) for i in 1:6]...,
+        [zeros(ComplexF64, 0, 0, 0) for i in 1:6]...,
+    )
 end
 
 function TracerWKBIntegrals(
@@ -142,24 +154,28 @@ function TracerWKBIntegrals(
     (; leading_order_impact, next_order_impact) = namelists.tracer
 
     if leading_order_impact
-        uchi0 = zeros(nxx, nyy, nzz)
-        vchi0 = zeros(nxx, nyy, nzz)
-        wchi0 = zeros(nxx, nyy, nzz)
+        nxl = nxx
+        nyl = nyy
+        nzl = nzz
     else
-        uchi0 = zeros(0, 0, 0)
-        vchi0 = zeros(0, 0, 0)
-        wchi0 = zeros(0, 0, 0)
+        nxl = 0
+        nyl = 0
+        nzl = 0
     end
 
     if next_order_impact
-        uchi1 = zeros(nxx, nyy, nzz)
-        vchi1 = zeros(nxx, nyy, nzz)
-        wchi1 = zeros(nxx, nyy, nzz)
+        nxn = nxx
+        nyn = nyy
+        nzn = nzz
     else
-        uchi1 = zeros(0, 0, 0)
-        vchi1 = zeros(0, 0, 0)
-        wchi1 = zeros(0, 0, 0)
+        nxn = 0
+        nyn = 0
+        nzn = 0
     end
 
-    return TracerWKBIntegrals(uchi0, vchi0, wchi0, uchi1, vchi1, wchi1)
+    return TracerWKBIntegrals(
+        [zeros(nxl, nyl, nzl) for i in 1:3]...,
+        [zeros(nxn, nyn, nzn) for i in 1:3]...,
+        [zeros(ComplexF64, nxn, nyn, nzn) for i in 1:6]...,
+    )
 end

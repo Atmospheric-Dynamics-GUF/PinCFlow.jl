@@ -30,9 +30,27 @@ using ...Macros
 using ...Types
 using ...Boundaries
 
+"""
+```julia 
+Tendencies
+```
+
+Singleton for dispatch to smoothing of gravity-wave tendencies.
+"""
+struct Tendencies end
+
+"""
+```julia 
+Integrals
+```
+
+Singleton for dispatch to smoothing of gravity-wave integrals.
+"""
+struct Integrals end
+
 include("compute_gw_tracer_integrals!.jl")
 include("compute_gw_tracer_tendencies!.jl")
-include("set_tracer_fields_zero!.jl")
+include("reset_tracer_fields!.jl")
 include("apply_shapiro_filter!.jl")
 include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")

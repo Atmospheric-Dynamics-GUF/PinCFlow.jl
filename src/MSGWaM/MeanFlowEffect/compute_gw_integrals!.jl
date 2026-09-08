@@ -89,7 +89,7 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.reset_tracer_fields!`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref)
 """
@@ -119,7 +119,7 @@ end
         getfield(integrals, field) .= 0.0
     end
 
-    set_tracer_fields_zero!(state)
+    reset_tracer_fields!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
