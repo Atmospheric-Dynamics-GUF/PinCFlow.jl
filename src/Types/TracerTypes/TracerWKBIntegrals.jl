@@ -94,6 +94,12 @@ struct TracerWKBIntegrals{
     bhat::B
     pihat::B
     chihat::B
+    uhatold::B
+    vhatold::B
+    whatold::B
+    bhatold::B
+    pihatold::B
+    chihatold::B
 end
 
 function TracerWKBIntegrals(
@@ -116,7 +122,7 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     return TracerWKBIntegrals(
         [zeros(0, 0, 0) for i in 1:6]...,
-        [zeros(ComplexF64, 0, 0, 0) for i in 1:6]...,
+        [zeros(ComplexF64, 0, 0, 0) for i in 1:12]...,
     )
 end
 
@@ -141,7 +147,7 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     return TracerWKBIntegrals(
         [zeros(0, 0, 0) for i in 1:6]...,
-        [zeros(ComplexF64, 0, 0, 0) for i in 1:6]...,
+        [zeros(ComplexF64, 0, 0, 0) for i in 1:12]...,
     )
 end
 
@@ -176,6 +182,6 @@ function TracerWKBIntegrals(
     return TracerWKBIntegrals(
         [zeros(nxl, nyl, nzl) for i in 1:3]...,
         [zeros(nxn, nyn, nzn) for i in 1:3]...,
-        [zeros(ComplexF64, nxn, nyn, nzn) for i in 1:6]...,
+        [zeros(ComplexF64, nxn, nyn, nzn) for i in 1:12]...,
     )
 end

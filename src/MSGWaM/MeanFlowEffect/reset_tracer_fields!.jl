@@ -38,15 +38,22 @@ function reset_tracer_fields!(state::State, tracer_setup::Val{:NoTracer})
 end
 
 function reset_tracer_fields!(state::State, tracer_setup::Val{:TracerOn})
-    (; tracerwkbtendencies, tracerwkbintegrals) =
-        state.tracer
+    (; tracerwkbtendencies, tracerwkbintegrals) = state.tracer
 
     for field in fieldnames(TracerWKBTendencies)
         getfield(tracerwkbtendencies, field) .= 0.0
     end
-    for field in fieldnames(TracerWKBIntegrals)
+    for (field, fieldold) in zip(
+        (:uhat, :vhat, :what, :bhat, :pihat, :chihat),
+        (:uhatold, :vhatold, :whatold, :bhatold, :pihatold, :chihatold),
+    )
+        getfield(tracerwkbintegrals, fieldold) .=
+            getfield(tracerwkbintegrals, field)
+    end
+    for field in
+        (:uchi1, :vchi1, :wchi1, :uhat, :vhat, :what, :bhat, :pihat, :chihat)
         getfield(tracerwkbintegrals, field) .= 0.0
     end
-    
+
     return
 end
