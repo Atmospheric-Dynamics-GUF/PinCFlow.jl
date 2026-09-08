@@ -23,6 +23,7 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 """
 module MeanFlowEffect
 
+using LinearAlgebra
 using ..BlockedLayer
 using ..Interpolation
 using ..RayUpdate
@@ -58,6 +59,8 @@ include("compute_horizontal_cell_indices.jl")
 include("compute_mean_flow_effect!.jl")
 include("smoothing!.jl")
 
-export compute_mean_flow_effect!
+export compute_mean_flow_effect!, compute_gw_integrals!, smoothing!
+
+export Integrals
 
 end

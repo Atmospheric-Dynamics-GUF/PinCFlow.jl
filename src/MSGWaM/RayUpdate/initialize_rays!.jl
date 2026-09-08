@@ -83,7 +83,6 @@ end
         cgz_max,
         spectrum,
     ) = state.wkb
-    (; n2) = state.atmosphere
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref

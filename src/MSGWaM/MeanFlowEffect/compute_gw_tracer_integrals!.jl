@@ -88,11 +88,9 @@ end
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; thetabar, rhobar) = state.atmosphere
-    (; kr, lr, mr, fc, omir, dens, factor, xr, yr, zr, iray, jray, kray, n2r) =
+    (; kr, lr, mr, fc, omir, wadr, dens, factor, xr, yr, zr, iray, jray, kray, n2r) =
         parameters
     (; kappa) = state.constants
-
-    wadr = dens * factor
 
     if (fc != 0.0 && leading_order_impact) || next_order_impact
         dchidx =
