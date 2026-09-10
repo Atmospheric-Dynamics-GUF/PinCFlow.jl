@@ -5,8 +5,8 @@ interpolate_scalar(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    field::AbstractArray{<:AbstractFloat, 3},
-)::AbstractFloat
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
+)::Union{T, Complex{T}} where {T <: Real}
 ```
 
 Interpolate a scalar field given by the input array `field` to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result.
@@ -19,9 +19,9 @@ interpolate_scalar(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     derivative::DX,
-)::AbstractFloat
+)::Union{T, Complex{T}} where {T <: Real}
 ```
 
 Interpolate the zonal derivative of a scalar field given by the input array `field` to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result. 
@@ -34,9 +34,9 @@ interpolate_scalar(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     derivative::DY,
-)::AbstractFloat
+)::Union{T, Complex{T}} where {T <: Real}
 ```
 
 Interpolate the meridional derivative of a scalar field given by the input array `field` to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result. 
@@ -49,9 +49,9 @@ interpolate_scalar(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     derivative::DZ,
-)::AbstractFloat
+)::Union{T, Complex{T}} where {T <: Real}
 ```
 
 Interpolate the vertical derivative of a scalar field given by the input array `field` to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm, and return the result. 
@@ -87,8 +87,8 @@ function interpolate_scalar end
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    field::AbstractArray{<:AbstractFloat, 3},
-)::AbstractFloat
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
+)::Union{T, Complex{T}} where {T <: Real}
     (; namelists, domain, grid) = state
     (; x_size, y_size) = namelists.domain
     (; io, jo, i0, j0) = domain
@@ -187,9 +187,9 @@ end
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     derivative::DX,
-)::AbstractFloat
+)::Union{T, Complex{T}} where {T <: Real}
     (; namelists, domain, grid) = state
     (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -310,9 +310,9 @@ end
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     derivative::DY,
-)::AbstractFloat
+)::Union{T, Complex{T}} where {T <: Real}
     (; namelists, domain, grid) = state
     (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
@@ -432,9 +432,9 @@ end
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     derivative::DZ,
-)::AbstractFloat
+)::Union{T, Complex{T}} where {T <: Real}
     (; namelists, domain, grid) = state
     (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain

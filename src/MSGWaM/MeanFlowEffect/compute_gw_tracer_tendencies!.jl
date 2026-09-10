@@ -27,19 +27,37 @@ compute_gw_tracer_tendencies!(
 )
 ```
 
-Compute and return the tracer forcing at ``\\left(i, j, k\\right)``.
+Compute and return the leading- and next-order tracer forcing at ``\\left(i, j, k\\right)^{(0)}``.
 
 Calculates the tendency that is to be added to the tracer equations, given by
 
 ```math
 \\begin{align*}
-    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\bar{\\rho}}\\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
-    & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
-    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] ,
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)^{(0)}_\\mathrm{w} + \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)^{(1)}_\\mathrm{w}
 \\end{align*}
 ```
 
-where ``\\chi_\\mathrm{b}`` is the resolved tracer and ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``). For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref).
+with leading-order impact
+
+```math
+\\begin{align*}
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)^{(0)}_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\bar{\\rho}}\\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
+    & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
+    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] 
+\\end{align*}
+```
+
+and next-order impact
+
+```math
+\\begin{align*}
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)^{(1)}_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{2\\bar{\\rho}\\bar{\\theta}}\\left[\\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{i + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
+    & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{j + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
+    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] .
+\\end{align*}
+```
+
+Here, ``\\chi_\\mathrm{b}`` is the resolved tracer and ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``). For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref).
 
 # Arguments
 
@@ -96,7 +114,7 @@ end
         state.tracer.tracerwkbintegrals
     (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
-    (; rhobar) = state.atmosphere
+    (; rhobar, thetabar) = state.atmosphere
     (; leading_order_impact, next_order_impact) = state.namelists.tracer
 
     if leading_order_impact
@@ -134,28 +152,61 @@ end
 
         if x_size > 1
             dchiu1 =
-                (uchi1[i + 1, j, k] - uchi1[i - 1, j, k]) / (2.0 * dx) +
-                met[i, j, k, 1, 3] * (uchi1[i, j, k + 1] - uchi1[i, j, k - 1]) /
-                (2.0 * dz)
+                (
+                    rhobar[i + 1, j, k] *
+                    thetabar[i + 1, j, k] *
+                    uchi1[i + 1, j, k] -
+                    rhobar[i - 1, j, k] *
+                    thetabar[i - 1, j, k] *
+                    uchi1[i - 1, j, k]
+                ) / (2.0 * dx) +
+                met[i, j, k, 1, 3] * (
+                    rhobar[i, j, k + 1] *
+                    thetabar[i, j, k + 1] *
+                    uchi1[i, j, k + 1] -
+                    rhobar[i, j, k - 1] *
+                    thetabar[i, j, k - 1] *
+                    uchi1[i, j, k - 1]
+                ) / (2.0 * dz)
         else
-            dchiu0 = 0.0
+            dchiu1 = 0.0
         end
 
         if y_size > 1
             dchiv1 =
-                (vchi1[i, j + 1, k] - vchi1[i, j - 1, k]) / (2.0 * dy) +
-                met[i, j, k, 2, 3] * (vchi1[i, j, k + 1] - vchi1[i, j, k - 1]) /
-                (2.0 * dz)
+                (
+                    rhobar[i, j + 1, k] *
+                    thetabar[i, j + 1, k] *
+                    vchi1[i, j + 1, k] -
+                    rhobar[i, j - 1, k] *
+                    thetabar[i, j - 1, k] *
+                    vchi1[i, j - 1, k]
+                ) / (2.0 * dy) +
+                met[i, j, k, 2, 3] * (
+                    rhobar[i, j, k + 1] *
+                    thetabar[i, j, k + 1] *
+                    vchi1[i, j, k + 1] -
+                    rhobar[i, j, k - 1] *
+                    thetabar[i, j, k - 1] *
+                    vchi1[i, j, k - 1]
+                ) / (2.0 * dz)
         else
             dchiv1 = 0.0
         end
 
         dchiw1 =
-            (wchi1[i, j, k + 1] - wchi1[i, j, k - 1]) /
-            (2.0 * jac[i, j, k] * dz)
+            (
+                rhobar[i, j, k + 1] *
+                thetabar[i, j, k + 1] *
+                wchi1[i, j, k + 1] -
+                rhobar[i, j, k - 1] *
+                thetabar[i, j, k - 1] *
+                wchi1[i, j, k - 1]
+            ) / (2.0 * jac[i, j, k] * dz)
 
         dchidt1[i, j, k] =
-            -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
+            -(rho[i, j, k] + rhobar[i, j, k]) /
+            (2 * rhobar[i, j, k] * thetabar[i, j, k]) *
             (dchiu1 + dchiv1 + dchiw1)
     end
 

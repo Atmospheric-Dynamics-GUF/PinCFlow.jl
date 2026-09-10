@@ -117,7 +117,7 @@ function write_output end
     (; model) = state.namelists.atmosphere
     (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
-    (; tref, lref, rhoref, thetaref, uref) = state.constants
+    (; tref, lref, rhoref, thetaref, uref, g) = state.constants
     (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
@@ -403,64 +403,6 @@ function write_output end
                     file["wchi1"][iid, jjd, kkd, iout] =
                         state.tracer.tracerwkbintegrals.wchi1[ii, jj, kk] .*
                         uref ./ rhobar[ii, jj, kk]
-                end
-
-                if :uhat in output_variables
-                    HDF5.set_extent_dims(
-                        file["uhat"],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file["uhat"][iid, jjd, kkd, iout] =
-                        abs.(state.tracer.tracerwkbintegrals.uhat[ii, jj, kk]) .*
-                        uref
-                end
-
-                if :vhat in output_variables
-                    HDF5.set_extent_dims(
-                        file["vhat"],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file["vhat"][iid, jjd, kkd, iout] =
-                        abs.(state.tracer.tracerwkbintegrals.vhat[ii, jj, kk]) .*
-                        uref
-                end
-
-                if :what in output_variables
-                    HDF5.set_extent_dims(
-                        file["what"],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file["what"][iid, jjd, kkd, iout] =
-                        abs.(state.tracer.tracerwkbintegrals.what[ii, jj, kk]) .*
-                        uref
-                end
-
-                if :bhat in output_variables
-                    HDF5.set_extent_dims(
-                        file["bhat"],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file["bhat"][iid, jjd, kkd, iout] =
-                        abs.(state.tracer.tracerwkbintegrals.bhat[ii, jj, kk]) .*
-                        lref .^ 2 ./ tref
-                end
-
-                if :pihat in output_variables
-                    HDF5.set_extent_dims(
-                        file["pihat"],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file["pihat"][iid, jjd, kkd, iout] =
-                        abs.(state.tracer.tracerwkbintegrals.pihat[ii, jj, kk])
-                end
-
-                if :chihat in output_variables
-                    HDF5.set_extent_dims(
-                        file["chihat"],
-                        (x_size, y_size, z_size, iout),
-                    )
-                    file["chihat"][iid, jjd, kkd, iout] =
-                        abs.(state.tracer.tracerwkbintegrals.chihat[ii, jj, kk])
                 end
             end
         end

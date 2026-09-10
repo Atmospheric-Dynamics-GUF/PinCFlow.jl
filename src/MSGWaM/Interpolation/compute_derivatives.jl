@@ -126,9 +126,14 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     phitype::DX,
-)::NTuple{2, <:AbstractFloat}
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
 ```
 
 Compute and return the zonal derivative of a scalar field (``\\partial \\psi_\\mathrm{b} / \\partial x``) at ``\\left(i + 1 / 2, j, k_\\mathrm{D}\\right)`` and ``\\left(i + 1 / 2, j, k_\\mathrm{U}\\right)``.
@@ -146,9 +151,14 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     phitype::DY,
-)::NTuple{2, <:AbstractFloat}
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
 ```
 
 Compute and return the meridional derivative of a scalar field (``\\partial \\psi_\\mathrm{b} / \\partial y``) at ``\\left(i, j + 1 / 2, k_\\mathrm{D}\\right)`` and ``\\left(i, j + 1 / 2, k_\\mathrm{U}\\right)``.
@@ -166,8 +176,14 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    field::AbstractArray{<:AbstractFloat, 3}phitype::DChiDZ,
-)::NTuple{2, <:AbstractFloat}
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
+    phitype::DZ,
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
 ```
 
 Compute and return the vertical derivative of a scalar field (``\\partial \\psi_\\mathrm{b} / \\partial z``) at ``\\left(i, j, k_\\mathrm{D} + 1 / 2\\right)`` and ``\\left(i, j, k_\\mathrm{U} + 1 / 2\\right)``.
@@ -470,9 +486,14 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     phitype::DX,
-)::NTuple{2, <:AbstractFloat}
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
     (; dx, dz, met) = state.grid
 
     cc = field[i, j, kd]
@@ -512,9 +533,14 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     phitype::DY,
-)::NTuple{2, <:AbstractFloat}
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
     (; dy, dz, met) = state.grid
 
     cc = field[i, j, kd]
@@ -554,9 +580,14 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     phitype::DZ,
-)::NTuple{2, <:AbstractFloat}
+)::Union{
+    NTuple{2, T},
+    NTuple{2, Complex{T}},
+    Tuple{T, Complex{T}},
+    Tuple{Complex{T}, T},
+} where {T <: Real}
     (; lz, dz, zctilde, jac, hb) = state.grid
 
     cuc = field[i, j, ku]

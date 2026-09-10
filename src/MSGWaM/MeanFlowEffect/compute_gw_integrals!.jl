@@ -75,11 +75,19 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 \\end{align*}
 ```
 
+```julia
+compute_gw_integrals!(state::State, dt::AbstractFloat)
+```
+
+Compute the next-order gravity-wave integrals needed for the computation of the impact on tracer transport.
+
 # Arguments
 
   - `state::State`: Model state.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
+
+  - `dt`: Time step.
 
 # See also
 
@@ -164,8 +172,12 @@ end
                     )
 
                     fcpspx = dkr * dxi / dx
+                    factor = dxi / dx
+                    dklm = dkr
                 else
                     fcpspx = 1.0
+                    factor = 1.0
+                    dklm = 1.0
                 end
 
                 for jray in jmin:jmax
@@ -176,8 +188,12 @@ end
                         )
 
                         fcpspy = dlr * dyi / dy
+                        factor *= dyi / dy
+                        dklm *= dlr
                     else
                         fcpspy = 1.0
+                        factor *= 1.0
+                        dklm *= 1.0
                     end
 
                     kmin = max(
@@ -216,6 +232,8 @@ end
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
+                        factor *= dzi / jac[iray, jray, kray] / dz
+                        dklm *= dmr
 
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
@@ -295,7 +313,8 @@ end
                             lr = lr,
                             mr = mr,
                             wadr = wadr,
-                            factor = fcpspx * fcpspy * fcpspz,
+                            factor = factor,
+                            dklm = dklm,
                             dens = rays.dens[r, i, j, k],
                             xr = xr,
                             yr = yr,
@@ -305,7 +324,11 @@ end
                             kray = kray,
                         )
 
-                        compute_gw_tracer_integrals!(state, parameters)
+                        compute_gw_tracer_integrals!(
+                            state,
+                            LeadingOrder(),
+                            parameters,
+                        )
                     end
                 end
             end
@@ -606,6 +629,156 @@ end
                             iray,
                             jray,
                             kray,
+                        )
+                    end
+                end
+            end
+        end
+    end
+
+    return
+end
+
+function compute_gw_integrals!(state::State, dt::AbstractFloat)
+    (; tracer_setup, next_order_impact) = state.namelists.tracer
+    (; domain, grid) = state
+    (; x_size, y_size, z_size) = state.namelists.domain
+    (; coriolis_frequency) = state.namelists.atmosphere
+    (; branch) = state.namelists.wkb
+    (; tref, g_ndim) = state.constants
+    (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
+    (; dx, dy, dz, x, y, zctilde, jac) = grid
+    (; n2, rhobar, thetabar) = state.atmosphere
+    (; nray, rays, integrals) = state.wkb
+
+    if tracer_setup !== :TracerOn || !next_order_impact
+        return
+    end
+
+    # Set Coriolis parameter.
+    fc = coriolis_frequency * tref
+
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
+                continue
+            end
+
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
+
+            dxr = rays.dxray[r, i, j, k]
+            dyr = rays.dyray[r, i, j, k]
+            dzr = rays.dzray[r, i, j, k]
+
+            kr = rays.k[r, i, j, k]
+            lr = rays.l[r, i, j, k]
+            mr = rays.m[r, i, j, k]
+
+            dkr = rays.dkray[r, i, j, k]
+            dlr = rays.dlray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
+
+            khr = sqrt(kr^2 + lr^2)
+
+            n2r = interpolate_stratification(zr, state, N2())
+
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+
+            cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+            cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+            cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
+
+            (imin, imax, jmin, jmax) =
+                compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+
+            for iray in imin:imax
+                if x_size > 1
+                    dxi = (
+                        min(xr + dxr / 2, x[iray] + dx / 2) -
+                        max(xr - dxr / 2, x[iray] - dx / 2)
+                    )
+
+                    fcpspx = dkr * dxi / dx
+                else
+                    fcpspx = 1.0
+                end
+
+                for jray in jmin:jmax
+                    if y_size > 1
+                        dyi = (
+                            min(yr + dyr / 2, y[jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jray] - dy / 2)
+                        )
+
+                        fcpspy = dlr * dyi / dy
+                    else
+                        fcpspy = 1.0
+                    end
+
+                    kmin = max(
+                        k0,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr - dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
+                    )
+                    kmax = min(
+                        k1,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr + dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
+                    )
+
+                    ko != 0 &&
+                        k > k0 &&
+                        kmin < k0 &&
+                        error("Vertical index is too small!")
+                    ko + nz != z_size &&
+                        k < k1 &&
+                        kmax > k1 &&
+                        error("Vertical index is too large!")
+
+                    for kray in kmin:kmax
+                        dzi =
+                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
+                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
+
+                        fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
+
+                        wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
+
+                        parameters = (
+                            fc = fc,
+                            n2r = n2r,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            factor = fcpspx * fcpspy * fcpspz,
+                            dens = rays.dens[r, i, j, k],
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
+                            iray = iray,
+                            jray = jray,
+                            kray = kray,
+                            dt = dtstage,
+                        )
+
+                        compute_gw_tracer_integrals!(
+                            state,
+                            NextOrder(),
+                            parameters,
                         )
                     end
                 end

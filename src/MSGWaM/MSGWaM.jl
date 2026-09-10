@@ -50,6 +50,6 @@ export apply_saturation_scheme!,
     compute_gw_integrals!,
     smoothing!
 
-export Integrals
+export Integrals, LeadingOrder, NextOrder
 
 end

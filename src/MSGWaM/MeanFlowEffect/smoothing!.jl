@@ -522,8 +522,11 @@ function smoothing!(state::State, variables::Integrals)
     return
 end
 
-function smoothing!(state::State, variables::Integrals, tracer_setup::Val{:TracerOn})
-
+function smoothing!(
+    state::State,
+    variables::Integrals,
+    tracer_setup::Val{:TracerOn},
+)
     (; x_size, y_size) = state.namelists.domain
     (; filter_type) = state.namelists.wkb
     (; uhat, vhat, what, bhat, pihat, chihat) = state.tracer.tracerwkbintegrals
@@ -561,5 +564,5 @@ function smoothing!(state::State, variables::Integrals, tracer_setup::Val{:Trace
         end
     end
 
-    return 
+    return
 end

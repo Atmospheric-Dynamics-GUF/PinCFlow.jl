@@ -178,7 +178,17 @@ function set_tracer_meridional_boundaries!(
     end
 
     if next_order_impact
-        for field in (:uchi1, :vchi1, :wchi1, :uhat, :vhat, :what, :bhat, :pihat, :chihat)
+        for field in (
+            :uchi1,
+            :vchi1,
+            :wchi1,
+            :uhat,
+            :vhat,
+            :what,
+            :bhat,
+            :pihat,
+            :chihat,
+        )
             set_meridional_boundaries_of_field!(
                 getfield(tracerwkbintegrals, field),
                 namelists,
