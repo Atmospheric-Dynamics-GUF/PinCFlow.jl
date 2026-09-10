@@ -772,7 +772,7 @@ function compute_gw_integrals!(state::State, dt::AbstractFloat)
                             iray = iray,
                             jray = jray,
                             kray = kray,
-                            dt = dtstage,
+                            dt = dt,
                         )
 
                         compute_gw_tracer_integrals!(
