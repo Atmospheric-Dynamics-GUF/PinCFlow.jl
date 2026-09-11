@@ -60,9 +60,12 @@ struct Auxiliaries{
     cth::A
     fth::A
     qth::A
+    sth::A
     pth::B
     fth_bc::B
     qth_bc::B
+    sth_bc::B
+    fthnz::B
     stress_tensor_11::A
     stress_tensor_12::A 
     stress_tensor_13::A 
@@ -76,8 +79,8 @@ function Auxiliaries(domain::Domain)::Auxiliaries
 
     return Auxiliaries(
         zeros(nxx, nyy, nzz),
-        [zeros(nx, ny, nz) for i in 1:5]...,
-        [zeros(nx, ny) for i in 1:3]...,
+        [zeros(nx, ny, nz) for i in 1:6]...,
+        [zeros(nx, ny) for i in 1:5]...,
         [zeros(nxx, nyy, nzz) for i in 1:6]...,
     )
 end
