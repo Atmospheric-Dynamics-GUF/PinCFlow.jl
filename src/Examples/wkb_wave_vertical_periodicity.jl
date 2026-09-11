@@ -9,9 +9,9 @@ function wkb_wave_vertical_periodicity(;
     plot_file::AbstractString = "wkb_wave_vertical_periodicity.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    x_size::Integer = 40,
+    x_size::Integer = 10,
     y_size::Integer = 1,
-    z_size::Integer = 40,
+    z_size::Integer = 10,
 )
     lx = 300.0e3
     ly = 10.0e3
@@ -27,7 +27,7 @@ function wkb_wave_vertical_periodicity(;
         x0 = 0.0,
         y0 = 0.0,
         z0 = lz / 2,
-        a0 = 0.1,
+        a0 = 0.5,
     )
     (; k, l, m) = parameters
 
@@ -65,18 +65,25 @@ function wkb_wave_vertical_periodicity(;
     output = OutputNamelist(;
         output_file,
         output_interval = 3600.0,
-        output_variables = [:u],
+        output_variables = [:dchidt1],
         prepare_restart,
         tmax = 3600.0,
     )
 
-    integrate(Namelists(; atmosphere, wkb, domain, output))
+    tracer = TracerNamelist(;
+        tracer_setup = :TracerOn,
+        initial_chi = (x, y, z) ->
+            lz / 2 * exp(-(z - lz / 2)^2 / lz^2) * exp(-x^2 / lx^2),
+        next_order_impact = true,
+    )
+
+    integrate(Namelists(; atmosphere, wkb, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
             plot_file,
             output_file,
-            (:u, 0.5, 0.5, 0.5, 2);
+            (:dchidt1, 0.5, 0.5, 0.5, 2);
             display_figure,
             time_unit = :h,
         )

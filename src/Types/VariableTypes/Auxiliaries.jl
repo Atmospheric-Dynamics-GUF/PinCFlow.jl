@@ -67,11 +67,11 @@ struct Auxiliaries{
     sth_bc::B
     fthnz::B
     stress_tensor_11::A
-    stress_tensor_12::A 
-    stress_tensor_13::A 
-    stress_tensor_22::A 
-    stress_tensor_23::A 
-    stress_tensor_33::A 
+    stress_tensor_12::A
+    stress_tensor_13::A
+    stress_tensor_22::A
+    stress_tensor_23::A
+    stress_tensor_33::A
 end
 
 function Auxiliaries(domain::Domain)::Auxiliaries

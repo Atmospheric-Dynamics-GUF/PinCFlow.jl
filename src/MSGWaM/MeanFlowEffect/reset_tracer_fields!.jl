@@ -50,8 +50,20 @@ function reset_tracer_fields!(state::State, tracer_setup::Val{:TracerOn})
         getfield(tracerwkbintegrals, fieldold) .=
             getfield(tracerwkbintegrals, field)
     end
-    for field in
-        (:uchi0, :vchi0, :wchi0, :uchi1, :vchi1, :wchi1, :uhat, :vhat, :what, :bhat, :pihat, :chihat)
+    for field in (
+        :uchi0,
+        :vchi0,
+        :wchi0,
+        :uchi1,
+        :vchi1,
+        :wchi1,
+        :uhat,
+        :vhat,
+        :what,
+        :bhat,
+        :pihat,
+        :chihat,
+    )
         getfield(tracerwkbintegrals, field) .= 0.0
     end
 

@@ -837,7 +837,7 @@ function wkb_wave_vertical_periodicity(;
 end
 ```
 
-initializes an unresolved gravity-wave packet in a Boussinesq atmosphere with vertically periodic boundary conditions. It visualizes the wave-induced large-scale zonal wind after one hour integration time (see below).  Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
+initializes an unresolved gravity-wave packet and a tracer "cloud" in a Boussinesq atmosphere with vertically periodic boundary conditions. It visualizes next-order gravity-wave tracer flux convergence after one hour integration time (see below).  Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
 
 ![](examples/results/wkb_wave_vertical_periodicity.svg)
 

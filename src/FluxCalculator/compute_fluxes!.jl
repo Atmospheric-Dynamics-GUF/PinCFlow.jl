@@ -792,7 +792,6 @@ end
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity > 0.0
-
         mu_mom_diff = kinematic_diffusivity / uref / lref
 
         #-----------------------------------------
@@ -1104,7 +1103,6 @@ end
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity > 0.0
-
         mu_mom_diff = kinematic_diffusivity / uref / lref
 
         #-----------------------------------------
@@ -1424,7 +1422,6 @@ end
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity > 0.0
-
         mu_mom_diff = kinematic_diffusivity / uref / lref
 
         #-----------------------------------------
