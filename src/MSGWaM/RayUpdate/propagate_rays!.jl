@@ -73,7 +73,7 @@ The update of the spectral ray-volume extents uses the fact that the surfaces in
 \\mathcal{N}_r \\rightarrow \\left(1 + 2 \\alpha_{\\mathrm{R}, r} f_\\mathrm{RK} \\Delta t\\right)^{- 1} \\mathcal{N}_r,
 ```
 
-where ``\\alpha_{\\mathrm{R}, r}`` is the interpolation of the Rayleigh-damping coefficient to the updated ray-volume position, obtained from `interpolate_sponge`.
+where ``\\alpha_{\\mathrm{R}, r}`` is the interpolation of the Rayleigh-damping coefficient to the updated ray-volume position, obtained from `interpolate_scalar`.
 
 The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation, following
 
@@ -112,7 +112,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 \\frac{\\partial}{\\partial z} \\left(c_{\\mathrm{g} z, r} \\mathcal{A}_r\\right) = - 2 \\alpha_{\\mathrm{R}, r} \\mathcal{A}_r - 2 K \\left|\\boldsymbol{k}_r\\right|^2 \\mathcal{A}_r,
 ```
 
-where ``\\alpha_{\\mathrm{R}, r}`` is the Rayleigh-damping coefficient interpolated to the ray-volume position (using `interpolate_sponge`) and
+where ``\\alpha_{\\mathrm{R}, r}`` is the Rayleigh-damping coefficient interpolated to the ray-volume position (using `interpolate_scalar`) and
 
 ```math
 K = \\left[2 \\sum\\limits_r \\frac{J \\Delta \\hat{z}}{c_{\\mathrm{g}, z, r}} \\left(m_r \\left|b_{\\mathrm{w}, r}\\right| \\left|\\boldsymbol{k}_r\\right|\\right)^2 f_r\\right]^{- 1} \\max \\left[0, \\sum_r \\left(m_r \\left|b_{\\mathrm{w}, r}\\right|\\right)^2 f_r - \\alpha_\\mathrm{s}^2 N^4\\right]
@@ -152,11 +152,11 @@ If `rkstage != 1`, this method returns immediately.
 
   - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
 
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
-
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
 
@@ -188,7 +188,7 @@ end
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; branch, impact_altitude, blocking) = state.namelists.wkb
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
     (; nray, cgx_max, cgy_max, cgz_max, rays, deltazb) = state.wkb
@@ -197,11 +197,13 @@ end
     (; alphark, betark, stepfrac, nstages) = state.time
     (; dx, dy, dzcmin, hb) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
+    (; n2) = state.atmosphere
+    (; alphar) = state.sponge
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kmin = ko == 0 ? k0 - 1 : k0
+    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 - 1 : k0
     kmax = k1
 
     # Initialize the WKB increments and maximum group velocities at the first
@@ -233,38 +235,30 @@ end
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
-            apply_turbulent_damping!(
-                state,
-                r,
-                i,
-                j,
-                k,
-                zr,
-                stepfrac[rkstage] * dt,
-            )
+            apply_turbulent_damping!(state, r, i, j, k, stepfrac[rkstage] * dt)
 
-            xr1 = xr - dxr / 2
-            xr2 = xr + dxr / 2
-            yr1 = yr - dyr / 2
-            yr2 = yr + dyr / 2
-            zr1 = zr - dzr / 2
-            zr2 = zr + dzr / 2
+            xrl = xr - dxr / 2
+            xrr = xr + dxr / 2
+            yrb = yr - dyr / 2
+            yrf = yr + dyr / 2
+            zrd = zr - dzr / 2
+            zru = zr + dzr / 2
 
             khr = sqrt(kr^2 + lr^2)
 
-            n2r1 = interpolate_stratification(zr1, state, N2())
+            n2rd = interpolate_stratification(zrd, state, N2())
             n2r = interpolate_stratification(zr, state, N2())
-            n2r2 = interpolate_stratification(zr2, state, N2())
+            n2ru = interpolate_stratification(zru, state, N2())
 
-            omir1 =
-                branch * sqrt(n2r1 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omird =
+                branch * sqrt(n2rd * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            omir2 =
-                branch * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+            omiru =
+                branch * sqrt(n2ru * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            if any((n2r1, n2r, n2r2) .< 0)
+            if any((n2rd, n2r, n2ru) .< 0)
                 error("Interpolated stratification is negative!")
             end
 
@@ -275,7 +269,7 @@ end
             # Determine if horizontal propagation and refraction are allowed.
             multi_column = wkb_mode === Val(:MultiColumn)
             launch_layer = k == k0 - 1
-            blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
+            blocked_layer = blocking && zrd < hb[i, j] + deltazb[i, j] / 2
             zonal_propagation =
                 x_size > 1 && multi_column && !launch_layer && !blocked_layer
             meridional_propagation =
@@ -294,8 +288,8 @@ end
             end
 
             # Compute intrinsic vertical group velocities at the vertical edges.
-            cgirz1 = -mr * (omir1^2 - fc^2) / (omir1 * (khr^2 + mr^2))
-            cgirz2 = -mr * (omir2^2 - fc^2) / (omir2 * (khr^2 + mr^2))
+            cgirzd = -mr * (omird^2 - fc^2) / (omird * (khr^2 + mr^2))
+            cgirzu = -mr * (omiru^2 - fc^2) / (omiru * (khr^2 + mr^2))
 
             #-------------------------------
             #      Change of position
@@ -304,20 +298,20 @@ end
             # Update zonal position.
 
             if zonal_propagation
-                uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
-                uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
+                uxrl = interpolate_mean_flow(xrl, yr, zr, state, U())
+                uxrr = interpolate_mean_flow(xrr, yr, zr, state, U())
 
-                cgrx1 = cgirx + uxr1
-                cgrx2 = cgirx + uxr2
+                cgrxl = cgirx + uxrl
+                cgrxr = cgirx + uxrr
 
-                cgrx = (cgrx1 + cgrx2) / 2
+                cgrx = (cgrxl + cgrxr) / 2
 
                 f = cgrx
                 dxray[r, i, j, k] =
                     dt * f + alphark[rkstage] * dxray[r, i, j, k]
                 rays.x[r, i, j, k] += betark[rkstage] * dxray[r, i, j, k]
 
-                cgx_max[] = max(cgx_max[], abs(cgrx1), abs(cgrx2))
+                cgx_max[] = max(cgx_max[], abs(cgrxl), abs(cgrxr))
             end
 
             if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
@@ -328,20 +322,20 @@ end
             # Update meridional position.
 
             if meridional_propagation
-                vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
-                vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
+                vyrb = interpolate_mean_flow(xr, yrb, zr, state, V())
+                vyrf = interpolate_mean_flow(xr, yrf, zr, state, V())
 
-                cgry1 = cgiry + vyr1
-                cgry2 = cgiry + vyr2
+                cgryb = cgiry + vyrb
+                cgryf = cgiry + vyrf
 
-                cgry = (cgry1 + cgry2) / 2
+                cgry = (cgryb + cgryf) / 2
 
                 f = cgry
                 dyray[r, i, j, k] =
                     dt * f + alphark[rkstage] * dyray[r, i, j, k]
                 rays.y[r, i, j, k] += betark[rkstage] * dyray[r, i, j, k]
 
-                cgy_max[] = max(cgy_max[], abs(cgry1), abs(cgry2))
+                cgy_max[] = max(cgy_max[], abs(cgryb), abs(cgryf))
             end
 
             if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
@@ -351,16 +345,16 @@ end
 
             # Update vertical position.
 
-            cgrz1 = cgirz1
-            cgrz2 = cgirz2
+            cgrzd = cgirzd
+            cgrzu = cgirzu
 
-            cgrz = (cgrz1 + cgrz2) / 2
+            cgrz = (cgrzd + cgrzu) / 2
 
             f = cgrz
             dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
             rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-            cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
+            cgz_max[] = max(cgz_max[], abs(cgrzd), abs(cgrzu))
 
             if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
                abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
@@ -409,7 +403,7 @@ end
                 # Update extents in x and k.
 
                 if zonal_propagation
-                    ddxdt = cgrx2 - cgrx1
+                    ddxdt = cgrxr - cgrxl
 
                     ddxray[r, i, j, k] =
                         dt * ddxdt + alphark[rkstage] * ddxray[r, i, j, k]
@@ -427,7 +421,7 @@ end
                 # Update extents in y and l.
 
                 if meridional_propagation
-                    ddydt = cgry2 - cgry1
+                    ddydt = cgryf - cgryb
 
                     ddyray[r, i, j, k] =
                         dt * ddydt + alphark[rkstage] * ddyray[r, i, j, k]
@@ -444,7 +438,7 @@ end
 
                 # Update extents in z and m.
 
-                ddzdt = cgrz2 - cgrz1
+                ddzdt = cgrzu - cgrzd
 
                 ddzray[r, i, j, k] =
                     dt * ddzdt + alphark[rkstage] * ddzray[r, i, j, k]
@@ -467,7 +461,7 @@ end
     for k in k0:k1, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+            alphasponge = 2 * interpolate_scalar(state, xr, yr, zr, alphar)
             betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
             rays.dens[r, i, j, k] *= betasponge
         end
@@ -486,15 +480,17 @@ end
     rkstage::Integer,
     wkb_mode::Val{:SteadyState},
 )
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) =
+        state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
-    (; rhobar) = state.atmosphere
+    (; n2, rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; nray, rays) = state.wkb
+    (; alphar) = state.sponge
 
     if rkstage != 1
         return
@@ -505,7 +501,7 @@ end
 
     activate_orographic_source!(state)
 
-    if ko != 0
+    if ko != 0 || vertical_boundary_condition === :Periodic
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
@@ -554,11 +550,14 @@ end
                 rays.dzray[r, i, j, k - 1] * jac[i, j, k] / jac[i, j, k - 1]
 
             # Get the horizontal wavenumbers.
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             khr = sqrt(kr^2 + lr^2)
 
             # Set the reference level.
-            kref = ko == 0 ? max(k0, k - 1) : k - 1
+            kref =
+                (ko == 0 && vertical_boundary_condition === :SolidWall) ?
+                max(k0, k - 1) : k - 1
 
             # Compute the vertical group velocity at the level below.
             n2r = interpolate_stratification(rays.z[r, i, j, kref], state, N2())
@@ -575,7 +574,6 @@ end
             end
 
             # Compute the local vertical wavenumber and vertical group velocity.
-            n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
             omir =
                 -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
                 (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
@@ -592,19 +590,16 @@ end
             rays.m[r, i, j, k] = mr
 
             # Set the local wave action density.
-            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-
             apply_turbulent_damping!(
                 state,
                 r,
                 i,
                 j,
                 k,
-                zr,
                 jac[i, j, k] * dz / cgirz,
             )
 
-            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+            alphasponge = 2 * interpolate_scalar(state, xr, yr, zr, alphar)
             rays.dens[r, i, j, k] =
                 1 / (
                     1 +
@@ -664,6 +659,7 @@ end
             if rays.dens[r, i, j, k] == 0
                 continue
             end
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             khr = sqrt(kr^2 + lr^2)
             n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
@@ -684,7 +680,7 @@ end
         end
     end
 
-    if ko + nz != z_size
+    if ko + nz != z_size || vertical_boundary_condition === :Periodic
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

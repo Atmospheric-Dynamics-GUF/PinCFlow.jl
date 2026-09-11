@@ -15,6 +15,7 @@ include("test_vortex.jl")
 include("test_wave_packet.jl")
 include("test_wkb_mountain_wave.jl")
 include("test_wkb_wave_packet.jl")
+include("test_wkb_wave_vertical_periodicity.jl")
 
 @testset verbose = true "PinCFlow tests" begin
     test_cold_bubble()
@@ -25,4 +26,5 @@ include("test_wkb_wave_packet.jl")
     test_wave_packet()
     test_wkb_mountain_wave()
     test_wkb_wave_packet()
+    test_wkb_wave_vertical_periodicity()
 end

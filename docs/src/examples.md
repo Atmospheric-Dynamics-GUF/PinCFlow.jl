@@ -182,6 +182,7 @@ function mountain_wave(;
     atmosphere = AtmosphereNamelist(;
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        kinematic_diffusivity = 2.0E-9,
     )
 
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
@@ -234,7 +235,7 @@ performs a 3D mountain-wave simulation. The surface topography is given by
 
 $$h \left(x, y\right) = \frac{h_0}{1 + \left(x^2 + y^2\right) / l_0^2},$$
 
-with $h_0 = 100 \ \mathrm{m}$ and $l_0 = 1 \ \mathrm{km}$. The atmosphere is isothermal, with the default temperature $T_0 = 300 \ \mathrm{K}$ and the initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \ \mathrm{m \ s^{- 1}}$.
+with $h_0 = 100 \ \mathrm{m}$ and $l_0 = 1 \ \mathrm{km}$. The atmosphere is isothermal, with the default temperature $T_0 = 300 \ \mathrm{K}$, with kinematic diffusivity of $\mu = 2 \ 10^{- 9} \ \mathrm{m^2 \ s^{- 1}}$ and initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \ \mathrm{m \ s^{- 1}}$.
 
 Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge defined by
 
@@ -742,6 +743,110 @@ end
 initializes an unresolved gravity-wave packet (i.e. one that is parameterized by MS-GWaM) in the stratosphere of a compressible atmosphere with two different lapse rates. Furthermore, it initializes a tracer field that increases linearly with altitude and visualizes the parameterized, leading-order gravity-wave tracer flux convergence after ten minutes integration time (see below). Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
 
 ![](examples/results/wkb_wave_packet.svg)
+
+## WKB wave packet with vertical periodic boundary conditions 
+
+The function 
+
+```julia 
+# src/Examples/wkb_wave_vertical_periodicity.jl
+
+function wkb_wave_vertical_periodicity(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "wkb_wave_vertical_periodicity.h5",
+    plot_file::AbstractString = "wkb_wave_vertical_periodicity.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 10,
+    y_size::Integer = 1,
+    z_size::Integer = 10,
+)
+    lx = 300.0e3
+    ly = 10.0e3
+    lz = 10.0e3
+
+    parameters = (
+        k = 20 * pi / lx,
+        l = 0.0,
+        m = 20 * pi / lz,
+        rx = 0.1,
+        ry = 0.0,
+        rz = 0.1,
+        x0 = 0.0,
+        y0 = 0.0,
+        z0 = lz / 2,
+        a0 = 0.5,
+    )
+    (; k, l, m) = parameters
+
+    domain = DomainNamelist(;
+        lx,
+        ly,
+        lz,
+        npx,
+        npy,
+        npz,
+        x_size,
+        y_size,
+        z_size,
+        vertical_boundary_condition = :Periodic,
+    )
+
+    atmosphere = AtmosphereNamelist(;
+        model = :Boussinesq,
+        background = :StableStratification,
+    )
+
+    state = State(Namelists(; atmosphere, domain))
+
+    wkb = WKBNamelist(;
+        wkb_mode = :MultiColumn,
+        initial_wave_field = (alpha, x, y, z) -> (
+            k,
+            l,
+            m,
+            omega(state, parameters, x, y, z),
+            wave_action_density(state, parameters, x, y, z),
+        ),
+    )
+
+    output = OutputNamelist(;
+        output_file,
+        output_interval = 3600.0,
+        output_variables = [:dchidt1],
+        prepare_restart,
+        tmax = 3600.0,
+    )
+
+    tracer = TracerNamelist(;
+        tracer_setup = :TracerOn,
+        initial_chi = (x, y, z) ->
+            lz / 2 * exp(-(z - lz / 2)^2 / lz^2) * exp(-x^2 / lx^2),
+        next_order_impact = true,
+    )
+
+    integrate(Namelists(; atmosphere, wkb, domain, output, tracer))
+
+    if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
+        plot_output(
+            plot_file,
+            output_file,
+            (:dchidt1, 0.5, 0.5, 0.5, 2);
+            display_figure,
+            time_unit = :h,
+        )
+    end
+
+    return
+end
+```
+
+initializes an unresolved gravity-wave packet and a tracer "cloud" in a Boussinesq atmosphere with vertically periodic boundary conditions. It visualizes next-order gravity-wave tracer flux convergence after one hour integration time (see below).  Like the wave-packet script discussed above, it constructs an auxiliary state and uses helper functions to satisfy the gravity-wave dispersion and polarization relations.
+
+![](examples/results/wkb_wave_vertical_periodicity.svg)
 
 ## Wave-packet helper functions
 

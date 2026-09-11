@@ -161,10 +161,31 @@ function set_tracer_zonal_boundaries!(
 )
     (; namelists, domain) = state
     (; tracerwkbintegrals) = state.tracer
-    (; leading_order_impact) = namelists.tracer
+    (; leading_order_impact, next_order_impact) = namelists.tracer
 
     if leading_order_impact
         for field in (:uchi0, :vchi0, :wchi0)
+            set_zonal_boundaries_of_field!(
+                getfield(tracerwkbintegrals, field),
+                namelists,
+                domain;
+                layers = (1, 1, 1),
+            )
+        end
+    end
+
+    if next_order_impact
+        for field in (
+            :uchi1,
+            :vchi1,
+            :wchi1,
+            :uhat,
+            :vhat,
+            :what,
+            :bhat,
+            :pihat,
+            :chihat,
+        )
             set_zonal_boundaries_of_field!(
                 getfield(tracerwkbintegrals, field),
                 namelists,
@@ -183,12 +204,21 @@ function set_tracer_zonal_boundaries!(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
-    (; dchidt0) = state.tracer.tracerwkbtendencies
-    (; leading_order_impact) = namelists.tracer
+    (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
+    (; leading_order_impact, next_order_impact) = namelists.tracer
 
     if leading_order_impact
         set_zonal_boundaries_of_field!(
             dchidt0,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
+
+    if next_order_impact
+        set_zonal_boundaries_of_field!(
+            dchidt1,
             namelists,
             domain;
             layers = (1, 1, 1),

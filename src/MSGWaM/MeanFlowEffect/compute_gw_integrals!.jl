@@ -75,11 +75,41 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 \\end{align*}
 ```
 
+```julia
+compute_gw_integrals!(state::State, dt::AbstractFloat)
+```
+
+Compute the next-order gravity-wave integrals by dispatching to the tracer-setup specific configuration. 
+
+```julia
+compute_gw_integrals!(
+    state::State,
+    dt::AbstractFloat,
+    tracer_setup::Val{:NoTracer},
+)
+```
+
+Return for configurations without tracer transport.
+
+```julia
+compute_gw_integrals!(
+    state::State,
+    dt::AbstractFloat,
+    tracer_setup::Val{:TracerOn},
+)
+```
+
+Compute the next-order gravity-wave tracer integrals.
+
 # Arguments
 
   - `state::State`: Model state.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
+
+  - `dt`: Time step.
+
+  - `tracer_setup`: General tracer-transport configuration.
 
 # See also
 
@@ -89,7 +119,7 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.reset_tracer_fields!`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref)
 """
@@ -103,13 +133,14 @@ end
 
 @ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
     (; domain, grid) = state
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) =
+        state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; rhobar, thetabar) = state.atmosphere
+    (; n2, rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -119,7 +150,7 @@ end
         getfield(integrals, field) .= 0.0
     end
 
-    set_tracer_fields_zero!(state)
+    reset_tracer_fields!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -164,8 +195,12 @@ end
                     )
 
                     fcpspx = dkr * dxi / dx
+                    factor = dxi / dx
+                    dklm = dkr
                 else
                     fcpspx = 1.0
+                    factor = 1.0
+                    dklm = 1.0
                 end
 
                 for jray in jmin:jmax
@@ -176,8 +211,12 @@ end
                         )
 
                         fcpspy = dlr * dyi / dy
+                        factor *= dyi / dy
+                        dklm *= dlr
                     else
                         fcpspy = 1.0
+                        factor *= 1.0
+                        dklm *= 1.0
                     end
 
                     kmin = max(
@@ -201,11 +240,14 @@ end
                         ),
                     )
 
-                    ko != 0 &&
+                    (ko != 0 || vertical_boundary_condition === :Periodic) &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
-                    ko + nz != z_size &&
+                    (
+                            ko + nz != z_size ||
+                            vertical_boundary_condition === :Periodic
+                        ) &&
                         k < k1 &&
                         kmax > k1 &&
                         error("Vertical index is too large!")
@@ -216,6 +258,8 @@ end
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
+                        factor *= dzi / jac[iray, jray, kray] / dz
+                        dklm *= dmr
 
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
@@ -287,20 +331,29 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
+                        parameters = (
+                            fc = fc,
+                            n2r = n2r,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            factor = factor,
+                            dklm = dklm,
+                            dens = rays.dens[r, i, j, k],
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
+                            iray = iray,
+                            jray = jray,
+                            kray = kray,
+                        )
+
                         compute_gw_tracer_integrals!(
                             state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            xr,
-                            yr,
-                            zr,
-                            iray,
-                            jray,
-                            kray,
+                            LeadingOrder(),
+                            parameters,
                         )
                     end
                 end
@@ -313,13 +366,14 @@ end
 
 @ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
     (; domain, grid) = state
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) =
+        state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; rhobar, thetabar) = state.atmosphere
+    (; n2, rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -407,11 +461,14 @@ end
                         ),
                     )
 
-                    ko != 0 &&
+                    (ko != 0 || vertical_boundary_condition === :Periodic) &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
-                    ko + nz != z_size &&
+                    (
+                            ko + nz != z_size ||
+                            vertical_boundary_condition === :Periodic
+                        ) &&
                         k < k1 &&
                         kmax > k1 &&
                         error("Vertical index is too large!")
@@ -494,6 +551,7 @@ end
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
+    (; n2) = state.atmosphere
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -601,6 +659,178 @@ end
                             iray,
                             jray,
                             kray,
+                        )
+                    end
+                end
+            end
+        end
+    end
+
+    return
+end
+
+function compute_gw_integrals!(state::State, dt::AbstractFloat)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup compute_gw_integrals!(state, dt, Val(tracer_setup))
+    return
+end
+
+function compute_gw_integrals!(
+    state::State,
+    dt::AbstractFloat,
+    tracer_setup::Val{:NoTracer},
+)
+    return
+end
+
+@ivy function compute_gw_integrals!(
+    state::State,
+    dt::AbstractFloat,
+    tracer_setup::Val{:TracerOn},
+)
+    (; next_order_impact) = state.namelists.tracer
+    (; domain, grid) = state
+    (; x_size, y_size, z_size, vertical_boundary_condition) =
+        state.namelists.domain
+    (; coriolis_frequency) = state.namelists.atmosphere
+    (; branch) = state.namelists.wkb
+    (; tref) = state.constants
+    (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
+    (; dx, dy, dz, x, y, zctilde, jac) = grid
+    (; nray, rays) = state.wkb
+
+    if !next_order_impact
+        return
+    end
+
+    # Set Coriolis parameter.
+    fc = coriolis_frequency * tref
+
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
+                continue
+            end
+
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
+
+            dxr = rays.dxray[r, i, j, k]
+            dyr = rays.dyray[r, i, j, k]
+            dzr = rays.dzray[r, i, j, k]
+
+            kr = rays.k[r, i, j, k]
+            lr = rays.l[r, i, j, k]
+            mr = rays.m[r, i, j, k]
+
+            dkr = rays.dkray[r, i, j, k]
+            dlr = rays.dlray[r, i, j, k]
+            dmr = rays.dmray[r, i, j, k]
+
+            khr = sqrt(kr^2 + lr^2)
+
+            n2r = interpolate_stratification(zr, state, N2())
+
+            omir = branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+
+            cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+            cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+            cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
+
+            (imin, imax, jmin, jmax) =
+                compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+
+            for iray in imin:imax
+                if x_size > 1
+                    dxi = (
+                        min(xr + dxr / 2, x[iray] + dx / 2) -
+                        max(xr - dxr / 2, x[iray] - dx / 2)
+                    )
+
+                    fcpspx = dkr * dxi / dx
+                else
+                    fcpspx = 1.0
+                end
+
+                for jray in jmin:jmax
+                    if y_size > 1
+                        dyi = (
+                            min(yr + dyr / 2, y[jray] + dy / 2) -
+                            max(yr - dyr / 2, y[jray] - dy / 2)
+                        )
+
+                        fcpspy = dlr * dyi / dy
+                    else
+                        fcpspy = 1.0
+                    end
+
+                    kmin = max(
+                        k0,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr - dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
+                    )
+                    kmax = min(
+                        k1,
+                        get_next_half_level(
+                            iray,
+                            jray,
+                            zr + dzr / 2,
+                            state;
+                            dkd = 1,
+                        ),
+                    )
+
+                    (ko != 0 || vertical_boundary_condition === :Periodic) &&
+                        k > k0 &&
+                        kmin < k0 &&
+                        error("Vertical index is too small!")
+                    (
+                            ko + nz != z_size ||
+                            vertical_boundary_condition === :Periodic
+                        ) &&
+                        k < k1 &&
+                        kmax > k1 &&
+                        error("Vertical index is too large!")
+
+                    for kray in kmin:kmax
+                        dzi =
+                            min((zr + dzr / 2), zctilde[iray, jray, kray]) -
+                            max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
+
+                        fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
+
+                        wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
+
+                        parameters = (
+                            fc = fc,
+                            n2r = n2r,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            factor = fcpspx * fcpspy * fcpspz,
+                            dens = rays.dens[r, i, j, k],
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
+                            iray = iray,
+                            jray = jray,
+                            kray = kray,
+                            dt = dt,
+                        )
+
+                        compute_gw_tracer_integrals!(
+                            state,
+                            NextOrder(),
+                            parameters,
                         )
                     end
                 end

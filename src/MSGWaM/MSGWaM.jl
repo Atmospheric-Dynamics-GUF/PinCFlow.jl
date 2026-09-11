@@ -46,6 +46,10 @@ export apply_saturation_scheme!,
     propagate_rays!,
     set_boundary_rays!,
     shift_rays!,
-    split_rays!
+    split_rays!,
+    compute_gw_integrals!,
+    smoothing!
+
+export Integrals, LeadingOrder, NextOrder
 
 end

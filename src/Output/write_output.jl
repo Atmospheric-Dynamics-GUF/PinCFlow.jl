@@ -60,11 +60,19 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:dchidt0`: Leading-order tracer impact of unresolved gravity waves.
 
-  - `:uchi0`: Zonal tracer fluxes due to unresolved gravity waves.
+  - `:uchi0`: Leading-order zonal tracer fluxes due to unresolved gravity waves.
 
-  - `:vchi0`: Meridional tracer fluxes due to unresolved gravity waves.
+  - `:vchi0`: Leading-order meridional tracer fluxes due to unresolved gravity waves.
 
-  - `:wchi0`: Vertical tracer fluxes due to unresolved gravity waves.
+  - `:wchi0`: Leading-order vertical tracer fluxes due to unresolved gravity waves.
+
+  - `:dchidt1`: Next-order tracer impact of unresolved gravity waves.
+
+  - `:uchi1`: Next-order zonal tracer fluxes due to unresolved gravity waves.
+
+  - `:vchi1`: Next-order meridional tracer fluxes due to unresolved gravity waves.
+
+  - `:wchi1`: Next-order vertical tracer fluxes due to unresolved gravity waves.
 
   - `:tke`: Turbulent kinetic energy.
 
@@ -103,7 +111,8 @@ function write_output end
     machine_start_time::DateTime,
 )::Integer
     (; domain, grid) = state
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) =
+        state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model) = state.namelists.atmosphere
@@ -115,6 +124,9 @@ function write_output end
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
     (; bins, rays, tendencies, integrals) = state.wkb
+    (; tracer_setup, leading_order_impact, next_order_impact) =
+        state.namelists.tracer
+    (; turbulence_scheme) = state.namelists.turbulence
 
     # Print information.
     if master
@@ -139,7 +151,7 @@ function write_output end
     end
 
     # Define slices.
-    dk0 = ko == 0 ? 1 : 0
+    dk0 = (ko == 0 && vertical_boundary_condition === :SolidWall) ? 1 : 0
     (rr, ii, jj, kk, kkr) = (1:bins, i0:i1, j0:j1, k0:k1, (k0 - dk0):k1)
     (iid, jjd, kkd, kkrd) = (
         (io + 1):(io + nx),
@@ -297,7 +309,7 @@ function write_output end
             file["pip"][iid, jjd, kkd, iout] = pip[ii, jj, kk]
         end
 
-        if state.namelists.tracer.tracer_setup !== :NoTracer
+        if tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 HDF5.set_extent_dims(
                     file[string(field)],
@@ -311,56 +323,92 @@ function write_output end
                     ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :dchidt0 in output_variables
-                HDF5.set_extent_dims(
-                    file["dchidt0"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["dchidt0"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] ./
-                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+            if leading_order_impact && wkb_mode !== :NoWKB
+                if :dchidt0 in output_variables
+                    HDF5.set_extent_dims(
+                        file["dchidt0"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["dchidt0"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] ./
+                        tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                end
+
+                if :uchi0 in output_variables
+                    HDF5.set_extent_dims(
+                        file["uchi0"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["uchi0"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] .*
+                        uref ./ rhobar[ii, jj, kk]
+                end
+
+                if :vchi0 in output_variables
+                    HDF5.set_extent_dims(
+                        file["vchi0"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["vchi0"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] .*
+                        uref ./ rhobar[ii, jj, kk]
+                end
+
+                if :wchi0 in output_variables
+                    HDF5.set_extent_dims(
+                        file["wchi0"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["wchi0"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] .*
+                        uref ./ rhobar[ii, jj, kk]
+                end
             end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :uchi0 in output_variables
-                HDF5.set_extent_dims(
-                    file["uchi0"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["uchi0"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] .* uref ./
-                    rhobar[ii, jj, kk]
-            end
+            if next_order_impact && wkb_mode !== :NoWKB
+                if :dchidt1 in output_variables
+                    HDF5.set_extent_dims(
+                        file["dchidt1"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["dchidt1"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbtendencies.dchidt1[ii, jj, kk] ./
+                        tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :vchi0 in output_variables
-                HDF5.set_extent_dims(
-                    file["vchi0"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["vchi0"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] .* uref ./
-                    rhobar[ii, jj, kk]
-            end
+                if :uchi1 in output_variables
+                    HDF5.set_extent_dims(
+                        file["uchi1"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["uchi1"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbintegrals.uchi1[ii, jj, kk] .*
+                        uref
+                end
 
-            if state.namelists.tracer.leading_order_impact &&
-               wkb_mode !== :NoWKB &&
-               :wchi0 in output_variables
-                HDF5.set_extent_dims(
-                    file["wchi0"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["wchi0"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] .* uref ./
-                    rhobar[ii, jj, kk]
+                if :vchi1 in output_variables
+                    HDF5.set_extent_dims(
+                        file["vchi1"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["vchi1"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbintegrals.vchi1[ii, jj, kk] .*
+                        uref
+                end
+
+                if :wchi1 in output_variables
+                    HDF5.set_extent_dims(
+                        file["wchi1"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["wchi1"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbintegrals.wchi1[ii, jj, kk] .*
+                        uref
+                end
             end
         end
 
-        if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
+        if turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 HDF5.set_extent_dims(
                     file["tke"],
@@ -477,7 +525,9 @@ function write_output end
             end
 
             # Write elastic-mode-selection data.
-            if elastic_mode_selection && ko == 0
+            if elastic_mode_selection &&
+               ko == 0 &&
+               vertical_boundary_condition === :SolidWall
                 for field in (:launch_mode_count, :launch_power_fraction)
                     if field in output_variables
                         HDF5.set_extent_dims(
