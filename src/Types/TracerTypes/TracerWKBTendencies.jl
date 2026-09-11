@@ -72,10 +72,9 @@ Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `stat
 """
 struct TracerWKBTendencies{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
 }
     dchidt0::A
-    dchidt1::B
+    dchidt1::A
 end
 
 function TracerWKBTendencies(

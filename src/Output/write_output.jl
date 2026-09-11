@@ -383,7 +383,7 @@ function write_output end
                     )
                     file["uchi1"][iid, jjd, kkd, iout] =
                         state.tracer.tracerwkbintegrals.uchi1[ii, jj, kk] .*
-                        uref ./ rhobar[ii, jj, kk]
+                        uref
                 end
 
                 if :vchi1 in output_variables
@@ -393,7 +393,7 @@ function write_output end
                     )
                     file["vchi1"][iid, jjd, kkd, iout] =
                         state.tracer.tracerwkbintegrals.vchi1[ii, jj, kk] .*
-                        uref ./ rhobar[ii, jj, kk]
+                        uref
                 end
 
                 if :wchi1 in output_variables
@@ -403,7 +403,7 @@ function write_output end
                     )
                     file["wchi1"][iid, jjd, kkd, iout] =
                         state.tracer.tracerwkbintegrals.wchi1[ii, jj, kk] .*
-                        uref ./ rhobar[ii, jj, kk]
+                        uref
                 end
             end
         end
