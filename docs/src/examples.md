@@ -182,6 +182,7 @@ function mountain_wave(;
     atmosphere = AtmosphereNamelist(;
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        kinematic_diffusivity = 2.0E-9,
     )
 
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
@@ -234,7 +235,7 @@ performs a 3D mountain-wave simulation. The surface topography is given by
 
 $$h \left(x, y\right) = \frac{h_0}{1 + \left(x^2 + y^2\right) / l_0^2},$$
 
-with $h_0 = 100 \ \mathrm{m}$ and $l_0 = 1 \ \mathrm{km}$. The atmosphere is isothermal, with the default temperature $T_0 = 300 \ \mathrm{K}$ and the initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \ \mathrm{m \ s^{- 1}}$.
+with $h_0 = 100 \ \mathrm{m}$ and $l_0 = 1 \ \mathrm{km}$. The atmosphere is isothermal, with the default temperature $T_0 = 300 \ \mathrm{K}$, with kinematic diffusivity of $\mu = 2 \ 10^{- 9} \ \mathrm{m^2 \ s^{- 1}}$ and initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \ \mathrm{m \ s^{- 1}}$.
 
 Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge defined by
 
