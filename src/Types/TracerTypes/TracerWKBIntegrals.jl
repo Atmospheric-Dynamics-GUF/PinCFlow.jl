@@ -68,6 +68,8 @@ Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state
 
   - `wchi1::A`: Next-order vertical tracer fluxes.
 
+  - `qchi::A`: Turbulence wave tracer fluxes.
+
   - `uhat::B`: Leading-order zonal wind amplitude of unresolved gravity waves.
 
   - `vhat::B`: Leading-order meridional wind amplitude of unresolved gravity waves.
@@ -110,6 +112,7 @@ struct TracerWKBIntegrals{
     uchi1::A
     vchi1::A
     wchi1::A
+    qchi::A
     uhat::B
     vhat::B
     what::B
@@ -142,7 +145,7 @@ function TracerWKBIntegrals(
     tracer_setup::Val{:NoTracer},
 )::TracerWKBIntegrals
     return TracerWKBIntegrals(
-        [zeros(0, 0, 0) for i in 1:6]...,
+        [zeros(0, 0, 0) for i in 1:7]...,
         [zeros(ComplexF64, 0, 0, 0) for i in 1:11]...,
     )
 end
@@ -167,7 +170,7 @@ function TracerWKBIntegrals(
     wkb_mode::Val{:NoWKB},
 )::TracerWKBIntegrals
     return TracerWKBIntegrals(
-        [zeros(0, 0, 0) for i in 1:6]...,
+        [zeros(0, 0, 0) for i in 1:7]...,
         [zeros(ComplexF64, 0, 0, 0) for i in 1:11]...,
     )
 end
@@ -178,7 +181,7 @@ function TracerWKBIntegrals(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBIntegrals
     (; nxx, nyy, nzz) = domain
-    (; leading_order_impact, next_order_impact) = namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) = namelists.tracer
 
     if leading_order_impact
         nxl = nxx
@@ -200,9 +203,16 @@ function TracerWKBIntegrals(
         nzn = 0
     end
 
+    if turbulence_wave_impact
+        qchi = zeros(nxx, nyy, nzz)
+    else
+        qchi = zeros(0, 0, 0)
+    end
+
     return TracerWKBIntegrals(
         [zeros(nxl, nyl, nzl) for i in 1:3]...,
         [zeros(nxn, nyn, nzn) for i in 1:3]...,
+        qchi,
         [zeros(ComplexF64, nxn, nyn, nzn) for i in 1:11]...,
     )
 end

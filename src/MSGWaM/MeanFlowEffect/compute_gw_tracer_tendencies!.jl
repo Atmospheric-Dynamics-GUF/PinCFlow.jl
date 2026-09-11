@@ -43,21 +43,29 @@ with leading-order impact
 \\begin{align*}
     \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)^{(0)}_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\bar{\\rho}}\\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
     & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
-    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] 
+    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(0)}\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right],
 \\end{align*}
 ```
 
-and next-order impact
+next-order impact
 
 ```math
 \\begin{align*}
     \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)^{(1)}_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{2\\bar{\\rho}\\bar{\\theta}}\\left[\\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{i + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
     & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{j + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
-    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] .
+    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(1)}\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right],
 \\end{align*}
 ```
 
-Here, ``\\chi_\\mathrm{b}`` is the resolved tracer and ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``). For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref).
+and turbulence wave impact 
+
+```math 
+\\begin{align*}
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\chi_\\mathrm{b}}{\\partial t}\\right)_{\\mathrm{w}, \\mathrm{turbulence}} & = - \\frac{\\rho_\\mathrm{b}l_b}{2}\\left\\langle \\tilde{q} \\tilde{\\chi} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho}\\bar{\\theta} \\left\\langle \\tilde{q} \\tilde{\\chi} \\right\\rangle\\right)_{k - 1}}{2 J \\Delta \\hat{z}}
+\\end{align*}
+```
+
+Here, ``\\chi_\\mathrm{b}`` is the resolved tracer, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``), and ``l_b`` is the turbulence length scale stored in `state.turbulence.turbulenceconstants.lb`. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref). 
 
 # Arguments
 
@@ -110,16 +118,15 @@ end
 )
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
-    (; uchi0, vchi0, wchi0, uchi1, vchi1, wchi1) =
+    (; uchi0, vchi0, wchi0, uchi1, vchi1, wchi1, qchi) =
         state.tracer.tracerwkbintegrals
-    (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
+    (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar, thetabar) = state.atmosphere
-    (; leading_order_impact, next_order_impact) = state.namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) = state.namelists.tracer
+    (; lb) = state.turbulence.turbulenceconstants
 
     if leading_order_impact
-        dchidt0[i, j, k] = 0.0
-
         if x_size > 1
             dchiu0 =
                 (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
@@ -148,8 +155,6 @@ end
     end
 
     if next_order_impact
-        dchidt1[i, j, k] = 0.0
-
         if x_size > 1
             dchiu1 =
                 (
@@ -208,6 +213,12 @@ end
             -(rho[i, j, k] + rhobar[i, j, k]) /
             (2 * rhobar[i, j, k] * thetabar[i, j, k]) *
             (dchiu1 + dchiv1 + dchiw1)
+    end
+
+    if turbulence_wave_impact
+        dchidtq[i, j, k] =
+            - lb / 2 * (qchi[i, j, k + 1] - qchi[i, j, k - 1]) /
+            (2.0 * jac[i, j, k] * dz)
     end
 
     return

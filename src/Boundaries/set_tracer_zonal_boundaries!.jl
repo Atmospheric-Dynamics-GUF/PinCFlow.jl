@@ -161,7 +161,8 @@ function set_tracer_zonal_boundaries!(
 )
     (; namelists, domain) = state
     (; tracerwkbintegrals) = state.tracer
-    (; leading_order_impact, next_order_impact) = namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
+        namelists.tracer
 
     if leading_order_impact
         for field in (:uchi0, :vchi0, :wchi0)
@@ -195,6 +196,15 @@ function set_tracer_zonal_boundaries!(
         end
     end
 
+    if turbulence_wave_impact
+        set_zonal_boundaries_of_field!(
+            tracerwkbintegrals.qchi,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
+
     return
 end
 
@@ -204,8 +214,9 @@ function set_tracer_zonal_boundaries!(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; namelists, domain) = state
-    (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
-    (; leading_order_impact, next_order_impact) = namelists.tracer
+    (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
+        namelists.tracer
 
     if leading_order_impact
         set_zonal_boundaries_of_field!(
@@ -219,6 +230,15 @@ function set_tracer_zonal_boundaries!(
     if next_order_impact
         set_zonal_boundaries_of_field!(
             dchidt1,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
+
+    if turbulence_wave_impact
+        set_zonal_boundaries_of_field!(
+            dchidtq,
             namelists,
             domain;
             layers = (1, 1, 1),

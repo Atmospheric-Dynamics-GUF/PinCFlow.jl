@@ -181,9 +181,10 @@ end
     parameters::NamedTuple,
     tracer_setup::Val{:TracerOn},
 )
-    (; uchi0, vchi0, wchi0, uhat, vhat, what, bhat, pihat, chihat) =
+    (; uchi0, vchi0, wchi0, qchi, uhat, vhat, what, bhat, pihat, chihat) =
         state.tracer.tracerwkbintegrals
-    (; leading_order_impact, next_order_impact) = state.namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
+        state.namelists.tracer
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; thetabar, rhobar) = state.atmosphere
@@ -204,10 +205,16 @@ end
         jray,
         kray,
         n2r,
+        r,
+        i,
+        j,
+        k,
     ) = parameters
     (; kappa) = state.constants
 
-    if (fc != 0.0 && leading_order_impact) || next_order_impact
+    if (fc != 0.0 && leading_order_impact) ||
+       next_order_impact ||
+       turbulence_wave_impact
         dchidx =
             interpolate_scalar(state, xr, yr, zr, chi ./ (rho .+ rhobar), DX())
         dchidy =
@@ -254,6 +261,28 @@ end
             -1im / omir *
             (uamp * dchidx + vamp * dchidy + wamp * dchidz) *
             factor
+    end
+
+    if turbulence_wave_impact
+        bamp =
+            sqrt(
+                dklm * dens / rhobar[iray, jray, kray] *
+                2 *
+                n2r^2 *
+                (kr^2 + lr^2) / (omir * (kr^2 + lr^2 + mr^2)),
+            ) / 2
+        uamp =
+            1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
+            (kr * omir + 1im * lr * fc) *
+            bamp
+        vamp =
+            1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
+            (lr * omir - 1im * kr * fc) *
+            bamp
+        wamp = 1im * omir / n2r * bamp
+        chiamp = -1im / omir * (uamp * dchidx + vamp * dchidy + wamp * dchidz)
+        q0r, q1r, q2r = compute_turbulent_velocity(state, r, i, j, k)
+        qchi[iray, jray, kray] += imag(mr * conj(q1r) * chiamp) * factor
     end
 
     return

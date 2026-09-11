@@ -27,6 +27,7 @@ using LinearAlgebra
 using ..BlockedLayer
 using ..Interpolation
 using ..RayUpdate
+using ..RayOperations
 using ...Macros
 using ...Types
 using ...Boundaries

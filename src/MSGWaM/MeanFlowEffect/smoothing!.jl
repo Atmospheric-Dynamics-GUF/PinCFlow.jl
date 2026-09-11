@@ -473,8 +473,8 @@ function smoothing!(
 )
     (; x_size, y_size) = state.namelists.domain
     (; filter_type) = state.namelists.wkb
-    (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
-    (; leading_order_impact, next_order_impact) = state.namelists.tracer
+    (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) = state.namelists.tracer
 
     if leading_order_impact
         @dispatch_filter_type if x_size == y_size == 1
@@ -497,6 +497,18 @@ function smoothing!(
             smoothing!(dchidt1, state, Val(filter_type), XZ())
         else
             smoothing!(dchidt1, state, Val(filter_type), XYZ())
+        end
+    end
+
+    if turbulence_wave_impact
+        @dispatch_filter_type if x_size == y_size == 1
+            smoothing!(dchidtq, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smoothing!(dchidtq, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smoothing!(dchidtq, state, Val(filter_type), XZ())
+        else
+            smoothing!(dchidtq, state, Val(filter_type), XYZ())
         end
     end
 end

@@ -60,6 +60,8 @@ Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `stat
 
   - `dchidt1::A`: Next-order tracer impact of unresolved gravity waves.
 
+  - `dchidtq::A`: Turbulence tracer impact of unresolved gravity waves.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -72,10 +74,10 @@ Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `stat
 """
 struct TracerWKBTendencies{
     A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
 }
     dchidt0::A
-    dchidt1::B
+    dchidt1::A
+    dchidtq::A
 end
 
 function TracerWKBTendencies(
@@ -96,7 +98,7 @@ function TracerWKBTendencies(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBTendencies
-    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:2]...)
+    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TracerWKBTendencies(
@@ -118,7 +120,7 @@ function TracerWKBTendencies(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBTendencies
-    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:2]...)
+    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:3]...)
 end
 
 function TracerWKBTendencies(
@@ -127,7 +129,7 @@ function TracerWKBTendencies(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBTendencies
     (; nxx, nyy, nzz) = domain
-    (; leading_order_impact, next_order_impact) = namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) = namelists.tracer
 
     if leading_order_impact
         dchidt0 = zeros(nxx, nyy, nzz)
@@ -139,6 +141,11 @@ function TracerWKBTendencies(
     else
         dchidt1 = zeros(0, 0, 0)
     end
+    if turbulence_wave_impact
+        dchidtq = zeros(nxx, nyy, nzz)
+    else 
+        dchidtq = zeros(0, 0, 0)
+    end
 
-    return TracerWKBTendencies(dchidt0, dchidt1)
+    return TracerWKBTendencies(dchidt0, dchidt1, dchidtq)
 end

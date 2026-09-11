@@ -21,8 +21,12 @@ function create_output(state::State, machine_start_time::DateTime)
     (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
     (; comm, master) = state.domain
     (; bins) = state.wkb
-    (; tracer_setup, leading_order_impact, next_order_impact) =
-        state.namelists.tracer
+    (;
+        tracer_setup,
+        leading_order_impact,
+        next_order_impact,
+        turbulence_wave_impact,
+    ) = state.namelists.tracer
     (; turbulence_scheme) = state.namelists.turbulence
 
     # Set the chunk dimensions.
@@ -454,6 +458,34 @@ function create_output(state::State, machine_start_time::DateTime)
                     )
                 end
             end
+
+            if turbulence_wave_impact && wkb_mode !== :NoWKB
+                if :dchidtq in output_variables
+                    create_dataset(
+                        file,
+                        "dchidtq",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :qchi in output_variables
+                    create_dataset(
+                        file,
+                        "qchi",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
         end
 
         if turbulence_scheme !== :NoTurbulence
@@ -787,6 +819,23 @@ function create_output(state::State, machine_start_time::DateTime)
                     attributes(
                         file["wchi1"],
                     )["long_name"] = "next-order vertical GW-tracer flux"
+                end
+            end
+
+            if turbulence_wave_impact && wkb_mode !== :NoWKB
+                if :dchidtq in output_variables
+                    attributes(file["dchidtq"])["units"] = "s^-1"
+                    attributes(file["dchidtq"])["label"] =
+                        L"(\partial_t \chi_\mathrm{b})_{\mathrm{w}, \mathrm{turbulence}}\ [\mathrm{s^{-1}}]"
+                    attributes(
+                        file["dchidtq"],
+                    )["long_name"] = "turbulent GW-tracer flux convergence"
+                end
+                if :qchi in output_variables
+                    attributes(file["qchi"])["units"] = "m*s^-1"
+                    attributes(file["qchi"])["label"] =
+                        L"\langle \\tilde{q} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]"
+                    attributes(file["qchi"])["long_name"] = "turbulent GW-tracer flux"
                 end
             end
         end

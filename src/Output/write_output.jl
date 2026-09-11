@@ -124,8 +124,12 @@ function write_output end
     (; predictands) = state.variables
     (; rho, rhop, u, v, w, pip, p) = predictands
     (; bins, rays, tendencies, integrals) = state.wkb
-    (; tracer_setup, leading_order_impact, next_order_impact) =
-        state.namelists.tracer
+    (;
+        tracer_setup,
+        leading_order_impact,
+        next_order_impact,
+        turbulence_wave_impact,
+    ) = state.namelists.tracer
     (; turbulence_scheme) = state.namelists.turbulence
 
     # Print information.
@@ -403,6 +407,28 @@ function write_output end
                     )
                     file["wchi1"][iid, jjd, kkd, iout] =
                         state.tracer.tracerwkbintegrals.wchi1[ii, jj, kk] .*
+                        uref ./ rhobar[ii, jj, kk]
+                end
+            end
+
+            if turbulence_wave_impact && wkb_mode !== :NoWKB
+                if :dchidtq in output_variables
+                    HDF5.set_extent_dims(
+                        file["dchidtq"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["dchidtq"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbtendencies.dchidtq[ii, jj, kk] ./
+                        tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                end
+
+                if :qchi in output_variables
+                    HDF5.set_extent_dims(
+                        file["qchi"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["qchi"][iid, jjd, kkd, iout] =
+                        state.tracer.tracerwkbintegrals.qchi[ii, jj, kk] .*
                         uref ./ rhobar[ii, jj, kk]
                 end
             end

@@ -340,6 +340,10 @@ end
                             iray = iray,
                             jray = jray,
                             kray = kray,
+                            r = r, 
+                            i = i,
+                            j = j,
+                            k = k,
                         )
 
                         compute_gw_tracer_integrals!(
