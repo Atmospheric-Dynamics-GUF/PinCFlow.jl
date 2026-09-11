@@ -79,7 +79,19 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 compute_gw_integrals!(state::State, dt::AbstractFloat)
 ```
 
-Compute the next-order gravity-wave integrals needed for the computation of the impact on tracer transport.
+Compute the next-order gravity-wave integrals by dispatching to the tracer-setup specific configuration. 
+
+```julia
+compute_gw_integrals!(state::State, dt::AbstractFloat, tracer_setup::Val{:NoTracer})
+```
+
+Return for configurations without tracer transport.
+
+```julia
+compute_gw_integrals!(state::State, dt::AbstractFloat, tracer_setup::Val{:TracerOn})
+```
+
+Compute the next-order gravity-wave tracer integrals.
 
 # Arguments
 
@@ -88,6 +100,8 @@ Compute the next-order gravity-wave integrals needed for the computation of the 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
   - `dt`: Time step.
+
+  - `tracer_setup`: General tracer-transport configuration.
 
 # See also
 
@@ -648,18 +662,28 @@ end
 end
 
 function compute_gw_integrals!(state::State, dt::AbstractFloat)
-    (; tracer_setup, next_order_impact) = state.namelists.tracer
+    (; tracer_setup) = state.namelists.tracer 
+
+    @dispatch_tracer_setup compute_gw_integrals!(state, dt, Val(tracer_setup))
+    return 
+end
+
+function compute_gw_integrals!(state::State, dt::AbstractFloat, tracer_setup::Val{:NoTracer})
+    return 
+end
+
+@ivy function compute_gw_integrals!(state::State, dt::AbstractFloat, tracer_setup::Val{:TracerOn})
+    (; next_order_impact) = state.namelists.tracer
     (; domain, grid) = state
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
-    (; tref, g_ndim) = state.constants
+    (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; n2, rhobar, thetabar) = state.atmosphere
-    (; nray, rays, integrals) = state.wkb
+    (; nray, rays) = state.wkb
 
-    if tracer_setup !== :TracerOn || !next_order_impact
+    if !next_order_impact
         return
     end
 
@@ -746,11 +770,14 @@ function compute_gw_integrals!(state::State, dt::AbstractFloat)
                         ),
                     )
 
-                    ko != 0 &&
+                    (ko != 0 || vertical_boundary_condition === :Periodic) &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
-                    ko + nz != z_size &&
+                    (
+                            ko + nz != z_size ||
+                            vertical_boundary_condition === :Periodic
+                        ) &&
                         k < k1 &&
                         kmax > k1 &&
                         error("Vertical index is too large!")
