@@ -72,9 +72,7 @@ Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `stat
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TracerWKBTendencies{
-    A <: AbstractArray{<:AbstractFloat, 3},
-}
+struct TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dchidt0::A
     dchidt1::A
     dchidtq::A
@@ -129,7 +127,8 @@ function TracerWKBTendencies(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBTendencies
     (; nxx, nyy, nzz) = domain
-    (; leading_order_impact, next_order_impact, turbulence_wave_impact) = namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
+        namelists.tracer
 
     if leading_order_impact
         dchidt0 = zeros(nxx, nyy, nzz)
@@ -143,7 +142,7 @@ function TracerWKBTendencies(
     end
     if turbulence_wave_impact
         dchidtq = zeros(nxx, nyy, nzz)
-    else 
+    else
         dchidtq = zeros(0, 0, 0)
     end
 

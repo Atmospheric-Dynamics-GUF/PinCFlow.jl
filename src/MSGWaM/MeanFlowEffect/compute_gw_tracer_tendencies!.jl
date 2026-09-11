@@ -123,7 +123,8 @@ end
     (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands
     (; rhobar, thetabar) = state.atmosphere
-    (; leading_order_impact, next_order_impact, turbulence_wave_impact) = state.namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
+        state.namelists.tracer
     (; lb) = state.turbulence.turbulenceconstants
 
     if leading_order_impact
@@ -217,7 +218,7 @@ end
 
     if turbulence_wave_impact
         dchidtq[i, j, k] =
-            - lb / 2 * (qchi[i, j, k + 1] - qchi[i, j, k - 1]) /
+            -lb / 2 * (qchi[i, j, k + 1] - qchi[i, j, k - 1]) /
             (2.0 * jac[i, j, k] * dz)
     end
 

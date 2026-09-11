@@ -296,7 +296,8 @@ end
     variable::Chi,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; leading_order_impact, next_order_impact, turbulence_wave_impact) = state.namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
+        state.namelists.tracer
     (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
     (; model) = state.namelists.atmosphere
 

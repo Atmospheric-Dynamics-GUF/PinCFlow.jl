@@ -181,7 +181,8 @@ function TracerWKBIntegrals(
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TracerWKBIntegrals
     (; nxx, nyy, nzz) = domain
-    (; leading_order_impact, next_order_impact, turbulence_wave_impact) = namelists.tracer
+    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
+        namelists.tracer
 
     if leading_order_impact
         nxl = nxx

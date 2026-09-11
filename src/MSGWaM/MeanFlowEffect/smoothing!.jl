@@ -22,21 +22,13 @@ smoothing!(
 Return for configurations without tracer transport.
 
 ```julia
-smoothing!(
-    state::State,
-    variables::Tendencies,
-    tracer_setup::Val{:TracerOn},
-)
+smoothing!(state::State, variables::Tendencies, tracer_setup::Val{:TracerOn})
 ```
 
 Apply smoothing to tracer tendencies.
 
 ```julia
-smoothing!(
-    state::State,
-    variables::Integrals,
-    tracer_setup::Val{:TracerOn},
-)
+smoothing!(state::State, variables::Integrals, tracer_setup::Val{:TracerOn})
 ```
 
 Apply smoothing to gravity wave amplitudes.
