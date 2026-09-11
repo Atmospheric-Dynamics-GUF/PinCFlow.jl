@@ -376,7 +376,7 @@ $$m_\alpha = - \mathrm{sgn} \left(\hat{\omega}_\alpha\right) \sqrt{\frac{\left(k
 
 ### Tracer fluxes
 
-The leading- and next-order tracer fluxes due to unresolved gravity waves, based on [Knop et al., 2026](https://doi.org/10.1002/qj.70091), are given by
+The leading- and next-order tracer fluxes due to unresolved gravity waves, based on [Knop et al. (2026)](https://doi.org/10.1002/qj.70091), are given by
 
 $$\begin{align*}
     \bar{\rho} \left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle^{(0)} & = f \int \frac{m}{\hat{\omega} \left|\boldsymbol{k}\right|^2} \boldsymbol{k} \times \begin{pmatrix}
