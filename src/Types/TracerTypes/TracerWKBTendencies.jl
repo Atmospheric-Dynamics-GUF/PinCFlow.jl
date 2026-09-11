@@ -70,9 +70,7 @@ Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `stat
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TracerWKBTendencies{
-    A <: AbstractArray{<:AbstractFloat, 3},
-}
+struct TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dchidt0::A
     dchidt1::A
 end

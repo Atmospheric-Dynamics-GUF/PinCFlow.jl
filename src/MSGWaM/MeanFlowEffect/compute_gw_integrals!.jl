@@ -82,13 +82,21 @@ compute_gw_integrals!(state::State, dt::AbstractFloat)
 Compute the next-order gravity-wave integrals by dispatching to the tracer-setup specific configuration. 
 
 ```julia
-compute_gw_integrals!(state::State, dt::AbstractFloat, tracer_setup::Val{:NoTracer})
+compute_gw_integrals!(
+    state::State,
+    dt::AbstractFloat,
+    tracer_setup::Val{:NoTracer},
+)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-compute_gw_integrals!(state::State, dt::AbstractFloat, tracer_setup::Val{:TracerOn})
+compute_gw_integrals!(
+    state::State,
+    dt::AbstractFloat,
+    tracer_setup::Val{:TracerOn},
+)
 ```
 
 Compute the next-order gravity-wave tracer integrals.
@@ -662,20 +670,29 @@ end
 end
 
 function compute_gw_integrals!(state::State, dt::AbstractFloat)
-    (; tracer_setup) = state.namelists.tracer 
+    (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup compute_gw_integrals!(state, dt, Val(tracer_setup))
-    return 
+    return
 end
 
-function compute_gw_integrals!(state::State, dt::AbstractFloat, tracer_setup::Val{:NoTracer})
-    return 
+function compute_gw_integrals!(
+    state::State,
+    dt::AbstractFloat,
+    tracer_setup::Val{:NoTracer},
+)
+    return
 end
 
-@ivy function compute_gw_integrals!(state::State, dt::AbstractFloat, tracer_setup::Val{:TracerOn})
+@ivy function compute_gw_integrals!(
+    state::State,
+    dt::AbstractFloat,
+    tracer_setup::Val{:TracerOn},
+)
     (; next_order_impact) = state.namelists.tracer
     (; domain, grid) = state
-    (; x_size, y_size, z_size, vertical_boundary_condition) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) =
+        state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; tref) = state.constants

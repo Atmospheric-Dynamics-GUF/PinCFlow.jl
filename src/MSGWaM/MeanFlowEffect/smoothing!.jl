@@ -1,9 +1,41 @@
 """
 ```julia
-smoothing!(state::State)
+smoothing!(state::State, variables::Tendencies)
 ```
 
 Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.filter_type`) and dimensionality of the domain.
+
+```julia
+smoothing!(state::State, variables::Integrals)
+```
+
+Apply spatial smoothing to gravity-wave integrals by dispatching to configuration-specific methods.
+
+```julia
+smoothing!(state::State, variables::Tendencies, tracer_setup::Val{:TracerOn})
+```
+
+Apply smoothing to tracer tendencies.
+
+```julia 
+smoothing!(
+    state::State,
+    variables::Integrals,
+    tracer_setup::Val{:TracerOn},
+)
+```
+
+Apply smoothing to gravity wave amplitudes.
+
+```julia
+smoothing!(
+    state::State,
+    variables::Union{Tendencies, Integrals},
+    tracer_setup::Val{:NoTracer},
+)
+```
+
+Return for configurations without tracer transport.
 
 ```julia
 smoothing!(
@@ -153,18 +185,6 @@ smoothing!(
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
 
-```julia
-smoothing!(state::State, tracer_setup::Val{:TracerOn})
-```
-
-Apply smoothing to tracer tendencies.
-
-```julia
-smoothing!(state::State, tracer_setup::Val{:NoTracer})
-```
-
-Return for configurations without tracer transport.
-
 # Arguments
 
   - `state`: Model state.
@@ -213,6 +233,107 @@ function smoothing!(state::State, variables::Tendencies)
 
     @dispatch_tracer_setup smoothing!(state, variables, Val(tracer_setup))
 
+    return
+end
+
+function smoothing!(state::State, variables::Integrals)
+    (; smoothing) = state.namelists.wkb
+    (; tracer_setup) = state.namelists.tracer
+
+    if !smoothing
+        return
+    end
+
+    @dispatch_tracer_setup smoothing!(state, variables, Val(tracer_setup))
+
+    return
+end
+
+function smoothing!(
+    state::State,
+    variables::Tendencies,
+    tracer_setup::Val{:TracerOn},
+)
+    (; x_size, y_size) = state.namelists.domain
+    (; filter_type) = state.namelists.wkb
+    (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
+    (; leading_order_impact, next_order_impact) = state.namelists.tracer
+
+    if leading_order_impact
+        @dispatch_filter_type if x_size == y_size == 1
+            smoothing!(dchidt0, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smoothing!(dchidt0, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smoothing!(dchidt0, state, Val(filter_type), XZ())
+        else
+            smoothing!(dchidt0, state, Val(filter_type), XYZ())
+        end
+    end
+
+    if next_order_impact
+        @dispatch_filter_type if x_size == y_size == 1
+            smoothing!(dchidt1, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smoothing!(dchidt1, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smoothing!(dchidt1, state, Val(filter_type), XZ())
+        else
+            smoothing!(dchidt1, state, Val(filter_type), XYZ())
+        end
+    end
+end
+
+function smoothing!(
+    state::State,
+    variables::Integrals,
+    tracer_setup::Val{:TracerOn},
+)
+    (; x_size, y_size) = state.namelists.domain
+    (; filter_type) = state.namelists.wkb
+    (; uhat, vhat, what, bhat, pihat, chihat) = state.tracer.tracerwkbintegrals
+    (; next_order_impact) = state.namelists.tracer
+
+    if next_order_impact
+        @dispatch_filter_type if x_size == y_size == 1
+            smoothing!(uhat, state, Val(filter_type), Z())
+            smoothing!(vhat, state, Val(filter_type), Z())
+            smoothing!(what, state, Val(filter_type), Z())
+            smoothing!(bhat, state, Val(filter_type), Z())
+            smoothing!(pihat, state, Val(filter_type), Z())
+            smoothing!(chihat, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smoothing!(uhat, state, Val(filter_type), YZ())
+            smoothing!(vhat, state, Val(filter_type), YZ())
+            smoothing!(what, state, Val(filter_type), YZ())
+            smoothing!(bhat, state, Val(filter_type), YZ())
+            smoothing!(pihat, state, Val(filter_type), YZ())
+            smoothing!(chihat, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smoothing!(uhat, state, Val(filter_type), XZ())
+            smoothing!(vhat, state, Val(filter_type), XZ())
+            smoothing!(what, state, Val(filter_type), XZ())
+            smoothing!(bhat, state, Val(filter_type), XZ())
+            smoothing!(pihat, state, Val(filter_type), XZ())
+            smoothing!(chihat, state, Val(filter_type), XZ())
+        else
+            smoothing!(uhat, state, Val(filter_type), XYZ())
+            smoothing!(vhat, state, Val(filter_type), XYZ())
+            smoothing!(what, state, Val(filter_type), XYZ())
+            smoothing!(bhat, state, Val(filter_type), XYZ())
+            smoothing!(pihat, state, Val(filter_type), XYZ())
+            smoothing!(chihat, state, Val(filter_type), XYZ())
+        end
+    end
+
+    return
+end
+
+function smoothing!(
+    state::State,
+    variables::Union{Tendencies, Integrals},
+    tracer_setup::Val{:NoTracer},
+)
     return
 end
 
@@ -461,107 +582,6 @@ end
             i0:i1,
             Val(filter_order),
         )
-    end
-
-    return
-end
-
-function smoothing!(
-    state::State,
-    variables::Tendencies,
-    tracer_setup::Val{:TracerOn},
-)
-    (; x_size, y_size) = state.namelists.domain
-    (; filter_type) = state.namelists.wkb
-    (; dchidt0, dchidt1) = state.tracer.tracerwkbtendencies
-    (; leading_order_impact, next_order_impact) = state.namelists.tracer
-
-    if leading_order_impact
-        @dispatch_filter_type if x_size == y_size == 1
-            smoothing!(dchidt0, state, Val(filter_type), Z())
-        elseif x_size == 1
-            smoothing!(dchidt0, state, Val(filter_type), YZ())
-        elseif y_size == 1
-            smoothing!(dchidt0, state, Val(filter_type), XZ())
-        else
-            smoothing!(dchidt0, state, Val(filter_type), XYZ())
-        end
-    end
-
-    if next_order_impact
-        @dispatch_filter_type if x_size == y_size == 1
-            smoothing!(dchidt1, state, Val(filter_type), Z())
-        elseif x_size == 1
-            smoothing!(dchidt1, state, Val(filter_type), YZ())
-        elseif y_size == 1
-            smoothing!(dchidt1, state, Val(filter_type), XZ())
-        else
-            smoothing!(dchidt1, state, Val(filter_type), XYZ())
-        end
-    end
-end
-
-function smoothing!(
-    state::State,
-    variables::Union{Tendencies, Integrals},
-    tracer_setup::Val{:NoTracer},
-)
-    return
-end
-
-function smoothing!(state::State, variables::Integrals)
-    (; smoothing) = state.namelists.wkb
-    (; tracer_setup) = state.namelists.tracer
-
-    if !smoothing
-        return
-    end
-
-    @dispatch_tracer_setup smoothing!(state, variables, Val(tracer_setup))
-
-    return
-end
-
-function smoothing!(
-    state::State,
-    variables::Integrals,
-    tracer_setup::Val{:TracerOn},
-)
-    (; x_size, y_size) = state.namelists.domain
-    (; filter_type) = state.namelists.wkb
-    (; uhat, vhat, what, bhat, pihat, chihat) = state.tracer.tracerwkbintegrals
-    (; next_order_impact) = state.namelists.tracer
-
-    if next_order_impact
-        @dispatch_filter_type if x_size == y_size == 1
-            smoothing!(uhat, state, Val(filter_type), Z())
-            smoothing!(vhat, state, Val(filter_type), Z())
-            smoothing!(what, state, Val(filter_type), Z())
-            smoothing!(bhat, state, Val(filter_type), Z())
-            smoothing!(pihat, state, Val(filter_type), Z())
-            smoothing!(chihat, state, Val(filter_type), Z())
-        elseif x_size == 1
-            smoothing!(uhat, state, Val(filter_type), YZ())
-            smoothing!(vhat, state, Val(filter_type), YZ())
-            smoothing!(what, state, Val(filter_type), YZ())
-            smoothing!(bhat, state, Val(filter_type), YZ())
-            smoothing!(pihat, state, Val(filter_type), YZ())
-            smoothing!(chihat, state, Val(filter_type), YZ())
-        elseif y_size == 1
-            smoothing!(uhat, state, Val(filter_type), XZ())
-            smoothing!(vhat, state, Val(filter_type), XZ())
-            smoothing!(what, state, Val(filter_type), XZ())
-            smoothing!(bhat, state, Val(filter_type), XZ())
-            smoothing!(pihat, state, Val(filter_type), XZ())
-            smoothing!(chihat, state, Val(filter_type), XZ())
-        else
-            smoothing!(uhat, state, Val(filter_type), XYZ())
-            smoothing!(vhat, state, Val(filter_type), XYZ())
-            smoothing!(what, state, Val(filter_type), XYZ())
-            smoothing!(bhat, state, Val(filter_type), XYZ())
-            smoothing!(pihat, state, Val(filter_type), XYZ())
-            smoothing!(chihat, state, Val(filter_type), XYZ())
-        end
     end
 
     return
