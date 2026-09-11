@@ -624,9 +624,9 @@ function wkb_wave_vertical_periodicity(;
     plot_file::AbstractString = &quot;wkb_wave_vertical_periodicity.svg&quot;,
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    x_size::Integer = 40,
+    x_size::Integer = 10,
     y_size::Integer = 1,
-    z_size::Integer = 40,
+    z_size::Integer = 10,
 )
     lx = 300.0e3
     ly = 10.0e3
@@ -642,7 +642,7 @@ function wkb_wave_vertical_periodicity(;
         x0 = 0.0,
         y0 = 0.0,
         z0 = lz / 2,
-        a0 = 0.1,
+        a0 = 0.5,
     )
     (; k, l, m) = parameters
 
@@ -680,18 +680,25 @@ function wkb_wave_vertical_periodicity(;
     output = OutputNamelist(;
         output_file,
         output_interval = 3600.0,
-        output_variables = [:u],
+        output_variables = [:dchidt1],
         prepare_restart,
         tmax = 3600.0,
     )
 
-    integrate(Namelists(; atmosphere, wkb, domain, output))
+    tracer = TracerNamelist(;
+        tracer_setup = :TracerOn,
+        initial_chi = (x, y, z) -&gt;
+            lz / 2 * exp(-(z - lz / 2)^2 / lz^2) * exp(-x^2 / lx^2),
+        next_order_impact = true,
+    )
+
+    integrate(Namelists(; atmosphere, wkb, domain, output, tracer))
 
     if visualize &amp;&amp; MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
             plot_file,
             output_file,
-            (:u, 0.5, 0.5, 0.5, 2);
+            (:dchidt1, 0.5, 0.5, 0.5, 2);
             display_figure,
             time_unit = :h,
         )
@@ -879,4 +886,4 @@ function wave_action_density(
            (k^2 + l^2 + m^2) / n2(state, x, y, z)^2 / (k^2 + l^2) *
            bhat(state, parameters, x, y, z)^2
 end
-</code></pre><p>that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 11 September 2026 09:50">Friday 11 September 2026</span>. Using Julia version 1.10.12.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre><p>that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 11 September 2026 10:02">Friday 11 September 2026</span>. Using Julia version 1.10.12.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
