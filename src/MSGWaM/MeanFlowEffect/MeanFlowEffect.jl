@@ -26,7 +26,7 @@ module MeanFlowEffect
 using LinearAlgebra
 using ..BlockedLayer
 using ..Interpolation
-using ..RayUpdate
+using ...Update
 using ..RayOperations
 using ...Macros
 using ...Types
@@ -71,7 +71,10 @@ struct NextOrder end
 include("compute_gw_tracer_integrals!.jl")
 include("compute_gw_tracer_tendencies!.jl")
 include("reset_tracer_fields!.jl")
+include("set_turbulence_fields_zero!.jl")
 include("apply_shapiro_filter!.jl")
+include("compute_gw_turbulence_integrals!.jl")
+include("compute_gw_turbulence_tendencies!.jl")
 include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")
 include("compute_horizontal_cell_indices.jl")
