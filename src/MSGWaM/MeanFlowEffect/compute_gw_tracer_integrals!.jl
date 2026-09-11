@@ -98,13 +98,13 @@ The zonal, meridional, and vertical fluxes are given by
 \\end{align*}
 ```
 
-The next-order wave amplitudes are obtained by solving the matrix equation 
+The next-order wave amplitudes are obtained via the matrix equation 
 
 ```math 
-\\begin{pmatrix} u^{(1)}_{\\mathrm{w}, r} \\\\ v^{(1)}_{\\mathrm{w}, r} \\\\ w^{(1)}_{\\mathrm{w}, r} \\\\ b^{(1)}_{\\mathrm{w}, r} / N_r \\\\ c_p\\bar{\\theta}\\pi^{(1)}_{\\mathrm{w}, r} \\end{pmatrix} = \\begin{pmatrix} -i\\hat{\\omega}_r & f_0  & 0 & 0 & ik_r \\\\ f_0 & -i\\hat{\\omega}_r & 0 & 0 & il_r \\\\ 0 & 0 & -i\\hat{\\omega} & -N_r & im_r \\\\ 0 & 0 & N_r & -i\\hat{\\omega}_r & 0 \\\\ ik_r & il_r & im_r & 0 & 0 \\end{pmatrix}\\begin{pmatrix} R_{u, r} \\\\ R_{v, r} \\\\ R_{w, r} \\\\ R_{b, r} /N_r \\\\ R_{\\pi, r} \\end{pmatrix}
+\\begin{pmatrix} u^{(1)}_{\\mathrm{w}, r} \\\\ v^{(1)}_{\\mathrm{w}, r} \\\\ w^{(1)}_{\\mathrm{w}, r} \\\\ b^{(1)}_{\\mathrm{w}, r} / N_r \\\\ c_p\\bar{\\theta}\\pi^{(1)}_{\\mathrm{w}, r} \\end{pmatrix} = \\begin{pmatrix} -i\\hat{\\omega}_r & f_0  & 0 & 0 & ik_r \\\\ f_0 & -i\\hat{\\omega}_r & 0 & 0 & il_r \\\\ 0 & 0 & -i\\hat{\\omega} & -N_r & im_r \\\\ 0 & 0 & N_r & -i\\hat{\\omega}_r & 0 \\\\ ik_r & il_r & im_r & 0 & 0 \\end{pmatrix}^{-1}\\begin{pmatrix} R_{u, r} \\\\ R_{v, r} \\\\ R_{w, r} \\\\ R_{b, r} /N_r \\\\ R_{\\pi, r} \\end{pmatrix}
 ```
 
-The inverse of the matrix is calculated using `LinearAlgebra.pinv`. Furthermore, the right-hand sides are given by
+The pseudo-inverse of the matrix is calculated using `LinearAlgebra.pinv`. Furthermore, the right-hand sides are given by
 
 ```math 
 \\begin{align*} 
@@ -276,7 +276,6 @@ end
         vhatold,
         whatold,
         bhatold,
-        pihatold,
         chihatold,
         uchi1,
         vchi1,
