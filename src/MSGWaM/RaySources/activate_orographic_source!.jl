@@ -40,7 +40,7 @@ function activate_orographic_source! end
         wkb_mode,
     ) = state.namelists.wkb
     (; ko, i0, i1, j0, j1, k0) = state.domain
-    (; dx, dy, dz, x, y, zc, jac, zctilde) = state.grid
+    (; dx, dy, dz, x, y, zc, jac, hb) = state.grid
     (; rs, ixs, jys, kzs, iks, jls, kms, alphas) = state.wkb.surface_indices
     (; nray_wrk, n_sfc, nray, rays, increments, spectrum) = state.wkb
 
@@ -115,7 +115,7 @@ function activate_orographic_source! end
             else
                 if r > 0
                     # Shift and clip/extend the old ray volume.
-                    if zr + dzr / 2 > zctilde[i, j, k]
+                    if zr + dzr / 2 > hb[i, j]
 
                         # Shift the old ray volume.
                         nray[i, j, k + 1] += 1
@@ -134,9 +134,9 @@ function activate_orographic_source! end
                         )
 
                         # Clip/extend the old ray volume.
-                        if zr - dzr / 2 < zctilde[i, j, k] || kz == 1
+                        if zr - dzr / 2 < hb[i, j] || kz == 1
                             rays.dzray[local_count, i, j, k + 1] =
-                                zr + dzr / 2 - zctilde[i, j, k]
+                                zr + dzr / 2 - hb[i, j]
                             rays.z[local_count, i, j, k + 1] =
                                 zr + dzr / 2 -
                                 rays.dzray[local_count, i, j, k + 1] / 2

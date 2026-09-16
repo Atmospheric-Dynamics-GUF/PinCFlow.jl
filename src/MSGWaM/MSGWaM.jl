@@ -27,8 +27,8 @@ MSGWaM
 """
 module MSGWaM
 
-include("BlockedLayer/BlockedLayer.jl")
 include("Interpolation/Interpolation.jl")
+include("BlockedLayer/BlockedLayer.jl")
 include("RayOperations/RayOperations.jl")
 include("RaySources/RaySources.jl")
 include("BoundaryRays/BoundaryRays.jl")

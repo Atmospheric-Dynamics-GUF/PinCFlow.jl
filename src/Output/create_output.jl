@@ -635,7 +635,8 @@ function create_output(state::State, machine_start_time::DateTime)
         if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
                 attributes(file["tke"])["unuits"] = "m^2*s^-2"
-                attributes(file["tke"])["label"] = L"e_\\mathrm{k}\ [\mathrm{m^2\ s^{-2}}]"
+                attributes(file["tke"])["label"] =
+                    L"e_\\mathrm{k}\ [\mathrm{m^2\ s^{-2}}]"
                 attributes(
                     file["tke"],
                 )["long_name"] = "mass-specific turbulent kinetic energy"

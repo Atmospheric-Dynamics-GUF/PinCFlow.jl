@@ -166,9 +166,10 @@ export @dispatch_background,
     @dispatch_limiter_type,
     @dispatch_merge_mode,
     @dispatch_model,
+    @dispatch_orographic_flow,
     @dispatch_tracer_setup,
-    @dispatch_wkb_mode,
-    @dispatch_turbulence_scheme
+    @dispatch_turbulence_scheme,
+    @dispatch_wkb_mode
 
 export AbstractPredictand
 
