@@ -58,6 +58,12 @@ set_meridional_boundaries!(
 
 Enforce meridional boundary conditions for reconstructions in non-Boussinesq modes.
 
+```julia 
+set_meridional_boundaries!(state::State, variables::BoundaryFluxes)
+```
+
+Return for fluxes, as these only need vertical boundary conditions enforced.
+
 ```julia
 set_meridional_boundaries!(
     state::State,
@@ -222,6 +228,10 @@ function set_meridional_boundaries!(
         )
     end
 
+    return
+end
+
+function set_meridional_boundaries!(state::State, variables::BoundaryFluxes)
     return
 end
 
