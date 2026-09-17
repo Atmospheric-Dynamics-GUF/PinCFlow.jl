@@ -81,7 +81,7 @@ function launch_new_ray_vol!(
 
     ray_index = nray[i, j, k] + 1
 
-    for ix in 1:nrx_launch, kz in 1:nrz
+    @ivy for ix in 1:nrx_launch, kz in 1:nrz
 
         #----------------------------------------------------------
         # Physical position and extent
