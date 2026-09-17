@@ -3,7 +3,7 @@ function get_ray_volumes! end
 function get_ray_volumes!(
     state::State,
     triad_mode::Triad2D;
-    print_action_diagnostic::Bool = true,)
+    print_action_diagnostic::Bool = false,)
     (; triad_mode, projection_scheme) = state.namelists.triad
     get_ray_volumes!(state, triad_mode, projection_scheme)
     return
@@ -13,7 +13,7 @@ function get_ray_volumes!(
     state::State,
     triad_mode::Triad2D,
     projection_scheme::Union{ConstantWaveAction, ConstantWaveEnergy};
-    print_action_diagnostic::Bool = true,
+    print_action_diagnostic::Bool = false,
 )
     (; domain) = state
     (; master, comm, i0, i1, j0, j1, k0, k1) = domain
@@ -46,11 +46,11 @@ function get_ray_volumes!(
     local_total_action = 0.0
     local_discarded_action = 0.0
 
-    for k in (k0 - 1):(k1 + 1),
+    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
-        if all(iszero, @view wavespectrum[i, j, k, :, :])
+        if all(iszero, wavespectrum[i, j, k, :, :])
             continue
         end
 
@@ -350,7 +350,7 @@ function get_ray_volumes!(
     state::State,
     triad_mode::Triad2D,
     projection_scheme::ConstantWaveEnergyCentre;
-    print_action_diagnostic::Bool = true,
+    print_action_diagnostic::Bool = false,
 )
     (; domain) = state
     (; master, comm, i0, i1, j0, j1, k0, k1) = domain
@@ -383,11 +383,11 @@ function get_ray_volumes!(
     local_total_action = 0.0
     local_discarded_action = 0.0
 
-    for k in (k0 - 1):(k1 + 1),
+    @ivy for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
-        if all(iszero, @view wavespectrum[i, j, k, :, :])
+        if all(iszero, wavespectrum[i, j, k, :, :])
             continue
         end
 

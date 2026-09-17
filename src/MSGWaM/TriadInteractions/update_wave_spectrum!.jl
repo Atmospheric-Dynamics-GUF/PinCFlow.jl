@@ -101,7 +101,7 @@ function update_wave_spectrum!(
     # compute_scattering_integral! for this same physical cell.
     #----------------------------------------------------------
 
-    if compute_dephasing_time
+    @ivy if compute_dephasing_time
         tau_pl = get_dephasing_time(state, ii, jj, kk, tau_nl, triad_mode)
         dephasing_time[ii, jj, kk] = tau_pl
     end
@@ -110,7 +110,7 @@ function update_wave_spectrum!(
     # Diagnostic: check whether the explicit Euler update would
     # produce negative wave-action density.
     #----------------------------------------------------------
-
+    #=
     for mi in eachindex(m), kpi in eachindex(kp)
         was = wavespectrum[ii, jj, kk, kpi, mi]
         st = col_int[ii, jj, kk, kpi, mi]
@@ -138,7 +138,7 @@ function update_wave_spectrum!(
             error("Negative wave-action density predicted by triad Euler update")
         end
     end
-
+    =#
     #----------------------------------------------------------
     # Explicit Euler update.
     #----------------------------------------------------------
