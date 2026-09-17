@@ -3,7 +3,7 @@ function get_ray_volumes! end
 function get_ray_volumes!(
     state::State,
     triad_mode::Triad2D;
-    print_action_diagnostic::Bool = true,)
+    print_action_diagnostic::Bool = false,)
     (; triad_mode, projection_scheme) = state.namelists.triad
     get_ray_volumes!(state, triad_mode, projection_scheme)
     return
@@ -13,7 +13,7 @@ function get_ray_volumes!(
     state::State,
     triad_mode::Triad2D,
     projection_scheme::Union{ConstantWaveAction, ConstantWaveEnergy};
-    print_action_diagnostic::Bool = true,
+    print_action_diagnostic::Bool = false,
 )
     (; domain) = state
     (; master, comm, i0, i1, j0, j1, k0, k1) = domain

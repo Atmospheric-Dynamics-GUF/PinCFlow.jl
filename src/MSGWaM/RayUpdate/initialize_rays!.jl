@@ -340,32 +340,63 @@ function initialize_rays!(
             wnm0 = wnm_ini[alpha, i, j, k]
 
             # ----------------------------------------------------------
-            # Compute spectral ray-volume extent.
+            # Compute spectral ray-volume extents.
+            #
+            # dkr_factor, dlr_factor and dmr_factor are mode-dependent
+            # vectors of length wave_modes.
             # ----------------------------------------------------------
+
+            dkr_factor_alpha = dkr_factor[alpha]
+            dlr_factor_alpha = dlr_factor[alpha]
+            dmr_factor_alpha = dmr_factor[alpha]
+
+            wnh0 = sqrt(wnk0^2 + wnl0^2)
 
             if x_size == 1
                 dk_ini_nd = 0.0
             else
-                dk_ini_nd = dkr_factor * sqrt(wnk0^2 + wnl0^2)
+                dk_ini_nd = dkr_factor_alpha * wnh0
+
+                if dk_ini_nd <= 0.0
+                    error(
+                        "Error in initialize_rays!: dk_ini_nd <= 0 for mode ",
+                        alpha,
+                        " with x_size > 1.",
+                    )
+                end
             end
 
             if y_size == 1
                 dl_ini_nd = 0.0
             else
-                dl_ini_nd = dlr_factor * sqrt(wnk0^2 + wnl0^2)
+                dl_ini_nd = dlr_factor_alpha * wnh0
+
+                if dl_ini_nd <= 0.0
+                    error(
+                        "Error in initialize_rays!: dl_ini_nd <= 0 for mode ",
+                        alpha,
+                        " with y_size > 1.",
+                    )
+                end
             end
 
             if wnm0 == 0.0
-                error("Error in initialize_rays!: wnm0 = 0!")
-            else
-                # Support either the original scalar dmr_factor or the
-                # mode-dependent dmr_factor used in the present tests.
-                dmr_factor_alpha =
-                    dmr_factor isa Number ? dmr_factor : dmr_factor[alpha]
-
-                dm_ini_nd = dmr_factor_alpha * abs(wnm0)
+                error(
+                    "Error in initialize_rays!: wnm0 = 0 for mode ",
+                    alpha,
+                    ".",
+                )
             end
 
+            dm_ini_nd = dmr_factor_alpha * abs(wnm0)
+
+            if dm_ini_nd <= 0.0
+                error(
+                    "Error in initialize_rays!: dm_ini_nd <= 0 for mode ",
+                    alpha,
+                    ".",
+                )
+            end
             # ----------------------------------------------------------
             # Set spectral ray-volume position.
             #
