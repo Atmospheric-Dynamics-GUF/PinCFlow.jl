@@ -44,3 +44,11 @@ wave_packet
 wkb_mountain_wave
 wkb_wave_packet
 ```
+
+## PinCFlowMakieExt
+
+```@docs; canonical = false
+plot_output
+set_visualization_theme!
+symmetric_contours
+```
