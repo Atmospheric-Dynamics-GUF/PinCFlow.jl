@@ -9,15 +9,17 @@ Handles periodic boundaries in the horizontal and solid-wall boundaries in the v
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.MPIOperations`](@ref)
 """
 module Boundaries
 
+using ..Macros
 using ..Types
 using ..MPIOperations
-using ..PinCFlow
 
 """
 ```julia
@@ -84,6 +86,9 @@ include("set_boundaries!.jl")
 include("set_tracer_meridional_boundaries!.jl")
 include("set_tracer_vertical_boundaries!.jl")
 include("set_tracer_zonal_boundaries!.jl")
+include("set_turbulence_meridional_boundaries!.jl")
+include("set_turbulence_vertical_boundaries!.jl")
+include("set_turbulence_zonal_boundaries!.jl")
 include("set_meridional_boundaries_of_field!.jl")
 include("set_meridional_boundaries!.jl")
 include("set_vertical_boundaries_of_field!.jl")

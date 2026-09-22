@@ -95,7 +95,7 @@ function conductive_heating(
     return 0.0
 end
 
-function conductive_heating(
+@ivy function conductive_heating(
     state::State,
     i::Integer,
     j::Integer,
@@ -107,9 +107,9 @@ function conductive_heating(
     (; jac, dx, dy, dz) = state.grid
     (; rhobar) = state.atmosphere
 
-    @ivy rhotot = (rho[i, j, k] + rhobar[i, j, k]) / jac[i, j, k]
+    rhotot = (rho[i, j, k] + rhobar[i, j, k]) / jac[i, j, k]
 
-    @ivy return -rhotot * (
+    return -rhotot * (
         (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
         (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +
         (phitheta[i, j, k, 3] - phitheta[i, j, k - 1, 3]) / dz

@@ -32,15 +32,15 @@ Contributions to the code should respect the following rules.
 
   - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
 
-  - Use PinCFlow.jl's `@ivy` in front of expressions that access elements of arrays/tuples. Always apply this macro to the outermost expression possible but do not create new blocks for this purpose.
+  - Apply PinCFlow.jl's `@ivy` to the definitions of functions that perform indexing and/or slicing operations.
+
+  - Use PincFlow.jl's `@dispatch` for value dispatch.
+
+  - Use `===` and `!==` when comparing with literal `Symbol`s or `nothing`.
 
   - Do not use Unicode.
 
   - Use `CamelCase` for the names of modules and types. Use single capital letters for type parameters (in alphabetical order). For all other objects, use `snake_case`.
-
-![](pincflow_modules.svg)
-
-![](pincflow_structures.svg)
 
 ## Writing documentation
 
@@ -277,7 +277,7 @@ Moreover, every backslash used for LaTeX commands in equations has to be doubled
 PinCFlow.jl uses [Documenter.jl](https://documenter.juliadocs.org/stable/). To build the documentation, run
 
 ```shell
-julia --project=docs -e 'using Pkg; Pkg.develop(; path = "."); Pkg.instantiate()'
+julia --project=docs -e 'using Pkg; Pkg.develop(; path = ".")'
 julia --project=docs docs/make.jl
 ```
 
@@ -288,11 +288,28 @@ in the root directory of the repository. The documentation will be generated in 
 PinCFlow.jl's tests run the example simulations with a few modified parameters (most notably a lower resolution) and check if the $L_2$ and $L_\infty$ norms of the resulting outputs agree with reference values (given a certain tolerance). For this purpose, the example scripts are directly read, modified and evaluated in the test environment. To run the tests, execute
 
 ```shell
-julia --project -e 'using Pkg; Pkg.test(; julia_args = `--check-bounds=auto`)'
+julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.test(; julia_args = ["--check-bounds=auto"])'
 ```
-in the root directory of the repository. To update the reference values for the norms, run the tests after setting the variable `update_references` in `test/runtests.jl` to `true`.
+
+in the root directory of the repository. To update the reference values for the norms, run
+
+```shell
+julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.test(; julia_args = ["--check-bounds=auto"], test_args = ["--update"])'
+```
+
+instead.
 
 When you need to update the reference norms, please remember to also update the plots of the corresponding examples. Note that the exact results depend on the system and the level of parallelism you use. You may choose these freely.
+
+On [Levante](https://docs.dkrz.de/doc/levante/index.html), the default backend for HDF5.jl clashes with the file system. To run the tests there, execute
+
+```shell
+julia --project=examples -e 'using Pkg; Pkg.develop(; path = ".")'
+source examples/levante/setup.sh
+julia --project=examples -e 'using Pkg; Pkg.test("PinCFlow"; julia_args = ["--check-bounds=auto"])'
+```
+
+in the root directory of the repository.
 
 ## Creating new releases
 

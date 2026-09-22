@@ -21,9 +21,9 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 """
 function set_vertical_boundary_rays! end
 
-function set_vertical_boundary_rays!(state::State)
+@ivy function set_vertical_boundary_rays!(state::State)
     (; namelists, domain) = state
-    (; z_size) = namelists.domain
+    (; z_size, npz) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lx, ly, lz, dx, dy, hb) = state.grid
     (; nray, rays) = state.wkb
@@ -40,8 +40,10 @@ function set_vertical_boundary_rays!(state::State)
     end
 
     # Reflect ray volumes at the lower boundary.
-    @ivy if ko == 0
-        for k in k0:(k0 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    if ko == 0
+        kmin = k0
+        kmax = npz > 1 ? k0 + 1 : k1
+        for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
             for r in 1:nray[i, j, k]
                 xr = rays.x[r, i, j, k]
                 yr = rays.y[r, i, j, k]
@@ -60,8 +62,10 @@ function set_vertical_boundary_rays!(state::State)
     end
 
     # Cut ray volumes at the upper boundary.
-    @ivy if ko + nz == z_size
-        for k in (k1 - 1):k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    if ko + nz == z_size
+        kmin = npz > 1 ? k1 - 1 : k0
+        kmax = k1
+        for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
             local_count = 0
             for r in 1:nray[i, j, k]
                 zr = rays.z[r, i, j, k]

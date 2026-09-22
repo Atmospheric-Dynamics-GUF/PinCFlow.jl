@@ -9,9 +9,13 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.Boundaries`](@ref)
+
+  - [`PinCFlow.MSGWaM.BlockedLayer`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation`](@ref)
 
@@ -22,9 +26,9 @@ module MeanFlowEffect
 using ..BlockedLayer
 using ..Interpolation
 using ..RayUpdate
+using ...Macros
 using ...Types
 using ...Boundaries
-using ...PinCFlow
 
 """
 ```julia
@@ -53,9 +57,9 @@ Singleton for dispatch to calculation of vertical gravity-wave-tracer fluxes.
 """
 struct WChi end
 
-include("compute_leading_order_tracer_fluxes!.jl")
+include("compute_gw_tracer_integrals!.jl")
 include("leading_order_tracer_fluxes.jl")
-include("compute_leading_order_tracer_forcing!.jl")
+include("compute_gw_tracer_tendencies!.jl")
 include("set_tracer_fields_zero!.jl")
 include("apply_shapiro_filter!.jl")
 include("compute_gw_integrals!.jl")

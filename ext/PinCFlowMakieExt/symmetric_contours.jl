@@ -1,19 +1,46 @@
-function symmetric_contours(
-    minimum::Real,
-    maximum::Real;
+"""
+```julia
+symmetric_contours(
+    minimum::AbstractFloat,
+    maximum::AbstractFloat;
     number::Integer = 10,
     colormap_name::Symbol = :seismic,
-)::Tuple{<:LinRange{<:Real, <:Integer}, <:Any}
+)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
+```
+
+Compute symmetric contour levels and return them and a correspondingly indexed colormap.
+
+# Arguments
+
+  - `minimum`: Smallest value to be plotted.
+
+  - `maximum`: Largest value to be plotted.
+
+# Keywords
+
+  - `number`: Number of contour levels.
+
+  - `colormap_name`: Name under which the chosen colormap is registered.
+"""
+symmetric_contours
+
+@ivy function symmetric_contours(
+    minimum::AbstractFloat,
+    maximum::AbstractFloat;
+    number::Integer = 10,
+    colormap_name::Symbol = :seismic,
+)::Tuple{<:LinRange{<:AbstractFloat, <:Integer}, <:Any}
 
     # Get the colormap and adjust the number of levels if necessary.
     colormap = to_colormap(colormap_name)
     (number - 1) % 2 != length(colormap) % 2 && (number += 1)
 
+    # Add a tiny bit of noise.
+    minimum -= eps(minimum)
+    maximum += eps(maximum)
+
     # Compute contour levels.
-    @ivy if minimum == -maximum ||
-            sign(minimum) == sign(maximum) ||
-            minimum == 0 ||
-            maximum == 0
+    if minimum == -maximum || sign(minimum) == sign(maximum)
         levels = LinRange(minimum, maximum, number)
     else
         peak = max(abs(minimum), abs(maximum))
@@ -36,8 +63,8 @@ function symmetric_contours(
     end
 
     # Determine the indices for the colormap.
-    @ivy midpoints = levels[1:(number - 1)] .+ (levels[2] .- levels[1]) ./ 2
-    @ivy peak = max(abs(levels[1]), abs(levels[end]))
+    midpoints = levels[1:(number - 1)] .+ (levels[2] .- levels[1]) ./ 2
+    peak = max(abs(levels[1]), abs(levels[end]))
     indices = ceil.(Int, (1 .+ midpoints ./ peak) .* length(colormap) ./ 2)
 
     return (levels, colormap[indices])

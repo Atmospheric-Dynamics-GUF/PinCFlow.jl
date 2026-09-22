@@ -45,7 +45,7 @@ Before the operator is applied, the boundary/halo values of `sin` are set, in th
 """
 function apply_operator! end
 
-function apply_operator!(
+@ivy function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Total,
@@ -84,7 +84,7 @@ function apply_operator!(
     (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    @ivy s[i0:i1, j0:j1, k0:k1] .= sin
+    s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
     if npz > 1
@@ -110,7 +110,7 @@ function apply_operator!(
     #         Loop over field
     #---------------------------------
 
-    @ivy for k in 1:nz, j in 1:ny, i in 1:nx
+    for k in 1:nz, j in 1:ny, i in 1:nx
 
         # Determine indices for s.
         is = i + i0 - 1
@@ -272,7 +272,7 @@ function apply_operator!(
     return
 end
 
-function apply_operator!(
+@ivy function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Horizontal,
@@ -308,7 +308,7 @@ function apply_operator!(
     (; s) = state.poisson.operator
 
     # Initialize auxiliary field.
-    @ivy s[i0:i1, j0:j1, k0:k1] .= sin
+    s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
     if npz > 1
@@ -334,7 +334,7 @@ function apply_operator!(
     #         Loop over field
     #---------------------------------
 
-    @ivy for k in 1:nz, j in 1:ny, i in 1:nx
+    for k in 1:nz, j in 1:ny, i in 1:nx
 
         # Determine indices for s.
         is = i + i0 - 1

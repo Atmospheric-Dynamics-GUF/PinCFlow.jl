@@ -174,7 +174,7 @@ function correct!(
     return
 end
 
-function correct!(
+@ivy function correct!(
     state::State,
     dt::AbstractFloat,
     variable::U,
@@ -191,7 +191,7 @@ function correct!(
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
 
         if damp_horizontal_wind_on_rhs
@@ -214,7 +214,7 @@ function correct!(
     return
 end
 
-function correct!(
+@ivy function correct!(
     state::State,
     dt::AbstractFloat,
     variable::V,
@@ -231,7 +231,7 @@ function correct!(
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
 
         if damp_horizontal_wind_on_rhs
@@ -254,7 +254,7 @@ function correct!(
     return
 end
 
-function correct!(
+@ivy function correct!(
     state::State,
     dt::AbstractFloat,
     variable::W,
@@ -272,7 +272,7 @@ function correct!(
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
 
         factor +=
@@ -315,7 +315,7 @@ function correct!(
     return
 end
 
-function correct!(
+@ivy function correct!(
     state::State,
     dt::AbstractFloat,
     variable::RhoP,
@@ -331,7 +331,7 @@ function correct!(
     (; dpip) = state.variables.increments
     (; rho, rhop) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         factor = 1.0
 
         factor += dt * betar[i, j, k] * rayleigh_factor

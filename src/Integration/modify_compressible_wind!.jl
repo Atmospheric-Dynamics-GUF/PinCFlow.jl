@@ -49,7 +49,7 @@ function modify_compressible_wind!(
     return
 end
 
-function modify_compressible_wind!(
+@ivy function modify_compressible_wind!(
     state::State,
     operation::Function,
     model::Val{:Compressible},
@@ -58,7 +58,7 @@ function modify_compressible_wind!(
     (; jac) = state.grid
     (; u, v, w, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         u[i, j, k] = operation(
             u[i, j, k],
             (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k]) / 2,

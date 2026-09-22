@@ -27,39 +27,47 @@ propagate_rays!(
 
 Integrate the wave-action-density and ray equations derived from 1D or 3D transient WKB theory.
 
-The updates of the RK tendencies for the phase-space position of each ray volume are given by
+The updates of the RK tendencies for the phase-space position and physical-space extents of each ray volume are given by
 
 ```math
 \\begin{align*}
-    q_r^x & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r} + k_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^x,\\\\
-    q_r^y & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r} + l_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2}\\right) + \\alpha_\\mathrm{RK} q_r^y,\\\\
-    q_r^z & \\rightarrow - \\Delta t \\frac{m_r \\left(\\hat{\\omega}_r^2 - f^2\\right)}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} + \\alpha_\\mathrm{RK} q_r^z,\\\\
-    q_r^k & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^k,\\\\
-    q_r^l & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^l,\\\\
-    q_r^m & \\rightarrow - \\Delta t \\left[k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_r - \\frac{k_r^2 + l_r^2}{2 \\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_r\\right] + \\alpha_\\mathrm{RK} q_r^m
+    q_r^x & \\rightarrow \\Delta t \\frac{c_{\\mathrm{g}, x, r+} + c_{\\mathrm{g}, x, r-}}{2} + \\alpha_\\mathrm{RK} q_r^x,\\\\
+    q_r^y & \\rightarrow \\Delta t \\frac{c_{\\mathrm{g}, y, r+} + c_{\\mathrm{g}, y, r-}}{2} + \\alpha_\\mathrm{RK} q_r^y,\\\\
+    q_r^z & \\rightarrow \\Delta t \\frac{c_{\\mathrm{g}, z, r+} + c_{\\mathrm{g}, z, r-}}{2} + \\alpha_\\mathrm{RK} q_r^z,\\\\
+    q_r^k & \\rightarrow \\Delta t \\dot{k}_r + \\alpha_\\mathrm{RK} q_r^k,\\\\
+    q_r^l & \\rightarrow \\Delta t \\dot{l}_r + \\alpha_\\mathrm{RK} q_r^l,\\\\
+    q_r^m & \\rightarrow \\Delta t \\dot{m}_r + \\alpha_\\mathrm{RK} q_r^m,\\\\
+    q_r^{\\Delta x} & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r+} - u_{\\mathrm{b}, r-}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta x},\\\\
+    q_r^{\\Delta y} & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r+} - v_{\\mathrm{b}, r-}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta y},\\\\
+    q_r^{\\Delta z} & \\rightarrow \\Delta t \\left(c_{\\mathrm{g} z, r+} - c_{\\mathrm{g} z, r-}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta z},
 \\end{align*}
 ```
 
-and the position update is
+with
+
+
+```math
+\\begin{align*}
+    c_{\\mathrm{g}, x, r\\pm} & = u_{\\mathrm{b}, r\\pm} + k_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    c_{\\mathrm{g}, y, r\\pm} & = v_{\\mathrm{b}, r\\pm} + l_r \\frac{N_r^2 - \\hat{\\omega}_r^2}{\\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    c_{\\mathrm{g}, z, r\\pm} & = - \\frac{m_r \\left(\\hat{\\omega}_{r\\pm}^2 - f^2\\right)}{\\hat{\\omega}_{r\\pm} \\left|\\boldsymbol{k}_r\\right|^2},\\\\
+    \\dot{k}_r & = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_r,\\\\
+    \\dot{l}_r & = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_r,\\\\
+    \\dot{m}_r & = - k_r \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_r - l_r \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_r + \\frac{k_r^2 + l_r^2}{2 \\hat{\\omega}_r \\left|\\boldsymbol{k}_r\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_r.
+\\end{align*}
+```
+
+Therein, ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. More specifically, ``u_{\\mathrm{b}, r\\pm}``, ``v_{\\mathrm{b}, \\pm}``, and ``\\hat{\\omega}_{r\\pm}`` represent ``u_{\\mathrm{b}}`` interpolated to ``x_r \\pm \\Delta x_r / 2``, ``v_{\\mathrm{b}}`` interpolated to ``y_r \\pm \\Delta y_r / 2``, and ``\\hat{\\omega} \\left(\\boldsymbol{k}_r, N_{r\\pm}^2\\right)``, respectively, where ``N_{r\\pm}^2`` denotes ``N^2`` interpolated to ``z_r \\pm \\Delta z_r / 2``. The updates for the phase-space positions and physical-space extents are then given by
 
 ```math
 \\begin{align*}
     x_r & = x_r + \\beta_\\mathrm{RK} q_r^x, & y_r & \\rightarrow y_r + \\beta_\\mathrm{RK} q_r^y, & z_r & \\rightarrow z_r + \\beta_\\mathrm{RK} q_r^z,\\\\
-    k_r & \\rightarrow k_r + \\beta_\\mathrm{RK} q_r^k, & l_r & \\rightarrow l_r + \\beta_\\mathrm{RK} q_r^l, & m_r & \\rightarrow m_r + \\beta_\\mathrm{RK} q_r^m,
+    k_r & \\rightarrow k_r + \\beta_\\mathrm{RK} q_r^k, & l_r & \\rightarrow l_r + \\beta_\\mathrm{RK} q_r^l, & m_r & \\rightarrow m_r + \\beta_\\mathrm{RK} q_r^m,\\\\
+    \\Delta x_r & \\rightarrow \\Delta x_r + \\beta_\\mathrm{RK} q_r^{\\Delta x}, & \\Delta y_r & \\rightarrow \\Delta y_r + \\beta_\\mathrm{RK} q_r^{\\Delta y}, & \\Delta z_r & \\rightarrow \\Delta z_r + \\beta_\\mathrm{RK} q_r^{\\Delta z}.
 \\end{align*}
 ```
 
-where the subscript ``r`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition, MS-GWaM updates the ray-volume extents, following
-
-```math
-\\begin{align*}
-    q_r^{\\Delta x} & \\rightarrow \\Delta t \\left(u_{\\mathrm{b}, r, +} - u_{\\mathrm{b}, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta x}, & \\Delta x_r & \\rightarrow \\Delta x_r + \\beta_\\mathrm{RK} q_r^{\\Delta x},\\\\
-    q_r^{\\Delta y} & \\rightarrow \\Delta t \\left(v_{\\mathrm{b}, r, +} - v_{\\mathrm{b}, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta y}, & \\Delta y_r & \\rightarrow \\Delta y_r + \\beta_\\mathrm{RK} q_r^{\\Delta y},\\\\
-    q_r^{\\Delta z} & \\rightarrow \\Delta t \\left(c_{\\mathrm{g} z, r, +} - c_{\\mathrm{g} z, r, -}\\right) + \\alpha_\\mathrm{RK} q_r^{\\Delta z}, & \\Delta z_r & \\rightarrow \\Delta z_r + \\beta_\\mathrm{RK} q_r^{\\Delta z},
-\\end{align*}
-```
-
-where ``u_{\\mathrm{b}, r, \\pm}`` is the interpolation of ``u_\\mathrm{b}`` to ``x_{r, \\pm} = x_r \\pm \\Delta x_r / 2`` (from before the position update) and ``v_{\\mathrm{b}, r, \\pm}`` is the equivalent for ``v_\\mathrm{b}`` in ``y``-direction. In the computation of ``c_{\\mathrm{g} z, r, \\pm}``, the intrinsic frequency and squared buoyancy frequency are interpolated to ``z_{r, \\pm} = z_r \\pm \\Delta z_r / 2`` (also from before the position update). The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the update of the phase-space wave-action density reads
+The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the update of the phase-space wave-action density reads
 
 ```math
 \\mathcal{N}_r \\rightarrow \\left(1 + 2 \\alpha_{\\mathrm{R}, r} f_\\mathrm{RK} \\Delta t\\right)^{- 1} \\mathcal{N}_r,
@@ -67,7 +75,19 @@ where ``u_{\\mathrm{b}, r, \\pm}`` is the interpolation of ``u_\\mathrm{b}`` to 
 
 where ``\\alpha_{\\mathrm{R}, r}`` is the interpolation of the Rayleigh-damping coefficient to the updated ray-volume position, obtained from `interpolate_sponge`.
 
-The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation.
+The group velocities that are calculated for the propagation in physical space are also used to determine the maxima needed for the WKB-CFL condition used in the time-step computation, following
+
+```math
+\\begin{align*}
+    c_{\\mathrm{g}, x, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, x, r+},  c_{\\mathrm{g}, x, r-}\\right\\},\\\\
+    c_{\\mathrm{g}, y, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, y, r+}, c_{\\mathrm{g}, y, r-}\\right\\},\\\\
+    c_{\\mathrm{g}, z, \\max} & = \\max\\limits_{i, j, k, r} \\left\\{c_{\\mathrm{g}, z, r+}, c_{\\mathrm{g}, z, r-}\\right\\}.
+\\end{align*}
+```
+
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
+
+If `rkstage == nstages`, `activate_orographic_source!` is called to launch new mountain-wave ray volumes.
 
 ```julia
 propagate_rays!(
@@ -106,7 +126,11 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 
 the second term is integrated with the pseudo-time step ``J \\Delta \\hat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\hat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
 
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
+
 If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
+
+If `rkstage != 1`, this method returns immediately.
 
 # Arguments
 
@@ -137,6 +161,8 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.apply_turbulent_damping!`](@ref)
 """
 function propagate_rays! end
 
@@ -155,21 +181,21 @@ function propagate_rays!(
     return
 end
 
-function propagate_rays!(
+@ivy function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; branch, impact_altitude) = state.namelists.wkb
+    (; branch, impact_altitude, blocking) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
-    (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
+    (; nray, cgx_max, cgy_max, cgz_max, rays, deltazb) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde) = state.grid
+    (; dx, dy, dzcmin, hb) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
@@ -178,8 +204,9 @@ function propagate_rays!(
     kmin = ko == 0 ? k0 - 1 : k0
     kmax = k1
 
-    # Initialize WKB increments at the first RK stage.
-    @ivy if rkstage == 1
+    # Initialize the WKB increments and maximum group velocities at the first
+    # RK stage.
+    if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
@@ -193,19 +220,28 @@ function propagate_rays!(
                 ddzray[r, i, j, k] = 0.0
             end
         end
+
+        cgx_max[] = 0.0
+        cgy_max[] = 0.0
+        cgz_max[] = 0.0
     end
 
-    cgx_max[] = 0.0
-    cgy_max[] = 0.0
-    @ivy cgz_max[i0:i1, j0:j1, kmin:kmax] .= 0.0
-
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
-        nskip = 0
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
+
+            apply_turbulent_damping!(
+                state,
+                r,
+                i,
+                j,
+                k,
+                zr,
+                stepfrac[rkstage] * dt,
+            )
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -229,16 +265,23 @@ function propagate_rays!(
                 branch * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             if any((n2r1, n2r, n2r2) .< 0)
-                error(
-                    "Error in propagate_rays!: Interpolated stratification is negative!",
-                )
+                error("Interpolated stratification is negative!")
             end
 
             if khr <= 0
-                error(
-                    "Error in propagate_rays!: Horizontal wavenumber is negative!",
-                )
+                error("Horizontal wavenumber is negative!")
             end
+
+            # Determine if horizontal propagation and refraction are allowed.
+            multi_column = wkb_mode === Val(:MultiColumn)
+            launch_layer = k == k0 - 1
+            blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
+            zonal_propagation =
+                x_size > 1 && multi_column && !launch_layer && !blocked_layer
+            meridional_propagation =
+                y_size > 1 && multi_column && !launch_layer && !blocked_layer
+            refraction =
+                zr > impact_altitude / lref && !launch_layer && !blocked_layer
 
             # Compute intrinsic zonal group velocity.
             if x_size > 1
@@ -260,7 +303,7 @@ function propagate_rays!(
 
             # Update zonal position.
 
-            if x_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+            if zonal_propagation
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -274,12 +317,17 @@ function propagate_rays!(
                     dt * f + alphark[rkstage] * dxray[r, i, j, k]
                 rays.x[r, i, j, k] += betark[rkstage] * dxray[r, i, j, k]
 
-                cgx_max[] = max(cgx_max[], abs(cgrx))
+                cgx_max[] = max(cgx_max[], abs(cgrx1), abs(cgrx2))
+            end
+
+            if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
+               abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
+                error("Rays travel too far in x!")
             end
 
             # Update meridional position.
 
-            if y_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+            if meridional_propagation
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -293,7 +341,12 @@ function propagate_rays!(
                     dt * f + alphark[rkstage] * dyray[r, i, j, k]
                 rays.y[r, i, j, k] += betark[rkstage] * dyray[r, i, j, k]
 
-                cgy_max[] = max(cgy_max[], abs(cgry))
+                cgy_max[] = max(cgy_max[], abs(cgry1), abs(cgry2))
+            end
+
+            if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
+               abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
+                error("Rays travel too far in y!")
             end
 
             # Update vertical position.
@@ -307,11 +360,16 @@ function propagate_rays!(
             dzray[r, i, j, k] = dt * f + alphark[rkstage] * dzray[r, i, j, k]
             rays.z[r, i, j, k] += betark[rkstage] * dzray[r, i, j, k]
 
-            cgz_max[i, j, k] = max(cgz_max[i, j, k], abs(cgrz))
+            cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
+
+            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
+               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
+                error("Rays travel too far in z!")
+            end
 
             # Refraction is only allowed above impact_altitude / lref.
 
-            if zr > impact_altitude / lref
+            if refraction
 
                 #-------------------------------
                 #      Change of wavenumber
@@ -350,7 +408,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if x_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+                if zonal_propagation
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[r, i, j, k] =
@@ -368,7 +426,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if y_size > 1 && k >= k0 && wkb_mode != :SingleColumn
+                if meridional_propagation
                     ddydt = cgry2 - cgry1
 
                     ddyray[r, i, j, k] =
@@ -400,23 +458,13 @@ function propagate_rays!(
                 rays.dmray[r, i, j, k] = azm / rays.dzray[r, i, j, k]
             end
         end
-
-        if nskip > 0
-            println(
-                nskip,
-                " out of ",
-                nray[i, j, k],
-                " ray volumes have been skipped in propagate_rays!!",
-            )
-            println("")
-        end
     end
 
     #-------------------------------
     #     Change of wave action
     #-------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
@@ -425,12 +473,14 @@ function propagate_rays!(
         end
     end
 
-    activate_orographic_source!(state)
+    if rkstage == nstages
+        activate_orographic_source!(state)
+    end
 
     return
 end
 
-function propagate_rays!(
+@ivy function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
@@ -439,7 +489,6 @@ function propagate_rays!(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
-    (; stepfrac) = state.time
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
@@ -447,12 +496,16 @@ function propagate_rays!(
     (; u, v) = state.variables.predictands
     (; nray, rays) = state.wkb
 
+    if rkstage != 1
+        return
+    end
+
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
     activate_orographic_source!(state)
 
-    @ivy if ko != 0
+    if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
@@ -470,7 +523,7 @@ function propagate_rays!(
     end
 
     # Loop over grid cells.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Set the ray-volume count.
         nray[i, j, k] = nray[i, j, k - 1]
@@ -540,6 +593,17 @@ function propagate_rays!(
 
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+
+            apply_turbulent_damping!(
+                state,
+                r,
+                i,
+                j,
+                k,
+                zr,
+                jac[i, j, k] * dz / cgirz,
+            )
+
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             rays.dens[r, i, j, k] =
                 1 / (
@@ -620,7 +684,7 @@ function propagate_rays!(
         end
     end
 
-    @ivy if ko + nz != z_size
+    if ko + nz != z_size
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

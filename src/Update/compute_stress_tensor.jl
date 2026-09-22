@@ -54,7 +54,7 @@ where
 """
 function compute_stress_tensor end
 
-function compute_stress_tensor(
+@ivy function compute_stress_tensor(
     i::Integer,
     j::Integer,
     k::Integer,
@@ -67,25 +67,25 @@ function compute_stress_tensor(
     (; u, v, w) = state.variables.predictands
     (; dx, dy, dz, jac, met) = state.grid
 
-    @ivy jacedger = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
-    @ivy jacedgel = 0.5 * (jac[i, j, k] + jac[i - 1, j, k])
-    @ivy jacedgef = 0.5 * (jac[i, j, k] + jac[i, j + 1, k])
-    @ivy jacedgeb = 0.5 * (jac[i, j, k] + jac[i, j - 1, k])
-    @ivy jacedgeu =
+    jacedger = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
+    jacedgel = 0.5 * (jac[i, j, k] + jac[i - 1, j, k])
+    jacedgef = 0.5 * (jac[i, j, k] + jac[i, j + 1, k])
+    jacedgeb = 0.5 * (jac[i, j, k] + jac[i, j - 1, k])
+    jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
         (jac[i, j, k] + jac[i, j, k + 1])
-    @ivy jacedged =
+    jacedged =
         2.0 * jac[i, j, k] * jac[i, j, k - 1] /
         (jac[i, j, k] + jac[i, j, k - 1])
 
-    @ivy uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
-    @ivy ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
-    @ivy uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
-    @ivy ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
-    @ivy vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
-    @ivy vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
-    @ivy vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
-    @ivy vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
+    uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
+    ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
+    uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
+    ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
+    vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
+    vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
+    vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
+    vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
     wr =
         0.5 * (
             compute_vertical_wind(i + 1, j, k, state) +
@@ -107,7 +107,7 @@ function compute_stress_tensor(
             compute_vertical_wind(i, j - 1, k - 1, state)
         )
 
-    @ivy if mu == 1 && nu == 1
+    if mu == 1 && nu == 1
         stress_tensor =
             2.0 * (u[i, j, k] - u[i - 1, j, k]) / dx +
             met[i, j, k, 1, 3] * (uu - ud) / dz -

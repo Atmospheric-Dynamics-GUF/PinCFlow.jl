@@ -194,7 +194,7 @@ At grid points beyond the vertical boundaries, it is set to zero.
 """
 function compute_derivatives end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -205,7 +205,7 @@ function compute_derivatives(
     (; dx, dz, met) = state.grid
     (; u) = state.variables.predictands
 
-    @ivy phid =
+    phid =
         (u[i, j, kd] - u[i - 1, j, kd]) / dx +
         met[i, j, kd, 1, 3] *
         0.25 *
@@ -213,7 +213,7 @@ function compute_derivatives(
             u[i, j, kd + 1] + u[i - 1, j, kd + 1] - u[i, j, kd - 1] -
             u[i - 1, j, kd - 1]
         ) / dz
-    @ivy phiu =
+    phiu =
         (u[i, j, ku] - u[i - 1, j, ku]) / dx +
         met[i, j, ku, 1, 3] *
         0.25 *
@@ -225,7 +225,7 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -236,7 +236,7 @@ function compute_derivatives(
     (; dy, dz, met) = state.grid
     (; u) = state.variables.predictands
 
-    @ivy phid =
+    phid =
         (u[i, j + 1, kd] - u[i, j, kd]) / dy +
         0.25 *
         (
@@ -250,7 +250,7 @@ function compute_derivatives(
             u[i, j, kd + 1] + u[i, j + 1, kd + 1] - u[i, j, kd - 1] -
             u[i, j + 1, kd - 1]
         ) / dz
-    @ivy phiu =
+    phiu =
         (u[i, j + 1, ku] - u[i, j, ku]) / dy +
         0.25 *
         (
@@ -268,7 +268,7 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -279,10 +279,12 @@ function compute_derivatives(
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; u) = state.variables.predictands
 
-    @ivy if zctilde[i, j, ku] < hb[i, j]
+    if (zctilde[i, j, ku] + zctilde[i + 1, j, ku]) / 2 <
+       (hb[i, j] + hb[i + 1, j]) / 2
         phid = 0.0
         phiu = 0.0
-    elseif zctilde[i, j, kd] < hb[i, j]
+    elseif (zctilde[i, j, kd] + zctilde[i + 1, j, kd]) / 2 <
+           (hb[i, j] + hb[i + 1, j]) / 2
         phid = 0.0
         phiu =
             (u[i, j, ku + 1] - u[i, j, ku]) / dz / (
@@ -292,7 +294,7 @@ function compute_derivatives(
                 (jac[i + 1, j, ku] + jac[i + 1, j, ku + 1])
             )
     else
-        if zctilde[i, j, ku] < lz
+        if (zctilde[i, j, ku] + zctilde[i + 1, j, ku]) / 2 < lz
             phid =
                 (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
                     jac[i, j, kd] * jac[i, j, kd + 1] /
@@ -307,7 +309,7 @@ function compute_derivatives(
                     jac[i + 1, j, ku] * jac[i + 1, j, ku + 1] /
                     (jac[i + 1, j, ku] + jac[i + 1, j, ku + 1])
                 )
-        elseif zctilde[i, j, kd] < lz
+        elseif (zctilde[i, j, kd] + zctilde[i + 1, j, kd]) / 2 < lz
             phid =
                 (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
                     jac[i, j, kd] * jac[i, j, kd + 1] /
@@ -325,7 +327,7 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -336,7 +338,7 @@ function compute_derivatives(
     (; dx, dz, met) = state.grid
     (; v) = state.variables.predictands
 
-    @ivy phid =
+    phid =
         (v[i + 1, j, kd] - v[i, j, kd]) / dx +
         0.25 *
         (
@@ -350,7 +352,7 @@ function compute_derivatives(
             v[i, j, kd + 1] + v[i + 1, j, kd + 1] - v[i, j, kd - 1] -
             v[i + 1, j, kd - 1]
         ) / dz
-    @ivy phiu =
+    phiu =
         (v[i + 1, j, ku] - v[i, j, ku]) / dx +
         0.25 *
         (
@@ -368,7 +370,7 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -379,7 +381,7 @@ function compute_derivatives(
     (; dy, dz, met) = state.grid
     (; v) = state.variables.predictands
 
-    @ivy phid =
+    phid =
         (v[i, j, kd] - v[i, j - 1, kd]) / dy +
         met[i, j, kd, 2, 3] *
         0.25 *
@@ -387,7 +389,7 @@ function compute_derivatives(
             v[i, j, kd + 1] + v[i, j - 1, kd + 1] - v[i, j, kd - 1] -
             v[i, j - 1, kd - 1]
         ) / dz
-    @ivy phiu =
+    phiu =
         (v[i, j, ku] - v[i, j - 1, ku]) / dy +
         met[i, j, ku, 2, 3] *
         0.25 *
@@ -399,7 +401,7 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -410,10 +412,12 @@ function compute_derivatives(
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; v) = state.variables.predictands
 
-    @ivy if zctilde[i, j, ku] < hb[i, j]
+    if (zctilde[i, j, ku] + zctilde[i, j + 1, ku]) / 2 <
+       (hb[i, j] + hb[i, j + 1]) / 2
         phid = 0.0
         phiu = 0.0
-    elseif zctilde[i, j, kd] < hb[i, j]
+    elseif (zctilde[i, j, kd] + zctilde[i, j + 1, kd]) / 2 <
+           (hb[i, j] + hb[i, j + 1]) / 2
         phid = 0.0
         phiu =
             (v[i, j, ku + 1] - v[i, j, ku]) / dz / (
@@ -423,7 +427,7 @@ function compute_derivatives(
                 (jac[i, j + 1, ku] + jac[i, j + 1, ku + 1])
             )
     else
-        if zctilde[i, j, ku] < lz
+        if (zctilde[i, j, ku] + zctilde[i, j + 1, ku]) / 2 < lz
             phid =
                 (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
                     jac[i, j, kd] * jac[i, j, kd + 1] /
@@ -438,7 +442,7 @@ function compute_derivatives(
                     jac[i, j + 1, ku] * jac[i, j + 1, ku + 1] /
                     (jac[i, j + 1, ku] + jac[i, j + 1, ku + 1])
                 )
-        elseif zctilde[i, j, kd] < lz
+        elseif (zctilde[i, j, kd] + zctilde[i, j + 1, kd]) / 2 < lz
             phid =
                 (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
                     jac[i, j, kd] * jac[i, j, kd + 1] /
@@ -456,7 +460,7 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -469,36 +473,36 @@ function compute_derivatives(
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
 
-    @ivy cc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
-    @ivy cr = chi[i + 1, j, kd] / (rho[i + 1, j, kd] + rhobar[i + 1, j, kd])
-    @ivy cu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
-    @ivy cd = chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhobar[i, j, kd - 1])
-    @ivy cru =
+    cc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
+    cr = chi[i + 1, j, kd] / (rho[i + 1, j, kd] + rhobar[i + 1, j, kd])
+    cu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
+    cd = chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhobar[i, j, kd - 1])
+    cru =
         chi[i + 1, j, kd + 1] /
         (rho[i + 1, j, kd + 1] + rhobar[i + 1, j, kd + 1])
-    @ivy crd =
+    crd =
         chi[i + 1, j, kd - 1] /
         (rho[i + 1, j, kd - 1] + rhobar[i + 1, j, kd - 1])
 
-    @ivy phid =
+    phid =
         (cr - cc) / dx +
         0.5 *
         (met[i, j, kd, 1, 3] + met[i + 1, j, kd, 1, 3]) *
         0.25 *
         (cu + cru - cd - crd) / dz
 
-    @ivy cc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
-    @ivy cr = chi[i + 1, j, ku] / (rho[i + 1, j, ku] + rhobar[i + 1, j, ku])
-    @ivy cu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
-    @ivy cd = chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhobar[i, j, ku - 1])
-    @ivy cru =
+    cc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
+    cr = chi[i + 1, j, ku] / (rho[i + 1, j, ku] + rhobar[i + 1, j, ku])
+    cu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
+    cd = chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhobar[i, j, ku - 1])
+    cru =
         chi[i + 1, j, ku + 1] /
         (rho[i + 1, j, ku + 1] + rhobar[i + 1, j, ku + 1])
-    @ivy crd =
+    crd =
         chi[i + 1, j, ku - 1] /
         (rho[i + 1, j, ku - 1] + rhobar[i + 1, j, ku - 1])
 
-    @ivy phiu =
+    phiu =
         (cr - cc) / dx +
         0.5 *
         (met[i, j, ku, 1, 3] + met[i + 1, j, ku, 1, 3]) *
@@ -508,7 +512,7 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -521,36 +525,36 @@ function compute_derivatives(
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
 
-    @ivy cc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
-    @ivy cf = chi[i, j + 1, kd] / (rho[i, j + 1, kd] + rhobar[i, j + 1, kd])
-    @ivy cu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
-    @ivy cd = chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhobar[i, j, kd - 1])
-    @ivy cfu =
+    cc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
+    cf = chi[i, j + 1, kd] / (rho[i, j + 1, kd] + rhobar[i, j + 1, kd])
+    cu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
+    cd = chi[i, j, kd - 1] / (rho[i, j, kd - 1] + rhobar[i, j, kd - 1])
+    cfu =
         chi[i, j + 1, kd + 1] /
         (rho[i, j + 1, kd + 1] + rhobar[i, j + 1, kd + 1])
-    @ivy cfd =
+    cfd =
         chi[i, j + 1, kd - 1] /
         (rho[i, j + 1, kd - 1] + rhobar[i, j + 1, kd - 1])
 
-    @ivy phid =
+    phid =
         (cf - cc) / dy +
         0.5 *
         (met[i, j, kd, 2, 3] + met[i, j + 1, kd, 2, 3]) *
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
-    @ivy cc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
-    @ivy cf = chi[i, j + 1, ku] / (rho[i, j + 1, ku] + rhobar[i, j + 1, ku])
-    @ivy cu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
-    @ivy cd = chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhobar[i, j, ku - 1])
-    @ivy cfu =
+    cc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
+    cf = chi[i, j + 1, ku] / (rho[i, j + 1, ku] + rhobar[i, j + 1, ku])
+    cu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
+    cd = chi[i, j, ku - 1] / (rho[i, j, ku - 1] + rhobar[i, j, ku - 1])
+    cfu =
         chi[i, j + 1, ku + 1] /
         (rho[i, j + 1, ku + 1] + rhobar[i, j + 1, ku + 1])
-    @ivy cfd =
+    cfd =
         chi[i, j + 1, ku - 1] /
         (rho[i, j + 1, ku - 1] + rhobar[i, j + 1, ku - 1])
 
-    @ivy phiu =
+    phiu =
         (cf - cc) / dy +
         0.5 *
         (met[i, j, ku, 2, 3] + met[i, j + 1, ku, 2, 3]) *
@@ -560,7 +564,7 @@ function compute_derivatives(
     return (phid, phiu)
 end
 
-function compute_derivatives(
+@ivy function compute_derivatives(
     state::State,
     i::Integer,
     j::Integer,
@@ -573,12 +577,12 @@ function compute_derivatives(
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
 
-    @ivy cuc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
-    @ivy cdc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
-    @ivy cuu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
-    @ivy cdu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
+    cuc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
+    cdc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
+    cuu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
+    cdu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
 
-    @ivy if zctilde[i, j, ku] < hb[i, j]
+    if zctilde[i, j, ku] < hb[i, j]
         phid = 0.0
         phiu = 0.0
     elseif zctilde[i, j, kd] < hb[i, j]

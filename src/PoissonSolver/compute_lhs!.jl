@@ -65,7 +65,7 @@ function compute_lhs!(state::State)::AbstractFloat
     @dispatch_model return compute_lhs!(state, Val(model))
 end
 
-function compute_lhs!(
+@ivy function compute_lhs!(
     state::State,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
@@ -75,14 +75,14 @@ function compute_lhs!(
     (; dx, dy, dz, jac) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
-    (; rhs) = state.poisson
+    (; lhs) = state.poisson
 
     # Initialize summation variables.
     divl2 = 0.0
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
@@ -134,9 +134,9 @@ function compute_lhs!(
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
-        rhs[ib, jb, kb] = bu + bv + bw
+        lhs[ib, jb, kb] = bu + bv + bw
         # Compute check sum for solvability criterion.
-        divl2 += rhs[ib, jb, kb]^2.0
+        divl2 += lhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0
     end
 
@@ -152,28 +152,31 @@ function compute_lhs!(
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Incorrect L2 norm: divl2_norm = 0 while divl2 != 0!")
         end
     end
 
     return tolref
 end
 
-function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
+@ivy function compute_lhs!(
+    state::State,
+    model::Val{:Compressible},
+)::AbstractFloat
     (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
-    (; rhs) = state.poisson
+    (; lhs) = state.poisson
 
     # Initialize summation fields.
     divl2 = 0.0
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
@@ -197,9 +200,9 @@ function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
         bv /= fcscal
         bw /= fcscal
         heating /= fcscal
-        rhs[ib, jb, kb] = bu + bv + bw - heating
+        lhs[ib, jb, kb] = bu + bv + bw - heating
         # Compute check sum for solvability criterion.
-        divl2 += rhs[ib, jb, kb]^2.0
+        divl2 += lhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0
     end
 
@@ -215,7 +218,7 @@ function compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Incorrect L2 norm: divl2_norm = 0 while divl2 != 0!")
         end
     end
 

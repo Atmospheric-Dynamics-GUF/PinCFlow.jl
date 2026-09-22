@@ -25,14 +25,14 @@ Return the spectral extents of the ray volume specified by ``\\left(r, i, j, k\\
 """
 function get_spectral_extent end
 
-function get_spectral_extent(
+@ivy function get_spectral_extent(
     rays::Rays,
     r::Integer,
     i::Integer,
     j::Integer,
     k::Integer,
 )::NTuple{3, <:AbstractFloat}
-    @ivy return (
+    return (
         rays.dkray[r, i, j, k],
         rays.dlray[r, i, j, k],
         rays.dmray[r, i, j, k],

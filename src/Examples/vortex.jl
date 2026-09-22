@@ -1,17 +1,20 @@
 # src/Examples/vortex.jl
 
 function vortex(;
-    x_size::Integer = 40,
-    y_size::Integer = 40,
+    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
+    npz::Integer = 1,
     output_file::AbstractString = "vortex.h5",
+    plot_file::AbstractString = "vortex.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    plot_file::AbstractString = "examples/results/vortex.svg",
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 1,
 )
-    lx = 20000.0
-    ly = 20000.0
+    lx = 20000
+    ly = 20000
 
     rx = lx / 4
     ry = ly / 4
@@ -37,7 +40,7 @@ function vortex(;
         end,
     )
 
-    domain = DomainNamelist(; x_size, y_size, lx, ly, npx, npy)
+    domain = DomainNamelist(; lx, ly, npx, npy, x_size, y_size, z_size)
 
     output = OutputNamelist(;
         output_file,
@@ -47,7 +50,7 @@ function vortex(;
 
     tracer = TracerNamelist(;
         tracer_setup = :TracerOn,
-        initial_tracer = (x, y, z) -> begin
+        initial_chi = (x, y, z) -> begin
             r = sqrt(((abs(x) - rx) / rx)^2 + (y / ry)^2)
             if r <= 1
                 return sign(x) * (1 + cos(pi * r)) / 2
@@ -60,10 +63,7 @@ function vortex(;
     integrate(Namelists(; atmosphere, domain, output, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        h5open(output_file) do data
-            plot_output(plot_file, data, ("chi", 0, 1, 1, 1, 2))
-            return
-        end
+        plot_output(plot_file, output_file, (:chi, 2); display_figure)
     end
 
     return

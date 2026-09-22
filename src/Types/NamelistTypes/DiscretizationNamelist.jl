@@ -8,7 +8,7 @@ Namelist for parameters describing the discretization.
 ```julia
 DiscretizationNamelist(;
     cfl_number::Real = 5.0E-1,
-    wkb_cfl_number::Real = 5.0E-1,
+    wkb_cfl_number::Real = 3.0E-1,
     dtmin::Real = 1.0E-6,
     dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
@@ -43,7 +43,7 @@ end
 
 function DiscretizationNamelist(;
     cfl_number::Real = 5.0E-1,
-    wkb_cfl_number::Real = 5.0E-1,
+    wkb_cfl_number::Real = 3.0E-1,
     dtmin::Real = 1.0E-6,
     dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,

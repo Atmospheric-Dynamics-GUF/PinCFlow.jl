@@ -47,7 +47,7 @@ The first three dimensions of the array are assumed to represent the dimensions 
 """
 function set_zonal_halos_of_field! end
 
-function set_zonal_halos_of_field!(
+@ivy function set_zonal_halos_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
@@ -55,7 +55,7 @@ function set_zonal_halos_of_field!(
     (; nbx) = namelists.domain
     (; comm, i0, i1, left, right) = domain
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[(i1 - nbx + 1):i1, :],
         field[(i0 - nbx):(i0 - 1), :],
         comm;
@@ -63,7 +63,7 @@ function set_zonal_halos_of_field!(
         source = left,
     )
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[i0:(i0 + nbx - 1), :],
         field[(i1 + 1):(i1 + nbx), :],
         comm;
@@ -74,7 +74,7 @@ function set_zonal_halos_of_field!(
     return
 end
 
-function set_zonal_halos_of_field!(
+@ivy function set_zonal_halos_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain;
@@ -82,14 +82,14 @@ function set_zonal_halos_of_field!(
 )
     (; comm, i0, i1, j0, j1, k0, k1, left, right) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     jj = (j0 - nby):(j1 + nby)
     kk = (k0 - nbz):(k1 + nbz)
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[(i1 - nbx + 1):i1, jj, kk],
         field[(i0 - nbx):(i0 - 1), jj, kk],
         comm;
@@ -97,7 +97,7 @@ function set_zonal_halos_of_field!(
         source = left,
     )
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[i0:(i0 + nbx - 1), jj, kk],
         field[(i1 + 1):(i1 + nbx), jj, kk],
         comm;
@@ -108,7 +108,7 @@ function set_zonal_halos_of_field!(
     return
 end
 
-function set_zonal_halos_of_field!(
+@ivy function set_zonal_halos_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
     domain::Domain;
@@ -116,14 +116,14 @@ function set_zonal_halos_of_field!(
 )
     (; comm, i0, i1, j0, j1, k0, k1, left, right) = domain
 
-    @ivy nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
-    @ivy nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
-    @ivy nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
     jj = (j0 - nby):(j1 + nby)
     kk = (k0 - nbz):(k1 + nbz)
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[(i1 - nbx + 1):i1, jj, kk, :, :],
         field[(i0 - nbx):(i0 - 1), jj, kk, :, :],
         comm;
@@ -131,7 +131,7 @@ function set_zonal_halos_of_field!(
         source = left,
     )
 
-    @ivy MPI.Sendrecv!(
+    MPI.Sendrecv!(
         field[i0:(i0 + nbx - 1), jj, kk, :, :],
         field[(i1 + 1):(i1 + nbx), jj, kk, :, :],
         comm;

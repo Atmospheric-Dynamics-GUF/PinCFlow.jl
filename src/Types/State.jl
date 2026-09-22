@@ -12,6 +12,7 @@ State{
     I <: Variables,
     J <: WKB,
     K <: Tracer,
+    L <: Turbulence,
 }
 ```
 
@@ -20,7 +21,7 @@ Model state container.
 An instance of this composite type holds complete information about the model configuration and simulation state, so that it is sufficient as primary input to most methods. The construction of such an instance is the first operation performed in [`PinCFlow.Integration.integrate`](@ref), since it almost fully initializes the model.
 
 ```julia
-State(namelists::Namelists)::State
+State(namelists::Namelists; base_comm::MPI.Comm = MPI.COMM_WORLD)::State
 ```
 
 Construct a `State` instance and thus initialize the model.
@@ -51,9 +52,15 @@ This method first uses the parameters specified in `namelists` to construct inst
 
   - `tracer::K`: Tracer setup and parameters.
 
+  - `turbulence::L`: Turbulence setup, parameters, and turbulence energies.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
+# Keywords
+
+  - `base_comm`: MPI communicator which is used to create the Cartesian communicator for the integration.
 
 # See also
 
@@ -76,6 +83,8 @@ This method first uses the parameters specified in `namelists` to construct inst
   - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.Tracer`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
 """
 struct State{
     A <: Namelists,
@@ -89,6 +98,7 @@ struct State{
     I <: Variables,
     J <: WKB,
     K <: Tracer,
+    L <: Turbulence,
 }
     namelists::A
     time::B
@@ -101,12 +111,16 @@ struct State{
     variables::I
     wkb::J
     tracer::K
+    turbulence::L
 end
 
-function State(namelists::Namelists)::State
+function State(
+    namelists::Namelists;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)::State
     constants = Constants(namelists)
     time = Time()
-    domain = Domain(namelists)
+    domain = Domain(namelists; base_comm)
     grid = Grid(namelists, constants, domain)
     atmosphere = Atmosphere(namelists, constants, domain, grid)
     sponge = Sponge(domain)
@@ -114,6 +128,8 @@ function State(namelists::Namelists)::State
     variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, domain)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
+    turbulence =
+        Turbulence(namelists, constants, domain, atmosphere, grid, variables)
 
     return State(
         namelists,
@@ -127,5 +143,6 @@ function State(namelists::Namelists)::State
         variables,
         wkb,
         tracer,
+        turbulence,
     )
 end
