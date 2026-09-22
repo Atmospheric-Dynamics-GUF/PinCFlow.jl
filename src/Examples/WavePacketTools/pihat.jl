@@ -7,6 +7,14 @@ pihat(state::State, parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
 
 Return the Exner-pressure wave amplitude at ``\\left(x, y, z\\right)``.
 
+Consistent with the polarization relations, the Exner-pressure wave amplitude is given by
+
+```math
+\\pi_\\mathrm{w} = \\frac{\\kappa}{R \\bar{\\theta}} \\frac{i}{m} \\frac{\\hat{\\omega}^2 - N^2}{N^2} b_\\mathrm{w},
+```
+
+where ``\\kappa`` and ``R`` are taken from `state.constants` and ``m`` from `parameters`, whereas ``\\bar{\\theta}``, ``N^2``, ``\\hat{\\omega}`` and ``b_\\mathrm{w}`` are calculated with `thetabar`, `n2`, `omega` and `bhat`, respectively.
+
 # Arguments
 
   - `state`: Auxiliary model state.

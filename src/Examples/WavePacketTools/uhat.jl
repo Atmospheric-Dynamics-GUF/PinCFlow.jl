@@ -7,6 +7,14 @@ uhat(state::State, parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
 
 Return the zonal-wind wave amplitude at ``\\left(x, y, z\\right)``.
 
+Consistent with the polarization relations, the zonal-wind wave amplitude is given by
+
+```math
+u_\\mathrm{w} = \\frac{i}{m N^2} \\frac{\\hat{\\omega}^2 - N^2}{\\hat{\\omega}^2 - f^2} \\left(k \\hat{\\omega} + l f\\right) b_\\mathrm{w},
+```
+
+where ``\\boldsymbol{k} = \\left(k, l, m\\right)^\\mathrm{T}`` and ``f`` are taken from `parameters` and `state.namelists.atmosphere`, respectively, and ``\\hat{\\omega}``, ``N^2`` and ``b_\\mathrm{w}`` are calculated with `omega`, `n2` and `bhat`, respectively.
+
 # Arguments
 
   - `state`: Auxiliary model state.
