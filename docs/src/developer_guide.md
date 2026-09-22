@@ -78,7 +78,7 @@ Contributions to the code should always be accompanied by corresponding contribu
 
      1. If the type is composite, list links to constructors/functions that are called in any of the explicitly defined constructor methods in a `# See also` section, with one bullet for each.
 
-  - Mark experimental features in the docstrings of objects that implement them by placing an admonition at the end of those docstrings, similar to the following example.
+  - Mark experimental features in the docstrings of Public-API objects that are connected to them by placing an admonition at the end of those docstrings, similar to the following example.
 
     ```markdown
     !!! danger "Experimental"

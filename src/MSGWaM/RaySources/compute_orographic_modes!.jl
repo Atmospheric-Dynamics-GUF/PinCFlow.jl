@@ -53,12 +53,6 @@ For `state.namelists.wkb.elastic_mode_selection == true`, `apply_elastic_mode_se
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_blocked_layer!`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.apply_elastic_mode_selection!`](@ref)
-
-!!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
-
-!!! danger "Experimental"
-    The elastic mode selection is an experimental feature adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010).
 """
 function compute_orographic_modes! end
 
