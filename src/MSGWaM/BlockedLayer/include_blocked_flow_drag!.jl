@@ -17,7 +17,7 @@ where ``\\boldsymbol{u}_\\mathrm{b} = \\left(u_\\mathrm{b}, v_\\mathrm{b}, 0\\ri
 \\boldsymbol{u}_\\mathrm{p} = \\frac{\\left(\\boldsymbol{u}_\\mathrm{b} \\cdot \\boldsymbol{k}_h\\right) \\boldsymbol{k}_h}{\\left|\\boldsymbol{k}_h\\right|^2}
 ```
 
-is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``. This drag replaces the drag due to gravity waves below ``z_\\mathrm{B}``, the upper edge of the blocked layer that has been determined by `compute_blocked_layer!`. In grid cells that contain this upper edge, blocking and gravity waves both contribute to the total drag, weighted by the corresponding grid-cell fractions. The gravity-wave heating is treated similarly, with the "blocking contribution" being zero.
+is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``. Below the threshold ``h_\\mathrm{b} + \\Delta z_\\mathrm{B} / 2``, which is the background height of the effective orography, the blocked-flow drag replaces the gravity-wave drag. In grid cells that contain the threshold, blocking and gravity waves both contribute to the total drag, weighted by the corresponding grid-cell fractions. The gravity-wave heating is treated similarly, with the "blocking contribution" being zero.
 
 # Arguments
 
@@ -25,22 +25,20 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 
 # See also
 
-  - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
-
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_slope`](@ref)
 
 !!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 """
 function include_blocked_flow_drag! end
 
 @ivy function include_blocked_flow_drag!(state::State)
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dz, jac, zctilde, hw, kh, lh) = state.grid
+    (; dz, jac, zctilde, hb, hw, kh, lh) = state.grid
     (; rhobar) = state.atmosphere
     (; rho, u, v) = state.variables.predictands
-    (; zb) = state.wkb
+    (; deltazb) = state.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     if !blocking
@@ -50,14 +48,14 @@ function include_blocked_flow_drag! end
     # Adjust the drag to account for blocking.
     for k in k0:k1, j in j0:j1, i in i0:i1
         fraction =
-            (min(zb[i, j], zctilde[i, j, k]) - zctilde[i, j, k - 1]) /
-            jac[i, j, k] / dz
+            (
+                min(hb[i, j] + deltazb[i, j] / 2, zctilde[i, j, k]) -
+                zctilde[i, j, k - 1]
+            ) / jac[i, j, k] / dz
         if fraction <= 0
             continue
         else
-            deltah = compute_elevation_difference(state, i, j)
-
-            kh = compute_slope(state, deltah, i, j)
+            kh = compute_slope(state, i, j)
 
             up =
                 (
