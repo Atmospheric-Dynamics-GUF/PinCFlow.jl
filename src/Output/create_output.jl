@@ -666,11 +666,7 @@ function create_output(state::State, machine_start_time::DateTime)
 
         if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
-<<<<<<< HEAD
                 attributes(file["tke"])["units"] = "m^2*s^-2"
-=======
-                attributes(file["tke"])["unuits"] = "m^2*s^-2"
->>>>>>> 8af2b17682bd761073c33fa3e1b1cd21697c314d
                 attributes(file["tke"])["label"] =
                     L"e_\\mathrm{k}\ [\mathrm{m^2\ s^{-2}}]"
                 attributes(
