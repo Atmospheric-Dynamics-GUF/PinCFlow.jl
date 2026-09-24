@@ -1,3 +1,16 @@
+"""
+```julia
+WavePacketTools
+```
+
+Module that defines helper functions for setting up the wave-packet and WKB-wave-packet example simulations.
+
+# See also
+
+  - [`PinCFlow.Macros`](@ref)
+
+  - [`PinCFlow.Types`](@ref)
+"""
 module WavePacketTools
 
 using ...Macros

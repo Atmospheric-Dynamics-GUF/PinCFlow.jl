@@ -1,5 +1,24 @@
 # src/Examples/WavePacketTools/envelope.jl
 
+"""
+```julia
+envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
+```
+
+Return the circular cosine envelope at ``\\left(x, y, z\\right)``.
+
+# Arguments
+
+  - `parameters`: Parameters of the wave-packet configuration.
+
+  - `x`: Zonal position.
+
+  - `y`: Meridional position.
+
+  - `z`: Vertical position.
+"""
+function envelope end
+
 function envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
     (; k, l, m, rx, ry, rz, x0, y0, z0) = parameters
 

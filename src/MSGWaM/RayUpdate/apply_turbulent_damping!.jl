@@ -58,9 +58,6 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_turbulent_velocity`](@ref)
-
-!!! danger "Experimental"
-    The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
 """
 function apply_turbulent_damping! end
 
