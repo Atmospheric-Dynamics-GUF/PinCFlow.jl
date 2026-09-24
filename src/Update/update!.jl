@@ -660,7 +660,7 @@ end
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size, nbz) = state.namelists.domain
+    (; z_size, nbz, vertical_boundary_condition) = state.namelists.domain
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; betar) = state.sponge
@@ -701,10 +701,13 @@ end
         upper_gradient = compute_pressure_gradient(state, pip, i, j, k, W())
         upper_force = compute_volume_force(state, i, j, k, W())
 
-        if ko + k == k0
+        if (ko + k == k0 && vertical_boundary_condition === :SolidWall)
             lower_gradient = 0.0
             lower_force = 0.0
-        elseif ko + k == z_size + nbz
+        elseif (
+            ko + k == z_size + nbz &&
+            vertical_boundary_condition === :SolidWall
+        )
             upper_gradient = 0.0
             upper_force = 0.0
         end
@@ -865,7 +868,7 @@ end
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
@@ -873,7 +876,9 @@ end
     (; rho, u, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nz == z_size ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -1016,7 +1021,7 @@ end
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
@@ -1024,7 +1029,9 @@ end
     (; rho, v, pip) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nz == z_size ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -1062,7 +1069,7 @@ end
     variable::W,
     side::LHS,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
@@ -1084,8 +1091,10 @@ end
         dw .= 0.0
     end
 
-    kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nz == z_size ? k1 - 1 : k1
+    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
+        k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
@@ -1222,7 +1231,7 @@ end
     side::RHS,
     integration::Explicit,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; g_ndim) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
@@ -1230,8 +1239,10 @@ end
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
-    kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nz == z_size ? k1 - 1 : k1
+    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
+        k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
@@ -1276,7 +1287,7 @@ end
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; g_ndim) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -1284,8 +1295,10 @@ end
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
-    kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nz == z_size ? k1 - 1 : k1
+    kmin = (ko == 0 || vertical_boundary_condition === :Periodic) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
+        k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
