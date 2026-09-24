@@ -27,6 +27,7 @@ export bhat,
     uhat,
     vhat,
     wave_action_density,
+    envelope,
     what
 
 end

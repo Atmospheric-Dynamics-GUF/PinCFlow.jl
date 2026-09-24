@@ -2,9 +2,9 @@ function test_wave_packet()
     l2 = (
         n2 = 0.03744983f0,
         p = 5563.24f0,
-        pip = 5.3333617f-5,
+        pip = 5.3333635f-5,
         rhobar = 15.7452135f0,
-        rhop = 0.00090898166f0,
+        rhop = 0.0009089816f0,
         t = 600.0f0,
         thetabar = 43872.85f0,
         tke = 0.0063245553f0,

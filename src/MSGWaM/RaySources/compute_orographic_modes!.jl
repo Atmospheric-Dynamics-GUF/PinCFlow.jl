@@ -64,6 +64,7 @@ function compute_orographic_modes! end
 
 @ivy function compute_orographic_modes!(state::State)
     (; coriolis_frequency) = state.namelists.atmosphere
+    (; vertical_boundary_condition) = state.namelists.domain
     (; branch, wave_modes, elastic_mode_selection) = state.namelists.wkb
     (; tref) = state.constants
     (; ko, i0, i1, j0, j1, k0) = state.domain
@@ -72,7 +73,7 @@ function compute_orographic_modes! end
     (; launch_mode_count, launch_power_fraction) =
         state.wkb.elastic_mode_selection
 
-    if ko != 0
+    if ko != 0 || vertical_boundary_condition === :Periodic
         return
     end
 

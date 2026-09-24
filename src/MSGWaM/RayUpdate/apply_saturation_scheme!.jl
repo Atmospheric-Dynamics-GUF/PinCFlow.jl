@@ -84,12 +84,10 @@ end
     dt::AbstractFloat,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb
-    (; x_size, y_size) = state.namelists.domain
     (; use_saturation, saturation_threshold) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; lx, ly, dx, dy, zc) = state.grid
+    (; zc) = state.grid
 
     if !use_saturation
         return
@@ -125,7 +123,6 @@ end
         (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
 
         # Check if saturation is violated.
-        n2r = interpolate_stratification(zc[i, j, k], state, N2())
         if mb2 - saturation_threshold^2 * n2r^2 >
            1.0E-3 * saturation_threshold^2 * n2r^2
             println("Saturation violated at (i, j, k) = ", (i, j, k))

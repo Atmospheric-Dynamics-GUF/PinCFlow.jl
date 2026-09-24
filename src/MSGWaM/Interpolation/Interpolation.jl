@@ -95,45 +95,45 @@ struct DVDZ end
 
 """
 ```julia
-DChiDX
+DX
 ```
 
-Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial x``.
+Singleton for dispatch to interpolation of the gradient of a scalar field in ``\\hat{x}``-direction.
 """
-struct DChiDX end
+struct DX end
 
 """
 ```julia
-DChiDY
+DY
 ```
 
-Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial y``.
+Singleton for dispatch to interpolation of the gradient of a scalar field in ``\\hat{y}``-direction.
 """
-struct DChiDY end
+struct DY end
 
 """
 ```julia
-DChiDZ
+DZ
 ```
 
-Singleton for dispatch to interpolation of ``\\partial \\chi_\\mathrm{b} / \\partial z``.
+Singleton for dispatch to interpolation of the gradient of a scalar field in ``\\hat{z}``-direction.
 """
-struct DChiDZ end
+struct DZ end
 
 include("compute_derivatives.jl")
 include("get_next_half_level.jl")
 include("get_next_level.jl")
 include("interpolate_mean_flow.jl")
-include("interpolate_sponge.jl")
+include("interpolate_scalar.jl")
 include("interpolate_stratification.jl")
 include("interpolate.jl")
 
-export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DChiDX, DChiDY, DChiDZ
+export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DX, DY, DZ
 
 export get_next_half_level,
     get_next_level,
     interpolate_mean_flow,
-    interpolate_sponge,
+    interpolate_scalar,
     interpolate_stratification
 
 end

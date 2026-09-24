@@ -4,7 +4,6 @@ for (root, directories, files) in walkdir(".")
     for file in files
         if endswith(joinpath(root, file), r"\.(jl|md)")
             script = read(joinpath(root, file), String)
-
             modified_script = script
             for code_block in
                 eachmatch(r"(?sm)(?<=^```julia\n)(.(?!^```\n))*", script)

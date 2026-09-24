@@ -12,7 +12,7 @@ get_next_level(
 
 Determine and return the index of the next level above `z` at the horizontal position ``\\left(i, j\\right)``.
 
-This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
+This method is heavily used for interpolation to ray-volume positions. In the case of solid-wall vertical boundary conditions, to ensure that these boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
 
   - In MPI processes at the lower boundary of the domain, the computed index has the lower bound `state.domain.k0`. In other processes, an error is thrown if it is below `1 + dkd`.
 
@@ -46,7 +46,7 @@ function get_next_level end
     dkd::Integer = 0,
     dku::Integer = 0,
 )::Integer
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; nz, nzz, ko, k0, k1) = state.domain
     (; zc) = state.grid
 
@@ -55,7 +55,7 @@ function get_next_level end
         k += 1
     end
 
-    if ko == 0
+    if ko == 0 && vertical_boundary_condition === :SolidWall
         k = max(k, k0)
     else
         if k < 1 + dkd
@@ -70,7 +70,7 @@ function get_next_level end
         end
     end
 
-    if ko + nz == z_size
+    if ko + nz == z_size && vertical_boundary_condition === :SolidWall
         k = min(k, k1 + 1)
     else
         if k > nzz - dku
