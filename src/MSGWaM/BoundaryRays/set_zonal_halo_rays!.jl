@@ -15,6 +15,7 @@ function set_zonal_halo_rays! end
 
 @ivy function set_zonal_halo_rays!(state::State)
     (; comm, ny, nz, i0, i1, j0, j1, k0, k1, left, right) = state.domain
+    (; float_type) = state.namelists.discretization
     (; nray, rays) = state.wkb
 
     jj = (j0 - 1):(j1 + 1)

@@ -486,6 +486,7 @@ end
     rkstage::Integer,
     wkb_mode::Val{:SteadyState},
 )
+    (; float_type, integer_type) = state.namelists.discretization
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
@@ -506,14 +507,14 @@ end
     activate_orographic_source!(state)
 
     if ko != 0
-        nray_down = zeros(Int, nx, ny)
+        nray_down = zeros(integer_type, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
 
         local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if local_count > 0
             fields = fieldcount(Rays)
-            rays_down = zeros(fields, local_count, nx, ny)
+            rays_down = zeros(float_type, fields, local_count, nx, ny)
             MPI.Recv!(rays_down, comm; source = down)
             for field in 1:fields
                 getfield(rays, field)[1:local_count, i0:i1, j0:j1, k0 - 1] .=
@@ -691,7 +692,7 @@ end
         local_count = maximum(nray[i0:i1, j0:j1, k1])
         if local_count > 0
             fields = fieldcount(Rays)
-            rays_up = zeros(fields, local_count, nx, ny)
+            rays_up = zeros(float_type, fields, local_count, nx, ny)
             for field in 1:fields
                 rays_up[field, :, :, :] .=
                     getfield(rays, field)[1:local_count, i0:i1, j0:j1, k1]

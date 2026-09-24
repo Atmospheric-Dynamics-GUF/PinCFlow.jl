@@ -6,7 +6,7 @@ Operator{A <: AbstractArray{<:AbstractFloat, 3}}
 Workspace array for applying the linear operator of the Poisson solver.
 
 ```julia
-Operator(domain::Domain)::Operator
+Operator(namelists::Namelists, domain::Domain)::Operator
 ```
 
 Create an `Operator` instance with a zero-initialized array sized according to the dimensions of the MPI subdomain.
@@ -17,14 +17,17 @@ Create an `Operator` instance with a zero-initialized array sized according to t
 
 # Arguments
 
+  - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Operator{A <: AbstractArray{<:AbstractFloat, 3}}
     s::A
 end
 
-function Operator(domain::Domain)::Operator
+function Operator(namelists::Namelists, domain::Domain)::Operator
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
 
-    return Operator(zeros(nxx, nyy, nzz))
+    return Operator(zeros(float_type, nxx, nyy, nzz))
 end

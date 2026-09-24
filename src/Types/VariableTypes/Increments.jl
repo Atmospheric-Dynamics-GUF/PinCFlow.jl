@@ -71,11 +71,12 @@ end
 
 function Increments(domain::Domain, model::Val{:Boussinesq})::Increments
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return Increments(
-        zeros(0, 0, 0),
-        [zeros(nxx, nyy, nzz) for i in 1:5]...,
-        zeros(0, 0, 0),
+        zeros(float_type, 0, 0, 0),
+        [zeros(float_type, nxx, nyy, nzz) for i in 1:5]...,
+        zeros(float_type, 0, 0, 0),
     )
 end
 
@@ -84,12 +85,17 @@ function Increments(
     model::Val{:PseudoIncompressible},
 )::Increments
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
-    return Increments([zeros(nxx, nyy, nzz) for i in 1:6]..., zeros(0, 0, 0))
+    return Increments(
+        [zeros(float_type, nxx, nyy, nzz) for i in 1:6]...,
+        zeros(float_type, 0, 0, 0),
+    )
 end
 
 function Increments(domain::Domain, model::Val{:Compressible})::Increments
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
-    return Increments([zeros(nxx, nyy, nzz) for i in 1:7]...)
+    return Increments([zeros(float_type, nxx, nyy, nzz) for i in 1:7]...)
 end

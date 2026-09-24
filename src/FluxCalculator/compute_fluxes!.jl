@@ -603,6 +603,7 @@ end
 )
     (; grid) = state
     (; z_size) = state.namelists.domain
+    (; float_type) = state.namelists.discretization
     (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
@@ -695,7 +696,7 @@ end
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+    if 1 / re <= eps(float_type) && kinematic_diffusivity == 0.0
         return
     end
 
@@ -907,6 +908,7 @@ end
 )
     (; grid) = state
     (; z_size) = state.namelists.domain
+    (; float_type) = state.namelists.discretization
     (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
@@ -999,7 +1001,7 @@ end
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+    if 1 / re <= eps(float_type) && kinematic_diffusivity == 0.0
         return
     end
 
@@ -1210,6 +1212,7 @@ end
     variable::W,
 )
     (; grid) = state
+    (; float_type) = state.namelists.discretization
     (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
@@ -1321,7 +1324,7 @@ end
     #                          Viscous fluxes
     #-------------------------------------------------------------------
 
-    if 1 / re <= eps() && kinematic_diffusivity == 0.0
+    if 1 / re <= eps(float_type) && kinematic_diffusivity == 0.0
         return
     end
 

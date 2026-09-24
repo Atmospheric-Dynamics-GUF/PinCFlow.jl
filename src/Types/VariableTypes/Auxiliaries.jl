@@ -9,7 +9,7 @@ Auxiliaries{
 Container for the auxiliary array used in the reconstruction of prognostic variables and arrays used in the Thomas tridiagonal solver.
 
 ```julia
-Auxiliaries(domain::Domain)::Auxiliaries
+Auxiliaries(namelists::Namelists, domain::Domain)::Auxiliaries
 ```
 
 Construct an `Auxiliaries` instance with zero-initialized auxiliary arrays.
@@ -36,6 +36,8 @@ Construct an `Auxiliaries` instance with zero-initialized auxiliary arrays.
 
 # Arguments
 
+  - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Auxiliaries{
@@ -54,11 +56,12 @@ struct Auxiliaries{
 end
 
 function Auxiliaries(domain::Domain)::Auxiliaries
+    (; float_type) = namelists.discretization
     (; nx, ny, nz, nxx, nyy, nzz) = domain
 
     return Auxiliaries(
-        zeros(nxx, nyy, nzz),
-        [zeros(nx, ny, nz) for i in 1:5]...,
-        [zeros(nx, ny) for i in 1:3]...,
+        zeros(float_type, nxx, nyy, nzz),
+        [zeros(float_type, nx, ny, nz) for i in 1:5]...,
+        [zeros(float_type, nx, ny) for i in 1:3]...,
     )
 end

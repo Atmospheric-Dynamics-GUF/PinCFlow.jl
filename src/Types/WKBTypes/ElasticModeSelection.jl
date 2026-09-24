@@ -11,6 +11,8 @@ Composite type for elastic-mode-selection data.
 
 ```julia
 ElasticModeSelection(
+    integer_type::DataType,
+    float_type::DataType,
     wave_modes::Integer,
     nxx::Integer,
     nyy::Integer,
@@ -20,6 +22,10 @@ ElasticModeSelection(
 Construct an `ElasticModeSelection` instance with arrays sized according to the given dimensions.
 
 # Fields
+
+  - `integer_type`: Data type of `sorted_wave_mode_indices` and `launch_mode_count`.
+
+  - `float_type`: Data type of `launch_power_fraction`.
 
   - `sorted_wave_mode_indices::A`: Array for indices that sort the wave modes.
 
@@ -41,13 +47,15 @@ struct ElasticModeSelection{
 end
 
 function ElasticModeSelection(
+    integer_type::DataType,
+    float_type::DataType,
     wave_modes::Integer,
     nxx::Integer,
     nyy::Integer,
 )::ElasticModeSelection
     return ElasticModeSelection(
-        zeros(Int, wave_modes),
-        zeros(Int, nxx, nyy),
-        zeros(nxx, nyy),
+        zeros(integer_type, wave_modes),
+        zeros(integer_type, nxx, nyy),
+        zeros(float_type, nxx, nyy),
     )
 end

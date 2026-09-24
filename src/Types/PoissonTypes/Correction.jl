@@ -6,7 +6,7 @@ Correction{A <: AbstractArray{<:AbstractFloat, 3}}
 Correction terms used to update the horizontal wind in the corrector step.
 
 ```julia
-Correction(domain::Domain)::Correction
+Correction(namelists::Namelists, domain::Domain)::Correction
 ```
 
 Create a `Correction` instance with zero-initialized arrays sized according to the dimensions of the MPI subdomain.
@@ -19,6 +19,8 @@ Create a `Correction` instance with zero-initialized arrays sized according to t
 
 # Arguments
 
+  - `namelists`: Namelists with all model parameters.
+
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 struct Correction{A <: AbstractArray{<:AbstractFloat, 3}}
@@ -26,8 +28,9 @@ struct Correction{A <: AbstractArray{<:AbstractFloat, 3}}
     cory::A
 end
 
-function Correction(domain::Domain)::Correction
+function Correction(namelists::Namelists, domain::Domain)::Correction
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
 
-    return Correction([zeros(nxx, nyy, nzz) for i in 1:2]...)
+    return Correction([zeros(float_type, nxx, nyy, nzz) for i in 1:2]...)
 end

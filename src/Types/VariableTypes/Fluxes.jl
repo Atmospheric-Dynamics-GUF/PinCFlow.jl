@@ -74,20 +74,25 @@ function Fluxes(domain::Domain, model::Val{:Boussinesq})::Fluxes
     (; nxx, nyy, nzz) = domain
 
     return Fluxes(
-        zeros(0, 0, 0, 0),
-        [zeros(nxx, nyy, nzz, 3) for i in 1:5]...,
-        zeros(0, 0, 0, 0),
+        zeros(float_type, 0, 0, 0, 0),
+        [zeros(float_type, nxx, nyy, nzz, 3) for i in 1:5]...,
+        zeros(float_type, 0, 0, 0, 0),
     )
 end
 
 function Fluxes(domain::Domain, model::Val{:PseudoIncompressible})::Fluxes
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
-    return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:6]..., zeros(0, 0, 0, 0))
+    return Fluxes(
+        [zeros(float_type, nxx, nyy, nzz, 3) for i in 1:6]...,
+        zeros(float_type, 0, 0, 0, 0),
+    )
 end
 
 function Fluxes(domain::Domain, model::Val{:Compressible})::Fluxes
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
-    return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:7]...)
+    return Fluxes([zeros(float_type, nxx, nyy, nzz, 3) for i in 1:7]...)
 end

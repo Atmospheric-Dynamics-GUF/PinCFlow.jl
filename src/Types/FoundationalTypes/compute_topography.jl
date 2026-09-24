@@ -114,15 +114,16 @@ end
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
 }
+    (; float_type) = namelists.discretization
     (; wave_modes) = namelists.wkb
     (; resolved_topography, unresolved_topography) = namelists.grid
     (; nxx, nyy, i0, i1, j0, j1) = domain
     (; lref) = constants
 
-    hb = zeros(nxx, nyy)
-    hw = zeros(wave_modes, nxx, nyy)
-    kh = zeros(wave_modes, nxx, nyy)
-    lh = zeros(wave_modes, nxx, nyy)
+    hb = zeros(float_type, nxx, nyy)
+    hw = zeros(float_type, wave_modes, nxx, nyy)
+    kh = zeros(float_type, wave_modes, nxx, nyy)
+    lh = zeros(float_type, wave_modes, nxx, nyy)
 
     for j in j0:j1, i in i0:i1
         hbdim = resolved_topography(x[i] * lref, y[j] * lref)
@@ -155,14 +156,15 @@ end
     <:AbstractArray{<:AbstractFloat, 3},
     <:AbstractArray{<:AbstractFloat, 3},
 }
+    (; float_type) = namelists.discretization
     (; resolved_topography) = namelists.grid
     (; nxx, nyy, i0, i1, j0, j1) = domain
     (; lref) = constants
 
-    hb = zeros(nxx, nyy)
-    hw = zeros(0, 0, 0)
-    kh = zeros(0, 0, 0)
-    lh = zeros(0, 0, 0)
+    hb = zeros(float_type, nxx, nyy)
+    hw = zeros(float_type, 0, 0, 0)
+    kh = zeros(float_type, 0, 0, 0)
+    lh = zeros(float_type, 0, 0, 0)
 
     for j in j0:j1, i in i0:i1
         hbdim = resolved_topography(x[i] * lref, y[j] * lref)

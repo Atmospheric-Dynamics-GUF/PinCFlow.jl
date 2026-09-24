@@ -40,7 +40,13 @@ The property names for the second way are the following:
   - `dens`: Phase-space wave-action density.
 
 ```julia
-Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
+Rays(
+    float_type::DataType,
+    nray_wrk::Integer,
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+)::Rays
 ```
 
 Construct a `Rays` instance, with an array sized according to the given dimensions.
@@ -50,6 +56,8 @@ Construct a `Rays` instance, with an array sized according to the given dimensio
   - `data::A`: Ray-volume data.
 
 # Arguments
+
+  - `float_type`: Data type of the arrays' elements.
 
   - `nray_wrk`: Size of the spectral dimension of ray-volume arrays.
 
@@ -63,6 +71,12 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 5}}
     data::A
 end
 
-function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
-    return Rays(zeros(13, nray_wrk, nxx, nyy, nzz))
+function Rays(
+    float_type::DataType,
+    nray_wrk::Integer,
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+)::Rays
+    return Rays(zeros(float_type, 13, nray_wrk, nxx, nyy, nzz))
 end

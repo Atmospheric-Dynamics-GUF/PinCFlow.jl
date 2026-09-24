@@ -21,6 +21,7 @@ Construct a `Reconstructions` instance in Boussinesq mode, with a zero-size arra
 
 ```julia
 Reconstructions(
+    namelists::Namelists,
     domain::Domain,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )::Reconstructions
@@ -67,18 +68,23 @@ function Reconstructions(
     model::Val{:Boussinesq},
 )::Reconstructions
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return Reconstructions(
-        zeros(0, 0, 0, 0, 0),
-        [zeros(nxx, nyy, nzz, 3, 2) for i in 1:4]...,
+        zeros(float_type, 0, 0, 0, 0, 0),
+        [zeros(float_type, nxx, nyy, nzz, 3, 2) for i in 1:4]...,
     )
 end
 
 function Reconstructions(
+    namelists::Namelists,
     domain::Domain,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )::Reconstructions
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
 
-    return Reconstructions([zeros(nxx, nyy, nzz, 3, 2) for i in 1:5]...)
+    return Reconstructions(
+        [zeros(float_type, nxx, nyy, nzz, 3, 2) for i in 1:5]...,
+    )
 end

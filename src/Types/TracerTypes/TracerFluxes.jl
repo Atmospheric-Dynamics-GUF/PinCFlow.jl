@@ -52,7 +52,9 @@ function TracerFluxes(
     tracer_setup::Val{:NoTracer},
 )::TracerFluxes
     return TracerFluxes(
-        [zeros(0, 0, 0, 0) for field in fieldnames(TracerFluxes)]...,
+        [
+            zeros(float_type, 0, 0, 0, 0) for field in fieldnames(TracerFluxes)
+        ]...,
     )
 end
 
@@ -61,8 +63,12 @@ function TracerFluxes(
     tracer_setup::Val{:TracerOn},
 )::TracerFluxes
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return TracerFluxes(
-        [zeros(nxx, nyy, nzz, 3) for field in fieldnames(TracerFluxes)]...,
+        [
+            zeros(float_type, nxx, nyy, nzz, 3) for
+            field in fieldnames(TracerFluxes)
+        ]...,
     )
 end

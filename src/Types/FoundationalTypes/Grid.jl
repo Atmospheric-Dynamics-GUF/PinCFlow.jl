@@ -176,40 +176,41 @@ end
     domain::Domain,
 )::Grid
     (; x_size, y_size, z_size, nbz) = namelists.domain
+    (; float_type) = namelists.discretization
     (; vertical_grid_stretching) = namelists.grid
     (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, comm) = domain
     (; lref) = constants
 
     # Non-dimensionalize domain boundaries.
-    lx = namelists.domain.lx / lref
-    ly = namelists.domain.ly / lref
-    lz = namelists.domain.lz / lref
+    lx = float_type(namelists.domain.lx / lref)
+    ly = float_type(namelists.domain.ly / lref)
+    lz = float_type(namelists.domain.lz / lref)
 
     # Compute grid spacings.
-    dx = lx / x_size
-    dy = ly / y_size
-    dz = lz / z_size
+    dx = float_type(lx / x_size)
+    dy = float_type(ly / y_size)
+    dz = float_type(lz / z_size)
 
     # Compute x-coordinate.
-    x = zeros(nxx)
+    x = zeros(float_type, nxx)
     for i in 1:nxx
         x[i] = -lx / 2 + (i + io - i0) * dx + dx / 2
     end
 
     # Compute y-coordinate.
-    y = zeros(nyy)
+    y = zeros(float_type, nyy)
     for j in 1:nyy
         y[j] = -ly / 2 + (j + jo - j0) * dy + dy / 2
     end
 
     # Compute z-coordinate.
-    z = zeros(z_size + 2 * nbz)
+    z = zeros(float_type, z_size + 2 * nbz)
     for k in 1:(z_size + 2 * nbz)
         z[k] = (k - k0) * dz + dz / 2
     end
 
     # Allocate the stretched vertical grid.
-    (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
+    (ztildes, zs) = (zeros(float_type, z_size + 2 * nbz) for i in 1:2)
 
     # Compute the stretched vertical grid.
     for k in 1:(z_size + 2 * nbz)
@@ -235,9 +236,9 @@ end
     (hb, hw, kh, lh) = compute_topography(namelists, constants, domain, x, y)
 
     # Allocate Jacobian and metric tensor.
-    jac = zeros(nxx, nyy, nzz)
-    (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
-    met = zeros(nxx, nyy, nzz, 3, 3)
+    jac = zeros(float_type, nxx, nyy, nzz)
+    (met13, met23, met33) = (zeros(float_type, nxx, nyy, nzz) for i in 1:3)
+    met = zeros(float_type, nxx, nyy, nzz, 3, 3)
 
     # Set the start index for the computation of the Jacobian and metric tensor.
     kmin = ko == 0 ? 2 : 1
@@ -308,7 +309,7 @@ end
     met[:, :, :, 3, 3] .= met33
 
     # Allocate the physical layers.
-    (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
+    (zctilde, zc) = (zeros(float_type, nxx, nyy, nzz) for i in 1:2)
 
     # Compute the physical layers.
     for k in 1:nzz

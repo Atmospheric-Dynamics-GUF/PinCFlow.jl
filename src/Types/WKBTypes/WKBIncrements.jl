@@ -7,6 +7,7 @@ Ray-volume-propagation increments.
 
 ```julia
 WKBIncrements(
+    float_type::DataType,
     nray_wrk::Integer,
     nxx::Integer,
     nyy::Integer,
@@ -38,6 +39,8 @@ Construct an `WKBIncrements` instance, with arrays sized according to the given 
 
 # Arguments
 
+  - `float_type`: Data type of the arrays' elements.
+
   - `nray_wrk`: Size of the spectral dimension of ray-volume arrays.
 
   - `nxx`: Number of subdomain grid points in ``\\hat{x}``-direction.
@@ -59,10 +62,13 @@ struct WKBIncrements{A <: AbstractArray{<:AbstractFloat, 4}}
 end
 
 function WKBIncrements(
+    float_type::DataType,
     nray_wrk::Integer,
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
 )::WKBIncrements
-    return WKBIncrements([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:9]...)
+    return WKBIncrements(
+        [zeros(float_type, nray_wrk, nxx, nyy, nzz) for i in 1:9]...,
+    )
 end

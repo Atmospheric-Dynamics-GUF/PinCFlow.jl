@@ -49,21 +49,31 @@ function TracerIncrements(
 end
 
 function TracerIncrements(
+    namelists::Namelists,
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerIncrements
+    (; float_type) = namelists.discretization
+
     return TracerIncrements(
-        [zeros(0, 0, 0) for field in fieldnames(TracerIncrements)]...,
+        [
+            zeros(float_type, 0, 0, 0) for field in fieldnames(TracerIncrements)
+        ]...,
     )
 end
 
 function TracerIncrements(
+    namelists::Namelists,
     domain::Domain,
     tracer_setup::Val{:TracerOn},
 )::TracerIncrements
+    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
 
     return TracerIncrements(
-        [zeros(nxx, nyy, nzz) for field in fieldnames(TracerIncrements)]...,
+        [
+            zeros(float_type, nxx, nyy, nzz) for
+            field in fieldnames(TracerIncrements)
+        ]...,
     )
 end

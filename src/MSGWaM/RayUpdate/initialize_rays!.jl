@@ -52,6 +52,7 @@ end
     state::State,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )
+    (; float_type) = state.namelists.discretization
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;

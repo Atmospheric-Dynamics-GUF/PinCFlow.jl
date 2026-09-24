@@ -6,7 +6,12 @@ WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 Integrals of ray-volume properties.
 
 ```julia
-WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
+WKBIntegrals(
+    float_type::DataType,
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+)::WKBIntegrals
 ```
 
 Construct a `WKBIntegrals` instance, with arrays sized according to the given dimensions.
@@ -31,6 +36,8 @@ Construct a `WKBIntegrals` instance, with arrays sized according to the given di
 
 # Arguments
 
+  - `float_type`: Data type of the arrays' elements.
+
   - `nxx`: Number of subdomain grid points in ``\\hat{x}``-direction.
 
   - `nyy`: Number of subdomain grid points in ``\\hat{y}``-direction.
@@ -48,6 +55,11 @@ struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     e::A
 end
 
-function WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
-    return WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:8]...)
+function WKBIntegrals(
+    float_type::DataType,
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+)::WKBIntegrals
+    return WKBIntegrals([zeros(float_type, nxx, nyy, nzz) for i in 1:8]...)
 end

@@ -23,6 +23,7 @@ function set_vertical_boundary_rays! end
 
 @ivy function set_vertical_boundary_rays!(state::State)
     (; namelists, domain) = state
+    (; float_type) = state.namelists.discretization
     (; z_size, npz) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lx, ly, lz, dx, dy, hb) = state.grid
@@ -53,7 +54,7 @@ function set_vertical_boundary_rays! end
 
                 iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
                 jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
-                if hb[iray, jray] - zr + 0.5 * dzr > eps()
+                if hb[iray, jray] - zr + 0.5 * dzr > eps(float_type)
                     rays.z[r, i, j, k] = 2.0 * hb[iray, jray] - zr + dzr
                     rays.m[r, i, j, k] = -wnrm
                 end

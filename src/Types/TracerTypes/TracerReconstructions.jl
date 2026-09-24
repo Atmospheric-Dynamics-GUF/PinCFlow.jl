@@ -18,6 +18,7 @@ Construct a `TracerReconstructions` instance with dimensions depending on the ge
 
 ```julia
 TracerReconstructions(
+    namelists::Namelists,
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerReconstructions
@@ -27,6 +28,7 @@ Construct a `TracerReconstructions` instance with zero-size arrays for configura
 
 ```julia
 TracerReconstructions(
+    namelists::Namelists,
     domain::Domain,
     tracer_setup::Val{:TracerOn},
 )::TracerReconstructions
@@ -63,9 +65,12 @@ function TracerReconstructions(
 end
 
 function TracerReconstructions(
+    namelists::Namelists,
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerReconstructions
+    (; float_type) = namelists.discretization
+
     return TracerReconstructions(
         [
             zeros(0, 0, 0, 0, 0) for field in fieldnames(TracerReconstructions)
@@ -78,10 +83,27 @@ function TracerReconstructions(
     tracer_setup::Val{:TracerOn},
 )::TracerReconstructions
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return TracerReconstructions(
         [
-            zeros(nxx, nyy, nzz, 3, 2) for
+            zeros(float_type, 0, 0, 0, 0, 0) for
+            field in fieldnames(TracerReconstructions)
+        ]...,
+    )
+end
+
+function TracerReconstructions(
+    namelists::Namelists,
+    domain::Domain,
+    tracer_setup::TracerOn,
+)::TracerReconstructions
+    (; float_type) = namelists.discretization
+    (; nxx, nyy, nzz) = domain
+
+    return TracerReconstructions(
+        [
+            zeros(float_type, nxx, nyy, nzz, 3, 2) for
             field in fieldnames(TracerReconstructions)
         ]...,
     )

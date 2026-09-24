@@ -15,6 +15,7 @@ function set_meridional_halo_rays! end
 
 @ivy function set_meridional_halo_rays!(state::State)
     (; comm, nx, nz, i0, i1, j0, j1, k0, k1, backward, forward) = state.domain
+    (; float_type) = state.namelists.discretization
     (; nray, rays) = state.wkb
 
     ii = (i0 - 1):(i1 + 1)

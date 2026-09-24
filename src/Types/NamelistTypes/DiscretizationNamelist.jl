@@ -13,6 +13,8 @@ DiscretizationNamelist(;
     dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
     limiter_type::Symbol = :MCVariant,
+    float_type::DataType = Float64,
+    integer_type::DataType = Int64,
 )::DiscretizationNamelist
 ```
 
@@ -31,6 +33,10 @@ Construct a `DiscretizationNamelist` instance with the given keyword arguments a
   - `adaptive_time_step::Bool`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
 
   - `limiter_type::Symbol`: Flux limiter used by the MUSCL scheme.
+
+  - `float_type::DataType`: Data type of floats.
+
+  - `integer_type::DataType`: Data type of integers.
 """
 struct DiscretizationNamelist
     cfl_number::Float64
@@ -39,6 +45,8 @@ struct DiscretizationNamelist
     dtmax::Float64
     adaptive_time_step::Bool
     limiter_type::Symbol
+    float_type::DataType
+    integer_type::DataType
 end
 
 function DiscretizationNamelist(;
@@ -48,6 +56,8 @@ function DiscretizationNamelist(;
     dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
     limiter_type::Symbol = :MCVariant,
+    float_type::DataType = Float64,
+    integer_type::DataType = Int64,
 )::DiscretizationNamelist
     return DiscretizationNamelist(
         Float64(cfl_number),
@@ -56,5 +66,7 @@ function DiscretizationNamelist(;
         Float64(dtmax),
         adaptive_time_step,
         limiter_type,
+        float_type,
+        integer_type,
     )
 end

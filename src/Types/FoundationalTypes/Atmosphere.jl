@@ -263,14 +263,17 @@ function Atmosphere(
     model::Val{:Boussinesq},
     background::Val{:NeutralStratification},
 )::Atmosphere
+    (; float_type) = namelists.discretization
     (; potential_temperature) = namelists.atmosphere
     (; thetaref) = constants
     (; nxx, nyy, nzz) = domain
 
-    rhobar = ones(nxx, nyy, nzz)
-    thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
-    pbar = rhobar .* thetabar
-    n2 = zeros(nxx, nyy, nzz)
+    (rhobar, thetabar, pbar, n2) =
+        (zeros(float_type, nxx, nyy, nzz) for i in 1:4)
+
+    rhobar .= 1
+    thetabar .= potential_temperature ./ thetaref
+    pbar .= rhobar .* thetabar
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
@@ -283,14 +286,18 @@ function Atmosphere(
     model::Val{:Boussinesq},
     background::Val{:StableStratification},
 )::Atmosphere
+    (; float_type) = namelists.discretization
     (; buoyancy_frequency, potential_temperature) = namelists.atmosphere
     (; tref, thetaref) = constants
     (; nxx, nyy, nzz) = domain
 
-    rhobar = ones(nxx, nyy, nzz)
-    thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
-    pbar = rhobar .* thetabar
-    n2 = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
+    (rhobar, thetabar, pbar, n2) =
+        (zeros(float_type, nxx, nyy, nzz) for i in 1:4)
+
+    rhobar .= 1
+    thetabar .= potential_temperature ./ thetaref
+    pbar .= rhobar .* thetabar
+    n2 .= (buoyancy_frequency .* tref) .^ 2
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
@@ -303,12 +310,14 @@ function Atmosphere(
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:Isothermal},
 )::Atmosphere
+    (; float_type) = namelists.discretization
     (; temperature, ground_pressure) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma) = constants
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
 
-    (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
+    (pbar, thetabar, rhobar, n2) =
+        (zeros(float_type, nxx, nyy, nzz) for i in 1:4)
 
     t0 = temperature / thetaref
     p0 = ground_pressure / pref
@@ -331,12 +340,14 @@ function Atmosphere(
     background::Val{:Isentropic},
 )::Atmosphere
     (; lz) = namelists.domain
+    (; float_type) = namelists.discretization
     (; potential_temperature, ground_pressure) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, rsp, gamma, g) = constants
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
 
-    (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
+    (pbar, thetabar, rhobar, n2) =
+        (zeros(float_type, nxx, nyy, nzz) for i in 1:4)
 
     min_potential_temperature = kappa * g / rsp * lz
     if potential_temperature < min_potential_temperature
@@ -370,13 +381,15 @@ end
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:Realistic},
 )::Atmosphere
+    (; float_type) = namelists.discretization
     (; potential_temperature, ground_pressure, tropopause_height) =
         namelists.atmosphere
     (; thetaref, lref, pref, kappa, sig, rsp, gamma, gammainv, g) = constants
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
 
-    (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
+    (pbar, thetabar, rhobar, n2) =
+        (zeros(float_type, nxx, nyy, nzz) for i in 1:4)
 
     p0 = ground_pressure / pref
     ztrop = tropopause_height / lref
@@ -424,6 +437,7 @@ end
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:LapseRates},
 )::Atmosphere
+    (; float_type) = namelists.discretization
     (;
         ground_pressure,
         troposphere_lapse_rate,
@@ -435,7 +449,8 @@ end
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
 
-    (pbar, thetabar, rhobar, n2) = (zeros(nxx, nyy, nzz) for i in 1:4)
+    (pbar, thetabar, rhobar, n2) =
+        (zeros(float_type, nxx, nyy, nzz) for i in 1:4)
 
     gamma_t = troposphere_lapse_rate / thetaref * lref
     gamma_s = stratosphere_lapse_rate / thetaref * lref

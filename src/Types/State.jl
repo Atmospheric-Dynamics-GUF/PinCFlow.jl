@@ -119,12 +119,12 @@ function State(
     base_comm::MPI.Comm = MPI.COMM_WORLD,
 )::State
     constants = Constants(namelists)
-    time = Time()
+    time = Time(namelists)
     domain = Domain(namelists; base_comm)
     grid = Grid(namelists, constants, domain)
     atmosphere = Atmosphere(namelists, constants, domain, grid)
-    sponge = Sponge(domain)
-    poisson = Poisson(domain)
+    sponge = Sponge(namelists, domain)
+    poisson = Poisson(namelists, domain)
     variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, domain)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)

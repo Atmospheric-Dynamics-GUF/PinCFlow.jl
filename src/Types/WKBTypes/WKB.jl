@@ -148,20 +148,22 @@ function WKB(namelists::Namelists, domain::Domain)::WKB
 end
 
 function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
+    (; float_type, integer_type) = namelists.discretization
+
     return WKB(
-        [0 for i in 1:3]...,
-        zeros(Int, 0, 0, 0),
-        Rays(0, 0, 0, 0),
-        MergedRays(0, 0),
-        SurfaceIndices(0, 0, 0),
-        WKBIncrements(0, 0, 0, 0),
-        WKBIntegrals(0, 0, 0),
-        WKBTendencies(0, 0, 0),
-        [Ref(0.0) for i in 1:3]...,
-        zeros(0, 0),
-        zeros(0, 0, 0),
-        Spectrum(0, 0, 0, 0),
-        ElasticModeSelection(0, 0, 0),
+        [integer_type(0) for i in 1:3]...,
+        zeros(integer_type, 0, 0, 0),
+        Rays(float_type, 0, 0, 0, 0),
+        MergedRays(float_type, 0, 0),
+        SurfaceIndices(integer_type, 0, 0, 0),
+        WKBIncrements(float_type, 0, 0, 0, 0),
+        WKBIntegrals(float_type, 0, 0, 0),
+        WKBTendencies(float_type, 0, 0, 0),
+        [Ref(float_type(0)) for i in 1:3]...,
+        zeros(float_type, 0, 0),
+        zeros(float_type, 0, 0, 0),
+        Spectrum(float_type, 0, 0, 0, 0),
+        ElasticModeSelection(integer_type, float_type, 0, 0, 0),
     )
 end
 
@@ -170,6 +172,7 @@ function WKB(
     domain::Domain,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::WKB
+    (; float_type, integer_type) = namelists.discretization
     (;
         nrx,
         nry,
@@ -219,14 +222,14 @@ function WKB(
     end
 
     # Set the number of surface ray volumes.
-    n_sfc = nrx * nrk * nry * nrl * nrz * nrm * wave_modes
+    n_sfc = integer_type(nrx * nrk * nry * nrl * nrz * nrm * wave_modes)
 
     # Set the total number of bins and work size of the ray-volume array.
     if wkb_mode === Val(:SteadyState)
-        bins = nray_wrk = n_sfc
+        bins = integer_type(; nray_wrk = n_sfc)
     else
         # Set the total number of bins.
-        bins = k_bins * l_bins * m_bins
+        bins = integer_type(k_bins * l_bins * m_bins)
 
         # Check if the number of bins is large enough.
         if bins < n_sfc
@@ -236,26 +239,27 @@ function WKB(
         end
 
         # Determine the work size of the ray-volume array.
-        nray_wrk = 2 * bins
-        y_size > 1 && (nray_wrk *= 2)
-        x_size > 1 && (nray_wrk *= 2)
+        nray_wrk = integer_type(2 * bins)
+        y_size > 1 && (nray_wrk *= integer_type(2))
+        x_size > 1 && (nray_wrk *= integer_type(2))
     end
 
     # Allocate ray-volume arrays.
-    nray = zeros(Int, nxx, nyy, nzz)
-    rays = Rays(nray_wrk, nxx, nyy, nzz)
-    merged_rays = MergedRays(2, bins)
-    surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
-    increments = WKBIncrements(nray_wrk, nxx, nyy, nzz)
-    integrals = WKBIntegrals(nxx, nyy, nzz)
-    tendencies = WKBTendencies(nxx, nyy, nzz)
-    cgx_max = Ref(0.0)
-    cgy_max = Ref(0.0)
-    cgz_max = Ref(0.0)
-    deltazb = zeros(nxx, nyy)
-    diffusion = zeros(nxx, nyy, nzz)
-    spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
-    elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
+    nray = zeros(integer_type, nxx, nyy, nzz)
+    rays = Rays(float_type, nray_wrk, nxx, nyy, nzz)
+    merged_rays = MergedRays(float_type, 2, bins)
+    surface_indices = SurfaceIndices(integer_type, n_sfc, nxx, nyy)
+    increments = WKBIncrements(float_type, nray_wrk, nxx, nyy, nzz)
+    integrals = WKBIntegrals(float_type, nxx, nyy, nzz)
+    tendencies = WKBTendencies(float_type, nxx, nyy, nzz)
+    cgx_max = Ref(float_type(0))
+    cgy_max = Ref(float_type(0))
+    cgz_max = Ref(float_type(0))
+    deltazb = zeros(float_type, nxx, nyy)
+    diffusion = zeros(float_type, nxx, nyy, nzz)
+    spectrum = Spectrum(float_type, wave_modes, nxx, nyy, nzz)
+    elastic_mode_selection =
+        ElasticModeSelection(integer_type, float_type, wave_modes, nxx, nyy)
 
     return WKB(
         bins,

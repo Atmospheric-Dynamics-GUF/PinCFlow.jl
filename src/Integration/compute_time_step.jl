@@ -45,8 +45,14 @@ function compute_time_step end
 
 @ivy function compute_time_step(state::State)::AbstractFloat
     (; grid) = state
-    (; cfl_number, wkb_cfl_number, dtmin, dtmax, adaptive_time_step) =
-        state.namelists.discretization
+    (;
+        cfl_number,
+        wkb_cfl_number,
+        dtmin,
+        dtmax,
+        adaptive_time_step,
+        float_type,
+    ) = state.namelists.discretization
     (; tref, re) = state.constants
     (; master, comm, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, dzcmin) = grid
@@ -68,9 +74,9 @@ function compute_time_step end
         #     CFL condition
         #----------------------
 
-        umax = maximum(abs, u[i0:i1, j0:j1, k0:k1]) + eps()
-        vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps()
-        wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps()
+        umax = maximum(abs, u[i0:i1, j0:j1, k0:k1]) + eps(float_type)
+        vmax = maximum(abs, v[i0:i1, j0:j1, k0:k1]) + eps(float_type)
+        wmax = maximum(abs, w[i0:i1, j0:j1, k0:k1]) + eps(float_type)
 
         dtconv = cfl_number * min(dx / umax, dy / vmax, dz / wmax)
 
@@ -87,14 +93,14 @@ function compute_time_step end
         #----------------------------------
 
         if wkb_mode in (:SingleColumn, :MultiColumn)
-            dtwkb = dzcmin / (cgz_max[] + eps())
+            dtwkb = dzcmin / (cgz_max[] + eps(float_type))
 
             if x_size > 1
-                dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))
+                dtwkb = min(dtwkb, dx / (cgx_max[] + eps(float_type)))
             end
 
             if y_size > 1
-                dtwkb = min(dtwkb, dy / (cgy_max[] + eps()))
+                dtwkb = min(dtwkb, dy / (cgy_max[] + eps(float_type)))
             end
 
             dtwkb *= wkb_cfl_number
