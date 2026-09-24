@@ -83,7 +83,7 @@ function compute_gw_tracer_tendencies!(
     nothing
 end
 
-function compute_gw_tracer_tendencies!(
+@ivy function compute_gw_tracer_tendencies!(
     state::State,
     i::Integer,
     j::Integer,
@@ -102,9 +102,9 @@ function compute_gw_tracer_tendencies!(
         return nothing
     end
 
-    @ivy dchidt0[i, j, k] = 0.0
+    dchidt0[i, j, k] = 0.0
 
-    @ivy if x_size > 1
+    if x_size > 1
         dchiu0 =
             (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
             met[i, j, k, 1, 3] * (uchi0[i, j, k + 1] - uchi0[i, j, k - 1]) /
@@ -113,7 +113,7 @@ function compute_gw_tracer_tendencies!(
         dchiu0 = 0.0
     end
 
-    @ivy if y_size > 1
+    if y_size > 1
         dchiv0 =
             (vchi0[i, j + 1, k] - vchi0[i, j - 1, k]) / (2.0 * dy) +
             met[i, j, k, 2, 3] * (vchi0[i, j, k + 1] - vchi0[i, j, k - 1]) /
@@ -122,10 +122,10 @@ function compute_gw_tracer_tendencies!(
         dchiv0 = 0.0
     end
 
-    @ivy dchiw0 =
+    dchiw0 =
         (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
 
-    @ivy dchidt0[i, j, k] =
+    dchidt0[i, j, k] =
         -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
         (dchiu0 + dchiv0 + dchiw0)
 

@@ -4,7 +4,8 @@ using Test
 using PinCFlow
 using .TestTools
 
-const update_references = false
+const update = "--update" in ARGS
+const keywords = (prepare_restart = true, visualize = false)
 
 include("test_cold_bubble.jl")
 include("test_hot_bubble.jl")

@@ -53,7 +53,7 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the
 """
 function compute_saturation_integrals end
 
-function compute_saturation_integrals(
+@ivy function compute_saturation_integrals(
     state::State,
     i::Integer,
     j::Integer,
@@ -71,7 +71,7 @@ function compute_saturation_integrals(
     mb2k2 = 0.0
 
     # Loop over ray volumes.
-    @ivy for r in 1:nray[i, j, k]
+    for r in 1:nray[i, j, k]
 
         # Skip ray volumes with zero wave-action density.
         if rays.dens[r, i, j, k] == 0

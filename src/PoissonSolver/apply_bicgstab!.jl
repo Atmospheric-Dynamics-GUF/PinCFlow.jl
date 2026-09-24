@@ -28,8 +28,8 @@ function apply_bicgstab!(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; tolerance, poisson_iterations, preconditioner, tolerance_is_relative) =
         state.namelists.poisson
-    (; master, comm, column_comm, layer_comm) = state.domain
-    (; rhs, solution) = state.poisson
+    (; master, comm) = state.domain
+    (; lhs, solution) = state.poisson
     (; p, r0, rold, r, s, t, v, matvec, v_pc) = state.poisson.bicgstab
 
     # Print information.
@@ -56,7 +56,7 @@ function apply_bicgstab!(
     errflag = false
 
     apply_operator!(solution, matvec, Total(), state)
-    r0 .= rhs .- matvec
+    r0 .= lhs .- matvec
     p .= r0
     r .= r0
 

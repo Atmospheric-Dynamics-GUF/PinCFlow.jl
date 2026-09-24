@@ -85,6 +85,10 @@ The group velocities that are calculated for the propagation in physical space a
 \\end{align*}
 ```
 
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
+
+If `rkstage == nstages`, `activate_orographic_source!` is called to launch new mountain-wave ray volumes.
+
 ```julia
 propagate_rays!(
     state::State,
@@ -122,7 +126,11 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
 
 the second term is integrated with the pseudo-time step ``J \\Delta \\hat{z} / c_{\\mathrm{g} z, r}``, which corresponds to the substitution ``\\mathcal{A}_r \\rightarrow \\left(1 - 2 J \\Delta \\hat{z} / c_{\\mathrm{g} z, r} K \\left|\\boldsymbol{k}_r\\right|^2\\right) \\mathcal{A}_r``.
 
+The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
+
 If the domain is parallelized in the vertical, the integration in vertical subdomains is performed sequentially, with one-way communication providing boundary conditions.
+
+If `rkstage != 1`, this method returns immediately.
 
 # Arguments
 
@@ -153,6 +161,8 @@ If the domain is parallelized in the vertical, the integration in vertical subdo
   - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.apply_turbulent_damping!`](@ref)
 """
 function propagate_rays! end
 
@@ -171,21 +181,21 @@ function propagate_rays!(
     nothing
 end
 
-function propagate_rays!(
+@ivy function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
-    (; branch, impact_altitude) = state.namelists.wkb
+    (; branch, impact_altitude, blocking) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
-    (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
+    (; nray, cgx_max, cgy_max, cgz_max, rays, deltazb) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
     (; alphark, betark, stepfrac, nstages) = state.time
-    (; lz, zctilde, dx, dy, dzcmin) = state.grid
+    (; dx, dy, dzcmin, hb) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
@@ -196,7 +206,7 @@ function propagate_rays!(
 
     # Initialize the WKB increments and maximum group velocities at the first
     # RK stage.
-    @ivy if rkstage == 1
+    if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
@@ -216,12 +226,22 @@ function propagate_rays!(
         cgz_max[] = 0.0
     end
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
+
+            apply_turbulent_damping!(
+                state,
+                r,
+                i,
+                j,
+                k,
+                zr,
+                stepfrac[rkstage] * dt,
+            )
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -245,16 +265,23 @@ function propagate_rays!(
                 branch * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             if any((n2r1, n2r, n2r2) .< 0)
-                error(
-                    "Error in propagate_rays!: Interpolated stratification is negative!",
-                )
+                error("Interpolated stratification is negative!")
             end
 
             if khr <= 0
-                error(
-                    "Error in propagate_rays!: Horizontal wavenumber is negative!",
-                )
+                error("Horizontal wavenumber is negative!")
             end
+
+            # Determine if horizontal propagation and refraction are allowed.
+            multi_column = wkb_mode === Val(:MultiColumn)
+            launch_layer = k == k0 - 1
+            blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
+            zonal_propagation =
+                x_size > 1 && multi_column && !launch_layer && !blocked_layer
+            meridional_propagation =
+                y_size > 1 && multi_column && !launch_layer && !blocked_layer
+            refraction =
+                zr > impact_altitude / lref && !launch_layer && !blocked_layer
 
             # Compute intrinsic zonal group velocity.
             if x_size > 1
@@ -276,7 +303,7 @@ function propagate_rays!(
 
             # Update zonal position.
 
-            if x_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
+            if zonal_propagation
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -295,12 +322,12 @@ function propagate_rays!(
 
             if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
                abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
-                error("Error in propagate_rays!: Rays travel too far in x!")
+                error("Rays travel too far in x!")
             end
 
             # Update meridional position.
 
-            if y_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
+            if meridional_propagation
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -319,7 +346,7 @@ function propagate_rays!(
 
             if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
                abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
-                error("Error in propagate_rays!: Rays travel too far in y!")
+                error("Rays travel too far in y!")
             end
 
             # Update vertical position.
@@ -337,12 +364,12 @@ function propagate_rays!(
 
             if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
                abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
-                error("Error in propagate_rays!: Rays travel too far in z!")
+                error("Rays travel too far in z!")
             end
 
             # Refraction is only allowed above impact_altitude / lref.
 
-            if zr > impact_altitude / lref
+            if refraction
 
                 #-------------------------------
                 #      Change of wavenumber
@@ -381,7 +408,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if x_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
+                if zonal_propagation
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[r, i, j, k] =
@@ -399,7 +426,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if y_size > 1 && k >= k0 && wkb_mode != Val(:SingleColumn)
+                if meridional_propagation
                     ddydt = cgry2 - cgry1
 
                     ddyray[r, i, j, k] =
@@ -437,7 +464,7 @@ function propagate_rays!(
     #     Change of wave action
     #-------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
@@ -446,12 +473,14 @@ function propagate_rays!(
         end
     end
 
-    activate_orographic_source!(state)
+    if rkstage == nstages
+        activate_orographic_source!(state)
+    end
 
     nothing
 end
 
-function propagate_rays!(
+@ivy function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
@@ -460,7 +489,6 @@ function propagate_rays!(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
-    (; stepfrac) = state.time
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
@@ -468,12 +496,16 @@ function propagate_rays!(
     (; u, v) = state.variables.predictands
     (; nray, rays) = state.wkb
 
+    if rkstage != 1
+        return
+    end
+
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
     activate_orographic_source!(state)
 
-    @ivy if ko != 0
+    if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
@@ -491,7 +523,7 @@ function propagate_rays!(
     end
 
     # Loop over grid cells.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Set the ray-volume count.
         nray[i, j, k] = nray[i, j, k - 1]
@@ -561,6 +593,17 @@ function propagate_rays!(
 
             # Set the local wave action density.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+
+            apply_turbulent_damping!(
+                state,
+                r,
+                i,
+                j,
+                k,
+                zr,
+                jac[i, j, k] * dz / cgirz,
+            )
+
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             rays.dens[r, i, j, k] =
                 1 / (
@@ -641,7 +684,7 @@ function propagate_rays!(
         end
     end
 
-    @ivy if ko + nz != z_size
+    if ko + nz != z_size
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 

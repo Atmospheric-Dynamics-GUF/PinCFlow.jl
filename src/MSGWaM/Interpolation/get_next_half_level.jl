@@ -38,7 +38,7 @@ In case an error is thrown, the parameter `wkb_cfl_number` of the discretization
 """
 function get_next_half_level end
 
-function get_next_half_level(
+@ivy function get_next_half_level(
     i::Integer,
     j::Integer,
     z::AbstractFloat,
@@ -50,8 +50,8 @@ function get_next_half_level(
     (; nz, nzz, ko, k0, k1) = state.domain
     (; zctilde) = state.grid
 
-    @ivy k = argmin(abs.(zctilde[i, j, :] .- z))
-    @ivy if zctilde[i, j, k] < z
+    k = 1
+    while zctilde[i, j, k] < z
         k += 1
     end
 
@@ -60,7 +60,7 @@ function get_next_half_level(
     else
         if k < 1 + dkd
             error(
-                "Error in get_next_half_level: k = ",
+                "Vertical index is too small: k = ",
                 k,
                 " < ",
                 1 + dkd,
@@ -75,7 +75,7 @@ function get_next_half_level(
     else
         if k > nzz - dku
             error(
-                "Error in get_next_half_level: k = ",
+                "Vertical index is too large: k = ",
                 k,
                 " > ",
                 nzz - dku,

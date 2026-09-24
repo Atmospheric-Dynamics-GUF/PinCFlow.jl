@@ -1,37 +1,36 @@
 function test_periodic_hill()
     l2 = (
-        pip = 0.00055369554f0,
-        rhop = 0.005398585f0,
+        pip = 0.0012510987f0,
+        rhop = 0.021197429f0,
         t = 3600.0f0,
-        us = 140.5774f0,
+        tke = 0.0014142136f0,
+        us = 281.00134f0,
         vs = 0.0f0,
-        w = 2.124313f0,
-        wts = 4.074997f0,
-        x = 18165.902f0,
+        w = 6.454747f0,
+        wts = 9.853479f0,
+        x = 25787.594f0,
         y = 0.0f0,
-        z = 116062.984f0,
-        ztilde = 124774.234f0,
+        z = 232335.95f0,
+        ztilde = 240994.72f0,
     )
     linf = (
-        pip = 0.0002016583f0,
-        rhop = 0.0016297717f0,
+        pip = 0.00024125425f0,
+        rhop = 0.002478798f0,
         t = 3600.0f0,
-        us = 10.618719f0,
+        tke = 5.0f-5,
+        us = 11.487911f0,
         vs = 0.0f0,
-        w = 0.5624462f0,
-        wts = 0.98847735f0,
-        x = 9000.0f0,
+        w = 0.70977837f0,
+        wts = 1.3313793f0,
+        x = 9500.0f0,
         y = 0.0f0,
-        z = 19024.389f0,
+        z = 19512.424f0,
         ztilde = 20000.0f0,
     )
     reference = (l2, linf)
 
-    keywords =
-        (x_size = 10, z_size = 10, prepare_restart = true, visualize = false)
-
     @testset "Periodic hill" begin
-        test_example(periodic_hill, keywords, reference; update_references)
+        test_example(periodic_hill, keywords, reference; update)
     end
 
     nothing

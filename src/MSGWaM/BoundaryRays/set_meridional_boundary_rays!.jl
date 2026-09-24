@@ -21,7 +21,7 @@ This method first enforces meridional boundary conditions for `state.wkb.nray` (
 """
 function set_meridional_boundary_rays! end
 
-function set_meridional_boundary_rays!(state::State)
+@ivy function set_meridional_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; y_size) = namelists.domain
     (; ny, jo, i0, i1, j0, j1, k0, k1) = domain
@@ -37,7 +37,7 @@ function set_meridional_boundary_rays!(state::State)
     )
 
     # Set ray-volumes properties.
-    @ivy if y_size > 1
+    if y_size > 1
         set_meridional_halo_rays!(state)
     else
         for k in (k0 - 1):(k1 + 1), i in (i0 - 1):(i1 + 1)
@@ -51,7 +51,7 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    @ivy if jo == 0
+    if jo == 0
         for k in (k0 - 1):(k1 + 1), j in (j0 - 1):j0, i in (i0 - 1):(i1 + 1)
             for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]
@@ -66,7 +66,7 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    @ivy if jo + ny == y_size
+    if jo + ny == y_size
         for k in (k0 - 1):(k1 + 1), j in j1:(j1 + 1), i in (i0 - 1):(i1 + 1)
             for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]

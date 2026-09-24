@@ -105,7 +105,7 @@ function compute_buoyancy_factor(
     )
 end
 
-function compute_buoyancy_factor(
+@ivy function compute_buoyancy_factor(
     state::State,
     i::Integer,
     j::Integer,
@@ -115,10 +115,11 @@ function compute_buoyancy_factor(
 )::AbstractFloat
     (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
-    @ivy pbar[i, j, k] / thetabar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+
+    pbar[i, j, k] / thetabar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
 end
 
-function compute_buoyancy_factor(
+@ivy function compute_buoyancy_factor(
     state::State,
     i::Integer,
     j::Integer,
@@ -128,10 +129,11 @@ function compute_buoyancy_factor(
 )::AbstractFloat
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
-    @ivy rhobar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+
+    rhobar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
 end
 
-function compute_buoyancy_factor(
+@ivy function compute_buoyancy_factor(
     state::State,
     i::Integer,
     j::Integer,
@@ -142,7 +144,8 @@ function compute_buoyancy_factor(
     (; jac) = state.grid
     (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
-    @ivy (
+
+    (
         jac[i, j, k + 1] * pbar[i, j, k] / thetabar[i, j, k] +
         jac[i, j, k] * pbar[i, j, k + 1] / thetabar[i, j, k + 1]
     ) / (
@@ -151,7 +154,7 @@ function compute_buoyancy_factor(
     )
 end
 
-function compute_buoyancy_factor(
+@ivy function compute_buoyancy_factor(
     state::State,
     i::Integer,
     j::Integer,
@@ -162,7 +165,8 @@ function compute_buoyancy_factor(
     (; jac) = state.grid
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
-    @ivy (
+
+    (
         jac[i, j, k + 1] * rhobar[i, j, k] + jac[i, j, k] * rhobar[i, j, k + 1]
     ) / (
         jac[i, j, k + 1] * (rho[i, j, k] + rhobar[i, j, k]) +

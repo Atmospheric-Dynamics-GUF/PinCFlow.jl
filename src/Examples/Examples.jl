@@ -5,6 +5,7 @@ include("WavePacketTools/WavePacketTools.jl")
 using MPI
 using HDF5
 using .WavePacketTools
+using ..Macros
 using ..Types
 using ..Integration
 using ..PinCFlow

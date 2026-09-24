@@ -32,7 +32,7 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 """
 function apply_3d_muscl! end
 
-function apply_3d_muscl!(
+@ivy function apply_3d_muscl!(
     phi::AbstractArray{<:AbstractFloat, 3},
     phitilde::AbstractArray{<:AbstractFloat, 5},
     nxx::Integer,
@@ -42,7 +42,7 @@ function apply_3d_muscl!(
 )
 
     # Reconstruct in x.
-    @ivy for k in 2:(nzz - 1), j in 2:(nyy - 1)
+    for k in 2:(nzz - 1), j in 2:(nyy - 1)
         apply_1d_muscl!(
             phi[:, j, k],
             phitilde[:, j, k, 1, :],
@@ -52,7 +52,7 @@ function apply_3d_muscl!(
     end
 
     # Reconstruct in y.
-    @ivy for k in 2:(nzz - 1), i in 2:(nxx - 1)
+    for k in 2:(nzz - 1), i in 2:(nxx - 1)
         apply_1d_muscl!(
             phi[i, :, k],
             phitilde[i, :, k, 2, :],
@@ -62,7 +62,7 @@ function apply_3d_muscl!(
     end
 
     # Reconstruct in z.
-    @ivy for j in 2:(nyy - 1), i in 2:(nxx - 1)
+    for j in 2:(nyy - 1), i in 2:(nxx - 1)
         apply_1d_muscl!(
             phi[i, j, :],
             phitilde[i, j, :, 3, :],

@@ -30,7 +30,7 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 """
 function interpolate_sponge end
 
-function interpolate_sponge(
+@ivy function interpolate_sponge(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
@@ -50,8 +50,8 @@ function interpolate_sponge(
         il = i0
         ir = i0
     end
-    @ivy xl = x[il]
-    @ivy xr = x[ir]
+    xl = x[il]
+    xr = x[ir]
 
     # Determine closest points in meridional direction.
     if y_size > 1
@@ -61,43 +61,43 @@ function interpolate_sponge(
         jb = j0
         jf = j0
     end
-    @ivy yb = y[jb]
-    @ivy yf = y[jf]
+    yb = y[jb]
+    yf = y[jf]
 
     # Determine closest points in vertical direction and set interpolation
     # values.
 
     klbu = get_next_level(il, jb, zlc, state; dkd = 1)
     klbd = klbu - 1
-    @ivy zlbd = zc[il, jb, klbd]
-    @ivy zlbu = zc[il, jb, klbu]
+    zlbd = zc[il, jb, klbd]
+    zlbu = zc[il, jb, klbu]
 
     klfu = get_next_level(il, jf, zlc, state; dkd = 1)
     klfd = klfu - 1
-    @ivy zlfd = zc[il, jf, klfd]
-    @ivy zlfu = zc[il, jf, klfu]
+    zlfd = zc[il, jf, klfd]
+    zlfu = zc[il, jf, klfu]
 
     krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
     krbd = krbu - 1
-    @ivy zrbd = zc[ir, jb, krbd]
-    @ivy zrbu = zc[ir, jb, krbu]
+    zrbd = zc[ir, jb, krbd]
+    zrbu = zc[ir, jb, krbu]
 
     krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
     krfd = krfu - 1
-    @ivy zrfd = zc[ir, jf, krfd]
-    @ivy zrfu = zc[ir, jf, krfu]
+    zrfd = zc[ir, jf, krfd]
+    zrfu = zc[ir, jf, krfu]
 
-    @ivy philbd = alphar[il, jb, klbd]
-    @ivy philbu = alphar[il, jb, klbu]
+    philbd = alphar[il, jb, klbd]
+    philbu = alphar[il, jb, klbu]
 
-    @ivy philfd = alphar[il, jf, klfd]
-    @ivy philfu = alphar[il, jf, klfu]
+    philfd = alphar[il, jf, klfd]
+    philfu = alphar[il, jf, klfu]
 
-    @ivy phirbd = alphar[ir, jb, krbd]
-    @ivy phirbu = alphar[ir, jb, krbu]
+    phirbd = alphar[ir, jb, krbd]
+    phirbu = alphar[ir, jb, krbu]
 
-    @ivy phirfd = alphar[ir, jf, krfd]
-    @ivy phirfu = alphar[ir, jf, krfu]
+    phirfd = alphar[ir, jf, krfd]
+    phirfu = alphar[ir, jf, krfu]
 
     # Interpolate.
     phi = interpolate(

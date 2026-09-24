@@ -7,6 +7,8 @@ Module that contains a collection of types for WKB ray tracing calculations incl
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
@@ -20,7 +22,7 @@ import Base: getproperty
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
-using ...PinCFlow
+using ...Macros
 
 include("WKBIntegrals.jl")
 include("WKBTendencies.jl")
@@ -28,6 +30,8 @@ include("Rays.jl")
 include("MergedRays.jl")
 include("WKBIncrements.jl")
 include("SurfaceIndices.jl")
+include("Spectrum.jl")
+include("ElasticModeSelection.jl")
 include("WKB.jl")
 
 include("getproperty.jl")

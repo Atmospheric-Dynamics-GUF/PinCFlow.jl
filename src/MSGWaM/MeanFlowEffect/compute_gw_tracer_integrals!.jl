@@ -75,7 +75,7 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `state`: Model state.
 
-  - `tracer_setup`:  General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
   - `fc`: Coriolis parameter.
 
@@ -87,7 +87,7 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `wnrm`: Vertical wavenumber.
 
-  - `wadr`: Phase-space wave-action density.
+  - `wadr`: Contributing fraction of the physical-space wave-action density.
 
   - `xlc`: Zonal location of the ray-volume.
 
@@ -101,10 +101,9 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `k`: Vertical grid-cell index.
 
-# See also:
+# See also
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.leading_order_tracer_fluxes`](@ref)
-
 """
 function compute_gw_tracer_integrals! end
 
@@ -163,7 +162,7 @@ function compute_gw_tracer_integrals!(
     nothing
 end
 
-function compute_gw_tracer_integrals!(
+@ivy function compute_gw_tracer_integrals!(
     state::State,
     fc::AbstractFloat,
     omir::AbstractFloat,
@@ -186,7 +185,7 @@ function compute_gw_tracer_integrals!(
         return nothing
     end
 
-    @ivy uchi0[i, j, k] += leading_order_tracer_fluxes(
+    uchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -200,7 +199,7 @@ function compute_gw_tracer_integrals!(
         UChi(),
     )
 
-    @ivy vchi0[i, j, k] += leading_order_tracer_fluxes(
+    vchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
@@ -214,7 +213,7 @@ function compute_gw_tracer_integrals!(
         VChi(),
     )
 
-    @ivy wchi0[i, j, k] += leading_order_tracer_fluxes(
+    wchi0[i, j, k] += leading_order_tracer_fluxes(
         state,
         fc,
         omir,
