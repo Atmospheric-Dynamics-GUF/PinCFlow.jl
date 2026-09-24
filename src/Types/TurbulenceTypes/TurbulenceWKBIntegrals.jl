@@ -3,7 +3,7 @@
 TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Gravity-wave shear field.
+Integrals of gravity-wave induced turbulent fluxes.
 
 ```julia 
 TurbulenceWKBIntegrals(

@@ -41,7 +41,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Return for turbulence WKB integrals as these are only accessed within the grid cells. (See also [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref))
+Return for turbulence WKB integrals as these are not needed in halo/boundary cells (See also [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)).
 
 ```julia
 set_turbulence_zonal_boundaries!(
@@ -51,7 +51,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Enforce zonal boundary conditions for turbulence WKB tendencies required for smoothing.
+Enforce zonal boundary conditions for turbulence WKB tendencies.
 
 # Arguments
 
@@ -64,8 +64,6 @@ Enforce zonal boundary conditions for turbulence WKB tendencies required for smo
 # See also
 
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)
 """
 function set_turbulence_zonal_boundaries! end
 

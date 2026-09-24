@@ -9,7 +9,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the volume force in the equation specified by `variable`, by dispatching to a WKB-mode specific method.
+Return the volume force in the equation specified by `variable`, by dispatching to an equation-and-WKB-mode specific method.
 
 ```julia
 compute_volume_force(
@@ -17,7 +17,7 @@ compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi},
+    variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
 ```
@@ -139,19 +139,6 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variables::TKE,
-    wkb_mode::Val{:NoWKB},
-)::AbstractFloat
-```
-
-Return ``0`` as the turbulence impact of the gravity-wave shear in non-WKB modes.
-
-```julia
-compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
 ```
@@ -209,7 +196,7 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi},
+    variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     return 0.0
@@ -349,17 +336,6 @@ end
     buoyancy_production[i, j, k] = buoyancy
 
     return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
-end
-
-function compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variable::TKE,
-    wkb_mode::Val{:NoWKB},
-)::AbstractFloat
-    return 0.0
 end
 
 @ivy function compute_volume_force(
