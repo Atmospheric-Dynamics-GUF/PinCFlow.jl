@@ -13,11 +13,11 @@ function compute_norms()::NTuple{2, NamedTuple}
     (l2, linf) = h5open(file, "r") do data
         l2 = NamedTuple(
             Symbol(key) => norm(read(data[key]), 2) for
-            key in keys(data) if typeof(data[key]) <: HDF5.Dataset
+            key in keys(data) if data[key] isa HDF5.Dataset
         )
         linf = NamedTuple(
             Symbol(key) => norm(read(data[key]), Inf) for
-            key in keys(data) if typeof(data[key]) <: HDF5.Dataset
+            key in keys(data) if data[key] isa HDF5.Dataset
         )
         return (l2, linf)
     end

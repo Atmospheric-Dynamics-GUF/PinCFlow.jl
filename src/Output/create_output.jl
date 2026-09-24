@@ -817,8 +817,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 fieldnames(typeof(getfield(state.namelists, namelist)))
                 value = getfield(getfield(state.namelists, namelist), parameter)
                 file["namelists"][string(namelist)][string(parameter)] =
-                    typeof(value) <: AbstractString ? "\"" * value * "\"" :
-                    string(value)
+                    repr(value)
             end
         end
 
