@@ -38,11 +38,11 @@ Construct a `WKBIntegrals` instance, with arrays sized according to the given di
 
   - `float_type`: Data type of the arrays' elements.
 
-  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `nxx`: Number of subdomain grid points in ``\\hat{x}``-direction.
 
-  - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
+  - `nyy`: Number of subdomain grid points in ``\\hat{y}``-direction.
 
-  - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
+  - `nzz`: Number of subdomain grid points in ``\\hat{z}``-direction.
 """
 struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     uu::A

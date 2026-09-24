@@ -23,7 +23,11 @@ The coefficients are computed with the functions `lhs_sponge` and `rhs_sponge` i
 """
 function compute_sponges! end
 
-function compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)
+@ivy function compute_sponges!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+)
     (; namelists, domain) = state
     (; z_size) = namelists.domain
     (; lhs_sponge, rhs_sponge) = namelists.sponge
@@ -35,7 +39,7 @@ function compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref

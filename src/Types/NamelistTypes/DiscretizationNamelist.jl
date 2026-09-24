@@ -1,79 +1,69 @@
 """
 ```julia
-DiscretizationNamelist{
-    A <: AbstractFloat,
-    B <: Bool,
-    C <: AbstractLimiter,
-    D <: DataType,
-}
+DiscretizationNamelist
 ```
 
 Namelist for parameters describing the discretization.
 
 ```julia
 DiscretizationNamelist(;
-    cfl_number::AbstractFloat = 5.0E-1,
-    wkb_cfl_number::AbstractFloat = 5.0E-1,
-    dtmin::AbstractFloat = 1.0E-6,
-    dtmax::AbstractFloat = 1.0E+3,
+    cfl_number::Real = 5.0E-1,
+    wkb_cfl_number::Real = 3.0E-1,
+    dtmin::Real = 1.0E-6,
+    dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
-    limiter_type::AbstractLimiter = MCVariant(),
+    limiter_type::Symbol = :MCVariant,
     float_type::DataType = Float64,
     integer_type::DataType = Int64,
 )::DiscretizationNamelist
 ```
 
-Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
+Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
-  - `cfl_number::A`: Number used for the CFL condition in the time step computation.
+  - `cfl_number::Float64`: Number used for the CFL condition in the time step computation.
 
-  - `wkb_cfl_number::A`: Number used for the WKB-CFL condition in the time step computation.
+  - `wkb_cfl_number::Float64`: Number used for the WKB-CFL condition in the time step computation.
 
-  - `dtmin::A`: Minimum time step allowed for the integration.
+  - `dtmin::Float64`: Minimum time step allowed for the integration.
 
-  - `dtmax::A`: Maximum time step allowed for the integration.
+  - `dtmax::Float64`: Maximum time step allowed for the integration.
 
-  - `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
+  - `adaptive_time_step::Bool`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax` is used as a fixed time step.
 
-  - `limiter_type::C`: Flux limiter used by the MUSCL scheme.
+  - `limiter_type::Symbol`: Flux limiter used by the MUSCL scheme.
 
-  - `float_type::D`: Data type of floats.
+  - `float_type::DataType`: Data type of floats.
 
-  - `integer_type::D`: Data type of integers.
+  - `integer_type::DataType`: Data type of integers.
 """
-struct DiscretizationNamelist{
-    A <: AbstractFloat,
-    B <: Bool,
-    C <: AbstractLimiter,
-    D <: DataType,
-}
-    cfl_number::A
-    wkb_cfl_number::A
-    dtmin::A
-    dtmax::A
-    adaptive_time_step::B
-    limiter_type::C
-    float_type::D
-    integer_type::D
+struct DiscretizationNamelist
+    cfl_number::Float64
+    wkb_cfl_number::Float64
+    dtmin::Float64
+    dtmax::Float64
+    adaptive_time_step::Bool
+    limiter_type::Symbol
+    float_type::DataType
+    integer_type::DataType
 end
 
 function DiscretizationNamelist(;
-    cfl_number::AbstractFloat = 5.0E-1,
-    wkb_cfl_number::AbstractFloat = 5.0E-1,
-    dtmin::AbstractFloat = 1.0E-6,
-    dtmax::AbstractFloat = 1.0E+3,
+    cfl_number::Real = 5.0E-1,
+    wkb_cfl_number::Real = 3.0E-1,
+    dtmin::Real = 1.0E-6,
+    dtmax::Real = 1.0E+3,
     adaptive_time_step::Bool = true,
-    limiter_type::AbstractLimiter = MCVariant(),
+    limiter_type::Symbol = :MCVariant,
     float_type::DataType = Float64,
     integer_type::DataType = Int64,
 )::DiscretizationNamelist
     return DiscretizationNamelist(
-        cfl_number,
-        wkb_cfl_number,
-        dtmin,
-        dtmax,
+        Float64(cfl_number),
+        Float64(wkb_cfl_number),
+        Float64(dtmin),
+        Float64(dtmax),
         adaptive_time_step,
         limiter_type,
         float_type,

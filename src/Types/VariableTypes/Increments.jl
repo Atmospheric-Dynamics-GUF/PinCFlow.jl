@@ -1,10 +1,6 @@
 """
 ```julia
-Increments{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-}
+Increments{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Container for the Runge-Kutta updates of the prognostic variables, as well as the Exner-pressure update of the Poisson solver.
@@ -16,27 +12,19 @@ Increments(namelists::Namelists, domain::Domain)::Increments
 Create an `Increments` instance with dimensions depending on the model configuration, by dispatching to the appropriate method.
 
 ```julia
-Increments(namelists::Namelists, domain::Domain, model::Boussinesq)::Increments
+Increments(domain::Domain, model::Val{:Boussinesq})::Increments
 ```
 
 Create an `Increments` instance in Boussinesq mode, with zero-size arrays for the density and mass-weighted potential-temperature update.
 
 ```julia
-Increments(
-    namelists::Namelists,
-    domain::Domain,
-    model::PseudoIncompressible,
-)::Increments
+Increments(domain::Domain, model::Val{:PseudoIncompressible})::Increments
 ```
 
 Create an `Increments` instance in pseudo-incompressible mode, with a zero-size array for the mass-weighted potential-temperature update.
 
 ```julia
-Increments(
-    namelists::Namelists,
-    domain::Domain,
-    model::Compressible,
-)::Increments
+Increments(domain::Domain, model::Val{:Compressible})::Increments
 ```
 
 Create an `Increments` instance in compressible mode.
@@ -45,17 +33,17 @@ Create an `Increments` instance in compressible mode.
 
   - `drho::A`: Density update.
 
-  - `drhop::B`: Density-fluctuations update.
+  - `drhop::A`: Density-fluctuations update.
 
-  - `du::B`: Zonal-momentum update.
+  - `du::A`: Zonal-momentum update.
 
-  - `dv::B`: Meridional-momentum update.
+  - `dv::A`: Meridional-momentum update.
 
-  - `dw::B`: Transformed-vertical-momentum update.
+  - `dw::A`: Transformed-vertical-momentum update.
 
-  - `dpip::B`: Exner-pressure update.
+  - `dpip::A`: Exner-pressure update.
 
-  - `dp::C`: Mass-weighted potential-temperature update.
+  - `dp::A`: Mass-weighted potential-temperature update.
 
 # Arguments
 
@@ -65,33 +53,25 @@ Create an `Increments` instance in compressible mode.
 
   - `model`: Dynamic equations.
 """
-struct Increments{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-}
+struct Increments{A <: AbstractArray{<:AbstractFloat, 3}}
     drho::A
-    drhop::B
-    du::B
-    dv::B
-    dw::B
-    dpip::B
-    dp::C
+    drhop::A
+    du::A
+    dv::A
+    dw::A
+    dpip::A
+    dp::A
 end
 
 function Increments(namelists::Namelists, domain::Domain)::Increments
     (; model) = namelists.atmosphere
 
-    return Increments(namelists, domain, model)
+    @dispatch_model return Increments(domain, Val(model))
 end
 
-function Increments(
-    namelists::Namelists,
-    domain::Domain,
-    model::Boussinesq,
-)::Increments
-    (; float_type) = namelists.discretization
+function Increments(domain::Domain, model::Val{:Boussinesq})::Increments
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return Increments(
         zeros(float_type, 0, 0, 0),
@@ -101,12 +81,11 @@ function Increments(
 end
 
 function Increments(
-    namelists::Namelists,
     domain::Domain,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )::Increments
-    (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return Increments(
         [zeros(float_type, nxx, nyy, nzz) for i in 1:6]...,
@@ -114,13 +93,9 @@ function Increments(
     )
 end
 
-function Increments(
-    namelists::Namelists,
-    domain::Domain,
-    model::Compressible,
-)::Increments
-    (; float_type) = namelists.discretization
+function Increments(domain::Domain, model::Val{:Compressible})::Increments
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return Increments([zeros(float_type, nxx, nyy, nzz) for i in 1:7]...)
 end

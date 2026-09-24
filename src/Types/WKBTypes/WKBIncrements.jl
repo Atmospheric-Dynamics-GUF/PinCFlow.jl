@@ -43,11 +43,11 @@ Construct an `WKBIncrements` instance, with arrays sized according to the given 
 
   - `nray_wrk`: Size of the spectral dimension of ray-volume arrays.
 
-  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `nxx`: Number of subdomain grid points in ``\\hat{x}``-direction.
 
-  - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
+  - `nyy`: Number of subdomain grid points in ``\\hat{y}``-direction.
 
-  - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
+  - `nzz`: Number of subdomain grid points in ``\\hat{z}``-direction.
 """
 struct WKBIncrements{A <: AbstractArray{<:AbstractFloat, 4}}
     dxray::A

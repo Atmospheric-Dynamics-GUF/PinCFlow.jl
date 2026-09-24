@@ -6,12 +6,12 @@ Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 Collection of domain-decomposition and MPI-communication parameters.
 
 ```julia
-Domain(namelists::Namelists)::Domain
+Domain(namelists::Namelists; base_comm::MPI.Comm = MPI.COMM_WORLD)::Domain
 ```
 
 Construct a `Domain` instance from the model parameters in `namelists`.
 
-If `namelists.domain.base_comm` is equal to `MPI.COMM_WORLD`, this method first initializes the MPI parallelization by calling `MPI.Init()`. It then creates a Cartesian topology from the base communicator, with periodic boundaries in the first two dimensions (``\\widehat{x}`` and ``\\widehat{y}``) but not in the last (``\\widehat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\widehat{x}``, ``\\widehat{y}`` and ``\\widehat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
+This method first creates a Cartesian topology from the base communicator `base_comm`, with periodic boundaries in the first two dimensions (``\\hat{x}`` and ``\\hat{y}``) but not in the last (``\\hat{z}``). The domain is divided into corresponding subdomains, where in each direction, the number of grid points (`nx`, `ny` and `nz`) is the result of floor division of the global grid size (`namelists.domain.x_size`, `namelists.domain.y_size` and `namelists.domain.z_size`) by the number of processes in that direction (`namelists.domain.npx`, `namelists.domain.npy` and `namelists.domain.npz`). The remainder of the floor division is included in the grid-point count of the last processes (in each direction). The index bounds (`(i0, i1)`, `(j0, j1)` and `(k0, k1)`) are set such that they exclude the first and last `namelists.domain.nbx`, `namelists.domain.nby` and `namelists.domain.nbz` cells in ``\\hat{x}``, ``\\hat{y}`` and ``\\hat{z}``, respectively (these are not included in `nx`, `ny` and `nz`).
 
 # Fields
 
@@ -27,37 +27,37 @@ General MPI communication:
 
 Dimensions of the MPI subdomain:
 
-  - `nx::C`: Number of physical grid points in ``\\widehat{x}``-direction.
+  - `nx::C`: Number of physical grid points in ``\\hat{x}``-direction.
 
-  - `ny::C`: Number of physical grid points in ``\\widehat{y}``-direction.
+  - `ny::C`: Number of physical grid points in ``\\hat{y}``-direction.
 
-  - `nz::C`: Number of physical grid points in ``\\widehat{z}``-direction.
+  - `nz::C`: Number of physical grid points in ``\\hat{z}``-direction.
 
-  - `nxx::C`: Number of computational grid points in ``\\widehat{x}``-direction (including halo/boundary cells).
+  - `nxx::C`: Number of computational grid points in ``\\hat{x}``-direction (including halo/boundary cells).
 
-  - `nyy::C`: Number of computational grid points in ``\\widehat{y}``-direction (including halo/boundary cells).
+  - `nyy::C`: Number of computational grid points in ``\\hat{y}``-direction (including halo/boundary cells).
 
-  - `nzz::C`: Number of computational grid points in ``\\widehat{z}``-direction (including halo/boundary cells).
+  - `nzz::C`: Number of computational grid points in ``\\hat{z}``-direction (including halo/boundary cells).
 
 Index offsets and bounds:
 
-  - `io::C`: MPI offset in ``\\widehat{x}``-direction.
+  - `io::C`: MPI offset in ``\\hat{x}``-direction.
 
-  - `jo::C`: MPI offset in ``\\widehat{y}``-direction.
+  - `jo::C`: MPI offset in ``\\hat{y}``-direction.
 
-  - `ko::C`: MPI offset in ``\\widehat{z}``-direction.
+  - `ko::C`: MPI offset in ``\\hat{z}``-direction.
 
-  - `i0::C`: First physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+  - `i0::C`: First physical grid cell of the subdomain in ``\\hat{x}``-direction.
 
-  - `i1::C`: Last physical grid cell of the subdomain in ``\\widehat{x}``-direction.
+  - `i1::C`: Last physical grid cell of the subdomain in ``\\hat{x}``-direction.
 
-  - `j0::C`: First physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+  - `j0::C`: First physical grid cell of the subdomain in ``\\hat{y}``-direction.
 
-  - `j1::C`: Last physical grid cell of the subdomain in ``\\widehat{y}``-direction.
+  - `j1::C`: Last physical grid cell of the subdomain in ``\\hat{y}``-direction.
 
-  - `k0::C`: First physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+  - `k0::C`: First physical grid cell of the subdomain in ``\\hat{z}``-direction.
 
-  - `k1::C`: Last physical grid cell of the subdomain in ``\\widehat{z}``-direction.
+  - `k1::C`: Last physical grid cell of the subdomain in ``\\hat{z}``-direction.
 
 Neighbor-process ranks:
 
@@ -82,6 +82,10 @@ Horizontal and vertical communication:
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
+
+# Keywords
+
+  - `base_comm`: MPI communicator which is used to create the Cartesian communicator for the integration.
 """
 struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 
@@ -127,15 +131,15 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-function Domain(namelists::Namelists)::Domain
+@ivy function Domain(
+    namelists::Namelists;
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
+)::Domain
     (; integer_type) = namelists.discretization
-    (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz, base_comm) =
-        namelists.domain
+    (; x_size, y_size, z_size, nbx, nby, nbz, npx, npy, npz) = namelists.domain
 
     # Initialize MPI.
-    if !MPI.Initialized()
-        MPI.Init()
-    end
+    !MPI.Initialized() && MPI.Init()
     rank = MPI.Comm_rank(base_comm)
     root = integer_type(0)
     if rank == root
@@ -145,18 +149,29 @@ function Domain(namelists::Namelists)::Domain
     end
     np = MPI.Comm_size(base_comm)
 
+    # Check if there will be enough boundary cells.
+    if master && nbx < 3
+        error("Too few boundary cells: nbx < 3!")
+    end
+    if master && nby < 3
+        error("Too few boundary cells: nby < 3!")
+    end
+    if master && nbz < 3
+        error("Too few boundary cells: nbz < 3!")
+    end
+
     # Check if parallelization is set up correctly.
     if master && npx * npy * npz != np
-        error("Error in Domain: npx * npy * npz != np!")
+        error("Incorrect domain decomposition: npx * npy * npz != np!")
     end
-    if master && npx > 1 && nbx > div(x_size, npx)
-        error("Error in Domain: npx > 1 && nbx > div(x_size, npx)!")
+    if master && x_size > 1 && nbx > div(x_size, npx)
+        error("Too many MPI subdomains: x_size > 1 && nbx > div(x_size, npx)!")
     end
-    if master && npy > 1 && nby > div(y_size, npy)
-        error("Error in Domain: npy > 1 && nby > div(y_size, npy)!")
+    if master && y_size > 1 && nby > div(y_size, npy)
+        error("Too many MPI subdomains: y_size > 1 && nby > div(y_size, npy)!")
     end
-    if master && npz > 1 && nbz > div(z_size, npz)
-        error("Error in Domain: npz > 1 && nbz > div(z_size, npz)!")
+    if master && z_size > 1 && nbz > div(z_size, npz)
+        error("Too many MPI subdomains: z_size > 1 && nbz > div(z_size, npz)!")
     end
 
     # Set dimensions and periodicity.
@@ -169,17 +184,17 @@ function Domain(namelists::Namelists)::Domain
     coords = MPI.Cart_coords(comm, rank)
 
     # Set local grid size.
-    @ivy if coords[1] == npx - 1
+    if coords[1] == npx - 1
         nx = integer_type(div(x_size, npx) + x_size % npx)
     else
         nx = integer_type(div(x_size, npx))
     end
-    @ivy if coords[2] == npy - 1
+    if coords[2] == npy - 1
         ny = integer_type(div(y_size, npy) + y_size % npy)
     else
         ny = integer_type(div(y_size, npy))
     end
-    @ivy if coords[3] == npz - 1
+    if coords[3] == npz - 1
         nz = integer_type(div(z_size, npz) + z_size % npz)
     else
         nz = integer_type(div(z_size, npz))
@@ -191,9 +206,9 @@ function Domain(namelists::Namelists)::Domain
     nzz = integer_type(nz + 2 * nbz)
 
     # Set index offsets.
-    @ivy io = integer_type(coords[1] * div(x_size, npx))
-    @ivy jo = integer_type(coords[2] * div(y_size, npy))
-    @ivy ko = integer_type(coords[3] * div(z_size, npz))
+    io = coords[1] * integer_type(div(x_size, npx))
+    jo = coords[2] * integer_type(div(y_size, npy))
+    ko = coords[3] * integer_type(div(z_size, npz))
 
     # Set index bounds.
     i0 = integer_type(nbx + 1)
@@ -203,14 +218,14 @@ function Domain(namelists::Namelists)::Domain
     k0 = integer_type(nbz + 1)
     k1 = integer_type(k0 + nz - 1)
 
-    # Find the neighbour processors.
+    # Find the neighbor processors.
     (left, right) = integer_type.(MPI.Cart_shift(comm, 0, 1))
     (backward, forward) = integer_type.(MPI.Cart_shift(comm, 1, 1))
     (down, up) = integer_type.(MPI.Cart_shift(comm, 2, 1))
 
     # Create communicators for horizontal and vertical averages.
-    @ivy layer_comm = MPI.Comm_split(comm, coords[3], rank)
-    @ivy column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
+    layer_comm = MPI.Comm_split(comm, coords[3], rank)
+    column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
 
     return Domain(
         comm,

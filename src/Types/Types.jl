@@ -18,8 +18,12 @@ Module for the construction of a single composite type that contains all informa
   - [`PinCFlow.Types.WKBTypes`](@ref)
 
   - [`PinCFlow.Types.TracerTypes`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes`](@ref)
 """
 module Types
+
+using MPI
 
 """
 ```julia
@@ -113,6 +117,15 @@ struct Chi end
 
 """
 ```julia
+TKE
+```
+
+Singleton that represents the turbulent kinetic energy.
+"""
+struct TKE end
+
+"""
+```julia
 Explicit
 ```
 
@@ -135,6 +148,7 @@ include("PoissonTypes/PoissonTypes.jl")
 include("VariableTypes/VariableTypes.jl")
 include("WKBTypes/WKBTypes.jl")
 include("TracerTypes/TracerTypes.jl")
+include("TurbulenceTypes/TurbulenceTypes.jl")
 
 using .NamelistTypes
 using .FoundationalTypes
@@ -142,48 +156,24 @@ using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
 using .TracerTypes
-using ..PinCFlow
+using .TurbulenceTypes
 
 include("State.jl")
 
-export AbstractBackground,
-    AbstractLimiter,
-    AbstractPredictand,
-    AbstractModel,
-    AbstractMergeMode,
-    AbstractWKBMode,
-    AbstractWKBFilter,
-    AbstractTracer
+export @dispatch_background,
+    @dispatch_filter_order,
+    @dispatch_filter_type,
+    @dispatch_limiter_type,
+    @dispatch_merge_mode,
+    @dispatch_model,
+    @dispatch_orographic_flow,
+    @dispatch_tracer_setup,
+    @dispatch_turbulence_scheme,
+    @dispatch_wkb_mode
 
-export Rho,
-    RhoP,
-    U,
-    V,
-    W,
-    PiP,
-    P,
-    Theta,
-    Chi,
-    Explicit,
-    Implicit,
-    UniformBoussinesq,
-    StratifiedBoussinesq,
-    Isothermal,
-    Isentropic,
-    Realistic,
-    LapseRates,
-    MCVariant,
-    Boussinesq,
-    PseudoIncompressible,
-    Compressible,
-    ConstantWaveAction,
-    ConstantWaveEnergy,
-    NoWKB,
-    SteadyState,
-    SingleColumn,
-    MultiColumn,
-    Box,
-    Shapiro
+export AbstractPredictand
+
+export Rho, RhoP, U, V, W, PiP, P, Theta, Chi, TKE, Explicit, Implicit
 
 export DomainNamelist,
     OutputNamelist,
@@ -194,43 +184,26 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     TracerNamelist,
+    TurbulenceNamelist,
     Namelists,
-    Time,
-    Constants,
     Domain,
     Grid,
-    Atmosphere,
-    Sponge,
-    Tensor,
-    Operator,
-    Preconditioner,
-    BicGStab,
-    Correction,
-    Poisson,
     Predictands,
-    Increments,
-    Backups,
-    Auxiliaries,
     Reconstructions,
     Fluxes,
-    Variables,
     WKBIntegrals,
     WKBTendencies,
     Rays,
     MergedRays,
     WKBIncrements,
-    SurfaceIndices,
-    WKB,
-    Tracer,
     State,
-    NoTracer,
-    TracerOn,
     TracerPredictands,
-    TracerAuxiliaries,
-    TracerIncrements,
     TracerReconstructions,
     TracerFluxes,
-    TracerForcings,
-    TracerWKBImpact
+    TracerWKBIntegrals,
+    TracerWKBTendencies,
+    TurbulencePredictands,
+    TurbulenceReconstructions,
+    TurbulenceFluxes
 
 end

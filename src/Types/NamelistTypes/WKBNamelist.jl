@@ -1,14 +1,6 @@
 """
 ```julia
-WKBNamelist{
-    A <: Integer,
-    B <: AbstractFloat,
-    C <: AbstractMergeMode,
-    D <: Bool,
-    E <: AbstractWKBFilter,
-    F <: AbstractWKBMode,
-    G <: Function,
-}
+WKBNamelist
 ```
 
 Namelist for parameters used by MS-GWaM.
@@ -21,113 +13,157 @@ WKBNamelist(;
     nrk::Integer = 1,
     nrl::Integer = 1,
     nrm::Integer = 1,
-    multiplication_factor::Integer = 4,
-    dkr_factor::AbstractFloat = 1.0E-1,
-    dlr_factor::AbstractFloat = 1.0E-1,
-    dmr_factor::AbstractFloat = 1.0E-1,
+    k_bins::Integer = 1,
+    l_bins::Integer = 1,
+    m_bins::Integer = 3,
+    dkr_factor::Real = 1.0E-1,
+    dlr_factor::Real = 1.0E-1,
+    dmr_factor::Real = 1.0E-1,
     branch::Integer = -1,
-    merge_mode::AbstractMergeMode = ConstantWaveAction(),
+    merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
     smooth_tendencies::Bool = true,
-    filter_type::AbstractWKBFilter = Shapiro(),
-    impact_altitude::AbstractFloat = 0.0E+0,
+    filter_type::Symbol = :ShapiroFilter,
+    impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
-    saturation_threshold::AbstractFloat = 1.0E+0,
-    wkb_mode::AbstractWKBMode = NoWKB(),
+    saturation_threshold::Real = 1.0E+0,
+    wkb_mode::Symbol = :NoWKB,
+    orographic_flow::Symbol = :Average,
     blocking::Bool = false,
-    long_threshold::AbstractFloat = 2.5E-1,
-    drag_coefficient::AbstractFloat = 1.0E+0,
+    long_threshold::Real = 2.5E-1,
+    drag_coefficient::Real = 1.0E+0,
+    reduction_coefficient::Real = 1.0E+0,
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
+    elastic_mode_selection::Bool = false,
+    minimum_mode_count::Integer = wave_modes,
+    maximum_mode_count::Integer = wave_modes,
+    minimum_power_fraction::Real = 1.0E+0,
+    maximum_power_fraction::Real = 1.0E+0,
+    turbulent_damping::Bool = false,
 )::WKBNamelist
 ```
 
-Construct a `WKBNamelist` instance with the given keyword arguments as properties.
+Construct a `WKBNamelist` instance with the given keyword arguments as properties, converting them to meet the type constraints.
 
 # Fields/Keywords
 
-  - `nrx::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{x}``-direction.
+  - `nrx::Int`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{x}``-direction.
 
-  - `nry::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{y}``-direction.
+  - `nry::Int`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{y}``-direction.
 
-  - `nrz::A`: Number of ray-volumes launched per grid cell and wave mode in ``\\widehat{z}``-direction.
+  - `nrz::Int`: Number of ray-volumes launched per grid cell and wave mode in ``\\hat{z}``-direction.
 
-  - `nrk::A`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
+  - `nrk::Int`: Number of ray-volumes launched per grid cell and wave mode in ``k``-direction.
 
-  - `nrl::A`: Number of ray-volumes launched per grid cell and wave mode in ``l``-direction.
+  - `nrl::Int`: Number of ray-volumes launched per grid cell and wave mode in ``l``-direction.
 
-  - `nrm::A`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
+  - `nrm::Int`: Number of ray-volumes launched per grid cell and wave mode in ``m``-direction.
 
-  - `multiplication_factor::A`: Factor by which ray volumes are allowed to multiply in each dimension of physical space.
+  - `k_bins::Int`: Number of ``k``-bins in the merging algorithm for single-column/multi-column mode (must be an odd number).
 
-  - `dkr_factor::B`: Relative initial ray-volume extent in ``k``.
+  - `l_bins::Int`: Number of ``l``-bins in the merging algorithm for single-column/multi-column mode (must be an odd number).
 
-  - `dlr_factor::B`: Relative initial ray-volume extent in ``l``.
+  - `m_bins::Int`: Number of ``m``-bins in the merging algorithm for single-column/multi-column mode (must be an odd number).
 
-  - `dmr_factor::B`: Relative initial ray-volume extent in ``m``.
+  - `dkr_factor::Float64`: Relative initial ray-volume extent in ``k``.
 
-  - `branch::A`: Frequency branch.
+  - `dlr_factor::Float64`: Relative initial ray-volume extent in ``l``.
 
-  - `merge_mode::C`: Ray-volume merging strategy (conserved quantity).
+  - `dmr_factor::Float64`: Relative initial ray-volume extent in ``m``.
 
-  - `filter_order::A`: Order of the smoothing applied to the mean-flow tendencies.
+  - `branch::Int`: Frequency branch.
 
-  - `smooth_tendencies::D`: Switch for smoothing the mean-flow tendencies.
+  - `merge_mode::Symbol`: Ray-volume merging strategy (conserved quantity).
 
-  - `filter_type::E`: Filter to use for the smoothing of the mean-flow tendencies.
+  - `filter_order::Int`: Order of the smoothing applied to the mean-flow tendencies.
 
-  - `impact_altitude::B`: Minimum altitude for ray-tracing and mean-flow impact.
+  - `smooth_tendencies::Bool`: Switch for smoothing the mean-flow tendencies.
 
-  - `use_saturation::D`: Switch for the saturation scheme.
+  - `filter_type::Symbol`: Filter to use for the smoothing of the mean-flow tendencies.
 
-  - `saturation_threshold::B`: Relative saturation threshold.
+  - `impact_altitude::Float64`: Minimum altitude for ray-tracing and mean-flow impact.
 
-  - `wkb_mode::F`: Approximations used by MS-GWaM.
+  - `use_saturation::Bool`: Switch for the saturation scheme.
 
-  - `blocking::D`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
+  - `saturation_threshold::Float64`: Relative saturation threshold.
 
-  - `long_threshold::B`: Long-number threshold used by the blocked-layer scheme.
+  - `wkb_mode::Symbol`: Approximations used by MS-GWaM.
 
-  - `drag_coefficient::B`: Dimensionless (relative) drag coefficient used by the blocked layer scheme.
+  - `orographic_flow::Symbol`: Method used to approximate quantities of the mountain-wave-generating background flow.
 
-  - `wave_modes::A`: Number of wave modes per grid cell.
+  - `blocking::Bool`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
 
-  - `initial_wave_field::G`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
+  - `long_threshold::Float64`: Long-number threshold used by the blocked-layer scheme.
+
+  - `drag_coefficient::Float64`: Dimensionless drag coefficient used by the blocked-layer scheme.
+
+  - `reduction_coefficient::Float64`: Dimensionless coefficient that regulates how much of the blocked layer contributes to a reduction of the wave amplitude.
+
+  - `wave_modes::Int`: Number of wave modes per grid cell.
+
+  - `initial_wave_field::FunctionWrapper{NTuple{5, Float64}, Tuple{Int, Float64, Float64, Float64}}`: Function used to set the initial wavenumbers, intrinsic frequency and wave-action density of each wave mode.
+
+  - `elastic_mode_selection::Bool`: Switch for elastic mode selection in ray-volume sources.
+
+  - `minimum_mode_count::Int`: Minimum number of modes selected by the elastic-mode-selection algorithm.
+
+  - `minimum_mode_count::Int`: Maximum number of modes selected by the elastic-mode-selection algorithm.
+
+  - `minimum_power_fraction::Float64`: Minimum power fraction retained by the elastic-mode-selection algorithm.
+
+  - `maximum_power_fraction::Float64`: Maximum power fraction retained by the elastic-mode-selection algorithm.
+
+  - `turbulent_damping::Bool`: Damping of wave-action density due to turbulence.
+
+!!! danger "Experimental"
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
+
+!!! danger "Experimental"
+    The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
+
+!!! danger "Experimental"
+    The elastic mode selection is an experimental feature adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010).
 """
-struct WKBNamelist{
-    A <: Integer,
-    B <: AbstractFloat,
-    C <: AbstractMergeMode,
-    D <: Bool,
-    E <: AbstractWKBFilter,
-    F <: AbstractWKBMode,
-    G <: Function,
-}
-    nrx::A
-    nry::A
-    nrz::A
-    nrk::A
-    nrl::A
-    nrm::A
-    multiplication_factor::A
-    dkr_factor::B
-    dlr_factor::B
-    dmr_factor::B
-    branch::A
-    merge_mode::C
-    filter_order::A
-    smooth_tendencies::D
-    filter_type::E
-    impact_altitude::B
-    use_saturation::D
-    saturation_threshold::B
-    wkb_mode::F
-    blocking::D
-    long_threshold::B
-    drag_coefficient::B
-    wave_modes::A
-    initial_wave_field::G
+struct WKBNamelist
+    nrx::Int
+    nry::Int
+    nrz::Int
+    nrk::Int
+    nrl::Int
+    nrm::Int
+    k_bins::Int
+    l_bins::Int
+    m_bins::Int
+    dkr_factor::Float64
+    dlr_factor::Float64
+    dmr_factor::Float64
+    branch::Int
+    merge_mode::Symbol
+    filter_order::Int
+    smooth_tendencies::Bool
+    filter_type::Symbol
+    impact_altitude::Float64
+    use_saturation::Bool
+    saturation_threshold::Float64
+    wkb_mode::Symbol
+    orographic_flow::Symbol
+    blocking::Bool
+    long_threshold::Float64
+    drag_coefficient::Float64
+    reduction_coefficient::Float64
+    wave_modes::Int
+    initial_wave_field::FunctionWrapper{
+        NTuple{5, Float64},
+        Tuple{Int, Float64, Float64, Float64},
+    }
+    elastic_mode_selection::Bool
+    minimum_mode_count::Int
+    maximum_mode_count::Int
+    minimum_power_fraction::Float64
+    maximum_power_fraction::Float64
+    turbulent_damping::Bool
 end
 
 function WKBNamelist(;
@@ -137,50 +173,70 @@ function WKBNamelist(;
     nrk::Integer = 1,
     nrl::Integer = 1,
     nrm::Integer = 1,
-    multiplication_factor::Integer = 4,
-    dkr_factor::AbstractFloat = 1.0E-1,
-    dlr_factor::AbstractFloat = 1.0E-1,
-    dmr_factor::AbstractFloat = 1.0E-1,
+    k_bins::Integer = 1,
+    l_bins::Integer = 1,
+    m_bins::Integer = 3,
+    dkr_factor::Real = 1.0E-1,
+    dlr_factor::Real = 1.0E-1,
+    dmr_factor::Real = 1.0E-1,
     branch::Integer = -1,
-    merge_mode::AbstractMergeMode = ConstantWaveAction(),
+    merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
     smooth_tendencies::Bool = true,
-    filter_type::AbstractWKBFilter = Shapiro(),
-    impact_altitude::AbstractFloat = 0.0E+0,
+    filter_type::Symbol = :ShapiroFilter,
+    impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
-    saturation_threshold::AbstractFloat = 1.0E+0,
-    wkb_mode::AbstractWKBMode = NoWKB(),
+    saturation_threshold::Real = 1.0E+0,
+    wkb_mode::Symbol = :NoWKB,
+    orographic_flow::Symbol = :Average,
     blocking::Bool = false,
-    long_threshold::AbstractFloat = 2.5E-1,
-    drag_coefficient::AbstractFloat = 1.0E+0,
+    long_threshold::Real = 2.5E-1,
+    drag_coefficient::Real = 1.0E+0,
+    reduction_coefficient::Real = 1.0E+0,
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
+    elastic_mode_selection::Bool = false,
+    minimum_mode_count::Integer = wave_modes,
+    maximum_mode_count::Integer = wave_modes,
+    minimum_power_fraction::Real = 1.0E+0,
+    maximum_power_fraction::Real = 1.0E+0,
+    turbulent_damping::Bool = false,
 )::WKBNamelist
     return WKBNamelist(
-        nrx,
-        nry,
-        nrz,
-        nrk,
-        nrl,
-        nrm,
-        multiplication_factor,
-        dkr_factor,
-        dlr_factor,
-        dmr_factor,
-        branch,
+        Int(nrx),
+        Int(nry),
+        Int(nrz),
+        Int(nrk),
+        Int(nrl),
+        Int(nrm),
+        Int(k_bins),
+        Int(l_bins),
+        Int(m_bins),
+        Float64(dkr_factor),
+        Float64(dlr_factor),
+        Float64(dmr_factor),
+        Int(branch),
         merge_mode,
-        filter_order,
+        Int(filter_order),
         smooth_tendencies,
         filter_type,
-        impact_altitude,
+        Float64(impact_altitude),
         use_saturation,
-        saturation_threshold,
+        Float64(saturation_threshold),
         wkb_mode,
+        orographic_flow,
         blocking,
-        long_threshold,
-        drag_coefficient,
-        wave_modes,
+        Float64(long_threshold),
+        Float64(drag_coefficient),
+        Float64(reduction_coefficient),
+        Int(wave_modes),
         initial_wave_field,
+        elastic_mode_selection,
+        Int(minimum_mode_count),
+        Int(maximum_mode_count),
+        Float64(minimum_power_fraction),
+        Float64(maximum_power_fraction),
+        turbulent_damping,
     )
 end

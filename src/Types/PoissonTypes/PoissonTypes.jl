@@ -7,6 +7,8 @@ Module for composite types used by the Poisson solver.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
@@ -15,15 +17,14 @@ module PoissonTypes
 
 using ..NamelistTypes
 using ..FoundationalTypes
-using ...PinCFlow
+using ...Macros
 
 include("Tensor.jl")
 include("Operator.jl")
-include("Preconditioner.jl")
-include("BicGStab.jl")
+include("BiCGSTAB.jl")
 include("Correction.jl")
 include("Poisson.jl")
 
-export Tensor, Operator, Preconditioner, BicGStab, Correction, Poisson
+export Tensor, Operator, BiCGSTAB, Correction, Poisson
 
 end

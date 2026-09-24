@@ -6,7 +6,7 @@ apply_3d_muscl!(
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    limiter_type::AbstractLimiter,
+    limiter_type::Val{:MCVariant},
 )
 ```
 
@@ -18,11 +18,11 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 
   - `phitilde`: Output array with reconstructed values. The fourth dimension represents the directions in which the input was reconstructed and the fifth dimension the reconstructions to the left and right.
 
-  - `nxx`: Size of `phi` in ``\\widehat{x}``-direction.
+  - `nxx`: Size of `phi` in ``\\hat{x}``-direction.
 
-  - `nyy`: Size of `phi` in ``\\widehat{y}``-direction.
+  - `nyy`: Size of `phi` in ``\\hat{y}``-direction.
 
-  - `nzz`: Size of `phi` in ``\\widehat{z}``-direction.
+  - `nzz`: Size of `phi` in ``\\hat{z}``-direction.
 
   - `limiter_type`: Type of flux limiter to use.
 
@@ -32,17 +32,17 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 """
 function apply_3d_muscl! end
 
-function apply_3d_muscl!(
+@ivy function apply_3d_muscl!(
     phi::AbstractArray{<:AbstractFloat, 3},
     phitilde::AbstractArray{<:AbstractFloat, 5},
     nxx::Integer,
     nyy::Integer,
     nzz::Integer,
-    limiter_type::AbstractLimiter,
+    limiter_type::Val{:MCVariant},
 )
 
     # Reconstruct in x.
-    @ivy for k in 2:(nzz - 1), j in 2:(nyy - 1)
+    for k in 2:(nzz - 1), j in 2:(nyy - 1)
         apply_1d_muscl!(
             phi[:, j, k],
             phitilde[:, j, k, 1, :],
@@ -52,7 +52,7 @@ function apply_3d_muscl!(
     end
 
     # Reconstruct in y.
-    @ivy for k in 2:(nzz - 1), i in 2:(nxx - 1)
+    for k in 2:(nzz - 1), i in 2:(nxx - 1)
         apply_1d_muscl!(
             phi[i, :, k],
             phitilde[i, :, k, 2, :],
@@ -62,7 +62,7 @@ function apply_3d_muscl!(
     end
 
     # Reconstruct in z.
-    @ivy for j in 2:(nyy - 1), i in 2:(nxx - 1)
+    for j in 2:(nyy - 1), i in 2:(nxx - 1)
         apply_1d_muscl!(
             phi[i, j, :],
             phitilde[i, j, :, 3, :],

@@ -15,22 +15,22 @@ Compute and return the pressure(-difference)-gradient term in the zonal-wind equ
 The pressure-gradient component is given by
 
 ```math
-\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{\\pi'_{i + 1 / 2, k + 1} - \\pi'_{i + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
+\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\hat{x}} + G^{13}_{i + 1 / 2} \\frac{\\pi'_{i + 1 / 2, k + 1} - \\pi'_{i + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
-Since the Exner-pressure is not known in the vertical ghost cells, a different discretization is needed at the vertical boundaries. At ``k = k_0`` (in the first process in ``\\widehat{z}``), the alternative second-order-accurate approximation
+Since the Exner-pressure is not known in the vertical ghost cells, a different discretization is needed at the vertical boundaries. At ``k = k_0`` (in the first process in ``\\hat{z}``), the alternative second-order-accurate approximation
 
 ```math
-\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{- \\pi'_{i + 1 / 2, k + 2} + 4 \\pi'_{i + 1 / 2, k + 1} - 3 \\pi'_{i + 1 / 2}}{2 \\Delta \\widehat{z}}
+\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\hat{x}} + G^{13}_{i + 1 / 2} \\frac{- \\pi'_{i + 1 / 2, k + 2} + 4 \\pi'_{i + 1 / 2, k + 1} - 3 \\pi'_{i + 1 / 2}}{2 \\Delta \\hat{z}}
 ```
 
 is used and, in a similar manner, one has
 
 ```math
-\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\widehat{x}} + G^{13}_{i + 1 / 2} \\frac{\\pi'_{i + 1 / 2, k - 2} - 4 \\pi'_{i + 1 / 2, k - 1} + 3 \\pi'_{i + 1 / 2}}{2 \\Delta \\widehat{z}}
+\\mathcal{P}^{\\rho u}_{i + 1 / 2} = \\frac{\\pi'_{i + 1} - \\pi'}{\\Delta \\hat{x}} + G^{13}_{i + 1 / 2} \\frac{\\pi'_{i + 1 / 2, k - 2} - 4 \\pi'_{i + 1 / 2, k - 1} + 3 \\pi'_{i + 1 / 2}}{2 \\Delta \\hat{z}}
 ```
 
-at ``k = k_1`` (in the last process in ``\\widehat{z}``). The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho u}_{i + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right)``.
+at ``k = k_1`` (in the last process in ``\\hat{z}``). The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho u}_{i + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{i + 1 / 2} / \\rho_{i + 1 / 2}\\right)``.
 
 ```julia
 compute_pressure_gradient(
@@ -48,22 +48,22 @@ Compute and return the pressure-gradient term in the meridional-wind equation at
 The pressure-gradient component is given by
 
 ```math
-\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{\\pi'_{j + 1 / 2, k + 1} - \\pi'_{j + 1 / 2, k - 1}}{2 \\Delta \\widehat{z}}.
+\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\hat{y}} + G^{23}_{j + 1 / 2} \\frac{\\pi'_{j + 1 / 2, k + 1} - \\pi'_{j + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
 ```
 
 Analogous to the component in the zonal-wind equation, one has
 
 ```math
-\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{- \\pi'_{j + 1 / 2, k + 2} + 4 \\pi'_{j + 1 / 2, k + 1} - 3 \\pi'_{j + 1 / 2}}{2 \\Delta \\widehat{z}}
+\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\hat{y}} + G^{23}_{j + 1 / 2} \\frac{- \\pi'_{j + 1 / 2, k + 2} + 4 \\pi'_{j + 1 / 2, k + 1} - 3 \\pi'_{j + 1 / 2}}{2 \\Delta \\hat{z}}
 ```
 
-at ``k = k_0`` (in the first process in ``\\widehat{z}``) and
+at ``k = k_0`` (in the first process in ``\\hat{z}``) and
 
 ```math
-\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\widehat{y}} + G^{23}_{j + 1 / 2} \\frac{\\pi'_{j + 1 / 2, k - 2} - 4 \\pi'_{j + 1 / 2, k - 1} + 3 \\pi'_{j + 1 / 2}}{2 \\Delta \\widehat{z}}
+\\mathcal{P}^{\\rho v}_{j + 1 / 2} = \\frac{\\pi'_{j + 1} - \\pi'}{\\Delta \\hat{y}} + G^{23}_{j + 1 / 2} \\frac{\\pi'_{j + 1 / 2, k - 2} - 4 \\pi'_{j + 1 / 2, k - 1} + 3 \\pi'_{j + 1 / 2}}{2 \\Delta \\hat{z}}
 ```
 
-at ``k = k_1`` (in the last process in ``\\widehat{z}``). The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho v}_{j + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right)``.
+at ``k = k_1`` (in the last process in ``\\hat{z}``). The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho v}_{j + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{j + 1 / 2} / \\rho_{j + 1 / 2}\\right)``.
 
 ```julia
 compute_pressure_gradient(
@@ -82,12 +82,12 @@ The pressure-gradient component is given by
 
 ```math
 \\begin{align*}
-    \\mathcal{P}^{\\rho \\widehat{w}}_{k + 1 / 2} & = G^{13}_{k + 1 / 2} \\frac{\\pi'_{i + 1, k + 1 / 2} - \\pi'_{i - 1, k + 1 / 2}}{2 \\Delta \\widehat{x}} + G^{23}_{k + 1 / 2} \\frac{\\pi'_{j + 1, k + 1 / 2} - \\pi'_{j - 1, k + 1 / 2}}{2 \\Delta \\widehat{y}}\\\\
-    & \\quad + G^{33}_{k + 1 / 2} \\frac{\\pi'_{k + 1} - \\pi'}{\\Delta \\widehat{z}}.
+    \\mathcal{P}^{\\rho \\hat{w}}_{k + 1 / 2} & = G^{13}_{k + 1 / 2} \\frac{\\pi'_{i + 1, k + 1 / 2} - \\pi'_{i - 1, k + 1 / 2}}{2 \\Delta \\hat{x}} + G^{23}_{k + 1 / 2} \\frac{\\pi'_{j + 1, k + 1 / 2} - \\pi'_{j - 1, k + 1 / 2}}{2 \\Delta \\hat{y}}\\\\
+    & \\quad + G^{33}_{k + 1 / 2} \\frac{\\pi'_{k + 1} - \\pi'}{\\Delta \\hat{z}}.
  \\end{align*}
 ```
 
-At ``k = k_0 - 1`` (in the first process in ``\\widehat{z}``) and ``k = k_1`` (in the last process in ``\\widehat{z}``), it is set to zero. The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho \\widehat{w}}_{k + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right)``.
+At ``k = k_0 - 1`` (in the first process in ``\\hat{z}``) and ``k = k_1`` (in the last process in ``\\hat{z}``), it is set to zero. The corresponding pressure-difference-gradient component ``\\mathcal{D}^{\\rho \\hat{w}}_{k + 1 / 2}`` is obtained by replacing ``\\pi'`` with ``\\Delta \\pi'``. The returned quantity also includes the factor ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right)``.
 
 # Arguments
 
@@ -105,7 +105,7 @@ At ``k = k_0 - 1`` (in the first process in ``\\widehat{z}``) and ``k = k_1`` (i
 """
 function compute_pressure_gradient end
 
-function compute_pressure_gradient(
+@ivy function compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
     i::Integer,
@@ -122,14 +122,14 @@ function compute_pressure_gradient(
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
-    @ivy rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-    @ivy rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
-    @ivy rhoedger += rhobaredger
-    @ivy pedger = 0.5 * (pbar[i, j, k] + pbar[i + 1, j, k])
-    @ivy met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
+    rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
+    rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
+    rhoedger += rhobaredger
+    pedger = 0.5 * (pbar[i, j, k] + pbar[i + 1, j, k])
+    met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
 
     # Compute the pressure gradient component.
-    @ivy if ko + k == k0
+    if ko + k == k0
         pipuuedger = 0.5 * (pip[i, j, k + 2] + pip[i + 1, j, k + 2])
         pipuedger = 0.5 * (pip[i, j, k + 1] + pip[i + 1, j, k + 1])
         pipedger = 0.5 * (pip[i, j, k] + pip[i + 1, j, k])
@@ -164,7 +164,7 @@ function compute_pressure_gradient(
     return gradient
 end
 
-function compute_pressure_gradient(
+@ivy function compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
     i::Integer,
@@ -181,14 +181,14 @@ function compute_pressure_gradient(
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
-    @ivy rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-    @ivy rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
-    @ivy rhoedgef += rhobaredgef
-    @ivy pedgef = 0.5 * (pbar[i, j, k] + pbar[i, j + 1, k])
-    @ivy met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
+    rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
+    rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
+    rhoedgef += rhobaredgef
+    pedgef = 0.5 * (pbar[i, j, k] + pbar[i, j + 1, k])
+    met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
     # Compute the pressure gradient component.
-    @ivy if ko + k == k0
+    if ko + k == k0
         pipuuedgef = 0.5 * (pip[i, j, k + 2] + pip[i, j + 1, k + 2])
         pipuedgef = 0.5 * (pip[i, j, k + 1] + pip[i, j + 1, k + 1])
         pipedgef = 0.5 * (pip[i, j, k] + pip[i, j + 1, k])
@@ -223,7 +223,7 @@ function compute_pressure_gradient(
     return gradient
 end
 
-function compute_pressure_gradient(
+@ivy function compute_pressure_gradient(
     state::State,
     pip::AbstractArray{<:AbstractFloat, 3},
     i::Integer,
@@ -238,55 +238,55 @@ function compute_pressure_gradient(
 
     # Interpolate the density, mass-weighted potential temperature and metric
     # tensor element.
-    @ivy rhoedgeu =
+    rhoedgeu =
         (jac[i, j, k + 1] * rho[i, j, k] + jac[i, j, k] * rho[i, j, k + 1]) /
         (jac[i, j, k] + jac[i, j, k + 1])
-    @ivy rhoedgeu +=
+    rhoedgeu +=
         (
             jac[i, j, k + 1] * rhobar[i, j, k] +
             jac[i, j, k] * rhobar[i, j, k + 1]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
-    @ivy pedgeu =
+    pedgeu =
         (jac[i, j, k + 1] * pbar[i, j, k] + jac[i, j, k] * pbar[i, j, k + 1]) /
         (jac[i, j, k] + jac[i, j, k + 1])
-    @ivy met13edgeu =
+    met13edgeu =
         (
             jac[i, j, k + 1] * met[i, j, k, 1, 3] +
             jac[i, j, k] * met[i, j, k + 1, 1, 3]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
-    @ivy met23edgeu =
+    met23edgeu =
         (
             jac[i, j, k + 1] * met[i, j, k, 2, 3] +
             jac[i, j, k] * met[i, j, k + 1, 2, 3]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
-    @ivy met33edgeu =
+    met33edgeu =
         (
             jac[i, j, k + 1] * met[i, j, k, 3, 3] +
             jac[i, j, k] * met[i, j, k + 1, 3, 3]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
 
     # Compute the pressure gradient component.
-    @ivy pipredgeu =
+    pipredgeu =
         (
             jac[i + 1, j, k + 1] * pip[i + 1, j, k] +
             jac[i + 1, j, k] * pip[i + 1, j, k + 1]
         ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-    @ivy pipledgeu =
+    pipledgeu =
         (
             jac[i - 1, j, k + 1] * pip[i - 1, j, k] +
             jac[i - 1, j, k] * pip[i - 1, j, k + 1]
         ) / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
-    @ivy pipfedgeu =
+    pipfedgeu =
         (
             jac[i, j + 1, k + 1] * pip[i, j + 1, k] +
             jac[i, j + 1, k] * pip[i, j + 1, k + 1]
         ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-    @ivy pipbedgeu =
+    pipbedgeu =
         (
             jac[i, j - 1, k + 1] * pip[i, j - 1, k] +
             jac[i, j - 1, k] * pip[i, j - 1, k + 1]
         ) / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
-    @ivy gradient =
+    gradient =
         kappainv * mainv2 * pedgeu / rhoedgeu * (
             met13edgeu * (pipredgeu - pipledgeu) * 0.5 / dx +
             met23edgeu * (pipfedgeu - pipbedgeu) * 0.5 / dy +

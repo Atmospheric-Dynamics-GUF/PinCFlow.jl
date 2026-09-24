@@ -9,27 +9,31 @@ Calculates the tendencies that are to be added to the equations for momentum and
 
 ```math
 \\begin{align*}
-    \\left(\\frac{\\partial \\rho_\\mathrm{b} u_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\overline{\\rho}} \\left[\\frac{\\left(\\overline{\\rho} \\left\\langle u' u' \\right\\rangle\\right)_{i + 1} - \\left(\\overline{\\rho} \\left\\langle u' u' \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\widehat{x}} + G^{13} \\frac{\\left(\\overline{\\rho} \\left\\langle u' u' \\right\\rangle\\right)_{k + 1} - \\left(\\overline{\\rho} \\left\\langle u' u' \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\widehat{z}}\\right.\\\\
-    & \\qquad \\qquad + \\frac{\\left(\\overline{\\rho} \\left\\langle u' v' \\right\\rangle\\right)_{j + 1} - \\left(\\overline{\\rho} \\left\\langle u' v' \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\widehat{y}} + G^{23} \\frac{\\left(\\overline{\\rho} \\left\\langle u' v' \\right\\rangle\\right)_{k + 1} - \\left(\\overline{\\rho} \\left\\langle u' v' \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\widehat{z}}\\\\
-    & \\qquad \\qquad + \\left.\\frac{\\left(\\overline{\\rho} \\left\\langle u' w' \\right\\rangle\\right)_{k + 1} - \\left(\\overline{\\rho} \\left\\langle u' w' \\right\\rangle\\right)_{k - 1}}{2 J \\Delta \\widehat{z}}\\right] - \\rho_\\mathrm{b} \\frac{f}{\\overline{\\theta}} \\left\\langle \\theta' v' \\right\\rangle,\\\\
-    \\left(\\frac{\\partial \\rho_\\mathrm{b} v_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\overline{\\rho}} \\left[\\frac{\\left(\\overline{\\rho} \\left\\langle v' u' \\right\\rangle\\right)_{i + 1} - \\left(\\overline{\\rho} \\left\\langle v' u' \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\widehat{x}} + G^{13} \\frac{\\left(\\overline{\\rho} \\left\\langle v' u' \\right\\rangle\\right)_{k + 1} - \\left(\\overline{\\rho} \\left\\langle v' u' \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\widehat{z}}\\right.\\\\
-    & \\qquad \\qquad + \\frac{\\left(\\overline{\\rho} \\left\\langle v' v' \\right\\rangle\\right)_{j + 1} - \\left(\\overline{\\rho} \\left\\langle v' v' \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\widehat{y}} + G^{23} \\frac{\\left(\\overline{\\rho} \\left\\langle v' v' \\right\\rangle\\right)_{k + 1} - \\left(\\overline{\\rho} \\left\\langle v' v' \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\widehat{z}}\\\\
-    & \\qquad \\qquad + \\left.\\frac{\\left(\\overline{\\rho} \\left\\langle v' w' \\right\\rangle\\right)_{k + 1} - \\left(\\overline{\\rho} \\left\\langle v' w' \\right\\rangle\\right)_{k - 1}}{2 J \\Delta \\widehat{z}}\\right] + \\rho_\\mathrm{b} \\frac{f}{\\overline{\\theta}} \\left\\langle \\theta' u' \\right\\rangle,\\\\
-    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\widehat{w}_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = G^{13} \\left(\\frac{\\partial \\rho_\\mathrm{b} u_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} + G^{23} \\left(\\frac{\\partial \\rho_\\mathrm{b} v_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w},\\\\
-    \\left(\\frac{\\partial P_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\rho_\\mathrm{b} \\left[\\frac{\\left(\\overline{\\rho} \\left\\langle \\theta' u' \\right\\rangle\\right)_{i + 1} - \\left(\\overline{\\rho} \\left\\langle \\theta' u' \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\widehat{x}} + G^{13} \\frac{\\left(\\overline{\\rho} \\left\\langle \\theta' u' \\right\\rangle\\right)_{k + 1} - \\left(\\overline{\\rho} \\left\\langle \\theta' u' \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\widehat{z}}\\right.\\\\
-    & \\qquad \\qquad + \\left.\\frac{\\left(\\overline{\\rho} \\left\\langle \\theta' v' \\right\\rangle\\right)_{j + 1} - \\left(\\overline{\\rho} \\left\\langle \\theta' v' \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\widehat{y}} + G^{23} \\frac{\\left(\\overline{\\rho} \\left\\langle \\theta' v' \\right\\rangle\\right)_{k + 1} - \\left(\\overline{\\rho} \\left\\langle \\theta' v' \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\widehat{z}}\\right],
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} u_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\bar{\\rho}} \\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{u} \\right\\rangle\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{u} \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{u} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{u} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
+    & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{v} \\right\\rangle\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{v} \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{v} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{v} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
+    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] - \\rho_\\mathrm{b} \\frac{f}{\\bar{\\theta}} \\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle,\\\\
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} v_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\frac{\\rho_\\mathrm{b}}{\\bar{\\rho}} \\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{u} \\right\\rangle\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{u} \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{u} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{u} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
+    & \\qquad \\qquad + \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{v} \\right\\rangle\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{v} \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{v} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{v} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\\\
+    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle\\right)_{k - 1}}{2 J \\Delta \\hat{z}}\\right] + \\rho_\\mathrm{b} \\frac{f}{\\bar{\\theta}} \\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle,\\\\
+    \\left(\\frac{\\partial \\rho_\\mathrm{b} \\hat{w}_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = G^{13} \\left(\\frac{\\partial \\rho_\\mathrm{b} u_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} + G^{23} \\left(\\frac{\\partial \\rho_\\mathrm{b} v_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w},\\\\
+    \\left(\\frac{\\partial P_\\mathrm{b}}{\\partial t}\\right)_\\mathrm{w} & = - \\rho_\\mathrm{b} \\left[\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle\\right)_{i + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle\\right)_{i - 1}}{2 \\Delta \\hat{x}} + G^{13} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right.\\\\
+    & \\qquad \\qquad + \\left.\\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle\\right)_{j + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle\\right)_{j - 1}}{2 \\Delta \\hat{y}} + G^{23} \\frac{\\left(\\bar{\\rho} \\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle\\right)_{k + 1} - \\left(\\bar{\\rho} \\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle\\right)_{k - 1}}{2 \\Delta \\hat{z}}\\right],
 \\end{align*}
 ```
 
-where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\widehat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\overline{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
+where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. The tendencies to be added to the equation for the resolved tracers are computed by [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_tendencies!`](@ref). For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
 
 # Arguments
 
   - `state::State`: Model state.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_tendencies!`](@ref)
 """
 function compute_gw_tendencies! end
 
-function compute_gw_tendencies!(state::State)
+@ivy function compute_gw_tendencies!(state::State)
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; impact_altitude) = state.namelists.wkb
@@ -47,7 +51,7 @@ function compute_gw_tendencies!(state::State)
         getfield(tendencies, field) .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         if zc[i, j, k] < impact_altitude / lref
             continue
         end
@@ -148,12 +152,8 @@ function compute_gw_tendencies!(state::State)
             end
         end
 
-        compute_leading_order_tracer_forcing!(
-            state,
-            i,
-            j,
-            k,
-            state.namelists.tracer.tracer_setup,
-        )
+        compute_gw_tracer_tendencies!(state, i, j, k)
     end
+
+    return
 end

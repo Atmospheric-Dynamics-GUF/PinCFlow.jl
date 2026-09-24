@@ -6,13 +6,13 @@ shift_rays!(state::State)
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a WKB-mode-specific method.
 
 ```julia
-shift_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
+shift_rays!(state::State, wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}})
 ```
 
 Return for configurations without WKB / with steady-state WKB.
 
 ```julia
-shift_rays!(state::State, wkb_mode::SingleColumn)
+shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
 ```
 
 Shift the vertical array positions of ray volumes such that they are attributed to the correct grid cells.
@@ -20,7 +20,7 @@ Shift the vertical array positions of ray volumes such that they are attributed 
 This method enforces the vertical boundary conditions (via `set_vertical_boundary_rays!`), checks if ray volumes need to be shifted and, if they do, copies them to the correct grid cells and marks them for removal (by dispatching to the appropriate method). A second call of `set_vertical_boundary_rays!` ensures that ray volumes that have moved across MPI processes are included in the appropriate halo cells. Finally, the gaps that were created by marking ray volumes for removal are filled (via `remove_rays!`).
 
 ```julia
-shift_rays!(state::State, wkb_mode::MultiColumn)
+shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
 ```
 
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells.
@@ -31,7 +31,7 @@ For each dimension in physical space (with more than one grid point), this metho
 shift_rays!(state::State, direction::X)
 ```
 
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{x}`` and, if it is not, create a copy that is and mark the original for removal.
+For each ray volume, check if it is attributed to the correct position in ``\\hat{x}`` and, if it is not, create a copy that is and mark the original for removal.
 
 Ray volumes that should be attributed to a halo cell are marked for removal but not copied, since the copies are created from the corresponding halo cell in the adjacent MPI process.
 
@@ -39,17 +39,17 @@ Ray volumes that should be attributed to a halo cell are marked for removal but 
 shift_rays!(state::State, direction::Y)
 ```
 
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{y}`` and, if it is not, create a copy that is and mark the original for removal.
+For each ray volume, check if it is attributed to the correct position in ``\\hat{y}`` and, if it is not, create a copy that is and mark the original for removal.
 
-Ray volumes in halo cells are treated in the same way as in the method for shifting in ``\\widehat{x}``.
+Ray volumes in halo cells are treated in the same way as in the method for shifting in ``\\hat{x}``.
 
 ```julia
 shift_rays!(state::State, direction::Z)
 ```
 
-For each ray volume, check if it is attributed to the correct position in ``\\widehat{z}`` and, if it is not, create a copy that is and mark the original for removal.
+For each ray volume, check if it is attributed to the correct position in ``\\hat{z}`` and, if it is not, create a copy that is and mark the original for removal.
 
-Ray volumes in halo cells are treated in the same way as in the methods for shifting in ``\\widehat{x}`` and ``\\widehat{z}``.
+Ray volumes in halo cells are treated in the same way as in the methods for shifting in ``\\hat{x}`` and ``\\hat{z}``.
 
 # Arguments
 
@@ -79,15 +79,18 @@ function shift_rays! end
 
 function shift_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    shift_rays!(state, wkb_mode)
+    @dispatch_wkb_mode shift_rays!(state, Val(wkb_mode))
     return
 end
 
-function shift_rays!(state::State, wkb_mode::Union{NoWKB, SteadyState})
+function shift_rays!(
+    state::State,
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
+)
     return
 end
 
-function shift_rays!(state::State, wkb_mode::SingleColumn)
+function shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
     set_vertical_boundary_rays!(state)
     shift_rays!(state, Z())
     set_vertical_boundary_rays!(state)
@@ -98,7 +101,7 @@ function shift_rays!(state::State, wkb_mode::SingleColumn)
     return
 end
 
-function shift_rays!(state::State, wkb_mode::MultiColumn)
+function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
     (; x_size, y_size) = state.namelists.domain
 
     if x_size > 1
@@ -125,7 +128,7 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
     return
 end
 
-function shift_rays!(state::State, direction::X)
+@ivy function shift_rays!(state::State, direction::X)
     (; z_size) = state.namelists.domain
     (; nz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
@@ -134,20 +137,20 @@ function shift_rays!(state::State, direction::X)
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             xr = rays.x[r, i, j, k]
             iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
 
             if iray != i
                 if abs(iray - i) > 1
-                    error("Error in shift_rays!: abs(iray - i) > 1!")
+                    error("Ray-volume shift is too large: abs(iray - i) > 1!")
                 end
                 if i0 <= iray <= i1
                     nray[iray, j, k] += 1
                     rray = nray[iray, j, k]
                     if rray > nray_wrk
-                        error("Error in shift_rays!: nray > nray_wrk!")
+                        error("Too many ray-volume shifts: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => iray, j => j, k => k)
                 end
@@ -159,7 +162,7 @@ function shift_rays!(state::State, direction::X)
     return
 end
 
-function shift_rays!(state::State, direction::Y)
+@ivy function shift_rays!(state::State, direction::Y)
     (; z_size) = state.namelists.domain
     (; nz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
@@ -168,20 +171,20 @@ function shift_rays!(state::State, direction::Y)
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             yr = rays.y[r, i, j, k]
             jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
 
             if jray != j
                 if abs(jray - j) > 1
-                    error("Error in shift_rays!: abs(jray - j) > 1!")
+                    error("Ray-volume shift is too large: abs(jray - j) > 1!")
                 end
                 if j0 <= jray <= j1
                     nray[i, jray, k] += 1
                     rray = nray[i, jray, k]
                     if rray > nray_wrk
-                        error("Error in shift_rays!: nray > nray_wrk!")
+                        error("Too many ray-volume shifts: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => i, j => jray, k => k)
                 end
@@ -193,29 +196,31 @@ function shift_rays!(state::State, direction::Y)
     return
 end
 
-function shift_rays!(state::State, direction::Z)
+@ivy function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
-    (; z_size) = state.namelists.domain
+    (; z_size, npz) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; nray_wrk, nray, rays) = state.wkb
 
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             zr = rays.z[r, i, j, k]
             kray = get_next_half_level(i, j, zr, state)
 
             if kray != k
-                if abs(kray - k) > 1
-                    error("Error in shift_rays!: abs(kray - k) > 1!")
+                if abs(kray - k) > 1 && npz > 1
+                    error(
+                        "Ray-volume shift is too large: abs(kray - k) > 1 && npz > 1!",
+                    )
                 end
                 if k0 <= kray <= k1
                     nray[i, j, kray] += 1
                     rray = nray[i, j, kray]
                     if rray > nray_wrk
-                        error("Error in shift_rays!: nray > nray_wrk!")
+                        error("Too many ray-volume shifts: nray > nray_wrk!")
                     end
                     copy_rays!(rays, r => rray, i => i, j => j, k => kray)
                 end

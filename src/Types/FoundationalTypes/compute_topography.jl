@@ -23,7 +23,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -43,7 +43,7 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -64,9 +64,9 @@ The arrays representing the unresolved spectrum are set to have the size `(0, 0,
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-  - `x`: ``\\widehat{x}``-coordinate grid points.
+  - `x`: ``\\hat{x}``-coordinate grid points.
 
-  - `y`: ``\\widehat{y}``-coordinate grid points.
+  - `y`: ``\\hat{y}``-coordinate grid points.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
@@ -91,16 +91,23 @@ function compute_topography(
     <:AbstractArray{<:AbstractFloat, 3},
 }
     (; wkb_mode) = namelists.wkb
-    return compute_topography(namelists, constants, domain, x, y, wkb_mode)
+    @dispatch_wkb_mode return compute_topography(
+        namelists,
+        constants,
+        domain,
+        x,
+        y,
+        Val(wkb_mode),
+    )
 end
 
-function compute_topography(
+@ivy function compute_topography(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -118,7 +125,7 @@ function compute_topography(
     kh = zeros(float_type, wave_modes, nxx, nyy)
     lh = zeros(float_type, wave_modes, nxx, nyy)
 
-    @ivy for j in j0:j1, i in i0:i1
+    for j in j0:j1, i in i0:i1
         hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
         for alpha in 1:wave_modes
@@ -136,13 +143,13 @@ function compute_topography(
     return (hb, hw, kh, lh)
 end
 
-function compute_topography(
+@ivy function compute_topography(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    wkb_mode::NoWKB,
+    wkb_mode::Val{:NoWKB},
 )::Tuple{
     <:AbstractMatrix{<:AbstractFloat},
     <:AbstractArray{<:AbstractFloat, 3},
@@ -159,7 +166,7 @@ function compute_topography(
     kh = zeros(float_type, 0, 0, 0)
     lh = zeros(float_type, 0, 0, 0)
 
-    @ivy for j in j0:j1, i in i0:i1
+    for j in j0:j1, i in i0:i1
         hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
     end

@@ -16,7 +16,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -27,7 +27,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -37,9 +37,9 @@ The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho, \\hat{x}}_{i + 1 / 2} & = \\frac{\\tau_{\\hat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho, \\hat{y}}_{j + 1 / 2} & = \\frac{\\tau_{\\hat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho, \\hat{z}}_{k + 1 / 2} & = \\frac{\\tau_{\\hat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -48,13 +48,13 @@ where
 
 ```math
 \\begin{align*}
-    \\tau_{\\widehat{x}} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
-    \\tau_{\\widehat{y}} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
-    \\tau_{\\widehat{z}} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}
+    \\tau_{\\hat{x}} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
+    \\tau_{\\hat{y}} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
+    \\tau_{\\hat{z}} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}
 \\end{align*}
 ```
 
-are the transporting velocities (weighted by the Jacobian) and ``\\widetilde{\\phi}`` is the reconstruction of ``\\rho / P_\\mathrm{old}``. More specifically, the superscripts ``\\mathrm{R}``, ``\\mathrm{L}``, ``\\mathrm{F}``, ``\\mathrm{B}``, ``\\mathrm{U}`` and ``\\mathrm{D}`` indicate reconstructions at the right, left, forward, backward, upward and downward cell interfaces of the respective grid points, respectively. Quantities with the subscript ``\\mathrm{old}`` are obtained from a previous state, which is partially passed to the method via `predictands`.
+are the transporting velocities (weighted by the Jacobian) and ``\\tilde{\\phi}`` is the reconstruction of ``\\rho / P_\\mathrm{old}``. More specifically, the superscripts ``\\mathrm{R}``, ``\\mathrm{L}``, ``\\mathrm{F}``, ``\\mathrm{B}``, ``\\mathrm{U}`` and ``\\mathrm{D}`` indicate reconstructions at the right, left, forward, backward, upward and downward cell interfaces of the respective grid points, respectively. Quantities with the subscript ``\\mathrm{old}`` are obtained from a previous state, which is partially passed to the method via `predictands`.
 
 
 ```julia
@@ -69,7 +69,7 @@ The computation is analogous to that of the density fluxes.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
 )
 ```
@@ -80,7 +80,7 @@ Return in non-compressible modes.
 compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::Compressible,
+    model::Val{:Compressible},
     variable::P,
 )
 ```
@@ -91,9 +91,9 @@ The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{P, \\widehat{x}}_{i + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
-    \\mathcal{F}^{P, \\widehat{y}}_{j + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
-    \\mathcal{F}^{P, \\widehat{z}}_{k + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}.
+    \\mathcal{F}^{P, \\hat{x}}_{i + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2},\\\\
+    \\mathcal{F}^{P, \\hat{y}}_{j + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2},\\\\
+    \\mathcal{F}^{P, \\hat{z}}_{k + 1 / 2} & = \\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -107,9 +107,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 3 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2, j + 1}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} & = \\frac{\\tau_{\\hat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 3 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\hat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2, j + 1}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\hat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{i + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -117,19 +117,19 @@ with
 
 ```math
 \\begin{align*}
-    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1},\\\\
-    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2}
+    \\tau_{\\hat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1},\\\\
+    \\tau_{\\hat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\tau_{\\hat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2}
 \\end{align*}
 ```
 
-and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{i + 1 / 2} u_{i + 1 / 2} / P_{\\mathrm{old}, i + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{i + 1 / 2} u_{i + 1 / 2} / P_{\\mathrm{old}, i + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\eta_{i + 1} \\left(J \\widehat{\\Pi}^{11}\\right)_{i + 1},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\widehat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\eta_{i + 1} \\left(J \\hat{\\Pi}^{11}\\right)_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\hat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\hat{\\Pi}^{13}\\right)_{i + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -137,9 +137,9 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mu_{i + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{x}}\\right]_{i + 1},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{y}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} u\\right)}^{\\widehat{z}}\\right]_{i + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\mu_{i + 1} \\left(J \\Xi_u^{\\hat{x}}\\right)_{i + 1},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left(J \\Xi_u^{\\hat{y}}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left(J \\Xi_u^{\\hat{z}}\\right)_{i + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -153,9 +153,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1, j + 1 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 3 / 2}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} & = \\frac{\\tau_{\\hat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1, j + 1 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} & = \\frac{\\tau_{\\hat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 3 / 2}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\hat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{j + 1 / 2, k + 1}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -163,19 +163,19 @@ with
 
 ```math
 \\begin{align*}
-    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1},\\\\
-    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2}
+    \\tau_{\\hat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
+    \\tau_{\\hat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1},\\\\
+    \\tau_{\\hat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2}
 \\end{align*}
 ```
 
-and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{j + 1 / 2} v_{j + 1 / 2} / P_{\\mathrm{old}, j + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{j + 1 / 2} v_{j + 1 / 2} / P_{\\mathrm{old}, j + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\widehat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\eta_{j + 1} \\left(J \\widehat{\\Pi}^{22}\\right)_{j + 1},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\widehat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\eta_{i + 1 / 2, j + 1 / 2} \\left(J \\hat{\\Pi}^{12}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\eta_{j + 1} \\left(J \\hat{\\Pi}^{22}\\right)_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\hat{\\Pi}^{23}\\right)_{j + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -183,9 +183,9 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{x}}\\right]_{i + 1 / 2, j + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mu_{j + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{y}}\\right]_{j + 1},\\\\
-    \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} v\\right)}^{\\widehat{z}}\\right]_{j + 1 / 2, k + 1 / 2}.
+    \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\mu_{i + 1 / 2, j + 1 / 2} \\left(J \\Xi_v^{\\hat{x}}\\right)_{i + 1 / 2, j + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\mu_{j + 1} \\left(J \\Xi_v^{\\hat{y}}\\right)_{j + 1},\\\\
+    \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left(J \\Xi_v^{\\hat{z}}\\right)_{j + 1 / 2, k + 1 / 2}.
 \\end{align*}
 ```
 
@@ -199,9 +199,9 @@ The fluxes are first set to the advective parts
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{x}}\\right)\\right] {\\widetilde{\\phi}}_{i + 1, k + 1 / 2}^\\mathrm{L}\\right\\},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\widehat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{y}}\\right)\\right] {\\widetilde{\\phi}}_{j + 1, k + 1 / 2}^\\mathrm{B}\\right\\},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & = \\frac{\\tau_{\\widehat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\widehat{z}}\\right)\\right] {\\widetilde{\\phi}}_{k + 3 / 2}^\\mathrm{D}\\right\\},
+    \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\hat{x}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{R} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{x}}\\right)\\right] {\\tilde{\\phi}}_{i + 1, k + 1 / 2}^\\mathrm{L}\\right\\},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} & = \\frac{\\tau_{\\hat{y}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{F} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{y}}\\right)\\right] {\\tilde{\\phi}}_{j + 1, k + 1 / 2}^\\mathrm{B}\\right\\},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} & = \\frac{\\tau_{\\hat{z}}}{2} \\left\\{\\left[1 + \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 1 / 2}^\\mathrm{U} + \\left[1 - \\mathrm{sgn} \\left(\\tau_{\\hat{z}}\\right)\\right] {\\tilde{\\phi}}_{k + 3 / 2}^\\mathrm{D}\\right\\},
 \\end{align*}
 ```
 
@@ -209,19 +209,19 @@ with
 
 ```math
 \\begin{align*}
-    \\tau_{\\widehat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
-    \\tau_{\\widehat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
-    \\tau_{\\widehat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\widehat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{k + 1}
+    \\tau_{\\hat{x}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{i + 1 / 2} u_{\\mathrm{old}, i + 1 / 2}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
+    \\tau_{\\hat{y}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{j + 1 / 2} v_{\\mathrm{old}, j + 1 / 2}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
+    \\tau_{\\hat{z}} & = \\left[\\left(J P_\\mathrm{old}\\right)_{k + 1 / 2} \\hat{w}_{\\mathrm{old}, k + 1 / 2}\\right]_{k + 1}
 \\end{align*}
 ```
 
-and ``\\widetilde{\\phi}`` being the reconstruction of ``\\rho_{k + 1 / 2} w_{k + 1 / 2} / P_{\\mathrm{old}, k + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
+and ``\\tilde{\\phi}`` being the reconstruction of ``\\rho_{k + 1 / 2} w_{k + 1 / 2} / P_{\\mathrm{old}, k + 1 / 2}``. If the viscosity is nonzero, the viscous parts (weighted by the Jacobian) are then added, i.e.
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\eta_{k + 1} \\left[\\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}\\right].
+    \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} - \\eta_{i + 1 / 2, k + 1 / 2} \\left(J \\Pi^{13}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} - \\eta_{j + 1 / 2, k + 1 / 2} \\left(J \\Pi^{23}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\eta_{k + 1} \\left[\\left(J G^{13} \\Pi^{13}\\right)_{k + 1} - \\left(J G^{23} \\Pi^{23}\\right)_{k + 1} - \\Pi^{33}_{k + 1}\\right].
 \\end{align*}
 ```
 
@@ -229,20 +229,28 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{x}}\\right]_{i + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{y}}\\right]_{j + 1 / 2, k + 1 / 2},\\\\
-    \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mu_{k + 1} \\left[J \\widehat{\\left(\\boldsymbol{\\nabla} w\\right)}^{\\widehat{z}}\\right]_{k + 1}.
+    \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} - \\mu_{i + 1 / 2, k + 1 / 2} \\left(J \\Xi_w^{\\hat{x}}\\right)_{i + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} - \\mu_{j + 1 / 2, k + 1 / 2} \\left(J \\Xi_w^{\\hat{y}}\\right)_{j + 1 / 2, k + 1 / 2},\\\\
+    \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} & \\rightarrow \\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\mu_{k + 1} \\left(J \\Xi_w^{\\hat{z}}\\right)_{k + 1}.
 \\end{align*}
 ```
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, tracer_setup::NoTracer)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracer_setup::Val{:NoTracer},
+)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, tracer_setup::TracerOn)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracer_setup::Val{:TracerOn},
+)
 ```
 
 Compute the tracer fluxes in all three directions.
@@ -253,23 +261,53 @@ The computation is analogous to that of the density fluxes.
 compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
 ```
 
-Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian).
+Compute the potential temperature fluxes by dispatching to a model-specific method.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
+)
+```
+
+Return in Boussinesq/pseudo-incompressible mode.
+
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Val{:Compressible},
+)
+```
+
+Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian) in compressible mode.
 
 The fluxes are given by
 
 ```math
 \\begin{align*}
-    \\mathcal{F}^{\\theta, \\widehat{x}}_{i + 1 / 2} & = - \\lambda_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
-    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{13}\\right)_{i + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k - 1}\\right]\\right\\},\\\\
-    \\mathcal{F}^{\\theta, \\widehat{y}}_{j + 1 / 2} & = - \\lambda_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
-    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{23}\\right)_{j + 1 / 2}}{2 \\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k - 1}\\right]\\right\\},\\\\
-    \\mathcal{F}^{\\theta, \\widehat{z}}_{k + 1 / 2} & = - \\lambda_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
-    & \\qquad \\qquad \\qquad + \\frac{\\left(J G^{23}\\right)_{k + 1 / 2}}{2 \\Delta \\widehat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{j - 1, k + 1 / 2}\\right]\\\\
-    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{33}\\right)_{k + 1 / 2}}{\\Delta \\widehat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{k + 1} - \\frac{P}{\\rho}\\right]\\right\\},
+    \\mathcal{F}^{\\theta, \\hat{x}}_{i + 1 / 2} & = - \\lambda_{i + 1 / 2} \\left\\{\\frac{J_{i + 1 / 2}}{\\Delta \\hat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{13}\\right)_{i + 1 / 2}}{2 \\Delta \\hat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{i + 1 / 2, k - 1}\\right]\\right\\},\\\\
+    \\mathcal{F}^{\\theta, \\hat{y}}_{j + 1 / 2} & = - \\lambda_{j + 1 / 2} \\left\\{\\frac{J_{j + 1 / 2}}{\\Delta \\hat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1} - \\frac{P}{\\rho}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{23}\\right)_{j + 1 / 2}}{2 \\Delta \\hat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k + 1} - \\left(\\frac{P}{\\rho}\\right)_{j + 1 / 2, k - 1}\\right]\\right\\},\\\\
+    \\mathcal{F}^{\\theta, \\hat{z}}_{k + 1 / 2} & = - \\lambda_{k + 1 / 2} \\left\\{\\frac{\\left(J G^{13}\\right)_{k + 1 / 2}}{2 \\Delta \\hat{x}} \\left[\\left(\\frac{P}{\\rho}\\right)_{i + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{i - 1, k + 1 / 2}\\right]\\right.\\\\
+    & \\qquad \\qquad \\qquad + \\frac{\\left(J G^{23}\\right)_{k + 1 / 2}}{2 \\Delta \\hat{y}} \\left[\\left(\\frac{P}{\\rho}\\right)_{j + 1, k + 1 / 2} - \\left(\\frac{P}{\\rho}\\right)_{j - 1, k + 1 / 2}\\right]\\\\
+    & \\qquad \\qquad \\qquad + \\left.\\frac{\\left(J G^{33}\\right)_{k + 1 / 2}}{\\Delta \\hat{z}} \\left[\\left(\\frac{P}{\\rho}\\right)_{k + 1} - \\frac{P}{\\rho}\\right]\\right\\},
 \\end{align*}
 ```
 
 where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.atmosphere.thermal_conductivity`).
+
+```julia
+compute_fluxes!(state::State, variable::TKE)
+```
+
+Compute the turbulence fluxes in all three directions.
+
+The computation is analogous to that of the density fluxes.
 
 # Arguments
 
@@ -302,14 +340,18 @@ function compute_fluxes!(state::State, predictands::Predictands)
     compute_fluxes!(state, predictands, V())
     compute_fluxes!(state, predictands, W())
 
-    compute_fluxes!(state, predictands, model, P())
-    compute_fluxes!(state, predictands, state.namelists.tracer.tracer_setup)
+    @dispatch_model compute_fluxes!(state, predictands, Val(model), P())
+    @dispatch_tracer_setup compute_fluxes!(
+        state,
+        predictands,
+        Val(state.namelists.tracer.tracer_setup),
+    )
     return
 end
 
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     (; model) = state.namelists.atmosphere
-    compute_fluxes!(state, predictands, variable, model)
+    @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
     return
 end
 
@@ -317,16 +359,16 @@ function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
@@ -340,7 +382,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
         pedger = 0.5 * (pbar[i, j, k] + pbar[i + 1, j, k])
         rhor = rhotilde[i + 1, j, k, 1, 1] + rhobaredger / pedger
@@ -362,7 +404,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
         pedgef = 0.5 * (pbar[i, j, k] + pbar[i, j + 1, k])
         rhof = rhotilde[i, j + 1, k, 2, 1] + rhobaredgef / pedgef
@@ -384,7 +426,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         rhobaredgeu =
             (
                 jac[i, j, k + 1] * rhobar[i, j, k] +
@@ -413,7 +455,11 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
+@ivy function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::RhoP,
+)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -426,7 +472,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhor = rhoptilde[i + 1, j, k, 1, 1]
         rhol = rhoptilde[i, j, k, 1, 2]
 
@@ -446,7 +492,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhof = rhoptilde[i, j + 1, k, 2, 1]
         rhob = rhoptilde[i, j, k, 2, 2]
 
@@ -466,7 +512,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         rhou = rhoptilde[i, j, k + 1, 3, 1]
         rhod = rhoptilde[i, j, k, 3, 2]
 
@@ -488,16 +534,16 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
 )
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    model::Compressible,
+    model::Val{:Compressible},
     variable::P,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -511,7 +557,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         phip[i, j, k, 1] =
             0.5 *
             (
@@ -525,7 +571,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         phip[i, j, k, 2] =
             0.5 *
             (
@@ -539,7 +585,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         phip[i, j, k, 3] =
             jac[i, j, k] *
             jac[i, j, k + 1] *
@@ -550,7 +596,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::U,
@@ -575,7 +621,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         ur = utilde[i + 1, j, k, 1, 1]
         ul = utilde[i, j, k, 1, 2]
 
@@ -600,7 +646,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         uf = utilde[i, j + 1, k, 2, 1]
         ub = utilde[i, j, k, 2, 2]
 
@@ -625,7 +671,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         uu = utilde[i, j, k + 1, 3, 1]
         ud = utilde[i, j, k, 3, 2]
 
@@ -658,7 +704,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         coef_v = 1 / re * rhobar[i + 1, j, k0]
 
         frhou_visc =
@@ -673,7 +719,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -704,7 +750,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
         stresstens13 =
@@ -761,7 +807,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
         coef_d = mu_mom_diff * rhobar[i + 1, j, k0]
 
         frhou_diff =
@@ -776,7 +822,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
             mu_mom_diff *
             0.25 *
@@ -814,7 +860,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in (kmin - 1):kmax, j in j0:j1, i in (i0 - 1):i1
         coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
 
         coef_dl = mu_mom_diff * rhobar[i, j, k0]
@@ -855,7 +901,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::V,
@@ -880,7 +926,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         vr = vtilde[i + 1, j, k, 1, 1]
         vl = vtilde[i, j, k, 1, 2]
 
@@ -905,7 +951,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         vf = vtilde[i, j + 1, k, 2, 1]
         vb = vtilde[i, j, k, 2, 2]
 
@@ -930,7 +976,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         vu = vtilde[i, j, k + 1, 3, 1]
         vd = vtilde[i, j, k, 3, 2]
 
@@ -963,7 +1009,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -994,7 +1040,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         coef_v = 1 / re * rhobar[i, j + 1, k0]
 
         grhov_visc =
@@ -1009,7 +1055,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
         stresstens23 =
@@ -1066,7 +1112,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
             mu_mom_diff *
             0.25 *
@@ -1104,7 +1150,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
         coef_d = mu_mom_diff * rhobar[i, j + 1, k0]
 
         grhov_diff =
@@ -1119,7 +1165,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in (kmin - 1):kmax, j in (j0 - 1):j1, i in i0:i1
         coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
 
         coef_dl = mu_mom_diff * rhobar[i, j, k0]
@@ -1160,7 +1206,7 @@ function compute_fluxes!(
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::W,
@@ -1181,7 +1227,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         wr = wtilde[i + 1, j, k, 1, 1]
         wl = wtilde[i, j, k, 1, 2]
 
@@ -1217,7 +1263,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         wf = wtilde[i, j + 1, k, 2, 1]
         wb = wtilde[i, j, k, 2, 2]
 
@@ -1253,7 +1299,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         wu = wtilde[i, j, k + 1, 3, 1]
         wd = wtilde[i, j, k, 3, 2]
 
@@ -1286,7 +1332,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
         frhow_visc =
@@ -1314,7 +1360,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
         grhow_visc =
@@ -1342,7 +1388,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         coef_v = 1 / re * rhobar[i, j, k0]
 
         hrhow_visc =
@@ -1373,7 +1419,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_dr = mu_mom_diff * rhobar[i + 1, j, k0]
 
         coef_dl = mu_mom_diff * rhobar[i, j, k0]
@@ -1415,7 +1461,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_dr = mu_mom_diff * rhobar[i, j + 1, k0]
 
         coef_dl = mu_mom_diff * rhobar[i, j, k0]
@@ -1457,7 +1503,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         coef_d = mu_mom_diff * rhobar[i, j, k0]
 
         hrhow_visc =
@@ -1474,15 +1520,15 @@ end
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )
     return
 end
 
-function compute_fluxes!(
+@ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
@@ -1491,7 +1537,7 @@ function compute_fluxes!(
 
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
-    @ivy for field in 1:fieldcount(TracerPredictands)
+    for field in 1:fieldcount(TracerPredictands)
         chir = getfield(tracerreconstructions, field)[2:end, :, :, 1, 1]
         chil = getfield(tracerreconstructions, field)[:, :, :, 1, 2]
         fchi = getfield(tracerfluxes, field)[:, :, :, 1]
@@ -1543,6 +1589,27 @@ function compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
 )
+    (; model) = state.namelists.atmosphere
+
+    @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
+)
+    return
+end
+
+@ivy function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+    model::Val{:Compressible},
+)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dx, dy, dz, met) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -1561,7 +1628,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         coef_t =
             mu_conduct *
             0.5 *
@@ -1602,7 +1669,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         coef_t =
             mu_conduct *
             0.5 *
@@ -1643,11 +1710,11 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    @ivy for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
         coef_t =
             mu_conduct * (
-                jac[i, j, k + 1] * rhobar[i, j, 1] / rhobar[i, j, k] +
-                jac[i, j, k] * rhobar[i, j, 1] / rhobar[i, j, k + 1]
+                jac[i, j, k + 1] * rhobar[i, j, k0] / rhobar[i, j, k] +
+                jac[i, j, k] * rhobar[i, j, k0] / rhobar[i, j, k + 1]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         thetal =
@@ -1698,6 +1765,60 @@ function compute_fluxes!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
+    end
+
+    return
+end
+
+@ivy function compute_fluxes!(state::State, variable::TKE)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac) = state.grid
+    (; pbar) = state.atmosphere
+    (; turbulencereconstructions, turbulencefluxes) = state.turbulence
+    (; u, v, w) = state.variables.predictands
+
+    for field in 1:fieldcount(TurbulencePredictands)
+        chir = getfield(turbulencereconstructions, field)[2:end, :, :, 1, 1]
+        chil = getfield(turbulencereconstructions, field)[:, :, :, 1, 2]
+        fchi = getfield(turbulencefluxes, field)[:, :, :, 1]
+        for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+            pedger =
+                0.5 * (
+                    jac[i, j, k] * pbar[i, j, k] +
+                    jac[i + 1, j, k] * pbar[i + 1, j, k]
+                )
+            usurf = pedger * u[i, j, k]
+
+            fchi[i, j, k] = compute_flux(usurf, chil[i, j, k], chir[i, j, k])
+        end
+
+        chif = getfield(turbulencereconstructions, field)[:, 2:end, :, 2, 1]
+        chib = getfield(turbulencereconstructions, field)[:, :, :, 2, 2]
+        gchi = getfield(turbulencefluxes, field)[:, :, :, 2]
+        for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+            pedgef =
+                0.5 * (
+                    jac[i, j, k] * pbar[i, j, k] +
+                    jac[i, j + 1, k] * pbar[i, j + 1, k]
+                )
+            vsurf = pedgef * v[i, j, k]
+
+            gchi[i, j, k] = compute_flux(vsurf, chib[i, j, k], chif[i, j, k])
+        end
+
+        chiu = getfield(turbulencereconstructions, field)[:, :, 2:end, 3, 1]
+        chid = getfield(turbulencereconstructions, field)[:, :, :, 3, 2]
+        hchi = getfield(turbulencefluxes, field)[:, :, :, 3]
+        for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+            pedgeu =
+                jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (pbar[i, j, k] + pbar[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
+            wsurf = pedgeu * w[i, j, k]
+
+            hchi[i, j, k] = compute_flux(wsurf, chid[i, j, k], chiu[i, j, k])
+        end
     end
 
     return

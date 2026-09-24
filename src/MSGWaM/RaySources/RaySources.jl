@@ -7,19 +7,25 @@ Module for ray-volume sources.
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.MSGWaM.BlockedLayer`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations`](@ref)
 """
 module RaySources
 
+using ..BlockedLayer
 using ..RayOperations
+using ...Macros
 using ...Types
-using ...PinCFlow
 
 include("activate_orographic_source!.jl")
-include("compute_orographic_mode.jl")
+include("apply_elastic_mode_selection!.jl")
+include("compute_orographic_modes!.jl")
 
-export activate_orographic_source!
+export activate_orographic_source!, compute_orographic_modes!
 
 end

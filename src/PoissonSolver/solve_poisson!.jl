@@ -10,13 +10,13 @@ solve_poisson!(
 
 Solve the Poisson equation and return a tuple containing an error flag and the number of iterations.
 
-Given a left-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BicGStab algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\overline{\\rho}} / P`` in advance (the left-hand side has already been scaled at this point), so that the equation
+Given a left-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BiCGSTAB algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\bar{\\rho}} / P`` in advance (the left-hand side has already been scaled at this point), so that the equation
 
 ```math
-\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right)
+\\frac{\\sqrt{\\bar{\\rho}}}{P} \\mathrm{LHS} = \\frac{\\sqrt{\\bar{\\rho}}}{P} \\mathrm{RHS} \\left(\\frac{\\sqrt{\\bar{\\rho}}}{P} s\\right)
 ```
 
-is solved for ``s``. The Exner-pressure differences are then given by ``\\Delta \\pi = \\left(\\sqrt{\\overline{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
+is solved for ``s``. The Exner-pressure differences are then given by ``\\Delta \\pi = \\left(\\sqrt{\\bar{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
 
 # Arguments
 
@@ -36,7 +36,7 @@ is solved for ``s``. The Exner-pressure differences are then given by ``\\Delta 
 """
 function solve_poisson! end
 
-function solve_poisson!(
+@ivy function solve_poisson!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
@@ -50,7 +50,7 @@ function solve_poisson!(
     solution .= 0.0
 
     if dt == 0.0
-        error("Error in solve_poisson!: dt = 0.0!")
+        error("Vanishing time step: dt = 0.0!")
     end
     dtinv = 1.0 / dt
 
@@ -66,10 +66,10 @@ function solve_poisson!(
     jj = j0:j1
     kk = k0:k1
 
-    @ivy solution ./= sqrt.(pbar[ii, jj, kk] .^ 2 ./ rhobar[ii, jj, kk])
+    solution ./= sqrt.(pbar[ii, jj, kk] .^ 2 ./ rhobar[ii, jj, kk])
 
     # Pass solution to pressure correction.
-    @ivy dpip[ii, jj, kk] .= dtinv .* solution
+    dpip[ii, jj, kk] .= dtinv .* solution
 
     return (errflagbicg, niterbicg)
 end

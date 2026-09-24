@@ -5,7 +5,7 @@ set_vertical_boundary_rays!(state::State)
 
 Enforce vertical boundary conditions for ray volumes.
 
-If the domain is parallelized in ``\\widehat{z}``, ray-volume counts and the ray volumes themselves are first communicated between MPI processes, using `set_vertical_halos_of_field!` and `set_vertical_halo_rays!`, respectively. The vertical boundary conditions are then enforced by cutting (removing) ray volumes that have partially (fully) crossed the upper boundary and reflecting ray volumes (by adjusting the vertical position and wavenumber) that have at least partially crossed the lower boundary from above.
+If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray volumes themselves are first communicated between MPI processes, using `set_vertical_halos_of_field!` and `set_vertical_halo_rays!`, respectively. The vertical boundary conditions are then enforced by cutting (removing) ray volumes that have partially (fully) crossed the upper boundary and reflecting ray volumes (by adjusting the vertical position and wavenumber) that have at least partially crossed the lower boundary from above.
 
 # Arguments
 
@@ -21,7 +21,7 @@ If the domain is parallelized in ``\\widehat{z}``, ray-volume counts and the ray
 """
 function set_vertical_boundary_rays! end
 
-function set_vertical_boundary_rays!(state::State)
+@ivy function set_vertical_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; float_type) = state.namelists.discretization
     (; z_size, npz) = namelists.domain
@@ -30,7 +30,7 @@ function set_vertical_boundary_rays!(state::State)
     (; nray, rays) = state.wkb
 
     # Set ray-volume count and ray-volumes properties.
-    if npz > 1
+    if z_size > 1
         set_vertical_halos_of_field!(
             nray,
             namelists,
@@ -41,8 +41,10 @@ function set_vertical_boundary_rays!(state::State)
     end
 
     # Reflect ray volumes at the lower boundary.
-    @ivy if ko == 0
-        for k in k0:(k0 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    if ko == 0
+        kmin = k0
+        kmax = npz > 1 ? k0 + 1 : k1
+        for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
             for r in 1:nray[i, j, k]
                 xr = rays.x[r, i, j, k]
                 yr = rays.y[r, i, j, k]
@@ -61,8 +63,10 @@ function set_vertical_boundary_rays!(state::State)
     end
 
     # Cut ray volumes at the upper boundary.
-    @ivy if ko + nz == z_size
-        for k in (k1 - 1):k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    if ko + nz == z_size
+        kmin = npz > 1 ? k1 - 1 : k0
+        kmax = k1
+        for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
             local_count = 0
             for r in 1:nray[i, j, k]
                 zr = rays.z[r, i, j, k]

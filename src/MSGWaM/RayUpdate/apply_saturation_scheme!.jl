@@ -9,7 +9,7 @@ Apply the saturation scheme by dispatching to a WKB-mode-specific method.
 apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    wkb_mode::Union{NoWKB, SteadyState},
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
 )
 ```
 
@@ -21,7 +21,7 @@ In steady-state mode, saturation is handled by [`PinCFlow.MSGWaM.RayUpdate.propa
 apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    wkb_mode::Union{SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
 ```
 
@@ -67,22 +67,22 @@ function apply_saturation_scheme! end
 
 function apply_saturation_scheme!(state::State, dt::AbstractFloat)
     (; wkb_mode) = state.namelists.wkb
-    apply_saturation_scheme!(state, dt, wkb_mode)
+    @dispatch_wkb_mode apply_saturation_scheme!(state, dt, Val(wkb_mode))
     return
 end
 
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    wkb_mode::Union{NoWKB, SteadyState},
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
 )
     return
 end
 
-function apply_saturation_scheme!(
+@ivy function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    wkb_mode::Union{SingleColumn, MultiColumn},
+    wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )
     (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb
@@ -95,7 +95,7 @@ function apply_saturation_scheme!(
         return
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Compute saturation integrals for wave-action reduction.
         (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)

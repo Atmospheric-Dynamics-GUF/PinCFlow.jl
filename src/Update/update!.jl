@@ -11,7 +11,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -23,7 +23,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -33,7 +33,7 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^\\rho & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\alpha_\\mathrm{RK} q^\\rho,\\\\
+    q^\\rho & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + \\alpha_\\mathrm{RK} q^\\rho,\\\\
     \\rho & \\rightarrow \\rho + \\beta_\\mathrm{RK} q^\\rho,
 \\end{align*}
 ```
@@ -50,7 +50,7 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho'} & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    q^{\\rho'} & \\rightarrow - \\frac{\\Delta t}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho', \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho', \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
     \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
 \\end{align*}
 ```
@@ -59,7 +59,7 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    q^{\\rho'} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho', \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + \\frac{F^P}{\\overline{\\theta}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
+    q^{\\rho'} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho', \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho', \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho', \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho', \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + \\frac{F^P}{\\bar{\\theta}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho'},\\\\
     \\rho' & \\rightarrow \\rho' + \\beta_\\mathrm{RK} q^{\\rho'}
 \\end{align*}
 ```
@@ -81,13 +81,13 @@ Update the density fluctuations with an explicit Euler step the on right-hand si
 The update is given by
 
 ```math
-\\rho' \\rightarrow - \\frac{\\rho}{g} \\left(b' - \\Delta t N^2 \\frac{\\overline{\\rho}}{\\rho} w\\right)
+\\rho' \\rightarrow - \\frac{\\rho}{g} \\left(b' - \\Delta t N^2 \\frac{\\bar{\\rho}}{\\rho} w\\right)
 ```
 
 in Boussinesq/pseudo-incompressible mode and
 
 ```math
-\\rho' \\rightarrow - \\frac{\\rho}{g} \\left[b' - \\Delta t N^2 \\frac{P / \\overline{\\theta}}{\\rho} \\left(\\frac{W_{k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right)\\right]
+\\rho' \\rightarrow - \\frac{\\rho}{g} \\left[b' - \\Delta t N^2 \\frac{P / \\bar{\\theta}}{\\rho} \\left(\\frac{W_{k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right)\\right]
 ```
 
 in compressible mode, where ``b' = - g \\rho' / \\rho``.
@@ -109,9 +109,9 @@ The update is given by
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{- \\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left[\\widehat{w}_\\mathrm{old} + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right] + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b'\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{13} u + G^{23} v\\right)\\vphantom{\\left[\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right]}\\right\\},
+    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\bar{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{- \\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left[\\hat{w}_\\mathrm{old} + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right] + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b'\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{13} u + G^{23} v\\right)\\vphantom{\\left[\\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right]}\\right\\},
 \\end{align*}
 ```
 
@@ -119,14 +119,14 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{- \\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left[\\left(\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right) + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right]\\right.\\\\
-    & \\qquad \\quad + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b' + \\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right)\\\\
+    \\rho' & \\rightarrow - \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\bar{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{- \\frac{P / \\bar{\\theta}}{\\rho} N^2 \\Delta t J \\left[\\left(\\frac{\\hat{W}_{\\mathrm{old}, k + 1 / 2}}{\\left(J P\\right)_{k + 1 / 2}}\\right) + \\Delta t \\left(- \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}}\\right) + \\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right)\\right]\\right.\\\\
+    & \\qquad \\quad + \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) b' + \\frac{P / \\bar{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right)\\\\
     & \\qquad \\quad \\times \\left.\\left[G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right) + G^{23} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right]\\right\\},
 \\end{align*}
 ```
 
-in compressible mode, where ``\\widehat{w}_\\mathrm{old}`` is the transformed vertical wind stored in `state.variables.backups`.
+in compressible mode, where ``\\hat{w}_\\mathrm{old}`` is the transformed vertical wind stored in `state.variables.backups`.
 
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
@@ -138,8 +138,8 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho u}_{i + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + f \\left(\\rho_\\mathrm{old} v\\right)_{i + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2},\\\\
+    q^{\\rho u}_{i + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\hat{x}}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\hat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\hat{z}}\\right) + f \\left(\\rho_\\mathrm{old} v\\right)_{i + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2},\\\\
     u_{i + 1 / 2} & \\rightarrow \\rho_{i + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, i + 1 / 2} u_{i + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho u}_{i + 1 / 2}\\right),
 \\end{align*}
 ```
@@ -209,8 +209,8 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho v}_{j + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\widehat{y}}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) - f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{j + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2},\\\\
+    q^{\\rho v}_{j + 1 / 2} & \\rightarrow \\Delta t \\left[- \\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\hat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\hat{y}}}{\\Delta \\hat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\hat{z}}\\right) - f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{j + 1 / 2}\\right] + \\alpha_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2},\\\\
     v_{j + 1 / 2} & \\rightarrow \\rho_{j + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, j + 1 / 2} v_{j + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho v}_{j + 1 / 2}\\right),
 \\end{align*}
 ```
@@ -280,14 +280,14 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho \\widehat{w}}_{k + 1 / 2} & \\rightarrow \\Delta t \\left\\{- \\left[G^{13} \\left(\\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\widehat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\widehat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
-    & \\qquad \\qquad - \\left[G^{23} \\left(\\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\widehat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\widehat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\widehat{y}}}{\\Delta \\widehat{y}}\\right.\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\widehat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\widehat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
-    & \\qquad \\qquad - \\frac{1}{J_{k + 1 / 2}^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\widehat{x}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\widehat{x}}_{i - 1 / 2, k + 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho w, \\widehat{y}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\widehat{y}}_{j - 1 / 2, k + 1 / 2}}{\\Delta \\widehat{y}}\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad \\quad + \\left.\\frac{\\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\widehat{z}}}{\\Delta \\widehat{z}}\\right)\\\\
-    & \\qquad \\qquad + \\left.G^{13} f \\left(\\rho_\\mathrm{old} v_\\mathrm{old}\\right)_{k + 1 / 2} - G^{23} f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{k + 1 / 2}\\vphantom{- \\frac{1}{J^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\widehat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\widehat{z}}}{\\Delta \\widehat{z}}\\right)}\\right\\} + \\alpha_\\mathrm{RK} q^{\\rho \\widehat{w}}_{k + 1 / 2},\\\\
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\rho_{k + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, k + 1 / 2} \\widehat{w}_{k + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho \\widehat{w}}_{k + 1 / 2}\\right),
+    q^{\\rho \\hat{w}}_{k + 1 / 2} & \\rightarrow \\Delta t \\left\\{- \\left[G^{13} \\left(\\frac{1}{J_{i + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho u, \\hat{x}}_{i + 1} - \\mathcal{F}^{\\rho u, \\hat{x}}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho u, \\hat{y}}_{i + 1 / 2, j - 1 / 2}}{\\Delta \\hat{y}}\\right.\\right.\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho u, \\hat{z}}_{i + 1 / 2, k - 1 / 2}}{\\Delta \\hat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
+    & \\qquad \\qquad - \\left[G^{23} \\left(\\frac{1}{J_{j + 1 / 2}} \\left(\\frac{\\mathcal{F}^{\\rho v, \\hat{x}}_{i + 1 / 2, j + 1 / 2} - \\mathcal{F}^{\\rho v, \\hat{x}}_{i - 1 / 2, j + 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho v, \\hat{y}}_{j + 1} - \\mathcal{F}^{\\rho v, \\hat{y}}}{\\Delta \\hat{y}}\\right.\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\left.\\frac{\\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho v, \\hat{z}}_{j + 1 / 2, k - 1 / 2}}{\\Delta \\hat{z}}\\right)\\right)\\right]_{k + 1 / 2}\\\\
+    & \\qquad \\qquad - \\frac{1}{J_{k + 1 / 2}^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\hat{x}}_{i + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\hat{x}}_{i - 1 / 2, k + 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho w, \\hat{y}}_{j + 1 / 2, k + 1 / 2} - \\mathcal{F}^{\\rho w, \\hat{y}}_{j - 1 / 2, k + 1 / 2}}{\\Delta \\hat{y}}\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\quad + \\left.\\frac{\\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\hat{z}}}{\\Delta \\hat{z}}\\right)\\\\
+    & \\qquad \\qquad + \\left.G^{13} f \\left(\\rho_\\mathrm{old} v_\\mathrm{old}\\right)_{k + 1 / 2} - G^{23} f \\left(\\rho_\\mathrm{old} u_\\mathrm{old}\\right)_{k + 1 / 2}\\vphantom{- \\frac{1}{J^2} \\left(\\frac{\\mathcal{F}^{\\rho w, \\hat{z}}_{k + 1} - \\mathcal{F}^{\\rho w, \\hat{z}}}{\\Delta \\hat{z}}\\right)}\\right\\} + \\alpha_\\mathrm{RK} q^{\\rho \\hat{w}}_{k + 1 / 2},\\\\
+    \\hat{w}_{k + 1 / 2} & \\rightarrow \\rho_{k + 1 / 2}^{- 1} \\left(\\rho_{\\mathrm{old}, k + 1 / 2} \\hat{w}_{k + 1 / 2} + \\beta_\\mathrm{RK} q^{\\rho \\hat{w}}_{k + 1 / 2}\\right),
 \\end{align*}
 ```
 
@@ -308,13 +308,13 @@ Update the transformed vertical wind with an explicit Euler step on the right-ha
 The update is given by
 
 ```math
-\\widehat{w}_{k + 1 / 2} \\rightarrow \\widehat{w}_{k + 1 / 2} + \\Delta t \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right]
+\\hat{w}_{k + 1 / 2} \\rightarrow \\hat{w}_{k + 1 / 2} + \\Delta t \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right]
 ```
 
 in Boussinesq/pseudo-incompressible mode and
 
 ```math
-\\widehat{W}_{k + 1 / 2} \\rightarrow \\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right]
+\\hat{W}_{k + 1 / 2} \\rightarrow \\hat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left[- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}} + \\left(\\frac{b'_\\mathrm{old}}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right]
 ```
 
 in compressible mode, where ``b'_\\mathrm{old} = - g \\rho'_\\mathrm{old} / \\rho``, with ``\\rho'_\\mathrm{old}`` being the density fluctuations stored in `state.variables.backups`.
@@ -336,9 +336,9 @@ The update is given by
 
 ```math
 \\begin{align*}
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\widehat{w}_{k + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2 \\left[\\left(G^{13} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+    \\hat{w}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\hat{w}_{k + 1 / 2} + \\Delta t \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2 \\left[\\left(G^{13} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
 \\end{align*}
 ```
 
@@ -346,10 +346,10 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\widehat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\\\
-    & \\qquad \\quad \\times \\left.\\left[\\left(G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right)\\right)_{k + 1 / 2} + \\left(G^{2 3} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\widehat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
+    \\hat{W}_{k + 1 / 2} & \\rightarrow \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\hat{W}_{k + 1 / 2} + \\Delta t \\left(J P\\right)_{k + 1 / 2} \\left(- c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{P}_{k + 1 / 2}^{\\rho \\hat{w}} + \\left(\\frac{b'}{J}\\right)_{k + 1 / 2} + \\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N^2_{k + 1 / 2} \\left(\\Delta t\\right)^2\\\\
+    & \\qquad \\quad \\times \\left.\\left[\\left(G^{13} \\left(\\frac{U_{i + 1 / 2}}{\\left(J P\\right)_{i + 1 / 2}}\\right)\\right)_{k + 1 / 2} + \\left(G^{2 3} \\left(\\frac{V_{j + 1 / 2}}{\\left(J P\\right)_{j + 1 / 2}}\\right)\\right)_{k + 1 / 2}\\right]\\vphantom{\\left(\\frac{F_{k + 1 / 2}^{\\rho \\hat{w}}}{\\rho_{k + 1 / 2}}\\right)}\\right\\}
 \\end{align*}
 ```
 
@@ -366,14 +366,19 @@ update!(
     state::State,
     dt::AbstractFloat,
     variable::PiP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
 Return in non-compressible modes.
 
 ```julia
-update!(state::State, dt::AbstractFloat, variable::PiP, model::Compressible)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::PiP,
+    model::Val{:Compressible},
+)
 ```
 
 Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.
@@ -382,12 +387,12 @@ The update is given by
 
 ```math
 \\begin{align*}
-    \\pi' & \\rightarrow \\pi' + \\Delta t \\left(\\frac{\\partial \\pi'}{\\partial P}\\right) \\left[- \\frac{1}{J} \\left(\\frac{U_{\\mathrm{old}, i + 1 / 2} - U_{\\mathrm{old}, i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{V_{\\mathrm{old}, j + 1 / 2} - V_{\\mathrm{old}, j - 1 / 2}}{\\Delta \\widehat{y}}\\right.\\right.\\\\
-    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\widehat{W}_{\\mathrm{old}, k + 1 / 2} - \\widehat{W}_{\\mathrm{old}, k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^P\\right],
+    \\pi' & \\rightarrow \\pi' + \\Delta t \\left(\\frac{\\partial \\pi'}{\\partial P}\\right) \\left[- \\frac{1}{J} \\left(\\frac{U_{\\mathrm{old}, i + 1 / 2} - U_{\\mathrm{old}, i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{V_{\\mathrm{old}, j + 1 / 2} - V_{\\mathrm{old}, j - 1 / 2}}{\\Delta \\hat{y}}\\right.\\right.\\\\
+    & \\qquad \\qquad \\qquad \\qquad \\qquad \\qquad + \\left.\\left.\\frac{\\hat{W}_{\\mathrm{old}, k + 1 / 2} - \\hat{W}_{\\mathrm{old}, k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^P\\right],
 \\end{align*}
 ```
 
-where ``U_{\\mathrm{old}, i + 1 / 2}``, ``V_{\\mathrm{old}, j + 1 / 2}`` and ``\\widehat{W}_{\\mathrm{old}, k + 1 / 2}`` are the transformed wind components (including the factor ``J P``) stored in `state.variables.backups`.
+where ``U_{\\mathrm{old}, i + 1 / 2}``, ``V_{\\mathrm{old}, j + 1 / 2}`` and ``\\hat{W}_{\\mathrm{old}, k + 1 / 2}`` are the transformed wind components (including the factor ``J P``) stored in `state.variables.backups`.
 
 ```julia
 update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
@@ -401,7 +406,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -413,7 +418,7 @@ update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -423,19 +428,37 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^P & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{P, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{P, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{P, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{P, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{P, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{P, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^P\\right] + \\alpha_\\mathrm{RK} q^P,\\\\
+    q^P & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{P, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{P, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{P, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{P, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{P, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{P, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^P\\right] + \\alpha_\\mathrm{RK} q^P,\\\\
     P & \\rightarrow P + \\beta_\\mathrm{RK} q^P.
 \\end{align*}
 ```
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::NoTracer)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+```
+
+Update the tracers by dispatching to the appropriate method.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Chi,
+    tracer_setup::Val{:NoTracer},
+)
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracer_setup::TracerOn)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Chi,
+    tracer_setup::Val{:TracerOn},
+)
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
@@ -444,8 +467,23 @@ The update is given by
 
 ```math
 \\begin{align*}
-    q^{\\rho \\chi} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{x}}_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{y}}_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\widehat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\widehat{z}}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) + F^{\\rho \\chi}\\right] + \\alpha_\\mathrm{RK} q^{\\rho \\chi},\\\\
+    q^{\\rho \\chi} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho \\chi, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho \\chi, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho \\chi, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^{\\rho \\chi}\\right] + \\alpha_\\mathrm{RK} q^{\\rho \\chi},\\\\
     \\left(\\rho \\chi\\right) & \\rightarrow \\left(\\rho \\chi\\right) + \\beta_\\mathrm{RK} q^{\\rho \\chi}.
+\\end{align*}
+```
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
+```
+
+Update the turbulent kinetic energy with a Runge-Kutta step on the left-hand sides of the equations with shear and buoyancy production terms.
+
+The update is given by
+
+```math
+\\begin{align*}
+    q^{\\rho e_\\mathrm{k}} & \\rightarrow \\Delta t \\left[- \\frac{1}{J} \\left(\\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{x}}_{i + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{x}}_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{y}}_{j + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{y}}_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{z}}_{k + 1 / 2} - \\mathcal{F}^{\\rho e_\\mathrm{k}, \\hat{z}}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) + F^{\\rho e_\\mathrm{k}}\\right] + \\alpha_\\mathrm{RK} q^{\\rho e_\\mathrm{k}},\\\\
+    \\left(\\rho e_\\mathrm{k}\\right) & \\rightarrow \\left(\\rho e_\\mathrm{k}\\right) + \\beta_\\mathrm{RK} q^{\\rho e_\\mathrm{k}}.
 \\end{align*}
 ```
 
@@ -489,7 +527,7 @@ function update! end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
     (; model) = state.namelists.atmosphere
-    update!(state, dt, m, variable, model)
+    @dispatch_model update!(state, dt, m, variable, Val(model))
     return
 end
 
@@ -498,17 +536,17 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -521,7 +559,7 @@ function update!(
         drho .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirho[i - 1, j, k, 1]
         fr = phirho[i, j, k, 1]
         gb = phirho[i, j - 1, k, 2]
@@ -541,7 +579,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -560,7 +598,7 @@ function update!(
         drhop .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phirhop[i - 1, j, k, 1]
         fr = phirhop[i, j, k, 1]
         gb = phirhop[i, j - 1, k, 2]
@@ -582,7 +620,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::RhoP,
@@ -595,7 +633,7 @@ function update!(
     (; predictands) = state.variables
     (; rho, rhop) = predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         jpu = compute_compressible_wind_factor(state, i, j, k, W())
         jpd = compute_compressible_wind_factor(state, i, j, k - 1, W())
         wvrt =
@@ -614,7 +652,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::RhoP,
@@ -631,7 +669,7 @@ function update!(
     (; rho, rhop, u, v, pip) = state.variables.predictands
     (; wold) = state.variables.backups
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k] + rhobar[i, j, k]
         rhoedgeu =
             (
@@ -712,7 +750,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -737,7 +775,7 @@ function update!(
         du .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
 
         # Compute zonal momentum flux divergence.
         fr = phiu[i, j, k, 1]
@@ -753,10 +791,6 @@ function update!(
         fluxdiff /= jacedger
 
         # Explicit integration of Coriolis force in TFC.
-        uold[i, j, k] = u[i, j, k]
-        if k == k1 && ko + nz != z_size
-            uold[i, j, k + 1] = u[i, j, k + 1]
-        end
         vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
         vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
         volforce =
@@ -795,7 +829,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::U,
@@ -806,7 +840,7 @@ function update!(
     (; rhobar) = state.atmosphere
     (; rho, u, pip) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
         rhoedger += rhobaredger
@@ -823,7 +857,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::U,
@@ -841,7 +875,7 @@ function update!(
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         rhoedger = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
         rhoedger += rhobaredger
@@ -870,7 +904,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -895,7 +929,7 @@ function update!(
         dv .= 0.0
     end
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
 
         # Compute meridional momentum flux divergence.
         fr = phiv[i, j, k, 1]
@@ -911,10 +945,6 @@ function update!(
         fluxdiff /= jacedgef
 
         # Explicit integration of Coriolis force in TFC.
-        vold[i, j, k] = v[i, j, k]
-        if k == k1 && ko + nz != z_size
-            vold[i, j, k + 1] = v[i, j, k + 1]
-        end
         uc = 0.5 * (uold[i, j, k] + uold[i - 1, j, k])
         uf = 0.5 * (uold[i, j + 1, k] + uold[i - 1, j + 1, k])
 
@@ -950,7 +980,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::V,
@@ -961,7 +991,7 @@ function update!(
     (; rhobar) = state.atmosphere
     (; rho, v, pip) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
         rhoedgef += rhobaredgef
@@ -978,7 +1008,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::V,
@@ -996,7 +1026,7 @@ function update!(
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         rhoedgef = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
         rhoedgef += rhobaredgef
@@ -1025,7 +1055,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
@@ -1058,7 +1088,7 @@ function update!(
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
         fr = phiw[i, j, k, 1]
         fl = phiw[i - 1, j, k, 1]
@@ -1186,7 +1216,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::W,
@@ -1204,7 +1234,7 @@ function update!(
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1239,7 +1269,7 @@ function update!(
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::W,
@@ -1258,7 +1288,7 @@ function update!(
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         rhoc = rho[i, j, k]
         rhou = rho[i, j, k + 1]
         rhoedgeu =
@@ -1338,7 +1368,7 @@ end
 
 function update!(state::State, dt::AbstractFloat, variable::PiP)
     (; model) = state.namelists.atmosphere
-    update!(state, dt, variable, model)
+    @dispatch_model update!(state, dt, variable, Val(model))
     return
 end
 
@@ -1346,16 +1376,16 @@ function update!(
     state::State,
     dt::AbstractFloat,
     variable::PiP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     variable::PiP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -1363,7 +1393,7 @@ function update!(
     (; uold, vold, wold) = state.variables.backups
     (; pip, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = uold[i - 1, j, k]
         fr = uold[i, j, k]
         gb = vold[i, j - 1, k]
@@ -1387,7 +1417,7 @@ end
 
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
     (; model) = state.namelists.atmosphere
-    update!(state, dt, m, variable, model)
+    @dispatch_model update!(state, dt, m, variable, Val(model))
     return
 end
 
@@ -1396,17 +1426,17 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
 
-function update!(
+@ivy function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
     variable::P,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1419,7 +1449,7 @@ function update!(
         dp .= 0.0
     end
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         fl = phip[i - 1, j, k, 1]
         fr = phip[i, j, k, 1]
         gb = phip[i, j - 1, k, 2]
@@ -1441,12 +1471,10 @@ function update!(
     return
 end
 
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracer_setup::NoTracer,
-)
+function update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup update!(state, dt, m, variable, Val(tracer_setup))
     return
 end
 
@@ -1454,14 +1482,25 @@ function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
-    tracer_setup::TracerOn,
+    variable::Chi,
+    tracer_setup::Val{:NoTracer},
+)
+    return
+end
+
+@ivy function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Chi,
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
     (; tracerincrements, tracerpredictands, tracerfluxes) = state.tracer
 
-    @ivy for field in 1:fieldcount(TracerPredictands)
+    for field in 1:fieldcount(TracerPredictands)
         if m == 1
             getfield(tracerincrements, field) .= 0.0
         end
@@ -1488,6 +1527,43 @@ function update!(
             dchi[i, j, k] = dt * f + alphark[m] * dchi[i, j, k]
             chi[i, j, k] += betark[m] * dchi[i, j, k]
         end
+    end
+
+    return
+end
+
+@ivy function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::TKE,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; dtke) = state.turbulence.turbulenceincrements
+    (; phitke) = state.turbulence.turbulencefluxes
+    (; tke) = state.turbulence.turbulencepredictands
+
+    if m == 1
+        dtke .= 0.0
+    end
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        fl = phitke[i - 1, j, k, 1]
+        fr = phitke[i, j, k, 1]
+        gb = phitke[i, j - 1, k, 2]
+        gf = phitke[i, j, k, 2]
+        hd = phitke[i, j, k - 1, 3]
+        hu = phitke[i, j, k, 3]
+
+        fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+        fluxdiff /= jac[i, j, k]
+
+        f = -fluxdiff + compute_volume_force(state, i, j, k, TKE())
+
+        dtke[i, j, k] = dt * f + alphark[m] * dtke[i, j, k]
+        tke[i, j, k] += betark[m] * dtke[i, j, k]
     end
 
     return

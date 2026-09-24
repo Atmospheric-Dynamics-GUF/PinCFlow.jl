@@ -22,7 +22,7 @@ The following people contributed major additions or modifications to PinCFlow.jl
 
   - Arpit Babbar
 
-  - Gergely Bölöni
+  - Gergely Boeloeni
 
   - Stamen Dolaptchiev
 

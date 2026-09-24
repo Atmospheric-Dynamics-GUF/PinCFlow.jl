@@ -25,12 +25,12 @@ Return the physical position of the ray volume specified by ``\\left(r, i, j, k\
 """
 function get_physical_position end
 
-function get_physical_position(
+@ivy function get_physical_position(
     rays::Rays,
     r::Integer,
     i::Integer,
     j::Integer,
     k::Integer,
 )::NTuple{3, <:AbstractFloat}
-    @ivy return (rays.x[r, i, j, k], rays.y[r, i, j, k], rays.z[r, i, j, k])
+    return (rays.x[r, i, j, k], rays.y[r, i, j, k], rays.z[r, i, j, k])
 end

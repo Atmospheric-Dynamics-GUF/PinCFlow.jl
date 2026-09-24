@@ -12,16 +12,16 @@ Compute the tensor elements of the linear operator on the right-hand side of the
 The operator is obtained by rewriting the scaled Poisson equation
 
 ```math
-\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right)
+\\frac{\\sqrt{\\bar{\\rho}}}{P} \\mathrm{LHS} = \\frac{\\sqrt{\\bar{\\rho}}}{P} \\mathrm{RHS} \\left(\\frac{\\sqrt{\\bar{\\rho}}}{P} s\\right)
 ```
 
 as
 
 ```math
-\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} = \\sum_{\\lambda, \\mu, \\nu} A_{i + \\lambda, j + \\mu, k + \\nu} s_{i + \\lambda, j + \\mu, k + \\nu},
+\\frac{\\sqrt{\\bar{\\rho}}}{P} \\mathrm{LHS} = \\sum_{\\lambda, \\mu, \\nu} A_{i + \\lambda, j + \\mu, k + \\nu} s_{i + \\lambda, j + \\mu, k + \\nu},
 ```
 
-where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt{\\overline{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
+where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt{\\bar{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
 
 # Arguments
 
@@ -37,7 +37,7 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 """
 function compute_operator! end
 
-function compute_operator!(
+@ivy function compute_operator!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
@@ -80,7 +80,7 @@ function compute_operator!(
     (; rho, p) = state.variables.predictands
 
     # Compute tensor elements for TFC.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         # Compute scaling factors.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         fcscal_r = sqrt(pbar[i + 1, j, k]^2.0 / rhobar[i + 1, j, k])
@@ -851,7 +851,7 @@ function compute_operator!(
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
         end
 
-        if model == Compressible()
+        if model === :Compressible
             dpdpi =
                 1 / (gamma - 1) *
                 (rsp / pref)^(1 - gamma) *
@@ -1574,7 +1574,7 @@ function compute_operator!(
         ja = j - j0 + 1
         ka = k - k0 + 1
 
-        # Set matrix elements for bicgstab.
+        # Set matrix elements for BiCGSTAB.
         ac_b[ia, ja, ka] = ac
         ar_b[ia, ja, ka] = ar
         al_b[ia, ja, ka] = al

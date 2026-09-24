@@ -25,17 +25,14 @@ Copy all properties of the ray volume specified by the first components of the i
 """
 function copy_rays! end
 
-function copy_rays!(
+@ivy function copy_rays!(
     rays::Rays,
     r::Pair{<:Integer, <:Integer},
     i::Pair{<:Integer, <:Integer},
     j::Pair{<:Integer, <:Integer},
     k::Pair{<:Integer, <:Integer},
 )
-    @ivy for field in fieldnames(Rays)
-        getfield(rays, field)[r[2], i[2], j[2], k[2]] =
-            getfield(rays, field)[r[1], i[1], j[1], k[1]]
-    end
+    rays.data[:, r[2], i[2], j[2], k[2]] .= rays.data[:, r[1], i[1], j[1], k[1]]
 
     return
 end

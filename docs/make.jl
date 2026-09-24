@@ -1,44 +1,52 @@
-using Pkg
-
-Pkg.activate("docs")
-
 using Changelog: Changelog
 using Documenter
+using CairoMakie
 using Revise
 using PinCFlow
 
-# Insert the example scripts.
-@ivy for folder in ("examples/submit/", "examples/visualization/"),
-    script_file in readdir(folder)
-
-    if endswith(script_file, ".jl")
-        script = read(folder * script_file, String)
-        code = Regex(
-            "(?s)(?<=\\n`{3}julia\\n)# " *
-            folder *
-            script_file[1:(end - 3)] *
-            "\\.jl\\n(.(?!\\n`{3}))*.",
-        )
-        if script_file == "periodic_hill.jl"
-            page_file = "README.md"
-        else
-            page_file =
-                "docs/src/examples/" *
-                script_file[1:(end - 3)] *
-                "_simulation.md"
-        end
-        page = replace(read(page_file, String), code => script)
-        open(page_file, "w") do io
-            write(io, page)
-            return
+# Insert the example functions.
+for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
+    for script_file in readdir(folder)
+        if endswith(script_file, ".jl")
+            script = read(folder * script_file, String)
+            code = Regex(
+                "(?sm)(?<=^```julia\\n)# " *
+                folder *
+                script_file *
+                "(.(?!^```\\n))*",
+            )
+            if script_file == "periodic_hill.jl"
+                page_files = ("README.md", "docs/src/examples.md")
+            else
+                page_files = ("docs/src/examples.md",)
+            end
+            for page_file in page_files
+                if isfile(page_file)
+                    page = replace(read(page_file, String), code => script)
+                    open(page_file, "w") do io
+                        write(io, page)
+                        return
+                    end
+                end
+            end
         end
     end
 end
 
-# Copy the example plots.
+# Create the example plots.
 mkpath("docs/src/examples/results/")
-for file in readdir("examples/results/"; join = true)
-    cp(file, "docs/src/" * file; force = true)
+for name in names(PinCFlow.Examples)
+    example = getproperty(PinCFlow.Examples, name)
+    if example isa Function
+        mktempdir() do directory
+            example(;
+                display_figure = false,
+                output_file = directory * "/$(example).h5",
+                plot_file = "docs/src/examples/results/$(example).svg",
+            )
+            return
+        end
+    end
 end
 
 # Copy the README file and use it as landing page of the docs.
@@ -143,16 +151,14 @@ makedocs(;
     remotes = nothing,
     pages = [
         "Home" => "index.md",
-        "Examples" => [
-            "Mountain-wave simulation" => "examples/mountain_wave_simulation.md",
-            "WKB mountain-wave simulation" => "examples/wkb_mountain_wave_simulation.md",
-        ],
+        "Examples" => "examples.md",
         "Theory" => [
             "Physics" => "theory/physics.md",
             "Numerics" => "theory/numerics.md",
         ],
         "Reference" => [
             "PinCFlow" => "reference/pincflow.md",
+            "Macros" => "reference/macros.md",
             "Types" => "reference/types.md",
             "MPIOperations" => "reference/mpi_operations.md",
             "Boundaries" => "reference/boundaries.md",
@@ -162,6 +168,7 @@ makedocs(;
             "MSGWaM" => "reference/msgwam.md",
             "Integration" => "reference/integration.md",
             "Output" => "reference/output.md",
+            "PinCFlowMakieExt" => "reference/pincflow_makie_ext.md",
         ],
         "Developer guide" => "developer_guide.md",
         "Changelog" => "changelog.md",
@@ -178,8 +185,12 @@ makedocs(;
     ),
 )
 
+# Only push previews if all the relevant environment variables are non-empty.
 deploydocs(;
     repo = "github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl",
     devbranch = "main",
-    push_preview = true,
+    push_preview = all(
+        !isempty,
+        (get(ENV, "GITHUB_TOKEN", ""), get(ENV, "DOCUMENTER_KEY", "")),
+    ),
 )

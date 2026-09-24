@@ -25,7 +25,7 @@ TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
     variables::Variables,
 )::TracerPredictands
 ```
@@ -39,12 +39,12 @@ TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
     variables::Variables,
 )::TracerPredictands
 ```
 
-Construct a `TracerPredictands` instance with a tracer initialized by the function `initial_tracer` in `namelists.tracer`. The tracer field is multiplied by the density.
+Construct a `TracerPredictands` instance with a tracer initialized by the function `initial_chi` in `namelists.tracer`. The tracer field is multiplied by the density.
 
 # Fields
 
@@ -86,13 +86,13 @@ function TracerPredictands(
 )::TracerPredictands
     (; tracer_setup) = namelists.tracer
 
-    return TracerPredictands(
+    @dispatch_tracer_setup return TracerPredictands(
         namelists,
         constants,
         domain,
         atmosphere,
         grid,
-        tracer_setup,
+        Val(tracer_setup),
         variables,
     )
 end
@@ -103,7 +103,7 @@ function TracerPredictands(
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
     variables::Variables,
 )::TracerPredictands
     (; float_type) = namelists.discretization
@@ -116,13 +116,13 @@ function TracerPredictands(
     )
 end
 
-function TracerPredictands(
+@ivy function TracerPredictands(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
     variables::Variables,
 )::TracerPredictands
     (; float_type) = namelists.discretization
@@ -132,12 +132,11 @@ function TracerPredictands(
     (; rhobar) = atmosphere
     (; rho) = variables.predictands
     (; lref) = constants
-    (; initial_tracer) = namelists.tracer
+    (; initial_chi) = namelists.tracer
 
     chi = zeros(float_type, nxx, nyy, nzz)
-    @ivy for k in 1:nzz, j in j0:j1, i in i0:i1
-        chi[i, j, k] =
-            initial_tracer(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
+    for k in 1:nzz, j in j0:j1, i in i0:i1
+        chi[i, j, k] = initial_chi(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
     end
     set_zonal_boundaries_of_field!(chi, namelists, domain)
     set_meridional_boundaries_of_field!(chi, namelists, domain)

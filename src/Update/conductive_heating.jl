@@ -16,7 +16,7 @@ conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )::AbstractFloat
 ```
 
@@ -28,7 +28,7 @@ conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )::AbstractFloat
 ```
 
@@ -40,14 +40,14 @@ conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
 ```
 
 Compute and return the conductive heating as the convergence of potential temperature fluxes (weighted by the density), i.e.
 
 ```math
-\\left(\\frac{\\partial P}{\\partial t}\\right)_\\lambda = - \\frac{\\rho}{J} \\left(\\frac{\\mathcal{F}_{i + 1 / 2}^{\\theta, \\widehat{x}} - \\mathcal{F}_{i - 1 / 2}^{\\theta, \\widehat{x}}}{\\Delta \\widehat{x}} + \\frac{\\mathcal{F}_{j + 1 / 2}^{\\theta, \\widehat{y}} - \\mathcal{F}_{j - 1 / 2}^{\\theta, \\widehat{y}}}{\\Delta \\widehat{y}} + \\frac{\\mathcal{F}_{k + 1 / 2}^{\\theta, \\widehat{z}} - \\mathcal{F}_{k - 1 / 2}^{\\theta, \\widehat{z}}}{\\Delta \\widehat{z}}\\right).
+\\left(\\frac{\\partial P}{\\partial t}\\right)_\\lambda = - \\frac{\\rho}{J} \\left(\\frac{\\mathcal{F}_{i + 1 / 2}^{\\theta, \\hat{x}} - \\mathcal{F}_{i - 1 / 2}^{\\theta, \\hat{x}}}{\\Delta \\hat{x}} + \\frac{\\mathcal{F}_{j + 1 / 2}^{\\theta, \\hat{y}} - \\mathcal{F}_{j - 1 / 2}^{\\theta, \\hat{y}}}{\\Delta \\hat{y}} + \\frac{\\mathcal{F}_{k + 1 / 2}^{\\theta, \\hat{z}} - \\mathcal{F}_{k - 1 / 2}^{\\theta, \\hat{z}}}{\\Delta \\hat{z}}\\right).
 ```
 
 # Arguments
@@ -72,7 +72,7 @@ function conductive_heating(
 )::AbstractFloat
     (; model) = state.namelists.atmosphere
 
-    return conductive_heating(state, i, j, k, model)
+    @dispatch_model return conductive_heating(state, i, j, k, Val(model))
 end
 
 function conductive_heating(
@@ -80,7 +80,7 @@ function conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )::AbstractFloat
     return 0.0
 end
@@ -90,26 +90,26 @@ function conductive_heating(
     i::Integer,
     j::Integer,
     k::Integer,
-    model::PseudoIncompressible,
+    model::Val{:PseudoIncompressible},
 )::AbstractFloat
     return 0.0
 end
 
-function conductive_heating(
+@ivy function conductive_heating(
     state::State,
     i::Integer,
     j::Integer,
     k::Integer,
-    model::Compressible,
+    model::Val{:Compressible},
 )::AbstractFloat
     (; phitheta) = state.variables.fluxes
     (; rho) = state.variables.predictands
     (; jac, dx, dy, dz) = state.grid
     (; rhobar) = state.atmosphere
 
-    @ivy rhotot = (rho[i, j, k] + rhobar[i, j, k]) / jac[i, j, k]
+    rhotot = (rho[i, j, k] + rhobar[i, j, k]) / jac[i, j, k]
 
-    @ivy return -rhotot * (
+    return -rhotot * (
         (phitheta[i, j, k, 1] - phitheta[i - 1, j, k, 1]) / dx +
         (phitheta[i, j, k, 2] - phitheta[i, j - 1, k, 2]) / dy +
         (phitheta[i, j, k, 3] - phitheta[i, j, k - 1, 3]) / dz

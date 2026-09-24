@@ -16,7 +16,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
 ```
 
@@ -28,7 +28,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
 ```
 
@@ -37,7 +37,7 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the contin
 The update is given by
 
 ```math
-\\rho \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho}\\right),
+\\rho \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho + \\alpha_\\mathrm{R} \\Delta t \\bar{\\rho}\\right),
 ```
 
 where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponges!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
@@ -48,7 +48,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -57,7 +57,7 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the auxili
 The update is given by
 
 ```math
-\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho} \\left(1 - \\frac{P}{\\rho \\overline{\\theta}}\\right)\\right].
+\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho' + \\alpha_\\mathrm{R} \\Delta t \\bar{\\rho} \\left(1 - \\frac{P}{\\rho \\bar{\\theta}}\\right)\\right].
 ```
 
 ```julia
@@ -66,7 +66,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -84,7 +84,11 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::U,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
 ```
 
@@ -104,7 +108,11 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::V,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
 ```
 
@@ -124,7 +132,11 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::W,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
 ```
 
@@ -133,10 +145,10 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the transf
 The update is given by
 
 ```math
-\\widehat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left(\\widehat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\widehat{w}_{\\mathrm{R}, k + 1 / 2}\\right).
+\\hat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left(\\hat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\hat{w}_{\\mathrm{R}, k + 1 / 2}\\right).
 ```
 
-If `state.namelists.sponge.relax_to_mean` is `false`, ``\\widehat{w}_{\\mathrm{R}, k + 1 / 2}`` is computed with the functions `relaxed_u`, `relaxed_v` and `relaxed_w` in `state.namelists.sponge`. Otherwise, it is replaced with the average of ``\\widehat{w}_{k + 1 / 2}`` across the terrain-following coordinate surface.
+If `state.namelists.sponge.relax_to_mean` is `false`, ``\\hat{w}_{\\mathrm{R}, k + 1 / 2}`` is computed with the functions `relaxed_u`, `relaxed_v` and `relaxed_w` in `state.namelists.sponge`. Otherwise, it is replaced with the average of ``\\hat{w}_{k + 1 / 2}`` across the terrain-following coordinate surface.
 
 ```julia
 apply_lhs_sponge!(
@@ -144,7 +156,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -156,7 +168,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -165,7 +177,7 @@ Update the Exner-pressure fluctuations to account for the Rayleigh damping appli
 The update is given by
 
 ```math
-\\pi' \\rightarrow \\pi' - \\alpha_\\mathrm{R} \\Delta t P \\frac{\\partial \\pi'}{\\partial P} \\left(1 - \\frac{\\overline{\\rho}}{\\rho}\\right).
+\\pi' \\rightarrow \\pi' - \\alpha_\\mathrm{R} \\Delta t P \\frac{\\partial \\pi'}{\\partial P} \\left(1 - \\frac{\\bar{\\rho}}{\\rho}\\right).
 ```
 
 ```julia
@@ -174,7 +186,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
 ```
 
@@ -186,7 +198,7 @@ apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::Compressible,
+    model::Val{:Compressible},
 )
 ```
 
@@ -195,7 +207,7 @@ Integrate the Rayleigh-damping term that represents the LHS sponge in the thermo
 The update is given by
 
 ```math
-P \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} P \\left(1 + \\alpha_\\mathrm{R} \\Delta t \\frac{\\overline{\\rho}}{\\rho}\\right).
+P \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} P \\left(1 + \\alpha_\\mathrm{R} \\Delta t \\frac{\\bar{\\rho}}{\\rho}\\right).
 ```
 
 ```julia
@@ -203,7 +215,19 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::NoTracer,
+    variable::Chi,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations by dispatching to the appropriate method.
+
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
+    tracer_setup::Val{:NoTracer},
 )
 ```
 
@@ -214,17 +238,39 @@ apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::TracerOn,
+    variable::Chi,
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
-Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations.
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the tracer equations if `state.namelists.tracer.apply_lhs_sponge_to_tracer` is `true`.
 
 In each tracer equation, the update is given by
 
 ```math
-\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left[\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\left(\\rho \\chi\\right)^{\\left(0\\right)}\\right].
+\\left(\\rho \\chi\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho \\chi + \\alpha_\\mathrm{R} \\Delta t \\rho \\chi_\\mathrm{R}\\right),
 ```
+
+where ``\\chi_\\mathrm{R}`` is computed with the function `relaxed_chi` in `state.namelists.tracer`.
+
+```julia
+apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::TKE,
+)
+```
+
+Integrate the Rayleigh-damping terms that represent the LHS sponge in the turbulent kinetic energy equation.
+
+In the equation for the turbulent kinetic energy, the update is given by
+
+```math
+\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho e_\\mathrm{k} + \\alpha_\\mathrm{R} \\Delta t \\rho e_\\mathrm{k,\\mathrm{min}}\\right),
+```
+
+where ``e_\\mathrm{k,\\mathrm{min}}`` represents the minimum allowed TKE value stored in `state.turbulence.turbulenceconstants.tkemin`.
 
 # Arguments
 
@@ -249,7 +295,7 @@ function apply_lhs_sponge!(
     variable::AbstractPredictand,
 )
     (; model) = state.namelists.atmosphere
-    apply_lhs_sponge!(state, dt, time, variable, model)
+    @dispatch_model apply_lhs_sponge!(state, dt, time, variable, Val(model))
     return
 end
 
@@ -258,24 +304,24 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::Boussinesq,
+    model::Val{:Boussinesq},
 )
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::Union{PseudoIncompressible, Compressible},
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rho) = state.variables.predictands
 
     rhobg = 0.0
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rho[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -286,19 +332,19 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar, thetabar) = state.atmosphere
     (; alphar) = state.sponge
     (; rho, rhop, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         rhopbg =
             rhobar[i, j, k] * (
                 1.0 -
@@ -315,19 +361,19 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::RhoP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rhop) = state.variables.predictands
 
     rhobg = 0.0
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rhop[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -338,12 +384,16 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::U,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_u) = state.namelists.sponge
@@ -356,14 +406,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, u[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the zonal wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xldim = x[i] * lref
         xrdim = x[i + 1] * lref
         ydim = y[j] * lref
@@ -388,12 +438,16 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::V,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_v) = state.namelists.sponge
@@ -406,14 +460,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, v[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the meridional wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xdim = x[i] * lref
         ybdim = y[j] * lref
         yfdim = y[j + 1] * lref
@@ -438,12 +492,16 @@ function apply_lhs_sponge!(
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::W,
-    model::AbstractModel,
+    model::Union{
+        Val{:Boussinesq},
+        Val{:PseudoIncompressible},
+        Val{:Compressible},
+    },
 )
     (; x_size, y_size) = state.namelists.domain
     (; relax_to_mean, relaxed_u, relaxed_v, relaxed_w) = state.namelists.sponge
@@ -456,14 +514,14 @@ function apply_lhs_sponge!(
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
     # Compute the horizontal mean.
-    @ivy if relax_to_mean
+    if relax_to_mean
         horizontal_mean .=
             sum(a -> a / x_size / y_size, w[ii, jj, kk]; dims = (1, 2))[1, 1, :]
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
     end
 
     # Update the vertical wind.
-    @ivy for k in kk, j in jj, i in ii
+    for k in kk, j in jj, i in ii
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcddim = zc[i, j, k] * lref
@@ -510,17 +568,17 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::PiP,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -528,7 +586,7 @@ function apply_lhs_sponge!(
     (; rhobar) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
         pib =
@@ -548,24 +606,24 @@ function apply_lhs_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )
     return
 end
 
-function apply_lhs_sponge!(
+@ivy function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::P,
-    model::Compressible,
+    model::Val{:Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
     (; rhobar) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         pb = rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         alpha = alphar[i, j, k]
         pold = p[i, j, k]
@@ -581,8 +639,18 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::NoTracer,
+    variable::Chi,
 )
+    (; tracer_setup) = state.namelists.tracer
+
+    @dispatch_tracer_setup apply_lhs_sponge!(
+        state,
+        dt,
+        time,
+        variable,
+        Val(tracer_setup),
+    )
+
     return
 end
 
@@ -590,22 +658,71 @@ function apply_lhs_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-    tracer_setup::TracerOn,
+    variable::Chi,
+    tracer_setup::Val{:NoTracer},
+)
+    return
+end
+
+@ivy function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Chi,
+    tracer_setup::Val{:TracerOn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
+    (; rhobar) = state.atmosphere
     (; tracerpredictands) = state.tracer
-    (; initialtracer) = state.tracer.tracerauxiliaries
+    (; relaxed_chi, apply_lhs_sponge_to_tracer) = state.namelists.tracer
+    (; lref, tref) = state.constants
+    (; x, y, zc) = state.grid
 
-    @ivy for field in fieldnames(TracerPredictands)
+    if !apply_lhs_sponge_to_tracer
+        return
+    end
+
+    for field in fieldnames(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
         for k in k0:k1, j in j0:j1, i in i0:i1
+            xdim = x[i] * lref
+            ydim = y[j] * lref
+            zcdim = zc[i, j, k] * lref
+            tdim = time * tref
+            dtdim = dt * tref
             alpha = alphar[i, j, k]
             chi_old = chi[i, j, k]
             beta = 1.0 / (1.0 + alpha * dt)
-            chi_new = (1.0 - beta) * initialtracer[i, j, k] + beta * chi_old
+            chi_new =
+                (1.0 - beta) *
+                relaxed_chi(xdim, ydim, zcdim, tdim, dtdim) *
+                rhobar[i, j, k] + beta * chi_old
             chi[i, j, k] = chi_new
         end
+    end
+
+    return
+end
+
+@ivy function apply_lhs_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::TKE,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphar) = state.sponge
+    (; tke) = state.turbulence.turbulencepredictands
+    (; tkemin) = state.turbulence.turbulenceconstants
+    (; rhobar) = state.atmosphere
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        alpha = alphar[i, j, k]
+        tke_old = tke[i, j, k]
+        beta = 1.0 / (1.0 + alpha * dt)
+        tke_new = (1.0 - beta) * tkemin * rhobar[i, j, k] + beta * tke_old
+        tke[i, j, k] = tke_new
     end
 
     return

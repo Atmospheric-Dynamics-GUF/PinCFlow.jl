@@ -84,8 +84,9 @@ The correction is given by
 
 ```math
 \\begin{align*}
-    \\widehat{w}_{k + 1 / 2} & \\rightarrow \\widehat{w}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\Delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}} + \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^{\\rho u}\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^{\\rho v}\\right)_{k + 1 / 2}\\right]\\right\\},
+    \\hat{w}_{k + 1 / 2} & \\rightarrow \\hat{w}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N_{k + 1 / 2}^2 \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\Delta t c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\hat{w}} + \\frac{\\bar{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N_{k + 1 / 2}^2 \\left(\\Delta t\\right)^2\\right.\\\\
+    & \\qquad \\quad \\times \\left.\\left[\\left(G^{1 3} \\mathcal{C}^{\\rho u}\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^{\\rho v}\\right)_{k + 1 / 2}\\right]\\vphantom{\\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}}}\\right\\},
 \\end{align*}
 ```
 
@@ -93,13 +94,13 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\widehat{W}_{k + 1 / 2} & \\rightarrow \\widehat{W}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left\\{\\Delta t c_p \\left(J P\\right)_{k + 1 / 2} \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}} \\vphantom{\\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}}}\\right.\\\\
-    & \\qquad \\quad + \\left.\\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\overline{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\left(N \\Delta t\\right)^2 \\left[\\left(G^{1 3} \\mathcal{C}^{\\rho u}\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^{\\rho v}\\right)_{k + 1 / 2}\\right]\\right\\},
+    \\hat{W}_{k + 1 / 2} & \\rightarrow \\hat{W}_{k + 1 / 2} - \\left[1 + \\beta_{\\mathrm{R}, k + 1 / 2} \\Delta t + \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N_{k + 1 / 2}^2 \\left(\\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left\\{\\Delta t c_p \\left(J P\\right)_{k + 1 / 2} \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\hat{w}} \\vphantom{\\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}}} + \\left(J P\\right)_{k + 1 / 2} \\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}} N_{k + 1 / 2}^2 \\left(\\Delta t\\right)^2\\right.\\\\
+    & \\qquad \\quad \\times \\left.\\left[\\left(G^{1 3} \\mathcal{C}^{\\rho u}\\right)_{k + 1 / 2} + \\left(G^{23} \\mathcal{C}^{\\rho v}\\right)_{k + 1 / 2}\\right]\\vphantom{\\frac{\\left(P / \\bar{\\theta}\\right)_{k + 1 / 2}}{\\rho_{k + 1 / 2}}}\\right\\},
 \\end{align*}
 ```
 
-in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}`` is computed with `compute_pressure_gradient`.
+in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\hat{w}}`` is computed with `compute_pressure_gradient`.
 
 ```julia
 correct!(
@@ -116,9 +117,9 @@ The correction is given by
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left[- \\frac{\\overline{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{\\overline{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^{\\rho u} + G^{2 3} \\mathcal{C}^{\\rho v}\\right)\\right],
+    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{\\bar{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{\\bar{\\rho}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\hat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{\\bar{\\rho}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^{\\rho u} + G^{2 3} \\mathcal{C}^{\\rho v}\\right)\\right],
 \\end{align*}
 ```
 
@@ -126,13 +127,13 @@ in Boussinesq/pseudo-incompressible mode and
 
 ```math
 \\begin{align*}
-    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
-    & \\quad \\times \\left[- \\frac{P / \\overline{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}\\right)\\right.\\\\
-    & \\qquad \\quad + \\left.\\frac{P / \\overline{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^{\\rho u} + G^{2 3} \\mathcal{C}^{\\rho v}\\right)\\right],
+    \\rho' & \\rightarrow \\rho' + \\frac{\\rho}{g} \\left[1 + \\beta_\\mathrm{R} \\Delta t + \\frac{P / \\bar{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2\\right]^{- 1}\\\\
+    & \\quad \\times \\left[- \\frac{P / \\bar{\\theta}}{\\rho} \\left(N \\Delta t\\right)^2 J \\left(c_p \\frac{P_{k + 1 / 2}}{\\rho_{k + 1 / 2}} \\mathcal{D}_{k + 1 / 2}^{\\rho \\hat{w}}\\right)\\right.\\\\
+    & \\qquad \\quad + \\left.\\frac{P / \\bar{\\theta}}{\\rho} N^2 \\Delta t J \\left(1 + \\beta_\\mathrm{R} \\Delta t\\right) \\left(G^{1 3} \\mathcal{C}^{\\rho u} + G^{2 3} \\mathcal{C}^{\\rho v}\\right)\\right],
 \\end{align*}
 ```
 
-in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\widehat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\rho \\widehat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
+in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\hat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\rho \\hat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
 
 ```julia
 correct!(state::State, variable::PiP)
@@ -173,7 +174,7 @@ function correct!(
     return
 end
 
-function correct!(
+@ivy function correct!(
     state::State,
     dt::AbstractFloat,
     variable::U,
@@ -190,7 +191,7 @@ function correct!(
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
+    for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
 
         if damp_horizontal_wind_on_rhs
@@ -213,7 +214,7 @@ function correct!(
     return
 end
 
-function correct!(
+@ivy function correct!(
     state::State,
     dt::AbstractFloat,
     variable::V,
@@ -230,7 +231,7 @@ function correct!(
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @ivy for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
+    for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
 
         if damp_horizontal_wind_on_rhs
@@ -253,7 +254,7 @@ function correct!(
     return
 end
 
-function correct!(
+@ivy function correct!(
     state::State,
     dt::AbstractFloat,
     variable::W,
@@ -271,7 +272,7 @@ function correct!(
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    @ivy for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
 
         factor +=
@@ -314,7 +315,7 @@ function correct!(
     return
 end
 
-function correct!(
+@ivy function correct!(
     state::State,
     dt::AbstractFloat,
     variable::RhoP,
@@ -330,7 +331,7 @@ function correct!(
     (; dpip) = state.variables.increments
     (; rho, rhop) = state.variables.predictands
 
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         factor = 1.0
 
         factor += dt * betar[i, j, k] * rayleigh_factor

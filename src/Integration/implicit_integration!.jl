@@ -22,7 +22,7 @@ Perform an implicit Euler step on the right-hand sides of the prognostic equatio
 
   - `time`: Simulation time.
 
-  - `ntotalbicg`: BicGStab-iterations counter.
+  - `ntotalbicg`: BiCGSTAB-iterations counter.
 
   - `side`: Side of the equations.
 
@@ -66,10 +66,7 @@ function implicit_integration!(
 
     if errflagbicg
         iout = write_output(state, time, iout, machine_start_time)
-        if master
-            println("Output last state into record ", iout, ".")
-        end
-        exit()
+        error("BiCGSTAB errored! Output last state into record ", iout, ".")
     end
 
     ntotalbicg += niterbicg

@@ -8,7 +8,7 @@ Compute the scaled left-hand side of the Poisson equation and return a reference
 ```julia
 compute_lhs!(
     state::State,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
 ```
 
@@ -18,22 +18,22 @@ The scaled left-hand side is given by
 
 ```math
 \\begin{align*}
-    b & = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left\\{\\frac{1}{\\Delta \\widehat{x}} \\left[\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2} - \\left(J P\\right)_{i - 1 / 2} u_{i - 1 / 2}\\right]\\right.\\\\
-    & \\qquad \\qquad \\quad + \\frac{1}{\\Delta \\widehat{y}} \\left[\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2} - \\left(J P\\right)_{j - 1 / 2} v_{j - 1 / 2}\\right]\\\\
-    & \\qquad \\qquad \\quad + \\left.\\frac{1}{\\Delta \\widehat{z}} \\left[\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - \\left(J P\\right)_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right]\\right\\}
+    b & = \\frac{\\sqrt{\\bar{\\rho}}}{P} \\frac{1}{J c_p} \\left\\{\\frac{1}{\\Delta \\hat{x}} \\left[\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2} - \\left(J P\\right)_{i - 1 / 2} u_{i - 1 / 2}\\right]\\right.\\\\
+    & \\qquad \\qquad \\quad + \\frac{1}{\\Delta \\hat{y}} \\left[\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2} - \\left(J P\\right)_{j - 1 / 2} v_{j - 1 / 2}\\right]\\\\
+    & \\qquad \\qquad \\quad + \\left.\\frac{1}{\\Delta \\hat{z}} \\left[\\left(J P\\right)_{k + 1 / 2} \\hat{w}_{k + 1 / 2} - \\left(J P\\right)_{k - 1 / 2} \\hat{w}_{k - 1 / 2}\\right]\\right\\}
 \\end{align*}
 ```
 
 and the reference tolerance is given by
 
 ```math
-\\tau_\\mathrm{ref} = \\frac{\\sum_{i, j, k} b_{i, j, k}^2}{\\sum_{i, j, k} \\left(b_{u, i, j, k}^2 + b_{v, i, j, k}^2 + b_{\\widehat{w}, i, j, k}^2\\right)},
+\\tau_\\mathrm{ref} = \\frac{\\sum_{i, j, k} b_{i, j, k}^2}{\\sum_{i, j, k} \\left(b_{u, i, j, k}^2 + b_{v, i, j, k}^2 + b_{\\hat{w}, i, j, k}^2\\right)},
 ```
 
-where ``b_u``, ``b_v`` and ``b_{\\widehat{w}}`` are the zonal, meridional and vertical parts of ``b``, respectively. Note that in Boussinesq mode, ``P = P_0`` will cancel out, so that the appropriate divergence constraint remains.
+where ``b_u``, ``b_v`` and ``b_{\\hat{w}}`` are the zonal, meridional and vertical parts of ``b``, respectively. Note that in Boussinesq mode, ``P = P_0`` will cancel out, so that the appropriate divergence constraint remains.
 
 ```julia
-compute_lhs!(state::State, model::Compressible)::AbstractFloat
+compute_lhs!(state::State, model::Val{:Compressible})::AbstractFloat
 ```
 
 Compute the scaled left-hand side of the Poisson equation in compressible mode and return a reference tolerance for the convergence criterion.
@@ -42,7 +42,7 @@ The scaled left-hand side is given by
 
 ```math
 \\begin{align*}
-    b & = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\frac{1}{J c_p} \\left(\\frac{U_{i + 1 / 2} - U_{i - 1 / 2}}{\\Delta \\widehat{x}} + \\frac{V_{j + 1 / 2} - V_{j - 1 / 2}}{\\Delta \\widehat{y}} + \\frac{\\widehat{W}_{k + 1 / 2} - \\widehat{W}_{k - 1 / 2}}{\\Delta \\widehat{z}}\\right) - \\frac{\\sqrt{\\overline{\\rho}}}{P} F^P,
+    b & = \\frac{\\sqrt{\\bar{\\rho}}}{P} \\frac{1}{J c_p} \\left(\\frac{U_{i + 1 / 2} - U_{i - 1 / 2}}{\\Delta \\hat{x}} + \\frac{V_{j + 1 / 2} - V_{j - 1 / 2}}{\\Delta \\hat{y}} + \\frac{\\hat{W}_{k + 1 / 2} - \\hat{W}_{k - 1 / 2}}{\\Delta \\hat{z}}\\right) - \\frac{\\sqrt{\\bar{\\rho}}}{P} F^P,
 \\end{align*}
 ```
 
@@ -62,12 +62,12 @@ function compute_lhs! end
 
 function compute_lhs!(state::State)::AbstractFloat
     (; model) = state.namelists.atmosphere
-    return compute_lhs!(state, model)
+    @dispatch_model return compute_lhs!(state, Val(model))
 end
 
-function compute_lhs!(
+@ivy function compute_lhs!(
     state::State,
-    model::Union{Boussinesq, PseudoIncompressible},
+    model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
     (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
@@ -75,14 +75,14 @@ function compute_lhs!(
     (; dx, dy, dz, jac) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
-    (; rhs) = state.poisson
+    (; lhs) = state.poisson
 
     # Initialize summation variables.
     divl2 = 0.0
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
@@ -134,9 +134,9 @@ function compute_lhs!(
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
-        rhs[ib, jb, kb] = bu + bv + bw
+        lhs[ib, jb, kb] = bu + bv + bw
         # Compute check sum for solvability criterion.
-        divl2 += rhs[ib, jb, kb]^2.0
+        divl2 += lhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0
     end
 
@@ -152,28 +152,31 @@ function compute_lhs!(
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Incorrect L2 norm: divl2_norm = 0 while divl2 != 0!")
         end
     end
 
     return tolref
 end
 
-function compute_lhs!(state::State, model::Compressible)::AbstractFloat
+@ivy function compute_lhs!(
+    state::State,
+    model::Val{:Compressible},
+)::AbstractFloat
     (; x_size, y_size, z_size) = state.namelists.domain
     (; ma, kappa) = state.constants
     (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
-    (; rhs) = state.poisson
+    (; lhs) = state.poisson
 
     # Initialize summation fields.
     divl2 = 0.0
     divl2_norm = 0.0
 
     # Calculate RHS for TFC.
-    @ivy for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         # Calculate scaling factor.
         fcscal = sqrt(pbar[i, j, k]^2.0 / rhobar[i, j, k])
         # Store velocities at cell edges.
@@ -197,9 +200,9 @@ function compute_lhs!(state::State, model::Compressible)::AbstractFloat
         bv /= fcscal
         bw /= fcscal
         heating /= fcscal
-        rhs[ib, jb, kb] = bu + bv + bw - heating
+        lhs[ib, jb, kb] = bu + bv + bw - heating
         # Compute check sum for solvability criterion.
-        divl2 += rhs[ib, jb, kb]^2.0
+        divl2 += lhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0
     end
 
@@ -215,7 +218,7 @@ function compute_lhs!(state::State, model::Compressible)::AbstractFloat
         if divl2 == 0.0
             tolref = 1.0
         else
-            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+            error("Incorrect L2 norm: divl2_norm = 0 while divl2 != 0!")
         end
     end
 

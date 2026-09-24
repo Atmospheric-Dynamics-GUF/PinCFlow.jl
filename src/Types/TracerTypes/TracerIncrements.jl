@@ -12,21 +12,13 @@ TracerIncrements(namelists::Namelists, domain::Domain)::TracerIncrements
 Construct a `TracerIncrements` instance with dimensions depending on the general tracer-transport configuration, by dispatching to the appropriate method.
 
 ```julia
-TracerIncrements(
-    namelists::Namelists,
-    domain::Domain,
-    tracer_setup::NoTracer,
-)::TracerIncrements
+TracerIncrements(domain::Domain, tracer_setup::Val{:NoTracer})::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-size arrays for configurations without tracer transport.
 
 ```julia
-TracerIncrements(
-    namelists::Namelists,
-    domain::Domain,
-    tracer_setup::TracerOn,
-)::TracerIncrements
+TracerIncrements(domain::Domain, tracer_setup::Val{:TracerOn})::TracerIncrements
 ```
 
 Construct a `TracerIncrements` instance with zero-initialized arrays.
@@ -53,13 +45,13 @@ function TracerIncrements(
 )::TracerIncrements
     (; tracer_setup) = namelists.tracer
 
-    return TracerIncrements(namelists, domain, tracer_setup)
+    @dispatch_tracer_setup return TracerIncrements(domain, Val(tracer_setup))
 end
 
 function TracerIncrements(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )::TracerIncrements
     (; float_type) = namelists.discretization
 
@@ -73,7 +65,7 @@ end
 function TracerIncrements(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )::TracerIncrements
     (; float_type) = namelists.discretization
     (; nxx, nyy, nzz) = domain

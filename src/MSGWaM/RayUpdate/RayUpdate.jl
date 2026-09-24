@@ -9,6 +9,8 @@ In addition to ray-volume initialization and propagation, functions for tracking
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
@@ -26,8 +28,8 @@ using ..BoundaryRays
 using ..Interpolation
 using ..RayOperations
 using ..RaySources
+using ...Macros
 using ...Types
-using ...PinCFlow
 
 """
 ```julia
@@ -89,6 +91,7 @@ include("merge_rays!.jl")
 include("propagate_rays!.jl")
 include("shift_rays!.jl")
 include("split_rays!.jl")
+include("apply_turbulent_damping!.jl")
 
 export X, Y, Z, XZ, YZ, XYZ
 

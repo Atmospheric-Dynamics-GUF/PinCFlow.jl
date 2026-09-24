@@ -1,12 +1,28 @@
+"""
+```julia
+PinCFlowMakieExt
+```
+
+Makie.jl extension (using the `CairoMakie` backend).
+
+# See also
+
+  - [`PinCFlow.Macros`](@ref)
+"""
 module PinCFlowMakieExt
 
 using HDF5
 using CairoMakie
-using PinCFlow: @ivy
+using LaTeXStrings
+using PinCFlow.Macros
 
-import PinCFlow: plot_contours, set_visualization_theme!, symmetric_contours
+import PinCFlow: plot_output, set_visualization_theme!, symmetric_contours
 
-include("plot_contours.jl")
+include("add_contour_plot!.jl")
+include("add_scatter_plot!.jl")
+include("tick_indices.jl")
+
+include("plot_output.jl")
 include("set_visualization_theme!.jl")
 include("symmetric_contours.jl")
 

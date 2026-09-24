@@ -20,7 +20,7 @@ Construct a `TracerReconstructions` instance with dimensions depending on the ge
 TracerReconstructions(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )::TracerReconstructions
 ```
 
@@ -30,7 +30,7 @@ Construct a `TracerReconstructions` instance with zero-size arrays for configura
 TracerReconstructions(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::TracerOn,
+    tracer_setup::Val{:TracerOn},
 )::TracerReconstructions
 ```
 
@@ -58,14 +58,31 @@ function TracerReconstructions(
 )::TracerReconstructions
     (; tracer_setup) = namelists.tracer
 
-    return TracerReconstructions(namelists, domain, tracer_setup)
+    @dispatch_tracer_setup return TracerReconstructions(
+        domain,
+        Val(tracer_setup),
+    )
 end
 
 function TracerReconstructions(
     namelists::Namelists,
     domain::Domain,
-    tracer_setup::NoTracer,
+    tracer_setup::Val{:NoTracer},
 )::TracerReconstructions
+    (; float_type) = namelists.discretization
+
+    return TracerReconstructions(
+        [
+            zeros(0, 0, 0, 0, 0) for field in fieldnames(TracerReconstructions)
+        ]...,
+    )
+end
+
+function TracerReconstructions(
+    domain::Domain,
+    tracer_setup::Val{:TracerOn},
+)::TracerReconstructions
+    (; nxx, nyy, nzz) = domain
     (; float_type) = namelists.discretization
 
     return TracerReconstructions(

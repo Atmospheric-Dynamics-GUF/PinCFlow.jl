@@ -1,9 +1,6 @@
 """
 ```julia
-Fluxes{
-    A <: AbstractArray{<:AbstractFloat, 4},
-    B <: AbstractArray{<:AbstractFloat, 4},
-}
+Fluxes{A <: AbstractArray{<:AbstractFloat, 4}}
 ```
 
 Arrays for fluxes needed in the computation of the left-hand sides.
@@ -17,23 +14,19 @@ Fluxes(namelists::Namelists, domain::Domain)::Fluxes
 Construct a `Fluxes` instance with dimensions depending on whether or not the model is compressible, by dispatching to the appropriate method.
 
 ```julia
-Fluxes(namelists::Namelists, domain::Domain, model::Boussinesq)::Fluxes
+Fluxes(domain::Domain, model::Val{:Boussinesq})::Fluxes
 ```
 
 Construct a `Fluxes` instance in Boussinesq mode, with zero-size arrays for the density and mass-weighted potential-temperature fluxes.
 
 ```julia
-Fluxes(
-    namelists::Namelists,
-    domain::Domain,
-    model::PseudoIncompressible,
-)::Fluxes
+Fluxes(domain::Domain, model::Val{:PseudoIncompressible})::Fluxes
 ```
 
 Construct a `Fluxes` instance in pseudo-incompressible mode, with a zero-size array for mass-weighted potential-temperature fluxes.
 
 ```julia
-Fluxes(namelists::Namelists, domain::Domain, model::Compressible)::Fluxes
+Fluxes(domain::Domain, model::Val{:Compressible})::Fluxes
 ```
 
 Construct a `Fluxes` instance in compressible mode.
@@ -50,7 +43,9 @@ Construct a `Fluxes` instance in compressible mode.
 
   - `phiw::A`: Transformed-vertical-momentum fluxes.
 
-  - `phip::B`: Mass-weighted potential-temperature fluxes.
+  - `phitheta::A`: Potential temperature fluxes.
+
+  - `phip::A`: Mass-weighted potential-temperature fluxes.
 
 # Arguments
 
@@ -60,26 +55,22 @@ Construct a `Fluxes` instance in compressible mode.
 
   - `model`: Dynamic equations.
 """
-struct Fluxes{
-    A <: AbstractArray{<:AbstractFloat, 4},
-    B <: AbstractArray{<:AbstractFloat, 4},
-}
+struct Fluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phirho::A
     phirhop::A
     phiu::A
     phiv::A
     phiw::A
     phitheta::A
-    phip::B
+    phip::A
 end
 
 function Fluxes(namelists::Namelists, domain::Domain)::Fluxes
     (; model) = namelists.atmosphere
-    return Fluxes(namelists, domain, model)
+    @dispatch_model return Fluxes(domain, Val(model))
 end
 
-function Fluxes(namelists::Namelists, domain::Domain, model::Boussinesq)::Fluxes
-    (; float_type) = namelists.discretization
+function Fluxes(domain::Domain, model::Val{:Boussinesq})::Fluxes
     (; nxx, nyy, nzz) = domain
 
     return Fluxes(
@@ -89,13 +80,9 @@ function Fluxes(namelists::Namelists, domain::Domain, model::Boussinesq)::Fluxes
     )
 end
 
-function Fluxes(
-    namelists::Namelists,
-    domain::Domain,
-    model::PseudoIncompressible,
-)::Fluxes
-    (; float_type) = namelists.discretization
+function Fluxes(domain::Domain, model::Val{:PseudoIncompressible})::Fluxes
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return Fluxes(
         [zeros(float_type, nxx, nyy, nzz, 3) for i in 1:6]...,
@@ -103,13 +90,9 @@ function Fluxes(
     )
 end
 
-function Fluxes(
-    namelists::Namelists,
-    domain::Domain,
-    model::Compressible,
-)::Fluxes
-    (; float_type) = namelists.discretization
+function Fluxes(domain::Domain, model::Val{:Compressible})::Fluxes
     (; nxx, nyy, nzz) = domain
+    (; float_type) = namelists.discretization
 
     return Fluxes([zeros(float_type, nxx, nyy, nzz, 3) for i in 1:7]...)
 end

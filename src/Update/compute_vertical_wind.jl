@@ -26,7 +26,7 @@ Compute and return the Cartesian vertical wind at the grid point ``\\left(i, j, 
 """
 function compute_vertical_wind end
 
-function compute_vertical_wind(
+@ivy function compute_vertical_wind(
     i::Integer,
     j::Integer,
     k::Integer,
@@ -34,15 +34,15 @@ function compute_vertical_wind(
 )::AbstractFloat
     (; u, v, w) = state.variables.predictands
 
-    @ivy uedger = u[i, j, k]
-    @ivy uuedger = u[i, j, k + 1]
-    @ivy uedgel = u[i - 1, j, k]
-    @ivy uuedgel = u[i - 1, j, k + 1]
-    @ivy vedgef = v[i, j, k]
-    @ivy vuedgef = v[i, j, k + 1]
-    @ivy vedgeb = v[i, j - 1, k]
-    @ivy vuedgeb = v[i, j - 1, k + 1]
-    @ivy wedgeu = w[i, j, k]
+    uedger = u[i, j, k]
+    uuedger = u[i, j, k + 1]
+    uedgel = u[i - 1, j, k]
+    uuedgel = u[i - 1, j, k + 1]
+    vedgef = v[i, j, k]
+    vuedgef = v[i, j, k + 1]
+    vedgeb = v[i, j - 1, k]
+    vuedgeb = v[i, j - 1, k + 1]
+    wedgeu = w[i, j, k]
 
     return transform(
         i,

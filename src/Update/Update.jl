@@ -9,6 +9,8 @@ Provides functions for updating the prognostic variables at the various stages o
 
 # See also
 
+  - [`PinCFlow.Macros`](@ref)
+
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.Boundaries`](@ref)
@@ -16,9 +18,9 @@ Provides functions for updating the prognostic variables at the various stages o
 module Update
 
 using MPI
+using ..Macros
 using ..Types
 using ..Boundaries
-using ..PinCFlow
 
 """
 ```julia
@@ -61,7 +63,7 @@ struct RHS end
 X
 ```
 
-Singleton for ``\\widehat{x}``-axis along which a calculation should be performed.
+Singleton for ``\\hat{x}``-axis along which a calculation should be performed.
 """
 struct X end
 
@@ -70,7 +72,7 @@ struct X end
 Y
 ```
 
-Singleton for ``\\widehat{y}``-axis along which a calculation should be performed.
+Singleton for ``\\hat{y}``-axis along which a calculation should be performed.
 """
 struct Y end
 
@@ -79,10 +81,39 @@ struct Y end
 Z
 ```
 
-Singleton for ``\\widehat{z}``-axis along which a calculation should be performed.
+Singleton for ``\\hat{z}``-axis along which a calculation should be performed.
 """
 struct Z end
 
+"""
+```julia
+KM
+```
+
+Singleton for the eddy diffusion coefficient for momentum.
+"""
+struct KM end
+
+"""
+```julia
+KH
+```
+
+Singleton for the eddy diffusion coefficient for heat.
+"""
+struct KH end
+
+"""
+```julia
+KEK
+```
+
+Singleton for the eddy diffusion coefficient for turbulent kinetic energy.
+"""
+struct KEK end
+
+include("check_tke!.jl")
+include("turbulence_diffusion_coefficient.jl")
 include("apply_lhs_sponge!.jl")
 include("compute_buoyancy_factor.jl")
 include("compute_compressible_wind_factor.jl")
@@ -95,8 +126,11 @@ include("transform.jl")
 include("update!.jl")
 include("conductive_heating.jl")
 include("compute_momentum_diffusion_terms.jl")
+include("thomas_algorithm!.jl")
+include("reset_thomas!.jl")
+include("turbulent_diffusion!.jl")
 
-export LHS, RHS
+export LHS, RHS, X, Y, Z, KM, KH, KEK
 
 export apply_lhs_sponge!,
     compute_buoyancy_factor,
@@ -108,6 +142,11 @@ export apply_lhs_sponge!,
     compute_volume_force,
     conductive_heating,
     compute_momentum_diffusion_terms,
+    thomas_algorithm!,
+    reset_thomas!,
+    turbulent_diffusion!,
+    turbulence_diffusion_coefficient,
+    check_tke!,
     update!
 
 end

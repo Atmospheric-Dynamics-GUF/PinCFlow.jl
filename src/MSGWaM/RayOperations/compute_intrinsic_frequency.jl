@@ -14,7 +14,7 @@ Return the intrinsic frequency of the ray volume specified by ``\\left(r, i, j, 
 The intrinsic frequency is calculated from the dispersion relation
 
 ```math
-\\widehat{\\omega}_r = \\sigma \\sqrt{\\frac{N_r^2 \\left(k_r^2 + l_r^2\\right) + f^2 m_r^2}{\\left|\\boldsymbol{k}_r\\right|^2}},
+\\hat{\\omega}_r = \\sigma \\sqrt{\\frac{N_r^2 \\left(k_r^2 + l_r^2\\right) + f^2 m_r^2}{\\left|\\boldsymbol{k}_r\\right|^2}},
 ```
 
 where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray volume's vertical position and ``\\sigma`` is the frequency branch.
@@ -37,7 +37,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray volume
 """
 function compute_intrinsic_frequency end
 
-function compute_intrinsic_frequency(
+@ivy function compute_intrinsic_frequency(
     state::State,
     r::Integer,
     i::Integer,
@@ -49,10 +49,10 @@ function compute_intrinsic_frequency(
     (; tref) = state.constants
     (; rays) = state.wkb
 
-    @ivy zr = rays.z[r, i, j, k]
-    @ivy kr = rays.k[r, i, j, k]
-    @ivy lr = rays.l[r, i, j, k]
-    @ivy mr = rays.m[r, i, j, k]
+    zr = rays.z[r, i, j, k]
+    kr = rays.k[r, i, j, k]
+    lr = rays.l[r, i, j, k]
+    mr = rays.m[r, i, j, k]
     khr = sqrt(kr^2 + lr^2)
 
     n2r = interpolate_stratification(zr, state, N2())
