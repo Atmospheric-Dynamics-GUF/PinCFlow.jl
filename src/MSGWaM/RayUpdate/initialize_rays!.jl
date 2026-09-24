@@ -83,6 +83,7 @@ end
         cgz_max,
         spectrum,
     ) = state.wkb
+    (; n2) = state.atmosphere
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -173,9 +174,7 @@ end
                 (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 
-            xr = rays.x[r, i, j, k]
-            yr = rays.y[r, i, j, k]
-            zr = rays.z[r, i, j, k]
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
             # Check if ray volume is too low.
             if zr < -dz

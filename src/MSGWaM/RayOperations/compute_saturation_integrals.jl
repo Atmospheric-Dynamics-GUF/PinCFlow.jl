@@ -63,7 +63,7 @@ function compute_saturation_integrals end
     (; x_size, y_size) = state.namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dz, jac) = grid
-    (; rhobar) = state.atmosphere
+    (; n2, rhobar) = state.atmosphere
     (; nray, rays) = state.wkb
 
     # Initialize Integrals.
@@ -78,13 +78,8 @@ function compute_saturation_integrals end
             continue
         end
 
-        xr = rays.x[r, i, j, k]
-        yr = rays.y[r, i, j, k]
-        zr = rays.z[r, i, j, k]
-
-        dxr = rays.dxray[r, i, j, k]
-        dyr = rays.dyray[r, i, j, k]
-        dzr = rays.dzray[r, i, j, k]
+        (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+        (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
 
         if x_size > 1
             iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
