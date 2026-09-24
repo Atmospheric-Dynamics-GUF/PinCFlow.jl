@@ -116,7 +116,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted impact of the large-scale shear ``\\mathcal{S}``, the buoyancy ``\\mathcal{B}`` and that of the gravity-wave shear ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}``  on the TKE, given by
+Return the mass-weighted impact of the large-scale shear ``\\mathcal{S}``, the buoyancy ``\\mathcal{B}`` and ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}``, which is the impact of the gravity-wave shear,  on the TKE, given by
 
 ```math
 \\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\left[\\mathcal{S} + \\mathcal{B} + \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}\\right]
