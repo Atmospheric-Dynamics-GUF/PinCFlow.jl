@@ -687,6 +687,24 @@ function create_output(state::State, machine_start_time::DateTime)
                     L"\mathcal{B}\ [\mathrm{m^2\ s^{-3}}]"
                 attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
             end
+
+            if wkb_mode !== :NoWKB
+                if :gw_shear in output_variables
+                    attributes(file["gw_shear"])["units"] = "s^-2"
+                    attributes(file["gw_shear"])["label"] =
+                        L"\mathcal{S}_\mathrm{w}"
+                    attributes(file["gw_shear"])["long_name"] = "gravity-wave shear"
+                end
+
+                if :dtkedt in output_variables
+                    attributes(file["dtkedt"])["units"] = "m^2*s^-3"
+                    attributes(file["dtkedt"])["label"] =
+                        L"\left(\frac{\partial e_\mathrm{k}}{\partial t}\right)_\mathrm{w}"
+                    attributes(
+                        file["dtkedt"],
+                    )["long_name"] = "turbulent kinetic energy GW forcing"
+                end
+            end
         end
 
         if wkb_mode !== :NoWKB
@@ -826,22 +844,6 @@ function create_output(state::State, machine_start_time::DateTime)
                     attributes(file[string(field)])["label"] = label
                     attributes(file[string(field)])["long_name"] = long_name
                 end
-            end
-
-            if :gw_shear in output_variables
-                attributes(file["gw_shear"])["units"] = "s^-2"
-                attributes(file["gw_shear"])["label"] =
-                    L"\mathcal{S}_\mathrm{w}"
-                attributes(file["gw_shear"])["long_name"] = "gravity-wave shear"
-            end
-
-            if :dtkedt in output_variables
-                attributes(file["dtkedt"])["units"] = "m^2*s^-3"
-                attributes(file["dtkedt"])["label"] =
-                    L"\left(\frac{\partial e_\mathrm{k}}{\partial t}\right)_\mathrm{w}"
-                attributes(
-                    file["dtkedt"],
-                )["long_name"] = "turbulent kinetic energy GW forcing"
             end
 
             if elastic_mode_selection
