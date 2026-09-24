@@ -26,6 +26,7 @@ WKBNamelist(;
     filter_type::Symbol = :ShapiroFilter,
     impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
+    saturation_violated_message::Bool = false,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
     orographic_flow::Symbol = :Average,
@@ -87,6 +88,8 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `use_saturation::Bool`: Switch for the saturation scheme.
 
+  - `saturation_violated_message::Bool`: Switch for printing a warning when the saturation criterion is locally violated directly after the saturation scheme was applied. Setting this to true when using multiple MPI processes can result in a jumbled standard output.
+
   - `saturation_threshold::Float64`: Relative saturation threshold.
 
   - `wkb_mode::Symbol`: Approximations used by MS-GWaM.
@@ -146,6 +149,7 @@ struct WKBNamelist
     filter_type::Symbol
     impact_altitude::Float64
     use_saturation::Bool
+    saturation_violated_message::Bool
     saturation_threshold::Float64
     wkb_mode::Symbol
     orographic_flow::Symbol
@@ -186,6 +190,7 @@ function WKBNamelist(;
     filter_type::Symbol = :ShapiroFilter,
     impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
+    saturation_violated_message::Bool = false,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
     orographic_flow::Symbol = :Average,
@@ -223,6 +228,7 @@ function WKBNamelist(;
         filter_type,
         Float64(impact_altitude),
         use_saturation,
+        saturation_violated_message,
         Float64(saturation_threshold),
         wkb_mode,
         orographic_flow,
