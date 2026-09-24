@@ -41,7 +41,7 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
 
   - `turbulenceconstants::F`: Constants used for the turbulence parameterization.
   
-  - `turbulencewkbintegrals::G`: Integrals of gravity-wave induced turbulent fluxes.
+  - `turbulencewkbintegrals::G`: Integrals of gravity-wave quantities that impact turbulence.
   
   - `turbulencewkbtendencies::H`: Turbulence impact of unresolved gravity waves.
 

@@ -50,9 +50,9 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 \\end{align*}
 ```
 
-Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref) for more details).
+Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed with `compute_gw_tracer_integrals!`.
 
-In the case of turbulence parameterization, the gravity-wave shear ``\\mathcal{S}_\\mathrm{w}`` is calculated (see `compute_gw_turbulence_integrals!` for more details).
+In the case of turbulence parameterization, the gravity-wave shear ``\\mathcal{S}_\\mathrm{w}`` is calculated with `compute_gw_turbulence_integrals!`.
 
 ```julia
 compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})

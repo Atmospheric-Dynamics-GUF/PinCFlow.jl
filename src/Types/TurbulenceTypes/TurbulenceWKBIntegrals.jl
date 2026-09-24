@@ -3,7 +3,7 @@
 TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Integrals of gravity-wave induced turbulent fluxes.
+Integrals of gravity-wave quantities that impact turbulence.
 
 ```julia 
 TurbulenceWKBIntegrals(

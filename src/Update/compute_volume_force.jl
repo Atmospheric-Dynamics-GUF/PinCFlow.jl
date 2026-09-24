@@ -143,10 +143,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Returns the turbulence impact of the gravity-wave shear.
-
-!!! danger "Experimental"
-    The gravity-wave shear is an experimental feature that hasn't been validated yet.
+Return the turbulence impact of the gravity-wave shear.
 
 # Arguments
 
@@ -169,6 +166,9 @@ Returns the turbulence impact of the gravity-wave shear.
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
   
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
+
+!!! danger "Experimental"
+    The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
 function compute_volume_force end
 
