@@ -3,6 +3,12 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 5.1.1
+
+  - Type checks have been made more idiomatic (`... isa ...` instead of `typeof(...) <: ...`).
+
+  - The string representation of variables in the namelists output has been adjusted such that the strings can be parsed and evaluated. A similar change has been made in the helper function `replace_assignments`, which is used in the tests.
+
 ## Release 5.0.1
 
   - A bug in `@dispatch` was fixed. Specifically, dispatch arguments derived from some literals (e.g., characters) were not handled correctly. This change does not affect the rest of the code in its current state.
