@@ -4,6 +4,7 @@ integrate(
     namelists::Vararg{Namelists};
     base_comm::MPI.Comm = MPI.COMM_WORLD,
     delay::Real = 0,
+    parallel_exceptions::Bool = false,
 )
 ```
 
@@ -51,6 +52,8 @@ In the case of turbulence parameterization, the turbulence variables are integra
 
   - `delay`: Delay (in seconds) between the first exception and the following MPI abort.
 
+  - `parallel_exceptions`: Switch for not reducing exceptions. In simulations with very many MPI processes, setting this to `true` prevents out-of-memory errors caused by `reduce_exceptions`.
+
 # See also
 
   - [`PinCFlow.Types.State`](@ref)
@@ -95,23 +98,26 @@ function integrate(
     namelists::Vararg{Namelists};
     base_comm::MPI.Comm = MPI.COMM_WORLD,
     delay::Real = 0,
+    parallel_exceptions::Bool = false,
 )
     !MPI.Initialized() && MPI.Init()
     rank = MPI.Comm_rank(base_comm)
 
     if length(namelists) == 1
         reduce_exceptions(
-            base_comm;
+            parallel_exceptions ? MPI.COMM_SELF : base_comm;
             delay,
-            info = "Rank $(rank) has thrown the following exception:",
+            info = parallel_exceptions ? "" :
+                   "Rank $(rank) has thrown the following exception:",
         ) do
             integrate(namelists[1], ParallelExceptions(); base_comm)
             return
         end
     else
         reduce_exceptions(
-            base_comm;
-            info = "The ensemble could not be set up properly:",
+            parallel_exceptions ? MPI.COMM_SELF : base_comm;
+            info = parallel_exceptions ? "" :
+                   "The ensemble could not be set up properly:",
         ) do
             # Check if the ensemble is large enough.
             MPI.Comm_size(base_comm) < length(namelists) &&
@@ -137,9 +143,10 @@ function integrate(
             open(replace(output_files[member], r"\.h5$" => ".log"), "w") do io
                 redirect_stdout(io) do
                     reduce_exceptions(
-                        base_comm;
+                        parallel_exceptions ? MPI.COMM_SELF : base_comm;
                         delay,
-                        info = "Rank $(member_rank) of ensemble member $(member) has thrown the following exception:",
+                        info = parallel_exceptions ? "" :
+                               "Rank $(member_rank) of ensemble member $(member) has thrown the following exception:",
                     ) do
                         integrate(
                             namelists[member],
