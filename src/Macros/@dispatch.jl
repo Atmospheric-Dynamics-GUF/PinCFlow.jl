@@ -40,8 +40,8 @@ macro dispatch(values::Expr, input::Any)
         end
         condition *= "else\nerror(\"Invalid $(argument) option!\")\nend"
 
-        return esc(Meta.parse(condition))
+        esc(Meta.parse(condition))
     else
-        return esc(input)
+        esc(input)
     end
 end

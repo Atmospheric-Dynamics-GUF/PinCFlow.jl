@@ -105,7 +105,7 @@ function Turbulence(
     turbulencefluxes = TurbulenceFluxes(namelists, domain)
     turbulenceconstants = TurbulenceConstants(constants)
 
-    return Turbulence(
+    Turbulence(
         turbulencepredictands,
         turbulenceincrements,
         turbulenceauxiliaries,

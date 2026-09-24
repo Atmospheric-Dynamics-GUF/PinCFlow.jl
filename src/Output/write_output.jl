@@ -206,7 +206,7 @@ function write_output end
             file["u"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return (u[i, j, k] + u[i - 1, j, k]) / 2 * uref
+                    (u[i, j, k] + u[i - 1, j, k]) / 2 * uref
                 end
         end
 
@@ -222,7 +222,7 @@ function write_output end
             file["v"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return (v[i, j, k] + v[i, j - 1, k]) / 2 * uref
+                    (v[i, j, k] + v[i, j - 1, k]) / 2 * uref
                 end
         end
 
@@ -238,7 +238,7 @@ function write_output end
             file["w"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return (
+                    (
                         compute_vertical_wind(i, j, k, state) +
                         compute_vertical_wind(i, j, k - 1, state)
                     ) / 2 * uref
@@ -251,7 +251,7 @@ function write_output end
             file["ws"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return compute_vertical_wind(i, j, k, state) * uref
+                    compute_vertical_wind(i, j, k, state) * uref
                 end
         end
 
@@ -261,7 +261,7 @@ function write_output end
             file["wt"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
+                    (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
                 end
         end
 
@@ -494,8 +494,8 @@ function write_output end
             end
         end
 
-        return
+        nothing
     end
 
-    return iout
+    iout
 end

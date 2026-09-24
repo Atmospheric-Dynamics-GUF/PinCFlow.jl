@@ -113,7 +113,7 @@ function Namelists(;
     tracer::TracerNamelist = TracerNamelist(),
     turbulence::TurbulenceNamelist = TurbulenceNamelist(),
 )::Namelists
-    return Namelists(
+    Namelists(
         domain,
         output,
         discretization,

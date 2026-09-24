@@ -69,5 +69,5 @@ function test_wkb_wave_packet()
         test_example(wkb_wave_packet, keywords, reference; update)
     end
 
-    return
+    nothing
 end

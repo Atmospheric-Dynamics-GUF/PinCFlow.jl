@@ -4,5 +4,5 @@
     (; atmosphere) = state
     (; rhoref) = state.constants
 
-    return atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
+    atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
 end

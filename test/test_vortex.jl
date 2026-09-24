@@ -33,5 +33,5 @@ function test_vortex()
         test_example(vortex, keywords, reference; update)
     end
 
-    return
+    nothing
 end

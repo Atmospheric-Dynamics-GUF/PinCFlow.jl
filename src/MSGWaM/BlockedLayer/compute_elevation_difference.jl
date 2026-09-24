@@ -28,5 +28,5 @@ function compute_elevation_difference end
     j::Integer,
 )::AbstractFloat
     (; hw) = state.grid
-    return sum(abs, hw[:, i, j])
+    sum(abs, hw[:, i, j])
 end

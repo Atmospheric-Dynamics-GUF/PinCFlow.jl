@@ -85,5 +85,5 @@ function get_next_half_level end
         end
     end
 
-    return k
+    k
 end

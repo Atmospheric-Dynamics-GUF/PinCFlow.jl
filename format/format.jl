@@ -20,7 +20,6 @@ for (root, directories, files) in walkdir(".")
                         pipe_to_function_call = true,
                         short_to_long_function_def = true,
                         force_long_function_def = true,
-                        always_use_return = true,
                         normalize_line_endings = "unix",
                         separate_kwargs_with_semicolon = true,
                     ),
@@ -29,7 +28,7 @@ for (root, directories, files) in walkdir(".")
 
             modified_script != script && open(joinpath(root, file), "w") do io
                 write(io, modified_script)
-                return
+                nothing
             end
         end
     end

@@ -53,7 +53,7 @@ function compute_wave_action_integral(
     fyl::AbstractFloat,
     fzm::AbstractFloat,
 )::AbstractFloat
-    return fxk * fyl * fzm * nr
+    fxk * fyl * fzm * nr
 end
 
 function compute_wave_action_integral(
@@ -64,5 +64,5 @@ function compute_wave_action_integral(
     fyl::AbstractFloat,
     fzm::AbstractFloat,
 )::AbstractFloat
-    return fxk * fyl * fzm * nr * omegar
+    fxk * fyl * fzm * nr * omegar
 end

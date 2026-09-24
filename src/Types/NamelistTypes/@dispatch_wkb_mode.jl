@@ -22,7 +22,7 @@ The parameter can take any of the following values:
 macro dispatch_wkb_mode end
 
 macro dispatch_wkb_mode(input::Expr)
-    return esc(
+    esc(
         quote
             @dispatch (:NoWKB, :SteadyState, :SingleColumn, :MultiColumn) $(
                 input

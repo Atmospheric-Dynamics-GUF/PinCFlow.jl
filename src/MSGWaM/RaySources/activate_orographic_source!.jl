@@ -1,6 +1,6 @@
 """
 ```julia
-activate_orographic_source!(state::State)
+activate_orographic_source!(state::State)::Nothing
 ```
 
 Launch ray volumes that represent unresolved orographic gravity waves.
@@ -25,7 +25,7 @@ This method first calls `compute_orographic_modes!` and then launches correspond
 """
 function activate_orographic_source! end
 
-@ivy function activate_orographic_source!(state::State)
+@ivy function activate_orographic_source!(state::State)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (;
         nrx,
@@ -45,7 +45,7 @@ function activate_orographic_source! end
     (; nray_wrk, n_sfc, nray, rays, increments, spectrum) = state.wkb
 
     if ko != 0
-        return
+        return nothing
     end
 
     compute_orographic_modes!(state)
@@ -219,5 +219,5 @@ function activate_orographic_source! end
         end
     end
 
-    return
+    nothing
 end

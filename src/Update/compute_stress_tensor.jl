@@ -160,5 +160,5 @@ function compute_stress_tensor end
             ) / jac[i, j, k]
     end
 
-    return stress_tensor
+    stress_tensor
 end

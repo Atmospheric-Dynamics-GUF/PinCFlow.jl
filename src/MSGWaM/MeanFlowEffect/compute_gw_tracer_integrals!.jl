@@ -14,7 +14,7 @@ compute_gw_tracer_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Compute the leading-order gravity-wave-tracer fluxes by dispatching to the appropriate method.
@@ -35,7 +35,7 @@ compute_gw_tracer_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -56,7 +56,7 @@ compute_gw_tracer_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Compute the leading-order gravity-wave tracer fluxes at ``(i, j, k)``.
@@ -121,7 +121,7 @@ function compute_gw_tracer_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup compute_gw_tracer_integrals!(
@@ -140,7 +140,7 @@ function compute_gw_tracer_integrals!(
         k,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function compute_gw_tracer_integrals!(
@@ -158,8 +158,8 @@ function compute_gw_tracer_integrals!(
     j::Integer,
     k::Integer,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_gw_tracer_integrals!(
@@ -177,12 +177,12 @@ end
     j::Integer,
     k::Integer,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
     (; leading_order_impact) = state.namelists.tracer
 
     if fc == 0.0 || !leading_order_impact
-        return
+        return nothing
     end
 
     uchi0[i, j, k] += leading_order_tracer_fluxes(
@@ -227,5 +227,5 @@ end
         WChi(),
     )
 
-    return
+    nothing
 end

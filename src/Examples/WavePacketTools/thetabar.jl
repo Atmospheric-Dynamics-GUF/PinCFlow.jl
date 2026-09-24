@@ -4,5 +4,5 @@
     (; atmosphere) = state
     (; thetaref) = state.constants
 
-    return atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
+    atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
 end

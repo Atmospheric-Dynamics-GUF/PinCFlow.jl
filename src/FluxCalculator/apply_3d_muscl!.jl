@@ -7,7 +7,7 @@ apply_3d_muscl!(
     nyy::Integer,
     nzz::Integer,
     limiter_type::Val{:MCVariant},
-)
+)::Nothing
 ```
 
 Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in three dimensions.
@@ -39,7 +39,7 @@ function apply_3d_muscl! end
     nyy::Integer,
     nzz::Integer,
     limiter_type::Val{:MCVariant},
-)
+)::Nothing
 
     # Reconstruct in x.
     for k in 2:(nzz - 1), j in 2:(nyy - 1)
@@ -71,5 +71,5 @@ function apply_3d_muscl! end
         )
     end
 
-    return
+    nothing
 end

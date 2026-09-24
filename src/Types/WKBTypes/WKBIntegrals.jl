@@ -49,5 +49,5 @@ struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function WKBIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)::WKBIntegrals
-    return WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:8]...)
+    WKBIntegrals([zeros(nxx, nyy, nzz) for i in 1:8]...)
 end

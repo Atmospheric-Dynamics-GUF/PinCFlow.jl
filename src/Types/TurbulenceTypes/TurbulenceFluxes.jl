@@ -53,10 +53,7 @@ function TurbulenceFluxes(
 )::TurbulenceFluxes
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulenceFluxes(
-        domain,
-        Val(turbulence_scheme),
-    )
+    @dispatch_turbulence_scheme TurbulenceFluxes(domain, Val(turbulence_scheme))
 end
 
 function TurbulenceFluxes(
@@ -65,7 +62,7 @@ function TurbulenceFluxes(
 )::TurbulenceFluxes
     phitke = zeros(0, 0, 0, 0)
 
-    return TurbulenceFluxes(phitke)
+    TurbulenceFluxes(phitke)
 end
 
 function TurbulenceFluxes(
@@ -76,5 +73,5 @@ function TurbulenceFluxes(
 
     phitke = zeros(nxx, nyy, nzz, 3)
 
-    return TurbulenceFluxes(phitke)
+    TurbulenceFluxes(phitke)
 end

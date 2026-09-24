@@ -64,5 +64,5 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 5}}
 end
 
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)::Rays
-    return Rays(zeros(13, nray_wrk, nxx, nyy, nzz))
+    Rays(zeros(13, nray_wrk, nxx, nyy, nzz))
 end

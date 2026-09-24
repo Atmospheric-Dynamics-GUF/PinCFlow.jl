@@ -62,7 +62,7 @@ function periodic_hill(;
     x_size::Integer = 20,
     y_size::Integer = 1,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 500
     l0 = 10000
 
@@ -96,7 +96,7 @@ function periodic_hill(;
         plot_output(plot_file, output_file, (:w, 2); display_figure)
     end
 
-    return
+    nothing
 end
 
 ```

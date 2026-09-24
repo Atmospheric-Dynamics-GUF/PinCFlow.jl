@@ -112,7 +112,7 @@ function transform end
     vc = 0.5 * (vedgef + vedgeb)
     vu = 0.5 * (vuedgef + vuedgeb)
 
-    return jacedgeu * (
+    jacedgeu * (
         -(
             jac[i, j, k + 1] *
             (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
@@ -149,7 +149,7 @@ end
     vc = 0.5 * (vedgef + vedgeb)
     vu = 0.5 * (vuedgef + vuedgeb)
 
-    return (
+    (
         jac[i, j, k + 1] * (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
         jac[i, j, k] *
         (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)

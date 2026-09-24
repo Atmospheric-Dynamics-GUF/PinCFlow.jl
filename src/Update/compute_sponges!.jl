@@ -1,6 +1,6 @@
 """
 ```julia
-compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)
+compute_sponges!(state::State, dt::AbstractFloat, time::AbstractFloat)::Nothing
 ```
 
 Compute the Rayleigh-damping coefficients of the two sponges.
@@ -27,7 +27,7 @@ function compute_sponges! end
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
-)
+)::Nothing
     (; namelists, domain) = state
     (; z_size) = namelists.domain
     (; lhs_sponge, rhs_sponge) = namelists.sponge
@@ -65,5 +65,5 @@ function compute_sponges! end
         betar[:, :, k1 + 1] .= betar[:, :, k1]
     end
 
-    return
+    nothing
 end
