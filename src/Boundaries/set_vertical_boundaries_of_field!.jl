@@ -7,7 +7,7 @@ set_vertical_boundaries_of_field!(
     mode::Function;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for a 3D array (assuming solid-wall boundaries).
@@ -20,7 +20,7 @@ set_vertical_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Exchange halo values of a 5D array if multiple processes are used in the vertical (`npz > 1`).
@@ -56,7 +56,7 @@ function set_vertical_boundaries_of_field! end
     mode::Function;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+)::Nothing
     (; z_size) = namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
 
@@ -105,7 +105,7 @@ function set_vertical_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; z_size) = namelists.domain
 
     if z_size > 1

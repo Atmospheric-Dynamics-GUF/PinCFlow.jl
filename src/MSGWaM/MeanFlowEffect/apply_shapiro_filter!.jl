@@ -5,7 +5,7 @@ apply_shapiro_filter!(
     input::AbstractVector{<:AbstractFloat},
     scope::UnitRange{<:Integer},
     order::Val{1},
-)
+)::Nothing
 ```
 
 Apply the first-order Shapiro filter to `input`.
@@ -24,7 +24,7 @@ apply_shapiro_filter!(
     input::AbstractVector{<:AbstractFloat},
     scope::UnitRange{<:Integer},
     order::Val{2},
-)
+)::Nothing
 ```
 
 Apply the second-order Shapiro filter to `input`.
@@ -43,7 +43,7 @@ apply_shapiro_filter!(
     input::AbstractVector{<:AbstractFloat},
     scope::UnitRange{<:Integer},
     order::Val{3},
-)
+)::Nothing
 ```
 
 Apply the third-order Shapiro filter to `input`.
@@ -62,7 +62,7 @@ apply_shapiro_filter!(
     input::AbstractVector{<:AbstractFloat},
     scope::UnitRange{<:Integer},
     order::Val{4},
-)
+)::Nothing
 ```
 
 Apply the fourth-order Shapiro filter to `input`.
@@ -92,7 +92,7 @@ function apply_shapiro_filter! end
     input::AbstractVector{<:AbstractFloat},
     scope::UnitRange{<:Integer},
     order::Val{1},
-)
+)::Nothing
     for i in scope
         output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
     end
@@ -104,7 +104,7 @@ end
     input::AbstractVector{<:AbstractFloat},
     scope::UnitRange{<:Integer},
     order::Val{2},
-)
+)::Nothing
     for i in scope
         output[i] =
             (
@@ -121,7 +121,7 @@ end
     input::AbstractVector{<:AbstractFloat},
     scope::UnitRange{<:Integer},
     order::Val{3},
-)
+)::Nothing
     for i in scope
         output[i] =
             (
@@ -139,7 +139,7 @@ end
     input::AbstractVector{<:AbstractFloat},
     scope::UnitRange{<:Integer},
     order::Val{4},
-)
+)::Nothing
     for i in scope
         output[i] =
             (

@@ -1,6 +1,6 @@
 """
 ```julia
-smooth_gw_tendencies!(state::State)
+smooth_gw_tendencies!(state::State)::Nothing
 ```
 
 Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.filter_type`) and dimensionality of the domain.
@@ -11,7 +11,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XYZ,
-)
+)::Nothing
 ```
 
 Apply a 3D box filter to smooth in all spatial directions.
@@ -30,7 +30,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XZ,
-)
+)::Nothing
 ```
 
 Apply a 2D box filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
@@ -49,7 +49,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:BoxFilter},
     direction::YZ,
-)
+)::Nothing
 ```
 
 Apply a 2D box filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
@@ -68,7 +68,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:BoxFilter},
     direction::Z,
-)
+)::Nothing
 ```
 
 Apply a 1D box filter to smooth in ``\\hat{z}``.
@@ -87,7 +87,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XYZ,
-)
+)::Nothing
 ```
 
 Apply a 3D Shapiro filter to smooth in all spatial directions.
@@ -100,7 +100,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XZ,
-)
+)::Nothing
 ```
 
 Apply a 2D Shapiro filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
@@ -113,7 +113,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::YZ,
-)
+)::Nothing
 ```
 
 Apply a 2D Shapiro filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
@@ -126,7 +126,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Z,
-)
+)::Nothing
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{z}``.
@@ -137,7 +137,7 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Y,
-)
+)::Nothing
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{y}``.
@@ -148,19 +148,19 @@ smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::X,
-)
+)::Nothing
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
 
 ```julia
-smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
+smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})::Nothing
 ```
 
 Apply smoothing to tracer tendencies.
 
 ```julia
-smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})
+smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -183,7 +183,7 @@ Return for configurations without tracer transport.
 """
 function smooth_gw_tendencies! end
 
-function smooth_gw_tendencies!(state::State)
+function smooth_gw_tendencies!(state::State)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
@@ -221,7 +221,7 @@ end
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XYZ,
-)
+)::Nothing
     (; nbx, nby, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -260,7 +260,7 @@ end
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XZ,
-)
+)::Nothing
     (; nbx, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -294,7 +294,7 @@ end
     state::State,
     filter_type::Val{:BoxFilter},
     direction::YZ,
-)
+)::Nothing
     (; nby, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -328,7 +328,7 @@ end
     state::State,
     filter_type::Val{:BoxFilter},
     direction::Z,
-)
+)::Nothing
     (; nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -356,7 +356,7 @@ function smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XYZ,
-)
+)::Nothing
     smooth_gw_tendencies!(output, state, filter_type, X())
     smooth_gw_tendencies!(output, state, filter_type, Y())
     smooth_gw_tendencies!(output, state, filter_type, Z())
@@ -368,7 +368,7 @@ function smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XZ,
-)
+)::Nothing
     smooth_gw_tendencies!(output, state, filter_type, X())
     smooth_gw_tendencies!(output, state, filter_type, Z())
     nothing
@@ -379,7 +379,7 @@ function smooth_gw_tendencies!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::YZ,
-)
+)::Nothing
     smooth_gw_tendencies!(output, state, filter_type, Y())
     smooth_gw_tendencies!(output, state, filter_type, Z())
     nothing
@@ -390,7 +390,7 @@ end
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Z,
-)
+)::Nothing
     (; nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nxx, nyy, k0, k1) = state.domain
@@ -417,7 +417,7 @@ end
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Y,
-)
+)::Nothing
     (; nby) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nxx, nzz, j0, j1) = state.domain
@@ -444,7 +444,7 @@ end
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::X,
-)
+)::Nothing
     (; nbx) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nyy, nzz, i0, i1) = state.domain
@@ -466,7 +466,10 @@ end
     nothing
 end
 
-function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
+function smooth_gw_tendencies!(
+    state::State,
+    tracer_setup::Val{:TracerOn},
+)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; filter_type) = state.namelists.wkb
     (; dchidt0) = state.tracer.tracerwkbtendencies
@@ -489,6 +492,9 @@ function smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})
     nothing
 end
 
-function smooth_gw_tendencies!(state::State, tracer_setup::Val{:NoTracer})
+function smooth_gw_tendencies!(
+    state::State,
+    tracer_setup::Val{:NoTracer},
+)::Nothing
     nothing
 end

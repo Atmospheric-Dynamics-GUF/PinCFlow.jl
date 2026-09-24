@@ -5,7 +5,7 @@ apply_operator!(
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Total,
     state::State,
-)
+)::Nothing
 ```
 
 Apply the total linear operator to the solution array `sin`.
@@ -18,7 +18,7 @@ apply_operator!(
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Horizontal,
     state::State,
-)
+)::Nothing
 ```
 
 Apply the "horizontal part" of the linear operator (excluding the lower, center and upper diagonal) to the solution array `sin`.
@@ -50,7 +50,7 @@ function apply_operator! end
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Total,
     state::State,
-)
+)::Nothing
     (; namelists, domain) = state
     (; npz) = state.namelists.domain
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
@@ -277,7 +277,7 @@ end
     ls::AbstractArray{<:AbstractFloat, 3},
     hortot::Horizontal,
     state::State,
-)
+)::Nothing
     (; namelists, domain) = state
     (; npz) = state.namelists.domain
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain

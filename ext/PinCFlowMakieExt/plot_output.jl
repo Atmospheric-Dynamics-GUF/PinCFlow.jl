@@ -78,7 +78,7 @@ plot_output
     x_tick_format::AbstractString = "{:.1f}",
     y_tick_format::AbstractString = "{:.1f}",
     z_tick_format::AbstractString = "{:.1f}",
-)
+)::Nothing
     set_visualization_theme!()
 
     # Store the ray-volume property names.

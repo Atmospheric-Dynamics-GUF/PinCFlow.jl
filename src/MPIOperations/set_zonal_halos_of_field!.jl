@@ -4,7 +4,7 @@ set_zonal_halos_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
-)
+)::Nothing
 ```
 
 Exchange all zonal halo values of a matrix by performing bidirectional MPI communication between left and right neighbor processes.
@@ -15,7 +15,7 @@ set_zonal_halos_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Exchange a specified number of zonal halo values of a 3D array with an algorithm similar to that implemented in the method for matrices.
@@ -26,7 +26,7 @@ set_zonal_halos_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Exchange a specified number of zonal halo values of a 5D array with an algorithm similar to that implemented in the method for 3D arrays.
@@ -51,7 +51,7 @@ function set_zonal_halos_of_field! end
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
-)
+)::Nothing
     (; nbx) = namelists.domain
     (; comm, i0, i1, left, right) = domain
 
@@ -79,7 +79,7 @@ end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; comm, i0, i1, j0, j1, k0, k1, left, right) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
@@ -113,7 +113,7 @@ end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; comm, i0, i1, j0, j1, k0, k1, left, right) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]

@@ -7,13 +7,13 @@ set_boundaries!(
         BoundaryReconstructions,
         AbstractBoundaryWKBVariables,
     },
-)
+)::Nothing
 ```
 
 Enforce all boundary conditions for non-flux fields.
 
 ```julia
-set_boundaries!(state::State, variables::BoundaryFluxes)
+set_boundaries!(state::State, variables::BoundaryFluxes)::Nothing
 ```
 
 Enforce vertical boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
@@ -27,7 +27,7 @@ set_boundaries!(
         AbstractBoundaryWKBVariables,
     },
     turbulence::TKE,
-)
+)::Nothing
 ```
 
 Enforce all boundary conditions for turbulence non-flux fields.
@@ -37,7 +37,7 @@ set_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     turbulence::TKE,
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for turbulence flux fields (horizontal boundaries are taken care of at the reconstruction stage).
@@ -79,7 +79,7 @@ function set_boundaries!(
         BoundaryReconstructions,
         AbstractBoundaryWKBVariables,
     },
-)
+)::Nothing
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
     set_vertical_boundaries!(state, variables)
@@ -91,7 +91,7 @@ function set_boundaries!(
     nothing
 end
 
-function set_boundaries!(state::State, variables::BoundaryFluxes)
+function set_boundaries!(state::State, variables::BoundaryFluxes)::Nothing
     set_vertical_boundaries!(state, variables)
 
     set_tracer_vertical_boundaries!(state, variables)
@@ -107,7 +107,7 @@ function set_boundaries!(
         AbstractBoundaryWKBVariables,
     },
     turbulence::TKE,
-)
+)::Nothing
     set_turbulence_zonal_boundaries!(state, variables)
     set_turbulence_meridional_boundaries!(state, variables)
     set_turbulence_vertical_boundaries!(state, variables)
@@ -119,7 +119,7 @@ function set_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     turbulence::TKE,
-)
+)::Nothing
     set_turbulence_vertical_boundaries!(state, variables)
 
     nothing

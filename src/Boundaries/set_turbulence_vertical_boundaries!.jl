@@ -3,7 +3,7 @@
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for turbulent kinetic energy.
@@ -12,13 +12,16 @@ Enforce vertical boundary conditions for turbulent kinetic energy.
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for reconstructions of turbulent kinetic energy.
 
 ```julia
-set_turbulence_vertical_boundaries!(state::State, variables::BoundaryFluxes)
+set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+)::Nothing
 ```
 
 Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to zero.
@@ -27,7 +30,7 @@ Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to z
 set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
+)::Nothing
 ```
 
 Return for WKB-variables.
@@ -49,7 +52,7 @@ function set_turbulence_vertical_boundaries! end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-)
+)::Nothing
     (; namelists, domain) = state
     (; turbulencepredictands) = state.turbulence
 
@@ -68,7 +71,7 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-)
+)::Nothing
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
 
@@ -86,7 +89,7 @@ end
 @ivy function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-)
+)::Nothing
     (; nz, ko, k0, k1) = state.domain
     (; z_size) = state.namelists.domain
     (; turbulencefluxes) = state.turbulence
@@ -109,6 +112,6 @@ end
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
+)::Nothing
     nothing
 end

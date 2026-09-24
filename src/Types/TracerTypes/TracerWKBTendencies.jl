@@ -97,11 +97,7 @@ function TracerWKBTendencies(
 )::TracerWKBTendencies
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_wkb_mode TracerWKBTendencies(
-        namelists,
-        domain,
-        Val(wkb_mode),
-    )
+    @dispatch_wkb_mode TracerWKBTendencies(namelists, domain, Val(wkb_mode))
 end
 
 function TracerWKBTendencies(

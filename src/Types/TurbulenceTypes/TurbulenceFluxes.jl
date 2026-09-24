@@ -53,10 +53,7 @@ function TurbulenceFluxes(
 )::TurbulenceFluxes
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme TurbulenceFluxes(
-        domain,
-        Val(turbulence_scheme),
-    )
+    @dispatch_turbulence_scheme TurbulenceFluxes(domain, Val(turbulence_scheme))
 end
 
 function TurbulenceFluxes(

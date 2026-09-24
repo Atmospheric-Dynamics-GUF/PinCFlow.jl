@@ -1,6 +1,6 @@
 """
 ```julia
-modify_compressible_wind!(state::State, operation::Function)
+modify_compressible_wind!(state::State, operation::Function)::Nothing
 ```
 
 Modify the wind with ``J P`` if the atmosphere is compressible by dispatching to the appropriate method.
@@ -10,7 +10,7 @@ modify_compressible_wind!(
     state::State,
     operation::Function,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -20,7 +20,7 @@ modify_compressible_wind!(
     state::State,
     operation::Function,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Interpolate ``J P`` to the wind grids and replace the wind components with the result of applying `operation` to them and the interpolations.
@@ -35,7 +35,7 @@ Interpolate ``J P`` to the wind grids and replace the wind components with the r
 """
 function modify_compressible_wind! end
 
-function modify_compressible_wind!(state::State, operation::Function)
+function modify_compressible_wind!(state::State, operation::Function)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model modify_compressible_wind!(state, operation, Val(model))
     nothing
@@ -45,7 +45,7 @@ function modify_compressible_wind!(
     state::State,
     operation::Function,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
     nothing
 end
 
@@ -53,7 +53,7 @@ end
     state::State,
     operation::Function,
     model::Val{:Compressible},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; u, v, w, p) = state.variables.predictands

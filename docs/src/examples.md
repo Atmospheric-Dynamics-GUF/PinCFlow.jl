@@ -19,7 +19,7 @@ function cold_bubble(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     lx = 10000
     ly = 10000
     lz = 10000
@@ -92,7 +92,7 @@ function hot_bubble(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     lx = 10000
     ly = 10000
     lz = 10000
@@ -166,7 +166,7 @@ function mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 100
     l0 = 1000
 
@@ -282,7 +282,7 @@ function periodic_hill(;
     x_size::Integer = 20,
     y_size::Integer = 1,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 500
     l0 = 10000
 
@@ -344,7 +344,7 @@ function vortex(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 1,
-)
+)::Nothing
     lx = 20000
     ly = 20000
 
@@ -426,7 +426,7 @@ function wave_packet(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     z0 = 10000
 
     lx = 20000
@@ -535,7 +535,7 @@ function wkb_mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 300
     l0 = 5000
     rl = 10
@@ -664,7 +664,7 @@ function wkb_wave_packet(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     z0 = 10000
 
     lx = 20000

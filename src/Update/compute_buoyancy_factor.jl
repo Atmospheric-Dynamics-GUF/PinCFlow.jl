@@ -166,9 +166,8 @@ end
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
 
+    (jac[i, j, k + 1] * rhobar[i, j, k] + jac[i, j, k] * rhobar[i, j, k + 1]) /
     (
-        jac[i, j, k + 1] * rhobar[i, j, k] + jac[i, j, k] * rhobar[i, j, k + 1]
-    ) / (
         jac[i, j, k + 1] * (rho[i, j, k] + rhobar[i, j, k]) +
         jac[i, j, k] * (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     )

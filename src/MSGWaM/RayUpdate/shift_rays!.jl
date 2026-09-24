@@ -1,18 +1,21 @@
 """
 ```julia
-shift_rays!(state::State)
+shift_rays!(state::State)::Nothing
 ```
 
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells by dispatching to a WKB-mode-specific method.
 
 ```julia
-shift_rays!(state::State, wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}})
+shift_rays!(
+    state::State,
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
+)::Nothing
 ```
 
 Return for configurations without WKB / with steady-state WKB.
 
 ```julia
-shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
+shift_rays!(state::State, wkb_mode::Val{:SingleColumn})::Nothing
 ```
 
 Shift the vertical array positions of ray volumes such that they are attributed to the correct grid cells.
@@ -20,7 +23,7 @@ Shift the vertical array positions of ray volumes such that they are attributed 
 This method enforces the vertical boundary conditions (via `set_vertical_boundary_rays!`), checks if ray volumes need to be shifted and, if they do, copies them to the correct grid cells and marks them for removal (by dispatching to the appropriate method). A second call of `set_vertical_boundary_rays!` ensures that ray volumes that have moved across MPI processes are included in the appropriate halo cells. Finally, the gaps that were created by marking ray volumes for removal are filled (via `remove_rays!`).
 
 ```julia
-shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
+shift_rays!(state::State, wkb_mode::Val{:MultiColumn})::Nothing
 ```
 
 Shift the array positions of ray volumes such that they are attributed to the correct grid cells.
@@ -28,7 +31,7 @@ Shift the array positions of ray volumes such that they are attributed to the co
 For each dimension in physical space (with more than one grid point), this method performs the corresponding equivalent of the algorithm that is implemented in the method for single-column mode.
 
 ```julia
-shift_rays!(state::State, direction::X)
+shift_rays!(state::State, direction::X)::Nothing
 ```
 
 For each ray volume, check if it is attributed to the correct position in ``\\hat{x}`` and, if it is not, create a copy that is and mark the original for removal.
@@ -36,7 +39,7 @@ For each ray volume, check if it is attributed to the correct position in ``\\ha
 Ray volumes that should be attributed to a halo cell are marked for removal but not copied, since the copies are created from the corresponding halo cell in the adjacent MPI process.
 
 ```julia
-shift_rays!(state::State, direction::Y)
+shift_rays!(state::State, direction::Y)::Nothing
 ```
 
 For each ray volume, check if it is attributed to the correct position in ``\\hat{y}`` and, if it is not, create a copy that is and mark the original for removal.
@@ -44,7 +47,7 @@ For each ray volume, check if it is attributed to the correct position in ``\\ha
 Ray volumes in halo cells are treated in the same way as in the method for shifting in ``\\hat{x}``.
 
 ```julia
-shift_rays!(state::State, direction::Z)
+shift_rays!(state::State, direction::Z)::Nothing
 ```
 
 For each ray volume, check if it is attributed to the correct position in ``\\hat{z}`` and, if it is not, create a copy that is and mark the original for removal.
@@ -77,7 +80,7 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 """
 function shift_rays! end
 
-function shift_rays!(state::State)
+function shift_rays!(state::State)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode shift_rays!(state, Val(wkb_mode))
     nothing
@@ -86,11 +89,11 @@ end
 function shift_rays!(
     state::State,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
-)
+)::Nothing
     nothing
 end
 
-function shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
+function shift_rays!(state::State, wkb_mode::Val{:SingleColumn})::Nothing
     set_vertical_boundary_rays!(state)
     shift_rays!(state, Z())
     set_vertical_boundary_rays!(state)
@@ -101,7 +104,7 @@ function shift_rays!(state::State, wkb_mode::Val{:SingleColumn})
     nothing
 end
 
-function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
+function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})::Nothing
     (; x_size, y_size) = state.namelists.domain
 
     if x_size > 1
@@ -128,7 +131,7 @@ function shift_rays!(state::State, wkb_mode::Val{:MultiColumn})
     nothing
 end
 
-@ivy function shift_rays!(state::State, direction::X)
+@ivy function shift_rays!(state::State, direction::X)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
@@ -162,7 +165,7 @@ end
     nothing
 end
 
-@ivy function shift_rays!(state::State, direction::Y)
+@ivy function shift_rays!(state::State, direction::Y)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
@@ -196,7 +199,7 @@ end
     nothing
 end
 
-@ivy function shift_rays!(state::State, direction::Z)
+@ivy function shift_rays!(state::State, direction::Z)::Nothing
     (; domain, grid) = state
     (; z_size, npz) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain

@@ -1,6 +1,6 @@
 """
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)::Nothing
 ```
 
 Update the density if the atmosphere is not Boussinesq by dispatching to the appropriate method.
@@ -12,7 +12,7 @@ update!(
     m::Integer,
     variable::Rho,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Return in Boussinesq mode (the density is constant).
@@ -24,7 +24,7 @@ update!(
     m::Integer,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
 ```
 
 Update the density with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
@@ -41,7 +41,13 @@ The update is given by
 where ``\\Delta t`` is the time step given as input to this method.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::RhoP,
+    side::LHS,
+)::Nothing
 ```
 
 Update the density fluctuations with a Runge-Kutta step on the left-hand-side of the equation.
@@ -73,7 +79,7 @@ update!(
     variable::RhoP,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
 ```
 
 Update the density fluctuations with an explicit Euler step the on right-hand side of the equation, without the Rayleigh-damping term.
@@ -100,7 +106,7 @@ update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the density fluctuations with an implicit Euler step on the right-hand side of the equation.
@@ -129,7 +135,13 @@ in Boussinesq/pseudo-incompressible mode and
 in compressible mode, where ``\\hat{w}_\\mathrm{old}`` is the transformed vertical wind stored in `state.variables.backups`.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::U,
+    side::LHS,
+)::Nothing
 ```
 
 Update the zonal momentum with a Runge-Kutta step on the left-hand side of the equation.
@@ -153,7 +165,7 @@ update!(
     variable::U,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
 ```
 
 Update the zonal wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
@@ -180,7 +192,7 @@ update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the zonal wind with an implicit Euler step on the right-hand side of the equation.
@@ -200,7 +212,13 @@ U_{i + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\
 in compressible mode.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::V,
+    side::LHS,
+)::Nothing
 ```
 
 Update the meridional momentum with a Runge-Kutta step on the left-hand side of the equation.
@@ -224,7 +242,7 @@ update!(
     variable::V,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
 ```
 
 Update the meridional wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
@@ -251,7 +269,7 @@ update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the meridional wind with an implicit Euler step on the right-hand side of the equation.
@@ -271,7 +289,13 @@ V_{j + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\
 in compressible mode.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::W, side::LHS)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::W,
+    side::LHS,
+)::Nothing
 ```
 
 Update the transformed vertical momentum with a Runge-Kutta step on the left-hand side of the equation.
@@ -300,7 +324,7 @@ update!(
     variable::W,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
 ```
 
 Update the transformed vertical wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
@@ -327,7 +351,7 @@ update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the transformed vertical wind with an implicit Euler step on the right-hand side of the equation.
@@ -356,7 +380,7 @@ in Boussinesq/pseudo-incompressible mode and
 in compressible mode.
 
 ```julia
-update!(state::State, dt::AbstractFloat, variable::PiP)
+update!(state::State, dt::AbstractFloat, variable::PiP)::Nothing
 ```
 
 Update the Exner-pressure if the atmosphere is compressible by dispatching to the appropriate method.
@@ -367,7 +391,7 @@ update!(
     dt::AbstractFloat,
     variable::PiP,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -378,7 +402,7 @@ update!(
     dt::AbstractFloat,
     variable::PiP,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.
@@ -395,7 +419,7 @@ The update is given by
 where ``U_{\\mathrm{old}, i + 1 / 2}``, ``V_{\\mathrm{old}, j + 1 / 2}`` and ``\\hat{W}_{\\mathrm{old}, k + 1 / 2}`` are the transformed wind components (including the factor ``J P``) stored in `state.variables.backups`.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::P)::Nothing
 ```
 
 Update the mass-weighted potential temperature if the atmosphere is compressible by dispatching to the appropriate method.
@@ -407,7 +431,7 @@ update!(
     m::Integer,
     variable::P,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -419,7 +443,7 @@ update!(
     m::Integer,
     variable::P,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
@@ -434,7 +458,7 @@ The update is given by
 ```
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)::Nothing
 ```
 
 Update the tracers by dispatching to the appropriate method.
@@ -446,7 +470,7 @@ update!(
     m::Integer,
     variable::Chi,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -458,7 +482,7 @@ update!(
     m::Integer,
     variable::Chi,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
@@ -473,7 +497,7 @@ The update is given by
 ```
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)::Nothing
 ```
 
 Update the turbulent kinetic energy with a Runge-Kutta step on the left-hand sides of the equations with shear and buoyancy production terms.
@@ -525,7 +549,12 @@ The update is given by
 """
 function update! end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Rho,
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, m, variable, Val(model))
     nothing
@@ -537,7 +566,7 @@ function update!(
     m::Integer,
     variable::Rho,
     model::Val{:Boussinesq},
-)
+)::Nothing
     nothing
 end
 
@@ -547,7 +576,7 @@ end
     m::Integer,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
@@ -585,7 +614,7 @@ end
     m::Integer,
     variable::RhoP,
     side::LHS,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; thetabar) = state.atmosphere
@@ -626,7 +655,7 @@ end
     variable::RhoP,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; g_ndim) = state.constants
     (; rhobar, n2) = state.atmosphere
@@ -659,7 +688,7 @@ end
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, nbz) = state.namelists.domain
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -756,7 +785,7 @@ end
     m::Integer,
     variable::U,
     side::LHS,
-)
+)::Nothing
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
@@ -835,7 +864,7 @@ end
     variable::U,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; rho, u, pip) = state.variables.predictands
@@ -864,7 +893,7 @@ end
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -910,7 +939,7 @@ end
     m::Integer,
     variable::V,
     side::LHS,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
@@ -986,7 +1015,7 @@ end
     variable::V,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; rho, v, pip) = state.variables.predictands
@@ -1015,7 +1044,7 @@ end
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -1061,7 +1090,7 @@ end
     m::Integer,
     variable::W,
     side::LHS,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
@@ -1221,7 +1250,7 @@ end
     variable::W,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; g_ndim) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -1275,7 +1304,7 @@ end
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; g_ndim) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -1365,7 +1394,7 @@ end
     nothing
 end
 
-function update!(state::State, dt::AbstractFloat, variable::PiP)
+function update!(state::State, dt::AbstractFloat, variable::PiP)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, variable, Val(model))
     nothing
@@ -1376,7 +1405,7 @@ function update!(
     dt::AbstractFloat,
     variable::PiP,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
     nothing
 end
 
@@ -1385,7 +1414,7 @@ end
     dt::AbstractFloat,
     variable::PiP,
     model::Val{:Compressible},
-)
+)::Nothing
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1414,7 +1443,12 @@ end
     nothing
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, m, variable, Val(model))
     nothing
@@ -1426,7 +1460,7 @@ function update!(
     m::Integer,
     variable::P,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
     nothing
 end
 
@@ -1436,7 +1470,7 @@ end
     m::Integer,
     variable::P,
     model::Val{:Compressible},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
@@ -1470,7 +1504,12 @@ end
     nothing
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Chi,
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup update!(state, dt, m, variable, Val(tracer_setup))
@@ -1483,7 +1522,7 @@ function update!(
     m::Integer,
     variable::Chi,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
     nothing
 end
 
@@ -1493,7 +1532,7 @@ end
     m::Integer,
     variable::Chi,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
@@ -1536,7 +1575,7 @@ end
     dt::AbstractFloat,
     m::Integer,
     variable::TKE,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time

@@ -4,7 +4,7 @@ reduce_exceptions(
     operation::Function,
     comm::MPI.Comm;
     info::AbstractString = "",
-)
+)::Nothing
 ```
 
 Execute `operation`, catch exceptions in it, and either rethrow the first one (if `comm` contains only one process) or print its error message and exit via `MPI.Abort` (if `comm` contains multiple processes).
@@ -26,7 +26,7 @@ function reduce_exceptions(
     comm::MPI.Comm;
     delay::Real = 0,
     info::AbstractString = "",
-)
+)::Nothing
     window = MPI.Win_create([true], comm)
     reporter = [false]
     rank = 0

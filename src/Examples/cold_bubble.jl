@@ -12,7 +12,7 @@ function cold_bubble(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     lx = 10000
     ly = 10000
     lz = 10000

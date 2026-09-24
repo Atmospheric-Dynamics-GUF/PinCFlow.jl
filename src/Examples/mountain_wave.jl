@@ -12,7 +12,7 @@ function mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 100
     l0 = 1000
 

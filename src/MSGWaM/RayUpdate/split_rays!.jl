@@ -1,24 +1,27 @@
 """
 ```julia
-split_rays!(state::State)
+split_rays!(state::State)::Nothing
 ```
 
 Split ray volumes that have become larger than the smallest grid cell by dispatching to a WKB-mode-specific method.
 
 ```julia
-split_rays!(state::State, wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}})
+split_rays!(
+    state::State,
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
+)::Nothing
 ```
 
 Return for configurations without WKB / with steady-state WKB.
 
 ```julia
-split_rays!(state::State, wkb_mode::Val{:SingleColumn})
+split_rays!(state::State, wkb_mode::Val{:SingleColumn})::Nothing
 ```
 
 Split ray volumes which have a vertical extent larger than the smallest vertical grid spacing.
 
 ```julia
-split_rays!(state::State, wkb_mode::Val{:MultiColumn})
+split_rays!(state::State, wkb_mode::Val{:MultiColumn})::Nothing
 ```
 
 In each dimension of physical space, split ray volumes which have an extent larger than the smallest grid spacing.
@@ -26,7 +29,7 @@ In each dimension of physical space, split ray volumes which have an extent larg
 The splitting is performed sequentially, such that a ray volume with extents that are all between once and twice as large as allowed is split into exactly eight smaller ray volumes (all of which have the same size).
 
 ```julia
-split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)
+split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::X)::Nothing
 ```
 
 In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta x_r > \\Delta \\hat{x}``.
@@ -34,7 +37,7 @@ In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with
 The number of splits is the result of ceiling division of ``\\Delta x_r`` by ``\\Delta \\hat{x}``. Each split is carried out by adjusting the position and extent of the ray volume, copying it and changing the position of the copy appropriately.
 
 ```julia
-split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)
+split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Y)::Nothing
 ```
 
 In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta y_r > \\Delta \\hat{y}``.
@@ -42,7 +45,7 @@ In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with
 The splitting is analogous to that in ``\\hat{x}``.
 
 ```julia
-split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)
+split_rays!(i::Integer, j::Integer, k::Integer, state::State, axis::Z)::Nothing
 ```
 
 In the grid cell specified by ``\\left(i, j, k\\right)``, split ray volumes with ``\\Delta z_r > \\Delta z_{\\min}``.
@@ -71,7 +74,7 @@ The splitting is analogous to that in ``\\hat{x}`` and ``\\hat{y}``.
 """
 function split_rays! end
 
-function split_rays!(state::State)
+function split_rays!(state::State)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode split_rays!(state, Val(wkb_mode))
     nothing
@@ -80,11 +83,11 @@ end
 function split_rays!(
     state::State,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
-)
+)::Nothing
     nothing
 end
 
-@ivy function split_rays!(state::State, wkb_mode::Val{:SingleColumn})
+@ivy function split_rays!(state::State, wkb_mode::Val{:SingleColumn})::Nothing
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
@@ -107,7 +110,7 @@ end
     nothing
 end
 
-@ivy function split_rays!(state::State, wkb_mode::Val{:MultiColumn})
+@ivy function split_rays!(state::State, wkb_mode::Val{:MultiColumn})::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
@@ -145,7 +148,7 @@ end
     k::Integer,
     state::State,
     axis::X,
-)
+)::Nothing
     (; dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
@@ -188,7 +191,7 @@ end
     k::Integer,
     state::State,
     axis::Y,
-)
+)::Nothing
     (; dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
@@ -231,7 +234,7 @@ end
     k::Integer,
     state::State,
     axis::Z,
-)
+)::Nothing
     (; domain, grid) = state
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dzcmin) = grid

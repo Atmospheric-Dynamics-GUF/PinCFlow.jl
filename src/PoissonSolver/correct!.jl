@@ -1,6 +1,10 @@
 """
 ```julia
-correct!(state::State, dt::AbstractFloat, rayleigh_factor::AbstractFloat)
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
+)::Nothing
 ```
 
 Correct the Exner-pressure, wind and density fluctuations such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.
@@ -13,7 +17,7 @@ correct!(
     dt::AbstractFloat,
     variable::U,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Correct the zonal wind to account for the pressure differences obtained from the solution to the Poisson problem.
@@ -44,7 +48,7 @@ correct!(
     dt::AbstractFloat,
     variable::V,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Correct the meridional wind to account for the pressure differences obtained from the solution to the Poisson problem.
@@ -75,7 +79,7 @@ correct!(
     dt::AbstractFloat,
     variable::W,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Correct the transformed vertical wind to account for the pressure differences obtained from the solution to the Poisson problem.
@@ -108,7 +112,7 @@ correct!(
     dt::AbstractFloat,
     variable::RhoP,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Correct the density fluctuations to account for the pressure differences obtained from the solution to the Poisson problem.
@@ -136,7 +140,7 @@ in Boussinesq/pseudo-incompressible mode and
 in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\hat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\rho \\hat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
 
 ```julia
-correct!(state::State, variable::PiP)
+correct!(state::State, variable::PiP)::Nothing
 ```
 
 Update the Exner-pressure fluctuations with the differences obtained from the solution to the Poisson problem.
@@ -165,7 +169,7 @@ function correct!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     correct!(state, dt, U(), rayleigh_factor)
     correct!(state, dt, V(), rayleigh_factor)
     correct!(state, dt, W(), rayleigh_factor)
@@ -179,7 +183,7 @@ end
     dt::AbstractFloat,
     variable::U,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -219,7 +223,7 @@ end
     dt::AbstractFloat,
     variable::V,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -259,7 +263,7 @@ end
     dt::AbstractFloat,
     variable::W,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -320,7 +324,7 @@ end
     dt::AbstractFloat,
     variable::RhoP,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, nbz) = state.namelists.domain
     (; g_ndim) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -370,7 +374,7 @@ end
     nothing
 end
 
-function correct!(state::State, variable::PiP)
+@ivy function correct!(state::State, variable::PiP)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; pip) = state.variables.predictands
     (; dpip) = state.variables.increments

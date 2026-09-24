@@ -1,6 +1,6 @@
 """
 ```julia
-apply_saturation_scheme!(state::State, dt::AbstractFloat)
+apply_saturation_scheme!(state::State, dt::AbstractFloat)::Nothing
 ```
 
 Apply the saturation scheme by dispatching to a WKB-mode-specific method.
@@ -10,7 +10,7 @@ apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
-)
+)::Nothing
 ```
 
 Return for configurations without WKB / with steady-state WKB.
@@ -22,7 +22,7 @@ apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Apply the saturation scheme.
@@ -65,7 +65,7 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 """
 function apply_saturation_scheme! end
 
-function apply_saturation_scheme!(state::State, dt::AbstractFloat)
+function apply_saturation_scheme!(state::State, dt::AbstractFloat)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode apply_saturation_scheme!(state, dt, Val(wkb_mode))
     nothing
@@ -75,7 +75,7 @@ function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
-)
+)::Nothing
     nothing
 end
 
@@ -83,7 +83,7 @@ end
     state::State,
     dt::AbstractFloat,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb
     (; x_size, y_size) = state.namelists.domain

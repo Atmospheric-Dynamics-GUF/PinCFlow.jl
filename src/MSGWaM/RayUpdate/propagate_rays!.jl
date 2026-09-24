@@ -1,6 +1,6 @@
 """
 ```julia
-propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)::Nothing
 ```
 
 Integrate the wave-action-density and ray equations by dispatching to a WKB-mode-specific method.
@@ -11,7 +11,7 @@ propagate_rays!(
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Val{:NoWKB},
-)
+)::Nothing
 ```
 
 Return for non-WKB configurations.
@@ -22,7 +22,7 @@ propagate_rays!(
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Integrate the wave-action-density and ray equations derived from 1D or 3D transient WKB theory.
@@ -95,7 +95,7 @@ propagate_rays!(
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Val{:SteadyState},
-)
+)::Nothing
 ```
 
 Update the vertical wavenumber and wave-action density, using steady-state WKB theory.
@@ -166,7 +166,11 @@ If `rkstage != 1`, this method returns immediately.
 """
 function propagate_rays! end
 
-function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+function propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode propagate_rays!(state, dt, rkstage, Val(wkb_mode))
     nothing
@@ -177,7 +181,7 @@ function propagate_rays!(
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Val{:NoWKB},
-)
+)::Nothing
     nothing
 end
 
@@ -186,7 +190,7 @@ end
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; branch, impact_altitude, blocking) = state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -485,7 +489,7 @@ end
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Val{:SteadyState},
-)
+)::Nothing
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb

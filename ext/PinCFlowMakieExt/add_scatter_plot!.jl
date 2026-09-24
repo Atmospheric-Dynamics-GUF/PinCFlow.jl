@@ -1,6 +1,6 @@
 """
 ```julia
-add_scatter_plot!(figure::Figure, input::NamedTuple)
+add_scatter_plot!(figure::Figure, input::NamedTuple)::Nothing
 ```
 
 Add a scatter plot to `figure` using the data in `input`.
@@ -19,7 +19,7 @@ Add a scatter plot to `figure` using the data in `input`.
 """
 function add_scatter_plot! end
 
-@ivy function add_scatter_plot!(figure::Figure, input::NamedTuple)
+@ivy function add_scatter_plot!(figure::Figure, input::NamedTuple)::Nothing
     (;
         colormap_name,
         color_tick_format,

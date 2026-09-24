@@ -1,6 +1,6 @@
 """
 ```julia
-remove_rays!(state::State)
+remove_rays!(state::State)::Nothing
 ```
 
 Remove gaps (i.e. zero-wave-action ray volumes between nonzero-wave-action ray volumes) in the ray-volume arrays.
@@ -17,7 +17,7 @@ In each grid cell, this method moves all ray volumes as far to the front of the 
 """
 function remove_rays! end
 
-@ivy function remove_rays!(state::State)
+@ivy function remove_rays!(state::State)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray, rays) = state.wkb

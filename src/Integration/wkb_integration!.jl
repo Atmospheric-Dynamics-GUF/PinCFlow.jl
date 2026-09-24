@@ -1,6 +1,6 @@
 """
 ```julia
-wkb_integration!(state::State, dtstage::AbstractFloat)
+wkb_integration!(state::State, dtstage::AbstractFloat)::Nothing
 ```
 
 Use MS-GWaM to update the properties of the unresolved gravity-wave field and compute its impact on the resolved flow.
@@ -15,7 +15,7 @@ In the first step, MS-GWaM's saturation scheme is applied to account for the imp
 """
 function wkb_integration! end
 
-function wkb_integration!(state::State, dtstage::AbstractFloat)
+function wkb_integration!(state::State, dtstage::AbstractFloat)::Nothing
     (; nstages) = state.time
 
     apply_saturation_scheme!(state, dtstage)

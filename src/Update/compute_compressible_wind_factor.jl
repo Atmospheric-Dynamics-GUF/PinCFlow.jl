@@ -150,5 +150,5 @@ end
     (; p) = state.variables.predictands
 
     jac[i, j, k] * jac[i, j, k + 1] * (p[i, j, k] + p[i, j, k + 1]) /
-           (jac[i, j, k] + jac[i, j, k + 1])
+    (jac[i, j, k] + jac[i, j, k + 1])
 end

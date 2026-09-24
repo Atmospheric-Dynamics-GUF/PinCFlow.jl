@@ -1,13 +1,13 @@
 """
 ```julia
-set_visualization_theme!()
+set_visualization_theme!()::Nothing
 ```
 
 Configure Makie.jl to use a customized theme.
 """
 set_visualization_theme!
 
-function set_visualization_theme!()
+function set_visualization_theme!()::Nothing
     color = [:blue, :red]
     set_theme!(
         theme_latexfonts();

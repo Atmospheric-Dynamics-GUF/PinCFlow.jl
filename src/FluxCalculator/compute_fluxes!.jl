@@ -1,12 +1,12 @@
 """
 ```julia
-compute_fluxes!(state::State, predictands::Predictands)
+compute_fluxes!(state::State, predictands::Predictands)::Nothing
 ```
 
 Compute fluxes by dispatching to specialized methods for each prognostic variable.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+compute_fluxes!(state::State, predictands::Predictands, variable::Rho)::Nothing
 ```
 
 Compute the density fluxes in all three directions, by dispatching to a model-specific method.
@@ -17,7 +17,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Return in Boussinesq mode.
@@ -28,7 +28,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
 ```
 
 Compute the density fluxes in all three directions.
@@ -58,7 +58,7 @@ are the transporting velocities (weighted by the Jacobian) and ``\\tilde{\\phi}`
 
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
+compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)::Nothing
 ```
 
 Compute the density-fluctuations fluxes in all three directions.
@@ -71,7 +71,7 @@ compute_fluxes!(
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -82,7 +82,7 @@ compute_fluxes!(
     predictands::Predictands,
     model::Val{:Compressible},
     variable::P,
-)
+)::Nothing
 ```
 
 Compute the mass-weighted potential-temperature fluxes in all three directions.
@@ -98,7 +98,11 @@ The fluxes are given by
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::U)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::U,
+)::Nothing
 ```
 
 Compute the zonal-momentum fluxes in all three directions.
@@ -144,7 +148,11 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::V)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::V,
+)::Nothing
 ```
 
 Compute the meridional-momentum fluxes in all three directions.
@@ -190,7 +198,11 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::W)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::W,
+)::Nothing
 ```
 
 Compute the vertical-momentum fluxes in all three directions.
@@ -240,7 +252,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -250,7 +262,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Compute the tracer fluxes in all three directions.
@@ -258,7 +270,11 @@ Compute the tracer fluxes in all three directions.
 The computation is analogous to that of the density fluxes.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+)::Nothing
 ```
 
 Compute the potential temperature fluxes by dispatching to a model-specific method.
@@ -269,7 +285,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in Boussinesq/pseudo-incompressible mode.
@@ -280,7 +296,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian) in compressible mode.
@@ -302,7 +318,7 @@ The fluxes are given by
 where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.atmosphere.thermal_conductivity`).
 
 ```julia
-compute_fluxes!(state::State, variable::TKE)
+compute_fluxes!(state::State, variable::TKE)::Nothing
 ```
 
 Compute the turbulence fluxes in all three directions.
@@ -331,7 +347,7 @@ The computation is analogous to that of the density fluxes.
 """
 function compute_fluxes! end
 
-function compute_fluxes!(state::State, predictands::Predictands)
+function compute_fluxes!(state::State, predictands::Predictands)::Nothing
     (; model) = state.namelists.atmosphere
 
     compute_fluxes!(state, predictands, Rho())
@@ -349,7 +365,11 @@ function compute_fluxes!(state::State, predictands::Predictands)
     nothing
 end
 
-function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
     nothing
@@ -360,7 +380,7 @@ function compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Val{:Boussinesq},
-)
+)::Nothing
     nothing
 end
 
@@ -369,7 +389,7 @@ end
     predictands::Predictands,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -459,7 +479,7 @@ end
     state::State,
     predictands::Predictands,
     variable::RhoP,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -536,7 +556,7 @@ function compute_fluxes!(
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
-)
+)::Nothing
     nothing
 end
 
@@ -545,7 +565,7 @@ end
     predictands::Predictands,
     model::Val{:Compressible},
     variable::P,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -600,7 +620,7 @@ end
     state::State,
     old_predictands::Predictands,
     variable::U,
-)
+)::Nothing
     (; grid) = state
     (; z_size) = state.namelists.domain
     (; re, uref, lref) = state.constants
@@ -904,7 +924,7 @@ end
     state::State,
     old_predictands::Predictands,
     variable::V,
-)
+)::Nothing
     (; grid) = state
     (; z_size) = state.namelists.domain
     (; re, uref, lref) = state.constants
@@ -1208,7 +1228,7 @@ end
     state::State,
     old_predictands::Predictands,
     variable::W,
-)
+)::Nothing
     (; grid) = state
     (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -1518,7 +1538,7 @@ function compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
     nothing
 end
 
@@ -1526,7 +1546,7 @@ end
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -1585,7 +1605,7 @@ function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
-)
+)::Nothing
     (; model) = state.namelists.atmosphere
 
     @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
@@ -1597,7 +1617,7 @@ function compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
     nothing
 end
 
@@ -1606,7 +1626,7 @@ end
     predictands::Predictands,
     variable::Theta,
     model::Val{:Compressible},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dx, dy, dz, met) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -1767,7 +1787,7 @@ end
     nothing
 end
 
-@ivy function compute_fluxes!(state::State, variable::TKE)
+@ivy function compute_fluxes!(state::State, variable::TKE)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere

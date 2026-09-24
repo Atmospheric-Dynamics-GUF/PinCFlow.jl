@@ -12,7 +12,7 @@ function vortex(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 1,
-)
+)::Nothing
     lx = 20000
     ly = 20000
 

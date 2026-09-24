@@ -1,6 +1,6 @@
 """
 ```julia
-set_zonal_boundary_rays!(state::State)
+set_zonal_boundary_rays!(state::State)::Nothing
 ```
 
 Set the ray volumes at the zonal boundaries.
@@ -21,7 +21,7 @@ This method first enforces zonal boundary conditions for `state.wkb.nray` (by ap
 """
 function set_zonal_boundary_rays! end
 
-@ivy function set_zonal_boundary_rays!(state::State)
+@ivy function set_zonal_boundary_rays!(state::State)::Nothing
     (; namelists, domain) = state
     (; x_size) = namelists.domain
     (; nx, io, i0, i1, j0, j1, k0, k1) = domain

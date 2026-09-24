@@ -1,12 +1,12 @@
 """
 ```julia
-compute_gw_integrals!(state::State)
+compute_gw_integrals!(state::State)::Nothing
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact by dispatching to a WKB-mode-specific method.
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
+compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})::Nothing
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in multi-column mode.
@@ -53,7 +53,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref) for more details).
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
+compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})::Nothing
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
@@ -61,7 +61,7 @@ Compute the gravity-wave integrals needed for the computation of the mean-flow i
 This method computes ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle``, ``\\mathcal{E}``, ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` (see above for details).
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
+compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})::Nothing
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
@@ -95,13 +95,16 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 """
 function compute_gw_integrals! end
 
-function compute_gw_integrals!(state::State)
+function compute_gw_integrals!(state::State)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode compute_gw_integrals!(state, Val(wkb_mode))
     nothing
 end
 
-@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
+@ivy function compute_gw_integrals!(
+    state::State,
+    wkb_mode::Val{:MultiColumn},
+)::Nothing
     (; domain, grid) = state
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -311,7 +314,10 @@ end
     nothing
 end
 
-@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
+@ivy function compute_gw_integrals!(
+    state::State,
+    wkb_mode::Val{:SingleColumn},
+)::Nothing
     (; domain, grid) = state
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -485,7 +491,10 @@ end
     nothing
 end
 
-@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
+@ivy function compute_gw_integrals!(
+    state::State,
+    wkb_mode::Val{:SteadyState},
+)::Nothing
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants

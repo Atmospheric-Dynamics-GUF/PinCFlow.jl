@@ -7,7 +7,7 @@ test_example(
     update::Bool = false,
     atol::Real = 0,
     rtol::Real = 0,
-)
+)::Nothing
 ```
 
 Run an example simulation with `keywords`, compute the ``L_2`` and ``L_\\infty`` norms of each output variable and test them against the `reference`.
@@ -37,7 +37,7 @@ function test_example(
     update::Bool = false,
     atol::Real = 0,
     rtol::Real = 0,
-)
+)::Nothing
 
     # Call the example function with the provided keywords.
     redirect_stdout(devnull) do

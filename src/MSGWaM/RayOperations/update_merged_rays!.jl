@@ -21,7 +21,7 @@ update_merged_rays!(
     fzm::AbstractFloat,
     nr::AbstractFloat,
     omegar::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the fields of `merged_rays` at `bin` such that they contain the outermost bounds and total wave action/energy of all contributing ray volumes.
@@ -97,7 +97,7 @@ function update_merged_rays! end
     fzm::AbstractFloat,
     nr::AbstractFloat,
     omegar::AbstractFloat,
-)
+)::Nothing
     if merged_rays.nr[bin] == 0
         for (i, o) in ((1, -), (2, +))
             merged_rays.xr[i, bin] = o(xr, dxr / 2)

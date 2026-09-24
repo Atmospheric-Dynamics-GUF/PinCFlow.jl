@@ -1,6 +1,6 @@
 """
 ```julia
-compute_orographic_modes!(state::State)
+compute_orographic_modes!(state::State)::Nothing
 ```
 
 Compute the wavenumbers, intrinsic frequency and wave-action density of every orographic wave mode.
@@ -62,7 +62,7 @@ For `state.namelists.wkb.elastic_mode_selection == true`, `apply_elastic_mode_se
 """
 function compute_orographic_modes! end
 
-@ivy function compute_orographic_modes!(state::State)
+@ivy function compute_orographic_modes!(state::State)::Nothing
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, wave_modes, elastic_mode_selection) = state.namelists.wkb
     (; tref) = state.constants

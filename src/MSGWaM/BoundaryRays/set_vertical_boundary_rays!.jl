@@ -1,6 +1,6 @@
 """
 ```julia
-set_vertical_boundary_rays!(state::State)
+set_vertical_boundary_rays!(state::State)::Nothing
 ```
 
 Enforce vertical boundary conditions for ray volumes.
@@ -21,7 +21,7 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 """
 function set_vertical_boundary_rays! end
 
-@ivy function set_vertical_boundary_rays!(state::State)
+@ivy function set_vertical_boundary_rays!(state::State)::Nothing
     (; namelists, domain) = state
     (; z_size, npz) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain

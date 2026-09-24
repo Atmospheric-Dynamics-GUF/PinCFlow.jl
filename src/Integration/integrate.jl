@@ -95,7 +95,7 @@ function integrate(
     namelists::Vararg{Namelists};
     base_comm::MPI.Comm = MPI.COMM_WORLD,
     delay::Real = 0,
-)
+)::Nothing
     !MPI.Initialized() && MPI.Init()
     rank = MPI.Comm_rank(base_comm)
 
@@ -163,7 +163,7 @@ function integrate(
     namelists::Namelists,
     ::ParallelExceptions;
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::Nothing
 
     #-------------------------------------------------
     #                     Setup

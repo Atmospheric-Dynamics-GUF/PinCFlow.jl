@@ -1,6 +1,11 @@
 """
 ```julia
-compute_gw_tracer_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
+compute_gw_tracer_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)::Nothing
 ```
 
 Compute the leading-order tracer forcing by dispatching to the appropriate method.
@@ -12,7 +17,7 @@ compute_gw_tracer_tendencies!(
     j::Integer,
     k::Integer,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -24,7 +29,7 @@ compute_gw_tracer_tendencies!(
     j::Integer,
     k::Integer,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Compute and return the leading-order tracer forcing at ``\\left(i, j, k\\right)``.
@@ -60,7 +65,7 @@ function compute_gw_tracer_tendencies!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup compute_gw_tracer_tendencies!(
@@ -79,7 +84,7 @@ function compute_gw_tracer_tendencies!(
     j::Integer,
     k::Integer,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
     nothing
 end
 
@@ -89,7 +94,7 @@ end
     j::Integer,
     k::Integer,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals

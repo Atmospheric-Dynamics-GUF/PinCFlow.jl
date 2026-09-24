@@ -5,7 +5,7 @@ set_vertical_halos_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Exchange a specified number of vertical halo values of a 3D array by performing MPI communication between downward and upward neighbor processes.
@@ -18,7 +18,7 @@ set_vertical_halos_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Exchange a specified number of vertical halo values of a 5D array with an algorithm similar to that implemented in the above method.
@@ -44,7 +44,7 @@ function set_vertical_halos_of_field! end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; z_size, nbz) = namelists.domain
     (; comm, nz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 
@@ -97,7 +97,7 @@ end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; z_size, nbz) = namelists.domain
     (; comm, nz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 

@@ -1,6 +1,6 @@
 """
 ```julia
-reconstruct!(state::State)
+reconstruct!(state::State)::Nothing
 ```
 
 Reconstruct the prognostic variables at the cell interfaces of their respective grids, using the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL).
@@ -8,13 +8,13 @@ Reconstruct the prognostic variables at the cell interfaces of their respective 
 This method calls specialized methods for each prognostic variable.
 
 ```julia
-reconstruct!(state::State, variable::Rho)
+reconstruct!(state::State, variable::Rho)::Nothing
 ```
 
 Reconstruct the density by dispatching to a model-specific method.
 
 ```julia
-reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})
+reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})::Nothing
 ```
 
 Return in Boussinesq mode.
@@ -24,7 +24,7 @@ reconstruct!(
     state::State,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
 ```
 
 Reconstruct the density in non-Boussinesq modes.
@@ -32,7 +32,7 @@ Reconstruct the density in non-Boussinesq modes.
 Since the transporting velocity is ``P \\hat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction.
 
 ```julia
-reconstruct!(state::State, variable::RhoP)
+reconstruct!(state::State, variable::RhoP)::Nothing
 ```
 
 Reconstruct the density fluctuations.
@@ -40,7 +40,7 @@ Reconstruct the density fluctuations.
 Similar to the density, the density fluctuations are divided by ``P`` before reconstruction.
 
 ```julia
-reconstruct!(state::State, variable::U)
+reconstruct!(state::State, variable::U)::Nothing
 ```
 
 Reconstruct the zonal momentum.
@@ -48,7 +48,7 @@ Reconstruct the zonal momentum.
 Since the transporting velocity is ``P \\hat{\\boldsymbol{u}}``, the zonal momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
-reconstruct!(state::State, variable::V)
+reconstruct!(state::State, variable::V)::Nothing
 ```
 
 Reconstruct the meridional momentum.
@@ -56,7 +56,7 @@ Reconstruct the meridional momentum.
 Similar to the zonal momentum, the meridional momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
-reconstruct!(state::State, variable::W)
+reconstruct!(state::State, variable::W)::Nothing
 ```
 
 Reconstruct the vertical momentum.
@@ -64,13 +64,13 @@ Reconstruct the vertical momentum.
 The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Similar to the zonal and meridional momenta, the vertical momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction.
 
 ```julia
-reconstruct!(state::State, tracer_setup::Val{:NoTracer})
+reconstruct!(state::State, tracer_setup::Val{:NoTracer})::Nothing
 ```
 
 Return for configurations without tracer transport.
 
 ```julia
-reconstruct!(state::State, tracer_setup::Val{:TracerOn})
+reconstruct!(state::State, tracer_setup::Val{:TracerOn})::Nothing
 ```
 
 Reconstruct the tracers.
@@ -78,7 +78,7 @@ Reconstruct the tracers.
 Similar to the density, the tracers are divided by ``P`` before reconstruction.
 
 ```julia
-reconstruct!(state::State, variable::TKE)
+reconstruct!(state::State, variable::TKE)::Nothing
 ```
 
 Reconstruct the turbulent kinetic energy.
@@ -107,7 +107,7 @@ Similar to the density, the turbulent kinetic energy is divided by ``P`` before 
 """
 function reconstruct! end
 
-function reconstruct!(state::State)
+function reconstruct!(state::State)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     reconstruct!(state, Rho())
@@ -121,13 +121,17 @@ function reconstruct!(state::State)
     nothing
 end
 
-function reconstruct!(state::State, variable::Rho)
+function reconstruct!(state::State, variable::Rho)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model reconstruct!(state, variable, Val(model))
     nothing
 end
 
-function reconstruct!(state::State, variable::Rho, model::Val{:Boussinesq})
+function reconstruct!(
+    state::State,
+    variable::Rho,
+    model::Val{:Boussinesq},
+)::Nothing
     nothing
 end
 
@@ -135,7 +139,7 @@ end
     state::State,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho) = state.variables.predictands
@@ -159,7 +163,7 @@ end
     nothing
 end
 
-@ivy function reconstruct!(state::State, variable::RhoP)
+@ivy function reconstruct!(state::State, variable::RhoP)::Nothing
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rhop) = state.variables.predictands
@@ -183,7 +187,7 @@ end
     nothing
 end
 
-@ivy function reconstruct!(state::State, variable::U)
+@ivy function reconstruct!(state::State, variable::U)::Nothing
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho, u) = state.variables.predictands
@@ -215,7 +219,7 @@ end
     nothing
 end
 
-@ivy function reconstruct!(state::State, variable::V)
+@ivy function reconstruct!(state::State, variable::V)::Nothing
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; rho, v) = state.variables.predictands
@@ -247,7 +251,7 @@ end
     nothing
 end
 
-@ivy function reconstruct!(state::State, variable::W)
+@ivy function reconstruct!(state::State, variable::W)::Nothing
     (; namelists, domain, grid) = state
     (; limiter_type) = state.namelists.discretization
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
@@ -293,11 +297,11 @@ end
     nothing
 end
 
-function reconstruct!(state::State, tracer_setup::Val{:NoTracer})
+function reconstruct!(state::State, tracer_setup::Val{:NoTracer})::Nothing
     nothing
 end
 
-@ivy function reconstruct!(state::State, tracer_setup::Val{:TracerOn})
+@ivy function reconstruct!(state::State, tracer_setup::Val{:TracerOn})::Nothing
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries
@@ -322,7 +326,7 @@ end
     nothing
 end
 
-@ivy function reconstruct!(state::State, variable::TKE)
+@ivy function reconstruct!(state::State, variable::TKE)::Nothing
     (; limiter_type) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries

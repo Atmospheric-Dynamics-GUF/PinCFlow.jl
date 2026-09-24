@@ -1,12 +1,15 @@
 """
 ```julia
-merge_rays!(state::State)
+merge_rays!(state::State)::Nothing
 ```
 
 Merge ray volumes by dispatching to a WKB-mode-specific method.
 
 ```julia
-merge_rays!(state::State, wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}})
+merge_rays!(
+    state::State,
+    wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
+)::Nothing
 ```
 
 Return for configurations without WKB / with steady-state WKB.
@@ -15,7 +18,7 @@ Return for configurations without WKB / with steady-state WKB.
 merge_rays!(
     state::State,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Merge ray volumes in grid cells in which their count exceeds a threshold.
@@ -52,7 +55,7 @@ This method checks in each grid cell if the number of ray volumes exceeds a maxi
 """
 function merge_rays! end
 
-function merge_rays!(state::State)
+function merge_rays!(state::State)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode merge_rays!(state, Val(wkb_mode))
     nothing
@@ -61,14 +64,14 @@ end
 function merge_rays!(
     state::State,
     wkb_mode::Union{Val{:NoWKB}, Val{:SteadyState}},
-)
+)::Nothing
     nothing
 end
 
 @ivy function merge_rays!(
     state::State,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; k_bins, l_bins, m_bins, merge_mode) = state.namelists.wkb
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain

@@ -1,6 +1,9 @@
 """
 ```julia
-synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
+synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+)::Nothing
 ```
 
 Synchronize `state.atmosphere.pbar` with `predictands.p` if the atmosphere is compressible by dispatching to the appropriate method.
@@ -10,7 +13,7 @@ synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -20,7 +23,7 @@ synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Synchronize `state.atmosphere.pbar` with `predictands.p`.
@@ -40,7 +43,7 @@ function synchronize_compressible_atmosphere! end
 function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
-)
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model synchronize_compressible_atmosphere!(
         state,
@@ -54,7 +57,7 @@ function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
     nothing
 end
 
@@ -62,7 +65,7 @@ function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
     model::Val{:Compressible},
-)
+)::Nothing
     (; pbar) = state.atmosphere
     (; p) = predictands
 

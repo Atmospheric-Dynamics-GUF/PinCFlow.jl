@@ -4,7 +4,7 @@ set_meridional_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for a matrix.
@@ -17,7 +17,7 @@ set_meridional_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for a 3D array.
@@ -30,7 +30,7 @@ set_meridional_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for a 5D array.
@@ -59,7 +59,7 @@ function set_meridional_boundaries_of_field! end
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
-)
+)::Nothing
     (; y_size, nby) = namelists.domain
     (; j0, j1) = domain
 
@@ -80,7 +80,7 @@ end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; y_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
@@ -108,7 +108,7 @@ end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; y_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 

@@ -1,6 +1,6 @@
 """
 ```julia
-add_contour_plot!(figure::Figure, input::NamedTuple)
+add_contour_plot!(figure::Figure, input::NamedTuple)::Nothing
 ```
 
 Add a contour plot to `figure` using the data in `input`.
@@ -19,7 +19,7 @@ Add a contour plot to `figure` using the data in `input`.
 """
 function add_contour_plot! end
 
-@ivy function add_contour_plot!(figure::Figure, input::NamedTuple)
+@ivy function add_contour_plot!(figure::Figure, input::NamedTuple)::Nothing
     (;
         background_color,
         colormap_name,

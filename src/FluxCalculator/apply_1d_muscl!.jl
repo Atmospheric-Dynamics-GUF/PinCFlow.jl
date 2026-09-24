@@ -5,7 +5,7 @@ apply_1d_muscl!(
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
     limiter_type::Val{:MCVariant},
-)
+)::Nothing
 ```
 
 Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in one dimension.
@@ -53,7 +53,7 @@ function apply_1d_muscl! end
     phitilde::AbstractMatrix{<:AbstractFloat},
     phisize::Integer,
     limiter_type::Val{:MCVariant},
-)
+)::Nothing
 
     # Initialize phitilde.
     phitilde .= 1000.0
