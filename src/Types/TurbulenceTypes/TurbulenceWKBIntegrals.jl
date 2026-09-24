@@ -18,7 +18,7 @@ Construct a `TurbulenceWKBIntegrals` instance by dispatching to the appropriate 
 TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Val{:NoTurbulence},
+    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
     wkb_mode::Union{
         Val{:NoWKB},
         Val{:SteadyState},
@@ -28,18 +28,7 @@ TurbulenceWKBIntegrals(
 )::TurbulenceWKBIntegrals
 ```
 
-Construct a `TurbulenceWKBIntegrals` instance with zero-size arrays for configurations without turbulence parameterization.
-
-```julia 
-TurbulenceWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
-    turbulence_scheme::Val{:TKEScheme},
-    wkb_mode::Val{:NoWKB},
-)::TurbulenceWKBIntegrals
-```
-
-Construct a `TurbulenceWKBIntegrals` instance with zero-size arrays for non-WKB configurations.
+Construct a `TurbulenceWKBIntegrals` instance with zero-size arrays for non-WKB or no turbulence parameterization configurations.
 
 ```julia
 TurbulenceWKBIntegrals(
@@ -88,22 +77,13 @@ end
 function TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Val{:NoTurbulence},
+    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
     wkb_mode::Union{
         Val{:NoWKB},
         Val{:SteadyState},
         Val{:SingleColumn},
         Val{:MultiColumn},
     },
-)::TurbulenceWKBIntegrals
-    return TurbulenceWKBIntegrals(zeros(0, 0, 0))
-end
-
-function TurbulenceWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
-    turbulence_scheme::Val{:TKEScheme},
-    wkb_mode::Union{Val{:NoWKB}},
 )::TurbulenceWKBIntegrals
     return TurbulenceWKBIntegrals(zeros(0, 0, 0))
 end

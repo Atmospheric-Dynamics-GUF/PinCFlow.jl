@@ -18,7 +18,7 @@ Construct a `TurbulenceWKBTendencies` instance by dispatching to the appropriate
 TurbulenceWKBTendencies(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Val{:NoTurbulence},
+    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
     wkb_mode::Union{
         Val{:NoWKB},
         Val{:SteadyState},
@@ -28,18 +28,7 @@ TurbulenceWKBTendencies(
 )::TurbulenceWKBTendencies
 ```
 
-Construct a `TurbulenceWKBTendencies` instance with zero-size arrays for configurations without turbulence parameterization.
-
-```julia 
-TurbulenceWKBTendencies(
-    namelists::Namelists,
-    domain::Domain,
-    turbulence_scheme::Val{:TKEScheme},
-    wkb_mode::Val{:NoWKB},
-)::TurbulenceWKBTendencies
-```
-
-Construct a `TurbulenceWKBTendencies` instance with zero-size arrays for non-WKB configurations.
+Construct a `TurbulenceWKBTendencies` instance with zero-size arrays for non-WKB or no turbulence parameterization configurations.
 
 ```julia
 TurbulenceWKBTendencies(
@@ -88,22 +77,13 @@ end
 function TurbulenceWKBTendencies(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Val{:NoTurbulence},
+    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
     wkb_mode::Union{
         Val{:NoWKB},
         Val{:SteadyState},
         Val{:SingleColumn},
         Val{:MultiColumn},
     },
-)::TurbulenceWKBTendencies
-    return TurbulenceWKBTendencies(zeros(0, 0, 0))
-end
-
-function TurbulenceWKBTendencies(
-    namelists::Namelists,
-    domain::Domain,
-    turbulence_scheme::Val{:TKEScheme},
-    wkb_mode::Val{:NoWKB},
 )::TurbulenceWKBTendencies
     return TurbulenceWKBTendencies(zeros(0, 0, 0))
 end
