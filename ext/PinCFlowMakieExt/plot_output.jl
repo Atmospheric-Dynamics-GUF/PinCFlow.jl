@@ -387,7 +387,7 @@ plot_output
             end
         end
 
-        return figure
+        figure
     end
 
     # Resize, display and save the figure.

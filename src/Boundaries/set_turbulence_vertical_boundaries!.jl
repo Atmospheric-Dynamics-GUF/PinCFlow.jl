@@ -62,7 +62,7 @@ function set_turbulence_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_vertical_boundaries!(
@@ -80,7 +80,7 @@ function set_turbulence_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 @ivy function set_turbulence_vertical_boundaries!(
@@ -103,12 +103,12 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
 )
-    return
+    nothing
 end

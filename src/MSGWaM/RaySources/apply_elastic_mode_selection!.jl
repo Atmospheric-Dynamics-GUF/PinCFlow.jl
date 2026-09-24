@@ -127,5 +127,5 @@ function apply_elastic_mode_selection! end
     # Discard the remaining modes.
     field[j[(k + 1):end]] .= 0
 
-    return (k, f)
+    (k, f)
 end

@@ -73,7 +73,7 @@ function compute_orographic_modes! end
         state.wkb.elastic_mode_selection
 
     if ko != 0
-        return
+        return nothing
     end
 
     fc = coriolis_frequency * tref
@@ -149,5 +149,5 @@ function compute_orographic_modes! end
         end
     end
 
-    return
+    nothing
 end

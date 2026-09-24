@@ -281,7 +281,8 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat)
         dt,
         Val(turbulence_scheme),
     )
-    return
+
+    nothing
 end
 
 function turbulent_diffusion!(
@@ -289,7 +290,7 @@ function turbulent_diffusion!(
     dt::AbstractFloat,
     turbulence_scheme::Val{:NoTurbulence},
 )
-    return
+    nothing
 end
 
 function turbulent_diffusion!(
@@ -313,7 +314,8 @@ function turbulent_diffusion!(
     if tracer_coupling
         turbulent_diffusion!(state, dt, Chi())
     end
-    return
+
+    nothing
 end
 
 @ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::U)
@@ -433,7 +435,8 @@ end
         +;
         layers = (1, 1, 1),
     )
-    return
+
+    nothing
 end
 
 @ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::V)
@@ -553,7 +556,8 @@ end
         +;
         layers = (1, 1, 1),
     )
-    return
+
+    nothing
 end
 
 @ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
@@ -625,14 +629,15 @@ end
         w[i, j, k] = uc13 + vc23 + fth[ith, jth, kth] / jacc
     end
 
-    return
+    nothing
 end
 
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Theta)
     (; model) = state.namelists.atmosphere
 
     @dispatch_model turbulent_diffusion!(state, dt, variable, Val(model))
-    return
+
+    nothing
 end
 
 function turbulent_diffusion!(
@@ -641,7 +646,7 @@ function turbulent_diffusion!(
     variable::Theta,
     model::Union{Val{:PseudoIncompressible}, Val{:Boussinesq}},
 )
-    return
+    nothing
 end
 
 @ivy function turbulent_diffusion!(
@@ -706,7 +711,8 @@ end
 
     p[i0:i1, j0:j1, k0:k1] .=
         fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
-    return
+
+    nothing
 end
 
 function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Chi)
@@ -718,7 +724,8 @@ function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::Chi)
         variable,
         Val(tracer_setup),
     )
-    return
+
+    nothing
 end
 
 function turbulent_diffusion!(
@@ -727,7 +734,7 @@ function turbulent_diffusion!(
     variable::Chi,
     tracer_setup::Val{:NoTracer},
 )
-    return
+    nothing
 end
 
 @ivy function turbulent_diffusion!(
@@ -806,5 +813,6 @@ end
         chi[i0:i1, j0:j1, k0:k1] .=
             fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
     end
-    return
+
+    nothing
 end

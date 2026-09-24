@@ -21,5 +21,5 @@ function check_tke! end
         tke[i, j, k] = max(tke[i, j, k], tkemin * rhobar[i, j, k])
     end
 
-    return
+    nothing
 end

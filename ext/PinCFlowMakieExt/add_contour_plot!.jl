@@ -69,5 +69,5 @@ function add_contour_plot! end
     xlims!(xmin, xmax)
     ylims!(ymin, ymax)
 
-    return
+    nothing
 end

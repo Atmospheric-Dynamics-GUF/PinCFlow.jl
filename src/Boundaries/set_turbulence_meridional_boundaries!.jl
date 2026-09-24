@@ -55,7 +55,7 @@ function set_turbulence_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_meridional_boundaries!(
@@ -73,12 +73,12 @@ function set_turbulence_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
 )
-    return
+    nothing
 end

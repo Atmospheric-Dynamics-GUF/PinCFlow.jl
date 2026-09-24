@@ -57,5 +57,5 @@ function reduce_exceptions(
     MPI.Barrier(comm)
     MPI.free(window)
 
-    return
+    nothing
 end

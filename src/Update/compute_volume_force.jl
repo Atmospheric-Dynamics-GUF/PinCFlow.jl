@@ -309,5 +309,5 @@ end
 
     buoyancy_production[i, j, k] = buoyancy
 
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
+    (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
 end

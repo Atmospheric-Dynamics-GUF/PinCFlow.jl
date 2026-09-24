@@ -44,7 +44,7 @@ for name in names(PinCFlow.Examples)
                 output_file = directory * "/$(example).h5",
                 plot_file = "docs/src/examples/results/$(example).svg",
             )
-            return
+            nothing
         end
     end
 end

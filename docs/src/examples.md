@@ -316,7 +316,7 @@ function periodic_hill(;
         plot_output(plot_file, output_file, (:w, 2); display_figure)
     end
 
-    return
+    nothing
 end
 
 ```

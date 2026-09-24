@@ -27,7 +27,7 @@ Construct a `TurbulenceConstants` instance.
   - `lt::A`: Non-dimensional turbulent mixing length for turbulence diffusion ``l_\\mathrm{t} = L/L_\\mathrm{ref}/\\sqrt{2}``.
 
   - `tkemin::A`: Minimum turbulent kinetic energy value ``e_\\mathrm{k} = 5\\times 10^{-5} \\ \\mathrm{m^2 \\ s^{-2}}``.
-  
+
 # Arguments
 
   - `constants`: Physical constsants and reference values.
@@ -49,5 +49,5 @@ function TurbulenceConstants(constants::Constants)::TurbulenceConstants
     lv = lb = lt = lturb / lref / sqrt(2)
     tkemin = 5.E-5 * tref^2.0 / lref^2.0
 
-    return TurbulenceConstants(lturb, ld, lv, lb, lt, tkemin)
+    TurbulenceConstants(lturb, ld, lv, lb, lt, tkemin)
 end

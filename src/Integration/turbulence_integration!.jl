@@ -104,7 +104,7 @@ function turbulence_integration!(state::State, dt::AbstractFloat)
         Val(turbulence_scheme),
     )
 
-    return
+    nothing
 end
 
 function turbulence_integration!(
@@ -112,7 +112,7 @@ function turbulence_integration!(
     dt::AbstractFloat,
     turbulence_scheme::Val{:NoTurbulence},
 )
-    return
+    nothing
 end
 
 function turbulence_integration!(
@@ -140,7 +140,7 @@ function turbulence_integration!(
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
-    return
+    nothing
 end
 
 @ivy function turbulence_integration!(
@@ -163,7 +163,7 @@ end
             )^2.0
     end
 
-    return
+    nothing
 end
 
 @ivy function turbulence_integration!(
@@ -190,7 +190,7 @@ end
         set_boundaries!(state, BoundaryPredictands(), TKE())
     end
 
-    return
+    nothing
 end
 
 @ivy function turbulence_integration!(
@@ -266,5 +266,5 @@ end
     tke[i0:i1, j0:j1, k0:k1] .=
         fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
 
-    return
+    nothing
 end

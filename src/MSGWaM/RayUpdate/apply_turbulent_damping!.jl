@@ -82,10 +82,10 @@ function apply_turbulent_damping! end
     (; turbulent_damping) = state.namelists.wkb
 
     if !turbulent_damping
-        return
+        return nothing
     end
     if rays.dens[r, i, j, k] == 0.0
-        return
+        return nothing
     end
 
     fc = coriolis_frequency * tref
@@ -136,5 +136,5 @@ function apply_turbulent_damping! end
 
     rays.dens[r, i, j, k] = wadr / factor
 
-    return
+    nothing
 end

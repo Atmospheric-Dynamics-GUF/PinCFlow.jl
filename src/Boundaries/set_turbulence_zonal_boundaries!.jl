@@ -52,7 +52,7 @@ function set_turbulence_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_zonal_boundaries!(
@@ -70,12 +70,12 @@ function set_turbulence_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
 )
-    return
+    nothing
 end

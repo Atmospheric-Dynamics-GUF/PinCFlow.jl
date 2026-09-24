@@ -66,5 +66,5 @@ function thomas_algorithm! end
         MPI.Send(fth_bc, comm; dest = down)
     end
 
-    return
+    nothing
 end

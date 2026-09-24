@@ -497,7 +497,7 @@ end
     (; nray, rays) = state.wkb
 
     if rkstage != 1
-        return
+        return nothing
     end
 
     # Set Coriolis parameter.

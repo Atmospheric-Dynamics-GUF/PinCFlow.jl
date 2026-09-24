@@ -81,5 +81,5 @@ function add_scatter_plot! end
     xlims!(xmin, xmax)
     ylims!(ymin, ymax)
 
-    return
+    nothing
 end
