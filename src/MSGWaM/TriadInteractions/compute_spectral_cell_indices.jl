@@ -10,13 +10,20 @@
 From the given spectral ray-volume position and extent, determine the
 indices of the spectral grid cells occupied by the ray volume.
 
-For `x_size > 1`, the horizontal wavenumber has a finite spectral
-extent and may overlap multiple `kp` cells.
+For `x_size > 1`, a finite horizontal spectral extent `dkpr > 0`
+may overlap multiple `kp` cells. If `dkpr == 0`, only the `kp` cell
+containing the ray centre is returned.
 
 For `x_size == 1`, the horizontal wavenumber is a discrete mode and
 therefore belongs to exactly one `kp` index.
 
-The vertical wavenumber retains a finite spectral extent in both cases.
+For `dmr > 0`, the vertical ray-volume extent may overlap multiple
+`m` cells. If `dmr == 0`, only the `m` cell containing the ray centre
+is returned.
+
+For centre-based assignment, a point lying exactly on an internal
+cell edge is assigned to the cell on the right. The uppermost domain
+edge belongs to the final cell.
 """
 function compute_spectral_cell_indices end
 
@@ -71,9 +78,43 @@ function compute_spectral_cell_indices(
         kpmin = kpi
         kpmax = kpi
 
+    elseif iszero(dkpr)
+
+        # --------------------------------------------------------------
+        # Centre-based horizontal spectral assignment.
+        #
+        # The numerical ray-volume width does not participate in the
+        # cell lookup. The ray centre belongs to exactly one kp cell.
+        # --------------------------------------------------------------
+
+        kp_lo = kpc[1]
+        kp_hi = kpc[end]
+
+        if kpr < kp_lo || kpr > kp_hi
+            println("Ray centre out of bounds in kp")
+            println("  kpr = ", kpr)
+            println("  kp_min = ", kp_lo)
+            println("  kp_max = ", kp_hi)
+            error("Error: Ray centre out of spectral bound")
+        end
+
+        for ii in 1:kpl
+            if (
+                kpc[ii] <= kpr < kpc[ii + 1] ||
+                (ii == kpl && kpr == kpc[end])
+            )
+                kpmin = ii
+                kpmax = ii
+                break
+            end
+        end
+
     else
 
-        # Continuous/finite-width horizontal spectral ray volume.
+        # --------------------------------------------------------------
+        # Existing finite-width horizontal spectral algorithm.
+        # --------------------------------------------------------------
+
         kp_l = kpr - dkpr / 2
         kp_u = kpr + dkpr / 2
 
@@ -101,12 +142,12 @@ function compute_spectral_cell_indices(
         end
 
         if kpl > 1
-            for i in eachindex(kp)
-                if kpc[i] <= kp_l
-                    kpmin = i
+            for ii in eachindex(kp)
+                if kpc[ii] <= kp_l
+                    kpmin = ii
                 end
-                if kpc[i + 1] < kp_u
-                    kpmax = i + 1
+                if kpc[ii + 1] < kp_u
+                    kpmax = ii + 1
                 end
             end
         end
@@ -117,6 +158,11 @@ function compute_spectral_cell_indices(
 
     # ------------------------------------------------------------------
     # Vertical spectral bounds.
+    #
+    # This remains applicable for both finite-width and centre-based
+    # cases because for dmr == 0:
+    #
+    #     m_l = m_u = |mr|.
     # ------------------------------------------------------------------
 
     out = false
@@ -153,37 +199,99 @@ function compute_spectral_cell_indices(
     # Vertical spectral indices.
     # ------------------------------------------------------------------
 
-    if ml > 1
+    if iszero(dmr)
+
+        # --------------------------------------------------------------
+        # Centre-based vertical spectral assignment.
+        #
+        # Work first with |m| on the positive-m half of the grid.
+        # The result is then reflected back to the negative-m half
+        # when mrr < 0.
+        # --------------------------------------------------------------
+
         if m[1] < 0
-            # Signed-m Triad2D grid. Positive-m cell j is bounded by
-            # mc[j + 1] and mc[j + 2].
-            for j in m0:m1
-                if mc[j + 1] <= m_l
-                    mmin = j
-                end
-                if mc[j + 2] < m_u
-                    mmax = j + 1
+
+            # Signed-m Triad2D grid.
+            #
+            # Positive-m cell jj is bounded by:
+            #
+            #     mc[jj + 1] <= |mr| < mc[jj + 2].
+            #
+            for jj in m0:m1
+                if (
+                    mc[jj + 1] <= mrp < mc[jj + 2] ||
+                    (jj == m1 && mrp == mc[jj + 2])
+                )
+                    mmin = jj
+                    mmax = jj
+                    break
                 end
             end
+
         else
+
             # Positive-m-only grid.
-            for j in m0:m1
-                if mc[j] <= m_l
-                    mmin = j
-                end
-                if mc[j + 1] < m_u
-                    mmax = j + 1
+            #
+            # Cell jj is bounded by:
+            #
+            #     mc[jj] <= mr < mc[jj + 1].
+            #
+            for jj in m0:m1
+                if (
+                    mc[jj] <= mrp < mc[jj + 1] ||
+                    (jj == m1 && mrp == mc[jj + 1])
+                )
+                    mmin = jj
+                    mmax = jj
+                    break
                 end
             end
         end
-    end
 
-    mmin = clamp(mmin, m0, m1)
-    mmax = clamp(mmax, m0, m1)
+        # Convert positive-|m| index back to the negative-m half.
+        if mrr < 0
+            mmin = ml - mmin + 1
+            mmax = mmin
+        end
 
-    # Convert positive-|m| indices back to the negative-m half.
-    if mrr < 0
-        mmax, mmin = ml - mmin + 1, ml - mmax + 1
+    else
+
+        # --------------------------------------------------------------
+        # Existing finite-width vertical spectral algorithm.
+        # --------------------------------------------------------------
+
+        if ml > 1
+            if m[1] < 0
+                # Signed-m Triad2D grid. Positive-m cell j is bounded by
+                # mc[j + 1] and mc[j + 2].
+                for jj in m0:m1
+                    if mc[jj + 1] <= m_l
+                        mmin = jj
+                    end
+                    if mc[jj + 2] < m_u
+                        mmax = jj + 1
+                    end
+                end
+            else
+                # Positive-m-only grid.
+                for jj in m0:m1
+                    if mc[jj] <= m_l
+                        mmin = jj
+                    end
+                    if mc[jj + 1] < m_u
+                        mmax = jj + 1
+                    end
+                end
+            end
+        end
+
+        mmin = clamp(mmin, m0, m1)
+        mmax = clamp(mmax, m0, m1)
+
+        # Convert positive-|m| indices back to the negative-m half.
+        if mrr < 0
+            mmax, mmin = ml - mmin + 1, ml - mmax + 1
+        end
     end
 
     return (kpmin, kpmax, mmin, mmax)
