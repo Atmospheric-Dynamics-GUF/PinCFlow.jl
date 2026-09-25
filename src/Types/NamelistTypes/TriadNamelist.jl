@@ -37,6 +37,7 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     k_min::B
     l_min::B
     m_min::B
+    ray_volume_ini::AbstractRayVolumeInit
     increment_rel_tol::B
     action_rel_tol::B
     triad_mode::C
@@ -67,6 +68,7 @@ function TriadNamelist(;
     k_min::Real = 1.0, #the dafault values of the minimum wave numbers is set in spectral grid type
     l_min::Real = 1.0,
     m_min::Real = 1.0, 
+    ray_volume_ini::AbstractRayVolumeInit = UniformDist(),
     increment_rel_tol::Real = 1.0E-4,
     action_rel_tol::Real = 1.0E-8,
     triad_mode::AbstractTriad = NoTriad(),
@@ -96,6 +98,7 @@ function TriadNamelist(;
         Float64(k_min),
         Float64(l_min),
         Float64(m_min),
+        ray_volume_ini,
         Float64(increment_rel_tol),
         Float64(action_rel_tol),
         triad_mode,

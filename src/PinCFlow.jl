@@ -82,6 +82,8 @@ export NoTriad, Triad2D, Triad3DIso, EulerMethod, Rk2Step, ConstantWaveEnergyCen
 
 export Sum, Difference
 
+export UniformDist, GaussianDist, SpatialGaussianDist
+
 # Export model-state constructor.
 export State
 

@@ -101,7 +101,14 @@ Abstract type for time steping schem for triad interactions.
 """
 abstract type AbstractTimeStepping end
 
+"""
+```julia
+AbstractRayVolumeInit
+```
 
+Abstract type for resonance.
+"""
+abstract type AbstractRayVolumeInit end
 
 
 """
@@ -374,6 +381,35 @@ Singleton for model configurations to use the RK2 method for the time stepping i
 """
 struct Rk2Step <: AbstractTimeStepping end
 
+"""
+```julia
+UniformDist <: AbstractRayVolumeInit
+```
+
+Singleton for model configurations to lauch the uniform spatial and spectral distribution per grid cell and per wave mode.
+"""
+struct UniformDist <: AbstractRayVolumeInit end
+
+"""
+```julia
+GaussianDist <: AbstractRayVolumeInit
+```
+
+Singleton for model configurations to lauch the Gaussian spatial and spectral distribution per grid cell and per wave mode.
+"""
+struct GaussianDist <: AbstractRayVolumeInit end
+
+"""
+```julia
+SpattialGaussianDist <: AbstractRayVolumeInit
+```
+
+Singleton for model configurations to lauch the Gaussian spatial distribution and unifrom spectral distribution per grid cell and per wave mode.
+"""
+struct SpatialGaussianDist <: AbstractRayVolumeInit end
+
+
+
 
 using MPI
 using ...PinCFlow
@@ -400,7 +436,8 @@ export AbstractBackground,
     AbstractTracer, 
     AbstractTriad,
     AbstractResonance,
-    AbstractTimeStepping
+    AbstractTimeStepping,
+    AbstractRayVolumeInit
 
 export NeutralStratification,
     StableStratification,
@@ -431,7 +468,10 @@ export NeutralStratification,
     Difference,
     EulerMethod,
     Rk2Step,
-    ConstantWaveEnergyCentre
+    ConstantWaveEnergyCentre,
+    UniformDist,
+    GaussianDist,
+    SpatialGaussianDist
 
 export DomainNamelist,
     OutputNamelist,
