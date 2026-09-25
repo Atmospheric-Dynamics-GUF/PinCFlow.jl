@@ -72,6 +72,10 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
 
+  - `:gw_shear::A`: Shear of unresolved gravity waves.
+  
+  - `:dtkedt::A`: Turbulence impact of unresolved gravity waves.
+
   - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
 
   - `:launch_power_fraction`: Power fractions retained by the elastic-mode-selection algorithm.
@@ -392,6 +396,38 @@ function write_output end
                 )
                 file["buoyancy_production"][iid, jjd, kkd, iout] =
                     state.turbulence.turbulenceauxiliaries.buoyancy_production[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
+
+            # Write GW shear.
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :gw_shear in output_variables
+                HDF5.set_extent_dims(
+                    file["gw_shear"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["gw_shear"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbintegrals.gw_shear[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ tref .^ 2
+            end
+
+            # Write turbulence tendencies.
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :dtkedt in output_variables
+                HDF5.set_extent_dims(
+                    file["dtkedt"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dtkedt"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbtendencies.dtkedt[
                         ii,
                         jj,
                         kk,

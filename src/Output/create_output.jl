@@ -366,6 +366,38 @@ function create_output(state::State, machine_start_time::DateTime)
                     chunk = (cx, cy, cz, ct),
                 )
             end
+
+            # Create dataset for GW shear.
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :gw_shear in output_variables
+                create_dataset(
+                    file,
+                    "gw_shear",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
+            # Create dataset for turbulence tendencies.
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :dtkedt in output_variables
+                create_dataset(
+                    file,
+                    "dtkedt",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
         end
 
         # Create datasets for WKB variables.
@@ -634,7 +666,7 @@ function create_output(state::State, machine_start_time::DateTime)
 
         if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             if prepare_restart || :tke in output_variables
-                attributes(file["tke"])["unuits"] = "m^2*s^-2"
+                attributes(file["tke"])["units"] = "m^2*s^-2"
                 attributes(file["tke"])["label"] =
                     L"e_\\mathrm{k}\ [\mathrm{m^2\ s^{-2}}]"
                 attributes(
@@ -643,17 +675,35 @@ function create_output(state::State, machine_start_time::DateTime)
             end
 
             if :shear_production in output_variables
-                attributes(file["shear_production"])["unuits"] = "m^2*s^-3"
+                attributes(file["shear_production"])["units"] = "m^2*s^-3"
                 attributes(file["shear_production"])["label"] =
                     L"\mathcal{S}\ [\mathrm{m^2\ s^{-3}}]"
                 attributes(file["shear_production"])["long_name"] = "shear production"
             end
 
             if :buoyancy_production in output_variables
-                attributes(file["buoyancy_production"])["unuits"] = "m^2*s^-3"
+                attributes(file["buoyancy_production"])["units"] = "m^2*s^-3"
                 attributes(file["buoyancy_production"])["label"] =
                     L"\mathcal{B}\ [\mathrm{m^2\ s^{-3}}]"
                 attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
+            end
+
+            if wkb_mode !== :NoWKB && state.namelists.turbulence.gw_coupling 
+                if :gw_shear in output_variables
+                    attributes(file["gw_shear"])["units"] = "s^-2"
+                    attributes(file["gw_shear"])["label"] =
+                        L"\mathcal{S}_\mathrm{w}"
+                    attributes(file["gw_shear"])["long_name"] = "gravity-wave shear"
+                end
+
+                if :dtkedt in output_variables
+                    attributes(file["dtkedt"])["units"] = "m^2*s^-3"
+                    attributes(file["dtkedt"])["label"] =
+                        L"\left(\frac{\partial e_\mathrm{k}}{\partial t}\right)_\mathrm{w}"
+                    attributes(
+                        file["dtkedt"],
+                    )["long_name"] = "turbulent kinetic energy GW forcing"
+                end
             end
         end
 
