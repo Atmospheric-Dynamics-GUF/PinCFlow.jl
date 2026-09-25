@@ -41,7 +41,7 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Return for turbulence WKB integrals as these are not needed in halo/boundary cells (See [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)).
+Return for turbulence WKB integrals as these are not needed in halo/boundary cells (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)).
 
 ```julia
 set_turbulence_zonal_boundaries!(
