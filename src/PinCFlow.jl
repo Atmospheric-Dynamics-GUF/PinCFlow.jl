@@ -78,11 +78,13 @@ export Box, Shapiro
 export NoWKB, SteadyState, SingleColumn, MultiColumn
 export NoTracer, TracerOn
 
-export NoTriad, Triad2D, Triad3DIso, EulerMethod, Rk2Step, ConstantWaveEnergyCentre
+export NoTriad, Triad2D, Triad3DIso, EulerMethod, Rk2Step, ConstantWaveEnergyCentre, ConstantWaveEnergyPhyCentre
 
 export Sum, Difference
 
 export UniformDist, GaussianDist, SpatialGaussianDist
+
+export NoRaySource, OrographicSource, ContinuousSpectralSource
 
 # Export model-state constructor.
 export State

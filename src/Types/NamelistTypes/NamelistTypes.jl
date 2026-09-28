@@ -82,6 +82,15 @@ Abstract type for triad interactions.
 abstract type AbstractTriad end
 
 
+"""
+```julia
+AbstractRaySource
+```
+
+Abstract type for continuous ray-volume sources.
+"""
+abstract type AbstractRaySource end
+
 
 """
 ```julia
@@ -227,6 +236,15 @@ ConstantWaveEnergy <: AbstractMergeMode
 Singleton for the constant-wave-energy ray-volume merging algorithm.
 """
 struct ConstantWaveEnergy <: AbstractMergeMode end
+
+"""
+```julia
+ConstantWaveEnergy <: AbstractMergeMode
+```
+
+Singleton for the centre based ray-volume projection algorithm.
+"""
+struct ConstantWaveEnergyPhyCentre <: AbstractMergeMode end
 
 """
 ```julia
@@ -408,6 +426,33 @@ Singleton for model configurations to lauch the Gaussian spatial distribution an
 """
 struct SpatialGaussianDist <: AbstractRayVolumeInit end
 
+"""
+```julia
+NoRaySource <: AbstractRaySource
+```
+
+No continuous ray-volume source.
+"""
+struct NoRaySource <: AbstractRaySource end
+
+"""
+```julia
+OrographicSource <: AbstractRaySource
+```
+
+Orographic lower-boundary ray-volume source.
+"""
+struct OrographicSource <: AbstractRaySource end
+
+"""
+```julia
+ContinuousSpectralSource <: AbstractRaySource
+```
+
+Continuous prescribed spectral lower-boundary ray-volume source.
+"""
+struct ContinuousSpectralSource <: AbstractRaySource end
+
 
 
 
@@ -437,7 +482,8 @@ export AbstractBackground,
     AbstractTriad,
     AbstractResonance,
     AbstractTimeStepping,
-    AbstractRayVolumeInit
+    AbstractRayVolumeInit,
+    AbstractRaySource
 
 export NeutralStratification,
     StableStratification,
@@ -469,9 +515,13 @@ export NeutralStratification,
     EulerMethod,
     Rk2Step,
     ConstantWaveEnergyCentre,
+    ConstantWaveEnergyPhyCentre,
     UniformDist,
     GaussianDist,
-    SpatialGaussianDist
+    SpatialGaussianDist,
+    NoRaySource,
+    OrographicSource,
+    ContinuousSpectralSource
 
 export DomainNamelist,
     OutputNamelist,

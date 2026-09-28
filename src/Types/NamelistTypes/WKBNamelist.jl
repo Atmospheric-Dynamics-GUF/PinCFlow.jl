@@ -107,6 +107,7 @@ struct WKBNamelist{
     F <: AbstractWKBMode,
     G <: Function,
     H <: AbstractVector{<:Float64},
+    I <: AbstractRaySource,
 }
     nrx::A
     nry::A
@@ -132,6 +133,7 @@ struct WKBNamelist{
     long_threshold::B
     drag_coefficient::B
     initial_wave_field::G
+    source_mode::I
 end
 
 function WKBNamelist(;
@@ -160,6 +162,7 @@ function WKBNamelist(;
     drag_coefficient::Real = 1.0E+0,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
+    source_mode::AbstractRaySource = NoRaySource(),
 )::WKBNamelist
 
     length(dkr_factor) == wave_modes ||
@@ -196,5 +199,6 @@ function WKBNamelist(;
         Float64(long_threshold),
         Float64(drag_coefficient),
         initial_wave_field,
+        source_mode,
     )
 end

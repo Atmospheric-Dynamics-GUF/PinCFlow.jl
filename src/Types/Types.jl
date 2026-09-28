@@ -159,7 +159,8 @@ export AbstractBackground,
     AbstractTriad,
     AbstractResonance,
     AbstractTimeStepping,
-    AbstractRayVolumeInit
+    AbstractRayVolumeInit,
+    AbstractRaySource
 
 export Rho,
     RhoP,
@@ -252,8 +253,12 @@ export DomainNamelist,
     EulerMethod,
     Rk2Step,
     ConstantWaveEnergyCentre,
+    ConstantWaveEnergyPhyCentre,
     UniformDist,
     GaussianDist,
-    SpatialGaussianDist
+    SpatialGaussianDist,
+    NoRaySource,
+    OrographicSource,
+    ContinuousSpectralSource
 
 end
