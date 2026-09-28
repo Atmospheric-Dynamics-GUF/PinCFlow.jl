@@ -48,10 +48,15 @@ function initialize_rays!(state::State, wkb_mode::NoWKB)
     return
 end
 
-function initialize_rays!(state::State, wkb_mode::Union{SteadyState, SingleColumn, MultiColumn})
+function initialize_rays!(
+    state::State,
+    wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
+)
+    (; source_mode) = state.namelists.wkb
     (; triad_mode, ray_volume_ini) = state.namelists.triad
 
-    initialize_rays!(state, wkb_mode, triad_mode, ray_volume_ini)
+    initialize_rays!(state, wkb_mode, triad_mode, ray_volume_ini, source_mode)
+
     return
 end
 
@@ -60,6 +65,7 @@ function initialize_rays!(
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
     triad_mode::NoTriad,
     ray_volume_ini::GaussianDist,
+    source_mode::Union{NoRaySource, OrographicSource},
 )
     error("GaussianDist ray-volume initialization is only supported with Triad2D.")
 end
@@ -69,6 +75,7 @@ function initialize_rays!(
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
     triad_mode::Union{NoTriad, Triad2D},
     ray_volume_ini::UniformDist,
+    source_mode::Union{NoRaySource, OrographicSource},
 )
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -146,14 +153,16 @@ function initialize_rays!(
     end
 
     # Add orographic wave modes.
-    activate_orographic_source!(
-        state,
-        omi_ini,
-        wnk_ini,
-        wnl_ini,
-        wnm_ini,
-        wad_ini,
-    )
+    if source_mode isa OrographicSource
+        activate_orographic_source!(
+            state,
+            omi_ini,
+            wnk_ini,
+            wnl_ini,
+            wnm_ini,
+            wad_ini,
+        )
+    end
 
     # Set initial spectral extents (these will be overwritten in the loop).
     dk_ini_nd = 0.0
@@ -388,7 +397,8 @@ function initialize_rays!(
     state::State,
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
     triad_mode::Union{Triad2D},
-    ray_volume_ini::GaussianDist
+    ray_volume_ini::GaussianDist,
+    source_mode::Union{NoRaySource, OrographicSource},
 )
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -500,14 +510,16 @@ function initialize_rays!(
 
     # Set the initial properties of unresolved orographic gravity waves
     # in the surface launch layer k0 - 1.
-    activate_orographic_source!(
-        state,
-        omi_ini,
-        wnk_ini,
-        wnl_ini,
-        wnm_ini,
-        wad_ini,
-    )
+    if source_mode isa OrographicSource
+        activate_orographic_source!(
+            state,
+            omi_ini,
+            wnk_ini,
+            wnl_ini,
+            wnm_ini,
+            wad_ini,
+        )
+    end
 
     # Gaussian weights for the spectral m sub-rays.
     #
@@ -920,6 +932,7 @@ function initialize_rays!(
     wkb_mode::Union{SteadyState, SingleColumn, MultiColumn},
     triad_mode::Union{NoTriad, Triad2D},
     ray_volume_ini::SpatialGaussianDist,
+    source_mode::Union{NoRaySource, OrographicSource},
 )
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -1007,14 +1020,16 @@ function initialize_rays!(
     end
 
     # Add orographic wave modes.
-    activate_orographic_source!(
-        state,
-        omi_ini,
-        wnk_ini,
-        wnl_ini,
-        wnm_ini,
-        wad_ini,
-    )
+    if source_mode isa OrographicSource
+        activate_orographic_source!(
+            state,
+            omi_ini,
+            wnk_ini,
+            wnl_ini,
+            wnm_ini,
+            wad_ini,
+        )
+    end
 
     dk_ini_nd = 0.0
     dl_ini_nd = 0.0
@@ -1298,6 +1313,575 @@ function initialize_rays!(
         println("MS-GWaM:")
         println("Global ray-volume count: ", global_sum)
         println("Maximum number of ray volumes per cell: ", nray_max)
+        println("")
+    end
+
+    return
+end
+
+# =============================================================================
+# ContinuousSpectralSource
+#
+# Initialize a continuously forced lower-boundary spectral source.
+#
+# Only the artificial launch layer k0 - 1 is populated initially.
+# The physical domain k0:k1 is initially empty.
+#
+# The source spectrum is obtained from initial_wave_field at the lower physical
+# boundary and distributed in m using the same Gaussian discretization as
+# GaussianDist:
+#
+#   - dmr_factor controls the complete spectral width,
+#   - m_sigma_cutoff specifies the represented Gaussian interval,
+#   - nrm gives the number of spectral sub-rays in m,
+#   - nrz gives the number of vertically staggered source ray volumes.
+#
+# The Gaussian weights are normalized such that the total wave action
+# represented by the source layer is independent of nrm. Likewise, subdivision
+# into nrz physical ray volumes changes only the vertical resolution of the
+# source reservoir, not its phase-space wave-action density.
+#
+# The source slots are stored in surface_indices and will subsequently be
+# handled by activate_continuous_spectral_source!.
+# =============================================================================
+
+function initialize_rays!(
+    state::State,
+    wkb_mode::Union{SingleColumn, MultiColumn},
+    triad_mode::Union{NoTriad, Triad2D},
+    ray_volume_ini::GaussianDist,
+    source_mode::ContinuousSpectralSource,
+)
+    (; x_size, y_size) = state.namelists.domain
+    (; coriolis_frequency) = state.namelists.atmosphere
+
+    (;
+        nrx,
+        nry,
+        nrz,
+        nrk,
+        nrl,
+        nrm,
+        wave_modes,
+        dkr_factor,
+        dlr_factor,
+        dmr_factor,
+        branch,
+        initial_wave_field,
+    ) = state.namelists.wkb
+
+    (; m_sigma_cutoff) = state.namelists.triad
+    (; lref, tref, rhoref, uref) = state.constants
+
+    (;
+        comm,
+        master,
+        nxx,
+        nyy,
+        ko,
+        i0,
+        i1,
+        j0,
+        j1,
+        k0,
+        k1,
+    ) = state.domain
+
+    (; dx, dy, dz, x, y, zc, zctilde, jac) = state.grid
+
+    (;
+        nray_wrk,
+        n_sfc,
+        nray,
+        rays,
+        surface_indices,
+        cgx_max,
+        cgy_max,
+        cgz_max,
+    ) = state.wkb
+
+    # ------------------------------------------------------------------
+    # Validate source configuration.
+    # ------------------------------------------------------------------
+
+    if nrz < 1
+        error(
+            "Error in initialize_rays!: nrz must be >= 1 for ",
+            "ContinuousSpectralSource.",
+        )
+    end
+
+    if nrm < 1
+        error(
+            "Error in initialize_rays!: nrm must be >= 1 for ",
+            "ContinuousSpectralSource.",
+        )
+    end
+
+    if x_size == 1 && nrk != 1
+        error(
+            "Error in initialize_rays!: nrk must be 1 when x_size == 1. ",
+            "Otherwise identical zero-width k ray volumes are initialized.",
+        )
+    end
+
+    if y_size == 1 && nrl != 1
+        error(
+            "Error in initialize_rays!: nrl must be 1 when y_size == 1. ",
+            "Otherwise identical zero-width l ray volumes are initialized.",
+        )
+    end
+
+    if m_sigma_cutoff <= 0.0
+        error(
+            "Error in initialize_rays!: m_sigma_cutoff must be positive ",
+            "for ContinuousSpectralSource.",
+        )
+    end
+
+    # Set nondimensional Coriolis parameter.
+    fc = coriolis_frequency * tref
+
+    # ------------------------------------------------------------------
+    # Construct Gaussian weights in m.
+    #
+    # xi spans the interval
+    #
+    #     -m_sigma_cutoff <= xi <= m_sigma_cutoff
+    #
+    # at the centres of the nrm spectral ray volumes.
+    #
+    # The normalization
+    #
+    #     sum(m_weights) / nrm = 1
+    #
+    # ensures that the complete Gaussian packet represents the wave action
+    # supplied by initial_wave_field.
+    # ------------------------------------------------------------------
+
+    m_weights = zeros(nrm)
+
+    for km in 1:nrm
+        xi =
+            -m_sigma_cutoff +
+            (km - 0.5) * 2.0 * m_sigma_cutoff / nrm
+
+        m_weights[km] = exp(-0.5 * xi^2)
+    end
+
+    m_weights .*= nrm / sum(m_weights)
+
+    # ------------------------------------------------------------------
+    # Source carrier-wave properties.
+    #
+    # initial_wave_field defines the spectrum at the lower physical
+    # boundary. The actual source ray volumes are stored below this
+    # boundary, in k0 - 1.
+    #
+    # These arrays are needed only on the lowest vertical MPI subdomain.
+    # ------------------------------------------------------------------
+
+    wnk_src = zeros(wave_modes, nxx, nyy)
+    wnl_src = zeros(wave_modes, nxx, nyy)
+    wnm_src = zeros(wave_modes, nxx, nyy)
+    wad_src = zeros(wave_modes, nxx, nyy)
+
+    if ko == 0
+        for j in j0:j1, i in i0:i1, alpha in 1:wave_modes
+
+            # Interface between the artificial source layer k0 - 1
+            # and the first physical layer k0.
+            z_source = zctilde[i, j, k0 - 1]
+
+            (kdim, ldim, mdim, _, adim) = initial_wave_field(
+                alpha,
+                x[i] * lref,
+                y[j] * lref,
+                z_source * lref,
+            )
+
+            wnk_src[alpha, i, j] = kdim * lref
+            wnl_src[alpha, i, j] = ldim * lref
+            wnm_src[alpha, i, j] = mdim * lref
+
+            wad_src[alpha, i, j] =
+                adim / rhoref / uref^2 / tref
+        end
+    end
+
+    # ------------------------------------------------------------------
+    # Initialize only the source layer k0 - 1.
+    #
+    # All physical cells k0:k1 remain empty at t = 0.
+    # ------------------------------------------------------------------
+
+    if ko == 0
+
+        k = k0 - 1
+
+        @ivy for j in j0:j1, i in i0:i1
+
+            r = 0
+            s = 0
+
+            for ix in 1:nrx,
+                ik in 1:nrk,
+                jy in 1:nry,
+                jl in 1:nrl,
+                kz in 1:nrz,
+                km in 1:nrm,
+                alpha in 1:wave_modes
+
+                # ------------------------------------------------------
+                # Register persistent source slot.
+                #
+                # The complete tuple
+                #
+                #   (ix, jy, kz, ik, jl, km, alpha)
+                #
+                # identifies the source ray. In particular, kz is retained
+                # so that nrz > 1 gives vertically staggered source rays.
+                # ------------------------------------------------------
+
+                s += 1
+
+                surface_indices.ixs[s] = ix
+                surface_indices.jys[s] = jy
+                surface_indices.kzs[s] = kz
+                surface_indices.iks[s] = ik
+                surface_indices.jls[s] = jl
+                surface_indices.kms[s] = km
+                surface_indices.alphas[s] = alpha
+
+                wad0 = wad_src[alpha, i, j]
+
+                if wad0 == 0.0
+                    surface_indices.rs[s, i, j] = -1
+                    continue
+                end
+
+                r += 1
+
+                if r > nray_wrk
+                    error(
+                        "Error in initialize_rays!: Number of source ray ",
+                        "volumes exceeds nray_wrk = ",
+                        nray_wrk,
+                        " at source cell ",
+                        (i, j, k),
+                    )
+                end
+
+                surface_indices.rs[s, i, j] = r
+
+                # ------------------------------------------------------
+                # Physical position.
+                #
+                # nrz equal-width ray volumes uniformly subdivide the
+                # artificial source layer.
+                # ------------------------------------------------------
+
+                rays.x[r, i, j, k] =
+                    x[i] -
+                    0.5 * dx +
+                    (ix - 0.5) * dx / nrx
+
+                rays.y[r, i, j, k] =
+                    y[j] -
+                    0.5 * dy +
+                    (jy - 0.5) * dy / nry
+
+                rays.z[r, i, j, k] =
+                    zc[i, j, k] -
+                    0.5 * jac[i, j, k] * dz +
+                    (kz - 0.5) * jac[i, j, k] * dz / nrz
+
+                zr = rays.z[r, i, j, k]
+
+                # ------------------------------------------------------
+                # Physical ray-volume extents.
+                #
+                # No additional 1/nrz factor enters rays.dens. The smaller
+                # dzray automatically reduces the action carried by each
+                # individual vertical subvolume.
+                # ------------------------------------------------------
+
+                rays.dxray[r, i, j, k] = dx / nrx
+                rays.dyray[r, i, j, k] = dy / nry
+                rays.dzray[r, i, j, k] =
+                    jac[i, j, k] * dz / nrz
+
+                # ------------------------------------------------------
+                # Carrier wavenumbers.
+                # ------------------------------------------------------
+
+                wnk0 = wnk_src[alpha, i, j]
+                wnl0 = wnl_src[alpha, i, j]
+                wnm0 = wnm_src[alpha, i, j]
+
+                wnh0 = sqrt(wnk0^2 + wnl0^2)
+
+                if wnh0 <= 0.0
+                    error(
+                        "Error in initialize_rays!: Horizontal source ",
+                        "wavenumber must be nonzero for mode ",
+                        alpha,
+                        ".",
+                    )
+                end
+
+                if wnm0 == 0.0
+                    error(
+                        "Error in initialize_rays!: Source vertical ",
+                        "wavenumber is zero for mode ",
+                        alpha,
+                        ".",
+                    )
+                end
+
+                # ------------------------------------------------------
+                # Spectral packet widths.
+                # ------------------------------------------------------
+
+                if x_size == 1
+                    dk_ini_nd = 0.0
+                else
+                    dk_ini_nd =
+                        dkr_factor[alpha] * wnh0
+
+                    if dk_ini_nd <= 0.0
+                        error(
+                            "Error in initialize_rays!: dk_ini_nd <= 0 ",
+                            "for source mode ",
+                            alpha,
+                            ".",
+                        )
+                    end
+                end
+
+                if y_size == 1
+                    dl_ini_nd = 0.0
+                else
+                    dl_ini_nd =
+                        dlr_factor[alpha] * wnh0
+
+                    if dl_ini_nd <= 0.0
+                        error(
+                            "Error in initialize_rays!: dl_ini_nd <= 0 ",
+                            "for source mode ",
+                            alpha,
+                            ".",
+                        )
+                    end
+                end
+
+                dm_ini_nd =
+                    dmr_factor[alpha] * abs(wnm0)
+
+                if dm_ini_nd <= 0.0
+                    error(
+                        "Error in initialize_rays!: dm_ini_nd <= 0 ",
+                        "for source mode ",
+                        alpha,
+                        ".",
+                    )
+                end
+
+                # ------------------------------------------------------
+                # Require the complete externally forced m interval to
+                # remain on one side of m = 0.
+                # ------------------------------------------------------
+
+                m_lower = wnm0 - 0.5 * dm_ini_nd
+                m_upper = wnm0 + 0.5 * dm_ini_nd
+
+                if m_lower <= 0.0 <= m_upper
+                    error(
+                        "Error in initialize_rays!: ",
+                        "ContinuousSpectralSource crosses m = 0 for mode ",
+                        alpha,
+                        ". Reduce dmr_factor.",
+                    )
+                end
+
+                # ------------------------------------------------------
+                # Spectral ray-volume centres.
+                # ------------------------------------------------------
+
+                rays.k[r, i, j, k] =
+                    wnk0 -
+                    0.5 * dk_ini_nd +
+                    (ik - 0.5) * dk_ini_nd / nrk
+
+                rays.l[r, i, j, k] =
+                    wnl0 -
+                    0.5 * dl_ini_nd +
+                    (jl - 0.5) * dl_ini_nd / nrl
+
+                rays.m[r, i, j, k] =
+                    wnm0 -
+                    0.5 * dm_ini_nd +
+                    (km - 0.5) * dm_ini_nd / nrm
+
+                # ------------------------------------------------------
+                # Spectral ray-volume extents.
+                # ------------------------------------------------------
+
+                rays.dkray[r, i, j, k] =
+                    dk_ini_nd / nrk
+
+                rays.dlray[r, i, j, k] =
+                    dl_ini_nd / nrl
+
+                rays.dmray[r, i, j, k] =
+                    dm_ini_nd / nrm
+
+                # ------------------------------------------------------
+                # Spectral phase-space volume represented by the packet.
+                #
+                # In the present 2-D single-column case this reduces to
+                #
+                #     pspvol = dm_ini_nd.
+                # ------------------------------------------------------
+
+                pspvol = dm_ini_nd
+
+                if x_size > 1
+                    pspvol *= dk_ini_nd
+                end
+
+                if y_size > 1
+                    pspvol *= dl_ini_nd
+                end
+
+                # ------------------------------------------------------
+                # Gaussian phase-space wave-action density.
+                #
+                # Identical normalization to GaussianDist.
+                # ------------------------------------------------------
+
+                rays.dens[r, i, j, k] =
+                    wad0 / pspvol * m_weights[km]
+
+                # ------------------------------------------------------
+                # Check propagation direction and initialize WKB CFL
+                # diagnostics using the same dispersion relation as
+                # propagate_rays!.
+                # ------------------------------------------------------
+
+                n2r =
+                    interpolate_stratification(zr, state, N2())
+
+                if n2r < 0.0
+                    error(
+                        "Error in initialize_rays!: Negative ",
+                        "stratification at source ray position.",
+                    )
+                end
+
+                wnrk = rays.k[r, i, j, k]
+                wnrl = rays.l[r, i, j, k]
+                wnrm = rays.m[r, i, j, k]
+
+                wnrh = sqrt(wnrk^2 + wnrl^2)
+
+                omir =
+                    branch *
+                    sqrt(
+                        n2r * wnrh^2 +
+                        fc^2 * wnrm^2,
+                    ) /
+                    sqrt(wnrh^2 + wnrm^2)
+
+                cgirz =
+                    -wnrm *
+                    (omir^2 - fc^2) /
+                    (omir * (wnrh^2 + wnrm^2))
+
+                # Every externally forced spectral component must enter
+                # the physical domain through the lower boundary.
+                if cgirz <= 0.0
+                    error(
+                        "Error in initialize_rays!: ",
+                        "ContinuousSpectralSource contains a ",
+                        "non-upward-propagating ray. Mode = ",
+                        alpha,
+                        ", m = ",
+                        wnrm / lref,
+                        " m^-1, cg_z = ",
+                        cgirz * lref / tref,
+                        " m s^-1.",
+                    )
+                end
+
+                cgz_max[i, j, k] =
+                    max(
+                        cgz_max[i, j, k],
+                        abs(cgirz),
+                    )
+
+                # Horizontal motion is not applied while a source ray
+                # remains in k0 - 1. These group velocities are nevertheless
+                # retained in the initial CFL diagnostics for general
+                # multi-column configurations.
+                if x_size > 1
+                    cgirx =
+                        wnrk *
+                        (n2r - omir^2) /
+                        (omir * (wnrh^2 + wnrm^2))
+
+                    cgx_max[] =
+                        max(cgx_max[], abs(cgirx))
+                end
+
+                if y_size > 1
+                    cgiry =
+                        wnrl *
+                        (n2r - omir^2) /
+                        (omir * (wnrh^2 + wnrm^2))
+
+                    cgy_max[] =
+                        max(cgy_max[], abs(cgiry))
+                end
+            end
+
+            # Number of currently active source ray volumes in k0 - 1.
+            nray[i, j, k] = r
+
+            # Every possible source slot must have been visited, including
+            # slots whose prescribed action is zero.
+            if s != n_sfc
+                error(
+                    "Error in initialize_rays!: Number of source slots ",
+                    s,
+                    " != n_sfc = ",
+                    n_sfc,
+                    " at ",
+                    (i, j, k),
+                )
+            end
+        end
+    end
+
+    # ------------------------------------------------------------------
+    # Global initial ray-volume count.
+    #
+    # On the lowest MPI subdomain this includes k0 - 1. All physical cells
+    # are still empty. On other vertical subdomains it is simply zero.
+    # ------------------------------------------------------------------
+
+    kmin = ko == 0 ? k0 - 1 : k0
+
+    @ivy local_sum =
+        sum(nray[i0:i1, j0:j1, kmin:k1])
+
+    global_sum =
+        MPI.Allreduce(local_sum, +, comm)
+
+    if master
+        println("MS-GWaM:")
+        println("Continuous spectral source initialized.")
+        println("Global initial ray-volume count: ", global_sum)
         println("")
     end
 

@@ -425,7 +425,7 @@ function propagate_rays!(
         end
     end
 
-    activate_orographic_source!(state)
+    activate_ray_source!(state)
 
     return
 end

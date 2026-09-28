@@ -16,7 +16,7 @@ function get_ray_volumes!(
     print_action_diagnostic::Bool = false,
 )
     (; domain) = state
-    (; master, comm, i0, i1, j0, j1, k0, k1) = domain
+    (; master, comm, i0, i1, j0, j1, k0, k1, ko) = domain
 
     (; x_size, y_size) = state.namelists.domain
     (; launch_rays_action_rel_tol, discarded_action_fraction_tol) = state.namelists.triad
@@ -46,7 +46,8 @@ function get_ray_volumes!(
     local_total_action = 0.0
     local_discarded_action = 0.0
 
-    @ivy for k in (k0 - 1):(k1 + 1),
+    kmin = ko == 0 ? k0 : k0 - 1
+    @ivy for k in kmin:(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -347,6 +348,7 @@ function get_ray_volumes!(
     return nothing
 end
 
+
 function get_ray_volumes!(
     state::State,
     triad_mode::Triad2D,
@@ -354,7 +356,7 @@ function get_ray_volumes!(
     print_action_diagnostic::Bool = false,
 )
     (; domain) = state
-    (; master, comm, i0, i1, j0, j1, k0, k1) = domain
+    (; master, comm, i0, i1, j0, j1, k0, k1, ko) = domain
 
     (; x_size, y_size) = state.namelists.domain
     (; launch_rays_action_rel_tol, discarded_action_fraction_tol) = state.namelists.triad
@@ -384,7 +386,8 @@ function get_ray_volumes!(
     local_total_action = 0.0
     local_discarded_action = 0.0
 
-    @ivy for k in (k0 - 1):(k1 + 1),
+    kmin = ko == 0 ? k0 : k0 - 1
+    @ivy for k in kmin:(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -577,15 +580,15 @@ function get_ray_volumes!(
     return nothing
 end
 
-#=
+
 function get_ray_volumes!(
     state::State,
     triad_mode::Triad2D,
-    projection_scheme::ConstantWaveEnergyCentre;
+    projection_scheme::ConstantWaveEnergyPhyCentre;
     print_action_diagnostic::Bool = false,
 )
     (; domain) = state
-    (; master, comm, i0, i1, j0, j1, k0, k1) = domain
+    (; master, comm, i0, i1, j0, j1, k0, k1, ko) = domain
 
     (; x_size, y_size) = state.namelists.domain
     (; launch_rays_action_rel_tol, discarded_action_fraction_tol) = state.namelists.triad
@@ -614,8 +617,8 @@ function get_ray_volumes!(
 
     local_total_action = 0.0
     local_discarded_action = 0.0
-
-    @ivy for k in (k0 - 1):(k1 + 1),
+    kmin = ko == 0 ? k0 : k0 - 1
+    @ivy for k in kmin:(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -834,7 +837,7 @@ function get_ray_volumes!(
 
     return nothing
 end
-=#
+
 
 function get_ray_volumes!(state::State, 
     wavespectrum_copy::Array{<: AbstractFloat, 5}, 

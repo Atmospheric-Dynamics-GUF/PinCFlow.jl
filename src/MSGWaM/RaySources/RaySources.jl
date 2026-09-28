@@ -19,7 +19,9 @@ using ...PinCFlow
 
 include("activate_orographic_source!.jl")
 include("compute_orographic_mode.jl")
-
-export activate_orographic_source!
-
+include("activate_continuous_spectral_source!.jl")
+include("activate_ray_source!.jl")
+export activate_orographic_source!,
+      activate_continuous_spectral_source!,
+      activate_ray_source!
 end

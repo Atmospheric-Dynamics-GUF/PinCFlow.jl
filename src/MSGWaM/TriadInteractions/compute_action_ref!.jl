@@ -6,12 +6,11 @@ function compute_action_ref!(
     diagonal_connectivity::Bool = false,
     verify::Bool = true,
 )
-    (; master, comm, i0, i1, j0, j1, k0, k1) = state.domain
+    (; master, comm, i0, i1, j0, j1, k0, k1, ko) = state.domain
     (; spec_tend) = state
     (; wavespectrum, action_ref) = spec_tend
     (; kp, m, delkp, delm) = spec_tend.spec_grid
     (; lref) = state.constants
-
     nkp = length(kp)
     nm = length(m)
 
@@ -23,6 +22,7 @@ function compute_action_ref!(
     # =
     # max_{i,j,k} [N(i,j,k,kp,m) Δkp Δm]
     #----------------------------------------------------------
+    kmin = ko == 0 ? k0 - 1 : k0
 
     local_peak_action =
         zeros(Float64, nkp, nm)
@@ -35,7 +35,7 @@ function compute_action_ref!(
 
         peak_action = 0.0
 
-        for kk in k0:k1,
+        for kk in kmin:k1,
             jj in j0:j1,
             ii in i0:i1
 

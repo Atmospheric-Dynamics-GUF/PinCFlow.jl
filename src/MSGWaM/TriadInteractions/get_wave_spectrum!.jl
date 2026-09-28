@@ -68,7 +68,7 @@ function get_wave_spectrum!(
 )
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1, ko) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; nray, rays) = state.wkb
     (; spec_tend) = state
@@ -144,13 +144,16 @@ function get_wave_spectrum!(
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state; dkd = 1)
-                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state; dkd = 1)
+                    kmin, kmax = get_vertical_projection_range(state, iray, jray, k, zr, dzr)
 
                     for kray in kmin:kmax
-                        dzi =
-                            min(zr + dzr / 2, zctilde[iray, jray, kray]) -
-                            max(zr - dzr / 2, zctilde[iray, jray, kray - 1])
+                        if ko == 0 && k == k0 - 1
+                            dzi = dzr
+                        else
+                            dzi =
+                                min(zr + dzr / 2, zctilde[iray, jray, kray]) -
+                                max(zr - dzr / 2, zctilde[iray, jray, kray - 1])
+                        end
 
                         fcpspz = dzi / jac[iray, jray, kray] / dz
 
@@ -214,7 +217,7 @@ function get_wave_spectrum!(
 )
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1, ko) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
     (; nray, rays) = state.wkb
     (; spec_tend) = state
@@ -291,13 +294,16 @@ function get_wave_spectrum!(
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(iray, jray, zr - dzr / 2, state; dkd = 1)
-                    kmax = get_next_half_level(iray, jray, zr + dzr / 2, state; dkd = 1)
+                    kmin, kmax = get_vertical_projection_range(state, iray, jray, k, zr, dzr)
 
                     for kray in kmin:kmax
-                        dzi =
-                            min(zr + dzr / 2, zctilde[iray, jray, kray]) -
-                            max(zr - dzr / 2, zctilde[iray, jray, kray - 1])
+                        if ko == 0 && k == k0 - 1
+                            dzi = dzr
+                        else
+                            dzi =
+                                min(zr + dzr / 2, zctilde[iray, jray, kray]) -
+                                max(zr - dzr / 2, zctilde[iray, jray, kray - 1])
+                        end
 
                         fcpspz = dzi / jac[iray, jray, kray] / dz
 
@@ -356,11 +362,10 @@ function get_wave_spectrum!(
     return nothing
 end
 
-#=
 function get_wave_spectrum!(state::State, 
     wkb_mode::Union{MultiColumn, SingleColumn}, 
     triad_mode::Triad2D,
-    projection_scheme::ConstantWaveEnergyCentre)
+    projection_scheme::ConstantWaveEnergyPhyCentre)
     (; domain, grid) = state
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -473,7 +478,7 @@ function get_wave_spectrum!(state::State,
     end
 
 end
-=#
+
 
 function get_wave_spectrum!(state::State, 
     wkb_mode::Union{MultiColumn, SingleColumn}, 
