@@ -40,6 +40,7 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     ray_volume_ini::AbstractRayVolumeInit
     increment_rel_tol::B
     action_rel_tol::B
+    dttriad_rel_tol::B
     triad_mode::C
     time_scheme::D
     rm_index::E
@@ -71,6 +72,7 @@ function TriadNamelist(;
     ray_volume_ini::AbstractRayVolumeInit = UniformDist(),
     increment_rel_tol::Real = 1.0E-4,
     action_rel_tol::Real = 1.0E-8,
+    dttriad_rel_tol::Real = 1.0E-8,
     triad_mode::AbstractTriad = NoTriad(),
     time_scheme::AbstractTimeStepping = EulerMethod(),
     rm_index::Tuple{Int, Int} = (1, 1),
@@ -101,6 +103,7 @@ function TriadNamelist(;
         ray_volume_ini,
         Float64(increment_rel_tol),
         Float64(action_rel_tol),
+        Float64(dttriad_rel_tol),
         triad_mode,
         time_scheme,
         rm_index,

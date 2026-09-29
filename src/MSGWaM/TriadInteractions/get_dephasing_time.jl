@@ -10,7 +10,7 @@ function get_dephasing_time(
 )::Float64
 
     (; x_size) = state.namelists.domain
-    (; action_rel_tol, increment_rel_tol) = state.namelists.triad
+    (; dttriad_rel_tol, increment_rel_tol) = state.namelists.triad
 
     (; spec_tend) = state
     (; wavespectrum, col_int, diag_dephasing_time, action_ref) = spec_tend
@@ -21,7 +21,7 @@ function get_dephasing_time(
         return Inf
     end
 
-    action_floor = action_rel_tol * action_ref[]
+    action_floor = dttriad_rel_tol * action_ref[]
 
     # tau_nl is defined from the maximum active |St| / N.
     max_rate = 1.0 / tau_nl
