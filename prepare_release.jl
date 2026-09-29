@@ -15,20 +15,15 @@ changes =
 pr_numbers = Tuple(
     parse(Int64, m.captures[1]) for m in eachmatch(r"\(#(\d+)\)", changes)
 )
-labels = Set(
-    split(
-        join(
-            (
-                read(
-                    `gh pr view $(pr_number) --json labels --jq ".labels[].name"`,
-                    String,
-                ) for pr_number in pr_numbers
-            ),
-            "\n",
-        ),
-        "\n",
-    ),
-)
+pr_labels = Set{String}
+for pr_number in pr_numbers
+    labels = read(
+        `gh pr view $pr_number --json labels --jq ".labels[].name"`,
+        String,
+    )
+    labels == "" && error("PR #$pr_number does not have a label!")
+    push!(pr_labels, split(labels, "\n")...)
+end
 new_version = if "breaking change" in labels
     VersionNumber(major + 1, 0, 0)
 elseif "feature change" in labels
