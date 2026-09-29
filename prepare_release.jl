@@ -89,3 +89,22 @@ write(
         ) => "$new_header\n\n$changes\n\n$old_header",
     ),
 )
+
+# Checkout the new-release branch, commit the changes, and force push.
+run(`git checkout -B new-release`)
+run(`git commit -a -m "Release notes"`)
+run(`git push --force origin new-release`)
+
+# Open a PR if it doesn't already exist.
+try
+    run(
+        `gh pr create --base main --body "" --head new-release --label "new release" --title "New release"`,
+    )
+catch
+end
+
+# Update the PR.
+reminder = commit_count < 10 ? "" : "### $commit_count commits have accumulated since $(old_version)! Please merge this PR soon! The new release will have the version number $new_version."
+run(
+    `gh pr edit --body "$reminder$("\n")**Commits since $old_version:**$("\n\n$changes")"`,
+)
