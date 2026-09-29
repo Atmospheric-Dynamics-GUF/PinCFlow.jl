@@ -27,7 +27,7 @@ function update_wave_spectrum!(
     (; kp, m, delkp, delm) = spec_tend.spec_grid
 
     (; x_size) = state.namelists.domain
-    (; action_rel_tol, increment_rel_tol, compute_dephasing_time) = state.namelists.triad
+    (; action_rel_tol, increment_rel_tol, dttriad_rel_tol, compute_dephasing_time) = state.namelists.triad
 
     # Reset the timescales so that an inactive physical cell does
     # not retain values calculated during an earlier timestep.
@@ -64,7 +64,7 @@ function update_wave_spectrum!(
 
     compute_scattering_integral!(state, ii, jj, kk, triad_mode)
 
-    tau_nl = get_nl_time_scale(spec_tend, ii, jj, kk, action_rel_tol)
+    tau_nl = get_nl_time_scale(spec_tend, ii, jj, kk, dttriad_rel_tol)
     nl_time_scale[ii, jj, kk] = tau_nl
 
     #----------------------------------------------------------

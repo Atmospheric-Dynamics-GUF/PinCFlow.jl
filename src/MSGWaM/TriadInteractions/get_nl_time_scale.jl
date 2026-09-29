@@ -5,7 +5,7 @@ function get_nl_time_scale(
     ii::Integer,
     jj::Integer,
     kk::Integer,
-    action_rel_tol::Float64,
+    dttriad_rel_tol::Float64,
 )::Float64
 
     (; kp, m, delkp, delm) = spec_tend.spec_grid
@@ -14,14 +14,14 @@ function get_nl_time_scale(
     #----------------------------------------------------------
     # Minimum significant spectral-cell action:
     #
-    # A_floor = action_rel_tol * A_ref
+    # A_floor = dttriad_rel_tol * A_ref
     #
     # where A_ref is the peak contained action of the weakest
     # initialized spectral mode.
     #----------------------------------------------------------
 
     action_floor =
-        action_rel_tol * action_ref[]
+        dttriad_rel_tol * action_ref[]
 
     #----------------------------------------------------------
     # Maximum Boltzmann rate among dynamically active cells:
