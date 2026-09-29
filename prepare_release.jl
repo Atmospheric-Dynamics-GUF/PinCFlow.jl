@@ -8,14 +8,27 @@ end
 
 # Get the changes since the old release.
 run(`git fetch origin main`)
-changes =
-    read(`git log v$old_version..origin/main --pretty=format:"  - %s"`, String)
-
-# Determine the version number of the new release.
-pr_numbers = Tuple(
-    parse(Int64, m.captures[1]) for m in eachmatch(r"\(#(\d+)\)", changes)
+changes = split(
+    read(`git log v$old_version..origin/main --pretty=format:"  - %s"`, String),
+    "\n",
 )
-pr_labels = Set{String}
+commit_count = length(changes)
+commit_count == 0 &&
+    error("No commits have been added since the previous release!")
+
+# Extract the PR numbers.
+pr_numbers = Set{Int64}()
+for change in changes
+    numbers = Tuple(
+        parse(Int64, m.captures[1]) for m in eachmatch(r"\(#(\d+)\)", change)
+    )
+    length(numbers) == 0 &&
+        error("Commit message without PR reference detected!")
+    push!(pr_numbers, numbers...)
+end
+
+# Extract the PR labels.
+pr_labels = Set{String}()
 for pr_number in pr_numbers
     labels = read(
         `gh pr view $pr_number --json labels --jq ".labels[].name"`,
@@ -24,32 +37,25 @@ for pr_number in pr_numbers
     labels == "" && error("PR #$pr_number does not have a label!")
     push!(pr_labels, split(labels, "\n")...)
 end
-new_version = if "breaking change" in labels
+
+# Determine the version number of the new release.
+new_version = if "breaking change" in pr_labels
     VersionNumber(major + 1, 0, 0)
-elseif "feature change" in labels
+elseif "feature change" in pr_labels
     VersionNumber(major, minor + 1, 0)
-elseif "bug fix" in labels
+elseif "bug fix" in pr_labels
     VersionNumber(major, minor, patch + 1)
 else
     error("No new release required!")
 end
 
 # Format the changes.
-changes = join(
-    split(
-        replace(
-            changes,
-            r"\(#(\d+)\)" =>
-                s"([#\1](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/\1))",
-        ),
-        "\n",
-    ),
-    "\n\n",
+changes = replace(
+    join(changes, "\n\n"),
+    r"\(#(\d+)\)" =>
+        s"([#\1](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/\1))",
 )
 
-if strip(changes) == ""
-    error("No changes detected!")
-end
 
 # Update the Project.toml files.
 for (pattern, file) in zip(
