@@ -104,7 +104,7 @@ catch
 end
 
 # Update the PR.
-reminder = commit_count < 10 ? "" : "### $commit_count commits have accumulated since $(old_version)! Please merge this PR soon! The new release will have the version number $new_version."
+reminder = commit_count < 10 ? "" : "### $commit_count commits have accumulated since $(old_version)! Please merge this PR soon! The new release will have the version number $new_version.\n"
 run(
-    `gh pr edit --body "$reminder$("\n")**Commits since $old_version:**$("\n\n$changes")"`,
+    `gh pr edit --body "$reminder**Commits since $old_version:**$("\n\n$changes")"`,
 )
