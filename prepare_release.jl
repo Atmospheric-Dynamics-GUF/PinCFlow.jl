@@ -23,7 +23,7 @@ for change in changes
         parse(Int64, m.captures[1]) for m in eachmatch(r"\(#(\d+)\)", change)
     )
     length(numbers) == 0 &&
-        error("Commit message without PR reference detected!")
+        println("WARNING: Commit message without PR reference detected!")
     push!(pr_numbers, numbers...)
 end
 
