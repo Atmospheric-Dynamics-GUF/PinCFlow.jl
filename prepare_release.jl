@@ -58,7 +58,6 @@ changes = replace(
         s"([#\1](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/pull/\1))",
 )
 
-
 # Update the Project.toml files.
 for (pattern, file) in zip(
     ("PinCFlow", "PinCFlow", "version"),
@@ -78,12 +77,12 @@ end
 old_header = "## Release $old_version"
 new_header = "## Release $new_version"
 changelog = read("NEWS.md", String)
-if !occursin(new_header, changelog)
-    write(
-        "NEWS.md",
-        replace(
-            changelog,
-            Regex(old_header) => "$new_header\n\n$changes\n\n$old_header",
-        ),
-    )
-end
+write(
+    "NEWS.md",
+    replace(
+        changelog,
+        Regex(
+            "(?s)($new_header.+)?$old_header",
+        ) => "$new_header\n\n$changes\n\n$old_header",
+    ),
+)
