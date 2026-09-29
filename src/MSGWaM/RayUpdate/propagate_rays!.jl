@@ -425,7 +425,7 @@ function propagate_rays!(
         end
     end
 
-    activate_ray_source!(state)
+    activate_ray_source!(state, rkstage)
 
     return
 end
