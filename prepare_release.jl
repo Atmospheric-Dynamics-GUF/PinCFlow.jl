@@ -50,7 +50,8 @@ elseif "feature change" in pr_labels
 elseif "bug fix" in pr_labels
     VersionNumber(major, minor, patch + 1)
 else
-    error("No new release required!")
+    println("No new release required!")
+    exit()
 end
 
 # Format the changes.
