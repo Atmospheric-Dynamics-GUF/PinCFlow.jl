@@ -7,78 +7,78 @@ function compute_action_ref!(
     verify::Bool = true,
 )
     (; master, comm, i0, i1, j0, j1, k0, k1, ko) = state.domain
+    (; x_size) = state.namelists.domain
+    (; source_mode) = state.namelists.wkb
+
     (; spec_tend) = state
     (; wavespectrum, action_ref) = spec_tend
     (; kp, m, delkp, delm) = spec_tend.spec_grid
     (; lref) = state.constants
+
     nkp = length(kp)
     nm = length(m)
 
-    #----------------------------------------------------------
-    # Maximum contained wave action of every spectral cell
-    # over the local physical subdomain:
-    #
-    # A_peak(kp,m)
-    # =
-    # max_{i,j,k} [N(i,j,k,kp,m) Δkp Δm]
-    #----------------------------------------------------------
-    kmin = ko == 0 ? k0 - 1 : k0
+    local_peak_action = zeros(Float64, nkp, nm)
 
-    local_peak_action =
-        zeros(Float64, nkp, nm)
+    @ivy for mi in eachindex(m), kpi in eachindex(kp)
 
-    @ivy for mi in eachindex(m),
-        kpi in eachindex(kp)
-
-        spectral_cell_width =
+        spectral_cell_measure =
+            x_size == 1 ?
+            abs(delm[mi]) :
             abs(delkp[kpi] * delm[mi])
 
         peak_action = 0.0
 
-        for kk in kmin:k1,
-            jj in j0:j1,
-            ii in i0:i1
+        if source_mode isa ContinuousSpectralSource
 
-            was =
-                wavespectrum[ii, jj, kk, kpi, mi]
+            # Only the bottom MPI rank owns the prescribed
+            # continuous-source reservoir at k0 - 1.
+            if ko == 0
+                kk = k0 - 1
 
-            if isfinite(was) && was > 0.0
+                for jj in j0:j1, ii in i0:i1
+                    was = wavespectrum[ii, jj, kk, kpi, mi]
 
-                spectral_cell_action =
-                    was * spectral_cell_width
+                    if isfinite(was) && was > 0.0
+                        spectral_cell_action =
+                            was * spectral_cell_measure
 
-                if spectral_cell_action > peak_action
-                    peak_action =
-                        spectral_cell_action
+                        if spectral_cell_action > peak_action
+                            peak_action = spectral_cell_action
+                        end
+                    end
+                end
+            end
+
+        else
+
+            # Ordinary initialization: identify modes from
+            # the physical domain only.
+            for kk in k0:k1, jj in j0:j1, ii in i0:i1
+                was = wavespectrum[ii, jj, kk, kpi, mi]
+
+                if isfinite(was) && was > 0.0
+                    spectral_cell_action =
+                        was * spectral_cell_measure
+
+                    if spectral_cell_action > peak_action
+                        peak_action = spectral_cell_action
+                    end
                 end
             end
         end
 
-        local_peak_action[kpi, mi] =
-            peak_action
+        local_peak_action[kpi, mi] = peak_action
     end
 
-    #----------------------------------------------------------
-    # Element-wise maximum over all MPI subdomains
-    #----------------------------------------------------------
-
     global_peak_action =
-        MPI.Allreduce(
-            local_peak_action,
-            max,
-            comm,
-        )
-
-    #----------------------------------------------------------
-    # Identify connected initialized modes in (kp,m)
-    #----------------------------------------------------------
+        MPI.Allreduce(local_peak_action, max, comm)
 
     mode_information =
         get_initial_mode_information(
             global_peak_action;
             support_tol = support_tol,
-            diagonal_connectivity =
-                diagonal_connectivity,
+            diagonal_connectivity = diagonal_connectivity,
         )
 
     if isempty(mode_information)
@@ -93,26 +93,15 @@ function compute_action_ref!(
     if :chi_parent in state.namelists.output.output_variables
         initialize_chi_parent_tracker!(state, mode_information)
     end
-    #----------------------------------------------------------
-    # Select the peak action of the weakest initialized mode
-    #----------------------------------------------------------
 
     action_ref_value = Inf
 
     for mode in mode_information
         action_ref_value =
-            min(
-                action_ref_value,
-                mode.peak_action,
-            )
+            min(action_ref_value, mode.peak_action)
     end
 
-    action_ref[] =
-        action_ref_value
-
-    #----------------------------------------------------------
-    # Verification output
-    #----------------------------------------------------------
+    action_ref[] = action_ref_value
 
     if verify && master
         print_initial_mode_information(
