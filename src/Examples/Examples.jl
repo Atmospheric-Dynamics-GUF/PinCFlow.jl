@@ -4,6 +4,7 @@ include("WavePacketTools/WavePacketTools.jl")
 
 using MPI
 using HDF5
+using NCDatasets
 using .WavePacketTools
 using ..Macros
 using ..Types

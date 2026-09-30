@@ -1,19 +1,63 @@
 """
 ```julia
-create_output(state::State)
+create_output(state::State, machine_start_time::DateTime)
+```
+
+Create an output file by dispatching to the output-file-format-specific method.
+
+```julia 
+create_output(
+    state::State,
+    machine_start_time::DateTime,
+    output_file_format::Val{:HDF5},
+)
 ```
 
 Create an HDF5 output file with one dataset for each variable.
 
 The dimensions of the datasets are set to those of the domain, whereas the chunks are set to the dimensions of the MPI subdomains, in preparation for parallel output. Datasets for the grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, the time and the fields of `state.atmosphere` are always created, regardless of the specifications in `state.namelists.output`. The one exception to this is the Boussinesq mode, in which no datasets are created for the fields of `state.atmosphere`, since they do not have a spatial dependence.
 
+```julia 
+create_output(
+    state::State,
+    machine_start_time::DateTime,
+    output_file_format::Val{:NetCDF4},
+)
+```
+
+Create a NetCDF4 output file with one dataset for each variable.
+
+The dimensions of the datasets are set to those of the domain, whereas the chunks are set to the dimensions of the MPI subdomains, in preparation for parallel output. Datasets for the grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, the time and the fields of `state.atmosphere` are always created, regardless of the specifications in `state.namelists.output`. The one exception to this is the Boussinesq mode, in which no datasets are created for the fields of `state.atmosphere`, since they do not have a spatial dependence.
+
+!!! danger "Experimental"
+    The output format `:NetCDF4` is an experimental feature that hasn't been fully validated yet.
+
 # Arguments
 
   - `state`: Model state.
+
+  - `machine_start_time`: Wall-clock start time.
+
+  - `output_file_format`: Format of the output file.
 """
 function create_output end
 
 function create_output(state::State, machine_start_time::DateTime)
+    (; output_file_format) = state.namelists.output
+
+    @dispatch_output_file_format create_output(
+        state,
+        machine_start_time,
+        Val(output_file_format),
+    )
+    return
+end
+
+function create_output(
+    state::State,
+    machine_start_time::DateTime,
+    output_file_format::Val{:HDF5},
+)
     (; x_size, y_size, z_size, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
@@ -822,6 +866,699 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
+        return
+    end
+
+    MPI.Barrier(comm)
+
+    return
+end
+
+function create_output(
+    state::State,
+    machine_start_time::DateTime,
+    output_file_format::Val{:NetCDF4},
+)
+    (; x_size, y_size, z_size, npx, npy, npz) = state.namelists.domain
+    (; prepare_restart, save_ray_volumes, output_variables, output_file) =
+        state.namelists.output
+    (; model) = state.namelists.atmosphere
+    (; wkb_mode, elastic_mode_selection) = state.namelists.wkb
+    (; comm, master) = state.domain
+    (; bins) = state.wkb
+    (; tracer_setup, leading_order_impact) = state.namelists.tracer
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    # Set the chunk dimensions.
+    cr = bins
+    cx = div(x_size, npx)
+    cy = div(y_size, npy)
+    cz = div(z_size, npz)
+    ct = 1
+
+    # Create the directory if it doesn't exist.
+    master && mkpath(dirname(output_file))
+
+    MPI.Barrier(comm)
+
+    NCDataset(
+        comm,
+        output_file,
+        "c";
+        attrib = [
+            ("Title", "PinCFlow.jl data"),
+            (
+                "Institution",
+                "Institute for Atmospheric and Environmental Sciences, Goethe University Frankfurt, Germany",
+            ),
+            ("Date", string(Dates.Date(machine_start_time))),
+            ("Time", string(Dates.Time(machine_start_time))),
+        ],
+    ) do file
+        defDim(file, "x", x_size)
+        defDim(file, "y", y_size)
+        defDim(file, "z", z_size)
+        defDim(file, "ztilde", (z_size + 1))
+        defDim(file, "t", Inf)
+        if wkb_mode !== :NoWKB && (prepare_restart || save_ray_volumes)
+            defDim(file, "zrays", (z_size + 1))
+            defDim(file, "rays", bins)
+        end
+
+        defGroup(file, "namelists")
+        for namelist in fieldnames(Namelists)
+            namelist_group = defGroup(file.group["namelists"], string(namelist))
+            for parameter in
+                fieldnames(typeof(getfield(state.namelists, namelist)))
+                value = getfield(getfield(state.namelists, namelist), parameter)
+                if typeof(value) <: FunctionWrapper
+                    value = string("Function")
+                end
+                namelist_group.attrib[string(parameter)] =
+                    typeof(value) <: AbstractString ? value : string(value)
+            end
+        end
+
+        defVar(
+            file,
+            "x",
+            Float32,
+            ("x",);
+            chunksizes = (cx,),
+            attrib = [
+                ("units", "m"),
+                ("label", L"x\ [\mathrm{m}]"),
+                ("long_name", "x-coordinates"),
+            ],
+        )
+        defVar(
+            file,
+            "y",
+            Float32,
+            ("y",);
+            chunksizes = (cy,),
+            attrib = [
+                ("units", "m"),
+                ("label", L"y\ [\mathrm{m}]"),
+                ("long_name", "y-coordinates"),
+            ],
+        )
+        defVar(
+            file,
+            "z",
+            Float32,
+            ("x", "y", "z");
+            chunksizes = (cx, cy, cz),
+            attrib = [
+                ("units", "m"),
+                ("label", L"z\ [\mathrm{m}]"),
+                ("long_name", "z-coordinates"),
+            ],
+        )
+        defVar(
+            file,
+            "ztilde",
+            Float32,
+            ("x", "y", "ztilde");
+            chunksizes = (cx, cy, cz),
+            attrib = [
+                ("units", "m"),
+                ("label", L"z_{\mathrm{s}}\ [\mathrm{m}]"),
+                ("long_name", "staggered z-coordinates"),
+            ],
+        )
+        defVar(
+            file,
+            "t",
+            Float32,
+            ("t",);
+            chunksizes = (ct,),
+            attrib = [
+                ("units", "s"),
+                ("label", L"t\ [\mathrm{s}]"),
+                ("long_name", "time"),
+            ],
+        )
+
+        if model !== :Boussinesq
+            defVar(
+                file,
+                "rhobar",
+                Float32,
+                ("x", "y", "z");
+                chunksizes = (cx, cy, cz),
+                attrib = [
+                    ("units", "kg*m^-3"),
+                    ("label", L"\bar{\rho}\ [\mathrm{kg\ m^{-3}}]"),
+                    ("long_name", "density background"),
+                ],
+            )
+            defVar(
+                file,
+                "thetabar",
+                Float32,
+                ("x", "y", "z");
+                chunksizes = (cx, cy, cz),
+                attrib = [
+                    ("units", "K"),
+                    ("label", L"\bar{\theta}\ [\mathrm{K}]"),
+                    ("long_name", "potential-temperature background"),
+                ],
+            )
+            defVar(
+                file,
+                "n2",
+                Float32,
+                ("x", "y", "z");
+                chunksizes = (cx, cy, cz),
+                attrib = [
+                    ("units", "s^-2"),
+                    ("label", L"N^2\ [\mathrm{s^{-2}}]"),
+                    ("long_name", "squared buoyancy frequency"),
+                ],
+            )
+            if model === :Compressible
+                defVar(
+                    file,
+                    "p",
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "kg*K*m^-3"),
+                        ("label", L"P\ [\mathrm{kg\ K\ m^{-3}}]"),
+                        ("long_name", "mass-weighted potential temperature"),
+                    ],
+                )
+            else
+                defVar(
+                    file,
+                    "p",
+                    Float32,
+                    ("x", "y", "z");
+                    chunksizes = (cx, cy, cz),
+                    attrib = [
+                        ("units", "kg*K*m^-3"),
+                        ("label", L"P\ [\mathrm{kg\ K\ m^{-3}}]"),
+                        ("long_name", "mass-weighted potential temperature"),
+                    ],
+                )
+            end
+        end
+
+        if prepare_restart || :rhop in output_variables
+            defVar(
+                file,
+                "rhop",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "kg*m^-3"),
+                    ("label", L"\rho'\ [\mathrm{kg\ m^{-3}}]"),
+                    ("long_name", "density fluctuations"),
+                ],
+            )
+        end
+
+        if :u in output_variables
+            defVar(
+                file,
+                "u",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "m*s^-1"),
+                    ("label", L"u\ [\mathrm{m\ s^{-1}}]"),
+                    ("long_name", "zonal wind"),
+                ],
+            )
+        end
+
+        if prepare_restart || :us in output_variables
+            defVar(
+                file,
+                "us",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "m*s^-1"),
+                    ("label", L"u_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"),
+                    ("long_name", "staggered zonal wind"),
+                ],
+            )
+        end
+
+        if :v in output_variables
+            defVar(
+                file,
+                "v",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "m*s^-1"),
+                    ("label", L"v\ [\mathrm{m\ s^{-1}}]"),
+                    ("long_name", "meridional wind"),
+                ],
+            )
+        end
+
+        if prepare_restart || :vs in output_variables
+            defVar(
+                file,
+                "vs",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "m*s^-1"),
+                    ("label", L"v_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"),
+                    ("long_name", "staggered meridional wind"),
+                ],
+            )
+        end
+
+        if :w in output_variables
+            defVar(
+                file,
+                "w",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "m*s^-1"),
+                    ("label", L"w\ [\mathrm{m\ s^{-1}}]"),
+                    ("long_name", "vertical wind"),
+                ],
+            )
+        end
+
+        if :ws in output_variables
+            defVar(
+                file,
+                "ws",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "m*s^-1"),
+                    ("label", L"w_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"),
+                    ("long_name", "staggered vertical wind"),
+                ],
+            )
+        end
+
+        if :wt in output_variables
+            defVar(
+                file,
+                "wt",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "m*s^-1"),
+                    ("label", L"\hat{w}\ [\mathrm{m\ s^{-1}}]"),
+                    ("long_name", "transformed vertical wind"),
+                ],
+            )
+        end
+
+        if prepare_restart || :wts in output_variables
+            defVar(
+                file,
+                "wts",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "m*s^-1"),
+                    ("label", L"\hat{w}_{\mathrm{s}}\ [\mathrm{m\ s^{-1}}]"),
+                    ("long_name", "staggered transformed vertical wind"),
+                ],
+            )
+        end
+
+        if :thetap in output_variables
+            defVar(
+                file,
+                "thetap",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "K"),
+                    ("label", L"\theta'\ [\mathrm{K}]"),
+                    ("long_name", "potential-temperature fluctuations"),
+                ],
+            )
+        end
+
+        if prepare_restart || :pip in output_variables
+            defVar(
+                file,
+                "pip",
+                Float32,
+                ("x", "y", "z", "t");
+                chunksizes = (cx, cy, cz, ct),
+                attrib = [
+                    ("units", "1"),
+                    ("label", L"\pi'"),
+                    ("long_name", "Exner-pressure fluctuations"),
+                ],
+            )
+        end
+
+        if tracer_setup !== :NoTracer
+            for field in fieldnames(TracerPredictands)
+                defVar(
+                    file,
+                    string(field),
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "1"),
+                        ("label", L"\chi"),
+                        ("long_name", "tracer mixing ratio"),
+                    ],
+                )
+            end
+
+            if leading_order_impact &&
+               wkb_mode !== :NoWKB &&
+               :dchidt0 in output_variables
+                defVar(
+                    file,
+                    "dchidt0",
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "s^-1"),
+                        (
+                            "label",
+                            L"(\partial_t \chi_\mathrm{b})^{(0)}_\mathrm{w}\ [\mathrm{s^{-1}}]",
+                        ),
+                        (
+                            "long_name",
+                            "leading-order GW-tracer flux convergence",
+                        ),
+                    ],
+                )
+            end
+
+            if leading_order_impact &&
+               wkb_mode !== :NoWKB &&
+               :uchi0 in output_variables
+                defVar(
+                    file,
+                    "uchi0",
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "m*s^-1"),
+                        (
+                            "label",
+                            L"\langle \\tilde{u} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
+                        ),
+                        ("long_name", "leading-order zonal GW-tracer flux"),
+                    ],
+                )
+            end
+
+            if leading_order_impact &&
+               wkb_mode !== :NoWKB &&
+               :vchi0 in output_variables
+                defVar(
+                    file,
+                    "vchi0",
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "m*s^-1"),
+                        (
+                            "label",
+                            L"\langle \\tilde{v} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
+                        ),
+                        (
+                            "long_name",
+                            "leading-order meridional GW-tracer flux",
+                        ),
+                    ],
+                )
+            end
+
+            if leading_order_impact &&
+               wkb_mode !== :NoWKB &&
+               :wchi0 in output_variables
+                defVar(
+                    file,
+                    "wchi0",
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "m*s^-1"),
+                        (
+                            "label",
+                            L"\langle \\tilde{w} \\tilde{\chi} \rangle\ [\mathrm{m\ s^{-1}}]",
+                        ),
+                        ("long_name", "leading-order vertical GW-tracer flux"),
+                    ],
+                )
+            end
+        end
+
+        if turbulence_scheme !== :NoTurbulence
+            if prepare_restart || :tke in output_variables
+                defVar(
+                    file,
+                    "tke",
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "m^2*s^-2"),
+                        ("label", L"e_\\mathrm{k}\ [\mathrm{m^2\ s^{-2}}]"),
+                        ("long_name", "mass-specific turbulent kinetic energy"),
+                    ],
+                )
+            end
+
+            if :shear_production in output_variables
+                defVar(
+                    file,
+                    "shear_production",
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "m^2*s^-3"),
+                        ("label", L"\mathcal{S}\ [\mathrm{m^2\ s^{-3}}]"),
+                        ("long_name", "shear production"),
+                    ],
+                )
+            end
+
+            if :buoyancy_production in output_variables
+                defVar(
+                    file,
+                    "buoyancy_production",
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", "m^2*s^-3"),
+                        ("label", L"\mathcal{B}\ [\mathrm{m^2\ s^{-3}}]"),
+                        ("long_name", "buoyancy production"),
+                    ],
+                )
+            end
+        end
+
+        if wkb_mode !== :NoWKB
+            if prepare_restart || save_ray_volumes
+                if x_size == 1 && y_size == 1
+                    nr_units = "kg*s^-1"
+                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ s^{-1}}]"
+                elseif x_size > 1 && y_size > 1
+                    nr_units = "kg*m^2*s^-1"
+                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ m^2\ s^{-1}}]"
+                else
+                    nr_units = "kg*m*s^-1"
+                    nr_label = L"\mathcal{N}_r\ [\mathrm{kg\ m\ s^{-1}}]"
+                end
+                for (field, units, label, long_name) in zip(
+                    (
+                        "xr",
+                        "yr",
+                        "zr",
+                        "dxr",
+                        "dyr",
+                        "dzr",
+                        "kr",
+                        "lr",
+                        "mr",
+                        "dkr",
+                        "dlr",
+                        "dmr",
+                        "nr",
+                    ),
+                    (
+                        "m",
+                        "m",
+                        "m",
+                        "m",
+                        "m",
+                        "m",
+                        "m^-1",
+                        "m^-1",
+                        "m^-1",
+                        "m^-1",
+                        "m^-1",
+                        "m^-1",
+                        nr_units,
+                    ),
+                    (
+                        L"x_{r}\ [\mathrm{m}]",
+                        L"y_{r}\ [\mathrm{m}]",
+                        L"z_{r}\ [\mathrm{m}]",
+                        L"\Delta x_{r}\ [\mathrm{m}]",
+                        L"\Delta y_{r}\ [\mathrm{m}]",
+                        L"\Delta z_{r}\ [\mathrm{m}]",
+                        L"k_{r}\ [\mathrm{m^{-1}}]",
+                        L"l_{r}\ [\mathrm{m^{-1}}]",
+                        L"m_{r}\ [\mathrm{m^{-1}}]",
+                        L"\Delta k_{r}\ [\mathrm{m^{-1}}]",
+                        L"\Delta l_{r}\ [\mathrm{m^{-1}}]",
+                        L"\Delta m_{r}\ [\mathrm{m^{-1}}]",
+                        nr_label,
+                    ),
+                    (
+                        "ray-volume position in x",
+                        "ray-volume position in y",
+                        "ray-volume position in z",
+                        "ray-volume extent in x",
+                        "ray-volume extent in y",
+                        "ray-volume extent in z",
+                        "ray-volume position in k",
+                        "ray-volume position in l",
+                        "ray-volume position in m",
+                        "ray-volume extent in k",
+                        "ray-volume extent in l",
+                        "ray-volume extent in m",
+                        "ray-volume phase-space wave-action density",
+                    ),
+                )
+                    defVar(
+                        file,
+                        string(field),
+                        Float32,
+                        ("rays", "x", "y", "zrays", "t");
+                        chunksizes = (cr, cx, cy, cz, ct),
+                        attrib = [
+                            ("units", units),
+                            ("label", label),
+                            ("long_name", long_name),
+                        ],
+                    )
+                end
+            end
+
+            for (field, units, label, long_name) in zip(
+                (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e),
+                (
+                    ("kg*m^-1*s^-2" for index in 1:5)...,
+                    "kg*m^-2*s^-1*K",
+                    "kg*m^-2*s^-1*K",
+                    "kg*m^-1*s^-2",
+                ),
+                (
+                    L"\bar{\rho}\langle u'u' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'v' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'w' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle v'v' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle v'w' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle u'\theta' \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
+                    L"\bar{\rho}\langle v'\theta' \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
+                    L"\mathcal{E}\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                ),
+                (
+                    "zonal zonal-momentum flux due to GWs",
+                    "zonal meridional-momentum flux due to GWs",
+                    "zonal vertical-momentum flux due to GWs",
+                    "meridional meridional-momentum flux due to GWs",
+                    "meridional vertical-momentum flux due to GWs",
+                    "zonal mass-weighted potential-temperature flux due to GWs",
+                    "meridional mass-weighted potential-temperature flux due to GWs",
+                    "GW energy density",
+                ),
+            )
+                defVar(
+                    file,
+                    string(field),
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", units),
+                        ("label", label),
+                        ("long_name", long_name),
+                    ],
+                )
+            end
+            for (field, units, label, long_name) in zip(
+                (:dudt, :dvdt, :dthetadt),
+                ("kg*m^-2*s^-2", "kg*m^-2*s^-2", "kg*K*m^-3*s^-1"),
+                (
+                    L"[\partial_t (\rho_\mathrm{b} u_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
+                    L"[\partial_t (\rho_\mathrm{b} v_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ m^{-2}\ s^{-2}}]",
+                    L"[\partial_t (P_\mathrm{b})]_\mathrm{w}\ [\mathrm{kg\ K\ m^{-3}\ s^{-1}}]",
+                ),
+                (
+                    "zonal-momentum GW forcing",
+                    "meridional-momentum GW forcing",
+                    "mass-weighted potential-temperature GW forcing",
+                ),
+            )
+                defVar(
+                    file,
+                    string(field),
+                    Float32,
+                    ("x", "y", "z", "t");
+                    chunksizes = (cx, cy, cz, ct),
+                    attrib = [
+                        ("units", units),
+                        ("label", label),
+                        ("long_name", long_name),
+                    ],
+                )
+            end
+            if elastic_mode_selection
+                for (field, label) in zip(
+                    (:launch_mode_count, :launch_power_fraction),
+                    ("Launch-mode count", "Launch-power fraction"),
+                )
+                    defVar(
+                        file,
+                        string(field),
+                        Float32,
+                        ("x", "y", "z", "t");
+                        chunksizes = (cx, cy, cz, ct),
+                        attrib = [
+                            ("units", "1"),
+                            ("label", label),
+                            ("long_name", label),
+                        ],
+                    )
+                end
+            end
+        end
         return
     end
 
