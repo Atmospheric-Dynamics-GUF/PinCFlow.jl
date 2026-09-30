@@ -4,7 +4,7 @@ compute_operator!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Compute the tensor elements of the linear operator on the right-hand side of the Poisson equation.
@@ -41,7 +41,7 @@ function compute_operator! end
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, nbz) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; model) = state.namelists.atmosphere
@@ -1602,5 +1602,5 @@ function compute_operator! end
         abdd_b[ia, ja, ka] = abdd
     end
 
-    return
+    nothing
 end

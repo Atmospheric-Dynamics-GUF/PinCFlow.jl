@@ -70,7 +70,7 @@ function compute_orographic_flow(
 )::NTuple{4, <:AbstractFloat}
     (; orographic_flow) = state.namelists.wkb
 
-    @dispatch_orographic_flow return compute_orographic_flow(
+    @dispatch_orographic_flow compute_orographic_flow(
         Val(orographic_flow),
         state,
         i,
@@ -95,7 +95,7 @@ end
     uh = (u[i, j, k] + u[i - 1, j, k]) / 2
     vh = (v[i, j, k] + v[i, j - 1, k]) / 2
 
-    return (rhoh, n2h, uh, vh)
+    (rhoh, n2h, uh, vh)
 end
 
 @ivy function compute_orographic_flow(
@@ -117,7 +117,7 @@ end
     uh = (u[i, j, k] + u[i - 1, j, k]) / 2
     vh = (v[i, j, k] + v[i, j - 1, k]) / 2
 
-    return (rhoh, n2h, uh, vh)
+    (rhoh, n2h, uh, vh)
 end
 
 @ivy function compute_orographic_flow(
@@ -153,5 +153,5 @@ end
     uh /= dzh
     vh /= dzh
 
-    return (rhoh, n2h, uh, vh)
+    (rhoh, n2h, uh, vh)
 end

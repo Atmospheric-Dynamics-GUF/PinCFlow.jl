@@ -8,7 +8,7 @@ apply_turbulent_damping!(
     k::Integer,
     zr::AbstractFloat,
     dt::AbstractFloat,
-)
+)::Nothing
 ```
 
 Damping of the wave-action density due to turbulence.
@@ -72,7 +72,7 @@ function apply_turbulent_damping! end
     k::Integer,
     zr::AbstractFloat,
     dt::AbstractFloat,
-)
+)::Nothing
     (; rays) = state.wkb
     (; lv, lb) = state.turbulence.turbulenceconstants
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -82,10 +82,10 @@ function apply_turbulent_damping! end
     (; turbulent_damping) = state.namelists.wkb
 
     if !turbulent_damping
-        return
+        return nothing
     end
     if rays.dens[r, i, j, k] == 0.0
-        return
+        return nothing
     end
 
     fc = coriolis_frequency * tref
@@ -136,5 +136,5 @@ function apply_turbulent_damping! end
 
     rays.dens[r, i, j, k] = wadr / factor
 
-    return
+    nothing
 end

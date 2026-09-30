@@ -62,7 +62,7 @@ function compute_lhs! end
 
 function compute_lhs!(state::State)::AbstractFloat
     (; model) = state.namelists.atmosphere
-    @dispatch_model return compute_lhs!(state, Val(model))
+    @dispatch_model compute_lhs!(state, Val(model))
 end
 
 @ivy function compute_lhs!(
@@ -156,7 +156,7 @@ end
         end
     end
 
-    return tolref
+    tolref
 end
 
 @ivy function compute_lhs!(
@@ -222,5 +222,5 @@ end
         end
     end
 
-    return tolref
+    tolref
 end

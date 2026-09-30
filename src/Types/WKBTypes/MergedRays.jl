@@ -50,5 +50,5 @@ struct MergedRays{
 end
 
 function MergedRays(bounds::Integer, count::Integer)::MergedRays
-    return MergedRays([zeros(bounds, count) for i in 1:6]..., zeros(count))
+    MergedRays([zeros(bounds, count) for i in 1:6]..., zeros(count))
 end

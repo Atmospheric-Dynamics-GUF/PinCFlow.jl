@@ -9,5 +9,5 @@ function bhat(
 )::Real
     (; a0, m) = parameters
 
-    return a0 * n2(state, x, y, z) / m * envelope(parameters, x, y, z)
+    a0 * n2(state, x, y, z) / m * envelope(parameters, x, y, z)
 end

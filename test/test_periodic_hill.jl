@@ -33,5 +33,5 @@ function test_periodic_hill()
         test_example(periodic_hill, keywords, reference; update)
     end
 
-    return
+    nothing
 end

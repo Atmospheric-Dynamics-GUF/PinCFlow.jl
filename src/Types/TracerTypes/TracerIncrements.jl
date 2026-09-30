@@ -45,14 +45,14 @@ function TracerIncrements(
 )::TracerIncrements
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerIncrements(domain, Val(tracer_setup))
+    @dispatch_tracer_setup TracerIncrements(domain, Val(tracer_setup))
 end
 
 function TracerIncrements(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerIncrements
-    return TracerIncrements(
+    TracerIncrements(
         [zeros(0, 0, 0) for field in fieldnames(TracerIncrements)]...,
     )
 end
@@ -63,7 +63,7 @@ function TracerIncrements(
 )::TracerIncrements
     (; nxx, nyy, nzz) = domain
 
-    return TracerIncrements(
+    TracerIncrements(
         [zeros(nxx, nyy, nzz) for field in fieldnames(TracerIncrements)]...,
     )
 end

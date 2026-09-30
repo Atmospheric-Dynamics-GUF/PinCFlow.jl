@@ -91,7 +91,7 @@ function compute_topography(
     <:AbstractArray{<:AbstractFloat, 3},
 }
     (; wkb_mode) = namelists.wkb
-    @dispatch_wkb_mode return compute_topography(
+    @dispatch_wkb_mode compute_topography(
         namelists,
         constants,
         domain,
@@ -139,7 +139,7 @@ end
     set_zonal_boundaries_of_field!(hb, namelists, domain)
     set_meridional_boundaries_of_field!(hb, namelists, domain)
 
-    return (hb, hw, kh, lh)
+    (hb, hw, kh, lh)
 end
 
 @ivy function compute_topography(
@@ -172,5 +172,5 @@ end
     set_zonal_boundaries_of_field!(hb, namelists, domain)
     set_meridional_boundaries_of_field!(hb, namelists, domain)
 
-    return (hb, hw, kh, lh)
+    (hb, hw, kh, lh)
 end

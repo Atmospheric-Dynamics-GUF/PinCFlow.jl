@@ -44,7 +44,7 @@ function TracerNamelist(;
     relaxed_chi::Function = (x, y, z, t, dt) -> 0.0,
     apply_lhs_sponge_to_tracer::Bool = true,
 )::TracerNamelist
-    return TracerNamelist(
+    TracerNamelist(
         tracer_setup,
         leading_order_impact,
         initial_chi,

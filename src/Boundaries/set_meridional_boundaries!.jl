@@ -3,7 +3,7 @@
 set_meridional_boundaries!(
     state::State,
     variables::Union{BoundaryPredictands, BoundaryReconstructions},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for predictands or reconstructions by dispatching to the appropriate method.
@@ -13,7 +13,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for predictands in Boussinesq mode.
@@ -23,7 +23,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:PseudoIncompressible},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for predictands in pseudo-incompressible mode.
@@ -33,7 +33,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for predictands in compressible mode.
@@ -43,7 +43,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for reconstructions in Boussinesq mode.
@@ -53,7 +53,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for reconstructions in non-Boussinesq modes.
@@ -62,7 +62,7 @@ Enforce meridional boundary conditions for reconstructions in non-Boussinesq mod
 set_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for WKB variables by dispatching to the appropriate method.
@@ -72,7 +72,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for WKB integrals needed in `:SingleColumn` and `:SteadyState` configurations.
@@ -82,7 +82,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Val{:MultiColumn},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for WKB integrals needed in `:MultiColumn` configurations.
@@ -92,7 +92,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for WKB tendencies needed in `:SingleColumn` and `:SteadyState` configurations.
@@ -102,7 +102,7 @@ set_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Val{:MultiColumn},
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for WKB tendencies needed in `:MultiColumn` configurations.
@@ -124,17 +124,17 @@ function set_meridional_boundaries! end
 function set_meridional_boundaries!(
     state::State,
     variables::Union{BoundaryPredictands, BoundaryReconstructions},
-)
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model set_meridional_boundaries!(state, variables, Val(model))
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:Boussinesq},
-)
+)::Nothing
     (; namelists, domain) = state
     (; predictands) = state.variables
 
@@ -146,14 +146,14 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:PseudoIncompressible},
-)
+)::Nothing
     (; namelists, domain) = state
     (; predictands) = state.variables
 
@@ -165,14 +165,14 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:Compressible},
-)
+)::Nothing
     (; namelists, domain) = state
     (; predictands) = state.variables
 
@@ -184,14 +184,14 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     model::Val{:Boussinesq},
-)
+)::Nothing
     (; namelists, domain) = state
     (; reconstructions) = state.variables
 
@@ -203,14 +203,14 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; reconstructions) = state.variables
 
@@ -222,27 +222,27 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
+)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode set_meridional_boundaries!(
         state,
         variables,
         Val(wkb_mode),
     )
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
@@ -255,14 +255,14 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Val{:MultiColumn},
-)
+)::Nothing
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
@@ -275,14 +275,14 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
@@ -294,14 +294,14 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_meridional_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Val{:MultiColumn},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
@@ -313,5 +313,5 @@ function set_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end

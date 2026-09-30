@@ -119,7 +119,7 @@ function leading_order_tracer_fluxes(
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
-    return coeff * (wnrl * dchidz - wnrm * dchidy)
+    coeff * (wnrl * dchidz - wnrm * dchidy)
 end
 
 function leading_order_tracer_fluxes(
@@ -140,7 +140,7 @@ function leading_order_tracer_fluxes(
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
-    return coeff * (wnrm * dchidx - wnrk * dchidz)
+    coeff * (wnrm * dchidx - wnrk * dchidz)
 end
 
 function leading_order_tracer_fluxes(
@@ -161,5 +161,5 @@ function leading_order_tracer_fluxes(
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
-    return coeff * (wnrk * dchidy - wnrl * dchidx)
+    coeff * (wnrk * dchidy - wnrl * dchidx)
 end

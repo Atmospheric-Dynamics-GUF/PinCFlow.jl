@@ -25,7 +25,7 @@ for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
                     page = replace(read(page_file, String), code => script)
                     open(page_file, "w") do io
                         write(io, page)
-                        return
+                        nothing
                     end
                 end
             end
@@ -44,7 +44,7 @@ for name in names(PinCFlow.Examples)
                 output_file = directory * "/$(example).h5",
                 plot_file = "docs/src/examples/results/$(example).svg",
             )
-            return
+            nothing
         end
     end
 end
@@ -71,6 +71,7 @@ open(joinpath(@__DIR__, "src", "authors.md"), "w") do io
         )
         println(io, line)
     end
+    nothing
 end
 
 open(joinpath(@__DIR__, "src", "code_of_conduct.md"), "w") do io
@@ -88,6 +89,7 @@ open(joinpath(@__DIR__, "src", "code_of_conduct.md"), "w") do io
         line = replace(line, "[AUTHORS.md](AUTHORS.md)" => "[Authors](@ref)")
         println(io, "  > ", line)
     end
+    nothing
 end
 
 open(joinpath(@__DIR__, "src", "contributing.md"), "w") do io
@@ -104,6 +106,7 @@ open(joinpath(@__DIR__, "src", "contributing.md"), "w") do io
         line = replace(line, "[AUTHORS.md](AUTHORS.md)" => "[Authors](@ref)")
         println(io, line)
     end
+    nothing
 end
 
 open(joinpath(@__DIR__, "src", "license.md"), "w") do io
@@ -121,6 +124,7 @@ open(joinpath(@__DIR__, "src", "license.md"), "w") do io
         line = replace(line, "[AUTHORS.md](AUTHORS.md)" => "[Authors](@ref)")
         println(io, "  > ", line)
     end
+    nothing
 end
 
 # Create a changelog.
@@ -140,6 +144,7 @@ open(joinpath(@__DIR__, "src", "changelog.md"), "w") do io
         end
         println(io, line)
     end
+    nothing
 end
 
 # Remove the temporary file.

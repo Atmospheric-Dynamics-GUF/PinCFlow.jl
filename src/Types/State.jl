@@ -131,7 +131,7 @@ function State(
     turbulence =
         Turbulence(namelists, constants, domain, atmosphere, grid, variables)
 
-    return State(
+    State(
         namelists,
         time,
         constants,

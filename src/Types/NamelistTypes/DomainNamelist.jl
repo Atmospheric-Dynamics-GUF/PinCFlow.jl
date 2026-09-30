@@ -79,7 +79,7 @@ function DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
 )::DomainNamelist
-    return DomainNamelist(
+    DomainNamelist(
         Int(x_size),
         Int(y_size),
         Int(z_size),

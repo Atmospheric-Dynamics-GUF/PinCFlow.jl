@@ -4,7 +4,7 @@ set_zonal_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for a matrix.
@@ -17,7 +17,7 @@ set_zonal_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for a 3D array.
@@ -30,7 +30,7 @@ set_zonal_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for a 5D array.
@@ -59,7 +59,7 @@ function set_zonal_boundaries_of_field! end
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
     domain::Domain,
-)
+)::Nothing
     (; x_size, nbx) = namelists.domain
     (; i0, i1) = domain
 
@@ -72,7 +72,7 @@ function set_zonal_boundaries_of_field! end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function set_zonal_boundaries_of_field!(
@@ -80,7 +80,7 @@ end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; x_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
@@ -100,7 +100,7 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function set_zonal_boundaries_of_field!(
@@ -108,7 +108,7 @@ end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; x_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
@@ -128,5 +128,5 @@ end
         end
     end
 
-    return
+    nothing
 end

@@ -1,6 +1,6 @@
 """
 ```julia
-turbulence_integration!(state::State, dt::AbstractFloat)
+turbulence_integration!(state::State, dt::AbstractFloat)::Nothing
 ```
 
 Integrate the turbulence energies by dispatching to the scheme-specific method.
@@ -10,7 +10,7 @@ turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     turbulence_scheme::Val{:NoTurbulence},
-)
+)::Nothing
 ```
 
 Return for configurations without turbulence parameterization.
@@ -20,13 +20,17 @@ turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     turbulence_scheme::Val{:TKEScheme},
-)
+)::Nothing
 ```
 
 Integrate the turbulent kinetic energy by dispatching to the specific operations.
 
 ```julia
-turbulence_integration!(state::State, dt::AbstractFloat, process::Dissipation)
+turbulence_integration!(
+    state::State,
+    dt::AbstractFloat,
+    process::Dissipation,
+)::Nothing
 ```
 
 Integrate the dissipation contribution of the prognostic equation for the turbulent kinetic energy.
@@ -40,7 +44,11 @@ The dissipation step is given by
 with turbulent mixing length ``l_d`` stored in `state.turbulence.turbulenceconstants.ld`.
 
 ```julia
-turbulence_integration!(state::State, dt::AbstractFloat, process::Advection)
+turbulence_integration!(
+    state::State,
+    dt::AbstractFloat,
+    process::Advection,
+)::Nothing
 ```
 
 Integrate the advection, shear production, and buoyancy contribution terms in the prognostic equation for the turbulent kinetic energy with a Runge-Kutta time step.
@@ -48,7 +56,11 @@ Integrate the advection, shear production, and buoyancy contribution terms in th
 At each Runge-Kutta stage, the mass-weighted turbulent kinetic energy is first reconstructed and its advective fluxes are calculated. Subsequently, the TKE is updated with its shear and buoyancy production terms, followed immediately by an implicit Euler step (the size of which is the fractional time step at the current Runge-Kutta stage) that accounts for the Rayleigh-damping imposed by the LHS sponge.
 
 ```julia
-turbulence_integration!(state::State, dt::AbstractFloat, process::Diffusion)
+turbulence_integration!(
+    state::State,
+    dt::AbstractFloat,
+    process::Diffusion,
+)::Nothing
 ```
 
 Integrate the turbulent diffusion term in the prognostic equation for the turbulent kinetic energy using a Thomas algorithm.
@@ -95,7 +107,7 @@ is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\m
 """
 function turbulence_integration! end
 
-function turbulence_integration!(state::State, dt::AbstractFloat)
+function turbulence_integration!(state::State, dt::AbstractFloat)::Nothing
     (; turbulence_scheme) = state.namelists.turbulence
 
     @dispatch_turbulence_scheme turbulence_integration!(
@@ -104,22 +116,22 @@ function turbulence_integration!(state::State, dt::AbstractFloat)
         Val(turbulence_scheme),
     )
 
-    return
+    nothing
 end
 
 function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     turbulence_scheme::Val{:NoTurbulence},
-)
-    return
+)::Nothing
+    nothing
 end
 
 function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     turbulence_scheme::Val{:TKEScheme},
-)
+)::Nothing
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
@@ -140,14 +152,14 @@ function turbulence_integration!(
     check_tke!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
-    return
+    nothing
 end
 
 @ivy function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     process::Dissipation,
-)
+)::Nothing
     (; tke) = state.turbulence.turbulencepredictands
     (; ld) = state.turbulence.turbulenceconstants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -163,14 +175,14 @@ end
             )^2.0
     end
 
-    return
+    nothing
 end
 
 @ivy function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     process::Advection,
-)
+)::Nothing
     (; nstages, stepfrac) = state.time
 
     for rkstage in 1:nstages
@@ -190,14 +202,14 @@ end
         set_boundaries!(state, BoundaryPredictands(), TKE())
     end
 
-    return
+    nothing
 end
 
 @ivy function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
     process::Diffusion,
-)
+)::Nothing
     (; tke) = state.turbulence.turbulencepredictands
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
@@ -266,5 +278,5 @@ end
     tke[i0:i1, j0:j1, k0:k1] .=
         fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
 
-    return
+    nothing
 end

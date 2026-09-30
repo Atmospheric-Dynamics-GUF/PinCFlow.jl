@@ -138,5 +138,5 @@ function compute_saturation_integrals end
         mb2k2 += 2 * n2r^2 / rhobar[iray, jray, kray] * densr * integral2
     end
 
-    return (mb2, mb2k2)
+    (mb2, mb2k2)
 end

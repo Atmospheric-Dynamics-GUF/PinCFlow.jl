@@ -20,7 +20,7 @@ The parameter can take any of the following values:
 macro dispatch_model end
 
 macro dispatch_model(input::Expr)
-    return esc(
+    esc(
         quote
             @dispatch (:Boussinesq, :PseudoIncompressible, :Compressible) $(
                 input

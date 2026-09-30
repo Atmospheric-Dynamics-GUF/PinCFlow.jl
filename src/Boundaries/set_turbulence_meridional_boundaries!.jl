@@ -3,7 +3,7 @@
 set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for turbulent kinetic energy.
@@ -12,7 +12,7 @@ Enforce meridional boundary conditions for turbulent kinetic energy.
 set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-)
+)::Nothing
 ```
 
 Enforce meridional boundary conditions for reconstructions of turbulent kinetic energy.
@@ -21,7 +21,7 @@ Enforce meridional boundary conditions for reconstructions of turbulent kinetic 
 set_turbulence_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
+)::Nothing
 ```
 
 Return for WKB-variables.
@@ -43,7 +43,7 @@ function set_turbulence_meridional_boundaries! end
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-)
+)::Nothing
     (; namelists, domain) = state
     (; turbulencepredictands) = state.turbulence
 
@@ -55,13 +55,13 @@ function set_turbulence_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-)
+)::Nothing
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
 
@@ -73,12 +73,12 @@ function set_turbulence_meridional_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_meridional_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
-    return
+)::Nothing
+    nothing
 end

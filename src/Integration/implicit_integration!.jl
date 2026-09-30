@@ -9,7 +9,7 @@ implicit_integration!(
     rayleigh_factor::AbstractFloat,
     iout::Integer,
     machine_start_time::DateTime,
-)
+)::Integer
 ```
 
 Perform an implicit Euler step on the right-hand sides of the prognostic equations, solve the Poisson equation and correct the Exner-pressure, momentum and density fluctuations accordingly.
@@ -43,7 +43,7 @@ function implicit_integration!(
     rayleigh_factor::AbstractFloat,
     iout::Integer,
     machine_start_time::DateTime,
-)
+)::Integer
     (; master) = state.domain
 
     modify_compressible_wind!(state, *)
@@ -75,5 +75,5 @@ function implicit_integration!(
 
     set_boundaries!(state, BoundaryPredictands())
 
-    return ntotalbicg
+    ntotalbicg
 end

@@ -25,7 +25,7 @@ function compute_slope end
 )::NTuple{2, <:AbstractFloat}
     (; hw, kh, lh) = state.grid
 
-    return (
+    (
         mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], kh[:, i, j]) /
         sum(abs, hw[:, i, j]),
         mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], lh[:, i, j]) /

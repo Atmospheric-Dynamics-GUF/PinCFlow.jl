@@ -320,7 +320,7 @@ end
     dzcmin = minimum(diff(zctilde; dims = 3))
     dzcmin = MPI.Allreduce(dzcmin, min, comm)
 
-    return Grid(
+    Grid(
         lx,
         ly,
         lz,

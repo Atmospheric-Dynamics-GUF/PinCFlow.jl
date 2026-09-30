@@ -95,7 +95,7 @@ function compute_buoyancy_factor(
     variable::Union{RhoP, W},
 )::AbstractFloat
     (; model) = state.namelists.atmosphere
-    @dispatch_model return compute_buoyancy_factor(
+    @dispatch_model compute_buoyancy_factor(
         state,
         i,
         j,
@@ -115,7 +115,8 @@ end
 )::AbstractFloat
     (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
-    return pbar[i, j, k] / thetabar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+
+    pbar[i, j, k] / thetabar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
 end
 
 @ivy function compute_buoyancy_factor(
@@ -128,7 +129,8 @@ end
 )::AbstractFloat
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
-    return rhobar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
+
+    rhobar[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
 end
 
 @ivy function compute_buoyancy_factor(
@@ -142,7 +144,8 @@ end
     (; jac) = state.grid
     (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
-    return (
+
+    (
         jac[i, j, k + 1] * pbar[i, j, k] / thetabar[i, j, k] +
         jac[i, j, k] * pbar[i, j, k + 1] / thetabar[i, j, k + 1]
     ) / (
@@ -162,9 +165,9 @@ end
     (; jac) = state.grid
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
-    return (
-        jac[i, j, k + 1] * rhobar[i, j, k] + jac[i, j, k] * rhobar[i, j, k + 1]
-    ) / (
+
+    (jac[i, j, k + 1] * rhobar[i, j, k] + jac[i, j, k] * rhobar[i, j, k + 1]) /
+    (
         jac[i, j, k + 1] * (rho[i, j, k] + rhobar[i, j, k]) +
         jac[i, j, k] * (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     )

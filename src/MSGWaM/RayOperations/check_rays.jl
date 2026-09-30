@@ -1,6 +1,6 @@
 """
 ```julia
-check_rays(state::State)
+check_rays(state::State)::Nothing
 ```
 
 Check if all ray volumes are assigned to the correct grid cells.
@@ -11,7 +11,7 @@ Check if all ray volumes are assigned to the correct grid cells.
 """
 function check_rays end
 
-@ivy function check_rays(state::State)
+@ivy function check_rays(state::State)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, x, y, zctilde) = state.grid
@@ -117,5 +117,5 @@ function check_rays end
         end
     end
 
-    return
+    nothing
 end

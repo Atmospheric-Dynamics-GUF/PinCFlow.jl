@@ -18,7 +18,7 @@ The parameter can take any of the following values:
 macro dispatch_filter_type end
 
 macro dispatch_filter_type(input::Expr)
-    return esc(quote
+    esc(quote
         @dispatch (:BoxFilter, :ShapiroFilter) $(input)
     end)
 end

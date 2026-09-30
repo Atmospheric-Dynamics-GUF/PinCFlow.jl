@@ -154,7 +154,7 @@ function Constants(namelists::Namelists)::Constants
     fr2 = fr^2
     sig = ma^2 / fr^2
 
-    return Constants(
+    Constants(
         gamma,
         gammainv,
         kappa,

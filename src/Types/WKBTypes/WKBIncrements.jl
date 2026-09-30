@@ -64,5 +64,5 @@ function WKBIncrements(
     nyy::Integer,
     nzz::Integer,
 )::WKBIncrements
-    return WKBIncrements([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:9]...)
+    WKBIncrements([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:9]...)
 end

@@ -253,5 +253,5 @@ function interpolate(
 
     phi = factor * phid + (1.0 - factor) * phiu
 
-    return phi
+    phi
 end

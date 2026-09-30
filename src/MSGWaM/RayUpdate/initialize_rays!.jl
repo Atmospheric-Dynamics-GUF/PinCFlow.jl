@@ -1,12 +1,12 @@
 """
 ```julia
-initialize_rays!(state::State)
+initialize_rays!(state::State)::Nothing
 ```
 
 Complete the initialization of MS-GWaM by dispatching to a WKB-mode-specific method.
 
 ```julia
-initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
+initialize_rays!(state::State, wkb_mode::Val{:NoWKB})::Nothing
 ```
 
 Return for non-WKB configurations.
@@ -15,7 +15,7 @@ Return for non-WKB configurations.
 initialize_rays!(
     state::State,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Complete the initialization of MS-GWaM.
@@ -38,20 +38,20 @@ In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.
 """
 function initialize_rays! end
 
-function initialize_rays!(state::State)
+function initialize_rays!(state::State)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode initialize_rays!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
-function initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
-    return
+function initialize_rays!(state::State, wkb_mode::Val{:NoWKB})::Nothing
+    nothing
 end
 
 @ivy function initialize_rays!(
     state::State,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
@@ -289,5 +289,5 @@ end
         println("")
     end
 
-    return
+    nothing
 end

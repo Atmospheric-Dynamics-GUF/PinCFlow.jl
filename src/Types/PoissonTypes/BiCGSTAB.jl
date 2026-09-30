@@ -50,5 +50,5 @@ end
 function BiCGSTAB(domain::Domain)::BiCGSTAB
     (; nx, ny, nz) = domain
 
-    return BiCGSTAB([zeros(nx, ny, nz) for i in 1:9]...)
+    BiCGSTAB([zeros(nx, ny, nz) for i in 1:9]...)
 end

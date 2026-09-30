@@ -56,17 +56,14 @@ function TracerReconstructions(
 )::TracerReconstructions
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerReconstructions(
-        domain,
-        Val(tracer_setup),
-    )
+    @dispatch_tracer_setup TracerReconstructions(domain, Val(tracer_setup))
 end
 
 function TracerReconstructions(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerReconstructions
-    return TracerReconstructions(
+    TracerReconstructions(
         [
             zeros(0, 0, 0, 0, 0) for field in fieldnames(TracerReconstructions)
         ]...,
@@ -79,7 +76,7 @@ function TracerReconstructions(
 )::TracerReconstructions
     (; nxx, nyy, nzz) = domain
 
-    return TracerReconstructions(
+    TracerReconstructions(
         [
             zeros(nxx, nyy, nzz, 3, 2) for
             field in fieldnames(TracerReconstructions)

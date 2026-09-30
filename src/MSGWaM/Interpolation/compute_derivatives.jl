@@ -222,7 +222,7 @@ function compute_derivatives end
             u[i - 1, j, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -265,7 +265,7 @@ end
             u[i, j + 1, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -324,7 +324,7 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -367,7 +367,7 @@ end
             v[i + 1, j, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -398,7 +398,7 @@ end
             v[i, j - 1, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -457,7 +457,7 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -509,7 +509,7 @@ end
         0.25 *
         (cu + cru - cd - crd) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -561,7 +561,7 @@ end
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -617,5 +617,5 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
