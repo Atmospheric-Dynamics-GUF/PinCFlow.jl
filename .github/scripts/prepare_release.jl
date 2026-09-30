@@ -100,7 +100,8 @@ try
     run(
         `gh pr create --base main --body "" --head new-release --label "new release" --title "New release"`,
     )
-catch
+catch exception
+    Base.display_error(stderr, exception, catch_backtrace())
 end
 
 # Update the PR.
