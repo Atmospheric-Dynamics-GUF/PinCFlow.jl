@@ -1,0 +1,52 @@
+name: Clean up gh-pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: gh-pages-cleanup
+  cancel-in-progress: true
+
+jobs:
+  clean-gh-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Clean up gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if ! git fetch origin gh-pages:gh-pages; then
+            echo "The gh-pages branch does not exist yet."
+            exit 0
+          fi
+
+          git checkout gh-pages
+
+          if [ -d "previews" ]; then
+            rm -rf previews
+            git add -A
+          fi
+
+          git checkout --orphan gh-pages-new
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Fresh gh-pages without previews"
+            git branch -m gh-pages
+            git push --force origin gh-pages
+            echo "Successfully cleaned up gh-pages."
+          else
+            echo "No files found on gh-pages."
+          fi
