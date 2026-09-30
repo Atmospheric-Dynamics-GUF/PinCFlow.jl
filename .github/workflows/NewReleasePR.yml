@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: new-release-pr
+  cancel-in-progress: true
+
 jobs:
   update-new-release-pr:
     if: ${{ !startsWith(github.event.head_commit.message, 'New release') }}
