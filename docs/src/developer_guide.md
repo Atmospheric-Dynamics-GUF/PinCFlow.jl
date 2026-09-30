@@ -16,6 +16,8 @@ The code is shared in a GitHub repository. Any contributions to the code should 
 
  1. Create a pull request for merging your commits into the remote main branch.
 
+ 1. Add a label that classifies the changes (use "breaking change", "feature change", "bug fix", or "documentation change" if applicable).
+
  1. Request a review from a main developer.
 
  1. Implement changes requested by the reviewer until they approve the pull request.
@@ -313,4 +315,4 @@ in the root directory of the repository.
 
 ## Creating new releases
 
-The creation of a new release must not be attempted without the express permission of one of PinCFlow.jl's maintainers. To create a new release, first update the version numbers in `Project.toml`, `docs/Project.toml` and `examples/Project.toml` (following the interpretation of [semantic versioning](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1)) and add the release notes to `NEWS.md`, documenting all relevant changes that have been implemented since the last release. Push your commit, navigate to it on GitHub and add the comment `@JuliaRegistrator register()`. If the release includes breaking changes, the comment must mention where they are documented (an example of this can be found [here](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/commit/6049b83416104195e0575516d4d12f5614a6e0b1#commitcomment-170569001)).
+The PinCFlow.jl repository uses a GitHub workflow that automatically creates and updates a new-release pull request to change version numbers and add release notes based on the labels of the pull requests that have been merged since the last release. After ten or more of these, the description of the new-release pull request includes a reminder to merge soon. With the permission of one of PinCFlow.jl's maintainers, the pull request may be merged. To finalize the release process, navigate to the corresponding commit on `main` and add the comment `@JuliaRegistrator register()`. If the release includes breaking changes, the comment must mention where they are documented (an example of this can be found [here](https://github.com/Atmospheric-Dynamics-GUF/PinCFlow.jl/commit/6049b83416104195e0575516d4d12f5614a6e0b1#commitcomment-170569001)).
