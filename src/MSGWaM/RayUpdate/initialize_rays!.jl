@@ -90,7 +90,7 @@ end
     # Compute initial wavenumbers, intrinsic frequencies and wave-action
     # densities with initial_wave_field.
     if wkb_mode !== Val(:SteadyState)
-        for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
+        @share for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
                 alpha,
                 x[i] * lref,
@@ -124,7 +124,7 @@ end
     kmax = k1
 
     # Loop over all grid cells with ray volumes.
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @share vector = false for k in kmin:kmax, j in j0:j1, i in i0:i1
         r = 0
         s = 0
 
@@ -278,7 +278,10 @@ end
     end
 
     # Compute global ray-volume count.
-    local_sum = sum(nray[i0:i1, j0:j1, kmin:kmax])
+    local_sum = 0
+    @share (+, local_sum) for k in kmin:kmax, j in jmin:jmax, i in imin:imax
+        local_sum += nray[i, j, k]
+    end
     global_sum = MPI.Allreduce(local_sum, +, comm)
 
     # Print information.

@@ -207,8 +207,8 @@ end
     # Initialize the WKB increments and maximum group velocities at the first
     # RK stage.
     if rkstage == 1
-        for k in kmin:kmax, j in j0:j1, i in i0:i1
-            for r in 1:nray[i, j, k]
+        @share vector = false for k in kmin:kmax, j in j0:j1, i in i0:i1
+            @share thread = false for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
                 dyray[r, i, j, k] = 0.0
                 dzray[r, i, j, k] = 0.0
@@ -226,8 +226,8 @@ end
         cgz_max[] = 0.0
     end
 
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
-        for r in 1:nray[i, j, k]
+    @share vector = false for k in kmin:kmax, j in j0:j1, i in i0:i1
+        @share thread = false for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
@@ -464,8 +464,8 @@ end
     #     Change of wave action
     #-------------------------------
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        for r in 1:nray[i, j, k]
+    @share vector = false for k in k0:k1, j in j0:j1, i in i0:i1
+        @share thread = false for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
@@ -508,179 +508,196 @@ end
     if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
-        nray[i0:i1, j0:j1, k0 - 1] .= nray_down
+        @share nray[i0:i1, j0:j1, k0 - 1] = nray_down
 
-        local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
+        local_count = 0
+        @share (max, local_count) for j in j0:j1, i in i0:i1
+            local_count = max(local_count, nray[i, j, k0 - 1])
+        end
         if local_count > 0
-            fields = fieldcount(Rays)
-            rays_down = zeros(fields, local_count, nx, ny)
+            field_count = fieldcount(Rays)
+            rays_down = zeros(field_count, local_count, nx, ny)
             MPI.Recv!(rays_down, comm; source = down)
-            for field in 1:fields
-                getfield(rays, field)[1:local_count, i0:i1, j0:j1, k0 - 1] .=
-                    rays_down[field, :, :, :]
+            for field_index in 1:field_count
+                field = getfield(rays, field_index)
+                @share field[1:local_count, i0:i1, j0:j1, k0 - 1] =
+                    rays_down[field_index, :, :, :]
             end
         end
     end
 
     # Loop over grid cells.
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1
+        @share vector = false for j in j0:j1, i in i0:i1
 
-        # Set the ray-volume count.
-        nray[i, j, k] = nray[i, j, k - 1]
+            # Set the ray-volume count.
+            nray[i, j, k] = nray[i, j, k - 1]
 
-        # Set up the saturation integrals.
-        integral1 = 0.0
-        integral2 = 0.0
-        m2b2 = 0.0
-        m2b2k2 = 0.0
+            # Set up the saturation integrals.
+            integral1 = 0.0
+            integral2 = 0.0
+            m2b2 = 0.0
+            m2b2k2 = 0.0
 
-        # Loop over ray volumes.
-        for r in 1:nray[i, j, k]
+            # Loop over ray volumes.
+            for r in 1:nray[i, j, k]
 
-            # Prepare the ray volume.
-            copy_rays!(rays, r => r, i => i, j => j, k - 1 => k)
+                # Prepare the ray volume.
+                copy_rays!(rays, r => r, i => i, j => j, k - 1 => k)
 
-            # Skip modes with zero wave-action density.
-            if rays.dens[r, i, j, k - 1] == 0
-                continue
+                # Skip modes with zero wave-action density.
+                if rays.dens[r, i, j, k - 1] == 0
+                    continue
+                end
+
+                # Set the vertical position (and extent).
+                rays.z[r, i, j, k] =
+                    zctilde[i, j, k - 1] +
+                    (rays.z[r, i, j, k - 1] - zctilde[i, j, k - 2]) /
+                    jac[i, j, k - 1] * jac[i, j, k]
+                rays.dzray[r, i, j, k] =
+                    rays.dzray[r, i, j, k - 1] * jac[i, j, k] / jac[i, j, k - 1]
+
+                # Get the horizontal wavenumbers.
+                (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
+                khr = sqrt(kr^2 + lr^2)
+
+                # Set the reference level.
+                kref = ko == 0 ? max(k0, k - 1) : k - 1
+
+                # Compute the vertical group velocity at the level below.
+                n2r = interpolate_stratification(
+                    rays.z[r, i, j, kref],
+                    state,
+                    N2(),
+                )
+                omir =
+                    -(u[i, j, kref] + u[i - 1, j, kref]) / 2 * kr -
+                    (v[i, j, kref] + v[i, j - 1, kref]) / 2 * lr
+                if fc < branch * omir < sqrt(n2r)
+                    mr = rays.m[r, i, j, kref]
+                    cgirz0 = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
+                else
+                    rays.dens[r, i, j, kref] = 0.0
+                    rays.dens[r, i, j, k] = 0.0
+                    continue
+                end
+
+                # Compute the local vertical wavenumber and vertical group velocity.
+                n2r =
+                    interpolate_stratification(rays.z[r, i, j, k], state, N2())
+                omir =
+                    -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
+                    (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
+                if fc < branch * omir < sqrt(n2r)
+                    mr =
+                        -branch * sqrt(khr^2 * (n2r - omir^2) / (omir^2 - fc^2))
+                    cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
+                else
+                    rays.dens[r, i, j, kref] = 0.0
+                    rays.dens[r, i, j, k] = 0.0
+                    continue
+                end
+
+                # Set the local vertical wavenumber.
+                rays.m[r, i, j, k] = mr
+
+                # Set the local wave action density.
+                (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+
+                apply_turbulent_damping!(
+                    state,
+                    r,
+                    i,
+                    j,
+                    k,
+                    zr,
+                    jac[i, j, k] * dz / cgirz,
+                )
+
+                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+                rays.dens[r, i, j, k] =
+                    1 / (
+                        1 +
+                        alphasponge / cgirz *
+                        (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
+                    ) *
+                    cgirz0 *
+                    rays.dens[r, i, j, kref] / cgirz
+
+                # Cycle if the saturation scheme is turned off.
+                if !use_saturation
+                    continue
+                end
+
+                # Get the ray volume extents.
+                (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
+                (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
+
+                # Compute the phase space factor.
+                dzi = min(dzr, jac[i, j, k] * dz)
+                facpsp = dzi / jac[i, j, k] / dz * dmr
+                if x_size > 1
+                    dxi = min(dxr, dx)
+                    facpsp *= dxi / dx * dkr
+                end
+                if y_size > 1
+                    dyi = min(dyr, dy)
+                    facpsp *= dyi / dy * dlr
+                end
+
+                # Compute the saturation integrals.
+                integral1 = khr^2 * mr^2 / ((khr^2 + mr^2) * omir) * facpsp
+                m2b2 +=
+                    2 * n2r^2 / rhobar[i, j, k] *
+                    integral1 *
+                    rays.dens[r, i, j, k]
+                integral2 = khr^2 * mr^2 / omir * facpsp
+                m2b2k2 +=
+                    2 * n2r^2 / rhobar[i, j, k] *
+                    integral2 *
+                    rays.dens[r, i, j, k] *
+                    jac[i, j, k] *
+                    dz / cgirz
             end
 
-            # Set the vertical position (and extent).
-            rays.z[r, i, j, k] =
-                zctilde[i, j, k - 1] +
-                (rays.z[r, i, j, k - 1] - zctilde[i, j, k - 2]) /
-                jac[i, j, k - 1] * jac[i, j, k]
-            rays.dzray[r, i, j, k] =
-                rays.dzray[r, i, j, k - 1] * jac[i, j, k] / jac[i, j, k - 1]
-
-            # Get the horizontal wavenumbers.
-            (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
-            khr = sqrt(kr^2 + lr^2)
-
-            # Set the reference level.
-            kref = ko == 0 ? max(k0, k - 1) : k - 1
-
-            # Compute the vertical group velocity at the level below.
-            n2r = interpolate_stratification(rays.z[r, i, j, kref], state, N2())
-            omir =
-                -(u[i, j, kref] + u[i - 1, j, kref]) / 2 * kr -
-                (v[i, j, kref] + v[i, j - 1, kref]) / 2 * lr
-            if fc < branch * omir < sqrt(n2r)
-                mr = rays.m[r, i, j, kref]
-                cgirz0 = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
+            # Compute the diffusion coefficient
+            n2r = interpolate_stratification(zc[i, j, k], state, N2())
+            if m2b2k2 == 0 || m2b2 < saturation_threshold^2 * n2r^2
+                diffusion = 0.0
             else
-                rays.dens[r, i, j, kref] = 0.0
-                rays.dens[r, i, j, k] = 0.0
-                continue
+                diffusion =
+                    (m2b2 - saturation_threshold^2 * n2r^2) / (2 * m2b2k2)
             end
 
-            # Compute the local vertical wavenumber and vertical group velocity.
-            n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
-            omir =
-                -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
-                (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
-            if fc < branch * omir < sqrt(n2r)
-                mr = -branch * sqrt(khr^2 * (n2r - omir^2) / (omir^2 - fc^2))
-                cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
-            else
-                rays.dens[r, i, j, kref] = 0.0
-                rays.dens[r, i, j, k] = 0.0
-                continue
+            # Reduce the wave action density.
+            for r in 1:nray[i, j, k]
+                if !use_saturation
+                    continue
+                end
+                if rays.dens[r, i, j, k] == 0
+                    continue
+                end
+                (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
+                khr = sqrt(kr^2 + lr^2)
+                n2r =
+                    interpolate_stratification(rays.z[r, i, j, k], state, N2())
+                omir =
+                    -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
+                    (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
+                if fc < branch * omir < sqrt(n2r)
+                    cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
+                else
+                    rays.dens[r, i, j, kref] = 0.0
+                    rays.dens[r, i, j, k] = 0.0
+                    continue
+                end
+                rays.dens[r, i, j, k] *= max(
+                    0,
+                    1 -
+                    jac[i, j, k] * dz / cgirz * 2 * diffusion * (khr^2 + mr^2),
+                )
             end
-
-            # Set the local vertical wavenumber.
-            rays.m[r, i, j, k] = mr
-
-            # Set the local wave action density.
-            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-
-            apply_turbulent_damping!(
-                state,
-                r,
-                i,
-                j,
-                k,
-                zr,
-                jac[i, j, k] * dz / cgirz,
-            )
-
-            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-            rays.dens[r, i, j, k] =
-                1 / (
-                    1 +
-                    alphasponge / cgirz *
-                    (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
-                ) *
-                cgirz0 *
-                rays.dens[r, i, j, kref] / cgirz
-
-            # Cycle if the saturation scheme is turned off.
-            if !use_saturation
-                continue
-            end
-
-            # Get the ray volume extents.
-            (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
-            (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
-
-            # Compute the phase space factor.
-            dzi = min(dzr, jac[i, j, k] * dz)
-            facpsp = dzi / jac[i, j, k] / dz * dmr
-            if x_size > 1
-                dxi = min(dxr, dx)
-                facpsp *= dxi / dx * dkr
-            end
-            if y_size > 1
-                dyi = min(dyr, dy)
-                facpsp *= dyi / dy * dlr
-            end
-
-            # Compute the saturation integrals.
-            integral1 = khr^2 * mr^2 / ((khr^2 + mr^2) * omir) * facpsp
-            m2b2 +=
-                2 * n2r^2 / rhobar[i, j, k] * integral1 * rays.dens[r, i, j, k]
-            integral2 = khr^2 * mr^2 / omir * facpsp
-            m2b2k2 +=
-                2 * n2r^2 / rhobar[i, j, k] *
-                integral2 *
-                rays.dens[r, i, j, k] *
-                jac[i, j, k] *
-                dz / cgirz
-        end
-
-        # Compute the diffusion coefficient
-        n2r = interpolate_stratification(zc[i, j, k], state, N2())
-        if m2b2k2 == 0 || m2b2 < saturation_threshold^2 * n2r^2
-            diffusion = 0.0
-        else
-            diffusion = (m2b2 - saturation_threshold^2 * n2r^2) / (2 * m2b2k2)
-        end
-
-        # Reduce the wave action density.
-        for r in 1:nray[i, j, k]
-            if !use_saturation
-                continue
-            end
-            if rays.dens[r, i, j, k] == 0
-                continue
-            end
-            (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
-            khr = sqrt(kr^2 + lr^2)
-            n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
-            omir =
-                -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
-                (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
-            if fc < branch * omir < sqrt(n2r)
-                cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
-            else
-                rays.dens[r, i, j, kref] = 0.0
-                rays.dens[r, i, j, k] = 0.0
-                continue
-            end
-            rays.dens[r, i, j, k] *= max(
-                0,
-                1 - jac[i, j, k] * dz / cgirz * 2 * diffusion * (khr^2 + mr^2),
-            )
         end
     end
 
@@ -688,13 +705,17 @@ end
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
-        local_count = maximum(nray[i0:i1, j0:j1, k1])
+        local_count = 0
+        @share (max, local_count) for j in j0:j1, i in i0:i1
+            local_count = max(local_count, nray[i, j, k1])
+        end
         if local_count > 0
-            fields = fieldcount(Rays)
-            rays_up = zeros(fields, local_count, nx, ny)
-            for field in 1:fields
-                rays_up[field, :, :, :] .=
-                    getfield(rays, field)[1:local_count, i0:i1, j0:j1, k1]
+            field_count = fieldcount(Rays)
+            rays_up = zeros(field_count, local_count, nx, ny)
+            for field_index in 1:field_count
+                field = getfield(rays, field_index)
+                @share rays_up[field_index, :, :, :] =
+                    field[1:local_count, i0:i1, j0:j1, k1]
             end
             MPI.Send(rays_up, comm; dest = up)
         end

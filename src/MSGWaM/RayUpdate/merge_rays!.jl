@@ -75,11 +75,17 @@ end
     (; bins, nray, rays, merged_rays) = state.wkb
 
     # Compute ray-volume count before merging.
-    nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
+    nray_before = 0
+    @share (+, nray_before) for k in k0:k1, j in j0:j1, i in i0:i1
+        nray_before += nray[i, j, k]
+    end
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Loop over grid cells.
-    @dispatch_merge_mode for k in k0:k1, j in j0:j1, i in i0:i1
+    @dispatch_merge_mode @share vector = false for k in k0:k1,
+        j in j0:j1,
+        i in i0:i1
+
         if nray[i, j, k] < bins
             continue
         end
@@ -109,10 +115,10 @@ end
         end
 
         # Reset the merged ray volumes.
-        merged_rays.nr .= 0.0
+        @share thread = false merged_rays.nr = 0.0
 
         # Loop over ray volumes.
-        for r in 1:nray[i, j, k]
+        @share thread = false for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
@@ -215,7 +221,7 @@ end
         end
 
         # Reset the old ray volumes.
-        rays.data[:, :, i, j, k] .= 0.0
+        @share thread = false rays.data[:, :, i, j, k] = 0.0
 
         # Construct the merged ray volumes.
         r = 0
@@ -273,7 +279,10 @@ end
     end
 
     # Compute ray-volume count after merging.
-    nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
+    nray_after = 0
+    @share (+, nray_after) for k in k0:k1, j in j0:j1, i in i0:i1
+        nray_after += nray[i, j, k]
+    end
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after < nray_before
