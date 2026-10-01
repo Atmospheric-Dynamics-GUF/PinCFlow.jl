@@ -329,7 +329,7 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field_name  in fieldnames(WKBIntegrals)
+    for field_name in fieldnames(WKBIntegrals)
         field = getfield(integrals, field_name)
         @share field = 0
     end
