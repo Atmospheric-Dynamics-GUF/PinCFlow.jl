@@ -1,0 +1,36 @@
+name: PR-label check
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+
+jobs:
+  check-labels:
+    if: github.head_ref != 'new-release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check change classification labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+
+          if echo "$LABELS" | grep -E '^(breaking change|feature change|bug fix|documentation change)$' > /dev/null; then
+            echo "Valid release classification label found."
+          else
+            echo "Error: Pull request #$PR_NUMBER must have at least one of the following labels:"
+            echo "  - breaking change"
+            echo "  - feature change"
+            echo "  - bug fix"
+            echo "  - documentation change"
+            exit 1
+          fi
