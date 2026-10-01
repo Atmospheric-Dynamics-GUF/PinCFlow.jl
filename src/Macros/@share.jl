@@ -2,7 +2,6 @@ macro share end
 
 macro share(x::Vararg{Expr})
     if x[end].head === :for
-        block_size = 64
         thread = true
         vector = true
 
@@ -15,9 +14,7 @@ macro share(x::Vararg{Expr})
                     xi.args[1] === option && error("Duplicate option!")
                 end
 
-                if xi.args[1] === :block_size
-                    block_size = xi.args[2]
-                elseif xi.args[1] === :thread && xi.args[2] isa Bool
+                if xi.args[1] === :thread && xi.args[2] isa Bool
                     thread = xi.args[2]
                 elseif xi.args[1] === :vector && xi.args[2] isa Bool
                     vector = xi.args[2]
@@ -54,7 +51,7 @@ macro share(x::Vararg{Expr})
             error("Unexpected for-loop format!")
         end
 
-        @gensym all_indices block blocks index indices loop_size
+        @gensym all_indices block blocks block_size index indices loop_size
 
         vector_loop = Expr(
             :macrocall,
@@ -77,8 +74,7 @@ macro share(x::Vararg{Expr})
 
         thread_loop = Expr(
             :macrocall,
-            thread ? GlobalRef(Polyester, Symbol("@batch")) :
-            GlobalRef(Macros, Symbol("@last")),
+            GlobalRef(Polyester, Symbol("@batch")),
             __source__,
             (
                 :(reduction = $(Expr(:tuple, reductions...))) for
@@ -96,15 +92,31 @@ macro share(x::Vararg{Expr})
             ),
         )
 
-        output = esc(quote
-            let
-                $all_indices = CartesianIndices(($(ranges...),))
-                $loop_size = length($all_indices)
+        threaded = quote
+            $blocks = 1:cld($loop_size, $block_size)
+            $thread_loop
+        end
 
-                $blocks = 1:cld($loop_size, $block_size)
-                $thread_loop
-            end
-        end)
+        vectorized = quote
+            $indices = $all_indices
+            $vector_loop
+        end
+
+        output = esc(
+            quote
+                let
+                    $all_indices = CartesianIndices(($(ranges...),))
+                    $loop_size = length($all_indices)
+                    $block_size =
+                        cld($loop_size, $(GlobalRef(Threads, :nthreads))())
+                    if $block_size == $loop_size
+                        $vectorized
+                    else
+                        $(thread ? threaded : vectorized)
+                    end
+                end
+            end,
+        )
 
         println(output)
 
