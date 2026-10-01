@@ -122,7 +122,7 @@ end
 
     set_tracer_fields_zero!(state)
 
-    @share for k in (k0 - 1):(k1 + 1),
+    @share vector = false for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -214,7 +214,7 @@ end
                         kmax > k1 &&
                         error("Vertical index is too large!")
 
-                    for kray in kmin:kmax
+                    @share thread = false for kray in kmin:kmax
                         dzi =
                             min((zr + dzr / 2), zctilde[iray, jray, kray]) -
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
@@ -334,7 +334,7 @@ end
         @share field = 0
     end
 
-    @share for k in (k0 - 1):(k1 + 1),
+    @share vector = false for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -424,7 +424,7 @@ end
                         kmax > k1 &&
                         error("Vertical index is too large!")
 
-                    for kray in kmin:kmax
+                    @share thread = false for kray in kmin:kmax
                         dzi =
                             min((zr + dzr / 2), zctilde[iray, jray, kray]) -
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
@@ -511,7 +511,7 @@ end
         @share field = 0
     end
 
-    @share for k in (k0 - 1):(k1 + 1),
+    @share vector = false for k in (k0 - 1):(k1 + 1),
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
@@ -586,7 +586,7 @@ end
                         dkd = 1,
                     )
 
-                    for kray in kmin:kmax
+                    @share thread = false for kray in kmin:kmax
                         dzi =
                             min((zr + dzr / 2), zctilde[iray, jray, kray]) -
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
