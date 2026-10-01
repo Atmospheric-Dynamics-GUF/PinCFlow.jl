@@ -78,7 +78,7 @@ function compute_orographic_modes! end
 
     fc = coriolis_frequency * tref
 
-    for j in j0:j1, i in i0:i1
+    @share for j in j0:j1, i in i0:i1
         (rhoh, n2h, uh, vh) = compute_orographic_flow(state, i, j)
 
         ratio = compute_blocked_layer!(state, n2h, uh, vh, i, j)
