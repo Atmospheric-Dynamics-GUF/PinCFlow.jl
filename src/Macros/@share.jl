@@ -122,8 +122,18 @@ macro share(x::Vararg{Expr})
 
         return output
     else
-        if length(x) > 1
-            error("Unexpected options!")
+        if length(x) == 1
+            thread = true
+        elseif length(x) == 2
+            if x[2].head === :(=) &&
+               x[2].args[1] === :thread &&
+               x[2].args[2] isa Bool
+                thread = x[2].args[2]
+            else
+                error("Unexpected option!")
+            end
+        else
+            error("Unexpected option!")
         end
 
         output = esc(
@@ -131,7 +141,12 @@ macro share(x::Vararg{Expr})
                 :macrocall,
                 GlobalRef(FastBroadcast, Symbol("@..")),
                 __source__,
-                :(thread = $(GlobalRef(FastBroadcast, :Threaded))()),
+                :(
+                    thread = $(GlobalRef(
+                        FastBroadcast,
+                        thread ? :Threaded : :Serial,
+                    ))()
+                ),
                 x[end],
             ),
         )
