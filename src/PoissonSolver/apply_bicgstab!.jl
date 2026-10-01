@@ -29,7 +29,7 @@ function apply_bicgstab!(
     (; tolerance, poisson_iterations, preconditioner, tolerance_is_relative) =
         state.namelists.poisson
     (; master, comm, nx, ny, nz) = state.domain
-    (; rhs, solution) = state.poisson
+    (; lhs, solution) = state.poisson
     (; p, r0, rold, r, s, t, v, matvec, v_pc) = state.poisson.bicgstab
 
     # Print information.
@@ -57,7 +57,7 @@ function apply_bicgstab!(
 
     apply_operator!(solution, matvec, Total(), state)
     @share for k in 1:nz, j in 1:ny, i in 1:nx
-        r0[i, j, k] = rhs[i, j, k] - matvec[i, j, k]
+        r0[i, j, k] = lhs[i, j, k] - matvec[i, j, k]
         p[i, j, k] = r0[i, j, k]
         r[i, j, k] = r0[i, j, k]
     end

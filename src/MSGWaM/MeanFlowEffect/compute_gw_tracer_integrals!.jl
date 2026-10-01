@@ -75,7 +75,7 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `state`: Model state.
 
-  - `tracer_setup`:  General tracer-transport configuration.
+  - `tracer_setup`: General tracer-transport configuration.
 
   - `fc`: Coriolis parameter.
 
@@ -87,7 +87,7 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `wnrm`: Vertical wavenumber.
 
-  - `wadr`: Phase-space wave-action density.
+  - `wadr`: Contributing fraction of the physical-space wave-action density.
 
   - `xlc`: Zonal location of the ray-volume.
 
@@ -101,10 +101,9 @@ The zonal, meridional, and vertical fluxes are given by
 
   - `k`: Vertical grid-cell index.
 
-# See also:
+# See also
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.leading_order_tracer_fluxes`](@ref)
-
 """
 function compute_gw_tracer_integrals! end
 

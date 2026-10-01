@@ -1,13 +1,13 @@
 """
 ```julia
-@ivy(x::Expr)
+@ivy(x::Any)
 ```
 
-Return the expression `x` with all slices turned into views and all bounds checks turned off.
+Return `x` with all slices turned into views and all bounds checks turned off.
 
 # Arguments
 
-  - `x`: Input expression.
+  - `x`: Input object.
 
 # See also
 
@@ -15,6 +15,6 @@ Return the expression `x` with all slices turned into views and all bounds check
 """
 macro ivy end
 
-macro ivy(x::Expr)
+macro ivy(x::Any)
     return esc(ivy(x))
 end

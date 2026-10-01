@@ -46,7 +46,7 @@ function wkb_wave_packet(;
     output = OutputNamelist(;
         output_file,
         output_interval = 600,
-        output_variables = [:uw],
+        output_variables = [:dchidt0],
         prepare_restart,
         tmax = 600,
     )
@@ -64,13 +64,19 @@ function wkb_wave_packet(;
         ),
     )
 
-    integrate(Namelists(; atmosphere, domain, grid, output, wkb))
+    tracer = TracerNamelist(;
+        tracer_setup = :TracerOn,
+        leading_order_impact = true,
+        initial_chi = (x, y, z) -> z,
+    )
+
+    integrate(Namelists(; atmosphere, domain, grid, output, wkb, tracer))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
             plot_file,
             output_file,
-            (:uw, 0.5, 0.5, 0.5, 2);
+            (:dchidt0, 0.5, 0.5, 0.5, 2);
             display_figure,
             time_unit = :min,
         )

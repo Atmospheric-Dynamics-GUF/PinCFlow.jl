@@ -10,7 +10,6 @@ module Macros
 import Polyester
 import FastBroadcast
 
-include("dispatch.jl")
 include("find_argument.jl")
 include("ivy.jl")
 include("replace_argument.jl")

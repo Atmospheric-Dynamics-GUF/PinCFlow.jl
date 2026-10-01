@@ -75,7 +75,7 @@ end
     (; dx, dy, dz, jac) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
-    (; rhs) = state.poisson
+    (; lhs) = state.poisson
 
     # Initialize summation variables.
     divl2 = 0.0
@@ -134,9 +134,9 @@ end
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
-        rhs[ib, jb, kb] = bu + bv + bw
+        lhs[ib, jb, kb] = bu + bv + bw
         # Compute check sum for solvability criterion.
-        divl2 += rhs[ib, jb, kb]^2.0
+        divl2 += lhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0
     end
 
@@ -169,7 +169,7 @@ end
     (; dx, dy, dz, jac) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; u, v, w) = state.variables.predictands
-    (; rhs) = state.poisson
+    (; lhs) = state.poisson
 
     # Initialize summation fields.
     divl2 = 0.0
@@ -200,9 +200,9 @@ end
         bv /= fcscal
         bw /= fcscal
         heating /= fcscal
-        rhs[ib, jb, kb] = bu + bv + bw - heating
+        lhs[ib, jb, kb] = bu + bv + bw - heating
         # Compute check sum for solvability criterion.
-        divl2 += rhs[ib, jb, kb]^2.0
+        divl2 += lhs[ib, jb, kb]^2.0
         divl2_norm += bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0
     end
 

@@ -28,9 +28,11 @@ WKBNamelist(;
     use_saturation::Bool = true,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
+    orographic_flow::Symbol = :Average,
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,
+    reduction_coefficient::Real = 1.0E+0,
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
@@ -89,11 +91,15 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `wkb_mode::Symbol`: Approximations used by MS-GWaM.
 
+  - `orographic_flow::Symbol`: Method used to approximate quantities of the mountain-wave-generating background flow.
+
   - `blocking::Bool`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
 
   - `long_threshold::Float64`: Long-number threshold used by the blocked-layer scheme.
 
   - `drag_coefficient::Float64`: Dimensionless drag coefficient used by the blocked-layer scheme.
+
+  - `reduction_coefficient::Float64`: Dimensionless coefficient that regulates how much of the blocked layer contributes to a reduction of the wave amplitude.
 
   - `wave_modes::Int`: Number of wave modes per grid cell.
 
@@ -112,7 +118,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
   - `turbulent_damping::Bool`: Damping of wave-action density due to turbulence.
 
 !!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been validated yet.
+    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 
 !!! danger "Experimental"
     The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
@@ -142,9 +148,11 @@ struct WKBNamelist
     use_saturation::Bool
     saturation_threshold::Float64
     wkb_mode::Symbol
+    orographic_flow::Symbol
     blocking::Bool
     long_threshold::Float64
     drag_coefficient::Float64
+    reduction_coefficient::Float64
     wave_modes::Int
     initial_wave_field::FunctionWrapper{
         NTuple{5, Float64},
@@ -180,9 +188,11 @@ function WKBNamelist(;
     use_saturation::Bool = true,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
+    orographic_flow::Symbol = :Average,
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
     drag_coefficient::Real = 1.0E+0,
+    reduction_coefficient::Real = 1.0E+0,
     wave_modes::Integer = 1,
     initial_wave_field::Function = (alpha, x, y, z) ->
         (0.0, 0.0, 0.0, 0.0, 0.0),
@@ -215,9 +225,11 @@ function WKBNamelist(;
         use_saturation,
         Float64(saturation_threshold),
         wkb_mode,
+        orographic_flow,
         blocking,
         Float64(long_threshold),
         Float64(drag_coefficient),
+        Float64(reduction_coefficient),
         Int(wave_modes),
         initial_wave_field,
         elastic_mode_selection,

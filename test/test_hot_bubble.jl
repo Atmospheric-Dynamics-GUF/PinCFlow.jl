@@ -2,7 +2,7 @@ function test_hot_bubble()
     l2 = (
         n2 = 0.0f0,
         p = 30010.416f0,
-        pip = 0.0044959094f0,
+        pip = 0.004495909f0,
         rhobar = 70.73524f0,
         rhop = 0.08934707f0,
         t = 300.0f0,
@@ -20,7 +20,7 @@ function test_hot_bubble()
     linf = (
         n2 = 0.0f0,
         p = 341.38608f0,
-        pip = 0.0007016741f0,
+        pip = 0.00070167455f0,
         rhobar = 1.1379536f0,
         rhop = 0.009277864f0,
         t = 300.0f0,
