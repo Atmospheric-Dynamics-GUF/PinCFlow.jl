@@ -22,21 +22,80 @@ function check_rays end
         j in (j0 - 1):(j1 + 1),
         i in (i0 - 1):(i1 + 1)
 
-        for r in 1:nray[i, j, k]
-            if rays.dens[r, i, j, k] == 0
-                continue
-            end
+        @share thread = false for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] != 0
 
-            # Check zonal position.
-            if x_size > 1
-                xr = rays.x[r, i, j, k]
+                # Check zonal position.
+                if x_size > 1
+                    xr = rays.x[r, i, j, k]
 
-                if xr < x[i] - dx / 2
+                    if xr < x[i] - dx / 2
+                        error(
+                            "Center ray is outside of the grid cell:\nxr = ",
+                            xr,
+                            " < x[i] - dx / 2 = ",
+                            x[i] - dx / 2,
+                            "\n(io, jo, ko) = ",
+                            (io, jo, ko),
+                            "\n(r, i, j, k) = ",
+                            (r, i, j, k),
+                        )
+                    end
+
+                    if xr > x[i] + dx / 2
+                        error(
+                            "Center ray is outside of the grid cell:\nxr = ",
+                            xr,
+                            " > x[i] + dx / 2 = ",
+                            x[i] + dx / 2,
+                            "\n(io, jo, ko) = ",
+                            (io, jo, ko),
+                            "\n(r, i, j, k) = ",
+                            (r, i, j, k),
+                        )
+                    end
+                end
+
+                # Check meridional position.
+                if y_size > 1
+                    yr = rays.y[r, i, j, k]
+
+                    if yr < y[j] - dy / 2
+                        error(
+                            "Center ray is outside of the grid cell:\nyr = ",
+                            yr,
+                            " < y[j] - dy / 2 = ",
+                            y[j] - dy / 2,
+                            "\n(io, jo, ko) = ",
+                            (io, jo, ko),
+                            "\n(r, i, j, k) = ",
+                            (r, i, j, k),
+                        )
+                    end
+
+                    if yr > y[j] + dy / 2
+                        error(
+                            "Center ray is outside of the grid cell:\nyr = ",
+                            yr,
+                            " > y[j] + dy / 2 = ",
+                            y[j] + dy / 2,
+                            "\n(io, jo, ko) = ",
+                            (io, jo, ko),
+                            "\n(r, i, j, k) = ",
+                            (r, i, j, k),
+                        )
+                    end
+                end
+
+                # Check vertical position.
+                zr = rays.z[r, i, j, k]
+
+                if zr < zctilde[i, j, k - 1]
                     error(
-                        "Center ray is outside of the grid cell:\nxr = ",
-                        xr,
-                        " < x[i] - dx / 2 = ",
-                        x[i] - dx / 2,
+                        "Center ray is outside of the grid cell:\nzr = ",
+                        zr,
+                        " < zctilde[i, j, k - 1] = ",
+                        zctilde[i, j, k - 1],
                         "\n(io, jo, ko) = ",
                         (io, jo, ko),
                         "\n(r, i, j, k) = ",
@@ -44,78 +103,18 @@ function check_rays end
                     )
                 end
 
-                if xr > x[i] + dx / 2
+                if zr > zctilde[i, j, k]
                     error(
-                        "Center ray is outside of the grid cell:\nxr = ",
-                        xr,
-                        " > x[i] + dx / 2 = ",
-                        x[i] + dx / 2,
+                        "Center ray is outside of the grid cell:\nzr = ",
+                        zr,
+                        " > zctilde[i, j, k] = ",
+                        zctilde[i, j, k],
                         "\n(io, jo, ko) = ",
                         (io, jo, ko),
                         "\n(r, i, j, k) = ",
                         (r, i, j, k),
                     )
                 end
-            end
-
-            # Check meridional position.
-            if y_size > 1
-                yr = rays.y[r, i, j, k]
-
-                if yr < y[j] - dy / 2
-                    error(
-                        "Center ray is outside of the grid cell:\nyr = ",
-                        yr,
-                        " < y[j] - dy / 2 = ",
-                        y[j] - dy / 2,
-                        "\n(io, jo, ko) = ",
-                        (io, jo, ko),
-                        "\n(r, i, j, k) = ",
-                        (r, i, j, k),
-                    )
-                end
-
-                if yr > y[j] + dy / 2
-                    error(
-                        "Center ray is outside of the grid cell:\nyr = ",
-                        yr,
-                        " > y[j] + dy / 2 = ",
-                        y[j] + dy / 2,
-                        "\n(io, jo, ko) = ",
-                        (io, jo, ko),
-                        "\n(r, i, j, k) = ",
-                        (r, i, j, k),
-                    )
-                end
-            end
-
-            # Check vertical position.
-            zr = rays.z[r, i, j, k]
-
-            if zr < zctilde[i, j, k - 1]
-                error(
-                    "Center ray is outside of the grid cell:\nzr = ",
-                    zr,
-                    " < zctilde[i, j, k - 1] = ",
-                    zctilde[i, j, k - 1],
-                    "\n(io, jo, ko) = ",
-                    (io, jo, ko),
-                    "\n(r, i, j, k) = ",
-                    (r, i, j, k),
-                )
-            end
-
-            if zr > zctilde[i, j, k]
-                error(
-                    "Center ray is outside of the grid cell:\nzr = ",
-                    zr,
-                    " > zctilde[i, j, k] = ",
-                    zctilde[i, j, k],
-                    "\n(io, jo, ko) = ",
-                    (io, jo, ko),
-                    "\n(r, i, j, k) = ",
-                    (r, i, j, k),
-                )
             end
         end
     end
