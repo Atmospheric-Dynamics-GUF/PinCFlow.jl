@@ -3,12 +3,12 @@
 apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    scope::UnitRange{<:Integer},
     order::Val{1},
+    i::Integer,
 )
 ```
 
-Apply the first-order Shapiro filter to `input`.
+Apply the first-order Shapiro filter to `input` at the index `i`.
 
 The elements of `output` are given by
 
@@ -22,12 +22,12 @@ where ``\\phi_i`` are the elements of `input`.
 apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    scope::UnitRange{<:Integer},
     order::Val{2},
+    i::Integer,
 )
 ```
 
-Apply the second-order Shapiro filter to `input`.
+Apply the second-order Shapiro filter to `input` at the index `i`.
 
 The elements of `output` are given by
 
@@ -41,12 +41,12 @@ where ``\\phi_i`` are the elements of `input`.
 apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    scope::UnitRange{<:Integer},
     order::Val{3},
+    i::Integer,
 )
 ```
 
-Apply the third-order Shapiro filter to `input`.
+Apply the third-order Shapiro filter to `input` at the index `i`.
 
 The elements of `output` are given by
 
@@ -60,12 +60,12 @@ where ``\\phi_i`` are the elements of `input`.
 apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    scope::UnitRange{<:Integer},
     order::Val{4},
+    i::Integer,
 )
 ```
 
-Apply the fourth-order Shapiro filter to `input`.
+Apply the fourth-order Shapiro filter to `input` at the index `i`.
 
 The elements of `output` are given by
 
@@ -81,74 +81,64 @@ where ``\\phi_i`` are the elements of `input`.
 
   - `input`: Input vector.
 
-  - `scope`: Index range.
-
   - `order`: Order of the Shapiro filter.
+
+  - `i`: Index.
 """
 function apply_shapiro_filter! end
 
 @ivy function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    scope::UnitRange{<:Integer},
     order::Val{1},
+    i::Integer,
 )
-    for i in scope
-        output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
-    end
+    output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
     return
 end
 
 @ivy function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    scope::UnitRange{<:Integer},
     order::Val{2},
+    i::Integer,
 )
-    for i in scope
-        output[i] =
-            (
-                -input[i - 2] - input[i + 2] +
-                4 * (input[i - 1] + input[i + 1]) +
-                10 * input[i]
-            ) / 16
-    end
+    output[i] =
+        (
+            -input[i - 2] - input[i + 2] +
+            4 * (input[i - 1] + input[i + 1]) +
+            10 * input[i]
+        ) / 16
     return
 end
 
 @ivy function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    scope::UnitRange{<:Integer},
     order::Val{3},
+    i::Integer,
 )
-    for i in scope
-        output[i] =
-            (
-                input[i - 3] + input[i + 3] -
-                6 * (input[i - 2] + input[i + 2]) +
-                15 * (input[i - 1] + input[i + 1]) +
-                44 * input[i]
-            ) / 64
-    end
+    output[i] =
+        (
+            input[i - 3] + input[i + 3] - 6 * (input[i - 2] + input[i + 2]) +
+            15 * (input[i - 1] + input[i + 1]) +
+            44 * input[i]
+        ) / 64
     return
 end
 
 @ivy function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
-    scope::UnitRange{<:Integer},
     order::Val{4},
+    i::Integer,
 )
-    for i in scope
-        output[i] =
-            (
-                -input[i - 4] - input[i + 4] +
-                8 * (input[i - 3] + input[i + 3]) -
-                28 * (input[i - 2] + input[i + 2]) +
-                56 * (input[i - 1] + input[i + 1]) +
-                186 * input[i]
-            ) / 256
-    end
+    output[i] =
+        (
+            -input[i - 4] - input[i + 4] + 8 * (input[i - 3] + input[i + 3]) -
+            28 * (input[i - 2] + input[i + 2]) +
+            56 * (input[i - 1] + input[i + 1]) +
+            186 * input[i]
+        ) / 256
     return
 end

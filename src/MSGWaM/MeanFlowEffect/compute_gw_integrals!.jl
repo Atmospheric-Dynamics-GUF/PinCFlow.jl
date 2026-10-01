@@ -115,13 +115,17 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(WKBIntegrals)
-        getfield(integrals, field) .= 0.0
+    for field_name in fieldnames(WKBIntegrals)
+        field = getfield(integrals, field_name)
+        @share field = 0
     end
 
     set_tracer_fields_zero!(state)
 
-    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    @share for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -325,11 +329,15 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(WKBIntegrals)
-        getfield(integrals, field) .= 0.0
+    for field_name  in fieldnames(WKBIntegrals)
+        field = getfield(integrals, field_name)
+        @share field = 0
     end
 
-    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    @share for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -498,11 +506,15 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(WKBIntegrals)
-        getfield(integrals, field) .= 0.0
+    for field_name in fieldnames(WKBIntegrals)
+        field = getfield(integrals, field_name)
+        @share field = 0
     end
 
-    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    @share for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue

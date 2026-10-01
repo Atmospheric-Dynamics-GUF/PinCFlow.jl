@@ -47,11 +47,12 @@ function compute_gw_tendencies! end
     # Set the Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(WKBTendencies)
-        getfield(tendencies, field) .= 0.0
+    for field_name in fieldnames(WKBTendencies)
+        field = getfield(tendencies, field_name)
+        @share field = 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         if zc[i, j, k] < impact_altitude / lref
             continue
         end
