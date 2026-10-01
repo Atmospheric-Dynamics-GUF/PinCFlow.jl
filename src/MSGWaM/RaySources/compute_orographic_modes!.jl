@@ -87,7 +87,7 @@ function compute_orographic_modes! end
         k = k0 - 1
 
         # Iterate over wave modes.
-        for alpha in 1:wave_modes
+        @share thread = false for alpha in 1:wave_modes
 
             # Get the zonal and meridional wavenumbers.
             kw = kh[alpha, i, j]
