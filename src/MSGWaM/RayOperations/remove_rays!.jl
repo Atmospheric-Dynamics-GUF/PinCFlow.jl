@@ -25,7 +25,10 @@ function remove_rays! end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @share for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    @share vector = false for k in kmin:kmax,
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
         local_count = 0
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
