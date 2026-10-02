@@ -125,10 +125,10 @@ macro share(x::Vararg{Expr})
         if length(x) == 1
             thread = true
         elseif length(x) == 2
-            if x[2].head === :(=) &&
-               x[2].args[1] === :thread &&
-               x[2].args[2] isa Bool
-                thread = x[2].args[2]
+            if x[1].head === :(=) &&
+               x[1].args[1] === :thread &&
+               x[1].args[2] isa Bool
+                thread = x[1].args[2]
             else
                 error("Unexpected option!")
             end
