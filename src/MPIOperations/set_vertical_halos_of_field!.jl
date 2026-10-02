@@ -10,7 +10,7 @@ set_vertical_halos_of_field!(
 
 Exchange a specified number of vertical halo values of a 3D array by performing MPI communication between downward and upward neighbor processes.
 
-Solid walls are assumed at the vertical boundaries of the domain. The corresponding ghost-cell values are not changed.
+The corresponding ghost-cell values are not changed.
 
 ```julia
 set_vertical_halos_of_field!(
@@ -23,7 +23,7 @@ set_vertical_halos_of_field!(
 
 Exchange a specified number of vertical halo values of a 5D array with an algorithm similar to that implemented in the above method.
 
-The vertical domain boundaries are treated as described above. The first three dimensions of the array are assumed to represent the dimensions of physical space.
+The first three dimensions of the array are assumed to represent the dimensions of physical space.
 
 # Arguments
 
@@ -45,8 +45,8 @@ function set_vertical_halos_of_field! end
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; z_size, nbz) = namelists.domain
-    (; comm, nz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
+    (; nbz) = namelists.domain
+    (; comm, i0, i1, j0, j1, k0, k1, down, up) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
@@ -55,39 +55,21 @@ function set_vertical_halos_of_field! end
     ii = (i0 - nbx):(i1 + nbx)
     jj = (j0 - nby):(j1 + nby)
 
-    if ko == 0
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1],
-            field[ii, jj, (k1 + 1):(k1 + nbz)],
-            comm;
-            dest = up,
-            source = up,
-        )
-    elseif ko + nz == z_size
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1)],
-            field[ii, jj, (k0 - nbz):(k0 - 1)],
-            comm;
-            dest = down,
-            source = down,
-        )
-    else
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1],
-            field[ii, jj, (k0 - nbz):(k0 - 1)],
-            comm;
-            dest = up,
-            source = down,
-        )
+    MPI.Sendrecv!(
+        field[ii, jj, (k1 - nbz + 1):k1],
+        field[ii, jj, (k0 - nbz):(k0 - 1)],
+        comm;
+        dest = up,
+        source = down,
+    )
 
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1)],
-            field[ii, jj, (k1 + 1):(k1 + nbz)],
-            comm;
-            dest = down,
-            source = up,
-        )
-    end
+    MPI.Sendrecv!(
+        field[ii, jj, k0:(k0 + nbz - 1)],
+        field[ii, jj, (k1 + 1):(k1 + nbz)],
+        comm;
+        dest = down,
+        source = up,
+    )
 
     return
 end
@@ -98,8 +80,8 @@ end
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; z_size, nbz) = namelists.domain
-    (; comm, nz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
+    (; nbz) = namelists.domain
+    (; comm, i0, i1, j0, j1, k0, k1, down, up) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
@@ -108,39 +90,21 @@ end
     ii = (i0 - nbx):(i1 + nbx)
     jj = (j0 - nby):(j1 + nby)
 
-    if ko == 0
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1, :, :],
-            field[ii, jj, (k1 + 1):(k1 + nbz), :, :],
-            comm;
-            dest = up,
-            source = up,
-        )
-    elseif ko + nz == z_size
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1), :, :],
-            field[ii, jj, (k0 - nbz):(k0 - 1), :, :],
-            comm;
-            dest = down,
-            source = down,
-        )
-    else
-        MPI.Sendrecv!(
-            field[ii, jj, (k1 - nbz + 1):k1, :, :],
-            field[ii, jj, (k0 - nbz):(k0 - 1), :, :],
-            comm;
-            dest = up,
-            source = down,
-        )
+    MPI.Sendrecv!(
+        field[ii, jj, (k1 - nbz + 1):k1, :, :],
+        field[ii, jj, (k0 - nbz):(k0 - 1), :, :],
+        comm;
+        dest = up,
+        source = down,
+    )
 
-        MPI.Sendrecv!(
-            field[ii, jj, k0:(k0 + nbz - 1), :, :],
-            field[ii, jj, (k1 + 1):(k1 + nbz), :, :],
-            comm;
-            dest = down,
-            source = up,
-        )
-    end
+    MPI.Sendrecv!(
+        field[ii, jj, k0:(k0 + nbz - 1), :, :],
+        field[ii, jj, (k1 + 1):(k1 + nbz), :, :],
+        comm;
+        dest = down,
+        source = up,
+    )
 
     return
 end

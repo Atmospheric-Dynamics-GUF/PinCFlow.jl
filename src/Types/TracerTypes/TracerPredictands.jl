@@ -134,6 +134,7 @@ end
     end
     set_zonal_boundaries_of_field!(chi, namelists, domain)
     set_meridional_boundaries_of_field!(chi, namelists, domain)
+    set_vertical_boundaries_of_field!(chi, namelists, domain, +)
 
     chi .*= rho .+ rhobar
 

@@ -58,7 +58,7 @@ The derivative is given by
 \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_{i + 1 / 2, k + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2}}{J_{i + 1 / 2, k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-At grid points beyond the vertical boundaries, it is set to zero.
+In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
 
 ```julia
 compute_derivatives(
@@ -117,7 +117,7 @@ The derivative is given by
 \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_{j + 1 / 2, k + 1 / 2} = \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2}}{J_{j + 1 / 2, k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-At grid points beyond the vertical boundaries, it is set to zero.
+In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
 
 ```julia
 compute_derivatives(
@@ -176,7 +176,7 @@ The derivative is given by
 \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_{k + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, k + 1} - \\chi_\\mathrm{b}}{J_{k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-At grid points beyond the vertical boundaries, it is set to zero.
+In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
 
 # Arguments
 
@@ -278,14 +278,16 @@ end
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; u) = state.variables.predictands
+    (; vertical_boundary_condition) = state.namelists.domain
 
-    if (zctilde[i, j, ku] + zctilde[i + 1, j, ku]) / 2 <
-       (hb[i, j] + hb[i + 1, j]) / 2
-        phid = 0.0
-        phiu = 0.0
-    elseif (zctilde[i, j, kd] + zctilde[i + 1, j, kd]) / 2 <
-           (hb[i, j] + hb[i + 1, j]) / 2
-        phid = 0.0
+    if vertical_boundary_condition === :Periodic
+        phid =
+            (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
+                jac[i, j, kd] * jac[i, j, kd + 1] /
+                (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                jac[i + 1, j, kd] * jac[i + 1, j, kd + 1] /
+                (jac[i + 1, j, kd] + jac[i + 1, j, kd + 1])
+            )
         phiu =
             (u[i, j, ku + 1] - u[i, j, ku]) / dz / (
                 jac[i, j, ku] * jac[i, j, ku + 1] /
@@ -294,14 +296,13 @@ end
                 (jac[i + 1, j, ku] + jac[i + 1, j, ku + 1])
             )
     else
-        if (zctilde[i, j, ku] + zctilde[i + 1, j, ku]) / 2 < lz
-            phid =
-                (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
-                    jac[i, j, kd] * jac[i, j, kd + 1] /
-                    (jac[i, j, kd] + jac[i, j, kd + 1]) +
-                    jac[i + 1, j, kd] * jac[i + 1, j, kd + 1] /
-                    (jac[i + 1, j, kd] + jac[i + 1, j, kd + 1])
-                )
+        if (zctilde[i, j, ku] + zctilde[i + 1, j, ku]) / 2 <
+           (hb[i, j] + hb[i + 1, j]) / 2
+            phid = 0.0
+            phiu = 0.0
+        elseif (zctilde[i, j, kd] + zctilde[i + 1, j, kd]) / 2 <
+               (hb[i, j] + hb[i + 1, j]) / 2
+            phid = 0.0
             phiu =
                 (u[i, j, ku + 1] - u[i, j, ku]) / dz / (
                     jac[i, j, ku] * jac[i, j, ku + 1] /
@@ -309,18 +310,35 @@ end
                     jac[i + 1, j, ku] * jac[i + 1, j, ku + 1] /
                     (jac[i + 1, j, ku] + jac[i + 1, j, ku + 1])
                 )
-        elseif (zctilde[i, j, kd] + zctilde[i + 1, j, kd]) / 2 < lz
-            phid =
-                (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
-                    jac[i, j, kd] * jac[i, j, kd + 1] /
-                    (jac[i, j, kd] + jac[i, j, kd + 1]) +
-                    jac[i + 1, j, kd] * jac[i + 1, j, kd + 1] /
-                    (jac[i + 1, j, kd] + jac[i + 1, j, kd + 1])
-                )
-            phiu = 0.0
         else
-            phid = 0.0
-            phiu = 0.0
+            if (zctilde[i, j, ku] + zctilde[i + 1, j, ku]) / 2 < lz
+                phid =
+                    (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
+                        jac[i, j, kd] * jac[i, j, kd + 1] /
+                        (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                        jac[i + 1, j, kd] * jac[i + 1, j, kd + 1] /
+                        (jac[i + 1, j, kd] + jac[i + 1, j, kd + 1])
+                    )
+                phiu =
+                    (u[i, j, ku + 1] - u[i, j, ku]) / dz / (
+                        jac[i, j, ku] * jac[i, j, ku + 1] /
+                        (jac[i, j, ku] + jac[i, j, ku + 1]) +
+                        jac[i + 1, j, ku] * jac[i + 1, j, ku + 1] /
+                        (jac[i + 1, j, ku] + jac[i + 1, j, ku + 1])
+                    )
+            elseif (zctilde[i, j, kd] + zctilde[i + 1, j, kd]) / 2 < lz
+                phid =
+                    (u[i, j, kd + 1] - u[i, j, kd]) / dz / (
+                        jac[i, j, kd] * jac[i, j, kd + 1] /
+                        (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                        jac[i + 1, j, kd] * jac[i + 1, j, kd + 1] /
+                        (jac[i + 1, j, kd] + jac[i + 1, j, kd + 1])
+                    )
+                phiu = 0.0
+            else
+                phid = 0.0
+                phiu = 0.0
+            end
         end
     end
 
@@ -411,14 +429,16 @@ end
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; v) = state.variables.predictands
+    (; vertical_boundary_condition) = state.namelists.domain
 
-    if (zctilde[i, j, ku] + zctilde[i, j + 1, ku]) / 2 <
-       (hb[i, j] + hb[i, j + 1]) / 2
-        phid = 0.0
-        phiu = 0.0
-    elseif (zctilde[i, j, kd] + zctilde[i, j + 1, kd]) / 2 <
-           (hb[i, j] + hb[i, j + 1]) / 2
-        phid = 0.0
+    if vertical_boundary_condition === :Periodic
+        phid =
+            (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
+                jac[i, j, kd] * jac[i, j, kd + 1] /
+                (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                jac[i, j + 1, kd] * jac[i, j + 1, kd + 1] /
+                (jac[i, j + 1, kd] + jac[i, j + 1, kd + 1])
+            )
         phiu =
             (v[i, j, ku + 1] - v[i, j, ku]) / dz / (
                 jac[i, j, ku] * jac[i, j, ku + 1] /
@@ -427,14 +447,13 @@ end
                 (jac[i, j + 1, ku] + jac[i, j + 1, ku + 1])
             )
     else
-        if (zctilde[i, j, ku] + zctilde[i, j + 1, ku]) / 2 < lz
-            phid =
-                (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
-                    jac[i, j, kd] * jac[i, j, kd + 1] /
-                    (jac[i, j, kd] + jac[i, j, kd + 1]) +
-                    jac[i, j + 1, kd] * jac[i, j + 1, kd + 1] /
-                    (jac[i, j + 1, kd] + jac[i, j + 1, kd + 1])
-                )
+        if (zctilde[i, j, ku] + zctilde[i, j + 1, ku]) / 2 <
+           (hb[i, j] + hb[i, j + 1]) / 2
+            phid = 0.0
+            phiu = 0.0
+        elseif (zctilde[i, j, kd] + zctilde[i, j + 1, kd]) / 2 <
+               (hb[i, j] + hb[i, j + 1]) / 2
+            phid = 0.0
             phiu =
                 (v[i, j, ku + 1] - v[i, j, ku]) / dz / (
                     jac[i, j, ku] * jac[i, j, ku + 1] /
@@ -442,18 +461,35 @@ end
                     jac[i, j + 1, ku] * jac[i, j + 1, ku + 1] /
                     (jac[i, j + 1, ku] + jac[i, j + 1, ku + 1])
                 )
-        elseif (zctilde[i, j, kd] + zctilde[i, j + 1, kd]) / 2 < lz
-            phid =
-                (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
-                    jac[i, j, kd] * jac[i, j, kd + 1] /
-                    (jac[i, j, kd] + jac[i, j, kd + 1]) +
-                    jac[i, j + 1, kd] * jac[i, j + 1, kd + 1] /
-                    (jac[i, j + 1, kd] + jac[i, j + 1, kd + 1])
-                )
-            phiu = 0.0
         else
-            phid = 0.0
-            phiu = 0.0
+            if (zctilde[i, j, ku] + zctilde[i, j + 1, ku]) / 2 < lz
+                phid =
+                    (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
+                        jac[i, j, kd] * jac[i, j, kd + 1] /
+                        (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                        jac[i, j + 1, kd] * jac[i, j + 1, kd + 1] /
+                        (jac[i, j + 1, kd] + jac[i, j + 1, kd + 1])
+                    )
+                phiu =
+                    (v[i, j, ku + 1] - v[i, j, ku]) / dz / (
+                        jac[i, j, ku] * jac[i, j, ku + 1] /
+                        (jac[i, j, ku] + jac[i, j, ku + 1]) +
+                        jac[i, j + 1, ku] * jac[i, j + 1, ku + 1] /
+                        (jac[i, j + 1, ku] + jac[i, j + 1, ku + 1])
+                    )
+            elseif (zctilde[i, j, kd] + zctilde[i, j + 1, kd]) / 2 < lz
+                phid =
+                    (v[i, j, kd + 1] - v[i, j, kd]) / dz / (
+                        jac[i, j, kd] * jac[i, j, kd + 1] /
+                        (jac[i, j, kd] + jac[i, j, kd + 1]) +
+                        jac[i, j + 1, kd] * jac[i, j + 1, kd + 1] /
+                        (jac[i, j + 1, kd] + jac[i, j + 1, kd + 1])
+                    )
+                phiu = 0.0
+            else
+                phid = 0.0
+                phiu = 0.0
+            end
         end
     end
 
@@ -576,44 +612,58 @@ end
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
+    (; vertical_boundary_condition) = state.namelists.domain
 
     cuc = chi[i, j, ku] / (rho[i, j, ku] + rhobar[i, j, ku])
     cdc = chi[i, j, kd] / (rho[i, j, kd] + rhobar[i, j, kd])
     cuu = chi[i, j, ku + 1] / (rho[i, j, ku + 1] + rhobar[i, j, ku + 1])
     cdu = chi[i, j, kd + 1] / (rho[i, j, kd + 1] + rhobar[i, j, kd + 1])
 
-    if zctilde[i, j, ku] < hb[i, j]
-        phid = 0.0
-        phiu = 0.0
-    elseif zctilde[i, j, kd] < hb[i, j]
-        phid = 0.0
+    if vertical_boundary_condition === :Periodic
+        phid =
+            (cdu - cdc) / dz / (
+                2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
+                (jac[i, j, kd] + jac[i, j, kd + 1])
+            )
         phiu =
             (cuu - cuc) / dz / (
                 2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
                 (jac[i, j, ku] + jac[i, j, ku + 1])
             )
     else
-        if zctilde[i, j, ku] < lz
-            phid =
-                (cdu - cdc) / dz / (
-                    2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
-                    (jac[i, j, kd] + jac[i, j, kd + 1])
-                )
+        if zctilde[i, j, ku] < hb[i, j]
+            phid = 0.0
+            phiu = 0.0
+        elseif zctilde[i, j, kd] < hb[i, j]
+            phid = 0.0
             phiu =
                 (cuu - cuc) / dz / (
                     2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
                     (jac[i, j, ku] + jac[i, j, ku + 1])
                 )
-        elseif zctilde[i, j, kd] < lz
-            phid =
-                (cdu - cdc) / dz / (
-                    2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
-                    (jac[i, j, kd] + jac[i, j, kd + 1])
-                )
-            phiu = 0.0
         else
-            phid = 0.0
-            phiu = 0.0
+            if zctilde[i, j, ku] < lz
+                phid =
+                    (cdu - cdc) / dz / (
+                        2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
+                        (jac[i, j, kd] + jac[i, j, kd + 1])
+                    )
+                phiu =
+                    (cuu - cuc) / dz / (
+                        2.0 * jac[i, j, ku] * jac[i, j, ku + 1] /
+                        (jac[i, j, ku] + jac[i, j, ku + 1])
+                    )
+            elseif zctilde[i, j, kd] < lz
+                phid =
+                    (cdu - cdc) / dz / (
+                        2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
+                        (jac[i, j, kd] + jac[i, j, kd + 1])
+                    )
+                phiu = 0.0
+            else
+                phid = 0.0
+                phiu = 0.0
+            end
         end
     end
 
