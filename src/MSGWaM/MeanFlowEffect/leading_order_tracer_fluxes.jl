@@ -114,8 +114,14 @@ function leading_order_tracer_fluxes(
     zlc::AbstractFloat,
     direction::UChi,
 )::AbstractFloat
-    dchidy = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDY())
-    dchidz = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDZ())
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
+
+    dchidy =
+        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DY())
+    dchidz =
+        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DZ())
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
@@ -135,8 +141,14 @@ function leading_order_tracer_fluxes(
     zlc::AbstractFloat,
     direction::VChi,
 )::AbstractFloat
-    dchidx = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDX())
-    dchidz = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDZ())
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
+
+    dchidx =
+        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DX())
+    dchidz =
+        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DZ())
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
@@ -156,8 +168,14 @@ function leading_order_tracer_fluxes(
     zlc::AbstractFloat,
     direction::WChi,
 )::AbstractFloat
-    dchidx = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDX())
-    dchidy = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDY())
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhobar) = state.atmosphere
+
+    dchidx =
+        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DX())
+    dchidy =
+        interpolate_scalar(state, xlc, ylc, zlc, chi ./ (rho .+ rhobar), DY())
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
