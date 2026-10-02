@@ -471,7 +471,7 @@ function write_output end
                 ),
             )
                 if field_name in output_variables
-                    field = getfield(integrals, field_name)[ii, jj, kk]
+                    field = getfield(integrals, field_name)
 
                     HDF5.set_extent_dims(
                         file[string(field_name)],
@@ -492,7 +492,7 @@ function write_output end
                 ),
             )
                 if field_name in output_variables
-                    field = getfield(tendencies, field_name)[ii, jj, kk]
+                    field = getfield(tendencies, field_name)
 
                     HDF5.set_extent_dims(
                         file[string(field_name)],
