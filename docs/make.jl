@@ -8,7 +8,10 @@ using PinCFlow
 for folder in ("src/Examples/", "src/Examples/WavePacketTools/")
     for script_file in readdir(folder)
         if endswith(script_file, ".jl")
-            script = read(folder * script_file, String)
+            script = replace(
+                read(folder * script_file, String),
+                r"(?sm)^\"{3}.*^\"{3}\nfunction \w+ end\n\n" => "",
+            )
             code = Regex(
                 "(?sm)(?<=^```julia\\n)# " *
                 folder *
@@ -156,19 +159,21 @@ makedocs(;
             "Physics" => "theory/physics.md",
             "Numerics" => "theory/numerics.md",
         ],
-        "Reference" => [
-            "PinCFlow" => "reference/pincflow.md",
-            "Macros" => "reference/macros.md",
-            "Types" => "reference/types.md",
-            "MPIOperations" => "reference/mpi_operations.md",
-            "Boundaries" => "reference/boundaries.md",
-            "FluxCalculator" => "reference/flux_calculator.md",
-            "PoissonSolver" => "reference/poisson_solver.md",
-            "Update" => "reference/update.md",
-            "MSGWaM" => "reference/msgwam.md",
-            "Integration" => "reference/integration.md",
-            "Output" => "reference/output.md",
-            "PinCFlowMakieExt" => "reference/pincflow_makie_ext.md",
+        "Public API" => "public_api.md",
+        "Internal reference" => [
+            "PinCFlow" => "internal_reference/pincflow.md",
+            "Macros" => "internal_reference/macros.md",
+            "Types" => "internal_reference/types.md",
+            "MPIOperations" => "internal_reference/mpi_operations.md",
+            "Boundaries" => "internal_reference/boundaries.md",
+            "FluxCalculator" => "internal_reference/flux_calculator.md",
+            "PoissonSolver" => "internal_reference/poisson_solver.md",
+            "Update" => "internal_reference/update.md",
+            "MSGWaM" => "internal_reference/msgwam.md",
+            "Integration" => "internal_reference/integration.md",
+            "Output" => "internal_reference/output.md",
+            "Examples" => "internal_reference/examples.md",
+            "PinCFlowMakieExt" => "internal_reference/pincflow_makie_ext.md",
         ],
         "Developer guide" => "developer_guide.md",
         "Changelog" => "changelog.md",
