@@ -17,7 +17,7 @@ compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi},
+    variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
 ```
@@ -116,22 +116,34 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted impact of shear ``\\mathcal{S}`` and buoyancy ``\\mathcal{B}`` on the TKE, given by
+Return the mass-weighted impact of the large-scale shear ``\\mathcal{S}``, the buoyancy ``\\mathcal{B}`` and ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}``, which is the impact of the gravity-wave shear,  on the TKE, given by
 
 ```math
-\\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\mathcal{S} + \\rho\\mathcal{B}
+\\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\left[\\mathcal{S} + \\mathcal{B} + \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}\\right]
 ```
 
-where
+with
 
 ```math
 \\begin{align*}
 \\mathcal{S} &= K_\\mathrm{M}\\left[\\left(\\frac{\\partial u}{\\partial \\hat{z}}\\right)^2 + \\left(\\frac{\\partial v}{\\partial \\hat{z}}\\right)^2\\right] \\;, \\\\
-\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
+\\mathcal{B} &= -K_\\mathrm{H}\\left(N^2 + \\frac{1}{J}\\frac{\\partial b}{\\partial \\hat{z}}\\right) \\;,
 \\end{align*}
 ```
+where ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively, and the turbulence impact of the gravity-wave shear ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}`` is obtained by dispatching to a WKB-mode specific method. See [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref) for the documentation on the turbulence impact of the gravity-wave shear, and see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref) for the documentation on the gravity-wave shear.
 
-and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
+```julia
+compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variables::TKE,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)::AbstractFloat
+```
+
+Return the turbulence impact of the gravity-wave shear.
 
 # Arguments
 
@@ -152,6 +164,11 @@ and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coeffic
   - [`PinCFlow.Update.conductive_heating`](@ref)
 
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
+  
+  - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
+
+!!! danger "Experimental"
+    The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
 function compute_volume_force end
 
@@ -179,7 +196,7 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi},
+    variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     return 0.0
@@ -263,7 +280,7 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-    variables::Chi,
+    variable::Chi,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
     (; leading_order_impact) = state.namelists.tracer
@@ -283,7 +300,7 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-    variables::TKE,
+    variable::TKE,
 )::AbstractFloat
     (; shear_production, buoyancy_production) =
         state.turbulence.turbulenceauxiliaries
@@ -291,6 +308,8 @@ end
     (; rhobar, n2) = state.atmosphere
     (; g_ndim) = state.constants
     (; dz, jac) = state.grid
+    (; wkb_mode) = state.namelists.wkb
+    (; gw_coupling) = state.namelists.turbulence
 
     shear =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) * (
@@ -299,6 +318,13 @@ end
         )
 
     shear_production[i, j, k] = shear
+
+    if gw_coupling
+        @dispatch_wkb_mode dtkedt =
+            compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
+    else
+        dtkedt = 0.0
+    end
 
     bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
@@ -309,5 +335,18 @@ end
 
     buoyancy_production[i, j, k] = buoyancy
 
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy)
+    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
+end
+
+@ivy function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::TKE,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)::AbstractFloat
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+
+    return dtkedt[i, j, k]
 end
