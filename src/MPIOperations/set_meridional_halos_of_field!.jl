@@ -11,11 +11,11 @@ Exchange all meridional halo values of a matrix by performing bidirectional MPI 
 
 ```julia
 set_meridional_halos_of_field!(
-    field::AbstractArray{<:Real, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+) where {T <: Real}
 ```
 
 Exchange a specified number of meridional halo values of a 3D array with an algorithm similar to that implemented in the method for matrices.
@@ -75,11 +75,11 @@ function set_meridional_halos_of_field! end
 end
 
 @ivy function set_meridional_halos_of_field!(
-    field::AbstractArray{<:Real, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+) where {T <: Real}
     (; comm, i0, i1, j0, j1, k0, k1, backward, forward) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]

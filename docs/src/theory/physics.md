@@ -376,22 +376,74 @@ $$m_\alpha = - \mathrm{sgn} \left(\hat{\omega}_\alpha\right) \sqrt{\frac{\left(k
 
 ### Tracer fluxes
 
-The leading-order tracer fluxes due to unresolved gravity waves are given by
+The leading- and next-order tracer fluxes due to unresolved gravity waves, based on [Knop et al. (2026)](https://doi.org/10.1002/qj.70091), are given by
 
 $$\begin{align*}
-    \bar{\rho} \left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle & = f \int \frac{m}{\hat{\omega} \left|\boldsymbol{k}\right|^2} \boldsymbol{k} \times \begin{pmatrix}
+    \bar{\rho} \left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle^{(0)} & = f \int \frac{m}{\hat{\omega} \left|\boldsymbol{k}\right|^2} \boldsymbol{k} \times \begin{pmatrix}
         \partial_{\hat{x}} \chi_\mathrm{b} + G^{13} \partial_{\hat{z}} \chi_\mathrm{b}\\
         \partial_{\hat{y}} \chi_\mathrm{b} + G^{23} \partial_{\hat{z}} \chi_\mathrm{b}\\
         J^{- 1} \partial_{\hat{z}} \chi_\mathrm{b}
     \end{pmatrix} \mathcal{N} \ \mathrm{d} V_{\boldsymbol{k}}
 \end{align*}$$
 
-and the corresponding impact on the large-scale tracer is
+and
+
+$$\begin{align*}
+    \bar{\rho}\bar{\theta}\left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle^{(1)} = \bar{\rho}\bar{\theta} \nabla\cdot\sum_\alpha \Re\left(\boldsymbol{v}^{(0)}_{\mathrm{w}, \alpha}\chi^{(1)^*}_{\mathrm{w}, \alpha} + \boldsymbol{v}^{(1)}_{\mathrm{w}, \alpha}\chi^{(0)^*}_{\mathrm{w}, \alpha}\right),
+\end{align*}$$
+
+respectively. The leading-order wave amplitudes can be computed using
+
+$$\begin{align*}
+    b^{(0)}_{\mathrm{w}, \alpha} &= \left[\int \mathcal{N} \ \mathrm{d}V_{\boldsymbol{k}} \frac{2N^4 \left|\boldsymbol{k}_{\mathrm{h},\alpha}\right|^2}{\bar{\rho}\hat{\omega}_{\alpha}\left|\boldsymbol{k}_\alpha\right|^2}\right]^{1/2}, \\
+    \boldsymbol{u}^{(0)}_{\mathrm{w}, \alpha} &= \frac{i}{m_\alpha N^2}\frac{\hat{\omega}^2_\alpha - N^2}{\hat{\omega}^2_\alpha - f^2}\left(\boldsymbol{k}_{\mathrm{h}, \alpha}\hat{\omega}_\alpha - if\boldsymbol{e}_z\times\boldsymbol{k}_{\mathrm{h},\alpha}\right)b^{(0)}_{\mathrm{w}, \alpha}, \\
+    w^{(0)}_{\mathrm{w}, \alpha} &= \frac{i\hat{\omega}_\alpha}{N^2}b^{(0)}_{\mathrm{w}, \alpha} , \\
+    c_p \bar{\theta}\pi^{(0)}_{\mathrm{w}, \alpha} &= \frac{i}{m_\alpha}\frac{\hat{\omega}^2_\alpha-N^2}{N^2}b^{(0)}_{\mathrm{w}, \alpha} , \\
+    \chi^{(0)}_{\mathrm{w}, \alpha} &= -\frac{i}{\hat{\omega}_\alpha}\boldsymbol{v}^{(0)}_{\mathrm{w}, \alpha}\cdot\begin{pmatrix}
+        \partial_{\hat{x}} \chi_\mathrm{b} + G^{13} \partial_{\hat{z}} \chi_\mathrm{b}\\
+        \partial_{\hat{y}} \chi_\mathrm{b} + G^{23} \partial_{\hat{z}} \chi_\mathrm{b}\\
+        J^{- 1} \partial_{\hat{z}} \chi_\mathrm{b}
+    \end{pmatrix}.
+\end{align*}$$
+
+From there, the next-order wave amplitudes are obtained by solving the matrix equation 
+
+$$\begin{align*}
+    \begin{pmatrix}-i\hat{\omega}_\alpha & -f & 0 & 0 & ik_\alpha \\ f & -i\hat{\omega}_\alpha & 0 & 0 & il_\alpha \\ 0 & 0 & -i\hat{\omega}_\alpha & -N & im_\alpha \\ 0 & 0 & N & -i\hat{\omega}_\alpha & 0 \\ ik_\alpha & il_\alpha & im_\alpha & 0 & 0\end{pmatrix}\begin{pmatrix}u^{(1)}_{\mathrm{w}, \alpha} \\ v^{(1)}_{\mathrm{w}, \alpha} \\ w^{(1)}_{\mathrm{w}, \alpha} \\ b^{(1)}_{\mathrm{w}, \alpha} / N \\ c_p \bar{\theta}\pi^{(1)}_{\mathrm{w}, \alpha}\end{pmatrix} = \begin{pmatrix}R_{u,\alpha} \\ R_{v,\alpha} \\ R_{w,\alpha} \\ R_{b,\alpha} / N \\ R_{\pi, \alpha}\end{pmatrix},
+\end{align*}$$
+
+with right-hand side terms given by 
+
+$$\begin{align*}
+    \boldsymbol{R}_{\boldsymbol{u},\alpha} = (R_{u, \alpha}, R_{v, \alpha})^{\mathrm{T}} &= - \left[\frac{\partial}{\partial t} + \boldsymbol{u}_\mathrm{b}\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\ \partial_{\hat{y}}+ G^{23} \partial_{\hat{z}}\end{pmatrix}\right]\boldsymbol{u}^{(0)}_{\mathrm{w},\alpha} - \boldsymbol{v}^{(0)}_{\mathrm{w},\alpha}\cdot\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\
+        \partial_{\hat{y}} + G^{23} \partial_{\hat{z}} \\
+        J^{- 1} \partial_{\hat{z}}\end{pmatrix}\boldsymbol{u}_\mathrm{b} \\
+        &-c_p\left[\bar{\theta} \begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\ \partial_{\hat{y}}+ G^{23} \partial_{\hat{z}}\end{pmatrix}\pi^{(0)}_{\mathrm{w},\alpha} + i\boldsymbol{k}_{\mathrm{h},\alpha}\theta'_\mathrm{b}\pi^{(0)}_{\mathrm{w},\alpha} + \frac{\bar{\theta}}{g}b^{(0)}_{\mathrm{w},\alpha}\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\ \partial_{\hat{y}}+ G^{23} \partial_{\hat{z}}\end{pmatrix}\pi'_\mathrm{b}\right], \\
+    R_{w, \alpha} &= - \left[\frac{\partial}{\partial t} + \boldsymbol{u}_\mathrm{b}\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\ \partial_{\hat{y}}+ G^{23} \partial_{\hat{z}}\end{pmatrix}\right]\boldsymbol{u}^{(0)}_{\mathrm{w},\alpha} \\
+        &-c_p\left[\bar{\theta} \left(J^{- 1} \partial_{\hat{z}}\right)\pi^{(0)}_{\mathrm{w},\alpha} + im_{\mathrm{h},\alpha}\theta'_\mathrm{b}\pi^{(0)}_{\mathrm{w},\alpha} + \frac{\bar{\theta}}{g}b^{(0)}_{\mathrm{w},\alpha}\left(J^{- 1} \partial_{\hat{z}}\right)\pi'_\mathrm{b}\right], \\
+    R_{b, \alpha} &= - \left[\frac{\partial}{\partial t} + \boldsymbol{u}_\mathrm{b}\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\ \partial_{\hat{y}}+ G^{23} \partial_{\hat{z}}\end{pmatrix}\right]b^{(0)}_{\mathrm{w},\alpha} - \frac{\boldsymbol{v}^{(0)}_{\mathrm{w},\alpha}}{\bar{\theta}}\cdot\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\
+        \partial_{\hat{y}} + G^{23} \partial_{\hat{z}} \\ J^{- 1} \partial_{\hat{z}}\end{pmatrix}\theta'_\mathrm{b},\\
+    R_{\pi,\alpha} &= -\frac{1}{\bar{\rho}\bar{\theta}}\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\
+        \partial_{\hat{y}} + G^{23} \partial_{\hat{z}} \\ J^{- 1} \partial_{\hat{z}}\end{pmatrix}\cdot\left(\bar{\rho}\bar{\theta}\boldsymbol{v}^{(0)}_{\mathrm{w},\alpha}\right),
+\end{align*}$$
+
+and 
+
+$$\begin{align*}
+    \chi^{(1)}_{\mathrm{w},\alpha} = -\frac{i}{\hat{\omega}_\alpha}\left\{\left[\frac{\partial}{\partial t} + \boldsymbol{u}_\mathrm{b}\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\ \partial_{\hat{y}}+ G^{23} \partial_{\hat{z}}\end{pmatrix}\right]\chi^{(0)}_{\mathrm{w}, \alpha} + \boldsymbol{v}^{(1)}_{\mathrm{w},\alpha}\cdot\begin{pmatrix}\partial_{\hat{x}}+ G^{13} \partial_{\hat{z}} \\
+        \partial_{\hat{y}} + G^{23} \partial_{\hat{z}} \\ J^{- 1} \partial_{\hat{z}}\end{pmatrix}\chi_\mathrm{b}\right\}.
+\end{align*}$$
+
+The corresponding impact on the large-scale tracer is
 
 $$\begin{align*}
     \left(\frac{\partial \rho_\mathrm{b} \chi_\mathrm{b}}{\partial t}\right)_\mathrm{w} = - \frac{\rho_\mathrm{b}}{\bar{\rho}} \begin{pmatrix}
         \partial_{\hat{x}} + G^{13} \partial_{\hat{z}}\\
         \partial_{\hat{y}} + G^{23} \partial_{\hat{z}}\\
         J^{- 1} \partial_{\hat{z}}
-    \end{pmatrix} \cdot \left(\bar{\rho} \left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle\right).
+    \end{pmatrix} \cdot \left(\bar{\rho} \left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle^{(0)}\right) - \frac{\rho_\mathrm{b}}{2\bar{\rho}\bar{\theta}} \begin{pmatrix}
+        \partial_{\hat{x}} + G^{13} \partial_{\hat{z}}\\
+        \partial_{\hat{y}} + G^{23} \partial_{\hat{z}}\\
+        J^{- 1} \partial_{\hat{z}}
+    \end{pmatrix} \cdot \left(\bar{\rho}\bar{\theta} \left\langle \tilde{\chi} \tilde{\boldsymbol{u}} \right\rangle^{(1)}\right).
 \end{align*}$$

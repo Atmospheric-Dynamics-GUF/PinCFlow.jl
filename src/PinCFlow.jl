@@ -90,6 +90,7 @@ export cold_bubble,
     vortex,
     wave_packet,
     wkb_mountain_wave,
-    wkb_wave_packet
+    wkb_wave_packet,
+    wkb_wave_vertical_periodicity
 
 end

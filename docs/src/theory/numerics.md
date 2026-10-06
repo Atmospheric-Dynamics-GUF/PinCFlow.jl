@@ -284,7 +284,7 @@ $$\begin{align*}
 
 In the case of turbulent diffusion by the turbulent kinetic energy, the tracer is updated using the Crank-Nicolson scheme before each time-step,
 
-$$\frac{\chi^{n+1}-\chi^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\\chi\right)}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \chi}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
+$$\frac{\chi^{n+1}-\chi^n}{\Delta t} = \frac{1}{2J}\left\{\left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \left(\chi\right)}{\partial \hat{z}}\right)\right]^{n+1} +  \left[\frac{\partial}{\partial \hat{z}}\left(\frac{K_\mathrm{H}^n}{J}\frac{\partial \chi}{\partial \hat{z}}\right)\right]^{n}\right\}.$$
 
 ### MS-GWaM
 

@@ -3,30 +3,13 @@
 initialize_rays!(state::State)
 ```
 
-Complete the initialization of MS-GWaM by dispatching to a WKB-mode-specific method.
-
-```julia
-initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
-```
-
-Return for non-WKB configurations.
-
-```julia
-initialize_rays!(
-    state::State,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
-```
-
 Complete the initialization of MS-GWaM.
 
 In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.wkb.initial_wave_field`, as well as `compute_orographic_modes!` for mountain waves. For each of these modes, `nrx * nry * nrz * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrx = nry = nrz = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step (as in `propagate_rays!`).
 
 # Arguments
 
-  - `state`: Model state.
-
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `state`: Model state
 
 # See also
 
@@ -38,21 +21,8 @@ In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.
 """
 function initialize_rays! end
 
-function initialize_rays!(state::State)
-    (; wkb_mode) = state.namelists.wkb
-    @dispatch_wkb_mode initialize_rays!(state, Val(wkb_mode))
-    return
-end
-
-function initialize_rays!(state::State, wkb_mode::Val{:NoWKB})
-    return
-end
-
-@ivy function initialize_rays!(
-    state::State,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
-    (; x_size, y_size) = state.namelists.domain
+@ivy function initialize_rays!(state::State)
+    (; x_size, y_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
         nrx,
@@ -67,6 +37,7 @@ end
         dmr_factor,
         wave_modes,
         initial_wave_field,
+        wkb_mode,
     ) = state.namelists.wkb
     (; lref, tref, rhoref, uref) = state.constants
     (; comm, master, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -120,7 +91,7 @@ end
     dm_ini_nd = 0.0
 
     # Set vertical index bounds.
-    kmin = ko == 0 ? k0 - 1 : k0
+    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 - 1 : k0
     kmax = k1
 
     # Loop over all grid cells with ray volumes.
@@ -138,7 +109,8 @@ end
             alpha in 1:wave_modes
 
             # Set ray-volume indices.
-            if ko == 0 && k == k0 - 1
+            if (ko == 0 && vertical_boundary_condition === :SolidWall) &&
+               k == k0 - 1
                 s += 1
 
                 # Set surface indices.
@@ -173,9 +145,7 @@ end
                 (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 
-            xr = rays.x[r, i, j, k]
-            yr = rays.y[r, i, j, k]
-            zr = rays.z[r, i, j, k]
+            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
 
             # Check if ray volume is too low.
             if zr < -dz
@@ -263,7 +233,8 @@ end
         end
 
         # Check if surface ray-volume count is correct.
-        if ko == 0 && k == k0 - 1
+        if (ko == 0 && vertical_boundary_condition === :SolidWall) &&
+           k == k0 - 1
             if s != n_sfc
                 error(
                     "Incorrect surface-ray-volume count: s = ",

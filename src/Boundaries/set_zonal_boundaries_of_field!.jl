@@ -13,11 +13,11 @@ Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic 
 
 ```julia
 set_zonal_boundaries_of_field!(
-    field::AbstractArray{<:Real, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+) where {T <: Real}
 ```
 
 Enforce zonal boundary conditions for a 3D array.
@@ -76,11 +76,11 @@ function set_zonal_boundaries_of_field! end
 end
 
 @ivy function set_zonal_boundaries_of_field!(
-    field::AbstractArray{<:Real, 3},
+    field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+) where {T <: Real}
     (; x_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
