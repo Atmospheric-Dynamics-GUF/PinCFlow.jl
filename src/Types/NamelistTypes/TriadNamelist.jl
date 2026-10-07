@@ -47,16 +47,21 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     nthreads_triad::A
     compute_dephasing_time::F
     smooth_wave_spectrum::F
+    use_spectral_dissipation::F
+    dissipation_strength::B
     nl_cfl_number::B
     pl_cfl_number::B
     dt_growth_factor::B
     launch_rays_action_rel_tol::B
     discarded_action_fraction_tol::B
     projection_scheme::G
-    chi_z_min::Float64
-    chi_z_max::Float64
-    chi_action_rel_tol::Float64
-    m_sigma_cutoff::Float64
+    chi_z_min::B
+    chi_z_max::B
+    chi_action_rel_tol::B
+    m_sigma_cutoff::B
+    N_eff_z0::B
+    aback::B
+    wrk_rv_mult_fac::A
 end
 
 function TriadNamelist(;
@@ -79,6 +84,8 @@ function TriadNamelist(;
     nthreads_triad::Integer = 1,
     compute_dephasing_time::Bool = true,
     smooth_wave_spectrum::Bool = true,
+    use_spectral_dissipation::Bool = false,
+    dissipation_strength::Real = 1.0,
     nl_cfl_number::Real = 5.0E-1,
     pl_cfl_number::Real = 5.0E-1,
     dt_growth_factor::Real = 1.25,
@@ -89,6 +96,9 @@ function TriadNamelist(;
     chi_z_max::Real = 20.0E3,
     chi_action_rel_tol::Real = 1.0E-2,
     m_sigma_cutoff::Real = 2.5,
+    N_eff_z0::Real = 10.0E3,
+    aback::Real = 0.5,
+    wrk_rv_mult_fac::Integer = 1,
 )::TriadNamelist
     return TriadNamelist(
         Int(k_size),
@@ -110,6 +120,8 @@ function TriadNamelist(;
         Int(nthreads_triad),
         compute_dephasing_time,
         smooth_wave_spectrum,
+        use_spectral_dissipation,
+        Float64(dissipation_strength),
         Float64(nl_cfl_number),
         Float64(pl_cfl_number),
         Float64(dt_growth_factor),
@@ -120,5 +132,8 @@ function TriadNamelist(;
         Float64(chi_z_max),
         Float64(chi_action_rel_tol),
         Float64(m_sigma_cutoff),
+        Float64(N_eff_z0),
+        Float64(aback),
+        Int(wrk_rv_mult_fac),
     )
 end

@@ -300,9 +300,11 @@ function Atmosphere(
     (; lref, tref, thetaref, g_ndim) = constants
     (; nxx, nyy, nzz) = domain
     (; zc) = grid
-    M = 2 * pi * lref / 3.0E+4 
-    z1 = 1.0E+4 / lref
-    aback = 0.5
+    (; N_eff_z0, aback) = namelists.triad
+    (; lz) = namelists.domain
+    lz_eff = lz - N_eff_z0
+    M = 2 * pi * lref / lz_eff 
+    z1 = N_eff_z0 / lref
 
     rhobar = ones(nxx, nyy, nzz)
     thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)

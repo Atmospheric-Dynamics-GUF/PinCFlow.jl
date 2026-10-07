@@ -76,6 +76,7 @@ include("track_chi_parent_modes!.jl")
 include("update_interpolation_coef_discrete!.jl")
 include("compute_horizontal_cell_indices_periodic.jl")
 include("get_vertical_projection_range.jl")
+include("apply_spectral_dissipation!.jl")
 export get_wave_spectrum!,
        apply_triad_interactions!,
        initialize_wave_spectrum!,
