@@ -48,22 +48,38 @@ function SpectralGrid(namelists::Namelists,
             error("Triad2D with x_size = 1 requires SingleColumn WKB mode.")
         end
 
-        kmin = (k_min == 1) ? (2π / lx) : (k_min * lref)
+        # For the single-column discrete-k formulation, use a refined
+        # horizontal spectral lattice with spacing
+        #
+        #     Δkp = 2π / (2lx) = π / lx.
+        #
+        # This introduces one resolved spectral mode below the usual
+        # fundamental mode 2π/lx, providing an infrared buffer for
+        # spectral transfer and, later, lower-k dissipation.
+        dkp = 2π / (2 * lx)
+
         kmax = k_max
 
-        dkp = 2π / lx
-
-        nmin = ceil(Int, kmin / dkp - 100 * eps(Float64))
+        # The discrete spectral grid always starts from the first mode:
+        #
+        #     kp = Δkp, 2Δkp, 3Δkp, ...
+        #
+        # Therefore k_min from the namelist is not used for x_size = 1.
+        nmin = 1
         nmax = floor(Int, kmax / dkp + 100 * eps(Float64))
 
-        if nmin < 1 || nmax < nmin
-            error("No discrete horizontal wave modes lie between k_min and k_max.")
+        if nmax < nmin
+            error("No discrete horizontal spectral modes lie below k_max.")
         end
 
         kp = dkp .* collect(nmin:nmax)
 
         if length(kp) != k_size
-            error("For x_size = 1, k_size must equal the number of discrete Fourier modes between k_min and k_max. Expected $(length(kp)), received $k_size.")
+            error(
+                "For Triad2D with x_size = 1, k_size must equal the number " *
+                "of discrete horizontal spectral modes between π/lx and k_max. " *
+                "Expected $(length(kp)), received $k_size."
+            )
         end
 
         # k is discrete, so logarithmic-k quantities are not used.
