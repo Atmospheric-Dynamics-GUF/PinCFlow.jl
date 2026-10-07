@@ -190,6 +190,7 @@ function WKB(
     (; x_size, y_size, z_size) = namelists.domain
     
     (; nxx, nyy, nzz) = domain
+    (; wrk_rv_mult_fac) = namelists.triad
 
     # Check if spectral-extent factors are set correctly.
     if x_size > 1 && dkr_factor == 0.0
@@ -234,7 +235,7 @@ function WKB(
         nyray_wrk = 1
     end
     if nzray > 1
-        nzray_wrk = 2 * nzray
+        nzray_wrk = 2 * nzray * wrk_rv_mult_fac
     else
         nzray_wrk = 1
     end

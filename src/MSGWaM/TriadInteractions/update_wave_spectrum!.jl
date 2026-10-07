@@ -8,8 +8,20 @@ function update_wave_spectrum!(
     dtau::AbstractFloat,
     triad_mode::Union{Triad2D}
     )
-    (; time_scheme) = state.namelists.triad
+    (; time_scheme, use_spectral_dissipation) = state.namelists.triad
+
+    if use_spectral_dissipation
+        apply_spectral_dissipation!(state, ii, jj, kk, 0.5 * dtau, triad_mode)
+    end
+
     update_wave_spectrum!(state, ii, jj, kk, dtau, triad_mode, time_scheme)
+
+
+    if use_spectral_dissipation
+        apply_spectral_dissipation!(state, ii, jj, kk, 0.5 * dtau, triad_mode)
+    end
+
+    return nothing
 end
 
 
