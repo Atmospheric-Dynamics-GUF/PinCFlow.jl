@@ -5,7 +5,7 @@
         mrr::AbstractFloat,
         dkpr::AbstractFloat,
         dmr::AbstractFloat,
-    )::NTuple{4, <:Integer}
+    )::Union{Nothing, NTuple{4, <:Integer}}
 
 From the given spectral ray-volume position and extent, determine the
 indices of the spectral grid cells occupied by the ray volume.
@@ -21,6 +21,9 @@ For `dmr > 0`, the vertical ray-volume extent may overlap multiple
 `m` cells. If `dmr == 0`, only the `m` cell containing the ray centre
 is returned.
 
+If the ray volume lies completely outside the represented spectral
+domain, `nothing` is returned.
+
 For centre-based assignment, a point lying exactly on an internal
 cell edge is assigned to the cell on the right. The uppermost domain
 edge belongs to the final cell.
@@ -33,7 +36,7 @@ function compute_spectral_cell_indices(
     mrr::AbstractFloat,
     dkpr::AbstractFloat,
     dmr::AbstractFloat,
-)::NTuple{4, <:Integer}
+)::Union{Nothing, NTuple{4, <:Integer}}
 
     (; x_size) = state.namelists.domain
     (; kp, m, kpc, mc, kpl, ml) = state.spec_tend.spec_grid
@@ -75,6 +78,11 @@ function compute_spectral_cell_indices(
         #
         # Therefore the ray belongs to exactly one kp index.
         kpi = compute_discrete_k_index(kp, kpr)
+
+        if isnothing(kpi)
+            return nothing
+        end
+
         kpmin = kpi
         kpmax = kpi
 
@@ -91,11 +99,7 @@ function compute_spectral_cell_indices(
         kp_hi = kpc[end]
 
         if kpr < kp_lo || kpr > kp_hi
-            println("Ray centre out of bounds in kp")
-            println("  kpr = ", kpr)
-            println("  kp_min = ", kp_lo)
-            println("  kp_max = ", kp_hi)
-            error("Error: Ray centre out of spectral bound")
+            return nothing
         end
 
         for ii in 1:kpl
@@ -121,24 +125,10 @@ function compute_spectral_cell_indices(
         kp_lo = kpc[1]
         kp_hi = kpc[end]
 
-        out = false
-
-        if kp_l < kp_lo
-            println("Ray volume out of bounds in kp (lower)")
-            println("  kp_l = ", kp_l, " < kp_min = ", kp_lo)
-            out = true
-        end
-
-        if kp_u > kp_hi
-            println("Ray volume out of bounds in kp (upper)")
-            println("  kp_u = ", kp_u, " > kp_max = ", kp_hi)
-            out = true
-        end
-
-        if out
-            println("Ray-volume center and width:")
-            println("  kpr = ", kpr, ", dkpr = ", dkpr)
-            error("Error: Ray volume out of spectral bound")
+        # Ray volume lies completely outside the represented
+        # horizontal spectral domain.
+        if kp_u < kp_lo || kp_l > kp_hi
+            return nothing
         end
 
         if kpl > 1
@@ -154,6 +144,7 @@ function compute_spectral_cell_indices(
 
         kpmin = clamp(kpmin, 1, kpl)
         kpmax = clamp(kpmax, 1, kpl)
+
     end
 
     # ------------------------------------------------------------------
@@ -165,34 +156,10 @@ function compute_spectral_cell_indices(
     #     m_l = m_u = |mr|.
     # ------------------------------------------------------------------
 
-    out = false
-
-    if m_l < m_lo
-        if mrr >= 0
-            println("Ray volume out of bounds in m (lower)")
-            println("  m_l = ", m_l, " < m_min = ", m_lo)
-        else
-            println("Ray volume out of bounds in -m (upper)")
-            println("  -m_l = ", -m_l, " > -m_min = ", -m_lo)
-        end
-        out = true
-    end
-
-    if m_u > m_hi
-        if mrr >= 0
-            println("Ray volume out of bounds in m (upper)")
-            println("  m_u = ", m_u, " > m_max = ", m_hi)
-        else
-            println("Ray volume out of bounds in -m (lower)")
-            println("  -m_u = ", -m_u, " < -m_max = ", -m_hi)
-        end
-        out = true
-    end
-
-    if out
-        println("Ray-volume center and width:")
-        println("  mr = ", mrr, ", dmr = ", dmr)
-        error("Error: Ray volume out of spectral bound")
+    # Ray volume lies completely outside the represented vertical
+    # spectral domain.
+    if m_u < m_lo || m_l > m_hi
+        return nothing
     end
 
     # ------------------------------------------------------------------

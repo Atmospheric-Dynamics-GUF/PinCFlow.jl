@@ -107,8 +107,15 @@ function get_wave_spectrum!(
             (imin, imax, jmin, jmax) =
                 compute_horizontal_cell_indices_periodic(state, xr, yr, dxr, dyr)
 
-            (kpmin, kpmax, mmin, mmax) =
+            spectral_indices =
                 compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            if isnothing(spectral_indices)
+                rays.dens[r, i, j, k] = 0.0
+                continue
+            end
+
+            kpmin, kpmax, mmin, mmax = spectral_indices
 
             #------------------------------------------------------
             # Physical x projection.
@@ -258,8 +265,15 @@ function get_wave_spectrum!(
             (imin, imax, jmin, jmax) =
                 compute_horizontal_cell_indices_periodic(state, xr, yr, dxr, dyr)
 
-            (kpmin, kpmax, mmin, mmax) =
+            spectral_indices =
                 compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            if isnothing(spectral_indices)
+                rays.dens[r, i, j, k] = 0.0
+                continue
+            end
+
+            kpmin, kpmax, mmin, mmax = spectral_indices
 
             #------------------------------------------------------
             # Physical x projection.
@@ -416,7 +430,15 @@ function get_wave_spectrum!(state::State,
             dkpr = dkr
             omgar = compute_omega_hat_nhyd(kpr, mr)
             
-            (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+            spectral_indices =
+                compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            if isnothing(spectral_indices)
+                rays.dens[r, i, j, k] = 0.0
+                continue
+            end
+
+            kpmin, kpmax, mmin, mmax = spectral_indices
             
             if x_size > 1
                 fcpspx =  dxr / dx
@@ -530,7 +552,15 @@ function get_wave_spectrum!(state::State,
             dkpr = dkr
             omgar = compute_omega_hat_nhyd(kpr, mr)
             
-            (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, 0.0, 0.0)
+            spectral_indices =
+                compute_spectral_cell_indices(state, kpr, mr, 0.0, 0.0)
+
+            if isnothing(spectral_indices)
+                rays.dens[r, i, j, k] = 0.0
+                continue
+            end
+
+            kpmin, kpmax, mmin, mmax = spectral_indices
             
             @assert kpmin == kpmax && mmin == mmax
 
@@ -645,7 +675,15 @@ function get_wave_spectrum!(state::State,
             (imin, imax, jmin, jmax) =
                 compute_horizontal_cell_indices_periodic(state, xr, yr, dxr, dyr)
 
-            (kpmin, kpmax, mmin, mmax) = compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+            spectral_indices =
+                compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            if isnothing(spectral_indices)
+                rays.dens[r, i, j, k] = 0.0
+                continue
+            end
+
+            kpmin, kpmax, mmin, mmax = spectral_indices
             
             
 
