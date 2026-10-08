@@ -358,7 +358,7 @@ function integrate(namelists::Namelists)
         #              Abort criteria
         #-------------------------------------------
 
-        if !output_steps && time * tref >= tmax
+        if !output_steps && time * tref + 10 * eps(max(abs(time * tref), abs(tmax))) >= tmax
             if master
                 naveragebicg = ntotalbicg / itime / 2
 
