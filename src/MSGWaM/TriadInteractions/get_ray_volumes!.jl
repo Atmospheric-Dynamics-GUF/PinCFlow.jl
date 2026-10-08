@@ -94,8 +94,14 @@ function get_ray_volumes!(
             imin, imax, jmin, jmax =
                 compute_horizontal_cell_indices_periodic(state, xr, yr, dxr, dyr)
 
-            kpmin, kpmax, mmin, mmax =
+            spectral_indices =
                 compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            if isnothing(spectral_indices)
+                continue
+            end
+
+            kpmin, kpmax, mmin, mmax = spectral_indices
 
             #--------------------------------------------------
             # Physical horizontal projection.
@@ -424,8 +430,14 @@ function get_ray_volumes!(
             # Eulerian wave spectrum.
             rays.dens[r, i, j, k] = 0.0
 
-            kpmin, kpmax, mmin, mmax =
+            spectral_indices =
                 compute_spectral_cell_indices(state, kpr, mr, 0.0, 0.0)
+
+            if isnothing(spectral_indices)
+                continue
+            end
+
+            kpmin, kpmax, mmin, mmax = spectral_indices
 
             kpray = kpmin
             mray = mmin
@@ -655,8 +667,14 @@ function get_ray_volumes!(
             # Eulerian wave spectrum.
             rays.dens[r, i, j, k] = 0.0
 
-            kpmin, kpmax, mmin, mmax =
+            spectral_indices =
                 compute_spectral_cell_indices(state, kpr, mr, dkpr, dmr)
+
+            if isnothing(spectral_indices)
+                continue
+            end
+
+            kpmin, kpmax, mmin, mmax = spectral_indices
 
             for kpray in kpmin:kpmax
                 if x_size > 1

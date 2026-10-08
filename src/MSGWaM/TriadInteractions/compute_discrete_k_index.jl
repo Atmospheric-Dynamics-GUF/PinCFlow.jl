@@ -3,7 +3,7 @@ function compute_discrete_k_index end
 function compute_discrete_k_index(
     kp::AbstractVector{<:AbstractFloat},
     kpvalue::AbstractFloat,
-)::Integer
+)::Union{Nothing, Integer}
 
     dkp = kp[2] - kp[1]
 
@@ -14,10 +14,7 @@ function compute_discrete_k_index(
     tol = 1.0e-10 * max(abs(kp_hi), dkp)
 
     if kpvalue < kp_lo - tol || kpvalue > kp_hi + tol
-        error(
-            "Horizontal wavenumber lies outside the discrete k spectral domain: " *
-            "kpvalue = $kpvalue, domain = [$kp_lo, $kp_hi]",
-        )
+        return nothing
     end
 
     # Assign the ray to the nearest discrete Fourier mode.
