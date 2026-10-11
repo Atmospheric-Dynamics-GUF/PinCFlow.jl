@@ -62,6 +62,7 @@ struct TriadNamelist{A <: Int, B <: Float64, C <: AbstractTriad, D <: AbstractTi
     N_eff_z0::B
     aback::B
     wrk_rv_mult_fac::A
+    only_projection::F
 end
 
 function TriadNamelist(;
@@ -99,6 +100,7 @@ function TriadNamelist(;
     N_eff_z0::Real = 10.0E3,
     aback::Real = 0.5,
     wrk_rv_mult_fac::Integer = 1,
+    only_projection::Bool = false,
 )::TriadNamelist
     return TriadNamelist(
         Int(k_size),
@@ -135,5 +137,6 @@ function TriadNamelist(;
         Float64(N_eff_z0),
         Float64(aback),
         Int(wrk_rv_mult_fac),
+        only_projection,
     )
 end
