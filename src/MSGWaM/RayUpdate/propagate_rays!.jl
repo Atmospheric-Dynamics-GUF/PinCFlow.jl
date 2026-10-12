@@ -197,7 +197,6 @@ end
     (; alphark, betark, stepfrac, nstages) = state.time
     (; dx, dy, dzcmin, hb) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
-    (; n2) = state.atmosphere
     (; alphar) = state.sponge
 
     # Set Coriolis parameter.
@@ -486,7 +485,7 @@ end
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
-    (; n2, rhobar) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; nray, rays) = state.wkb
     (; alphar) = state.sponge
@@ -548,7 +547,7 @@ end
             rays.dzray[r, i, j, k] =
                 rays.dzray[r, i, j, k - 1] * jac[i, j, k] / jac[i, j, k - 1]
 
-            # Get the horizontal wavenumbers.
+            # Get the ray volume positions and wavenumbers.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             khr = sqrt(kr^2 + lr^2)
@@ -571,6 +570,7 @@ end
             end
 
             # Compute the local vertical wavenumber and vertical group velocity.
+            n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
             omir =
                 -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
                 (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
@@ -656,7 +656,6 @@ end
             if rays.dens[r, i, j, k] == 0
                 continue
             end
-            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             khr = sqrt(kr^2 + lr^2)
             n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())

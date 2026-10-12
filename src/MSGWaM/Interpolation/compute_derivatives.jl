@@ -6,7 +6,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDX,
+    derivative::DUDX,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -25,7 +25,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDY,
+    derivative::DUDY,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -46,7 +46,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDZ,
+    derivative::DUDZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -67,7 +67,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDX,
+    derivative::DVDX,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -86,7 +86,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDY,
+    derivative::DVDY,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -105,7 +105,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDZ,
+    derivative::DVDZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -127,7 +127,7 @@ compute_derivatives(
     kd::Integer,
     ku::Integer,
     field::AbstractArray{<:AbstractFloat, 3},
-    phitype::DX,
+    derivative::DX,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -147,7 +147,7 @@ compute_derivatives(
     kd::Integer,
     ku::Integer,
     field::AbstractArray{<:AbstractFloat, 3},
-    phitype::DY,
+    derivative::DY,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -166,7 +166,8 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    field::AbstractArray{<:AbstractFloat, 3}phitype::DChiDZ,
+    field::AbstractArray{<:AbstractFloat, 3},
+    derivative::DChiDZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -194,7 +195,7 @@ At grid points beyond the vertical boundaries, it is set to zero.
 
   - `field`: Input array.
 
-  - `phitype`: Type of derivative to compute.
+  - `derivative`: Type of derivative to compute.
 """
 function compute_derivatives end
 
@@ -204,7 +205,7 @@ function compute_derivatives end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDX,
+    derivative::DUDX,
 )::NTuple{2, <:AbstractFloat}
     (; dx, dz, met) = state.grid
     (; u) = state.variables.predictands
@@ -235,7 +236,7 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDY,
+    derivative::DUDY,
 )::NTuple{2, <:AbstractFloat}
     (; dy, dz, met) = state.grid
     (; u) = state.variables.predictands
@@ -278,7 +279,7 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDZ,
+    derivative::DUDZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; u) = state.variables.predictands
@@ -337,7 +338,7 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDX,
+    derivative::DVDX,
 )::NTuple{2, <:AbstractFloat}
     (; dx, dz, met) = state.grid
     (; v) = state.variables.predictands
@@ -380,7 +381,7 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDY,
+    derivative::DVDY,
 )::NTuple{2, <:AbstractFloat}
     (; dy, dz, met) = state.grid
     (; v) = state.variables.predictands
@@ -411,7 +412,7 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDZ,
+    derivative::DVDZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; v) = state.variables.predictands
@@ -471,7 +472,7 @@ end
     kd::Integer,
     ku::Integer,
     field::AbstractArray{<:AbstractFloat, 3},
-    phitype::DX,
+    derivative::DX,
 )::NTuple{2, <:AbstractFloat}
     (; dx, dz, met) = state.grid
 
@@ -513,7 +514,7 @@ end
     kd::Integer,
     ku::Integer,
     field::AbstractArray{<:AbstractFloat, 3},
-    phitype::DY,
+    derivative::DY,
 )::NTuple{2, <:AbstractFloat}
     (; dy, dz, met) = state.grid
 
@@ -555,7 +556,7 @@ end
     kd::Integer,
     ku::Integer,
     field::AbstractArray{<:AbstractFloat, 3},
-    phitype::DZ,
+    derivative::DZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
 

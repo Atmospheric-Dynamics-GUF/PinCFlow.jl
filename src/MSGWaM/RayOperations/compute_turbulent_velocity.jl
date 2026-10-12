@@ -99,7 +99,7 @@ function compute_turbulent_velocity end
     (; rays) = state.wkb
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
-    (; n2, rhobar) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
 

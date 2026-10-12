@@ -77,7 +77,7 @@ function apply_turbulent_damping! end
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
-    (; n2, rhobar) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; turbulent_damping) = state.namelists.wkb
 
     if !turbulent_damping
