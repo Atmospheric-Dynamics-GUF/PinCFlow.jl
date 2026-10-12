@@ -2,7 +2,7 @@
 
 """
 ```julia
-envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
+phi(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
 ```
 
 Return the phase at ``\\left(x, y, z\\right)``.

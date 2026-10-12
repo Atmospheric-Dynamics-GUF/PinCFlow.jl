@@ -10,10 +10,10 @@ Return the buoyancy wave amplitude at ``\\left(x, y, z\\right)``.
 The buoyancy wave amplitude is given by
 
 ```math
-b_\\mathrm{w} = \\frac{A_0 N^2}{m} \\Phi,
+b_\\mathrm{w} = \\frac{A_0 N^2}{m} E,
 ```
 
-where ``A_0`` and ``m`` are taken from `parameters` and ``N^2`` and ``\\Phi`` are calculated with `n2` and `envelope`, respectively.
+where ``A_0`` and ``m`` are taken from `parameters` and ``N^2`` and ``E`` are calculated with `n2` and `envelope`, respectively.
 
 # Arguments
 
