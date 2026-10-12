@@ -78,7 +78,7 @@ plot_output
     x_tick_format::AbstractString = "{:.1f}",
     y_tick_format::AbstractString = "{:.1f}",
     z_tick_format::AbstractString = "{:.1f}",
-)
+)::Nothing
     set_visualization_theme!()
 
     # Store the ray-volume property names.
@@ -387,7 +387,7 @@ plot_output
             end
         end
 
-        return figure
+        figure
     end
 
     # Resize, display and save the figure.
@@ -395,5 +395,5 @@ plot_output
     display_figure && display(figure)
     save(plot_file, figure)
 
-    return
+    nothing
 end

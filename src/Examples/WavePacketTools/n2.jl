@@ -27,5 +27,5 @@ function n2 end
     (; atmosphere) = state
     (; tref) = state.constants
 
-    return atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
+    atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
 end

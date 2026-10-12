@@ -38,5 +38,5 @@ end
 function Sponge(domain::Domain)::Sponge
     (; nxx, nyy, nzz, nz) = domain
 
-    return Sponge([zeros(nxx, nyy, nzz) for i in 1:2]..., zeros(nz))
+    Sponge([zeros(nxx, nyy, nzz) for i in 1:2]..., zeros(nz))
 end

@@ -1,5 +1,5 @@
 """
-```julia 
+```julia
 compute_turbulent_velocity(
     state::State,
     r::Integer,
@@ -11,9 +11,9 @@ compute_turbulent_velocity(
 
 Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}``.
 
-The velocity amplitudes are approximated with the numerical phase averages 
+The velocity amplitudes are approximated with the numerical phase averages
 
-```math 
+```math
 \\begin{align*}
 Q_{0,r} &= \\frac{1}{2\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}\\Delta\\phi\\;, \\\\
 Q_{1,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-i n\\Delta\\phi}\\Delta\\phi\\;, \\\\
@@ -23,7 +23,7 @@ Q_{2,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\
 
 where the number of subintervals is given by ``N_{\\phi}=20`` with interval size ``\\Delta\\phi=2\\pi/N_{\\phi}``.
 
-```julia 
+```julia
 compute_turbulent_velocity(
     state::State,
     rhob::AbstractFloat,
@@ -40,14 +40,14 @@ compute_turbulent_velocity(
 
 Compute and return ``\\tilde{Q}_r``. The quantity ``\\tilde{Q}_r^2`` represents the leading-order turbulence contribution originating from the balance of shear production, buoyancy forces and dissipation, and is defined as follows:
 
-```math 
+```math
 \\tilde{Q}_r^2 = \\max\\left\\{0,l_d\\left\\{l_v \\frac{m_r^2}{2}\\left[\\left|\\boldsymbol{u}_{\\mathrm{w}, r}\\right|^2-\\real\\left(\\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r}e^{i2\\phi} \\right)\\right]
 -l_b\\left[N_r^2+\\real\\left(im_r b_{\\mathrm{w}, r}e^{i\\phi}\\right)\\right]\\right\\}\\right\\}\\;,
 ```
 
 with
 
-```math 
+```math
 \\begin{align*}
 \\left|\\boldsymbol{u}_{\\mathrm{w}, r}\\right|^2 &= \\frac{m_r^2 \\left(\\hat{\\omega}_r^2-f^2\\right)}{\\left|\\boldsymbol{k}_r\\right|^2}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
 \\boldsymbol{u}_{\\mathrm{w}, r}\\cdot\\boldsymbol{u}_{\\mathrm{w}, r} &= -\\frac{\\left(N_r^2+f^2\\right)\\left(k_r^2+l_r^2\\right)m_r^2}{\\left|\\boldsymbol{k}_r\\right|^4}\\frac{2\\mathcal{A}_r}{\\hat{\\omega}_r\\bar{\\rho}} \\;, \\\\
@@ -57,11 +57,11 @@ b_{\\mathrm{w}, r} &= \\sqrt{\\frac{N_r^2\\left(k_r^2+l_r^2\\right)}{\\left|\\bo
 
 and turbulence mixing lengths ``l_d``, ``l_v``, and ``l_b`` stored in `state.turbulence.turbulenceconstants.ld`, `state.turbulence.turbulenceconstants.lv`, and `state.turbulence.turbulenceconstants.lb`, respectively.
 
-# Arguments 
+# Arguments
 
   - `state`: Model state.
 
-  - `r`: Ray-volume index. 
+  - `r`: Ray-volume index.
 
   - `i`: Zonal grid-cell index.
 
@@ -71,7 +71,7 @@ and turbulence mixing lengths ``l_d``, ``l_v``, and ``l_b`` stored in `state.tur
 
   - `rhob`: Background density ``\\bar{\\rho}`` located at cell index ``(i,j,k)``.
 
-  - `wadr`: Physical-space wave-action density ``\\mathcal{A}_r``. 
+  - `wadr`: Physical-space wave-action density ``\\mathcal{A}_r``.
 
   - `kr`: Zonal wavenumber ``k_r``.
 
@@ -151,7 +151,8 @@ function compute_turbulent_velocity end
         q2r += qtilde * exp(-2im * phi) * dphi
         phi += dphi
     end
-    return (q0r / (2 * pi), q1r / pi, q2r / pi)
+
+    (q0r / (2 * pi), q1r / pi, q2r / pi)
 end
 
 function compute_turbulent_velocity(
@@ -183,5 +184,5 @@ function compute_turbulent_velocity(
 
     qtilde = sqrt(max(0, ld * (lv * sterm - lb * bterm)))
 
-    return qtilde
+    qtilde
 end

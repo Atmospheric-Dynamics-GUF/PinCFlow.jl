@@ -153,5 +153,5 @@ end
 
     @dispatch_model p = set_p(Val(model), pbar)
 
-    return Predictands(rho, rhop, u, v, w, pip, p)
+    Predictands(rho, rhop, u, v, w, pip, p)
 end

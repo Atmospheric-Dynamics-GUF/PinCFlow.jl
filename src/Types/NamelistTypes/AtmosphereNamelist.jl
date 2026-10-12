@@ -129,7 +129,7 @@ function AtmosphereNamelist(;
     initial_thetap::Function = (x, y, z) -> 0.0,
     buoyancy_initialization::Symbol = :initial_rhop,
 )::AtmosphereNamelist
-    return AtmosphereNamelist(
+    AtmosphereNamelist(
         model,
         specify_reynolds_number,
         Float64(inverse_reynolds_number),

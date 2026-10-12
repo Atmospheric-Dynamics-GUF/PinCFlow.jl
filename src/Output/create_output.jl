@@ -1,6 +1,6 @@
 """
 ```julia
-create_output(state::State)
+create_output(state::State)::Nothing
 ```
 
 Create an HDF5 output file with one dataset for each variable.
@@ -13,7 +13,7 @@ The dimensions of the datasets are set to those of the domain, whereas the chunk
 """
 function create_output end
 
-function create_output(state::State, machine_start_time::DateTime)
+function create_output(state::State, machine_start_time::DateTime)::Nothing
     (; x_size, y_size, z_size, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
@@ -455,7 +455,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        return
+        nothing
     end
 
     # Add attributes and namelists.
@@ -822,10 +822,10 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        return
+        nothing
     end
 
     MPI.Barrier(comm)
 
-    return
+    nothing
 end

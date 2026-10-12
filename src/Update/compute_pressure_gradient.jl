@@ -161,7 +161,7 @@ function compute_pressure_gradient end
             )
     end
 
-    return gradient
+    gradient
 end
 
 @ivy function compute_pressure_gradient(
@@ -220,7 +220,7 @@ end
             )
     end
 
-    return gradient
+    gradient
 end
 
 @ivy function compute_pressure_gradient(
@@ -293,5 +293,5 @@ end
             met33edgeu * (pip[i, j, k + 1] - pip[i, j, k]) / dz
         )
 
-    return gradient
+    gradient
 end

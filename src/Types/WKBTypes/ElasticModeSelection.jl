@@ -42,7 +42,7 @@ function ElasticModeSelection(
     nxx::Integer,
     nyy::Integer,
 )::ElasticModeSelection
-    return ElasticModeSelection(
+    ElasticModeSelection(
         zeros(Int, wave_modes),
         zeros(Int, nxx, nyy),
         zeros(nxx, nyy),

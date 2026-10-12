@@ -66,13 +66,13 @@ end
 function Increments(namelists::Namelists, domain::Domain)::Increments
     (; model) = namelists.atmosphere
 
-    @dispatch_model return Increments(domain, Val(model))
+    @dispatch_model Increments(domain, Val(model))
 end
 
 function Increments(domain::Domain, model::Val{:Boussinesq})::Increments
     (; nxx, nyy, nzz) = domain
 
-    return Increments(
+    Increments(
         zeros(0, 0, 0),
         [zeros(nxx, nyy, nzz) for i in 1:5]...,
         zeros(0, 0, 0),
@@ -85,11 +85,11 @@ function Increments(
 )::Increments
     (; nxx, nyy, nzz) = domain
 
-    return Increments([zeros(nxx, nyy, nzz) for i in 1:6]..., zeros(0, 0, 0))
+    Increments([zeros(nxx, nyy, nzz) for i in 1:6]..., zeros(0, 0, 0))
 end
 
 function Increments(domain::Domain, model::Val{:Compressible})::Increments
     (; nxx, nyy, nzz) = domain
 
-    return Increments([zeros(nxx, nyy, nzz) for i in 1:7]...)
+    Increments([zeros(nxx, nyy, nzz) for i in 1:7]...)
 end
