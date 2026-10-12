@@ -17,6 +17,15 @@ set_turbulence_meridional_boundaries!(
 
 Enforce meridional boundary conditions for reconstructions of turbulent kinetic energy.
 
+```julia 
+set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+)
+```
+
+Return for fluxes of turbulent kinetic energy, as these only need vertical boundary conditions enforced.
+
 ```julia
 set_turbulence_meridional_boundaries!(
     state::State,
@@ -73,6 +82,13 @@ function set_turbulence_meridional_boundaries!(
         )
     end
 
+    return
+end
+
+function set_turbulence_meridional_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+)
     return
 end
 

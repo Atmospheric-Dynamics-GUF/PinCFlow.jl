@@ -51,18 +51,8 @@ Enforce vertical boundary conditions for vertical tracer fluxes.
 ```julia
 set_tracer_vertical_boundaries!(
     state::State,
-    variables::AbstractBoundaryWKBVariables,
-    tracer_setup::Val{:TracerOn},
-)
-```
-
-Enforce vertical boundary conditions for tracer WKB quantities by dispatching to the appropriate method.
-
-```julia
-set_tracer_vertical_boundaries!(
-    state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -72,7 +62,7 @@ Enforce vertical boundary conditions for tracer WKB integrals.
 set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+    tracer_setup::Val{:TracerOn},
 )
 ```
 
@@ -180,22 +170,8 @@ end
 
 function set_tracer_vertical_boundaries!(
     state::State,
-    variables::AbstractBoundaryWKBVariables,
-    tracer_setup::Val{:TracerOn},
-)
-    (; wkb_mode) = state.namelists.wkb
-    @dispatch_wkb_mode set_tracer_vertical_boundaries!(
-        state,
-        variables,
-        Val(wkb_mode),
-    )
-    return
-end
-
-function set_tracer_vertical_boundaries!(
-    state::State,
     variables::BoundaryWKBIntegrals,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+    tracer_setup::Val{:TracerOn},
 )
     (; namelists, domain) = state
     (; tracerwkbintegrals) = state.tracer
@@ -219,7 +195,7 @@ end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+    tracer_setup::Val{:TracerOn},
 )
     (; namelists, domain) = state
     (; dchidt0) = state.tracer.tracerwkbtendencies

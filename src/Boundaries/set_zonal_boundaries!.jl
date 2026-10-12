@@ -58,6 +58,12 @@ set_zonal_boundaries!(
 
 Enforce zonal boundary conditions for reconstructions in non-Boussinesq modes.
 
+```julia 
+set_zonal_boundaries!(state::State, variables::BoundaryFluxes)
+```
+
+Return for fluxes, as these only need vertical boundary conditions enforced.
+
 ```julia
 set_zonal_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)
 ```
@@ -219,6 +225,10 @@ function set_zonal_boundaries!(
         )
     end
 
+    return
+end
+
+function set_zonal_boundaries!(state::State, variables::BoundaryFluxes)
     return
 end
 
