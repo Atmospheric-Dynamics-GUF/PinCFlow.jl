@@ -12,6 +12,7 @@ Makie.jl extension (using the `CairoMakie` backend).
 module PinCFlowMakieExt
 
 using HDF5
+using NCDatasets
 using CairoMakie
 using LaTeXStrings
 using PinCFlow.Macros

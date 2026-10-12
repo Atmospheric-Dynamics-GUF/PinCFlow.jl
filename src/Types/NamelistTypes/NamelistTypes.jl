@@ -26,6 +26,8 @@ include("@dispatch_orographic_flow.jl")
 include("@dispatch_tracer_setup.jl")
 include("@dispatch_turbulence_scheme.jl")
 include("@dispatch_wkb_mode.jl")
+include("@dispatch_output_file_format.jl")
+include("@dispatch_input_file_format.jl")
 
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
@@ -48,7 +50,9 @@ export @dispatch_background,
     @dispatch_orographic_flow,
     @dispatch_tracer_setup,
     @dispatch_turbulence_scheme,
-    @dispatch_wkb_mode
+    @dispatch_wkb_mode,
+    @dispatch_output_file_format,
+    @dispatch_input_file_format
 
 export DomainNamelist,
     OutputNamelist,

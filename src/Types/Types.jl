@@ -169,7 +169,9 @@ export @dispatch_background,
     @dispatch_orographic_flow,
     @dispatch_tracer_setup,
     @dispatch_turbulence_scheme,
-    @dispatch_wkb_mode
+    @dispatch_wkb_mode,
+    @dispatch_output_file_format,
+    @dispatch_input_file_format
 
 export AbstractPredictand
 
