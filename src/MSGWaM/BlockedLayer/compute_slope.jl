@@ -12,9 +12,6 @@ Return ``\\boldsymbol{k}_h = \\left(\\sum_\\alpha \\left|h_{\\mathrm{w}, \\alpha
   - `i`: Zonal grid index.
 
   - `j`: Meridional grid index.
-
-!!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
 """
 function compute_slope end
 
