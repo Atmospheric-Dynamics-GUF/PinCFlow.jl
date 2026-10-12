@@ -3,6 +3,10 @@
 PinCFlow.jl follows the interpretation of
 [semantic versioning (semver)](https://julialang.github.io/Pkg.jl/dev/compatibility/#Version-specifier-format-1) used in the Julia ecosystem. Notable changes will be documented in this file for human readability.
 
+## Release 5.0.2
+
+  - The function `leading_order_tracer_fluxes` has been removed with the computations now performed directly in `compute_gw_tracer_integrals!`.
+
 ## Release 5.0.1
 
   - A bug in `@dispatch` was fixed. Specifically, dispatch arguments derived from some literals (e.g., characters) were not handled correctly. This change does not affect the rest of the code in its current state.
