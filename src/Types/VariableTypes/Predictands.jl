@@ -84,6 +84,7 @@ end
         buoyancy_initialization,
         model,
     ) = namelists.atmosphere
+    (; vertical_boundary_condition) = namelists.domain
     (; lref, rhoref, thetaref, uref) = constants
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; x, y, zc, met, jac) = grid
@@ -91,7 +92,7 @@ end
 
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
 
-    for k in 1:nzz, j in j0:j1, i in i0:i1
+    for k in 1:nzz, j in 1:nyy, i in 1:nxx
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
@@ -125,6 +126,12 @@ end
         f!(w, namelists, domain)
         f!(pip, namelists, domain)
     end
+
+    set_vertical_boundaries_of_field!(rhop, namelists, domain, +)
+    set_vertical_boundaries_of_field!(u, namelists, domain, +)
+    set_vertical_boundaries_of_field!(v, namelists, domain, +)
+    set_vertical_boundaries_of_field!(w, namelists, domain, -)
+    set_vertical_boundaries_of_field!(pip, namelists, domain, +)
 
     if model !== :Boussinesq
         rho .= rhop

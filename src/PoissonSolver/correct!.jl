@@ -180,7 +180,7 @@ end
     variable::U,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
@@ -189,7 +189,9 @@ end
     (; u) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nz == z_size ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
@@ -220,7 +222,7 @@ end
     variable::V,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; betar) = state.sponge
@@ -229,7 +231,9 @@ end
     (; v) = state.variables.predictands
 
     kmin = k0
-    kmax = ko + nz == z_size ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
+        k1 + 1
 
     for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
@@ -260,7 +264,7 @@ end
     variable::W,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
     (; n2) = state.atmosphere
@@ -269,8 +273,10 @@ end
     (; dpip) = state.variables.increments
     (; w) = state.variables.predictands
 
-    kmin = ko == 0 ? k0 : k0 - 1
-    kmax = ko + nz == z_size ? k1 - 1 : k1
+    kmin = (ko == 0 && vertical_boundary_condition === :Solid) ? k0 : k0 - 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
+        k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
@@ -321,7 +327,7 @@ end
     variable::RhoP,
     rayleigh_factor::AbstractFloat,
 )
-    (; z_size, nbz) = state.namelists.domain
+    (; z_size, nbz, vertical_boundary_condition) = state.namelists.domain
     (; g_ndim) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = state.grid
@@ -340,9 +346,10 @@ end
             compute_pressure_gradient(state, dpip, i, j, k - 1, W())
         upper_gradient = compute_pressure_gradient(state, dpip, i, j, k, W())
 
-        if ko + k == k0
+        if ko + k == k0 && vertical_boundary_condition === :SolidWall
             lower_gradient = 0.0
-        elseif ko + k == z_size + nbz
+        elseif ko + k == z_size + nbz &&
+               vertical_boundary_condition === :SolidWall
             upper_gradient = 0.0
         end
 
