@@ -149,7 +149,7 @@ end
 
 function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
     return WKB(
-        [0 for i in 1:3]...,
+        (0 for i in 1:3)...,
         zeros(Int, 0, 0, 0),
         Rays(0, 0, 0, 0),
         MergedRays(0, 0),
@@ -157,7 +157,7 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
         WKBIncrements(0, 0, 0, 0),
         WKBIntegrals(0, 0, 0),
         WKBTendencies(0, 0, 0),
-        [Ref(0.0) for i in 1:3]...,
+        (Ref(0.0) for i in 1:3)...,
         zeros(0, 0),
         zeros(0, 0, 0),
         Spectrum(0, 0, 0, 0),
