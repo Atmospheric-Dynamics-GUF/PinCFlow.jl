@@ -1,46 +1,9 @@
 macro share end
 
-macro share(x::Vararg{Expr})
-    if x[end].head === :for
-        thread = true
-        vector = true
+macro share(x::Any)
+    if x isa Expr && x.head === :for
+        (loop, body) = x.args
 
-        # Parse the arguments.
-        options = Symbol[]
-        reductions = Expr[]
-        for xi in x[1:(end - 1)]
-            if xi.head === :(=)
-                for option in options
-                    xi.args[1] === option && error("Duplicate option!")
-                end
-
-                if xi.args[1] === :thread && xi.args[2] isa Bool
-                    thread = xi.args[2]
-                elseif xi.args[1] === :vector && xi.args[2] isa Bool
-                    vector = xi.args[2]
-                else
-                    error("Unexpected option!")
-                end
-
-                push!(options, xi.args[1])
-            elseif xi.head === :tuple
-                for reduction in reductions
-                    xi === reduction && error("Duplicate reduction!")
-                end
-
-                if !(xi.args[1] isa Symbol && xi.args[2] isa Symbol)
-                    error("Unexpected reduction!")
-                end
-
-                push!(reductions, xi)
-            else
-                error("Unexpected argument format!")
-            end
-        end
-
-        (loop, body) = x[end].args
-
-        # Extract the index names and ranges of the loop.
         if loop.head === :block && all(arg.head === :(=) for arg in loop.args)
             index_names = Tuple(arg.args[1] for arg in loop.args[end:(-1):1])
             ranges = Tuple(arg.args[2] for arg in loop.args[end:(-1):1])
@@ -51,15 +14,13 @@ macro share(x::Vararg{Expr})
             error("Unexpected for-loop format!")
         end
 
-        @gensym all_indices block blocks block_size index indices loop_size
+        @gensym index indices
 
-        vector_loop = Expr(
-            :macrocall,
-            vector ? Symbol("@simd") : GlobalRef(Macros, Symbol("@last")),
-            __source__,
-            :ivdep,
-            :(
-                for $index in $indices
+        output = esc(quote
+            let
+                $indices = CartesianIndices(($(ranges...),))
+
+                @simd ivdep for $index in $indices
                     $(Expr(
                         :block,
                         (
@@ -69,85 +30,19 @@ macro share(x::Vararg{Expr})
                     ))
                     $body
                 end
-            ),
-        )
-
-        thread_loop = Expr(
-            :macrocall,
-            GlobalRef(Polyester, Symbol("@batch")),
-            __source__,
-            (
-                :(reduction = $(Expr(:tuple, reductions...))) for
-                i in 1:1 if length(reductions) > 0
-            )...,
-            :(
-                for $block in $blocks
-                    $indices =
-                        $all_indices[(($block - 1) * $block_size + 1):min(
-                            $block * $block_size,
-                            $loop_size,
-                        )]
-                    $vector_loop
-                end
-            ),
-        )
-
-        threaded = quote
-            $blocks = 1:cld($loop_size, $block_size)
-            $thread_loop
-        end
-
-        vectorized = quote
-            $indices = $all_indices
-            $vector_loop
-        end
-
-        output = esc(
-            quote
-                let
-                    $all_indices = CartesianIndices(($(ranges...),))
-                    $loop_size = length($all_indices)
-                    $block_size =
-                        cld($loop_size, $(GlobalRef(Threads, :nthreads))())
-                    if $block_size == $loop_size
-                        $vectorized
-                    else
-                        $(thread ? threaded : vectorized)
-                    end
-                end
-            end,
-        )
+            end
+        end)
 
         println(output)
 
         return output
     else
-        if length(x) == 1
-            thread = true
-        elseif length(x) == 2
-            if x[1].head === :(=) &&
-               x[1].args[1] === :thread &&
-               x[1].args[2] isa Bool
-                thread = x[1].args[2]
-            else
-                error("Unexpected option!")
-            end
-        else
-            error("Unexpected option!")
-        end
-
         output = esc(
             Expr(
                 :macrocall,
                 GlobalRef(FastBroadcast, Symbol("@..")),
                 __source__,
-                :(
-                    thread = $(GlobalRef(
-                        FastBroadcast,
-                        thread ? :Threaded : :Serial,
-                    ))()
-                ),
-                x[end],
+                x,
             ),
         )
 

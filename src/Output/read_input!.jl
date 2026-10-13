@@ -132,7 +132,7 @@ function read_input! end
             ] / rhoref / uref^2 / tref / lref^dim
 
             # Determine nray.
-            @share vector = false for k in kkr, j in jj, i in ii
+            for k in kkr, j in jj, i in ii
                 local_count = 0
                 for r in rr
                     if rays.dens[r, i, j, k] == 0

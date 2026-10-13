@@ -137,31 +137,27 @@ end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @share vector = false for k in kmin:kmax, j in (j0 - 1):(j1 + 1)
-        for i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
-                xr = rays.x[r, i, j, k]
-                iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
+    for k in kmin:kmax,
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1),
+        r in 1:nray[i, j, k]
 
-                if iray != i
-                    if abs(iray - i) > 1
-                        error(
-                            "Ray-volume shift is too large: abs(iray - i) > 1!",
-                        )
-                    end
-                    if i0 <= iray <= i1
-                        nray[iray, j, k] += 1
-                        rray = nray[iray, j, k]
-                        if rray > nray_wrk
-                            error(
-                                "Too many ray-volume shifts: nray > nray_wrk!",
-                            )
-                        end
-                        copy_rays!(rays, r => rray, i => iray, j => j, k => k)
-                    end
-                    rays.dens[r, i, j, k] = 0.0
-                end
+        xr = rays.x[r, i, j, k]
+        iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
+
+        if iray != i
+            if abs(iray - i) > 1
+                error("Ray-volume shift is too large: abs(iray - i) > 1!")
             end
+            if i0 <= iray <= i1
+                nray[iray, j, k] += 1
+                rray = nray[iray, j, k]
+                if rray > nray_wrk
+                    error("Too many ray-volume shifts: nray > nray_wrk!")
+                end
+                copy_rays!(rays, r => rray, i => iray, j => j, k => k)
+            end
+            rays.dens[r, i, j, k] = 0.0
         end
     end
 
@@ -177,31 +173,27 @@ end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @share vector = false for k in kmin:kmax
-        for j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
-                yr = rays.y[r, i, j, k]
-                jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
+    for k in kmin:kmax,
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1),
+        r in 1:nray[i, j, k]
 
-                if jray != j
-                    if abs(jray - j) > 1
-                        error(
-                            "Ray-volume shift is too large: abs(jray - j) > 1!",
-                        )
-                    end
-                    if j0 <= jray <= j1
-                        nray[i, jray, k] += 1
-                        rray = nray[i, jray, k]
-                        if rray > nray_wrk
-                            error(
-                                "Too many ray-volume shifts: nray > nray_wrk!",
-                            )
-                        end
-                        copy_rays!(rays, r => rray, i => i, j => jray, k => k)
-                    end
-                    rays.dens[r, i, j, k] = 0.0
-                end
+        yr = rays.y[r, i, j, k]
+        jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
+
+        if jray != j
+            if abs(jray - j) > 1
+                error("Ray-volume shift is too large: abs(jray - j) > 1!")
             end
+            if j0 <= jray <= j1
+                nray[i, jray, k] += 1
+                rray = nray[i, jray, k]
+                if rray > nray_wrk
+                    error("Too many ray-volume shifts: nray > nray_wrk!")
+                end
+                copy_rays!(rays, r => rray, i => i, j => jray, k => k)
+            end
+            rays.dens[r, i, j, k] = 0.0
         end
     end
 
@@ -217,31 +209,29 @@ end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    for k in kmin:kmax
-        @share vector = false for j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
-                zr = rays.z[r, i, j, k]
-                kray = get_next_half_level(i, j, zr, state)
+    for k in kmin:kmax,
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1),
+        r in 1:nray[i, j, k]
 
-                if kray != k
-                    if abs(kray - k) > 1 && npz > 1
-                        error(
-                            "Ray-volume shift is too large: abs(kray - k) > 1 && npz > 1!",
-                        )
-                    end
-                    if k0 <= kray <= k1
-                        nray[i, j, kray] += 1
-                        rray = nray[i, j, kray]
-                        if rray > nray_wrk
-                            error(
-                                "Too many ray-volume shifts: nray > nray_wrk!",
-                            )
-                        end
-                        copy_rays!(rays, r => rray, i => i, j => j, k => kray)
-                    end
-                    rays.dens[r, i, j, k] = 0.0
-                end
+        zr = rays.z[r, i, j, k]
+        kray = get_next_half_level(i, j, zr, state)
+
+        if kray != k
+            if abs(kray - k) > 1 && npz > 1
+                error(
+                    "Ray-volume shift is too large: abs(kray - k) > 1 && npz > 1!",
+                )
             end
+            if k0 <= kray <= k1
+                nray[i, j, kray] += 1
+                rray = nray[i, j, kray]
+                if rray > nray_wrk
+                    error("Too many ray-volume shifts: nray > nray_wrk!")
+                end
+                copy_rays!(rays, r => rray, i => i, j => j, k => kray)
+            end
+            rays.dens[r, i, j, k] = 0.0
         end
     end
 

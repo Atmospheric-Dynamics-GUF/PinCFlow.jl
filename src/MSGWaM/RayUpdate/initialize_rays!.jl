@@ -124,7 +124,7 @@ end
     kmax = k1
 
     # Loop over all grid cells with ray volumes.
-    @share vector = false for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         r = 0
         s = 0
 
@@ -279,7 +279,7 @@ end
 
     # Compute global ray-volume count.
     local_sum = 0
-    @share (+, local_sum) for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @share for k in kmin:kmax, j in j0:j1, i in i0:i1
         local_sum += nray[i, j, k]
     end
     global_sum = MPI.Allreduce(local_sum, +, comm)

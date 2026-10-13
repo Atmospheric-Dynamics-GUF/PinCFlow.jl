@@ -22,7 +22,7 @@ function set_zonal_halo_rays! end
 
     nray_max_left = 0
     nray_max_right = 0
-    @share (max, nray_max_left) (max, nray_max_right) for k in kk, j in jj
+    @share for k in kk, j in jj
         nray_max_left = max(nray_max_left, nray[i0, j, k])
         nray_max_right = max(nray_max_right, nray[i1, j, k])
     end

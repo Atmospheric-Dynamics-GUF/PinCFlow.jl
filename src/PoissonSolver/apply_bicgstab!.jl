@@ -63,7 +63,7 @@ function apply_bicgstab!(
     end
 
     res = 0.0
-    @share (+, res) for k in 1:nz, j in 1:ny, i in 1:nx
+    @share for k in 1:nz, j in 1:ny, i in 1:nx
         res += r[i, j, k]^2
     end
     res = MPI.Allreduce(res, +, comm)
@@ -123,7 +123,7 @@ function apply_bicgstab!(
         #-----------------------
 
         res = 0.0
-        @share (+, res) for k in 1:nz, j in 1:ny, i in 1:nx
+        @share for k in 1:nz, j in 1:ny, i in 1:nx
             res += r[i, j, k]^2
         end
         res = MPI.Allreduce(res, +, comm)

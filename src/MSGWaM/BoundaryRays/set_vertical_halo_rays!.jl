@@ -23,7 +23,7 @@ function set_vertical_halo_rays! end
 
     nray_max_down = 0
     nray_max_up = 0
-    @share (max, nray_max_down) (max, nray_max_up) for j in jj, i in ii
+    @share for j in jj, i in ii
         nray_max_down = max(nray_max_down, nray[i, j, k0])
         nray_max_up = max(nray_max_up, nray[i, j, k1])
     end

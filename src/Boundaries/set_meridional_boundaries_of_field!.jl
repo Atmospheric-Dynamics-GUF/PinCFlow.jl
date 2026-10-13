@@ -93,12 +93,10 @@ end
     if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
-        @share vector = false for k in (k0 - nbz):(k1 + nbz)
-            for j in 1:nby
-                @share thread = false for i in (i0 - nbx):(i1 + nbx)
-                    field[i, j0 - j, k] = field[i, j1 - j + 1, k]
-                    field[i, j1 + j, k] = field[i, j0 + j - 1, k]
-                end
+        for k in (k0 - nbz):(k1 + nbz), j in 1:nby
+            @share for i in (i0 - nbx):(i1 + nbx)
+                field[i, j0 - j, k] = field[i, j1 - j + 1, k]
+                field[i, j1 + j, k] = field[i, j0 + j - 1, k]
             end
         end
     end
@@ -122,12 +120,10 @@ end
     if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
-        @share vector = false for m in 1:2, l in 1:3, k in (k0 - nbz):(k1 + nbz)
-            for j in 1:nby
-                @share thread = false for i in (i0 - nbx):(i1 + nbx)
-                    field[i, j0 - j, k, l, m] = field[i, j1 - j + 1, k, l, m]
-                    field[i, j1 + j, k, l, m] = field[i, j0 + j - 1, k, l, m]
-                end
+        for m in 1:2, l in 1:3, k in (k0 - nbz):(k1 + nbz), j in 1:nby
+            @share for i in (i0 - nbx):(i1 + nbx)
+                field[i, j0 - j, k, l, m] = field[i, j1 - j + 1, k, l, m]
+                field[i, j1 + j, k, l, m] = field[i, j0 + j - 1, k, l, m]
             end
         end
     end

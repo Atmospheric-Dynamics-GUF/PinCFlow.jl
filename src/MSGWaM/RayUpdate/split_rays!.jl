@@ -89,17 +89,17 @@ end
     (; nray) = state.wkb
 
     nray_before = 0
-    @share (+, nray_before) for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         nray_before += nray[i, j, k]
     end
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    @share vector = false for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         split_rays!(i, j, k, state, Z())
     end
 
     nray_after = 0
-    @share (+, nray_after) for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         nray_after += nray[i, j, k]
     end
     nray_after = MPI.Allreduce(nray_after, +, comm)
@@ -119,12 +119,12 @@ end
     (; nray) = state.wkb
 
     nray_before = 0
-    @share (+, nray_before) for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         nray_before += nray[i, j, k]
     end
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    @share vector = false for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         if x_size > 1
             split_rays!(i, j, k, state, X())
         end
@@ -137,7 +137,7 @@ end
     end
 
     nray_after = 0
-    @share (+, nray_after) for k in k0:k1, j in j0:j1, i in i0:i1
+    @share for k in k0:k1, j in j0:j1, i in i0:i1
         nray_after += nray[i, j, k]
     end
     nray_after = MPI.Allreduce(nray_after, +, comm)

@@ -28,7 +28,7 @@ function compute_global_dot_product(
 
     # Compute local dot product.
     local_dot_product = 0.0
-    @share (+, local_dot_product) for k in 1:nz, j in 1:ny, i in 1:nx
+    @share for k in 1:nz, j in 1:ny, i in 1:nx
         local_dot_product += a[i, j, k] * b[i, j, k]
     end
 

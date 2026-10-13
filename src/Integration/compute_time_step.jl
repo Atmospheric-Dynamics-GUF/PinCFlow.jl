@@ -71,10 +71,7 @@ function compute_time_step end
         umax = 0.0
         vmax = 0.0
         wmax = 0.0
-        @share (max, umax) (max, vmax) (max, wmax) for k in k0:k1,
-            j in j0:j1,
-            i in i0:i1
-
+        @share for k in k0:k1, j in j0:j1, i in i0:i1
             umax = max(umax, abs(u[i, j, k]))
             vmax = max(vmax, abs(v[i, j, k]))
             wmax = max(wmax, abs(w[i, j, k]))

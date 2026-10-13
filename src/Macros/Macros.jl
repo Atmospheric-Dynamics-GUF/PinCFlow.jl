@@ -16,7 +16,6 @@ include("replace_argument.jl")
 
 include("@dispatch.jl")
 include("@ivy.jl")
-include("@last.jl")
 include("@share.jl")
 
 export @dispatch, @ivy, @share

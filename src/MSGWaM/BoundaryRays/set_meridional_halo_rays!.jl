@@ -22,7 +22,7 @@ function set_meridional_halo_rays! end
 
     nray_max_backward = 0
     nray_max_forward = 0
-    @share (max, nray_max_backward) (max, nray_max_forward) for k in kk, i in ii
+    @share for k in kk, i in ii
         nray_max_backward = max(nray_max_backward, nray[i, j0, k])
         nray_max_forward = max(nray_max_forward, nray[i, j1, k])
     end

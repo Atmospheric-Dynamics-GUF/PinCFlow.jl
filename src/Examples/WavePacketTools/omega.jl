@@ -2,13 +2,7 @@
 
 """
 ```julia
-omega(
-    state::State,
-    parameters::NamedTuple,
-    x::Real,
-    y::Real,
-    z::Real,
-)::Real
+omega(state::State, parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
 ```
 
 Return the intrinsic frequency at ``\\left(x, y, z\\right)``.
