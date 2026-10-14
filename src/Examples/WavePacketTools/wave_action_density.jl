@@ -2,7 +2,13 @@
 
 """
 ```julia
-wave_action_density(state::State, parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
+wave_action_density(
+    state::State,
+    parameters::NamedTuple,
+    x::Real,
+    y::Real,
+    z::Real,
+)::Real
 ```
 
 Return the wave-action density at ``\\left(x, y, z\\right)``.
