@@ -52,7 +52,7 @@ function TracerFluxes(
     tracer_setup::Val{:NoTracer},
 )::TracerFluxes
     return TracerFluxes(
-        [zeros(0, 0, 0, 0) for field in fieldnames(TracerFluxes)]...,
+        (zeros(0, 0, 0, 0) for field in fieldnames(TracerFluxes))...,
     )
 end
 
@@ -63,6 +63,6 @@ function TracerFluxes(
     (; nxx, nyy, nzz) = domain
 
     return TracerFluxes(
-        [zeros(nxx, nyy, nzz, 3) for field in fieldnames(TracerFluxes)]...,
+        (zeros(nxx, nyy, nzz, 3) for field in fieldnames(TracerFluxes))...,
     )
 end
