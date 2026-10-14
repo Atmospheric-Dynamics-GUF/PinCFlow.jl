@@ -16,22 +16,24 @@ macro share(x::Any)
 
         @gensym index indices
 
-        output = esc(quote
-            let
-                $indices = CartesianIndices(($(ranges...),))
+        output = esc(
+            quote
+                let
+                    $indices = CartesianIndices(($(ranges...),))
 
-                @simd ivdep for $index in $indices
-                    $(Expr(
-                        :block,
-                        (
-                            :($(index_names[i]) = $index[$i]) for
-                            i in eachindex(index_names)
-                        )...,
-                    ))
-                    $body
+                    @simd ivdep for $index in $indices
+                        $(Expr(
+                            :block,
+                            (
+                                :($(index_names[i]) = $index[$i]) for
+                                i in eachindex(index_names)
+                            )...,
+                        ))
+                        $body
+                    end
                 end
-            end
-        end)
+            end,
+        )
 
         println(output)
 
