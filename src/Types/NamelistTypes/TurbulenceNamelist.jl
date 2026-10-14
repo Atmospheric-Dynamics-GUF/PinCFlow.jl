@@ -31,6 +31,9 @@ Construct a `TurbulenceNamelist` instance with the given keyword arguments as pr
   - `gw_coupling::Bool`: Switch to include to production of turbulence due to gravity-wave shear when parameterizing waves with the WKB model.
 
   - `initial_tke::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to initialize the mass-specific turbulent kinetic energy.
+
+!!! danger "Experimental"
+    The gravity-wave coupling to turbulence is an experimental feature that hasn't been validated yet.
 """
 struct TurbulenceNamelist
     turbulence_scheme::Symbol

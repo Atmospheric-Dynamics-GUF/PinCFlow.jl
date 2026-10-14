@@ -80,8 +80,6 @@ Compute the gravity-wave shear at ``\\left(i, j, k \\right)``, using
 
   - `k`: Vertical grid-cell index.
 
-!!! danger "Experimental"
-    The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
 function compute_gw_turbulence_integrals! end
 

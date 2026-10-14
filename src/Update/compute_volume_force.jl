@@ -167,8 +167,6 @@ Return the turbulence impact of the gravity-wave shear.
   
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
 
-!!! danger "Experimental"
-    The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
 function compute_volume_force end
 

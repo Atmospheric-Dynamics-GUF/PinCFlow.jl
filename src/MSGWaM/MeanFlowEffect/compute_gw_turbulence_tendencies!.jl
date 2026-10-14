@@ -56,8 +56,6 @@ where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum (
 
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
 
-!!! danger "Experimental"
-    The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
 function compute_gw_turbulence_tendencies! end
 
