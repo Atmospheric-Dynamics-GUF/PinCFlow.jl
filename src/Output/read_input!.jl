@@ -78,7 +78,8 @@ function read_input! end
 
         if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
-                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] = @share file[string(field)][
+                field_string = string(field)
+                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] = @share file[field_string][
                     iid,
                     jjd,
                     kkd,
