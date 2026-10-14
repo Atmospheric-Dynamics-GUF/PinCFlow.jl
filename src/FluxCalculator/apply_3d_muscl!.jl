@@ -43,32 +43,38 @@ function apply_3d_muscl! end
 
     # Reconstruct in x.
     @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
-        phitilde[i, j, k, 1, :] .= muscl(
+        (left, right) = muscl(
             phi[i - 1, j, k],
             phi[i, j, k],
             phi[i + 1, j, k],
             limiter_type,
         )
+        phitilde[i, j, k, 1, 1] = left
+        phitilde[i, j, k, 1, 2] = right
     end
 
     # Reconstruct in y.
     @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
-        phitilde[i, j, k, 2, :] .= muscl(
+        (back, front) = muscl(
             phi[i, j - 1, k],
             phi[i, j, k],
             phi[i, j + 1, k],
             limiter_type,
         )
+        phitilde[i, j, k, 2, 1] = back
+        phitilde[i, j, k, 2, 2] = front
     end
 
     # Reconstruct in z.
     @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
-        phitilde[i, j, k, 3, :] .= muscl(
+        (down, up) = muscl(
             phi[i, j, k - 1],
             phi[i, j, k],
             phi[i, j, k + 1],
             limiter_type,
         )
+        phitilde[i, j, k, 3, 1] = down
+        phitilde[i, j, k, 3, 2] = up
     end
 
     return
