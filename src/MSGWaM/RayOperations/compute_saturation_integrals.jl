@@ -71,71 +71,67 @@ function compute_saturation_integrals end
     mb2k2 = 0.0
 
     # Loop over ray volumes.
-    for r in 1:nray[i, j, k]
+    @share for r in 1:nray[i, j, k]
+        if rays.dens[r, i, j, k] != 0
+            xr = rays.x[r, i, j, k]
+            yr = rays.y[r, i, j, k]
+            zr = rays.z[r, i, j, k]
 
-        # Skip ray volumes with zero wave-action density.
-        if rays.dens[r, i, j, k] == 0
-            continue
+            dxr = rays.dxray[r, i, j, k]
+            dyr = rays.dyray[r, i, j, k]
+            dzr = rays.dzray[r, i, j, k]
+
+            if x_size > 1
+                iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
+            else
+                iray = i0
+            end
+
+            if y_size > 1
+                jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
+            else
+                jray = j0
+            end
+
+            kray = get_next_half_level(iray, jray, zr, state)
+
+            n2r = interpolate_stratification(zr, state, N2())
+
+            wnrk = rays.k[r, i, j, k]
+            wnrl = rays.l[r, i, j, k]
+            wnrm = rays.m[r, i, j, k]
+
+            wnrhs = wnrk^2 + wnrl^2
+
+            dwnrk = rays.dkray[r, i, j, k]
+            dwnrl = rays.dlray[r, i, j, k]
+            dwnrm = rays.dmray[r, i, j, k]
+
+            omir = compute_intrinsic_frequency(state, r, i, j, k)
+
+            densr = rays.dens[r, i, j, k]
+
+            dzi = min(dzr, jac[iray, jray, kray] * dz)
+            facpsp = dzi / jac[iray, jray, kray] / dz * dwnrm
+
+            if x_size > 1
+                dxi = min(dxr, dx)
+                facpsp = facpsp * dxi / dx * dwnrk
+            end
+
+            if y_size > 1
+                dyi = min(dyr, dy)
+                facpsp = facpsp * dyi / dy * dwnrl
+            end
+
+            integral1 = wnrhs * wnrm^2 / ((wnrhs + wnrm^2) * omir) * facpsp
+
+            mb2 += 2 * n2r^2 / rhobar[iray, jray, kray] * densr * integral1
+
+            integral2 = wnrhs * wnrm^2 / omir * facpsp
+
+            mb2k2 += 2 * n2r^2 / rhobar[iray, jray, kray] * densr * integral2
         end
-
-        xr = rays.x[r, i, j, k]
-        yr = rays.y[r, i, j, k]
-        zr = rays.z[r, i, j, k]
-
-        dxr = rays.dxray[r, i, j, k]
-        dyr = rays.dyray[r, i, j, k]
-        dzr = rays.dzray[r, i, j, k]
-
-        if x_size > 1
-            iray = floor(Int, (xr + lx / 2) / dx) + i0 - io
-        else
-            iray = i0
-        end
-
-        if y_size > 1
-            jray = floor(Int, (yr + ly / 2) / dy) + j0 - jo
-        else
-            jray = j0
-        end
-
-        kray = get_next_half_level(iray, jray, zr, state)
-
-        n2r = interpolate_stratification(zr, state, N2())
-
-        wnrk = rays.k[r, i, j, k]
-        wnrl = rays.l[r, i, j, k]
-        wnrm = rays.m[r, i, j, k]
-
-        wnrhs = wnrk^2 + wnrl^2
-
-        dwnrk = rays.dkray[r, i, j, k]
-        dwnrl = rays.dlray[r, i, j, k]
-        dwnrm = rays.dmray[r, i, j, k]
-
-        omir = compute_intrinsic_frequency(state, r, i, j, k)
-
-        densr = rays.dens[r, i, j, k]
-
-        dzi = min(dzr, jac[iray, jray, kray] * dz)
-        facpsp = dzi / jac[iray, jray, kray] / dz * dwnrm
-
-        if x_size > 1
-            dxi = min(dxr, dx)
-            facpsp = facpsp * dxi / dx * dwnrk
-        end
-
-        if y_size > 1
-            dyi = min(dyr, dy)
-            facpsp = facpsp * dyi / dy * dwnrl
-        end
-
-        integral1 = wnrhs * wnrm^2 / ((wnrhs + wnrm^2) * omir) * facpsp
-
-        mb2 += 2 * n2r^2 / rhobar[iray, jray, kray] * densr * integral1
-
-        integral2 = wnrhs * wnrm^2 / omir * facpsp
-
-        mb2k2 += 2 * n2r^2 / rhobar[iray, jray, kray] * densr * integral2
     end
 
     return (mb2, mb2k2)
