@@ -31,60 +31,6 @@ using ..RaySources
 using ...Macros
 using ...Types
 
-"""
-```julia
-X
-```
-
-Singleton for dispatch to operations in ``x``-direction.
-"""
-struct X end
-
-"""
-```julia
-Y
-```
-
-Singleton for dispatch to operations in ``y``-direction.
-"""
-struct Y end
-
-"""
-```julia
-Z
-```
-
-Singleton for dispatch to operations in ``z``-direction.
-"""
-struct Z end
-
-"""
-```julia
-XZ
-```
-
-Singleton for dispatch to operations in ``x``- and ``z``-direction.
-"""
-struct XZ end
-
-"""
-```julia
-YZ
-```
-
-Singleton for dispatch to operations in ``y``- and ``z``-direction.
-"""
-struct YZ end
-
-"""
-```julia
-XYZ
-```
-
-Singleton for dispatch to operations in all directions.
-"""
-struct XYZ end
-
 include("apply_saturation_scheme!.jl")
 include("initialize_rays!.jl")
 include("merge_rays!.jl")
@@ -92,8 +38,6 @@ include("propagate_rays!.jl")
 include("shift_rays!.jl")
 include("split_rays!.jl")
 include("apply_turbulent_damping!.jl")
-
-export X, Y, Z, XZ, YZ, XYZ
 
 export apply_saturation_scheme!,
     initialize_rays!, merge_rays!, propagate_rays!, shift_rays!, split_rays!

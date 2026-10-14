@@ -6,16 +6,15 @@ compute_turbulent_velocity(
     i::Integer,
     j::Integer,
     k::Integer,
-)::NTuple{3, <:Complex}
+)::NTuple{2, <:Complex}
 ```
 
-Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{0,r}``, ``Q_{1,r}`` and ``Q_{2,r}``.
+Compute and return the characteristic mean turbulent velocity amplitudes ``Q_{1,r}`` and ``Q_{2,r}``.
 
 The velocity amplitudes are approximated with the numerical phase averages 
 
 ```math 
 \\begin{align*}
-Q_{0,r} &= \\frac{1}{2\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}\\Delta\\phi\\;, \\\\
 Q_{1,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-i n\\Delta\\phi}\\Delta\\phi\\;, \\\\
 Q_{2,r} &= \\frac{1}{\\pi}\\sum_{n=0}^{N_{\\phi}}\\sqrt{\\tilde{Q}_r^2(n\\Delta\\phi)}e^{-2i n\\Delta\\phi}\\Delta\\phi\\;,
 \\end{align*}
@@ -95,7 +94,7 @@ function compute_turbulent_velocity end
     i::Integer,
     j::Integer,
     k::Integer,
-)::NTuple{3, <:Complex}
+)::NTuple{2, <:Complex}
     (; rays) = state.wkb
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
@@ -130,7 +129,6 @@ function compute_turbulent_velocity end
 
     dphi = 2 * pi / 20
     phi = 0.0
-    q0r = 0.0
     q1r = 0.0
     q2r = 0.0
     while phi <= 2 * pi
@@ -146,12 +144,11 @@ function compute_turbulent_velocity end
             omir,
             phi,
         )
-        q0r += qtilde * dphi
         q1r += qtilde * exp(-1im * phi) * dphi
         q2r += qtilde * exp(-2im * phi) * dphi
         phi += dphi
     end
-    return (q0r / (2 * pi), q1r / pi, q2r / pi)
+    return (q1r / pi, q2r / pi)
 end
 
 function compute_turbulent_velocity(
