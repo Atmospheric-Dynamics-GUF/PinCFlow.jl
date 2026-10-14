@@ -67,7 +67,6 @@ function apply_turbulent_damping! end
     i::Integer,
     j::Integer,
     k::Integer,
-    zr::AbstractFloat,
     dt::AbstractFloat,
 )
     (; rays) = state.wkb
@@ -87,13 +86,9 @@ function apply_turbulent_damping! end
 
     fc = coriolis_frequency * tref
 
-    kr = rays.k[r, i, j, k]
-    lr = rays.l[r, i, j, k]
-    mr = rays.m[r, i, j, k]
-
-    dkr = rays.dkray[r, i, j, k]
-    dlr = rays.dlray[r, i, j, k]
-    dmr = rays.dmray[r, i, j, k]
+    (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+    (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
+    (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
 
     kh2 = kr^2 + lr^2
 

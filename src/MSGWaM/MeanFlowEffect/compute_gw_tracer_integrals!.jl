@@ -190,6 +190,7 @@ end
 )
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
     (; leading_order_impact) = state.namelists.tracer
+    (; chi) = state.tracer.tracerpredictands
 
     if fc == 0.0 || !leading_order_impact
         return
@@ -197,9 +198,9 @@ end
 
     coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
-    dchidx = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDX())
-    dchidy = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDY())
-    dchidz = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDZ())
+    dchidx = interpolate_scalar(state, xlc, ylc, zlc, chi, DX())
+    dchidy = interpolate_scalar(state, xlc, ylc, zlc, chi, DY())
+    dchidz = interpolate_scalar(state, xlc, ylc, zlc, chi, DZ())
 
     uchi0[i, j, k] += coeff * (wnrl * dchidz - wnrm * dchidy)
     vchi0[i, j, k] += coeff * (wnrm * dchidx - wnrk * dchidz)
