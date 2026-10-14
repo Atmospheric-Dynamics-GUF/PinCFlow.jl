@@ -9,7 +9,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the volume force in the equation specified by `variable`, by dispatching to a WKB-mode specific method.
+Return the volume force in the equation specified by `variable`, by dispatching to an equation-and-WKB-mode specific method.
 
 ```julia
 compute_volume_force(
@@ -17,7 +17,7 @@ compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi},
+    variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
 ```
@@ -116,7 +116,7 @@ compute_volume_force(
 )::AbstractFloat
 ```
 
-Return the mass-weighted impact of the large-scale shear ``\\mathcal{S}``, the buoyancy ``\\mathcal{B}`` and that of the gravity-wave shear ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}``  on the TKE, given by
+Return the mass-weighted impact of the large-scale shear ``\\mathcal{S}``, the buoyancy ``\\mathcal{B}`` and ``\\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}``, which is the impact of the gravity-wave shear,  on the TKE, given by
 
 ```math
 \\left(\\frac{\\partial \\rho e_\\mathrm{k}}{\\partial t}\\right) = \\rho\\left[\\mathcal{S} + \\mathcal{B} + \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w}\\right]
@@ -139,27 +139,11 @@ compute_volume_force(
     j::Integer,
     k::Integer,
     variables::TKE,
-    wkb_mode::Val{:NoWKB},
-)::AbstractFloat
-```
-
-Return ``0`` as the turbulence impact of the gravity-wave shear in non-WKB modes.
-
-```julia
-compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variables::TKE,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
 ```
 
-Returns the turbulence impact of the gravity-wave shear.
-
-!!! danger "Experimental"
-    The gravity-wave shear is an experimental feature that hasn't been validated yet.
+Return the turbulence impact of the gravity-wave shear.
 
 # Arguments
 
@@ -182,6 +166,9 @@ Returns the turbulence impact of the gravity-wave shear.
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
   
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
+
+!!! danger "Experimental"
+    The gravity-wave shear is an experimental feature that hasn't been validated yet.
 """
 function compute_volume_force end
 
@@ -209,7 +196,7 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi},
+    variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     return 0.0
@@ -356,17 +343,6 @@ end
     buoyancy_production[i, j, k] = buoyancy
 
     return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
-end
-
-function compute_volume_force(
-    state::State,
-    i::Integer,
-    j::Integer,
-    k::Integer,
-    variable::TKE,
-    wkb_mode::Val{:NoWKB},
-)::AbstractFloat
-    return 0.0
 end
 
 @ivy function compute_volume_force(

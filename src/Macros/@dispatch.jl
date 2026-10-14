@@ -31,13 +31,7 @@ macro dispatch(values::Expr, input::Any)
     if argument !== nothing
         condition = ""
         for (index, value) in enumerate(Core.eval(@__MODULE__, values))
-            if value isa Symbol
-                literal = ":$(value)"
-            elseif value isa AbstractString
-                literal = "\"$(value)\""
-            else
-                literal = "$(value)"
-            end
+            literal = repr(value)
             prefix = index == 1 ? "if" : "elseif"
             condition *=
                 "$(prefix) $(argument) === $(literal)\n" *
