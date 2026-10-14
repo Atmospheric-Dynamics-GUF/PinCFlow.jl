@@ -238,18 +238,17 @@ end
     end
 
     input = copy(output)
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        output[i, j, k] =
-            sum(
-                input[ii, jj, kk] * jac[ii, jj, kk] for
-                kk in (k - filter_order):(k + filter_order),
-                jj in (j - filter_order):(j + filter_order),
-                ii in (i - filter_order):(i + filter_order)
-            ) / sum(
-                jac[ii, jj, kk] for kk in (k - filter_order):(k + filter_order),
-                jj in (j - filter_order):(j + filter_order),
-                ii in (i - filter_order):(i + filter_order)
-            )
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        value = 0.0
+        volume = 0.0
+        @share for kk in (k - filter_order):(k + filter_order),
+            jj in (j - filter_order):(j + filter_order),
+            ii in (i - filter_order):(i + filter_order)
+
+            value += input[ii, jj, kk] * jac[ii, jj, kk]
+            volume += jac[ii, jj, kk]
+        end
+        output[i, j, k] = value / volume
     end
 
     return
@@ -274,16 +273,16 @@ end
     end
 
     input = copy(output)
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        output[i, j, k] =
-            sum(
-                input[ii, j, kk] * jac[ii, j, kk] for
-                kk in (k - filter_order):(k + filter_order),
-                ii in (i - filter_order):(i + filter_order)
-            ) / sum(
-                jac[ii, j, kk] for kk in (k - filter_order):(k + filter_order),
-                ii in (i - filter_order):(i + filter_order)
-            )
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        value = 0.0
+        volume = 0.0
+        @share for kk in (k - filter_order):(k + filter_order),
+            ii in (i - filter_order):(i + filter_order)
+
+            value += input[ii, j, kk] * jac[ii, j, kk]
+            volume += jac[ii, j, kk]
+        end
+        output[i, j, k] = value / volume
     end
 
     return
@@ -308,16 +307,16 @@ end
     end
 
     input = copy(output)
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        output[i, j, k] =
-            sum(
-                input[i, jj, kk] * jac[i, jj, kk] for
-                kk in (k - filter_order):(k + filter_order),
-                jj in (j - filter_order):(j + filter_order)
-            ) / sum(
-                jac[i, jj, kk] for kk in (k - filter_order):(k + filter_order),
-                jj in (j - filter_order):(j + filter_order)
-            )
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        value = 0.0
+        volume = 0.0
+        @share for kk in (k - filter_order):(k + filter_order),
+            jj in (j - filter_order):(j + filter_order)
+
+            value += input[i, jj, kk] * jac[i, jj, kk]
+            volume += jac[i, jj, kk]
+        end
+        output[i, j, k] = value / volume
     end
 
     return
@@ -339,13 +338,14 @@ end
     end
 
     input = copy(output)
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        output[i, j, k] =
-            sum(
-                input[i, j, kk] * jac[i, j, kk] for
-                kk in (k - filter_order):(k + filter_order)
-            ) /
-            sum(jac[i, j, kk] for kk in (k - filter_order):(k + filter_order))
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        value = 0.0
+        volume = 0.0
+        @share for kk in (k - filter_order):(k + filter_order)
+            value += input[i, j, kk] * jac[i, j, kk]
+            volume += jac[i, j, kk]
+        end
+        output[i, j, k] = value / volume
     end
 
     return
