@@ -79,7 +79,6 @@ Compute the gravity-wave shear at ``\\left(i, j, k \\right)``, using
   - `j`: Meridional grid-cell index.
 
   - `k`: Vertical grid-cell index.
-
 """
 function compute_gw_turbulence_integrals! end
 

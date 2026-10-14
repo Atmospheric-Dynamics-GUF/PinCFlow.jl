@@ -166,7 +166,6 @@ Return the turbulence impact of the gravity-wave shear.
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
   
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
-
 """
 function compute_volume_force end
 
