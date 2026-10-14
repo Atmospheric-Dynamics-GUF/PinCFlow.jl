@@ -52,5 +52,5 @@ function Spectrum(
     nyy::Integer,
     nzz::Integer,
 )::Spectrum
-    return Spectrum([zeros(wave_modes, nxx, nyy, nzz) for i in 1:5]...)
+    return Spectrum((zeros(wave_modes, nxx, nyy, nzz) for i in 1:5)...)
 end

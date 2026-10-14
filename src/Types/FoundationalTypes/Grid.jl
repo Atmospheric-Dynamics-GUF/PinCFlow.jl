@@ -317,7 +317,7 @@ end
     end
 
     # Compute the minimum layer depth.
-    dzcmin = minimum(diff(zctilde; dims = 3))
+    dzcmin = mapreduce(-, min, zctilde[:, :, 2:nzz], zctilde[:, :, 1:(nzz - 1)])
     dzcmin = MPI.Allreduce(dzcmin, min, comm)
 
     return Grid(

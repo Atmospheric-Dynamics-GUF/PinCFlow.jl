@@ -5,7 +5,7 @@ TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Tracer impact of unresolved gravity waves.
 
-```julia 
+```julia
 TracerWKBTendencies(
     namelists::Namelists,
     domain::Domain,
@@ -24,7 +24,7 @@ TracerWKBTendencies(
 
 Construct a `TracerWKBTendencies` instance with zero-size arrays for configurations without tracer transport.
 
-```julia 
+```julia
 TracerWKBTendencies(
     namelists::Namelists,
     domain::Domain,
@@ -34,7 +34,7 @@ TracerWKBTendencies(
 
 Construct a `TracerWKBTendencies` instance by dispatching to the appropriate method.
 
-```julia 
+```julia
 TracerWKBTendencies(
     namelists::Namelists,
     domain::Domain,
@@ -54,7 +54,7 @@ TracerWKBTendencies(
 
 Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `state.namelists.tracer.leading_order_impact == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `dchidt0::A`: Leading-order tracer impact of unresolved gravity waves.
 
@@ -90,7 +90,7 @@ function TracerWKBTendencies(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBTendencies
-    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+    return TracerWKBTendencies((zeros(0, 0, 0) for i in 1:1)...)
 end
 
 function TracerWKBTendencies(
@@ -112,7 +112,7 @@ function TracerWKBTendencies(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBTendencies
-    return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+    return TracerWKBTendencies((zeros(0, 0, 0) for i in 1:1)...)
 end
 
 function TracerWKBTendencies(
@@ -124,8 +124,8 @@ function TracerWKBTendencies(
     (; leading_order_impact) = namelists.tracer
 
     if leading_order_impact
-        return TracerWKBTendencies([zeros(nxx, nyy, nzz) for i in 1:1]...)
+        return TracerWKBTendencies((zeros(nxx, nyy, nzz) for i in 1:1)...)
     else
-        return TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+        return TracerWKBTendencies((zeros(0, 0, 0) for i in 1:1)...)
     end
 end

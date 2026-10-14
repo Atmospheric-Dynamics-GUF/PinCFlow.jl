@@ -75,7 +75,7 @@ function Fluxes(domain::Domain, model::Val{:Boussinesq})::Fluxes
 
     return Fluxes(
         zeros(0, 0, 0, 0),
-        [zeros(nxx, nyy, nzz, 3) for i in 1:5]...,
+        (zeros(nxx, nyy, nzz, 3) for i in 1:5)...,
         zeros(0, 0, 0, 0),
     )
 end
@@ -83,11 +83,11 @@ end
 function Fluxes(domain::Domain, model::Val{:PseudoIncompressible})::Fluxes
     (; nxx, nyy, nzz) = domain
 
-    return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:6]..., zeros(0, 0, 0, 0))
+    return Fluxes((zeros(nxx, nyy, nzz, 3) for i in 1:6)..., zeros(0, 0, 0, 0))
 end
 
 function Fluxes(domain::Domain, model::Val{:Compressible})::Fluxes
     (; nxx, nyy, nzz) = domain
 
-    return Fluxes([zeros(nxx, nyy, nzz, 3) for i in 1:7]...)
+    return Fluxes((zeros(nxx, nyy, nzz, 3) for i in 1:7)...)
 end
