@@ -278,10 +278,7 @@ end
     end
 
     # Compute global ray-volume count.
-    local_sum = 0
-    @share for k in kmin:kmax, j in j0:j1, i in i0:i1
-        local_sum += nray[i, j, k]
-    end
+    local_sum = sum(nray[i0:i1, j0:j1, kmin:kmax])
     global_sum = MPI.Allreduce(local_sum, +, comm)
 
     # Print information.

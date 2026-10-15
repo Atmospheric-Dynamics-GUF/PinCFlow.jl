@@ -88,20 +88,14 @@ end
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
-    nray_before = 0
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        nray_before += nray[i, j, k]
-    end
+    nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         split_rays!(i, j, k, state, Z())
     end
 
-    nray_after = 0
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        nray_after += nray[i, j, k]
-    end
+    nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after > nray_before
@@ -118,10 +112,7 @@ end
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
-    nray_before = 0
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        nray_before += nray[i, j, k]
-    end
+    nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     for k in k0:k1, j in j0:j1, i in i0:i1
@@ -136,10 +127,7 @@ end
         split_rays!(i, j, k, state, Z())
     end
 
-    nray_after = 0
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        nray_after += nray[i, j, k]
-    end
+    nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after > nray_before

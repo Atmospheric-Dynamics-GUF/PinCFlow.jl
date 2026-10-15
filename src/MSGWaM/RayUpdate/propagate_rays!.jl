@@ -510,10 +510,7 @@ end
         MPI.Recv!(nray_down, comm; source = down)
         @share nray[i0:i1, j0:j1, k0 - 1] = nray_down
 
-        local_count = 0
-        @share for j in j0:j1, i in i0:i1
-            local_count = max(local_count, nray[i, j, k0 - 1])
-        end
+        local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if local_count > 0
             field_count = fieldcount(Rays)
             rays_down = zeros(field_count, local_count, nx, ny)
@@ -693,10 +690,7 @@ end
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
-        local_count = 0
-        @share for j in j0:j1, i in i0:i1
-            local_count = max(local_count, nray[i, j, k1])
-        end
+        local_count = maximum(nray[i0:i1, j0:j1, k1])
         if local_count > 0
             field_count = fieldcount(Rays)
             rays_up = zeros(field_count, local_count, nx, ny)

@@ -62,10 +62,7 @@ function apply_bicgstab!(
         r[i, j, k] = r0[i, j, k]
     end
 
-    res = 0.0
-    @share for k in 1:nz, j in 1:ny, i in 1:nx
-        res += r[i, j, k]^2
-    end
+    res = sum(rijk -> rijk^2, r)
     res = MPI.Allreduce(res, +, comm)
     res = sqrt(res / x_size / y_size / z_size)
 
@@ -122,10 +119,7 @@ function apply_bicgstab!(
         #   Abort criterion
         #-----------------------
 
-        res = 0.0
-        @share for k in 1:nz, j in 1:ny, i in 1:nx
-            res += r[i, j, k]^2
-        end
+        res = sum(rijk -> rijk^2, r)
         res = MPI.Allreduce(res, +, comm)
         res = sqrt(res / x_size / y_size / z_size)
 

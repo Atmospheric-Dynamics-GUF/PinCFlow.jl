@@ -75,10 +75,7 @@ end
     (; bins, nray, rays, merged_rays) = state.wkb
 
     # Compute ray-volume count before merging.
-    nray_before = 0
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        nray_before += nray[i, j, k]
-    end
+    nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Loop over grid cells.
@@ -276,10 +273,7 @@ end
     end
 
     # Compute ray-volume count after merging.
-    nray_after = 0
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
-        nray_after += nray[i, j, k]
-    end
+    nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_after = MPI.Allreduce(nray_after, +, comm)
 
     if master && nray_after < nray_before
