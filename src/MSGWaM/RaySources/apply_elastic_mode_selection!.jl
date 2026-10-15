@@ -95,12 +95,15 @@ function apply_elastic_mode_selection! end
     kmin = min(minimum_mode_count, length(j))
     kmax = min(maximum_mode_count, length(j))
 
+    # Compute the sum of absolute values.
+    sum_abs_field = sum(abs, field)
+
     # Compute the participation ratio.
-    n = min(sum(abs, field)^2 / sum(a -> a^2, field), kmax) / kmax
+    n = min(sum_abs_field^2 / sum(a -> a^2, field), kmax) / kmax
 
     # Compute the neighbor similarity.
     s = 0
-    for k in 1:(kmax - 1)
+    @share for k in 1:(kmax - 1)
         s += exp(-(abs(field[j[k]]) / abs(field[j[k + 1]]) - 1) / delta)
     end
     s /= kmax - 1
@@ -118,11 +121,11 @@ function apply_elastic_mode_selection! end
     f = 0.0
     while k < maximum_mode_count && (k < minimum_mode_count || f < alpha)
         k += 1
-        f += abs(field[j[k]]) / sum(abs, field)
+        f += abs(field[j[k]]) / sum_abs_field
     end
 
     # Discard the remaining modes.
-    field[j[(k + 1):end]] .= 0
+    @share field[j[(k + 1):end]] = 0
 
     return (k, f)
 end
