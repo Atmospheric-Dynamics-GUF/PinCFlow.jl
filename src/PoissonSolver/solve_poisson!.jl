@@ -47,7 +47,7 @@ function solve_poisson! end
     (; dpip) = state.variables.increments
     (; solution) = state.poisson
 
-    @share solution = 0.0
+    @fuse solution = 0.0
 
     if dt == 0.0
         error("Vanishing time step: dt = 0.0!")
@@ -62,7 +62,7 @@ function solve_poisson! end
         return (errflagbicg, niterbicg)
     end
 
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         is = i - i0 + 1
         js = j - j0 + 1
         ks = k - k0 + 1

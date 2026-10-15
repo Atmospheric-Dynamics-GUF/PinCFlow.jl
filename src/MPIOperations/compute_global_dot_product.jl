@@ -24,7 +24,7 @@ function compute_global_dot_product(
     b::AbstractArray{<:AbstractFloat, 3},
     state::State,
 )::AbstractFloat
-    (; comm, nx, ny, nz) = state.domain
+    (; comm) = state.domain
 
     # Compute local dot product.
     local_dot_product = mapreduce(*, +, a, b)
