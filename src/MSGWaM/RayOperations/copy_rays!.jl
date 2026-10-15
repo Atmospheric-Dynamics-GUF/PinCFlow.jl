@@ -32,7 +32,8 @@ function copy_rays! end
     j::Pair{<:Integer, <:Integer},
     k::Pair{<:Integer, <:Integer},
 )
-    rays.data[:, r[2], i[2], j[2], k[2]] .= rays.data[:, r[1], i[1], j[1], k[1]]
+    @fuse rays.data[:, r[2], i[2], j[2], k[2]] =
+        rays.data[:, r[1], i[1], j[1], k[1]]
 
     return
 end

@@ -129,7 +129,7 @@ end
         s = 0
 
         # Loop over all ray volumes within a spatial cell.
-        for ix in 1:nrx,
+        @fuse for ix in 1:nrx,
             ik in 1:nrk,
             jy in 1:nry,
             jl in 1:nrl,
