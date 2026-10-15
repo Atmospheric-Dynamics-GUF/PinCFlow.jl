@@ -19,7 +19,7 @@ function save_backups!(state::State, variables::Vararg{Symbol})
     for field_name in variables
         field = getfield(predictands, field_name)
         backup_field = getfield(backups, Symbol(field_name, :old))
-        @share backup_field = field
+        @fuse backup_field = field
     end
 
     return

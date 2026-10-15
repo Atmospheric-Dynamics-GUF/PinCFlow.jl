@@ -42,7 +42,7 @@ function apply_3d_muscl! end
 )
 
     # Reconstruct in x.
-    @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+    @fuse for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
         (left, right) = muscl(
             phi[i - 1, j, k],
             phi[i, j, k],
@@ -54,7 +54,7 @@ function apply_3d_muscl! end
     end
 
     # Reconstruct in y.
-    @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+    @fuse for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
         (back, front) = muscl(
             phi[i, j - 1, k],
             phi[i, j, k],
@@ -66,7 +66,7 @@ function apply_3d_muscl! end
     end
 
     # Reconstruct in z.
-    @share for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+    @fuse for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
         (down, up) = muscl(
             phi[i, j, k - 1],
             phi[i, j, k],

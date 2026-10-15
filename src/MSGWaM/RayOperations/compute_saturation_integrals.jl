@@ -71,7 +71,7 @@ function compute_saturation_integrals end
     mb2k2 = 0.0
 
     # Loop over ray volumes.
-    @share for r in 1:nray[i, j, k]
+    for r in 1:nray[i, j, k]
         if rays.dens[r, i, j, k] != 0
             xr = rays.x[r, i, j, k]
             yr = rays.y[r, i, j, k]

@@ -103,7 +103,7 @@ function apply_elastic_mode_selection! end
 
     # Compute the neighbor similarity.
     s = 0
-    @share for k in 1:(kmax - 1)
+    for k in 1:(kmax - 1)
         s += exp(-(abs(field[j[k]]) / abs(field[j[k + 1]]) - 1) / delta)
     end
     s /= kmax - 1
@@ -125,7 +125,7 @@ function apply_elastic_mode_selection! end
     end
 
     # Discard the remaining modes.
-    @share field[j[(k + 1):end]] = 0
+    @fuse field[j[(k + 1):end]] = 0
 
     return (k, f)
 end

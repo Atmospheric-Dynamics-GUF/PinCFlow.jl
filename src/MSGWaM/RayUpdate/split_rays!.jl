@@ -115,7 +115,7 @@ end
     nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         if x_size > 1
             split_rays!(i, j, k, state, X())
         end

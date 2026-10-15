@@ -43,7 +43,7 @@ function include_blocked_flow_drag! end
     end
 
     # Adjust the drag to account for blocking.
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         fraction =
             (
                 min(hb[i, j] + deltazb[i, j] / 2, zctilde[i, j, k]) -

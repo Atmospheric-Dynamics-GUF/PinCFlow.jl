@@ -283,15 +283,15 @@ end
     if ko == 0
         for field_name in (:phirhop, :phiu, :phiv, :phitheta)
             field = getfield(fluxes, field_name)
-            @share field[:, :, k0 - 1, 3] = 0.0
+            @fuse field[:, :, k0 - 1, 3] = 0.0
         end
-        @share fluxes.phiw[:, :, k0 - 2, 3] = 0.0
+        @fuse fluxes.phiw[:, :, k0 - 2, 3] = 0.0
     end
 
     if ko + nz == z_size
         for field_name in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
             field = getfield(fluxes, field_name)
-            @share field[:, :, k1, 3] = 0.0
+            @fuse field[:, :, k1, 3] = 0.0
         end
     end
 
@@ -310,15 +310,15 @@ end
     if ko == 0
         for field_name in (:phirho, :phirhop, :phiu, :phiv, :phitheta)
             field = getfield(fluxes, field_name)
-            @share field[:, :, k0 - 1, 3] = 0.0
+            @fuse field[:, :, k0 - 1, 3] = 0.0
         end
-        @share fluxes.phiw[:, :, k0 - 2, 3] = 0.0
+        @fuse fluxes.phiw[:, :, k0 - 2, 3] = 0.0
     end
 
     if ko + nz == z_size
         for field_name in (:phirho, :phirhop, :phiu, :phiv, :phiw, :phitheta)
             field = getfield(fluxes, field_name)
-            @share field[:, :, k1, 3] = 0.0
+            @fuse field[:, :, k1, 3] = 0.0
         end
     end
 
@@ -337,15 +337,15 @@ end
     if ko == 0
         for field_name in (:phirho, :phirhop, :phiu, :phiv, :phitheta, :phip)
             field = getfield(fluxes, field_name)
-            @share field[:, :, k0 - 1, 3] = 0.0
+            @fuse field[:, :, k0 - 1, 3] = 0.0
         end
-        @share fluxes.phiw[:, :, k0 - 2, 3] = 0.0
+        @fuse fluxes.phiw[:, :, k0 - 2, 3] = 0.0
     end
 
     if ko + nz == z_size
         for field_name in fieldnames(Fluxes)
             field = getfield(fluxes, field_name)
-            @share field[:, :, k1, 3] = 0.0
+            @fuse field[:, :, k1, 3] = 0.0
         end
     end
 

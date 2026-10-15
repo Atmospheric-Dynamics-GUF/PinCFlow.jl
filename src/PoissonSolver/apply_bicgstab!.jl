@@ -41,7 +41,7 @@ function apply_bicgstab!(
     end
 
     # Initialize solution.
-    @share solution = 0.0
+    @fuse solution = 0.0
 
     # Set parameters.
     maxit = poisson_iterations
@@ -56,7 +56,7 @@ function apply_bicgstab!(
     errflag = false
 
     apply_operator!(solution, matvec, Total(), state)
-    @share for k in 1:nz, j in 1:ny, i in 1:nx
+    @fuse for k in 1:nz, j in 1:ny, i in 1:nx
         r0[i, j, k] = lhs[i, j, k] - matvec[i, j, k]
         p[i, j, k] = r0[i, j, k]
         r[i, j, k] = r0[i, j, k]
@@ -87,29 +87,29 @@ function apply_bicgstab!(
         if preconditioner
             apply_preconditioner!(p, v_pc, state)
         else
-            @share v_pc = p
+            @fuse v_pc = p
         end
         apply_operator!(v_pc, matvec, Total(), state)
-        @share v = matvec
+        @fuse v = matvec
 
         alpha =
             compute_global_dot_product(r, r0, state) /
             compute_global_dot_product(v, r0, state)
-        @share s = r - alpha * v
+        @fuse s = r - alpha * v
 
         # t = A*s
         if preconditioner
             apply_preconditioner!(s, v_pc, state)
         else
-            @share v_pc = s
+            @fuse v_pc = s
         end
         apply_operator!(v_pc, matvec, Total(), state)
-        @share t = matvec
+        @fuse t = matvec
 
         omega =
             compute_global_dot_product(t, s, state) /
             compute_global_dot_product(t, t, state)
-        @share for k in 1:nz, j in 1:ny, i in 1:nx
+        @fuse for k in 1:nz, j in 1:ny, i in 1:nx
             solution[i, j, k] += alpha * p[i, j, k] + omega * s[i, j, k]
             rold[i, j, k] = r[i, j, k]
             r[i, j, k] = s[i, j, k] - omega * t[i, j, k]
@@ -133,7 +133,7 @@ function apply_bicgstab!(
             niter = j_b
 
             if preconditioner
-                @share s = solution
+                @fuse s = solution
                 apply_preconditioner!(s, solution, state)
             end
 
@@ -143,7 +143,7 @@ function apply_bicgstab!(
         beta =
             alpha / omega * compute_global_dot_product(r, r0, state) /
             compute_global_dot_product(rold, r0, state)
-        @share p = r + beta * (p - omega * v)
+        @fuse p = r + beta * (p - omega * v)
     end
 
     errflag = true

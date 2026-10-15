@@ -157,40 +157,40 @@ function write_output end
 
         # Write the horizontal grid.
         if iout == 1
-            file["x"][iid] = @share x[ii] * lref
-            file["y"][jjd] = @share y[jj] * lref
+            file["x"][iid] = @fuse x[ii] * lref
+            file["y"][jjd] = @fuse y[jj] * lref
         end
 
         # Write the vertical grid.
         if iout == 1
-            file["z"][iid, jjd, kkd] = @share zc[ii, jj, kk] * lref
-            file["ztilde"][iid, jjd, kkrd] = @share zctilde[ii, jj, kkr] * lref
+            file["z"][iid, jjd, kkd] = @fuse zc[ii, jj, kk] * lref
+            file["ztilde"][iid, jjd, kkrd] = @fuse zctilde[ii, jj, kkr] * lref
         end
 
         # Write the background density.
         if model !== :Boussinesq && iout == 1
-            file["rhobar"][iid, jjd, kkd] = @share rhobar[ii, jj, kk] * rhoref
+            file["rhobar"][iid, jjd, kkd] = @fuse rhobar[ii, jj, kk] * rhoref
         end
 
         # Write the background potential temperature.
         if model !== :Boussinesq && iout == 1
             file["thetabar"][iid, jjd, kkd] =
-                @share thetabar[ii, jj, kk] * thetaref
+                @fuse thetabar[ii, jj, kk] * thetaref
         end
 
         # Write the squared buoyancy frequency.
         if model !== :Boussinesq && iout == 1
-            file["n2"][iid, jjd, kkd] = @share n2[ii, jj, kk] / tref^2
+            file["n2"][iid, jjd, kkd] = @fuse n2[ii, jj, kk] / tref^2
         end
 
         # Write the mass-weighted potential temperature.
         if model === :Compressible
             HDF5.set_extent_dims(file["p"], (x_size, y_size, z_size, iout))
             file["p"][iid, jjd, kkd, iout] =
-                @share p[ii, jj, kk] * rhoref * thetaref
+                @fuse p[ii, jj, kk] * rhoref * thetaref
         elseif model !== :Boussinesq && iout == 1
             file["p"][iid, jjd, kkd] =
-                @share pbar[ii, jj, kk] * rhoref * thetaref
+                @fuse pbar[ii, jj, kk] * rhoref * thetaref
         end
 
         # Write the density fluctuations.
@@ -198,17 +198,17 @@ function write_output end
             HDF5.set_extent_dims(file["rhop"], (x_size, y_size, z_size, iout))
             if model === :Boussinesq
                 file["rhop"][iid, jjd, kkd, iout] =
-                    @share rhop[ii, jj, kk] * rhoref
+                    @fuse rhop[ii, jj, kk] * rhoref
             else
                 file["rhop"][iid, jjd, kkd, iout] =
-                    @share rho[ii, jj, kk] * rhoref
+                    @fuse rho[ii, jj, kk] * rhoref
             end
         end
 
         # Write the zonal winds.
         if :u in output_variables
             uc = zeros(nx, ny, nz)
-            @share for k in kk, j in jj, i in ii
+            @fuse for k in kk, j in jj, i in ii
                 uc[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     (u[i, j, k] + u[i - 1, j, k]) / 2 * uref
             end
@@ -220,13 +220,13 @@ function write_output end
         # Write the staggered zonal winds.
         if prepare_restart || :us in output_variables
             HDF5.set_extent_dims(file["us"], (x_size, y_size, z_size, iout))
-            file["us"][iid, jjd, kkd, iout] = @share u[ii, jj, kk] * uref
+            file["us"][iid, jjd, kkd, iout] = @fuse u[ii, jj, kk] * uref
         end
 
         # Write the meridional winds.
         if :v in output_variables
             vc = zeros(nx, ny, nz)
-            @share for k in kk, j in jj, i in ii
+            @fuse for k in kk, j in jj, i in ii
                 vc[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     (v[i, j, k] + v[i, j - 1, k]) / 2 * uref
             end
@@ -238,13 +238,13 @@ function write_output end
         # Write the staggered meridional winds.
         if prepare_restart || :vs in output_variables
             HDF5.set_extent_dims(file["vs"], (x_size, y_size, z_size, iout))
-            file["vs"][iid, jjd, kkd, iout] = @share v[ii, jj, kk] * uref
+            file["vs"][iid, jjd, kkd, iout] = @fuse v[ii, jj, kk] * uref
         end
 
         # Write the vertical winds.
         if :w in output_variables
             wc = zeros(nx, ny, nz)
-            @share for k in kk, j in jj, i in ii
+            @fuse for k in kk, j in jj, i in ii
                 wc[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     (
                         compute_vertical_wind(i, j, k, state) +
@@ -259,7 +259,7 @@ function write_output end
         # Write the staggered vertical winds.
         if :ws in output_variables
             wu = zeros(nx, ny, nz)
-            @share for k in kk, j in jj, i in ii
+            @fuse for k in kk, j in jj, i in ii
                 wu[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     compute_vertical_wind(i, j, k, state) * uref
             end
@@ -271,7 +271,7 @@ function write_output end
         # Write the transformed vertical winds.
         if :wt in output_variables
             wtc = zeros(nx, ny, nz)
-            @share for k in kk, j in jj, i in ii
+            @fuse for k in kk, j in jj, i in ii
                 wtc[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
             end
@@ -283,19 +283,19 @@ function write_output end
         # Write the staggered transformed vertical winds.
         if prepare_restart || :wts in output_variables
             HDF5.set_extent_dims(file["wts"], (x_size, y_size, z_size, iout))
-            file["wts"][iid, jjd, kkd, iout] = @share w[ii, jj, kk] * uref
+            file["wts"][iid, jjd, kkd, iout] = @fuse w[ii, jj, kk] * uref
         end
 
         # Write the potential-temperature fluctuations.
         if :thetap in output_variables
             HDF5.set_extent_dims(file["thetap"], (x_size, y_size, z_size, iout))
             if model === :Boussinesq
-                file["thetap"][iid, jjd, kkd, iout] = @share (
+                file["thetap"][iid, jjd, kkd, iout] = @fuse (
                     pbar[ii, jj, kk] / (rhobar[ii, jj, kk] + rhop[ii, jj, kk]) -
                     thetabar[ii, jj, kk]
                 ) * thetaref
             else
-                file["thetap"][iid, jjd, kkd, iout] = @share (
+                file["thetap"][iid, jjd, kkd, iout] = @fuse (
                     pbar[ii, jj, kk] / (rhobar[ii, jj, kk] + rho[ii, jj, kk]) -
                     thetabar[ii, jj, kk]
                 ) * thetaref
@@ -317,8 +317,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file[string(field_name)][iid, jjd, kkd, iout] =
-                    @share field[ii, jj, kk] /
-                           (rhobar[ii, jj, kk] + rho[ii, jj, kk])
+                    @fuse field[ii, jj, kk] /
+                          (rhobar[ii, jj, kk] + rho[ii, jj, kk])
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -329,11 +329,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["dchidt0"][iid, jjd, kkd, iout] =
-                    @share state.tracer.tracerwkbtendencies.dchidt0[
-                        ii,
-                        jj,
-                        kk,
-                    ] / tref / (rhobar[ii, jj, kk] + rho[ii, jj, kk])
+                    @fuse state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] /
+                          tref / (rhobar[ii, jj, kk] + rho[ii, jj, kk])
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -344,8 +341,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["uchi0"][iid, jjd, kkd, iout] =
-                    @share state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] *
-                           uref / rhobar[ii, jj, kk]
+                    @fuse state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] *
+                          uref / rhobar[ii, jj, kk]
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -356,8 +353,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["vchi0"][iid, jjd, kkd, iout] =
-                    @share state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] *
-                           uref / rhobar[ii, jj, kk]
+                    @fuse state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] *
+                          uref / rhobar[ii, jj, kk]
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -368,8 +365,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["wchi0"][iid, jjd, kkd, iout] =
-                    @share state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] *
-                           uref / rhobar[ii, jj, kk]
+                    @fuse state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] *
+                          uref / rhobar[ii, jj, kk]
             end
         end
 
@@ -380,12 +377,12 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["tke"][iid, jjd, kkd, iout] =
-                    @share state.turbulence.turbulencepredictands.tke[
+                    @fuse state.turbulence.turbulencepredictands.tke[
                         ii,
                         jj,
                         kk,
                     ] / (rhobar[ii, jj, kk] + rho[ii, jj, kk]) * (lref^2.0) /
-                           (tref^2.0)
+                          (tref^2.0)
             end
 
             if :shear_production in output_variables
@@ -394,7 +391,7 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["shear_production"][iid, jjd, kkd, iout] =
-                    @share state.turbulence.turbulenceauxiliaries.shear_production[
+                    @fuse state.turbulence.turbulenceauxiliaries.shear_production[
                         ii,
                         jj,
                         kk,
@@ -407,7 +404,7 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["buoyancy_production"][iid, jjd, kkd, iout] =
-                    @share state.turbulence.turbulenceauxiliaries.buoyancy_production[
+                    @fuse state.turbulence.turbulenceauxiliaries.buoyancy_production[
                         ii,
                         jj,
                         kk,
@@ -431,7 +428,7 @@ function write_output end
                         (bins, x_size, y_size, z_size + 1, iout),
                     )
                     file[output_name][1:bins, iid, jjd, kkrd, iout] =
-                        @share field[rr, ii, jj, kkr] * lref
+                        @fuse field[rr, ii, jj, kkr] * lref
                 end
 
                 for (output_name, field_name) in zip(
@@ -445,7 +442,7 @@ function write_output end
                         (bins, x_size, y_size, z_size + 1, iout),
                     )
                     file[output_name][1:bins, iid, jjd, kkrd, iout] =
-                        @share field[rr, ii, jj, kkr] / lref
+                        @fuse field[rr, ii, jj, kkr] / lref
                 end
 
                 HDF5.set_extent_dims(
@@ -453,11 +450,11 @@ function write_output end
                     (bins, x_size, y_size, z_size + 1, iout),
                 )
                 file["nr"][1:bins, iid, jjd, kkrd, iout] =
-                    @share rays.dens[rr, ii, jj, kkr] *
-                           rhoref *
-                           uref^2 *
-                           tref *
-                           lref^dim
+                    @fuse rays.dens[rr, ii, jj, kkr] *
+                          rhoref *
+                          uref^2 *
+                          tref *
+                          lref^dim
             end
 
             # Write GW integrals.
@@ -478,7 +475,7 @@ function write_output end
                         (x_size, y_size, z_size, iout),
                     )
                     file[string(field_name)][iid, jjd, kkd, iout] =
-                        @share field[ii, jj, kk] * scaling
+                        @fuse field[ii, jj, kk] * scaling
                 end
             end
 
@@ -499,7 +496,7 @@ function write_output end
                         (x_size, y_size, z_size, iout),
                     )
                     file[string(field_name)][iid, jjd, kkd, iout] =
-                        @share field[ii, jj, kk] * scaling
+                        @fuse field[ii, jj, kk] * scaling
                 end
             end
 

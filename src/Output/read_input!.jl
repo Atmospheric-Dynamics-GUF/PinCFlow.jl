@@ -49,22 +49,22 @@ function read_input! end
 
         # Read the density fluctuations.
         rhop[ii, jj, kk] =
-            @share file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] / rhoref
+            @fuse file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] / rhoref
         if model !== :Boussinesq
-            @share rho[ii, jj, kk] = rhop[ii, jj, kk]
+            @fuse rho[ii, jj, kk] = rhop[ii, jj, kk]
         end
 
         # Read the staggered zonal wind.
         u[ii, jj, kk] =
-            @share file["us"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
+            @fuse file["us"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the staggered meridional wind.
         v[ii, jj, kk] =
-            @share file["vs"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
+            @fuse file["vs"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the staggered transformed vertical wind.
         w[ii, jj, kk] =
-            @share file["wts"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
+            @fuse file["wts"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the Exner-pressure fluctuations.
         pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin == -1 ? end : iin]
@@ -72,14 +72,13 @@ function read_input! end
         # Read the mass-weighted potential temperature.
         if model === :Compressible
             p[ii, jj, kk] =
-                @share file["p"][iid, jjd, kkd, iin == -1 ? end : iin] /
-                       rhoref / thetaref
+                @fuse file["p"][iid, jjd, kkd, iin == -1 ? end : iin] / rhoref / thetaref
         end
 
         if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
                 field_string = string(field)
-                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] = @share file[field_string][
+                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] = @fuse file[field_string][
                     iid,
                     jjd,
                     kkd,
@@ -90,8 +89,8 @@ function read_input! end
 
         if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
-                @share file["tke"][iid, jjd, kkd, iin == -1 ? end : iin] *
-                       (rhobar[ii, jj, kk] + rho[ii, jj, kk]) / uref^2
+                @fuse file["tke"][iid, jjd, kkd, iin == -1 ? end : iin] *
+                      (rhobar[ii, jj, kk] + rho[ii, jj, kk]) / uref^2
         end
 
         # Read ray-volume properties.
@@ -101,7 +100,7 @@ function read_input! end
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
                 getproperty(rays, field_name)[rr, ii, jj, kkr] =
-                    @share file[output_name][
+                    @fuse file[output_name][
                         rr,
                         iid,
                         jjd,
@@ -115,7 +114,7 @@ function read_input! end
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
                 getproperty(rays, field_name)[rr, ii, jj, kkr] =
-                    @share file[output_name][
+                    @fuse file[output_name][
                         rr,
                         iid,
                         jjd,
@@ -124,7 +123,7 @@ function read_input! end
                     ] * lref
             end
 
-            rays.dens[rr, ii, jj, kkr] = @share file["nr"][
+            rays.dens[rr, ii, jj, kkr] = @fuse file["nr"][
                 rr,
                 iid,
                 jjd,

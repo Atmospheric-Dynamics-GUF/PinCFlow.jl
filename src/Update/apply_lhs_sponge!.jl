@@ -321,7 +321,7 @@ end
     (; rho) = state.variables.predictands
 
     rhobg = 0.0
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rho[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -344,7 +344,7 @@ end
     (; alphar) = state.sponge
     (; rho, rhop, p) = state.variables.predictands
 
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         rhopbg =
             rhobar[i, j, k] * (
                 1.0 -
@@ -373,7 +373,7 @@ end
     (; rhop) = state.variables.predictands
 
     rhobg = 0.0
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         rhoold = rhop[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)
@@ -414,7 +414,7 @@ end
     end
 
     # Update the zonal wind.
-    @share for k in kk, j in jj, i in ii
+    @fuse for k in kk, j in jj, i in ii
         xldim = x[i] * lref
         xrdim = x[i + 1] * lref
         ydim = y[j] * lref
@@ -469,7 +469,7 @@ end
     end
 
     # Update the meridional wind.
-    @share for k in kk, j in jj, i in ii
+    @fuse for k in kk, j in jj, i in ii
         xdim = x[i] * lref
         ybdim = y[j] * lref
         yfdim = y[j + 1] * lref
@@ -524,7 +524,7 @@ end
     end
 
     # Update the vertical wind.
-    @share for k in kk, j in jj, i in ii
+    @fuse for k in kk, j in jj, i in ii
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcddim = zc[i, j, k] * lref
@@ -589,7 +589,7 @@ end
     (; rhobar) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         dpdpi =
             1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
         pib =
@@ -626,7 +626,7 @@ end
     (; rhobar) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         pb = rhobar[i, j, k] * p[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])
         alpha = alphar[i, j, k]
         pold = p[i, j, k]
@@ -688,7 +688,7 @@ end
 
     for field in fieldnames(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
-        @share for k in k0:k1, j in j0:j1, i in i0:i1
+        @fuse for k in k0:k1, j in j0:j1, i in i0:i1
             xdim = x[i] * lref
             ydim = y[j] * lref
             zcdim = zc[i, j, k] * lref
@@ -720,7 +720,7 @@ end
     (; tkemin) = state.turbulence.turbulenceconstants
     (; rhobar) = state.atmosphere
 
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         alpha = alphar[i, j, k]
         tke_old = tke[i, j, k]
         beta = 1.0 / (1.0 + alpha * dt)

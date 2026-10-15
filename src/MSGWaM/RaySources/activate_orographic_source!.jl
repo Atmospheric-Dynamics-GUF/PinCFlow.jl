@@ -51,7 +51,7 @@ function activate_orographic_source! end
     compute_orographic_modes!(state)
 
     # Loop over surface grid cells.
-    for j in j0:j1, i in i0:i1
+    @fuse for j in j0:j1, i in i0:i1
 
         # Set launch level.
         k = k0 - 1

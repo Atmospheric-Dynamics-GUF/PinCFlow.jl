@@ -79,7 +79,7 @@ end
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Loop over grid cells.
-    @dispatch_merge_mode for k in k0:k1, j in j0:j1, i in i0:i1
+    @dispatch_merge_mode @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         if nray[i, j, k] < bins
             continue
         end
@@ -109,10 +109,10 @@ end
         end
 
         # Reset the merged ray volumes.
-        @share merged_rays.nr = 0.0
+        @fuse merged_rays.nr = 0.0
 
         # Loop over ray volumes.
-        @share for r in 1:nray[i, j, k]
+        for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
@@ -215,7 +215,7 @@ end
         end
 
         # Reset the old ray volumes.
-        @share rays.data[:, :, i, j, k] = 0.0
+        @fuse rays.data[:, :, i, j, k] = 0.0
 
         # Construct the merged ray volumes.
         r = 0

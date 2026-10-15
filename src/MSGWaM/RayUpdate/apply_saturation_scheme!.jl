@@ -95,7 +95,7 @@ end
         return
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Compute saturation integrals for wave-action reduction.
         (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
@@ -110,7 +110,7 @@ end
         end
 
         # Reduce the wave-action density.
-        @share for r in 1:nray[i, j, k]
+        for r in 1:nray[i, j, k]
             wnrk = rays.k[r, i, j, k]
             wnrl = rays.l[r, i, j, k]
             wnrm = rays.m[r, i, j, k]

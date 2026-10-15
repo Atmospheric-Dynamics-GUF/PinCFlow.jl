@@ -18,8 +18,11 @@ function check_rays end
     (; nray, rays) = state.wkb
 
     # Loop over ray volumes.
-    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
-        @share for r in 1:nray[i, j, k]
+    @fuse for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
+        for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] != 0
 
                 # Check zonal position.

@@ -25,7 +25,7 @@ function thomas_algorithm! end
     (; ath, bth, cth, fth, qth, fth_bc, qth_bc) = state.variables.auxiliaries
 
     if ko == 0
-        @share for j in 1:ny, i in 1:nx
+        @fuse for j in 1:ny, i in 1:nx
             qth[i, j, 1] = -cth[i, j, 1] / bth[i, j, 1]
             fth[i, j, 1] = fth[i, j, 1] / bth[i, j, 1]
         end
@@ -33,7 +33,7 @@ function thomas_algorithm! end
         MPI.Recv!(qth_bc, comm; source = down, tag = 1)
         MPI.Recv!(fth_bc, comm; source = down, tag = 2)
 
-        @share for j in 1:ny, i in 1:nx
+        @fuse for j in 1:ny, i in 1:nx
             pth = 1.0 / (bth[i, j, 1] + ath[i, j, 1] * qth_bc[i, j])
             qth[i, j, 1] = -cth[i, j, 1] * pth
             fth[i, j, 1] = (fth[i, j, 1] - ath[i, j, 1] * fth_bc[i, j]) * pth
@@ -41,7 +41,7 @@ function thomas_algorithm! end
     end
 
     for k in 2:nz
-        @share for j in 1:ny, i in 1:nx
+        @fuse for j in 1:ny, i in 1:nx
             pth = 1.0 / (bth[i, j, k] + ath[i, j, k] * qth[i, j, k - 1])
             qth[i, j, k] = -cth[i, j, k] * pth
             fth[i, j, k] =
@@ -50,7 +50,7 @@ function thomas_algorithm! end
     end
 
     if ko + nz != z_size
-        @share for j in 1:ny, i in 1:nx
+        @fuse for j in 1:ny, i in 1:nx
             qth_bc[i, j] = qth[i, j, nz]
             fth_bc[i, j] = fth[i, j, nz]
         end
@@ -60,15 +60,15 @@ function thomas_algorithm! end
 
         MPI.Recv!(fth_bc, comm; source = up)
 
-        @share fth[:, :, nz] += qth[:, :, nz] * fth_bc
+        @fuse fth[:, :, nz] += qth[:, :, nz] * fth_bc
     end
 
     for k in (nz - 1):-1:1
-        @share fth[:, :, k] += qth[:, :, k] * fth[:, :, k + 1]
+        @fuse fth[:, :, k] += qth[:, :, k] * fth[:, :, k + 1]
     end
 
     if ko != 0
-        @share fth_bc = fth[:, :, 1]
+        @fuse fth_bc = fth[:, :, 1]
 
         MPI.Send(fth_bc, comm; dest = down)
     end

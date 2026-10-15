@@ -1,6 +1,6 @@
-macro share end
+macro fuse end
 
-macro share(x::Any)
+macro fuse(x::Any)
     if x isa Expr && x.head === :for
         (loop, body) = x.args
 
@@ -21,7 +21,7 @@ macro share(x::Any)
                 let
                     $indices = CartesianIndices(($(ranges...),))
 
-                    @simd ivdep for $index in $indices
+                    for $index in $indices
                         $(Expr(
                             :block,
                             (

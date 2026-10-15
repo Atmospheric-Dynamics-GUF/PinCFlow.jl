@@ -16,7 +16,7 @@ function reset_thomas!(state::State)
 
     for field_name in (:ath, :bth, :cth, :fth, :qth, :qth_bc, :fth_bc)
         field = getfield(auxiliaries, field_name)
-        @share field = 0.0
+        @fuse field = 0.0
     end
 
     return

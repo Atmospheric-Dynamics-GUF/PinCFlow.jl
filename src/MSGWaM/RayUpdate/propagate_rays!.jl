@@ -207,8 +207,8 @@ end
     # Initialize the WKB increments and maximum group velocities at the first
     # RK stage.
     if rkstage == 1
-        for k in kmin:kmax, j in j0:j1, i in i0:i1
-            @share for r in 1:nray[i, j, k]
+        @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
+            for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
                 dyray[r, i, j, k] = 0.0
                 dzray[r, i, j, k] = 0.0
@@ -226,8 +226,8 @@ end
         cgz_max[] = 0.0
     end
 
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
-        @share for r in 1:nray[i, j, k]
+    @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
+        for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
@@ -464,8 +464,8 @@ end
     #     Change of wave action
     #-------------------------------
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        @share for r in 1:nray[i, j, k]
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+        for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
             betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
@@ -508,7 +508,7 @@ end
     if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
-        @share nray[i0:i1, j0:j1, k0 - 1] = nray_down
+        @fuse nray[i0:i1, j0:j1, k0 - 1] = nray_down
 
         local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if local_count > 0
@@ -517,14 +517,14 @@ end
             MPI.Recv!(rays_down, comm; source = down)
             for field_index in 1:field_count
                 field = getfield(rays, field_index)
-                @share field[1:local_count, i0:i1, j0:j1, k0 - 1] =
+                @fuse field[1:local_count, i0:i1, j0:j1, k0 - 1] =
                     rays_down[field_index, :, :, :]
             end
         end
     end
 
     # Loop over grid cells.
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Set the ray-volume count.
         nray[i, j, k] = nray[i, j, k - 1]
@@ -696,7 +696,7 @@ end
             rays_up = zeros(field_count, local_count, nx, ny)
             for field_index in 1:field_count
                 field = getfield(rays, field_index)
-                @share rays_up[field_index, :, :, :] =
+                @fuse rays_up[field_index, :, :, :] =
                     field[1:local_count, i0:i1, j0:j1, k1]
             end
             MPI.Send(rays_up, comm; dest = up)

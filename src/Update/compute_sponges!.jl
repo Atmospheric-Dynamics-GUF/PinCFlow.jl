@@ -39,7 +39,7 @@ function compute_sponges! end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    @share for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
@@ -57,13 +57,13 @@ function compute_sponges! end
     set_meridional_boundaries_of_field!(betar, namelists, domain)
 
     if ko == 0
-        @share for j in 1:nyy, i in 1:nxx
+        @fuse for j in 1:nyy, i in 1:nxx
             alphar[i, j, k0 - 1] = alphar[i, j, k0]
             betar[i, j, k0 - 1] = betar[i, j, k0]
         end
     end
     if ko + nz == z_size
-        @share for j in 1:nyy, i in 1:nxx
+        @fuse for j in 1:nyy, i in 1:nxx
             alphar[i, j, k1 + 1] = alphar[i, j, k1]
             betar[i, j, k1 + 1] = betar[i, j, k1]
         end

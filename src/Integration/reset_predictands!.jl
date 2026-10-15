@@ -63,7 +63,7 @@ end
 function reset_predictands!(state::State, tracerpredictands::TracerPredictands)
     (; chi) = state.tracer.tracerpredictands
 
-    @share chi = tracerpredictands.chi
+    @fuse chi = tracerpredictands.chi
 
     return
 end
@@ -76,7 +76,7 @@ function reset_predictands!(
     (; nxx, nyy, nzz) = state.domain
     (; rhop, u, v, w) = state.variables.predictands
 
-    @share for k in 1:nzz, j in 1:nyy, i in 1:nxx
+    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
         rhop[i, j, k] = predictands.rhop[i, j, k]
         u[i, j, k] = predictands.u[i, j, k]
         v[i, j, k] = predictands.v[i, j, k]
@@ -94,7 +94,7 @@ function reset_predictands!(
     (; nxx, nyy, nzz) = state.domain
     (; rho, rhop, u, v, w) = state.variables.predictands
 
-    @share for k in 1:nzz, j in 1:nyy, i in 1:nxx
+    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
         rho[i, j, k] = predictands.rho[i, j, k]
         rhop[i, j, k] = predictands.rhop[i, j, k]
         u[i, j, k] = predictands.u[i, j, k]
@@ -113,7 +113,7 @@ function reset_predictands!(
     (; nxx, nyy, nzz) = state.domain
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
-    @share for k in 1:nzz, j in 1:nyy, i in 1:nxx
+    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
         rho[i, j, k] = predictands.rho[i, j, k]
         rhop[i, j, k] = predictands.rhop[i, j, k]
         u[i, j, k] = predictands.u[i, j, k]

@@ -117,12 +117,15 @@ end
 
     for field_name in fieldnames(WKBIntegrals)
         field = getfield(integrals, field_name)
-        @share field = 0
+        @fuse field = 0
     end
 
     set_tracer_fields_zero!(state)
 
-    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    @fuse for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -211,7 +214,7 @@ end
                         kmax > k1 &&
                         error("Vertical index is too large!")
 
-                    @share for kray in kmin:kmax
+                    for kray in kmin:kmax
                         dzi =
                             min((zr + dzr / 2), zctilde[iray, jray, kray]) -
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
@@ -328,10 +331,13 @@ end
 
     for field_name in fieldnames(WKBIntegrals)
         field = getfield(integrals, field_name)
-        @share field = 0
+        @fuse field = 0
     end
 
-    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    @fuse for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -418,7 +424,7 @@ end
                         kmax > k1 &&
                         error("Vertical index is too large!")
 
-                    @share for kray in kmin:kmax
+                    for kray in kmin:kmax
                         dzi =
                             min((zr + dzr / 2), zctilde[iray, jray, kray]) -
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
@@ -502,10 +508,13 @@ end
 
     for field_name in fieldnames(WKBIntegrals)
         field = getfield(integrals, field_name)
-        @share field = 0
+        @fuse field = 0
     end
 
-    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    @fuse for k in (k0 - 1):(k1 + 1),
+        j in (j0 - 1):(j1 + 1),
+        i in (i0 - 1):(i1 + 1)
+
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -577,7 +586,7 @@ end
                         dkd = 1,
                     )
 
-                    @share for kray in kmin:kmax
+                    for kray in kmin:kmax
                         dzi =
                             min((zr + dzr / 2), zctilde[iray, jray, kray]) -
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])

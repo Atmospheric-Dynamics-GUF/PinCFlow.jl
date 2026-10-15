@@ -49,10 +49,10 @@ function compute_gw_tendencies! end
 
     for field_name in fieldnames(WKBTendencies)
         field = getfield(tendencies, field_name)
-        @share field = 0.0
+        @fuse field = 0.0
     end
 
-    @share for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         if zc[i, j, k] >= impact_altitude / lref
             rhotot = rho[i, j, k] + rhobar[i, j, k]
 
