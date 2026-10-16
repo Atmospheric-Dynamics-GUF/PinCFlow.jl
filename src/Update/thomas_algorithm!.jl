@@ -20,40 +20,33 @@ The result is stored in `state.variables.auxiliaries.fth`.
 function thomas_algorithm! end
 
 @ivy function thomas_algorithm!(state::State)
-    (; comm, nx, ny, nz, ko, up, down) = state.domain
+    (; comm, nz, ko, up, down) = state.domain
     (; z_size) = state.namelists.domain
-    (; ath, bth, cth, fth, qth, fth_bc, qth_bc) = state.variables.auxiliaries
+    (; ath, bth, cth, fth, qth, pth, fth_bc, qth_bc) =
+        state.variables.auxiliaries
 
     if ko == 0
-        @fuse for j in 1:ny, i in 1:nx
-            qth[i, j, 1] = -cth[i, j, 1] / bth[i, j, 1]
-            fth[i, j, 1] = fth[i, j, 1] / bth[i, j, 1]
-        end
+        @fuse qth[:, :, 1] = -cth[:, :, 1] / bth[:, :, 1]
+        @fuse fth[:, :, 1] = fth[:, :, 1] / bth[:, :, 1]
     else
         MPI.Recv!(qth_bc, comm; source = down, tag = 1)
         MPI.Recv!(fth_bc, comm; source = down, tag = 2)
 
-        @fuse for j in 1:ny, i in 1:nx
-            pth = 1.0 / (bth[i, j, 1] + ath[i, j, 1] * qth_bc[i, j])
-            qth[i, j, 1] = -cth[i, j, 1] * pth
-            fth[i, j, 1] = (fth[i, j, 1] - ath[i, j, 1] * fth_bc[i, j]) * pth
-        end
+        @fuse pth = 1.0 / (bth[:, :, 1] + ath[:, :, 1] * qth_bc)
+        @fuse qth[:, :, 1] = -cth[:, :, 1] * pth
+        @fuse fth[:, :, 1] = (fth[:, :, 1] - ath[:, :, 1] * fth_bc) * pth
     end
 
     for k in 2:nz
-        @fuse for j in 1:ny, i in 1:nx
-            pth = 1.0 / (bth[i, j, k] + ath[i, j, k] * qth[i, j, k - 1])
-            qth[i, j, k] = -cth[i, j, k] * pth
-            fth[i, j, k] =
-                (fth[i, j, k] - ath[i, j, k] * fth[i, j, k - 1]) * pth
-        end
+        @fuse pth = 1.0 / (bth[:, :, k] + ath[:, :, k] * qth[:, :, k - 1])
+        @fuse qth[:, :, k] = -cth[:, :, k] * pth
+        @fuse fth[:, :, k] =
+            (fth[:, :, k] - ath[:, :, k] * fth[:, :, k - 1]) * pth
     end
 
     if ko + nz != z_size
-        @fuse for j in 1:ny, i in 1:nx
-            qth_bc[i, j] = qth[i, j, nz]
-            fth_bc[i, j] = fth[i, j, nz]
-        end
+        @fuse qth_bc = qth[:, :, nz]
+        @fuse fth_bc = fth[:, :, nz]
 
         MPI.Send(qth_bc, comm; dest = up, tag = 1)
         MPI.Send(fth_bc, comm; dest = up, tag = 2)

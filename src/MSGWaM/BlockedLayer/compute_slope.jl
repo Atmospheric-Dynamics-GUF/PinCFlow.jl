@@ -22,10 +22,10 @@ function compute_slope end
 )::NTuple{2, <:AbstractFloat}
     (; hw, kh, lh) = state.grid
 
+    deltah = sum(abs, hw[:, i, j])
+
     return (
-        mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], kh[:, i, j]) /
-        sum(abs, hw[:, i, j]),
-        mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], lh[:, i, j]) /
-        sum(abs, hw[:, i, j]),
+        mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], kh[:, i, j]) / deltah,
+        mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], lh[:, i, j]) / deltah,
     )
 end

@@ -124,12 +124,12 @@ end
     kmax = k1
 
     # Loop over all grid cells with ray volumes.
-    @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         r = 0
         s = 0
 
         # Loop over all ray volumes within a spatial cell.
-        @fuse for ix in 1:nrx,
+        for ix in 1:nrx,
             ik in 1:nrk,
             jy in 1:nry,
             jl in 1:nrl,

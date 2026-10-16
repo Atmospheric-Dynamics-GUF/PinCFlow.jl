@@ -57,16 +57,12 @@ function compute_sponges! end
     set_meridional_boundaries_of_field!(betar, namelists, domain)
 
     if ko == 0
-        @fuse for j in 1:nyy, i in 1:nxx
-            alphar[i, j, k0 - 1] = alphar[i, j, k0]
-            betar[i, j, k0 - 1] = betar[i, j, k0]
-        end
+        @fuse alphar[:, :, k0 - 1] = alphar[:, :, k0]
+        @fuse betar[:, :, k0 - 1] = betar[:, :, k0]
     end
     if ko + nz == z_size
-        @fuse for j in 1:nyy, i in 1:nxx
-            alphar[i, j, k1 + 1] = alphar[i, j, k1]
-            betar[i, j, k1 + 1] = betar[i, j, k1]
-        end
+        @fuse alphar[:, :, k1 + 1] = alphar[:, :, k1]
+        @fuse betar[:, :, k1 + 1] = betar[:, :, k1]
     end
 
     return

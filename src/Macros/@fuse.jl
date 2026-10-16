@@ -7,39 +7,36 @@ macro fuse(x::Any)
         if loop.head === :block && all(arg.head === :(=) for arg in loop.args)
             index_names = Tuple(arg.args[1] for arg in loop.args[end:(-1):1])
             ranges = Tuple(arg.args[2] for arg in loop.args[end:(-1):1])
+
+            @gensym index indices
+
+            return esc(
+                quote
+                    let
+                        $indices = CartesianIndices(($(ranges...),))
+
+                        @simd ivdep for $index in $indices
+                            $(Expr(
+                                :block,
+                                (
+                                    :($(index_names[i]) = $index[$i]) for
+                                    i in eachindex(index_names)
+                                )...,
+                            ))
+                            $body
+                        end
+                    end
+                end,
+            )
         elseif loop.head === :(=)
-            index_names = (loop.args[1],)
-            ranges = (loop.args[2],)
+            return esc(quote
+                @simd ivdep $x
+            end)
         else
             error("Unexpected for-loop format!")
         end
-
-        @gensym index indices
-
-        output = esc(
-            quote
-                let
-                    $indices = CartesianIndices(($(ranges...),))
-
-                    for $index in $indices
-                        $(Expr(
-                            :block,
-                            (
-                                :($(index_names[i]) = $index[$i]) for
-                                i in eachindex(index_names)
-                            )...,
-                        ))
-                        $body
-                    end
-                end
-            end,
-        )
-
-        println(output)
-
-        return output
     else
-        output = esc(
+        return esc(
             Expr(
                 :macrocall,
                 GlobalRef(FastBroadcast, Symbol("@..")),
@@ -47,9 +44,5 @@ macro fuse(x::Any)
                 x,
             ),
         )
-
-        println(output)
-
-        return output
     end
 end

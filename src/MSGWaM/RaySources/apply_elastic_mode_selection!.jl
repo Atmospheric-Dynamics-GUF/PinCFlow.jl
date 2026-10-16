@@ -102,11 +102,11 @@ function apply_elastic_mode_selection! end
     n = min(sum_abs_field^2 / sum(a -> a^2, field), kmax) / kmax
 
     # Compute the neighbor similarity.
-    s = 0
-    for k in 1:(kmax - 1)
-        s += exp(-(abs(field[j[k]]) / abs(field[j[k + 1]]) - 1) / delta)
-    end
-    s /= kmax - 1
+    s =
+        sum(
+            exp(-(abs(field[j[k]]) / abs(field[j[k + 1]]) - 1) / delta) for
+            k in 1:(kmax - 1)
+        ) / (kmax - 1)
 
     # Compute the combined measure.
     c = wn * n + ws * s

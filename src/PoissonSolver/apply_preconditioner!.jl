@@ -57,11 +57,9 @@ function apply_preconditioner!(
     # Set pseudo-time step.
     deta = dtau / (2 * (1 / dx^2 + 1 / dy^2))
 
-    @fuse for k in 1:nz, j in 1:ny, i in 1:nx
-        ath[i, j, k] = -deta * ad_b[i, j, k]
-        bth[i, j, k] = 1.0 - deta * ac_b[i, j, k]
-        cth[i, j, k] = -deta * au_b[i, j, k]
-    end
+    @fuse ath = -deta * ad_b
+    @fuse bth = 1.0 - deta * ac_b
+    @fuse cth = -deta * au_b
 
     # Iterate.
     for niter in 1:preconditioner_iterations

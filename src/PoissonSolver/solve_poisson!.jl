@@ -62,14 +62,12 @@ function solve_poisson! end
         return (errflagbicg, niterbicg)
     end
 
-    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
-        is = i - i0 + 1
-        js = j - j0 + 1
-        ks = k - k0 + 1
+    ii = i0:i1
+    jj = j0:j1
+    kk = k0:k1
 
-        solution[is, js, ks] /= sqrt(pbar[i, j, k]^2 / rhobar[i, j, k])
-        dpip[i, j, k] = dtinv * solution[is, js, ks]
-    end
+    @fuse solution /= sqrt(pbar[ii, jj, kk]^2 / rhobar[ii, jj, kk])
+    @fuse dpip[ii, jj, kk] = dtinv * solution
 
     return (errflagbicg, niterbicg)
 end

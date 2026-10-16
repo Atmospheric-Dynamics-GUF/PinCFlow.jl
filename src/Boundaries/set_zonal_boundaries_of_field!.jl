@@ -66,7 +66,7 @@ function set_zonal_boundaries_of_field! end
     if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain)
     else
-        @fuse for j in 1:nyy, i in 1:nbx
+        for j in 1:nyy, i in 1:nbx
             field[i0 - i, j] = field[i1 - i + 1, j]
             field[i1 + i, j] = field[i0 + i - 1, j]
         end
@@ -91,10 +91,7 @@ end
     if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
-        @fuse for k in (k0 - nbz):(k1 + nbz),
-            j in (j0 - nby):(j1 + nby),
-            i in 1:nbx
-
+        for k in (k0 - nbz):(k1 + nbz), j in (j0 - nby):(j1 + nby), i in 1:nbx
             field[i0 - i, j, k] = field[i1 - i + 1, j, k]
             field[i1 + i, j, k] = field[i0 + i - 1, j, k]
         end
@@ -119,7 +116,7 @@ end
     if x_size > 1
         set_zonal_halos_of_field!(field, namelists, domain; layers)
     else
-        @fuse for m in 1:2,
+        for m in 1:2,
             l in 1:3,
             k in (k0 - nbz):(k1 + nbz),
             j in (j0 - nby):(j1 + nby),

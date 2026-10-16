@@ -35,7 +35,7 @@ function set_zonal_boundary_rays! end
     if x_size > 1
         set_zonal_halo_rays!(state)
     else
-        @fuse for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1)
+        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1)
             for r in 1:nray[i0 - 1, j, k]
                 copy_rays!(rays, r => r, i1 => i0 - 1, j => j, k => k)
             end
@@ -47,11 +47,8 @@ function set_zonal_boundary_rays! end
     end
 
     if io == 0
-        @fuse for k in (k0 - 1):(k1 + 1),
-            j in (j0 - 1):(j1 + 1),
-            i in (i0 - 1):i0
-
-            for r in 1:nray[i, j, k]
+        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):i0
+            @fuse for r in 1:nray[i, j, k]
                 xr = rays.x[r, i, j, k]
                 xrt = xr - lx
 
@@ -65,11 +62,8 @@ function set_zonal_boundary_rays! end
     end
 
     if io + nx == x_size
-        @fuse for k in (k0 - 1):(k1 + 1),
-            j in (j0 - 1):(j1 + 1),
-            i in i1:(i1 + 1)
-
-            for r in 1:nray[i, j, k]
+        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in i1:(i1 + 1)
+            @fuse for r in 1:nray[i, j, k]
                 xr = rays.x[r, i, j, k]
                 xrt = xr + lx
 

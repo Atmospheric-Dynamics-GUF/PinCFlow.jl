@@ -19,30 +19,11 @@ function compute_spectral_bounds(
     wavenumbers::AbstractVector{<:AbstractFloat},
 )::NTuple{4, <:AbstractFloat}
 
-    # Initialize minima and maxima.
-    krminp = 0.0
-    krmaxp = 0.0
-    krminn = 0.0
-    krmaxn = 0.0
-
     # Compute minima and maxima.
-    for kr in wavenumbers
-        if kr > 0
-            if krminp == 0
-                krminp = kr
-            else
-                krminp = min(krminp, kr)
-            end
-            krmaxp = max(krmaxp, kr)
-        elseif kr < 0
-            if krminn == 0
-                krminn = -kr
-            else
-                krminn = min(krminn, -kr)
-            end
-            krmaxn = max(krmaxn, -kr)
-        end
-    end
+    (krminp, krmaxp) =
+        extrema(kr for kr in wavenumbers if kr > 0; init = (0.0, 0.0))
+    (krminn, krmaxn) =
+        extrema(kr for kr in wavenumbers if kr < 0; init = (0.0, 0.0))
 
     # Adjust bounds that are zero.
     if krminp == krmaxp == krminn == krmaxn == 0

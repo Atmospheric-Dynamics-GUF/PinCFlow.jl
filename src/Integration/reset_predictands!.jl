@@ -76,12 +76,10 @@ function reset_predictands!(
     (; nxx, nyy, nzz) = state.domain
     (; rhop, u, v, w) = state.variables.predictands
 
-    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
-        rhop[i, j, k] = predictands.rhop[i, j, k]
-        u[i, j, k] = predictands.u[i, j, k]
-        v[i, j, k] = predictands.v[i, j, k]
-        w[i, j, k] = predictands.w[i, j, k]
-    end
+    @fuse rhop = predictands.rhop
+    @fuse u = predictands.u
+    @fuse v = predictands.v
+    @fuse w = predictands.w
 
     return
 end
@@ -94,13 +92,11 @@ function reset_predictands!(
     (; nxx, nyy, nzz) = state.domain
     (; rho, rhop, u, v, w) = state.variables.predictands
 
-    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
-        rho[i, j, k] = predictands.rho[i, j, k]
-        rhop[i, j, k] = predictands.rhop[i, j, k]
-        u[i, j, k] = predictands.u[i, j, k]
-        v[i, j, k] = predictands.v[i, j, k]
-        w[i, j, k] = predictands.w[i, j, k]
-    end
+    @fuse rho = predictands.rho
+    @fuse rhop = predictands.rhop
+    @fuse u = predictands.u
+    @fuse v = predictands.v
+    @fuse w = predictands.w
 
     return
 end
@@ -113,15 +109,13 @@ function reset_predictands!(
     (; nxx, nyy, nzz) = state.domain
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
-    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
-        rho[i, j, k] = predictands.rho[i, j, k]
-        rhop[i, j, k] = predictands.rhop[i, j, k]
-        u[i, j, k] = predictands.u[i, j, k]
-        v[i, j, k] = predictands.v[i, j, k]
-        w[i, j, k] = predictands.w[i, j, k]
-        pip[i, j, k] = predictands.pip[i, j, k]
-        p[i, j, k] = predictands.p[i, j, k]
-    end
+    @fuse rho = predictands.rho
+    @fuse rhop = predictands.rhop
+    @fuse u = predictands.u
+    @fuse v = predictands.v
+    @fuse w = predictands.w
+    @fuse pip = predictands.pip
+    @fuse p = predictands.p
 
     return
 end

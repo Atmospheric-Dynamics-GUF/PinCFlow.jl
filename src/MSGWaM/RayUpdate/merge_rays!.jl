@@ -79,7 +79,7 @@ end
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Loop over grid cells.
-    @dispatch_merge_mode @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+    @dispatch_merge_mode for k in k0:k1, j in j0:j1, i in i0:i1
         if nray[i, j, k] < bins
             continue
         end
@@ -215,7 +215,7 @@ end
         end
 
         # Reset the old ray volumes.
-        @fuse rays.data[:, :, i, j, k] = 0.0
+        @fuse rays.data[:, 1:nray[i, j, k], i, j, k] = 0.0
 
         # Construct the merged ray volumes.
         r = 0
@@ -226,21 +226,24 @@ end
 
             r += 1
 
-            rays.x[r, i, j, k] = sum(merged_rays.xr[:, bin]) / 2
-            rays.y[r, i, j, k] = sum(merged_rays.yr[:, bin]) / 2
-            rays.z[r, i, j, k] = sum(merged_rays.zr[:, bin]) / 2
+            mean = a -> (a[1] + a[2]) / 2
+            difference = a -> a[2] - a[1]
 
-            rays.k[r, i, j, k] = sum(merged_rays.kr[:, bin]) / 2
-            rays.l[r, i, j, k] = sum(merged_rays.lr[:, bin]) / 2
-            rays.m[r, i, j, k] = sum(merged_rays.mr[:, bin]) / 2
+            rays.x[r, i, j, k] = mean(merged_rays.xr[:, bin])
+            rays.y[r, i, j, k] = mean(merged_rays.yr[:, bin])
+            rays.z[r, i, j, k] = mean(merged_rays.zr[:, bin])
 
-            rays.dxray[r, i, j, k] = diff(merged_rays.xr[:, bin])[1]
-            rays.dyray[r, i, j, k] = diff(merged_rays.yr[:, bin])[1]
-            rays.dzray[r, i, j, k] = diff(merged_rays.zr[:, bin])[1]
+            rays.k[r, i, j, k] = mean(merged_rays.kr[:, bin])
+            rays.l[r, i, j, k] = mean(merged_rays.lr[:, bin])
+            rays.m[r, i, j, k] = mean(merged_rays.mr[:, bin])
 
-            rays.dkray[r, i, j, k] = diff(merged_rays.kr[:, bin])[1]
-            rays.dlray[r, i, j, k] = diff(merged_rays.lr[:, bin])[1]
-            rays.dmray[r, i, j, k] = diff(merged_rays.mr[:, bin])[1]
+            rays.dxray[r, i, j, k] = difference(merged_rays.xr[:, bin])
+            rays.dyray[r, i, j, k] = difference(merged_rays.yr[:, bin])
+            rays.dzray[r, i, j, k] = difference(merged_rays.zr[:, bin])
+
+            rays.dkray[r, i, j, k] = difference(merged_rays.kr[:, bin])
+            rays.dlray[r, i, j, k] = difference(merged_rays.lr[:, bin])
+            rays.dmray[r, i, j, k] = difference(merged_rays.mr[:, bin])
 
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 

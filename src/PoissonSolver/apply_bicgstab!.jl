@@ -56,11 +56,9 @@ function apply_bicgstab!(
     errflag = false
 
     apply_operator!(solution, matvec, Total(), state)
-    @fuse for k in 1:nz, j in 1:ny, i in 1:nx
-        r0[i, j, k] = lhs[i, j, k] - matvec[i, j, k]
-        p[i, j, k] = r0[i, j, k]
-        r[i, j, k] = r0[i, j, k]
-    end
+    @fuse r0 = lhs - matvec
+    @fuse p = r0
+    @fuse r = r0
 
     res = sum(rijk -> rijk^2, r)
     res = MPI.Allreduce(res, +, comm)
@@ -109,11 +107,9 @@ function apply_bicgstab!(
         omega =
             compute_global_dot_product(t, s, state) /
             compute_global_dot_product(t, t, state)
-        @fuse for k in 1:nz, j in 1:ny, i in 1:nx
-            solution[i, j, k] += alpha * p[i, j, k] + omega * s[i, j, k]
-            rold[i, j, k] = r[i, j, k]
-            r[i, j, k] = s[i, j, k] - omega * t[i, j, k]
-        end
+        @fuse solution += alpha * p + omega * s
+        @fuse rold = r
+        @fuse r = s - omega * t
 
         #-----------------------
         #   Abort criterion

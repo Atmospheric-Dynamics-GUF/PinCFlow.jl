@@ -207,8 +207,8 @@ end
     # Initialize the WKB increments and maximum group velocities at the first
     # RK stage.
     if rkstage == 1
-        @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
-            for r in 1:nray[i, j, k]
+        for k in kmin:kmax, j in j0:j1, i in i0:i1
+            @fuse for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
                 dyray[r, i, j, k] = 0.0
                 dzray[r, i, j, k] = 0.0
@@ -226,7 +226,7 @@ end
         cgz_max[] = 0.0
     end
 
-    @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
+    for k in kmin:kmax, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
@@ -464,7 +464,7 @@ end
     #     Change of wave action
     #-------------------------------
 
-    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
@@ -524,7 +524,7 @@ end
     end
 
     # Loop over grid cells.
-    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
 
         # Set the ray-volume count.
         nray[i, j, k] = nray[i, j, k - 1]

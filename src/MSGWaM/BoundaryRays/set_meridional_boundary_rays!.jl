@@ -40,7 +40,7 @@ function set_meridional_boundary_rays! end
     if y_size > 1
         set_meridional_halo_rays!(state)
     else
-        @fuse for k in (k0 - 1):(k1 + 1), i in (i0 - 1):(i1 + 1)
+        for k in (k0 - 1):(k1 + 1), i in (i0 - 1):(i1 + 1)
             for r in 1:nray[i, j0 - 1, k]
                 copy_rays!(rays, r => r, i => i, j1 => j0 - 1, k => k)
             end
@@ -52,11 +52,8 @@ function set_meridional_boundary_rays! end
     end
 
     if jo == 0
-        @fuse for k in (k0 - 1):(k1 + 1),
-            j in (j0 - 1):j0,
-            i in (i0 - 1):(i1 + 1)
-
-            for r in 1:nray[i, j, k]
+        for k in (k0 - 1):(k1 + 1), j in (j0 - 1):j0, i in (i0 - 1):(i1 + 1)
+            @fuse for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]
                 yrt = yr - ly
 
@@ -70,11 +67,8 @@ function set_meridional_boundary_rays! end
     end
 
     if jo + ny == y_size
-        @fuse for k in (k0 - 1):(k1 + 1),
-            j in j1:(j1 + 1),
-            i in (i0 - 1):(i1 + 1)
-
-            for r in 1:nray[i, j, k]
+        for k in (k0 - 1):(k1 + 1), j in j1:(j1 + 1), i in (i0 - 1):(i1 + 1)
+            @fuse for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]
                 yrt = yr + ly
 

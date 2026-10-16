@@ -122,10 +122,7 @@ end
 
     set_tracer_fields_zero!(state)
 
-    @fuse for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -334,10 +331,7 @@ end
         @fuse field = 0
     end
 
-    @fuse for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue
@@ -511,10 +505,7 @@ end
         @fuse field = 0
     end
 
-    @fuse for k in (k0 - 1):(k1 + 1),
-        j in (j0 - 1):(j1 + 1),
-        i in (i0 - 1):(i1 + 1)
-
+    for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
                 continue

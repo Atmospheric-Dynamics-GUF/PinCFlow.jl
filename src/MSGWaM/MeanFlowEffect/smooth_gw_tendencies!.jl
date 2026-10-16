@@ -238,7 +238,7 @@ end
     end
 
     input = copy(output)
-    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
                 input[ii, jj, kk] * jac[ii, jj, kk] for
@@ -274,7 +274,7 @@ end
     end
 
     input = copy(output)
-    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
                 input[ii, j, kk] * jac[ii, j, kk] for
@@ -308,7 +308,7 @@ end
     end
 
     input = copy(output)
-    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
                 input[i, jj, kk] * jac[i, jj, kk] for
@@ -339,7 +339,7 @@ end
     end
 
     input = copy(output)
-    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         output[i, j, k] =
             sum(
                 input[i, j, kk] * jac[i, j, kk] for
