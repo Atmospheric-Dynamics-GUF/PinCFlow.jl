@@ -114,9 +114,9 @@ plot_output
     figure = h5open(data_file) do data
 
         # Set the grid.
-        x = data["x"][:] ./ space_unit_factor
-        y = data["y"][:] ./ space_unit_factor
-        z = data["z"][:, :, :] ./ space_unit_factor
+        x = @fuse data["x"][:] / space_unit_factor
+        y = @fuse data["y"][:] / space_unit_factor
+        z = @fuse data["z"][:, :, :] / space_unit_factor
         (nx, ny, nz) = size(z)
         x = [xi for xi in x, j in 1:ny, k in 1:nz]
         y = [yj for i in 1:nx, yj in y, k in 1:nz]
@@ -125,7 +125,7 @@ plot_output
         plane_in_title = (nx > 1 && ny > 1 && nz > 1)
 
         # Get the time.
-        t = data["t"][:] ./ time_unit_factor
+        t = @fuse data["t"][:] / time_unit_factor
 
         figure = Figure()
 
@@ -150,7 +150,7 @@ plot_output
             # Determine the data slices.
             (variable, n) = (field[1], field[end])
             if length(field) == 5
-                (i, j, k) = ceil.(Int64, field[2:4] .* (nx, ny, nz))
+                (i, j, k) = @fuse ceil(Int64, field[2:4] * (nx, ny, nz))
             else
                 i = j = k = 1
             end
@@ -163,12 +163,12 @@ plot_output
 
             if variable in ray_volume_properties
                 # Get the ray-volume data.
-                xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
-                yr = data["yr"][:, :, :, :, n] ./ space_unit_factor
-                zr = data["zr"][:, :, :, :, n] ./ space_unit_factor
-                dxr = data["dxr"][:, :, :, :, n] ./ space_unit_factor
-                dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
-                dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
+                xr = @fuse data["xr"][:, :, :, :, n] / space_unit_factor
+                yr = @fuse data["yr"][:, :, :, :, n] / space_unit_factor
+                zr = @fuse data["zr"][:, :, :, :, n] / space_unit_factor
+                dxr = @fuse data["dxr"][:, :, :, :, n] / space_unit_factor
+                dyr = @fuse data["dyr"][:, :, :, :, n] / space_unit_factor
+                dzr = @fuse data["dzr"][:, :, :, :, n] / space_unit_factor
                 nr = data["nr"][:, :, :, :, n]
                 phi = data[string(variable)][:, :, :, :, n]
 

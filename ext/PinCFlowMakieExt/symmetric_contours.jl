@@ -63,9 +63,10 @@ symmetric_contours
     end
 
     # Determine the indices for the colormap.
-    midpoints = levels[1:(number - 1)] .+ (levels[2] .- levels[1]) ./ 2
+    colormap_length = length(colormap)
+    midpoints = @fuse levels[1:(number - 1)] + (levels[2] - levels[1]) / 2
     peak = max(abs(levels[1]), abs(levels[end]))
-    indices = ceil.(Int, (1 .+ midpoints ./ peak) .* length(colormap) ./ 2)
+    indices = @fuse ceil(Int, (1 + midpoints / peak) * colormap_length / 2)
 
     return (levels, colormap[indices])
 end

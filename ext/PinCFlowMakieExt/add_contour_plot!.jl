@@ -48,10 +48,10 @@ function add_contour_plot! end
         backgroundcolor = background_color,
         title,
         xlabel = x_label,
-        xticks = xmin .+ [0.1, 0.5, 0.9] .* (xmax .- xmin),
+        xticks = @fuse(xmin + [0.1, 0.5, 0.9] * (xmax - xmin)),
         xtickformat = x_tick_format,
         ylabel = y_label,
-        yticks = ymin .+ [0.1, 0.5, 0.9] .* (ymax .- ymin),
+        yticks = @fuse(ymin + [0.1, 0.5, 0.9] * (ymax - ymin)),
         ytickformat = y_tick_format,
     )
     (levels, colormap) =
