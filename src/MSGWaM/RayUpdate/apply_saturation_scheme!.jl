@@ -87,7 +87,8 @@ end
     (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb
     (; x_size, y_size) = state.namelists.domain
-    (; use_saturation, saturation_threshold) = state.namelists.wkb
+    (; use_saturation, saturation_violated_message, saturation_threshold) =
+        state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, ly, dx, dy, zc) = state.grid
 
@@ -121,20 +122,20 @@ end
                 max(0, 1 - dt * 2 * kappa * (wnrk^2 + wnrl^2 + wnrm^2))
         end
 
-        # Compute the saturation integrals again for diagnostics.
-        (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
-
         # Check if saturation is violated.
-        n2r = interpolate_stratification(zc[i, j, k], state, N2())
-        if mb2 - saturation_threshold^2 * n2r^2 >
-           1.0E-3 * saturation_threshold^2 * n2r^2
-            println("Saturation violated at (i, j, k) = ", (i, j, k))
-            println("mb2 = ", mb2)
-            println(
-                "saturation_threshold^2 * n2r^2 = ",
-                saturation_threshold^2 * n2r^2,
-            )
-            println("")
+        if saturation_violated_message
+            (mb2, mb2k2) = compute_saturation_integrals(state, i, j, k)
+            n2r = interpolate_stratification(zc[i, j, k], state, N2())
+            if mb2 - saturation_threshold^2 * n2r^2 >
+               1.0E-3 * saturation_threshold^2 * n2r^2
+                println("Saturation violated at (i, j, k) = ", (i, j, k))
+                println("mb2 = ", mb2)
+                println(
+                    "saturation_threshold^2 * n2r^2 = ",
+                    saturation_threshold^2 * n2r^2,
+                )
+                println("")
+            end
         end
     end
 
