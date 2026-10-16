@@ -36,6 +36,8 @@ Contributions to the code should respect the following rules.
 
   - Use PincFlow.jl's `@dispatch` for value dispatch.
 
+  - Use PinCFlow.jl's `@fuse` to broadcast and vectorize innermost `for` loops.
+
   - Use `===` and `!==` when comparing with literal `Symbol`s or `nothing`.
 
   - Do not use Unicode.
