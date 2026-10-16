@@ -50,31 +50,32 @@ function compute_n2! end
 )
     (; z_size, nbz) = namelists.domain
     (; g_ndim) = constants
-    (; nz, ko, k0, k1) = domain
+    (; nz, ko, k0, k1, nxx, nyy) = domain
     (; jac, dz) = grid
 
     # Compute the squared buoyancy frequency.
-    n2 .= 0.0
-    for k in k0:k1
-        n2[:, :, k] .=
-            g_ndim ./ thetabar[:, :, k] ./ jac[:, :, k] .* 0.5 .*
-            (thetabar[:, :, k + 1] .- thetabar[:, :, k - 1]) ./ dz
+    @fuse n2 = 0.0
+    @fuse for k in k0:k1, j in 1:nyy, i in 1:nxx
+        n2[i, j, k] =
+            g_ndim / thetabar[i, j, k] / jac[i, j, k] *
+            0.5 *
+            (thetabar[i, j, k + 1] - thetabar[i, j, k - 1]) / dz
     end
 
     # Compute the squared buoyancy frequency at the boundaries.
     set_vertical_boundaries_of_field!(n2, namelists, domain, +)
     if ko == 0
-        for k in 1:nbz
-            n2[:, :, k] .=
-                g_ndim ./ thetabar[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
-                (thetabar[:, :, k0] .- thetabar[:, :, k0 - 1]) ./ dz
+        @fuse for k in 1:nbz, j in 1:nyy, i in 1:nxx
+            n2[i, j, k] =
+                g_ndim / thetabar[i, j, k0 - 1] / jac[i, j, k0 - 1] *
+                (thetabar[i, j, k0] - thetabar[i, j, k0 - 1]) / dz
         end
     end
     if ko + nz == z_size
-        for k in 1:nbz
-            n2[:, :, k1 + k] .=
-                g_ndim ./ thetabar[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
-                (thetabar[:, :, k1 + 1] .- thetabar[:, :, k1]) ./ dz
+        @fuse for k in 1:nbz, j in 1:nyy, i in 1:nxx
+            n2[i, j, k1 + k] =
+                g_ndim / thetabar[i, j, k1 + 1] / jac[i, j, k1 + 1] *
+                (thetabar[i, j, k1 + 1] - thetabar[i, j, k1]) / dz
         end
     end
 

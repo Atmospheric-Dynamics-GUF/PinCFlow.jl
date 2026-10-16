@@ -91,7 +91,7 @@ end
 
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
 
-    for k in 1:nzz, j in j0:j1, i in i0:i1
+    @fuse for k in 1:nzz, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
@@ -127,25 +127,25 @@ end
     end
 
     if model !== :Boussinesq
-        rho .= rhop
+        @fuse rho = rhop
     end
 
-    w .= met[:, :, :, 1, 3] .* u .+ met[:, :, :, 2, 3] .* v .+ w ./ jac
+    @fuse w = met[:, :, :, 1, 3] * u + met[:, :, :, 2, 3] * v + w / jac
 
-    for i in i0:i1
-        u[i, :, :] .= (u[i, :, :] .+ u[i + 1, :, :]) ./ 2
+    for k in 1:nzz, j in 1:nyy, i in i0:i1
+        u[i, j, k] = (u[i, j, k] + u[i + 1, j, k]) / 2
     end
     set_zonal_boundaries_of_field!(u, namelists, domain)
 
-    for j in j0:j1
-        v[:, j, :] .= (v[:, j, :] .+ v[:, j + 1, :]) ./ 2
+    for k in 1:nzz, j in j0:j1
+        @fuse v[:, j, k] = (v[:, j, k] + v[:, j + 1, k]) / 2
     end
     set_meridional_boundaries_of_field!(v, namelists, domain)
 
     for k in k0:k1
-        w[:, :, k] .=
-            (jac[:, :, k + 1] .* w[:, :, k] .+ jac[:, :, k] .* w[:, :, k + 1]) ./
-            (jac[:, :, k] .+ jac[:, :, k + 1])
+        @fuse w[:, :, k] =
+            (jac[:, :, k + 1] * w[:, :, k] + jac[:, :, k] * w[:, :, k + 1]) /
+            (jac[:, :, k] + jac[:, :, k + 1])
     end
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
 

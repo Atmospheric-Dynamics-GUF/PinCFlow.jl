@@ -129,13 +129,13 @@ end
     (; initial_chi) = namelists.tracer
 
     chi = zeros(nxx, nyy, nzz)
-    for k in 1:nzz, j in j0:j1, i in i0:i1
+    @fuse for k in 1:nzz, j in j0:j1, i in i0:i1
         chi[i, j, k] = initial_chi(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
     end
     set_zonal_boundaries_of_field!(chi, namelists, domain)
     set_meridional_boundaries_of_field!(chi, namelists, domain)
 
-    chi .*= rho .+ rhobar
+    @fuse chi *= rho + rhobar
 
     return TracerPredictands(chi)
 end

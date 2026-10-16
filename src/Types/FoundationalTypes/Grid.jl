@@ -191,28 +191,19 @@ end
     dz = lz / z_size
 
     # Compute x-coordinate.
-    x = zeros(nxx)
-    for i in 1:nxx
-        x[i] = -lx / 2 + (i + io - i0) * dx + dx / 2
-    end
+    x = [x[i] = -lx / 2 + (i + io - i0) * dx + dx / 2 for i in 1:nxx]
 
     # Compute y-coordinate.
-    y = zeros(nyy)
-    for j in 1:nyy
-        y[j] = -ly / 2 + (j + jo - j0) * dy + dy / 2
-    end
+    y = [y[j] = -ly / 2 + (j + jo - j0) * dy + dy / 2 for j in 1:nyy]
 
     # Compute z-coordinate.
-    z = zeros(z_size + 2 * nbz)
-    for k in 1:(z_size + 2 * nbz)
-        z[k] = (k - k0) * dz + dz / 2
-    end
+    z = [(k - k0) * dz + dz / 2 for k in 1:(z_size + 2 * nbz)]
 
     # Allocate the stretched vertical grid.
     (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
 
     # Compute the stretched vertical grid.
-    for k in 1:(z_size + 2 * nbz)
+    @fuse for k in 1:(z_size + 2 * nbz)
         level = z[k] + 0.5 * dz
         if level < 0
             ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
@@ -226,7 +217,7 @@ end
     end
     !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = <=) &&
         error("Impossible vertical grid stretching!")
-    for k in 2:(z_size + 2 * nbz)
+    @fuse for k in 2:(z_size + 2 * nbz)
         zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
     end
     zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
@@ -244,46 +235,42 @@ end
     kmax = nzz
 
     # Compute the Jacobian.
-    for k in kmin:kmax
-        jac[:, :, k] .=
-            (lz .- hb) ./ lz .* (ztildes[ko + k] .- ztildes[ko + k - 1]) ./ dz
+    @fuse for k in kmin:kmax, j in 1:nyy, i in 1:nxx
+        jac[i, j, k] =
+            (lz - hb[i, j]) / lz * (ztildes[ko + k] - ztildes[ko + k - 1]) / dz
     end
-    ko == 0 && (jac[:, :, 1] .= jac[:, :, 2 * nbz])
+    ko == 0 && (@fuse jac[:, :, 1] = jac[:, :, 2 * nbz])
 
     # Compute the metric tensor.
 
-    met[:, :, :, 1, 2] .= 0.0
-    met[:, :, :, 2, 1] .= 0.0
-    met[:, :, :, 1, 1] .= 1.0
-    met[:, :, :, 2, 2] .= 1.0
+    @fuse met[:, :, :, 1, 2] = 0.0
+    @fuse met[:, :, :, 2, 1] = 0.0
+    @fuse met[:, :, :, 1, 1] = 1.0
+    @fuse met[:, :, :, 2, 2] = 1.0
 
-    for k in kmin:kmax, j in 1:nyy, i in i0:i1
+    @fuse for k in kmin:kmax, j in 1:nyy, i in i0:i1
         met13[i, j, k] =
             (hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx) * (zs[ko + k] - lz) /
             (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
     end
     set_zonal_boundaries_of_field!(met13, namelists, domain)
-    ko == 0 && (
-        met13[:, :, 1] .=
-            met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
-    )
-    met[:, :, :, 1, 3] .= met13
-    met[:, :, :, 3, 1] .= met13
+    ko == 0 && (@fuse met13[:, :, 1] =
+        met13[:, :, 2 * nbz] * (zs[1] - lz) / (zs[2 * nbz] - lz))
+    @fuse met[:, :, :, 1, 3] = met13
+    @fuse met[:, :, :, 3, 1] = met13
 
-    for k in 2:nzz, j in j0:j1, i in 1:nxx
+    @fuse for k in 2:nzz, j in j0:j1, i in 1:nxx
         met23[i, j, k] =
             (hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy) * (zs[ko + k] - lz) /
             (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
     end
     set_meridional_boundaries_of_field!(met23, namelists, domain)
-    ko == 0 && (
-        met23[:, :, 1] .=
-            met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
-    )
-    met[:, :, :, 2, 3] .= met23
-    met[:, :, :, 3, 2] .= met23
+    ko == 0 && (@fuse met23[:, :, 1] =
+        met23[:, :, 2 * nbz] * (zs[1] - lz) / (zs[2 * nbz] - lz))
+    @fuse met[:, :, :, 2, 3] = met23
+    @fuse met[:, :, :, 3, 2] = met23
 
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
         met33[i, j, k] =
             (
                 (lz / (lz - hb[i, j]))^2.0 +
@@ -293,7 +280,7 @@ end
                 )
             ) * (dz / (ztildes[ko + k] - ztildes[ko + k - 1]))^2.0
     end
-    ko == 0 && for j in j0:j1, i in i0:i1
+    ko == 0 && @fuse for j in j0:j1, i in i0:i1
         met33[i, j, 1] =
             (
                 (lz / (lz - hb[i, j]))^2.0 +
@@ -305,19 +292,24 @@ end
     end
     set_zonal_boundaries_of_field!(met33, namelists, domain)
     set_meridional_boundaries_of_field!(met33, namelists, domain)
-    met[:, :, :, 3, 3] .= met33
+    @fuse met[:, :, :, 3, 3] = met33
 
     # Allocate the physical layers.
     (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
 
     # Compute the physical layers.
-    for k in 1:nzz
-        zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
-        zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        zctilde[i, j, k] = (lz - hb[i, j]) / lz * ztildes[ko + k] + hb[i, j]
+        zc[i, j, k] = (lz - hb[i, j]) / lz * zs[ko + k] + hb[i, j]
     end
 
     # Compute the minimum layer depth.
-    dzcmin = minimum(diff(zctilde; dims = 3))
+    dzcmin = mapreduce(
+        -,
+        min,
+        zctilde[1:nxx, 1:nyy, 2:nzz],
+        zctilde[1:nxx, 1:nyy, 1:(nzz - 1)],
+    )
     dzcmin = MPI.Allreduce(dzcmin, min, comm)
 
     return Grid(

@@ -268,8 +268,8 @@ function Atmosphere(
     (; nxx, nyy, nzz) = domain
 
     rhobar = ones(nxx, nyy, nzz)
-    thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
-    pbar = rhobar .* thetabar
+    thetabar = @fuse potential_temperature / thetaref * rhobar
+    pbar = @fuse thetabar * rhobar
     n2 = zeros(nxx, nyy, nzz)
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
@@ -288,9 +288,9 @@ function Atmosphere(
     (; nxx, nyy, nzz) = domain
 
     rhobar = ones(nxx, nyy, nzz)
-    thetabar = potential_temperature ./ thetaref .* ones(nxx, nyy, nzz)
-    pbar = rhobar .* thetabar
-    n2 = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
+    thetabar = @fuse potential_temperature / thetaref * rhobar
+    pbar = @fuse thetabar * rhobar
+    n2 = @fuse (buoyancy_frequency * tref)^2 * rhobar
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
@@ -313,9 +313,9 @@ function Atmosphere(
     t0 = temperature / thetaref
     p0 = ground_pressure / pref
 
-    pbar .= p0 .* exp.(.-sig .* zc ./ gamma ./ t0)
-    thetabar .= t0 .* exp.(kappa .* sig ./ t0 .* zc)
-    rhobar .= pbar ./ thetabar
+    @fuse pbar = p0 * exp(-sig * zc / gamma / t0)
+    @fuse thetabar = t0 * exp(kappa * sig / t0 * zc)
+    @fuse rhobar = pbar / thetabar
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
@@ -353,11 +353,10 @@ function Atmosphere(
     theta0 = potential_temperature / thetaref
     p0 = ground_pressure / pref
 
-    n2 .= 0.0
-    thetabar .= theta0
-    pbar .=
-        p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
-    rhobar .= pbar ./ thetabar
+    @fuse n2 = 0.0
+    @fuse thetabar = theta0
+    @fuse pbar = p0 * (1.0 - kappa * sig / theta0 * zc)^(1.0 / (gamma - 1.0))
+    @fuse rhobar = pbar / thetabar
 
     return Atmosphere(pbar, thetabar, rhobar, n2)
 end
@@ -396,7 +395,7 @@ end
         )
     end
 
-    for k in 1:nzz, j in 1:nyy, i in 1:nxx
+    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
         if zc[i, j, k] <= ztrop
             thetabar[i, j, k] = theta0
             pbar[i, j, k] =
@@ -409,7 +408,7 @@ end
                 ptrop * exp(-sig * gammainv / ttrop * (zc[i, j, k] - ztrop))
         end
     end
-    rhobar .= pbar ./ thetabar
+    @fuse rhobar = pbar / thetabar
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
@@ -456,7 +455,7 @@ end
         power_s = g / rsp / stratosphere_lapse_rate / gamma
     end
 
-    for k in 1:nzz, j in 1:nyy, i in 1:nxx
+    @fuse for k in 1:nzz, j in 1:nyy, i in 1:nxx
         if zc[i, j, k] <= ztrop
             tbar = t0 - gamma_t * zc[i, j, k]
 
@@ -478,7 +477,7 @@ end
         thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(kappa * gamma)
     end
 
-    rhobar .= pbar ./ thetabar
+    @fuse rhobar = pbar / thetabar
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 

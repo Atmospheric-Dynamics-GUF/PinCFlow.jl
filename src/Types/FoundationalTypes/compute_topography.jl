@@ -124,16 +124,14 @@ end
     kh = zeros(wave_modes, nxx, nyy)
     lh = zeros(wave_modes, nxx, nyy)
 
-    for j in j0:j1, i in i0:i1
+    @fuse for j in j0:j1, i in i0:i1, alpha in 1:wave_modes
         hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
-        for alpha in 1:wave_modes
-            (khdim, lhdim, hwdim) =
-                unresolved_topography(alpha, x[i] * lref, y[j] * lref)
-            kh[alpha, i, j] = khdim * lref
-            lh[alpha, i, j] = lhdim * lref
-            hw[alpha, i, j] = hwdim / lref
-        end
+        (khdim, lhdim, hwdim) =
+            unresolved_topography(alpha, x[i] * lref, y[j] * lref)
+        kh[alpha, i, j] = khdim * lref
+        lh[alpha, i, j] = lhdim * lref
+        hw[alpha, i, j] = hwdim / lref
     end
 
     set_zonal_boundaries_of_field!(hb, namelists, domain)
@@ -164,7 +162,7 @@ end
     kh = zeros(0, 0, 0)
     lh = zeros(0, 0, 0)
 
-    for j in j0:j1, i in i0:i1
+    @fuse for j in j0:j1, i in i0:i1
         hbdim = resolved_topography(x[i] * lref, y[j] * lref)
         hb[i, j] = hbdim / lref
     end
