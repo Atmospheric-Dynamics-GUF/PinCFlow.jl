@@ -27,5 +27,5 @@ function rhobar end
     (; atmosphere) = state
     (; rhoref) = state.constants
 
-    return atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
+    return atmosphere.rhobar[ijk(state, x, y, z)] * rhoref
 end

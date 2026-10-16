@@ -23,9 +23,9 @@ function ijk end
     (; lref) = state.constants
     (; grid) = state
 
-    i = argmin(abs.(x .- grid.x .* lref))
-    j = argmin(abs.(y .- grid.y .* lref))
-    k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
+    i = argmin(@fuse abs(x - grid.x * lref))
+    j = argmin(@fuse abs(y - grid.y * lref))
+    k = argmin(@fuse abs(z - grid.zc[i, j, :] * lref))
 
     return CartesianIndex(i, j, k)
 end

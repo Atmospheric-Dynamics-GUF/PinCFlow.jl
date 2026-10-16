@@ -27,5 +27,5 @@ function thetabar end
     (; atmosphere) = state
     (; thetaref) = state.constants
 
-    return atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
+    return atmosphere.thetabar[ijk(state, x, y, z)] * thetaref
 end
