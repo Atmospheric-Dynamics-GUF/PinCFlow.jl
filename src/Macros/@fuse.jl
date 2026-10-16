@@ -15,16 +15,20 @@ macro fuse(x::Any)
                     let
                         $indices = CartesianIndices(($(ranges...),))
 
-                        @simd ivdep for $index in $indices
-                            $(Expr(
-                                :block,
-                                (
-                                    :($(index_names[i]) = $index[$i]) for
-                                    i in eachindex(index_names)
-                                )...,
-                            ))
-                            $body
-                        end
+                        @simd ivdep $(
+                            :(
+                                for $index in $indices
+                                    $(Expr(
+                                        :block,
+                                        (
+                                            :($(index_names[i]) = $index[$i]) for
+                                            i in eachindex(index_names)
+                                        )...,
+                                    ))
+                                    $body
+                                end
+                            )
+                        )
                     end
                 end,
             )
