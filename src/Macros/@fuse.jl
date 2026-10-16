@@ -1,3 +1,14 @@
+"""
+```julia
+@fuse(x::Any)
+```
+
+If `x` is a `for` loop, flatten it and apply `@simd ivdep` to it, otherwise apply FastBroadcast.jl's `@..` to it.
+
+# Argument
+
+  - `x`: Input object.
+"""
 macro fuse end
 
 macro fuse(x::Any)
