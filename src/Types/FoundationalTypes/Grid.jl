@@ -191,10 +191,10 @@ end
     dz = lz / z_size
 
     # Compute x-coordinate.
-    x = [x[i] = -lx / 2 + (i + io - i0) * dx + dx / 2 for i in 1:nxx]
+    x = [-lx / 2 + (i + io - i0) * dx + dx / 2 for i in 1:nxx]
 
     # Compute y-coordinate.
-    y = [y[j] = -ly / 2 + (j + jo - j0) * dy + dy / 2 for j in 1:nyy]
+    y = [-ly / 2 + (j + jo - j0) * dy + dy / 2 for j in 1:nyy]
 
     # Compute z-coordinate.
     z = [(k - k0) * dz + dz / 2 for k in 1:(z_size + 2 * nbz)]
