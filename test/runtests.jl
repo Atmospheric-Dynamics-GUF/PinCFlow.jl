@@ -1,5 +1,6 @@
 include("TestTools/TestTools.jl")
 
+using Aqua
 using JuliaFormatter
 using PinCFlow
 using Test
@@ -31,7 +32,11 @@ include("test_formatting.jl")
         test_wkb_wave_packet()
     end
 
-    @testset verbose = true "Quality" begin
+    @testset verbose = true "Code quality" begin
         test_formatting()
+
+        @testset "Aqua.jl" begin
+            Aqua.test_all(PinCFlow)
+        end
     end
 end

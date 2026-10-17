@@ -47,7 +47,6 @@ export check_rays,
     get_spectral_extent,
     get_spectral_position,
     get_surfaces,
-    merge_wave_action,
     remove_rays!,
     update_merged_rays!,
     compute_turbulent_velocity
