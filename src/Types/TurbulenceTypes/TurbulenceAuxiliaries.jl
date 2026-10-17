@@ -12,9 +12,9 @@ TurbulenceAuxiliaries(
 )::TurbulenceAuxiliaries
 ```
 
-Construct a `TurbulenceAuxiliaries` instance with dimensions depending on the general turbulence parameterization configuration, by dispatching to the appropriate method. 
+Construct a `TurbulenceAuxiliaries` instance with dimensions depending on the general turbulence parameterization configuration, by dispatching to the appropriate method.
 
-```julia 
+```julia
 TurbulenceAuxiliaries(
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
@@ -23,7 +23,7 @@ TurbulenceAuxiliaries(
 
 Construct a `TurbulenceAuxiliaries` instance with zero-size arrays for configurations without turbulence parameterization.
 
-```julia 
+```julia
 TurbulenceAuxiliaries(
     domain::Domain,
     turbulence_scheme::Val{:TKEScheme},
@@ -34,7 +34,7 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 
 # Fields
 
-  - `shear_production::A`: Contribution of turbulence production due to shear. 
+  - `shear_production::A`: Contribution of turbulence production due to shear.
 
   - `buoyancy_production::A`: Contribution of turbulence production due to the buoyancy.
 

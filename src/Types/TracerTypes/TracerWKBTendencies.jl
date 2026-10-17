@@ -5,11 +5,8 @@ TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Tracer impact of unresolved gravity waves.
 
-```julia 
-TracerWKBTendencies(
-    namelists::Namelists,
-    domain::Domain,
-)::TracerWKBTendencies
+```julia
+TracerWKBTendencies(namelists::Namelists, domain::Domain)::TracerWKBTendencies
 ```
 
 Construct a `TracerWKBTendencies` instance by dispatching to the appropriate method.
@@ -24,7 +21,7 @@ TracerWKBTendencies(
 
 Construct a `TracerWKBTendencies` instance with zero-size arrays for configurations without tracer transport.
 
-```julia 
+```julia
 TracerWKBTendencies(
     namelists::Namelists,
     domain::Domain,
@@ -34,7 +31,7 @@ TracerWKBTendencies(
 
 Construct a `TracerWKBTendencies` instance by dispatching to the appropriate method.
 
-```julia 
+```julia
 TracerWKBTendencies(
     namelists::Namelists,
     domain::Domain,
@@ -54,7 +51,7 @@ TracerWKBTendencies(
 
 Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `state.namelists.tracer.leading_order_impact == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `dchidt0::A`: Leading-order tracer impact of unresolved gravity waves.
 

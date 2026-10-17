@@ -5,11 +5,8 @@ TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Integrals of gravity-wave induced tracer fluxes.
 
-```julia 
-TracerWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
-)::TracerWKBIntegrals
+```julia
+TracerWKBIntegrals(namelists::Namelists, domain::Domain)::TracerWKBIntegrals
 ```
 
 Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
@@ -24,7 +21,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance with zero-size arrays for configurations without tracer transport.
 
-```julia 
+```julia
 TracerWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
@@ -34,7 +31,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
 
-```julia 
+```julia
 TracerWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
@@ -54,7 +51,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state.namelists.tracer.leading_order_impact == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `uchi0::A`: Leading-order zonal tracer fluxes.
 

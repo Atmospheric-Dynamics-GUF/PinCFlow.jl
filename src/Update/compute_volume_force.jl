@@ -131,7 +131,7 @@ where
 \\end{align*}
 ```
 
-and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively. 
+and ``K_\\mathrm{M}`` and ``K_\\mathrm{H}`` represent the eddy diffusion coefficients for momentum and heat, respectively.
 
 # Arguments
 
