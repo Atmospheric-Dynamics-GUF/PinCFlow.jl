@@ -20,25 +20,18 @@ set_boundaries!(state::State, variables::BoundaryFluxes)
 
 Enforce vertical boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 
-```julia 
+```julia
 set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-    },
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
     turbulence::TKE,
 )
 ```
 
 Enforce all boundary conditions for turbulence non-flux fields.
 
-```julia 
-set_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    turbulence::TKE,
-)
+```julia
+set_boundaries!(state::State, variables::BoundaryFluxes, turbulence::TKE)
 ```
 
 Enforce vertical boundary conditions for turbulence flux fields (horizontal boundaries are taken care of at the reconstruction stage).

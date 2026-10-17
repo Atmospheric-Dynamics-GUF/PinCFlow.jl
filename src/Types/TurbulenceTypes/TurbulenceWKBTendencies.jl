@@ -5,7 +5,7 @@ TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Turbulence impact of unresolved gravity waves.
 
-```julia 
+```julia
 TurbulenceWKBTendencies(
     namelists::Namelists,
     domain::Domain,
@@ -41,7 +41,7 @@ TurbulenceWKBTendencies(
 
 Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `state.namelists.turbulence.gw_coupling == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `dtkedt::A`: Turbulence impact of unresolved gravity waves.
 

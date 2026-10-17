@@ -52,7 +52,7 @@ where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum (
 
   - `turbulence_scheme`: General turbulence parameterization configuration.
 
-# See also 
+# See also
 
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
 """

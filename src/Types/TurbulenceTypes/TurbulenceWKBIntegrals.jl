@@ -5,7 +5,7 @@ TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Integrals of gravity-wave quantities that impact turbulence.
 
-```julia 
+```julia
 TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
@@ -41,7 +41,7 @@ TurbulenceWKBIntegrals(
 
 Construct a `TurbulenceWKBIntegrals` instance with zero-initialized arrays if `state.namelists.turbulence.gw_coupling == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `gw_shear::A`: Gravity-wave shear field.
 
