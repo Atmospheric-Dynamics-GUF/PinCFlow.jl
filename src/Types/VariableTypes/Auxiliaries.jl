@@ -58,7 +58,7 @@ function Auxiliaries(domain::Domain)::Auxiliaries
 
     return Auxiliaries(
         zeros(nxx, nyy, nzz),
-        [zeros(nx, ny, nz) for i in 1:5]...,
-        [zeros(nx, ny) for i in 1:3]...,
+        (zeros(nx, ny, nz) for i in 1:5)...,
+        (zeros(nx, ny) for i in 1:3)...,
     )
 end

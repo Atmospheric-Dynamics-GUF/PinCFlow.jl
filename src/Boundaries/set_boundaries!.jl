@@ -2,15 +2,17 @@
 ```julia
 set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
-    },
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
 )
 ```
 
-Enforce all boundary conditions for non-flux fields.
+Enforce all boundary conditions for the prognostic variables and their reconstructions.
+
+```julia
+set_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)
+```
+
+Enforce all boundary conditions for the gravity wave integral and tendency fields.
 
 ```julia
 set_boundaries!(state::State, variables::BoundaryFluxes)
@@ -21,11 +23,7 @@ Enforce vertical boundary conditions for flux fields (horizontal boundaries are 
 ```julia
 set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
-    },
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
     turbulence::TKE,
 )
 ```
@@ -70,11 +68,7 @@ function set_boundaries! end
 
 function set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
-    },
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
 )
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
@@ -83,6 +77,22 @@ function set_boundaries!(
     set_tracer_zonal_boundaries!(state, variables)
     set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
+
+    return
+end
+
+function set_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)
+    set_zonal_boundaries!(state, variables)
+    set_meridional_boundaries!(state, variables)
+    set_vertical_boundaries!(state, variables)
+
+    set_tracer_zonal_boundaries!(state, variables)
+    set_tracer_meridional_boundaries!(state, variables)
+    set_tracer_vertical_boundaries!(state, variables)
+
+    set_turbulence_zonal_boundaries!(state, variables)
+    set_turbulence_meridional_boundaries!(state, variables)
+    set_turbulence_vertical_boundaries!(state, variables)
 
     return
 end
@@ -97,11 +107,7 @@ end
 
 function set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
-    },
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
     turbulence::TKE,
 )
     set_turbulence_zonal_boundaries!(state, variables)

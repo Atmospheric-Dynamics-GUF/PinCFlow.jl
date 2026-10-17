@@ -11,6 +11,7 @@ TurbulenceNamelist(;
     momentum_coupling::Bool = true,
     entropy_coupling::Bool = true,
     tracer_coupling::Bool = true,
+    gw_coupling::Bool = false,
     initial_tke::Function = (x, y, z) -> 5e-5,
 )::TurbulenceNamelist
 ```
@@ -27,13 +28,19 @@ Construct a `TurbulenceNamelist` instance with the given keyword arguments as pr
 
   - `tracer_coupling::Bool`: Switch for turbulent diffusion of tracers.
 
+  - `gw_coupling::Bool`: Switch to include to production of turbulence due to gravity-wave shear when parameterizing waves with the WKB model.
+
   - `initial_tke::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to initialize the mass-specific turbulent kinetic energy.
+
+!!! danger "Experimental"
+    The gravity-wave coupling to turbulence is an experimental feature that hasn't been validated yet.
 """
 struct TurbulenceNamelist
     turbulence_scheme::Symbol
     momentum_coupling::Bool
     entropy_coupling::Bool
     tracer_coupling::Bool
+    gw_coupling::Bool
     initial_tke::FunctionWrapper{Float64, NTuple{3, Float64}}
 end
 
@@ -42,6 +49,7 @@ function TurbulenceNamelist(;
     momentum_coupling::Bool = true,
     entropy_coupling::Bool = true,
     tracer_coupling::Bool = true,
+    gw_coupling::Bool = false,
     initial_tke::Function = (x, y, z) -> 5e-5,
 )::TurbulenceNamelist
     return TurbulenceNamelist(
@@ -49,6 +57,7 @@ function TurbulenceNamelist(;
         momentum_coupling,
         entropy_coupling,
         tracer_coupling,
+        gw_coupling,
         initial_tke,
     )
 end

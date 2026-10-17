@@ -67,7 +67,7 @@ function TurbulenceAuxiliaries(
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceAuxiliaries
-    return TurbulenceAuxiliaries([zeros(0, 0, 0) for i in 1:2]...)
+    return TurbulenceAuxiliaries((zeros(0, 0, 0) for i in 1:2)...)
 end
 
 function TurbulenceAuxiliaries(
@@ -75,5 +75,5 @@ function TurbulenceAuxiliaries(
     turbulence_scheme::Val{:TKEScheme},
 )::TurbulenceAuxiliaries
     (; nxx, nyy, nzz) = domain
-    return TurbulenceAuxiliaries([zeros(nxx, nyy, nzz) for i in 1:2]...)
+    return TurbulenceAuxiliaries((zeros(nxx, nyy, nzz) for i in 1:2)...)
 end
