@@ -1104,7 +1104,7 @@ end
         fluxdiff /= jacedgeu
 
         # Compute zonal momentum flux divergences.
-        @fuse for ll in 0:1, mm in 0:1
+        for ll in 0:1, mm in 0:1
             fr = phiu[i - ll, j, k + mm, 1]
             fl = phiu[i - 1 - ll, j, k + mm, 1]
             gf = phiu[i - ll, j, k + mm, 2]
@@ -1119,7 +1119,7 @@ end
         end
 
         # Compute meridional momentum flux divergences.
-        @fuse for ll in 0:1, mm in 0:1
+        for ll in 0:1, mm in 0:1
             fr = phiv[i, j - ll, k + mm, 1]
             fl = phiv[i - 1, j - ll, k + mm, 1]
             gf = phiv[i, j - ll, k + mm, 2]
