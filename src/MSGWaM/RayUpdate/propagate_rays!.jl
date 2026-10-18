@@ -362,8 +362,8 @@ end
 
             cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
 
-            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
-               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
+            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin[] ||
+               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin[]
                 error("Rays travel too far in z!")
             end
 

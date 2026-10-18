@@ -24,7 +24,7 @@ include("Grid.jl")
 include("Atmosphere.jl")
 include("Sponge.jl")
 
-include("compute_topography.jl")
+include("compute_vertical_grid!.jl")
 include("compute_n2!.jl")
 
 include("../../Boundaries/set_zonal_boundaries_of_field!.jl")

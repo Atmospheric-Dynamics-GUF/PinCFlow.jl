@@ -250,8 +250,8 @@ end
         kmin = get_next_half_level(iray, jray, zr - 0.5 * dzr, state)
         kmax = get_next_half_level(iray, jray, zr + 0.5 * dzr, state)
 
-        if dzr > dzcmin
-            factor = ceil(Int, dzr / dzcmin)
+        if dzr > dzcmin[]
+            factor = ceil(Int, dzr / dzcmin[])
             rays.z[r, i, j, k] = zr + (1 / factor - 1) * dzr / 2
             rays.dzray[r, i, j, k] = dzr / factor
             for rray in (local_count + 1):(local_count + factor - 1)
