@@ -26,6 +26,7 @@ include("Sponge.jl")
 
 include("compute_vertical_grid!.jl")
 include("compute_n2!.jl")
+include("compute_background_fields!.jl")
 
 include("../../Boundaries/set_zonal_boundaries_of_field!.jl")
 include("../../Boundaries/set_meridional_boundaries_of_field!.jl")
