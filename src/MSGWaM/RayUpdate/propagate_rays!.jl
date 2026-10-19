@@ -87,8 +87,6 @@ The group velocities that are calculated for the propagation in physical space a
 
 The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
 
-If `rkstage == nstages`, `activate_orographic_source!` is called to launch new mountain-wave ray volumes.
-
 ```julia
 propagate_rays!(
     state::State,
@@ -100,7 +98,7 @@ propagate_rays!(
 
 Update the vertical wavenumber and wave-action density, using steady-state WKB theory.
 
-In steady-state mode, the ray volumes are stationary in physical space. In mountain-wave simulations, this method first updates the ray volumes in the launch layer by calling `activate_orographic_source!`. Subsequently, it performs a vertical sweep to update all other ray volumes. Therein, the vertical wavenumber is set to
+In steady-state mode, the ray volumes are stationary in physical space. In mountain-wave simulations, this method performs a vertical sweep to update all other ray volumes. Therein, the vertical wavenumber is set to
 
 ```math
 m_r = - \\sigma \\sqrt{\\frac{\\left(k_r^2 + l_r^2\\right) \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r^2 - f^2}},
@@ -157,8 +155,6 @@ If `rkstage != 1`, this method returns immediately.
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
-
-  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
@@ -473,10 +469,6 @@ end
         end
     end
 
-    if rkstage == nstages
-        activate_orographic_source!(state)
-    end
-
     return
 end
 
@@ -502,8 +494,6 @@ end
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
-
-    activate_orographic_source!(state)
 
     if ko != 0
         nray_down = zeros(Int, nx, ny)
