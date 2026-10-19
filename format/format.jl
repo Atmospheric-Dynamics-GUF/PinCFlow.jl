@@ -1,38 +1,6 @@
 using JuliaFormatter
+using Test
 
-for (root, directories, files) in walkdir(".")
-    for file in files
-        if endswith(joinpath(root, file), r"\.(jl|md)")
-            script = read(joinpath(root, file), String)
+include("../test/test_formatting.jl")
 
-            modified_script = script
-            for code_block in
-                eachmatch(r"(?sm)(?<=^```julia\n)(.(?!^```\n))*", script)
-                modified_script = replace(
-                    modified_script,
-                    code_block.match => format_text(
-                        string(code_block.match);
-                        margin = 80,
-                        always_for_in = true,
-                        whitespace_typedefs = true,
-                        whitespace_ops_in_indices = true,
-                        remove_extra_newlines = true,
-                        pipe_to_function_call = true,
-                        short_to_long_function_def = true,
-                        force_long_function_def = true,
-                        always_use_return = true,
-                        normalize_line_endings = "unix",
-                        separate_kwargs_with_semicolon = true,
-                    ),
-                )
-            end
-
-            modified_script != script && open(joinpath(root, file), "w") do io
-                write(io, modified_script)
-                return
-            end
-        end
-    end
-end
-
-format(".")
+test_formatting(; directory = ".", fix = true)

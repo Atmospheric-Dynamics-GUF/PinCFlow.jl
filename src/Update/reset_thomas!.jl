@@ -1,11 +1,11 @@
 """
-```julia 
+```julia
 reset_thomas!(state::State)
 ```
 
 Reset arrays needed for the Thomas tridiagonal algorithm to ``0``.
 
-# Arguments 
+# Arguments
 
   - `state`: Model state.
 """
