@@ -224,6 +224,10 @@ end
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
+                continue
+            end
+
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
