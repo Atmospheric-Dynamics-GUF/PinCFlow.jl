@@ -207,7 +207,7 @@ function interpolate(
             :xr,
             :xlc,
         ),
-        <:NTuple{22, <:AbstractFloat},
+        <:NTuple{23, <:AbstractFloat},
     },
 )::AbstractFloat
     (; x_size, y_size) = state.namelists.domain

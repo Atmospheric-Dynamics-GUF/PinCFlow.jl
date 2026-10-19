@@ -56,7 +56,7 @@ function interpolate_stratification end
     phid = n2[i0, j0, kd]
     phiu = n2[i0, j0, ku]
 
-    return interpolate(state, (; phid, phiu, zd, zu, zlc))
+    return interpolate((; phid, phiu, zd, zu, zlc))
 end
 
 @ivy function interpolate_stratification(
