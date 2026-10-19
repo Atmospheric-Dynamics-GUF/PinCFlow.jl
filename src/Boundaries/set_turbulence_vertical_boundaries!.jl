@@ -173,7 +173,12 @@ function set_turbulence_vertical_boundaries!(
     turbulence_scheme::Val{:TKEScheme},
 )
     (; namelists, domain) = state
+    (; gw_coupling) = namelists.turbulence
     (; turbulencewkbtendencies) = state.turbulence
+
+    if !gw_coupling
+        return
+    end
 
     for field in fieldnames(TurbulenceWKBTendencies)
         set_vertical_boundaries_of_field!(
