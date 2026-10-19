@@ -56,7 +56,7 @@ Return the averages of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{
 
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_half_levels`](@ref)
 """
 function compute_orographic_flow end
 
@@ -107,7 +107,7 @@ end
     (; u, v) = state.variables.predictands
 
     deltah = compute_elevation_difference(state, i, j)
-    k = get_next_half_level(i, j, hb[i, j] + deltah, state)
+    k = get_half_levels(i, j, hb[i, j] + deltah, state)[2]
 
     rhoh = rhobar[i, j, k]
     n2h = n2[i, j, k]
