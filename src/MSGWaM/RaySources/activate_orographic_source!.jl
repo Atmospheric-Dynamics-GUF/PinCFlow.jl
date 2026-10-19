@@ -115,7 +115,7 @@ function activate_orographic_source! end
             else
                 if r > 0
                     # Shift and clip/extend the old ray volume.
-                    if zr + dzr / 2 > hb[i, j]
+                    if zr + dzr / 2 > hb[i, j] + eps()
 
                         # Shift the old ray volume.
                         nray[i, j, k + 1] += 1
