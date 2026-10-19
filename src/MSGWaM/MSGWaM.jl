@@ -48,8 +48,10 @@ export apply_saturation_scheme!,
     shift_rays!,
     split_rays!,
     compute_gw_integrals!,
+    compute_gw_integrals!,
+    compute_gw_tendencies!,
     smoothing!
 
-export Integrals, LeadingOrder, NextOrder
+export Integrals, LeadingOrder, NextOrder, Tendencies
 
 end

@@ -32,11 +32,13 @@ include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
 include("Integration/Integration.jl")
 include("Examples/Examples.jl")
+include("Research/Research.jl")
 
 using PrecompileTools
 using .Types
 using .Integration
 using .Examples
+using .Research
 
 @setup_workload begin
     redirect_stdout(devnull) do
@@ -92,5 +94,7 @@ export cold_bubble,
     wkb_mountain_wave,
     wkb_wave_packet,
     wkb_wave_vertical_periodicity
+
+export boussinesq_periodic, wkb_boussinesq_periodic
 
 end

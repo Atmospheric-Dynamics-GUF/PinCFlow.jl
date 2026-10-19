@@ -520,8 +520,6 @@ The update is given by
   - [`PinCFlow.Update.compute_pressure_gradient`](@ref)
 
   - [`PinCFlow.Update.transform`](@ref)
-
-  - [`PinCFlow.Update.conductive_heating`](@ref)
 """
 function update! end
 

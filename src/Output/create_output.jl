@@ -273,6 +273,19 @@ function create_output(state::State, machine_start_time::DateTime)
                 )
             end
 
+            if :tracerdiffusion in output_variables
+                create_dataset(
+                    file,
+                    "tracerdiffusion",
+                    datatype(Float32),
+                    dataspace(
+                        (x_size, y_size, z_size, 0),
+                        (x_size, y_size, z_size, -1),
+                    );
+                    chunk = (cx, cy, cz, ct),
+                )
+            end
+
             if leading_order_impact && wkb_mode !== :NoWKB
                 if :dchidt0 in output_variables
                     create_dataset(
@@ -896,7 +909,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
             end
 
-            if wkb_mode !== :NoWKB && state.namelists.turbulence.gw_coupling 
+            if wkb_mode !== :NoWKB && state.namelists.turbulence.gw_coupling
                 if :gw_shear in output_variables
                     attributes(file["gw_shear"])["units"] = "s^-2"
                     attributes(file["gw_shear"])["label"] =

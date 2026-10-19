@@ -743,6 +743,7 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
+    (; tracerdiffusion) = state.tracer.tracerauxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
@@ -750,6 +751,7 @@ end
 
     for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)
+        tracerdiffusion .= chi ./ (rho .+ rhobar)
         for k in k0:k1, j in j0:j1, i in i0:i1
             khd =
                 (
@@ -803,6 +805,9 @@ end
         end
 
         thomas_algorithm!(state)
+
+        tracerdiffusion[i0:i1, j0:j1, k0:k1] .-= fth
+        tracerdiffusion ./= dt
 
         chi[i0:i1, j0:j1, k0:k1] .=
             fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])

@@ -74,6 +74,7 @@ struct Tracer{
     D <: TracerFluxes,
     E <: TracerWKBIntegrals,
     F <: TracerWKBTendencies,
+    G <: TracerAuxiliaries,
 }
     tracerpredictands::A
     tracerincrements::B
@@ -81,6 +82,7 @@ struct Tracer{
     tracerfluxes::D
     tracerwkbintegrals::E
     tracerwkbtendencies::F
+    tracerauxiliaries::G
 end
 
 function Tracer(
@@ -102,6 +104,7 @@ function Tracer(
     tracerincrements = TracerIncrements(namelists, domain)
     tracerreconstructions = TracerReconstructions(namelists, domain)
     tracerfluxes = TracerFluxes(namelists, domain)
+    tracerauxiliaries = TracerAuxiliaries(namelists, domain)
     tracerwkbintegrals = TracerWKBIntegrals(namelists, domain)
     tracerwkbtendencies = TracerWKBTendencies(namelists, domain)
 
@@ -112,5 +115,6 @@ function Tracer(
         tracerfluxes,
         tracerwkbintegrals,
         tracerwkbtendencies,
+        tracerauxiliaries,
     )
 end

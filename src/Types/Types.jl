@@ -278,6 +278,7 @@ export DomainNamelist,
     TurbulenceReconstructions,
     TurbulenceFluxes,
     TurbulenceWKBIntegrals,
+    TracerAuxiliaries,
     TurbulenceWKBTendencies
 
 end

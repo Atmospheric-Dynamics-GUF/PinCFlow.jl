@@ -211,16 +211,16 @@ end
         k,
     ) = parameters
     (; kappa) = state.constants
+    (; lb) = state.turbulence.turbulenceconstants
 
     if (fc != 0.0 && leading_order_impact) ||
        next_order_impact ||
        turbulence_wave_impact
-        dchidx =
-            interpolate_scalar(state, xr, yr, zr, chi ./ (rho .+ rhobar), DX())
-        dchidy =
-            interpolate_scalar(state, xr, yr, zr, chi ./ (rho .+ rhobar), DY())
-        dchidz =
-            interpolate_scalar(state, xr, yr, zr, chi ./ (rho .+ rhobar), DZ())
+        chi ./= (rho .+ rhobar)
+        dchidx = interpolate_scalar(state, xr, yr, zr, chi, DX())
+        dchidy = interpolate_scalar(state, xr, yr, zr, chi, DY())
+        dchidz = interpolate_scalar(state, xr, yr, zr, chi, DZ())
+        chi .*= (rho .+ rhobar)
     end
 
     if fc != 0.0 && leading_order_impact
@@ -281,8 +281,9 @@ end
             bamp
         wamp = 1im * omir / n2r * bamp
         chiamp = -1im / omir * (uamp * dchidx + vamp * dchidy + wamp * dchidz)
-        q0r, q1r, q2r = compute_turbulent_velocity(state, r, i, j, k)
-        qchi[iray, jray, kray] += imag(mr * conj(q1r) * chiamp) * factor
+        q1r, q2r = compute_turbulent_velocity(state, r, i, j, k)
+        qchi[iray, jray, kray] +=
+            lb / 2 * imag(mr * conj(q1r) * chiamp) * factor
     end
 
     return

@@ -59,10 +59,12 @@ function wkb_initialization!(
 
     initialize_rays!(state)
 
-    if tracer_setup === :TracerOn && next_order_impact
-        compute_gw_integrals!(state)
-        set_boundaries!(state, BoundaryWKBIntegrals())
-        smoothing!(state, Integrals())
-    end
+    #if tracer_setup === :TracerOn && next_order_impact
+    compute_gw_integrals!(state)
+    compute_gw_tendencies!(state)
+    set_boundaries!(state, BoundaryWKBTendencies())
+    smoothing!(state, Tendencies())
+    set_boundaries!(state, BoundaryWKBTendencies())
+    #end
     return
 end

@@ -81,8 +81,9 @@ include("compute_horizontal_cell_indices.jl")
 include("compute_mean_flow_effect!.jl")
 include("smoothing!.jl")
 
-export compute_mean_flow_effect!, compute_gw_integrals!, smoothing!
+export compute_mean_flow_effect!,
+    compute_gw_integrals!, smoothing!, compute_gw_tendencies!
 
-export Integrals, LeadingOrder, NextOrder
+export Integrals, LeadingOrder, NextOrder, Tendencies
 
 end

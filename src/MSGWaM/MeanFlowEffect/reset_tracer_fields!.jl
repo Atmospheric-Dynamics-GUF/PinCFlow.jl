@@ -57,6 +57,7 @@ function reset_tracer_fields!(state::State, tracer_setup::Val{:TracerOn})
         :uchi1,
         :vchi1,
         :wchi1,
+        :qchi,
         :uhat,
         :vhat,
         :what,
