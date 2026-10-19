@@ -169,7 +169,7 @@ end
             rays.x[r, i, j, k] = (x[i] - 0.5 * dx + (ix - 0.5) * dx / nrx)
             rays.y[r, i, j, k] = (y[j] - 0.5 * dy + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
-                zc[i, j, k] - 0.5 * jac[i, j, k] * dz +
+                zc[i, j, k] - jac[i, j, k] * dz / 2 +
                 (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 
