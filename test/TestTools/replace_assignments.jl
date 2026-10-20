@@ -27,7 +27,6 @@ function replace_assignments(
 )::AbstractString
     for assignment in assignments
         (name, value) = assignment
-        typeof(value) <: AbstractString && (value = "\"$value\"")
         range = findfirst(Regex("$name *= *"), code)
         if range !== nothing
             (start, stop) = extrema(range)
@@ -43,7 +42,10 @@ function replace_assignments(
                 end
             end
             stop -= 1
-            code = replace(code, code[start:stop] => "$name = $value" * suffix)
+            code = replace(
+                code,
+                code[start:stop] => "$name = $(repr(value))" * suffix,
+            )
         elseif allow_missing_assignments
             println("Warning: No assignment of \"$name\" was found!")
             println("")
