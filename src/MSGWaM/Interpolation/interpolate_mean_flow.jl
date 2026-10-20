@@ -1436,19 +1436,19 @@ end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_levels(il, jb, zlc, state; dku = 1)
+    (klbd, klbu) = get_half_levels(il, jb, zlc, state; dku = 1)
     zlbd = zctilde[il, jb, klbd]
     zlbu = zctilde[il, jb, klbu]
 
-    (klfd, klfu) = get_levels(il, jf, zlc, state; dku = 1)
+    (klfd, klfu) = get_half_levels(il, jf, zlc, state; dku = 1)
     zlfd = zctilde[il, jf, klfd]
     zlfu = zctilde[il, jf, klfu]
 
-    (krbd, krbu) = get_levels(ir, jb, zlc, state; dku = 1)
+    (krbd, krbu) = get_half_levels(ir, jb, zlc, state; dku = 1)
     zrbd = zctilde[ir, jb, krbd]
     zrbu = zctilde[ir, jb, krbu]
 
-    (krfd, krfu) = get_levels(ir, jf, zlc, state; dku = 1)
+    (krfd, krfu) = get_half_levels(ir, jf, zlc, state; dku = 1)
     zrfd = zctilde[ir, jf, krfd]
     zrfu = zctilde[ir, jf, krfu]
 
