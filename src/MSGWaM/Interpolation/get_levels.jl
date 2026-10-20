@@ -5,12 +5,14 @@ get_levels(
     j::Integer,
     z::AbstractFloat,
     state::State;
+    di::Integer = false,
+    dj::Integer = false,
     dkd::Integer = 0,
     dku::Integer = 0,
 )::NTuple{2, <:Integer}
 ```
 
-Determine and return the indices of the levels that enclose `z` at the horizontal position ``\\left(i, j\\right)``.
+Determine and return the indices of the levels that enclose `z` at the horizontal position ``\\left(i, j\\right)``, ``\\left(i + 1 / 2, j\\right)``, ``\\left(i, j + 1 / 2\\right)``, or ``\\left(i + 1 / 2, j + 1 / 2\\right)``, depending on `di` and `dj`.
 
 This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
 
@@ -32,6 +34,10 @@ In case an error is thrown, the parameter `wkb_cfl_number` of the discretization
 
 # Keywords
 
+  - `di`: Switch for shifting the grid to ``i + 1 / 2``.
+
+  - `dj`: Switch for shifting the grid to ``j + 1 / 2``.
+
   - `dkd`: Number of levels needed below.
 
   - `dku`: Number of levels needed above.
@@ -43,6 +49,8 @@ function get_levels end
     j::Integer,
     z::AbstractFloat,
     state::State;
+    di::Integer = false,
+    dj::Integer = false,
     dkd::Integer = 0,
     dku::Integer = 0,
 )::NTuple{2, <:Integer}
@@ -51,7 +59,12 @@ function get_levels end
     (; zc) = state.grid
 
     ku = 1
-    while zc[i, j, ku] < z
+    while (
+        zc[i, j, ku] +
+        zc[i + di, j, ku] +
+        zc[i, j + dj, ku] +
+        zc[i + di, j + dj, ku]
+    ) / 4 < z
         ku += 1
     end
     kd = ku - 1
