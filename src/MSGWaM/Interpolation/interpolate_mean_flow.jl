@@ -232,19 +232,19 @@ function interpolate_mean_flow end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_levels(il, jb, zlc, state)
+    (klbd, klbu) = get_levels(il, jb, zlc, state; di = true)
     zlbd = (zc[il, jb, klbd] + zc[il + 1, jb, klbd]) / 2
     zlbu = (zc[il, jb, klbu] + zc[il + 1, jb, klbu]) / 2
 
-    (klfd, klfu) = get_levels(il, jf, zlc, state)
+    (klfd, klfu) = get_levels(il, jf, zlc, state; di = true)
     zlfd = (zc[il, jf, klfd] + zc[il + 1, jf, klfd]) / 2
     zlfu = (zc[il, jf, klfu] + zc[il + 1, jf, klfu]) / 2
 
-    (krbd, krbu) = get_levels(ir, jb, zlc, state)
+    (krbd, krbu) = get_levels(ir, jb, zlc, state; di = true)
     zrbd = (zc[ir, jb, krbd] + zc[ir + 1, jb, krbd]) / 2
     zrbu = (zc[ir, jb, krbu] + zc[ir + 1, jb, krbu]) / 2
 
-    (krfd, krfu) = get_levels(ir, jf, zlc, state)
+    (krfd, krfu) = get_levels(ir, jf, zlc, state; di = true)
     zrfd = (zc[ir, jf, krfd] + zc[ir + 1, jf, krfd]) / 2
     zrfu = (zc[ir, jf, krfu] + zc[ir + 1, jf, krfu]) / 2
 
@@ -345,19 +345,19 @@ end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_levels(il, jb, zlc, state)
+    (klbd, klbu) = get_levels(il, jb, zlc, state; dj = true)
     zlbd = (zc[il, jb, klbd] + zc[il, jb + 1, klbd]) / 2
     zlbu = (zc[il, jb, klbu] + zc[il, jb + 1, klbu]) / 2
 
-    (klfd, klfu) = get_levels(il, jf, zlc, state)
+    (klfd, klfu) = get_levels(il, jf, zlc, state; dj = true)
     zlfd = (zc[il, jf, klfd] + zc[il, jf + 1, klfd]) / 2
     zlfu = (zc[il, jf, klfu] + zc[il, jf + 1, klfu]) / 2
 
-    (krbd, krbu) = get_levels(ir, jb, zlc, state)
+    (krbd, krbu) = get_levels(ir, jb, zlc, state; dj = true)
     zrbd = (zc[ir, jb, krbd] + zc[ir, jb + 1, krbd]) / 2
     zrbu = (zc[ir, jb, krbu] + zc[ir, jb + 1, krbu]) / 2
 
-    (krfd, krfu) = get_levels(ir, jf, zlc, state)
+    (krfd, krfu) = get_levels(ir, jf, zlc, state; dj = true)
     zrfd = (zc[ir, jf, krfd] + zc[ir, jf + 1, krfd]) / 2
     zrfu = (zc[ir, jf, krfu] + zc[ir, jf + 1, krfu]) / 2
 
@@ -568,7 +568,8 @@ end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_levels(il, jb, zlc, state; dkd = 1, dku = 1)
+    (klbd, klbu) =
+        get_levels(il, jb, zlc, state; di = true, dj = true, dkd = 1, dku = 1)
     zlbd =
         (
             zc[il, jb, klbd] +
@@ -584,7 +585,8 @@ end
             zc[il + 1, jb + 1, klbu]
         ) / 4
 
-    (klfd, klfu) = get_levels(il, jf, zlc, state; dkd = 1, dku = 1)
+    (klfd, klfu) =
+        get_levels(il, jf, zlc, state; di = true, dj = true, dkd = 1, dku = 1)
     zlfd =
         (
             zc[il, jf, klfd] +
@@ -600,7 +602,8 @@ end
             zc[il + 1, jf + 1, klfu]
         ) / 4
 
-    (krbd, krbu) = get_levels(ir, jb, zlc, state; dkd = 1, dku = 1)
+    (krbd, krbu) =
+        get_levels(ir, jb, zlc, state; di = true, dj = true, dkd = 1, dku = 1)
     zrbd =
         (
             zc[ir, jb, krbd] +
@@ -616,7 +619,8 @@ end
             zc[ir + 1, jb + 1, krbu]
         ) / 4
 
-    (krfd, krfu) = get_levels(ir, jf, zlc, state; dkd = 1, dku = 1)
+    (krfd, krfu) =
+        get_levels(ir, jf, zlc, state; di = true, dj = true, dkd = 1, dku = 1)
     zrfd =
         (
             zc[ir, jf, krfd] +
@@ -726,19 +730,19 @@ end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_half_levels(il, jb, zlc, state; dku = 1)
+    (klbd, klbu) = get_half_levels(il, jb, zlc, state; di = true, dku = 1)
     zlbd = (zctilde[il, jb, klbd] + zctilde[il + 1, jb, klbd]) / 2
     zlbu = (zctilde[il, jb, klbu] + zctilde[il + 1, jb, klbu]) / 2
 
-    (klfd, klfu) = get_half_levels(il, jf, zlc, state; dku = 1)
+    (klfd, klfu) = get_half_levels(il, jf, zlc, state; di = true, dku = 1)
     zlfd = (zctilde[il, jf, klfd] + zctilde[il + 1, jf, klfd]) / 2
     zlfu = (zctilde[il, jf, klfu] + zctilde[il + 1, jf, klfu]) / 2
 
-    (krbd, krbu) = get_half_levels(ir, jb, zlc, state; dku = 1)
+    (krbd, krbu) = get_half_levels(ir, jb, zlc, state; di = true, dku = 1)
     zrbd = (zctilde[ir, jb, krbd] + zctilde[ir + 1, jb, krbd]) / 2
     zrbu = (zctilde[ir, jb, krbu] + zctilde[ir + 1, jb, krbu]) / 2
 
-    (krfd, krfu) = get_half_levels(ir, jf, zlc, state; dku = 1)
+    (krfd, krfu) = get_half_levels(ir, jf, zlc, state; di = true, dku = 1)
     zrfd = (zctilde[ir, jf, krfd] + zctilde[ir + 1, jf, krfd]) / 2
     zrfu = (zctilde[ir, jf, krfu] + zctilde[ir + 1, jf, krfu]) / 2
 
@@ -841,7 +845,8 @@ end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_levels(il, jb, zlc, state; dkd = 1, dku = 1)
+    (klbd, klbu) =
+        get_levels(il, jb, zlc, state; di = true, dj = true, dkd = 1, dku = 1)
     zlbd =
         (
             zc[il, jb, klbd] +
@@ -857,7 +862,8 @@ end
             zc[il + 1, jb + 1, klbu]
         ) / 4
 
-    (klfd, klfu) = get_levels(il, jf, zlc, state; dkd = 1, dku = 1)
+    (klfd, klfu) =
+        get_levels(il, jf, zlc, state; di = true, dj = true, dkd = 1, dku = 1)
     zlfd =
         (
             zc[il, jf, klfd] +
@@ -873,7 +879,8 @@ end
             zc[il + 1, jf + 1, klfu]
         ) / 4
 
-    (krbd, krbu) = get_levels(ir, jb, zlc, state; dkd = 1, dku = 1)
+    (krbd, krbu) =
+        get_levels(ir, jb, zlc, state; di = true, dj = true, dkd = 1, dku = 1)
     zrbd =
         (
             zc[ir, jb, krbd] +
@@ -889,7 +896,8 @@ end
             zc[ir + 1, jb + 1, krbu]
         ) / 4
 
-    (krfd, krfu) = get_levels(ir, jf, zlc, state; dkd = 1, dku = 1)
+    (krfd, krfu) =
+        get_levels(ir, jf, zlc, state; di = true, dj = true, dkd = 1, dku = 1)
     zrfd =
         (
             zc[ir, jf, krfd] +
@@ -1104,19 +1112,19 @@ end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_half_levels(il, jb, zlc, state; dku = 1)
+    (klbd, klbu) = get_half_levels(il, jb, zlc, state; dj = true, dku = 1)
     zlbd = (zctilde[il, jb, klbd] + zctilde[il, jb + 1, klbd]) / 2
     zlbu = (zctilde[il, jb, klbu] + zctilde[il, jb + 1, klbu]) / 2
 
-    (klfd, klfu) = get_half_levels(il, jf, zlc, state; dku = 1)
+    (klfd, klfu) = get_half_levels(il, jf, zlc, state; dj = true, dku = 1)
     zlfd = (zctilde[il, jf, klfd] + zctilde[il, jf + 1, klfd]) / 2
     zlfu = (zctilde[il, jf, klfu] + zctilde[il, jf + 1, klfu]) / 2
 
-    (krbd, krbu) = get_half_levels(ir, jb, zlc, state; dku = 1)
+    (krbd, krbu) = get_half_levels(ir, jb, zlc, state; dj = true, dku = 1)
     zrbd = (zctilde[ir, jb, krbd] + zctilde[ir, jb + 1, krbd]) / 2
     zrbu = (zctilde[ir, jb, krbu] + zctilde[ir, jb + 1, krbu]) / 2
 
-    (krfd, krfu) = get_half_levels(ir, jf, zlc, state; dku = 1)
+    (krfd, krfu) = get_half_levels(ir, jf, zlc, state; dj = true, dku = 1)
     zrfd = (zctilde[ir, jf, krfd] + zctilde[ir, jf + 1, krfd]) / 2
     zrfu = (zctilde[ir, jf, krfu] + zctilde[ir, jf + 1, krfu]) / 2
 
@@ -1214,19 +1222,19 @@ end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_levels(il, jb, zlc, state; dkd = 1, dku = 1)
+    (klbd, klbu) = get_levels(il, jb, zlc, state; di = true, dkd = 1, dku = 1)
     zlbd = (zc[il, jb, klbd] + zc[il + 1, jb, klbd]) / 2
     zlbu = (zc[il, jb, klbu] + zc[il + 1, jb, klbu]) / 2
 
-    (klfd, klfu) = get_levels(il, jf, zlc, state; dkd = 1, dku = 1)
+    (klfd, klfu) = get_levels(il, jf, zlc, state; di = true, dkd = 1, dku = 1)
     zlfd = (zc[il, jf, klfd] + zc[il + 1, jf, klfd]) / 2
     zlfu = (zc[il, jf, klfu] + zc[il + 1, jf, klfu]) / 2
 
-    (krbd, krbu) = get_levels(ir, jb, zlc, state; dkd = 1, dku = 1)
+    (krbd, krbu) = get_levels(ir, jb, zlc, state; di = true, dkd = 1, dku = 1)
     zrbd = (zc[ir, jb, krbd] + zc[ir + 1, jb, krbd]) / 2
     zrbu = (zc[ir, jb, krbu] + zc[ir + 1, jb, krbu]) / 2
 
-    (krfd, krfu) = get_levels(ir, jf, zlc, state; dkd = 1, dku = 1)
+    (krfd, krfu) = get_levels(ir, jf, zlc, state; di = true, dkd = 1, dku = 1)
     zrfd = (zc[ir, jf, krfd] + zc[ir + 1, jf, krfd]) / 2
     zrfu = (zc[ir, jf, krfu] + zc[ir + 1, jf, krfu]) / 2
 
@@ -1323,19 +1331,19 @@ end
 
     # Locate the closest points in vertical direction.
 
-    (klbd, klbu) = get_levels(il, jb, zlc, state; dkd = 1, dku = 1)
+    (klbd, klbu) = get_levels(il, jb, zlc, state; dj = true, dkd = 1, dku = 1)
     zlbd = (zc[il, jf, klbd] + zc[il, jf + 1, klbd]) / 2
     zlbu = (zc[il, jf, klbu] + zc[il, jf + 1, klbu]) / 2
 
-    (klfd, klfu) = get_levels(il, jf, zlc, state; dkd = 1, dku = 1)
+    (klfd, klfu) = get_levels(il, jf, zlc, state; dj = true, dkd = 1, dku = 1)
     zlfd = (zc[il, jf, klfd] + zc[il, jf + 1, klfd]) / 2
     zlfu = (zc[il, jf, klfu] + zc[il, jf + 1, klfu]) / 2
 
-    (krbd, krbu) = get_levels(ir, jb, zlc, state; dkd = 1, dku = 1)
+    (krbd, krbu) = get_levels(ir, jb, zlc, state; dj = true, dkd = 1, dku = 1)
     zrbd = (zc[ir, jb, krbd] + zc[ir, jb + 1, krbd]) / 2
     zrbu = (zc[ir, jb, krbu] + zc[ir, jb + 1, krbu]) / 2
 
-    (krfd, krfu) = get_levels(ir, jf, zlc, state; dkd = 1, dku = 1)
+    (krfd, krfu) = get_levels(ir, jf, zlc, state; dj = true, dkd = 1, dku = 1)
     zrfd = (zc[ir, jf, krfd] + zc[ir, jf + 1, krfd]) / 2
     zrfu = (zc[ir, jf, krfu] + zc[ir, jf + 1, krfu]) / 2
 
