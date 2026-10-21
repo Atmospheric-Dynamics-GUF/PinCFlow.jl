@@ -117,7 +117,7 @@ function write_output end
     (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
-    (; rho, rhop, u, v, w, pip, p) = predictands
+    (; rho, rhop, u, v, w, pip) = predictands
     (; bins, rays, tendencies, integrals) = state.wkb
 
     # Print information.
@@ -192,7 +192,8 @@ function write_output end
 
             # Write the mass-weighted potential temperature.
             HDF5.set_extent_dims(file["p"], (x_size, y_size, z_size, iout))
-            file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
+            file["p"][iid, jjd, kkd, iout] =
+                pbar[ii, jj, kk] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.
