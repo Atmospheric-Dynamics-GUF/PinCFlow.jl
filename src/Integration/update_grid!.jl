@@ -1,6 +1,6 @@
 """
 ```julia
-update_vertical_grid!(state::State, time::AbstractFloat)
+update_grid!(state::State, time::AbstractFloat)
 ```
 
 Update the vertical grid by recomputing it, interpolating all predictands to the new grid, recomputing the atmospheric background fields, and shifting MS-GWaM's ray volumes such that they are assigned to the correct grid cells.
@@ -11,9 +11,9 @@ Update the vertical grid by recomputing it, interpolating all predictands to the
 
   - `time`: Simulation time.
 """
-function update_vertical_grid! end
+function update_grid! end
 
-function update_vertical_grid!(state::State, time::AbstractFloat)
+function update_grid!(state::State, time::AbstractFloat)
     (; namelists, constants, domain, grid, atmosphere) = state
     (; i0, i1, j0, j1, k0, k1) = domain
     (; zc, zctilde, zcnew, zctildenew) = grid
@@ -22,7 +22,7 @@ function update_vertical_grid!(state::State, time::AbstractFloat)
     (; tracerbackups, tracerpredictands) = state.tracer
     (; turbulencebackups, turbulencepredictands) = state.turbulence
 
-    changes = compute_vertical_grid!(namelists, constants, domain, grid, time)
+    changes = compute_new_grid!(namelists, constants, domain, grid, time)
 
     if changes == 0
         return

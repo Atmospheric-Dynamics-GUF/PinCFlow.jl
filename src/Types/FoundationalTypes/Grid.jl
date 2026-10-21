@@ -46,7 +46,7 @@ The vertical layer centers and edges of the stretched transformed grid are given
 \\end{align*}
 ```
 
-where ``s`` represents the vertical grid stretching (`namelists.grid.vertical_grid_stretching`). The resolved and unresolved topography, Jacobian, metric-tensor elements, physical layers, and minimum layer depth are calculated with `compute_vertical_grid!`.
+where ``s`` represents the vertical grid stretching (`namelists.grid.vertical_grid_stretching`). The resolved and unresolved topography, Jacobian, metric-tensor elements, physical layers, and minimum layer depth are calculated with `compute_new_grid!`.
 
 # Fields
 
@@ -124,7 +124,7 @@ Minimum layer depth:
 
 # See also
 
-  - [`PinCFlow.Types.FoundationalTypes.compute_vertical_grid!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.compute_new_grid!`](@ref)
 """
 struct Grid{
     A <: AbstractFloat,
@@ -270,7 +270,7 @@ end
         Ref(dz),
     )
 
-    compute_vertical_grid!(namelists, constants, domain, grid, 0.0)
+    compute_new_grid!(namelists, constants, domain, grid, 0.0)
 
     grid.zc .= grid.zcnew
     grid.zctilde .= grid.zctildenew

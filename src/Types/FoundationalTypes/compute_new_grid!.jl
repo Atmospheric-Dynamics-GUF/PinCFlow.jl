@@ -1,6 +1,6 @@
 """
 ```julia
-compute_vertical_grid!(
+compute_new_grid!(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -56,9 +56,9 @@ This function changes the fields `zcnew` and `zctildenew` of `grid` accordingly 
 
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
-function compute_vertical_grid! end
+function compute_new_grid! end
 
-@ivy function compute_vertical_grid!(
+@ivy function compute_new_grid!(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,

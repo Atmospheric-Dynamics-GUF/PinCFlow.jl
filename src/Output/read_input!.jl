@@ -50,7 +50,7 @@ function read_input! end
         time = file["t"][iin == -1 ? end : iin] / tref
 
         # Update the grid.
-        compute_vertical_grid!(namelists, constants, domain, grid, time)
+        compute_new_grid!(namelists, constants, domain, grid, time)
         zc .= zcnew
         zctilde .= zctildenew
 

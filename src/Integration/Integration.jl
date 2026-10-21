@@ -90,7 +90,7 @@ include("wkb_integration!.jl")
 include("backup_predictands.jl")
 include("turbulence_integration!.jl")
 include("reduce_exceptions.jl")
-include("update_vertical_grid!.jl")
+include("update_grid!.jl")
 
 export integrate
 

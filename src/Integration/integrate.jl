@@ -342,7 +342,7 @@ function integrate(
 
         time += dt
 
-        update_vertical_grid!(state, time)
+        update_grid!(state, time)
 
         #-----------------------------------------------------------------
         #                           Sponges
