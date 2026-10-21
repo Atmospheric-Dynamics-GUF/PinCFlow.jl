@@ -5,8 +5,8 @@ get_levels(
     j::Integer,
     z::AbstractFloat,
     state::State;
-    di::Integer = false,
-    dj::Integer = false,
+    di::Bool = false,
+    dj::Bool = false,
     dkd::Integer = 0,
     dku::Integer = 0,
 )::NTuple{2, <:Integer}
@@ -49,8 +49,8 @@ function get_levels end
     j::Integer,
     z::AbstractFloat,
     state::State;
-    di::Integer = false,
-    dj::Integer = false,
+    di::Bool = false,
+    dj::Bool = false,
     dkd::Integer = 0,
     dku::Integer = 0,
 )::NTuple{2, <:Integer}
