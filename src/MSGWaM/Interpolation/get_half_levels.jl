@@ -55,7 +55,7 @@ function get_half_levels end
     dj::Bool = false,
     dkd::Integer = 0,
     dku::Integer = 0,
-    old_grid::Boold = false,
+    old_grid::Bool = false,
 )::NTuple{2, <:Integer}
     (; grid) = state
     (; z_size) = state.namelists.domain
